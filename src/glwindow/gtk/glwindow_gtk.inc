@@ -1513,6 +1513,16 @@ begin
   Result := Data.Answer;
 end;
 
+function GtkVersionAtLeast(const Major, Minor, Micro: Cardinal): boolean;
+begin
+  Result :=
+     (gtk_major_version > Major) or
+    ((gtk_major_version = Major) and
+       (gtk_minor_version > Minor) or
+      ((gtk_minor_version = Minor) and
+         (gtk_micro_version >= Micro) ));
+end;
+
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
 
@@ -1620,7 +1630,7 @@ begin
       if (faDirectory and SearchRecord.Attr) <> 0 then
         gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else
       begin
-        if HasDefaultFilter then
+        if HasDefaultFilter and not GtkVersionAtLeast(2, 24, 4) then
         begin
           { Unfortunately, the default filter will be ignored after
             gtk_file_chooser_set_filename
@@ -1636,7 +1646,7 @@ begin
             after setting dir has no effect, no idea why.
 
             This problem is present in GTK 2.18 (Debian lenny),
-            not present in GTK 2.24 (Debian wheezy on 2011-07). }
+            not present in GTK 2.24.4 (Debian wheezy on 2011-07, also Ubuntu 11.4). }
           ExpandedFileName := ExtractFilePath(ExpandedFileName);
           gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName));
         end else
