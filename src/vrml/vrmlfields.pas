@@ -3453,7 +3453,7 @@ begin
             end;
 
             Writer.DecIndent;
-            Writer.WritelnIndent(']');
+            Writer.WriteIndent(']');
           end;
       end;
     xeXML:
