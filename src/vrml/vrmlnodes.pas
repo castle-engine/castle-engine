@@ -3260,7 +3260,9 @@ end;
 procedure TMFNode.SaveToStreamValue(Writer: TX3DWriter);
 var
   I: Integer;
+  N: string;
 begin
+  N := NameForVersion(Writer.Version);
   case Writer.Encoding of
     xeClassic:
       { We code Count = 0 and Count = 1 cases separately just to get a more
@@ -3273,19 +3275,22 @@ begin
           In this case, we want it to start on the same line, so indent must
           be discarded. }
         Writer.DiscardNextIndent;
-        Items[0].SaveToStream(Writer);
+        Items[0].NodeSaveToStream(Writer, N);
       end else
       begin
         Writer.Writeln('[');
         Writer.IncIndent;
         for I := 0 to Count - 1 do
-          Items[I].SaveToStream(Writer);
+        begin
+          Items[I].NodeSaveToStream(Writer, N);
+          Writer.Writeln;
+        end;
         Writer.DecIndent;
         Writer.WriteIndent(']');
       end;
     xeXML:
       for I := 0 to Count - 1 do
-        Items[I].NodeSaveToStream(Writer, NameForVersion(Writer.Version));
+        Items[I].NodeSaveToStream(Writer, N);
     else raise EInternalError.Create('TMFNode.SaveToStreamValue Encoding?');
   end;
 end;

@@ -2354,6 +2354,7 @@ end;
 procedure TVRMLNode.SaveToStream(Writer: TX3DWriter);
 begin
   NodeSaveToStream(Writer);
+  if Writer.Encoding = xeClassic then Writer.Writeln;
 end;
 
 procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerField: string);
@@ -2465,7 +2466,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
   begin
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
-      Writer.WritelnIndent('USE ' + NodeName);
+      Writer.WriteIndent('USE ' + NodeName);
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2487,7 +2488,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
           Writer.WritelnIndent(Format('%s IS %s', [NodeFields[I], ProtoFields[I]]));
         Writer.DecIndent;
 
-        Writer.WritelnIndent('}');
+        Writer.WriteIndent('}');
       finally
         FreeAndNil(NodeFields);
         FreeAndNil(ProtoFields);
