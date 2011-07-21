@@ -359,8 +359,9 @@
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    { Load shader code from node's URLs (or CDATA).
-      Will return '' if no valid URLs and no CDATA present.
+    { Load shader code from node's URLs.
+      Will return '' if no valid URLs are present.
+      Note that in XML encoding, URLs also contain XML CDATA.
       Sets UsedFullUrl. }
     function LoadContents: string;
 

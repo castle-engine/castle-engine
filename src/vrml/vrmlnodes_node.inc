@@ -61,9 +61,7 @@
     FDefaultContainerField: string;
     FHasInterfaceDeclarations: TVRMLAccessTypes;
     FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
-    FCDataAllowed: boolean;
-    FCDataExists: boolean;
-    FCData: string;
+    FCDataField: TMFString;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FScene: TVRMLEventsEngine;
     FShapeTrees: TObject;
@@ -212,6 +210,20 @@
     procedure ParseAfter(Names: TVRMLNames); virtual;
 
     procedure CreateNode; virtual;
+
+    { The field where CDATA section from XML is added.
+      Used when loading X3D in XML encoding: XML elements may contain
+      CDATA sections, that are added to "url" field.
+      See X3D XML encoding specification about
+      "Encapsulating Script node code"
+      [http://www.web3d.org/x3d/specifications/ISO-IEC-19776-1.2-X3DEncodings-XML/Part01/concepts.html#EncapsulatingScriptNodeCode].
+      We also allow this for shader nodes (sensible (follows the intention
+      of the spec) and compatible with InstantReality).
+
+      When not assigned, then CDATA section for this node is not allowed.
+
+      This should be set in descendants constructor. }
+    property CDataField: TMFString read FCDataField write FCDataField;
   public
     { Node fields.
 
@@ -930,28 +942,6 @@
       read FInterfaceDeclarations;
     { @groupEnd }
 
-    { Does this node allow CDATA section when encoded in XML.
-      See X3D XML encoding specification about
-      "Encapsulating Script node code", instantreality also uses
-      CDATA to encode shader source code within XML file and this
-      seems sensible (following the intention of the spec?).
-
-      This is only used to produce eventual warnings when CDATA is
-      encountered. Whether or not CDataAllowed is @true, we will parse
-      CDATA anyway into @link(CData) value.
-
-      This should be set in descendants constructor. }
-    property CDataAllowed: boolean read FCDataAllowed write FCDataAllowed;
-
-    { CDATA section when this node is encoded in XML.
-      See X3D XML encoding specification.
-      When CDataExists = @false, CData is always empty.
-
-      @groupBegin }
-    property CDataExists: boolean read FCDataExists write FCDataExists;
-    property CData: string read FCData write FCData;
-    { @groupEnd }
-
     { Functions registered here will be called when this TVRMLNode descendant
       will be destroyed. }
     property DestructionNotifications: TDynNodeDestructionNotificationArray
@@ -1530,10 +1520,6 @@ var
 begin
   VRML1ChildrenClear;
 
-  { In classic VRML encoding, CDATA never exists. }
-  CDataExists := false;
-  CData := '';
-
   Position := 0;
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
@@ -1954,6 +1940,8 @@ var
   procedure ParseXMLCdata;
   var
     I: TXMLCDataIterator;
+    CDataExists: boolean;
+    CData: string;
   begin
     CDataExists := false;
     CData := '';
@@ -1963,15 +1951,17 @@ var
       if I.GetNext then
       begin
         CDataExists := true;
-        if not CDataAllowed then
-          VRMLWarning(vwSerious, Format('VRML / X3D node %s doesn''t allow CDATA section, but it''s specified',
-            [NodeTypeName]));
-        { append all CData sections to CData }
         repeat
           CData := CData + I.Current;
         until not I.GetNext;
       end;
     finally FreeAndNil(I) end;
+
+    if CDataExists then
+      if CDataField <> nil then
+        CDataField.Items.Add(CData) else
+        VRMLWarning(vwSerious, Format('VRML/X3D node %s doesn''t allow CDATA section, but it''s specified',
+          [NodeTypeName]));
   end;
 
 begin
@@ -1981,6 +1971,8 @@ begin
     is significant. }
   ParseXMLAttributes;
   ParseXMLChildrenNodes;
+  { This must be called *after* parsing fields, to add CDATA at the *end*
+    of "url" fields, like spec requires. }
   ParseXMLCdata;
 
   ParseAfter(Names);
@@ -3026,10 +3018,6 @@ begin
       if PrototypeInstanceHelpers <> nil then
         Result.FPrototypeInstanceHelpers := CopyState.DeepCopy(PrototypeInstanceHelpers);
     end;
-
-    Result.CDataAllowed := CDataAllowed;
-    Result.CDataExists := CDataExists;
-    Result.CData := CData;
 
     Result.DefaultContainerField := DefaultContainerField;
   except

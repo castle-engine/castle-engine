@@ -97,6 +97,15 @@ begin
   { X3D specification comment: [URI] }
 
   DefaultContainerField := 'children';
+
+  { VRML 97 says this is RestrictedAccessTypes.
+    X3D (both the general spec, and X3D classic encoding grammar,
+    so it's not by accident) allows here all access types, including inputOutput.
+    Some x3d-public mails confirm this was intentionally limited
+    (easier definition) in VRML 97, and intentionally improved in X3D. }
+  HasInterfaceDeclarations := AllAccessTypes;
+
+  CDataField := FdUrl;
 end;
 
 destructor TNodeX3DScriptNode.Destroy;
@@ -324,12 +333,6 @@ begin
         end;
       end;
 
-      if (not ValidUrlFound) and CDataExists then
-      begin
-        if LoadUrl(CData, FailedUrlsLog) then
-          ValidUrlFound := true;
-      end;
-
       if ValidUrlFound then
       begin
         FInitialized := Value;
@@ -367,14 +370,6 @@ begin
   Fields.Add(FFdmustEvaluate);
 
   DefaultContainerField := 'children';
-
-  { VRML 97 says this is RestrictedAccessTypes.
-    But X3D, (both the general spec, and X3D classic encoding grammar,
-    so it's not by accident) allows here all access types,
-    including inputOutput. }
-  HasInterfaceDeclarations := AllAccessTypes;
-
-  CDataAllowed := true;
 end;
 
 class function TNodeScript.ClassNodeTypeName: string;

@@ -141,11 +141,10 @@
     private FFdtype: TSFStringShaderType;
     public property Fdtype: TSFStringShaderType read FFdtype;
 
-    { Load shader code from node's URLs (or CDATA).
-
-      Will return '' if no valid URLs and no CDATA present.
-      (assuming that VRMLWarning will not raise
-      an exception; if VRMLWarning will raise exception,
+    { Load shader code from node's URLs.
+      Will return '' if no valid URLs present.
+      (Assuming that VRMLWarning will not raise
+      an exception. If VRMLWarning will raise exception,
       then this will propagate this exception).
 
       Sets UsedFullUrl. }
@@ -153,8 +152,7 @@
 
     { Once the LoadContents is called, this is set to the URL that was used to load
       the shader contents, or '' if no URL was used, or something
-      special if shader contents came from CDATA (X3D XML encoding)
-      or were inlined inside URL.
+      special if shader contents came inlined inside URL.
 
       This is always a full, expanded (i.e. not relative) URL. }
     property UsedFullUrl: string read FUsedFullUrl;
@@ -326,7 +324,7 @@ begin
   { X3D specification comment: [URI] }
 
   HasInterfaceDeclarations := AllAccessTypes;
-  CDataAllowed := true;
+  CDataField := FdUrl;
 end;
 
 class function TNodePackagedShader.ClassNodeTypeName: string;
@@ -413,8 +411,7 @@ begin
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
   DefaultContainerField := 'parts';
-
-  CDataAllowed := true;
+  CDataField := FdUrl;
 end;
 
 class function TNodeShaderPart.ClassNodeTypeName: string;
@@ -505,12 +502,6 @@ begin
       end;
     end;
   end;
-
-  if Node.CDataExists then
-  begin
-    Result := Node.CData;
-    UsedFullUrl := '#CDATA';
-  end;
 end;
 
 function TNodeShaderPart.LoadContents: string;
@@ -540,7 +531,7 @@ begin
   DefaultContainerField := 'programs';
 
   HasInterfaceDeclarations := AllAccessTypes;
-  CDataAllowed := true;
+  CDataField := FdUrl;
 end;
 
 class function TNodeShaderProgram.ClassNodeTypeName: string;
