@@ -102,8 +102,8 @@ WWW:
   Maybe also rework demo_models layout to be more feature-oriented even more?
   Ideally, no vrml_1/2/x3d subdirs at top-level.
 
-- "How you can help" page, move donation links there,
-  also mention "Add wikipedia article about our engine" (preferably redirecting view3dscene -> there)
+- "How you can help" page started on how_you_can_help.php.
+  Where to link?
 
 - wp-embed? everywhere - vrmleng, michalis?
   http://embedwordpress.com/ - nope, that's more a description how to create wordpress themes...
