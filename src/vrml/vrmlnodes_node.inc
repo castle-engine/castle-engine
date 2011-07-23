@@ -813,7 +813,7 @@
       Nodes are traversed in depth-first search. Node is first reported
       to Func, and then (if it's not replaced) we descend into this Node.
 
-      @returns The number of removed nodes. }
+      @returns The number of removed (and possibly replaced) nodes. }
     function EnumerateReplaceChildren(
       Func: TEnumerateReplaceNodesFunction): Cardinal;
 
