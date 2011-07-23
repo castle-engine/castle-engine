@@ -152,6 +152,8 @@ begin
     Assert(false, 'unknown AccessTypeName "' + AccessTypeName + '"');
 
   FieldName := NextToken(Line, SeekPos, WhiteSpaces);
+  { TODO: uppercase first letter of FieldName. While compiler ignores case,
+    it's still better to use nice case, as users will see this at auto-completion. }
 
   while SCharIs(Line, SeekPos, WhiteSpaces) do Inc(SeekPos);
 
