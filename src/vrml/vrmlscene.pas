@@ -1090,7 +1090,7 @@ type
       if you have ProcessEvents.
 
       That's why it is possible to change RootNode and it is even
-      possible to set it to nil. And when When RootNode = nil everything
+      possible to set it to nil. And when RootNode = nil everything
       should work -- you can query such scene (with RootNode = nil)
       for Vertices/TrianglesCount (answer will be 0),
       for BoundingBox (answer will be EmptyBox3D),
