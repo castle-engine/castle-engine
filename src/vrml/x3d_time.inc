@@ -20,14 +20,14 @@
   INodeX3DTimeDependentNode = interface(INodeX3DChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
   (*
-    property Fdloop: TSFBool { read FFdloop } { };
-    property FdpauseTime: TSFTime { read FFdpauseTime } { };
-    property FdresumeTime: TSFTime { read FFdresumeTime } { };
-    property FdstartTime: TSFTime { read FFdstartTime } { };
-    property FdstopTime: TSFTime { read FFdstopTime } { };
-    property EventelapsedTime: TVRMLEvent { read FEventelapsedTime } { };
-    property EventisActive: TVRMLEvent { read FEventisActive } { };
-    property EventisPaused: TVRMLEvent { read FEventisPaused } { };
+    property FdLoop: TSFBool { read FFdLoop } { };
+    property FdPauseTime: TSFTime { read FFdPauseTime } { };
+    property FdResumeTime: TSFTime { read FFdResumeTime } { };
+    property FdStartTime: TSFTime { read FFdStartTime } { };
+    property FdStopTime: TSFTime { read FFdStopTime } { };
+    property EventElapsedTime: TVRMLEvent { read FEventElapsedTime } { };
+    property EventIsActive: TVRMLEvent { read FEventIsActive } { };
+    property EventIsPaused: TVRMLEvent { read FEventIsPaused } { };
   *)
 
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
@@ -134,32 +134,32 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdloop: TSFBool;
-    public property Fdloop: TSFBool read FFdloop;
+    private FFdLoop: TSFBool;
+    public property FdLoop: TSFBool read FFdLoop;
 
-    private FFdpauseTime: TSFTime;
-    public property FdpauseTime: TSFTime read FFdpauseTime;
+    private FFdPauseTime: TSFTime;
+    public property FdPauseTime: TSFTime read FFdPauseTime;
 
-    private FFdresumeTime: TSFTime;
-    public property FdresumeTime: TSFTime read FFdresumeTime;
+    private FFdResumeTime: TSFTime;
+    public property FdResumeTime: TSFTime read FFdResumeTime;
 
-    private FFdstartTime: TSFTime;
-    public property FdstartTime: TSFTime read FFdstartTime;
+    private FFdStartTime: TSFTime;
+    public property FdStartTime: TSFTime read FFdStartTime;
 
-    private FFdstopTime: TSFTime;
-    public property FdstopTime: TSFTime read FFdstopTime;
+    private FFdStopTime: TSFTime;
+    public property FdStopTime: TSFTime read FFdStopTime;
 
     { Event: SFTime, out } { }
-    private FEventelapsedTime: TVRMLEvent;
-    public property EventelapsedTime: TVRMLEvent read FEventelapsedTime;
+    private FEventElapsedTime: TVRMLEvent;
+    public property EventElapsedTime: TVRMLEvent read FEventElapsedTime;
 
     { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FEventIsActive: TVRMLEvent;
+    public property EventIsActive: TVRMLEvent read FEventIsActive;
 
     { Event: SFBool, out } { }
-    private FEventisPaused: TVRMLEvent;
-    public property EventisPaused: TVRMLEvent read FEventisPaused;
+    private FEventIsPaused: TVRMLEvent;
+    public property EventIsPaused: TVRMLEvent read FEventIsPaused;
 
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read FTimeDependentNodeHandler;
@@ -177,23 +177,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcycleInterval: TSFTime;
-    public property FdcycleInterval: TSFTime read FFdcycleInterval;
+    private FFdCycleInterval: TSFTime;
+    public property FdCycleInterval: TSFTime read FFdCycleInterval;
 
     { Event: SFTime, out } { }
-    private FEventcycleTime: TVRMLEvent;
-    public property EventcycleTime: TVRMLEvent read FEventcycleTime;
+    private FEventCycleTime: TVRMLEvent;
+    public property EventCycleTime: TVRMLEvent read FEventCycleTime;
 
     { Event: SFFloat, out } { }
-    private FEventfraction_changed: TVRMLEvent;
-    public property Eventfraction_changed: TVRMLEvent read FEventfraction_changed;
+    private FEventFraction_changed: TVRMLEvent;
+    public property EventFraction_changed: TVRMLEvent read FEventFraction_changed;
 
     { Event: SFTime, out } { }
-    private FEventtime: TVRMLEvent;
-    public property Eventtime: TVRMLEvent read FEventtime;
+    private FEventTime: TVRMLEvent;
+    public property EventTime: TVRMLEvent read FEventTime;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
 {$endif read_interface}
@@ -604,11 +604,11 @@ begin
 
   FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
   FTimeDependentNodeHandler.Node := Self;
-  FTimeDependentNodeHandler.Fdloop := Fdloop;
-  FTimeDependentNodeHandler.FdpauseTime := FdpauseTime;
-  FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
-  FTimeDependentNodeHandler.FdstartTime := FdstartTime;
-  FTimeDependentNodeHandler.FdstopTime := FdstopTime;
+  FTimeDependentNodeHandler.Fdloop := FdLoop;
+  FTimeDependentNodeHandler.FdpauseTime := FdPauseTime;
+  FTimeDependentNodeHandler.FdresumeTime := FdResumeTime;
+  FTimeDependentNodeHandler.FdstartTime := FdStartTime;
+  FTimeDependentNodeHandler.FdstopTime := FdStopTime;
   { descendants shoud set FTimeDependentNodeHandler.Fdenabled }
   FTimeDependentNodeHandler.EventisActive:= EventisActive;
   FTimeDependentNodeHandler.EventisPaused := EventisPaused;
@@ -655,7 +655,7 @@ begin
   DefaultContainerField := 'children';
 
   { set TimeDependentNodeHandler }
-  TimeDependentNodeHandler.Fdenabled := Fdenabled;
+  TimeDependentNodeHandler.Fdenabled := FdEnabled;
   TimeDependentNodeHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }

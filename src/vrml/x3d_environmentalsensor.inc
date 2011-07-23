@@ -19,19 +19,19 @@
   public
     procedure CreateNode; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
-
-    { Event: SFTime, out } { }
-    private FEvententerTime: TVRMLEvent;
-    public property EvententerTime: TVRMLEvent read FEvententerTime;
+    private FFdSize: TSFVec3f;
+    public property FdSize: TSFVec3f read FFdSize;
 
     { Event: SFTime, out } { }
-    private FEventexitTime: TVRMLEvent;
-    public property EventexitTime: TVRMLEvent read FEventexitTime;
+    private FEventEnterTime: TVRMLEvent;
+    public property EventEnterTime: TVRMLEvent read FEventEnterTime;
+
+    { Event: SFTime, out } { }
+    private FEventExitTime: TVRMLEvent;
+    public property EventExitTime: TVRMLEvent read FEventExitTime;
   end;
 
   TNodeProximitySensor = class(TNodeX3DEnvironmentalSensorNode)
@@ -42,16 +42,16 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     { Event: SFVec3f, out } { }
-    private FEventcenterOfRotation_changed: TVRMLEvent;
-    public property EventcenterOfRotation_changed: TVRMLEvent read FEventcenterOfRotation_changed;
+    private FEventCenterOfRotation_changed: TVRMLEvent;
+    public property EventCenterOfRotation_changed: TVRMLEvent read FEventCenterOfRotation_changed;
 
     { Event: SFRotation, out } { }
-    private FEventorientation_changed: TVRMLEvent;
-    public property Eventorientation_changed: TVRMLEvent read FEventorientation_changed;
+    private FEventOrientation_changed: TVRMLEvent;
+    public property EventOrientation_changed: TVRMLEvent read FEventOrientation_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventposition_changed: TVRMLEvent;
-    public property Eventposition_changed: TVRMLEvent read FEventposition_changed;
+    private FEventPosition_changed: TVRMLEvent;
+    public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
   end;
 
   TNodeTransformSensor = class(TNodeX3DEnvironmentalSensorNode)
@@ -60,16 +60,16 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtargetObject: TSFNode;
-    public property FdtargetObject: TSFNode read FFdtargetObject;
+    private FFdTargetObject: TSFNode;
+    public property FdTargetObject: TSFNode read FFdTargetObject;
 
     { Event: SFRotation, out } { }
-    private FEventorientation_changed: TVRMLEvent;
-    public property Eventorientation_changed: TVRMLEvent read FEventorientation_changed;
+    private FEventOrientation_changed: TVRMLEvent;
+    public property EventOrientation_changed: TVRMLEvent read FEventOrientation_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventposition_changed: TVRMLEvent;
-    public property Eventposition_changed: TVRMLEvent read FEventposition_changed;
+    private FEventPosition_changed: TVRMLEvent;
+    public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
   end;
 
   TNodeVisibilitySensor = class(TNodeX3DEnvironmentalSensorNode)

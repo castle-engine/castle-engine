@@ -17,32 +17,32 @@
   { }
   INodeX3DPickableObject = interface(IVRMLNode)
   ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
-    property FdobjectType: TMFString { read GetFdobjectType }; { }
-    property Fdpickable: TSFBool { read GetFdpickable }; { }
+    property FdObjectType: TMFString { read GetFdobjectType }; { }
+    property FdPickable: TSFBool { read GetFdpickable }; { }
   end;
 
   TNodeX3DPickSensorNode = class(TNodeX3DSensorNode)
   public
     procedure CreateNode; override;
 
-    private FFdobjectType: TMFString;
-    public property FdobjectType: TMFString read FFdobjectType;
+    private FFdObjectType: TMFString;
+    public property FdObjectType: TMFString read FFdObjectType;
 
-    private FFdpickingGeometry: TSFNode;
-    public property FdpickingGeometry: TSFNode read FFdpickingGeometry;
+    private FFdPickingGeometry: TSFNode;
+    public property FdPickingGeometry: TSFNode read FFdPickingGeometry;
 
-    private FFdpickTarget: TMFNode;
-    public property FdpickTarget: TMFNode read FFdpickTarget;
+    private FFdPickTarget: TMFNode;
+    public property FdPickTarget: TMFNode read FFdPickTarget;
 
     { Event: MFNode, out } { }
-    private FEventpickedGeometry: TVRMLEvent;
-    public property EventpickedGeometry: TVRMLEvent read FEventpickedGeometry;
+    private FEventPickedGeometry: TVRMLEvent;
+    public property EventPickedGeometry: TVRMLEvent read FEventPickedGeometry;
 
-    private FFdintersectionType: TSFString;
-    public property FdintersectionType: TSFString read FFdintersectionType;
+    private FFdIntersectionType: TSFString;
+    public property FdIntersectionType: TSFString read FFdIntersectionType;
 
-    private FFdsortOrder: TSFString;
-    public property FdsortOrder: TSFString read FFdsortOrder;
+    private FFdSortOrder: TSFString;
+    public property FdSortOrder: TSFString read FFdSortOrder;
   end;
 
   TNodeLinePickSensor = class(TNodeX3DPickSensorNode)
@@ -52,16 +52,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec3f, out } { }
-    private FEventpickedNormal: TVRMLEvent;
-    public property EventpickedNormal: TVRMLEvent read FEventpickedNormal;
+    private FEventPickedNormal: TVRMLEvent;
+    public property EventPickedNormal: TVRMLEvent read FEventPickedNormal;
 
     { Event: MFVec3f, out } { }
-    private FEventpickedPoint: TVRMLEvent;
-    public property EventpickedPoint: TVRMLEvent read FEventpickedPoint;
+    private FEventPickedPoint: TVRMLEvent;
+    public property EventPickedPoint: TVRMLEvent read FEventPickedPoint;
 
     { Event: MFVec3f, out } { }
-    private FEventpickedTextureCoordinate: TVRMLEvent;
-    public property EventpickedTextureCoordinate: TVRMLEvent read FEventpickedTextureCoordinate;
+    private FEventPickedTextureCoordinate: TVRMLEvent;
+    public property EventPickedTextureCoordinate: TVRMLEvent read FEventPickedTextureCoordinate;
   end;
 
   TNodePickableGroup = class(TNodeX3DGroupingNode, INodeX3DPickableObject)
@@ -70,11 +70,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdobjectType: TMFString;
-    public property FdobjectType: TMFString read FFdobjectType;
+    private FFdObjectType: TMFString;
+    public property FdObjectType: TMFString read FFdObjectType;
 
-    private FFdpickable: TSFBool;
-    public property Fdpickable: TSFBool read FFdpickable;
+    private FFdPickable: TSFBool;
+    public property FdPickable: TSFBool read FFdPickable;
   end;
 
   TNodePointPickSensor = class(TNodeX3DPickSensorNode)
@@ -84,8 +84,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec3f, out } { }
-    private FEventpickedPoint: TVRMLEvent;
-    public property EventpickedPoint: TVRMLEvent read FEventpickedPoint;
+    private FEventPickedPoint: TVRMLEvent;
+    public property EventPickedPoint: TVRMLEvent read FEventPickedPoint;
   end;
 
   TNodePrimitivePickSensor = class(TNodeX3DPickSensorNode)

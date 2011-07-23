@@ -208,14 +208,14 @@
   public
     procedure CreateNode; override;
 
-    private FFdrepeatS: TSFBool;
-    public property FdrepeatS: TSFBool read FFdrepeatS;
+    private FFdRepeatS: TSFBool;
+    public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdrepeatT: TSFBool;
-    public property FdrepeatT: TSFBool read FFdrepeatT;
+    private FFdRepeatT: TSFBool;
+    public property FdRepeatT: TSFBool read FFdRepeatT;
 
-    private FFdtextureProperties: TSFNode;
-    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     function RepeatS: boolean; override;
     function RepeatT: boolean; override;
@@ -238,8 +238,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
     function TextureDescription: string; override;
   end;
@@ -260,45 +260,45 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
-    private FFdloop: TSFBool;
-    public property Fdloop: TSFBool read FFdloop;
+    private FFdLoop: TSFBool;
+    public property FdLoop: TSFBool read FFdLoop;
 
-    private FFdpauseTime: TSFTime;
-    public property FdpauseTime: TSFTime read FFdpauseTime;
+    private FFdPauseTime: TSFTime;
+    public property FdPauseTime: TSFTime read FFdPauseTime;
 
-    private FFdresumeTime: TSFTime;
-    public property FdresumeTime: TSFTime read FFdresumeTime;
+    private FFdResumeTime: TSFTime;
+    public property FdResumeTime: TSFTime read FFdResumeTime;
 
-    private FFdspeed: TSFFloat;
-    public property Fdspeed: TSFFloat read FFdspeed;
+    private FFdSpeed: TSFFloat;
+    public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdstartTime: TSFTime;
-    public property FdstartTime: TSFTime read FFdstartTime;
+    private FFdStartTime: TSFTime;
+    public property FdStartTime: TSFTime read FFdStartTime;
 
-    private FFdstopTime: TSFTime;
-    public property FdstopTime: TSFTime read FFdstopTime;
+    private FFdStopTime: TSFTime;
+    public property FdStopTime: TSFTime read FFdStopTime;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
-
-    { Event: SFTime, out } { }
-    private FEventduration_changed: TVRMLEvent;
-    public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
     { Event: SFTime, out } { }
-    private FEventelapsedTime: TVRMLEvent;
-    public property EventelapsedTime: TVRMLEvent read FEventelapsedTime;
+    private FEventDuration_changed: TVRMLEvent;
+    public property EventDuration_changed: TVRMLEvent read FEventDuration_changed;
+
+    { Event: SFTime, out } { }
+    private FEventElapsedTime: TVRMLEvent;
+    public property EventElapsedTime: TVRMLEvent read FEventElapsedTime;
 
     { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FEventIsActive: TVRMLEvent;
+    public property EventIsActive: TVRMLEvent read FEventIsActive;
 
     { Event: SFBool, out } { }
-    private FEventisPaused: TVRMLEvent;
-    public property EventisPaused: TVRMLEvent read FEventisPaused;
+    private FEventIsPaused: TVRMLEvent;
+    public property EventIsPaused: TVRMLEvent read FEventIsPaused;
 
     function TextureDescription: string; override;
 
@@ -328,23 +328,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdalpha: TSFFloat;
-    public property Fdalpha: TSFFloat read FFdalpha;
+    private FFdAlpha: TSFFloat;
+    public property FdAlpha: TSFFloat read FFdAlpha;
 
-    private FFdcolor: TSFColor;
-    public property Fdcolor: TSFColor read FFdcolor;
+    private FFdColor: TSFColor;
+    public property FdColor: TSFColor read FFdColor;
 
-    private FFdfunction: TMFString;
-    public property Fdfunction: TMFString read FFdfunction;
+    private FFdFunction: TMFString;
+    public property FdFunction: TMFString read FFdFunction;
 
-    private FFdmode: TMFString;
-    public property Fdmode: TMFString read FFdmode;
+    private FFdMode: TMFString;
+    public property FdMode: TMFString read FFdMode;
 
-    private FFdsource: TMFString;
-    public property Fdsource: TMFString read FFdsource;
+    private FFdSource: TMFString;
+    public property FdSource: TMFString read FFdSource;
 
-    private FFdtexture: TMFNode;
-    public property Fdtexture: TMFNode read FFdtexture;
+    private FFdTexture: TMFNode;
+    public property FdTexture: TMFNode read FFdTexture;
   end;
 
   TNodeMultiTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
@@ -353,8 +353,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtexCoord: TMFNode;
-    public property FdtexCoord: TMFNode read FFdtexCoord;
+    private FFdTexCoord: TMFNode;
+    public property FdTexCoord: TMFNode read FFdTexCoord;
   end;
 
   TNodeMultiTextureTransform = class(TNodeX3DTextureTransformNode)
@@ -363,8 +363,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtextureTransform: TMFNode;
-    public property FdtextureTransform: TMFNode read FFdtextureTransform;
+    private FFdTextureTransform: TMFNode;
+    public property FdTextureTransform: TMFNode read FFdTextureTransform;
 
     { For MultiTextureTransform, this always raises an internal error.
       Reason: you cannot get single texture transform matrix from
@@ -383,8 +383,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdimage: TSFImage;
-    public property Fdimage: TSFImage read FFdimage;
+    private FFdImage: TSFImage;
+    public property FdImage: TSFImage read FFdImage;
 
     function TextureDescription: string; override;
   end;
@@ -395,8 +395,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdpoint: TMFVec2f;
-    public property Fdpoint: TMFVec2f read FFdpoint;
+    private FFdPoint: TMFVec2f;
+    public property FdPoint: TMFVec2f read FFdPoint;
   end;
 
   TNodeTextureCoordinateGenerator = class(TNodeX3DTextureCoordinateNode)
@@ -405,14 +405,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdmode: TSFString;
-    public property Fdmode: TSFString read FFdmode;
+    private FFdMode: TSFString;
+    public property FdMode: TSFString read FFdMode;
 
-    private FFdparameter: TMFFloat;
-    public property Fdparameter: TMFFloat read FFdparameter;
+    private FFdParameter: TMFFloat;
+    public property FdParameter: TMFFloat read FFdParameter;
 
-    private FFdprojectedLight: TSFNode;
-    public property FdprojectedLight: TSFNode read FFdprojectedLight;
+    private FFdProjectedLight: TSFNode;
+    public property FdProjectedLight: TSFNode read FFdProjectedLight;
   end;
 
   { Old BS Contact name for TextureCoordinateGenerator.
@@ -428,38 +428,38 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdanisotropicDegree: TSFFloat;
-    public property FdanisotropicDegree: TSFFloat read FFdanisotropicDegree;
+    private FFdAnisotropicDegree: TSFFloat;
+    public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
 
-    private FFdborderColor: TSFColorRGBA;
-    public property FdborderColor: TSFColorRGBA read FFdborderColor;
+    private FFdBorderColor: TSFColorRGBA;
+    public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
 
-    private FFdborderWidth: TSFInt32;
-    public property FdborderWidth: TSFInt32 read FFdborderWidth;
+    private FFdBorderWidth: TSFInt32;
+    public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
 
-    private FFdboundaryModeS: TSFString;
-    public property FdboundaryModeS: TSFString read FFdboundaryModeS;
+    private FFdBoundaryModeS: TSFString;
+    public property FdBoundaryModeS: TSFString read FFdBoundaryModeS;
 
-    private FFdboundaryModeT: TSFString;
-    public property FdboundaryModeT: TSFString read FFdboundaryModeT;
+    private FFdBoundaryModeT: TSFString;
+    public property FdBoundaryModeT: TSFString read FFdBoundaryModeT;
 
-    private FFdboundaryModeR: TSFString;
-    public property FdboundaryModeR: TSFString read FFdboundaryModeR;
+    private FFdBoundaryModeR: TSFString;
+    public property FdBoundaryModeR: TSFString read FFdBoundaryModeR;
 
-    private FFdmagnificationFilter: TSFString;
-    public property FdmagnificationFilter: TSFString read FFdmagnificationFilter;
+    private FFdMagnificationFilter: TSFString;
+    public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
-    private FFdminificationFilter: TSFString;
-    public property FdminificationFilter: TSFString read FFdminificationFilter;
+    private FFdMinificationFilter: TSFString;
+    public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
-    private FFdtextureCompression: TSFString;
-    public property FdtextureCompression: TSFString read FFdtextureCompression;
+    private FFdTextureCompression: TSFString;
+    public property FdTextureCompression: TSFString read FFdTextureCompression;
 
-    private FFdtexturePriority: TSFFloat;
-    public property FdtexturePriority: TSFFloat read FFdtexturePriority;
+    private FFdTexturePriority: TSFFloat;
+    public property FdTexturePriority: TSFFloat read FFdTexturePriority;
 
-    private FFdgenerateMipMaps: TSFBool;
-    public property FdgenerateMipMaps: TSFBool read FFdgenerateMipMaps;
+    private FFdGenerateMipMaps: TSFBool;
+    public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
   end;
 
   TNodeTextureTransform = class(TNodeX3DTextureTransformNode)
@@ -468,17 +468,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcenter: TSFVec2f;
-    public property Fdcenter: TSFVec2f read FFdcenter;
+    private FFdCenter: TSFVec2f;
+    public property FdCenter: TSFVec2f read FFdCenter;
 
-    private FFdrotation: TSFFloat;
-    public property Fdrotation: TSFFloat read FFdrotation;
+    private FFdRotation: TSFFloat;
+    public property FdRotation: TSFFloat read FFdRotation;
 
-    private FFdscale: TSFVec2f;
-    public property Fdscale: TSFVec2f read FFdscale;
+    private FFdScale: TSFVec2f;
+    public property FdScale: TSFVec2f read FFdScale;
 
-    private FFdtranslation: TSFVec2f;
-    public property Fdtranslation: TSFVec2f read FFdtranslation;
+    private FFdTranslation: TSFVec2f;
+    public property FdTranslation: TSFVec2f read FFdTranslation;
 
     function TransformMatrix: TMatrix4Single; override;
   end;
@@ -888,11 +888,11 @@ begin
 
   FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
   FTimeDependentNodeHandler.Node := Self;
-  FTimeDependentNodeHandler.Fdloop := Fdloop;
-  FTimeDependentNodeHandler.FdpauseTime := FdpauseTime;
-  FTimeDependentNodeHandler.FdresumeTime := FdresumeTime;
-  FTimeDependentNodeHandler.FdstartTime := FdstartTime;
-  FTimeDependentNodeHandler.FdstopTime := FdstopTime;
+  FTimeDependentNodeHandler.Fdloop := FdLoop;
+  FTimeDependentNodeHandler.FdpauseTime := FdPauseTime;
+  FTimeDependentNodeHandler.FdresumeTime := FdResumeTime;
+  FTimeDependentNodeHandler.FdstartTime := FdStartTime;
+  FTimeDependentNodeHandler.FdstopTime := FdStopTime;
   FTimeDependentNodeHandler.EventisActive:= EventisActive;
   FTimeDependentNodeHandler.EventisPaused := EventisPaused;
   FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;

@@ -19,7 +19,7 @@ type
   { }
   INodeX3DNode = interface(IVRMLNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
-    property Fdmetadata: TSFNode;
+    property FdMetadata: TSFNode;
   end;
 
   { Base X3D node.
@@ -30,8 +30,8 @@ type
   public
     procedure CreateNode; override;
 
-    private FFdmetadata: TSFNode;
-    public property Fdmetadata: TSFNode read FFdmetadata;
+    private FFdMetadata: TSFNode;
+    public property FdMetadata: TSFNode read FFdMetadata;
   end;
 
   INodeX3DChildNode = interface(INodeX3DNode)
@@ -53,16 +53,16 @@ type
     procedure CreateNode; override;
 
     { Event: SFBool, in } { }
-    private FEventset_bind: TVRMLEvent;
-    public property Eventset_bind: TVRMLEvent read FEventset_bind;
+    private FEventSet_bind: TVRMLEvent;
+    public property EventSet_bind: TVRMLEvent read FEventSet_bind;
 
     { Event: SFTime, out } { }
-    private FEventbindTime: TVRMLEvent;
-    public property EventbindTime: TVRMLEvent read FEventbindTime;
+    private FEventBindTime: TVRMLEvent;
+    public property EventBindTime: TVRMLEvent read FEventBindTime;
 
     { Event: SFBool, out } { }
-    private FEventisBound: TVRMLEvent;
-    public property EventisBound: TVRMLEvent read FEventisBound;
+    private FEventIsBound: TVRMLEvent;
+    public property EventIsBound: TVRMLEvent read FEventIsBound;
 
     { Transformation of this bindable node.
 
@@ -98,8 +98,8 @@ type
 
   INodeX3DMetadataObject = interface(IVRMLNode)
   ['{2D631FBF-683B-4259-A98D-74589893447C}']
-    property Fdname: TSFString { read GetFdname }; { }
-    property Fdreference: TSFString { read GetFdreference }; { }
+    property FdName: TSFString { read GetFdname }; { }
+    property FdReference: TSFString { read GetFdreference }; { }
   end;
 
   TNodeX3DPrototypeInstance = class(TNodeX3DNode)
@@ -109,22 +109,22 @@ type
     (When it's a primary ancestor, I use class TNodeX3DSensorNode.) }
   INodeX3DSensorNode = interface(INodeX3DChildNode)
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
-    property Fdenabled: TSFBool;
+    property FdEnabled: TSFBool;
 
     { Event: SFBool, out } { }
-    property EventisActive: TVRMLEvent;
+    property EventIsActive: TVRMLEvent;
   end;
 
   TNodeX3DSensorNode = class(TNodeX3DChildNode, INodeX3DSensorNode)
   public
     procedure CreateNode; override;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FEventIsActive: TVRMLEvent;
+    public property EventIsActive: TVRMLEvent read FEventIsActive;
   end;
 
   TNodeMetadataDouble = class(TNodeX3DNode, INodeX3DMetadataObject)
@@ -133,14 +133,14 @@ type
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdreference: TSFString;
-    public property Fdreference: TSFString read FFdreference;
+    private FFdReference: TSFString;
+    public property FdReference: TSFString read FFdReference;
 
-    private FFdvalue: TMFDouble;
-    public property Fdvalue: TMFDouble read FFdvalue;
+    private FFdValue: TMFDouble;
+    public property FdValue: TMFDouble read FFdValue;
   end;
 
   TNodeMetadataFloat = class(TNodeX3DNode, INodeX3DMetadataObject)
@@ -149,14 +149,14 @@ type
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdreference: TSFString;
-    public property Fdreference: TSFString read FFdreference;
+    private FFdReference: TSFString;
+    public property FdReference: TSFString read FFdReference;
 
-    private FFdvalue: TMFFloat;
-    public property Fdvalue: TMFFloat read FFdvalue;
+    private FFdValue: TMFFloat;
+    public property FdValue: TMFFloat read FFdValue;
   end;
 
   TNodeMetadataInteger = class(TNodeX3DNode, INodeX3DMetadataObject)
@@ -165,14 +165,14 @@ type
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdreference: TSFString;
-    public property Fdreference: TSFString read FFdreference;
+    private FFdReference: TSFString;
+    public property FdReference: TSFString read FFdReference;
 
-    private FFdvalue: TMFInt32;
-    public property Fdvalue: TMFInt32 read FFdvalue;
+    private FFdValue: TMFInt32;
+    public property FdValue: TMFInt32 read FFdValue;
   end;
 
   TNodeMetadataSet = class(TNodeX3DNode, INodeX3DMetadataObject)
@@ -181,14 +181,14 @@ type
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdreference: TSFString;
-    public property Fdreference: TSFString read FFdreference;
+    private FFdReference: TSFString;
+    public property FdReference: TSFString read FFdReference;
 
-    private FFdvalue: TMFNode;
-    public property Fdvalue: TMFNode read FFdvalue;
+    private FFdValue: TMFNode;
+    public property FdValue: TMFNode read FFdValue;
   end;
 
   TNodeMetadataString = class(TNodeX3DNode, INodeX3DMetadataObject)
@@ -197,14 +197,14 @@ type
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdreference: TSFString;
-    public property Fdreference: TSFString read FFdreference;
+    private FFdReference: TSFString;
+    public property FdReference: TSFString read FFdReference;
 
-    private FFdvalue: TMFString;
-    public property Fdvalue: TMFString read FFdvalue;
+    private FFdValue: TMFString;
+    public property FdValue: TMFString read FFdValue;
   end;
 
   TNodeWorldInfo = class(TNodeX3DInfoNode)
@@ -213,11 +213,11 @@ type
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdinfo: TMFString;
-    public property Fdinfo: TMFString read FFdinfo;
+    private FFdInfo: TMFString;
+    public property FdInfo: TMFString read FFdInfo;
 
-    private FFdtitle: TSFString;
-    public property Fdtitle: TSFString read FFdtitle;
+    private FFdTitle: TSFString;
+    public property FdTitle: TSFString read FFdTitle;
   end;
 
 {$endif read_interface}

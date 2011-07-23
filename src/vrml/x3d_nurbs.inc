@@ -25,8 +25,8 @@
   public
     procedure CreateNode; override;
 
-    private FFdcontrolPoint: TMFVec2d;
-    public property FdcontrolPoint: TMFVec2d read FFdcontrolPoint;
+    private FFdControlPoint: TMFVec2d;
+    public property FdControlPoint: TMFVec2d read FFdControlPoint;
   end;
 
   TNodeX3DParametricGeometryNode = class(TNodeX3DGeometryNode)
@@ -39,47 +39,47 @@
   public
     procedure CreateNode; override;
 
-    private FFdcontrolPoint: TSFNode;
-    public property FdcontrolPoint: TSFNode read FFdcontrolPoint;
+    private FFdControlPoint: TSFNode;
+    public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFduTessellation: TSFInt32;
-    public property FduTessellation: TSFInt32 read FFduTessellation;
+    private FFdUTessellation: TSFInt32;
+    public property FdUTessellation: TSFInt32 read FFdUTessellation;
 
-    private FFdvTessellation: TSFInt32;
-    public property FdvTessellation: TSFInt32 read FFdvTessellation;
+    private FFdVTessellation: TSFInt32;
+    public property FdVTessellation: TSFInt32 read FFdVTessellation;
 
-    private FFdweight: TMFDouble;
-    public property Fdweight: TMFDouble read FFdweight;
+    private FFdWeight: TMFDouble;
+    public property FdWeight: TMFDouble read FFdWeight;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFduClosed: TSFBool;
-    public property FduClosed: TSFBool read FFduClosed;
+    private FFdUClosed: TSFBool;
+    public property FdUClosed: TSFBool read FFdUClosed;
 
-    private FFduDimension: TSFInt32;
-    public property FduDimension: TSFInt32 read FFduDimension;
+    private FFdUDimension: TSFInt32;
+    public property FdUDimension: TSFInt32 read FFdUDimension;
 
-    private FFduKnot: TMFDouble;
-    public property FduKnot: TMFDouble read FFduKnot;
+    private FFdUKnot: TMFDouble;
+    public property FdUKnot: TMFDouble read FFdUKnot;
 
-    private FFduOrder: TSFInt32;
-    public property FduOrder: TSFInt32 read FFduOrder;
+    private FFdUOrder: TSFInt32;
+    public property FdUOrder: TSFInt32 read FFdUOrder;
 
-    private FFdvClosed: TSFBool;
-    public property FdvClosed: TSFBool read FFdvClosed;
+    private FFdVClosed: TSFBool;
+    public property FdVClosed: TSFBool read FFdVClosed;
 
-    private FFdvDimension: TSFInt32;
-    public property FdvDimension: TSFInt32 read FFdvDimension;
+    private FFdVDimension: TSFInt32;
+    public property FdVDimension: TSFInt32 read FFdVDimension;
 
-    private FFdvKnot: TMFDouble;
-    public property FdvKnot: TMFDouble read FFdvKnot;
+    private FFdVKnot: TMFDouble;
+    public property FdVKnot: TMFDouble read FFdVKnot;
 
-    private FFdvOrder: TSFInt32;
-    public property FdvOrder: TSFInt32 read FFdvOrder;
+    private FFdVOrder: TSFInt32;
+    public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
   { Contour2D node.
@@ -99,15 +99,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventaddChildren: TVRMLEvent;
-    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
+    private FEventAddChildren: TVRMLEvent;
+    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventremoveChildren: TVRMLEvent;
-    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
+    private FEventRemoveChildren: TVRMLEvent;
+    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
 
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -131,8 +131,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdpoint: TMFVec3d;
-    public property Fdpoint: TMFVec3d read FFdpoint;
+    private FFdPoint: TMFVec3d;
+    public property FdPoint: TMFVec3d read FFdPoint;
 
     function CoordCount: Cardinal; override;
   end;
@@ -146,23 +146,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcontrolPoint: TSFNode;
-    public property FdcontrolPoint: TSFNode read FFdcontrolPoint;
+    private FFdControlPoint: TSFNode;
+    public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdtessellation: TSFInt32;
-    public property Fdtessellation: TSFInt32 read FFdtessellation;
+    private FFdTessellation: TSFInt32;
+    public property FdTessellation: TSFInt32 read FFdTessellation;
 
-    private FFdweight: TMFDouble;
-    public property Fdweight: TMFDouble read FFdweight;
+    private FFdWeight: TMFDouble;
+    public property FdWeight: TMFDouble read FFdWeight;
 
-    private FFdclosed: TSFBool;
-    public property Fdclosed: TSFBool read FFdclosed;
+    private FFdClosed: TSFBool;
+    public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdknot: TMFDouble;
-    public property Fdknot: TMFDouble read FFdknot;
+    private FFdKnot: TMFDouble;
+    public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
+    private FFdOrder: TSFInt32;
+    public property FdOrder: TSFInt32 read FFdOrder;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
 
@@ -184,20 +184,20 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtessellation: TSFInt32;
-    public property Fdtessellation: TSFInt32 read FFdtessellation;
+    private FFdTessellation: TSFInt32;
+    public property FdTessellation: TSFInt32 read FFdTessellation;
 
-    private FFdweight: TMFDouble;
-    public property Fdweight: TMFDouble read FFdweight;
+    private FFdWeight: TMFDouble;
+    public property FdWeight: TMFDouble read FFdWeight;
 
-    private FFdclosed: TSFBool;
-    public property Fdclosed: TSFBool read FFdclosed;
+    private FFdClosed: TSFBool;
+    public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdknot: TMFDouble;
-    public property Fdknot: TMFDouble read FFdknot;
+    private FFdKnot: TMFDouble;
+    public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
+    private FFdOrder: TSFInt32;
+    public property FdOrder: TSFInt32 read FFdOrder;
   end;
 
   TNodeNurbsOrientationInterpolator = class(TNodeX3DChildNode)
@@ -213,24 +213,24 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
+    private FEventSet_fraction: TVRMLEvent;
+    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
 
-    private FFdcontrolPoint: TSFNode;
-    public property FdcontrolPoint: TSFNode read FFdcontrolPoint;
+    private FFdControlPoint: TSFNode;
+    public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdknot: TMFDouble;
-    public property Fdknot: TMFDouble read FFdknot;
+    private FFdKnot: TMFDouble;
+    public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
+    private FFdOrder: TSFInt32;
+    public property FdOrder: TSFInt32 read FFdOrder;
 
-    private FFdweight: TMFDouble;
-    public property Fdweight: TMFDouble read FFdweight;
+    private FFdWeight: TMFDouble;
+    public property FdWeight: TMFDouble read FFdWeight;
 
     { Event: SFRotation, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeNurbsPatchSurface = class(TNodeX3DNurbsSurfaceGeometryNode)
@@ -263,24 +263,24 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
+    private FEventSet_fraction: TVRMLEvent;
+    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
 
-    private FFdcontrolPoint: TSFNode;
-    public property FdcontrolPoint: TSFNode read FFdcontrolPoint;
+    private FFdControlPoint: TSFNode;
+    public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdknot: TMFDouble;
-    public property Fdknot: TMFDouble read FFdknot;
+    private FFdKnot: TMFDouble;
+    public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
+    private FFdOrder: TSFInt32;
+    public property FdOrder: TSFInt32 read FFdOrder;
 
-    private FFdweight: TMFDouble;
-    public property Fdweight: TMFDouble read FFdweight;
+    private FFdWeight: TMFDouble;
+    public property FdWeight: TMFDouble read FFdWeight;
 
     { Event: SFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
   end;
@@ -293,29 +293,29 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventaddGeometry: TVRMLEvent;
-    public property EventaddGeometry: TVRMLEvent read FEventaddGeometry;
+    private FEventAddGeometry: TVRMLEvent;
+    public property EventAddGeometry: TVRMLEvent read FEventAddGeometry;
 
     { Event: MFNode, in } { }
-    private FEventremoveGeometry: TVRMLEvent;
-    public property EventremoveGeometry: TVRMLEvent read FEventremoveGeometry;
+    private FEventRemoveGeometry: TVRMLEvent;
+    public property EventRemoveGeometry: TVRMLEvent read FEventRemoveGeometry;
 
     { Implementation note: Fdgeometry is not enumerated in DirectEnumerateActive,
       as it's not actually rendered from NurbsSet node.
       Children here have to be placed elsewhere, in some Shape,
       to actually get enumerated as "active". }
     { }
-    private FFdgeometry: TMFNode;
-    public property Fdgeometry: TMFNode read FFdgeometry;
+    private FFdGeometry: TMFNode;
+    public property FdGeometry: TMFNode read FFdGeometry;
 
-    private FFdtessellationScale: TSFFloat;
-    public property FdtessellationScale: TSFFloat read FFdtessellationScale;
+    private FFdTessellationScale: TSFFloat;
+    public property FdTessellationScale: TSFFloat read FFdTessellationScale;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
   TNodeNurbsSurfaceInterpolator = class(TNodeX3DChildNode)
@@ -331,40 +331,40 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec2f, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
+    private FEventSet_fraction: TVRMLEvent;
+    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
 
-    private FFdcontrolPoint: TSFNode;
-    public property FdcontrolPoint: TSFNode read FFdcontrolPoint;
+    private FFdControlPoint: TSFNode;
+    public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdweight: TMFDouble;
-    public property Fdweight: TMFDouble read FFdweight;
-
-    { Event: SFVec3f, out } { }
-    private FEventposition_changed: TVRMLEvent;
-    public property Eventposition_changed: TVRMLEvent read FEventposition_changed;
+    private FFdWeight: TMFDouble;
+    public property FdWeight: TMFDouble read FFdWeight;
 
     { Event: SFVec3f, out } { }
-    private FEventnormal_changed: TVRMLEvent;
-    public property Eventnormal_changed: TVRMLEvent read FEventnormal_changed;
+    private FEventPosition_changed: TVRMLEvent;
+    public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
 
-    private FFduDimension: TSFInt32;
-    public property FduDimension: TSFInt32 read FFduDimension;
+    { Event: SFVec3f, out } { }
+    private FEventNormal_changed: TVRMLEvent;
+    public property EventNormal_changed: TVRMLEvent read FEventNormal_changed;
 
-    private FFduKnot: TMFDouble;
-    public property FduKnot: TMFDouble read FFduKnot;
+    private FFdUDimension: TSFInt32;
+    public property FdUDimension: TSFInt32 read FFdUDimension;
 
-    private FFduOrder: TSFInt32;
-    public property FduOrder: TSFInt32 read FFduOrder;
+    private FFdUKnot: TMFDouble;
+    public property FdUKnot: TMFDouble read FFdUKnot;
 
-    private FFdvDimension: TSFInt32;
-    public property FdvDimension: TSFInt32 read FFdvDimension;
+    private FFdUOrder: TSFInt32;
+    public property FdUOrder: TSFInt32 read FFdUOrder;
 
-    private FFdvKnot: TMFDouble;
-    public property FdvKnot: TMFDouble read FFdvKnot;
+    private FFdVDimension: TSFInt32;
+    public property FdVDimension: TSFInt32 read FFdVDimension;
 
-    private FFdvOrder: TSFInt32;
-    public property FdvOrder: TSFInt32 read FFdvOrder;
+    private FFdVKnot: TMFDouble;
+    public property FdVKnot: TMFDouble read FFdVKnot;
+
+    private FFdVOrder: TSFInt32;
+    public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
   TNodeNurbsSweptSurface = class(TNodeX3DParametricGeometryNode)
@@ -376,17 +376,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcrossSectionCurve: TSFNode;
-    public property FdcrossSectionCurve: TSFNode read FFdcrossSectionCurve;
+    private FFdCrossSectionCurve: TSFNode;
+    public property FdCrossSectionCurve: TSFNode read FFdCrossSectionCurve;
 
-    private FFdtrajectoryCurve: TSFNode;
-    public property FdtrajectoryCurve: TSFNode read FFdtrajectoryCurve;
+    private FFdTrajectoryCurve: TSFNode;
+    public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
 
-    private FFdccw: TSFBool;
-    public property Fdccw: TSFBool read FFdccw;
+    private FFdCcw: TSFBool;
+    public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -406,17 +406,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdprofileCurve: TSFNode;
-    public property FdprofileCurve: TSFNode read FFdprofileCurve;
+    private FFdProfileCurve: TSFNode;
+    public property FdProfileCurve: TSFNode read FFdProfileCurve;
 
-    private FFdtrajectoryCurve: TSFNode;
-    public property FdtrajectoryCurve: TSFNode read FFdtrajectoryCurve;
+    private FFdTrajectoryCurve: TSFNode;
+    public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
 
-    private FFdccw: TSFBool;
-    public property Fdccw: TSFBool read FFdccw;
+    private FFdCcw: TSFBool;
+    public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -433,29 +433,29 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcontrolPoint: TMFVec2f;
-    public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
+    private FFdControlPoint: TMFVec2f;
+    public property FdControlPoint: TMFVec2f read FFdControlPoint;
 
-    private FFdweight: TMFFloat;
-    public property Fdweight: TMFFloat read FFdweight;
+    private FFdWeight: TMFFloat;
+    public property FdWeight: TMFFloat read FFdWeight;
 
-    private FFduDimension: TSFInt32;
-    public property FduDimension: TSFInt32 read FFduDimension;
+    private FFdUDimension: TSFInt32;
+    public property FdUDimension: TSFInt32 read FFdUDimension;
 
-    private FFduKnot: TMFDouble;
-    public property FduKnot: TMFDouble read FFduKnot;
+    private FFdUKnot: TMFDouble;
+    public property FdUKnot: TMFDouble read FFdUKnot;
 
-    private FFduOrder: TSFInt32;
-    public property FduOrder: TSFInt32 read FFduOrder;
+    private FFdUOrder: TSFInt32;
+    public property FdUOrder: TSFInt32 read FFdUOrder;
 
-    private FFdvDimension: TSFInt32;
-    public property FdvDimension: TSFInt32 read FFdvDimension;
+    private FFdVDimension: TSFInt32;
+    public property FdVDimension: TSFInt32 read FFdVDimension;
 
-    private FFdvKnot: TMFDouble;
-    public property FdvKnot: TMFDouble read FFdvKnot;
+    private FFdVKnot: TMFDouble;
+    public property FdVKnot: TMFDouble read FFdVKnot;
 
-    private FFdvOrder: TSFInt32;
-    public property FdvOrder: TSFInt32 read FFdvOrder;
+    private FFdVOrder: TSFInt32;
+    public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
   TNodeNurbsTrimmedSurface = class(TNodeX3DNurbsSurfaceGeometryNode)
@@ -468,15 +468,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventaddTrimmingContour: TVRMLEvent;
-    public property EventaddTrimmingContour: TVRMLEvent read FEventaddTrimmingContour;
+    private FEventAddTrimmingContour: TVRMLEvent;
+    public property EventAddTrimmingContour: TVRMLEvent read FEventAddTrimmingContour;
 
     { Event: MFNode, in } { }
-    private FEventremoveTrimmingContour: TVRMLEvent;
-    public property EventremoveTrimmingContour: TVRMLEvent read FEventremoveTrimmingContour;
+    private FEventRemoveTrimmingContour: TVRMLEvent;
+    public property EventRemoveTrimmingContour: TVRMLEvent read FEventRemoveTrimmingContour;
 
-    private FFdtrimmingContour: TMFNode;
-    public property FdtrimmingContour: TMFNode read FFdtrimmingContour;
+    private FFdTrimmingContour: TMFNode;
+    public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;

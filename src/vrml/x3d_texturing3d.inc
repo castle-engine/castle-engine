@@ -36,17 +36,17 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdrepeatS: TSFBool;
-    public property FdrepeatS: TSFBool read FFdrepeatS;
+    private FFdRepeatS: TSFBool;
+    public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdrepeatT: TSFBool;
-    public property FdrepeatT: TSFBool read FFdrepeatT;
+    private FFdRepeatT: TSFBool;
+    public property FdRepeatT: TSFBool read FFdRepeatT;
 
-    private FFdrepeatR: TSFBool;
-    public property FdrepeatR: TSFBool read FFdrepeatR;
+    private FFdRepeatR: TSFBool;
+    public property FdRepeatR: TSFBool read FFdRepeatR;
 
-    private FFdtextureProperties: TSFNode;
-    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     { Load and unload 3D texture.
 
@@ -76,8 +76,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtexture: TMFNode;
-    public property Fdtexture: TMFNode read FFdtexture;
+    private FFdTexture: TMFNode;
+    public property FdTexture: TMFNode read FFdTexture;
 
     procedure LoadTextureData; override;
   end;
@@ -88,8 +88,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
     procedure LoadTextureData; override;
   end;
@@ -100,8 +100,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdimage: TMFInt32;
-    public property Fdimage: TMFInt32 read FFdimage;
+    private FFdImage: TMFInt32;
+    public property FdImage: TMFInt32 read FFdImage;
 
     procedure LoadTextureData; override;
   end;
@@ -112,8 +112,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdpoint: TMFVec3f;
-    public property Fdpoint: TMFVec3f read FFdpoint;
+    private FFdPoint: TMFVec3f;
+    public property FdPoint: TMFVec3f read FFdPoint;
   end;
 
   TNodeTextureCoordinate4D = class(TNodeX3DTextureCoordinateNode)
@@ -122,8 +122,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdpoint: TMFVec4f;
-    public property Fdpoint: TMFVec4f read FFdpoint;
+    private FFdPoint: TMFVec4f;
+    public property FdPoint: TMFVec4f read FFdPoint;
   end;
 
   TNodeTextureTransformMatrix3D = class(TNodeX3DTextureTransformNode)
@@ -132,8 +132,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdmatrix: TSFMatrix4f;
-    public property Fdmatrix: TSFMatrix4f read FFdmatrix;
+    private FFdMatrix: TSFMatrix4f;
+    public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
     function TransformMatrix: TMatrix4Single; override;
   end;
@@ -144,17 +144,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
 
     function TransformMatrix: TMatrix4Single; override;
   end;
@@ -538,7 +538,7 @@ end;
 
 function TNodeTextureTransformMatrix3D.TransformMatrix: TMatrix4Single;
 begin
-  Result := Fdmatrix.Value;
+  Result := FdMatrix.Value;
 end;
 
 procedure TNodeTextureTransform3D.CreateNode;

@@ -49,8 +49,8 @@
 
   INodeX3DBoundedObject = interface(IVRMLNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
-    property FdbboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
-    property FdbboxSize: TSFVec3f { read GetFdbboxSize }; { }
+    property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
+    property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
   end;
 
   TNodeX3DGroupingNode = class(TVRMLGroupingNode, INodeX3DBoundedObject)
@@ -63,27 +63,27 @@
     procedure CreateNode; override;
 
     { Event: MFNode, in } { }
-    private FEventaddChildren: TVRMLEvent;
-    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
+    private FEventAddChildren: TVRMLEvent;
+    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventremoveChildren: TVRMLEvent;
-    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
+    private FEventRemoveChildren: TVRMLEvent;
+    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
 
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-    private FFdrender: TSFBool;
+    private FFdRender: TSFBool;
     { This is an extension from Avalon, see
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
-    public property Fdrender: TSFBool read FFdrender;
+    public property FdRender: TSFBool read FFdRender;
 
     function ChildrenField: TMFNode; override;
   end;
@@ -223,14 +223,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     function ChildrenField: TMFNode; override;
   end;
@@ -252,8 +252,8 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
-    private FFdwhichChoice: TSFInt32;
-    public property FdwhichChoice: TSFInt32 read FFdwhichChoice;
+    private FFdWhichChoice: TSFInt32;
+    public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -290,20 +290,20 @@
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdscaleOrientation: TSFRotation;
-    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+    private FFdScaleOrientation: TSFRotation;
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
   TNodeTransform_2 = TNodeTransform;
 

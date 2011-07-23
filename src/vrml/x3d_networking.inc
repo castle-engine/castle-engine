@@ -22,7 +22,7 @@
 
   INodeX3DUrlObject = interface(IVRMLNode)
   ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
-    property Fdurl: TMFString { read GetFdurl }; { }
+    property FdUrl: TMFString { read GetFdurl }; { }
   end;
 
   TVRMLViewpointNode = class;
@@ -36,14 +36,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
-    private FFdparameter: TMFString;
-    public property Fdparameter: TMFString read FFdparameter;
+    private FFdParameter: TMFString;
+    public property FdParameter: TMFString read FFdParameter;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
     { Load the new world and viewpoint referenced by this Anchor node.
 
@@ -136,17 +136,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdload: TSFBool;
-    public property Fdload: TSFBool read FFdload;
+    private FFdLoad: TSFBool;
+    public property FdLoad: TSFBool read FFdLoad;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     class function VRML1ChildrenSaveToStream: boolean; override;
 
@@ -204,8 +204,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, out } { }
-    private FEventchildren: TVRMLEvent;
-    public property Eventchildren: TVRMLEvent read FEventchildren;
+    private FEventChildren: TVRMLEvent;
+    public property EventChildren: TVRMLEvent read FEventChildren;
   end;
 
   TNodeLoadSensor = class(TNodeX3DNetworkSensorNode)
@@ -214,23 +214,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtimeOut: TSFTime;
-    public property FdtimeOut: TSFTime read FFdtimeOut;
+    private FFdTimeOut: TSFTime;
+    public property FdTimeOut: TSFTime read FFdTimeOut;
 
-    private FFdwatchList: TMFNode;
-    public property FdwatchList: TMFNode read FFdwatchList;
+    private FFdWatchList: TMFNode;
+    public property FdWatchList: TMFNode read FFdWatchList;
 
     { Event: SFBool, out } { }
-    private FEventisLoaded: TVRMLEvent;
-    public property EventisLoaded: TVRMLEvent read FEventisLoaded;
+    private FEventIsLoaded: TVRMLEvent;
+    public property EventIsLoaded: TVRMLEvent read FEventIsLoaded;
 
     { Event: SFTime, out } { }
-    private FEventloadTime: TVRMLEvent;
-    public property EventloadTime: TVRMLEvent read FEventloadTime;
+    private FEventLoadTime: TVRMLEvent;
+    public property EventLoadTime: TVRMLEvent read FEventLoadTime;
 
     { Event: SFFloat, out } { }
-    private FEventprogress: TVRMLEvent;
-    public property Eventprogress: TVRMLEvent read FEventprogress;
+    private FEventProgress: TVRMLEvent;
+    public property EventProgress: TVRMLEvent read FEventProgress;
   end;
 
 {$endif read_interface}

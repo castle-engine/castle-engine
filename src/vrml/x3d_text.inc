@@ -36,32 +36,32 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfamily: TMFString;
-    public property Fdfamily: TMFString read FFdfamily;
+    private FFdFamily: TMFString;
+    public property FdFamily: TMFString read FFdFamily;
 
-    private FFdhorizontal: TSFBool;
-    public property Fdhorizontal: TSFBool read FFdhorizontal;
+    private FFdHorizontal: TSFBool;
+    public property FdHorizontal: TSFBool read FFdHorizontal;
 
-    private FFdjustify: TMFString;
-    public property Fdjustify: TMFString read FFdjustify;
+    private FFdJustify: TMFString;
+    public property FdJustify: TMFString read FFdJustify;
 
-    private FFdlanguage: TSFString;
-    public property Fdlanguage: TSFString read FFdlanguage;
+    private FFdLanguage: TSFString;
+    public property FdLanguage: TSFString read FFdLanguage;
 
-    private FFdleftToRight: TSFBool;
-    public property FdleftToRight: TSFBool read FFdleftToRight;
+    private FFdLeftToRight: TSFBool;
+    public property FdLeftToRight: TSFBool read FFdLeftToRight;
 
-    private FFdsize: TSFFloat;
-    public property Fdsize: TSFFloat read FFdsize;
+    private FFdSize: TSFFloat;
+    public property FdSize: TSFFloat read FFdSize;
 
-    private FFdspacing: TSFFloat;
-    public property Fdspacing: TSFFloat read FFdspacing;
+    private FFdSpacing: TSFFloat;
+    public property FdSpacing: TSFFloat read FFdSpacing;
 
-    private FFdstyle: TSFString;
-    public property Fdstyle: TSFString read FFdstyle;
+    private FFdStyle: TSFString;
+    public property FdStyle: TSFString read FFdStyle;
 
-    private FFdtopToBottom: TSFBool;
-    public property FdtopToBottom: TSFBool read FFdtopToBottom;
+    private FFdTopToBottom: TSFBool;
+    public property FdTopToBottom: TSFBool read FFdTopToBottom;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -91,32 +91,32 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfontStyle: TSFNode;
-    public property FdfontStyle: TSFNode read FFdfontStyle;
+    private FFdFontStyle: TSFNode;
+    public property FdFontStyle: TSFNode read FFdFontStyle;
 
-    private FFdlength: TMFFloat;
-    public property Fdlength: TMFFloat read FFdlength;
+    private FFdLength: TMFFloat;
+    public property FdLength: TMFFloat read FFdLength;
 
-    private FFdmaxExtent: TSFFloat;
-    public property FdmaxExtent: TSFFloat read FFdmaxExtent;
+    private FFdMaxExtent: TSFFloat;
+    public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
-    private FFdstring: TMFString;
-    public property Fdstring: TMFString read FFdstring;
+    private FFdString: TMFString;
+    public property FdString: TMFString read FFdString;
 
     { Event: MFVec2f, out } { }
-    private FEventlineBounds: TVRMLEvent;
-    public property EventlineBounds: TVRMLEvent read FEventlineBounds;
+    private FEventLineBounds: TVRMLEvent;
+    public property EventLineBounds: TVRMLEvent read FEventLineBounds;
 
     { Event: SFVec3f, out } { }
-    private FEventorigin: TVRMLEvent;
-    public property Eventorigin: TVRMLEvent read FEventorigin;
+    private FEventOrigin: TVRMLEvent;
+    public property EventOrigin: TVRMLEvent read FEventOrigin;
 
     { Event: SFVec2f, out } { }
-    private FEventtextBounds: TVRMLEvent;
-    public property EventtextBounds: TVRMLEvent read FEventtextBounds;
+    private FEventTextBounds: TVRMLEvent;
+    public property EventTextBounds: TVRMLEvent read FEventTextBounds;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
       ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;

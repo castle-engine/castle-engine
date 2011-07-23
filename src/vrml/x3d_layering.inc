@@ -19,11 +19,11 @@
   public
     procedure CreateNode; override;
 
-    private FFdisPickable: TSFBool;
-    public property FdisPickable: TSFBool read FFdisPickable;
+    private FFdIsPickable: TSFBool;
+    public property FdIsPickable: TSFBool read FFdIsPickable;
 
-    private FFdviewport: TSFNode;
-    public property Fdviewport: TSFNode read FFdviewport;
+    private FFdViewport: TSFNode;
+    public property FdViewport: TSFNode read FFdViewport;
   end;
 
   TNodeX3DViewportNode = class(TNodeX3DGroupingNode)
@@ -38,15 +38,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventaddChildren: TVRMLEvent;
-    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
+    private FEventAddChildren: TVRMLEvent;
+    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventremoveChildren: TVRMLEvent;
-    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
+    private FEventRemoveChildren: TVRMLEvent;
+    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
 
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
   end;
 
   TNodeLayerSet = class(TNodeX3DNode)
@@ -55,14 +55,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdactiveLayer: TSFInt32;
-    public property FdactiveLayer: TSFInt32 read FFdactiveLayer;
+    private FFdActiveLayer: TSFInt32;
+    public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
 
-    private FFdlayers: TMFNode;
-    public property Fdlayers: TMFNode read FFdlayers;
+    private FFdLayers: TMFNode;
+    public property FdLayers: TMFNode read FFdLayers;
 
-    private FFdorder: TMFInt32;
-    public property Fdorder: TMFInt32 read FFdorder;
+    private FFdOrder: TMFInt32;
+    public property FdOrder: TMFInt32 read FFdOrder;
   end;
 
   TNodeViewport = class(TNodeX3DGroupingNode, INodeX3DBoundedObject)
@@ -71,8 +71,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdclipBoundary: TMFFloat;
-    public property FdclipBoundary: TMFFloat read FFdclipBoundary;
+    private FFdClipBoundary: TMFFloat;
+    public property FdClipBoundary: TMFFloat read FFdClipBoundary;
   end;
 
 {$endif read_interface}

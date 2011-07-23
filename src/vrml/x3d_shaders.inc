@@ -20,27 +20,27 @@
     procedure CreateNode; override;
 
     { Event: SFBool, in } { }
-    private FEventactivate: TVRMLEvent;
-    public property Eventactivate: TVRMLEvent read FEventactivate;
+    private FEventActivate: TVRMLEvent;
+    public property EventActivate: TVRMLEvent read FEventActivate;
 
     { Event: SFBool, out } { }
-    private FEventisSelected: TVRMLEvent;
-    public property EventisSelected: TVRMLEvent read FEventisSelected;
+    private FEventIsSelected: TVRMLEvent;
+    public property EventIsSelected: TVRMLEvent read FEventIsSelected;
 
     { Event: SFBool, out } { }
-    private FEventisValid: TVRMLEvent;
-    public property EventisValid: TVRMLEvent read FEventisValid;
+    private FEventIsValid: TVRMLEvent;
+    public property EventIsValid: TVRMLEvent read FEventIsValid;
 
-    private FFdlanguage: TSFString;
-    public property Fdlanguage: TSFString read FFdlanguage;
+    private FFdLanguage: TSFString;
+    public property FdLanguage: TSFString read FFdLanguage;
   end;
 
   TNodeX3DVertexAttributeNode = class(TNodeX3DGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
   end;
 
   INodeX3DProgrammableShaderObject = interface
@@ -53,8 +53,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdparts: TMFNode;
-    public property Fdparts: TMFNode read FFdparts;
+    private FFdParts: TMFNode;
+    public property FdParts: TMFNode read FFdParts;
 
     { Returns string describing all used URLs in our ShaderPart nodes.
       More precisely, all UsedFullUrl in ShaderPart nodes inside out parts field.
@@ -69,11 +69,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdvalue: TMFFloat;
-    public property Fdvalue: TMFFloat read FFdvalue;
+    private FFdValue: TMFFloat;
+    public property FdValue: TMFFloat read FFdValue;
 
-    private FFdnumComponents: TSFInt32;
-    public property FdnumComponents: TSFInt32 read FFdnumComponents;
+    private FFdNumComponents: TSFInt32;
+    public property FdNumComponents: TSFInt32 read FFdNumComponents;
   end;
 
   TNodeMatrix3VertexAttribute = class(TNodeX3DVertexAttributeNode)
@@ -82,8 +82,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdvalue: TMFMatrix3f;
-    public property Fdvalue: TMFMatrix3f read FFdvalue;
+    private FFdValue: TMFMatrix3f;
+    public property FdValue: TMFMatrix3f read FFdValue;
   end;
 
   TNodeMatrix4VertexAttribute = class(TNodeX3DVertexAttributeNode)
@@ -92,8 +92,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdvalue: TMFMatrix4f;
-    public property Fdvalue: TMFMatrix4f read FFdvalue;
+    private FFdValue: TMFMatrix4f;
+    public property FdValue: TMFMatrix4f read FFdValue;
   end;
 
   TNodePackagedShader = class(TNodeX3DShaderNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
@@ -102,8 +102,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
   end;
 
   TNodeProgramShader = class(TNodeX3DShaderNode)
@@ -112,8 +112,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdprograms: TMFNode;
-    public property Fdprograms: TMFNode read FFdprograms;
+    private FFdPrograms: TMFNode;
+    public property FdPrograms: TMFNode read FFdPrograms;
   end;
 
   TShaderType = (stVertex, stFragment);
@@ -135,11 +135,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
-    private FFdtype: TSFStringShaderType;
-    public property Fdtype: TSFStringShaderType read FFdtype;
+    private FFdType: TSFStringShaderType;
+    public property FdType: TSFStringShaderType read FFdType;
 
     { Load shader code from node's URLs.
       Will return '' if no valid URLs present.
@@ -164,11 +164,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
-    private FFdtype: TSFStringShaderType;
-    public property Fdtype: TSFStringShaderType read FFdtype;
+    private FFdType: TSFStringShaderType;
+    public property FdType: TSFStringShaderType read FFdType;
   end;
 {$endif read_interface}
 

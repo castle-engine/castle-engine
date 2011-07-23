@@ -61,8 +61,8 @@
     private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFdglobal: TSFBool;
-    public property Fdglobal: TSFBool read FFdglobal;
+    private FFdGlobal: TSFBool;
+    public property FdGlobal: TSFBool read FFdGlobal;
 
     private FFdKambiShadows: TSFBool;
     public property FdKambiShadows: TSFBool read FFdKambiShadows;
@@ -70,10 +70,10 @@
     private FFdKambiShadowsMain: TSFBool;
     public property FdKambiShadowsMain: TSFBool read FFdKambiShadowsMain;
 
-    private FFdshowProxyGeometry: TSFBool;
+    private FFdShowProxyGeometry: TSFBool;
     { showProxyGeometry field is an Avalon extension, see
       [http://instant-reality.com/documentation/nodetype/Light/]. }
-    public property FdshowProxyGeometry: TSFBool read FFdshowProxyGeometry;
+    public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
 
     private FFdProjectionNear: TSFFloat;
     { projectionNear / projectionFar / up are Kambi extensions, see
@@ -246,8 +246,8 @@
       function always returns 1, so there's no point in using it at all. }
     function HasAttenuation: boolean;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
+    private FFdRadius: TSFFloat;
+    public property FdRadius: TSFFloat read FFdRadius;
 
     { Should the "radius" field be taken into account. }
     function HasRadius: boolean; virtual;
@@ -291,14 +291,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdbeamWidth: TSFFloat;
-    public property FdbeamWidth: TSFFloat read FFdbeamWidth;
+    private FFdBeamWidth: TSFFloat;
+    public property FdBeamWidth: TSFFloat read FFdBeamWidth;
 
-    private FFdcutOffAngle: TSFFloat;
-    public property FdcutOffAngle: TSFFloat read FFdcutOffAngle;
+    private FFdCutOffAngle: TSFFloat;
+    public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
     private FFdProjectionAngle: TSFFloat;
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
@@ -847,7 +847,7 @@ begin
 
   if FdprojectionAngle.Value <= 0 then
     Angle := 2 * FdCutOffAngle.Value else
-    Angle := FdprojectionAngle.Value;
+    Angle := FdProjectionAngle.Value;
 
   N := FdProjectionNear.Value;
   if N = 0 then N := FallbackProjectionNear;

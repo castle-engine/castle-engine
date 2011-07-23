@@ -17,7 +17,7 @@
   { }
   INodeX3DProductStructureChildNode = interface(INodeX3DChildNode)
   ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
-    property Fdname: TSFString { read FFdname} { };
+    property FdName: TSFString { read FFdName} { };
   end;
 
   TNodeX3DProductStructureChildNode = class(TNodeX3DChildNode,
@@ -25,8 +25,8 @@
   public
     procedure CreateNode; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
   end;
 
   TNodeCADAssembly = class(TNodeX3DGroupingNode, INodeX3DProductStructureChildNode)
@@ -35,8 +35,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
   end;
 
   TNodeCADFace = class(TNodeX3DProductStructureChildNode, INodeX3DBoundedObject)
@@ -45,14 +45,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdshape: TSFNode;
-    public property Fdshape: TSFNode read FFdshape;
+    private FFdShape: TSFNode;
+    public property FdShape: TSFNode read FFdShape;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
   TNodeCADLayer = class(TNodeX3DGroupingNode)
@@ -61,11 +61,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdvisible: TMFBool;
-    public property Fdvisible: TMFBool read FFdvisible;
+    private FFdVisible: TMFBool;
+    public property FdVisible: TMFBool read FFdVisible;
   end;
 
   TNodeCADPart = class(TNodeX3DGroupingNode, INodeX3DProductStructureChildNode)
@@ -74,23 +74,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdscaleOrientation: TSFRotation;
-    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+    private FFdScaleOrientation: TSFRotation;
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
 
   TNodeIndexedQuadSet = class(TNodeX3DComposedGeometryNode)
@@ -100,11 +100,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventset_index: TVRMLEvent;
-    public property Eventset_index: TVRMLEvent read FEventset_index;
+    private FEventSet_index: TVRMLEvent;
+    public property EventSet_index: TVRMLEvent read FEventSet_index;
 
-    private FFdindex: TMFInt32;
-    public property Fdindex: TMFInt32 read FFdindex;
+    private FFdIndex: TMFInt32;
+    public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
 

@@ -56,19 +56,19 @@
     procedure CreateNode; override;
 
     { Event: SFBool, in } { }
-    private FEventnext: TVRMLEvent;
-    public property Eventnext: TVRMLEvent read FEventnext;
+    private FEventNext: TVRMLEvent;
+    public property EventNext: TVRMLEvent read FEventNext;
 
     { Event: SFBool, in } { }
-    private FEventprevious: TVRMLEvent;
-    public property Eventprevious: TVRMLEvent read FEventprevious;
+    private FEventPrevious: TVRMLEvent;
+    public property EventPrevious: TVRMLEvent read FEventPrevious;
 
     { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
+    private FEventSet_fraction: TVRMLEvent;
+    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
 
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
+    private FFdKey: TMFFloat;
+    public property FdKey: TMFFloat read FFdKey;
   end;
 
   TNodeX3DTriggerNode = class(TNodeX3DChildNode)
@@ -86,20 +86,20 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventset_boolean: TVRMLEvent;
-    public property Eventset_boolean: TVRMLEvent read FEventset_boolean;
+    private FEventSet_boolean: TVRMLEvent;
+    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
 
     { Event: SFBool, out } { }
-    private FEventinputFalse: TVRMLEvent;
-    public property EventinputFalse: TVRMLEvent read FEventinputFalse;
+    private FEventInputFalse: TVRMLEvent;
+    public property EventInputFalse: TVRMLEvent read FEventInputFalse;
 
     { Event: SFBool, out } { }
-    private FEventinputNegate: TVRMLEvent;
-    public property EventinputNegate: TVRMLEvent read FEventinputNegate;
+    private FEventInputNegate: TVRMLEvent;
+    public property EventInputNegate: TVRMLEvent read FEventInputNegate;
 
     { Event: SFBool, out } { }
-    private FEventinputTrue: TVRMLEvent;
-    public property EventinputTrue: TVRMLEvent read FEventinputTrue;
+    private FEventInputTrue: TVRMLEvent;
+    public property EventInputTrue: TVRMLEvent read FEventInputTrue;
   end;
 
   TNodeBooleanSequencer = class(TNodeX3DSequencerNode)
@@ -111,12 +111,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFBool;
-    public property FdkeyValue: TMFBool read FFdkeyValue;
+    private FFdKeyValue: TMFBool;
+    public property FdKeyValue: TMFBool read FFdKeyValue;
 
     { Event: SFBool, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeBooleanToggle = class(TNodeX3DChildNode)
@@ -129,11 +129,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventset_boolean: TVRMLEvent;
-    public property Eventset_boolean: TVRMLEvent read FEventset_boolean;
+    private FEventSet_boolean: TVRMLEvent;
+    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
 
-    private FFdtoggle: TSFBool;
-    public property Fdtoggle: TSFBool read FFdtoggle;
+    private FFdToggle: TSFBool;
+    public property FdToggle: TSFBool read FFdToggle;
   end;
 
   TNodeBooleanTrigger = class(TNodeX3DTriggerNode)
@@ -146,12 +146,12 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFTime, in } { }
-    private FEventset_triggerTime: TVRMLEvent;
-    public property Eventset_triggerTime: TVRMLEvent read FEventset_triggerTime;
+    private FEventSet_triggerTime: TVRMLEvent;
+    public property EventSet_triggerTime: TVRMLEvent read FEventSet_triggerTime;
 
     { Event: SFBool, out } { }
-    private FEventtriggerTrue: TVRMLEvent;
-    public property EventtriggerTrue: TVRMLEvent read FEventtriggerTrue;
+    private FEventTriggerTrue: TVRMLEvent;
+    public property EventTriggerTrue: TVRMLEvent read FEventTriggerTrue;
   end;
 
   TNodeIntegerSequencer = class(TNodeX3DSequencerNode)
@@ -163,12 +163,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFInt32;
-    public property FdkeyValue: TMFInt32 read FFdkeyValue;
+    private FFdKeyValue: TMFInt32;
+    public property FdKeyValue: TMFInt32 read FFdKeyValue;
 
     { Event: SFInt32, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeIntegerTrigger = class(TNodeX3DTriggerNode)
@@ -181,15 +181,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventset_boolean: TVRMLEvent;
-    public property Eventset_boolean: TVRMLEvent read FEventset_boolean;
+    private FEventSet_boolean: TVRMLEvent;
+    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
 
-    private FFdintegerKey: TSFInt32;
-    public property FdintegerKey: TSFInt32 read FFdintegerKey;
+    private FFdIntegerKey: TSFInt32;
+    public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
 
     { Event: SFInt32, out } { }
-    private FEventtriggerValue: TVRMLEvent;
-    public property EventtriggerValue: TVRMLEvent read FEventtriggerValue;
+    private FEventTriggerValue: TVRMLEvent;
+    public property EventTriggerValue: TVRMLEvent read FEventTriggerValue;
   end;
 
   TNodeTimeTrigger = class(TNodeX3DTriggerNode)
@@ -202,12 +202,12 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventset_boolean: TVRMLEvent;
-    public property Eventset_boolean: TVRMLEvent read FEventset_boolean;
+    private FEventSet_boolean: TVRMLEvent;
+    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
 
     { Event: SFTime, out } { }
-    private FEventtriggerTime: TVRMLEvent;
-    public property EventtriggerTime: TVRMLEvent read FEventtriggerTime;
+    private FEventTriggerTime: TVRMLEvent;
+    public property EventTriggerTime: TVRMLEvent read FEventTriggerTime;
   end;
 
 {$endif read_interface}

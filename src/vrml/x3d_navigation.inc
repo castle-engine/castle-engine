@@ -51,8 +51,8 @@
     private FEventCameraRotationInverseMatrix: TVRMLEvent;
     public property EventCameraRotationInverseMatrix: TVRMLEvent read FEventCameraRotationInverseMatrix;
 
-    private FFdcameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
-    public property FdcameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdcameraMatrixSendAlsoOnOffscreenRendering;
+    private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
+    public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
 
     { Position of the viewpoint.
 
@@ -115,17 +115,17 @@
   public
     procedure CreateNode; override;
 
-    private FFdcenterOfRotation: TSFVec3f;
-    public property FdcenterOfRotation: TSFVec3f read FFdcenterOfRotation;
+    private FFdCenterOfRotation: TSFVec3f;
+    public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
-    private FFdjump: TSFBool;
-    public property Fdjump: TSFBool read FFdjump;
+    private FFdJump: TSFBool;
+    public property FdJump: TSFBool read FFdJump;
 
-    private FFdretainUserOffsets: TSFBool;
-    public property FdretainUserOffsets: TSFBool read FFdretainUserOffsets;
+    private FFdRetainUserOffsets: TSFBool;
+    public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
 
     { Matrices for projecting texture from this viewpoint,
       for ProjectedTextureCoordinate.
@@ -159,8 +159,8 @@
 
     procedure CameraChanged(const APosition, ADirection, AUp: TVector3Single);
 
-    private FFdaxisOfRotation: TSFVec3f;
-    public property FdaxisOfRotation: TSFVec3f read FFdaxisOfRotation;
+    private FFdAxisOfRotation: TSFVec3f;
+    public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
   end;
 
   TNodeCollision = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
@@ -175,19 +175,19 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: SFTime, out } { }
-    private FEventcollideTime: TVRMLEvent;
-    public property EventcollideTime: TVRMLEvent read FEventcollideTime;
+    private FEventCollideTime: TVRMLEvent;
+    public property EventCollideTime: TVRMLEvent read FEventCollideTime;
 
     { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FEventIsActive: TVRMLEvent;
+    public property EventIsActive: TVRMLEvent read FEventIsActive;
 
-    private FFdproxy: TSFNode;
-    public property Fdproxy: TSFNode read FFdproxy;
+    private FFdProxy: TSFNode;
+    public property FdProxy: TSFNode read FFdProxy;
   end;
 
   { LOD node for VRML >= 2.0. This is not for VRML <= 1.0 LOD node.
@@ -221,18 +221,18 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdrange: TMFFloat;
-    public property Fdrange: TMFFloat read FFdrange;
+    private FFdRange: TMFFloat;
+    public property FdRange: TMFFloat read FFdRange;
 
-    private FFdforceTransitions: TSFBool;
-    public property FdforceTransitions: TSFBool read FFdforceTransitions;
+    private FFdForceTransitions: TSFBool;
+    public property FdForceTransitions: TSFBool read FFdForceTransitions;
 
     { Event: SFInt32, out } { }
-    private FEventlevel_changed: TVRMLEvent;
-    public property Eventlevel_changed: TVRMLEvent read FEventlevel_changed;
+    private FEventLevel_changed: TVRMLEvent;
+    public property EventLevel_changed: TVRMLEvent read FEventLevel_changed;
 
     function ChildrenField: TMFNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -264,30 +264,30 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdavatarSize: TMFFloat;
-    public property FdavatarSize: TMFFloat read FFdavatarSize;
+    private FFdAvatarSize: TMFFloat;
+    public property FdAvatarSize: TMFFloat read FFdAvatarSize;
 
-    private FFdheadlight: TSFBool;
-    public property Fdheadlight: TSFBool read FFdheadlight;
+    private FFdHeadlight: TSFBool;
+    public property FdHeadlight: TSFBool read FFdHeadlight;
 
-    private FFdspeed: TSFFloat;
-    public property Fdspeed: TSFFloat read FFdspeed;
+    private FFdSpeed: TSFFloat;
+    public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdtransitionTime: TSFTime;
-    public property FdtransitionTime: TSFTime read FFdtransitionTime;
+    private FFdTransitionTime: TSFTime;
+    public property FdTransitionTime: TSFTime read FFdTransitionTime;
 
-    private FFdtransitionType: TMFString;
-    public property FdtransitionType: TMFString read FFdtransitionType;
+    private FFdTransitionType: TMFString;
+    public property FdTransitionType: TMFString read FFdTransitionType;
 
-    private FFdtype: TMFString;
-    public property Fdtype: TMFString read FFdtype;
+    private FFdType: TMFString;
+    public property FdType: TMFString read FFdType;
 
-    private FFdvisibilityLimit: TSFFloat;
-    public property FdvisibilityLimit: TSFFloat read FFdvisibilityLimit;
+    private FFdVisibilityLimit: TSFFloat;
+    public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
 
     { Event: SFBool, out } { }
-    private FEventtransitionComplete: TVRMLEvent;
-    public property EventtransitionComplete: TVRMLEvent read FEventtransitionComplete;
+    private FEventTransitionComplete: TVRMLEvent;
+    public property EventTransitionComplete: TVRMLEvent read FEventTransitionComplete;
   end;
 
   TNodeOrthoViewpoint = class(TNodeX3DViewpointNode)
@@ -296,11 +296,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfieldOfView: TMFFloat;
-    public property FdfieldOfView: TMFFloat read FFdfieldOfView;
+    private FFdFieldOfView: TMFFloat;
+    public property FdFieldOfView: TMFFloat read FFdFieldOfView;
 
-    private FFdposition: TSFVec3f;
-    public property Fdposition: TSFVec3f read FFdposition;
+    private FFdPosition: TSFVec3f;
+    public property FdPosition: TSFVec3f read FFdPosition;
 
     function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
@@ -321,11 +321,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfieldOfView: TSFFloat;
-    public property FdfieldOfView: TSFFloat read FFdfieldOfView;
+    private FFdFieldOfView: TSFFloat;
+    public property FdFieldOfView: TSFFloat read FFdFieldOfView;
 
-    private FFdposition: TSFVec3f;
-    public property Fdposition: TSFVec3f read FFdposition;
+    private FFdPosition: TSFVec3f;
+    public property FdPosition: TSFVec3f read FFdPosition;
 
     function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
@@ -366,23 +366,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
-    private FFddisplayed: TSFBool;
-    public property Fddisplayed: TSFBool read FFddisplayed;
+    private FFdDisplayed: TSFBool;
+    public property FdDisplayed: TSFBool read FFdDisplayed;
 
-    private FFdretainUserOffsets: TSFBool;
-    public property FdretainUserOffsets: TSFBool read FFdretainUserOffsets;
+    private FFdRetainUserOffsets: TSFBool;
+    public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
 
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
+    private FFdSize: TSFVec3f;
+    public property FdSize: TSFVec3f read FFdSize;
   end;
 {$endif read_interface}
 

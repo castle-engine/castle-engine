@@ -34,12 +34,12 @@
   public
     procedure CreateNode; override;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
     { Event: SFBool, out } { }
-    private FEventisOver: TVRMLEvent;
-    public property EventisOver: TVRMLEvent read FEventisOver;
+    private FEventIsOver: TVRMLEvent;
+    public property EventIsOver: TVRMLEvent read FEventIsOver;
 
     { Activate pointing device sensor. Used by the events engine
       (like TVRMLScene) to notify this sensor.
@@ -65,12 +65,12 @@
   public
     procedure CreateNode; override;
 
-    private FFdautoOffset: TSFBool;
-    public property FdautoOffset: TSFBool read FFdautoOffset;
+    private FFdAutoOffset: TSFBool;
+    public property FdAutoOffset: TSFBool read FFdAutoOffset;
 
     { Event: SFVec3f, out } { }
-    private FEventtrackPoint_changed: TVRMLEvent;
-    public property EventtrackPoint_changed: TVRMLEvent read FEventtrackPoint_changed;
+    private FEventTrackPoint_changed: TVRMLEvent;
+    public property EventTrackPoint_changed: TVRMLEvent read FEventTrackPoint_changed;
 
     { Called by events engine (like TVRMLScene) when you move your mouse
       over the @italic(active) drag sensor. }
@@ -82,8 +82,8 @@
     procedure CreateNode; override;
 
     { Event: SFTime, out } { }
-    private FEventtouchTime: TVRMLEvent;
-    public property EventtouchTime: TVRMLEvent read FEventtouchTime;
+    private FEventTouchTime: TVRMLEvent;
+    public property EventTouchTime: TVRMLEvent read FEventTouchTime;
   end;
 
   TNodeCylinderSensor = class(TNodeX3DDragSensorNode)
@@ -115,24 +115,24 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdaxisRotation: TSFRotation;
-    public property FdaxisRotation: TSFRotation read FFdaxisRotation;
+    private FFdAxisRotation: TSFRotation;
+    public property FdAxisRotation: TSFRotation read FFdAxisRotation;
 
-    private FFddiskAngle: TSFFloat;
-    public property FddiskAngle: TSFFloat read FFddiskAngle;
+    private FFdDiskAngle: TSFFloat;
+    public property FdDiskAngle: TSFFloat read FFdDiskAngle;
 
-    private FFdmaxAngle: TSFFloat;
-    public property FdmaxAngle: TSFFloat read FFdmaxAngle;
+    private FFdMaxAngle: TSFFloat;
+    public property FdMaxAngle: TSFFloat read FFdMaxAngle;
 
-    private FFdminAngle: TSFFloat;
-    public property FdminAngle: TSFFloat read FFdminAngle;
+    private FFdMinAngle: TSFFloat;
+    public property FdMinAngle: TSFFloat read FFdMinAngle;
 
-    private FFdoffset: TSFFloat;
-    public property Fdoffset: TSFFloat read FFdoffset;
+    private FFdOffset: TSFFloat;
+    public property FdOffset: TSFFloat read FFdOffset;
 
     { Event: SFRotation, out } { }
-    private FEventrotation_changed: TVRMLEvent;
-    public property Eventrotation_changed: TVRMLEvent read FEventrotation_changed;
+    private FEventRotation_changed: TVRMLEvent;
+    public property EventRotation_changed: TVRMLEvent read FEventRotation_changed;
 
     procedure Activate(const Time: TVRMLTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -165,21 +165,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdaxisRotation: TSFRotation;
-    public property FdaxisRotation: TSFRotation read FFdaxisRotation;
+    private FFdAxisRotation: TSFRotation;
+    public property FdAxisRotation: TSFRotation read FFdAxisRotation;
 
-    private FFdmaxPosition: TSFVec2f;
-    public property FdmaxPosition: TSFVec2f read FFdmaxPosition;
+    private FFdMaxPosition: TSFVec2f;
+    public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
 
-    private FFdminPosition: TSFVec2f;
-    public property FdminPosition: TSFVec2f read FFdminPosition;
+    private FFdMinPosition: TSFVec2f;
+    public property FdMinPosition: TSFVec2f read FFdMinPosition;
 
-    private FFdoffset: TSFVec3f;
-    public property Fdoffset: TSFVec3f read FFdoffset;
+    private FFdOffset: TSFVec3f;
+    public property FdOffset: TSFVec3f read FFdOffset;
 
     { Event: SFVec3f, out } { }
-    private FEventtranslation_changed: TVRMLEvent;
-    public property Eventtranslation_changed: TVRMLEvent read FEventtranslation_changed;
+    private FEventTranslation_changed: TVRMLEvent;
+    public property EventTranslation_changed: TVRMLEvent read FEventTranslation_changed;
 
     procedure Activate(const Time: TVRMLTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -208,12 +208,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdoffset: TSFRotation;
-    public property Fdoffset: TSFRotation read FFdoffset;
+    private FFdOffset: TSFRotation;
+    public property FdOffset: TSFRotation read FFdOffset;
 
     { Event: SFRotation, out } { }
-    private FEventrotation_changed: TVRMLEvent;
-    public property Eventrotation_changed: TVRMLEvent read FEventrotation_changed;
+    private FEventRotation_changed: TVRMLEvent;
+    public property EventRotation_changed: TVRMLEvent read FEventRotation_changed;
 
     procedure Activate(const Time: TVRMLTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -229,16 +229,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, out } { }
-    private FEventhitNormal_changed: TVRMLEvent;
-    public property EventhitNormal_changed: TVRMLEvent read FEventhitNormal_changed;
+    private FEventHitNormal_changed: TVRMLEvent;
+    public property EventHitNormal_changed: TVRMLEvent read FEventHitNormal_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventhitPoint_changed: TVRMLEvent;
-    public property EventhitPoint_changed: TVRMLEvent read FEventhitPoint_changed;
+    private FEventHitPoint_changed: TVRMLEvent;
+    public property EventHitPoint_changed: TVRMLEvent read FEventHitPoint_changed;
 
     { Event: SFVec2f, out } { }
-    private FEventhitTexCoord_changed: TVRMLEvent;
-    public property EventhitTexCoord_changed: TVRMLEvent read FEventhitTexCoord_changed;
+    private FEventHitTexCoord_changed: TVRMLEvent;
+    public property EventHitTexCoord_changed: TVRMLEvent read FEventHitTexCoord_changed;
   end;
 
 {$endif read_interface}
@@ -308,7 +308,7 @@ begin
   FEventtrackPoint_changed := TVRMLEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
   Events.Add(FEventtrackPoint_changed);
 
-  Fdenabled.ChangesAlways := Fdenabled.ChangesAlways + [chDragSensorEnabled];
+  Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
 end;
 
 procedure TNodeX3DDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);

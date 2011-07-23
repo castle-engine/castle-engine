@@ -19,25 +19,25 @@
   public
     procedure CreateNode; override;
 
-    private FFdspeed: TSFFloat;
-    public property Fdspeed: TSFFloat read FFdspeed;
+    private FFdSpeed: TSFFloat;
+    public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdvariation: TSFFloat;
-    public property Fdvariation: TSFFloat read FFdvariation;
+    private FFdVariation: TSFFloat;
+    public property FdVariation: TSFFloat read FFdVariation;
 
-    private FFdmass: TSFFloat;
-    public property Fdmass: TSFFloat read FFdmass;
+    private FFdMass: TSFFloat;
+    public property FdMass: TSFFloat read FFdMass;
 
-    private FFdsurfaceArea: TSFFloat;
-    public property FdsurfaceArea: TSFFloat read FFdsurfaceArea;
+    private FFdSurfaceArea: TSFFloat;
+    public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
   end;
 
   TNodeX3DParticlePhysicsModelNode = class(TNodeX3DNode)
   public
     procedure CreateNode; override;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
   TNodeBoundedPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
@@ -46,8 +46,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdgeometry: TSFNode;
-    public property Fdgeometry: TSFNode read FFdgeometry;
+    private FFdGeometry: TSFNode;
+    public property FdGeometry: TSFNode read FFdGeometry;
   end;
 
   TNodeConeEmitter = class(TNodeX3DParticleEmitterNode)
@@ -56,14 +56,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdangle: TSFFloat;
-    public property Fdangle: TSFFloat read FFdangle;
+    private FFdAngle: TSFFloat;
+    public property FdAngle: TSFFloat read FFdAngle;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdposition: TSFVec3f;
-    public property Fdposition: TSFVec3f read FFdposition;
+    private FFdPosition: TSFVec3f;
+    public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
   TNodeExplosionEmitter = class(TNodeX3DParticleEmitterNode)
@@ -72,8 +72,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdposition: TSFVec3f;
-    public property Fdposition: TSFVec3f read FFdposition;
+    private FFdPosition: TSFVec3f;
+    public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
   TNodeGravityPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
@@ -82,8 +82,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdforce: TSFVec3f;
-    public property Fdforce: TSFVec3f read FFdforce;
+    private FFdForce: TSFVec3f;
+    public property FdForce: TSFVec3f read FFdForce;
   end;
 
   TNodeParticleSystem = class(TNodeX3DShapeNode)
@@ -92,48 +92,48 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcreateParticles: TSFBool;
-    public property FdcreateParticles: TSFBool read FFdcreateParticles;
+    private FFdCreateParticles: TSFBool;
+    public property FdCreateParticles: TSFBool read FFdCreateParticles;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdlifetimeVariation: TSFFloat;
-    public property FdlifetimeVariation: TSFFloat read FFdlifetimeVariation;
+    private FFdLifetimeVariation: TSFFloat;
+    public property FdLifetimeVariation: TSFFloat read FFdLifetimeVariation;
 
-    private FFdmaxParticles: TSFInt32;
-    public property FdmaxParticles: TSFInt32 read FFdmaxParticles;
+    private FFdMaxParticles: TSFInt32;
+    public property FdMaxParticles: TSFInt32 read FFdMaxParticles;
 
-    private FFdparticleLifetime: TSFFloat;
-    public property FdparticleLifetime: TSFFloat read FFdparticleLifetime;
+    private FFdParticleLifetime: TSFFloat;
+    public property FdParticleLifetime: TSFFloat read FFdParticleLifetime;
 
-    private FFdparticleSize: TSFVec2f;
-    public property FdparticleSize: TSFVec2f read FFdparticleSize;
+    private FFdParticleSize: TSFVec2f;
+    public property FdParticleSize: TSFVec2f read FFdParticleSize;
 
     { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FEventIsActive: TVRMLEvent;
+    public property EventIsActive: TVRMLEvent read FEventIsActive;
 
-    private FFdcolorRamp: TSFNode;
-    public property FdcolorRamp: TSFNode read FFdcolorRamp;
+    private FFdColorRamp: TSFNode;
+    public property FdColorRamp: TSFNode read FFdColorRamp;
 
-    private FFdcolorKey: TMFFloat;
-    public property FdcolorKey: TMFFloat read FFdcolorKey;
+    private FFdColorKey: TMFFloat;
+    public property FdColorKey: TMFFloat read FFdColorKey;
 
-    private FFdemitter: TSFNode;
-    public property Fdemitter: TSFNode read FFdemitter;
+    private FFdEmitter: TSFNode;
+    public property FdEmitter: TSFNode read FFdEmitter;
 
-    private FFdgeometryType: TSFString;
-    public property FdgeometryType: TSFString read FFdgeometryType;
+    private FFdGeometryType: TSFString;
+    public property FdGeometryType: TSFString read FFdGeometryType;
 
-    private FFdphysics: TMFNode;
-    public property Fdphysics: TMFNode read FFdphysics;
+    private FFdPhysics: TMFNode;
+    public property FdPhysics: TMFNode read FFdPhysics;
 
-    private FFdtexCoordRamp: TSFNode;
-    public property FdtexCoordRamp: TSFNode read FFdtexCoordRamp;
+    private FFdTexCoordRamp: TSFNode;
+    public property FdTexCoordRamp: TSFNode read FFdTexCoordRamp;
 
-    private FFdtexCoordKey: TMFFloat;
-    public property FdtexCoordKey: TMFFloat read FFdtexCoordKey;
+    private FFdTexCoordKey: TMFFloat;
+    public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
   end;
 
   TNodePointEmitter = class(TNodeX3DParticleEmitterNode)
@@ -142,11 +142,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdposition: TSFVec3f;
-    public property Fdposition: TSFVec3f read FFdposition;
+    private FFdPosition: TSFVec3f;
+    public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
   TNodePolylineEmitter = class(TNodeX3DParticleEmitterNode)
@@ -156,17 +156,17 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, in } { }
-    private FEventset_coordinate: TVRMLEvent;
-    public property Eventset_coordinate: TVRMLEvent read FEventset_coordinate;
+    private FEventSet_coordinate: TVRMLEvent;
+    public property EventSet_coordinate: TVRMLEvent read FEventSet_coordinate;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+    private FFdCoordIndex: TMFInt32;
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
   end;
 
   TNodeSurfaceEmitter = class(TNodeX3DParticleEmitterNode)
@@ -176,14 +176,14 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, in } { }
-    private FEventset_coordinate: TVRMLEvent;
-    public property Eventset_coordinate: TVRMLEvent read FEventset_coordinate;
+    private FEventSet_coordinate: TVRMLEvent;
+    public property EventSet_coordinate: TVRMLEvent read FEventSet_coordinate;
 
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+    private FFdCoordIndex: TMFInt32;
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdsurface: TSFNode;
-    public property Fdsurface: TSFNode read FFdsurface;
+    private FFdSurface: TSFNode;
+    public property FdSurface: TSFNode read FFdSurface;
   end;
 
   TNodeVolumeEmitter = class(TNodeX3DParticleEmitterNode)
@@ -193,20 +193,20 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, in } { }
-    private FEventset_coordinate: TVRMLEvent;
-    public property Eventset_coordinate: TVRMLEvent read FEventset_coordinate;
+    private FEventSet_coordinate: TVRMLEvent;
+    public property EventSet_coordinate: TVRMLEvent read FEventSet_coordinate;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+    private FFdCoordIndex: TMFInt32;
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdinternal: TSFBool;
-    public property Fdinternal: TSFBool read FFdinternal;
+    private FFdInternal: TSFBool;
+    public property FdInternal: TSFBool read FFdInternal;
   end;
 
   TNodeWindPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
@@ -215,17 +215,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdgustiness: TSFFloat;
-    public property Fdgustiness: TSFFloat read FFdgustiness;
+    private FFdGustiness: TSFFloat;
+    public property FdGustiness: TSFFloat read FFdGustiness;
 
-    private FFdspeed: TSFFloat;
-    public property Fdspeed: TSFFloat read FFdspeed;
+    private FFdSpeed: TSFFloat;
+    public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdturbulence: TSFFloat;
-    public property Fdturbulence: TSFFloat read FFdturbulence;
+    private FFdTurbulence: TSFFloat;
+    public property FdTurbulence: TSFFloat read FFdTurbulence;
   end;
 
 {$endif read_interface}

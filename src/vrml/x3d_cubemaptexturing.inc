@@ -26,26 +26,26 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdback: TSFNode;
-    public property Fdback: TSFNode read FFdback;
+    private FFdBack: TSFNode;
+    public property FdBack: TSFNode read FFdBack;
 
-    private FFdbottom: TSFNode;
-    public property Fdbottom: TSFNode read FFdbottom;
+    private FFdBottom: TSFNode;
+    public property FdBottom: TSFNode read FFdBottom;
 
-    private FFdfront: TSFNode;
-    public property Fdfront: TSFNode read FFdfront;
+    private FFdFront: TSFNode;
+    public property FdFront: TSFNode read FFdFront;
 
-    private FFdleft: TSFNode;
-    public property Fdleft: TSFNode read FFdleft;
+    private FFdLeft: TSFNode;
+    public property FdLeft: TSFNode read FFdLeft;
 
-    private FFdright: TSFNode;
-    public property Fdright: TSFNode read FFdright;
+    private FFdRight: TSFNode;
+    public property FdRight: TSFNode read FFdRight;
 
-    private FFdtop: TSFNode;
-    public property Fdtop: TSFNode read FFdtop;
+    private FFdTop: TSFNode;
+    public property FdTop: TSFNode read FFdTop;
 
-    private FFdtextureProperties: TSFNode;
-    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
   end;
 
   { Helper for all VRML/X3D generated texture nodes. }
@@ -80,14 +80,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdupdate: TSFString;
-    public property Fdupdate: TSFString read FFdupdate;
+    private FFdUpdate: TSFString;
+    public property FdUpdate: TSFString read FFdUpdate;
 
-    private FFdsize: TSFInt32;
-    public property Fdsize: TSFInt32 read FFdsize;
+    private FFdSize: TSFInt32;
+    public property FdSize: TSFInt32 read FFdSize;
 
-    private FFdtextureProperties: TSFNode;
-    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
@@ -99,11 +99,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
-    private FFdtextureProperties: TSFNode;
-    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     { Load cube environment map from DDS image.
 

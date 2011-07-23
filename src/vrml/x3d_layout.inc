@@ -26,23 +26,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdalign: TMFString;
-    public property Fdalign: TMFString read FFdalign;
+    private FFdAlign: TMFString;
+    public property FdAlign: TMFString read FFdAlign;
 
-    private FFdoffset: TMFFloat;
-    public property Fdoffset: TMFFloat read FFdoffset;
+    private FFdOffset: TMFFloat;
+    public property FdOffset: TMFFloat read FFdOffset;
 
-    private FFdoffsetUnits: TMFString;
-    public property FdoffsetUnits: TMFString read FFdoffsetUnits;
+    private FFdOffsetUnits: TMFString;
+    public property FdOffsetUnits: TMFString read FFdOffsetUnits;
 
-    private FFdscaleMode: TMFString;
-    public property FdscaleMode: TMFString read FFdscaleMode;
+    private FFdScaleMode: TMFString;
+    public property FdScaleMode: TMFString read FFdScaleMode;
 
-    private FFdsize: TMFFloat;
-    public property Fdsize: TMFFloat read FFdsize;
+    private FFdSize: TMFFloat;
+    public property FdSize: TMFFloat read FFdSize;
 
-    private FFdsizeUnits: TMFString;
-    public property FdsizeUnits: TMFString read FFdsizeUnits;
+    private FFdSizeUnits: TMFString;
+    public property FdSizeUnits: TMFString read FFdSizeUnits;
   end;
 
   TNodeLayoutGroup = class(TNodeX3DGroupingNode)
@@ -51,11 +51,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdlayout: TSFNode;
-    public property Fdlayout: TSFNode read FFdlayout;
+    private FFdLayout: TSFNode;
+    public property FdLayout: TSFNode read FFdLayout;
 
-    private FFdviewport: TSFNode;
-    public property Fdviewport: TSFNode read FFdviewport;
+    private FFdViewport: TSFNode;
+    public property FdViewport: TSFNode read FFdViewport;
   end;
 
   TNodeLayoutLayer = class(TNodeX3DLayerNode)
@@ -65,18 +65,18 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventaddChildren: TVRMLEvent;
-    public property EventaddChildren: TVRMLEvent read FEventaddChildren;
+    private FEventAddChildren: TVRMLEvent;
+    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventremoveChildren: TVRMLEvent;
-    public property EventremoveChildren: TVRMLEvent read FEventremoveChildren;
+    private FEventRemoveChildren: TVRMLEvent;
+    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
 
-    private FFdchildren: TMFNode;
-    public property Fdchildren: TMFNode read FFdchildren;
+    private FFdChildren: TMFNode;
+    public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdlayout: TSFNode;
-    public property Fdlayout: TSFNode read FFdlayout;
+    private FFdLayout: TSFNode;
+    public property FdLayout: TSFNode read FFdLayout;
   end;
 
   TNodeScreenFontStyle = class(TNodeX3DFontStyleNode)
@@ -85,32 +85,32 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfamily: TMFString;
-    public property Fdfamily: TMFString read FFdfamily;
+    private FFdFamily: TMFString;
+    public property FdFamily: TMFString read FFdFamily;
 
-    private FFdhorizontal: TSFBool;
-    public property Fdhorizontal: TSFBool read FFdhorizontal;
+    private FFdHorizontal: TSFBool;
+    public property FdHorizontal: TSFBool read FFdHorizontal;
 
-    private FFdjustify: TMFString;
-    public property Fdjustify: TMFString read FFdjustify;
+    private FFdJustify: TMFString;
+    public property FdJustify: TMFString read FFdJustify;
 
-    private FFdlanguage: TSFString;
-    public property Fdlanguage: TSFString read FFdlanguage;
+    private FFdLanguage: TSFString;
+    public property FdLanguage: TSFString read FFdLanguage;
 
-    private FFdleftToRight: TSFBool;
-    public property FdleftToRight: TSFBool read FFdleftToRight;
+    private FFdLeftToRight: TSFBool;
+    public property FdLeftToRight: TSFBool read FFdLeftToRight;
 
-    private FFdpointSize: TSFFloat;
-    public property FdpointSize: TSFFloat read FFdpointSize;
+    private FFdPointSize: TSFFloat;
+    public property FdPointSize: TSFFloat read FFdPointSize;
 
-    private FFdspacing: TSFFloat;
-    public property Fdspacing: TSFFloat read FFdspacing;
+    private FFdSpacing: TSFFloat;
+    public property FdSpacing: TSFFloat read FFdSpacing;
 
-    private FFdstyle: TSFString;
-    public property Fdstyle: TSFString read FFdstyle;
+    private FFdStyle: TSFString;
+    public property FdStyle: TSFString read FFdStyle;
 
-    private FFdtopToBottom: TSFBool;
-    public property FdtopToBottom: TSFBool read FFdtopToBottom;
+    private FFdTopToBottom: TSFBool;
+    public property FdTopToBottom: TSFBool read FFdTopToBottom;
   end;
 
   TNodeScreenGroup = class(TNodeX3DGroupingNode)

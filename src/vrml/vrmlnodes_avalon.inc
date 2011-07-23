@@ -33,8 +33,8 @@
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdmatrix: TSFMatrix4f;
-    public property Fdmatrix: TSFMatrix4f read FFdmatrix;
+    private FFdMatrix: TSFMatrix4f;
+    public property FdMatrix: TSFMatrix4f read FFdMatrix;
   end;
   TNodeMatrixTransform_2 = TNodeMatrixTransform;
 
@@ -47,17 +47,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
+    private FFdSize: TSFVec3f;
+    public property FdSize: TSFVec3f read FFdSize;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdmanifold: TSFBool;
-    public property Fdmanifold: TSFBool read FFdmanifold;
+    private FFdManifold: TSFBool;
+    public property FdManifold: TSFBool read FFdManifold;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
@@ -79,18 +79,18 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdlevel: TSFInt32;
-    public property Fdlevel: TSFInt32 read FFdlevel;
+    private FFdLevel: TSFInt32;
+    public property FdLevel: TSFInt32 read FFdLevel;
 
-    private FFdlogFile: TSFString;
-    public property FdlogFile: TSFString read FFdlogFile;
+    private FFdLogFile: TSFString;
+    public property FdLogFile: TSFString read FFdLogFile;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: XFAny, in } { }
-    private FEventwrite: TVRMLEvent;
-    public property Eventwrite: TVRMLEvent read FEventwrite;
+    private FEventWrite: TVRMLEvent;
+    public property EventWrite: TVRMLEvent read FEventWrite;
   end;
 
   TNodeConverter = class(TNodeX3DChildNode)
@@ -102,8 +102,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: XFAny, in } { }
     private FEventIn: TVRMLEvent;
@@ -127,82 +127,82 @@
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
 
-    private FFdviewpoint: TSFNode;
-    public property Fdviewpoint: TSFNode read FFdviewpoint;
+    private FFdViewpoint: TSFNode;
+    public property FdViewpoint: TSFNode read FFdViewpoint;
 
-    private FFdbackground: TSFNode;
-    public property Fdbackground: TSFNode read FFdbackground;
+    private FFdBackground: TSFNode;
+    public property FdBackground: TSFNode read FFdBackground;
 
-    private FFdfog: TSFNode;
-    public property Fdfog: TSFNode read FFdfog;
+    private FFdFog: TSFNode;
+    public property FdFog: TSFNode read FFdFog;
 
-    private FFdenvironment: TSFNode;
-    public property Fdenvironment: TSFNode read FFdenvironment;
+    private FFdEnvironment: TSFNode;
+    public property FdEnvironment: TSFNode read FFdEnvironment;
 
-    private FFdscene: TSFNode;
-    public property Fdscene: TSFNode read FFdscene;
+    private FFdScene: TSFNode;
+    public property FdScene: TSFNode read FFdScene;
 
-    private FFddimensions: TMFInt32;
-    public property Fddimensions: TMFInt32 read FFddimensions;
+    private FFdDimensions: TMFInt32;
+    public property FdDimensions: TMFInt32 read FFdDimensions;
 
-    private FFddepthMap: TMFBool;
-    public property FddepthMap: TMFBool read FFddepthMap;
+    private FFdDepthMap: TMFBool;
+    public property FdDepthMap: TMFBool read FFdDepthMap;
 
-    private FFdforeground: TSFNode;
-    public property Fdforeground: TSFNode read FFdforeground;
+    private FFdForeground: TSFNode;
+    public property FdForeground: TSFNode read FFdForeground;
 
-    private FFdzOffset: TMFInt32;
-    public property FdzOffset: TMFInt32 read FFdzOffset;
+    private FFdZOffset: TMFInt32;
+    public property FdZOffset: TMFInt32 read FFdZOffset;
 
-    private FFdtargets: TMFNode;
-    public property Fdtargets: TMFNode read FFdtargets;
+    private FFdTargets: TMFNode;
+    public property FdTargets: TMFNode read FFdTargets;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
-
-    { Event: SFMatrix4f, out } { }
-    private FEventviewing: TVRMLEvent;
-    public property Eventviewing: TVRMLEvent read FEventviewing;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
     { Event: SFMatrix4f, out } { }
-    private FEventprojection: TVRMLEvent;
-    public property Eventprojection: TVRMLEvent read FEventprojection;
+    private FEventViewing: TVRMLEvent;
+    public property EventViewing: TVRMLEvent read FEventViewing;
 
-    private FFdupdate: TSFString;
-    public property Fdupdate: TSFString read FFdupdate;
+    { Event: SFMatrix4f, out } { }
+    private FEventProjection: TVRMLEvent;
+    public property EventProjection: TVRMLEvent read FEventProjection;
 
-    private FFdframeBufferMode: TSFString;
-    public property FdframeBufferMode: TSFString read FFdframeBufferMode;
+    private FFdUpdate: TSFString;
+    public property FdUpdate: TSFString read FFdUpdate;
 
-    private FFdexcludeNodes: TMFNode;
-    public property FdexcludeNodes: TMFNode read FFdexcludeNodes;
+    private FFdFrameBufferMode: TSFString;
+    public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
 
-    private FFdtriggerName: TSFString;
-    public property FdtriggerName: TSFString read FFdtriggerName;
+    private FFdExcludeNodes: TMFNode;
+    public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
+
+    private FFdTriggerName: TSFString;
+    public property FdTriggerName: TSFString read FFdTriggerName;
 
     { Event: SFTime, in } { }
-    private FEventtriggerSlot: TVRMLEvent;
-    public property EventtriggerSlot: TVRMLEvent read FEventtriggerSlot;
+    private FEventTriggerSlot: TVRMLEvent;
+    public property EventTriggerSlot: TVRMLEvent read FEventTriggerSlot;
 
     { Event: SFImage, out } { }
-    private FEventimage_changed: TVRMLEvent;
-    public property Eventimage_changed: TVRMLEvent read FEventimage_changed;
+    private FEventImage_changed: TVRMLEvent;
+    public property EventImage_changed: TVRMLEvent read FEventImage_changed;
 
-    private FFdtextureProperties: TSFNode;
-    public property FdtextureProperties: TSFNode read FFdtextureProperties;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
-    private FFdrepeatS: TSFBool;
-    public property FdrepeatS: TSFBool read FFdrepeatS;
+    private FFdRepeatS: TSFBool;
+    public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdrepeatT: TSFBool;
-    public property FdrepeatT: TSFBool read FFdrepeatT;
+    private FFdRepeatT: TSFBool;
+    public property FdRepeatT: TSFBool read FFdRepeatT;
 
-    private FFdrepeatR: TSFBool;
-    public property FdrepeatR: TSFBool read FFdrepeatR;
+    private FFdRepeatR: TSFBool;
+    public property FdRepeatR: TSFBool read FFdRepeatR;
 
     { Event: SFBool, out } { }
-    private FEventrendering: TVRMLEvent;
-    public property Eventrendering: TVRMLEvent read FEventrendering;
+    private FEventRendering: TVRMLEvent;
+    public property EventRendering: TVRMLEvent read FEventRendering;
   end;
 
   TNodePlane = class(TNodeX3DGeometryNode)
@@ -211,11 +211,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdsize: TSFVec2f;
-    public property Fdsize: TSFVec2f read FFdsize;
+    private FFdSize: TSFVec2f;
+    public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
@@ -239,38 +239,38 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdstatus: TSFBool;
-    public property Fdstatus: TSFBool read FFdstatus;
+    private FFdStatus: TSFBool;
+    public property FdStatus: TSFBool read FFdStatus;
 
-    private FFdnotStatus: TSFBool;
-    public property FdnotStatus: TSFBool read FFdnotStatus;
-
-    { Event: XFAny, in } { }
-    private FEventtoggle: TVRMLEvent;
-    public property Eventtoggle: TVRMLEvent read FEventtoggle;
+    private FFdNotStatus: TSFBool;
+    public property FdNotStatus: TSFBool read FFdNotStatus;
 
     { Event: XFAny, in } { }
-    private FEventset: TVRMLEvent;
-    public property Eventset: TVRMLEvent read FEventset;
+    private FEventToggle: TVRMLEvent;
+    public property EventToggle: TVRMLEvent read FEventToggle;
 
     { Event: XFAny, in } { }
-    private FEventreset: TVRMLEvent;
-    public property Eventreset: TVRMLEvent read FEventreset;
+    private FEventSet: TVRMLEvent;
+    public property EventSet: TVRMLEvent read FEventSet;
+
+    { Event: XFAny, in } { }
+    private FEventReset: TVRMLEvent;
+    public property EventReset: TVRMLEvent read FEventReset;
 
     { Event: SFBool, out } { }
-    private FEventchanged: TVRMLEvent;
-    public property Eventchanged: TVRMLEvent read FEventchanged;
+    private FEventChanged: TVRMLEvent;
+    public property EventChanged: TVRMLEvent read FEventChanged;
 
     { Event: SFBool, out } { }
-    private FEventon: TVRMLEvent;
-    public property Eventon: TVRMLEvent read FEventon;
+    private FEventOn: TVRMLEvent;
+    public property EventOn: TVRMLEvent read FEventOn;
 
     { Event: SFBool, out } { }
-    private FEventoff: TVRMLEvent;
-    public property Eventoff: TVRMLEvent read FEventoff;
+    private FEventOff: TVRMLEvent;
+    public property EventOff: TVRMLEvent read FEventOff;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
   end;
 {$endif read_interface}
 

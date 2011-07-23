@@ -20,30 +20,30 @@
     procedure CreateNode; override;
 
     { Event: SFBool, out } { }
-    private FEventisActive: TVRMLEvent;
-    public property EventisActive: TVRMLEvent read FEventisActive;
+    private FEventIsActive: TVRMLEvent;
+    public property EventIsActive: TVRMLEvent read FEventIsActive;
   end;
 
   TNodeX3DDamperNode = class(TNodeX3DFollowerNode)
   public
     procedure CreateNode; override;
 
-    private FFdtau: TSFTime;
-    public property Fdtau: TSFTime read FFdtau;
+    private FFdTau: TSFTime;
+    public property FdTau: TSFTime read FFdTau;
 
-    private FFdtolerance: TSFFloat;
-    public property Fdtolerance: TSFFloat read FFdtolerance;
+    private FFdTolerance: TSFFloat;
+    public property FdTolerance: TSFFloat read FFdTolerance;
 
-    private FFdorder: TSFInt32;
-    public property Fdorder: TSFInt32 read FFdorder;
+    private FFdOrder: TSFInt32;
+    public property FdOrder: TSFInt32 read FFdOrder;
   end;
 
   TNodeX3DChaserNode = class(TNodeX3DFollowerNode)
   public
     procedure CreateNode; override;
 
-    private FFdduration: TSFTime;
-    public property Fdduration: TSFTime read FFdduration;
+    private FFdDuration: TSFTime;
+    public property FdDuration: TSFTime read FFdDuration;
   end;
 
   TNodeColorDamper = class(TNodeX3DDamperNode)
@@ -53,22 +53,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFColor, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFColor, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFColor, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFColor;
-    public property FdinitialDestination: TSFColor read FFdinitialDestination;
+    private FFdInitialDestination: TSFColor;
+    public property FdInitialDestination: TSFColor read FFdInitialDestination;
 
-    private FFdinitialValue: TSFColor;
-    public property FdinitialValue: TSFColor read FFdinitialValue;
+    private FFdInitialValue: TSFColor;
+    public property FdInitialValue: TSFColor read FFdInitialValue;
   end;
 
   TNodeCoordinateDamper = class(TNodeX3DDamperNode)
@@ -78,22 +78,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec3f, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: MFVec3f, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: MFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TMFVec3f;
-    public property FdinitialDestination: TMFVec3f read FFdinitialDestination;
+    private FFdInitialDestination: TMFVec3f;
+    public property FdInitialDestination: TMFVec3f read FFdInitialDestination;
 
-    private FFdinitialValue: TMFVec3f;
-    public property FdinitialValue: TMFVec3f read FFdinitialValue;
+    private FFdInitialValue: TMFVec3f;
+    public property FdInitialValue: TMFVec3f read FFdInitialValue;
   end;
 
   TNodeOrientationChaser = class(TNodeX3DChaserNode)
@@ -103,22 +103,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFRotation, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFRotation, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFRotation, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFRotation;
-    public property FdinitialDestination: TSFRotation read FFdinitialDestination;
+    private FFdInitialDestination: TSFRotation;
+    public property FdInitialDestination: TSFRotation read FFdInitialDestination;
 
-    private FFdinitialValue: TSFRotation;
-    public property FdinitialValue: TSFRotation read FFdinitialValue;
+    private FFdInitialValue: TSFRotation;
+    public property FdInitialValue: TSFRotation read FFdInitialValue;
   end;
 
   TNodeOrientationDamper = class(TNodeX3DDamperNode)
@@ -128,22 +128,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFRotation, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFRotation, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFRotation, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFRotation;
-    public property FdinitialDestination: TSFRotation read FFdinitialDestination;
+    private FFdInitialDestination: TSFRotation;
+    public property FdInitialDestination: TSFRotation read FFdInitialDestination;
 
-    private FFdinitialValue: TSFRotation;
-    public property FdinitialValue: TSFRotation read FFdinitialValue;
+    private FFdInitialValue: TSFRotation;
+    public property FdInitialValue: TSFRotation read FFdInitialValue;
   end;
 
   TNodePositionChaser = class(TNodeX3DChaserNode)
@@ -153,22 +153,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFVec3f, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFVec3f;
-    public property FdinitialDestination: TSFVec3f read FFdinitialDestination;
+    private FFdInitialDestination: TSFVec3f;
+    public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
 
-    private FFdinitialValue: TSFVec3f;
-    public property FdinitialValue: TSFVec3f read FFdinitialValue;
+    private FFdInitialValue: TSFVec3f;
+    public property FdInitialValue: TSFVec3f read FFdInitialValue;
   end;
 
   TNodePositionChaser2D = class(TNodeX3DChaserNode)
@@ -178,22 +178,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec2f, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFVec2f, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFVec2f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFVec2f;
-    public property FdinitialDestination: TSFVec2f read FFdinitialDestination;
+    private FFdInitialDestination: TSFVec2f;
+    public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
 
-    private FFdinitialValue: TSFVec2f;
-    public property FdinitialValue: TSFVec2f read FFdinitialValue;
+    private FFdInitialValue: TSFVec2f;
+    public property FdInitialValue: TSFVec2f read FFdInitialValue;
   end;
 
   TNodePositionDamper = class(TNodeX3DDamperNode)
@@ -203,22 +203,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFVec3f, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFVec3f;
-    public property FdinitialDestination: TSFVec3f read FFdinitialDestination;
+    private FFdInitialDestination: TSFVec3f;
+    public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
 
-    private FFdinitialValue: TSFVec3f;
-    public property FdinitialValue: TSFVec3f read FFdinitialValue;
+    private FFdInitialValue: TSFVec3f;
+    public property FdInitialValue: TSFVec3f read FFdInitialValue;
   end;
 
   TNodePositionDamper2D = class(TNodeX3DDamperNode)
@@ -228,22 +228,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec2f, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFVec2f, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFVec2f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFVec2f;
-    public property FdinitialDestination: TSFVec2f read FFdinitialDestination;
+    private FFdInitialDestination: TSFVec2f;
+    public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
 
-    private FFdinitialValue: TSFVec2f;
-    public property FdinitialValue: TSFVec2f read FFdinitialValue;
+    private FFdInitialValue: TSFVec2f;
+    public property FdInitialValue: TSFVec2f read FFdInitialValue;
   end;
 
   TNodeScalarChaser = class(TNodeX3DChaserNode)
@@ -253,22 +253,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: SFFloat, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: SFFloat, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TSFFloat;
-    public property FdinitialDestination: TSFFloat read FFdinitialDestination;
+    private FFdInitialDestination: TSFFloat;
+    public property FdInitialDestination: TSFFloat read FFdInitialDestination;
 
-    private FFdinitialValue: TSFFloat;
-    public property FdinitialValue: TSFFloat read FFdinitialValue;
+    private FFdInitialValue: TSFFloat;
+    public property FdInitialValue: TSFFloat read FFdInitialValue;
   end;
 
   TNodeTexCoordDamper2D = class(TNodeX3DDamperNode)
@@ -278,22 +278,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec2f, in } { }
-    private FEventset_destination: TVRMLEvent;
-    public property Eventset_destination: TVRMLEvent read FEventset_destination;
+    private FEventSet_destination: TVRMLEvent;
+    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
 
     { Event: MFVec2f, in } { }
-    private FEventset_value: TVRMLEvent;
-    public property Eventset_value: TVRMLEvent read FEventset_value;
+    private FEventSet_value: TVRMLEvent;
+    public property EventSet_value: TVRMLEvent read FEventSet_value;
 
     { Event: MFVec2f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    private FFdinitialDestination: TMFVec2f;
-    public property FdinitialDestination: TMFVec2f read FFdinitialDestination;
+    private FFdInitialDestination: TMFVec2f;
+    public property FdInitialDestination: TMFVec2f read FFdInitialDestination;
 
-    private FFdinitialValue: TMFVec2f;
-    public property FdinitialValue: TMFVec2f read FFdinitialValue;
+    private FFdInitialValue: TMFVec2f;
+    public property FdInitialValue: TMFVec2f read FFdInitialValue;
   end;
 
 {$endif read_interface}

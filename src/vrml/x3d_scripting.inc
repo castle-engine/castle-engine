@@ -39,8 +39,8 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
 
     { Initialize / shutdown of the script. Read this to know current
       script state, write this is to actually initialize/shutdown if needed.
@@ -75,11 +75,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddirectOutput: TSFBool;
-    public property FddirectOutput: TSFBool read FFddirectOutput;
+    private FFdDirectOutput: TSFBool;
+    public property FdDirectOutput: TSFBool read FFdDirectOutput;
 
-    private FFdmustEvaluate: TSFBool;
-    public property FdmustEvaluate: TSFBool read FFdmustEvaluate;
+    private FFdMustEvaluate: TSFBool;
+    public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
 
     procedure PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration); override;
   end;

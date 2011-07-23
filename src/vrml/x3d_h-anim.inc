@@ -21,17 +21,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+    private FFdCoordIndex: TMFInt32;
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFddisplacements: TMFVec3f;
-    public property Fddisplacements: TMFVec3f read FFddisplacements;
+    private FFdDisplacements: TMFVec3f;
+    public property FdDisplacements: TMFVec3f read FFdDisplacements;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdweight: TSFFloat;
-    public property Fdweight: TSFFloat read FFdweight;
+    private FFdWeight: TSFFloat;
+    public property FdWeight: TSFFloat read FFdWeight;
   end;
 
   TNodeHAnimJoint = class;
@@ -67,59 +67,59 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdinfo: TMFString;
-    public property Fdinfo: TMFString read FFdinfo;
+    private FFdInfo: TMFString;
+    public property FdInfo: TMFString read FFdInfo;
 
-    private FFdjoints: TMFNode;
-    public property Fdjoints: TMFNode read FFdjoints;
+    private FFdJoints: TMFNode;
+    public property FdJoints: TMFNode read FFdJoints;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdscaleOrientation: TSFRotation;
-    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+    private FFdScaleOrientation: TSFRotation;
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdsegments: TMFNode;
-    public property Fdsegments: TMFNode read FFdsegments;
+    private FFdSegments: TMFNode;
+    public property FdSegments: TMFNode read FFdSegments;
 
-    private FFdsites: TMFNode;
-    public property Fdsites: TMFNode read FFdsites;
+    private FFdSites: TMFNode;
+    public property FdSites: TMFNode read FFdSites;
 
-    private FFdskeleton: TMFNode;
-    public property Fdskeleton: TMFNode read FFdskeleton;
+    private FFdSkeleton: TMFNode;
+    public property FdSkeleton: TMFNode read FFdSkeleton;
 
-    private FFdskin: TMFNode;
-    public property Fdskin: TMFNode read FFdskin;
+    private FFdSkin: TMFNode;
+    public property FdSkin: TMFNode read FFdSkin;
 
-    private FFdskinCoord: TSFNode;
-    public property FdskinCoord: TSFNode read FFdskinCoord;
+    private FFdSkinCoord: TSFNode;
+    public property FdSkinCoord: TSFNode read FFdSkinCoord;
 
-    private FFdskinNormal: TSFNode;
-    public property FdskinNormal: TSFNode read FFdskinNormal;
+    private FFdSkinNormal: TSFNode;
+    public property FdSkinNormal: TSFNode read FFdSkinNormal;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdversion: TSFString;
-    public property Fdversion: TSFString read FFdversion;
+    private FFdVersion: TSFString;
+    public property FdVersion: TSFString read FFdVersion;
 
-    private FFdviewpoints: TMFNode;
-    public property Fdviewpoints: TMFNode read FFdviewpoints;
+    private FFdViewpoints: TMFNode;
+    public property FdViewpoints: TMFNode read FFdViewpoints;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     { Change the skin (in skinCoord), to follow the animation of joints.
       Joints that changed are assumed to be already traversed by TVRMLNode.Traverse
@@ -163,44 +163,44 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFddisplacers: TMFNode;
-    public property Fddisplacers: TMFNode read FFddisplacers;
+    private FFdDisplacers: TMFNode;
+    public property FdDisplacers: TMFNode read FFdDisplacers;
 
-    private FFdlimitOrientation: TSFRotation;
-    public property FdlimitOrientation: TSFRotation read FFdlimitOrientation;
+    private FFdLimitOrientation: TSFRotation;
+    public property FdLimitOrientation: TSFRotation read FFdLimitOrientation;
 
-    private FFdllimit: TMFFloat;
-    public property Fdllimit: TMFFloat read FFdllimit;
+    private FFdLlimit: TMFFloat;
+    public property FdLlimit: TMFFloat read FFdLlimit;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdscaleOrientation: TSFRotation;
-    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+    private FFdScaleOrientation: TSFRotation;
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdskinCoordIndex: TMFInt32;
-    public property FdskinCoordIndex: TMFInt32 read FFdskinCoordIndex;
+    private FFdSkinCoordIndex: TMFInt32;
+    public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
 
-    private FFdskinCoordWeight: TMFFloat;
-    public property FdskinCoordWeight: TMFFloat read FFdskinCoordWeight;
+    private FFdSkinCoordWeight: TMFFloat;
+    public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
 
-    private FFdstiffness: TMFFloat;
-    public property Fdstiffness: TMFFloat read FFdstiffness;
+    private FFdStiffness: TMFFloat;
+    public property FdStiffness: TMFFloat read FFdStiffness;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdulimit: TMFFloat;
-    public property Fdulimit: TMFFloat read FFdulimit;
+    private FFdUlimit: TMFFloat;
+    public property FdUlimit: TMFFloat read FFdUlimit;
   end;
 
   TNodeHAnimSegment = class(TNodeX3DGroupingNode, INodeTransform)
@@ -214,23 +214,23 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdcenterOfMass: TSFVec3f;
-    public property FdcenterOfMass: TSFVec3f read FFdcenterOfMass;
+    private FFdCenterOfMass: TSFVec3f;
+    public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFddisplacers: TMFNode;
-    public property Fddisplacers: TMFNode read FFddisplacers;
+    private FFdDisplacers: TMFNode;
+    public property FdDisplacers: TMFNode read FFdDisplacers;
 
-    private FFdmass: TSFFloat;
-    public property Fdmass: TSFFloat read FFdmass;
+    private FFdMass: TSFFloat;
+    public property FdMass: TSFFloat read FFdMass;
 
-    private FFdmomentsOfInertia: TMFFloat;
-    public property FdmomentsOfInertia: TMFFloat read FFdmomentsOfInertia;
+    private FFdMomentsOfInertia: TMFFloat;
+    public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
     { Segment.rotation, scale, translation are extensions of Blaxxun
       avatars, at least that's what
@@ -238,14 +238,14 @@
       suggests.
       They are not conforming to HAnim 1.0 or 200x specification. }
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
 
   TNodeHAnimSite = class(TNodeX3DGroupingNode, INodeTransform)
@@ -259,23 +259,23 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdcenter: TSFVec3f;
-    public property Fdcenter: TSFVec3f read FFdcenter;
+    private FFdCenter: TSFVec3f;
+    public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdname: TSFString;
-    public property Fdname: TSFString read FFdname;
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
 
-    private FFdrotation: TSFRotation;
-    public property Fdrotation: TSFRotation read FFdrotation;
+    private FFdRotation: TSFRotation;
+    public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdscale: TSFVec3f;
-    public property Fdscale: TSFVec3f read FFdscale;
+    private FFdScale: TSFVec3f;
+    public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdscaleOrientation: TSFRotation;
-    public property FdscaleOrientation: TSFRotation read FFdscaleOrientation;
+    private FFdScaleOrientation: TSFRotation;
+    public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdtranslation: TSFVec3f;
-    public property Fdtranslation: TSFVec3f read FFdtranslation;
+    private FFdTranslation: TSFVec3f;
+    public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
 
 {$endif read_interface}

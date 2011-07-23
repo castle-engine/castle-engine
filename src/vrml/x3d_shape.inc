@@ -50,17 +50,17 @@
   public
     procedure CreateNode; override;
 
-    private FFdappearance: TSFNode;
-    public property Fdappearance: TSFNode read FFdappearance;
+    private FFdAppearance: TSFNode;
+    public property FdAppearance: TSFNode read FFdAppearance;
 
-    private FFdgeometry: TSFNode;
-    public property Fdgeometry: TSFNode read FFdgeometry;
+    private FFdGeometry: TSFNode;
+    public property FdGeometry: TSFNode read FFdGeometry;
 
-    private FFdbboxCenter: TSFVec3f;
-    public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
+    private FFdBboxCenter: TSFVec3f;
+    public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
-    public property FdbboxSize: TSFVec3f read FFdbboxSize;
+    private FFdBboxSize: TSFVec3f;
+    public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -101,8 +101,8 @@
     property LineProperties: TNodeLineProperties
       read GetLineProperties write SetLineProperties;
 
-    private FFdoctreeTriangles: TSFNode;
-    public property FdoctreeTriangles: TSFNode read FFdoctreeTriangles;
+    private FFdOctreeTriangles: TSFNode;
+    public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
   end;
 
   TMFNodeShaders = class(TMFNode)
@@ -124,23 +124,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfillProperties: TSFNode;
-    public property FdfillProperties: TSFNode read FFdfillProperties;
+    private FFdFillProperties: TSFNode;
+    public property FdFillProperties: TSFNode read FFdFillProperties;
 
-    private FFdlineProperties: TSFNode;
-    public property FdlineProperties: TSFNode read FFdlineProperties;
+    private FFdLineProperties: TSFNode;
+    public property FdLineProperties: TSFNode read FFdLineProperties;
 
-    private FFdmaterial: TSFNode;
-    public property Fdmaterial: TSFNode read FFdmaterial;
+    private FFdMaterial: TSFNode;
+    public property FdMaterial: TSFNode read FFdMaterial;
 
-    private FFdshaders: TMFNodeShaders;
-    public property Fdshaders: TMFNodeShaders read FFdshaders;
+    private FFdShaders: TMFNodeShaders;
+    public property FdShaders: TMFNodeShaders read FFdShaders;
 
-    private FFdtexture: TSFNode;
-    public property Fdtexture: TSFNode read FFdtexture;
+    private FFdTexture: TSFNode;
+    public property FdTexture: TSFNode read FFdTexture;
 
-    private FFdtextureTransform: TSFNode;
-    public property FdtextureTransform: TSFNode read FFdtextureTransform;
+    private FFdTextureTransform: TSFNode;
+    public property FdTextureTransform: TSFNode read FFdTextureTransform;
 
     private FFdReceiveShadows: TMFNode;
     public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
@@ -176,17 +176,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfilled: TSFBool;
-    public property Fdfilled: TSFBool read FFdfilled;
+    private FFdFilled: TSFBool;
+    public property FdFilled: TSFBool read FFdFilled;
 
-    private FFdhatchColor: TSFColor;
-    public property FdhatchColor: TSFColor read FFdhatchColor;
+    private FFdHatchColor: TSFColor;
+    public property FdHatchColor: TSFColor read FFdHatchColor;
 
-    private FFdhatched: TSFBool;
-    public property Fdhatched: TSFBool read FFdhatched;
+    private FFdHatched: TSFBool;
+    public property FdHatched: TSFBool read FFdHatched;
 
-    private FFdhatchStyle: TSFInt32;
-    public property FdhatchStyle: TSFInt32 read FFdhatchStyle;
+    private FFdHatchStyle: TSFInt32;
+    public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
   end;
 
   TNodeLineProperties = class(TNodeX3DAppearanceChildNode)
@@ -195,14 +195,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdapplied: TSFBool;
-    public property Fdapplied: TSFBool read FFdapplied;
+    private FFdApplied: TSFBool;
+    public property FdApplied: TSFBool read FFdApplied;
 
-    private FFdlinetype: TSFInt32;
-    public property Fdlinetype: TSFInt32 read FFdlinetype;
+    private FFdLinetype: TSFInt32;
+    public property FdLinetype: TSFInt32 read FFdLinetype;
 
-    private FFdlinewidthScaleFactor: TSFFloat;
-    public property FdlinewidthScaleFactor: TSFFloat read FFdlinewidthScaleFactor;
+    private FFdLinewidthScaleFactor: TSFFloat;
+    public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
   end;
 
   TVRMLMaterialInfo = class;
@@ -213,23 +213,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdambientIntensity: TSFFloat;
-    public property FdambientIntensity: TSFFloat read FFdambientIntensity;
+    private FFdAmbientIntensity: TSFFloat;
+    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFddiffuseColor: TSFColor;
-    public property FddiffuseColor: TSFColor read FFddiffuseColor;
+    private FFdDiffuseColor: TSFColor;
+    public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
 
-    private FFdemissiveColor: TSFColor;
-    public property FdemissiveColor: TSFColor read FFdemissiveColor;
+    private FFdEmissiveColor: TSFColor;
+    public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
 
-    private FFdshininess: TSFFloat;
-    public property Fdshininess: TSFFloat read FFdshininess;
+    private FFdShininess: TSFFloat;
+    public property FdShininess: TSFFloat read FFdShininess;
 
-    private FFdspecularColor: TSFColor;
-    public property FdspecularColor: TSFColor read FFdspecularColor;
+    private FFdSpecularColor: TSFColor;
+    public property FdSpecularColor: TSFColor read FFdSpecularColor;
 
-    private FFdtransparency: TSFFloat;
-    public property Fdtransparency: TSFFloat read FFdtransparency;
+    private FFdTransparency: TSFFloat;
+    public property FdTransparency: TSFFloat read FFdTransparency;
 
     { Kambi extensions below, TODO: should be separated into
       different KambiMaterial node. } { }
@@ -353,44 +353,44 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdambientIntensity: TSFFloat;
-    public property FdambientIntensity: TSFFloat read FFdambientIntensity;
+    private FFdAmbientIntensity: TSFFloat;
+    public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFdbackAmbientIntensity: TSFFloat;
-    public property FdbackAmbientIntensity: TSFFloat read FFdbackAmbientIntensity;
+    private FFdBackAmbientIntensity: TSFFloat;
+    public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
 
-    private FFdbackDiffuseColor: TSFColor;
-    public property FdbackDiffuseColor: TSFColor read FFdbackDiffuseColor;
+    private FFdBackDiffuseColor: TSFColor;
+    public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
 
-    private FFdbackEmissiveColor: TSFColor;
-    public property FdbackEmissiveColor: TSFColor read FFdbackEmissiveColor;
+    private FFdBackEmissiveColor: TSFColor;
+    public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
 
-    private FFdbackShininess: TSFFloat;
-    public property FdbackShininess: TSFFloat read FFdbackShininess;
+    private FFdBackShininess: TSFFloat;
+    public property FdBackShininess: TSFFloat read FFdBackShininess;
 
-    private FFdbackSpecularColor: TSFColor;
-    public property FdbackSpecularColor: TSFColor read FFdbackSpecularColor;
+    private FFdBackSpecularColor: TSFColor;
+    public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
 
-    private FFdbackTransparency: TSFFloat;
-    public property FdbackTransparency: TSFFloat read FFdbackTransparency;
+    private FFdBackTransparency: TSFFloat;
+    public property FdBackTransparency: TSFFloat read FFdBackTransparency;
 
-    private FFddiffuseColor: TSFColor;
-    public property FddiffuseColor: TSFColor read FFddiffuseColor;
+    private FFdDiffuseColor: TSFColor;
+    public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
 
-    private FFdemissiveColor: TSFColor;
-    public property FdemissiveColor: TSFColor read FFdemissiveColor;
+    private FFdEmissiveColor: TSFColor;
+    public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
 
-    private FFdshininess: TSFFloat;
-    public property Fdshininess: TSFFloat read FFdshininess;
+    private FFdShininess: TSFFloat;
+    public property FdShininess: TSFFloat read FFdShininess;
 
-    private FFdseparateBackColor: TSFBool;
-    public property FdseparateBackColor: TSFBool read FFdseparateBackColor;
+    private FFdSeparateBackColor: TSFBool;
+    public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
 
-    private FFdspecularColor: TSFColor;
-    public property FdspecularColor: TSFColor read FFdspecularColor;
+    private FFdSpecularColor: TSFColor;
+    public property FdSpecularColor: TSFColor read FFdSpecularColor;
 
-    private FFdtransparency: TSFFloat;
-    public property Fdtransparency: TSFFloat read FFdtransparency;
+    private FFdTransparency: TSFFloat;
+    public property FdTransparency: TSFFloat read FFdTransparency;
   end;
 
 {$endif read_interface}

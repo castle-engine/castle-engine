@@ -22,24 +22,24 @@
 
   INodeX3DSoundSourceNode = interface(INodeX3DTimeDependentNode)
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
-    property Fddescription: TSFString { read FFddescription } { };
-    property Fdpitch: TSFFloat { read FFdpitch } { };
-    property Eventduration_changed: TVRMLEvent { read FEventduration_changed } { };
+    property FdDescription: TSFString { read FFdDescription } { };
+    property FdPitch: TSFFloat { read FFdPitch } { };
+    property EventDuration_changed: TVRMLEvent { read FEventDuration_changed } { };
   end;
 
   TNodeX3DSoundSourceNode = class(TNodeX3DTimeDependentNode, INodeX3DSoundSourceNode)
   public
     procedure CreateNode; override;
 
-    private FFddescription: TSFString;
-    public property Fddescription: TSFString read FFddescription;
+    private FFdDescription: TSFString;
+    public property FdDescription: TSFString read FFdDescription;
 
-    private FFdpitch: TSFFloat;
-    public property Fdpitch: TSFFloat read FFdpitch;
+    private FFdPitch: TSFFloat;
+    public property FdPitch: TSFFloat read FFdPitch;
 
     { Event: SFTime, out } { }
-    private FEventduration_changed: TVRMLEvent;
-    public property Eventduration_changed: TVRMLEvent read FEventduration_changed;
+    private FEventDuration_changed: TVRMLEvent;
+    public property EventDuration_changed: TVRMLEvent read FEventDuration_changed;
 
     { Pitch, corrected to always be > 0. }
     function Pitch: Single;
@@ -70,8 +70,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdurl: TMFString;
-    public property Fdurl: TMFString read FFdurl;
+    private FFdUrl: TMFString;
+    public property FdUrl: TMFString read FFdUrl;
   end;
 
   TNodeSound = class(TNodeX3DSoundNode)
@@ -88,35 +88,35 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddirection: TSFVec3f;
-    public property Fddirection: TSFVec3f read FFddirection;
+    private FFdDirection: TSFVec3f;
+    public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdintensity: TSFFloat;
-    public property Fdintensity: TSFFloat read FFdintensity;
+    private FFdIntensity: TSFFloat;
+    public property FdIntensity: TSFFloat read FFdIntensity;
 
-    private FFdlocation: TSFVec3f;
-    public property Fdlocation: TSFVec3f read FFdlocation;
+    private FFdLocation: TSFVec3f;
+    public property FdLocation: TSFVec3f read FFdLocation;
 
-    private FFdmaxBack: TSFFloat;
-    public property FdmaxBack: TSFFloat read FFdmaxBack;
+    private FFdMaxBack: TSFFloat;
+    public property FdMaxBack: TSFFloat read FFdMaxBack;
 
-    private FFdmaxFront: TSFFloat;
-    public property FdmaxFront: TSFFloat read FFdmaxFront;
+    private FFdMaxFront: TSFFloat;
+    public property FdMaxFront: TSFFloat read FFdMaxFront;
 
-    private FFdminBack: TSFFloat;
-    public property FdminBack: TSFFloat read FFdminBack;
+    private FFdMinBack: TSFFloat;
+    public property FdMinBack: TSFFloat read FFdMinBack;
 
-    private FFdminFront: TSFFloat;
-    public property FdminFront: TSFFloat read FFdminFront;
+    private FFdMinFront: TSFFloat;
+    public property FdMinFront: TSFFloat read FFdMinFront;
 
-    private FFdpriority: TSFFloat;
-    public property Fdpriority: TSFFloat read FFdpriority;
+    private FFdPriority: TSFFloat;
+    public property FdPriority: TSFFloat read FFdPriority;
 
-    private FFdsource: TSFNode;
-    public property Fdsource: TSFNode read FFdsource;
+    private FFdSource: TSFNode;
+    public property FdSource: TSFNode read FFdSource;
 
-    private FFdspatialize: TSFBool;
-    public property Fdspatialize: TSFBool read FFdspatialize;
+    private FFdSpatialize: TSFBool;
+    public property FdSpatialize: TSFBool read FFdSpatialize;
   end;
 
 {$endif read_interface}
@@ -204,7 +204,7 @@ begin
   { Secure from invalid FDuration (when sound file is not loaded, or duration
     is just unknown). }
   if FDuration > 0 then
-    Result := FDuration / Pitch else
+    Result := FDUration / Pitch else
     Result := 0;
 end;
 

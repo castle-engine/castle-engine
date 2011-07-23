@@ -77,17 +77,17 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
-    private FFdstring: TMFString;
-    public property Fdstring: TMFString read FFdstring;
+    private FFdString: TMFString;
+    public property FdString: TMFString read FFdString;
 
-    private FFdfontStyle: TSFNode;
-    public property FdfontStyle: TSFNode read FFdfontStyle;
+    private FFdFontStyle: TSFNode;
+    public property FdFontStyle: TSFNode read FFdFontStyle;
 
-    private FFdlength: TMFFloat;
-    public property Fdlength: TMFFloat read FFdlength;
+    private FFdLength: TMFFloat;
+    public property FdLength: TMFFloat read FFdLength;
 
-    private FFdmaxExtent: TSFFloat;
-    public property FdmaxExtent: TSFFloat read FFdmaxExtent;
+    private FFdMaxExtent: TSFFloat;
+    public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
     { Fields added compared to normal Text node: }
 
@@ -126,17 +126,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdsrcFactor: TSFString;
-    public property FdsrcFactor: TSFString read FFdsrcFactor;
+    private FFdSrcFactor: TSFString;
+    public property FdSrcFactor: TSFString read FFdSrcFactor;
 
-    private FFddestFactor: TSFString;
-    public property FddestFactor: TSFString read FFddestFactor;
+    private FFdDestFactor: TSFString;
+    public property FdDestFactor: TSFString read FFdDestFactor;
 
-    private FFdcolor: TSFColor;
-    public property Fdcolor: TSFColor read FFdcolor;
+    private FFdColor: TSFColor;
+    public property FdColor: TSFColor read FFdColor;
 
-    private FFdcolorTransparency: TSFFloat;
-    public property FdcolorTransparency: TSFFloat read FFdcolorTransparency;
+    private FFdColorTransparency: TSFFloat;
+    public property FdColorTransparency: TSFFloat read FFdColorTransparency;
   end;
 
   TNodeKambiAppearance = class(TNodeAppearance)
@@ -159,11 +159,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdreplaceNames: TMFString;
-    public property FdreplaceNames: TMFString read FFdreplaceNames;
+    private FFdReplaceNames: TMFString;
+    public property FdReplaceNames: TMFString read FFdReplaceNames;
 
-    private FFdreplaceNodes: TMFNode;
-    public property FdreplaceNodes: TMFNode read FFdreplaceNodes;
+    private FFdReplaceNodes: TMFNode;
+    public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
   end;
 
   TSceneOctreeProperties = (
@@ -180,20 +180,20 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtimeOriginAtLoad: TSFBool;
-    public property FdtimeOriginAtLoad: TSFBool read FFdtimeOriginAtLoad;
+    private FFdTimeOriginAtLoad: TSFBool;
+    public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
 
-    private FFdoctreeRendering: TSFNode;
-    public property FdoctreeRendering: TSFNode read FFdoctreeRendering;
+    private FFdOctreeRendering: TSFNode;
+    public property FdOctreeRendering: TSFNode read FFdOctreeRendering;
 
-    private FFdoctreeDynamicCollisions: TSFNode;
-    public property FdoctreeDynamicCollisions: TSFNode read FFdoctreeDynamicCollisions;
+    private FFdOctreeDynamicCollisions: TSFNode;
+    public property FdOctreeDynamicCollisions: TSFNode read FFdOctreeDynamicCollisions;
 
-    private FFdoctreeVisibleTriangles: TSFNode;
-    public property FdoctreeVisibleTriangles: TSFNode read FFdoctreeVisibleTriangles;
+    private FFdOctreeVisibleTriangles: TSFNode;
+    public property FdOctreeVisibleTriangles: TSFNode read FFdOctreeVisibleTriangles;
 
-    private FFdoctreeCollidableTriangles: TSFNode;
-    public property FdoctreeCollidableTriangles: TSFNode read FFdoctreeCollidableTriangles;
+    private FFdOctreeCollidableTriangles: TSFNode;
+    public property FdOctreeCollidableTriangles: TSFNode read FFdOctreeCollidableTriangles;
 
     private FFdHeadBobbing: TSFFloat;
     public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
@@ -201,8 +201,8 @@
     private FFdHeadBobbingTime: TSFFloat;
     public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
 
-    private FFdheadlightNode: TSFNode;
-    public property FdheadlightNode: TSFNode read FFdheadlightNode;
+    private FFdHeadlightNode: TSFNode;
+    public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
 
     { Return value of appropriate FdOctreeXxx field.
       Returns @nil if the field doesn't have allowed (TNodeKambiOctreeProperties)
@@ -239,23 +239,23 @@
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
 
-    private FFdupdate: TSFString;
-    public property Fdupdate: TSFString read FFdupdate;
+    private FFdUpdate: TSFString;
+    public property FdUpdate: TSFString read FFdUpdate;
 
-    private FFdsize: TSFInt32;
-    public property Fdsize: TSFInt32 read FFdsize;
+    private FFdSize: TSFInt32;
+    public property FdSize: TSFInt32 read FFdSize;
 
-    private FFdlight: TSFNode;
-    public property Fdlight: TSFNode read FFdlight;
+    private FFdLight: TSFNode;
+    public property FdLight: TSFNode read FFdLight;
 
-    private FFdscale: TSFFloat;
-    public property Fdscale: TSFFloat read FFdscale;
+    private FFdScale: TSFFloat;
+    public property FdScale: TSFFloat read FFdScale;
 
-    private FFdbias: TSFFloat;
-    public property Fdbias: TSFFloat read FFdbias;
+    private FFdBias: TSFFloat;
+    public property FdBias: TSFFloat read FFdBias;
 
-    private FFdcompareMode: TSFstring;
-    public property FdcompareMode: TSFString read FFdcompareMode;
+    private FFdCompareMode: TSFstring;
+    public property FdCompareMode: TSFString read FFdCompareMode;
 
     function Light: TNodeX3DLightNode;
   end;
@@ -267,8 +267,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdprojector: TSFNode;
-    public property Fdprojector: TSFNode read FFdprojector;
+    private FFdProjector: TSFNode;
+    public property FdProjector: TSFNode read FFdProjector;
   end;
 
   TNodeScreenEffect = class(TNodeX3DChildNode)
@@ -285,14 +285,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdshaders: TMFNodeShaders;
-    public property Fdshaders: TMFNodeShaders read FFdshaders;
+    private FFdShaders: TMFNodeShaders;
+    public property FdShaders: TMFNodeShaders read FFdShaders;
 
-    private FFdneedsDepth: TSFBool;
-    public property FdneedsDepth: TSFBool read FFdneedsDepth;
+    private FFdNeedsDepth: TSFBool;
+    public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
     { Shader and ShaderLoaded properties are internally manager by the renderer.
       Right now, this means TVRMLGLScene.
@@ -335,14 +335,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdlanguage: TSFString;
-    public property FdLanguage: TSFString read FFdlanguage;
+    private FFdLanguage: TSFString;
+    public property FdLanguage: TSFString read FFdLanguage;
 
     private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
   TNodeEffectPart = class(TNodeX3DNode, INodeX3DUrlObject)
@@ -353,8 +353,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtype: TSFStringShaderType;
-    public property Fdtype: TSFStringShaderType read FFdtype;
+    private FFdType: TSFStringShaderType;
+    public property FdType: TSFStringShaderType read FFdType;
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
@@ -376,8 +376,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddefaultTexCoord: TSFString;
-    public property FdDefaultTexCoord: TSFString read FFddefaultTexCoord;
+    private FFdDefaultTexCoord: TSFString;
+    public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
   end;
 
 {$endif read_interface}

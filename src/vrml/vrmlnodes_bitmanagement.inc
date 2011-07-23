@@ -33,17 +33,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdtranslation: TSFVec2f;
-    public property Fdtranslation: TSFVec2f read FFdtranslation;
+    private FFdTranslation: TSFVec2f;
+    public property FdTranslation: TSFVec2f read FFdTranslation;
 
-    private FFdsize: TSFVec2f;
-    public property Fdsize: TSFVec2f read FFdsize;
+    private FFdSize: TSFVec2f;
+    public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdbackground: TSFNode;
-    public property Fdbackground: TSFNode read FFdbackground;
+    private FFdBackground: TSFNode;
+    public property FdBackground: TSFNode read FFdBackground;
 
-    private FFdviewport: TSFNode;
-    public property Fdviewport: TSFNode read FFdviewport;
+    private FFdViewport: TSFNode;
+    public property FdViewport: TSFNode read FFdViewport;
   end;
 
   TNodeLayer3D = class(TNodeGroup)
@@ -53,36 +53,36 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventaddChildrenLayer: TVRMLEvent;
-    public property EventaddChildrenLayer: TVRMLEvent read FEventaddChildrenLayer;
+    private FEventAddChildrenLayer: TVRMLEvent;
+    public property EventAddChildrenLayer: TVRMLEvent read FEventAddChildrenLayer;
 
     { Event: MFNode, in } { }
-    private FEventremoveChildrenLayer: TVRMLEvent;
-    public property EventremoveChildrenLayer: TVRMLEvent read FEventremoveChildrenLayer;
+    private FEventRemoveChildrenLayer: TVRMLEvent;
+    public property EventRemoveChildrenLayer: TVRMLEvent read FEventRemoveChildrenLayer;
 
-    private FFdchildrenLayer: TMFNode;
-    public property FdchildrenLayer: TMFNode read FFdchildrenLayer;
+    private FFdChildrenLayer: TMFNode;
+    public property FdChildrenLayer: TMFNode read FFdChildrenLayer;
 
-    private FFdtranslation: TSFVec2f;
-    public property Fdtranslation: TSFVec2f read FFdtranslation;
+    private FFdTranslation: TSFVec2f;
+    public property FdTranslation: TSFVec2f read FFdTranslation;
 
-    private FFddepth: TSFInt32;
-    public property Fddepth: TSFInt32 read FFddepth;
+    private FFdDepth: TSFInt32;
+    public property FdDepth: TSFInt32 read FFdDepth;
 
-    private FFdsize: TSFVec2f;
-    public property Fdsize: TSFVec2f read FFdsize;
+    private FFdSize: TSFVec2f;
+    public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdbackground: TSFNode;
-    public property Fdbackground: TSFNode read FFdbackground;
+    private FFdBackground: TSFNode;
+    public property FdBackground: TSFNode read FFdBackground;
 
-    private FFdfog: TSFNode;
-    public property Fdfog: TSFNode read FFdfog;
+    private FFdFog: TSFNode;
+    public property FdFog: TSFNode read FFdFog;
 
-    private FFdnavigationInfo: TSFNode;
-    public property FdnavigationInfo: TSFNode read FFdnavigationInfo;
+    private FFdNavigationInfo: TSFNode;
+    public property FdNavigationInfo: TSFNode read FFdNavigationInfo;
 
-    private FFdviewpoint: TSFNode;
-    public property Fdviewpoint: TSFNode read FFdviewpoint;
+    private FFdViewpoint: TSFNode;
+    public property FdViewpoint: TSFNode read FFdViewpoint;
   end;
 
   TNodeMouseSensor = class(TNodeX3DSensorNode)
@@ -91,32 +91,32 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdeventsProcessed: TSFBool;
-    public property FdeventsProcessed: TSFBool read FFdeventsProcessed;
+    private FFdEventsProcessed: TSFBool;
+    public property FdEventsProcessed: TSFBool read FFdEventsProcessed;
 
     { Event: SFVec2f, out } { }
-    private FEventclient: TVRMLEvent;
-    public property Eventclient: TVRMLEvent read FEventclient;
+    private FEventClient: TVRMLEvent;
+    public property EventClient: TVRMLEvent read FEventClient;
 
     { Event: SFVec2f, out } { }
-    private FEventposition: TVRMLEvent;
-    public property Eventposition: TVRMLEvent read FEventposition;
+    private FEventPosition: TVRMLEvent;
+    public property EventPosition: TVRMLEvent read FEventPosition;
 
     { Event: SFBool, out } { }
-    private FEventlButton: TVRMLEvent;
-    public property EventlButton: TVRMLEvent read FEventlButton;
+    private FEventLButton: TVRMLEvent;
+    public property EventLButton: TVRMLEvent read FEventLButton;
 
     { Event: SFBool, out } { }
-    private FEventmButton: TVRMLEvent;
-    public property EventmButton: TVRMLEvent read FEventmButton;
+    private FEventMButton: TVRMLEvent;
+    public property EventMButton: TVRMLEvent read FEventMButton;
 
     { Event: SFBool, out } { }
-    private FEventrButton: TVRMLEvent;
-    public property EventrButton: TVRMLEvent read FEventrButton;
+    private FEventRButton: TVRMLEvent;
+    public property EventRButton: TVRMLEvent read FEventRButton;
 
     { Event: SFFloat, out } { }
-    private FEventmouseWheel: TVRMLEvent;
-    public property EventmouseWheel: TVRMLEvent read FEventmouseWheel;
+    private FEventMouseWheel: TVRMLEvent;
+    public property EventMouseWheel: TVRMLEvent read FEventMouseWheel;
   end;
 
   TNodeOrderedGroup = class(TNodeGroup)

@@ -22,11 +22,11 @@
     procedure CreateNode; override;
 
     { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
+    private FEventSet_fraction: TVRMLEvent;
+    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
 
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
+    private FFdKey: TMFFloat;
+    public property FdKey: TMFFloat read FFdKey;
   end;
 
   TNodeColorInterpolator = class(TNodeX3DInterpolatorNode)
@@ -38,12 +38,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFColor;
-    public property FdkeyValue: TMFColor read FFdkeyValue;
+    private FFdKeyValue: TMFColor;
+    public property FdKeyValue: TMFColor read FFdKeyValue;
 
     { Event: SFColor, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeColorSetInterpolator = class(TNodeX3DInterpolatorNode)
@@ -55,12 +55,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFColor;
-    public property FdkeyValue: TMFColor read FFdkeyValue;
+    private FFdKeyValue: TMFColor;
+    public property FdKeyValue: TMFColor read FFdKeyValue;
 
     { Event: MFColor, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeCoordinateInterpolator = class(TNodeX3DInterpolatorNode)
@@ -72,12 +72,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+    private FFdKeyValue: TMFVec3f;
+    public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event: MFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeCoordinateInterpolator2D = class(TNodeX3DInterpolatorNode)
@@ -89,12 +89,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFVec2f;
-    public property FdkeyValue: TMFVec2f read FFdkeyValue;
+    private FFdKeyValue: TMFVec2f;
+    public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
     { Event: MFVec2f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeEaseInEaseOut = class(TNodeX3DNode)
@@ -104,18 +104,18 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventset_fraction: TVRMLEvent;
-    public property Eventset_fraction: TVRMLEvent read FEventset_fraction;
+    private FEventSet_fraction: TVRMLEvent;
+    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
 
-    private FFdeaseInEaseOut: TMFVec2f;
-    public property FdeaseInEaseOut: TMFVec2f read FFdeaseInEaseOut;
+    private FFdEaseInEaseOut: TMFVec2f;
+    public property FdEaseInEaseOut: TMFVec2f read FFdEaseInEaseOut;
 
-    private FFdkey: TMFFloat;
-    public property Fdkey: TMFFloat read FFdkey;
+    private FFdKey: TMFFloat;
+    public property FdKey: TMFFloat read FFdKey;
 
     { Event: SFFloat, out } { }
-    private FEventmodifiedFraction_changed: TVRMLEvent;
-    public property EventmodifiedFraction_changed: TVRMLEvent read FEventmodifiedFraction_changed;
+    private FEventModifiedFraction_changed: TVRMLEvent;
+    public property EventModifiedFraction_changed: TVRMLEvent read FEventModifiedFraction_changed;
   end;
 
   TNodeNormalInterpolator = class(TNodeX3DInterpolatorNode)
@@ -127,12 +127,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+    private FFdKeyValue: TMFVec3f;
+    public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event: MFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeOrientationInterpolator = class(TNodeX3DInterpolatorNode)
@@ -144,12 +144,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFRotation;
-    public property FdkeyValue: TMFRotation read FFdkeyValue;
+    private FFdKeyValue: TMFRotation;
+    public property FdKeyValue: TMFRotation read FFdKeyValue;
 
     { Event: SFRotation, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodePositionInterpolator = class(TNodeX3DInterpolatorNode)
@@ -161,12 +161,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+    private FFdKeyValue: TMFVec3f;
+    public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event: SFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
@@ -178,12 +178,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFVec2f;
-    public property FdkeyValue: TMFVec2f read FFdkeyValue;
+    private FFdKeyValue: TMFVec2f;
+    public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
     { Event: SFVec2f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeScalarInterpolator = class(TNodeX3DInterpolatorNode)
@@ -195,12 +195,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFFloat;
-    public property FdkeyValue: TMFFloat read FFdkeyValue;
+    private FFdKeyValue: TMFFloat;
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
 
     { Event: SFFloat, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeSplinePositionInterpolator = class(TNodeX3DInterpolatorNode)
@@ -209,21 +209,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdclosed: TSFBool;
-    public property Fdclosed: TSFBool read FFdclosed;
+    private FFdClosed: TSFBool;
+    public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdkeyValue: TMFVec3f;
-    public property FdkeyValue: TMFVec3f read FFdkeyValue;
+    private FFdKeyValue: TMFVec3f;
+    public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
-    private FFdkeyVelocity: TMFVec3f;
-    public property FdkeyVelocity: TMFVec3f read FFdkeyVelocity;
+    private FFdKeyVelocity: TMFVec3f;
+    public property FdKeyVelocity: TMFVec3f read FFdKeyVelocity;
 
-    private FFdnormalizeVelocity: TSFBool;
-    public property FdnormalizeVelocity: TSFBool read FFdnormalizeVelocity;
+    private FFdNormalizeVelocity: TSFBool;
+    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFVec3f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeSplinePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
@@ -232,21 +232,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdclosed: TSFBool;
-    public property Fdclosed: TSFBool read FFdclosed;
+    private FFdClosed: TSFBool;
+    public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdkeyValue: TMFVec2f;
-    public property FdkeyValue: TMFVec2f read FFdkeyValue;
+    private FFdKeyValue: TMFVec2f;
+    public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
-    private FFdkeyVelocity: TMFVec2f;
-    public property FdkeyVelocity: TMFVec2f read FFdkeyVelocity;
+    private FFdKeyVelocity: TMFVec2f;
+    public property FdKeyVelocity: TMFVec2f read FFdKeyVelocity;
 
-    private FFdnormalizeVelocity: TSFBool;
-    public property FdnormalizeVelocity: TSFBool read FFdnormalizeVelocity;
+    private FFdNormalizeVelocity: TSFBool;
+    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFVec2f, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeSplineScalarInterpolator = class(TNodeX3DInterpolatorNode)
@@ -255,21 +255,21 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdclosed: TSFBool;
-    public property Fdclosed: TSFBool read FFdclosed;
+    private FFdClosed: TSFBool;
+    public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdkeyValue: TMFFloat;
-    public property FdkeyValue: TMFFloat read FFdkeyValue;
+    private FFdKeyValue: TMFFloat;
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
 
-    private FFdkeyVelocity: TMFFloat;
-    public property FdkeyVelocity: TMFFloat read FFdkeyVelocity;
+    private FFdKeyVelocity: TMFFloat;
+    public property FdKeyVelocity: TMFFloat read FFdKeyVelocity;
 
-    private FFdnormalizeVelocity: TSFBool;
-    public property FdnormalizeVelocity: TSFBool read FFdnormalizeVelocity;
+    private FFdNormalizeVelocity: TSFBool;
+    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFFloat, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeSquadOrientationInterpolator = class(TNodeX3DInterpolatorNode)
@@ -278,15 +278,15 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFRotation;
-    public property FdkeyValue: TMFRotation read FFdkeyValue;
+    private FFdKeyValue: TMFRotation;
+    public property FdKeyValue: TMFRotation read FFdKeyValue;
 
-    private FFdnormalizeVelocity: TSFBool;
-    public property FdnormalizeVelocity: TSFBool read FFdnormalizeVelocity;
+    private FFdNormalizeVelocity: TSFBool;
+    public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFRotation, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
   TNodeVectorInterpolator = class(TNodeX3DInterpolatorNode)
@@ -298,12 +298,12 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdkeyValue: TMFFloat;
-    public property FdkeyValue: TMFFloat read FFdkeyValue;
+    private FFdKeyValue: TMFFloat;
+    public property FdKeyValue: TMFFloat read FFdKeyValue;
 
     { Event: MFFloat, out } { }
-    private FEventvalue_changed: TVRMLEvent;
-    public property Eventvalue_changed: TVRMLEvent read FEventvalue_changed;
+    private FEventValue_changed: TVRMLEvent;
+    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
 {$endif read_interface}

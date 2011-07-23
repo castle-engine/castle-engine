@@ -405,35 +405,35 @@
   public
     procedure CreateNode; override;
 
-    private FFdattrib: TMFNode;
-    public property Fdattrib: TMFNode read FFdattrib;
+    private FFdAttrib: TMFNode;
+    public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
+    private FFdColor: TSFNode;
+    public property FdColor: TSFNode read FFdColor;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdfogCoord: TSFNode;
-    public property FdfogCoord: TSFNode read FFdfogCoord;
+    private FFdFogCoord: TSFNode;
+    public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdnormal: TSFNode;
-    public property Fdnormal: TSFNode read FFdnormal;
+    private FFdNormal: TSFNode;
+    public property FdNormal: TSFNode read FFdNormal;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdccw: TSFBool;
-    public property Fdccw: TSFBool read FFdccw;
+    private FFdCcw: TSFBool;
+    public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdcolorPerVertex: TSFBool;
-    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+    private FFdColorPerVertex: TSFBool;
+    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdnormalPerVertex: TSFBool;
-    public property FdnormalPerVertex: TSFBool read FFdnormalPerVertex;
+    private FFdNormalPerVertex: TSFBool;
+    public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
@@ -473,11 +473,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdplane: TSFVec4f;
-    public property Fdplane: TSFVec4f read FFdplane;
+    private FFdPlane: TSFVec4f;
+    public property FdPlane: TSFVec4f read FFdPlane;
   end;
 
   TNodeColor = class(TNodeX3DColorNode)
@@ -486,8 +486,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcolor: TMFColor;
-    public property Fdcolor: TMFColor read FFdcolor;
+    private FFdColor: TMFColor;
+    public property FdColor: TMFColor read FFdColor;
   end;
 
   TNodeColorRGBA = class(TNodeX3DColorNode)
@@ -496,8 +496,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcolor: TMFColorRGBA;
-    public property Fdcolor: TMFColorRGBA read FFdcolor;
+    private FFdColor: TMFColorRGBA;
+    public property FdColor: TMFColorRGBA read FFdColor;
   end;
 
   TNodeCoordinate = class(TNodeX3DCoordinateNode)
@@ -506,8 +506,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdpoint: TMFVec3f;
-    public property Fdpoint: TMFVec3f read FFdpoint;
+    private FFdPoint: TMFVec3f;
+    public property FdPoint: TMFVec3f read FFdPoint;
 
     function CoordCount: Cardinal; override;
   end;
@@ -524,33 +524,33 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventset_colorIndex: TVRMLEvent;
-    public property Eventset_colorIndex: TVRMLEvent read FEventset_colorIndex;
+    private FEventSet_colorIndex: TVRMLEvent;
+    public property EventSet_colorIndex: TVRMLEvent read FEventSet_colorIndex;
 
     { Event: MFInt32, in } { }
-    private FEventset_coordIndex: TVRMLEvent;
-    public property Eventset_coordIndex: TVRMLEvent read FEventset_coordIndex;
+    private FEventSet_coordIndex: TVRMLEvent;
+    public property EventSet_coordIndex: TVRMLEvent read FEventSet_coordIndex;
 
-    private FFdattrib: TMFNode;
-    public property Fdattrib: TMFNode read FFdattrib;
+    private FFdAttrib: TMFNode;
+    public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
+    private FFdColor: TSFNode;
+    public property FdColor: TSFNode read FFdColor;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdfogCoord: TSFNode;
-    public property FdfogCoord: TSFNode read FFdfogCoord;
+    private FFdFogCoord: TSFNode;
+    public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdcolorIndex: TMFInt32;
-    public property FdcolorIndex: TMFInt32 read FFdcolorIndex;
+    private FFdColorIndex: TMFInt32;
+    public property FdColorIndex: TMFInt32 read FFdColorIndex;
 
-    private FFdcolorPerVertex: TSFBool;
-    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+    private FFdColorPerVertex: TSFBool;
+    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+    private FFdCoordIndex: TMFInt32;
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -580,11 +580,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventset_index: TVRMLEvent;
-    public property Eventset_index: TVRMLEvent read FEventset_index;
+    private FEventSet_index: TVRMLEvent;
+    public property EventSet_index: TVRMLEvent read FEventSet_index;
 
-    private FFdindex: TMFInt32;
-    public property Fdindex: TMFInt32 read FFdindex;
+    private FFdIndex: TMFInt32;
+    public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
 
@@ -606,11 +606,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventset_index: TVRMLEvent;
-    public property Eventset_index: TVRMLEvent read FEventset_index;
+    private FEventSet_index: TVRMLEvent;
+    public property EventSet_index: TVRMLEvent read FEventSet_index;
 
-    private FFdindex: TMFInt32;
-    public property Fdindex: TMFInt32 read FFdindex;
+    private FFdIndex: TMFInt32;
+    public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
 
@@ -632,11 +632,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventset_index: TVRMLEvent;
-    public property Eventset_index: TVRMLEvent read FEventset_index;
+    private FEventSet_index: TVRMLEvent;
+    public property EventSet_index: TVRMLEvent read FEventSet_index;
 
-    private FFdindex: TMFInt32;
-    public property Fdindex: TMFInt32 read FFdindex;
+    private FFdIndex: TMFInt32;
+    public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
 
@@ -657,20 +657,20 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdattrib: TMFNode;
-    public property Fdattrib: TMFNode read FFdattrib;
+    private FFdAttrib: TMFNode;
+    public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
+    private FFdColor: TSFNode;
+    public property FdColor: TSFNode read FFdColor;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdfogCoord: TSFNode;
-    public property FdfogCoord: TSFNode read FFdfogCoord;
+    private FFdFogCoord: TSFNode;
+    public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdvertexCount: TMFInt32;
-    public property FdvertexCount: TMFInt32 read FFdvertexCount;
+    private FFdVertexCount: TMFInt32;
+    public property FdVertexCount: TMFInt32 read FFdVertexCount;
 
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
@@ -698,8 +698,8 @@
 
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdvector: TMFVec3f;
-    public property Fdvector: TMFVec3f read FFdvector;
+    private FFdVector: TMFVec3f;
+    public property FdVector: TMFVec3f read FFdVector;
   end;
 
   TNodePointSet = class(TNodeX3DGeometryNode)
@@ -711,17 +711,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdattrib: TMFNode;
-    public property Fdattrib: TMFNode read FFdattrib;
+    private FFdAttrib: TMFNode;
+    public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
+    private FFdColor: TSFNode;
+    public property FdColor: TSFNode read FFdColor;
 
-    private FFdcoord: TSFNode;
-    public property Fdcoord: TSFNode read FFdcoord;
+    private FFdCoord: TSFNode;
+    public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdfogCoord: TSFNode;
-    public property FdfogCoord: TSFNode read FFdfogCoord;
+    private FFdFogCoord: TSFNode;
+    public property FdFogCoord: TSFNode read FFdFogCoord;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -746,8 +746,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdfanCount: TMFInt32;
-    public property FdfanCount: TMFInt32 read FFdfanCount;
+    private FFdFanCount: TMFInt32;
+    public property FdFanCount: TMFInt32 read FFdFanCount;
 
     function CoordRangesCounts(out RangeCount: TDynLongIntArray;
       out SRanges, SRangeName: string;
@@ -781,8 +781,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdstripCount: TMFInt32;
-    public property FdstripCount: TMFInt32 read FFdstripCount;
+    private FFdStripCount: TMFInt32;
+    public property FdStripCount: TMFInt32 read FFdStripCount;
 
     function CoordRangesCounts(out RangeCount: TDynLongIntArray;
       out SRanges, SRangeName: string;

@@ -23,20 +23,20 @@
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdgroundAngle: TMFFloat;
-    public property FdgroundAngle: TMFFloat read FFdgroundAngle;
+    private FFdGroundAngle: TMFFloat;
+    public property FdGroundAngle: TMFFloat read FFdGroundAngle;
 
-    private FFdgroundColor: TMFColor;
-    public property FdgroundColor: TMFColor read FFdgroundColor;
+    private FFdGroundColor: TMFColor;
+    public property FdGroundColor: TMFColor read FFdGroundColor;
 
-    private FFdskyAngle: TMFFloat;
-    public property FdskyAngle: TMFFloat read FFdskyAngle;
+    private FFdSkyAngle: TMFFloat;
+    public property FdSkyAngle: TMFFloat read FFdSkyAngle;
 
-    private FFdskyColor: TMFColor;
-    public property FdskyColor: TMFColor read FFdskyColor;
+    private FFdSkyColor: TMFColor;
+    public property FdSkyColor: TMFColor read FFdSkyColor;
 
-    private FFdtransparency: TSFFloat;
-    public property Fdtransparency: TSFFloat read FFdtransparency;
+    private FFdTransparency: TSFFloat;
+    public property FdTransparency: TSFFloat read FFdTransparency;
 
     function TransformRotation: TMatrix4Single;
   end;
@@ -50,12 +50,12 @@
     function GetFdvolumetricDirection: TSFVec3f;
     function GetFdvolumetricVisibilityStart: TSFFloat;
 
-    property Fdcolor: TSFColor read GetFdcolor;
-    property FdfogType: TSFString read GetFdfogType;
-    property FdvisibilityRange: TSFFloat read GetFdvisibilityRange;
-    property Fdvolumetric: TSFBool read GetFdvolumetric;
-    property FdvolumetricDirection: TSFVec3f read GetFdvolumetricDirection;
-    property FdvolumetricVisibilityStart: TSFFloat read GetFdvolumetricVisibilityStart;
+    property FdColor: TSFColor read GetFdcolor;
+    property FdFogType: TSFString read GetFdfogType;
+    property FdVisibilityRange: TSFFloat read GetFdvisibilityRange;
+    property FdVolumetric: TSFBool read GetFdvolumetric;
+    property FdVolumetricDirection: TSFVec3f read GetFdvolumetricDirection;
+    property FdVolumetricVisibilityStart: TSFFloat read GetFdvolumetricVisibilityStart;
 
     function GetTransformScale: Single;
     property TransformScale: Single read GetTransformScale;
@@ -96,23 +96,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdbackUrl: TMFString;
-    public property FdbackUrl: TMFString read FFdbackUrl;
+    private FFdBackUrl: TMFString;
+    public property FdBackUrl: TMFString read FFdBackUrl;
 
-    private FFdbottomUrl: TMFString;
-    public property FdbottomUrl: TMFString read FFdbottomUrl;
+    private FFdBottomUrl: TMFString;
+    public property FdBottomUrl: TMFString read FFdBottomUrl;
 
-    private FFdfrontUrl: TMFString;
-    public property FdfrontUrl: TMFString read FFdfrontUrl;
+    private FFdFrontUrl: TMFString;
+    public property FdFrontUrl: TMFString read FFdFrontUrl;
 
-    private FFdleftUrl: TMFString;
-    public property FdleftUrl: TMFString read FFdleftUrl;
+    private FFdLeftUrl: TMFString;
+    public property FdLeftUrl: TMFString read FFdLeftUrl;
 
-    private FFdrightUrl: TMFString;
-    public property FdrightUrl: TMFString read FFdrightUrl;
+    private FFdRightUrl: TMFString;
+    public property FdRightUrl: TMFString read FFdRightUrl;
 
-    private FFdtopUrl: TMFString;
-    public property FdtopUrl: TMFString read FFdtopUrl;
+    private FFdTopUrl: TMFString;
+    public property FdTopUrl: TMFString read FFdTopUrl;
 
     procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
 
@@ -162,14 +162,14 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdcolor: TSFColor;
-    public property Fdcolor: TSFColor read FFdcolor;
+    private FFdColor: TSFColor;
+    public property FdColor: TSFColor read FFdColor;
 
-    private FFdfogType: TSFString;
-    public property FdfogType: TSFString read FFdfogType;
+    private FFdFogType: TSFString;
+    public property FdFogType: TSFString read FFdFogType;
 
-    private FFdvisibilityRange: TSFFloat;
-    public property FdvisibilityRange: TSFFloat read FFdvisibilityRange;
+    private FFdVisibilityRange: TSFFloat;
+    public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
 
     { Fields below are Kambi's fog extensions, see
       http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
@@ -195,8 +195,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddepth: TMFFloat;
-    public property Fddepth: TMFFloat read FFddepth;
+    private FFdDepth: TMFFloat;
+    public property FdDepth: TMFFloat read FFdDepth;
   end;
 
   TNodeLocalFog = class(TNodeX3DChildNode, INodeX3DFogObject)
@@ -216,17 +216,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdcolor: TSFColor;
-    public property Fdcolor: TSFColor read FFdcolor;
+    private FFdColor: TSFColor;
+    public property FdColor: TSFColor read FFdColor;
 
-    private FFdenabled: TSFBool;
-    public property Fdenabled: TSFBool read FFdenabled;
+    private FFdEnabled: TSFBool;
+    public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdfogType: TSFString;
-    public property FdfogType: TSFString read FFdfogType;
+    private FFdFogType: TSFString;
+    public property FdFogType: TSFString read FFdFogType;
 
-    private FFdvisibilityRange: TSFFloat;
-    public property FdvisibilityRange: TSFFloat read FFdvisibilityRange;
+    private FFdVisibilityRange: TSFFloat;
+    public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
 
     { Fields below are Kambi's fog extensions, see
       http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
@@ -249,23 +249,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdbackTexture: TSFNode;
-    public property FdbackTexture: TSFNode read FFdbackTexture;
+    private FFdBackTexture: TSFNode;
+    public property FdBackTexture: TSFNode read FFdBackTexture;
 
-    private FFdbottomTexture: TSFNode;
-    public property FdbottomTexture: TSFNode read FFdbottomTexture;
+    private FFdBottomTexture: TSFNode;
+    public property FdBottomTexture: TSFNode read FFdBottomTexture;
 
-    private FFdfrontTexture: TSFNode;
-    public property FdfrontTexture: TSFNode read FFdfrontTexture;
+    private FFdFrontTexture: TSFNode;
+    public property FdFrontTexture: TSFNode read FFdFrontTexture;
 
-    private FFdleftTexture: TSFNode;
-    public property FdleftTexture: TSFNode read FFdleftTexture;
+    private FFdLeftTexture: TSFNode;
+    public property FdLeftTexture: TSFNode read FFdLeftTexture;
 
-    private FFdrightTexture: TSFNode;
-    public property FdrightTexture: TSFNode read FFdrightTexture;
+    private FFdRightTexture: TSFNode;
+    public property FdRightTexture: TSFNode read FFdRightTexture;
 
-    private FFdtopTexture: TSFNode;
-    public property FdtopTexture: TSFNode read FFdtopTexture;
+    private FFdTopTexture: TSFNode;
+    public property FdTopTexture: TSFNode read FFdTopTexture;
   end;
 
 {$endif read_interface}
@@ -565,27 +565,27 @@ end;
 
 function TNodeFog.GetFdfogType: TSFString;
 begin
-  Result := FdfogType;
+  Result := FdFogType;
 end;
 
 function TNodeFog.GetFdvisibilityRange: TSFFloat;
 begin
-  Result := FdvisibilityRange;
+  Result := FdVisibilityRange;
 end;
 
 function TNodeFog.GetFdvolumetric: TSFBool;
 begin
-  Result := FFdvolumetric;
+  Result := FFdVolumetric;
 end;
 
 function TNodeFog.GetFdvolumetricDirection: TSFVec3f;
 begin
-  Result := FFdvolumetricDirection;
+  Result := FFdVolumetricDirection;
 end;
 
 function TNodeFog.GetFdvolumetricVisibilityStart: TSFFloat;
 begin
-  Result := FFdvolumetricVisibilityStart;
+  Result := FFdVolumetricVisibilityStart;
 end;
 
 function TNodeFog.GetTransformScale: Single;
@@ -675,27 +675,27 @@ end;
 
 function TNodeLocalFog.GetFdfogType: TSFString;
 begin
-  Result := FdfogType;
+  Result := FdFogType;
 end;
 
 function TNodeLocalFog.GetFdvisibilityRange: TSFFloat;
 begin
-  Result := FdvisibilityRange;
+  Result := FdVisibilityRange;
 end;
 
 function TNodeLocalFog.GetFdvolumetric: TSFBool;
 begin
-  Result := FFdvolumetric;
+  Result := FFdVolumetric;
 end;
 
 function TNodeLocalFog.GetFdvolumetricDirection: TSFVec3f;
 begin
-  Result := FFdvolumetricDirection;
+  Result := FFdVolumetricDirection;
 end;
 
 function TNodeLocalFog.GetFdvolumetricVisibilityStart: TSFFloat;
 begin
-  Result := FFdvolumetricVisibilityStart;
+  Result := FFdVolumetricVisibilityStart;
 end;
 
 function TNodeLocalFog.GetTransformScale: Single;

@@ -47,32 +47,32 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, out } { }
-    private FEventactionKeyPress: TVRMLEvent;
-    public property EventactionKeyPress: TVRMLEvent read FEventactionKeyPress;
+    private FEventActionKeyPress: TVRMLEvent;
+    public property EventActionKeyPress: TVRMLEvent read FEventActionKeyPress;
 
     { Event: SFInt32, out } { }
-    private FEventactionKeyRelease: TVRMLEvent;
-    public property EventactionKeyRelease: TVRMLEvent read FEventactionKeyRelease;
+    private FEventActionKeyRelease: TVRMLEvent;
+    public property EventActionKeyRelease: TVRMLEvent read FEventActionKeyRelease;
 
     { Event: SFBool, out } { }
-    private FEventaltKey: TVRMLEvent;
-    public property EventaltKey: TVRMLEvent read FEventaltKey;
+    private FEventAltKey: TVRMLEvent;
+    public property EventAltKey: TVRMLEvent read FEventAltKey;
 
     { Event: SFBool, out } { }
-    private FEventcontrolKey: TVRMLEvent;
-    public property EventcontrolKey: TVRMLEvent read FEventcontrolKey;
+    private FEventControlKey: TVRMLEvent;
+    public property EventControlKey: TVRMLEvent read FEventControlKey;
 
     { Event: SFString, out } { }
-    private FEventkeyPress: TVRMLEvent;
-    public property EventkeyPress: TVRMLEvent read FEventkeyPress;
+    private FEventKeyPress: TVRMLEvent;
+    public property EventKeyPress: TVRMLEvent read FEventKeyPress;
 
     { Event: SFString, out } { }
-    private FEventkeyRelease: TVRMLEvent;
-    public property EventkeyRelease: TVRMLEvent read FEventkeyRelease;
+    private FEventKeyRelease: TVRMLEvent;
+    public property EventKeyRelease: TVRMLEvent read FEventKeyRelease;
 
     { Event: SFBool, out } { }
-    private FEventshiftKey: TVRMLEvent;
-    public property EventshiftKey: TVRMLEvent read FEventshiftKey;
+    private FEventShiftKey: TVRMLEvent;
+    public property EventShiftKey: TVRMLEvent read FEventShiftKey;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime); override;
     procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime); override;
@@ -87,16 +87,16 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFddeletionAllowed: TSFBool;
-    public property FddeletionAllowed: TSFBool read FFddeletionAllowed;
+    private FFdDeletionAllowed: TSFBool;
+    public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
 
     { Event: SFString, out } { }
-    private FEvententeredText: TVRMLEvent;
-    public property EvententeredText: TVRMLEvent read FEvententeredText;
+    private FEventEnteredText: TVRMLEvent;
+    public property EventEnteredText: TVRMLEvent read FEventEnteredText;
 
     { Event: SFString, out } { }
-    private FEventfinalText: TVRMLEvent;
-    public property EventfinalText: TVRMLEvent read FEventfinalText;
+    private FEventFinalText: TVRMLEvent;
+    public property EventFinalText: TVRMLEvent read FEventFinalText;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime); override;
   end;

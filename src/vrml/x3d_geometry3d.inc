@@ -21,14 +21,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdsize: TSFVec3f;
-    public property Fdsize: TSFVec3f read FFdsize;
+    private FFdSize: TSFVec3f;
+    public property FdSize: TSFVec3f read FFdSize;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
@@ -51,26 +51,26 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdbottom: TSFBool;
-    public property Fdbottom: TSFBool read FFdbottom;
+    private FFdBottom: TSFBool;
+    public property FdBottom: TSFBool read FFdBottom;
 
-    private FFdbottomRadius: TSFFloat;
-    public property FdbottomRadius: TSFFloat read FFdbottomRadius;
+    private FFdBottomRadius: TSFFloat;
+    public property FdBottomRadius: TSFFloat read FFdBottomRadius;
 
-    private FFdheight: TSFFloat;
-    public property Fdheight: TSFFloat read FFdheight;
+    private FFdHeight: TSFFloat;
+    public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdside: TSFBool;
-    public property Fdside: TSFBool read FFdside;
+    private FFdSide: TSFBool;
+    public property FdSide: TSFBool read FFdSide;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
@@ -94,23 +94,23 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdbottom: TSFBool;
-    public property Fdbottom: TSFBool read FFdbottom;
+    private FFdBottom: TSFBool;
+    public property FdBottom: TSFBool read FFdBottom;
 
-    private FFdheight: TSFFloat;
-    public property Fdheight: TSFFloat read FFdheight;
+    private FFdHeight: TSFFloat;
+    public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
+    private FFdRadius: TSFFloat;
+    public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdside: TSFBool;
-    public property Fdside: TSFBool read FFdside;
+    private FFdSide: TSFBool;
+    public property FdSide: TSFBool read FFdSide;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdtop: TSFBool;
-    public property Fdtop: TSFBool read FFdtop;
+    private FFdTop: TSFBool;
+    public property FdTop: TSFBool read FFdTop;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -118,8 +118,8 @@
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
@@ -142,53 +142,53 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFFloat, in } { }
-    private FEventset_height: TVRMLEvent;
-    public property Eventset_height: TVRMLEvent read FEventset_height;
+    private FEventSet_height: TVRMLEvent;
+    public property EventSet_height: TVRMLEvent read FEventSet_height;
 
-    private FFdattrib: TMFNode;
-    public property Fdattrib: TMFNode read FFdattrib;
+    private FFdAttrib: TMFNode;
+    public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdcolor: TSFNode;
-    public property Fdcolor: TSFNode read FFdcolor;
+    private FFdColor: TSFNode;
+    public property FdColor: TSFNode read FFdColor;
 
-    private FFdfogCoord: TSFNode;
-    public property FdfogCoord: TSFNode read FFdfogCoord;
+    private FFdFogCoord: TSFNode;
+    public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdnormal: TSFNode;
-    public property Fdnormal: TSFNode read FFdnormal;
+    private FFdNormal: TSFNode;
+    public property FdNormal: TSFNode read FFdNormal;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdccw: TSFBool;
-    public property Fdccw: TSFBool read FFdccw;
+    private FFdCcw: TSFBool;
+    public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdcolorPerVertex: TSFBool;
-    public property FdcolorPerVertex: TSFBool read FFdcolorPerVertex;
+    private FFdColorPerVertex: TSFBool;
+    public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdcreaseAngle: TSFFloat;
-    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+    private FFdCreaseAngle: TSFFloat;
+    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdheight: TMFFloat;
-    public property Fdheight: TMFFloat read FFdheight;
+    private FFdHeight: TMFFloat;
+    public property FdHeight: TMFFloat read FFdHeight;
 
-    private FFdnormalPerVertex: TSFBool;
-    public property FdnormalPerVertex: TSFBool read FFdnormalPerVertex;
+    private FFdNormalPerVertex: TSFBool;
+    public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdxDimension: TSFInt32;
-    public property FdxDimension: TSFInt32 read FFdxDimension;
+    private FFdXDimension: TSFInt32;
+    public property FdXDimension: TSFInt32 read FFdXDimension;
 
-    private FFdxSpacing: TSFFloat;
-    public property FdxSpacing: TSFFloat read FFdxSpacing;
+    private FFdXSpacing: TSFFloat;
+    public property FdXSpacing: TSFFloat read FFdXSpacing;
 
-    private FFdzDimension: TSFInt32;
-    public property FdzDimension: TSFInt32 read FFdzDimension;
+    private FFdZDimension: TSFInt32;
+    public property FdZDimension: TSFInt32 read FFdZDimension;
 
-    private FFdzSpacing: TSFFloat;
-    public property FdzSpacing: TSFFloat read FFdzSpacing;
+    private FFdZSpacing: TSFFloat;
+    public property FdZSpacing: TSFFloat read FFdZSpacing;
 
     { This checks whether xDimension and zDimension are >= 2,
       xSpacing and zSpacing are > 0 and height has at least the
@@ -230,50 +230,50 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec2f, in } { }
-    private FEventset_crossSection: TVRMLEvent;
-    public property Eventset_crossSection: TVRMLEvent read FEventset_crossSection;
+    private FEventSet_crossSection: TVRMLEvent;
+    public property EventSet_crossSection: TVRMLEvent read FEventSet_crossSection;
 
     { Event: MFRotation, in } { }
-    private FEventset_orientation: TVRMLEvent;
-    public property Eventset_orientation: TVRMLEvent read FEventset_orientation;
+    private FEventSet_orientation: TVRMLEvent;
+    public property EventSet_orientation: TVRMLEvent read FEventSet_orientation;
 
     { Event: MFVec2f, in } { }
-    private FEventset_scale: TVRMLEvent;
-    public property Eventset_scale: TVRMLEvent read FEventset_scale;
+    private FEventSet_scale: TVRMLEvent;
+    public property EventSet_scale: TVRMLEvent read FEventSet_scale;
 
     { Event: MFVec3f, in } { }
-    private FEventset_spine: TVRMLEvent;
-    public property Eventset_spine: TVRMLEvent read FEventset_spine;
+    private FEventSet_spine: TVRMLEvent;
+    public property EventSet_spine: TVRMLEvent read FEventSet_spine;
 
-    private FFdbeginCap: TSFBool;
-    public property FdbeginCap: TSFBool read FFdbeginCap;
+    private FFdBeginCap: TSFBool;
+    public property FdBeginCap: TSFBool read FFdBeginCap;
 
-    private FFdccw: TSFBool;
-    public property Fdccw: TSFBool read FFdccw;
+    private FFdCcw: TSFBool;
+    public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdconvex: TSFBool;
-    public property Fdconvex: TSFBool read FFdconvex;
+    private FFdConvex: TSFBool;
+    public property FdConvex: TSFBool read FFdConvex;
 
-    private FFdcreaseAngle: TSFFloat;
-    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+    private FFdCreaseAngle: TSFFloat;
+    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdcrossSection: TMFVec2f;
-    public property FdcrossSection: TMFVec2f read FFdcrossSection;
+    private FFdCrossSection: TMFVec2f;
+    public property FdCrossSection: TMFVec2f read FFdCrossSection;
 
-    private FFdendCap: TSFBool;
-    public property FdendCap: TSFBool read FFdendCap;
+    private FFdEndCap: TSFBool;
+    public property FdEndCap: TSFBool read FFdEndCap;
 
-    private FFdorientation: TMFRotation;
-    public property Fdorientation: TMFRotation read FFdorientation;
+    private FFdOrientation: TMFRotation;
+    public property FdOrientation: TMFRotation read FFdOrientation;
 
-    private FFdscale: TMFVec2f;
-    public property Fdscale: TMFVec2f read FFdscale;
+    private FFdScale: TMFVec2f;
+    public property FdScale: TMFVec2f read FFdScale;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdspine: TMFVec3f;
-    public property Fdspine: TMFVec3f read FFdspine;
+    private FFdSpine: TMFVec3f;
+    public property FdSpine: TMFVec3f read FFdSpine;
 
     { For given Index, return appropriate FdCrossIndex item as 3D vertex.
       That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
@@ -316,38 +316,38 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventset_colorIndex: TVRMLEvent;
-    public property Eventset_colorIndex: TVRMLEvent read FEventset_colorIndex;
+    private FEventSet_colorIndex: TVRMLEvent;
+    public property EventSet_colorIndex: TVRMLEvent read FEventSet_colorIndex;
 
     { Event: MFInt32, in } { }
-    private FEventset_coordIndex: TVRMLEvent;
-    public property Eventset_coordIndex: TVRMLEvent read FEventset_coordIndex;
+    private FEventSet_coordIndex: TVRMLEvent;
+    public property EventSet_coordIndex: TVRMLEvent read FEventSet_coordIndex;
 
     { Event: MFInt32, in } { }
-    private FEventset_normalIndex: TVRMLEvent;
-    public property Eventset_normalIndex: TVRMLEvent read FEventset_normalIndex;
+    private FEventSet_normalIndex: TVRMLEvent;
+    public property EventSet_normalIndex: TVRMLEvent read FEventSet_normalIndex;
 
     { Event: MFInt32, in } { }
-    private FEventset_texCoordIndex: TVRMLEvent;
-    public property Eventset_texCoordIndex: TVRMLEvent read FEventset_texCoordIndex;
+    private FEventSet_texCoordIndex: TVRMLEvent;
+    public property EventSet_texCoordIndex: TVRMLEvent read FEventSet_texCoordIndex;
 
-    private FFdcolorIndex: TMFInt32;
-    public property FdcolorIndex: TMFInt32 read FFdcolorIndex;
+    private FFdColorIndex: TMFInt32;
+    public property FdColorIndex: TMFInt32 read FFdColorIndex;
 
-    private FFdconvex: TSFBool;
-    public property Fdconvex: TSFBool read FFdconvex;
+    private FFdConvex: TSFBool;
+    public property FdConvex: TSFBool read FFdConvex;
 
-    private FFdcoordIndex: TMFInt32;
-    public property FdcoordIndex: TMFInt32 read FFdcoordIndex;
+    private FFdCoordIndex: TMFInt32;
+    public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdcreaseAngle: TSFFloat;
-    public property FdcreaseAngle: TSFFloat read FFdcreaseAngle;
+    private FFdCreaseAngle: TSFFloat;
+    public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdnormalIndex: TMFInt32;
-    public property FdnormalIndex: TMFInt32 read FFdnormalIndex;
+    private FFdNormalIndex: TMFInt32;
+    public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
 
-    private FFdtexCoordIndex: TMFInt32;
-    public property FdtexCoordIndex: TMFInt32 read FFdtexCoordIndex;
+    private FFdTexCoordIndex: TMFInt32;
+    public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
@@ -369,17 +369,17 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
+    private FFdRadius: TSFFloat;
+    public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
 
-    private FFdtexCoord: TSFNode;
-    public property FdtexCoord: TSFNode read FFdtexCoord;
+    private FFdTexCoord: TSFNode;
+    public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;

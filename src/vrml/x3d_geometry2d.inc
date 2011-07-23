@@ -21,14 +21,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdendAngle: TSFFloat;
-    public property FdendAngle: TSFFloat read FFdendAngle;
+    private FFdEndAngle: TSFFloat;
+    public property FdEndAngle: TSFFloat read FFdEndAngle;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
+    private FFdRadius: TSFFloat;
+    public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdstartAngle: TSFFloat;
-    public property FdstartAngle: TSFFloat read FFdstartAngle;
+    private FFdStartAngle: TSFFloat;
+    public property FdStartAngle: TSFFloat read FFdStartAngle;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -45,20 +45,20 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdclosureType: TSFString;
-    public property FdclosureType: TSFString read FFdclosureType;
+    private FFdClosureType: TSFString;
+    public property FdClosureType: TSFString read FFdClosureType;
 
-    private FFdendAngle: TSFFloat;
-    public property FdendAngle: TSFFloat read FFdendAngle;
+    private FFdEndAngle: TSFFloat;
+    public property FdEndAngle: TSFFloat read FFdEndAngle;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
+    private FFdRadius: TSFFloat;
+    public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdstartAngle: TSFFloat;
-    public property FdstartAngle: TSFFloat read FFdstartAngle;
+    private FFdStartAngle: TSFFloat;
+    public property FdStartAngle: TSFFloat read FFdStartAngle;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -75,8 +75,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdradius: TSFFloat;
-    public property Fdradius: TSFFloat read FFdradius;
+    private FFdRadius: TSFFloat;
+    public property FdRadius: TSFFloat read FFdRadius;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
@@ -89,14 +89,14 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdinnerRadius: TSFFloat;
-    public property FdinnerRadius: TSFFloat read FFdinnerRadius;
+    private FFdInnerRadius: TSFFloat;
+    public property FdInnerRadius: TSFFloat read FFdInnerRadius;
 
-    private FFdouterRadius: TSFFloat;
-    public property FdouterRadius: TSFFloat read FFdouterRadius;
+    private FFdOuterRadius: TSFFloat;
+    public property FdOuterRadius: TSFFloat read FFdOuterRadius;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -119,8 +119,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdlineSegments: TMFVec2f;
-    public property FdlineSegments: TMFVec2f read FFdlineSegments;
+    private FFdLineSegments: TMFVec2f;
+    public property FdLineSegments: TMFVec2f read FFdLineSegments;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -137,8 +137,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdpoint: TMFVec2f;
-    public property Fdpoint: TMFVec2f read FFdpoint;
+    private FFdPoint: TMFVec2f;
+    public property FdPoint: TMFVec2f read FFdPoint;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -155,11 +155,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdsize: TSFVec2f;
-    public property Fdsize: TSFVec2f read FFdsize;
+    private FFdSize: TSFVec2f;
+    public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TVRMLGeometryNode; override;
@@ -172,11 +172,11 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdvertices: TMFVec2f;
-    public property Fdvertices: TMFVec2f read FFdvertices;
+    private FFdVertices: TMFVec2f;
+    public property FdVertices: TMFVec2f read FFdVertices;
 
-    private FFdsolid: TSFBool;
-    public property Fdsolid: TSFBool read FFdsolid;
+    private FFdSolid: TSFBool;
+    public property FdSolid: TSFBool read FFdSolid;
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
