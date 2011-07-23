@@ -37,6 +37,13 @@ function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
   VRML 1.0/Inventor convertion (it's difficult, and not worth the trouble,
   VRML 1.0/Inventor are really old).
 
+  Note that converting to X3D will change the nodes graph, possibly
+  removing some nodes. If you use TVRMLScene, you should call
+  TVRMLScene.BeforeNodesFree before and TVRMLScene.ChangedAll
+  when such convertion occcurs (you can easily test whether it may
+  happen by SaveVRMLWillConvertToX3D). If you use Encoding=xeClassic
+  and ForceConvertingToX3D=false, you're safe: convertion will not happen.
+
   @param(Version Which VRML/X3D specification version should be used
     to encode. It should be calculated by SaveVRMLVersion(Node).
     You often want to calculate it yourself, before calling SaveVRML,
@@ -77,6 +84,10 @@ procedure SaveVRML(Node: TVRMLNode;
   const ForceConvertingToX3D: boolean = false); overload;
 { @groupEnd }
 
+function SaveVRMLWillConvertToX3D(Version: TVRMLVersion;
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean): boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -115,7 +126,8 @@ begin
   if (Node is TVRMLRootNode) and
      TVRMLRootNode(Node).HasForceVersion then
     Result := TVRMLRootNode(Node).ForceVersion else
-    { Use latest X3D. We should promote latest, best version of VRML/X3D. }
+    { Use latest X3D. We should promote latest, best version of VRML/X3D.
+      Also, this avoids convertion to X3D when saving it to XML encoding. }
     Result := X3DVersion;
 end;
 
@@ -217,6 +229,14 @@ begin
     Node := ConvertNurbsPositionInterpolator(TNodeNurbsPositionInterpolator_2(Node));
 end;
 
+function SaveVRMLWillConvertToX3D(Version: TVRMLVersion;
+  const Encoding: TX3DEncoding;
+  const ForceConvertingToX3D: boolean): boolean;
+begin
+  Result := (Version.Major < 3) and
+    (ForceConvertingToX3D or (Encoding <> xeClassic));
+end;
+
 procedure SaveVRML(Node: TVRMLNode;
   Stream: TStream; const Generator, Source: string;
   Version: TVRMLVersion;
@@ -226,7 +246,6 @@ var
   Writer: TX3DWriterNames;
 
   procedure ConvertToX3D;
-
   begin
     { Converts VRML (1, 2) to X3D simply by changing Version used to save.
       This will work fine for VRML 2 -> X3D (except for some NURBS nodes
@@ -236,6 +255,15 @@ var
       VRMLWarning(vwSerious, 'Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which probably is not much useful.');
     Version.Major := 3;
     Version.Minor := 0;
+
+    { Since we convert in-place (replacing nodes inside),
+      then Node must be a TVRMLRootNode to replace in it the version.
+      Fortunately, our SaveVRMLVersion already guarantees it:
+      if a node isn't TVRMLRootNode, it's always treated as X3D already,
+      so a convertion will not happen. }
+    Assert(Node is TVRMLRootNode, 'Nodes must be TVRMLRootNode to convert to X3D, to mark new version.');
+    (Node as TVRMLRootNode).HasForceVersion := true;
+    (Node as TVRMLRootNode).ForceVersion := Version;
 
     Node.EnumerateReplaceChildren(@TVRMLToX3DConverter(nil).Convert);
   end;
@@ -402,8 +430,7 @@ var
   end;
 
 begin
-  if (Version.Major < 3) and
-     (ForceConvertingToX3D or (Encoding <> xeClassic)) then
+  if SaveVRMLWillConvertToX3D(Version, Encoding, ForceConvertingToX3D) then
     ConvertToX3D;
 
   Writer := TX3DWriterNames.Create(Stream, Version, Encoding);
