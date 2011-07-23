@@ -100,7 +100,6 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/bezier_surfaces/design_surface \
   examples/glwindow/interpolated_curves \
   examples/3d/draw_space_filling_curve \
-  examples/vrml/tovrmlx3d \
   examples/vrml/triangulate_demo \
   examples/vrml/test_blender_exported_hierarchy \
   examples/vrml/tools/gen_light_map \
