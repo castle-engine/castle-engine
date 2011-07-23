@@ -103,11 +103,11 @@ type
   TVRMLVersion = object
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
-      const ForceConvertingToX3D: boolean): string;
+      const ForceConvertingToX3D: boolean = false): string;
     { File filters for TGLWindow.FileDialog if you want to save a file using
       SaveVRML. }
     function FileFilters(const Encoding: TX3DEncoding;
-      const ForceConvertingToX3D: boolean): string;
+      const ForceConvertingToX3D: boolean = false): string;
   end;
 
   { VRML unified lexer.
