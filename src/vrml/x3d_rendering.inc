@@ -1000,49 +1000,49 @@ procedure TNodeX3DComposedGeometryNode.CreateNode;
 begin
   inherited;
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
-   Fdattrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdattrib);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+   FdAttrib.ChangesAlways := [chGeometry];
+  Fields.Add(FFdAttrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
-   Fdcolor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+   FdColor.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
-   Fdcoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcoord);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+   FdCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
-   FdfogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfogCoord);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+   FdFogCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFogCoord);
 
-  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
-   Fdnormal.ChangesAlways := [chGeometry];
-  Fields.Add(FFdnormal);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
+   FdNormal.ChangesAlways := [chGeometry];
+  Fields.Add(FFdNormal);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
-   FdtexCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdtexCoord);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
+   FdTexCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdTexCoord);
 
-  FFdccw := TSFBool.Create(Self, 'ccw', true);
-   Fdccw.Exposed := false;
-   Fdccw.ChangesAlways := [chGeometry];
-  Fields.Add(FFdccw);
+  FFdCcw := TSFBool.Create(Self, 'ccw', true);
+   FdCcw.Exposed := false;
+   FdCcw.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCcw);
 
-  FFdcolorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
-   FdcolorPerVertex.Exposed := false;
-   FdcolorPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolorPerVertex);
+  FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
+   FdColorPerVertex.Exposed := false;
+   FdColorPerVertex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColorPerVertex);
 
-  FFdnormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
-   FdnormalPerVertex.Exposed := false;
-   FdnormalPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdnormalPerVertex);
+  FFdNormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
+   FdNormalPerVertex.Exposed := false;
+   FdNormalPerVertex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdNormalPerVertex);
 
-  FFdsolid := TSFBool.Create(Self, 'solid', true);
-   Fdsolid.Exposed := false;
-   Fdsolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsolid);
+  FFdSolid := TSFBool.Create(Self, 'solid', true);
+   FdSolid.Exposed := false;
+   FdSolid.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSolid);
 
   FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
    FdRadianceTransfer.ChangesAlways := [chGeometry];
@@ -1131,13 +1131,13 @@ procedure TNodeClipPlane.CreateNode;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-   Fdenabled.ChangesAlways := [chClipPlane];
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+   FdEnabled.ChangesAlways := [chClipPlane];
+  Fields.Add(FFdEnabled);
 
-  FFdplane := TSFVec4f.Create(Self, 'plane', Vector4Single(0, 1, 0, 0));
-   Fdplane.ChangesAlways := [chClipPlane];
-  Fields.Add(FFdplane);
+  FFdPlane := TSFVec4f.Create(Self, 'plane', Vector4Single(0, 1, 0, 0));
+   FdPlane.ChangesAlways := [chClipPlane];
+  Fields.Add(FFdPlane);
   { X3D specification comment: [0,1] }
 
   { X3D specification (XML encoding, edition 2)
@@ -1161,9 +1161,9 @@ procedure TNodeColor.CreateNode;
 begin
   inherited;
 
-  FFdcolor := TMFColor.Create(Self, 'color', []);
-   Fdcolor.ChangesAlways := [chColorNode];
-  Fields.Add(FFdcolor);
+  FFdColor := TMFColor.Create(Self, 'color', []);
+   FdColor.ChangesAlways := [chColorNode];
+  Fields.Add(FFdColor);
   { X3D specification comment: [0,1] }
 end;
 
@@ -1183,9 +1183,9 @@ procedure TNodeColorRGBA.CreateNode;
 begin
   inherited;
 
-  FFdcolor := TMFColorRGBA.Create(Self, 'color', []);
-   Fdcolor.ChangesAlways := [chColorNode];
-  Fields.Add(FFdcolor);
+  FFdColor := TMFColorRGBA.Create(Self, 'color', []);
+   FdColor.ChangesAlways := [chColorNode];
+  Fields.Add(FFdColor);
   { X3D specification comment: [0,1] }
 end;
 
@@ -1204,9 +1204,9 @@ procedure TNodeCoordinate.CreateNode;
 begin
   inherited;
 
-  FFdpoint := TMFVec3f.Create(Self, 'point', []);
-   Fdpoint.ChangesAlways := [chCoordinate];
-  Fields.Add(FFdpoint);
+  FFdPoint := TMFVec3f.Create(Self, 'point', []);
+   FdPoint.ChangesAlways := [chCoordinate];
+  Fields.Add(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -1231,47 +1231,47 @@ procedure TNodeIndexedLineSet.CreateNode;
 begin
   inherited;
 
-  FEventset_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
-  Events.Add(FEventset_colorIndex);
+  FEventSet_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
+  Events.Add(FEventSet_colorIndex);
   Eventset_colorIndex.OnReceive.Add(@EventSet_ColorIndexReceive);
 
-  FEventset_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
-  Events.Add(FEventset_coordIndex);
+  FEventSet_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
+  Events.Add(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
-   Fdattrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdattrib);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+   FdAttrib.ChangesAlways := [chGeometry];
+  Fields.Add(FFdAttrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
-   Fdcolor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+   FdColor.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
-   Fdcoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcoord);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+   FdCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
-   FdfogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfogCoord);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+   FdFogCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFogCoord);
 
-  FFdcolorIndex := TMFInt32.Create(Self, 'colorIndex', []);
-   FdcolorIndex.Exposed := false;
-   FdcolorIndex.SaveToStreamLineUptoNegative := true;
-   FdcolorIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolorIndex);
+  FFdColorIndex := TMFInt32.Create(Self, 'colorIndex', []);
+   FdColorIndex.Exposed := false;
+   FdColorIndex.SaveToStreamLineUptoNegative := true;
+   FdColorIndex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdcolorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
-   FdcolorPerVertex.Exposed := false;
-   FdcolorPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolorPerVertex);
+  FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
+   FdColorPerVertex.Exposed := false;
+   FdColorPerVertex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColorPerVertex);
 
-  FFdcoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
-   FdcoordIndex.Exposed := false;
-   FdcoordIndex.SaveToStreamLineUptoNegative := true;
-   FdcoordIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcoordIndex);
+  FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
+   FdCoordIndex.Exposed := false;
+   FdCoordIndex.SaveToStreamLineUptoNegative := true;
+   FdCoordIndex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -1360,14 +1360,14 @@ procedure TNodeIndexedTriangleFanSet.CreateNode;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
-  Events.Add(FEventset_index);
+  FEventSet_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
+  Events.Add(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
-  FFdindex := TMFInt32.Create(Self, 'index', []);
-   Fdindex.Exposed := false;
-   Fdindex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdindex);
+  FFdIndex := TMFInt32.Create(Self, 'index', []);
+   FdIndex.Exposed := false;
+   FdIndex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -1398,14 +1398,14 @@ procedure TNodeIndexedTriangleSet.CreateNode;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
-  Events.Add(FEventset_index);
+  FEventSet_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
+  Events.Add(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
-  FFdindex := TMFInt32.Create(Self, 'index', []);
-   Fdindex.Exposed := false;
-   Fdindex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdindex);
+  FFdIndex := TMFInt32.Create(Self, 'index', []);
+   FdIndex.Exposed := false;
+   FdIndex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
 
@@ -1436,14 +1436,14 @@ procedure TNodeIndexedTriangleStripSet.CreateNode;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
-  Events.Add(FEventset_index);
+  FEventSet_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
+  Events.Add(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
-  FFdindex := TMFInt32.Create(Self, 'index', []);
-   Fdindex.Exposed := false;
-   Fdindex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdindex);
+  FFdIndex := TMFInt32.Create(Self, 'index', []);
+   FdIndex.Exposed := false;
+   FdIndex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -1474,25 +1474,25 @@ procedure TNodeLineSet.CreateNode;
 begin
   inherited;
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
-   Fdattrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdattrib);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+   FdAttrib.ChangesAlways := [chGeometry];
+  Fields.Add(FFdAttrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
-   Fdcolor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+   FdColor.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
-   Fdcoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcoord);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+   FdCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
-   FdfogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfogCoord);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+   FdFogCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFogCoord);
 
-  FFdvertexCount := TMFInt32.Create(Self, 'vertexCount', []);
-   FdvertexCount.ChangesAlways := [chGeometry];
-  Fields.Add(FFdvertexCount);
+  FFdVertexCount := TMFInt32.Create(Self, 'vertexCount', []);
+   FdVertexCount.ChangesAlways := [chGeometry];
+  Fields.Add(FFdVertexCount);
   { X3D specification comment: [2,Inf) }
 end;
 
@@ -1577,9 +1577,9 @@ procedure TNodeNormal.CreateNode;
 begin
   inherited;
 
-  FFdvector := TMFVec3f.Create(Self, 'vector', []);
-   Fdvector.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdvector);
+  FFdVector := TMFVec3f.Create(Self, 'vector', []);
+   FdVector.ChangesAlways := [chVisibleVRML1State];
+  Fields.Add(FFdVector);
   { X3D specification comment: [-1,1] }
 
   DefaultContainerField := 'normal';
@@ -1601,21 +1601,21 @@ procedure TNodePointSet.CreateNode;
 begin
   inherited;
 
-  FFdattrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
-   Fdattrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdattrib);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+   FdAttrib.ChangesAlways := [chGeometry];
+  Fields.Add(FFdAttrib);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
-   Fdcolor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+   FdColor.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColor);
 
-  FFdcoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
-   Fdcoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcoord);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+   FdCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCoord);
 
-  FFdfogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
-   FdfogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfogCoord);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+   FdFogCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFogCoord);
 end;
 
 class function TNodePointSet.ClassNodeTypeName: string;
@@ -1692,9 +1692,9 @@ procedure TNodeTriangleFanSet.CreateNode;
 begin
   inherited;
 
-  FFdfanCount := TMFInt32.Create(Self, 'fanCount', []);
-   FdfanCount.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfanCount);
+  FFdFanCount := TMFInt32.Create(Self, 'fanCount', []);
+   FdFanCount.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFanCount);
   { X3D specification comment: [3,Inf) }
 end;
 
@@ -1741,9 +1741,9 @@ procedure TNodeTriangleStripSet.CreateNode;
 begin
   inherited;
 
-  FFdstripCount := TMFInt32.Create(Self, 'stripCount', []);
-   FdstripCount.ChangesAlways := [chGeometry];
-  Fields.Add(FFdstripCount);
+  FFdStripCount := TMFInt32.Create(Self, 'stripCount', []);
+   FdStripCount.ChangesAlways := [chGeometry];
+  Fields.Add(FFdStripCount);
   { X3D specification comment: [3,Inf) }
 end;
 

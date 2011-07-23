@@ -86,21 +86,21 @@ procedure TNodeX3DEnvironmentalSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
-   Fdcenter.ChangesAlways := [chEnvironmentalSensorBounds];
-  Fields.Add(FFdcenter);
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+   FdCenter.ChangesAlways := [chEnvironmentalSensorBounds];
+  Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
-   Fdsize.ChangesAlways := [chEnvironmentalSensorBounds];
-  Fields.Add(FFdsize);
+  FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
+   FdSize.ChangesAlways := [chEnvironmentalSensorBounds];
+  Fields.Add(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEvententerTime := TVRMLEvent.Create(Self, 'enterTime', TSFTime, false);
-  Events.Add(FEvententerTime);
+  FEventEnterTime := TVRMLEvent.Create(Self, 'enterTime', TSFTime, false);
+  Events.Add(FEventEnterTime);
 
-  FEventexitTime := TVRMLEvent.Create(Self, 'exitTime', TSFTime, false);
-  Events.Add(FEventexitTime);
+  FEventExitTime := TVRMLEvent.Create(Self, 'exitTime', TSFTime, false);
+  Events.Add(FEventExitTime);
 
   DefaultContainerField := 'children';
 end;
@@ -109,14 +109,14 @@ procedure TNodeProximitySensor.CreateNode;
 begin
   inherited;
 
-  FEventcenterOfRotation_changed := TVRMLEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
-  Events.Add(FEventcenterOfRotation_changed);
+  FEventCenterOfRotation_changed := TVRMLEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
+  Events.Add(FEventCenterOfRotation_changed);
 
-  FEventorientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
-  Events.Add(FEventorientation_changed);
+  FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  Events.Add(FEventOrientation_changed);
 
-  FEventposition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
-  Events.Add(FEventposition_changed);
+  FEventPosition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  Events.Add(FEventPosition_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -142,14 +142,14 @@ procedure TNodeTransformSensor.CreateNode;
 begin
   inherited;
 
-  FFdtargetObject := TSFNode.Create(Self, 'targetObject', [TNodeX3DGroupingNode, TNodeX3DShapeNode]);
-  Fields.Add(FFdtargetObject);
+  FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TNodeX3DGroupingNode, TNodeX3DShapeNode]);
+  Fields.Add(FFdTargetObject);
 
-  FEventorientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
-  Events.Add(FEventorientation_changed);
+  FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  Events.Add(FEventOrientation_changed);
 
-  FEventposition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
-  Events.Add(FEventposition_changed);
+  FEventPosition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  Events.Add(FEventPosition_changed);
 
   DefaultContainerField := 'children';
 end;

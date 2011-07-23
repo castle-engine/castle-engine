@@ -279,9 +279,9 @@ procedure TNodeMatrixTransform.CreateNode;
 begin
   inherited;
 
-  FFdmatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
-   Fdmatrix.ChangesAlways := [chTransform];
-  Fields.Add(FFdmatrix);
+  FFdMatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
+   FdMatrix.ChangesAlways := [chTransform];
+  Fields.Add(FFdMatrix);
 
   DefaultContainerField := 'children';
 end;
@@ -347,24 +347,24 @@ procedure TNodeTeapot.CreateNode;
 begin
   inherited;
 
-  FFdsize := TSFVec3f.Create(Self, 'size', Vector3Single(3, 3, 3));
-   Fdsize.Exposed := false;
-   Fdsize.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsize);
+  FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(3, 3, 3));
+   FdSize.Exposed := false;
+   FdSize.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSize);
 
-  FFdsolid := TSFBool.Create(Self, 'solid', true);
-   Fdsolid.Exposed := false;
-   Fdsolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsolid);
+  FFdSolid := TSFBool.Create(Self, 'solid', true);
+   FdSolid.Exposed := false;
+   FdSolid.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSolid);
 
-  FFdmanifold := TSFBool.Create(Self, 'manifold', false);
-   Fdmanifold.Exposed := false;
-   Fdmanifold.ChangesAlways := [chGeometry];
-  Fields.Add(FFdmanifold);
+  FFdManifold := TSFBool.Create(Self, 'manifold', false);
+   FdManifold.Exposed := false;
+   FdManifold.ChangesAlways := [chGeometry];
+  Fields.Add(FFdManifold);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
-   FdtexCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdtexCoord);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+   FdTexCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdTexCoord);
 end;
 
 class function TNodeTeapot.ClassNodeTypeName: string;
@@ -443,19 +443,19 @@ procedure TNodeLogger.CreateNode;
 begin
   inherited;
 
-  FFdlevel := TSFInt32.Create(Self, 'level', 1);
-  Fields.Add(FFdlevel);
+  FFdLevel := TSFInt32.Create(Self, 'level', 1);
+  Fields.Add(FFdLevel);
 
-  FFdlogFile := TSFString.Create(Self, 'logFile', '');
-  FFdlogFile.Exposed := false;
-  Fields.Add(FFdlogFile);
+  FFdLogFile := TSFString.Create(Self, 'logFile', '');
+  FFdLogFile.Exposed := false;
+  Fields.Add(FFdLogFile);
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
-  FEventwrite := TVRMLEvent.Create(Self, 'write', TVRMLField, true);
-  Events.Add(FEventwrite);
-  FEventwrite.OnReceive.Add(@EventWriteReceive);
+  FEventWrite := TVRMLEvent.Create(Self, 'write', TVRMLField, true);
+  Events.Add(FEventWrite);
+  FEventWrite.OnReceive.Add(@EventWriteReceive);
 end;
 
 destructor TNodeLogger.Destroy;
@@ -588,8 +588,8 @@ procedure TNodeConverter.CreateNode;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
   FEventIn := TVRMLEvent.Create(Self, 'in', TVRMLField, true);
   Events.Add(FEventIn);
@@ -624,101 +624,101 @@ procedure TNodeRenderedTexture.CreateNode;
 begin
   inherited;
 
-  FFdviewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
-   Fdviewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdviewpoint);
+  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
+   FdViewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdViewpoint);
 
-  FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
-   FFdbackground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdbackground);
+  FFdBackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+   FdBackground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdBackground);
 
-  FFdfog := TSFNode.Create(Self, 'fog', [TNodeFog]);
-   Fdfog.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdfog);
+  FFdFog := TSFNode.Create(Self, 'fog', [TNodeFog]);
+   FdFog.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdFog);
 
-  FFdenvironment := TSFNode.Create(Self, 'environment', [TVRMLNode] { nothing sensible in core X3D for this });
-   Fdenvironment.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdenvironment);
+  FFdEnvironment := TSFNode.Create(Self, 'environment', [TVRMLNode] { nothing sensible in core X3D for this });
+   FdEnvironment.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdEnvironment);
 
-  FFdscene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
-   Fdscene.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdscene);
+  FFdScene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
+   FdScene.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdScene);
 
-  FFddimensions := TMFInt32.Create(Self, 'dimensions',
+  FFdDimensions := TMFInt32.Create(Self, 'dimensions',
     [ DefaultRenderedTextureWidth,
       DefaultRenderedTextureHeight, 4, 1, 1]);
-   Fddimensions.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFddimensions);
+   FdDimensions.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdDimensions);
 
-  FFddepthMap := TMFBool.Create(Self, 'depthMap', []);
-   FddepthMap.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFddepthMap);
+  FFdDepthMap := TMFBool.Create(Self, 'depthMap', []);
+   FdDepthMap.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdDepthMap);
 
-  FFdforeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });
-   Fdforeground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdforeground);
+  FFdForeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });
+   FdForeground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdForeground);
 
-  FFdzOffset := TMFInt32.Create(Self, 'zOffset', []);
-   FdzOffset.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdzOffset);
+  FFdZOffset := TMFInt32.Create(Self, 'zOffset', []);
+   FdZOffset.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdZOffset);
 
-  FFdtargets := TMFNode.Create(Self, 'targets', [TNodeX3DTextureNode]);
-   Fdtargets.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdtargets);
+  FFdTargets := TMFNode.Create(Self, 'targets', [TNodeX3DTextureNode]);
+   FdTargets.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdTargets);
 
-  FFddescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFddescription);
+  FFdDescription := TSFString.Create(Self, 'description', '');
+  Fields.Add(FFdDescription);
 
-  FEventviewing := TVRMLEvent.Create(Self, 'viewing', TSFMatrix4f, false);
-  Events.Add(FEventviewing);
+  FEventViewing := TVRMLEvent.Create(Self, 'viewing', TSFMatrix4f, false);
+  Events.Add(FEventViewing);
 
-  FEventprojection := TVRMLEvent.Create(Self, 'projection', TSFMatrix4f, false);
-  Events.Add(FEventprojection);
+  FEventProjection := TVRMLEvent.Create(Self, 'projection', TSFMatrix4f, false);
+  Events.Add(FEventProjection);
 
-  FFdupdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
-  Fields.Add(FFdupdate);
+  FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
+  Fields.Add(FFdUpdate);
 
-  FFdframeBufferMode := TSFString.Create(Self, 'frameBufferMode', 'auto');
-   FdframeBufferMode.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdframeBufferMode);
+  FFdFrameBufferMode := TSFString.Create(Self, 'frameBufferMode', 'auto');
+   FdFrameBufferMode.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdFrameBufferMode);
 
-  FFdexcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TVRMLNode]);
-   FdexcludeNodes.Exposed := false;
-   FdexcludeNodes.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdexcludeNodes);
+  FFdExcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TVRMLNode]);
+   FdExcludeNodes.Exposed := false;
+   FdExcludeNodes.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdExcludeNodes);
 
-  FFdtriggerName := TSFString.Create(Self, 'triggerName', 'Render');
-   FdtriggerName.Exposed := false;
-  Fields.Add(FFdtriggerName);
+  FFdTriggerName := TSFString.Create(Self, 'triggerName', 'Render');
+   FdTriggerName.Exposed := false;
+  Fields.Add(FFdTriggerName);
 
-  FEventtriggerSlot := TVRMLEvent.Create(Self, 'triggerSlot', TSFTime, true);
-  Events.Add(FEventtriggerSlot);
+  FEventTriggerSlot := TVRMLEvent.Create(Self, 'triggerSlot', TSFTime, true);
+  Events.Add(FEventTriggerSlot);
 
-  FEventimage_changed := TVRMLEvent.Create(Self, 'image_changed', TSFImage, false);
-  Events.Add(FEventimage_changed);
+  FEventImage_changed := TVRMLEvent.Create(Self, 'image_changed', TSFImage, false);
+  Events.Add(FEventImage_changed);
 
-  FFdtextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
-   FdtextureProperties.Exposed := false;
-   FdtextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdtextureProperties);
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+   FdTextureProperties.Exposed := false;
+   FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdTextureProperties);
 
-  FFdrepeatS := TSFBool.Create(Self, 'repeatS', true);
-   FdrepeatS.Exposed := false;
-   FdrepeatS.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdrepeatS);
+  FFdRepeatS := TSFBool.Create(Self, 'repeatS', true);
+   FdRepeatS.Exposed := false;
+   FdRepeatS.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdRepeatS);
 
-  FFdrepeatT := TSFBool.Create(Self, 'repeatT', true);
-   FdrepeatT.Exposed := false;
-   FdrepeatT.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdrepeatT);
+  FFdRepeatT := TSFBool.Create(Self, 'repeatT', true);
+   FdRepeatT.Exposed := false;
+   FdRepeatT.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdRepeatT);
 
-  FFdrepeatR := TSFBool.Create(Self, 'repeatR', true);
-   FdrepeatR.Exposed := false;
-   FdrepeatR.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdrepeatR);
+  FFdRepeatR := TSFBool.Create(Self, 'repeatR', true);
+   FdRepeatR.Exposed := false;
+   FdRepeatR.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdRepeatR);
 
-  FEventrendering := TVRMLEvent.Create(Self, 'rendering', TSFBool, false);
-  Events.Add(FEventrendering);
+  FEventRendering := TVRMLEvent.Create(Self, 'rendering', TSFBool, false);
+  Events.Add(FEventRendering);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FdUpdate := FdUpdate;
@@ -745,16 +745,16 @@ procedure TNodePlane.CreateNode;
 begin
   inherited;
 
-  FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
-   Fdsize.Exposed := false;
-   Fdsize.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsize);
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
+   FdSize.Exposed := false;
+   FdSize.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdsolid := TSFBool.Create(Self, 'solid', true);
-   Fdsolid.Exposed := false;
-   Fdsolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsolid);
+  FFdSolid := TSFBool.Create(Self, 'solid', true);
+   FdSolid.Exposed := false;
+   FdSolid.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSolid);
 end;
 
 class function TNodePlane.ClassNodeTypeName: string;
@@ -807,37 +807,37 @@ procedure TNodeToggler.CreateNode;
 begin
   inherited;
 
-  FFdstatus := TSFBoolIgnorable.Create(Self, 'status', false);
-   Fdstatus.OnReceive.Add(@EventStatusReceive);
-  Fields.Add(FFdstatus);
+  FFdStatus := TSFBoolIgnorable.Create(Self, 'status', false);
+   FdStatus.OnReceive.Add(@EventStatusReceive);
+  Fields.Add(FFdStatus);
 
-  FFdnotStatus := TSFBoolIgnorable.Create(Self, 'notStatus', true);
-   Fdnotstatus.OnReceive.Add(@EventNotStatusReceive);
-  Fields.Add(FFdnotStatus);
+  FFdNotStatus := TSFBoolIgnorable.Create(Self, 'notStatus', true);
+   FdNotstatus.OnReceive.Add(@EventNotStatusReceive);
+  Fields.Add(FFdNotStatus);
 
-  FEventtoggle := TVRMLEvent.Create(Self, 'toggle', TVRMLField, true);
-  FEventtoggle.OnReceive.Add(@EventToggleReceive);
-  Events.Add(FEventtoggle);
+  FEventToggle := TVRMLEvent.Create(Self, 'toggle', TVRMLField, true);
+  FEventToggle.OnReceive.Add(@EventToggleReceive);
+  Events.Add(FEventToggle);
 
-  FEventset := TVRMLEvent.Create(Self, 'set', TVRMLField, true);
-   Eventset.OnReceive.Add(@EventSetReceive);
-  Events.Add(FEventset);
+  FEventSet := TVRMLEvent.Create(Self, 'set', TVRMLField, true);
+   EventSet.OnReceive.Add(@EventSetReceive);
+  Events.Add(FEventSet);
 
-  FEventreset := TVRMLEvent.Create(Self, 'reset', TVRMLField, true);
-   Eventreset.OnReceive.Add(@EventResetReceive);
-  Events.Add(FEventreset);
+  FEventReset := TVRMLEvent.Create(Self, 'reset', TVRMLField, true);
+   EventReset.OnReceive.Add(@EventResetReceive);
+  Events.Add(FEventReset);
 
-  FEventchanged := TVRMLEvent.Create(Self, 'changed', TSFBool, false);
-  Events.Add(FEventchanged);
+  FEventChanged := TVRMLEvent.Create(Self, 'changed', TSFBool, false);
+  Events.Add(FEventChanged);
 
-  FEventon := TVRMLEvent.Create(Self, 'on', TSFBool, false);
-  Events.Add(FEventon);
+  FEventOn := TVRMLEvent.Create(Self, 'on', TSFBool, false);
+  Events.Add(FEventOn);
 
-  FEventoff := TVRMLEvent.Create(Self, 'off', TSFBool, false);
-  Events.Add(FEventoff);
+  FEventOff := TVRMLEvent.Create(Self, 'off', TSFBool, false);
+  Events.Add(FEventOff);
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 end;
 
 class function TNodeToggler.ClassNodeTypeName: string;

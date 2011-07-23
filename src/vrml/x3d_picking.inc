@@ -109,32 +109,32 @@ procedure TNodeX3DPickSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdobjectType := TMFString.Create(Self, 'objectType', ['ALL']);
-  Fields.Add(FFdobjectType);
+  FFdObjectType := TMFString.Create(Self, 'objectType', ['ALL']);
+  Fields.Add(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdpickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TNodeX3DGeometryNode]);
-  Fields.Add(FFdpickingGeometry);
+  FFdPickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TNodeX3DGeometryNode]);
+  Fields.Add(FFdPickingGeometry);
 
   { X3D specification (edition 2) specifies X3DInlineNode as 3rd value on
     the list of allowed classes for "pickTarget". But there is no X3DInlineNode
     in the specification... So I just added TNodeInline there (it's the only
     Inline node for X3D anyway. }
 
-  FFdpickTarget := TMFNode.Create(Self, 'pickTarget', [TNodeX3DGroupingNode, TNodeX3DShapeNode, TNodeInline]);
-  Fields.Add(FFdpickTarget);
+  FFdPickTarget := TMFNode.Create(Self, 'pickTarget', [TNodeX3DGroupingNode, TNodeX3DShapeNode, TNodeInline]);
+  Fields.Add(FFdPickTarget);
 
-  FEventpickedGeometry := TVRMLEvent.Create(Self, 'pickedGeometry', TMFNode, false);
-  Events.Add(FEventpickedGeometry);
+  FEventPickedGeometry := TVRMLEvent.Create(Self, 'pickedGeometry', TMFNode, false);
+  Events.Add(FEventPickedGeometry);
 
-  FFdintersectionType := TSFString.Create(Self, 'intersectionType', 'BOUNDS');
-  FFdintersectionType.Exposed := false;
-  Fields.Add(FFdintersectionType);
+  FFdIntersectionType := TSFString.Create(Self, 'intersectionType', 'BOUNDS');
+  FFdIntersectionType.Exposed := false;
+  Fields.Add(FFdIntersectionType);
   { X3D specification comment: ["GEOMETRY"|"BOUNDS"] }
 
-  FFdsortOrder := TSFString.Create(Self, 'sortOrder', 'CLOSEST');
-  FFdsortOrder.Exposed := false;
-  Fields.Add(FFdsortOrder);
+  FFdSortOrder := TSFString.Create(Self, 'sortOrder', 'CLOSEST');
+  FFdSortOrder.Exposed := false;
+  Fields.Add(FFdSortOrder);
   { X3D specification comment: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"] }
 
   DefaultContainerField := 'children';
@@ -144,14 +144,14 @@ procedure TNodeLinePickSensor.CreateNode;
 begin
   inherited;
 
-  FEventpickedNormal := TVRMLEvent.Create(Self, 'pickedNormal', TMFVec3f, false);
-  Events.Add(FEventpickedNormal);
+  FEventPickedNormal := TVRMLEvent.Create(Self, 'pickedNormal', TMFVec3f, false);
+  Events.Add(FEventPickedNormal);
 
-  FEventpickedPoint := TVRMLEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
-  Events.Add(FEventpickedPoint);
+  FEventPickedPoint := TVRMLEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
+  Events.Add(FEventPickedPoint);
 
-  FEventpickedTextureCoordinate := TVRMLEvent.Create(Self, 'pickedTextureCoordinate', TMFVec3f, false);
-  Events.Add(FEventpickedTextureCoordinate);
+  FEventPickedTextureCoordinate := TVRMLEvent.Create(Self, 'pickedTextureCoordinate', TMFVec3f, false);
+  Events.Add(FEventPickedTextureCoordinate);
 
   DefaultContainerField := 'children';
 end;
@@ -171,12 +171,12 @@ procedure TNodePickableGroup.CreateNode;
 begin
   inherited;
 
-  FFdobjectType := TMFString.Create(Self, 'objectType', ['ALL']);
-  Fields.Add(FFdobjectType);
+  FFdObjectType := TMFString.Create(Self, 'objectType', ['ALL']);
+  Fields.Add(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdpickable := TSFBool.Create(Self, 'pickable', true);
-  Fields.Add(FFdpickable);
+  FFdPickable := TSFBool.Create(Self, 'pickable', true);
+  Fields.Add(FFdPickable);
 
   DefaultContainerField := 'children';
 end;
@@ -196,8 +196,8 @@ procedure TNodePointPickSensor.CreateNode;
 begin
   inherited;
 
-  FEventpickedPoint := TVRMLEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
-  Events.Add(FEventpickedPoint);
+  FEventPickedPoint := TVRMLEvent.Create(Self, 'pickedPoint', TMFVec3f, false);
+  Events.Add(FEventPickedPoint);
 
   DefaultContainerField := 'children';
 end;

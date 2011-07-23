@@ -377,17 +377,17 @@ procedure TNodeGeoCoordinate.CreateNode;
 begin
   inherited;
 
-  FFdpoint := TMFVec3d.Create(Self, 'point', []);
-  Fields.Add(FFdpoint);
+  FFdPoint := TMFVec3d.Create(Self, 'point', []);
+  Fields.Add(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 end;
 
@@ -412,97 +412,97 @@ procedure TNodeGeoElevationGrid.CreateNode;
 begin
   inherited;
 
-  FEventset_height := TVRMLEvent.Create(Self, 'set_height', TMFDouble, true);
-  Events.Add(FEventset_height);
+  FEventSet_height := TVRMLEvent.Create(Self, 'set_height', TMFDouble, true);
+  Events.Add(FEventSet_height);
 
-  FFdcolor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
-   Fdcolor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+   FdColor.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColor);
 
-  FFdnormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
-   Fdnormal.ChangesAlways := [chGeometry];
-  Fields.Add(FFdnormal);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
+   FdNormal.ChangesAlways := [chGeometry];
+  Fields.Add(FFdNormal);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
-   FdtexCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdtexCoord);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
+   FdTexCoord.ChangesAlways := [chGeometry];
+  Fields.Add(FFdTexCoord);
 
-  FFdyScale := TSFFloat.Create(Self, 'yScale', 1.0);
-   FdyScale.ChangesAlways := [chGeometry];
-  Fields.Add(FFdyScale);
+  FFdYScale := TSFFloat.Create(Self, 'yScale', 1.0);
+   FdYScale.ChangesAlways := [chGeometry];
+  Fields.Add(FFdYScale);
   { X3D specification comment: [0,Inf) }
 
-  FFdccw := TSFBool.Create(Self, 'ccw', true);
-   Fdccw.Exposed := false;
-   Fdccw.ChangesAlways := [chGeometry];
-  Fields.Add(FFdccw);
+  FFdCcw := TSFBool.Create(Self, 'ccw', true);
+   FdCcw.Exposed := false;
+   FdCcw.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCcw);
 
-  FFdcolorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
-   FdcolorPerVertex.Exposed := false;
-   FdcolorPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcolorPerVertex);
+  FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
+   FdColorPerVertex.Exposed := false;
+   FdColorPerVertex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdColorPerVertex);
 
-  FFdcreaseAngle := TSFDouble.Create(Self, 'creaseAngle', 0);
-   FdcreaseAngle.Exposed := false;
-   FdcreaseAngle.ChangesAlways := [chGeometry];
-  Fields.Add(FFdcreaseAngle);
+  FFdCreaseAngle := TSFDouble.Create(Self, 'creaseAngle', 0);
+   FdCreaseAngle.Exposed := false;
+   FdCreaseAngle.ChangesAlways := [chGeometry];
+  Fields.Add(FFdCreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdgeoGridOrigin := TSFVec3d.Create(Self, 'geoGridOrigin', Vector3Double(0, 0, 0));
-   FdgeoGridOrigin.Exposed := false;
-   FdgeoGridOrigin.ChangesAlways := [chGeometry];
-  Fields.Add(FFdgeoGridOrigin);
+  FFdGeoGridOrigin := TSFVec3d.Create(Self, 'geoGridOrigin', Vector3Double(0, 0, 0));
+   FdGeoGridOrigin.Exposed := false;
+   FdGeoGridOrigin.ChangesAlways := [chGeometry];
+  Fields.Add(FFdGeoGridOrigin);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-   FdgeoOrigin.Exposed := false;
-   FdgeoOrigin.ChangesAlways := [chGeometry];
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+   FdGeoOrigin.Exposed := false;
+   FdGeoOrigin.ChangesAlways := [chGeometry];
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-   FdgeoSystem.Exposed := false;
-   FdgeoSystem.ChangesAlways := [chGeometry];
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+   FdGeoSystem.Exposed := false;
+   FdGeoSystem.ChangesAlways := [chGeometry];
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
-  FFdheight := TMFDouble.Create(Self, 'height', [0, 0]);
-   Fdheight.Exposed := false;
-   Fdheight.ChangesAlways := [chGeometry];
-  Fields.Add(FFdheight);
+  FFdHeight := TMFDouble.Create(Self, 'height', [0, 0]);
+   FdHeight.Exposed := false;
+   FdHeight.ChangesAlways := [chGeometry];
+  Fields.Add(FFdHeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdnormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
-   FdnormalPerVertex.Exposed := false;
-   FdnormalPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdnormalPerVertex);
+  FFdNormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
+   FdNormalPerVertex.Exposed := false;
+   FdNormalPerVertex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdNormalPerVertex);
 
-  FFdsolid := TSFBool.Create(Self, 'solid', true);
-   Fdsolid.Exposed := false;
-   Fdsolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsolid);
+  FFdSolid := TSFBool.Create(Self, 'solid', true);
+   FdSolid.Exposed := false;
+   FdSolid.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSolid);
 
-  FFdxDimension := TSFInt32.Create(Self, 'xDimension', 0);
-   FdxDimension.Exposed := false;
-   FdxDimension.ChangesAlways := [chGeometry];
-  Fields.Add(FFdxDimension);
+  FFdXDimension := TSFInt32.Create(Self, 'xDimension', 0);
+   FdXDimension.Exposed := false;
+   FdXDimension.ChangesAlways := [chGeometry];
+  Fields.Add(FFdXDimension);
   { X3D specification comment: (0,Inf) }
 
-  FFdxSpacing := TSFDouble.Create(Self, 'xSpacing', 1.0);
-   FdxSpacing.Exposed := false;
-   FdxSpacing.ChangesAlways := [chGeometry];
-  Fields.Add(FFdxSpacing);
+  FFdXSpacing := TSFDouble.Create(Self, 'xSpacing', 1.0);
+   FdXSpacing.Exposed := false;
+   FdXSpacing.ChangesAlways := [chGeometry];
+  Fields.Add(FFdXSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdzDimension := TSFInt32.Create(Self, 'zDimension', 0);
-   FdzDimension.Exposed := false;
-   FdzDimension.ChangesAlways := [chGeometry];
-  Fields.Add(FFdzDimension);
+  FFdZDimension := TSFInt32.Create(Self, 'zDimension', 0);
+   FdZDimension.Exposed := false;
+   FdZDimension.ChangesAlways := [chGeometry];
+  Fields.Add(FFdZDimension);
   { X3D specification comment: (0,Inf) }
 
-  FFdzSpacing := TSFDouble.Create(Self, 'zSpacing', 1.0);
-   FdzSpacing.Exposed := false;
-   FdzSpacing.ChangesAlways := [chGeometry];
-  Fields.Add(FFdzSpacing);
+  FFdZSpacing := TSFDouble.Create(Self, 'zSpacing', 1.0);
+   FdZSpacing.Exposed := false;
+   FdZSpacing.ChangesAlways := [chGeometry];
+  Fields.Add(FFdZSpacing);
   { X3D specification comment: [0,Inf) }
 end;
 
@@ -526,17 +526,17 @@ procedure TNodeGeoLocation.CreateNode;
 begin
   inherited;
 
-  FFdgeoCoords := TSFVec3d.Create(Self, 'geoCoords', Vector3Double(0, 0, 0));
-  Fields.Add(FFdgeoCoords);
+  FFdGeoCoords := TSFVec3d.Create(Self, 'geoCoords', Vector3Double(0, 0, 0));
+  Fields.Add(FFdGeoCoords);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 end;
 
@@ -555,68 +555,68 @@ procedure TNodeGeoLOD.CreateNode;
 begin
   inherited;
 
-  FEventchildren := TVRMLEvent.Create(Self, 'children', TMFNode, false);
-  Events.Add(FEventchildren);
+  FEventChildren := TVRMLEvent.Create(Self, 'children', TMFNode, false);
+  Events.Add(FEventChildren);
 
-  FEventlevel_changed := TVRMLEvent.Create(Self, 'level_changed', TSFInt32, false);
-  Events.Add(FEventlevel_changed);
+  FEventLevel_changed := TVRMLEvent.Create(Self, 'level_changed', TSFInt32, false);
+  Events.Add(FEventLevel_changed);
 
-  FFdcenter := TSFVec3d.Create(Self, 'center', Vector3Double(0, 0, 0));
-  FFdcenter.Exposed := false;
-  Fields.Add(FFdcenter);
+  FFdCenter := TSFVec3d.Create(Self, 'center', Vector3Double(0, 0, 0));
+  FFdCenter.Exposed := false;
+  Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdchild1Url := TMFString.Create(Self, 'child1Url', []);
-  FFdchild1Url.Exposed := false;
-  Fields.Add(FFdchild1Url);
+  FFdChild1Url := TMFString.Create(Self, 'child1Url', []);
+  FFdChild1Url.Exposed := false;
+  Fields.Add(FFdChild1Url);
   { X3D specification comment: [URI] }
 
-  FFdchild2Url := TMFString.Create(Self, 'child2Url', []);
-  FFdchild2Url.Exposed := false;
-  Fields.Add(FFdchild2Url);
+  FFdChild2Url := TMFString.Create(Self, 'child2Url', []);
+  FFdChild2Url.Exposed := false;
+  Fields.Add(FFdChild2Url);
   { X3D specification comment: [URI] }
 
-  FFdchild3Url := TMFString.Create(Self, 'child3Url', []);
-  FFdchild3Url.Exposed := false;
-  Fields.Add(FFdchild3Url);
+  FFdChild3Url := TMFString.Create(Self, 'child3Url', []);
+  FFdChild3Url.Exposed := false;
+  Fields.Add(FFdChild3Url);
   { X3D specification comment: [URI] }
 
-  FFdchild4Url := TMFString.Create(Self, 'child4Url', []);
-  FFdchild4Url.Exposed := false;
-  Fields.Add(FFdchild4Url);
+  FFdChild4Url := TMFString.Create(Self, 'child4Url', []);
+  FFdChild4Url.Exposed := false;
+  Fields.Add(FFdChild4Url);
   { X3D specification comment: [URI] }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
-  FFdrange := TSFFloat.Create(Self, 'range', 10);
-  FFdrange.Exposed := false;
-  Fields.Add(FFdrange);
+  FFdRange := TSFFloat.Create(Self, 'range', 10);
+  FFdRange.Exposed := false;
+  Fields.Add(FFdRange);
   { X3D specification comment: [0,Inf) }
 
-  FFdrootUrl := TMFString.Create(Self, 'rootUrl', []);
-  FFdrootUrl.Exposed := false;
-  Fields.Add(FFdrootUrl);
+  FFdRootUrl := TMFString.Create(Self, 'rootUrl', []);
+  FFdRootUrl.Exposed := false;
+  Fields.Add(FFdRootUrl);
   { X3D specification comment: [URI] }
 
-  FFdrootNode := TMFNode.Create(Self, 'rootNode', [TNodeX3DChildNode]);
-  FFdrootNode.Exposed := false;
-  Fields.Add(FFdrootNode);
+  FFdRootNode := TMFNode.Create(Self, 'rootNode', [TNodeX3DChildNode]);
+  FFdRootNode.Exposed := false;
+  Fields.Add(FFdRootNode);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
@@ -635,14 +635,14 @@ procedure TNodeGeoMetadata.CreateNode;
 begin
   inherited;
 
-  FFddata := TMFNode.Create(Self, 'data', []);
-  Fields.Add(FFddata);
+  FFdData := TMFNode.Create(Self, 'data', []);
+  Fields.Add(FFdData);
 
-  FFdsummary := TMFString.Create(Self, 'summary', []);
-  Fields.Add(FFdsummary);
+  FFdSummary := TMFString.Create(Self, 'summary', []);
+  Fields.Add(FFdSummary);
 
-  FFdurl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdurl);
+  FFdUrl := TMFString.Create(Self, 'url', []);
+  Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 end;
 
@@ -661,18 +661,18 @@ procedure TNodeGeoOrigin.CreateNode;
 begin
   inherited;
 
-  FFdgeoCoords := TSFVec3d.Create(Self, 'geoCoords', Vector3Double(0, 0, 0));
-  Fields.Add(FFdgeoCoords);
+  FFdGeoCoords := TSFVec3d.Create(Self, 'geoCoords', Vector3Double(0, 0, 0));
+  Fields.Add(FFdGeoCoords);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
-  FFdrotateYUp := TSFBool.Create(Self, 'rotateYUp', false);
-  FFdrotateYUp.Exposed := false;
-  Fields.Add(FFdrotateYUp);
+  FFdRotateYUp := TSFBool.Create(Self, 'rotateYUp', false);
+  FFdRotateYUp.Exposed := false;
+  Fields.Add(FFdRotateYUp);
 
   DefaultContainerField := 'geoOrigin';
 end;
@@ -692,22 +692,22 @@ procedure TNodeGeoPositionInterpolator.CreateNode;
 begin
   inherited;
 
-  FFdkeyValue := TMFVec3d.Create(Self, 'keyValue', []);
-  Fields.Add(FFdkeyValue);
+  FFdKeyValue := TMFVec3d.Create(Self, 'keyValue', []);
+  Fields.Add(FFdKeyValue);
 
-  FEventgeovalue_changed := TVRMLEvent.Create(Self, 'geovalue_changed', TSFVec3d, false);
-  Events.Add(FEventgeovalue_changed);
+  FEventGeovalue_changed := TVRMLEvent.Create(Self, 'geovalue_changed', TSFVec3d, false);
+  Events.Add(FEventGeovalue_changed);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 end;
 
@@ -726,29 +726,29 @@ procedure TNodeGeoProximitySensor.CreateNode;
 begin
   inherited;
 
-  FFdgeoCenter := TSFVec3d.Create(Self, 'geoCenter', Vector3Double(0, 0, 0));
-  Fields.Add(FFdgeoCenter);
+  FFdGeoCenter := TSFVec3d.Create(Self, 'geoCenter', Vector3Double(0, 0, 0));
+  Fields.Add(FFdGeoCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventcenterOfRotation_changed := TVRMLEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
-  Events.Add(FEventcenterOfRotation_changed);
+  FEventCenterOfRotation_changed := TVRMLEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
+  Events.Add(FEventCenterOfRotation_changed);
 
-  FEventgeoCoord_changed := TVRMLEvent.Create(Self, 'geoCoord_changed', TSFVec3d, false);
-  Events.Add(FEventgeoCoord_changed);
+  FEventGeoCoord_changed := TVRMLEvent.Create(Self, 'geoCoord_changed', TSFVec3d, false);
+  Events.Add(FEventGeoCoord_changed);
 
-  FEventorientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
-  Events.Add(FEventorientation_changed);
+  FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  Events.Add(FEventOrientation_changed);
 
-  FEventposition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
-  Events.Add(FEventposition_changed);
+  FEventPosition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  Events.Add(FEventPosition_changed);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 end;
 
@@ -767,25 +767,25 @@ procedure TNodeGeoTouchSensor.CreateNode;
 begin
   inherited;
 
-  FEventhitNormal_changed := TVRMLEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
-  Events.Add(FEventhitNormal_changed);
+  FEventHitNormal_changed := TVRMLEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
+  Events.Add(FEventHitNormal_changed);
 
-  FEventhitPoint_changed := TVRMLEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
-  Events.Add(FEventhitPoint_changed);
+  FEventHitPoint_changed := TVRMLEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
+  Events.Add(FEventHitPoint_changed);
 
-  FEventhitTexCoord_changed := TVRMLEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
-  Events.Add(FEventhitTexCoord_changed);
+  FEventHitTexCoord_changed := TVRMLEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
+  Events.Add(FEventHitTexCoord_changed);
 
-  FEventhitGeoCoord_changed := TVRMLEvent.Create(Self, 'hitGeoCoord_changed', TSFVec3d, false);
-  Events.Add(FEventhitGeoCoord_changed);
+  FEventHitGeoCoord_changed := TVRMLEvent.Create(Self, 'hitGeoCoord_changed', TSFVec3d, false);
+  Events.Add(FEventHitGeoCoord_changed);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 end;
 
@@ -804,33 +804,33 @@ procedure TNodeGeoTransform.CreateNode;
 begin
   inherited;
 
-  FFdgeoCenter := TSFVec3d.Create(Self, 'geoCenter', Vector3Double(0, 0, 0));
-  Fields.Add(FFdgeoCenter);
+  FFdGeoCenter := TSFVec3d.Create(Self, 'geoCenter', Vector3Double(0, 0, 0));
+  Fields.Add(FFdGeoCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdrotation);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
-  Fields.Add(FFdscale);
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  Fields.Add(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdscaleOrientation);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdtranslation);
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 end;
 
@@ -849,39 +849,39 @@ procedure TNodeGeoViewpoint.CreateNode;
 begin
   inherited;
 
-  FEventset_orientation := TVRMLEvent.Create(Self, 'set_orientation', TSFRotation, true);
-  Events.Add(FEventset_orientation);
+  FEventSet_orientation := TVRMLEvent.Create(Self, 'set_orientation', TSFRotation, true);
+  Events.Add(FEventSet_orientation);
 
-  FEventset_position := TVRMLEvent.Create(Self, 'set_position', TSFVec3d, true);
-  Events.Add(FEventset_position);
+  FEventSet_position := TVRMLEvent.Create(Self, 'set_position', TSFVec3d, true);
+  Events.Add(FEventSet_position);
 
-  FFdfieldOfView := TSFFloat.Create(Self, 'fieldOfView', Pi/4);
-  Fields.Add(FFdfieldOfView);
+  FFdFieldOfView := TSFFloat.Create(Self, 'fieldOfView', Pi/4);
+  Fields.Add(FFdFieldOfView);
   { X3D specification comment: (0,Pi) }
 
-  FFdheadlight := TSFBool.Create(Self, 'headlight', true);
-  Fields.Add(FFdheadlight);
+  FFdHeadlight := TSFBool.Create(Self, 'headlight', true);
+  Fields.Add(FFdHeadlight);
 
-  FFdnavType := TMFString.Create(Self, 'navType', ['EXAMINE','ANY']);
-  Fields.Add(FFdnavType);
+  FFdNavType := TMFString.Create(Self, 'navType', ['EXAMINE','ANY']);
+  Fields.Add(FFdNavType);
 
-  FFdgeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
-  FFdgeoOrigin.Exposed := false;
-  Fields.Add(FFdgeoOrigin);
+  FFdGeoOrigin := TSFNode.Create(Self, 'geoOrigin', [TNodeGeoOrigin]);
+  FFdGeoOrigin.Exposed := false;
+  Fields.Add(FFdGeoOrigin);
 
-  FFdgeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
-  FFdgeoSystem.Exposed := false;
-  Fields.Add(FFdgeoSystem);
+  FFdGeoSystem := TMFString.Create(Self, 'geoSystem', ['GD','WE']);
+  FFdGeoSystem.Exposed := false;
+  Fields.Add(FFdGeoSystem);
   { X3D specification comment: [see 25.2.3] }
 
-  FFdposition := TSFVec3d.Create(Self, 'position', Vector3Double(0, 0, 100000));
-  FFdposition.Exposed := false;
-  Fields.Add(FFdposition);
+  FFdPosition := TSFVec3d.Create(Self, 'position', Vector3Double(0, 0, 100000));
+  FFdPosition.Exposed := false;
+  Fields.Add(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdspeedFactor := TSFFloat.Create(Self, 'speedFactor', 1.0);
-  FFdspeedFactor.Exposed := false;
-  Fields.Add(FFdspeedFactor);
+  FFdSpeedFactor := TSFFloat.Create(Self, 'speedFactor', 1.0);
+  FFdSpeedFactor.Exposed := false;
+  Fields.Add(FFdSpeedFactor);
   { X3D specification comment: [0,Inf) }
 end;
 

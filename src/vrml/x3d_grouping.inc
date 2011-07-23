@@ -478,30 +478,30 @@ procedure TNodeX3DGroupingNode.CreateNode;
 begin
   inherited;
 
-  FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
-  Events.Add(FEventaddChildren);
+  FEventAddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
+  Events.Add(FEventAddChildren);
   EventaddChildren.OnReceive.Add(@EventAddChildrenReceive);
 
-  FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
-  Events.Add(FEventremoveChildren);
+  FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
+  Events.Add(FEventRemoveChildren);
   EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
-  FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
-   Fdchildren.ChangesAlways := [chEverything];
-  Fields.Add(FFdchildren);
+  FFdChildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+   FdChildren.ChangesAlways := [chEverything];
+  Fields.Add(FFdChildren);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
+  FFdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
-  FFdrender := TSFBool.Create(Self, 'render', true);
-  Fields.Add(FFdrender);
+  FFdRender := TSFBool.Create(Self, 'render', true);
+  Fields.Add(FFdRender);
 
   DefaultContainerField := 'children';
 end;
@@ -712,19 +712,19 @@ procedure TNodeStaticGroup.CreateNode;
 begin
   inherited;
 
-  FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
-   Fdchildren.Exposed := false;
-   Fdchildren.ChangesAlways := [chEverything];
-  Fields.Add(FFdchildren);
+  FFdChildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+   FdChildren.Exposed := false;
+   FdChildren.ChangesAlways := [chEverything];
+  Fields.Add(FFdChildren);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -760,9 +760,9 @@ begin
 
   Fdchildren.AddAlternativeName('choice', 2);
 
-  FFdwhichChoice := TSFInt32.Create(Self, 'whichChoice', -1);
-   FdwhichChoice.ChangesAlways := [chSwitch2];
-  Fields.Add(FFdwhichChoice);
+  FFdWhichChoice := TSFInt32.Create(Self, 'whichChoice', -1);
+   FdWhichChoice.ChangesAlways := [chSwitch2];
+  Fields.Add(FFdWhichChoice);
   { X3D specification comment: [-1,Inf) }
 
   DefaultContainerField := 'children';
@@ -805,29 +805,29 @@ procedure TNodeTransform.CreateNode;
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
-   Fdcenter.ChangesAlways := [chTransform];
-  Fields.Add(FFdcenter);
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+   FdCenter.ChangesAlways := [chTransform];
+  Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
-   Fdrotation.ChangesAlways := [chTransform];
-  Fields.Add(FFdrotation);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+   FdRotation.ChangesAlways := [chTransform];
+  Fields.Add(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
-   Fdscale.ChangesAlways := [chTransform];
-  Fields.Add(FFdscale);
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+   FdScale.ChangesAlways := [chTransform];
+  Fields.Add(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
-   FdscaleOrientation.ChangesAlways := [chTransform];
-  Fields.Add(FFdscaleOrientation);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+   FdScaleOrientation.ChangesAlways := [chTransform];
+  Fields.Add(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
-   Fdtranslation.ChangesAlways := [chTransform];
-  Fields.Add(FFdtranslation);
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+   FdTranslation.ChangesAlways := [chTransform];
+  Fields.Add(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';

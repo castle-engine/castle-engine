@@ -142,17 +142,17 @@ procedure TNodeLayer2D.CreateNode;
 begin
   inherited;
 
-  FFdtranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
-  Fields.Add(FFdtranslation);
+  FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
+  Fields.Add(FFdTranslation);
 
-  FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
-  Fields.Add(FFdsize);
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
+  Fields.Add(FFdSize);
 
-  FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
-  Fields.Add(FFdbackground);
+  FFdBackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+  Fields.Add(FFdBackground);
 
-  FFdviewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
-  Fields.Add(FFdviewport);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
+  Fields.Add(FFdViewport);
 end;
 
 class function TNodeLayer2D.ClassNodeTypeName: string;
@@ -170,35 +170,35 @@ procedure TNodeLayer3D.CreateNode;
 begin
   inherited;
 
-  FEventaddChildrenLayer := TVRMLEvent.Create(Self, 'addChildrenLayer', TMFNode, true);
-  Events.Add(FEventaddChildrenLayer);
+  FEventAddChildrenLayer := TVRMLEvent.Create(Self, 'addChildrenLayer', TMFNode, true);
+  Events.Add(FEventAddChildrenLayer);
 
-  FEventremoveChildrenLayer := TVRMLEvent.Create(Self, 'removeChildrenLayer', TMFNode, true);
-  Events.Add(FEventremoveChildrenLayer);
+  FEventRemoveChildrenLayer := TVRMLEvent.Create(Self, 'removeChildrenLayer', TMFNode, true);
+  Events.Add(FEventRemoveChildrenLayer);
 
-  FFdchildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TNodeLayer3D]);
-  Fields.Add(FFdchildrenLayer);
+  FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TNodeLayer3D]);
+  Fields.Add(FFdChildrenLayer);
 
-  FFdtranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
-  Fields.Add(FFdtranslation);
+  FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
+  Fields.Add(FFdTranslation);
 
-  FFddepth := TSFInt32.Create(Self, 'depth', 0);
-  Fields.Add(FFddepth);
+  FFdDepth := TSFInt32.Create(Self, 'depth', 0);
+  Fields.Add(FFdDepth);
 
-  FFdsize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
-  Fields.Add(FFdsize);
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
+  Fields.Add(FFdSize);
 
-  FFdbackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
-  Fields.Add(FFdbackground);
+  FFdBackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+  Fields.Add(FFdBackground);
 
-  FFdfog := TSFNode.Create(Self, 'fog', [TNodeFog]);
-  Fields.Add(FFdfog);
+  FFdFog := TSFNode.Create(Self, 'fog', [TNodeFog]);
+  Fields.Add(FFdFog);
 
-  FFdnavigationInfo := TSFNode.Create(Self, 'navigationInfo', [TNodeNavigationInfo]);
-  Fields.Add(FFdnavigationInfo);
+  FFdNavigationInfo := TSFNode.Create(Self, 'navigationInfo', [TNodeNavigationInfo]);
+  Fields.Add(FFdNavigationInfo);
 
-  FFdviewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
-  Fields.Add(FFdviewpoint);
+  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
+  Fields.Add(FFdViewpoint);
 end;
 
 class function TNodeLayer3D.ClassNodeTypeName: string;
@@ -216,26 +216,26 @@ procedure TNodeMouseSensor.CreateNode;
 begin
   inherited;
 
-  FFdeventsProcessed := TSFBool.Create(Self, 'eventsProcessed', true);
-  Fields.Add(FFdeventsProcessed);
+  FFdEventsProcessed := TSFBool.Create(Self, 'eventsProcessed', true);
+  Fields.Add(FFdEventsProcessed);
 
-  FEventclient := TVRMLEvent.Create(Self, 'client', TSFVec2f, false);
-  Events.Add(FEventclient);
+  FEventClient := TVRMLEvent.Create(Self, 'client', TSFVec2f, false);
+  Events.Add(FEventClient);
 
-  FEventposition := TVRMLEvent.Create(Self, 'position', TSFVec2f, false);
-  Events.Add(FEventposition);
+  FEventPosition := TVRMLEvent.Create(Self, 'position', TSFVec2f, false);
+  Events.Add(FEventPosition);
 
-  FEventlButton := TVRMLEvent.Create(Self, 'lButton', TSFBool, false);
-  Events.Add(FEventlButton);
+  FEventLButton := TVRMLEvent.Create(Self, 'lButton', TSFBool, false);
+  Events.Add(FEventLButton);
 
-  FEventmButton := TVRMLEvent.Create(Self, 'mButton', TSFBool, false);
-  Events.Add(FEventmButton);
+  FEventMButton := TVRMLEvent.Create(Self, 'mButton', TSFBool, false);
+  Events.Add(FEventMButton);
 
-  FEventrButton := TVRMLEvent.Create(Self, 'rButton', TSFBool, false);
-  Events.Add(FEventrButton);
+  FEventRButton := TVRMLEvent.Create(Self, 'rButton', TSFBool, false);
+  Events.Add(FEventRButton);
 
-  FEventmouseWheel := TVRMLEvent.Create(Self, 'mouseWheel', TSFFloat, false);
-  Events.Add(FEventmouseWheel);
+  FEventMouseWheel := TVRMLEvent.Create(Self, 'mouseWheel', TSFFloat, false);
+  Events.Add(FEventMouseWheel);
 end;
 
 class function TNodeMouseSensor.ClassNodeTypeName: string;

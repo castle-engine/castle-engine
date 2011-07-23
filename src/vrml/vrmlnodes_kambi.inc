@@ -390,17 +390,17 @@ procedure TNodeKambiTriangulation.CreateNode;
 begin
   inherited;
 
-  FFdquadricSlices := TSFLong.Create(Self, 'quadricSlices', TriangulationUseDef);
-   FdquadricSlices.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdquadricSlices);
+  FFdQuadricSlices := TSFLong.Create(Self, 'quadricSlices', TriangulationUseDef);
+   FdQuadricSlices.ChangesAlways := [chGeometryVRML1State];
+  Fields.Add(FFdQuadricSlices);
 
-  FFdquadricStacks := TSFLong.Create(Self, 'quadricStacks', TriangulationUseDef);
-   FdquadricStacks.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdquadricStacks);
+  FFdQuadricStacks := TSFLong.Create(Self, 'quadricStacks', TriangulationUseDef);
+   FdQuadricStacks.ChangesAlways := [chGeometryVRML1State];
+  Fields.Add(FFdQuadricStacks);
 
-  FFdrectDivisions := TSFLong.Create(Self, 'rectDivisions', TriangulationUseDef);
-   FdrectDivisions.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdrectDivisions);
+  FFdRectDivisions := TSFLong.Create(Self, 'rectDivisions', TriangulationUseDef);
+   FdRectDivisions.ChangesAlways := [chGeometryVRML1State];
+  Fields.Add(FFdRectDivisions);
 end;
 
 class function TNodeKambiTriangulation.ClassNodeTypeName: string;
@@ -479,26 +479,26 @@ const
 begin
   inherited;
 
-  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
-  Fields.Add(FFdambientIntensity);
+  FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
+  Fields.Add(FFdAmbientIntensity);
 
-  FFdattenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
-  Fields.Add(FFdattenuation);
+  FFdAttenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
+  Fields.Add(FFdAttenuation);
 
-  FFdcolor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
-  Fields.Add(FFdcolor);
+  FFdColor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
+  Fields.Add(FFdColor);
 
-  FFdintensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
-  Fields.Add(FFdintensity);
+  FFdIntensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
+  Fields.Add(FFdIntensity);
 
-  FFdspot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
-  Fields.Add(FFdspot);
+  FFdSpot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
+  Fields.Add(FFdSpot);
 
-  FFdspotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
-  Fields.Add(FFdspotCutOffAngle);
+  FFdSpotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
+  Fields.Add(FFdSpotCutOffAngle);
 
-  FFdspotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
-  Fields.Add(FFdspotDropOffRate);
+  FFdSpotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
+  Fields.Add(FFdSpotDropOffRate);
 end;
 
 class function TNodeKambiHeadLight.URNMatching(const URN: string): boolean;
@@ -522,29 +522,29 @@ procedure TNodeText3D.CreateNode;
 begin
   inherited;
 
-  FFdstring := TMFString.Create(Self, 'string', []);
-   Fdstring.ChangesAlways := [chGeometry];
-  Fields.Add(FFdstring);
+  FFdString := TMFString.Create(Self, 'string', []);
+   FdString.ChangesAlways := [chGeometry];
+  Fields.Add(FFdString);
 
-  FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle]);
-   FdfontStyle.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfontStyle);
+  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle]);
+   FdFontStyle.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFontStyle);
 
-  FFdlength := TMFFloat.Create(Self, 'length', []);
-   Fdlength.ChangesAlways := [chGeometry];
-  Fields.Add(FFdlength);
+  FFdLength := TMFFloat.Create(Self, 'length', []);
+   FdLength.ChangesAlways := [chGeometry];
+  Fields.Add(FFdLength);
 
-  FFdmaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
-   FdmaxExtent.ChangesAlways := [chGeometry];
-  Fields.Add(FFdmaxExtent);
+  FFdMaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
+   FdMaxExtent.ChangesAlways := [chGeometry];
+  Fields.Add(FFdMaxExtent);
 
-  FFddepth := TSFFloat.Create(Self, 'depth', 0.1, true);
-   Fddepth.ChangesAlways := [chGeometry];
-  Fields.Add(FFddepth);
+  FFdDepth := TSFFloat.Create(Self, 'depth', 0.1, true);
+   FdDepth.ChangesAlways := [chGeometry];
+  Fields.Add(FFdDepth);
 
-  FFdsolid := TSFBool.Create(Self, 'solid', true);
-   Fdsolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsolid);
+  FFdSolid := TSFBool.Create(Self, 'solid', true);
+   FdSolid.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSolid);
 end;
 
 function TNodeText3D.FontStyle: TNodeFontStyle;
@@ -570,21 +570,21 @@ procedure TNodeBlendMode.CreateNode;
 begin
   inherited;
 
-  FFdsrcFactor := TSFString.Create(Self, 'srcFactor', 'src_alpha');
-   FdsrcFactor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdsrcFactor);
+  FFdSrcFactor := TSFString.Create(Self, 'srcFactor', 'src_alpha');
+   FdSrcFactor.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdSrcFactor);
 
-  FFddestFactor := TSFString.Create(Self, 'destFactor', 'one_minus_src_alpha');
-   FddestFactor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFddestFactor);
+  FFdDestFactor := TSFString.Create(Self, 'destFactor', 'one_minus_src_alpha');
+   FdDestFactor.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdDestFactor);
 
-  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
-   Fdcolor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+   FdColor.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdColor);
 
-  FFdcolorTransparency := TSFFloat.Create(Self, 'colorTransparency', 0.0);
-   FdcolorTransparency.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdcolorTransparency);
+  FFdColorTransparency := TSFFloat.Create(Self, 'colorTransparency', 0.0);
+   FdColorTransparency.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdColorTransparency);
 
   DefaultContainerField := 'blendMode';
 end;
@@ -610,11 +610,11 @@ procedure TNodeKambiInline.CreateNode;
 begin
   inherited;
 
-  FFdreplaceNames := TMFString.Create(Self, 'replaceNames', []);
-  Fields.Add(FFdreplaceNames);
+  FFdReplaceNames := TMFString.Create(Self, 'replaceNames', []);
+  Fields.Add(FFdReplaceNames);
 
-  FFdreplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TVRMLNode]);
-  Fields.Add(FFdreplaceNodes);
+  FFdReplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TVRMLNode]);
+  Fields.Add(FFdReplaceNodes);
 end;
 
 class function TNodeKambiInline.ClassNodeTypeName: string;
@@ -675,25 +675,25 @@ procedure TNodeKambiNavigationInfo.CreateNode;
 begin
   inherited;
 
-  FFdtimeOriginAtLoad := TSFBool.Create(Self, 'timeOriginAtLoad', false);
-  FFdtimeOriginAtLoad.Exposed := false;
-  Fields.Add(FFdtimeOriginAtLoad);
+  FFdTimeOriginAtLoad := TSFBool.Create(Self, 'timeOriginAtLoad', false);
+  FFdTimeOriginAtLoad.Exposed := false;
+  Fields.Add(FFdTimeOriginAtLoad);
 
-  FFdoctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TNodeKambiOctreeProperties]);
-  FFdoctreeRendering.Exposed := false;
-  Fields.Add(FFdoctreeRendering);
+  FFdOctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TNodeKambiOctreeProperties]);
+  FFdOctreeRendering.Exposed := false;
+  Fields.Add(FFdOctreeRendering);
 
-  FFdoctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TNodeKambiOctreeProperties]);
-  FFdoctreeDynamicCollisions.Exposed := false;
-  Fields.Add(FFdoctreeDynamicCollisions);
+  FFdOctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TNodeKambiOctreeProperties]);
+  FFdOctreeDynamicCollisions.Exposed := false;
+  Fields.Add(FFdOctreeDynamicCollisions);
 
-  FFdoctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TNodeKambiOctreeProperties]);
-  FFdoctreeVisibleTriangles.Exposed := false;
-  Fields.Add(FFdoctreeVisibleTriangles);
+  FFdOctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TNodeKambiOctreeProperties]);
+  FFdOctreeVisibleTriangles.Exposed := false;
+  Fields.Add(FFdOctreeVisibleTriangles);
 
-  FFdoctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TNodeKambiOctreeProperties]);
-  FFdoctreeCollidableTriangles.Exposed := false;
-  Fields.Add(FFdoctreeCollidableTriangles);
+  FFdOctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TNodeKambiOctreeProperties]);
+  FFdOctreeCollidableTriangles.Exposed := false;
+  Fields.Add(FFdOctreeCollidableTriangles);
 
   FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', DefaultHeadBobbing, true);
    FdHeadBobbing.ChangesAlways := [chNavigationInfo];
@@ -703,8 +703,8 @@ begin
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   Fields.Add(FdHeadBobbingTime);
 
-  FFdheadlightNode := TSFNode.Create(Self, 'headlightNode', [TNodeX3DLightNode]);
-  Fields.Add(FFdheadlightNode);
+  FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TNodeX3DLightNode]);
+  Fields.Add(FFdHeadlightNode);
 end;
 
 class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;
@@ -774,14 +774,14 @@ procedure TNodeGeneratedShadowMap.CreateNode;
 begin
   inherited;
 
-  FFdupdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
-  Fields.Add(FFdupdate);
+  FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
+  Fields.Add(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdsize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
-   Fdsize.Exposed := false;
-   Fdsize.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdsize);
+  FFdSize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
+   FdSize.Exposed := false;
+   FdSize.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   { Note that light node is not enumerated as an active node
@@ -789,21 +789,21 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     GeneratedShadowMap. }
-  FFdlight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
-   Fdlight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdlight);
+  FFdLight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
+   FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdLight);
 
-  FFdscale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
-   Fdscale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdscale);
+  FFdScale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
+   FdScale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdScale);
 
-  FFdbias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
-   Fdbias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdbias);
+  FFdBias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
+   FdBias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+  Fields.Add(FFdBias);
 
-  FFdcompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
-   FdcompareMode.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdcompareMode);
+  FFdCompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
+   FdCompareMode.ChangesAlways := [chTextureRendererProperties];
+  Fields.Add(FFdCompareMode);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FdUpdate := FdUpdate;
@@ -841,12 +841,12 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     ProjectedTextureCoordinate. }
-  FFdprojector := TSFNode.Create(Self, 'projector',
+  FFdProjector := TSFNode.Create(Self, 'projector',
     [TNodeSpotLight_1, TNodeDirectionalLight_1,
      TNodeSpotLight  , TNodeDirectionalLight  ,
      TNodeX3DViewpointNode]);
    FFdprojector.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdprojector);
+  Fields.Add(FFdProjector);
 end;
 
 class function TNodeProjectedTextureCoordinate.ClassNodeTypeName: string;
@@ -863,19 +863,19 @@ procedure TNodeScreenEffect.CreateNode;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-   Fdenabled.ChangesAlways := [chScreenEffectEnabled];
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+   FdEnabled.ChangesAlways := [chScreenEffectEnabled];
+  Fields.Add(FFdEnabled);
 
-  FFdshaders := TMFNodeShaders.Create(Self, 'shaders', [TNodeX3DShaderNode]);
-   Fdshaders.ChangesAlways := [chEverything];
-  Fields.Add(FFdshaders);
+  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TNodeX3DShaderNode]);
+   FdShaders.ChangesAlways := [chEverything];
+  Fields.Add(FFdShaders);
 
-  FFdneedsDepth := TSFBool.Create(Self, 'needsDepth', false);
+  FFdNeedsDepth := TSFBool.Create(Self, 'needsDepth', false);
    { no change needed, TVRMLGLScene recalculates NeedsDepth every time
      when ScreenEffectsNeedDepth is called by scene manager. }
-   FdneedsDepth.ChangesAlways := [];
-  Fields.Add(FFdneedsDepth);
+   FdNeedsDepth.ChangesAlways := [];
+  Fields.Add(FFdNeedsDepth);
 
   FStateForShaderPrepare := TVRMLGraphTraverseState.Create;
 end;
@@ -900,7 +900,7 @@ procedure TNodeScreenEffect.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   inherited;
-  FFdshaders.EnumerateValid(Func);
+  FFdShaders.EnumerateValid(Func);
 end;
 
 class function TNodeMultiGeneratedTextureCoordinate.ClassNodeTypeName: string;
@@ -917,19 +917,19 @@ procedure TNodeEffect.CreateNode;
 begin
   inherited;
 
-  FFdlanguage := TSFString.Create(Self, 'language', '');
-   Fdlanguage.Exposed := false;
-   Fdlanguage.ChangesAlways := [chEverything];
-  Fields.Add(FFdlanguage);
+  FFdLanguage := TSFString.Create(Self, 'language', '');
+   FdLanguage.Exposed := false;
+   FdLanguage.ChangesAlways := [chEverything];
+  Fields.Add(FFdLanguage);
 
   FFdParts := TMFNode.Create(Self, 'parts', [TNodeEffectPart]);
    FdParts.Exposed := false;
    FdParts.ChangesAlways := [chEverything];
   Fields.Add(FFdParts);
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-   Fdenabled.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+   FdEnabled.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdEnabled);
 
   HasInterfaceDeclarations := AllAccessTypes;
 end;
@@ -948,15 +948,15 @@ procedure TNodeEffectPart.CreateNode;
 begin
   inherited;
 
-  FFdtype := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
-   Fdtype.Exposed := false;
-   Fdtype.ChangesAlways := [chEverything];
-  Fields.Add(FFdtype);
+  FFdType := TSFStringShaderType.Create(Self, 'type', 'VERTEX');
+   FdType.Exposed := false;
+   FdType.ChangesAlways := [chEverything];
+  Fields.Add(FFdType);
 
-  FFdurl := TMFString.Create(Self, 'url', []);
-   Fdurl.Exposed := false;
-   Fdurl.ChangesAlways := [chEverything];
-  Fields.Add(FFdurl);
+  FFdUrl := TMFString.Create(Self, 'url', []);
+   FdUrl.Exposed := false;
+   FdUrl.ChangesAlways := [chEverything];
+  Fields.Add(FFdUrl);
 
   DefaultContainerField := 'parts';
 end;

@@ -152,54 +152,54 @@ procedure TNodeFontStyle.CreateNode;
 begin
   inherited;
 
-  FFdfamily := TMFString.Create(Self, 'family', ['SERIF']);
-   Fdfamily.Exposed := false;
-   Fdfamily.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdfamily);
+  FFdFamily := TMFString.Create(Self, 'family', ['SERIF']);
+   FdFamily.Exposed := false;
+   FdFamily.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdFamily);
 
-  FFdhorizontal := TSFBool.Create(Self, 'horizontal', true);
-   Fdhorizontal.Exposed := false;
-   Fdhorizontal.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdhorizontal);
+  FFdHorizontal := TSFBool.Create(Self, 'horizontal', true);
+   FdHorizontal.Exposed := false;
+   FdHorizontal.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdHorizontal);
 
-  FFdjustify := TMFString.Create(Self, 'justify', ['BEGIN']);
-   Fdjustify.Exposed := false;
-   Fdjustify.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdjustify);
+  FFdJustify := TMFString.Create(Self, 'justify', ['BEGIN']);
+   FdJustify.Exposed := false;
+   FdJustify.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
-  FFdlanguage := TSFString.Create(Self, 'language', '');
-   Fdlanguage.Exposed := false;
-   Fdlanguage.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdlanguage);
+  FFdLanguage := TSFString.Create(Self, 'language', '');
+   FdLanguage.Exposed := false;
+   FdLanguage.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdLanguage);
 
-  FFdleftToRight := TSFBool.Create(Self, 'leftToRight', true);
-   FdleftToRight.Exposed := false;
-   FdleftToRight.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdleftToRight);
+  FFdLeftToRight := TSFBool.Create(Self, 'leftToRight', true);
+   FdLeftToRight.Exposed := false;
+   FdLeftToRight.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdLeftToRight);
 
-  FFdsize := TSFFloat.Create(Self, 'size', DefaultSize);
-   Fdsize.Exposed := false;
-   Fdsize.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdsize);
+  FFdSize := TSFFloat.Create(Self, 'size', DefaultSize);
+   FdSize.Exposed := false;
+   FdSize.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdspacing := TSFFloat.Create(Self, 'spacing', DefaultSpacing);
-   Fdspacing.Exposed := false;
-   Fdspacing.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdspacing);
+  FFdSpacing := TSFFloat.Create(Self, 'spacing', DefaultSpacing);
+   FdSpacing.Exposed := false;
+   FdSpacing.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdstyle := TSFString.Create(Self, 'style', 'PLAIN');
-   Fdstyle.Exposed := false;
-   Fdstyle.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdstyle);
+  FFdStyle := TSFString.Create(Self, 'style', 'PLAIN');
+   FdStyle.Exposed := false;
+   FdStyle.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
-  FFdtopToBottom := TSFBool.Create(Self, 'topToBottom', true);
-   FdtopToBottom.Exposed := false;
-   FdtopToBottom.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdtopToBottom);
+  FFdTopToBottom := TSFBool.Create(Self, 'topToBottom', true);
+   FdTopToBottom.Exposed := false;
+   FdTopToBottom.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdTopToBottom);
 end;
 
 class function TNodeFontStyle.ClassNodeTypeName: string;
@@ -382,37 +382,37 @@ procedure TNodeText.CreateNode;
 begin
   inherited;
 
-  FFdfontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeX3DFontStyleNode]);
-   FdfontStyle.ChangesAlways := [chGeometry];
-  Fields.Add(FFdfontStyle);
+  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeX3DFontStyleNode]);
+   FdFontStyle.ChangesAlways := [chGeometry];
+  Fields.Add(FFdFontStyle);
 
-  FFdlength := TMFFloat.Create(Self, 'length', []);
-   Fdlength.ChangesAlways := [chGeometry];
-  Fields.Add(FFdlength);
+  FFdLength := TMFFloat.Create(Self, 'length', []);
+   FdLength.ChangesAlways := [chGeometry];
+  Fields.Add(FFdLength);
   { X3D specification comment: [0,Inf) }
 
-  FFdmaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
-   FdmaxExtent.ChangesAlways := [chGeometry];
-  Fields.Add(FFdmaxExtent);
+  FFdMaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
+   FdMaxExtent.ChangesAlways := [chGeometry];
+  Fields.Add(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
-  FFdstring := TMFString.Create(Self, 'string', []);
-   Fdstring.ChangesAlways := [chGeometry];
-  Fields.Add(FFdstring);
+  FFdString := TMFString.Create(Self, 'string', []);
+   FdString.ChangesAlways := [chGeometry];
+  Fields.Add(FFdString);
 
-  FEventlineBounds := TVRMLEvent.Create(Self, 'lineBounds', TMFVec2f, false);
-  Events.Add(FEventlineBounds);
+  FEventLineBounds := TVRMLEvent.Create(Self, 'lineBounds', TMFVec2f, false);
+  Events.Add(FEventLineBounds);
 
-  FEventorigin := TVRMLEvent.Create(Self, 'origin', TSFVec3f, false);
-  Events.Add(FEventorigin);
+  FEventOrigin := TVRMLEvent.Create(Self, 'origin', TSFVec3f, false);
+  Events.Add(FEventOrigin);
 
-  FEventtextBounds := TVRMLEvent.Create(Self, 'textBounds', TSFVec2f, false);
-  Events.Add(FEventtextBounds);
+  FEventTextBounds := TVRMLEvent.Create(Self, 'textBounds', TSFVec2f, false);
+  Events.Add(FEventTextBounds);
 
-  FFdsolid := TSFBool.Create(Self, 'solid', false);
-   Fdsolid.Exposed := false;
-   Fdsolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdsolid);
+  FFdSolid := TSFBool.Create(Self, 'solid', false);
+   FdSolid.Exposed := false;
+   FdSolid.ChangesAlways := [chGeometry];
+  Fields.Add(FFdSolid);
 end;
 
 class function TNodeText.ClassNodeTypeName: string;

@@ -137,8 +137,8 @@ procedure TNodeX3DProductStructureChildNode.CreateNode;
 begin
   inherited;
 
-  FFdname := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdname);
+  FFdName := TSFString.Create(Self, 'name', '');
+  Fields.Add(FFdName);
 
   DefaultContainerField := 'children';
 end;
@@ -147,8 +147,8 @@ procedure TNodeCADAssembly.CreateNode;
 begin
   inherited;
 
-  FFdname := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdname);
+  FFdName := TSFString.Create(Self, 'name', '');
+  Fields.Add(FFdName);
 
   DefaultContainerField := 'children';
 end;
@@ -168,17 +168,17 @@ procedure TNodeCADFace.CreateNode;
 begin
   inherited;
 
-  FFdshape := TSFNode.Create(Self, 'shape', [TNodeX3DShapeNode, TVRMLLODNode]);
-  Fields.Add(FFdshape);
+  FFdShape := TSFNode.Create(Self, 'shape', [TNodeX3DShapeNode, TVRMLLODNode]);
+  Fields.Add(FFdShape);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0, Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -199,11 +199,11 @@ procedure TNodeCADLayer.CreateNode;
 begin
   inherited;
 
-  FFdname := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdname);
+  FFdName := TSFString.Create(Self, 'name', '');
+  Fields.Add(FFdName);
 
-  FFdvisible := TMFBool.Create(Self, 'visible', []);
-  Fields.Add(FFdvisible);
+  FFdVisible := TMFBool.Create(Self, 'visible', []);
+  Fields.Add(FFdVisible);
 
   DefaultContainerField := 'children';
 end;
@@ -223,27 +223,27 @@ procedure TNodeCADPart.CreateNode;
 begin
   inherited;
 
-  FFdcenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
-  Fields.Add(FFdcenter);
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdname := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdname);
+  FFdName := TSFString.Create(Self, 'name', '');
+  Fields.Add(FFdName);
 
-  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdrotation);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdscale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
-  Fields.Add(FFdscale);
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  Fields.Add(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdscaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdscaleOrientation);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdtranslation);
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -264,13 +264,13 @@ procedure TNodeIndexedQuadSet.CreateNode;
 begin
   inherited;
 
-  FEventset_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
-  Events.Add(FEventset_index);
+  FEventSet_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
+  Events.Add(FEventSet_index);
 
-  FFdindex := TMFInt32.Create(Self, 'index', []);
-   Fdindex.Exposed := false;
-   Fdindex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdindex);
+  FFdIndex := TMFInt32.Create(Self, 'index', []);
+   FdIndex.Exposed := false;
+   FdIndex.ChangesAlways := [chGeometry];
+  Fields.Add(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
 

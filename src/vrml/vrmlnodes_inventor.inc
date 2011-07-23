@@ -63,13 +63,13 @@ procedure TNodeRotationXYZ.CreateNode;
 begin
   inherited;
 
-  FFdaxis := TSFEnum.Create(Self, 'axis' , ['X', 'Y', 'Z'], 0);
-   Fdaxis.ChangesAlways := [chEverything];
-  Fields.Add(FFdaxis);
+  FFdAxis := TSFEnum.Create(Self, 'axis' , ['X', 'Y', 'Z'], 0);
+   FdAxis.ChangesAlways := [chEverything];
+  Fields.Add(FFdAxis);
 
-  FFdangle := TSFFloat.Create(Self, 'angle', 0);
-   Fdangle.ChangesAlways := [chEverything];
-  Fields.Add(FFdangle);
+  FFdAngle := TSFFloat.Create(Self, 'angle', 0);
+   FdAngle.ChangesAlways := [chEverything];
+  Fields.Add(FFdAngle);
 end;
 
 class function TNodeRotationXYZ.ClassNodeTypeName: string;

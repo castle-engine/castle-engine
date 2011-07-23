@@ -144,26 +144,26 @@ procedure TNodeKeySensor.CreateNode;
 begin
   inherited;
 
-  FEventactionKeyPress := TVRMLEvent.Create(Self, 'actionKeyPress', TSFInt32, false);
-  Events.Add(FEventactionKeyPress);
+  FEventActionKeyPress := TVRMLEvent.Create(Self, 'actionKeyPress', TSFInt32, false);
+  Events.Add(FEventActionKeyPress);
 
-  FEventactionKeyRelease := TVRMLEvent.Create(Self, 'actionKeyRelease', TSFInt32, false);
-  Events.Add(FEventactionKeyRelease);
+  FEventActionKeyRelease := TVRMLEvent.Create(Self, 'actionKeyRelease', TSFInt32, false);
+  Events.Add(FEventActionKeyRelease);
 
-  FEventaltKey := TVRMLEvent.Create(Self, 'altKey', TSFBool, false);
-  Events.Add(FEventaltKey);
+  FEventAltKey := TVRMLEvent.Create(Self, 'altKey', TSFBool, false);
+  Events.Add(FEventAltKey);
 
-  FEventcontrolKey := TVRMLEvent.Create(Self, 'controlKey', TSFBool, false);
-  Events.Add(FEventcontrolKey);
+  FEventControlKey := TVRMLEvent.Create(Self, 'controlKey', TSFBool, false);
+  Events.Add(FEventControlKey);
 
-  FEventkeyPress := TVRMLEvent.Create(Self, 'keyPress', TSFString, false);
-  Events.Add(FEventkeyPress);
+  FEventKeyPress := TVRMLEvent.Create(Self, 'keyPress', TSFString, false);
+  Events.Add(FEventKeyPress);
 
-  FEventkeyRelease := TVRMLEvent.Create(Self, 'keyRelease', TSFString, false);
-  Events.Add(FEventkeyRelease);
+  FEventKeyRelease := TVRMLEvent.Create(Self, 'keyRelease', TSFString, false);
+  Events.Add(FEventKeyRelease);
 
-  FEventshiftKey := TVRMLEvent.Create(Self, 'shiftKey', TSFBool, false);
-  Events.Add(FEventshiftKey);
+  FEventShiftKey := TVRMLEvent.Create(Self, 'shiftKey', TSFBool, false);
+  Events.Add(FEventShiftKey);
 
   DefaultContainerField := 'children';
 end;
@@ -264,14 +264,14 @@ procedure TNodeStringSensor.CreateNode;
 begin
   inherited;
 
-  FFddeletionAllowed := TSFBool.Create(Self, 'deletionAllowed', true);
-  Fields.Add(FFddeletionAllowed);
+  FFdDeletionAllowed := TSFBool.Create(Self, 'deletionAllowed', true);
+  Fields.Add(FFdDeletionAllowed);
 
-  FEvententeredText := TVRMLEvent.Create(Self, 'enteredText', TSFString, false);
-  Events.Add(FEvententeredText);
+  FEventEnteredText := TVRMLEvent.Create(Self, 'enteredText', TSFString, false);
+  Events.Add(FEventEnteredText);
 
-  FEventfinalText := TVRMLEvent.Create(Self, 'finalText', TSFString, false);
-  Events.Add(FEventfinalText);
+  FEventFinalText := TVRMLEvent.Create(Self, 'finalText', TSFString, false);
+  Events.Add(FEventFinalText);
 
   DefaultContainerField := 'children';
 end;

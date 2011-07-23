@@ -91,8 +91,8 @@ procedure TNodeX3DScriptNode.CreateNode;
 begin
   inherited;
 
-  FFdurl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdurl);
+  FFdUrl := TMFString.Create(Self, 'url', []);
+  Fields.Add(FFdUrl);
   Fdurl.OnReceive.Add(@EventUrlReceive);
   { X3D specification comment: [URI] }
 
@@ -361,13 +361,13 @@ procedure TNodeScript.CreateNode;
 begin
   inherited;
 
-  FFddirectOutput := TSFBool.Create(Self, 'directOutput', false);
-  FFddirectOutput.Exposed := false;
-  Fields.Add(FFddirectOutput);
+  FFdDirectOutput := TSFBool.Create(Self, 'directOutput', false);
+  FFdDirectOutput.Exposed := false;
+  Fields.Add(FFdDirectOutput);
 
-  FFdmustEvaluate := TSFBool.Create(Self, 'mustEvaluate', false);
-  FFdmustEvaluate.Exposed := false;
-  Fields.Add(FFdmustEvaluate);
+  FFdMustEvaluate := TSFBool.Create(Self, 'mustEvaluate', false);
+  FFdMustEvaluate.Exposed := false;
+  Fields.Add(FFdMustEvaluate);
 
   DefaultContainerField := 'children';
 end;

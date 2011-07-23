@@ -330,36 +330,36 @@ procedure TNodeX3DLightNode.CreateNode;
 begin
   inherited;
 
-  FFdglobal := TSFBool.Create(Self, 'global', false);
-   Fdglobal.ChangesAlways := [chEverything];
-  Fields.Add(FFdglobal);
+  FFdGlobal := TSFBool.Create(Self, 'global', false);
+   FdGlobal.ChangesAlways := [chEverything];
+  Fields.Add(FFdGlobal);
 
-  FFdon := TSFBool.Create(Self, 'on', true);
-   Fdon.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdon);
+  FFdOn := TSFBool.Create(Self, 'on', true);
+   FdOn.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdOn);
 
-  FFdintensity := TSFFloat.Create(Self, 'intensity', 1);
-   Fdintensity.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdintensity);
+  FFdIntensity := TSFFloat.Create(Self, 'intensity', 1);
+   FdIntensity.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdIntensity);
 
-  FFdcolor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
-   Fdcolor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdcolor);
+  FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+   FdColor.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdColor);
 
-  FFdambientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0);
-   FdambientIntensity.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdambientIntensity);
+  FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0);
+   FdAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdAmbientIntensity);
 
-  FFdkambiShadows := TSFBool.Create(Self, 'kambiShadows', false);
-   FdkambiShadows.ChangesAlways := [chLightForShadowVolumes];
-  Fields.Add(FFdkambiShadows);
+  FFdKambiShadows := TSFBool.Create(Self, 'kambiShadows', false);
+   FdKambiShadows.ChangesAlways := [chLightForShadowVolumes];
+  Fields.Add(FFdKambiShadows);
 
-  FFdkambiShadowsMain := TSFBool.Create(Self, 'kambiShadowsMain', false);
-   FdkambiShadowsMain.ChangesAlways := [chLightForShadowVolumes];
-  Fields.Add(FFdkambiShadowsMain);
+  FFdKambiShadowsMain := TSFBool.Create(Self, 'kambiShadowsMain', false);
+   FdKambiShadowsMain.ChangesAlways := [chLightForShadowVolumes];
+  Fields.Add(FFdKambiShadowsMain);
 
-  FFdshowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
-  Fields.Add(FFdshowProxyGeometry);
+  FFdShowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
+  Fields.Add(FFdShowProxyGeometry);
 
   FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 0);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
@@ -540,9 +540,9 @@ procedure TVRMLDirectionalLightNode.CreateNode;
 begin
   inherited;
 
-  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
-   Fddirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
-  Fields.Add(FFddirection);
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
+   FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+  Fields.Add(FFdDirection);
 
   FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle', ZeroVector4Single);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
@@ -551,12 +551,12 @@ begin
    FdProjectionRectangle.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdProjectionRectangle);
 
-  FFdprojectionLocation := TSFVec3f.Create(Self, 'projectionLocation', ZeroVector3Single);
+  FFdProjectionLocation := TSFVec3f.Create(Self, 'projectionLocation', ZeroVector3Single);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdprojectionLocation.ChangesAlways := [chVisibleGeometry];
-  Fields.Add(FFdprojectionLocation);
+   FdProjectionLocation.ChangesAlways := [chVisibleGeometry];
+  Fields.Add(FFdProjectionLocation);
 end;
 
 class function TVRMLDirectionalLightNode.ClassNodeTypeName: string;
@@ -630,19 +630,19 @@ procedure TVRMLPositionalLightNode.CreateNode;
 begin
   inherited;
 
-  FFdlocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
-   Fdlocation.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
-  Fields.Add(FFdlocation);
+  FFdLocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
+   FdLocation.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+  Fields.Add(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdattenuation := TSFVec3f.Create(Self, 'attenuation', Vector3Single(1, 0, 0));
-   Fdattenuation.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdattenuation);
+  FFdAttenuation := TSFVec3f.Create(Self, 'attenuation', Vector3Single(1, 0, 0));
+   FdAttenuation.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdAttenuation);
   { X3D specification comment: [0,Inf) }
 
-  FFdradius := TSFFloat.Create(Self, 'radius', 100);
-   Fdradius.ChangesAlways := [chLightInstanceProperty];
-  Fields.Add(FFdradius);
+  FFdRadius := TSFFloat.Create(Self, 'radius', 100);
+   FdRadius.ChangesAlways := [chLightInstanceProperty];
+  Fields.Add(FFdRadius);
   { X3D specification comment: [0,Inf) }
 end;
 
@@ -786,29 +786,29 @@ procedure TNodeSpotLight.CreateNode;
 begin
   inherited;
 
-  FFdbeamWidth := TSFFloat.Create(Self, 'beamWidth', Pi / 2);
-   FdbeamWidth.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdbeamWidth);
+  FFdBeamWidth := TSFFloat.Create(Self, 'beamWidth', Pi / 2);
+   FdBeamWidth.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdBeamWidth);
   { X3D specification comment: (0,Pi/2] }
 
-  FFdcutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
-   FdcutOffAngle.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdcutOffAngle);
+  FFdCutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
+   FdCutOffAngle.ChangesAlways := [chVisibleNonGeometry];
+  Fields.Add(FFdCutOffAngle);
   { X3D specification comment: (0,Pi/2] }
 
-  FFddirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
-   Fddirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
-  Fields.Add(FFddirection);
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
+   FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
+  Fields.Add(FFdDirection);
   { X3D specification comment: (-Inf,Inf) }
 
   FdGlobal.Value := true;
 
-  FFdprojectionAngle := TSFFloat.Create(Self, 'projectionAngle', 0);
+  FFdProjectionAngle := TSFFloat.Create(Self, 'projectionAngle', 0);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
-   FdprojectionAngle.ChangesAlways := [chVisibleGeometry];
-  Fields.Add(FFdprojectionAngle);
+   FdProjectionAngle.ChangesAlways := [chVisibleGeometry];
+  Fields.Add(FFdProjectionAngle);
 
   DefaultContainerField := 'children';
 end;

@@ -303,8 +303,8 @@ procedure TNodeX3DFollowerNode.CreateNode;
 begin
   inherited;
 
-  FEventisActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
-  Events.Add(FEventisActive);
+  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  Events.Add(FEventIsActive);
 
   DefaultContainerField := 'children';
 end;
@@ -313,17 +313,17 @@ procedure TNodeX3DDamperNode.CreateNode;
 begin
   inherited;
 
-  FFdtau := TSFTime.Create(Self, 'tau', 0);
-  Fields.Add(FFdtau);
+  FFdTau := TSFTime.Create(Self, 'tau', 0);
+  Fields.Add(FFdTau);
   { X3D specification comment: [0,Inf) }
 
-  FFdtolerance := TSFFloat.Create(Self, 'tolerance', -1);
-  Fields.Add(FFdtolerance);
+  FFdTolerance := TSFFloat.Create(Self, 'tolerance', -1);
+  Fields.Add(FFdTolerance);
   { X3D specification comment: -1 or [0,Inf) }
 
-  FFdorder := TSFInt32.Create(Self, 'order', 0);
-  FFdorder.Exposed := false;
-  Fields.Add(FFdorder);
+  FFdOrder := TSFInt32.Create(Self, 'order', 0);
+  FFdOrder.Exposed := false;
+  Fields.Add(FFdOrder);
   { X3D specification comment: [0..5] }
 
   DefaultContainerField := 'children';
@@ -333,9 +333,9 @@ procedure TNodeX3DChaserNode.CreateNode;
 begin
   inherited;
 
-  FFdduration := TSFTime.Create(Self, 'duration', 0);
-  FFdduration.Exposed := false;
-  Fields.Add(FFdduration);
+  FFdDuration := TSFTime.Create(Self, 'duration', 0);
+  FFdDuration.Exposed := false;
+  Fields.Add(FFdDuration);
   { X3D specification comment: [0,Inf) }
 
   DefaultContainerField := 'children';
@@ -345,22 +345,22 @@ procedure TNodeColorDamper.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFColor, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFColor, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFColor, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFColor, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFColor, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFColor, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFColor.Create(Self, 'initialDestination', Vector3Single(0.8, 0.8, 0.8));
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFColor.Create(Self, 'initialDestination', Vector3Single(0.8, 0.8, 0.8));
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFColor.Create(Self, 'initialValue', Vector3Single(0.8, 0.8, 0.8));
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFColor.Create(Self, 'initialValue', Vector3Single(0.8, 0.8, 0.8));
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -380,22 +380,22 @@ procedure TNodeCoordinateDamper.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TMFVec3f, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TMFVec3f, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TMFVec3f, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TMFVec3f, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TMFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TMFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TMFVec3f.Create(Self, 'initialValue', Vector3Single(0, 0, 0));
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TMFVec3f.Create(Self, 'initialValue', Vector3Single(0, 0, 0));
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -415,22 +415,22 @@ procedure TNodeOrientationChaser.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFRotation, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFRotation, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFRotation, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFRotation, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3Single(0, 1, 0), 0);
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3Single(0, 1, 0), 0);
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFRotation.Create(Self, 'initialValue', Vector3Single(0, 1, 0), 0);
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFRotation.Create(Self, 'initialValue', Vector3Single(0, 1, 0), 0);
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -450,22 +450,22 @@ procedure TNodeOrientationDamper.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFRotation, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFRotation, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFRotation, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFRotation, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3Single(0, 1, 0), 0);
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3Single(0, 1, 0), 0);
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFRotation.Create(Self, 'initialValue', Vector3Single(0, 1, 0), 0);
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFRotation.Create(Self, 'initialValue', Vector3Single(0, 1, 0), 0);
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -485,22 +485,22 @@ procedure TNodePositionChaser.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec3f, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec3f, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFVec3f, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec3f, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFVec3f.Create(Self, 'initialValue', Vector3Single(0, 0, 0));
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFVec3f.Create(Self, 'initialValue', Vector3Single(0, 0, 0));
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -520,23 +520,23 @@ procedure TNodePositionChaser2D.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec2f, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec2f, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFVec2f, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec2f, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2Single(0, 0));
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2Single(0, 0));
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
   { X3D specification comment: 0 }
 
-  FFdinitialValue := TSFVec2f.Create(Self, 'initialValue', Vector2Single(0, 0));
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFVec2f.Create(Self, 'initialValue', Vector2Single(0, 0));
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
   { X3D specification comment: 0 }
 
   DefaultContainerField := 'children';
@@ -557,22 +557,22 @@ procedure TNodePositionDamper.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec3f, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec3f, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFVec3f, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec3f, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFVec3f.Create(Self, 'initialValue', Vector3Single(0, 0, 0));
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFVec3f.Create(Self, 'initialValue', Vector3Single(0, 0, 0));
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -592,22 +592,22 @@ procedure TNodePositionDamper2D.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec2f, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec2f, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFVec2f, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec2f, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2Single(0, 0));
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2Single(0, 0));
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFVec2f.Create(Self, 'initialValue', Vector2Single(0, 0));
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFVec2f.Create(Self, 'initialValue', Vector2Single(0, 0));
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -627,22 +627,22 @@ procedure TNodeScalarChaser.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TSFFloat, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFFloat, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TSFFloat, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFFloat, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TSFFloat.Create(Self, 'initialDestination', 0);
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TSFFloat.Create(Self, 'initialDestination', 0);
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TSFFloat.Create(Self, 'initialValue', 0);
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TSFFloat.Create(Self, 'initialValue', 0);
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;
@@ -662,22 +662,22 @@ procedure TNodeTexCoordDamper2D.CreateNode;
 begin
   inherited;
 
-  FEventset_destination := TVRMLEvent.Create(Self, 'set_destination', TMFVec2f, true);
-  Events.Add(FEventset_destination);
+  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TMFVec2f, true);
+  Events.Add(FEventSet_destination);
 
-  FEventset_value := TVRMLEvent.Create(Self, 'set_value', TMFVec2f, true);
-  Events.Add(FEventset_value);
+  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TMFVec2f, true);
+  Events.Add(FEventSet_value);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec2f, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec2f, false);
+  Events.Add(FEventValue_changed);
 
-  FFdinitialDestination := TMFVec2f.Create(Self, 'initialDestination', []);
-  FFdinitialDestination.Exposed := false;
-  Fields.Add(FFdinitialDestination);
+  FFdInitialDestination := TMFVec2f.Create(Self, 'initialDestination', []);
+  FFdInitialDestination.Exposed := false;
+  Fields.Add(FFdInitialDestination);
 
-  FFdinitialValue := TMFVec2f.Create(Self, 'initialValue', []);
-  FFdinitialValue.Exposed := false;
-  Fields.Add(FFdinitialValue);
+  FFdInitialValue := TMFVec2f.Create(Self, 'initialValue', []);
+  FFdInitialValue.Exposed := false;
+  Fields.Add(FFdInitialValue);
 
   DefaultContainerField := 'children';
 end;

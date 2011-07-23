@@ -82,11 +82,11 @@ procedure TNodeX3DLayerNode.CreateNode;
 begin
   inherited;
 
-  FFdisPickable := TSFBool.Create(Self, 'isPickable', true);
-  Fields.Add(FFdisPickable);
+  FFdIsPickable := TSFBool.Create(Self, 'isPickable', true);
+  Fields.Add(FFdIsPickable);
 
-  FFdviewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
-  Fields.Add(FFdviewport);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
+  Fields.Add(FFdViewport);
 
   DefaultContainerField := 'layers';
 end;
@@ -100,14 +100,14 @@ procedure TNodeLayer.CreateNode;
 begin
   inherited;
 
-  FEventaddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
-  Events.Add(FEventaddChildren);
+  FEventAddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
+  Events.Add(FEventAddChildren);
 
-  FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
-  Events.Add(FEventremoveChildren);
+  FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
+  Events.Add(FEventRemoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
-  Fields.Add(FFdchildren);
+  FFdChildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
+  Fields.Add(FFdChildren);
 end;
 
 class function TNodeLayer.ClassNodeTypeName: string;
@@ -125,15 +125,15 @@ procedure TNodeLayerSet.CreateNode;
 begin
   inherited;
 
-  FFdactiveLayer := TSFInt32.Create(Self, 'activeLayer', 0);
-  Fields.Add(FFdactiveLayer);
+  FFdActiveLayer := TSFInt32.Create(Self, 'activeLayer', 0);
+  Fields.Add(FFdActiveLayer);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdlayers := TMFNode.Create(Self, 'layers', [TNodeX3DLayerNode]);
-  Fields.Add(FFdlayers);
+  FFdLayers := TMFNode.Create(Self, 'layers', [TNodeX3DLayerNode]);
+  Fields.Add(FFdLayers);
 
-  FFdorder := TMFInt32.Create(Self, 'order', [0]);
-  Fields.Add(FFdorder);
+  FFdOrder := TMFInt32.Create(Self, 'order', [0]);
+  Fields.Add(FFdOrder);
   { X3D specification comment: (0,Inf) }
 
   DefaultContainerField := 'children';
@@ -154,8 +154,8 @@ procedure TNodeViewport.CreateNode;
 begin
   inherited;
 
-  FFdclipBoundary := TMFFloat.Create(Self, 'clipBoundary', [0.0]);
-  Fields.Add(FFdclipBoundary);
+  FFdClipBoundary := TMFFloat.Create(Self, 'clipBoundary', [0.0]);
+  Fields.Add(FFdClipBoundary);
   { X3D specification comment: 1 0 1  [0,1] }
 end;
 

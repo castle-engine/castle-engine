@@ -279,11 +279,11 @@ procedure TNodeX3DPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
 
-  FFddescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFddescription);
+  FFdDescription := TSFString.Create(Self, 'description', '');
+  Fields.Add(FFdDescription);
 
-  FEventisOver := TVRMLEvent.Create(Self, 'isOver', TSFBool, false);
-  Events.Add(FEventisOver);
+  FEventIsOver := TVRMLEvent.Create(Self, 'isOver', TSFBool, false);
+  Events.Add(FEventIsOver);
 end;
 
 procedure TNodeX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
@@ -302,11 +302,11 @@ procedure TNodeX3DDragSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdautoOffset := TSFBool.Create(Self, 'autoOffset', true);
-  Fields.Add(FFdautoOffset);
+  FFdAutoOffset := TSFBool.Create(Self, 'autoOffset', true);
+  Fields.Add(FFdAutoOffset);
 
-  FEventtrackPoint_changed := TVRMLEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
-  Events.Add(FEventtrackPoint_changed);
+  FEventTrackPoint_changed := TVRMLEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
+  Events.Add(FEventTrackPoint_changed);
 
   Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
 end;
@@ -320,35 +320,35 @@ procedure TNodeX3DTouchSensorNode.CreateNode;
 begin
   inherited;
 
-  FEventtouchTime := TVRMLEvent.Create(Self, 'touchTime', TSFTime, false);
-  Events.Add(FEventtouchTime);
+  FEventTouchTime := TVRMLEvent.Create(Self, 'touchTime', TSFTime, false);
+  Events.Add(FEventTouchTime);
 end;
 
 procedure TNodeCylinderSensor.CreateNode;
 begin
   inherited;
 
-  FFdaxisRotation := TSFRotation.Create(Self, 'axisRotation', Vector3Single(0, 1, 0), 0);
-  Fields.Add(FFdaxisRotation);
+  FFdAxisRotation := TSFRotation.Create(Self, 'axisRotation', Vector3Single(0, 1, 0), 0);
+  Fields.Add(FFdAxisRotation);
 
-  FFddiskAngle := TSFFloat.Create(Self, 'diskAngle', Pi/12);
-  Fields.Add(FFddiskAngle);
+  FFdDiskAngle := TSFFloat.Create(Self, 'diskAngle', Pi/12);
+  Fields.Add(FFdDiskAngle);
   { X3D specification comment: [0,Pi/2] }
 
-  FFdmaxAngle := TSFFloat.Create(Self, 'maxAngle', -1);
-  Fields.Add(FFdmaxAngle);
+  FFdMaxAngle := TSFFloat.Create(Self, 'maxAngle', -1);
+  Fields.Add(FFdMaxAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdminAngle := TSFFloat.Create(Self, 'minAngle', 0);
-  Fields.Add(FFdminAngle);
+  FFdMinAngle := TSFFloat.Create(Self, 'minAngle', 0);
+  Fields.Add(FFdMinAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdoffset := TSFFloat.Create(Self, 'offset', 0);
-  Fields.Add(FFdoffset);
+  FFdOffset := TSFFloat.Create(Self, 'offset', 0);
+  Fields.Add(FFdOffset);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventrotation_changed := TVRMLEvent.Create(Self, 'rotation_changed', TSFRotation, false);
-  Events.Add(FEventrotation_changed);
+  FEventRotation_changed := TVRMLEvent.Create(Self, 'rotation_changed', TSFRotation, false);
+  Events.Add(FEventRotation_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -467,23 +467,23 @@ procedure TNodePlaneSensor.CreateNode;
 begin
   inherited;
 
-  FFdaxisRotation := TSFRotation.Create(Self, 'axisRotation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdaxisRotation);
+  FFdAxisRotation := TSFRotation.Create(Self, 'axisRotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdAxisRotation);
 
-  FFdmaxPosition := TSFVec2f.Create(Self, 'maxPosition', Vector2Single(-1, -1));
-  Fields.Add(FFdmaxPosition);
+  FFdMaxPosition := TSFVec2f.Create(Self, 'maxPosition', Vector2Single(-1, -1));
+  Fields.Add(FFdMaxPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdminPosition := TSFVec2f.Create(Self, 'minPosition', Vector2Single(0, 0));
-  Fields.Add(FFdminPosition);
+  FFdMinPosition := TSFVec2f.Create(Self, 'minPosition', Vector2Single(0, 0));
+  Fields.Add(FFdMinPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdoffset := TSFVec3f.Create(Self, 'offset', Vector3Single(0, 0, 0));
-  Fields.Add(FFdoffset);
+  FFdOffset := TSFVec3f.Create(Self, 'offset', Vector3Single(0, 0, 0));
+  Fields.Add(FFdOffset);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventtranslation_changed := TVRMLEvent.Create(Self, 'translation_changed', TSFVec3f, false);
-  Events.Add(FEventtranslation_changed);
+  FEventTranslation_changed := TVRMLEvent.Create(Self, 'translation_changed', TSFVec3f, false);
+  Events.Add(FEventTranslation_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -631,12 +631,12 @@ procedure TNodeSphereSensor.CreateNode;
 begin
   inherited;
 
-  FFdoffset := TSFRotation.Create(Self, 'offset', Vector3Single(0, 1, 0), 0);
-  Fields.Add(FFdoffset);
+  FFdOffset := TSFRotation.Create(Self, 'offset', Vector3Single(0, 1, 0), 0);
+  Fields.Add(FFdOffset);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 
-  FEventrotation_changed := TVRMLEvent.Create(Self, 'rotation_changed', TSFRotation, false);
-  Events.Add(FEventrotation_changed);
+  FEventRotation_changed := TVRMLEvent.Create(Self, 'rotation_changed', TSFRotation, false);
+  Events.Add(FEventRotation_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -726,14 +726,14 @@ procedure TNodeTouchSensor.CreateNode;
 begin
   inherited;
 
-  FEventhitNormal_changed := TVRMLEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
-  Events.Add(FEventhitNormal_changed);
+  FEventHitNormal_changed := TVRMLEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
+  Events.Add(FEventHitNormal_changed);
 
-  FEventhitPoint_changed := TVRMLEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
-  Events.Add(FEventhitPoint_changed);
+  FEventHitPoint_changed := TVRMLEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
+  Events.Add(FEventHitPoint_changed);
 
-  FEventhitTexCoord_changed := TVRMLEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
-  Events.Add(FEventhitTexCoord_changed);
+  FEventHitTexCoord_changed := TVRMLEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
+  Events.Add(FEventHitTexCoord_changed);
 
   DefaultContainerField := 'children';
 end;

@@ -219,20 +219,20 @@ begin
 
   FCurrentKeyRange := -1;
 
-  FEventnext := TVRMLEvent.Create(Self, 'next', TSFBool, true);
-  Events.Add(FEventnext);
+  FEventNext := TVRMLEvent.Create(Self, 'next', TSFBool, true);
+  Events.Add(FEventNext);
   EventNext.OnReceive.Add(@EventNextReceive);
 
-  FEventprevious := TVRMLEvent.Create(Self, 'previous', TSFBool, true);
-  Events.Add(FEventprevious);
+  FEventPrevious := TVRMLEvent.Create(Self, 'previous', TSFBool, true);
+  Events.Add(FEventPrevious);
   EventPrevious.OnReceive.Add(@EventPreviousReceive);
 
-  FEventset_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
-  Events.Add(FEventset_fraction);
+  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  Events.Add(FEventSet_fraction);
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 
-  FFdkey := TMFFloat.Create(Self, 'key', []);
-  Fields.Add(FFdkey);
+  FFdKey := TMFFloat.Create(Self, 'key', []);
+  Fields.Add(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -342,18 +342,18 @@ procedure TNodeBooleanFilter.CreateNode;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
-  Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.Add(@EventSet_BooleanReceive);
+  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  Events.Add(FEventSet_boolean);
+  FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FEventinputFalse := TVRMLEvent.Create(Self, 'inputFalse', TSFBool, false);
-  Events.Add(FEventinputFalse);
+  FEventInputFalse := TVRMLEvent.Create(Self, 'inputFalse', TSFBool, false);
+  Events.Add(FEventInputFalse);
 
-  FEventinputNegate := TVRMLEvent.Create(Self, 'inputNegate', TSFBool, false);
-  Events.Add(FEventinputNegate);
+  FEventInputNegate := TVRMLEvent.Create(Self, 'inputNegate', TSFBool, false);
+  Events.Add(FEventInputNegate);
 
-  FEventinputTrue := TVRMLEvent.Create(Self, 'inputTrue', TSFBool, false);
-  Events.Add(FEventinputTrue);
+  FEventInputTrue := TVRMLEvent.Create(Self, 'inputTrue', TSFBool, false);
+  Events.Add(FEventInputTrue);
 
   DefaultContainerField := 'children';
 end;
@@ -385,11 +385,11 @@ procedure TNodeBooleanSequencer.CreateNode;
 begin
   inherited;
 
-  FFdkeyValue := TMFBool.Create(Self, 'keyValue', []);
-  Fields.Add(FFdkeyValue);
+  FFdKeyValue := TMFBool.Create(Self, 'keyValue', []);
+  Fields.Add(FFdKeyValue);
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFBool, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFBool, false);
+  Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -418,12 +418,12 @@ procedure TNodeBooleanToggle.CreateNode;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
-  Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.Add(@EventSet_BooleanReceive);
+  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  Events.Add(FEventSet_boolean);
+  FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FFdtoggle := TSFBool.Create(Self, 'toggle', false);
-  Fields.Add(FFdtoggle);
+  FFdToggle := TSFBool.Create(Self, 'toggle', false);
+  Fields.Add(FFdToggle);
 
   DefaultContainerField := 'children';
 end;
@@ -453,12 +453,12 @@ procedure TNodeBooleanTrigger.CreateNode;
 begin
   inherited;
 
-  FEventset_triggerTime := TVRMLEvent.Create(Self, 'set_triggerTime', TSFTime, true);
-  Events.Add(FEventset_triggerTime);
-  FEventset_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
+  FEventSet_triggerTime := TVRMLEvent.Create(Self, 'set_triggerTime', TSFTime, true);
+  Events.Add(FEventSet_triggerTime);
+  FEventSet_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
 
-  FEventtriggerTrue := TVRMLEvent.Create(Self, 'triggerTrue', TSFBool, false);
-  Events.Add(FEventtriggerTrue);
+  FEventTriggerTrue := TVRMLEvent.Create(Self, 'triggerTrue', TSFBool, false);
+  Events.Add(FEventTriggerTrue);
 
   DefaultContainerField := 'children';
 end;
@@ -484,12 +484,12 @@ procedure TNodeIntegerSequencer.CreateNode;
 begin
   inherited;
 
-  FFdkeyValue := TMFInt32.Create(Self, 'keyValue', []);
-  Fields.Add(FFdkeyValue);
+  FFdKeyValue := TMFInt32.Create(Self, 'keyValue', []);
+  Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventvalue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFInt32, false);
-  Events.Add(FEventvalue_changed);
+  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFInt32, false);
+  Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -518,18 +518,18 @@ procedure TNodeIntegerTrigger.CreateNode;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
-  Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.Add(@EventSet_booleanReceive);
+  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  Events.Add(FEventSet_boolean);
+  FEventSet_boolean.OnReceive.Add(@EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
-  FFdintegerKey := TSFInt32.Create(Self, 'integerKey', 0);
-  Fields.Add(FFdintegerKey);
+  FFdIntegerKey := TSFInt32.Create(Self, 'integerKey', 0);
+  Fields.Add(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventtriggerValue := TVRMLEvent.Create(Self, 'triggerValue', TSFInt32, false);
-  Events.Add(FEventtriggerValue);
+  FEventTriggerValue := TVRMLEvent.Create(Self, 'triggerValue', TSFInt32, false);
+  Events.Add(FEventTriggerValue);
 
   DefaultContainerField := 'children';
 end;
@@ -555,12 +555,12 @@ procedure TNodeTimeTrigger.CreateNode;
 begin
   inherited;
 
-  FEventset_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
-  Events.Add(FEventset_boolean);
-  FEventset_boolean.OnReceive.Add(@EventSet_BooleanReceive);
+  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  Events.Add(FEventSet_boolean);
+  FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FEventtriggerTime := TVRMLEvent.Create(Self, 'triggerTime', TSFTime, false);
-  Events.Add(FEventtriggerTime);
+  FEventTriggerTime := TVRMLEvent.Create(Self, 'triggerTime', TSFTime, false);
+  Events.Add(FEventTriggerTime);
 
   DefaultContainerField := 'children';
 end;

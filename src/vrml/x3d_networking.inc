@@ -247,14 +247,14 @@ procedure TNodeAnchor.CreateNode;
 begin
   inherited;
 
-  FFddescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFddescription);
+  FFdDescription := TSFString.Create(Self, 'description', '');
+  Fields.Add(FFdDescription);
 
-  FFdparameter := TMFString.Create(Self, 'parameter', []);
-  Fields.Add(FFdparameter);
+  FFdParameter := TMFString.Create(Self, 'parameter', []);
+  Fields.Add(FFdParameter);
 
-  FFdurl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdurl);
+  FFdUrl := TMFString.Create(Self, 'url', []);
+  Fields.Add(FFdUrl);
   { X3D specification comment: [url or urn] }
 
   DefaultContainerField := 'children';
@@ -372,23 +372,23 @@ procedure TNodeInline.CreateNode;
 begin
   inherited;
 
-  FFdload := TSFBool.Create(Self, 'load', true);
-   Fdload.OnReceive.Add(@EventLoadReceive);
-  Fields.Add(FFdload);
+  FFdLoad := TSFBool.Create(Self, 'load', true);
+   FdLoad.OnReceive.Add(@EventLoadReceive);
+  Fields.Add(FFdLoad);
 
-  FFdurl := TMFString.Create(Self, 'url', []);
-   Fdurl.OnReceive.Add(@EventUrlReceive);
-  Fields.Add(FFdurl);
+  FFdUrl := TMFString.Create(Self, 'url', []);
+   FdUrl.OnReceive.Add(@EventUrlReceive);
+  Fields.Add(FFdUrl);
   { X3D specification comment: [url or urn] }
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-   FdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+   FdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-   FdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+   FdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -613,8 +613,8 @@ procedure TNodeInlineLoadControl.CreateNode;
 begin
   inherited;
 
-  FEventchildren := TVRMLEvent.Create(Self, 'children', TMFNode, false);
-  Events.Add(FEventchildren);
+  FEventChildren := TVRMLEvent.Create(Self, 'children', TMFNode, false);
+  Events.Add(FEventChildren);
 
   FParsingAllowedChildren := false;
   FAllowedChildren := true;
@@ -658,20 +658,20 @@ procedure TNodeLoadSensor.CreateNode;
 begin
   inherited;
 
-  FFdtimeOut := TSFTime.Create(Self, 'timeOut', 0);
-  Fields.Add(FFdtimeOut);
+  FFdTimeOut := TSFTime.Create(Self, 'timeOut', 0);
+  Fields.Add(FFdTimeOut);
 
-  FFdwatchList := TMFNode.Create(Self, 'watchList', INodeX3DUrlObject);
-  Fields.Add(FFdwatchList);
+  FFdWatchList := TMFNode.Create(Self, 'watchList', INodeX3DUrlObject);
+  Fields.Add(FFdWatchList);
 
-  FEventisLoaded := TVRMLEvent.Create(Self, 'isLoaded', TSFBool, false);
-  Events.Add(FEventisLoaded);
+  FEventIsLoaded := TVRMLEvent.Create(Self, 'isLoaded', TSFBool, false);
+  Events.Add(FEventIsLoaded);
 
-  FEventloadTime := TVRMLEvent.Create(Self, 'loadTime', TSFTime, false);
-  Events.Add(FEventloadTime);
+  FEventLoadTime := TVRMLEvent.Create(Self, 'loadTime', TSFTime, false);
+  Events.Add(FEventLoadTime);
 
-  FEventprogress := TVRMLEvent.Create(Self, 'progress', TSFFloat, false);
-  Events.Add(FEventprogress);
+  FEventProgress := TVRMLEvent.Create(Self, 'progress', TSFFloat, false);
+  Events.Add(FEventProgress);
 
   DefaultContainerField := 'children';
 end;

@@ -641,25 +641,25 @@ procedure TNodeX3DNBodyCollidableNode.CreateNode;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
-  FFdrotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdrotation);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdRotation);
   { X3D specification comment: [0,1] }
 
-  FFdtranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdtranslation);
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  Fields.Add(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
@@ -667,17 +667,17 @@ procedure TNodeX3DNBodyCollisionSpaceNode.CreateNode;
 begin
   inherited;
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
-  FFdbboxCenter.Exposed := false;
-  Fields.Add(FFdbboxCenter);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter.Exposed := false;
+  Fields.Add(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
-  Fields.Add(FFdbboxSize);
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize.Exposed := false;
+  Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
@@ -685,14 +685,14 @@ procedure TNodeX3DRigidJointNode.CreateNode;
 begin
   inherited;
 
-  FFdbody1 := TSFNode.Create(Self, 'body1', [TNodeRigidBody]);
-  Fields.Add(FFdbody1);
+  FFdBody1 := TSFNode.Create(Self, 'body1', [TNodeRigidBody]);
+  Fields.Add(FFdBody1);
 
-  FFdbody2 := TSFNode.Create(Self, 'body2', [TNodeRigidBody]);
-  Fields.Add(FFdbody2);
+  FFdBody2 := TSFNode.Create(Self, 'body2', [TNodeRigidBody]);
+  Fields.Add(FFdBody2);
 
-  FFdforceOutput := TMFString.Create(Self, 'forceOutput', ['NONE']);
-  Fields.Add(FFdforceOutput);
+  FFdForceOutput := TMFString.Create(Self, 'forceOutput', ['NONE']);
+  Fields.Add(FFdForceOutput);
   { X3D specification comment: ["ALL","NONE",...] }
 
   DefaultContainerField := 'joints';
@@ -702,14 +702,14 @@ procedure TNodeBallJoint.CreateNode;
 begin
   inherited;
 
-  FFdanchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
-  Fields.Add(FFdanchorPoint);
+  FFdAnchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAnchorPoint);
 
-  FEventbody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody1AnchorPoint);
+  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody1AnchorPoint);
 
-  FEventbody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody2AnchorPoint);
+  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody2AnchorPoint);
 end;
 
 class function TNodeBallJoint.ClassNodeTypeName: string;
@@ -727,9 +727,9 @@ procedure TNodeCollidableOffset.CreateNode;
 begin
   inherited;
 
-  FFdcollidable := TSFNode.Create(Self, 'collidable', [TNodeX3DNBodyCollidableNode]);
-  FFdcollidable.Exposed := false;
-  Fields.Add(FFdcollidable);
+  FFdCollidable := TSFNode.Create(Self, 'collidable', [TNodeX3DNBodyCollidableNode]);
+  FFdCollidable.Exposed := false;
+  Fields.Add(FFdCollidable);
 end;
 
 class function TNodeCollidableOffset.ClassNodeTypeName: string;
@@ -747,9 +747,9 @@ procedure TNodeCollidableShape.CreateNode;
 begin
   inherited;
 
-  FFdshape := TSFNode.Create(Self, 'shape', [TNodeShape]);
-  FFdshape.Exposed := false;
-  Fields.Add(FFdshape);
+  FFdShape := TSFNode.Create(Self, 'shape', [TNodeShape]);
+  FFdShape.Exposed := false;
+  Fields.Add(FFdShape);
 end;
 
 class function TNodeCollidableShape.ClassNodeTypeName: string;
@@ -767,42 +767,42 @@ procedure TNodeCollisionCollection.CreateNode;
 begin
   inherited;
 
-  FFdappliedParameters := TMFString.Create(Self, 'appliedParameters', ['BOUNCE']);
-  Fields.Add(FFdappliedParameters);
+  FFdAppliedParameters := TMFString.Create(Self, 'appliedParameters', ['BOUNCE']);
+  Fields.Add(FFdAppliedParameters);
   { X3D specification comment: [] }
 
-  FFdbounce := TSFFloat.Create(Self, 'bounce', 0);
-  Fields.Add(FFdbounce);
+  FFdBounce := TSFFloat.Create(Self, 'bounce', 0);
+  Fields.Add(FFdBounce);
   { X3D specification comment: [0,1] }
 
-  FFdcollidables := TMFNode.Create(Self, 'collidables', [TNodeX3DNBodyCollisionSpaceNode, TNodeX3DNBodyCollidableNode]);
-  Fields.Add(FFdcollidables);
+  FFdCollidables := TMFNode.Create(Self, 'collidables', [TNodeX3DNBodyCollisionSpaceNode, TNodeX3DNBodyCollidableNode]);
+  Fields.Add(FFdCollidables);
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
-  FFdfrictionCoefficients := TSFVec2f.Create(Self, 'frictionCoefficients', Vector2Single(0, 0));
-  Fields.Add(FFdfrictionCoefficients);
+  FFdFrictionCoefficients := TSFVec2f.Create(Self, 'frictionCoefficients', Vector2Single(0, 0));
+  Fields.Add(FFdFrictionCoefficients);
   { X3D specification comment: [0,Inf) }
 
-  FFdminBounceSpeed := TSFFloat.Create(Self, 'minBounceSpeed', 0.1);
-  Fields.Add(FFdminBounceSpeed);
+  FFdMinBounceSpeed := TSFFloat.Create(Self, 'minBounceSpeed', 0.1);
+  Fields.Add(FFdMinBounceSpeed);
   { X3D specification comment: [0,Inf) }
 
-  FFdslipFactors := TSFVec2f.Create(Self, 'slipFactors', Vector2Single(0, 0));
-  Fields.Add(FFdslipFactors);
+  FFdSlipFactors := TSFVec2f.Create(Self, 'slipFactors', Vector2Single(0, 0));
+  Fields.Add(FFdSlipFactors);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdsoftnessConstantForceMix := TSFFloat.Create(Self, 'softnessConstantForceMix', 0.0001);
-  Fields.Add(FFdsoftnessConstantForceMix);
+  FFdSoftnessConstantForceMix := TSFFloat.Create(Self, 'softnessConstantForceMix', 0.0001);
+  Fields.Add(FFdSoftnessConstantForceMix);
   { X3D specification comment: [0,1] }
 
-  FFdsoftnessErrorCorrection := TSFFloat.Create(Self, 'softnessErrorCorrection', 0.8);
-  Fields.Add(FFdsoftnessErrorCorrection);
+  FFdSoftnessErrorCorrection := TSFFloat.Create(Self, 'softnessErrorCorrection', 0.8);
+  Fields.Add(FFdSoftnessErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdsurfaceSpeed := TSFVec2f.Create(Self, 'surfaceSpeed', Vector2Single(0, 0));
-  Fields.Add(FFdsurfaceSpeed);
+  FFdSurfaceSpeed := TSFVec2f.Create(Self, 'surfaceSpeed', Vector2Single(0, 0));
+  Fields.Add(FFdSurfaceSpeed);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -821,14 +821,14 @@ procedure TNodeCollisionSensor.CreateNode;
 begin
   inherited;
 
-  FFdcollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
-  Fields.Add(FFdcollider);
+  FFdCollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
+  Fields.Add(FFdCollider);
 
-  FEventintersections := TVRMLEvent.Create(Self, 'intersections', TMFNode, false);
-  Events.Add(FEventintersections);
+  FEventIntersections := TVRMLEvent.Create(Self, 'intersections', TMFNode, false);
+  Events.Add(FEventIntersections);
 
-  FEventcontacts := TVRMLEvent.Create(Self, 'contacts', TMFNode, false);
-  Events.Add(FEventcontacts);
+  FEventContacts := TVRMLEvent.Create(Self, 'contacts', TMFNode, false);
+  Events.Add(FEventContacts);
 end;
 
 class function TNodeCollisionSensor.ClassNodeTypeName: string;
@@ -846,11 +846,11 @@ procedure TNodeCollisionSpace.CreateNode;
 begin
   inherited;
 
-  FFdcollidables := TMFNode.Create(Self, 'collidables', [TNodeX3DNBodyCollisionSpaceNode, TNodeX3DNBodyCollidableNode]);
-  Fields.Add(FFdcollidables);
+  FFdCollidables := TMFNode.Create(Self, 'collidables', [TNodeX3DNBodyCollisionSpaceNode, TNodeX3DNBodyCollidableNode]);
+  Fields.Add(FFdCollidables);
 
-  FFduseGeometry := TSFBool.Create(Self, 'useGeometry', false);
-  Fields.Add(FFduseGeometry);
+  FFdUseGeometry := TSFBool.Create(Self, 'useGeometry', false);
+  Fields.Add(FFdUseGeometry);
 
   DefaultContainerField := 'children';
 end;
@@ -870,64 +870,64 @@ procedure TNodeContact.CreateNode;
 begin
   inherited;
 
-  FFdappliedParameters := TMFString.Create(Self, 'appliedParameters', ['BOUNCE']);
-  Fields.Add(FFdappliedParameters);
+  FFdAppliedParameters := TMFString.Create(Self, 'appliedParameters', ['BOUNCE']);
+  Fields.Add(FFdAppliedParameters);
   { X3D specification comment: [] }
 
-  FFdbody1 := TSFNode.Create(Self, 'body1', [TNodeRigidBody]);
-  Fields.Add(FFdbody1);
+  FFdBody1 := TSFNode.Create(Self, 'body1', [TNodeRigidBody]);
+  Fields.Add(FFdBody1);
 
-  FFdbody2 := TSFNode.Create(Self, 'body2', [TNodeRigidBody]);
-  Fields.Add(FFdbody2);
+  FFdBody2 := TSFNode.Create(Self, 'body2', [TNodeRigidBody]);
+  Fields.Add(FFdBody2);
 
-  FFdbounce := TSFFloat.Create(Self, 'bounce', 0);
-  Fields.Add(FFdbounce);
+  FFdBounce := TSFFloat.Create(Self, 'bounce', 0);
+  Fields.Add(FFdBounce);
   { X3D specification comment: [0,1] }
 
-  FFdcontactNormal := TSFVec3f.Create(Self, 'contactNormal', Vector3Single(0, 1, 0));
-  Fields.Add(FFdcontactNormal);
+  FFdContactNormal := TSFVec3f.Create(Self, 'contactNormal', Vector3Single(0, 1, 0));
+  Fields.Add(FFdContactNormal);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFddepth := TSFFloat.Create(Self, 'depth', 0);
-  Fields.Add(FFddepth);
+  FFdDepth := TSFFloat.Create(Self, 'depth', 0);
+  Fields.Add(FFdDepth);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdfrictionCoefficients := TSFVec2f.Create(Self, 'frictionCoefficients', Vector2Single(0, 0));
-  Fields.Add(FFdfrictionCoefficients);
+  FFdFrictionCoefficients := TSFVec2f.Create(Self, 'frictionCoefficients', Vector2Single(0, 0));
+  Fields.Add(FFdFrictionCoefficients);
   { X3D specification comment: [0,Inf) }
 
-  FFdfrictionDirection := TSFVec3f.Create(Self, 'frictionDirection', Vector3Single(0, 1, 0));
-  Fields.Add(FFdfrictionDirection);
+  FFdFrictionDirection := TSFVec3f.Create(Self, 'frictionDirection', Vector3Single(0, 1, 0));
+  Fields.Add(FFdFrictionDirection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdgeometry1 := TSFNode.Create(Self, 'geometry1', [TNodeX3DNBodyCollidableNode]);
-  Fields.Add(FFdgeometry1);
+  FFdGeometry1 := TSFNode.Create(Self, 'geometry1', [TNodeX3DNBodyCollidableNode]);
+  Fields.Add(FFdGeometry1);
 
-  FFdgeometry2 := TSFNode.Create(Self, 'geometry2', [TNodeX3DNBodyCollidableNode]);
-  Fields.Add(FFdgeometry2);
+  FFdGeometry2 := TSFNode.Create(Self, 'geometry2', [TNodeX3DNBodyCollidableNode]);
+  Fields.Add(FFdGeometry2);
 
-  FFdminbounceSpeed := TSFFloat.Create(Self, 'minbounceSpeed', 0);
-  Fields.Add(FFdminbounceSpeed);
+  FFdMinbounceSpeed := TSFFloat.Create(Self, 'minbounceSpeed', 0);
+  Fields.Add(FFdMinbounceSpeed);
   { X3D specification comment: [0,Inf) }
 
-  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
-  Fields.Add(FFdposition);
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
+  Fields.Add(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdslipCoefficients := TSFVec2f.Create(Self, 'slipCoefficients', Vector2Single(0, 0));
-  Fields.Add(FFdslipCoefficients);
+  FFdSlipCoefficients := TSFVec2f.Create(Self, 'slipCoefficients', Vector2Single(0, 0));
+  Fields.Add(FFdSlipCoefficients);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdsoftnessConstantForceMix := TSFFloat.Create(Self, 'softnessConstantForceMix', 0.0001);
-  Fields.Add(FFdsoftnessConstantForceMix);
+  FFdSoftnessConstantForceMix := TSFFloat.Create(Self, 'softnessConstantForceMix', 0.0001);
+  Fields.Add(FFdSoftnessConstantForceMix);
   { X3D specification comment: [0,1] }
 
-  FFdsoftnessErrorCorrection := TSFFloat.Create(Self, 'softnessErrorCorrection', 0.8);
-  Fields.Add(FFdsoftnessErrorCorrection);
+  FFdSoftnessErrorCorrection := TSFFloat.Create(Self, 'softnessErrorCorrection', 0.8);
+  Fields.Add(FFdSoftnessErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdsurfaceSpeed := TSFVec2f.Create(Self, 'surfaceSpeed', Vector2Single(0, 0));
-  Fields.Add(FFdsurfaceSpeed);
+  FFdSurfaceSpeed := TSFVec2f.Create(Self, 'surfaceSpeed', Vector2Single(0, 0));
+  Fields.Add(FFdSurfaceSpeed);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -948,82 +948,82 @@ procedure TNodeDoubleAxisHingeJoint.CreateNode;
 begin
   inherited;
 
-  FFdanchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
-  Fields.Add(FFdanchorPoint);
+  FFdAnchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAnchorPoint);
 
-  FFdaxis1 := TSFVec3f.Create(Self, 'axis1', Vector3Single(0, 0, 0));
-  Fields.Add(FFdaxis1);
+  FFdAxis1 := TSFVec3f.Create(Self, 'axis1', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAxis1);
 
-  FFdaxis2 := TSFVec3f.Create(Self, 'axis2', Vector3Single(0, 0, 0));
-  Fields.Add(FFdaxis2);
+  FFdAxis2 := TSFVec3f.Create(Self, 'axis2', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAxis2);
 
-  FFddesiredAngularVelocity1 := TSFFloat.Create(Self, 'desiredAngularVelocity1', 0);
-  Fields.Add(FFddesiredAngularVelocity1);
+  FFdDesiredAngularVelocity1 := TSFFloat.Create(Self, 'desiredAngularVelocity1', 0);
+  Fields.Add(FFdDesiredAngularVelocity1);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFddesiredAngularVelocity2 := TSFFloat.Create(Self, 'desiredAngularVelocity2', 0);
-  Fields.Add(FFddesiredAngularVelocity2);
+  FFdDesiredAngularVelocity2 := TSFFloat.Create(Self, 'desiredAngularVelocity2', 0);
+  Fields.Add(FFdDesiredAngularVelocity2);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdmaxAngle1 := TSFFloat.Create(Self, 'maxAngle1', Pi);
-  Fields.Add(FFdmaxAngle1);
+  FFdMaxAngle1 := TSFFloat.Create(Self, 'maxAngle1', Pi);
+  Fields.Add(FFdMaxAngle1);
   { X3D specification comment: [-Pi,Pi] }
 
-  FFdmaxTorque1 := TSFFloat.Create(Self, 'maxTorque1', 0);
-  Fields.Add(FFdmaxTorque1);
+  FFdMaxTorque1 := TSFFloat.Create(Self, 'maxTorque1', 0);
+  Fields.Add(FFdMaxTorque1);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdmaxTorque2 := TSFFloat.Create(Self, 'maxTorque2', 0);
-  Fields.Add(FFdmaxTorque2);
+  FFdMaxTorque2 := TSFFloat.Create(Self, 'maxTorque2', 0);
+  Fields.Add(FFdMaxTorque2);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdminAngle1 := TSFFloat.Create(Self, 'minAngle1', -Pi);
-  Fields.Add(FFdminAngle1);
+  FFdMinAngle1 := TSFFloat.Create(Self, 'minAngle1', -Pi);
+  Fields.Add(FFdMinAngle1);
   { X3D specification comment: [-Pi,Pi] }
 
-  FFdstopBounce1 := TSFFloat.Create(Self, 'stopBounce1', 0);
-  Fields.Add(FFdstopBounce1);
+  FFdStopBounce1 := TSFFloat.Create(Self, 'stopBounce1', 0);
+  Fields.Add(FFdStopBounce1);
   { X3D specification comment: [0,1] }
 
-  FFdstopConstantForceMix1 := TSFFloat.Create(Self, 'stopConstantForceMix1', 0.001);
-  Fields.Add(FFdstopConstantForceMix1);
+  FFdStopConstantForceMix1 := TSFFloat.Create(Self, 'stopConstantForceMix1', 0.001);
+  Fields.Add(FFdStopConstantForceMix1);
   { X3D specification comment: [0,Inf) }
 
-  FFdstopErrorCorrection1 := TSFFloat.Create(Self, 'stopErrorCorrection1', 0.8);
-  Fields.Add(FFdstopErrorCorrection1);
+  FFdStopErrorCorrection1 := TSFFloat.Create(Self, 'stopErrorCorrection1', 0.8);
+  Fields.Add(FFdStopErrorCorrection1);
   { X3D specification comment: [0,1] }
 
-  FFdsuspensionErrorCorrection := TSFFloat.Create(Self, 'suspensionErrorCorrection', 0.8);
-  Fields.Add(FFdsuspensionErrorCorrection);
+  FFdSuspensionErrorCorrection := TSFFloat.Create(Self, 'suspensionErrorCorrection', 0.8);
+  Fields.Add(FFdSuspensionErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdsuspensionForce := TSFFloat.Create(Self, 'suspensionForce', 0);
-  Fields.Add(FFdsuspensionForce);
+  FFdSuspensionForce := TSFFloat.Create(Self, 'suspensionForce', 0);
+  Fields.Add(FFdSuspensionForce);
   { X3D specification comment: [0,Inf) }
 
-  FEventbody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody1AnchorPoint);
+  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody1AnchorPoint);
 
-  FEventbody1Axis := TVRMLEvent.Create(Self, 'body1Axis', TSFVec3f, false);
-  Events.Add(FEventbody1Axis);
+  FEventBody1Axis := TVRMLEvent.Create(Self, 'body1Axis', TSFVec3f, false);
+  Events.Add(FEventBody1Axis);
 
-  FEventbody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody2AnchorPoint);
+  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody2AnchorPoint);
 
-  FEventbody2Axis := TVRMLEvent.Create(Self, 'body2Axis', TSFVec3f, false);
-  Events.Add(FEventbody2Axis);
+  FEventBody2Axis := TVRMLEvent.Create(Self, 'body2Axis', TSFVec3f, false);
+  Events.Add(FEventBody2Axis);
 
-  FEventhinge1Angle := TVRMLEvent.Create(Self, 'hinge1Angle', TSFFloat, false);
-  Events.Add(FEventhinge1Angle);
+  FEventHinge1Angle := TVRMLEvent.Create(Self, 'hinge1Angle', TSFFloat, false);
+  Events.Add(FEventHinge1Angle);
 
-  FEventhinge1AngleRate := TVRMLEvent.Create(Self, 'hinge1AngleRate', TSFFloat, false);
-  Events.Add(FEventhinge1AngleRate);
+  FEventHinge1AngleRate := TVRMLEvent.Create(Self, 'hinge1AngleRate', TSFFloat, false);
+  Events.Add(FEventHinge1AngleRate);
 
-  FEventhinge2Angle := TVRMLEvent.Create(Self, 'hinge2Angle', TSFFloat, false);
-  Events.Add(FEventhinge2Angle);
+  FEventHinge2Angle := TVRMLEvent.Create(Self, 'hinge2Angle', TSFFloat, false);
+  Events.Add(FEventHinge2Angle);
 
-  FEventhinge2AngleRate := TVRMLEvent.Create(Self, 'hinge2AngleRate', TSFFloat, false);
-  Events.Add(FEventhinge2AngleRate);
+  FEventHinge2AngleRate := TVRMLEvent.Create(Self, 'hinge2AngleRate', TSFFloat, false);
+  Events.Add(FEventHinge2AngleRate);
 end;
 
 class function TNodeDoubleAxisHingeJoint.ClassNodeTypeName: string;
@@ -1041,88 +1041,88 @@ procedure TNodeMotorJoint.CreateNode;
 begin
   inherited;
 
-  FFdaxis1Angle := TSFFloat.Create(Self, 'axis1Angle', 0);
-  Fields.Add(FFdaxis1Angle);
+  FFdAxis1Angle := TSFFloat.Create(Self, 'axis1Angle', 0);
+  Fields.Add(FFdAxis1Angle);
   { X3D specification comment: [-Pi,Pi] }
 
-  FFdaxis1Torque := TSFFloat.Create(Self, 'axis1Torque', 0);
-  Fields.Add(FFdaxis1Torque);
+  FFdAxis1Torque := TSFFloat.Create(Self, 'axis1Torque', 0);
+  Fields.Add(FFdAxis1Torque);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdaxis2Angle := TSFFloat.Create(Self, 'axis2Angle', 0);
-  Fields.Add(FFdaxis2Angle);
+  FFdAxis2Angle := TSFFloat.Create(Self, 'axis2Angle', 0);
+  Fields.Add(FFdAxis2Angle);
   { X3D specification comment: [-Pi,Pi] }
 
-  FFdaxis2Torque := TSFFloat.Create(Self, 'axis2Torque', 0);
-  Fields.Add(FFdaxis2Torque);
+  FFdAxis2Torque := TSFFloat.Create(Self, 'axis2Torque', 0);
+  Fields.Add(FFdAxis2Torque);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdaxis3Angle := TSFFloat.Create(Self, 'axis3Angle', 0);
-  Fields.Add(FFdaxis3Angle);
+  FFdAxis3Angle := TSFFloat.Create(Self, 'axis3Angle', 0);
+  Fields.Add(FFdAxis3Angle);
   { X3D specification comment: [-Pi,Pi] }
 
-  FFdaxis3Torque := TSFFloat.Create(Self, 'axis3Torque', 0);
-  Fields.Add(FFdaxis3Torque);
+  FFdAxis3Torque := TSFFloat.Create(Self, 'axis3Torque', 0);
+  Fields.Add(FFdAxis3Torque);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdenabledAxes := TSFInt32.Create(Self, 'enabledAxes', 1);
-  Fields.Add(FFdenabledAxes);
+  FFdEnabledAxes := TSFInt32.Create(Self, 'enabledAxes', 1);
+  Fields.Add(FFdEnabledAxes);
   { X3D specification comment: [0,3] }
 
-  FFdmotor1Axis := TSFVec3f.Create(Self, 'motor1Axis', Vector3Single(0, 0, 0));
-  Fields.Add(FFdmotor1Axis);
+  FFdMotor1Axis := TSFVec3f.Create(Self, 'motor1Axis', Vector3Single(0, 0, 0));
+  Fields.Add(FFdMotor1Axis);
 
-  FFdmotor2Axis := TSFVec3f.Create(Self, 'motor2Axis', Vector3Single(0, 0, 0));
-  Fields.Add(FFdmotor2Axis);
+  FFdMotor2Axis := TSFVec3f.Create(Self, 'motor2Axis', Vector3Single(0, 0, 0));
+  Fields.Add(FFdMotor2Axis);
 
-  FFdmotor3Axis := TSFVec3f.Create(Self, 'motor3Axis', Vector3Single(0, 0, 0));
-  Fields.Add(FFdmotor3Axis);
+  FFdMotor3Axis := TSFVec3f.Create(Self, 'motor3Axis', Vector3Single(0, 0, 0));
+  Fields.Add(FFdMotor3Axis);
 
-  FFdstop1Bounce := TSFFloat.Create(Self, 'stop1Bounce', 0);
-  Fields.Add(FFdstop1Bounce);
+  FFdStop1Bounce := TSFFloat.Create(Self, 'stop1Bounce', 0);
+  Fields.Add(FFdStop1Bounce);
   { X3D specification comment: [0,1] }
 
-  FFdstop1ErrorCorrection := TSFFloat.Create(Self, 'stop1ErrorCorrection', 0.8);
-  Fields.Add(FFdstop1ErrorCorrection);
+  FFdStop1ErrorCorrection := TSFFloat.Create(Self, 'stop1ErrorCorrection', 0.8);
+  Fields.Add(FFdStop1ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdstop2Bounce := TSFFloat.Create(Self, 'stop2Bounce', 0);
-  Fields.Add(FFdstop2Bounce);
+  FFdStop2Bounce := TSFFloat.Create(Self, 'stop2Bounce', 0);
+  Fields.Add(FFdStop2Bounce);
   { X3D specification comment: [0,1] }
 
-  FFdstop2ErrorCorrection := TSFFloat.Create(Self, 'stop2ErrorCorrection', 0.8);
-  Fields.Add(FFdstop2ErrorCorrection);
+  FFdStop2ErrorCorrection := TSFFloat.Create(Self, 'stop2ErrorCorrection', 0.8);
+  Fields.Add(FFdStop2ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdstop3Bounce := TSFFloat.Create(Self, 'stop3Bounce', 0);
-  Fields.Add(FFdstop3Bounce);
+  FFdStop3Bounce := TSFFloat.Create(Self, 'stop3Bounce', 0);
+  Fields.Add(FFdStop3Bounce);
   { X3D specification comment: [0,1] }
 
-  FFdstop3ErrorCorrection := TSFFloat.Create(Self, 'stop3ErrorCorrection', 0.8);
-  Fields.Add(FFdstop3ErrorCorrection);
+  FFdStop3ErrorCorrection := TSFFloat.Create(Self, 'stop3ErrorCorrection', 0.8);
+  Fields.Add(FFdStop3ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventmotor1Angle := TVRMLEvent.Create(Self, 'motor1Angle', TSFFloat, false);
-  Events.Add(FEventmotor1Angle);
+  FEventMotor1Angle := TVRMLEvent.Create(Self, 'motor1Angle', TSFFloat, false);
+  Events.Add(FEventMotor1Angle);
 
-  FEventmotor1AngleRate := TVRMLEvent.Create(Self, 'motor1AngleRate', TSFFloat, false);
-  Events.Add(FEventmotor1AngleRate);
+  FEventMotor1AngleRate := TVRMLEvent.Create(Self, 'motor1AngleRate', TSFFloat, false);
+  Events.Add(FEventMotor1AngleRate);
 
-  FEventmotor2Angle := TVRMLEvent.Create(Self, 'motor2Angle', TSFFloat, false);
-  Events.Add(FEventmotor2Angle);
+  FEventMotor2Angle := TVRMLEvent.Create(Self, 'motor2Angle', TSFFloat, false);
+  Events.Add(FEventMotor2Angle);
 
-  FEventmotor2AngleRate := TVRMLEvent.Create(Self, 'motor2AngleRate', TSFFloat, false);
-  Events.Add(FEventmotor2AngleRate);
+  FEventMotor2AngleRate := TVRMLEvent.Create(Self, 'motor2AngleRate', TSFFloat, false);
+  Events.Add(FEventMotor2AngleRate);
 
-  FEventmotor3Angle := TVRMLEvent.Create(Self, 'motor3Angle', TSFFloat, false);
-  Events.Add(FEventmotor3Angle);
+  FEventMotor3Angle := TVRMLEvent.Create(Self, 'motor3Angle', TSFFloat, false);
+  Events.Add(FEventMotor3Angle);
 
-  FEventmotor3AngleRate := TVRMLEvent.Create(Self, 'motor3AngleRate', TSFFloat, false);
-  Events.Add(FEventmotor3AngleRate);
+  FEventMotor3AngleRate := TVRMLEvent.Create(Self, 'motor3AngleRate', TSFFloat, false);
+  Events.Add(FEventMotor3AngleRate);
 
-  FFdautoCalc := TSFBool.Create(Self, 'autoCalc', false);
-  FFdautoCalc.Exposed := false;
-  Fields.Add(FFdautoCalc);
+  FFdAutoCalc := TSFBool.Create(Self, 'autoCalc', false);
+  FFdAutoCalc.Exposed := false;
+  Fields.Add(FFdAutoCalc);
 end;
 
 class function TNodeMotorJoint.ClassNodeTypeName: string;
@@ -1140,86 +1140,86 @@ procedure TNodeRigidBody.CreateNode;
 begin
   inherited;
 
-  FFdangularDampingFactor := TSFFloat.Create(Self, 'angularDampingFactor', 0.001);
-  Fields.Add(FFdangularDampingFactor);
+  FFdAngularDampingFactor := TSFFloat.Create(Self, 'angularDampingFactor', 0.001);
+  Fields.Add(FFdAngularDampingFactor);
   { X3D specification comment: [0,1] }
 
-  FFdangularVelocity := TSFVec3f.Create(Self, 'angularVelocity', Vector3Single(0, 0, 0));
-  Fields.Add(FFdangularVelocity);
+  FFdAngularVelocity := TSFVec3f.Create(Self, 'angularVelocity', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAngularVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdautoDamp := TSFBool.Create(Self, 'autoDamp', false);
-  Fields.Add(FFdautoDamp);
+  FFdAutoDamp := TSFBool.Create(Self, 'autoDamp', false);
+  Fields.Add(FFdAutoDamp);
 
-  FFdautoDisable := TSFBool.Create(Self, 'autoDisable', false);
-  Fields.Add(FFdautoDisable);
+  FFdAutoDisable := TSFBool.Create(Self, 'autoDisable', false);
+  Fields.Add(FFdAutoDisable);
 
-  FFdcenterOfMass := TSFVec3f.Create(Self, 'centerOfMass', Vector3Single(0, 0, 0));
-  Fields.Add(FFdcenterOfMass);
+  FFdCenterOfMass := TSFVec3f.Create(Self, 'centerOfMass', Vector3Single(0, 0, 0));
+  Fields.Add(FFdCenterOfMass);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFddisableAngularSpeed := TSFFloat.Create(Self, 'disableAngularSpeed', 0);
-  Fields.Add(FFddisableAngularSpeed);
+  FFdDisableAngularSpeed := TSFFloat.Create(Self, 'disableAngularSpeed', 0);
+  Fields.Add(FFdDisableAngularSpeed);
   { X3D specification comment: [0,Inf) }
 
-  FFddisableLinearSpeed := TSFFloat.Create(Self, 'disableLinearSpeed', 0);
-  Fields.Add(FFddisableLinearSpeed);
+  FFdDisableLinearSpeed := TSFFloat.Create(Self, 'disableLinearSpeed', 0);
+  Fields.Add(FFdDisableLinearSpeed);
   { X3D specification comment: [0,Inf) }
 
-  FFddisableTime := TSFFloat.Create(Self, 'disableTime', 0);
-  Fields.Add(FFddisableTime);
+  FFdDisableTime := TSFFloat.Create(Self, 'disableTime', 0);
+  Fields.Add(FFdDisableTime);
   { X3D specification comment: [0,Inf) }
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
-  FFdfiniteRotationAxis := TSFVec3f.Create(Self, 'finiteRotationAxis', Vector3Single(0, 0, 0));
-  Fields.Add(FFdfiniteRotationAxis);
+  FFdFiniteRotationAxis := TSFVec3f.Create(Self, 'finiteRotationAxis', Vector3Single(0, 0, 0));
+  Fields.Add(FFdFiniteRotationAxis);
   { X3D specification comment: [-1,1] }
 
-  FFdfixed := TSFBool.Create(Self, 'fixed', false);
-  Fields.Add(FFdfixed);
+  FFdFixed := TSFBool.Create(Self, 'fixed', false);
+  Fields.Add(FFdFixed);
 
-  FFdforces := TMFVec3f.Create(Self, 'forces', []);
-  Fields.Add(FFdforces);
+  FFdForces := TMFVec3f.Create(Self, 'forces', []);
+  Fields.Add(FFdForces);
 
-  FFdgeometry := TMFNode.Create(Self, 'geometry', [TNodeX3DNBodyCollidableNode]);
-  Fields.Add(FFdgeometry);
+  FFdGeometry := TMFNode.Create(Self, 'geometry', [TNodeX3DNBodyCollidableNode]);
+  Fields.Add(FFdGeometry);
 
-  FFdinertia := TSFMatrix3f.Create(Self, 'inertia', IdentityMatrix3Single);
-  Fields.Add(FFdinertia);
+  FFdInertia := TSFMatrix3f.Create(Self, 'inertia', IdentityMatrix3Single);
+  Fields.Add(FFdInertia);
 
-  FFdlinearDampingFactor := TSFFloat.Create(Self, 'linearDampingFactor', 0.001);
-  Fields.Add(FFdlinearDampingFactor);
+  FFdLinearDampingFactor := TSFFloat.Create(Self, 'linearDampingFactor', 0.001);
+  Fields.Add(FFdLinearDampingFactor);
   { X3D specification comment: [0,1] }
 
-  FFdlinearVelocity := TSFVec3f.Create(Self, 'linearVelocity', Vector3Single(0, 0, 0));
-  Fields.Add(FFdlinearVelocity);
+  FFdLinearVelocity := TSFVec3f.Create(Self, 'linearVelocity', Vector3Single(0, 0, 0));
+  Fields.Add(FFdLinearVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdmass := TSFFloat.Create(Self, 'mass', 1);
-  Fields.Add(FFdmass);
+  FFdMass := TSFFloat.Create(Self, 'mass', 1);
+  Fields.Add(FFdMass);
   { X3D specification comment: (0,Inf) }
 
-  FFdmassDensityModel := TSFNode.Create(Self, 'massDensityModel', [TNodeSphere, TNodeBox, TNodeCone]);
-  Fields.Add(FFdmassDensityModel);
+  FFdMassDensityModel := TSFNode.Create(Self, 'massDensityModel', [TNodeSphere, TNodeBox, TNodeCone]);
+  Fields.Add(FFdMassDensityModel);
 
-  FFdorientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdorientation);
+  FFdOrientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
+  Fields.Add(FFdOrientation);
   { X3D specification comment: [0,1] }
 
-  FFdposition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
-  Fields.Add(FFdposition);
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
+  Fields.Add(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdtorques := TMFVec3f.Create(Self, 'torques', []);
-  Fields.Add(FFdtorques);
+  FFdTorques := TMFVec3f.Create(Self, 'torques', []);
+  Fields.Add(FFdTorques);
 
-  FFduseFiniteRotation := TSFBool.Create(Self, 'useFiniteRotation', false);
-  Fields.Add(FFduseFiniteRotation);
+  FFdUseFiniteRotation := TSFBool.Create(Self, 'useFiniteRotation', false);
+  Fields.Add(FFdUseFiniteRotation);
 
-  FFduseGlobalGravity := TSFBool.Create(Self, 'useGlobalGravity', true);
-  Fields.Add(FFduseGlobalGravity);
+  FFdUseGlobalGravity := TSFBool.Create(Self, 'useGlobalGravity', true);
+  Fields.Add(FFdUseGlobalGravity);
 
   DefaultContainerField := 'bodies';
 end;
@@ -1239,62 +1239,62 @@ procedure TNodeRigidBodyCollection.CreateNode;
 begin
   inherited;
 
-  FEventset_contacts := TVRMLEvent.Create(Self, 'set_contacts', TMFNode, true);
-  Events.Add(FEventset_contacts);
+  FEventSet_contacts := TVRMLEvent.Create(Self, 'set_contacts', TMFNode, true);
+  Events.Add(FEventSet_contacts);
 
-  FFdautoDisable := TSFBool.Create(Self, 'autoDisable', false);
-  Fields.Add(FFdautoDisable);
+  FFdAutoDisable := TSFBool.Create(Self, 'autoDisable', false);
+  Fields.Add(FFdAutoDisable);
 
-  FFdbodies := TMFNode.Create(Self, 'bodies', [TNodeRigidBody]);
-  Fields.Add(FFdbodies);
+  FFdBodies := TMFNode.Create(Self, 'bodies', [TNodeRigidBody]);
+  Fields.Add(FFdBodies);
 
-  FFdconstantForceMix := TSFFloat.Create(Self, 'constantForceMix', 0.0001);
-  Fields.Add(FFdconstantForceMix);
+  FFdConstantForceMix := TSFFloat.Create(Self, 'constantForceMix', 0.0001);
+  Fields.Add(FFdConstantForceMix);
   { X3D specification comment: [0,Inf) }
 
-  FFdcontactSurfaceThickness := TSFFloat.Create(Self, 'contactSurfaceThickness', 0);
-  Fields.Add(FFdcontactSurfaceThickness);
+  FFdContactSurfaceThickness := TSFFloat.Create(Self, 'contactSurfaceThickness', 0);
+  Fields.Add(FFdContactSurfaceThickness);
   { X3D specification comment: [0,Inf) }
 
-  FFddisableAngularSpeed := TSFFloat.Create(Self, 'disableAngularSpeed', 0);
-  Fields.Add(FFddisableAngularSpeed);
+  FFdDisableAngularSpeed := TSFFloat.Create(Self, 'disableAngularSpeed', 0);
+  Fields.Add(FFdDisableAngularSpeed);
   { X3D specification comment: [0,Inf) }
 
-  FFddisableLinearSpeed := TSFFloat.Create(Self, 'disableLinearSpeed', 0);
-  Fields.Add(FFddisableLinearSpeed);
+  FFdDisableLinearSpeed := TSFFloat.Create(Self, 'disableLinearSpeed', 0);
+  Fields.Add(FFdDisableLinearSpeed);
   { X3D specification comment: [0,Inf) }
 
-  FFddisableTime := TSFFloat.Create(Self, 'disableTime', 0);
-  Fields.Add(FFddisableTime);
+  FFdDisableTime := TSFFloat.Create(Self, 'disableTime', 0);
+  Fields.Add(FFdDisableTime);
   { X3D specification comment: [0,Inf) }
 
-  FFdenabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdenabled);
+  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  Fields.Add(FFdEnabled);
 
-  FFderrorCorrection := TSFFloat.Create(Self, 'errorCorrection', 0.8);
-  Fields.Add(FFderrorCorrection);
+  FFdErrorCorrection := TSFFloat.Create(Self, 'errorCorrection', 0.8);
+  Fields.Add(FFdErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdgravity := TSFVec3f.Create(Self, 'gravity', Vector3Single(0, -9.8, 0));
-  Fields.Add(FFdgravity);
+  FFdGravity := TSFVec3f.Create(Self, 'gravity', Vector3Single(0, -9.8, 0));
+  Fields.Add(FFdGravity);
 
-  FFditerations := TSFInt32.Create(Self, 'iterations', 10);
-  Fields.Add(FFditerations);
+  FFdIterations := TSFInt32.Create(Self, 'iterations', 10);
+  Fields.Add(FFdIterations);
   { X3D specification comment: [0,Inf) }
 
-  FFdjoints := TMFNode.Create(Self, 'joints', [TNodeX3DRigidJointNode]);
-  Fields.Add(FFdjoints);
+  FFdJoints := TMFNode.Create(Self, 'joints', [TNodeX3DRigidJointNode]);
+  Fields.Add(FFdJoints);
 
-  FFdmaxCorrectionSpeed := TSFFloat.Create(Self, 'maxCorrectionSpeed', -1);
-  Fields.Add(FFdmaxCorrectionSpeed);
+  FFdMaxCorrectionSpeed := TSFFloat.Create(Self, 'maxCorrectionSpeed', -1);
+  Fields.Add(FFdMaxCorrectionSpeed);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdpreferAccuracy := TSFBool.Create(Self, 'preferAccuracy', false);
-  Fields.Add(FFdpreferAccuracy);
+  FFdPreferAccuracy := TSFBool.Create(Self, 'preferAccuracy', false);
+  Fields.Add(FFdPreferAccuracy);
 
-  FFdcollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
-  FFdcollider.Exposed := false;
-  Fields.Add(FFdcollider);
+  FFdCollider := TSFNode.Create(Self, 'collider', [TNodeCollisionCollection]);
+  FFdCollider.Exposed := false;
+  Fields.Add(FFdCollider);
 end;
 
 class function TNodeRigidBodyCollection.ClassNodeTypeName: string;
@@ -1312,37 +1312,37 @@ procedure TNodeSingleAxisHingeJoint.CreateNode;
 begin
   inherited;
 
-  FFdanchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
-  Fields.Add(FFdanchorPoint);
+  FFdAnchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAnchorPoint);
 
-  FFdaxis := TSFVec3f.Create(Self, 'axis', Vector3Single(0, 0, 0));
-  Fields.Add(FFdaxis);
+  FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAxis);
 
-  FFdmaxAngle := TSFFloat.Create(Self, 'maxAngle', Pi);
-  Fields.Add(FFdmaxAngle);
+  FFdMaxAngle := TSFFloat.Create(Self, 'maxAngle', Pi);
+  Fields.Add(FFdMaxAngle);
 
-  FFdminAngle := TSFFloat.Create(Self, 'minAngle', -Pi);
-  Fields.Add(FFdminAngle);
+  FFdMinAngle := TSFFloat.Create(Self, 'minAngle', -Pi);
+  Fields.Add(FFdMinAngle);
 
-  FFdstopBounce := TSFFloat.Create(Self, 'stopBounce', 0);
-  Fields.Add(FFdstopBounce);
+  FFdStopBounce := TSFFloat.Create(Self, 'stopBounce', 0);
+  Fields.Add(FFdStopBounce);
   { X3D specification comment: [0,1] }
 
-  FFdstopErrorCorrection := TSFFloat.Create(Self, 'stopErrorCorrection', 0.8);
-  Fields.Add(FFdstopErrorCorrection);
+  FFdStopErrorCorrection := TSFFloat.Create(Self, 'stopErrorCorrection', 0.8);
+  Fields.Add(FFdStopErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventangle := TVRMLEvent.Create(Self, 'angle', TSFFloat, false);
-  Events.Add(FEventangle);
+  FEventAngle := TVRMLEvent.Create(Self, 'angle', TSFFloat, false);
+  Events.Add(FEventAngle);
 
-  FEventangleRate := TVRMLEvent.Create(Self, 'angleRate', TSFFloat, false);
-  Events.Add(FEventangleRate);
+  FEventAngleRate := TVRMLEvent.Create(Self, 'angleRate', TSFFloat, false);
+  Events.Add(FEventAngleRate);
 
-  FEventbody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody1AnchorPoint);
+  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody1AnchorPoint);
 
-  FEventbody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody2AnchorPoint);
+  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody2AnchorPoint);
 end;
 
 class function TNodeSingleAxisHingeJoint.ClassNodeTypeName: string;
@@ -1360,30 +1360,30 @@ procedure TNodeSliderJoint.CreateNode;
 begin
   inherited;
 
-  FFdaxis := TSFVec3f.Create(Self, 'axis', Vector3Single(0, 1, 0));
-  Fields.Add(FFdaxis);
+  FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3Single(0, 1, 0));
+  Fields.Add(FFdAxis);
 
-  FFdmaxSeparation := TSFFloat.Create(Self, 'maxSeparation', 1);
-  Fields.Add(FFdmaxSeparation);
+  FFdMaxSeparation := TSFFloat.Create(Self, 'maxSeparation', 1);
+  Fields.Add(FFdMaxSeparation);
   { X3D specification comment: [0,Inf) }
 
-  FFdminSeparation := TSFFloat.Create(Self, 'minSeparation', 0);
-  Fields.Add(FFdminSeparation);
+  FFdMinSeparation := TSFFloat.Create(Self, 'minSeparation', 0);
+  Fields.Add(FFdMinSeparation);
   { X3D specification comment: [0,Inf) }
 
-  FFdstopBounce := TSFFloat.Create(Self, 'stopBounce', 0);
-  Fields.Add(FFdstopBounce);
+  FFdStopBounce := TSFFloat.Create(Self, 'stopBounce', 0);
+  Fields.Add(FFdStopBounce);
   { X3D specification comment: [0,1] }
 
-  FFdstopErrorCorrection := TSFFloat.Create(Self, 'stopErrorCorrection', 1);
-  Fields.Add(FFdstopErrorCorrection);
+  FFdStopErrorCorrection := TSFFloat.Create(Self, 'stopErrorCorrection', 1);
+  Fields.Add(FFdStopErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventseparation := TVRMLEvent.Create(Self, 'separation', TSFFloat, false);
-  Events.Add(FEventseparation);
+  FEventSeparation := TVRMLEvent.Create(Self, 'separation', TSFFloat, false);
+  Events.Add(FEventSeparation);
 
-  FEventseparationRate := TVRMLEvent.Create(Self, 'separationRate', TSFFloat, false);
-  Events.Add(FEventseparationRate);
+  FEventSeparationRate := TVRMLEvent.Create(Self, 'separationRate', TSFFloat, false);
+  Events.Add(FEventSeparationRate);
 end;
 
 class function TNodeSliderJoint.ClassNodeTypeName: string;
@@ -1401,42 +1401,42 @@ procedure TNodeUniversalJoint.CreateNode;
 begin
   inherited;
 
-  FFdanchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
-  Fields.Add(FFdanchorPoint);
+  FFdAnchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAnchorPoint);
 
-  FFdaxis1 := TSFVec3f.Create(Self, 'axis1', Vector3Single(0, 0, 0));
-  Fields.Add(FFdaxis1);
+  FFdAxis1 := TSFVec3f.Create(Self, 'axis1', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAxis1);
 
-  FFdaxis2 := TSFVec3f.Create(Self, 'axis2', Vector3Single(0, 0, 0));
-  Fields.Add(FFdaxis2);
+  FFdAxis2 := TSFVec3f.Create(Self, 'axis2', Vector3Single(0, 0, 0));
+  Fields.Add(FFdAxis2);
 
-  FFdstopBounce1 := TSFFloat.Create(Self, 'stopBounce1', 0);
-  Fields.Add(FFdstopBounce1);
+  FFdStopBounce1 := TSFFloat.Create(Self, 'stopBounce1', 0);
+  Fields.Add(FFdStopBounce1);
   { X3D specification comment: [0,1] }
 
-  FFdstop1ErrorCorrection := TSFFloat.Create(Self, 'stop1ErrorCorrection', 0.8);
-  Fields.Add(FFdstop1ErrorCorrection);
+  FFdStop1ErrorCorrection := TSFFloat.Create(Self, 'stop1ErrorCorrection', 0.8);
+  Fields.Add(FFdStop1ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FFdstop2Bounce := TSFFloat.Create(Self, 'stop2Bounce', 0);
-  Fields.Add(FFdstop2Bounce);
+  FFdStop2Bounce := TSFFloat.Create(Self, 'stop2Bounce', 0);
+  Fields.Add(FFdStop2Bounce);
   { X3D specification comment: [0,1] }
 
-  FFdstop2ErrorCorrection := TSFFloat.Create(Self, 'stop2ErrorCorrection', 0.8);
-  Fields.Add(FFdstop2ErrorCorrection);
+  FFdStop2ErrorCorrection := TSFFloat.Create(Self, 'stop2ErrorCorrection', 0.8);
+  Fields.Add(FFdStop2ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventbody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody1AnchorPoint);
+  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody1AnchorPoint);
 
-  FEventbody1Axis := TVRMLEvent.Create(Self, 'body1Axis', TSFVec3f, false);
-  Events.Add(FEventbody1Axis);
+  FEventBody1Axis := TVRMLEvent.Create(Self, 'body1Axis', TSFVec3f, false);
+  Events.Add(FEventBody1Axis);
 
-  FEventbody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
-  Events.Add(FEventbody2AnchorPoint);
+  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  Events.Add(FEventBody2AnchorPoint);
 
-  FEventbody2Axis := TVRMLEvent.Create(Self, 'body2Axis', TSFVec3f, false);
-  Events.Add(FEventbody2Axis);
+  FEventBody2Axis := TVRMLEvent.Create(Self, 'body2Axis', TSFVec3f, false);
+  Events.Add(FEventBody2Axis);
 end;
 
 class function TNodeUniversalJoint.ClassNodeTypeName: string;
