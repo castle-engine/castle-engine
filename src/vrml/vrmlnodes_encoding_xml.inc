@@ -17,6 +17,11 @@
 
 {$ifdef read_interface}
 
+const
+  LoadX3DXml_FileFilters =
+  'All files|*|' +
+  '*X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz';
+
 { Read X3D encoded in XML, and convert it to VRML/X3D nodes graph.
 
   Overloaded version that takes Stream as a parameter expects that
