@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiGLUtils, GLVersionUnit;
+uses SysUtils, KambiUtils, KambiGLUtils, GLVersionUnit, KambiWarnings;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
