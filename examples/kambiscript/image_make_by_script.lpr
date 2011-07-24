@@ -22,7 +22,7 @@
 uses SysUtils, KambiUtils, KambiFilesUtils, KambiStringUtils, Images,
   KambiClassUtils,
   KambiScript, KambiScriptParser, KambiScriptVectors, KambiScriptImages,
-  DataErrors;
+  KambiWarnings;
 
 var
   Vars: TKamScriptValuesList;
@@ -30,7 +30,7 @@ var
 begin
   Parameters.CheckHigh(2);
 
-  DataWarning := @DataWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   Vars := TKamScriptValuesList.Create;
   try

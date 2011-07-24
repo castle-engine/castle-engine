@@ -1047,7 +1047,7 @@ type
       may be freed soon, so copy contents, not only some reference). }
     procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
 
-    procedure VRMLWarning_InvalidIndex(const Index, ACount: Integer);
+    procedure OnWarning_InvalidIndex(const Index, ACount: Integer);
   protected
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
@@ -1877,7 +1877,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return false, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: boolean
       read GetItemsSafe write SetItemsSafe;
 
@@ -1924,18 +1924,18 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: LongInt
       read GetItemsSafe write SetItemsSafe;
 
-    { Call VRMLWarning reporting that an invalid vertex index
-      is caused from this field. This simply calls VRMLWarning
+    { Call OnWarning reporting that an invalid vertex index
+      is caused from this field. This simply calls OnWarning
       formatting appropriate message.
 
       Additionally this guards
       us against producing too many warnings from the same field.
       When a given threshold will be reached, further
-      VRMLWarning_WrongVertexIndex calls for this field instance
+      OnWarning_WrongVertexIndex calls for this field instance
       will be simply ignored. This is a good thing, as some invalid models
       have really an incredible amount of invalid indexes, and the very
       amount of lines printed on console makes viewing these invalid files
@@ -1946,7 +1946,7 @@ type
       and
       content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
       from http://www.web3d.org/ example models. }
-    procedure VRMLWarning_WrongVertexIndex(
+    procedure OnWarning_WrongVertexIndex(
       const GeometryNodeTypeName: string;
       const VertexNum: Integer; const CoordCount: Integer);
 
@@ -1991,7 +1991,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix3Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2030,7 +2030,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix3Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2069,7 +2069,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix4Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2108,7 +2108,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix4Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2147,7 +2147,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector2Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2186,7 +2186,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector3Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2231,7 +2231,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return (0, 0, 0, 1) vector, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector4Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2275,7 +2275,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector2Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2314,7 +2314,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector3Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2353,7 +2353,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return (0, 0, 0, 1), Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector4Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2393,7 +2393,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return DefaultRotation, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: TVector4Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2434,7 +2434,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2475,7 +2475,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2521,7 +2521,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return '', Set will do nothing,
-      and both will produce clear VRMLWarning. }
+      and both will produce clear OnWarning. }
     property ItemsSafe[Index: Integer]: string
       read GetItemsSafe write SetItemsSafe;
 
@@ -2606,7 +2606,7 @@ function VRMLChangesToStr(const Changes: TVRMLChanges): string;
 
 implementation
 
-uses Math, VRMLErrors, VRMLNodes, KambiXMLUtils;
+uses Math, VRMLNodes, KambiXMLUtils, KambiWarnings;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -3115,7 +3115,7 @@ begin
       ParseXMLAttributeLexer(Lexer);
     except
       on E: EVRMLClassicReadError do
-        VRMLWarning(vwSerious, 'Error when reading field "' + Name + '" value: ' + E.Message);
+        OnWarning(wtMajor, 'VRML/X3D', 'Error when reading field "' + Name + '" value: ' + E.Message);
     end;
   finally FreeAndNil(Lexer) end;
 end;
@@ -3127,7 +3127,7 @@ begin
   I := TXMLElementIterator.Create(Element);
   try
     if I.GetNext then
-      VRMLWarning(vwSerious, Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
+      OnWarning(wtMajor, 'VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
         [Name, I.Current.TagName]));
   finally FreeAndNil(I) end;
 end;
@@ -3481,16 +3481,16 @@ begin
     (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
-procedure TVRMLSimpleMultField.VRMLWarning_InvalidIndex(
+procedure TVRMLSimpleMultField.OnWarning_InvalidIndex(
   const Index, ACount: Integer);
 const
   MaxInvalidIndexWarnings = 10;
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [NiceName, VRMLTypeName, Index, ACount])) else
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [NiceName, VRMLTypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    VRMLWarning(vwSerious, Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [NiceName, VRMLTypeName, InvalidIndexWarnings]));
 end;
 
@@ -3543,7 +3543,7 @@ procedure TSFBool.ParseValue(Lexer: TVRMLLexer; Names: TObject);
   procedure VRML2BooleanIntegerWarning;
   begin
     if Lexer.Version.Major >= 2 then
-      VRMLWarning(vwSerious, 'In VRML >= 2.0 you cannot express boolean values ' +
+      OnWarning(wtMajor, 'VRML/X3D', 'In VRML >= 2.0 you cannot express boolean values ' +
         'as 0 (instead of FALSE) or 1 (instead of TRUE)');
   end;
 
@@ -4152,7 +4152,7 @@ begin
     Value := Lexer.TokenInteger;
   end else
   begin
-    VRMLWarning(vwSerious, Format('Integer in the file is out of 32-bit range: %d',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Integer in the file is out of 32-bit range: %d',
       [Lexer.TokenInteger]));
     Value := -1;
   end;
@@ -4515,7 +4515,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    VRMLWarning(vwSerious, Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
   end;
 end;
 
@@ -4694,7 +4694,7 @@ begin
      (AttributeValue[1] = '"') and
      (AttributeValue[Length(AttributeValue)] = '"') then
   begin
-    VRMLWarning(vwSerious, 'X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + AttributeValue + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
+    OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + AttributeValue + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
     Value := Copy(AttributeValue, 2, Length(AttributeValue) - 2);
   end else
     Value := AttributeValue;
@@ -5274,7 +5274,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.Items[Index] else
   begin
-    VRMLWarning_InvalidIndex(Index, Count);
+    OnWarning_InvalidIndex(Index, Count);
     Result := TMF_DYN_DEFAULT_SAFE_VALUE;
   end;
 end;
@@ -5284,7 +5284,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.Items[Index] := Value else
   begin
-    VRMLWarning_InvalidIndex(Index, Count);
+    OnWarning_InvalidIndex(Index, Count);
   end;
 end;
 }
@@ -5667,7 +5667,7 @@ begin
   Result := 'MFLong';
 end;
 
-procedure TMFLong.VRMLWarning_WrongVertexIndex(
+procedure TMFLong.OnWarning_WrongVertexIndex(
   const GeometryNodeTypeName: string;
   const VertexNum: Integer; const CoordCount: Integer);
 const
@@ -5675,10 +5675,10 @@ const
 begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
-    VRMLWarning(vwSerious, Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
       [GeometryNodeTypeName, VertexNum, CoordCount])) else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
-    VRMLWarning(vwSerious, Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [GeometryNodeTypeName, WrongVertexIndexWarnings]));
 end;
 
@@ -5927,7 +5927,7 @@ begin
     except
       on E: EVRMLClassicReadError do
       begin
-        VRMLWarning(vwSerious, 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+        OnWarning(wtMajor, 'VRML/X3D', 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
         Items.Count := 0;
         Items.Add(AttributeValue);
       end;

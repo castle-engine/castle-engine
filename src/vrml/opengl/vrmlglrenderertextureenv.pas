@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils, VRMLErrors;
+uses SysUtils, KambiStringUtils, KambiWarnings;
 
 { Simple type constructors, for ease of coding.
   Versions with only 1 argument set both channel (rgb and alpha) to the same. }
@@ -231,7 +231,7 @@ procedure ModeFromString(const S: string;
       Combine := GL_MODULATE;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
-      VRMLWarning(vwSerious, Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
     end;
   end;
 
@@ -380,7 +380,7 @@ procedure SourceFromString(const S: string; out Source: TSourcePerChannel;
     end else
     begin
       Source := csPreviousTexture;
-      VRMLWarning(vwSerious, Format('Not supported multi-texturing source "%s"', [LS]))
+      OnWarning(wtMajor, 'VRML/X3D', Format('Not supported multi-texturing source "%s"', [LS]))
     end;
   end;
 

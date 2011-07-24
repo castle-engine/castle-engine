@@ -1616,8 +1616,7 @@ var
 
 implementation
 
-uses ProgressUnit, KambiStringUtils, KambiFilesUtils,
-  DataErrors, DDS;
+uses ProgressUnit, KambiStringUtils, KambiFilesUtils, KambiWarnings, DDS;
 
 {$define read_implementation}
 {$I objectslist_1.inc}

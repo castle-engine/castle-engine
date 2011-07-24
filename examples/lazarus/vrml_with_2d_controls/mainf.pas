@@ -37,14 +37,13 @@ var
 
 implementation
 
-uses VRMLErrors, VRMLScene, KambiUtils, Images, VectorMath;
+uses VRMLScene, KambiUtils, Images, VectorMath;
 
 { TForm1 --------------------------------------------------------------------- }
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  { For simplicity, we just ignore warnings and load VRML/X3D from hardcoded path. }
-  VRMLWarning := @VRMLWarning_Ignore;
+  { For simplicity, we just load VRML/X3D from hardcoded path. }
   Browser.Load('../../vrml/models/bridge_final.x3dv');
   Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.Scene.ProcessEvents := true;

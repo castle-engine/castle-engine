@@ -31,9 +31,9 @@
 program fog_culling;
 
 uses SysUtils, VectorMath, GL, GLU, GLWindow, KambiStringUtils,
-  KambiClassUtils, KambiUtils, Classes,
+  KambiClassUtils, KambiUtils, Classes, KambiWarnings,
   KambiGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
-  ProgressUnit, ProgressConsole, KambiFilesUtils, VRMLErrors, Base3D,
+  ProgressUnit, ProgressConsole, KambiFilesUtils, Base3D,
   KambiSceneManager;
 
 var
@@ -119,7 +119,7 @@ begin
   Window.Controls.Add(SceneManager);
 
   Scene := TVRMLGLScene.Create(Application);
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
   Scene.Load('models' + PathDelim + 'fog_culling_final.wrl');
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);

@@ -24,8 +24,8 @@ program vrml_browser_script_compiled;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, VRMLErrors, VRMLFields, VRMLTime, SysUtils;
+uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole, KambiWarnings,
+  VRMLScene, VRMLFields, VRMLTime, SysUtils;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
@@ -52,7 +52,7 @@ end;
 begin
   Parameters.CheckHigh(1);
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
   BrowserWindow := TGLWindowVRMLBrowser.Create(nil);

@@ -838,7 +838,7 @@ type
 
 implementation
 
-uses ProgressUnit, VRMLScene, VRMLErrors, NormalsCalculator, KambiLog,
+uses ProgressUnit, VRMLScene, NormalsCalculator, KambiLog, KambiWarnings,
   KambiStringUtils, VRMLArraysGenerator;
 
 {$define read_implementation}
@@ -2242,7 +2242,7 @@ begin
     except
       on E: ETransformedResultInvalid do
       begin
-        VRMLWarning(vwSerious, Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+        OnWarning(wtMajor, 'VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
           [ VectorToRawStr(CameraPosition), E.Message ]));
         Result := 0;
       end;

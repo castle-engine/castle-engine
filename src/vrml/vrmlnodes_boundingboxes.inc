@@ -52,7 +52,7 @@ begin
     Result := Coord.Items.Items[Index];
   end else
   begin
-    CoordIndex.VRMLWarning_WrongVertexIndex(
+    CoordIndex.OnWarning_WrongVertexIndex(
       Geometry.NodeTypeName, Index, Coord.Count);
     Result := ZeroVector3Single;
   end;

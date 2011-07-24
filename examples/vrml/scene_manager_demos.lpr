@@ -26,8 +26,8 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, VectorMath,
-  VRMLScene, VRMLGLScene, VRMLErrors, KambiSceneManager, VRMLGLAnimation,
+uses KambiUtils, GLWindow, VectorMath, KambiWarnings,
+  VRMLScene, VRMLGLScene, KambiSceneManager, VRMLGLAnimation,
   VRMLNodes, GL3D;
 
 var
@@ -40,7 +40,7 @@ var
 begin
   Window := TGLUIWindow.Create(Application);
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   { initialize SceneManager }
   SceneManager := TKamSceneManager.Create(Window);

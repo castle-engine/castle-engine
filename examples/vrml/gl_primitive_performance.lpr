@@ -21,9 +21,9 @@
 program gl_primitive_performance;
 
 uses VectorMath, VRMLNodes, GL, GLExt, GLWindow,
-  KambiUtils, SysUtils, Classes,
+  KambiUtils, SysUtils, Classes, KambiWarnings,
   KambiGLUtils, KambiFilesUtils, VRMLScene,
-  ProgressUnit, VRMLErrors, VRMLShape, KambiSceneManager, Base3D;
+  ProgressUnit, VRMLShape, KambiSceneManager, Base3D;
 
 type
   TRenderMode = (
@@ -358,7 +358,7 @@ begin
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
   try
-    VRMLWarning := @VRMLWarning_Write;
+    OnWarning := @OnWarningWrite;
 
     Scene := TVRMLScene.Create(nil);
     Scene.Load(Parameters[1]);

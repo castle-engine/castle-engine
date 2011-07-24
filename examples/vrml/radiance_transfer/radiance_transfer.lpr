@@ -28,7 +28,7 @@ program radiance_transfer;
 uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, RenderingCameraUnit,
   KambiGLUtils, VRMLGLScene, KeysMouse, KambiSceneManager,
-  KambiFilesUtils, VRMLErrors, SphericalHarmonics, Math, Images, GLCubeMap,
+  KambiFilesUtils, KambiWarnings, SphericalHarmonics, Math, Images, GLCubeMap,
   KambiStringUtils;
 
 type
@@ -267,7 +267,7 @@ begin
   RenderParams := TBasicRenderParams.Create;
 
   Scene := TVRMLGLScene.Create(Application);
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
   Scene.Load(Parameters[1]);
 
   if IsEmptyBox3D(Scene.BoundingBox) then

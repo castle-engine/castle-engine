@@ -92,9 +92,8 @@ type
       Similar to TVRMLNode.WWWBasePath. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
     { If assigned, it will be used to realize writeln()
-      function. If not assigned, we will use DataWarning. }
-    property OutputProc: TKamScriptOutputProc read FOutputProc
-      write FOutputProc;
+      function. If not assigned, we will use OnWarning. }
+    property OutputProc: TKamScriptOutputProc read FOutputProc write FOutputProc;
   end;
 
   TKamScriptExpression = class
@@ -902,7 +901,7 @@ procedure CreateValueIfNeeded(var Value: TKamScriptValue;
 
 implementation
 
-uses KambiScriptCoreFunctions, DataErrors;
+uses KambiScriptCoreFunctions, KambiWarnings;
 
 {$define read_implementation}
 {$I objectslist_1.inc}
@@ -1896,7 +1895,7 @@ begin
   if (AFunction.Environment <> nil) and
      Assigned(AFunction.Environment.OutputProc) then
     AFunction.Environment.OutputProc(S) else
-    DataWarning('KambiScript message: ' + S);
+    OnWarning(wtMinor, 'KambiScript', 'Writeln: '+ S);
 end;
 
 class procedure TKamScriptString.HandleCharacterFromCode(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);

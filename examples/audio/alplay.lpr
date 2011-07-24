@@ -31,14 +31,14 @@
 program alplay;
 
 uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, SoundFile, KambiTimeUtils,
-  DataErrors, ALSoundEngine;
+  KambiWarnings, ALSoundEngine;
 
 var
   Buffer, Source: TALuint;
   FileName: string;
   FAL: TALSoundFile;
 begin
-  DataWarning := @DataWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;

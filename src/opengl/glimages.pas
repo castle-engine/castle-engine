@@ -401,7 +401,7 @@ function TextureMinFilterNeedsMipmaps(const MinFilter: TGLenum): boolean;
     @item(
       If GenerateMipmap functionality will be required to create mipmaps,
       but is not available on this OpenGL implementation,
-      we will change MinFilter to simple GL_LINEAR and make DataWarning.
+      we will change MinFilter to simple GL_LINEAR and make OnWarning.
       So usually you just don't have to worry about this.
       Note that current implementation requires GenerateMipmap functionality
       only for S3TC textures, for normal uncompressed textures we can
@@ -555,7 +555,7 @@ procedure glTextureCubeMap(
 
       GenerateMipmap functionality will be required for this.
       When it is not available on this OpenGL implementation,
-      we will change MinFilter to simple GL_LINEAR and make DataWarning.
+      we will change MinFilter to simple GL_LINEAR and make OnWarning.
       So usually you just don't have to worry about this.)
   )
 
@@ -815,7 +815,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiLog, GLVersionUnit, DataErrors, TextureImages;
+uses KambiUtils, KambiLog, GLVersionUnit, KambiWarnings, TextureImages;
 
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 begin
@@ -1019,7 +1019,7 @@ function TextureNonPowerOfTwo: boolean;
 begin
   Result := false
     { Using this makes OpenGL *sooo* slow...
-      see e.g. castle/levels/castle_hall_final.wrl model or 
+      see e.g. castle/levels/castle_hall_final.wrl model or
       demo_models/inlined_textures.wrl.
       So it's better to scale textures to be power of 2. }
     {GL_ARB_texture_non_power_of_two or GL_version_2_0};
@@ -1366,13 +1366,13 @@ var
     Result := (DDS <> nil) and DDS.Mipmaps;
     if Result and (DDS.DDSType <> dtTexture) then
     begin
-      DataWarning('DDS image contains mipmaps, but not for 2D texture');
+      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for 2D texture');
       Result := false;
     end;
 
     if Result and (not GL_version_1_2) then
     begin
-      DataWarning('Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
     end;
 
@@ -1467,7 +1467,7 @@ begin
           MinFilter := GL_LINEAR;
           { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, MinFilter);
-          DataWarning('Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+          OnWarning(wtMinor, 'Texture', 'Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
         end;
       end;
     end;
@@ -1684,7 +1684,7 @@ procedure glTextureCubeMap(
     Result := (DDS <> nil) and DDS.Mipmaps;
     if Result and (DDS.DDSType <> dtCubeMap) then
     begin
-      DataWarning('DDS image contains mipmaps, but not for CubeMap texture');
+      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for CubeMap texture');
       Result := false;
     end;
   end;
@@ -1703,7 +1703,7 @@ procedure glTextureCubeMap(
   begin
     if not GL_version_1_2 then
     begin
-      DataWarning('Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit;
     end;
 
@@ -1793,13 +1793,13 @@ var
     Result := (DDS <> nil) and DDS.Mipmaps;
     if Result and (DDS.DDSType <> dtVolume) then
     begin
-      DataWarning('DDS image contains mipmaps, but not for 3D (volume) texture');
+      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for 3D (volume) texture');
       Result := false;
     end;
 
     if Result and (not GL_version_1_2) then
     begin
-      DataWarning('Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
     end;
 
@@ -1833,7 +1833,7 @@ begin
       on E: EGenerateMipmapNotAvailable do
       begin
         MinFilter := GL_LINEAR;
-        DataWarning('Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+        OnWarning(wtMinor, 'Texture', 'Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
       end;
     end;
   end;
@@ -2150,7 +2150,7 @@ begin
         GL_FRAMEBUFFER_COMPLETE_EXT:
           Success := true;
         GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-          DataWarning('Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach');
+          OnWarning(wtMinor, 'FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach');
         else
           raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
             [ FramebufferStatusToString(Status), Status]);

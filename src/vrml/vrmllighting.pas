@@ -124,7 +124,7 @@ procedure VRML97FogTo1st(
 
 implementation
 
-uses VRMLErrors;
+uses KambiWarnings;
 
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3Single;
@@ -177,7 +177,7 @@ begin
 
   Result := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
   if Result = -1 then
-    VRMLWarning(vwSerious, 'Unknown fog type '''+FogNode.FdFogType.Value+'''');
+    OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type '''+FogNode.FdFogType.Value+'''');
 end;
 
 procedure VRML97FogTo1st(var Color: TVector3Single;

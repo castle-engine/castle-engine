@@ -36,7 +36,7 @@
       Called from TVRMLGLRenderer.Prepare, always through our
       Prepare method. Our Prepare method takes care to catch
       common exceptions from this (EFramebufferError, ETextureLoadError),
-      convert them to VRMLWarning and make Unprepare to undo the preparations.
+      convert them to OnWarning and make Unprepare to undo the preparations.
       So Prepare-Unprepare work like constructor-destructor, with Unprepare
       having to be prepared to finilizing incomplete instance. }
     procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
@@ -473,19 +473,19 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
 
     if S = 'NEAREST' then
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := GL_NEAREST;
     end else
 
     if S = 'LINEAR' then
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
       Result := GL_LINEAR;
     end else
 
     begin
       Result := Renderer.Attributes.TextureMinFilter;
-      VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
     end;
   end;
 
@@ -503,19 +503,19 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
 
     if S = 'NEAREST' then
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := GL_NEAREST;
     end else
 
     if S = 'LINEAR' then
     begin
-      VRMLWarning(vwSerious, Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
       Result := GL_LINEAR;
     end else
 
     begin
       Result := Renderer.Attributes.TextureMagFilter;
-      VRMLWarning(vwSerious, Format('Unknown texture minification filter "%s"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
     end;
   end;
 
@@ -579,14 +579,14 @@ begin
     on E: EFramebufferError do
     begin
       Unprepare;
-      VRMLWarning(vwIgnorable, 'Framebuffer error, generated texture not possible: '
+      OnWarning(wtMinor, 'VRML/X3D', 'Framebuffer error, generated texture not possible: '
         + E.Message);
     end;
 
     on E: ETextureLoadError do
     begin
       Unprepare;
-      VRMLWarning(vwIgnorable, 'Cannot load texture to OpenGL: ' + E.Message);
+      OnWarning(wtMinor, 'VRML/X3D', 'Cannot load texture to OpenGL: ' + E.Message);
     end;
   end;
 end;
@@ -837,7 +837,7 @@ begin
        (ChildTex is TNodeX3DTextureNode) then
     begin
       if ChildTex is TNodeMultiTexture then
-        VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
+        OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
         PreparedTextureChildren.Add(ChildTex);
         ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TNodeX3DTextureNode(ChildTex), Renderer);
@@ -930,7 +930,7 @@ begin
       Env.Init(ModeStr, SourceStr);
 
       if ChildTex is TNodeMultiTexture then
-        VRMLWarning(vwSerious, 'Child of MultiTexture node cannot be another MultiTexture node') else
+        OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
         Success := Renderer.GLTextureNodes.Enable(
           TNodeX3DTextureNode(ChildTex), I, Shader, Env);
 
@@ -1196,7 +1196,7 @@ begin
   NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
   if NeedsMipmaps and not HasGenerateMipmap then
   begin
-    VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+    OnWarning(wtMinor, 'VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
       'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for RenderedTexture');
@@ -1219,7 +1219,7 @@ begin
   if not IsTextureSized(Width, Height) then
   begin
     ResizeToTextureSize(Width, Height);
-    VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+    OnWarning(wtMinor, 'VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
       Format('Rendered texture size %d x %d is incorrect (texture size must be a power of two, > 0 and <= GL_MAX_TEXTURE_SIZE = %d), corrected to %d x %d',
@@ -1237,7 +1237,7 @@ begin
   begin
     if not GL_ARB_depth_texture then
     begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use RenderedTexture with depthMap = TRUE');
+      OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_depth_texture, cannot use RenderedTexture with depthMap = TRUE');
       Exit;
     end;
 
@@ -1580,7 +1580,7 @@ procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseSta
 
       if Result and not (SideTex.TextureImage is TImage) then
       begin
-        VRMLWarning(vwIgnorable, 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
+        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
         Result := false;
       end;
     end;
@@ -1593,7 +1593,7 @@ var
 begin
   if not GL_ARB_texture_cube_map then
   begin
-    VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
   end;
 
@@ -1604,7 +1604,7 @@ begin
      SideLoaded(TextureNode.FdRight) and
      SideLoaded(TextureNode.FdTop)) then
   begin
-    VRMLWarning(vwSerious, 'Not all sides of a CubeMapTexture are correctly set and loaded, cannot use cube map');
+    OnWarning(wtMajor, 'VRML/X3D', 'Not all sides of a CubeMapTexture are correctly set and loaded, cannot use cube map');
     Exit;
   end;
 
@@ -1663,13 +1663,13 @@ var
 begin
   if not GL_ARB_texture_cube_map then
   begin
-    VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
   end;
 
   DDS := TextureNode.LoadImage;
   { If TextureNode doesn't contain anything useful, just exit.
-    TextureNode.LoadImage already did necessary VRMLWarnings. }
+    TextureNode.LoadImage already did necessary OnWarnings. }
   if DDS = nil then Exit;
 
   try
@@ -1724,7 +1724,7 @@ var
 begin
   if not GL_ARB_texture_cube_map then
   begin
-    VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
+    OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_texture_cube_map, cannot use CubeMapTexture');
     Exit;
   end;
 
@@ -1735,7 +1735,7 @@ begin
   NeedsMipmaps := TextureMinFilterNeedsMipmaps(MinFilter);
   if NeedsMipmaps and not HasGenerateMipmap then
   begin
-    VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+    OnWarning(wtMinor, 'VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
       'OpenGL implementation doesn''t allow any glGenerateMipmap* version, so you cannot use mipmaps for GeneratedCubeMapTexture');
@@ -1748,7 +1748,7 @@ begin
   if not IsCubeMapTextureSized(Size) then
   begin
     Size := ResizeToCubeMapTextureSize(Size);
-    VRMLWarning(vwIgnorable { This may be caused by OpenGL implementation
+    OnWarning(wtMinor, 'VRML/X3D' { This may be caused by OpenGL implementation
       limits, so it may be impossible to predict by VRML author,
       so it's "ignorable" warning. },
       Format('Cube map texture size %d is incorrect (cube map texture size must be a power of two, > 0 and <= GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB = %d), corrected to %d',
@@ -1853,14 +1853,14 @@ var
 begin
   if not GL_EXT_texture3D then
   begin
-    VRMLWarning(vwSerious, 'Your OpenGL doesn''t support EXT_texture3D, cannot use Texture3D nodes');
+    OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support EXT_texture3D, cannot use Texture3D nodes');
     Exit;
   end;
 
   TextureNode.TextureLoaded := true;
 
   { If TextureImage doesn't contain anything useful, just exit.
-    Setting TextureLoaded already did necessary VRMLWarnings. }
+    Setting TextureLoaded already did necessary OnWarnings. }
   if TextureNode.TextureImage = nil then Exit;
 
   HandleTextureProperties(TextureNode.FdTextureProperties.Value,
@@ -1982,7 +1982,7 @@ begin
   begin
     if not GL_ARB_depth_texture then
     begin
-      VRMLWarning(vwSerious, 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
+      OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support ARB_depth_texture, cannot use GeneratedShadowMap nodes');
       Exit;
     end;
 

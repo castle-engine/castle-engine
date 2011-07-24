@@ -879,13 +879,13 @@ begin
           as EndIndex is not taken into account by CoordRangeHandler. }
         if EndIndex > C.Count then
         begin
-          VRMLWarning(vwSerious, Format('Too much %s (not enough coordinates) in %s',
+          OnWarning(wtMajor, 'VRML/X3D', Format('Too much %s (not enough coordinates) in %s',
             [SRanges, NodeTypeName]));
           Break;
         end;
         if Cardinal(EndIndex - BeginIndex) >= RangeMinimumCount then
           CoordRangeHandler(RangeNumber, BeginIndex, EndIndex) else
-          VRMLWarning(vwSerious, Format('%s is less than %d in %s',
+          OnWarning(wtMajor, 'VRML/X3D', Format('%s is less than %d in %s',
             [SRangeName, RangeMinimumCount, NodeTypeName]));
       end;
   end;

@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses SysUtils, VRMLErrors, KambiUtils, KambiGLUtils, GLVersionUnit;
+uses SysUtils, KambiUtils, KambiGLUtils, GLVersionUnit;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -140,7 +140,7 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
   end;
 
 begin
-  VRMLWarning := @VRMLWarning_Ignore;
+  OnWarning := @OnWarningIgnore;
 
   RecreateSceneEachTime := ARecreateSceneEachTime;
 

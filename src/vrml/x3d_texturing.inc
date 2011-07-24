@@ -85,17 +85,16 @@
       (don't care here about the previous value of these fields --- it's for
       sure @nil). If FTextureImage is set, you can also set FTextureDDS.
       If you leave them as @nil, this means that loading failed
-      (and VRMLWarning or DataWarning don't cause an exception,
-      so we can ignore this).
+      (and OnWarning didn't cause an exception).
 
       You do not care in this method about things like
       IsImageLoaded --- this method should just always,
       unconditionally, make everything it can do to load texture data from
       file(s).
 
-      You can use VRMLWarning or DataWarning inside,
+      You can use OnWarning inside,
       so we're prepared that this may even exit with exception
-      (since VRML/DataWarning can raise exception).
+      (since OnWarning can raise exception).
 
       If you set FTextureImage, you have to set it to something
       returned by LoadTextureImage. See TextureImage docs.
@@ -106,7 +105,7 @@
 
       Also, set FTextureUsedFullUrl here.
 
-      In this class, this simply produces VRMLWarning with
+      In this class, this simply produces OnWarning with
       "not implemented" message and returns @nil. It's not declared
       as abstract, because there may be classes descending from this,
       and we want to at least be able to parse them
@@ -129,8 +128,8 @@
       about loading / unloading.
 
       Note that either one of TextureImage or TextureVideo may be @nil,
-      if the other one is loaded. Or when loading failed with non-fatal
-      error (reported by VRMLWarning and eventually DataWarning).
+      if the other one is loaded. Or when loading failed
+      (warning will be reported by OnWarning).
       IsTextureImage checks that TextureImage is non-nil (so it's successfully
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
@@ -168,7 +167,7 @@
       This is deliberate --- it means that each call to TextureImage etc.
       will not unnecessarily read the disk (or even connect to internet)
       when the file does not exist. Also, the loading errors reported
-      by VRML/DataWarning will not be repeated --- they will
+      by OnWarning will not be repeated --- they will
       occur only once, when IsTextureLoaded changes from @false to @true. }
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
@@ -636,7 +635,7 @@ begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
 
-  VRMLWarning(vwSerious, Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
+  OnWarning(wtMajor, 'VRML/X3D', Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
 end;
 
 function TVRML2DTextureNode.TextureProperties: TNodeTextureProperties;
@@ -656,7 +655,7 @@ function TVRML2DTextureNode.DetectAlphaChannel: TDetectAlphaChannel;
     if S = 'FULL_RANGE' then
       Result := daFullRange else
     begin
-      VRMLWarning(vwSerious, Format('Invalid "alphaChannel" field value "%s"', [S]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
       Result := daAuto;
     end;
   end;
@@ -742,7 +741,7 @@ procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
     - sets FTextureImage, FTextureDDS, WasCacheUsed, FTextureUsedFullUrl
     - returns true
     otherwise
-    - makes VRMLWarning
+    - makes OnWarning
     - returns false }
   function LoadImageFromDataProtocol(const URL: string): boolean;
   var
@@ -770,7 +769,7 @@ procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
       if Data.Mime = 'image/gif' then
         ImageFormat := ifGIF else
       begin
-        VRMLWarning(vwSerious, Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Data.Mime]));
+        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized, not loading. If this is a valid image mime type that should be supported, please report.', [Data.Mime]));
         Exit(false);
       end;
 
@@ -783,8 +782,8 @@ procedure TNodeImageTexture.LoadTextureData(out WasCacheUsed: boolean);
       except
         on E: Exception do
         begin
-          { Remember that VRMLWarning *may* raise an exception. }
-          VRMLWarning(vwIgnorable, Format(SDataURILoadError,
+          { Remember that OnWarning *may* raise an exception. }
+          OnWarning(wtMinor, 'VRML/X3D', Format(SDataURILoadError,
             [E.ClassName, 'texture', Data.URIPrefix, E.Message]));
           Result := false;
         end;
@@ -804,7 +803,7 @@ begin
     begin
       { Empty URL would be expanded by PathFromWWWBasePath to directory
         and produce unclear error message. }
-      VRMLWarning(vwIgnorable, Format('Empty URL for %s ignored', [NodeTypeName]));
+      OnWarning(wtMinor, 'VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
     if TDataURI.IsDataURI(FdUrl.Items[I]) then
     begin
@@ -819,8 +818,8 @@ begin
         Break;
       except
         on E: Exception do
-          { Remember that VRMLWarning *may* raise an exception. }
-          VRMLWarning(vwIgnorable, Format(SLoadError,
+          { Remember that OnWarning *may* raise an exception. }
+          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
             [E.ClassName, 'texture', FullUrl, E.Message]));
       end;
     end;
@@ -945,8 +944,8 @@ begin
       Break;
     except
       on E: Exception do
-        { Remember that VRMLWarning *may* raise an exception. }
-        VRMLWarning(vwIgnorable, Format(SLoadError,
+        { Remember that OnWarning *may* raise an exception. }
+        OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
           [E.ClassName, 'video', FullUrl, E.Message]));
     end;
   end;

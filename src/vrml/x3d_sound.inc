@@ -312,8 +312,8 @@ begin
           Break;
         except
           on E: Exception do
-            { Remember that VRMLWarning *may* raise an exception. }
-            VRMLWarning(vwIgnorable, Format(SLoadError,
+            { Remember that OnWarning *may* raise an exception. }
+            OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
               [E.ClassName, 'sound file', FullUrl, E.Message]));
         end;
       end;

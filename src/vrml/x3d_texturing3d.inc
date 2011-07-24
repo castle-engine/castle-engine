@@ -29,7 +29,7 @@
 
       You can assume here that texture is not loaded now,
       UsedCache, FTextureImage, FTextureDDS are all nil.
-      Try to load the texture data, making VRMLWarning as appropriate,
+      Try to load the texture data, making OnWarning as appropriate,
       and set all UsedCache, FTextureImage, FTextureDDS. }
     procedure LoadTextureData; virtual; abstract;
   public
@@ -59,10 +59,10 @@
       TextureLoaded value still changes to @true. This is good --- it makes
       assignment @code(TextureLoaded := true) always work, and (more important)
       it prevents trying to load (and displaying uselessly the same
-      VRMLWarning) again at successful @code(TextureLoaded := true).
+      OnWarning) again at successful @code(TextureLoaded := true).
 
       In case of problems (for example when some URL cannot be loaded),
-      we will make VRMLWarning. }
+      we will make OnWarning. }
     property TextureLoaded: boolean
       read FTextureLoaded write SetTextureLoaded;
 
@@ -238,7 +238,7 @@ end;
 
 procedure TNodeComposedTexture3D.LoadTextureData;
 
-  { Load one slice (child texture). Returns @nil and makes VRMLWarning if failed. }
+  { Load one slice (child texture). Returns @nil and makes OnWarning if failed. }
   function LoadOneSlice(const Index: Integer): TImage;
   var
     Tex: TVRML2DTextureNode;
@@ -246,7 +246,7 @@ procedure TNodeComposedTexture3D.LoadTextureData;
     if not ((FdTexture.Items[Index] <> nil) and
             (FdTexture.Items[Index] is TVRML2DTextureNode)) then
     begin
-      VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d is not a valid 2D texture node',
+      OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
@@ -254,12 +254,12 @@ procedure TNodeComposedTexture3D.LoadTextureData;
     Tex := TVRML2DTextureNode(FdTexture.Items[Index]);
     if not Tex.IsTextureImage then
     begin
-      Exit(nil);{ Tex.IsTextureImage already did proper VRMLWarning }
+      Exit(nil);{ Tex.IsTextureImage already did proper OnWarning }
     end;
 
     if not (Tex.TextureImage is TImage) then
     begin
-      VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d is an S3TC compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
+      OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is an S3TC compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
         [Index]));
       Exit(nil);
     end;
@@ -273,7 +273,7 @@ var
 begin
   if FdTexture.Items.Count = 0 then
   begin
-    VRMLWarning(vwIgnorable, 'ComposedTexture3D has no textures');
+    OnWarning(wtMinor, 'VRML/X3D', 'ComposedTexture3D has no textures');
     Exit;
   end;
 
@@ -303,7 +303,7 @@ begin
          (Slice.Height <> FTextureImage.Height) or
          (Slice.ClassType <> FTextureImage.ClassType) then
       begin
-        VRMLWarning(vwIgnorable, Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
+        OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
           [I, Slice        .Width, Slice        .Height, Slice        .ClassName,
               FTextureImage.Width, FTextureImage.Height, FTextureImage.ClassName]));
         FreeAndNil(FTextureImage);
@@ -355,7 +355,7 @@ begin
       on E: Exception do
       begin
         FTextureDDS := nil;
-        VRMLWarning(vwIgnorable, Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
+        OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
         Continue;
       end;
     end;
@@ -363,14 +363,14 @@ begin
     if FTextureDDS = nil then
     begin
       VRMLCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
-      VRMLWarning(vwIgnorable, Format('Only DDS format is supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
+      OnWarning(wtMinor, 'VRML/X3D', Format('Only DDS format is supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
       Continue;
     end;
 
     if FTextureDDS.DDSType <> dtVolume then
     begin
       VRMLCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
-      VRMLWarning(vwIgnorable, Format('DDS image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
+      OnWarning(wtMinor, 'VRML/X3D', Format('DDS image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
       Continue;
     end;
 
@@ -411,7 +411,7 @@ var
 begin
   if FdImage.Count < 4 then
   begin
-    VRMLWarning(vwIgnorable, 'PixelTexture3D.image has too few items (must have at least 4)');
+    OnWarning(wtMinor, 'VRML/X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
     Exit;
   end;
 
@@ -422,7 +422,7 @@ begin
 
   if Cardinal(FdImage.Count) < 4 + Width * Height * Depth then
   begin
-    VRMLWarning(vwIgnorable, Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
+    OnWarning(wtMinor, 'VRML/X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
       [ 4 + Width * Height * Depth,  Width, Height, Depth ]));
     Exit;
   end;
@@ -467,7 +467,7 @@ begin
        end;
     else
     begin
-      VRMLWarning(vwIgnorable, 'PixelTexture3D.image has invalid components count (must be between 0..4)');
+      OnWarning(wtMinor, 'VRML/X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
       Exit;
     end;
   end;

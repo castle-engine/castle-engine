@@ -5,8 +5,7 @@ unit VrmlConsoleF;
 interface
 
 uses
-  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  VRMLErrors;
+  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls;
 
 type
 
@@ -26,17 +25,17 @@ type
 var
   VrmlConsole: TVrmlConsole;
 
-procedure VRMLWarning_VrmlConsole(
-  const WarningType: TVRMLWarningType; const S: string);
+procedure OnWarningVrmlConsole(
+  const WarningType: TWarningType; const Category, S: string);
 
 implementation
 
 uses MainF;
 
-procedure VRMLWarning_VrmlConsole(
-  const WarningType: TVRMLWarningType; const S: string);
+procedure OnWarningVrmlConsole(
+  const WarningType: TWarningType; const Category, S: string);
 begin
-  VrmlConsole.Memo1.Lines.Append(S);
+  VrmlConsole.Memo1.Lines.Append(Category + ': ' + S);
   VrmlConsole.WasWarnings := true;
 end;
 

@@ -99,7 +99,7 @@ type
 
 implementation
 
-uses KambiStringUtils, KambiFilesUtils, DataErrors;
+uses KambiStringUtils, KambiFilesUtils, KambiWarnings;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
@@ -336,7 +336,7 @@ var
     except
       on E: EFileOpenError do
       begin
-        DataWarning(E.Message);
+        OnWarning(wtMinor, 'Wavefront OBJ', E.Message);
         Exit;
       end;
     end;
@@ -444,7 +444,7 @@ begin
              begin
                UsedMaterial := Materials.TryFindName(LineAfterMarker);
                if UsedMaterial = nil then
-                 DataWarning(Format('Unknown material name "%s"',
+                 OnWarning(wtMinor, 'Wavefront OBJ', Format('Unknown material name "%s"',
                    [LineAfterMarker]));
              end;
            end;

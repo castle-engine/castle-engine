@@ -552,7 +552,7 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
             if (CoordIndex < 0) or
                (CoordIndex >= SkinCoord.Count) then
             begin
-              VRMLWarning(vwSerious, Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
+              OnWarning(wtMajor, 'VRML/X3D', Format('HAnimJoint.skinCoord references not existing coordinate index %d (while we have only %d skin coordinates in HAnimHumanoid.skin)',
                 [CoordIndex, SkinCoord.Count]));
               Continue;
             end;

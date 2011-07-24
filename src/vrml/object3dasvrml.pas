@@ -177,7 +177,7 @@ const
 
 implementation
 
-uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, DataErrors, VRMLErrors,
+uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, KambiWarnings,
   KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles, Boxes3D;
 
 const
@@ -271,7 +271,7 @@ begin
   finally
     if Result <> Base then
       { Texture file found, but not under original name }
-      DataWarning(Format('Exact texture filename "%s" not found, using instead "%s"',
+      OnWarning(wtMinor, 'Texture', Format('Exact texture filename "%s" not found, using instead "%s"',
         [Base, Result]));
   end;
 
@@ -609,7 +609,7 @@ var
         if not VectorsEqual(
             Material.TextureMap1.Scale,
             Material.TextureMapBump.Scale) then
-          VRMLWarning(vwIgnorable, 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
+          OnWarning(wtMinor, 'VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
       end;
     end;
   end;

@@ -91,7 +91,7 @@ implementation
 uses LCLType, VectorMath, Boxes3D, VRMLNodes, VRMLGLRenderer,
   GL, GLU, GLExt, KambiClassUtils, KambiUtils, Object3DAsVRML,
   KambiGLUtils, VRMLScene, KambiFilesUtils,
-  OpenGLInformation, KambiLCLUtils, VrmlConsoleF, VRMLErrors;
+  OpenGLInformation, KambiLCLUtils, VrmlConsoleF;
 
 procedure TMain.OpenScene(const FileName: string);
 begin
@@ -221,7 +221,7 @@ begin
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
 
   VrmlConsole := TVrmlConsole.Create(Application);
-  VRMLWarning := @VRMLWarning_VrmlConsole;
+  OnWarning := @OnWarningVrmlConsole;
 
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);

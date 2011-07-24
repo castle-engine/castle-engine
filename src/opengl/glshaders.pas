@@ -112,7 +112,7 @@ type
   { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
     but doesn't exist in the shader. }
   TUniformNotFoundAction = (
-    { Report that uniform variable not found to DataWarning. }
+    { Report that uniform variable not found to OnWarning. }
     uaWarning,
     { Report that uniform variable not found by raising EGLSLUniformNotFound. }
     uaException,
@@ -131,7 +131,7 @@ type
       Other options have to detect invalid types, which means
       checking the OpenGL error state each time you set uniform value. }
     utGLError,
-    { Report type mismatch to DataWarning. }
+    { Report type mismatch to OnWarning. }
     utWarning,
     { Report type mismatch by raising EGLSLUniformTypeMismatch. }
     utException);
@@ -413,7 +413,7 @@ property CurrentProgram: TGLSLProgram
 
 implementation
 
-uses KambiStringUtils, DataErrors, KambiLog, GLVersionUnit;
+uses KambiStringUtils, KambiWarnings, KambiLog, GLVersionUnit;
 
 { Comfortable shortcut for glGetProgramivARB that always returns 1 value. }
 function glGetProgramiARB(target: TGLenum; pname: TGLenum): TGLint;
@@ -1127,7 +1127,7 @@ begin
   if (UniformNotFoundAction = uaException) or ForceException then
     raise EGLSLUniformNotFound.Create(ErrMessage) else
   case UniformNotFoundAction of
-    uaWarning: DataWarning(ErrMessage);
+    uaWarning: OnWarning(wtMinor, 'GLSL', ErrMessage);
     uaIgnore: ;
     else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
   end;
@@ -1186,7 +1186,7 @@ begin
     begin
       if ForceException or (UniformTypeMismatchAction = utException) then
         raise EGLSLUniformNotFound.Create(ErrMessage) else
-        DataWarning(ErrMessage);
+        OnWarning(wtMinor, 'GLSL', ErrMessage);
     end;
   end;
 end;

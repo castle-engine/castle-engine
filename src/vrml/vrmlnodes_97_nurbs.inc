@@ -550,7 +550,7 @@ begin
 
   if FdOrder.Value < 2 then
   begin
-    VRMLWarning(vwSerious, 'NURBS order must be >= 2');
+    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 

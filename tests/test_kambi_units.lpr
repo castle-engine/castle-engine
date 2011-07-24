@@ -14,7 +14,7 @@ uses
   Interfaces, Forms, GuiTestRunner, kambi_base,
   {$endif}
 
-  DataErrors,
+  KambiWarnings,
 
   { Test units (their order determines default tests order) }
   TestKambiUtils,
@@ -57,7 +57,7 @@ uses
 {var
   T: TTestVRMLNodes;}
 begin
-  DataWarning := @DataWarning_Write;
+  OnWarning := @OnWarningWrite;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.

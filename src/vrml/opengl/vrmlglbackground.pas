@@ -108,7 +108,7 @@ type
 
 implementation
 
-uses DataErrors, GLImages;
+uses KambiWarnings, GLImages;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -360,10 +360,10 @@ begin
         { Although texture image is already loaded in Imgs[bs],
           still texture loading may fail, e.g. with ECannotLoadS3TCTexture
           when OpenGL doesn't have proper extensions. Secure against this by
-          making nice DataWarning. }
+          making nice OnWarning. }
         on E: ETextureLoadError do
         begin
-          DataWarning('Texture load error: ' + E.Message);
+          OnWarning(wtMinor, 'Texture', 'Texture load error: ' + E.Message);
           Continue;
         end;
       end;

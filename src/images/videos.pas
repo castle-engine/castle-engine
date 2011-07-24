@@ -294,8 +294,7 @@ function FfmpegVideoFileExtension(const Ext: string;
 
 implementation
 
-uses KambiUtils, Math, KambiStringUtils, DataErrors,
-  KambiFilesUtils, ProgressUnit;
+uses KambiUtils, Math, KambiStringUtils, KambiWarnings, KambiFilesUtils, ProgressUnit;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -418,7 +417,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
         if RemoveLoadedTempImages then
         begin
           if not DeleteFile(S) then
-            DataWarning(Format('Cannot delete temporary file "%s"', [S]));
+            OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [S]));
         end;
 
         Inc(Index);
@@ -438,7 +437,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
       if RemoveLoadedTempImages then
       begin
         if not DeleteFile(FileName) then
-          DataWarning(Format('Cannot delete temporary file "%s"', [FileName]));
+          OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [FileName]));
       end;
     end;
   end;
@@ -547,12 +546,12 @@ procedure TVideo.SaveToFile(const FileName: string);
       begin
         S := FormatIndexedName(FileName, Index);
         if not DeleteFile(S) then
-          DataWarning(Format('Cannot delete temporary file "%s"', [S]));
+          OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [S]));
       end;
     end else
     begin
       if not DeleteFile(FileName) then
-        DataWarning(Format('Cannot delete temporary file "%s"', [FileName]));
+        OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [FileName]));
     end;
     Writeln('done.');
   end;

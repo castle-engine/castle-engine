@@ -56,9 +56,9 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
-  ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, DataErrors,
+  ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, KambiWarnings,
   VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, VRMLGLBackground,
-  VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, VRMLErrors, GLControls;
+  VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, GLControls;
 
 const
   SceneBoundingBox: TBox3D =
@@ -1279,8 +1279,7 @@ const
 begin
   Glw := TGLUIWindow.Create(Application);
 
-  VRMLWarning := @VRMLWarning_Write;
-  DataWarning := @DataWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   { parse params }
   Glw.ParseParameters(StandardParseOptions);

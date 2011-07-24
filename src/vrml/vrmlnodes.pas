@@ -178,7 +178,7 @@ unit VRMLNodes;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  VRMLFields, Boxes3D, Images, TTFontsTypes, VRMLErrors,
+  VRMLFields, Boxes3D, Images, TTFontsTypes,
   Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages,
   KambiXMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator,
@@ -887,17 +887,17 @@ type
     class function VRMLTypeName: string; override;
 
     { Checks is the Child allowed as a value of this SFNode,
-      and makes VRMLWarning if not.
+      and makes OnWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
       and AllowedChildren properties.
 
       Child must not be @nil.
 
-      VRMLWarning message will suggest that this Child is used as value
+      OnWarning message will suggest that this Child is used as value
       of this node. In other words, you should only pass as Child
       a node that you want to assign as Value to this field,
-      otherwise VRMLWarning message will be a little unsensible. }
+      otherwise OnWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
 
     function ChildAllowed(Child: TVRMLNode): boolean;
@@ -1021,17 +1021,17 @@ type
     class function VRMLTypeName: string; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
-      and makes VRMLWarning if not.
+      and makes OnWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
       and AllowedChildren properties.
 
       Child must not be @nil.
 
-      VRMLWarning message will suggest that this Child is added to
+      OnWarning message will suggest that this Child is added to
       this node. In other words, you should only pass as Child
       a node that you want to add (e.g. by @link(Add)) to this field,
-      otherwise VRMLWarning message will be a little unsensible. }
+      otherwise OnWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TVRMLNode);
 
     function ChildAllowed(Child: TVRMLNode): boolean;
@@ -1346,7 +1346,7 @@ type
       from Source.
 
       For fields basically does Destination.AssignValue(Source).
-      In case of EVRMLFieldAssign, make VRMLWarning with clear message.
+      In case of EVRMLFieldAssign, make OnWarning with clear message.
 
       For events establishes internal route.
 
@@ -1426,7 +1426,7 @@ type
 
       @raises(EVRMLPrototypeInstantiateError if for some reason
         the prototype cannot be instantiated.
-        You can catch this and replace with VRMLWarning, if possible.)
+        You can catch this and replace with OnWarning, if possible.)
     }
     function Instantiate: TVRMLNode;
   end;
@@ -1620,7 +1620,7 @@ type
       then it looks for field/event within this node,
       and if everything is successfull --- sets route properties.
 
-      If something goes wrong, VRMLWarning is generated
+      If something goes wrong, OnWarning is generated
       and route ending is left unset.
 
       @groupBegin }
@@ -1671,7 +1671,7 @@ type
 
     { Save a ROUTE to VRML file.
 
-      Will generate VRMLWarning when route cannot be saved.
+      Will generate OnWarning when route cannot be saved.
       This can happen when SourceNode or SourceEvent
       or DestinationNode or DestinationEvent are @nil.
       Also, if SourceNode and DestinationNode are without a name,
@@ -2230,7 +2230,7 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, Object3DAsVRML, KambiZStream, VRMLCameraUtils,
+  Math, Object3DAsVRML, KambiZStream, VRMLCameraUtils, KambiWarnings,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   KambiLog, KambiScriptParser, DataURI, URIParser,
   {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras, KambiXMLUtils;
@@ -2995,7 +2995,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
       [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    VRMLWarning(vwSerious, S);
+    OnWarning(wtMajor, 'VRML/X3D', S);
   end;
 
 begin
@@ -3033,7 +3033,7 @@ begin
   V := (Names as TVRMLNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
-    VRMLWarning(vwSerious, Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
     Value := nil;
     Exit;
   end;
@@ -3042,7 +3042,7 @@ begin
   if Value = nil then
   begin
     if AttributeValue <> SNull then
-      VRMLWarning(vwSerious, Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
   end else
   begin
     WarningIfChildNotAllowed(Value);
@@ -3068,7 +3068,7 @@ begin
       end;
 
       if I.GetNext then
-        VRMLWarning(vwSerious, Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
+        OnWarning(wtMajor, 'VRML/X3D', Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
           [Name, I.Current.TagName]));
     end;
   finally FreeAndNil(I) end;
@@ -3435,7 +3435,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TVRMLNode);
       [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    VRMLWarning(vwSerious, S);
+    OnWarning(wtMajor, 'VRML/X3D', S);
   end;
 
 begin
@@ -3482,11 +3482,11 @@ begin
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }
-    VRMLWarning(vwSerious, Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
   end else
   if not UsedNodeFinished then
   begin
-    VRMLWarning(vwSerious, Format('Cycles in VRML/X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('Cycles in VRML/X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
   end else
   begin
     Add(Node);
@@ -3620,7 +3620,7 @@ begin
 
   FWWWBasePath := Names.WWWBasePath;
 
-  VRMLWarning(vwSerious, 'Unknown VRML node of type '''+NodeTypeName+
+  OnWarning(wtMajor, 'VRML/X3D', 'Unknown VRML node of type '''+NodeTypeName+
     ''' (named '''+NodeName+''')');
 end;
 
@@ -4125,7 +4125,7 @@ begin
 
       If ReferencedPrototype = nil (e.g. because couldn't
       be loaded) then Instantiate will not be able to instantiate
-      it anyway (and will produce appropriate VRMLWarning). }
+      it anyway (and will produce appropriate OnWarning). }
     ProtoInitial := TVRMLExternalPrototype(ProtoInitial).ReferencedPrototype;
 
   for Index := 0 to ProtoInitial.InterfaceDeclarations.Count - 1 do
@@ -4181,7 +4181,7 @@ begin
     except
       on E: EVRMLFieldAssignInvalidClass do
       begin
-        VRMLWarning(vwSerious, Format('Within prototype "%s", ' +
+        OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", ' +
           'field of type %s (named "%s") references ' +
           '(by "IS" clause) field of different type %s (named "%s")',
           [Prototype.Name,
@@ -4192,7 +4192,7 @@ begin
       end;
       on E: EVRMLFieldAssign do
       begin
-        VRMLWarning(vwSerious, Format('Error when expanding prototype "%s": ',
+        OnWarning(wtMajor, 'VRML/X3D', Format('Error when expanding prototype "%s": ',
           [Prototype.Name]) + E.Message);
       end;
     end;
@@ -4205,7 +4205,7 @@ begin
 
     if SourceEvent.InEvent <> DestinationEvent.InEvent then
     begin
-      VRMLWarning(vwSerious, Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+      OnWarning(wtMajor, 'VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
           InEventName[DestinationEvent.InEvent],
           InEventName[SourceEvent.InEvent] ]));
@@ -4214,7 +4214,7 @@ begin
 
     if SourceEvent.FieldClass <> DestinationEvent.FieldClass then
     begin
-      VRMLWarning(vwSerious, Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+      OnWarning(wtMajor, 'VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
           DestinationEvent.FieldClass.VRMLTypeName,
           SourceEvent.FieldClass.VRMLTypeName ]));
@@ -4329,10 +4329,10 @@ procedure TVRMLPrototypeNode.InstantiateIsClauses(
                 FieldOrEventHandleIsClause(InstanceField.EventIn , OurEvent, NewIsClauseNames) else
                 FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, NewIsClauseNames);
             end else
-              VRMLWarning(vwSerious, Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
+              OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
                 [Prototype.Name, InstanceField.Name, IsClauseName]));
           end else
-            VRMLWarning(vwSerious, Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
+            OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
               [Prototype.Name, InstanceField.Name, IsClauseName]));
         end;
 
@@ -4390,7 +4390,7 @@ procedure TVRMLPrototypeNode.InstantiateIsClauses(
             FieldOrEventHandleIsClause(InstanceEvent, OurEvent,
               NewIsClauseNames);
           end else
-            VRMLWarning(vwSerious, Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
+            OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
               [Prototype.Name, InstanceEvent.Name, IsClauseName]));
         end;
 
@@ -4646,7 +4646,7 @@ begin
         InterfaceDeclarations.Add(I);
         I.ParseXML(Iter.Current, Names, not ExternalProto);
       end else
-        VRMLWarning(vwSerious, 'X3D XML: only <field> elements expected in prototype interface');
+        OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: only <field> elements expected in prototype interface');
     end;
   finally FreeAndNil(Iter) end;
 end;
@@ -4926,13 +4926,13 @@ procedure TVRMLExternalPrototype.LoadReferenced;
           except
             on E: EVRMLFieldAssign do
             begin
-              VRMLWarning(vwSerious, Format(
+              OnWarning(wtMajor, 'VRML/X3D', Format(
                 'Error when linking external prototype "%s" with prototype "%s": ',
                 [Name, ReferencedPrototype.Name]) + E.Message);
             end;
           end;
         end else
-          VRMLWarning(vwSerious, Format('Prototype "%s" referenced by external ' +
+          OnWarning(wtMajor, 'VRML/X3D', Format('Prototype "%s" referenced by external ' +
             'prototype "%s" doesn''t have field "%s"',
             [ReferencedPrototype.Name, Name, I.Field.Name]));
       end;
@@ -4946,7 +4946,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
 
     procedure ProtoWarning(const S: string);
     begin
-      VRMLWarning(vwIgnorable, Format('Cannot load external prototype from URL "%s": ',
+      OnWarning(wtMinor, 'VRML/X3D', Format('Cannot load external prototype from URL "%s": ',
         [URL]) + S);
     end;
 
@@ -5006,7 +5006,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     FReferencedClass := NodesManager.URNToClass(URN);
     Result := ReferencedClass <> nil;
     if not Result then
-      VRMLWarning(vwSerious, Format('Unknown node URN "%s"', [URN]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown node URN "%s"', [URN]));
   end;
 
 var
@@ -5193,7 +5193,7 @@ procedure TVRMLRoute.ParseXML(Element: TDOMElement; Names: TVRMLNames);
   begin
     if not DOMGetAttribute(Element, AttrName, Result) then
     begin
-      VRMLWarning(vwSerious, 'Missing ROUTE ' + AttrName + ' attribute');
+      OnWarning(wtMajor, 'VRML/X3D', 'Missing ROUTE ' + AttrName + ' attribute');
       Result := '';
     end;
   end;
@@ -5346,7 +5346,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      VRMLWarning(vwSerious, E.Message);
+      OnWarning(wtMajor, 'VRML/X3D', E.Message);
     end;
   end;
 end;
@@ -5383,7 +5383,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      VRMLWarning(vwSerious, E.Message);
+      OnWarning(wtMajor, 'VRML/X3D', E.Message);
     end;
   end;
 end;
@@ -5480,7 +5480,7 @@ begin
     end;
   except
     on E: EVRMLRouteSaveError do
-      VRMLWarning(vwSerious, E.Message);
+      OnWarning(wtMajor, 'VRML/X3D', E.Message);
   end;
 end;
 
@@ -5568,16 +5568,16 @@ procedure TVRMLImport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
 begin
   if not DOMGetAttribute(Element, 'inlineDEF', InlineNodeName) then
   begin
-    VRMLWarning(vwSerious, 'Missing IMPORT "inlineDEF" attribute');
+    OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT "inlineDEF" attribute');
     Exit;
   end;
 
   if not DOMGetAttribute(Element, 'importedDEF', ImportedNodeName) then
   begin
-    VRMLWarning(vwSerious, 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
+    OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
     if not DOMGetAttribute(Element, 'exportedDEF', ImportedNodeName) then
     begin
-      VRMLWarning(vwSerious, 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
+      OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
       Exit;
     end;
   end;
@@ -5645,7 +5645,7 @@ procedure TVRMLExport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
 begin
   if not DOMGetAttribute(Element, 'localDEF', ExportedNodeName) then
   begin
-    VRMLWarning(vwSerious, 'Missing EXPORT "localDEF" attribute');
+    OnWarning(wtMajor, 'VRML/X3D', 'Missing EXPORT "localDEF" attribute');
     Exit;
   end;
 
@@ -5854,7 +5854,7 @@ begin
   ExportedNode := Nodes.Bound(E.ExportedNodeName, IgnoreNodeFinished);
   if ExportedNode = nil then
   begin
-    VRMLWarning(vwSerious, Format('Exported node name "%s" not found', [E.ExportedNodeName]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('Exported node name "%s" not found', [E.ExportedNodeName]));
     Exit;
   end;
 
@@ -5871,7 +5871,7 @@ begin
   ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
   if ImportedNamesIndex = -1 then
   begin
-    VRMLWarning(vwSerious, Format('Inline node name "%s" not found (or nothing was EXPORTed from it), cannot IMPORT', [I.InlineNodeName]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('Inline node name "%s" not found (or nothing was EXPORTed from it), cannot IMPORT', [I.InlineNodeName]));
     Exit;
   end;
 
@@ -5880,7 +5880,7 @@ begin
   ImportedNode := ImportedNames.Bound(I.ImportedNodeName, IgnoreNodeFinished);
   if ImportedNode = nil then
   begin
-    VRMLWarning(vwSerious, Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
+    OnWarning(wtMajor, 'VRML/X3D', Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
     Exit;
   end;
 

@@ -49,7 +49,7 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
           end else
             SetupUniforms := false;
         end else
-          VRMLWarning(vwIgnorable, 'Not enough free texture units to bind all textures for this GLSL shader');
+          OnWarning(wtMinor, 'VRML/X3D', 'Not enough free texture units to bind all textures for this GLSL shader');
       end;
     end;
 
@@ -86,12 +86,12 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
       end;
       Result := true;
     except
-      { We capture EGLSLUniformInvalid, converting it to VRMLWarning.
+      { We capture EGLSLUniformInvalid, converting it to OnWarning.
         This way we can set Result := false, which will prevent
         from wasting time and repeating the same warning on every frame. }
       on E: EGLSLUniformInvalid do
       begin
-        VRMLWarning(vwIgnorable, E.Message);
+        OnWarning(wtMinor, 'VRML/X3D', E.Message);
         Result := false;
       end;
     end;

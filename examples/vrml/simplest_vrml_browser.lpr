@@ -54,7 +54,7 @@ program simplest_vrml_browser;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, VRMLErrors, SysUtils;
+  VRMLScene, SysUtils, KambiWarnings;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
@@ -65,7 +65,7 @@ begin
   if Parameters.High = 1 then
     FileName := Parameters[1];
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
   BrowserWindow := TGLWindowVRMLBrowser.Create(Application);

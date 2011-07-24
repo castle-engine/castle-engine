@@ -54,7 +54,7 @@ type
       @link(Stream) if you want to read actual contents.
 
       If this is not a valid data URI, then we set @link(Valid) to @false,
-      make appropriate warning through DataWarning,
+      make appropriate warning through OnWarning,
       and reset Mime, Base64, Charset, URIPrefix to some default values. }
     property URI: string read FURI write SetURI;
     property Valid: boolean read FValid;
@@ -78,7 +78,7 @@ type
 
 implementation
 
-uses KambiURLUtils, DataErrors, KambiStringUtils, Base64;
+uses KambiURLUtils, KambiWarnings, KambiStringUtils, Base64;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
@@ -127,7 +127,7 @@ begin
 
   if not IsDataURI(URI, Colon) then
   begin
-    DataWarning('Not a data URI scheme');
+    OnWarning(wtMajor, 'Data URI', 'Not a data URI scheme');
     Exit;
   end;
 
@@ -160,7 +160,7 @@ begin
 
     if PosNow > Length(Value) then
     begin
-      DataWarning(Format('Data URI "%s" unexpectedly ended (expected ",")', [Value]));
+      OnWarning(wtMajor, 'Data URI', 'Unexpected end (expected ",")');
       Exit;
     end else
     if Value[PosNow] = ';' then
@@ -178,12 +178,12 @@ begin
         ValidBase64 := true else
       if IsPrefix('charset=', Part) then
         ValidCharset := SEnding(Part, Length('charset=') + 1) else
-        DataWarning(Format('Data URI has invalid part "%s" (expected "base64" or "charset=...")', [Part]));
+        OnWarning(wtMajor, 'Data URI', Format('Invalid part "%s" (expected "base64" or "charset=...")', [Part]));
     end else
     if Value[PosNow] in [',', ' '] then
     begin
       if Value[PosNow] = ' ' then
-        DataWarning('Data URI header terminated by space, which is invalid (you should terminate with a comma)');
+        OnWarning(wtMajor, 'Data URI', 'Header terminated by space, which is invalid (you should terminate with a comma)');
       Break;
     end;
   until false;

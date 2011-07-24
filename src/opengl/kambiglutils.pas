@@ -411,7 +411,7 @@ type
 
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
-  with -dRELEASE. With -dRELEASE, we make DataWarning. This way eventual
+  with -dRELEASE. With -dRELEASE, we make OnWarning. This way eventual
   errors in release builds don't completely abort your program.
 
   Without -dRELEASE, we raise EOpenGLError. So a developer is strongly
@@ -999,7 +999,7 @@ implementation
 {$define read_implementation}
 
 uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
-  KambiLog, DataErrors;
+  KambiLog, KambiWarnings;
 
 {$I glext_packed_depth_stencil.inc}
 
@@ -1300,7 +1300,7 @@ begin
   ErrorCode := glGetError();
   if ErrorCode <> GL_NO_ERROR then
     {$ifdef RELEASE}
-    DataWarning(GLErrorString(ErrorCode, AdditionalComment));
+    OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
     {$else}
     raise EOpenGLError.Create(ErrorCode, AdditionalComment);
     {$endif}

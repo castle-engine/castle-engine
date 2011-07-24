@@ -42,7 +42,7 @@
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
-  GLWindow, VRMLGLScene, VRMLErrors, Cameras,
+  GLWindow, VRMLGLScene, Cameras, KambiWarnings,
   ShadowFields, KambiUtils, CubeMap, VRMLNodes, KambiSceneManager,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 
@@ -570,7 +570,7 @@ begin
     LocalLightFileName := Parameters[3];
 
   try
-    VRMLWarning := @VRMLWarning_Write;
+    OnWarning := @OnWarningWrite;
 
     RenderParams := TBasicRenderParams.Create;
 

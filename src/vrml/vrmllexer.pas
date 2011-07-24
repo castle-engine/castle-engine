@@ -25,7 +25,7 @@ unit VRMLLexer;
 interface
 
 uses SysUtils, Classes, KambiUtils, KambiStringUtils, KambiClassUtils,
-  Math, VRMLErrors {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
+  Math {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
 
 type
   { Valid keywords for all VRML / X3D versions. }
@@ -318,6 +318,9 @@ type
     procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
     procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
   end;
+
+  { Any error related to VRML/X3D. }
+  EVRMLError = class(Exception);
 
   { Error when reading VRML/X3D classic encoding. }
   EVRMLClassicReadError = class(EVRMLError)

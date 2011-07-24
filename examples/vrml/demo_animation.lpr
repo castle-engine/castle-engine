@@ -64,10 +64,10 @@
 
 program demo_animation;
 
-uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
+uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Object3DAsVRML,
   KambiGLUtils, VRMLGLScene, VRMLGLAnimation,
-  KambiFilesUtils, ParseParametersUnit, GLProgress, ProgressUnit, VRMLErrors,
+  KambiFilesUtils, ParseParametersUnit, GLProgress, ProgressUnit,
   KambiSceneManager;
 
 var
@@ -161,7 +161,7 @@ begin
   ParseParameters(Options, @OptionProc, nil);
 
   try
-    VRMLWarning := @VRMLWarning_Write;
+    OnWarning := @OnWarningWrite;
 
     Animation := TVRMLGLAnimation.Create(nil);
 

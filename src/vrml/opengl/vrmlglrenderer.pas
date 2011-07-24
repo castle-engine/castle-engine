@@ -221,7 +221,7 @@ uses
   Classes, SysUtils, KambiUtils, VectorMath, GL, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLGLRendererLights, TTFontsTypes,
-  VRMLErrors, GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
+  GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
   GLCubeMap, KambiClassUtils, DDS, Base3D, FGL
   {$ifdef VER2_2}, FGLObjectList22 {$endif},
   GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps,
@@ -1265,7 +1265,7 @@ var
 
 implementation
 
-uses Math, KambiStringUtils, GLVersionUnit, KambiLog,
+uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
   RenderingCameraUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
@@ -1305,7 +1305,7 @@ destructor TVRMLGLRendererContextCache.Destroy;
   procedure Assert(const B: boolean; const S: string = '');
   begin
     if not B then
-      VRMLWarning(vwIgnorable, 'GLRendererContextCache warning: ' + S);
+      OnWarning(wtMinor, 'VRML/X3D', 'GLRendererContextCache warning: ' + S);
   end;
 {$endif}
 
@@ -1862,13 +1862,13 @@ begin
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
       end else
-        VRMLWarning(vwSerious, Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
+        OnWarning(wtMajor, 'VRML/X3D', Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
     end else
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else
-    VRMLWarning(vwIgnorable, 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
+    OnWarning(wtMinor, 'VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
 
   TextureCached := TextureDepthOrFloatCaches.Add;
   TextureCached^.InitialNode := Node;
@@ -2120,7 +2120,7 @@ begin
       FreeAndNil(Result.ShaderProgram);
       { Note: leave Result assigned and Result.Hash set,
         to avoid reinitializing this shader next time. }
-      VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for shape "%s": %s',
+      OnWarning(wtMinor, 'VRML/X3D', Format('Cannot use GLSL shader for shape "%s": %s',
         [ShapeNiceName, E.Message]));
     end;
   end;
@@ -2653,7 +2653,7 @@ begin
         except on E: EGLSLError do
           begin
             FreeAndNil(ShaderProgram);
-            VRMLWarning(vwIgnorable, Format('Cannot use GLSL shader for ScreenEffect: %s',
+            OnWarning(wtMinor, 'VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
               [E.Message]));
           end;
         end;
@@ -3081,7 +3081,7 @@ const
           but it's not a real problem --- EXT_fog_coord is supported
           on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
           seems enough. }
-        VRMLWarning(vwIgnorable, 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
+        OnWarning(wtMinor, 'VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
         VisibilityRangeScaled *= 5;
       end;
 
@@ -3104,7 +3104,7 @@ const
       if Node.FdFogType.Value = 'EXPONENTIAL' then
         FogType := ftExp else
       begin
-        VRMLWarning(vwSerious, 'Unknown fog type "' + Node.FdFogType.Value + '"');
+        OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type "' + Node.FdFogType.Value + '"');
         FogType := ftLinear;
       end;
 
@@ -3241,7 +3241,7 @@ begin
                (Child is TNodeX3DTextureTransformNode) then
             begin
               if Child is TNodeMultiTextureTransform then
-                VRMLWarning(vwSerious, 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
+                OnWarning(wtMajor, 'VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
                 TextureMultMatrix(TNodeX3DTextureTransformNode(Child));
             end;
           end;
@@ -3421,7 +3421,7 @@ begin
   { Initalize MeshRenderer to something non-nil. }
   if not InitMeshRenderer then
   begin
-    VRMLWarning(vwSerious, Format('Rendering of node kind "%s" not implemented',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Rendering of node kind "%s" not implemented',
       [Shape.NiceName]));
     Exit;
   end;
@@ -3793,7 +3793,7 @@ var
       ( (UpdateIndex = 2) and Handler.UpdateNeeded );
 
     if UpdateIndex = -1 then
-      VRMLWarning(vwSerious, Format('%s.update invalid field value "%s", will be treated like "NONE"',
+      OnWarning(wtMajor, 'VRML/X3D', Format('%s.update invalid field value "%s", will be treated like "NONE"',
         [TextureNode.NodeTypeName, Handler.FdUpdate.Value]));
   end;
 
@@ -3856,7 +3856,7 @@ var
             WritelnLog('GeneratedShadowMap', 'GeneratedShadowMap texture regenerated');
         end;
       end else
-        VRMLWarning(vwSerious, 'GeneratedShadowMap needs updating, but light = NULL or incorrect');
+        OnWarning(wtMajor, 'VRML/X3D', 'GeneratedShadowMap needs updating, but light = NULL or incorrect');
     end;
   end;
 

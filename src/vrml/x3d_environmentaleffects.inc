@@ -438,7 +438,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
       except
         on E: Exception do
         begin
-          VRMLWarning(vwIgnorable, Format(SLoadError,
+          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
             [E.ClassName, 'background image', URL, E.Message]));
           { and silence exception }
         end;
@@ -460,7 +460,7 @@ begin
         LoadImg(bsTop, FdTopUrl);
       except
         { In case of trouble, free the images that were loaded.
-          This may happen if VRMLWarning raises exception and some
+          This may happen if OnWarning raises exception and some
           image cannot be loaded. }
         FbgImages.FreeAll(VRMLCache);
         raise;

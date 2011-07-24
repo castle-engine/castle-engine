@@ -116,7 +116,7 @@ end;
   However, this is a particular parsing error, because we can probably
   pretty safely continue parsing, ignoring this error.
   So if you pass NilIfUnresolvedUSE = @true, this function will do
-  VRMLWarning and simply return @nil.
+  OnWarning and simply return @nil.
 
   @raises(EVRMLParserError On various parsing errors.)
 *)
@@ -179,7 +179,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       on E: EVRMLPrototypeInstantiateError do
         { Just write E.Message and silence the exception.
           Result will simply remain as TVRMLPrototypeNode instance in this case. }
-        VRMLWarning(vwSerious, E.Message);
+        OnWarning(wtMajor, 'VRML/X3D', E.Message);
     end;
 
     { Cycles in VRML graph are bad:
@@ -224,7 +224,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       And events like addChildren can create cycles easily.
 
       For now, NilIfUnresolvedUSE successfully changes there special
-      cycles in Script into mere VRMLWarning, so they don't stop
+      cycles in Script into mere OnWarning, so they don't stop
       us from reading the rest of VRML file. And since we don't handle
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
@@ -270,7 +270,7 @@ begin
                Result := nil; { return nil in case of cycles }
              end;
              if NilIfUnresolvedUSE then
-               VRMLWarning(vwSerious, S) else
+               OnWarning(wtMajor, 'VRML/X3D', S) else
                raise EVRMLParserError.Create(Lexer, S);
            end;
 
@@ -317,7 +317,7 @@ var
     end else
       { We allow PROFILE to be omitted, which is not really allowed by
         X3D spec. }
-      VRMLWarning(vwSerious, 'X3D PROFILE statement missing');
+      OnWarning(wtMajor, 'VRML/X3D', 'X3D PROFILE statement missing');
   end;
 
   procedure ParseComponents;
@@ -496,7 +496,7 @@ begin
     begin
       { Somewhat more involved version of the loop, the idea is to catch
         EVRMLClassicReadError happening in the ParseVRMLStatement
-        and convert it to VRMLWarning (then merely stop reading VRML file,
+        and convert it to OnWarning (then merely stop reading VRML file,
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
       try
@@ -505,7 +505,7 @@ begin
       except
         on E: EVRMLClassicReadError do
         begin
-          VRMLWarning(vwSerious, Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
+          OnWarning(wtMajor, 'VRML/X3D', Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
           Break;
         end;
       end;

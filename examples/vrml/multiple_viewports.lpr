@@ -24,9 +24,8 @@
 { $define ADD_GL_ANIMATION}
 
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
-  UIControls, Cameras, Quaternions, VectorMath, GLControls,
-  KambiUtils, KambiGLUtils, OpenGLFonts,
-  Object3DAsVRML, VRMLErrors, GLShaders;
+  UIControls, Cameras, Quaternions, VectorMath, GLControls, KambiWarnings,
+  KambiUtils, KambiGLUtils, OpenGLFonts, Object3DAsVRML, GLShaders;
 
 { TBackground ---------------------------------------------------------------- }
 
@@ -318,7 +317,7 @@ begin
   if Parameters.High = 1 then
     FileName := Parameters[1];
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   Scene := TVRMLGLScene.Create(Application);
   Scene.Load(FileName);

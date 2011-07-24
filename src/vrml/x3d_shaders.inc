@@ -143,8 +143,8 @@
 
     { Load shader code from node's URLs.
       Will return '' if no valid URLs present.
-      (Assuming that VRMLWarning will not raise
-      an exception. If VRMLWarning will raise exception,
+      (Assuming that OnWarning will not raise
+      an exception. If OnWarning will raise exception,
       then this will propagate this exception).
 
       Sets UsedFullUrl. }
@@ -370,7 +370,7 @@ begin
 
   if (not UpperCaseChecked) and (UpperValue <> Value) then
   begin
-    VRMLWarning(vwSerious, Format('Shader "type" should be uppercase, but is not: "%s"',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Shader "type" should be uppercase, but is not: "%s"',
       [Value]));
     UpperCaseChecked := true;
   end;
@@ -389,7 +389,7 @@ begin
     Result := false;
     if not WarningInvalidValueDone then
     begin
-      VRMLWarning(vwSerious, Format('Unknown "type" for shader: "%s"', [Value]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "type" for shader: "%s"', [Value]));
       WarningInvalidValueDone := true;
     end;
   end;
@@ -435,7 +435,7 @@ function ShaderLoadContents(var UsedFullUrl: string;
     - sets FUsedFullUrl, ShaderSource
     - returns true
     otherwise
-    - makes VRMLWarning
+    - makes OnWarning
     - returns false }
   function LoadFromDataProtocol(const URL: string; out ShaderSource: string): boolean;
   var
@@ -449,7 +449,7 @@ function ShaderLoadContents(var UsedFullUrl: string;
 
       if Data.Mime <> 'text/plain' then
       begin
-        VRMLWarning(vwSerious, Format('Data mime-type "%s" not recognized as shader source, not loading. If this is a valid shader source mime type that should be supported, please report.', [Data.Mime]));
+        OnWarning(wtMajor, 'VRML/X3D', Format('Data mime-type "%s" not recognized as shader source, not loading. If this is a valid shader source mime type that should be supported, please report.', [Data.Mime]));
         Exit(false);
       end;
 
@@ -460,8 +460,8 @@ function ShaderLoadContents(var UsedFullUrl: string;
       except
         on E: Exception do
         begin
-          { Remember that VRMLWarning *may* raise an exception. }
-          VRMLWarning(vwIgnorable, Format(SDataURILoadError,
+          { Remember that OnWarning *may* raise an exception. }
+          OnWarning(wtMinor, 'VRML/X3D', Format(SDataURILoadError,
             [E.ClassName, 'shader source', Data.URIPrefix, E.Message]));
           Result := false;
         end;
@@ -496,8 +496,8 @@ begin
         Exit;
       except
         on E: Exception do
-          { Remember that VRMLWarning *may* raise an exception. }
-          VRMLWarning(vwIgnorable, Format(SLoadError,
+          { Remember that OnWarning *may* raise an exception. }
+          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
             [E.ClassName, 'shader file', FullUrl, E.Message]));
       end;
     end;

@@ -22,7 +22,7 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, KambiUtils, Images, DDS, DataErrors, KambiStringUtils,
+uses SysUtils, KambiUtils, Images, DDS, KambiWarnings, KambiStringUtils,
   ParseParametersUnit;
 
 var
@@ -46,7 +46,7 @@ var
   OutputName, OutputBaseName: string;
   I: Integer;
 begin
-  DataWarning := @DataWarning_Write;
+  OnWarning := @OnWarningWrite;
   ParseParameters(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
   DImg := TDDSImage.Create;

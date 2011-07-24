@@ -1974,7 +1974,7 @@ type
 
 implementation
 
-uses VRMLCameraUtils, KambiStringUtils, KambiLog, VRMLErrors, DateUtils,
+uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
   Object3DAsVRML;
 
 {$define read_implementation}
@@ -2240,7 +2240,7 @@ begin
 
       if (Tex is TNodeGeneratedCubeMapTexture) and
          (Shape <> GenTex^.Shape) then
-        VRMLWarning(vwSerious, 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+        OnWarning(wtMajor, 'VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
     begin
       GenTex := Add;
@@ -5950,7 +5950,7 @@ var
     if (NavigationType = 'EXAMINE') or (NavigationType = 'LOOKAT') then
     begin
       if NavigationType = 'LOOKAT' then
-        VRMLWarning(vwIgnorable, 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
+        OnWarning(wtMinor, 'VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
       if Universal <> nil then Universal.NavigationClass := ncExamine;
     end else
@@ -5958,7 +5958,7 @@ var
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
     end else
-      VRMLWarning(vwSerious, Format('Unknown NavigationInfo.type "%s"',
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown NavigationInfo.type "%s"',
         [NavigationType]));
   end;
 
@@ -6158,7 +6158,7 @@ begin
       if (TransitionType = 'LINEAR') or (TransitionType = 'ANIMATE') then
         { Leave TransitionAnimate as true }
         Break else
-        VRMLWarning(vwIgnorable, Format('Unrecognized transitionType "%s"', [TransitionType]));
+        OnWarning(wtMinor, 'VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
     end;
 
   { calculate TransitionTime }

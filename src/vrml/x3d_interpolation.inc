@@ -365,7 +365,7 @@ var
     begin
       Result.Items.AppendDynArray(FdKeyValue.Items, Index * FrameValues, FrameValues);
     end else
-      VRMLWarning(vwSerious, Format('Not enough keyValue items for %s interpolator',
+      OnWarning(wtMajor, 'VRML/X3D', Format('Not enough keyValue items for %s interpolator',
         [NodeTypeName]));
   end;
 
@@ -384,7 +384,7 @@ var
       Result.Items.AssignLerp(T, FdKeyValue.Items, FdKeyValue.Items,
         Index1 * FrameValues, Index2 * FrameValues, FrameValues);
     end else
-      VRMLWarning(vwSerious, Format('Not enough keyValue items for %s interpolator',
+      OnWarning(wtMajor, 'VRML/X3D', Format('Not enough keyValue items for %s interpolator',
         [NodeTypeName]));
   end;
 

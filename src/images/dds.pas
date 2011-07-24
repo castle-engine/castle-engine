@@ -190,7 +190,7 @@ const
 
 implementation
 
-uses SysUtils, KambiUtils, KambiClassUtils, DataErrors, KambiStringUtils,
+uses SysUtils, KambiUtils, KambiClassUtils, KambiWarnings, KambiStringUtils,
   VectorMath;
 
 { ----------------------------------------------------------------------------
@@ -533,7 +533,7 @@ procedure TDDSImage.LoadFromStream(Stream: TStream);
   procedure CheckWarn(const Check: boolean; const Message: string);
   begin
     if not Check then
-      DataWarning('DDS image: ' + Message);
+      OnWarning(wtMajor, 'DDS image', Message);
   end;
 
 var
@@ -982,10 +982,10 @@ var
         try
           Res.FlipVertical;
         except
-          { Change ECannotFlipS3TCImage into DataWarning,
+          { Change ECannotFlipS3TCImage into OnWarning,
             image will be inverted but otherwise Ok. }
           on E: ECannotFlipS3TCImage do
-            DataWarning(E.Message);
+            OnWarning(wtMinor, 'S3TC', E.Message);
         end;
       end;
 

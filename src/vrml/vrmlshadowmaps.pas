@@ -50,7 +50,7 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
 
 implementation
 
-uses SysUtils, KambiUtils, VRMLFields, VRMLErrors, KambiStringUtils,
+uses SysUtils, KambiUtils, VRMLFields, KambiStringUtils, KambiWarnings,
   Boxes3D, KambiLog, VectorMath;
 
 {$define read_interface}
@@ -466,7 +466,7 @@ begin
     Better check it here, before we start changing anything. }
   if Shape.Geometry.TexCoordField = nil then
   begin
-    VRMLWarning(vwIgnorable, 'Geometry node "' + Shape.Geometry.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
+    OnWarning(wtMinor, 'VRML/X3D', 'Geometry node "' + Shape.Geometry.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
 
@@ -592,7 +592,7 @@ begin
         { Although we try to construct things only when they will be actually
           used (so no unused nodes should remain now for free), actually
           there is a chance something remained unused if HandleLight failed
-          with VRMLWarning after FindLight. }
+          with OnWarning after FindLight. }
         L^.ShadowMap.FreeIfUnused;
         L^.ShadowMap := nil;
         L^.TexGen.FreeIfUnused;

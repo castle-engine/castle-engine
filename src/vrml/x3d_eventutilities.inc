@@ -409,7 +409,7 @@ procedure TNodeBooleanSequencer.SendValueChanged(const ValueIndex: Integer;
   const Time: TVRMLTime);
 begin
   if FdKeyValue.Count <> FdKey.Count then
-    VRMLWarning(vwSerious, 'BooleanSequencer node: key and keyValue fields should have the same size');
+    OnWarning(wtMajor, 'VRML/X3D', 'BooleanSequencer node: key and keyValue fields should have the same size');
   if ValueIndex < FdKeyValue.Count then
     EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
@@ -509,7 +509,7 @@ procedure TNodeIntegerSequencer.SendValueChanged(const ValueIndex: Integer;
   const Time: TVRMLTime);
 begin
   if FdKeyValue.Count <> FdKey.Count then
-    VRMLWarning(vwSerious, 'IntegerSequencer node: key and keyValue fields should have the same size');
+    OnWarning(wtMajor, 'VRML/X3D', 'IntegerSequencer node: key and keyValue fields should have the same size');
   if ValueIndex < FdKeyValue.Count then
     EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;

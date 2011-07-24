@@ -178,7 +178,7 @@ begin
             except
               on E: EKamScriptError do
               begin
-                VRMLWarning(vwSerious, 'Error when executing KambiScript: ' + E.Message);
+                OnWarning(wtMajor, 'VRML/X3D', 'Error when executing KambiScript: ' + E.Message);
                 Exit;
               end;
             end;
@@ -260,7 +260,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
       except
         { This catches exceptions from KambiScriptInitialize }
         on E: EKamScriptSyntaxError do
-          VRMLWarning(vwSerious, Format(
+          OnWarning(wtMajor, 'VRML/X3D', Format(
             'Exception %s when parsing KambiScript: %s',
               [E.ClassName, E.Message ]));
       end;
@@ -283,7 +283,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
           and exceptions from KambiScriptInitialize
           (EKamScriptSyntaxError only). }
         on E: Exception do
-          VRMLWarning(vwIgnorable, Format(
+          OnWarning(wtMinor, 'VRML/X3D', Format(
             'Exception %s when loading Script from URL "%s": %s',
               [E.ClassName, PotentialFullUrl, E.Message ]));
       end;
@@ -341,7 +341,7 @@ begin
       begin
         if FailedUrlsLog <> '' then
           FailedUrlsLog := ' (' + FailedUrlsLog + ')';
-        VRMLWarning(vwIgnorable, 'Script node ignored: no supported protocol found' + FailedUrlsLog);
+        OnWarning(wtMinor, 'VRML/X3D', 'Script node ignored: no supported protocol found' + FailedUrlsLog);
       end;
     end else
     begin

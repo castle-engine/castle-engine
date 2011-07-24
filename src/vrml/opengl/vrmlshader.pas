@@ -70,7 +70,7 @@ type
       @raises(EGLSLUniformInvalid When uniform variable name
         or type are invalid.
 
-        Caller should always catch this and change into VRMLWarning.
+        Caller should always catch this and change into OnWarning.
 
         X3D spec "OpenGL shading language (GLSL) binding" says
         "If the name is not available as a uniform variable in the
@@ -383,8 +383,8 @@ operator = (const A, B: TShaderCodeHash): boolean;
 
 implementation
 
-uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils,
-  VRMLErrors, KambiLog, StrUtils, Base3D, GLVersionUnit;
+uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils, KambiWarnings,
+  KambiLog, StrUtils, Base3D, GLVersionUnit;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call
@@ -406,14 +406,14 @@ begin
 
     if P > Length(S) then
     begin
-      VRMLWarning(vwIgnorable, 'PLUG declaration unexpected end (no opening parenthesis "(")');
+      OnWarning(wtMinor, 'VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(")');
       Exit(false);
     end;
 
     if (S[P] <> '(') and
        not (S[P] in WhiteSpaces) then
     begin
-      VRMLWarning(vwIgnorable, Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
+      OnWarning(wtMinor, 'VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
         [S[P]]));
       Exit(false);
     end;
@@ -431,7 +431,7 @@ begin
     Inc(P);
     if P > Length(S) then
     begin
-      VRMLWarning(vwIgnorable, 'PLUG declaration unexpected end (no closing parenthesis ")")');
+      OnWarning(wtMinor, 'VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
       Exit(false);
     end;
 
@@ -738,11 +738,11 @@ begin
       So set GLSL uniform variable from this field. }
     SetUniformFromField(UniformField.Name, UniformField, EnableDisable);
   except
-    { We capture EGLSLUniformInvalid, converting it to VRMLWarning and exit.
+    { We capture EGLSLUniformInvalid, converting it to OnWarning and exit.
       This way we will not add this field to EventsObserved. }
     on E: EGLSLUniformInvalid do
     begin
-      VRMLWarning(vwIgnorable, E.Message);
+      OnWarning(wtMinor, 'VRML/X3D', E.Message);
       Exit;
     end;
   end;
@@ -911,7 +911,7 @@ begin
       "OpenGL shading language (GLSL) binding".
       Remaining:
       SF/MFImage }
-    VRMLWarning(vwSerious, 'Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
+    OnWarning(wtMajor, 'VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.VRMLTypeName + '" not supported');
 
   if EnableDisable then
     { TODO: this should restore previously bound program }
@@ -931,11 +931,11 @@ begin
   try
     SetUniformFromField(UniformName, Value, true);
   except
-    { We capture EGLSLUniformInvalid, converting it to VRMLWarning.
+    { We capture EGLSLUniformInvalid, converting it to OnWarning.
       This way we remove this event from OnReceive list. }
     on E: EGLSLUniformInvalid do
     begin
-      VRMLWarning(vwIgnorable, E.Message);
+      OnWarning(wtMinor, 'VRML/X3D', E.Message);
       Event.RemoveHandler(@EventReceive);
       EventsObserved.Remove(Event);
       Exit;
@@ -1301,7 +1301,7 @@ var
       PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
       Result :=  PEnd <> 0;
       if not Result then
-        VRMLWarning(vwIgnorable, Format('Plug comment "%s" not properly closed, treating like not declared',
+        OnWarning(wtMinor, 'VRML/X3D', Format('Plug comment "%s" not properly closed, treating like not declared',
           [CommentBegin]));
     end;
   end;
@@ -1378,7 +1378,7 @@ begin
     end;
 
     if (not AnyOccurences) and WarnMissingPlugs then
-      VRMLWarning(vwIgnorable, Format('Plug name "%s" not declared', [PlugName]));
+      OnWarning(wtMinor, 'VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
   until false;
 
   { regardless if any (and how many) plug points were found,
@@ -1411,7 +1411,7 @@ begin
   end;
 
   if (not Result) and WarnMissingPlugs then
-    VRMLWarning(vwIgnorable, Format('Plug point "%s" not found', [PlugName]));
+    OnWarning(wtMinor, 'VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
 procedure TVRMLShader.EnableEffects(Effects: TMFNode;
@@ -1450,7 +1450,7 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
 
     if Effect.FdLanguage.Value <> 'GLSL' then
     begin
-      VRMLWarning(vwIgnorable, Format('Unknown shading language "%s" for Effect node',
+      OnWarning(wtMinor, 'VRML/X3D', Format('Unknown shading language "%s" for Effect node',
         [Effect.FdLanguage.Value]));
       Exit;
     end;

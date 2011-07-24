@@ -45,8 +45,8 @@
 program direct_vrmlglscene_test_1;
 
 uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLGLScene, Cameras, KambiFilesUtils, VRMLErrors;
+  KambiClassUtils, KambiUtils, SysUtils, Classes, KambiWarnings,
+  KambiGLUtils, VRMLGLScene, Cameras, KambiFilesUtils;
 
 var
   Window: TGLUIWindow;
@@ -77,7 +77,7 @@ begin
 
   Parameters.CheckHigh(1);
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
   Scene := TVRMLGLScene.Create(nil);
   try
     Scene.Load(Parameters[1]);

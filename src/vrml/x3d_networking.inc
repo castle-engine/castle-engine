@@ -287,7 +287,7 @@ function TNodeAnchor.LoadAnchor(
 
   procedure ViewpointNameInvalid(const NewViewpointName: string);
   begin
-    VRMLWarning(vwSerious, Format('Viewpoint "%s" specified by Anchor not found',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Viewpoint "%s" specified by Anchor not found',
       [NewViewpointName]));
   end;
 
@@ -339,8 +339,8 @@ begin
       except
         on E: Exception do
         begin
-          { Catch exception and produce VRMLWarning, go to next URL }
-          VRMLWarning(vwSerious, Format('Loading world from Anchor URL "%s" failed: %s',
+          { Catch exception and produce OnWarning, go to next URL }
+          OnWarning(wtMajor, 'VRML/X3D', Format('Loading world from Anchor URL "%s" failed: %s',
             [FullUrl, E.Message]));
           Continue;
         end;
@@ -492,8 +492,8 @@ begin
         Break;
       except
         on E: Exception do
-          { Careful here, as VRMLWarning may also raise exception. }
-          VRMLWarning(vwIgnorable, Format(SLoadError,
+          { Careful here, as OnWarning may also raise exception. }
+          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
             [E.ClassName, 'inline file', FullUrl, E.Message]));
       end;
     end;
@@ -508,7 +508,7 @@ begin
   { Whether or not we successfully got FInlined <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
     at next LoadInlined(false) (this would be bad, as we already did
-    VRMLWarning in case loading failed and such). }
+    OnWarning in case loading failed and such). }
   Loaded := true;
 end;
 

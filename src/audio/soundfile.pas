@@ -171,7 +171,7 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses KambiStringUtils, VorbisDecoder, VorbisFile, DataErrors;
+uses KambiStringUtils, VorbisDecoder, VorbisFile, KambiWarnings;
 
 { TSoundFile ----------------------------------------------------------------- }
 
@@ -439,7 +439,7 @@ begin
   if Riff.Header.Len = Stream.Size then
   begin
     Riff.Header.Len -= SizeOf(TWavChunkHeader);
-    DataWarning('WAV file is invalid ' +
+    OnWarning(wtMajor, 'WAV', 'WAV file is invalid ' +
       '(Riff.Header.Len equals Stream.Size, but it should be ' +
       '<= Stream.Size - SizeOf(TWavChunkHeader)). Reading anyway.');
   end;

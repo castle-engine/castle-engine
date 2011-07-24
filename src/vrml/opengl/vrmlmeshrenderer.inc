@@ -195,7 +195,7 @@ var
         { Do not make warnings about missing internal attributes
           (for the same reason as uniform values, see VRMLShader). }
         if not Arrays.Attribs[I].Internal then
-          VRMLWarning(vwSerious, E.Message);
+          OnWarning(wtMajor, 'VRML/X3D', E.Message);
     end;
   end;
 
@@ -480,7 +480,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         begin
           if not GL_ARB_texture_cube_map then
           begin
-            VRMLWarning(vwSerious, 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
+            OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -508,7 +508,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         begin
           if not GL_ARB_texture_cube_map then
           begin
-            VRMLWarning(vwSerious, 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
+            OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_S, GL_OBJECT_PLANE, Vector4Single(1, 0, 0, 0));
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);

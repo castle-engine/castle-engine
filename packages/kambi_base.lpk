@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="161">
+    <Files Count="160">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -183,8 +183,8 @@
         <UnitName Value="XmlSoundEngine"/>
       </Item33>
       <Item34>
-        <Filename Value="../src/base/dataerrors.pas"/>
-        <UnitName Value="DataErrors"/>
+        <Filename Value="../src/base/kambiwarnings.pas"/>
+        <UnitName Value="KambiWarnings"/>
       </Item34>
       <Item35>
         <Filename Value="../src/base/enumeratefiles.pas"/>
@@ -644,10 +644,6 @@
         <Filename Value="../src/vrml/vrmlcamerautils.pas"/>
         <UnitName Value="VRMLCameraUtils"/>
       </Item146>
-      <Item147>
-        <Filename Value="../src/vrml/vrmlerrors.pas"/>
-        <UnitName Value="VRMLErrors"/>
-      </Item147>
       <Item148>
         <Filename Value="../src/vrml/vrmlfields.pas"/>
         <UnitName Value="VRMLFields"/>
@@ -700,10 +696,10 @@
         <Filename Value="../src/vrml/vrmltriangle.pas"/>
         <UnitName Value="VRMLTriangle"/>
       </Item160>
-      <Item161>
+      <Item147>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
-      </Item161>
+      </Item147>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

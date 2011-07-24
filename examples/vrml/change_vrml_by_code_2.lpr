@@ -21,9 +21,9 @@
 
 program change_vrml_by_code_2;
 
-uses VectorMath, VRMLNodes, GL, GLU, GLWindow,
+uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, KambiSceneManager,
-  KambiFilesUtils, VRMLErrors, Quaternions {$ifdef LOG} ,KambiLog {$endif};
+  KambiFilesUtils, Quaternions {$ifdef LOG} ,KambiLog {$endif};
 
 var
   Window: TGLUIWindow;
@@ -96,7 +96,7 @@ begin
   Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(0);
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;

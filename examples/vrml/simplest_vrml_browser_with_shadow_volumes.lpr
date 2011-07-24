@@ -29,7 +29,7 @@ program simplest_vrml_browser_with_shadow_volumes;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, VRMLErrors;
+  VRMLScene, KambiWarnings;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
@@ -43,7 +43,7 @@ end;
 begin
   Parameters.CheckHigh(1);
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
   BrowserWindow := TGLWindowVRMLBrowser.Create(Application);

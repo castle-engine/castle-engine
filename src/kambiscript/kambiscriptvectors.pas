@@ -416,7 +416,7 @@ type
 
 implementation
 
-uses KambiScriptCoreFunctions, KambiUtils, DataErrors, Cameras, Quaternions;
+uses KambiScriptCoreFunctions, KambiUtils, KambiWarnings, Cameras, Quaternions;
 
 { Single-precision vectors --------------------------------------------------- }
 
@@ -485,7 +485,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     TKamScriptVec3f(AResult).Value := Point;
-    DataWarning('Rotation around zero vector');
+    OnWarning(wtMajor, 'KambiScript', 'Rotation around zero vector');
   end;
 end;
 

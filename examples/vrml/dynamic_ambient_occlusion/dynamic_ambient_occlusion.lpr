@@ -29,8 +29,8 @@ program dynamic_ambient_occlusion;
 uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
   KambiGLUtils, VRMLScene, VRMLGLScene, Base3D,
-  KambiFilesUtils, KambiStringUtils, VRMLErrors, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, DataErrors,
+  KambiFilesUtils, KambiStringUtils, GLShaders, VRMLShape,
+  VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, KambiWarnings,
   GLVersionUnit, Math, KambiSceneManager, RenderingCameraUnit;
 
 type
@@ -892,8 +892,7 @@ begin
 
   Parameters.CheckHigh(1);
   try
-    VRMLWarning := @VRMLWarning_Write;
-    DataWarning := @DataWarning_Write;
+    OnWarning := @OnWarningWrite;
 
     Scene := TVRMLGLScene.Create(Glw);
     Scene.Load(Parameters[1]);

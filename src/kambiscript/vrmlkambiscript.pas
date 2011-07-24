@@ -95,7 +95,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 
 implementation
 
-uses SysUtils, VRMLNodes, VRMLErrors, KambiLog, KambiScriptVectors,
+uses SysUtils, VRMLNodes, KambiLog, KambiScriptVectors, KambiWarnings,
   VectorMath, KambiScriptImages, KambiScriptArrays;
 
 {$define read_implementation}
@@ -184,7 +184,7 @@ begin
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TKamScriptImage.Create(true) else
   begin
-    VRMLWarning(vwSerious, 'Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
+    OnWarning(wtMajor, 'VRML/X3D', 'Note that KambiScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
     Result := TKamScriptFloat.Create(true);
   end;
 

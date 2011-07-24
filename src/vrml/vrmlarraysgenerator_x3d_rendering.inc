@@ -203,7 +203,7 @@ begin
     Color := TNodeColor(Node.FdColor.Value).FdColor;
     if (Coord <> nil) and (Color.Count < Coord.Count) then
     begin
-      VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
+      OnWarning(wtMajor, 'VRML/X3D', 'Not enough colors specified for PointSet');
       Color := nil;
     end;
   end;
@@ -214,7 +214,7 @@ begin
     ColorRGBA := TNodeColorRGBA(Node.FdColor.Value).FdColor;
     if (Coord <> nil) and (ColorRGBA.Count < Coord.Count) then
     begin
-      VRMLWarning(vwSerious, 'Not enough colors specified for PointSet');
+      OnWarning(wtMajor, 'VRML/X3D', 'Not enough colors specified for PointSet');
       ColorRGBA := nil;
     end;
   end;
@@ -234,7 +234,7 @@ begin
     Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
     begin
-      VRMLWarning(vwSerious, 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+      OnWarning(wtMajor, 'VRML/X3D', 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity);
     end else
     begin
@@ -556,7 +556,7 @@ begin
       cause bad rendering of remaining stuff, as we will not add
       count = 1 or 2 (necessary for omitting these vertexes).
       This is invalid according to X3D spec, so no promise of valid rendering. }
-    VRMLWarning(vwSerious, 'Triangle fan has less than 3 vertexes.')
+    OnWarning(wtMajor, 'VRML/X3D', 'Triangle fan has less than 3 vertexes.')
 end;
 
 { TTriangleStripSetGenerator -------------------------------------------------- }
@@ -785,7 +785,7 @@ begin
       cause bad rendering of remaining stuff, as we will not add
       count = 1 or 2 (necessary for omitting these vertexes).
       This is invalid according to X3D spec, so no promise of valid rendering. }
-    VRMLWarning(vwSerious, 'Triangle strip has less than 3 vertexes.');
+    OnWarning(wtMajor, 'VRML/X3D', 'Triangle strip has less than 3 vertexes.');
 end;
 
 { TQuadSetGenerator ------------------------------------------------------- }
@@ -1027,7 +1027,7 @@ begin
     Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
     begin
-      VRMLWarning(vwSerious, 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+      OnWarning(wtMajor, 'VRML/X3D', 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity)
     end else
     begin

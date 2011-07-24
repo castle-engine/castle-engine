@@ -144,7 +144,7 @@ begin
     { VRML >= 2.0 }
     if Shape.Node <> nil then
       M2 := Shape.Node.Material else
-      VRMLWarning(vwSerious, 'VRML node "' + Shape.Geometry.NodeTypeName +
+      OnWarning(wtMajor, 'VRML/X3D', 'VRML node "' + Shape.Geometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
     { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
     MaterialLit := M2 <> nil;

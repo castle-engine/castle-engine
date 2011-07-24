@@ -62,19 +62,19 @@ begin
 
   if Element.TagName <> 'connect' then
   begin
-    VRMLWarning(vwSerious, 'Only <connect> elements are allowed inside <IS> element');
+    OnWarning(wtMajor, 'VRML/X3D', 'Only <connect> elements are allowed inside <IS> element');
     Exit;
   end;
 
   if not DOMGetAttribute(Element, 'nodeField', NodeField) then
   begin
-    VRMLWarning(vwSerious, 'Missing "nodeField" inside <connect> element');
+    OnWarning(wtMajor, 'VRML/X3D', 'Missing "nodeField" inside <connect> element');
     Exit;
   end;
 
   if not DOMGetAttribute(Element, 'protoField', ProtoField) then
   begin
-    VRMLWarning(vwSerious, 'Missing "protoField" inside <connect> element');
+    OnWarning(wtMajor, 'VRML/X3D', 'Missing "protoField" inside <connect> element');
     Exit;
   end;
 
@@ -100,7 +100,7 @@ begin
           NodeFieldOrEvent.PositionInParent := PositionInParent;
           Inc(PositionInParent);
         end else
-          VRMLWarning(vwSerious, Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
+          OnWarning(wtMajor, 'VRML/X3D', Format('<connect> element "nodeField" doesn''t indicate any known field/event name: "%s"', [NodeField]));
       end;
   finally FreeAndNil(I) end;
 end;
@@ -119,7 +119,7 @@ end;
   However, this is a particular parsing error, because we can probably
   pretty safely continue parsing, ignoring this error.
   So if you pass NilIfUnresolvedUSE = @true, this function will do
-  VRMLWarning and simply return @nil.
+  OnWarning and simply return @nil.
 
   @raises(EX3DXmlNotAllowedError On various not-allowed errors.)
 
@@ -175,14 +175,14 @@ function ParseXMLNode(Element: TDOMElement;
           begin
             if not DOMGetAttribute(ProtoIter.Current, 'name', FieldName) then
             begin
-              VRMLWarning(vwSerious, 'X3D XML: missing "name" attribute for <fieldValue> element');
+              OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: missing "name" attribute for <fieldValue> element');
               Continue;
             end;
 
             FieldIndex := Result.Fields.IndexOf(FieldName);
             if FieldIndex = -1 then
             begin
-              VRMLWarning(vwSerious, Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
+              OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));
               Continue;
             end;
 
@@ -197,7 +197,7 @@ function ParseXMLNode(Element: TDOMElement;
             ParseISStatement(Result, ProtoIter.Current, PositionInParent);
           end else
           begin
-            VRMLWarning(vwSerious, Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
+            OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: only <fieldValue> or <IS> elements expected in prototype instantiation, but "%s" found', [ProtoIter.Current.TagName]));
           end;
 
           Inc(PositionInParent);
@@ -213,7 +213,7 @@ function ParseXMLNode(Element: TDOMElement;
         on E: EVRMLPrototypeInstantiateError do
           { Just write E.Message and silence the exception.
             Result will simply remain as TVRMLPrototypeNode instance in this case. }
-          VRMLWarning(vwSerious, E.Message);
+          OnWarning(wtMajor, 'VRML/X3D', E.Message);
       end;
     end else
     begin
@@ -232,9 +232,9 @@ function ParseXMLNode(Element: TDOMElement;
           ParseIgnoreToMatchingCurlyBracket. This is not needed for
           X3D XML, we can simply omit the node by not looking
           at it's attributes. All we need to do is to make
-          VRMLWarning warning. }
+          OnWarning warning. }
 
-        VRMLWarning(vwSerious, 'Unknown X3D node type "' + NodeTypeName + '"');
+        OnWarning(wtMajor, 'VRML/X3D', 'Unknown X3D node type "' + NodeTypeName + '"');
       end;
     end;
 
@@ -260,7 +260,7 @@ begin
           Result := nil; { return nil in case of cycles }
         end;
         if NilIfUnresolvedUSE then
-          VRMLWarning(vwSerious, S) else
+          OnWarning(wtMajor, 'VRML/X3D', S) else
           raise EX3DXmlNotAllowedError.Create(S);
       end;
     end else
@@ -321,7 +321,7 @@ var
     end else
       { We allow PROFILE to be omitted.
         Actually, we do not use profile for anything right now. }
-      VRMLWarning(vwSerious, 'X3D "profile" attribute missing');
+      OnWarning(wtMajor, 'VRML/X3D', 'X3D "profile" attribute missing');
   end;
 
   procedure ParseComponentsAndMetas;
@@ -355,10 +355,10 @@ var
               ComponentLevel := 1;
             Result.Components[ComponentName] := ComponentLevel;
           end else
-            VRMLWarning(vwSerious, Format('X3D XML: <component> element without required "name" attribute',
+            OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: <component> element without required "name" attribute',
               [I.Current.TagName]));
         end else
-          VRMLWarning(vwSerious, Format('X3D XML: unrecognized element "%s" in <head>',
+          OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: unrecognized element "%s" in <head>',
             [I.Current.TagName]));
       end;
     finally FreeAndNil(I) end;
@@ -510,13 +510,13 @@ begin
       DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
       if Version.Major < 3 then
       begin
-        VRMLWarning(vwSerious, Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
+        OnWarning(wtMajor, 'VRML/X3D', Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
         Version := X3DVersion; { some sensible version number }
       end;
     end else
     begin
       Version := X3DVersion; { some sensible version number }
-      VRMLWarning(vwSerious, Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
+      OnWarning(wtMajor, 'VRML/X3D', Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
     end;
 
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);

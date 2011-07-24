@@ -19,14 +19,14 @@
   images for them. }
 program dds_remove_smallest_mipmaps;
 
-uses SysUtils, KambiUtils, Images, DDS, DataErrors, KambiStringUtils;
+uses SysUtils, KambiUtils, Images, DDS, KambiWarnings, KambiStringUtils;
 
 var
   D: TDDSImage;
   NeedsSave: boolean;
   I: Integer;
 begin
-  DataWarning := @DataWarning_Write;
+  OnWarning := @OnWarningWrite;
   Parameters.CheckHigh(1);
   D := TDDSImage.Create;
   try

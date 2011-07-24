@@ -51,9 +51,9 @@
 program plane_mirror_and_shadow;
 
 uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3DAsVRML,
+  KambiClassUtils, KambiUtils, SysUtils, Classes, Object3DAsVRML, KambiWarnings,
   KambiGLUtils, VRMLGLScene, Cameras, RenderingCameraUnit,
-  KambiFilesUtils, VRMLErrors, KambiStringUtils, KeysMouse, KambiSceneManager;
+  KambiFilesUtils, KambiStringUtils, KeysMouse, KambiSceneManager;
 
 var
   Window: TGLUIWindow;
@@ -603,7 +603,7 @@ begin
   SceneManager := TMySceneManager.Create(Application);
   Window.Controls.Add(SceneManager);
 
-  VRMLWarning := @VRMLWarning_Write;
+  OnWarning := @OnWarningWrite;
 
   { calculate RootNode }
   if SceneFileName <> '' then

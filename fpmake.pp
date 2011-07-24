@@ -90,7 +90,6 @@ begin
     P.Targets.AddUnit('object3dasvrml.pas');
     P.Targets.AddUnit('vrmlanimation.pas');
     P.Targets.AddUnit('vrmlcamerautils.pas');
-    P.Targets.AddUnit('vrmlerrors.pas');
     P.Targets.AddUnit('vrmlfields.pas');
     P.Targets.AddUnit('vrmlarraysgenerator.pas');
     P.Targets.AddUnit('vrmllexer.pas');
@@ -128,7 +127,6 @@ begin
     P.Targets.AddUnit('vorbisfile.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
-    P.Targets.AddUnit('dataerrors.pas');
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
     P.Targets.AddUnit('kambiclassutils.pas');
@@ -139,6 +137,7 @@ begin
     P.Targets.AddUnit('kambistringutils.pas');
     P.Targets.AddUnit('kambitimeutils.pas');
     P.Targets.AddUnit('kambiutils.pas');
+    P.Targets.AddUnit('kambiwarnings.pas');
     P.Targets.AddUnit('kambixmlconfig.pas');
     P.Targets.AddUnit('kambixmlutils.pas');
     P.Targets.AddUnit('kambizlib.pas');
