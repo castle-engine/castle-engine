@@ -5,7 +5,8 @@ unit VrmlConsoleF;
 interface
 
 uses
-  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  KambiWarnings;
 
 type
 
@@ -46,8 +47,7 @@ begin
   Close;
 end;
 
-procedure TVrmlConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction
-  );
+procedure TVrmlConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   Main.MenuShowVrmlConsole.Checked := false;
 end;
