@@ -1551,15 +1551,6 @@ var
     finally FreeChildNodes(Children); end
   end;
 
-  procedure AddInfo(Element: TNodeGroup; const S: string);
-  var
-    Info: TNodeWorldInfo;
-  begin
-    Info := TNodeWorldInfo.Create('', WWWBasePath);
-    Element.FdChildren.Add(Info);
-    Info.FdInfo.Items.Add(S);
-  end;
-
 var
   Doc: TXMLDocument;
   Version: string;
@@ -1651,9 +1642,8 @@ begin
         end;
       finally FreeChildNodes(DocChildren); end;
 
-      AddInfo(Result as TNodeGroup,
-        'Converted from Collada version "' + Version + '" by ' +
-        'Kambi VRML game engine [http://vrmlengine.sourceforge.net/]');
+      Result.Meta.PutPreserve('source', ExtractFileName(FileName));
+      Result.Meta.KeyData['source-collada-version'] := Version;
     except FreeAndNil(Result); raise; end;
   finally
     FreeAndNil(Doc);
