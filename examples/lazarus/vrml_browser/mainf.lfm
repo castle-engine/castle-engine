@@ -5,7 +5,7 @@ object Main: TMain
   Width = 744
   ActiveControl = Browser
   Caption = 'Main'
-  ClientHeight = 476
+  ClientHeight = 473
   ClientWidth = 744
   Menu = MainMenu1
   OnCreate = FormCreate
@@ -16,7 +16,7 @@ object Main: TMain
   object PanelBottom: TPanel
     Left = 0
     Height = 141
-    Top = 335
+    Top = 332
     Width = 744
     Align = alBottom
     ClientHeight = 141
@@ -26,43 +26,43 @@ object Main: TMain
       Left = 6
       Height = 129
       Top = 6
-      Width = 480
+      Width = 467
       Align = alLeft
       AutoSize = True
       BorderSpacing.Around = 5
       Caption = 'Camera'
       ClientHeight = 103
-      ClientWidth = 476
+      ClientWidth = 461
       TabOrder = 0
       object LabelPosition: TLabel
         Left = 0
-        Height = 25
+        Height = 24
         Top = 0
-        Width = 86
+        Width = 79
         Caption = 'Position:'
         ParentColor = False
       end
       object LabelDirection: TLabel
         Left = 0
-        Height = 25
+        Height = 24
         Top = 33
-        Width = 99
+        Width = 91
         Caption = 'Direction:'
         ParentColor = False
       end
       object LabelUp: TLabel
         Left = 0
-        Height = 25
+        Height = 24
         Top = 65
-        Width = 36
+        Width = 32
         Caption = 'Up:'
         ParentColor = False
       end
       object EditPositionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 109
-        Height = 34
+        Left = 101
+        Height = 33
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -72,8 +72,8 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditPositionX
         AnchorSideLeft.Side = asrBottom
-        Left = 199
-        Height = 34
+        Left = 191
+        Height = 33
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -83,8 +83,8 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditPositionY
         AnchorSideLeft.Side = asrBottom
-        Left = 289
-        Height = 34
+        Left = 281
+        Height = 33
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -93,8 +93,8 @@ object Main: TMain
       object EditDirectionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 109
-        Height = 34
+        Left = 101
+        Height = 33
         Top = 27
         Width = 80
         BorderSpacing.Left = 10
@@ -104,8 +104,8 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditDirectionX
         AnchorSideLeft.Side = asrBottom
-        Left = 199
-        Height = 34
+        Left = 191
+        Height = 33
         Top = 27
         Width = 80
         BorderSpacing.Left = 10
@@ -115,8 +115,8 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditDirectionY
         AnchorSideLeft.Side = asrBottom
-        Left = 289
-        Height = 34
+        Left = 281
+        Height = 33
         Top = 27
         Width = 80
         BorderSpacing.Left = 10
@@ -125,8 +125,8 @@ object Main: TMain
       object EditUpX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 109
-        Height = 34
+        Left = 101
+        Height = 33
         Top = 59
         Width = 80
         BorderSpacing.Left = 10
@@ -136,8 +136,8 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditUpX
         AnchorSideLeft.Side = asrBottom
-        Left = 199
-        Height = 34
+        Left = 191
+        Height = 33
         Top = 59
         Width = 80
         BorderSpacing.Left = 10
@@ -147,8 +147,8 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditUpY
         AnchorSideLeft.Side = asrBottom
-        Left = 289
-        Height = 34
+        Left = 281
+        Height = 33
         Top = 57
         Width = 80
         BorderSpacing.Left = 10
@@ -157,10 +157,10 @@ object Main: TMain
       object ButtonChangeCamera: TButton
         AnchorSideLeft.Control = EditUpZ
         AnchorSideLeft.Side = asrBottom
-        Left = 379
-        Height = 44
+        Left = 371
+        Height = 43
         Top = 44
-        Width = 97
+        Width = 90
         AutoSize = True
         BorderSpacing.Left = 10
         BorderSpacing.InnerBorder = 4
@@ -173,10 +173,11 @@ object Main: TMain
   object Browser: TKamVRMLBrowser
     AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 335
+    Height = 332
     Top = 0
     Width = 744
     Align = alClient
+    TabOrder = 0
     OnCameraChanged = BrowserCameraChanged
   end
   object MainMenu1: TMainMenu
@@ -201,7 +202,7 @@ object Main: TMain
       Caption = '&View'
       object MenuMouseLookToggle: TMenuItem
         AutoCheck = True
-        Caption = 'Mouse &Look'
+        Caption = 'Mouse &Look (only in Walk/Fly navigation)'
         ShortCut = 16461
         ShowAlwaysCheckable = True
         OnClick = MenuMouseLookToggleClick
@@ -224,7 +225,7 @@ object Main: TMain
       end
       object MenuShowVrmlConsole: TMenuItem
         AutoCheck = True
-        Caption = 'Show VRML &console'
+        Caption = 'Show Warnings &Console'
         ShowAlwaysCheckable = True
         OnClick = MenuShowVrmlConsoleClick
       end
@@ -258,5 +259,10 @@ object Main: TMain
     OnOpenRecent = RecentFilesOpenRecent
     left = 274
     top = 175
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnIdle = ApplicationProperties1Idle
+    left = 268
+    top = 44
   end
 end

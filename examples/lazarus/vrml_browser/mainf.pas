@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2010 Michalis Kamburelis.
+  Copyright 2008-2011 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -27,6 +27,7 @@ uses
 
 type
   TMain = class(TForm)
+    ApplicationProperties1: TApplicationProperties;
     ButtonChangeCamera: TButton;
     EditPositionX: TEdit;
     EditPositionY: TEdit;
@@ -61,6 +62,7 @@ type
     Config: TKamXMLConfig;
     RecentFiles: TKamRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
+    procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
     procedure BrowserCameraChanged(Camera: TCamera);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -77,6 +79,7 @@ type
     procedure MenuAggressiveUpdateToggleClick(Sender: TObject);
   private
     SceneFileName: string;
+    CameraChanged: boolean;
     procedure OpenScene(const FileName: string);
     procedure UpdateCaption;
   public
@@ -267,23 +270,36 @@ begin
 end;
 
 procedure TMain.BrowserCameraChanged(Camera: TCamera);
+begin
+  CameraChanged := true;
+end;
+
+procedure TMain.ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
 var
   Pos, Dir, Up: TVector3Single;
 begin
-  Camera.GetView(Pos, Dir, Up);
-  { Note that Dir, Up returned here are always normalized }
+  { update camera only when idle. Otherwise, updating edit controls
+    on every move would cause refresh rate of OpenGL context to suffer
+    (e.g. when rotating object in Examine mode) }
+  if CameraChanged then
+  begin
+    CameraChanged := false;
 
-  EditPositionX.Text := FloatToNiceStr(Pos[0]);
-  EditPositionY.Text := FloatToNiceStr(Pos[1]);
-  EditPositionZ.Text := FloatToNiceStr(Pos[2]);
+    Browser.Camera.GetView(Pos, Dir, Up);
+    { Note that Dir, Up returned here are always normalized }
 
-  EditDirectionX.Text := FloatToNiceStr(Dir[0]);
-  EditDirectionY.Text := FloatToNiceStr(Dir[1]);
-  EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+    EditPositionX.Text := FloatToNiceStr(Pos[0]);
+    EditPositionY.Text := FloatToNiceStr(Pos[1]);
+    EditPositionZ.Text := FloatToNiceStr(Pos[2]);
 
-  EditUpX.Text := FloatToNiceStr(Up[0]);
-  EditUpY.Text := FloatToNiceStr(Up[1]);
-  EditUpZ.Text := FloatToNiceStr(Up[2]);
+    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
+    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
+    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+
+    EditUpX.Text := FloatToNiceStr(Up[0]);
+    EditUpY.Text := FloatToNiceStr(Up[1]);
+    EditUpZ.Text := FloatToNiceStr(Up[2]);
+  end;
 end;
 
 initialization

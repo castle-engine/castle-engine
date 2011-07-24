@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="7"/>
+    <Version Value="9"/>
     <General>
       <Flags>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
     </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
@@ -22,30 +24,34 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="5">
       <Item1>
-        <PackageName Value="kambi_components"/>
-        <MinVersion Valid="True"/>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="kambi_components"/>
+        <MinVersion Valid="True"/>
       </Item2>
       <Item3>
-        <PackageName Value="LazOpenGLContext"/>
-        <MinVersion Valid="True"/>
+        <PackageName Value="kambi_base"/>
       </Item3>
       <Item4>
-        <PackageName Value="LCL"/>
+        <PackageName Value="LazOpenGLContext"/>
+        <MinVersion Valid="True"/>
       </Item4>
+      <Item5>
+        <PackageName Value="LCL"/>
+      </Item5>
     </RequiredPackages>
     <Units Count="41">
       <Unit0>
         <Filename Value="vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="vrml_browser"/>
-        <CursorPos X="53" Y="17"/>
         <TopLine Value="1"/>
-        <UsageCount Value="71"/>
+        <CursorPos X="53" Y="17"/>
+        <UsageCount Value="72"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -53,17 +59,20 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <CursorPos X="39" Y="273"/>
-        <TopLine Value="252"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="71"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="133"/>
+        <CursorPos X="38" Y="269"/>
+        <UsageCount Value="72"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="../../../src/components/kambiglcontrol.pas"/>
         <UnitName Value="KambiGLControl"/>
-        <CursorPos X="67" Y="474"/>
         <TopLine Value="452"/>
+        <CursorPos X="67" Y="474"/>
         <UsageCount Value="18"/>
         <Bookmarks Count="1">
           <Item0 X="5" Y="230" ID="1"/>
@@ -72,50 +81,50 @@
       <Unit3>
         <Filename Value="../../../src/opengl/kambiglutils.pas"/>
         <UnitName Value="KambiGLUtils"/>
-        <CursorPos X="3" Y="286"/>
         <TopLine Value="272"/>
+        <CursorPos X="3" Y="286"/>
         <UsageCount Value="9"/>
       </Unit3>
       <Unit4>
         <Filename Value="../../../src/vrml/opengl/vrmlglscene.pas"/>
         <UnitName Value="VRMLGLScene"/>
-        <CursorPos X="1" Y="2157"/>
         <TopLine Value="2140"/>
+        <CursorPos X="1" Y="2157"/>
         <UsageCount Value="10"/>
       </Unit4>
       <Unit5>
         <Filename Value="../../../src/vrml/opengl/vrmlglrenderer.pas"/>
         <UnitName Value="VRMLGLRenderer"/>
-        <CursorPos X="1" Y="1"/>
         <TopLine Value="393"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="9"/>
       </Unit5>
       <Unit6>
         <Filename Value="../../../../../../lazarus/0.9.20/lazarus/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
-        <CursorPos X="23" Y="147"/>
         <TopLine Value="100"/>
+        <CursorPos X="23" Y="147"/>
         <UsageCount Value="9"/>
       </Unit6>
       <Unit7>
         <Filename Value="../../../../../../lazarus/0.9.20/lazarus/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
-        <CursorPos X="25" Y="1090"/>
         <TopLine Value="1066"/>
+        <CursorPos X="25" Y="1090"/>
         <UsageCount Value="9"/>
       </Unit7>
       <Unit8>
         <Filename Value="../../../src/ui/cameras.pas"/>
         <UnitName Value="Cameras"/>
-        <CursorPos X="1" Y="1906"/>
         <TopLine Value="1889"/>
+        <CursorPos X="1" Y="1906"/>
         <UsageCount Value="9"/>
       </Unit8>
       <Unit9>
         <Filename Value="../../../src/opengl/openglttfonts.pas"/>
         <UnitName Value="OpenGLTTFonts"/>
-        <CursorPos X="20" Y="28"/>
         <TopLine Value="172"/>
+        <CursorPos X="20" Y="28"/>
         <UsageCount Value="9"/>
       </Unit9>
       <Unit10>
@@ -124,117 +133,117 @@
         <ComponentName Value="OpenGLInformation"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="OpenGLInformation"/>
-        <CursorPos X="31" Y="29"/>
         <TopLine Value="18"/>
-        <UsageCount Value="59"/>
+        <CursorPos X="31" Y="29"/>
+        <UsageCount Value="60"/>
       </Unit10>
       <Unit11>
         <Filename Value="mainf.lfm"/>
-        <CursorPos X="1" Y="134"/>
         <TopLine Value="111"/>
-        <UsageCount Value="9"/>
+        <CursorPos X="1" Y="134"/>
         <SyntaxHighlighter Value="LFM"/>
+        <UsageCount Value="9"/>
       </Unit11>
       <Unit12>
         <Filename Value="../../../../../../../fpc-installation/lazarus-current/src/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
-        <CursorPos X="36" Y="84"/>
         <TopLine Value="79"/>
+        <CursorPos X="36" Y="84"/>
         <UsageCount Value="9"/>
       </Unit12>
       <Unit13>
         <Filename Value="../../../../../../../fpc-installation/lazarus-current/src/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
-        <CursorPos X="73" Y="939"/>
         <TopLine Value="908"/>
+        <CursorPos X="73" Y="939"/>
         <UsageCount Value="9"/>
       </Unit13>
       <Unit14>
         <Filename Value="../../../base/kambidynlib.pas"/>
         <UnitName Value="KambiDynLib"/>
-        <CursorPos X="56" Y="204"/>
         <TopLine Value="194"/>
+        <CursorPos X="56" Y="204"/>
         <UsageCount Value="10"/>
       </Unit14>
       <Unit15>
         <Filename Value="../../../vrml/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
-        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="9"/>
       </Unit15>
       <Unit16>
         <Filename Value="../../../base/kambiutils_miscella.inc"/>
-        <CursorPos X="1" Y="233"/>
         <TopLine Value="217"/>
+        <CursorPos X="1" Y="233"/>
         <UsageCount Value="9"/>
       </Unit16>
       <Unit17>
         <Filename Value="../../../packages/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="42" Y="267"/>
         <TopLine Value="253"/>
+        <CursorPos X="42" Y="267"/>
         <UsageCount Value="11"/>
       </Unit17>
       <Unit18>
         <Filename Value="../../../vrml/vrml97nodes.inc"/>
-        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="9"/>
       </Unit18>
       <Unit19>
         <Filename Value="../../../../../../pasdoc/trunk/source/component/PasDoc_Serialize.pas"/>
         <UnitName Value="PasDoc_Serialize"/>
-        <CursorPos X="14" Y="93"/>
         <TopLine Value="85"/>
+        <CursorPos X="14" Y="93"/>
         <UsageCount Value="9"/>
       </Unit19>
       <Unit20>
         <Filename Value="../../../packages/components/kambilclutils.pas"/>
         <UnitName Value="KambiLCLUtils"/>
-        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="9"/>
       </Unit20>
       <Unit21>
         <Filename Value="../../../base/filefilters.pas"/>
         <UnitName Value="FileFilters"/>
-        <CursorPos X="1" Y="1"/>
         <TopLine Value="37"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="9"/>
       </Unit21>
       <Unit22>
         <Filename Value="../../../../../../../installed/lazarus/current/components/opengl/openglcontext.pas"/>
         <UnitName Value="OpenGLContext"/>
-        <CursorPos X="5" Y="122"/>
         <TopLine Value="108"/>
+        <CursorPos X="5" Y="122"/>
         <UsageCount Value="12"/>
       </Unit22>
       <Unit23>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/controls.pp"/>
         <UnitName Value="Controls"/>
-        <CursorPos X="15" Y="1160"/>
         <TopLine Value="1146"/>
+        <CursorPos X="15" Y="1160"/>
         <UsageCount Value="12"/>
       </Unit23>
       <Unit24>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/forms.pp"/>
         <UnitName Value="Forms"/>
-        <CursorPos X="33" Y="1375"/>
         <TopLine Value="1362"/>
+        <CursorPos X="33" Y="1375"/>
         <UsageCount Value="9"/>
       </Unit24>
       <Unit25>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/stdctrls.pp"/>
         <UnitName Value="StdCtrls"/>
-        <CursorPos X="32" Y="470"/>
         <TopLine Value="462"/>
+        <CursorPos X="32" Y="470"/>
         <UsageCount Value="9"/>
       </Unit25>
       <Unit26>
         <Filename Value="../../../../../../../installed/fpc/current/src/rtl/objpas/classes/classesh.inc"/>
-        <CursorPos X="11" Y="1784"/>
         <TopLine Value="1767"/>
+        <CursorPos X="11" Y="1784"/>
         <UsageCount Value="9"/>
       </Unit26>
       <Unit27>
@@ -243,102 +252,102 @@
         <ComponentName Value="VrmlConsole"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="VrmlConsoleF"/>
-        <CursorPos X="3" Y="50"/>
         <TopLine Value="28"/>
-        <UsageCount Value="51"/>
+        <CursorPos X="3" Y="50"/>
+        <UsageCount Value="52"/>
       </Unit27>
       <Unit28>
         <Filename Value="../../../vrml/vrmlerrors.pas"/>
         <UnitName Value="VRMLErrors"/>
-        <CursorPos X="22" Y="32"/>
         <TopLine Value="17"/>
+        <CursorPos X="22" Y="32"/>
         <UsageCount Value="9"/>
       </Unit28>
       <Unit29>
         <Filename Value="../../../base/kambistringutils.pas"/>
         <UnitName Value="KambiStringUtils"/>
-        <CursorPos X="15" Y="144"/>
         <TopLine Value="99"/>
+        <CursorPos X="15" Y="144"/>
         <UsageCount Value="9"/>
       </Unit29>
       <Unit30>
         <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
         <UnitName Value="KambiVRMLBrowser"/>
-        <CursorPos X="61" Y="21"/>
         <TopLine Value="5"/>
+        <CursorPos X="61" Y="21"/>
         <UsageCount Value="16"/>
       </Unit30>
       <Unit31>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/dialogs.pp"/>
         <UnitName Value="Dialogs"/>
-        <CursorPos X="10" Y="495"/>
         <TopLine Value="511"/>
+        <CursorPos X="10" Y="495"/>
         <UsageCount Value="10"/>
       </Unit31>
       <Unit32>
         <Filename Value="../../../src/components/lclrecentfiles.pas"/>
         <UnitName Value="LCLRecentFiles"/>
-        <CursorPos X="60" Y="165"/>
         <TopLine Value="147"/>
+        <CursorPos X="60" Y="165"/>
         <UsageCount Value="9"/>
       </Unit32>
       <Unit33>
         <Filename Value="../../../src/base/kambixmlcfg.pas"/>
         <UnitName Value="KambiXMLCfg"/>
-        <CursorPos X="41" Y="81"/>
         <TopLine Value="67"/>
+        <CursorPos X="41" Y="81"/>
         <UsageCount Value="9"/>
       </Unit33>
       <Unit34>
         <Filename Value="../../../packages/kambi_components.pas"/>
         <UnitName Value="kambi_components"/>
-        <CursorPos X="28" Y="19"/>
         <TopLine Value="1"/>
+        <CursorPos X="28" Y="19"/>
         <UsageCount Value="9"/>
       </Unit34>
       <Unit35>
         <Filename Value="../../../src/ui/keysmouse.pas"/>
         <UnitName Value="KeysMouse"/>
-        <CursorPos X="21" Y="62"/>
         <TopLine Value="60"/>
+        <CursorPos X="21" Y="62"/>
         <UsageCount Value="11"/>
       </Unit35>
       <Unit36>
         <Filename Value="../../../src/ui/uicontrols.pas"/>
         <UnitName Value="UIControls"/>
-        <CursorPos X="27" Y="295"/>
         <TopLine Value="274"/>
+        <CursorPos X="27" Y="295"/>
         <UsageCount Value="9"/>
       </Unit36>
       <Unit37>
         <Filename Value="../../../../../../../installed/lazarus/current/lcl/include/control.inc"/>
-        <CursorPos X="3" Y="2903"/>
         <TopLine Value="2889"/>
+        <CursorPos X="3" Y="2903"/>
         <UsageCount Value="11"/>
       </Unit37>
       <Unit38>
         <Filename Value="../../../src/base/kambitimeutils.pas"/>
         <UnitName Value="KambiTimeUtils"/>
-        <CursorPos X="29" Y="89"/>
         <TopLine Value="74"/>
+        <CursorPos X="29" Y="89"/>
         <UsageCount Value="10"/>
       </Unit38>
       <Unit39>
         <Filename Value="../../../src/vrml/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
-        <CursorPos X="33" Y="3015"/>
         <TopLine Value="3007"/>
+        <CursorPos X="33" Y="3015"/>
         <UsageCount Value="10"/>
       </Unit39>
       <Unit40>
         <Filename Value="../../../src/vrml/opengl/kambiscenemanager.pas"/>
         <UnitName Value="KambiSceneManager"/>
-        <CursorPos X="29" Y="273"/>
         <TopLine Value="264"/>
+        <CursorPos X="29" Y="273"/>
         <UsageCount Value="10"/>
       </Unit40>
     </Units>
-    <JumpHistory Count="9" HistoryIndex="8">
+    <JumpHistory Count="25" HistoryIndex="24">
       <Position1>
         <Filename Value="mainf.pas"/>
         <Caret Line="223" Column="51" TopLine="213"/>
@@ -375,18 +384,81 @@
         <Filename Value="mainf.pas"/>
         <Caret Line="274" Column="39" TopLine="252"/>
       </Position9>
+      <Position10>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="270" Column="1" TopLine="242"/>
+      </Position10>
+      <Position11>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="149" Column="26" TopLine="117"/>
+      </Position11>
+      <Position12>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="247" Column="12" TopLine="219"/>
+      </Position12>
+      <Position13>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="157" Column="5" TopLine="139"/>
+      </Position13>
+      <Position14>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="80" Column="28" TopLine="53"/>
+      </Position14>
+      <Position15>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="84" Column="28" TopLine="57"/>
+      </Position15>
+      <Position16>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="83" Column="28" TopLine="56"/>
+      </Position16>
+      <Position17>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="84" Column="28" TopLine="57"/>
+      </Position17>
+      <Position18>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="83" Column="28" TopLine="56"/>
+      </Position18>
+      <Position19>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="70" Column="110" TopLine="56"/>
+      </Position19>
+      <Position20>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="72" Column="110" TopLine="57"/>
+      </Position20>
+      <Position21>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position21>
+      <Position22>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="69" Column="31" TopLine="53"/>
+      </Position22>
+      <Position23>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="85" Column="14" TopLine="69"/>
+      </Position23>
+      <Position24>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="156" Column="1" TopLine="142"/>
+      </Position24>
+      <Position25>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="275" Column="33" TopLine="259"/>
+      </Position25>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="9"/>
     <SearchPaths>
-      <SrcPath Value="$(LazarusDir)/lcl/;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)/"/>
+      <SrcPath Value="$(LazarusDir)/lcl;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <IncludeAssertionCode Value="True"/>
         <CStyleMacros Value="True"/>
-        <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
     <CodeGeneration>
