@@ -18,6 +18,9 @@
 
 {$ifdef read_interface}
   TNodeKambiTriangulation = class(TNodeX3DChildNode)
+  private
+    function GetDetailValue(Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
+  public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -30,15 +33,14 @@
     private FFdRectDivisions: TSFLong;
     public property FdRectDivisions: TSFLong read FFdRectDivisions;
 
-    { zwracaja wartosc z odpowiedniego pola FdXxx lub,
-      jesli ta wartosc jest -1, zwracaja Detail_Xxx.
-
-      (Jesli ta wartosc jest nieprawidlowa to wywoluja VRMLWarning
-      a potem "po cichu" zmieniaja ta wartosc na wartosc wzieta z Detail_Xxx.
-      A wiec poprawiaja blednego VRMLa.) }
+    { Return appropriate field value, or (when it's -1) return global value
+      (from Detail_Xxx variables). In case of incorrect field value,
+      they also take care of calling OnWarning and correcting this value.
+      @groupBegin }
     function QuadricStacks: Cardinal;
     function QuadricSlices: Cardinal;
     function RectDivisions: Cardinal;
+    { @groupEnd }
 
     class function URNMatching(const URN: string): boolean; override;
   end;
@@ -408,53 +410,35 @@ begin
   result := 'KambiTriangulation';
 end;
 
-{$define TRIANGULATION_DETAIL_FUNC:=
-function TNodeKambiTriangulation.TRIANGULATION_DETAIL_FUNC_NAME: Cardinal;
+function TNodeKambiTriangulation.GetDetailValue(
+  Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
 begin
- if TRIANGULATION_DETAIL_FIELD.Value = TriangulationUseDef then
-  result := TRIANGULATION_DETAIL_GLOBAL_VALUE else
- begin
-  if Int64(TRIANGULATION_DETAIL_FIELD.Value) < Int64(TRIANGULATION_DETAIL_MIN) then
+  if Field.Value = TriangulationUseDef then
+    Result := GlobalValue else
+  if Int64(Field.Value) < Int64(MinValue) then
   begin
-   VRMLWarning(vwSerious, Format('Node "KambiTriangulation" '+
-     'field "%s" value is %d but must be >= %d (or = -1)',
-     [TRIANGULATION_DETAIL_FIELD_STRING,
-      TRIANGULATION_DETAIL_FIELD.Value,
-      TRIANGULATION_DETAIL_MIN]));
-   TRIANGULATION_DETAIL_FIELD.Value := TRIANGULATION_DETAIL_GLOBAL_VALUE;
-  end;
+    OnWarning(wtMajor, 'VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
+      [Field.Name, Field.Value, MinValue]));
+    Field.Value := TriangulationUseDef;
+    Result := GlobalValue;
+  end else
+    Result := Field.Value;
+end;
 
-  result := TRIANGULATION_DETAIL_FIELD.Value;
- end;
-end;}
+function TNodeKambiTriangulation.QuadricSlices: Cardinal;
+begin
+  Result := GetDetailValue(FdQuadricSlices, Detail_QuadricSlices, MinQuadricSlices);
+end;
 
-  {$define TRIANGULATION_DETAIL_FUNC_NAME := QuadricSlices}
-  {$define TRIANGULATION_DETAIL_FIELD := FdQuadricSlices}
-  {$define TRIANGULATION_DETAIL_GLOBAL_VALUE := Detail_QuadricSlices}
-  {$define TRIANGULATION_DETAIL_MIN := MinQuadricSlices}
-  {$define TRIANGULATION_DETAIL_FIELD_STRING := 'quadricSlices'}
-  TRIANGULATION_DETAIL_FUNC
+function TNodeKambiTriangulation.QuadricStacks: Cardinal;
+begin
+  Result := GetDetailValue(FdQuadricStacks, Detail_QuadricStacks, MinQuadricStacks);
+end;
 
-  {$define TRIANGULATION_DETAIL_FUNC_NAME := QuadricStacks}
-  {$define TRIANGULATION_DETAIL_FIELD := FdQuadricStacks}
-  {$define TRIANGULATION_DETAIL_GLOBAL_VALUE := Detail_QuadricStacks}
-  {$define TRIANGULATION_DETAIL_MIN := MinQuadricStacks}
-  {$define TRIANGULATION_DETAIL_FIELD_STRING := 'quadricStacks'}
-  TRIANGULATION_DETAIL_FUNC
-
-  {$define TRIANGULATION_DETAIL_FUNC_NAME := RectDivisions}
-  {$define TRIANGULATION_DETAIL_FIELD := FdRectDivisions}
-  {$define TRIANGULATION_DETAIL_GLOBAL_VALUE := Detail_RectDivisions}
-  {$define TRIANGULATION_DETAIL_MIN := MinRectDivisions}
-  {$define TRIANGULATION_DETAIL_FIELD_STRING := 'rectDivisions'}
-  TRIANGULATION_DETAIL_FUNC
-
-{$undef TRIANGULATION_DETAIL_FUNC_NAME}
-{$undef TRIANGULATION_DETAIL_FIELD}
-{$undef TRIANGULATION_DETAIL_GLOBAL_VALUE}
-{$undef TRIANGULATION_DETAIL_MIN}
-{$undef TRIANGULATION_DETAIL_FIELD_STRING}
-{$undef TRIANGULATION_DETAIL_FUNC}
+function TNodeKambiTriangulation.RectDivisions: Cardinal;
+begin
+  Result := GetDetailValue(FdRectDivisions, Detail_RectDivisions, MinRectDivisions);
+end;
 
 class function TNodeKambiTriangulation.URNMatching(const URN: string): boolean;
 begin
@@ -636,7 +620,7 @@ begin
   ReplaceCount := Min(FdreplaceNames.Count, FdreplaceNodes.Count);
   if (FdreplaceNames.Count <> ReplaceCount) or
      (FdreplaceNodes.Count <> ReplaceCount) then
-    VRMLWarning(vwSerious, 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
+    OnWarning(wtMajor, 'VRML/X3D', 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
 
   { After successfull loading, there's always exactly one child. }
   Assert(VRML1ChildrenCount = 1);
@@ -762,12 +746,12 @@ begin
   if FdMaxDepth.Value >= 0 then
     Limits.MaxDepth := FdMaxDepth.Value else
   if FdMaxDepth.Value <> -1 then
-    VRMLWarning(vwSerious, 'KambiOctreeProperties.maxDepth must be >= -1');
+    OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.maxDepth must be >= -1');
 
   if FdLeafCapacity.Value >= 0 then
     Limits.LeafCapacity := FdLeafCapacity.Value else
   if FdLeafCapacity.Value <> -1 then
-    VRMLWarning(vwSerious, 'KambiOctreeProperties.leafCapacity must be >= -1');
+    OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
 procedure TNodeGeneratedShadowMap.CreateNode;
