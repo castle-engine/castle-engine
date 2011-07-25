@@ -39,13 +39,6 @@
   http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_license) }
 { $define KAMBI_VRMLENGINE_LGPL}
 
-{ Define KAMBI_HAS_NURBS only when not defined KAMBI_VRMLENGINE_LGPL.
-  NURBS implementatton uses GPL-only (strict) code from White Dune. }
-{$define KAMBI_HAS_NURBS}
-{$ifdef KAMBI_VRMLENGINE_LGPL}
-  {$undef KAMBI_HAS_NURBS}
-{$endif}
-
 { According to Borland starting from Delphi 6 MSWINDOWS
   is the preferred symbol to mark Windows-only code
   (that is not necessarily tied only to 32-bit Windows).

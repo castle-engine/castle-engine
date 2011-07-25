@@ -7,16 +7,17 @@
 
   "Kambi VRML game engine" is free software.
 
-  Although most of the "Kambi VRML game engine" is available on terms
-  of LGPL (see COPYING.txt in this distribution for detailed info), this unit
-  is an exception (as it uses white dune strict GPL >= 2 code).
-  You can redistribute and/or modify *this unit, NURBS.pas*
+  Although most of the "Kambi VRML game engine" is available on terms of LGPL
+  (see COPYING.txt in this distribution for detailed info), parts of this unit
+  are an exception: they use white dune strict GPL >= 2 code.
+  You can redistribute and/or modify *this unit, NURBS.pas, as a whole*
   only under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
   If the engine is compiled with KAMBI_VRMLENGINE_LGPL symbol
-  (see ../base/kambiconf.inc), this unit will not be linked in.
+  (see ../base/kambiconf.inc), an alternative "dummy" implementation of
+  this unit will be used, that doesn't depend on any GPL code.
 
   "Kambi VRML game engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,6 +28,8 @@
 
 { Common utilities for NURBS curves and surfaces. }
 unit NURBS;
+
+{$I kambiconf.inc}
 
 interface
 
@@ -134,6 +137,52 @@ function NurbsBoundingBox(Point: TDynVector3SingleArray;
 
 implementation
 
+function ActualTessellation(const Tessellation: Integer;
+  const Dimension: Cardinal): Cardinal;
+begin
+  if Tessellation > 0 then
+    Result := Tessellation else
+  if Tessellation = 0 then
+    Result := 2 * Dimension else
+    Result := Cardinal(-Tessellation) * Dimension;
+  Inc(Result);
+end;
+
+function NurbsCurvePoint(const Points: TDynVector3SingleArray;
+  const U: Single;
+  const Order: Cardinal;
+  Knot, Weight: TDynDoubleArray;
+  Tangent: PVector3Single): TVector3Single;
+begin
+  Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight,
+    Tangent);
+end;
+
+{$ifdef KAMBI_VRMLENGINE_LGPL}
+
+{ Dummy implementations }
+
+function NurbsCurvePoint(const Points: PVector3Single;
+  const PointsCount: Cardinal; const U: Single;
+  const Order: Cardinal;
+  Knot, Weight: TDynDoubleArray;
+  Tangent: PVector3Single): TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
+  const UDimension, VDimension: Cardinal;
+  const U, V: Single;
+  const UOrder, VOrder: Cardinal;
+  UKnot, VKnot, Weight: TDynDoubleArray;
+  Normal: PVector3Single): TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+{$else KAMBI_VRMLENGINE_LGPL}
+
 { findSpan and basisFuns is rewritten from white dune's C source code
   (almost identical methods of NodeNurbsCurve and NodeNurbsSurface).
   Also NurbsCurvePoint is based on NodeNurbsCurve::curvePoint.
@@ -231,17 +280,6 @@ begin
   FreeAndNil(right);
 end;
 
-function ActualTessellation(const Tessellation: Integer;
-  const Dimension: Cardinal): Cardinal;
-begin
-  if Tessellation > 0 then
-    Result := Tessellation else
-  if Tessellation = 0 then
-    Result := 2 * Dimension else
-    Result := Cardinal(-Tessellation) * Dimension;
-  Inc(Result);
-end;
-
 function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
@@ -297,16 +335,6 @@ begin
 
   FreeAndNil(basis);
   FreeAndNil(deriv);
-end;
-
-function NurbsCurvePoint(const Points: TDynVector3SingleArray;
-  const U: Single;
-  const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray;
-  Tangent: PVector3Single): TVector3Single;
-begin
-  Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight,
-    Tangent);
 end;
 
 function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
@@ -396,6 +424,8 @@ begin
   FreeAndNil(uDeriv);
   FreeAndNil(vDeriv);
 end;
+
+{$endif KAMBI_VRMLENGINE_LGPL}
 
 procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);

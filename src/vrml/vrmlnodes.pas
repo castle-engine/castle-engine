@@ -2233,7 +2233,7 @@ uses
   Math, Object3DAsVRML, KambiZStream, VRMLCameraUtils, KambiWarnings,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   KambiLog, KambiScriptParser, DataURI, URIParser,
-  {$ifdef KAMBI_HAS_NURBS} NURBS, {$endif} Quaternions, Cameras, KambiXMLUtils;
+  NURBS, Quaternions, Cameras, KambiXMLUtils;
 
 {$define read_implementation}
 
@@ -5991,7 +5991,7 @@ initialization
   RegistedInventorNodes;
   RegisterVRML1Nodes;
   RegisterVRML97HAnimNodes;
-  {$ifdef KAMBI_HAS_NURBS} RegisterVRML97NodesNurbs; {$endif}
+  RegisterVRML97NodesNurbs;
   RegisterKambiNodes;
   RegisterAvalonNodes;
   RegisterBitManagementNodes;
@@ -6018,7 +6018,7 @@ initialization
   RegisterEnvironmentalEffectsNodes;
   RegisterGeospatialNodes;
   RegisterHAnimNodes;
-  {$ifdef KAMBI_HAS_NURBS} RegisterNURBSNodes; {$endif}
+  RegisterNURBSNodes;
   RegisterDISNodes;
   RegisterScriptingNodes;
   RegisterEventUtilitiesNodes;

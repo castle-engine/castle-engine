@@ -13,8 +13,6 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef KAMBI_HAS_NURBS}
-
 { NURBS nodes from VRML 97 Amendment 1 specification.
 
   Note: Some of VRML 97 NURBS nodes are the same (or at least
@@ -822,5 +820,3 @@ begin
   ]);
 end;
 {$endif read_implementation}
-
-{$endif KAMBI_HAS_NURBS}
