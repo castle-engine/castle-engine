@@ -5695,7 +5695,12 @@ end;
 
 destructor TVRMLNodeNames.Destroy;
 begin
-  if AutoRemove then
+  { This may happen after VRMLNodes unit finalization
+    (e.g. simplest_vrml_browser_with_shadow_volumes demo_models/shadow_volumes/stonehenge.wrl,
+    where TVRMLRootNode with some ExportedNames is freed from GLWindow
+    unit finalization, because Application owns Window that owns Scene).
+    So secure from AnyNodeDestructionNotifications being nil. }
+  if AutoRemove and (AnyNodeDestructionNotifications <> nil) then
     AnyNodeDestructionNotifications.Remove(@DestructionNotification);
   inherited;
 end;
