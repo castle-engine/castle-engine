@@ -384,6 +384,7 @@ begin
     do not cover whole window. }
   Window.Controls.Add(TBackground.Create(Application));
 
+  Window.StencilBufferBits := 8;
   Window.OnResize := @Resize;
   Window.OpenAndRun;
 end.
