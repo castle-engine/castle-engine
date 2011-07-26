@@ -23,7 +23,7 @@ type
   TWarningType = (
     { Something failed (like URL not available), but still the data
       is semantically correct. For data formats that have a precise specification
-      (like VRML/X3D or Collada), this means that file satisfies the specification,
+      (like VRML/X3D or Collada), this means that the file satisfies the specification,
       but there is a minor problem (like one of the referred URLs is not available). }
     wtMinor,
 
@@ -57,7 +57,7 @@ var
     you can also raise an exception (or raise it only when type is wtMajor).
 
     The default behavior is to ignore possible warnings
-    (as there is no safe default place where errors should be reported). }
+    (as there is no safe cross-platform default place where they can be reported). }
   OnWarning: TWarningProc = @OnWarningIgnore;
 
 implementation
