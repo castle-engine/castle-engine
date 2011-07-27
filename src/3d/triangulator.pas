@@ -189,33 +189,35 @@ begin
           P1 := NextNotOut(P0);
           P2 := NextNotOut(P1);
 
-          if P0 = Start then break;
+          { TODO: What exactly should we do on this case?
+            Any example when this happens? }
+          if P0 = Start then Break;
 
           NN := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
           DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
 
-          E1 := VectorProduct(NN, VectorSubtract(Verts(P0), Verts(P1)));
-          E2 := VectorProduct(NN, VectorSubtract(Verts(P1), Verts(P2)));
-          E3 := VectorProduct(NN, VectorSubtract(Verts(P2), Verts(P0)));
+          E1 := VectorProduct(NN, Verts(P0) - Verts(P1));
+          E2 := VectorProduct(NN, Verts(P1) - Verts(P2));
+          E3 := VectorProduct(NN, Verts(P2) - Verts(P0));
 
           Empty := true;
-
           for I := 0 to Count - 1 do
-            if (not Outs.Items[I]) and (I <> P0) and (I <> P1) and (I <> P2) then
-              Empty := Empty and not (
-                (VectorDotProduct(E1, VectorSubtract(Verts(I), Verts(P0))) <= -SingleEqualityEpsilon) and
-                (VectorDotProduct(E2, VectorSubtract(Verts(I), Verts(P1))) <= -SingleEqualityEpsilon) and
-                (VectorDotProduct(E3, VectorSubtract(Verts(I), Verts(P2))) <= -SingleEqualityEpsilon)
-                );
+            if (not Outs.Items[I]) and
+               (I <> P0) and
+               (I <> P1) and
+               (I <> P2) and
+               (VectorDotProduct(E1, Verts(I) - Verts(P0)) <= -SingleEqualityEpsilon) and
+               (VectorDotProduct(E2, Verts(I) - Verts(P1)) <= -SingleEqualityEpsilon) and
+               (VectorDotProduct(E3, Verts(I) - Verts(P2)) <= -SingleEqualityEpsilon) then
+            begin
+              Empty := false;
+              Break;
+            end;
         until (DistanceSqr <= 1.0) and Empty;
 
-        { TODO --- is this check really not needed?
-          Even on invalid graz.mgf.wrl this check is still not needed?
-        if p0 = Start then raise Exception.Create('misbuilt polygonal face');}
+        NewTriangle(P0, P1, P2);
 
-        NewTriangle(p0, p1, p2);
-
-        Outs.Items[p1] := True;
+        Outs.Items[P1] := true;
         Dec(Corners);
       end;
     finally Outs.Free end;
