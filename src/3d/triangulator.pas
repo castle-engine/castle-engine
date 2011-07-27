@@ -98,8 +98,6 @@ procedure TriangulateConvexFace(FaceIndicesCount: integer;
 
 implementation
 
-{ TriangulateFace ------------------------------------------------------------ }
-
 { Implementation idea based on face2tri.C in C++, from mgflib sources. }
 
 procedure TriangulateFace(

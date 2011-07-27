@@ -101,243 +101,241 @@ uses VRMLFields;
 
 type
   TFace = record
-    StartIndex: integer;
-    IndicesCount: integer;
-    Normal: TVector3Single
+    StartIndex: Integer;
+    IndicesCount: Integer;
+    Normal: TVector3Single;
   end;
   PFace = ^TFace;
 
   TDynArrayItem_1 = TFace;
   PDynArrayItem_1 = PFace;
   {$define DYNARRAY_1_IS_STRUCT}
-  {$I DynArray_1.inc}
+  {$I dynarray_1.inc}
   type TDynFaceArray = TDynArray_1;
 
 function CreateNormals(CoordIndex: TDynLongintArray;
-  vertices: TDynVector3SingleArray;
+  Vertices: TDynVector3SingleArray;
   CreaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
 var
-  faces: TDynFaceArray;
-
+  Faces: TDynFaceArray;
   { For each vertex (this array length is always Vertices.Count),
     to which faces this vertex belongs? Contains indexes to Faces[] list.
 
     Although vertex may be more than once on the same face (in case
     of incorrect data, or some concave faces), a face is mentioned
     at most once (for given vertex) in this structure. }
-  verticesFaces: array of TDynIntegerArray;
-
-  normals: TDynVector3SingleArray absolute result;
-
+  VerticesFaces: array of TDynIntegerArray;
+  NormalsResult: TDynVector3SingleArray absolute Result;
   CosCreaseAngle: Single;
 
   procedure CalculateFacesAndVerticesFaces;
-  var thisFace: PFace;
-      i, thisFaceNum: integer;
+  var
+    ThisFace: PFace;
+    I, ThisFaceNum: Integer;
   begin
-   i := 0;
-   while i < CoordIndex.Count do
-   begin
-    thisFaceNum := faces.Length;
-    thisFace := faces.Add;
-
-    thisFace^.StartIndex := i;
-    while (i < CoordIndex.Count) and (CoordIndex[i] >= 0) do
+    I := 0;
+    while I < CoordIndex.Count do
     begin
-      { Two tests below secure us from invalid CoordIndex values:
-        1. of course, each CoordIndex[] value must be within range.
-        2. in a correct face, each vertex may occur at most once.
+      ThisFaceNum := Faces.Length;
+      ThisFace := Faces.Add;
 
-        We have to deal with VRML data supplied by user here,
-        so we have to secure against invalid values here.
+      ThisFace^.StartIndex := I;
+      while (I < CoordIndex.Count) and (CoordIndex[I] >= 0) do
+      begin
+        { Two tests below secure us from invalid CoordIndex values:
+          1. of course, each CoordIndex[] value must be within range.
+          2. in a correct face, each vertex may occur at most once.
 
-        Note that we cannot remove wrong indexes here
-        (like CoordIndex.Delete(i, 1)). While tempting, removing
-        bad indexes is not so easy: for example in IndexedFaceSet
-        we would have to remove also appropriate textureCoord, normal
-        and material indexes. Moreover, I decided that my engine doesn't
-        ever change VRML data implicitly (even when this data is clearly
-        incorrect...). So we cannot do such things. }
+          We have to deal with VRML/X3D data supplied by user here,
+          so we have to secure against invalid values here.
 
-      if (CoordIndex[i] < Vertices.Count) and
-         (VerticesFaces[CoordIndex[i]].IndexOf(thisFaceNum) = -1) then
-        VerticesFaces[CoordIndex[i]].Add(thisFaceNum);
-      Inc(i);
+          Note that we cannot remove here wrong indexes from CoordIndex.
+          Tempting, but
+          - It is not so easy. We would have to remove also other xxxIndex
+            fields e.g. IndexedFaceSet.texCoordIndex
+          - Our engine doesn't ever change VRML/X3D data
+            (even when this data is incorrect), it's a decision that makes
+            various things safer. }
+
+        if (CoordIndex[I] < Vertices.Count) and
+           (VerticesFaces[CoordIndex[I]].IndexOf(ThisFaceNum) = -1) then
+          VerticesFaces[CoordIndex[I]].Add(ThisFaceNum);
+        Inc(I);
+      end;
+
+      { calculate ThisFace.IndicesCount.
+        We completed one face: indexes StartIndex .. i - 1 }
+      ThisFace^.IndicesCount := i-ThisFace^.StartIndex;
+
+      { calculate ThisFace.Normal }
+      ThisFace^.Normal := IndexedPolygonNormal(
+        @(CoordIndex.Items[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
+        Vertices.ItemsArray, Vertices.Count,
+        Vector3Single(0, 0, 1));
+
+      { move to next face (omits the negative index we're standing on) }
+      Inc(I);
     end;
-
-    { calculate thisFace.IndicesCount.
-      We completed one face: indexes StartIndex .. i-1 }
-    thisFace^.IndicesCount := i-thisFace^.StartIndex;
-
-    { calculate thisFace.Normal }
-    thisFace^.Normal := IndexedPolygonNormal(
-      @(CoordIndex.Items[thisFace^.StartIndex]),
-      thisFace^.IndicesCount,
-      Vertices.ItemsArray, Vertices.Count,
-      Vector3Single(0, 0, 1));
-
-    { move to next face (omits the negative index we're standing on) }
-    Inc(i);
-   end;
   end;
 
   { For given Face and VertexNum (index to Vertices array),
-    set the normal vector in Normals array.
+    set the normal vector in NormalsResult array.
     Vertex must be present at least once on a given face.
     Works OK also in cases when vertex is duplicated (present more than once)
     on a single face. }
-  procedure SetNormal(vertexNum: integer; const face: TFace; const Normal: TVector3Single);
-  var i: integer;
-      vertFound: boolean;
-  begin
-   vertFound := false;
-   for i := face.StartIndex to face.StartIndex +face.IndicesCount -1 do
-    if CoordIndex.Items[i] = vertexNum then
-    begin
-     vertFound := true; { vertFound := true, but keep looking in case duplicated }
-     normals.Items[i] := Normal;
-    end;
-   Assert(vertFound, 'Internal error - NormalsCalculator.SetNormal failed');
-  end;
-
-  procedure CalculateVertexNormals(vertexNum: integer);
+  procedure SetNormal(VertexNum: integer; const face: TFace; const Normal: TVector3Single);
   var
-    { Initialized to verticesFaces[vertexNum] }
-    thisVertexFaces: TDynIntegerArray;
+    I: Integer;
+    Found: boolean;
+  begin
+    Found := false;
+    for I := Face.StartIndex to Face.StartIndex + Face.IndicesCount - 1 do
+      if CoordIndex.Items[I] = VertexNum then
+      begin
+        Found := true; { Found := true, but keep looking in case duplicated }
+        NormalsResult.Items[I] := Normal;
+      end;
+    Assert(Found, 'NormalsCalculator.SetNormal failed, vertex not on face');
+  end;
 
-    { Can face faceNum may be smoothed together with all faces in faceNums.
+  procedure CalculateVertexNormals(VertexNum: Integer);
+  var
+    { Initialized to VerticesFaces[VertexNum] }
+    ThisVertexFaces: TDynIntegerArray;
+
+    { Can face FaceNum may be smoothed together with all faces in FaceNums.
       This is the moment when CreaseAngleRad comes into play.
-      faceNum and faceNums[] are indexes to thisVertexFaces array. }
-    function FaceCanBeSmoothedWithFaces(faceNum: integer;
-      faceNums: TDynIntegerArray): boolean;
-    var i: integer;
+      FaceNum and FaceNums[] are indexes to ThisVertexFaces array. }
+    function FaceCanBeSmoothedWithFaces(FaceNum: integer;
+      FaceNums: TDynIntegerArray): boolean;
+    var
+      I: integer;
     begin
-     for i := 0 to faceNums.Count-1 do
-      { I want to check that
-          AngleRadBetweenNormals(...) >= CreaseAngleRad
-        so
-          ArcCos(CosAngleRadBetweenNormals(...)) >= CreaseAngleRad
-        so
-          CosAngleBetweenNormals(...) < CosCreaseAngle }
-      if CosAngleBetweenNormals(
-        faces.Items[thisVertexFaces.Items[faceNum]].Normal,
-        faces.Items[thisVertexFaces.Items[faceNums[i]]].Normal) <
-        CosCreaseAngle then
-       Exit(false);
-     result := true;
+      for I := 0 to FaceNums.Count - 1 do
+        { I want to check that
+            AngleRadBetweenNormals(...) >= CreaseAngleRad
+          so
+            ArcCos(CosAngleRadBetweenNormals(...)) >= CreaseAngleRad
+          so
+            CosAngleBetweenNormals(...) < CosCreaseAngle }
+        if CosAngleBetweenNormals(
+          Faces.Items[ThisVertexFaces.Items[FaceNum]].Normal,
+          Faces.Items[ThisVertexFaces.Items[FaceNums[i]]].Normal) <
+          CosCreaseAngle then
+          Exit(false);
+      Result := true;
     end;
 
-  var i, j: integer;
-      { Current face group that shares a common normal vector on this vertex. }
-      smoothFaces: TDynIntegerArray;
-      { Did we store normal vector for given face (and this vertex vertexNum) }
-      handledFaces: TDynBooleanArray;
-      Normal: TVector3Single;
+  var
+    I, J: Integer;
+    { Current face group that shares a common normal vector on this vertex. }
+    SmoothFaces: TDynIntegerArray;
+    { Did we store normal vector for given face (and this vertex VertexNum) }
+    HandledFaces: TDynBooleanArray;
+    Normal: TVector3Single;
   begin
-   thisVertexFaces := verticesFaces[vertexNum];
+    ThisVertexFaces := VerticesFaces[VertexNum];
 
-   smoothFaces := nil;
-   handledFaces := nil;
-   try
-    handledFaces := TDynBooleanArray.Create(thisVertexFaces.Count);
-    handledFaces.SetAll(false);
-    smoothFaces := TDynIntegerArray.Create;
+    SmoothFaces := nil;
+    HandledFaces := nil;
+    try
+      HandledFaces := TDynBooleanArray.Create(ThisVertexFaces.Count);
+      HandledFaces.SetAll(false);
+      SmoothFaces := TDynIntegerArray.Create;
 
-    for i := 0 to thisVertexFaces.Count-1 do
-     if not handledFaces[i] then
-     begin
+      for I := 0 to ThisVertexFaces.Count - 1 do
+        if not HandledFaces[I] then
+        begin
+          { calculate SmoothFaces }
+          SmoothFaces.SetLength(1);
+          SmoothFaces[0] := i;
 
-      { calculate smoothFaces }
-      smoothFaces.SetLength(1);
-      smoothFaces[0] := i;
+          for J := I + 1 to ThisVertexFaces.Count - 1 do
+            if (not HandledFaces[j]) and FaceCanBeSmoothedWithFaces(J, SmoothFaces) then
+              SmoothFaces.Add(J);
 
-      for j := i+1 to thisVertexFaces.Count-1 do
-       if (not handledFaces[j]) and FaceCanBeSmoothedWithFaces(j, smoothFaces) then
-        smoothFaces.Add(j);
+          { handle faces in SmoothFaces }
+          FillChar(Normal, SizeOf(Normal), 0);
+          for J := 0 to SmoothFaces.Count - 1 do
+          begin
+            HandledFaces[SmoothFaces[J]] := true;
+            VectorAddTo1st(Normal, faces.Items[ThisVertexFaces[SmoothFaces[J]]].Normal);
+          end;
+          NormalizeTo1st(Normal);
 
-      { handle faces in smoothFaces }
-      FillChar(Normal, SizeOf(Normal), 0);
-      for j := 0 to smoothFaces.Count-1 do
-      begin
-       handledFaces[smoothFaces[j]] := true;
-       VectorAddTo1st(Normal, faces.Items[thisVertexFaces[smoothFaces[j]]].Normal);
-      end;
-      NormalizeTo1st(Normal);
-
-      { use calculated normal vector }
-      for j := 0 to smoothFaces.Count-1 do
-       SetNormal(vertexNum, faces.Items[thisVertexFaces[smoothFaces[j]]], Normal);
-     end;
-   finally
-    smoothFaces.Free;
-    handledFaces.Free;
-   end;
+          { use calculated normal vector }
+          for J := 0 to SmoothFaces.Count - 1 do
+            SetNormal(VertexNum, Faces.Items[ThisVertexFaces[SmoothFaces[J]]], Normal);
+        end;
+    finally
+      SmoothFaces.Free;
+      HandledFaces.Free;
+    end;
   end;
 
-var i: integer;
+var
+  I: Integer;
 begin
- CosCreaseAngle := Cos(CreaseAngleRad);
+  CosCreaseAngle := Cos(CreaseAngleRad);
 
- SetLength(verticesFaces, vertices.Count);
+  SetLength(VerticesFaces, vertices.Count);
 
- normals := nil;
- faces := nil;
+  Result := nil;
+  Faces := nil;
 
- try
   try
-   for i := 0 to vertices.Count-1 do
-    verticesFaces[i] := TDynIntegerArray.Create;
-   faces := TDynFaceArray.Create;
+    try
+      for I := 0 to vertices.Count - 1 do
+        VerticesFaces[I] := TDynIntegerArray.Create;
+      Faces := TDynFaceArray.Create;
 
-   { calculate faces and verticesFaces contents }
-   CalculateFacesAndVerticesFaces;
+      { calculate Faces and VerticesFaces contents }
+      CalculateFacesAndVerticesFaces;
 
-   normals := TDynVector3SingleArray.Create(CoordIndex.Length);
+      Result := TDynVector3SingleArray.Create(CoordIndex.Length);
 
-   { for each vertex, calculate all his normals (on all his faces) }
-   for i := 0 to vertices.Count-1 do CalculateVertexNormals(i);
+      { for each vertex, calculate all his normals (on all his faces) }
+      for I := 0 to Vertices.Count - 1 do CalculateVertexNormals(I);
 
-   if not FromCCW then Result.Negate;
-  finally
-   for i := 0 to vertices.Count-1 do verticesFaces[i].Free;
-   faces.Free;
-  end;
-
- except FreeAndNil(normals); raise end;
+      if not FromCCW then Result.Negate;
+    finally
+      for I := 0 to Vertices.Count - 1 do VerticesFaces[I].Free;
+      Faces.Free;
+    end;
+  except FreeAndNil(Result); raise end;
 end;
 
 function CreateFlatNormals(CoordIndex: TDynLongintArray;
-  vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
+  Vertices: TDynVector3SingleArray; FromCCW: boolean): TDynVector3SingleArray;
 var
-  i, StartIndex: integer;
+  I, StartIndex: Integer;
   FaceNumber: Integer;
 begin
   { CoordIndex.Length is just a maximum length, we will shrink it later. }
-  result := TDynVector3SingleArray.Create(CoordIndex.Length);
+  Result := TDynVector3SingleArray.Create(CoordIndex.Length);
   try
     FaceNumber := 0;
 
-    i := 0;
-    while i < CoordIndex.Count do
+    I := 0;
+    while I < CoordIndex.Count do
     begin
-      StartIndex := i;
-      while (i < CoordIndex.Count) and (CoordIndex.Items[i] >= 0) do Inc(i);
+      StartIndex := I;
+      while (I < CoordIndex.Count) and (CoordIndex.Items[I] >= 0) do Inc(I);
       Result.Items[FaceNumber] := IndexedPolygonNormal(
         @(CoordIndex.Items[StartIndex]),
-        i - startIndex,
+        I - StartIndex,
         Vertices.ItemsArray, Vertices.Count,
         Vector3Single(0, 0, 0));
       Inc(FaceNumber);
 
-      Inc(i);
+      Inc(I);
     end;
 
     Result.Length := FaceNumber;
 
-    if not FromCCW then result.Negate;
-  except FreeAndNil(result); raise end;
+    if not FromCCW then Result.Negate;
+  except FreeAndNil(Result); raise end;
 end;
 
 { CreateSmoothNormalsCoordinateNode ------------------------------------------ }
