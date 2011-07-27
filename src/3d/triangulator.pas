@@ -194,7 +194,7 @@ begin
 
           { TODO - is negate needed here ? }
           NN := VectorNegate( TriangleNormal(Verts(P0), Verts(P1), Verts(P2)) );
-          DistanceSqr := PointsDistance(NN, ConvexNormal);
+          DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
 
           E1 := VectorProduct(NN, VectorSubtract(Verts(P1), Verts(P0)));
           E2 := VectorProduct(NN, VectorSubtract(Verts(P2), Verts(P1)));
