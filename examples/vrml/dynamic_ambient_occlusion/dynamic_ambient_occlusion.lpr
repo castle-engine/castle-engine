@@ -112,7 +112,7 @@ begin
       DirectIndexes[I] := Indexes[I];
   end;
 
-  FaceNormal := IndexedPolygonNormal(
+  FaceNormal := IndexedConvexPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.ItemsArray, pointer here,
       to calculate normals in world-coordinates (that are
