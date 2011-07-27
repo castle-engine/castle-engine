@@ -171,8 +171,7 @@ begin
     if P1 = 0 then P0 := Count - 1 else P0 := P1 - 1;
     P2 := (P1 + 1) mod Count;
 
-    { TODO - is negate needed here ? }
-    ConvexNormal := VectorNegate( TriangleNormal(Verts(P0), Verts(P1), Verts(P2)) );
+    ConvexNormal := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
 
     Corners := Count;
     P0 := -1;
@@ -192,13 +191,12 @@ begin
 
           if P0 = Start then break;
 
-          { TODO - is negate needed here ? }
-          NN := VectorNegate( TriangleNormal(Verts(P0), Verts(P1), Verts(P2)) );
+          NN := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
           DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
 
-          E1 := VectorProduct(NN, VectorSubtract(Verts(P1), Verts(P0)));
-          E2 := VectorProduct(NN, VectorSubtract(Verts(P2), Verts(P1)));
-          E3 := VectorProduct(NN, VectorSubtract(Verts(P0), Verts(P2)));
+          E1 := VectorProduct(NN, VectorSubtract(Verts(P0), Verts(P1)));
+          E2 := VectorProduct(NN, VectorSubtract(Verts(P1), Verts(P2)));
+          E3 := VectorProduct(NN, VectorSubtract(Verts(P2), Verts(P0)));
 
           Empty := true;
 
