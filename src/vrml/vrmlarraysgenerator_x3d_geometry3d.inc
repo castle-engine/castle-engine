@@ -181,7 +181,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
-      EndIndex - BeginIndex, Coord.Items.ItemsArray,
+      EndIndex - BeginIndex, Coord.Items.Items,
       @GenerateTriangle, BeginIndex);
   end else
   begin
@@ -209,7 +209,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
-      EndIndex - BeginIndex, Coord.Items.ItemsArray,
+      EndIndex - BeginIndex, Coord.Items.Items,
       @PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
@@ -235,7 +235,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(Addr(CoordIndex.Items.Items[BeginIndex]),
-      EndIndex - BeginIndex, Coord.Items.ItemsArray,
+      EndIndex - BeginIndex, Coord.Items.Items,
       @PrepareIndexesTriangle2, BeginIndex);
   end else
   begin

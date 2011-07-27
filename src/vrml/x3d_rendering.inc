@@ -384,6 +384,11 @@
     { Is this object lit, disregarding the material.
       Default implementation in TVRMLGeometryNode says @true. }
     function Lit(State: TVRMLGraphTraverseState): boolean; virtual;
+
+    { Are faces convex. This knowledge is used when calculating normal vectors,
+      and has to be defined only for nodes used with NormalsCalculator.
+      Default implementation is this class answers @true. }
+    function Convex: boolean; virtual;
   end;
 
   { }
@@ -983,6 +988,11 @@ begin
 end;
 
 function TVRMLGeometryNode.Lit(State: TVRMLGraphTraverseState): boolean;
+begin
+  Result := true;
+end;
+
+function TVRMLGeometryNode.Convex: boolean;
 begin
   Result := true;
 end;

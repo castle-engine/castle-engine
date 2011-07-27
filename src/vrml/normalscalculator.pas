@@ -32,10 +32,7 @@ uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
   faces. So this works just like VRML/X3D IndexedFaceSet.coordIndex.
 
   It's smart and ignores incorrect indexes (outside Vertices range),
-  and incorrect faces triangles (see IndexedPolygonNormal).
-  It's guaranteed to work Ok for convex faces, although for non-convex faces
-  results are also acceptable (as results of IndexedPolygonNormal
-  should be acceptable for even non-convex faces).
+  and incorrect triangles in the face (see IndexedPolygonNormal).
 
   Returns a list of normalized vectors. This has the same length
   as CoordIndex, and should be accessed in the same way.
@@ -60,11 +57,15 @@ uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
 
     Note that when creaseAngleRad >= Pi, you wil be better off
     using CreateSmoothNormals. This will work faster, and return shorter
-    normals array (so it's also more memory-efficient).) }
+    normals array (so it's also more memory-efficient).)
+
+  @param(Convex Set this to @true if you know the faces are convex.
+    This makes calculation faster (but may yield incorrect results
+    for concave polygons).) }
 function CreateNormals(CoordIndex: TDynLongintArray;
-  vertices: TDynVector3SingleArray;
-  creaseAngleRad: Single;
-  FromCCW: boolean): TDynVector3SingleArray;
+  Vertices: TDynVector3SingleArray;
+  CreaseAngleRad: Single;
+  const FromCCW, Convex: boolean): TDynVector3SingleArray;
 
 { Calculate flat per-face normals for indexed faces.
 
@@ -74,7 +75,7 @@ function CreateNormals(CoordIndex: TDynLongintArray;
   Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TDynLongintArray;
   vertices: TDynVector3SingleArray;
-  FromCCW: boolean): TDynVector3SingleArray;
+  const FromCCW, Convex: boolean): TDynVector3SingleArray;
 
 { Calculate always smooth normals per-vertex, for VRML coordinate-based
   node. We use TVRMLGeometryNode.CoordPolygons for this, so the node class
@@ -90,11 +91,11 @@ function CreateFlatNormals(coordIndex: TDynLongintArray;
 function CreateSmoothNormalsCoordinateNode(
   Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  FromCCW: boolean): TDynVector3SingleArray;
+  const FromCCW: boolean): TDynVector3SingleArray;
 
 implementation
 
-uses VRMLFields;
+uses VRMLFields, Triangulator;
 
 {$define read_interface}
 {$define read_implementation}
@@ -116,7 +117,7 @@ type
 function CreateNormals(CoordIndex: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
   CreaseAngleRad: Single;
-  FromCCW: boolean): TDynVector3SingleArray;
+  const FromCCW, Convex: boolean): TDynVector3SingleArray;
 var
   Faces: TDynFaceArray;
   { For each vertex (this array length is always Vertices.Count),
@@ -165,8 +166,8 @@ var
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
         @(CoordIndex.Items[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
-        Vertices.ItemsArray, Vertices.Count,
-        Vector3Single(0, 0, 1));
+        Vertices.Items, Vertices.Count,
+        Vector3Single(0, 0, 1), Convex);
 
       { move to next face (omits the negative index we're standing on) }
       Inc(I);
@@ -301,7 +302,8 @@ begin
 end;
 
 function CreateFlatNormals(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray; FromCCW: boolean): TDynVector3SingleArray;
+  Vertices: TDynVector3SingleArray;
+  const FromCCW, Convex: boolean): TDynVector3SingleArray;
 var
   I, StartIndex: Integer;
   FaceNumber: Integer;
@@ -319,8 +321,8 @@ begin
       Result.Items[FaceNumber] := IndexedPolygonNormal(
         @(CoordIndex.Items[StartIndex]),
         I - StartIndex,
-        Vertices.ItemsArray, Vertices.Count,
-        Vector3Single(0, 0, 0));
+        Vertices.Items, Vertices.Count,
+        Vector3Single(0, 0, 0), Convex);
       Inc(FaceNumber);
 
       Inc(I);
@@ -340,7 +342,7 @@ type
     Normals: TDynVector3SingleArray;
     CoordIndex: TDynLongIntArray;
     Coord: TDynVector3SingleArray;
-
+    Convex: boolean;
     procedure Polygon(const Indexes: array of Cardinal);
   end;
 
@@ -366,8 +368,8 @@ begin
 
   FaceNormal := IndexedPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    Coord.ItemsArray, Coord.Count,
-    Vector3Single(0, 0, 0));
+    Coord.Items, Coord.Count,
+    Vector3Single(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
     VectorAddTo1st(Normals.Items[DirectIndexes[I]], FaceNormal);
@@ -376,7 +378,7 @@ end;
 function CreateSmoothNormalsCoordinateNode(
   Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  FromCCW: boolean): TDynVector3SingleArray;
+  const FromCCW: boolean): TDynVector3SingleArray;
 var
   Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;
@@ -392,6 +394,7 @@ begin
 
     Calculator := TCoordinateNormalsCalculator.Create;
     try
+      Calculator.Convex := Node.Convex;
       Calculator.Coord := C.Items;
       if Node.CoordIndex <> nil then
         Calculator.CoordIndex := Node.CoordIndex.Items else

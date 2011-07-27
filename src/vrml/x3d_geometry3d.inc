@@ -253,6 +253,7 @@
 
     private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
+    function Convex: boolean; override;
 
     private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
@@ -336,6 +337,7 @@
 
     private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
+    function Convex: boolean; override;
 
     private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
@@ -1123,6 +1125,11 @@ begin
   Fdspine.Changed;
 end;
 
+function TNodeExtrusion.Convex: boolean;
+begin
+  Result := FdConvex.Value;
+end;
+
 procedure TNodeIndexedFaceSet.CreateNode;
 begin
   inherited;
@@ -1231,6 +1238,11 @@ procedure TNodeIndexedFaceSet.EventSet_texCoordIndexReceive(
 begin
   FdtexCoordIndex.Assign(Value);
   FdtexCoordIndex.Changed;
+end;
+
+function TNodeIndexedFaceSet.Convex: boolean;
+begin
+  Result := FdConvex.Value;
 end;
 
 procedure TNodeSphere.CreateNode;

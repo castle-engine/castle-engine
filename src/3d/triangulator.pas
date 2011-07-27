@@ -21,7 +21,7 @@ interface
 uses SysUtils, VectorMath, KambiUtils;
 
 type
-  TTriangulatorProc = procedure(const Tri: TVector3Longint) of object;
+  TTriangulatorProc = procedure (const Tri: TVector3Longint) of object;
 
 { Triangulate potentially non-convex face.
 
@@ -46,8 +46,7 @@ type
   your polygon is planar (and it should be --- although we handle gracefully
   small deviations from planar, this procedure doesn't actually handle
   arbitrary (dis)located 3D data) then normal vector of all your
-  triangles is the same, and is equal to normal vector of original polygon
-  (calculated e.g. by IndexedPolygonNormal).
+  triangles is the same.
 
   Note that you generally shouldn't use this procedure if you @italic(know)
   that your polygon is convex. Then using this is a waste of time,
@@ -70,7 +69,7 @@ type
   @groupBegin }
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
+  Vertices: PVector3Single; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 
 procedure TriangulateFace(
@@ -96,6 +95,12 @@ procedure TriangulateConvexFace(Count: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
+{ Triangulate possibly concave polygon. }
+function IndexedPolygonNormal(
+  Indices: PArray_Longint; IndicesCount: Integer;
+  Verts: PVector3Single; const VertsCount: Integer;
+  const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
+
 implementation
 
 { Implementation idea based on face2tri.C in C++, from mgflib sources. }
@@ -108,9 +113,9 @@ procedure TriangulateFace(
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
     TriangulatorProc(Vector3Longint(
-      p0 + AddToIndices,
-      p1 + AddToIndices,
-      p2 + AddToIndices));
+      P0 + AddToIndices,
+      P1 + AddToIndices,
+      P2 + AddToIndices));
   end;
 
   function Verts(I: Longint): TVector3Single;
@@ -228,18 +233,18 @@ end;
 
 type
   TVerticesGenerator = class
-    Vertices: PArray_Vector3Single;
+    Vertices: PVector3Single;
     function Generate(Index: Integer): TVector3Single;
   end;
 
 function TVerticesGenerator.Generate(Index: Integer): TVector3Single;
 begin
-  Result := Vertices^[Index];
+  Result := Vertices[Index];
 end;
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
+  Vertices: PVector3Single; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 var
   G: TVerticesGenerator;
@@ -259,9 +264,9 @@ procedure TriangulateConvexFace(Count: Integer;
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
     TriangulatorProc(Vector3Longint(
-      p0 + AddToIndices,
-      p1 + AddToIndices,
-      p2 + AddToIndices));
+      P0 + AddToIndices,
+      P1 + AddToIndices,
+      P2 + AddToIndices));
   end;
 
 var
@@ -269,6 +274,58 @@ var
 begin
   for I := 0 to Count - 3 do
     NewTriangle(0, I + 1, I + 2);
+end;
+
+type
+  TConcaveTriangulator = class
+    Indices: PArray_Longint;
+    Verts: PVector3Single;
+    VertsCount: Integer;
+    Normal: TVector3Single;
+    procedure HandleTriangle(const Tri: TVector3Longint);
+  end;
+
+procedure TConcaveTriangulator.HandleTriangle(const Tri: TVector3Longint);
+var
+  I0, I1, I2: Integer;
+begin
+  I0 := Indices^[Tri[0]];
+  I1 := Indices^[Tri[1]];
+  I2 := Indices^[Tri[2]];
+  if (I0 < VertsCount) and
+     (I1 < VertsCount) and
+     (I2 < VertsCount) then
+    Normal += TriangleNormal(Verts[I0], Verts[I1], Verts[I2]);
+end;
+
+function IndexedConcavePolygonNormal(
+  Indices: PArray_Longint; IndicesCount: Integer;
+  Verts: PVector3Single; const VertsCount: Integer;
+  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+var
+  T: TConcaveTriangulator;
+begin
+  T := TConcaveTriangulator.Create;
+  try
+    T.Indices := Indices;
+    T.Verts := Verts;
+    T.VertsCount := VertsCount;
+    TriangulateFace(Indices, IndicesCount, Verts, @T.HandleTriangle, 0);
+    Result := T.Normal;
+    if ZeroVector(Result) then
+      Result := ResultForIncorrectPoly else
+      NormalizeTo1st(Result);
+  finally FreeAndNil(T) end;
+end;
+
+function IndexedPolygonNormal(
+  Indices: PArray_Longint; IndicesCount: Integer;
+  Verts: PVector3Single; const VertsCount: Integer;
+  const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
+begin
+  if Convex then
+    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Verts, VertsCount, ResultForIncorrectPoly) else
+    Result := IndexedConcavePolygonNormal(Indices, IndicesCount, Verts, VertsCount, ResultForIncorrectPoly);
 end;
 
 end.

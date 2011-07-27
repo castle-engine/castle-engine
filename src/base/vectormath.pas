@@ -1810,13 +1810,13 @@ function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double
   then it returns ResultForIncorrectPoly.
 
   @groupBegin }
-function IndexedPolygonNormal(
+function IndexedConvexPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PArray_Vector3Single; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3Single): TVector3Single; overload;
-function IndexedPolygonNormal(
+function IndexedConvexPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt;
+  Verts: PVector3Single; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3Single): TVector3Single; overload;
 { @groupEnd }
 
@@ -3262,20 +3262,20 @@ begin
  result := TriangleNormal(Tri);
 end;
 
-function IndexedPolygonNormal(
+function IndexedConvexPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PArray_Vector3Single; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3Single): TVector3Single;
 begin
-  Result := IndexedPolygonNormal(
+  Result := IndexedConvexPolygonNormal(
     Indices, IndicesCount,
-    PVector3Single(Verts), VertsCount, SizeOf(TVector3Single),
+    PVector3Single(Verts), VertsCount,
     ResultForIncorrectPoly);
 end;
 
-function IndexedPolygonNormal(
+function IndexedConvexPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3Single; const VertsCount: Integer; const VertsStride: PtrUInt;
+  Verts: PVector3Single; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3Single): TVector3Single;
 var Tri: TTriangle3Single;
     i: integer;
@@ -3292,27 +3292,22 @@ begin
 
   I := 0;
 
-  { Verts_Indices_I = Verts[Indices[I]], but takes into account
-    that Verts is an array with VertsStride. }
-  {$define Verts_Indices_I :=
-    PVector3Single(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride)^}
-
   while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
   { This secures us against polygons with no valid Indices[].
     (including case when IndicesCount = 0). }
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri[0] := Verts_Indices_I;
+  Tri[0] := Verts[Indices^[I]];
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri[1] := Verts_Indices_I;
+  Tri[1] := Verts[Indices^[I]];
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri[2] := Verts_Indices_I;
+  Tri[2] := Verts[Indices^[I]];
 
   if IsValidTriangle(Tri) then
     VectorAddTo1st(result, TriangleNormal(Tri) );
@@ -3324,7 +3319,7 @@ begin
     if I >= IndicesCount then
       Break;
     Tri[1] := Tri[2];
-    Tri[2] := Verts_Indices_I;
+    Tri[2] := Verts[Indices^[I]];
 
     if IsValidTriangle(Tri) then
       VectorAddTo1st(result, TriangleNormal(Tri) );

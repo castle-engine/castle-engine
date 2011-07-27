@@ -1663,7 +1663,7 @@ begin
     S := State(OverTriangulate);
 
     FNormals := CreateFlatNormals(G.CoordIndex.Items,
-      G.Coordinates(S).Items, true);
+      G.Coordinates(S).Items, true, G.Convex);
     FNormalsCached := ncFlat;
     FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
@@ -1694,7 +1694,7 @@ begin
     S := State(OverTriangulate);
 
     FNormals := CreateNormals(G.CoordIndex.Items,
-      G.Coordinates(S).Items, CreaseAngle, true);
+      G.Coordinates(S).Items, CreaseAngle, true, G.Convex);
     FNormalsCached := ncCreaseAngle;
     FNormalsOverTriangulate := OverTriangulate;
     FNormalsCreaseAngle := CreaseAngle;
