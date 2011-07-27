@@ -2839,7 +2839,7 @@ begin
       We always provide normalized normals (that's how vrmlarraysgenerator.pas
       and vrmlmeshrenderer.inc always calculate them, and when provided
       in VRML/X3D they should also be already normalized).
-      However, turning GL_NORMALIZE doesn't give us *any* performance
+      However, turning GL_NORMALIZE off doesn't give us *any* performance
       benefit as far as I tested (with castle gate, on high-end GPUs
       like Radeon X1600 and low-end like Intel).
 
