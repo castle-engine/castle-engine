@@ -44,7 +44,8 @@ uses
   TestShadowFields,
   TestGLVersion,
   TestURLUtils,
-  TestDDS
+  TestDDS,
+  TestTriangulator
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   { These require GLWindow initializing it's own window. So they
     1. conflict with LCL windows (so only when TEXT_RUNNER)
