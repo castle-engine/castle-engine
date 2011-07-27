@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2010 Michalis Kamburelis.
+  Copyright 2004-2011 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -421,12 +421,12 @@ const
   CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
 begin
   Assert(VectorsEqual(
-    IndexedPolygonNormal(@CCWPolyIndex, High(CCWPolyIndex) + 1,
+    IndexedConvexPolygonNormal(@CCWPolyIndex, High(CCWPolyIndex) + 1,
       @Poly, High(Poly) + 1, ZeroVector3Single),
     Vector3Single(0, 0, 1)));
 
   Assert(VectorsEqual(
-    IndexedPolygonNormal(@CWPolyIndex, High(CWPolyIndex) + 1,
+    IndexedConvexPolygonNormal(@CWPolyIndex, High(CWPolyIndex) + 1,
       @Poly, High(Poly) + 1, ZeroVector3Single),
     Vector3Single(0, 0, -1)));
 
