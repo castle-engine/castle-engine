@@ -140,17 +140,20 @@ procedure TriangulateFace(
   end;
 
 var
-  ConvexNormal, Center, NN, E1, E2, E3: TVector3Single;
-  Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
-  DistanceSqr: Single;
   Outs: TDynBooleanArray;
-  Empty: boolean;
 
+  { Increase Index, until a value with Outs[Result]=false is found. }
   function NextNotOut(Index: Integer): Integer;
   begin
     Result := Index;
     repeat Result := (Result+1) mod Count until not Outs.Items[Result];
   end;
+
+var
+  ConvexNormal, Center, NN, E1, E2, E3: TVector3Single;
+  Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
+  DistanceSqr: Single;
+  Empty: boolean;
 
 begin
   if Count = 3 then
@@ -173,9 +176,8 @@ begin
 
     ConvexNormal := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
 
-    Corners := Count;
+    Corners := Count; { Corners = always "how many Outs are false" }
     P0 := -1;
-
     Outs := TDynBooleanArray.Create(Count);
     try
       Outs.SetAll(false);
