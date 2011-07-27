@@ -13,6 +13,9 @@
   ----------------------------------------------------------------------------
 */
 
+/* Needed for % operator */
+#extension GL_EXT_gpu_shader4 : enable
+
 /* Fragment shader doing dynamic_ambient_occlusion.
    See README for links and description what it does. */
 
