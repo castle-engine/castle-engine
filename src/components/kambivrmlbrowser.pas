@@ -172,7 +172,7 @@ begin
 
   { TODO: hmm, there's no way to request stencil buffer from TOpenGLControl?
     Looking in the sources, for GTK always at least 1-bit stencil buffer is
-    requested (pretty stupid and worthless?), for Windows nothing is requested.
+    requested (pretty useless?), for Windows nothing is requested.
     There's no way to workaround it, this must be fixed in OpenGLContext
     for TKamVRMLBrowser to work reliably. }
 
