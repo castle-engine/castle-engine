@@ -25,10 +25,10 @@ type
 
 { Triangulate potentially non-convex face.
 
-  FaceIndices[0]..FaceIndices[FaceIndicesCount-1] are indices
+  FaceIndices[0]..FaceIndices[Count - 1] are indices
   to the Vertices array. They describe the outline of the polygon (face).
   You can pass FaceIndices = @nil, this is understood that indices
-  are just 0..FaceIndicesCount-1 (in other words, it's equivalent
+  are just 0..Count - 1 (in other words, it's equivalent
   to setting FaceIndices[0] = 0, FaceIndices[1] = 1 etc.).
 
   For each resulting triangle we will call TriangulatorProc
@@ -69,12 +69,12 @@ type
 
   @groupBegin }
 procedure TriangulateFace(
-  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  FaceIndices: PArray_Longint; Count: Integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 
 procedure TriangulateFace(
-  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  FaceIndices: PArray_Longint; Count: Integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 { @groupEnd }
@@ -87,12 +87,12 @@ procedure TriangulateFace(
   convex.
 
   Note that it doesn't even need to know FaceIndices or Vertices,
-  it's enough to know FaceIndicesCount.
+  it's enough to know Count.
 
   This also guarantees consequent triangles orientation, like TriangulateFace.
 
   @seeAlso TriangulateFace }
-procedure TriangulateConvexFace(FaceIndicesCount: integer;
+procedure TriangulateConvexFace(Count: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
@@ -101,7 +101,7 @@ implementation
 { Implementation idea based on face2tri.C in C++, from mgflib sources. }
 
 procedure TriangulateFace(
-  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  FaceIndices: PArray_Longint; Count: Integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
@@ -113,97 +113,103 @@ procedure TriangulateFace(
       p2 + AddToIndices));
   end;
 
-  {$define VertsCount := FaceIndicesCount}
-  function Verts(i: Longint): TVector3Single;
+  function Verts(I: Longint): TVector3Single;
   begin
     if FaceIndices <> nil then
-      Result := Vertices(FaceIndices^[i]) else
+      Result := Vertices(FaceIndices^[I]) else
       Result := Vertices(I);
   end;
 
+  { calculate the most distant vertex from Center. }
+  function GetMostDistantVertex(const Center: TVector3Single): Integer;
+  var
+    MaxLen, D: Single;
+    I: Integer;
+  begin
+    Result := 0;
+    MaxLen := PointsDistanceSqr(Center, Verts(0));
+    for I := 1 to Count - 1 do
+    begin
+      D := PointsDistanceSqr(Center, Verts(I));
+      if D > MaxLen then
+      begin
+        MaxLen := D;
+        Result := I;
+      end;
+    end;
+  end;
+
 var
-  ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;
-  Corners, Start, MaxLenIndex, i, p0, p1, p2: Longint;
-  d, MaxLen: Single;
+  ConvexNormal, Center, NN, E1, E2, E3: TVector3Single;
+  Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
+  DistanceSqr: Single;
   Outs: TDynBooleanArray;
   Empty: boolean;
 
   function NextNotOut(Index: Integer): Integer;
   begin
     Result := Index;
-    repeat Result := (Result+1) mod VertsCount until not Outs.Items[Result];
+    repeat Result := (Result+1) mod Count until not Outs.Items[Result];
   end;
 
 begin
-  if VertsCount = 3 then
-    { For VertsCount = 3 this is trivial, do it fast. }
+  if Count = 3 then
+    { For Count = 3 this is trivial, do it fast. }
     NewTriangle(0, 1, 2) else
-  if VertsCount > 3 then
+  if Count > 3 then
   begin
     { calculate Center := average of all vertexes }
     Center := ZeroVector3Single;
-    for i := 0 to VertsCount-1 do VectorAddTo1st(Center, Verts(i));
-    VectorScaleTo1st(Center, 1/VertsCount);
+    for I := 0 to Count - 1 do
+      Center += Verts(I);
+    Center /= Count;
 
-    { calculate the most distant vertex from Center.
-      MaxLen is the distance from Center, MaxLenIndex is the vertex index in Verts[].
-      TODO - czy tu PointDistanceSqr nie wystarczy ? }
-    MaxLenIndex := 0;
-    MaxLen := PointsDistance(Center, Verts(0));
-    for i := 1 to VertsCount-1 do
-    begin
-      d := PointsDistance(Center, Verts(i));
-      if d > MaxLen then
-      begin
-        MaxLen := d;
-        MaxLenIndex := i;
-      end;
-    end;
+    MostDistantVertex := GetMostDistantVertex(Center);
 
-    { p1 is the index of the most distant vertex, p0 is previous, p2 is next }
-    p1 := MaxLenIndex;
-    if p1 = 0 then p0 := VertsCount-1 else p0 := p1-1;
-    p2 := (p1+1) mod VertsCount;
+    { P1 is the most distant vertex, P0 is previous, P2 is next }
+    P1 := MostDistantVertex;
+    if P1 = 0 then P0 := Count - 1 else P0 := P1 - 1;
+    P2 := (P1 + 1) mod Count;
 
     { TODO - is negate needed here ? }
-    ConvexNormal := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
+    ConvexNormal := VectorNegate( TriangleNormal(Verts(P0), Verts(P1), Verts(P2)) );
 
-    Corners := VertsCount;
-    p0 := -1;
+    Corners := Count;
+    P0 := -1;
 
-    Outs := TDynBooleanArray.Create(VertsCount);
+    Outs := TDynBooleanArray.Create(Count);
     try
       Outs.SetAll(false);
 
       while Corners >= 3 do
       begin
-        Start := p0;
+        Start := P0;
 
         repeat
-          p0 := NextNotOut(p0);
-          p1 := NextNotOut(p0);
-          p2 := NextNotOut(p1);
+          P0 := NextNotOut(P0);
+          P1 := NextNotOut(P0);
+          P2 := NextNotOut(P1);
 
-          if p0 = Start then break;
+          if P0 = Start then break;
 
           { TODO - is negate needed here ? }
-          nn := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
-          d := PointsDistance(nn, ConvexNormal);
+          NN := VectorNegate( TriangleNormal(Verts(P0), Verts(P1), Verts(P2)) );
+          DistanceSqr := PointsDistance(NN, ConvexNormal);
 
-          E1 := VectorProduct(nn, VectorSubtract(Verts(p1), Verts(p0)));
-          E2 := VectorProduct(nn, VectorSubtract(Verts(p2), Verts(p1)));
-          E3 := VectorProduct(nn, VectorSubtract(Verts(p0), Verts(p2)));
+          E1 := VectorProduct(NN, VectorSubtract(Verts(P1), Verts(P0)));
+          E2 := VectorProduct(NN, VectorSubtract(Verts(P2), Verts(P1)));
+          E3 := VectorProduct(NN, VectorSubtract(Verts(P0), Verts(P2)));
 
-          Empty := True;
+          Empty := true;
 
-          for i := 0 to VertsCount-1 do
-            if (not Outs.Items[i]) and (i <> p0) and (i <> p1) and (i <> p2) then
-             Empty := Empty and not (
-               (VectorDotProduct(E1, VectorSubtract(Verts(i), Verts(p0))) <= - SingleEqualityEpsilon) and
-               (VectorDotProduct(E2, VectorSubtract(Verts(i), Verts(p1))) <= - SingleEqualityEpsilon) and
-               (VectorDotProduct(E3, VectorSubtract(Verts(i), Verts(p2))) <= - SingleEqualityEpsilon)
-               );
-        until (d <= 1.0) and Empty;
+          for I := 0 to Count - 1 do
+            if (not Outs.Items[I]) and (I <> P0) and (I <> P1) and (I <> P2) then
+              Empty := Empty and not (
+                (VectorDotProduct(E1, VectorSubtract(Verts(I), Verts(P0))) <= -SingleEqualityEpsilon) and
+                (VectorDotProduct(E2, VectorSubtract(Verts(I), Verts(P1))) <= -SingleEqualityEpsilon) and
+                (VectorDotProduct(E3, VectorSubtract(Verts(I), Verts(P2))) <= -SingleEqualityEpsilon)
+                );
+        until (DistanceSqr <= 1.0) and Empty;
 
         { TODO --- is this check really not needed?
           Even on invalid graz.mgf.wrl this check is still not needed?
@@ -221,16 +227,16 @@ end;
 type
   TVerticesGenerator = class
     Vertices: PArray_Vector3Single;
-    function Generate(Index: integer): TVector3Single;
+    function Generate(Index: Integer): TVector3Single;
   end;
 
-function TVerticesGenerator.Generate(Index: integer): TVector3Single;
+function TVerticesGenerator.Generate(Index: Integer): TVector3Single;
 begin
   Result := Vertices^[Index];
 end;
 
 procedure TriangulateFace(
-  FaceIndices: PArray_Longint; FaceIndicesCount: integer;
+  FaceIndices: PArray_Longint; Count: Integer;
   Vertices: PArray_Vector3Single; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 var
@@ -239,12 +245,12 @@ begin
   G := TVerticesGenerator.Create;
   try
     G.Vertices := Vertices;
-    TriangulateFace(FaceIndices, FaceIndicesCount,
+    TriangulateFace(FaceIndices, Count,
       @G.Generate, TriangulatorProc, AddToIndices);
   finally FreeAndNil(G); end;
 end;
 
-procedure TriangulateConvexFace(FaceIndicesCount: integer;
+procedure TriangulateConvexFace(Count: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
@@ -259,7 +265,7 @@ procedure TriangulateConvexFace(FaceIndicesCount: integer;
 var
   I: Integer;
 begin
-  for I := 0 to FaceIndicesCount - 3 do
+  for I := 0 to Count - 3 do
     NewTriangle(0, I + 1, I + 2);
 end;
 
