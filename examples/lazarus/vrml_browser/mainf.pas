@@ -215,8 +215,8 @@ begin
 
   UpdateCaption;
 
-  { Uncomment these to use shadows:
-
+  { Uncomment these to enable shadow volumes (your model must have appropriate
+    light). This is *not* necessary if you want to use only shadow maps.
   Browser.ShadowVolumesPossible := true;
   Browser.ShadowVolumes := true;
   }
