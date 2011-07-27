@@ -143,22 +143,16 @@ var
       ThisFace^.StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex[I] >= 0) do
       begin
-        { Two tests below secure us from invalid CoordIndex values:
-          1. of course, each CoordIndex[] value must be within range.
-          2. in a correct face, each vertex may occur at most once.
-
-          We have to deal with VRML/X3D data supplied by user here,
-          so we have to secure against invalid values here.
-
+        { Check that CoordIndex[I] is valid (within Vertices.Count range).
           Note that we cannot remove here wrong indexes from CoordIndex.
-          Tempting, but
-          - It is not so easy. We would have to remove also other xxxIndex
-            fields e.g. IndexedFaceSet.texCoordIndex
-          - Our engine doesn't ever change VRML/X3D data
-            (even when this data is incorrect), it's a decision that makes
-            various things safer. }
-
+          It's tempting, but:
+          - Removing them is not so easy. We would have to modify also other
+            xxxIndex fields e.g. IndexedFaceSet.texCoordIndex.
+          - Our engine generally preserves VRML/X3D data, never auto-correcting
+            it (it's a decision that makes various things safer). }
         if (CoordIndex[I] < Vertices.Count) and
+           { Make sure to add only the 1st occurrence of a vertex on this face.
+             Valid concave faces may specify the same vertex multiple times. }
            (VerticesFaces[CoordIndex[I]].IndexOf(ThisFaceNum) = -1) then
           VerticesFaces[CoordIndex[I]].Add(ThisFaceNum);
         Inc(I);
