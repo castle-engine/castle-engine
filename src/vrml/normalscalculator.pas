@@ -16,8 +16,8 @@
 { @abstract(Calculating normal vectors for various 3D objects,
   with appropriate smoothing.)
 
-  This is developed for VRML / X3D geometric primitives,
-  although some parts are not coupled with VRML stuff.
+  This is developed for VRML/X3D geometric primitives,
+  although some parts are not coupled with VRML/X3D stuff.
   So it can be used in other situations too. }
 unit NormalsCalculator;
 
@@ -29,7 +29,7 @@ uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
   to CreaseAngleRad.
 
   CoordIndex are indexes to Vertices. Indexes < 0 are used to separate
-  faces. So this works just like VRML IndexedFaceSet.coordIndex.
+  faces. So this works just like VRML/X3D IndexedFaceSet.coordIndex.
 
   It's smart and ignores incorrect indexes (outside Vertices range),
   and incorrect faces triangles (see IndexedPolygonNormal).
@@ -118,15 +118,14 @@ function CreateNormals(CoordIndex: TDynLongintArray;
   CreaseAngleRad: Single;
   FromCCW: boolean): TDynVector3SingleArray;
 var
-  faces: TDynFaceArray; { lista faces }
+  faces: TDynFaceArray;
 
-  { Lista dlugosci vertices.Count ktorej kazdy element mowi do jakich
-    faces nalezy ten vertex (to znaczy podaje indeksy do tablicy faces[]).
+  { For each vertex (this array length is always Vertices.Count),
+    to which faces this vertex belongs? Contains indexes to Faces[] list.
 
-    Jezeli faces byly nieprawidlowe (w ktorym to przypadku staramy sie
-    w calym tym module zachowac mozliwie sensownie) to dany vertex moze
-    byc wiecej niz jeden raz na jednym faces - to nic, w tej tablicy
-    bedzie odpowiednie face wymienione tylko raz. }
+    Although vertex may be more than once on the same face (in case
+    of incorrect data, or some concave faces), a face is mentioned
+    at most once (for given vertex) in this structure. }
   verticesFaces: array of TDynIntegerArray;
 
   normals: TDynVector3SingleArray absolute result;
@@ -167,32 +166,28 @@ var
       Inc(i);
     end;
 
-    { licz thisFace.IndicesCount
-      Skompletowalismy jedno face : to indeksy od StartIndex do i-1 }
+    { calculate thisFace.IndicesCount.
+      We completed one face: indexes StartIndex .. i-1 }
     thisFace^.IndicesCount := i-thisFace^.StartIndex;
 
-    { licz thisFace.Normal }
+    { calculate thisFace.Normal }
     thisFace^.Normal := IndexedPolygonNormal(
       @(CoordIndex.Items[thisFace^.StartIndex]),
       thisFace^.IndicesCount,
       Vertices.ItemsArray, Vertices.Count,
       Vector3Single(0, 0, 1));
 
-    { przejdz do nastepnej sciany (omin ujemny indeks na ktorym stoimy;
-      ew. przejdz z CoordIndex.Count do CoordIndex.Count+1, co niczemu nie szkodzi) }
+    { move to next face (omits the negative index we're standing on) }
     Inc(i);
    end;
   end;
 
+  { For given Face and VertexNum (index to Vertices array),
+    set the normal vector in Normals array.
+    Vertex must be present at least once on a given face.
+    Works OK also in cases when vertex is duplicated (present more than once)
+    on a single face. }
   procedure SetNormal(vertexNum: integer; const face: TFace; const Normal: TVector3Single);
-  { ustaw normal w tablicy normals dla sciany face i vertexu numer vertexNum
-      (vertexNum to indeks do tablicy vertices, czyli to samo co elementy
-      CoordIndex).
-    Poniewaz staramy sie zachowywac sensownie nawet dla nieprawidlowych faces
-      wiec zakladamy tu ze dany vertex moze byc w jednej scianie wiecej niz jeden
-      raz i ustawiamy normal dla wszystkich wystapien tego vertexa w tej face.
-    Na koncu upewnia sie Assertem ze taki vertex w ogole byl (choc raz) w tej face-
-      -wiec zawsze badz pewien ze vertexNum rzeczywiscie nalezy do tej sciany ! }
   var i: integer;
       vertFound: boolean;
   begin
@@ -200,7 +195,7 @@ var
    for i := face.StartIndex to face.StartIndex +face.IndicesCount -1 do
     if CoordIndex.Items[i] = vertexNum then
     begin
-     vertFound := true; { vertFound := true, ale to nic, szukamy dalej }
+     vertFound := true; { vertFound := true, but keep looking in case duplicated }
      normals.Items[i] := Normal;
     end;
    Assert(vertFound, 'Internal error - NormalsCalculator.SetNormal failed');
@@ -208,14 +203,14 @@ var
 
   procedure CalculateVertexNormals(vertexNum: integer);
   var
-    { ustalane na poczatku na verticesFaces[vertexNum] }
+    { Initialized to verticesFaces[vertexNum] }
     thisVertexFaces: TDynIntegerArray;
 
+    { Can face faceNum may be smoothed together with all faces in faceNums.
+      This is the moment when CreaseAngleRad comes into play.
+      faceNum and faceNums[] are indexes to thisVertexFaces array. }
     function FaceCanBeSmoothedWithFaces(faceNum: integer;
       faceNums: TDynIntegerArray): boolean;
-    { czy sciana faceNum moze byc smooth razem ze wszystkimi scianami z faceNums ?
-      To tutaj uwzgledniamy creaseAngleRad. faceNum  i faceNums[] to
-      indeksy do tablicy thisVertexFaces. }
     var i: integer;
     begin
      for i := 0 to faceNums.Count-1 do
@@ -234,11 +229,9 @@ var
     end;
 
   var i, j: integer;
-      { aktualna grupa faces co do ktorej ustalilismy ze na tym vertexie
-        maja wspolny normal. Indeksy wskazuja na indeksy w verticesFaces[vertexNum].Count }
+      { Current face group that shares a common normal vector on this vertex. }
       smoothFaces: TDynIntegerArray;
-      { true jezeli dla jakiejs sciany (i dla vertexa vertexNum oczywiscie)
-        juz zapisalismy normal. }
+      { Did we store normal vector for given face (and this vertex vertexNum) }
       handledFaces: TDynBooleanArray;
       Normal: TVector3Single;
   begin
@@ -255,7 +248,7 @@ var
      if not handledFaces[i] then
      begin
 
-      { ustal smoothFaces }
+      { calculate smoothFaces }
       smoothFaces.SetLength(1);
       smoothFaces[0] := i;
 
@@ -263,7 +256,7 @@ var
        if (not handledFaces[j]) and FaceCanBeSmoothedWithFaces(j, smoothFaces) then
         smoothFaces.Add(j);
 
-      { zaznacz handled na true scianom ze smoothFaces i wylicz ich Normal }
+      { handle faces in smoothFaces }
       FillChar(Normal, SizeOf(Normal), 0);
       for j := 0 to smoothFaces.Count-1 do
       begin
@@ -272,7 +265,7 @@ var
       end;
       NormalizeTo1st(Normal);
 
-      { uzyj wyliczonego normala }
+      { use calculated normal vector }
       for j := 0 to smoothFaces.Count-1 do
        SetNormal(vertexNum, faces.Items[thisVertexFaces[smoothFaces[j]]], Normal);
      end;
@@ -293,17 +286,13 @@ begin
 
  try
   try
-   { zainicjuj verticesFaces i faces }
-
    for i := 0 to vertices.Count-1 do
     verticesFaces[i] := TDynIntegerArray.Create;
    faces := TDynFaceArray.Create;
 
-   { przegladnij CoordIndex i skompletuj zawartosc tablic faces i verticesFaces }
+   { calculate faces and verticesFaces contents }
    CalculateFacesAndVerticesFaces;
 
-   { teraz zainicjuj normals, bo CoordIndex.Items.Length zostalo juz ustalone
-     i w CoordIndex nie bedziemy wprowadzac wiecej zmian }
    normals := TDynVector3SingleArray.Create(CoordIndex.Length);
 
    { for each vertex, calculate all his normals (on all his faces) }
@@ -311,8 +300,6 @@ begin
 
    if not FromCCW then Result.Negate;
   finally
-
-   { free verticesFaces and faces }
    for i := 0 to vertices.Count-1 do verticesFaces[i].Free;
    faces.Free;
   end;

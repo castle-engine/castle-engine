@@ -83,7 +83,7 @@ procedure TriangulateFace(
 
   This performs very easy triangulation. It has deliberately
   similar interface to TriangulateFace, so it can be used as drop-in
-  replacements for TriangulateFace, when you know that your face is
+  replacement for TriangulateFace, when you know that your face is
   convex.
 
   Note that it doesn't even need to know FaceIndices or Vertices,
@@ -98,32 +98,22 @@ procedure TriangulateConvexFace(FaceIndicesCount: integer;
 
 implementation
 
-{$define DEFINE_NEW_TRIANGLE_PROC :=
-procedure NewTriangle(const p0, p1, p2: Longint);
-begin
- TriangulatorProc(Vector3Longint(
-   p0+AddToIndices,
-   p1+AddToIndices,
-   p2+AddToIndices));
-end;}
-
 { TriangulateFace ------------------------------------------------------------ }
 
-{ TriangulateFace non-convex napisane na podstawie face2tri.C w C++ ze
-  zrodel w mgflib. Przepisalem na Pascala, dostosowalem do wlasnych parametrow,
-  skrocilem zapis w wielu miejscach, ale ciagle zasadniczy algorytm nie ulegl
-  zadnym zmianom.
-
-  Chwilowo nie zglebilem zupelnie do konca idei "jak i dlaczego to dziala".
-  Postaram sie zmienic ten fakt jak najszybciej i wtedy znikna ponizsze
-  "TODO". }
+{ Implementation idea based on face2tri.C in C++, from mgflib sources. }
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; FaceIndicesCount: integer;
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
-  DEFINE_NEW_TRIANGLE_PROC
+  procedure NewTriangle(const p0, p1, p2: Longint);
+  begin
+    TriangulatorProc(Vector3Longint(
+      p0 + AddToIndices,
+      p1 + AddToIndices,
+      p2 + AddToIndices));
+  end;
 
   {$define VertsCount := FaceIndicesCount}
   function Verts(i: Longint): TVector3Single;
@@ -133,103 +123,101 @@ procedure TriangulateFace(
       Result := Vertices(I);
   end;
 
-var ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;
-    Corners, Start, MaxLenIndex, i, p0, p1, p2: Longint;
-    d, MaxLen: Single;
-    Outs: TDynBooleanArray;
-    Empty: boolean;
+var
+  ConvexNormal, Center, nn, E1, E2, E3: TVector3Single;
+  Corners, Start, MaxLenIndex, i, p0, p1, p2: Longint;
+  d, MaxLen: Single;
+  Outs: TDynBooleanArray;
+  Empty: boolean;
 
   function NextNotOut(Index: Integer): Integer;
   begin
-   result := Index;
-   repeat result := (result+1) mod VertsCount until not Outs.Items[result];
+    Result := Index;
+    repeat Result := (Result+1) mod VertsCount until not Outs.Items[Result];
   end;
 
 begin
- { najpierw odrzuc przypadek gdy VertsCount < 3 i zrob trywialny przypadek
-   VertsCount = 3 }
- if VertsCount = 3 then
-  NewTriangle(0, 1, 2) else
- if VertsCount > 3 then
- begin
-  { wyznacz Center jako prosta srednia z wszystkich punktow }
-  Center := ZeroVector3Single;
-  for i := 0 to VertsCount-1 do VectorAddTo1st(Center, Verts(i));
-  VectorScaleTo1st(Center, 1/VertsCount);
-
-  { wyznacz punkt sposrod Verts[] najbardziej odlegly od Center.
-    MaxLen to jego odleglosc od Center, MaxLenIndex to jego index w Verts[].
-    TODO - czy tu PointDistanceSqr nie wystarczy ? }
-  MaxLenIndex := 0;
-  MaxLen := PointsDistance(Center, Verts(0));
-  for i := 1 to VertsCount-1 do
+  if VertsCount = 3 then
+    { For VertsCount = 3 this is trivial, do it fast. }
+    NewTriangle(0, 1, 2) else
+  if VertsCount > 3 then
   begin
-   d := PointsDistance(Center, Verts(i));
-   if d > MaxLen then
-   begin
-    MaxLen := d;
-    MaxLenIndex := i;
-   end;
-  end;
+    { calculate Center := average of all vertexes }
+    Center := ZeroVector3Single;
+    for i := 0 to VertsCount-1 do VectorAddTo1st(Center, Verts(i));
+    VectorScaleTo1st(Center, 1/VertsCount);
 
-  { p1 to indeks najdalszego sposrod Verts, p0 to poprzedni, p2 to nastepny }
-  p1 := MaxLenIndex;
-  if p1 = 0 then p0 := VertsCount-1 else p0 := p1-1;
-  p2 := (p1+1) mod VertsCount;
-
-  { TODO - czy tu negate potrzebne ? }
-  ConvexNormal := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
-
-  Corners := VertsCount;
-  p0 := -1;
-
-  Outs := TDynBooleanArray.Create(VertsCount);
-  try
-   Outs.SetAll(false);
-
-   while Corners >= 3 do
-   begin
-    Start := p0;
-
-    repeat
-     p0 := NextNotOut(p0);
-     p1 := NextNotOut(p0);
-     p2 := NextNotOut(p1);
-
-     if p0 = Start then break;
-
-     { TODO - czy tu negate potrzebne ? }
-     nn := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
-     d := PointsDistance(nn, ConvexNormal);
-
-     E1 := VectorProduct(nn, VectorSubtract(Verts(p1), Verts(p0)));
-     E2 := VectorProduct(nn, VectorSubtract(Verts(p2), Verts(p1)));
-     E3 := VectorProduct(nn, VectorSubtract(Verts(p0), Verts(p2)));
-
-     Empty := True;
-
-     for i := 0 to VertsCount-1 do
-      if (not Outs.Items[i]) and (i <> p0) and (i <> p1) and (i <> p2) then
+    { calculate the most distant vertex from Center.
+      MaxLen is the distance from Center, MaxLenIndex is the vertex index in Verts[].
+      TODO - czy tu PointDistanceSqr nie wystarczy ? }
+    MaxLenIndex := 0;
+    MaxLen := PointsDistance(Center, Verts(0));
+    for i := 1 to VertsCount-1 do
+    begin
+      d := PointsDistance(Center, Verts(i));
+      if d > MaxLen then
       begin
-       Empty := Empty and not (
-         (VectorDotProduct(E1, VectorSubtract(Verts(i), Verts(p0))) <= - SingleEqualityEpsilon) and
-         (VectorDotProduct(E2, VectorSubtract(Verts(i), Verts(p1))) <= - SingleEqualityEpsilon) and
-         (VectorDotProduct(E3, VectorSubtract(Verts(i), Verts(p2))) <= - SingleEqualityEpsilon)
-         );
+        MaxLen := d;
+        MaxLenIndex := i;
       end;
-    until (d <= 1.0) and Empty;
+    end;
 
-{ TODO - w graz.mgf.wrl jest ten blad i mimo to wszystko dziala ok
-  gdy zakomentarzowalem ponizszy check ?
-    if p0 = Start then raise Exception.Create('misbuilt polygonal face');}
+    { p1 is the index of the most distant vertex, p0 is previous, p2 is next }
+    p1 := MaxLenIndex;
+    if p1 = 0 then p0 := VertsCount-1 else p0 := p1-1;
+    p2 := (p1+1) mod VertsCount;
 
-    NewTriangle(p0, p1, p2);
+    { TODO - is negate needed here ? }
+    ConvexNormal := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
 
-    Outs.Items[p1] := True;
-    Dec(Corners);
-   end;
-  finally Outs.Free end;
- end;
+    Corners := VertsCount;
+    p0 := -1;
+
+    Outs := TDynBooleanArray.Create(VertsCount);
+    try
+      Outs.SetAll(false);
+
+      while Corners >= 3 do
+      begin
+        Start := p0;
+
+        repeat
+          p0 := NextNotOut(p0);
+          p1 := NextNotOut(p0);
+          p2 := NextNotOut(p1);
+
+          if p0 = Start then break;
+
+          { TODO - is negate needed here ? }
+          nn := VectorNegate( TriangleNormal(Verts(p0), Verts(p1), Verts(p2)) );
+          d := PointsDistance(nn, ConvexNormal);
+
+          E1 := VectorProduct(nn, VectorSubtract(Verts(p1), Verts(p0)));
+          E2 := VectorProduct(nn, VectorSubtract(Verts(p2), Verts(p1)));
+          E3 := VectorProduct(nn, VectorSubtract(Verts(p0), Verts(p2)));
+
+          Empty := True;
+
+          for i := 0 to VertsCount-1 do
+            if (not Outs.Items[i]) and (i <> p0) and (i <> p1) and (i <> p2) then
+             Empty := Empty and not (
+               (VectorDotProduct(E1, VectorSubtract(Verts(i), Verts(p0))) <= - SingleEqualityEpsilon) and
+               (VectorDotProduct(E2, VectorSubtract(Verts(i), Verts(p1))) <= - SingleEqualityEpsilon) and
+               (VectorDotProduct(E3, VectorSubtract(Verts(i), Verts(p2))) <= - SingleEqualityEpsilon)
+               );
+        until (d <= 1.0) and Empty;
+
+        { TODO --- is this check really not needed?
+          Even on invalid graz.mgf.wrl this check is still not needed?
+        if p0 = Start then raise Exception.Create('misbuilt polygonal face');}
+
+        NewTriangle(p0, p1, p2);
+
+        Outs.Items[p1] := True;
+        Dec(Corners);
+      end;
+    finally Outs.Free end;
+  end;
 end;
 
 type
@@ -258,12 +246,18 @@ begin
   finally FreeAndNil(G); end;
 end;
 
-{ proste Triangulate ---------------------------------------------------------- }
-
 procedure TriangulateConvexFace(FaceIndicesCount: integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
-  DEFINE_NEW_TRIANGLE_PROC
+
+  procedure NewTriangle(const p0, p1, p2: Longint);
+  begin
+    TriangulatorProc(Vector3Longint(
+      p0 + AddToIndices,
+      p1 + AddToIndices,
+      p2 + AddToIndices));
+  end;
+
 var
   I: Integer;
 begin
