@@ -26,21 +26,14 @@ uses VRMLNodes;
 
   Written based on Collada 1.3.1 and 1.4.1 specifications.
   Should handle any Collada 1.3.x or 1.4.x version.
-  This basically means that any existing Collada version should
-  be supported. From
-  http://www.gamasutra.com/view/feature/1580/introduction_to_collada.php?page=6,
-  "The specification stayed quite stable between 1.1 and 1.3.1" --- which
-  means that support for 1.3.1 actually includes support for anything existing
-  with version <= 1.3.1. And  1.4.1 is currently the newest release.
-  To sum it up, everything existing should be handled...
+  http://www.gamasutra.com/view/feature/1580/introduction_to_collada.php?page=6
+  suggests that "specification stayed quite stable between 1.1 and 1.3.1",
+  which means that older versions (< 1.3.1) may be handled too.
+  TODO: test on Collada 1.5.
 
-  Although don't expect to handle all Collada features --- many things
-  are missing currently, what should work currently is geometry and
-  standard (without shaders) materials.
-
-  Only if AllowKambiExtensions, it may use some of our engine specific
-  extensions (for example, Material.mirror may be <> 0,
-  see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror]. }
+  @param(AllowKambiExtensions If @true we may use some of our engine specific
+    extensions. For example, Material.mirror may be <> 0,
+    see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror].) }
 function LoadCollada(const FileName: string;
   const AllowKambiExtensions: boolean = false): TVRMLRootNode;
 
