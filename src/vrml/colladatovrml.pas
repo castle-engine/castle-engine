@@ -218,10 +218,7 @@ var
     Mat: TNodeMaterial;
     Id: string;
     ProfileElement, TechniqueElement, PhongElement: TDOMElement;
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementIterator;
     TransparencyColor: TVector3Single;
   begin
     if not DOMGetAttribute(EffectElement, 'id', Id) then
@@ -255,60 +252,36 @@ var
           { Initialize, in case no <transparent> child. }
           TransparencyColor := ZeroVector3Single;
 
-          Children := PhongElement.ChildNodes;
+          I := TXMLElementIterator.Create(PhongElement);
           try
-            for I := 0 to Children.Count - 1 do
+            while I.GetNext do
             begin
-              ChildNode := Children.Item[I];
-              if ChildNode.NodeType = ELEMENT_NODE then
+              if I.Current.TagName = 'emission' then
+                Mat.FdEmissiveColor.Value :=  ReadColorOrTexture(I.Current) else
+              if I.Current.TagName = 'ambient' then
+                Mat.FdAmbientIntensity.Value := VectorAverage(ReadColorOrTexture(I.Current)) else
+              if I.Current.TagName = 'diffuse' then
+                Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current) else
+              if I.Current.TagName = 'specular' then
+                Mat.FdSpecularColor.Value := ReadColorOrTexture(I.Current) else
+              if I.Current.TagName = 'shininess' then
+                Mat.FdShininess.Value := ReadFloatOrParam(I.Current) / 128.0 else
+              if I.Current.TagName = 'reflective' then
+                {Mat.FdMirrorColor.Value := } ReadColorOrTexture(I.Current) else
+              if I.Current.TagName = 'reflectivity' then
               begin
-                ChildElement := ChildNode as TDOMElement;
-
-                if ChildElement.TagName = 'emission' then
-                  Mat.FdEmissiveColor.Value :=
-                    ReadColorOrTexture(ChildElement) else
-
-                if ChildElement.TagName = 'ambient' then
-                  Mat.FdAmbientIntensity.Value := VectorAverage(
-                    ReadColorOrTexture(ChildElement)) else
-
-                if ChildElement.TagName = 'diffuse' then
-                  Mat.FdDiffuseColor.Value :=
-                    ReadColorOrTexture(ChildElement) else
-
-                if ChildElement.TagName = 'specular' then
-                  Mat.FdSpecularColor.Value :=
-                    ReadColorOrTexture(ChildElement) else
-
-                if ChildElement.TagName = 'shininess' then
-                  Mat.FdShininess.Value :=
-                    ReadFloatOrParam(ChildElement) / 128.0 else
-
-                if ChildElement.TagName = 'reflective' then
-                  {Mat.FdMirrorColor.Value := }
-                    ReadColorOrTexture(ChildElement) else
-
-                if ChildElement.TagName = 'reflectivity' then
-                begin
-                  if AllowKambiExtensions then
-                    Mat.FdMirror.Value := ReadFloatOrParam(ChildElement) else
-                    ReadFloatOrParam(ChildElement);
-                end else
-
-                if ChildElement.TagName = 'transparent' then
-                  TransparencyColor :=
-                    ReadColorOrTexture(ChildElement) else
-
-                if ChildElement.TagName = 'transparency' then
-                  Mat.FdTransparency.Value :=
-                    ReadFloatOrParam(ChildElement) else
-
-                if ChildElement.TagName = 'index_of_refraction' then
-                  {Mat.FdIndexOfRefraction.Value := }
-                    ReadFloatOrParam(ChildElement);
-              end;
+                if AllowKambiExtensions then
+                  Mat.FdMirror.Value := ReadFloatOrParam(I.Current) else
+                  ReadFloatOrParam(I.Current);
+              end else
+              if I.Current.TagName = 'transparent' then
+                TransparencyColor := ReadColorOrTexture(I.Current) else
+              if I.Current.TagName = 'transparency' then
+                Mat.FdTransparency.Value := ReadFloatOrParam(I.Current) else
+              if I.Current.TagName = 'index_of_refraction' then
+                {Mat.FdIndexOfRefraction.Value := } ReadFloatOrParam(I.Current);
             end;
-          finally FreeChildNodes(Children); end;
+          finally FreeAndNil(I) end;
 
           { Collada says (e.g.
             https://collada.org/public_forum/viewtopic.php?t=386)
