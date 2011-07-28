@@ -236,96 +236,96 @@ var
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
     if ProfileElement <> nil then
     begin
-       TechniqueElement := DOMGetChildElement(ProfileElement, 'technique', false);
-       if TechniqueElement <> nil then
-       begin
-         PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
+      TechniqueElement := DOMGetChildElement(ProfileElement, 'technique', false);
+      if TechniqueElement <> nil then
+      begin
+        PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
 
-         { We actually treat <phong> and <blinn> elements the same.
+        { We actually treat <phong> and <blinn> elements the same.
 
-           X3D lighting equations specify that always Blinn
-           (half-vector) technique is used. What's much more practically
-           important, OpenGL uses Blinn method. So actually I always do
-           blinn method (at least for real-time rendering). }
-         if PhongElement = nil then
-           PhongElement := DOMGetChildElement(TechniqueElement, 'blinn', false);
+          X3D lighting equations specify that always Blinn
+          (half-vector) technique is used. What's much more practically
+          important, OpenGL uses Blinn method. So actually I always do
+          blinn method (at least for real-time rendering). }
+        if PhongElement = nil then
+          PhongElement := DOMGetChildElement(TechniqueElement, 'blinn', false);
 
-         if PhongElement <> nil then
-         begin
-           { Initialize, in case no <transparent> child. }
-           TransparencyColor := ZeroVector3Single;
+        if PhongElement <> nil then
+        begin
+          { Initialize, in case no <transparent> child. }
+          TransparencyColor := ZeroVector3Single;
 
-           Children := PhongElement.ChildNodes;
-           try
-             for I := 0 to Children.Count - 1 do
-             begin
-               ChildNode := Children.Item[I];
-               if ChildNode.NodeType = ELEMENT_NODE then
-               begin
-                 ChildElement := ChildNode as TDOMElement;
+          Children := PhongElement.ChildNodes;
+          try
+            for I := 0 to Children.Count - 1 do
+            begin
+              ChildNode := Children.Item[I];
+              if ChildNode.NodeType = ELEMENT_NODE then
+              begin
+                ChildElement := ChildNode as TDOMElement;
 
-                 if ChildElement.TagName = 'emission' then
-                   Mat.FdEmissiveColor.Value :=
-                     ReadColorOrTexture(ChildElement) else
+                if ChildElement.TagName = 'emission' then
+                  Mat.FdEmissiveColor.Value :=
+                    ReadColorOrTexture(ChildElement) else
 
-                 if ChildElement.TagName = 'ambient' then
-                   Mat.FdAmbientIntensity.Value := VectorAverage(
-                     ReadColorOrTexture(ChildElement)) else
+                if ChildElement.TagName = 'ambient' then
+                  Mat.FdAmbientIntensity.Value := VectorAverage(
+                    ReadColorOrTexture(ChildElement)) else
 
-                 if ChildElement.TagName = 'diffuse' then
-                   Mat.FdDiffuseColor.Value :=
-                     ReadColorOrTexture(ChildElement) else
+                if ChildElement.TagName = 'diffuse' then
+                  Mat.FdDiffuseColor.Value :=
+                    ReadColorOrTexture(ChildElement) else
 
-                 if ChildElement.TagName = 'specular' then
-                   Mat.FdSpecularColor.Value :=
-                     ReadColorOrTexture(ChildElement) else
+                if ChildElement.TagName = 'specular' then
+                  Mat.FdSpecularColor.Value :=
+                    ReadColorOrTexture(ChildElement) else
 
-                 if ChildElement.TagName = 'shininess' then
-                   Mat.FdShininess.Value :=
-                     ReadFloatOrParam(ChildElement) / 128.0 else
+                if ChildElement.TagName = 'shininess' then
+                  Mat.FdShininess.Value :=
+                    ReadFloatOrParam(ChildElement) / 128.0 else
 
-                 if ChildElement.TagName = 'reflective' then
-                   {Mat.FdMirrorColor.Value := }
-                     ReadColorOrTexture(ChildElement) else
+                if ChildElement.TagName = 'reflective' then
+                  {Mat.FdMirrorColor.Value := }
+                    ReadColorOrTexture(ChildElement) else
 
-                 if ChildElement.TagName = 'reflectivity' then
-                 begin
-                   if AllowKambiExtensions then
-                     Mat.FdMirror.Value := ReadFloatOrParam(ChildElement) else
-                     ReadFloatOrParam(ChildElement);
-                 end else
+                if ChildElement.TagName = 'reflectivity' then
+                begin
+                  if AllowKambiExtensions then
+                    Mat.FdMirror.Value := ReadFloatOrParam(ChildElement) else
+                    ReadFloatOrParam(ChildElement);
+                end else
 
-                 if ChildElement.TagName = 'transparent' then
-                   TransparencyColor :=
-                     ReadColorOrTexture(ChildElement) else
+                if ChildElement.TagName = 'transparent' then
+                  TransparencyColor :=
+                    ReadColorOrTexture(ChildElement) else
 
-                 if ChildElement.TagName = 'transparency' then
-                   Mat.FdTransparency.Value :=
-                     ReadFloatOrParam(ChildElement) else
+                if ChildElement.TagName = 'transparency' then
+                  Mat.FdTransparency.Value :=
+                    ReadFloatOrParam(ChildElement) else
 
-                 if ChildElement.TagName = 'index_of_refraction' then
-                   {Mat.FdIndexOfRefraction.Value := }
-                     ReadFloatOrParam(ChildElement);
-               end;
-             end;
-           finally FreeChildNodes(Children); end;
+                if ChildElement.TagName = 'index_of_refraction' then
+                  {Mat.FdIndexOfRefraction.Value := }
+                    ReadFloatOrParam(ChildElement);
+              end;
+            end;
+          finally FreeChildNodes(Children); end;
 
-           { Collada says (e.g.
-             https://collada.org/public_forum/viewtopic.php?t=386)
-             to multiply TransparencyColor by Transparency.
-             Although I do not handle TransparencyColor, I still have to do
-             this, as there are many models with Transparency = 1 and
-             TransparencyColor = (0, 0, 0). }
-           Mat.FdTransparency.Value :=
-             Mat.FdTransparency.Value * VectorAverage(TransparencyColor);
+          { Collada says (e.g.
+            https://collada.org/public_forum/viewtopic.php?t=386)
+            to multiply TransparencyColor by Transparency.
+            Although I do not handle TransparencyColor, I still have to do
+            this, as there are many models with Transparency = 1 and
+            TransparencyColor = (0, 0, 0). }
+          Mat.FdTransparency.Value :=
+            Mat.FdTransparency.Value * VectorAverage(TransparencyColor);
 
-           { make sure to not mistakenly use blending on model that should
-             be opaque, but has Effect.FdTransparency.Value = some small
-             epsilon, due to numeric errors in above multiply. }
-           if Zero(Mat.FdTransparency.Value) then
-             Mat.FdTransparency.Value := 0.0;
-         end;
-       end;
+          { make sure to not mistakenly use blending on model that should
+            be opaque, but has Effect.FdTransparency.Value = some small
+            epsilon, due to numeric errors in above multiply. }
+          if Zero(Mat.FdTransparency.Value) then
+            Mat.FdTransparency.Value := 0.0;
+        end;
+      end;
     end;
   end;
 
