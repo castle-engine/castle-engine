@@ -479,29 +479,18 @@ var
     <library type="MATERIAL"> (Collada < 1.4.x). }
   procedure ReadLibraryMaterials(LibraryElement: TDOMElement);
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementFilteringIterator;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
 
-    Children := LibraryElement.ChildNodes;
+    I := TXMLElementFilteringIterator.Create(LibraryElement, 'material');
     try
-      for I := 0 to Children.Count - 1 do
-      begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'material' then
-            ReadMaterial(ChildElement);
-            { other ChildElement.TagName not supported for now }
-        end;
-      end;
-    finally FreeChildNodes(Children); end
+      while I.GetNext do
+        ReadMaterial(I.Current);
+        { other I.Current.TagName not supported for now }
+    finally FreeAndNil(I) end;
   end;
 
   { Read <geometry>. It is added to the Geometries list. }
@@ -637,47 +626,36 @@ var
     { Read <vertices> within <mesh> }
     procedure ReadVertices(VerticesElement: TDOMElement);
     var
-      Children: TDOMNodeList;
-      ChildNode: TDOMNode;
-      ChildElement: TDOMElement;
-      I: Integer;
+      I: TXMLElementFilteringIterator;
       InputSemantic, InputSource: string;
       InputSourceIndex: Integer;
     begin
       if not DOMGetAttribute(VerticesElement, 'id', VerticesId) then
         VerticesId := '';
 
-      Children := VerticesElement.ChildNodes;
+      I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
       try
-        for I := 0 to Children.Count - 1 do
-        begin
-          ChildNode := Children.Item[I];
-          if ChildNode.NodeType = ELEMENT_NODE then
+        while I.GetNext do
+          if DOMGetAttribute(I.Current, 'semantic', InputSemantic) and
+             (InputSemantic = 'POSITION') and
+             DOMGetAttribute(I.Current, 'source', InputSource) and
+             SCharIs(InputSource, 1, '#') then
           begin
-            ChildElement := ChildNode as TDOMElement;
-            if (ChildElement.TagName = 'input') and
-               DOMGetAttribute(ChildElement, 'semantic', InputSemantic) and
-               (InputSemantic = 'POSITION') and
-               DOMGetAttribute(ChildElement, 'source', InputSource) and
-               SCharIs(InputSource, 1, '#') then
+            Delete(InputSource, 1, 1); { delete leading '#' char }
+            InputSourceIndex := SourcesList.IndexOf(InputSource);
+            if InputSourceIndex <> -1 then
             begin
-              Delete(InputSource, 1, 1); { delete leading '#' char }
-              InputSourceIndex := SourcesList.IndexOf(InputSource);
-              if InputSourceIndex <> -1 then
-              begin
-                Vertices := SourcesList.Objects[InputSourceIndex] as
-                  TDynVector3SingleArray;
-                Exit;
-              end else
-              begin
-                OnWarning(wtMinor, 'Collada', Format('Source attribute ' +
-                  '(of <input> element within <vertices>) ' +
-                  'references non-existing source "%s"', [InputSource]));
-              end;
+              Vertices := SourcesList.Objects[InputSourceIndex] as
+                TDynVector3SingleArray;
+              Exit;
+            end else
+            begin
+              OnWarning(wtMinor, 'Collada', Format('Source attribute ' +
+                '(of <input> element within <vertices>) ' +
+                'references non-existing source "%s"', [InputSource]));
             end;
           end;
-        end;
-      finally FreeChildNodes(Children); end;
+      finally FreeAndNil(I) end;
 
       OnWarning(wtMinor, 'Collada', '<vertices> element has no <input> child' +
         ' with semantic="POSITION" and some source attribute');
@@ -692,10 +670,7 @@ var
       out IndexedFaceSet: TNodeIndexedFaceSet;
       out InputsCount, VerticesOffset: Integer);
     var
-      Children: TDOMNodeList;
-      ChildNode: TDOMNode;
-      ChildElement: TDOMElement;
-      I: Integer;
+      I: TXMLElementFilteringIterator;
       Coord: TNodeCoordinate;
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
@@ -735,36 +710,28 @@ var
 
       InputsCount := 0;
 
-      Children := PolygonsElement.ChildNodes;
+      I := TXMLElementFilteringIterator.Create(PolygonsElement, 'input');
       try
-        for I := 0 to Children.Count - 1 do
+        while I.GetNext do
         begin
-          ChildNode := Children.Item[I];
-          if ChildNode.NodeType = ELEMENT_NODE then
+          { we must count all inputs, since parsing <p> elements depends
+            on InputsCount }
+          Inc(InputsCount);
+          if DOMGetAttribute(I.Current, 'semantic', InputSemantic) and
+             (InputSemantic = 'VERTEX') then
           begin
-            ChildElement := ChildNode as TDOMElement;
-            if ChildElement.TagName = 'input' then
-            begin
-              { we must count all inputs, since parsing <p> elements depends
-                on InputsCount }
-              Inc(InputsCount);
-              if DOMGetAttribute(ChildElement, 'semantic', InputSemantic) and
-                 (InputSemantic = 'VERTEX') then
-              begin
-                if not (DOMGetAttribute(ChildElement, 'source', InputSource) and
-                        (InputSource = '#' + VerticesId))  then
-                  OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" ' +
-                    '(of <polygons> element within <mesh>) does not reference ' +
-                    '<vertices> element within the same <mesh>');
+            if not (DOMGetAttribute(I.Current, 'source', InputSource) and
+                    (InputSource = '#' + VerticesId))  then
+              OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" ' +
+                '(of <polygons> element within <mesh>) does not reference ' +
+                '<vertices> element within the same <mesh>');
 
-                { Collada requires offset in this case.
-                  For us, if there's no offset, just leave VerticesOffset as it was. }
-                DOMGetIntegerAttribute(ChildElement, 'offset', VerticesOffset);
-              end;
-            end;
+            { Collada requires offset in this case.
+              For us, if there's no offset, just leave VerticesOffset as it was. }
+            DOMGetIntegerAttribute(I.Current, 'offset', VerticesOffset);
           end;
         end;
-      finally FreeChildNodes(Children); end;
+      finally FreeAndNil(I) end;
     end;
 
     { Read <polygons> within <mesh> }
@@ -799,26 +766,15 @@ var
       end;
 
     var
-      Children: TDOMNodeList;
-      ChildNode: TDOMNode;
-      ChildElement: TDOMElement;
-      I: Integer;
+      I: TXMLElementFilteringIterator;
     begin
       ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount, VerticesOffset);
 
-      Children := PolygonsElement.ChildNodes;
+      I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
       try
-        for I := 0 to Children.Count - 1 do
-        begin
-          ChildNode := Children.Item[I];
-          if ChildNode.NodeType = ELEMENT_NODE then
-          begin
-            ChildElement := ChildNode as TDOMElement;
-            if ChildElement.TagName = 'p' then
-              AddPolygon(DOMGetTextData(ChildElement));
-          end;
-        end;
-      finally FreeChildNodes(Children); end;
+        while I.GetNext do
+          AddPolygon(DOMGetTextData(I.Current));
+      finally FreeAndNil(I) end;
     end;
 
     { Read <polylist> within <mesh> }
@@ -923,10 +879,8 @@ var
     end;
 
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement, Mesh: TDOMElement;
-    I: Integer;
+    Mesh: TDOMElement;
+    I: TXMLElementIterator;
     GeometryId: string;
   begin
     if not DOMGetAttribute(GeometryElement, 'id', GeometryId) then
@@ -941,28 +895,23 @@ var
     begin
       SourcesList := TStringList.Create;
       try
-        Children := Mesh.ChildNodes;
+        I := TXMLElementIterator.Create(Mesh);
         try
-          for I := 0 to Children.Count - 1 do
+          while I.GetNext do
           begin
-            ChildNode := Children.Item[I];
-            if ChildNode.NodeType = ELEMENT_NODE then
-            begin
-              ChildElement := ChildNode as TDOMElement;
-              if ChildElement.TagName = 'source' then
-                ReadSource(ChildElement) else
-              if ChildElement.TagName = 'vertices' then
-                ReadVertices(ChildElement) else
-              if ChildElement.TagName = 'polygons' then
-                ReadPolygons(ChildElement) else
-              if ChildElement.TagName = 'polylist' then
-                ReadPolylist(ChildElement) else
-              if ChildElement.TagName = 'triangles' then
-                ReadTriangles(ChildElement);
-                { other ChildElement.TagName not supported for now }
-            end;
+            if I.Current.TagName = 'source' then
+              ReadSource(I.Current) else
+            if I.Current.TagName = 'vertices' then
+              ReadVertices(I.Current) else
+            if I.Current.TagName = 'polygons' then
+              ReadPolygons(I.Current) else
+            if I.Current.TagName = 'polylist' then
+              ReadPolylist(I.Current) else
+            if I.Current.TagName = 'triangles' then
+              ReadTriangles(I.Current);
+              { other I.Current.TagName not supported for now }
           end;
-        finally FreeChildNodes(Children); end
+        finally FreeAndNil(I) end;
       finally StringList_FreeWithContentsAndNil(SourcesList); end;
     end;
   end;
@@ -971,29 +920,18 @@ var
     <library type="GEOMETRY"> (Collada < 1.4.x). }
   procedure ReadLibraryGeometries(LibraryElement: TDOMElement);
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementFilteringIterator;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
 
-    Children := LibraryElement.ChildNodes;
+    I := TXMLElementFilteringIterator.Create(LibraryElement, 'geometry');
     try
-      for I := 0 to Children.Count - 1 do
-      begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'geometry' then
-            ReadGeometry(ChildElement);
-            { other ChildElement.TagName not supported for now }
-        end;
-      end;
-    finally FreeChildNodes(Children); end
+      while I.GetNext do
+        ReadGeometry(I.Current);
+        { other I.Current.TagName not supported for now }
+    finally FreeAndNil(I) end;
   end;
 
   { Read <library> element.
@@ -1086,10 +1024,7 @@ var
       MaterialIndex: Integer;
       BindMaterial, Technique: TDOMElement;
       InstanceMaterialSymbol, InstanceMaterialTarget: string;
-      Children: TDOMNodeList;
-      ChildNode: TDOMNode;
-      ChildElement: TDOMElement;
-      I: Integer;
+      I: TXMLElementFilteringIterator;
     begin
       if MaterialId = '' then Exit(nil);
 
@@ -1108,30 +1043,22 @@ var
             This may contain multiple materials, but actually we're only
             interested in a single material, so we look for material with
             symbol = MaterialId. }
-          Children := Technique.ChildNodes;
+          I := TXMLElementFilteringIterator.Create(Technique, 'instance_material');
           try
-            for I := 0 to Children.Count - 1 do
-            begin
-              ChildNode := Children.Item[I];
-              if ChildNode.NodeType = ELEMENT_NODE then
+            while I.GetNext do
+              if DOMGetAttribute(I.Current, 'symbol', InstanceMaterialSymbol) and
+                 (InstanceMaterialSymbol = MaterialId) and
+                 DOMGetAttribute(I.Current, 'target', InstanceMaterialTarget) then
               begin
-                ChildElement := ChildNode as TDOMElement;
-                if (ChildElement.TagName = 'instance_material') and
-                   DOMGetAttribute(ChildElement, 'symbol', InstanceMaterialSymbol) and
-                   (InstanceMaterialSymbol = MaterialId) and
-                   DOMGetAttribute(ChildElement, 'target', InstanceMaterialTarget) then
-                begin
-                  { this should be true, target is URL }
-                  if SCharIs(InstanceMaterialTarget, 1, '#') then
-                    Delete(InstanceMaterialTarget, 1, 1);
+                { this should be true, target is URL }
+                if SCharIs(InstanceMaterialTarget, 1, '#') then
+                  Delete(InstanceMaterialTarget, 1, 1);
 
-                  { replace MaterialId with what is indicated by
-                      <instance_material target="..."> }
-                  MaterialId := InstanceMaterialTarget;
-                end;
+                { replace MaterialId with what is indicated by
+                    <instance_material target="..."> }
+                MaterialId := InstanceMaterialTarget;
               end;
-            end;
-          finally FreeChildNodes(Children); end;
+          finally FreeAndNil(I) end;
         end;
       end;
 
@@ -1269,10 +1196,7 @@ var
     end;
 
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementIterator;
     NodeId: string;
     V3: TVector3Single;
     V4: TVector4Single;
@@ -1294,74 +1218,64 @@ var
       should affect instantiated object. So the bottom line is that for
       Collada 1.3, I must first gather all transforms, then do instantiations. }
 
-    Children := NodeElement.ChildNodes;
+    I := TXMLElementIterator.Create(NodeElement);
     try
-      for I := 0 to Children.Count - 1 do
+      while I.GetNext do
       begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
+        if I.Current.TagName = 'matrix' then
         begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'matrix' then
+          NestedMatrixTransform.FdMatrix.Value := ReadMatrix(I.Current);
+        end else
+        if I.Current.TagName = 'rotate' then
+        begin
+          V4 := Vector4SingleFromStr(DOMGetTextData(I.Current));
+          if V4[3] <> 0.0 then
           begin
-            NestedMatrixTransform.FdMatrix.Value := ReadMatrix(ChildElement);
-          end else
-          if ChildElement.TagName = 'rotate' then
+            NestedTransform.FdRotation.ValueDeg := V4;
+          end;
+        end else
+        if I.Current.TagName = 'scale' then
+        begin
+          V3 := Vector3SingleFromStr(DOMGetTextData(I.Current));
+          if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
           begin
-            V4 := Vector4SingleFromStr(DOMGetTextData(ChildElement));
-            if V4[3] <> 0.0 then
-            begin
-              NestedTransform.FdRotation.ValueDeg := V4;
-            end;
-          end else
-          if ChildElement.TagName = 'scale' then
+            NestedTransform.FdScale.Value := V3;
+          end;
+        end else
+        if I.Current.TagName = 'lookat' then
+        begin
+          NestedMatrixTransform.FdMatrix.Value := ReadLookAt(I.Current);
+        end else
+        if I.Current.TagName = 'skew' then
+        begin
+          { TODO }
+        end else
+        if I.Current.TagName = 'translate' then
+        begin
+          V3 := Vector3SingleFromStr(DOMGetTextData(I.Current));
+          if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
           begin
-            V3 := Vector3SingleFromStr(DOMGetTextData(ChildElement));
-            if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
-            begin
-              NestedTransform.FdScale.Value := V3;
-            end;
-          end else
-          if ChildElement.TagName = 'lookat' then
-          begin
-            NestedMatrixTransform.FdMatrix.Value := ReadLookAt(ChildElement);
-          end else
-          if ChildElement.TagName = 'skew' then
-          begin
-            { TODO }
-          end else
-          if ChildElement.TagName = 'translate' then
-          begin
-            V3 := Vector3SingleFromStr(DOMGetTextData(ChildElement));
-            if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
-            begin
-              NestedTransform.FdTranslation.Value := V3;
-            end;
+            NestedTransform.FdTranslation.Value := V3;
           end;
         end;
       end;
-    finally FreeChildNodes(Children); end;
+    finally FreeAndNil(I); end;
 
     { Now iterate to read instantiations and recursive nodes. }
 
-    Children := NodeElement.ChildNodes;
+    I := TXMLElementIterator.Create(NodeElement);
     try
-      for I := 0 to Children.Count - 1 do
+      while I.GetNext do
       begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if (ChildElement.TagName = 'instance') or
-             (ChildElement.TagName = 'instance_geometry') then
-            ReadInstanceGeometry(NodeTransform, ChildElement) else
-          if ChildElement.TagName = 'instance_controller' then
-            ReadInstanceController(NodeTransform, ChildElement) else
-          if ChildElement.TagName = 'node' then
-            ReadNodeElement(NodeTransform, ChildElement);
-        end;
+        if (I.Current.TagName = 'instance') or
+           (I.Current.TagName = 'instance_geometry') then
+          ReadInstanceGeometry(NodeTransform, I.Current) else
+        if I.Current.TagName = 'instance_controller' then
+          ReadInstanceController(NodeTransform, I.Current) else
+        if I.Current.TagName = 'node' then
+          ReadNodeElement(NodeTransform, I.Current);
       end;
-    finally FreeChildNodes(Children); end
+    finally FreeAndNil(I) end;
   end;
 
   { Read <node> sequence within given SceneElement, adding nodes to Group.
