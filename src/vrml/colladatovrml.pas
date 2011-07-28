@@ -306,29 +306,19 @@ var
     All effects are added to the Effects list. }
   procedure ReadLibraryEffects(LibraryElement: TDOMElement);
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementIterator;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
 
-    Children := LibraryElement.ChildNodes;
+    I := TXMLElementIterator.Create(LibraryElement);
     try
-      for I := 0 to Children.Count - 1 do
-      begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'effect' then
-            ReadEffect(ChildElement);
-            { other ChildElement.TagName not supported for now }
-        end;
-      end;
-    finally FreeChildNodes(Children); end
+      while I.GetNext do
+        if I.Current.TagName = 'effect' then
+          ReadEffect(I.Current);
+          { other I.Current.TagName not supported for now }
+    finally FreeAndNil(I) end;
   end;
 
   { Read <material>. It is added to the Materials list. }
@@ -375,11 +365,8 @@ var
     procedure TryCollada13;
     var
       ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
-      Children: TDOMNodeList;
-      ChildNode: TDOMNode;
-      ChildElement: TDOMElement;
       ParamName: string;
-      I: Integer;
+      I: TXMLElementIterator;
       Appearance: TNodeAppearance;
       Mat: TNodeMaterial;
     begin
@@ -401,74 +388,48 @@ var
              ProgramElement := DOMGetChildElement(PassElement, 'program', false);
              if ProgramElement <> nil then
              begin
-               Children := ProgramElement.ChildNodes;
+               I := TXMLElementIterator.Create(ProgramElement);
                try
-                 for I := 0 to Children.Count - 1 do
-                 begin
-                   ChildNode := Children.Item[I];
-                   if ChildNode.NodeType = ELEMENT_NODE then
+                 while I.GetNext do
+                   if (I.Current.TagName = 'param') and
+                      DOMGetAttribute(I.Current, 'name', ParamName) then
                    begin
-                     ChildElement := ChildNode as TDOMElement;
-                     if ChildElement.TagName = 'param' then
+                     if ParamName = 'EMISSION' then
+                       Mat.FdEmissiveColor.Value := ReadParamAsVector3(I.Current) else
+                     if ParamName = 'AMBIENT' then
+                       Mat.FdAmbientIntensity.Value := VectorAverage(ReadParamAsVector3(I.Current)) else
+                     if ParamName = 'DIFFUSE' then
+                       Mat.FdDiffuseColor.Value := ReadParamAsVector3(I.Current) else
+                     if ParamName = 'SPECULAR' then
+                       Mat.FdSpecularColor.Value := ReadParamAsVector3(I.Current) else
+                     if ParamName = 'SHININESS' then
+                       Mat.FdShininess.Value := ReadParamAsFloat(I.Current) / 128.0 else
+                     if ParamName = 'REFLECTIVE' then
+                       {Mat.FdMirrorColor.Value := } ReadParamAsVector3(I.Current) else
+                     if ParamName = 'REFLECTIVITY' then
                      begin
-                       if DOMGetAttribute(ChildElement, 'name', ParamName) then
-                       begin
-                         if ParamName = 'EMISSION' then
-                           Mat.FdEmissiveColor.Value :=
-                             ReadParamAsVector3(ChildElement) else
+                       if AllowKambiExtensions then
+                         Mat.FdMirror.Value := ReadParamAsFloat(I.Current) else
+                         ReadParamAsFloat(I.Current);
+                     end else
+                     (*
+                     Blender Collada 1.3.1 exporter bug: it sets
+                     type of TRANSPARENT param as "float".
+                     Although content inicates "float3",
+                     like Collada 1.3.1 spec requires (page 129),
+                     and consistently with what is in Collada 1.4.1 spec.
 
-                         if ParamName = 'AMBIENT' then
-                           Mat.FdAmbientIntensity.Value := VectorAverage(
-                             ReadParamAsVector3(ChildElement)) else
+                     I don't handle this anyway, so I just ignore it for now.
+                     Should be reported to Blender.
 
-                         if ParamName = 'DIFFUSE' then
-                           Mat.FdDiffuseColor.Value :=
-                             ReadParamAsVector3(ChildElement) else
-
-                         if ParamName = 'SPECULAR' then
-                           Mat.FdSpecularColor.Value :=
-                             ReadParamAsVector3(ChildElement) else
-
-                         if ParamName = 'SHININESS' then
-                           Mat.FdShininess.Value :=
-                             ReadParamAsFloat(ChildElement) / 128.0 else
-
-                         if ParamName = 'REFLECTIVE' then
-                           {Mat.FdMirrorColor.Value := }
-                             ReadParamAsVector3(ChildElement) else
-
-                         if ParamName = 'REFLECTIVITY' then
-                         begin
-                           if AllowKambiExtensions then
-                             Mat.FdMirror.Value := ReadParamAsFloat(ChildElement) else
-                             ReadParamAsFloat(ChildElement);
-                         end else
-
-                         (*
-                         Blender Collada 1.3.1 exporter bug: it sets
-                         type of TRANSPARENT param as "float".
-                         Although content inicates "float3",
-                         like Collada 1.3.1 spec requires (page 129),
-                         and consistently with what is in Collada 1.4.1 spec.
-
-                         I don't handle this anyway, so I just ignore it for now.
-                         Should be reported to Blender.
-
-                         if ParamName = 'TRANSPARENT' then
-                           {Mat.FdTransparencyColor.Value := }
-                             ReadParamAsVector3(ChildElement) else
-                         *)
-
-                         if ParamName = 'TRANSPARENCY' then
-                           Mat.FdTransparency.Value :=
-                             ReadParamAsFloat(ChildElement);
-
-                         { other ParamName not handled }
-                       end;
-                     end;
+                     if ParamName = 'TRANSPARENT' then
+                       {Mat.FdTransparencyColor.Value := } ReadParamAsVector3(I.Current) else
+                     *)
+                     if ParamName = 'TRANSPARENCY' then
+                       Mat.FdTransparency.Value := ReadParamAsFloat(I.Current);
+                     { other ParamName not handled }
                    end;
-                 end;
-               finally FreeChildNodes(Children); end
+               finally FreeAndNil(I) end;
              end;
            end;
          end;
@@ -1411,24 +1372,14 @@ var
   procedure ReadNodesSequence(Group: TNodeX3DGroupingNode;
     SceneElement: TDOMElement);
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementIterator;
   begin
-    Children := SceneElement.ChildNodes;
+    I := TXMLElementIterator.Create(SceneElement);
     try
-      for I := 0 to Children.Count - 1 do
-      begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'node' then
-            ReadNodeElement(Group, ChildElement);
-        end;
-      end;
-    finally FreeChildNodes(Children); end
+      while I.GetNext do
+        if I.Current.TagName = 'node' then
+          ReadNodeElement(Group, I.Current);
+    finally FreeAndNil(I) end;
   end;
 
   { Read <scene> element. }
@@ -1506,10 +1457,7 @@ var
   { Read <library_visual_scenes> from Collada 1.4.x }
   procedure ReadLibraryVisualScenes(LibraryElement: TDOMElement);
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementIterator;
     LibraryId: string;
     VisualScenesSwitch: TNodeSwitch;
   begin
@@ -1525,20 +1473,13 @@ var
     VisualScenesSwitch := TNodeSwitch.Create(LibraryId, WWWBasePath);
     ResultModel.FdChildren.Add(VisualScenesSwitch);
 
-    Children := LibraryElement.ChildNodes;
+    I := TXMLElementIterator.Create(LibraryElement);
     try
-      for I := 0 to Children.Count - 1 do
-      begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'visual_scene' then
-            ReadVisualScene(VisualScenesSwitch, ChildElement);
-            { other ChildElement.TagName not supported for now }
-        end;
-      end;
-    finally FreeChildNodes(Children); end
+      while I.GetNext do
+        if I.Current.TagName = 'visual_scene' then
+          ReadVisualScene(VisualScenesSwitch, I.Current);
+          { other I.Current.TagName not supported for now }
+    finally FreeAndNil(I) end;
   end;
 
   { Read <controller> from Collada 1.4.x }
@@ -1576,38 +1517,26 @@ var
   { Read <library_controllers> from Collada 1.4.x }
   procedure ReadLibraryControllers(LibraryElement: TDOMElement);
   var
-    Children: TDOMNodeList;
-    ChildNode: TDOMNode;
-    ChildElement: TDOMElement;
-    I: Integer;
+    I: TXMLElementIterator;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
 
-    Children := LibraryElement.ChildNodes;
+    I := TXMLElementIterator.Create(LibraryElement);
     try
-      for I := 0 to Children.Count - 1 do
-      begin
-        ChildNode := Children.Item[I];
-        if ChildNode.NodeType = ELEMENT_NODE then
-        begin
-          ChildElement := ChildNode as TDOMElement;
-          if ChildElement.TagName = 'controller' then
-            ReadController(ChildElement);
-            { other ChildElement.TagName not supported for now }
-        end;
-      end;
-    finally FreeChildNodes(Children); end
+      while I.GetNext do
+        if I.Current.TagName = 'controller' then
+          ReadController(I.Current);
+          { other I.Current.TagName not supported for now }
+    finally FreeAndNil(I) end;
   end;
 
 var
   Doc: TXMLDocument;
   Version: string;
-  I: Integer;
-  DocChildren: TDOMNodeList;
-  ChildNode: TDOMNode;
-  ChildElement: TDOMElement;
+  I: TXMLElementIterator;
+  LibraryEffects: TDOMElement;
 begin
   Effects := nil;
   Materials := nil;
@@ -1661,34 +1590,30 @@ begin
         library_materials. Testcase: COLLLADA 1.4.1 Basic Samples/Cube/cube.dae.
 
         library_effects is only for Collada >= 1.4.x. }
-      ChildElement := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
-      if ChildElement <> nil then
-        ReadLibraryEffects(ChildElement);
+      LibraryEffects := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
+      if LibraryEffects <> nil then
+        ReadLibraryEffects(LibraryEffects);
 
-      DocChildren := Doc.DocumentElement.ChildNodes;
+      I := TXMLElementIterator.Create(Doc.DocumentElement);
       try
-        for I := 0 to DocChildren.Count - 1 do
+        while I.GetNext do
         begin
-          ChildNode := DocChildren.Item[I];
-          if ChildNode.NodeType = ELEMENT_NODE then
-          begin
-            ChildElement := ChildNode as TDOMElement;
-            if ChildElement.TagName = 'library' then { only Collada < 1.4.x }
-              ReadLibrary(ChildElement) else
-            if ChildElement.TagName = 'library_materials' then { only Collada >= 1.4.x }
-              ReadLibraryMaterials(ChildElement) else
-            if ChildElement.TagName = 'library_geometries' then { only Collada >= 1.4.x }
-              ReadLibraryGeometries(ChildElement) else
-            if ChildElement.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
-              ReadLibraryVisualScenes(ChildElement) else
-            if ChildElement.TagName = 'library_controllers' then { only Collada >= 1.4.x }
-              ReadLibraryControllers(ChildElement) else
-            if ChildElement.TagName = 'scene' then
-              ReadSceneElement(ChildElement);
-              { other ChildElement.TagName not supported for now }
-          end;
+          if I.Current.TagName = 'library' then { only Collada < 1.4.x }
+            ReadLibrary(I.Current) else
+          if I.Current.TagName = 'library_materials' then { only Collada >= 1.4.x }
+            ReadLibraryMaterials(I.Current) else
+          if I.Current.TagName = 'library_geometries' then { only Collada >= 1.4.x }
+            ReadLibraryGeometries(I.Current) else
+          if I.Current.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
+            ReadLibraryVisualScenes(I.Current) else
+          if I.Current.TagName = 'library_controllers' then { only Collada >= 1.4.x }
+            ReadLibraryControllers(I.Current) else
+          if I.Current.TagName = 'scene' then
+            ReadSceneElement(I.Current);
+            { other I.Current.TagName not supported for now, with the exception
+              of 'library_effects' which was handled earlier. }
         end;
-      finally FreeChildNodes(DocChildren); end;
+      finally FreeAndNil(I); end;
 
       Result.Meta.PutPreserve('source', ExtractFileName(FileName));
       Result.Meta.KeyData['source-collada-version'] := Version;
