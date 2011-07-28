@@ -147,7 +147,7 @@ function LoadCollada(const FileName: string;
 var
   WWWBasePath: string;
 
-  { List of Collada effects. Each contains an X3D Material node,
+  { List of Collada effects. Each contains an X3D Appearance node,
     with a name equal to Collada effect name. }
   Effects: TVRMLNodesList;
 
@@ -214,7 +214,8 @@ var
     Adds effect to the Effects list. }
   procedure ReadEffect(EffectElement: TDOMElement);
   var
-    Effect: TNodeMaterial;
+    Appearance: TNodeAppearance;
+    Mat: TNodeMaterial;
     Id: string;
     ProfileElement, TechniqueElement, PhongElement: TDOMElement;
     Children: TDOMNodeList;
@@ -226,8 +227,11 @@ var
     if not DOMGetAttribute(EffectElement, 'id', Id) then
       Id := '';
 
-    Effect := TNodeMaterial.Create(Id, WWWBasePath);
-    Effects.Add(Effect);
+    Appearance := TNodeAppearance.Create(Id, WWWBasePath);
+    Effects.Add(Appearance);
+
+    Mat := TNodeMaterial.Create('', WWWBasePath);
+    Appearance.FdMaterial.Value := Mat;
 
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
     if ProfileElement <> nil then
@@ -261,33 +265,33 @@ var
                  ChildElement := ChildNode as TDOMElement;
 
                  if ChildElement.TagName = 'emission' then
-                   Effect.FdEmissiveColor.Value :=
+                   Mat.FdEmissiveColor.Value :=
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'ambient' then
-                   Effect.FdAmbientIntensity.Value := VectorAverage(
+                   Mat.FdAmbientIntensity.Value := VectorAverage(
                      ReadColorOrTexture(ChildElement)) else
 
                  if ChildElement.TagName = 'diffuse' then
-                   Effect.FdDiffuseColor.Value :=
+                   Mat.FdDiffuseColor.Value :=
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'specular' then
-                   Effect.FdSpecularColor.Value :=
+                   Mat.FdSpecularColor.Value :=
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'shininess' then
-                   Effect.FdShininess.Value :=
+                   Mat.FdShininess.Value :=
                      ReadFloatOrParam(ChildElement) / 128.0 else
 
                  if ChildElement.TagName = 'reflective' then
-                   {Effect.FdMirrorColor.Value := }
+                   {Mat.FdMirrorColor.Value := }
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'reflectivity' then
                  begin
                    if AllowKambiExtensions then
-                     Effect.FdMirror.Value := ReadFloatOrParam(ChildElement) else
+                     Mat.FdMirror.Value := ReadFloatOrParam(ChildElement) else
                      ReadFloatOrParam(ChildElement);
                  end else
 
@@ -296,11 +300,11 @@ var
                      ReadColorOrTexture(ChildElement) else
 
                  if ChildElement.TagName = 'transparency' then
-                   Effect.FdTransparency.Value :=
+                   Mat.FdTransparency.Value :=
                      ReadFloatOrParam(ChildElement) else
 
                  if ChildElement.TagName = 'index_of_refraction' then
-                   {Effect.FdIndexOfRefraction.Value := }
+                   {Mat.FdIndexOfRefraction.Value := }
                      ReadFloatOrParam(ChildElement);
                end;
              end;
@@ -312,14 +316,14 @@ var
              Although I do not handle TransparencyColor, I still have to do
              this, as there are many models with Transparency = 1 and
              TransparencyColor = (0, 0, 0). }
-           Effect.FdTransparency.Value :=
-             Effect.FdTransparency.Value * VectorAverage(TransparencyColor);
+           Mat.FdTransparency.Value :=
+             Mat.FdTransparency.Value * VectorAverage(TransparencyColor);
 
            { make sure to not mistakenly use blending on model that should
              be opaque, but has Effect.FdTransparency.Value = some small
              epsilon, due to numeric errors in above multiply. }
-           if Zero(Effect.FdTransparency.Value) then
-             Effect.FdTransparency.Value := 0.0;
+           if Zero(Mat.FdTransparency.Value) then
+             Mat.FdTransparency.Value := 0.0;
          end;
        end;
     end;
@@ -403,10 +407,14 @@ var
       ChildElement: TDOMElement;
       ParamName: string;
       I: Integer;
+      Appearance: TNodeAppearance;
       Mat: TNodeMaterial;
     begin
-      Mat := TNodeMaterial.Create(MatId, WWWBasePath);
-      Materials.Add(Mat);
+      Appearance := TNodeAppearance.Create(MatId, WWWBasePath);
+      Materials.Add(Appearance);
+
+      Mat := TNodeMaterial.Create('', WWWBasePath);
+      Appearance.FdMaterial.Value := Mat;
 
       ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
       if ShaderElement <> nil then
@@ -499,7 +507,7 @@ var
     var
       InstanceEffect: TDOMElement;
       EffectId: string;
-      Mat: TNodeMaterial;
+      Appearance: TNodeAppearance;
       EffectIndex: Integer;
     begin
       if MatId = '' then Exit;
@@ -516,9 +524,9 @@ var
           EffectIndex := Effects.FindNodeName(EffectId);
           if EffectIndex <> -1 then
           begin
-            Mat := Effects[EffectIndex].DeepCopy as TNodeMaterial;
-            Mat.NodeName := MatId;
-            Materials.Add(Mat);
+            Appearance := Effects[EffectIndex].DeepCopy as TNodeAppearance;
+            Appearance.NodeName := MatId;
+            Materials.Add(Appearance);
           end else
             OnWarning(wtMinor, 'Collada', Format('Material "%s" references ' +
               'non-existing effect "%s"', [MatId, EffectId]));
@@ -1141,7 +1149,7 @@ var
 
     { For Collada material id, return the X3D Material (or @nil if not found). }
     function MaterialToX3D(MaterialId: string;
-      InstantiatingElement: TDOMElement): TNodeMaterial;
+      InstantiatingElement: TDOMElement): TNodeAppearance;
     var
       MaterialIndex: Integer;
       BindMaterial, Technique: TDOMElement;
@@ -1203,7 +1211,7 @@ var
         Result := nil;
       end else
       begin
-        Result := Materials[MaterialIndex] as TNodeMaterial;
+        Result := Materials[MaterialIndex] as TNodeAppearance;
       end;
     end;
 
@@ -1221,7 +1229,7 @@ var
         Shape := TNodeShape.Create('', WWWBasePath);
         Group.FdChildren.Add(Shape);
         Shape.FdGeometry.Value := Poly.X3DGeometry;
-        Shape.Material := MaterialToX3D(Poly.Material, InstantiatingElement);
+        Shape.Appearance := MaterialToX3D(Poly.Material, InstantiatingElement);
       end;
     end;
 
