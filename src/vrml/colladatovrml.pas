@@ -47,12 +47,13 @@ function LoadCollada(const FileName: string;
 implementation
 
 uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
-  DOM, KambiXMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils;
+  DOM, KambiXMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 {$define read_implementation}
 
-{ TColladaController, TColladaControllersList -------------------------------- }
+{ TCollada* helper containers ------------------------------------------------ }
 
 type
   TColladaController = class
@@ -78,6 +79,67 @@ begin
   Result := -1;
 end;
 
+type
+  { Represents Collada <polylist> or <polygons> (item read by ReadPolyCommon),
+    which are X3D IndexedFaceSet with a material name. }
+  TColladaPoly = class
+    { Collada material name (from <polylist> "material" attribute).
+      For Collada 1.3.x, this is just a name of material in material library.
+      For Collada 1.4.x, when instantiating geometry you specify which material
+      name (inside geometry) corresponds to which material name on Materials
+      list. }
+    Material: string;
+    X3DGeometry: TNodeIndexedFaceSet;
+    destructor Destroy; override;
+  end;
+
+  TColladaPolysList = specialize TFPGObjectList<TColladaPoly>;
+
+destructor TColladaPoly.Destroy;
+begin
+  X3DGeometry.FreeIfUnused;
+  X3DGeometry := nil;
+  inherited;
+end;
+
+type
+  TColladaGeometry = class
+    { Collada geometry id. }
+    Name: string;
+    Polys: TColladaPolysList;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+constructor TColladaGeometry.Create;
+begin
+  Polys := TColladaPolysList.Create;
+end;
+
+destructor TColladaGeometry.Destroy;
+begin
+  FreeAndNil(Polys);
+  inherited;
+end;
+
+type
+  TColladaGeometriesList = class (specialize TFPGObjectList<TColladaGeometry>)
+  public
+    { Find item with given Name, @nil if not found. }
+    function Find(const Name: string): TColladaGeometry;
+  end;
+
+function TColladaGeometriesList.Find(const Name: string): TColladaGeometry;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(Items[I]);
+
+  Result := nil;
+end;
+
 { LoadCollada ---------------------------------------------------------- }
 
 function LoadCollada(const FileName: string;
@@ -85,31 +147,24 @@ function LoadCollada(const FileName: string;
 var
   WWWBasePath: string;
 
-  { List of VRML Material nodes storing Collada effects.
-    They are kept for handling instance_effect in <material> node, which will
-    copy items from this list into Materials list. Materials list will keep
-    names of the materials, forgetting about names of effects.
-    Many materials may refer to a single effect, that's why for Materials
-    list we will copy effects (not just make a reference to them). }
+  { List of Collada effects. Each contains an X3D Material node,
+    with a name equal to Collada effect name. }
   Effects: TVRMLNodesList;
 
-  { Another list of VRML Material nodes, this time storing Collada materials. }
+  { List of Collada materials. Nodes here are created by copying from Effects
+    list, and changing NodeName to Collada material name (forgetting effect name).
+    This way we handle instance_effect in <material> node.
+    Many materials may refer to a single effect, so we make DeepCopy
+    of the effect (not just copy a reference). }
   Materials: TVRMLNodesList;
 
-  { List of VRML IndexedFaceSet (generally, anything suitable for Shape.geometry)
-    nodes representing <geometry> Collada elements. }
-  Geometries: TVRMLNodesList;
+  { List of Collada geometries. }
+  Geometries: TColladaGeometriesList;
 
-  { For each item on Geometries list, this is specified material name.
-    For Collada 1.3.x, this is just a name of material in material library.
-    For Collada 1.4.x, when instantiating node you specify which material
-    links to what GeometryMaterialName, so GeometriesMaterialNames is
-    needed. }
-  GeometriesMaterialNames: TStringList;
-
-  { List of VRML Shape nodes representing <visual_scene> Collada elements,
-    for Collada >= 1.4.x (for Collada < 1.4.x, the <scene> element is directly
-    placed as a rendered scene). }
+  { List of Collada visual scenes, for <visual_scene> Collada elements.
+    Every visual scene is X3D TNodeX3DGroupingNode instance.
+    This is for Collada >= 1.4.x (for Collada < 1.4.x,
+    the <scene> element is directly placed as a rendered scene). }
   VisualScenes: TVRMLNodesList;
 
   ResultModel: TNodeGroup absolute Result;
@@ -155,7 +210,8 @@ var
       Result := 1.0;
   end;
 
-  { Read <effect>. Only for Collada >= 1.4.x. }
+  { Read <effect>. Only for Collada >= 1.4.x.
+    Adds effect to the Effects list. }
   procedure ReadEffect(EffectElement: TDOMElement);
   var
     Effect: TNodeMaterial;
@@ -269,7 +325,8 @@ var
     end;
   end;
 
-  { Read <library_effects>. Only for Collada >= 1.4.x. }
+  { Read <library_effects>. Only for Collada >= 1.4.x.
+    All effects are added to the Effects list. }
   procedure ReadLibraryEffects(LibraryElement: TDOMElement);
   var
     Children: TDOMNodeList;
@@ -297,7 +354,7 @@ var
     finally FreeChildNodes(Children); end
   end;
 
-  { Read <material>. }
+  { Read <material>. It is added to the Materials list. }
   procedure ReadMaterial(MatElement: TDOMElement);
 
     function ReadParamAsVector3(Element: TDOMElement): TVector3Single;
@@ -507,10 +564,11 @@ var
     finally FreeChildNodes(Children); end
   end;
 
-  { Read <geometry> }
+  { Read <geometry>. It is added to the Geometries list. }
   procedure ReadGeometry(GeometryElement: TDOMElement);
   var
-    GeometryId: string;
+    { Collada Geometry constructed, available to all ReadPoly* local procedures. }
+    Geometry: TColladaGeometry;
 
     { Text is the name of the source, Object is the TDynVector3SingleArray
       instance containing this source's data. }
@@ -688,7 +746,7 @@ var
     { Read common things of <polygons> and <polylist> and similar within <mesh>.
       - Creates IndexedFaceSet, initializes it's coord and some other
         fiels (but leaves coordIndex empty).
-      - Adds appropriate things to Geometries and GeometriesMaterialNames
+      - Adds to Geometry.Polys
       - Reads <input> children, to calculate InputsCount and VerticesOffset. }
     procedure ReadPolyCommon(PolygonsElement: TDOMElement;
       out IndexedFaceSet: TNodeIndexedFaceSet;
@@ -701,15 +759,17 @@ var
       Coord: TNodeCoordinate;
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
-      MaterialId: string;
+      Poly: TColladaPoly;
     begin
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
 
       VerticesOffset := 0;
 
-      IndexedFaceSet := TNodeIndexedFaceSet.Create(GeometryId, WWWBasePath);
-      Geometries.Add(IndexedFaceSet);
+      IndexedFaceSet := TNodeIndexedFaceSet.Create(Format('%s_collada_poly_%d',
+        { There may be multiple <polylist> inside a single Collada <geometry> node,
+          so use Geometry.Polys.Count to name them uniquely for X3D. }
+        [Geometry.Name, Geometry.Polys.Count]), WWWBasePath);
       IndexedFaceSet.FdCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
       { For VRML >= 2.0, creaseAngle is 0 by default.
@@ -717,20 +777,21 @@ var
         to have some non-zero creaseAngle by default. }
       IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
 
+      Poly := TColladaPoly.Create;
+      Poly.X3DGeometry := IndexedFaceSet;
+      Geometry.Polys.Add(Poly);
+
       Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath);
       IndexedFaceSet.FdCoord.Value := Coord;
       Coord.FdPoint.Items.Assign(Vertices);
 
-      if DOMGetAttribute(PolygonsElement, 'material', MaterialId) then
+      if DOMGetAttribute(PolygonsElement, 'material', Poly.Material) then
       begin
         { Collada 1.4.1 spec says that this is just material name.
           Collada 1.3.1 spec says that this is URL. }
-        if (not Version14) and SCharIs(MaterialId, 1, '#') then
-          Delete(MaterialId, 1, 1);
-
-        GeometriesMaterialNames.Append(MaterialId);
-      end else
-        GeometriesMaterialNames.Append('');
+        if (not Version14) and SCharIs(Poly.Material, 1, '#') then
+          Delete(Poly.Material, 1, 1);
+      end; { else leave Poly.Material as '' }
 
       InputsCount := 0;
 
@@ -926,9 +987,14 @@ var
     ChildNode: TDOMNode;
     ChildElement, Mesh: TDOMElement;
     I: Integer;
+    GeometryId: string;
   begin
     if not DOMGetAttribute(GeometryElement, 'id', GeometryId) then
       GeometryId := '';
+
+    Geometry := TColladaGeometry.Create;
+    Geometry.Name := GeometryId;
+    Geometries.Add(Geometry);
 
     Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
     if Mesh <> nil then
@@ -1073,8 +1139,9 @@ var
   procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
     NodeElement: TDOMElement);
 
-    procedure AddMaterial(Shape: TNodeShape; MaterialId: string;
-      InstantiatingElement: TDOMElement);
+    { For Collada material id, return the X3D Material (or @nil if not found). }
+    function MaterialToX3D(MaterialId: string;
+      InstantiatingElement: TDOMElement): TNodeMaterial;
     var
       MaterialIndex: Integer;
       BindMaterial, Technique: TDOMElement;
@@ -1084,7 +1151,7 @@ var
       ChildElement: TDOMElement;
       I: Integer;
     begin
-      if MaterialId = '' then Exit;
+      if MaterialId = '' then Exit(nil);
 
       { For InstantiatingElement = instance_geometry (Collada 1.4.x), this
         must be present.
@@ -1133,43 +1200,54 @@ var
       begin
         OnWarning(wtMinor, 'Collada', Format('Referencing non-existing material name "%s"',
           [MaterialId]));
+        Result := nil;
       end else
       begin
-        Shape.Material := Materials[MaterialIndex] as TNodeMaterial;
+        Result := Materials[MaterialIndex] as TNodeMaterial;
       end;
     end;
 
-    { Read <instance_geometry>, adding resulting VRML node into
+    { Add Collada geometry instance (many X3D Shape nodes) to given X3D Group. }
+    procedure AddGeometryInstance(Group: TNodeX3DGroupingNode;
+      Geometry: TColladaGeometry; InstantiatingElement: TDOMElement);
+    var
+      Shape: TNodeShape;
+      I: Integer;
+      Poly: TColladaPoly;
+    begin
+      for I := 0 to Geometry.Polys.Count - 1 do
+      begin
+        Poly := Geometry.Polys[I];
+        Shape := TNodeShape.Create('', WWWBasePath);
+        Group.FdChildren.Add(Shape);
+        Shape.FdGeometry.Value := Poly.X3DGeometry;
+        Shape.Material := MaterialToX3D(Poly.Material, InstantiatingElement);
+      end;
+    end;
+
+    { Read <instance_geometry>, adding resulting X3D nodes into
       ParentGroup. Actually, this is also for reading <instance> in Collada 1.3.1. }
     procedure ReadInstanceGeometry(ParentGroup: TNodeX3DGroupingNode;
       InstantiatingElement: TDOMElement);
     var
       GeometryId: string;
-      GeometryIndex: Integer;
-      Shape: TNodeShape;
+      Geometry: TColladaGeometry;
     begin
       if DOMGetAttribute(InstantiatingElement, 'url', GeometryId) and
          SCharIs(GeometryId, 1, '#') then
       begin
         Delete(GeometryId, 1, 1);
-        GeometryIndex := Geometries.FindNodeName(GeometryId);
-        if GeometryIndex = -1 then
+        Geometry := Geometries.Find(GeometryId);
+        if Geometry = nil then
         begin
           OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing ' +
             '<geometry> element "%s"', [GeometryId]));
         end else
-        begin
-          Shape := TNodeShape.Create('', WWWBasePath);
-          ParentGroup.FdChildren.Add(Shape);
-          Shape.FdGeometry.Value := Geometries[GeometryIndex];
-
-          AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
-            InstantiatingElement);
-        end;
+          AddGeometryInstance(ParentGroup, Geometry, InstantiatingElement);
       end;
     end;
 
-    { Read <instance_controller>, adding resulting VRML node into
+    { Read <instance_controller>, adding resulting X3D node into
       ParentGroup. }
     procedure ReadInstanceController(ParentGroup: TNodeX3DGroupingNode;
       InstantiatingElement: TDOMElement);
@@ -1177,9 +1255,8 @@ var
       ControllerId: string;
       ControllerIndex: Integer;
       Controller: TColladaController;
-      Shape: TNodeShape;
       Group: TNodeX3DGroupingNode;
-      GeometryIndex: Integer;
+      Geometry: TColladaGeometry;
     begin
       if DOMGetAttribute(InstantiatingElement, 'url', ControllerId) and
          SCharIs(ControllerId, 1, '#') then
@@ -1194,8 +1271,8 @@ var
         begin
           Controller := Controllers[ControllerIndex];
 
-          GeometryIndex := Geometries.FindNodeName(Controller.Source);
-          if GeometryIndex = -1 then
+          Geometry := Geometries.Find(Controller.Source);
+          if Geometry = nil then
           begin
             OnWarning(wtMinor, 'Collada', Format('<controller> references non-existing ' +
               '<geometry> element "%s"', [Controller.Source]));
@@ -1210,13 +1287,7 @@ var
               TNodeMatrixTransform(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
             ParentGroup.FdChildren.Add(Group);
-
-            Shape := TNodeShape.Create('', WWWBasePath);
-            Group.FdChildren.Add(Shape);
-            Shape.FdGeometry.Value := Geometries[GeometryIndex];
-
-            AddMaterial(Shape, GeometriesMaterialNames[GeometryIndex],
-              InstantiatingElement);
+            AddGeometryInstance(Group, Geometry, InstantiatingElement);
           end;
         end;
       end;
@@ -1433,7 +1504,7 @@ var
       Collada13;
   end;
 
-  { Read <visual_scene>. Obtained scene VRML node is added both
+  { Read <visual_scene>. Obtained scene X3D node is added both
     to VisualScenes list and VisualScenesSwitch.choice. }
   procedure ReadVisualScene(VisualScenesSwitch: TNodeSwitch;
     VisualSceneElement: TDOMElement);
@@ -1560,7 +1631,6 @@ begin
   Effects := nil;
   Materials := nil;
   Geometries := nil;
-  GeometriesMaterialNames := nil;
   VisualScenes := nil;
   Controllers := nil;
 
@@ -1594,8 +1664,7 @@ begin
 
     Effects := TVRMLNodesList.Create;
     Materials := TVRMLNodesList.Create;
-    Geometries := TVRMLNodesList.Create;
-    GeometriesMaterialNames := TStringList.Create;
+    Geometries := TColladaGeometriesList.Create;
     VisualScenes := TVRMLNodesList.Create;
     Controllers := TColladaControllersList.Create;
 
@@ -1659,9 +1728,7 @@ begin
       node, is also Ok. }
 
     VRMLNodesList_FreeUnusedAndNil(Materials);
-    VRMLNodesList_FreeUnusedAndNil(Geometries);
-
-    FreeAndNil(GeometriesMaterialNames);
+    FreeAndNil(Geometries);
 
     VRMLNodesList_FreeUnusedAndNil(VisualScenes);
 
