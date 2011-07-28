@@ -306,18 +306,17 @@ var
     All effects are added to the Effects list. }
   procedure ReadLibraryEffects(LibraryElement: TDOMElement);
   var
-    I: TXMLElementIterator;
+    I: TXMLElementFilteringIterator;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
 
-    I := TXMLElementIterator.Create(LibraryElement);
+    I := TXMLElementFilteringIterator.Create(LibraryElement, 'effect');
     try
       while I.GetNext do
-        if I.Current.TagName = 'effect' then
-          ReadEffect(I.Current);
-          { other I.Current.TagName not supported for now }
+        ReadEffect(I.Current);
+        { other I.Current.TagName not supported for now }
     finally FreeAndNil(I) end;
   end;
 
@@ -366,7 +365,7 @@ var
     var
       ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
       ParamName: string;
-      I: TXMLElementIterator;
+      I: TXMLElementFilteringIterator;
       Appearance: TNodeAppearance;
       Mat: TNodeMaterial;
     begin
@@ -388,11 +387,10 @@ var
              ProgramElement := DOMGetChildElement(PassElement, 'program', false);
              if ProgramElement <> nil then
              begin
-               I := TXMLElementIterator.Create(ProgramElement);
+               I := TXMLElementFilteringIterator.Create(ProgramElement, 'param');
                try
                  while I.GetNext do
-                   if (I.Current.TagName = 'param') and
-                      DOMGetAttribute(I.Current, 'name', ParamName) then
+                   if DOMGetAttribute(I.Current, 'name', ParamName) then
                    begin
                      if ParamName = 'EMISSION' then
                        Mat.FdEmissiveColor.Value := ReadParamAsVector3(I.Current) else
@@ -1372,13 +1370,12 @@ var
   procedure ReadNodesSequence(Group: TNodeX3DGroupingNode;
     SceneElement: TDOMElement);
   var
-    I: TXMLElementIterator;
+    I: TXMLElementFilteringIterator;
   begin
-    I := TXMLElementIterator.Create(SceneElement);
+    I := TXMLElementFilteringIterator.Create(SceneElement, 'node');
     try
       while I.GetNext do
-        if I.Current.TagName = 'node' then
-          ReadNodeElement(Group, I.Current);
+        ReadNodeElement(Group, I.Current);
     finally FreeAndNil(I) end;
   end;
 
@@ -1457,7 +1454,7 @@ var
   { Read <library_visual_scenes> from Collada 1.4.x }
   procedure ReadLibraryVisualScenes(LibraryElement: TDOMElement);
   var
-    I: TXMLElementIterator;
+    I: TXMLElementFilteringIterator;
     LibraryId: string;
     VisualScenesSwitch: TNodeSwitch;
   begin
@@ -1473,12 +1470,11 @@ var
     VisualScenesSwitch := TNodeSwitch.Create(LibraryId, WWWBasePath);
     ResultModel.FdChildren.Add(VisualScenesSwitch);
 
-    I := TXMLElementIterator.Create(LibraryElement);
+    I := TXMLElementFilteringIterator.Create(LibraryElement, 'visual_scene');
     try
       while I.GetNext do
-        if I.Current.TagName = 'visual_scene' then
-          ReadVisualScene(VisualScenesSwitch, I.Current);
-          { other I.Current.TagName not supported for now }
+        ReadVisualScene(VisualScenesSwitch, I.Current);
+        { other I.Current.TagName not supported for now }
     finally FreeAndNil(I) end;
   end;
 
@@ -1517,18 +1513,17 @@ var
   { Read <library_controllers> from Collada 1.4.x }
   procedure ReadLibraryControllers(LibraryElement: TDOMElement);
   var
-    I: TXMLElementIterator;
+    I: TXMLElementFilteringIterator;
     LibraryId: string;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
 
-    I := TXMLElementIterator.Create(LibraryElement);
+    I := TXMLElementFilteringIterator.Create(LibraryElement, 'controller');
     try
       while I.GetNext do
-        if I.Current.TagName = 'controller' then
-          ReadController(I.Current);
-          { other I.Current.TagName not supported for now }
+        ReadController(I.Current);
+        { other I.Current.TagName not supported for now }
     finally FreeAndNil(I) end;
   end;
 

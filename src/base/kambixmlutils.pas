@@ -105,7 +105,7 @@ function DOMGetTextChild(const Element: TDOMElement;
   const ChildName: string): string;
 
 type
-  { Handy class to iterate over all children elements of given XML element.
+  { Iterate over all children elements of given XML element.
 
     Without this, typical iteration looks like
 
@@ -157,8 +157,17 @@ end;
   public
     constructor Create(ParentElement: TDOMElement);
     destructor Destroy; override;
-    function GetNext: boolean;
+    function GetNext: boolean; virtual;
     property Current: TDOMElement read FCurrent;
+  end;
+
+  { Iterate over children elements of given XML element, that have matching TagName. }
+  TXMLElementFilteringIterator = class(TXMLElementIterator)
+  private
+    FTagName: string;
+  public
+    constructor Create(ParentElement: TDOMElement; const TagName: string);
+    function GetNext: boolean; override;
   end;
 
   { Iterate over all CDATA nodes of given XML element.
@@ -392,6 +401,21 @@ begin
       end;
     end;
   until false;
+end;
+
+{ TXMLElementFilteringIterator ----------------------------------------------- }
+
+constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: string);
+begin
+  inherited Create(ParentElement);
+  FTagName := TagName;
+end;
+
+function TXMLElementFilteringIterator.GetNext: boolean;
+begin
+  repeat
+    Result := inherited GetNext;
+  until (not Result) or (Current.TagName = FTagName);
 end;
 
 { TXMLCDataIterator -------------------------------------------------------- }
