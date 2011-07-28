@@ -17,7 +17,7 @@ executed in this directory.
 If you want to use Lazarus (http://www.lazarus.freepascal.org/),
 you'll be interested in installing in Lazarus
 packages/kambi_base.lpk and packages/kambi_components.lpk
-(see packages/README for more info).
+(see packages/README.txt for more info).
 Then you can compile all the examples by opening their .lpi files
 and running them as usual from Lazarus.
 
