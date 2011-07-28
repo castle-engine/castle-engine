@@ -43,9 +43,6 @@ uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
   DOM, KambiXMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-{$define read_implementation}
-
 { TCollada* helper containers ------------------------------------------------ }
 
 type
@@ -56,20 +53,21 @@ type
     BoundShapeMatrixIdentity: boolean;
   end;
 
-  TObjectsListItem_1 = TColladaController;
-  {$I objectslist_1.inc}
-
-type
-  TColladaControllersList = class(TObjectsList_1)
-    function FindName(const Name: string): Integer;
+  TColladaControllersList = class(specialize TFPGObjectList<TColladaController>)
+  public
+    { Find a TColladaController with given Name, @nil if not found. }
+    function Find(const Name: string): TColladaController;
   end;
 
-function TColladaControllersList.FindName(const Name: string): Integer;
+function TColladaControllersList.Find(const Name: string): TColladaController;
+var
+  I: Integer;
 begin
-  for Result := 0 to Count - 1 do
-    if Items[Result].Name = Name then
-      Exit;
-  Result := -1;
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(Items[I]);
+
+  Result := nil;
 end;
 
 type
@@ -160,13 +158,13 @@ var
     the <scene> element is directly placed as a rendered scene). }
   VisualScenes: TVRMLNodesList;
 
+  { List of Collada controllers. Read from library_controllers, used by
+    instance_controller. }
+  Controllers: TColladaControllersList;
+
   ResultModel: TNodeGroup absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
-
-  { List of all controllers, read from library_controllers, used by
-    instance_controller. }
-  Controllers: TColladaControllersList;
 
   { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x. }
   function ReadColorOrTexture(Element: TDOMElement): TVector3Single;
@@ -1113,7 +1111,6 @@ var
       InstantiatingElement: TDOMElement);
     var
       ControllerId: string;
-      ControllerIndex: Integer;
       Controller: TColladaController;
       Group: TNodeX3DGroupingNode;
       Geometry: TColladaGeometry;
@@ -1122,15 +1119,13 @@ var
          SCharIs(ControllerId, 1, '#') then
       begin
         Delete(ControllerId, 1, 1);
-        ControllerIndex := Controllers.FindName(ControllerId);
-        if ControllerIndex = -1 then
+        Controller := Controllers.Find(ControllerId);
+        if Controller = nil then
         begin
           OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing ' +
             '<controller> element "%s"', [ControllerId]));
         end else
         begin
-          Controller := Controllers[ControllerIndex];
-
           Geometry := Geometries.Find(Controller.Source);
           if Geometry = nil then
           begin
@@ -1540,7 +1535,7 @@ begin
 
     VRMLNodesList_FreeUnusedAndNil(VisualScenes);
 
-    FreeWithContentsAndNil(Controllers);
+    FreeAndNil(Controllers);
   end;
 end;
 
