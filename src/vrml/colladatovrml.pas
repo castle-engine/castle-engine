@@ -1135,9 +1135,7 @@ var
           [MaterialId]));
       end else
       begin
-        Shape.FdAppearance.Value := TNodeAppearance.Create('', WWWBasePath);
-        (Shape.FdAppearance.Value as TNodeAppearance).FdMaterial.Value :=
-          Materials[MaterialIndex];
+        Shape.Material := Materials[MaterialIndex] as TNodeMaterial;
       end;
     end;
 
