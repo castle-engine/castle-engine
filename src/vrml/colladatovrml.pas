@@ -81,8 +81,7 @@ type
 
 destructor TColladaEffect.Destroy;
 begin
-  Appearance.FreeIfUnused;
-  Appearance := nil;
+  FreeIfUnusedAndNil(Appearance);
   inherited;
 end;
 
@@ -120,8 +119,7 @@ type
 
 destructor TColladaPoly.Destroy;
 begin
-  X3DGeometry.FreeIfUnused;
-  X3DGeometry := nil;
+  FreeIfUnusedAndNil(X3DGeometry);
   inherited;
 end;
 
@@ -969,8 +967,7 @@ var
       if Coord <> nil then
       begin
         OnWarning(wtMajor, 'Collada', '<vertices> specified multiple times within a geometry');
-        Coord.FreeIfUnused;
-        Coord := nil;
+        FreeIfUnusedAndNil(Coord);
       end;
 
       if not DOMGetAttribute(VerticesElement, 'id', Id) then
@@ -1091,8 +1088,7 @@ var
                   if TexCoordSource <> nil then
                   begin
                     { create and use new X3D tex coord node }
-                    LastTexCoord.FreeIfUnused;
-                    LastTexCoord := nil;
+                    FreeIfUnusedAndNil(LastTexCoord);
                     LastTexCoord := TNodeTextureCoordinate.Create(InputSource, WWWBasePath);
                     LastTexCoord.FdPoint.Items.Assign(TexCoordSource.GetVectorST { TODO: mem leak });
                     IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
@@ -1314,10 +1310,10 @@ var
         finally FreeAndNil(I) end;
       finally
         FreeAndNil(Sources);
-        Coord.FreeIfUnused;
-        Coord := nil;
-        { LastTexCoord is for sure used by something, no need to LastTexCoord.FreeIfUnused }
-        LastTexCoord := nil;
+        FreeIfUnusedAndNil(Coord);
+        { actually LastTexCoord is for sure used by something,
+          we don't really have to finalize it here }
+        FreeIfUnusedAndNil(LastTexCoord);
       end;
     end;
   end;

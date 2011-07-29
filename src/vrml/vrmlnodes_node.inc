@@ -358,22 +358,23 @@
       of VRML hierarchy. }
     procedure FreeRemovingFromAllParents;
 
-    { Free if this node is not referenced by any VRML 1.0 parent node
-      or VRML 2.0 SFNode or MFNode fields. This is a safe way of removing
-      a node that may, but doesn't have to, be part of VRML graph.
-      The idea is that if node is a part of the graph,
-      we will do nothing (assuming you have
-      a reference to the entine graph somewhere), otherwise node is
+    { Free this node if it is not referenced by any parent fields or nodes.
+      Takes into account that node may have VRML 1.0 parent nodes
+      and VRML 2.0 / X3D parent fields (SFNode or MFNode).
+      This is a safe way of removing
+      a node that may, but doesn't have to, be part of some VRML/X3D graph.
+      The idea is that if a node is a part of some graph,
+      we don't need to do anything (since you should have
+      a reference to the entine graph somewhere anyway), otherwise node is
       considered unused and freed.
 
-      For safety, I advice to usually set reference to @nil after calling
-      FreeIfUnused, like
+      Analogous to standard TObject.Free, this also works when called on
+      a @nil value (does nothing in this case).
 
-@longCode(#
-  Child.FreeIfUnused;
-  Child := nil;
-#)
-       }
+      For safety, it's adviced to set reference to @nil after calling FreeIfUnused.
+      You can use FreeIfUnusedAndNil utility for this (that employs a trick
+      to @nil the visible reference even before freeing, which is even safer).
+      This is analogous to standard FreeAndNil. }
     procedure FreeIfUnused;
 
     { Increase KeepExisting property value to disable automatic freeing

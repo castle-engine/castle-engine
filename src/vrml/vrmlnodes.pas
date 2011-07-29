@@ -2208,6 +2208,11 @@ var
 function KeyRange(Key: TDynSingleArray;
   const Fraction: Single; out T: Single): Integer;
 
+{ Free TVRMLNode if it is unused (see TVRMLNode.FreeIfUnused),
+  setting reference to @nil. Analogous to standard FreeAndNil,
+  but checks if node is used first. }
+procedure FreeIfUnusedAndNil(var Obj);
+
 {$undef read_interface}
 
 implementation
@@ -5962,6 +5967,15 @@ begin
       T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
       T := 0;
   end;
+end;
+
+procedure FreeIfUnusedAndNil(var Obj);
+var
+  Temp: TVRMLNode;
+begin
+  Temp := TVRMLNode(Obj);
+  Pointer(Obj) := nil;
+  Temp.FreeIfUnused;
 end;
 
 { TDynNodeDestructionNotifications ------------------------------------------- }
