@@ -234,7 +234,7 @@ var
   Controllers: TColladaControllersList;
 
   { List of Collada images (TNodeX3DTextureNode). NodeName of every instance
-    comes from Collada "name" of <image> element (these referred to
+    comes from Collada "id" of <image> element (these are referred to
     by <init_from> contents from <surface>). }
   Images: TVRMLNodesList;
 
@@ -1601,14 +1601,14 @@ var
   var
     I: TXMLElementFilteringIterator;
     Image: TNodeImageTexture;
-    ImageName, ImageUrl: string;
+    ImageId, ImageUrl: string;
   begin
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'image');
     try
       while I.GetNext do
-        if DOMGetAttribute(I.Current, 'name', ImageName) then
+        if DOMGetAttribute(I.Current, 'id', ImageId) then
         begin
-          Image := TNodeImageTexture.Create(ImageName, WWWBasePath);
+          Image := TNodeImageTexture.Create(ImageId, WWWBasePath);
           Images.Add(Image);
           ImageUrl := ReadChildText(I.Current, 'init_from');
           if ImageUrl <> '' then
