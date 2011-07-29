@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert Collada to VRML. }
+{ Convert Collada to X3D. }
 unit ColladaToVRML;
 
 {$I kambiconf.inc}
@@ -131,7 +131,24 @@ begin
   Result := nil;
 end;
 
-{ LoadCollada ---------------------------------------------------------- }
+type
+  TStringTextureNodeMap = class(specialize TFPGMap<string, TNodeX3DTextureNode>)
+    { For given Key return it's data, or @nil if not found.
+      In our usage, we never insert @nil node as data, so this is
+      not ambiguous. }
+    function Find(const Key: string): TNodeX3DTextureNode;
+  end;
+
+function TStringTextureNodeMap.Find(const Key: string): TNodeX3DTextureNode;
+var
+  Index: Integer;
+begin
+  if inherited Find(Key, Index) then
+    Result := Data[Index] else
+    Result := nil;
+end;
+
+{ LoadCollada ---------------------------------------------------------------- }
 
 function LoadCollada(const FileName: string;
   const AllowKambiExtensions: boolean): TVRMLRootNode;
@@ -162,28 +179,47 @@ var
     instance_controller. }
   Controllers: TColladaControllersList;
 
+  { List of Collada images (TNodeX3DTextureNode). NodeName of every instance
+    comes from Collada "name" of <image> element (these referred to
+    by <init_from> contents from <surface>). }
+  Images: TVRMLNodesList;
+
   ResultModel: TNodeGroup absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
 
-  { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x. }
-  function ReadColorOrTexture(Element: TDOMElement): TVector3Single;
+  { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x.
+    If we have <color>, return this color (texture name is then set to empty).
+    If we have <texture>, return white color (and the appropriate texture name;
+    if it was empty, you want to treat it like not existing anyway). }
+  function ReadColorOrTexture(Element: TDOMElement; out TextureName: string): TVector3Single;
   var
-    ColorElement: TDOMElement;
+    Child: TDOMElement;
   begin
-    ColorElement := DOMGetChildElement(Element, 'color', false);
-
-    if ColorElement <> nil then
+    TextureName := '';
+    Result := White3Single;
+    Child := DOMGetChildElement(Element, 'color', false);
+    if Child <> nil then
     begin
       { I simply drop 4th color component, I don't know what's the use of this
         (alpha is exposed by effect/materials parameter transparency, so color
         alpha is supposed to mean something else ?). }
-      Result := Vector3SingleCut(
-        Vector4SingleFromStr(DOMGetTextData(ColorElement)));
+      Result := Vector3SingleCut(Vector4SingleFromStr(DOMGetTextData(Child)));
     end else
-      { We don't support anything else than <color> here, just use
-        default white color eventually. }
-      Result := Vector3Single(1, 1, 1);
+    begin
+      Child := DOMGetChildElement(Element, 'texture', false);
+      if Child <> nil then
+        DOMGetAttribute(Child, 'texture', TextureName);
+    end;
+  end;
+
+  { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x,
+    but allow only color specification. }
+  function ReadColor(Element: TDOMElement): TVector3Single;
+  var
+    IgnoreTextureName: string;
+  begin
+    Result := ReadColorOrTexture(Element, IgnoreTextureName);
   end;
 
   { Read elements of type "common_float_or_param_type" in Collada >= 1.4.x. }
@@ -201,16 +237,155 @@ var
       Result := 1.0;
   end;
 
+  { Read the contents of the text data inside single child ChildTagName.
+    Useful to handle things like <init_from> and <source> elements in Collada.
+    Returns empty string if ChildTagName not present (or present present more
+    than once) in Element. }
+  function ReadChildText(Element: TDOMElement; const ChildTagName: string): string;
+  var
+    Child: TDOMElement;
+  begin
+    Child := DOMGetChildElement(Element, ChildTagName, false);
+    if Child <> nil then
+      Result := DOMGetTextData(Child) else
+      Result := '';
+  end;
+
   { Read <effect>. Only for Collada >= 1.4.x.
     Adds effect to the Effects list. }
   procedure ReadEffect(EffectElement: TDOMElement);
   var
     Appearance: TNodeAppearance;
     Mat: TNodeMaterial;
+
+    { Map of <surface> names to images (references from Images list) }
+    Surfaces: TStringTextureNodeMap;
+    { Map of <sampler2D> names to images (references from Images list) }
+    Samplers2D: TStringTextureNodeMap;
+
+    procedure ReadTechnique(TechniqueElement: TDOMElement);
+    var
+      Image: TNodeX3DTextureNode;
+      PhongElement: TDOMElement;
+      TransparencyColor: TVector3Single;
+      I: TXMLElementIterator;
+      DiffuseTextureName: string;
+    begin
+      { Actually only one <technique> within <profile_COMMON> is allowed }
+      PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
+
+      { We actually treat <phong> and <blinn> elements the same.
+
+        X3D lighting equations specify that always Blinn
+        (half-vector) technique is used. What's much more practically
+        important, OpenGL uses Blinn method. So actually I always do
+        blinn method (at least for real-time rendering). }
+      if PhongElement = nil then
+        PhongElement := DOMGetChildElement(TechniqueElement, 'blinn', false);
+
+      if PhongElement <> nil then
+      begin
+        { Initialize, in case no <transparent> child. }
+        TransparencyColor := ZeroVector3Single;
+
+        I := TXMLElementIterator.Create(PhongElement);
+        try
+          while I.GetNext do
+          begin
+            if I.Current.TagName = 'emission' then
+              Mat.FdEmissiveColor.Value :=  ReadColor(I.Current) else
+            if I.Current.TagName = 'ambient' then
+              Mat.FdAmbientIntensity.Value := VectorAverage(ReadColor(I.Current)) else
+            if I.Current.TagName = 'diffuse' then
+            begin
+              Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current, DiffuseTextureName);
+              if DiffuseTextureName <> '' then
+              begin
+                Image := Samplers2D.Find(DiffuseTextureName);
+                if Image <> nil then
+                  Appearance.FdTexture.Value := Image else
+                  OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s"',
+                    [DiffuseTextureName]));
+              end;
+            end else
+            if I.Current.TagName = 'specular' then
+              Mat.FdSpecularColor.Value := ReadColor(I.Current) else
+            if I.Current.TagName = 'shininess' then
+              Mat.FdShininess.Value := ReadFloatOrParam(I.Current) / 128.0 else
+            if I.Current.TagName = 'reflective' then
+              {Mat.FdMirrorColor.Value := } ReadColor(I.Current) else
+            if I.Current.TagName = 'reflectivity' then
+            begin
+              if AllowKambiExtensions then
+                Mat.FdMirror.Value := ReadFloatOrParam(I.Current) else
+                ReadFloatOrParam(I.Current);
+            end else
+            if I.Current.TagName = 'transparent' then
+              TransparencyColor := ReadColor(I.Current) else
+            if I.Current.TagName = 'transparency' then
+              Mat.FdTransparency.Value := ReadFloatOrParam(I.Current) else
+            if I.Current.TagName = 'index_of_refraction' then
+              {Mat.FdIndexOfRefraction.Value := } ReadFloatOrParam(I.Current);
+          end;
+        finally FreeAndNil(I) end;
+
+        { Collada says (e.g.
+          https://collada.org/public_forum/viewtopic.php?t=386)
+          to multiply TransparencyColor by Transparency.
+          Although I do not handle TransparencyColor, I still have to do
+          this, as there are many models with Transparency = 1 and
+          TransparencyColor = (0, 0, 0). }
+        Mat.FdTransparency.Value :=
+          Mat.FdTransparency.Value * VectorAverage(TransparencyColor);
+
+        { make sure to not mistakenly use blending on model that should
+          be opaque, but has Effect.FdTransparency.Value = some small
+          epsilon, due to numeric errors in above multiply. }
+        if Zero(Mat.FdTransparency.Value) then
+          Mat.FdTransparency.Value := 0.0;
+      end;
+    end;
+
+    { Read <newparam>. }
+    procedure ReadNewParam(Element: TDOMElement);
+    var
+      Child: TDOMElement;
+      Name, RefersTo: string;
+      Image: TNodeX3DTextureNode;
+    begin
+      if DOMGetAttribute(Element, 'sid', Name) then
+      begin
+        Child := DOMGetChildElement(Element, 'surface', false);
+        if Child <> nil then
+        begin
+          { Read <surface>. It has <init_from>, referring to name on Images. }
+          RefersTo := ReadChildText(Child, 'init_from');
+          Image := Images.FindName(RefersTo) as TNodeX3DTextureNode;
+          if Image <> nil then
+            Surfaces.KeyData[Name] := Image else
+            OnWarning(wtMajor, 'Collada', Format('<surface> refers to missing image name "%s"',
+              [RefersTo]));
+        end else
+        begin
+          Child := DOMGetChildElement(Element, 'sampler2D', false);
+          if Child <> nil then
+          begin
+            { Read <sampler2D>. It has <source>, referring to name on Surfaces. }
+            RefersTo := ReadChildText(Child, 'source');
+            Image := Surfaces.Find(RefersTo);
+            if Image <> nil then
+              Samplers2D.KeyData[Name] := Image else
+              OnWarning(wtMajor, 'Collada', Format('<sampler2D> refers to missing surface name "%s"',
+                [RefersTo]));
+          end; { else not handled <newparam> }
+        end;
+      end;
+    end;
+
+  var
     Id: string;
-    ProfileElement, TechniqueElement, PhongElement: TDOMElement;
     I: TXMLElementIterator;
-    TransparencyColor: TVector3Single;
+    ProfileElement: TDOMElement;
   begin
     if not DOMGetAttribute(EffectElement, 'id', Id) then
       Id := '';
@@ -224,71 +399,20 @@ var
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
     if ProfileElement <> nil then
     begin
-      TechniqueElement := DOMGetChildElement(ProfileElement, 'technique', false);
-      if TechniqueElement <> nil then
-      begin
-        PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
-
-        { We actually treat <phong> and <blinn> elements the same.
-
-          X3D lighting equations specify that always Blinn
-          (half-vector) technique is used. What's much more practically
-          important, OpenGL uses Blinn method. So actually I always do
-          blinn method (at least for real-time rendering). }
-        if PhongElement = nil then
-          PhongElement := DOMGetChildElement(TechniqueElement, 'blinn', false);
-
-        if PhongElement <> nil then
-        begin
-          { Initialize, in case no <transparent> child. }
-          TransparencyColor := ZeroVector3Single;
-
-          I := TXMLElementIterator.Create(PhongElement);
-          try
-            while I.GetNext do
-            begin
-              if I.Current.TagName = 'emission' then
-                Mat.FdEmissiveColor.Value :=  ReadColorOrTexture(I.Current) else
-              if I.Current.TagName = 'ambient' then
-                Mat.FdAmbientIntensity.Value := VectorAverage(ReadColorOrTexture(I.Current)) else
-              if I.Current.TagName = 'diffuse' then
-                Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current) else
-              if I.Current.TagName = 'specular' then
-                Mat.FdSpecularColor.Value := ReadColorOrTexture(I.Current) else
-              if I.Current.TagName = 'shininess' then
-                Mat.FdShininess.Value := ReadFloatOrParam(I.Current) / 128.0 else
-              if I.Current.TagName = 'reflective' then
-                {Mat.FdMirrorColor.Value := } ReadColorOrTexture(I.Current) else
-              if I.Current.TagName = 'reflectivity' then
-              begin
-                if AllowKambiExtensions then
-                  Mat.FdMirror.Value := ReadFloatOrParam(I.Current) else
-                  ReadFloatOrParam(I.Current);
-              end else
-              if I.Current.TagName = 'transparent' then
-                TransparencyColor := ReadColorOrTexture(I.Current) else
-              if I.Current.TagName = 'transparency' then
-                Mat.FdTransparency.Value := ReadFloatOrParam(I.Current) else
-              if I.Current.TagName = 'index_of_refraction' then
-                {Mat.FdIndexOfRefraction.Value := } ReadFloatOrParam(I.Current);
-            end;
-          finally FreeAndNil(I) end;
-
-          { Collada says (e.g.
-            https://collada.org/public_forum/viewtopic.php?t=386)
-            to multiply TransparencyColor by Transparency.
-            Although I do not handle TransparencyColor, I still have to do
-            this, as there are many models with Transparency = 1 and
-            TransparencyColor = (0, 0, 0). }
-          Mat.FdTransparency.Value :=
-            Mat.FdTransparency.Value * VectorAverage(TransparencyColor);
-
-          { make sure to not mistakenly use blending on model that should
-            be opaque, but has Effect.FdTransparency.Value = some small
-            epsilon, due to numeric errors in above multiply. }
-          if Zero(Mat.FdTransparency.Value) then
-            Mat.FdTransparency.Value := 0.0;
-        end;
+      Surfaces := TStringTextureNodeMap.Create;
+      Samplers2D := TStringTextureNodeMap.Create;
+      try
+        I := TXMLElementIterator.Create(ProfileElement);
+        try
+          while I.GetNext do
+            if I.Current.TagName = 'technique' then
+              ReadTechnique(I.Current) else
+            if I.Current.TagName = 'newparam' then
+              ReadNewParam(I.Current);
+        finally FreeAndNil(I) end;
+      finally
+        FreeAndNil(Surfaces);
+        FreeAndNil(Samplers2D);
       end;
     end;
   end;
@@ -298,11 +422,7 @@ var
   procedure ReadLibraryEffects(LibraryElement: TDOMElement);
   var
     I: TXMLElementFilteringIterator;
-    LibraryId: string;
   begin
-    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
-      LibraryId := '';
-
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'effect');
     try
       while I.GetNext do
@@ -471,11 +591,7 @@ var
   procedure ReadLibraryMaterials(LibraryElement: TDOMElement);
   var
     I: TXMLElementFilteringIterator;
-    LibraryId: string;
   begin
-    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
-      LibraryId := '';
-
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'material');
     try
       while I.GetNext do
@@ -912,11 +1028,7 @@ var
   procedure ReadLibraryGeometries(LibraryElement: TDOMElement);
   var
     I: TXMLElementFilteringIterator;
-    LibraryId: string;
   begin
-    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
-      LibraryId := '';
-
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'geometry');
     try
       while I.GetNext do
@@ -1412,15 +1524,32 @@ var
     end;
   end;
 
+  { Read <library_images> (Collada 1.4.x). Fills Images list. }
+  procedure ReadLibraryImages(LibraryElement: TDOMElement);
+  var
+    I: TXMLElementFilteringIterator;
+    Image: TNodeImageTexture;
+    ImageName, ImageUrl: string;
+  begin
+    I := TXMLElementFilteringIterator.Create(LibraryElement, 'image');
+    try
+      while I.GetNext do
+        if DOMGetAttribute(I.Current, 'name', ImageName) then
+        begin
+          Image := TNodeImageTexture.Create(ImageName, WWWBasePath);
+          Images.Add(Image);
+          ImageUrl := ReadChildText(I.Current, 'init_from');
+          if ImageUrl <> '' then
+            Image.FdUrl.Items.Add(ImageUrl);
+        end;
+    finally FreeAndNil(I) end;
+  end;
+
   { Read <library_controllers> from Collada 1.4.x }
   procedure ReadLibraryControllers(LibraryElement: TDOMElement);
   var
     I: TXMLElementFilteringIterator;
-    LibraryId: string;
   begin
-    if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
-      LibraryId := '';
-
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'controller');
     try
       while I.GetNext do
@@ -1433,13 +1562,14 @@ var
   Doc: TXMLDocument;
   Version: string;
   I: TXMLElementIterator;
-  LibraryEffects: TDOMElement;
+  LibraryElement: TDOMElement;
 begin
   Effects := nil;
   Materials := nil;
   Geometries := nil;
   VisualScenes := nil;
   Controllers := nil;
+  Images := nil;
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
@@ -1474,22 +1604,28 @@ begin
     Geometries := TColladaGeometriesList.Create;
     VisualScenes := TVRMLNodesList.Create;
     Controllers := TColladaControllersList.Create;
+    Images := TVRMLNodesList.Create;
 
     Result := TVRMLRootNode.Create('', WWWBasePath);
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      { First read library_effects.
+      { First read library_images. These may be referred to inside effects. }
+      LibraryElement := DOMGetChildElement(Doc.DocumentElement, 'library_images', false);
+      if LibraryElement <> nil then
+        ReadLibraryImages(LibraryElement);
+
+      { Next read library_effects.
 
         Effects may be referenced by materials,
         and there's no guarantee that library_effects will occur before
         library_materials. Testcase: COLLLADA 1.4.1 Basic Samples/Cube/cube.dae.
 
         library_effects is only for Collada >= 1.4.x. }
-      LibraryEffects := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
-      if LibraryEffects <> nil then
-        ReadLibraryEffects(LibraryEffects);
+      LibraryElement := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
+      if LibraryElement <> nil then
+        ReadLibraryEffects(LibraryElement);
 
       I := TXMLElementIterator.Create(Doc.DocumentElement);
       try
@@ -1508,7 +1644,7 @@ begin
           if I.Current.TagName = 'scene' then
             ReadSceneElement(I.Current);
             { other I.Current.TagName not supported for now, with the exception
-              of 'library_effects' which was handled earlier. }
+              of libraries handled earlier by LibraryElement. }
         end;
       finally FreeAndNil(I); end;
 
@@ -1517,6 +1653,12 @@ begin
     except FreeAndNil(Result); raise; end;
   finally
     FreeAndNil(Doc);
+
+    { Free unused Images before freeing Effects.
+      That's because image may be used inside an effect,
+      and would be invalid reference after freeing effect. }
+    VRMLNodesList_FreeUnusedAndNil(Images);
+
     FreeWithContentsAndNil(Effects);
 
     { Note: if some material will be used by some geometry, but the
@@ -1529,12 +1671,10 @@ begin
       This means that also other complicated case, when one material is
       used twice, once by unused geometry node, second time by used geometry
       node, is also Ok. }
-
     VRMLNodesList_FreeUnusedAndNil(Materials);
     FreeAndNil(Geometries);
 
     VRMLNodesList_FreeUnusedAndNil(VisualScenes);
-
     FreeAndNil(Controllers);
   end;
 end;
