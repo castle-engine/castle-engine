@@ -950,6 +950,14 @@ var
       and expressed as an array of TVector3Single. }
     Vertices: TDynVector3SingleArray;
     VerticesId: string;
+    { Collada texture coords used by last polygon.
+      Based on <source> indicated by <input semantic="TEXCOORD"> element within
+      polygon. TexCoord.NodeName corresponds to <source> id chosen.
+
+      Each polygon may potentially have different tex coords,
+      or they may share the same tex coords. We take an effort to reUSE
+      them in X3D in the latter case. }
+    LastTexCoord: TNodeTextureCoordinate;
 
     { Read <vertices> within <mesh> }
     procedure ReadVertices(VerticesElement: TDOMElement);
@@ -991,7 +999,7 @@ var
     { Read common things of <polygons> and <polylist> and similar within <mesh>.
       - Creates IndexedFaceSet, initializes it's coord and some other
         fiels (but leaves coordIndex, texCoordIndex, normalIndex empty).
-      - Adds to Geometry.Polys
+      - Adds it to Geometry.Polys.
       - Reads <input> children, to calculate InputsCount, and *IndexOffset. }
     procedure ReadPolyCommon(PolygonsElement: TDOMElement;
       out IndexedFaceSet: TNodeIndexedFaceSet;
@@ -1002,13 +1010,14 @@ var
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
       Poly: TColladaPoly;
+      TexCoordSource: TColladaSource;
     begin
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
 
       CoordIndexOffset := 0;
-      TexCoordIndexOffset := 0;
-      NormalIndexOffset := 0;
+      TexCoordIndexOffset := -1;
+      NormalIndexOffset := -1;
 
       IndexedFaceSet := TNodeIndexedFaceSet.Create(Format('%s_collada_poly_%d',
         { There may be multiple <polylist> inside a single Collada <geometry> node,
@@ -1060,7 +1069,34 @@ var
               DOMGetIntegerAttribute(I.Current, 'offset', CoordIndexOffset);
             end else
             if InputSemantic = 'TEXCOORD' then
-              DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset) else
+            begin
+              DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset);
+
+              if DOMGetAttribute(I.Current, 'source', InputSource) then
+              begin
+                if SCharIs(InputSource, 1, '#') then
+                  Delete(InputSource, 1, 1);
+                if ((LastTexCoord <> nil) and
+                    (LastTexCoord.NodeName = InputSource)) then
+                  { we can reuse last X3D tex coord node }
+                  IndexedFaceSet.FdTexCoord.Value := LastTexCoord else
+                begin
+                  TexCoordSource := Sources.Find(InputSource);
+                  if TexCoordSource <> nil then
+                  begin
+                    { create and use new X3D tex coord node }
+                    LastTexCoord.FreeIfUnused;
+                    LastTexCoord := nil;
+                    LastTexCoord := TNodeTextureCoordinate.Create(InputSource, WWWBasePath);
+                    LastTexCoord.FdPoint.Items.Assign(TexCoordSource.GetVectorST { TODO: mem leak });
+                    IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
+                  end else
+                    OnWarning(wtMinor, 'Collada', Format('<source> with id "%s" for texture coordinates not found',
+                      [InputSource]));
+                end;
+              end else
+                OnWarning(wtMinor, 'Collada', 'Missing source for <input> with semantic="TEXCOORD". We have texture coord indexes, but they will be ignored, since we have no actual texture coords');
+            end else
             if InputSemantic = 'NORMAL' then
               DOMGetIntegerAttribute(I.Current, 'offset', NormalIndexOffset);
           end;
@@ -1100,8 +1136,10 @@ var
         until false;
 
         IndexedFaceSet.FdCoordIndex.Items.Add(-1);
-        IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-        IndexedFaceSet.FdNormalIndex.Items.Add(-1);
+        if TexCoordIndexOffset <> -1 then
+          IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+        if NormalIndexOffset <> -1 then
+          IndexedFaceSet.FdNormalIndex.Items.Add(-1);
       end;
 
     var
@@ -1173,8 +1211,10 @@ var
           end;
 
           IndexedFaceSet.FdCoordIndex.Items.Add(-1);
-          IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-          IndexedFaceSet.FdNormalIndex.Items.Add(-1);
+          if TexCoordIndexOffset <> -1 then
+            IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+          if NormalIndexOffset <> -1 then
+            IndexedFaceSet.FdNormalIndex.Items.Add(-1);
         until false;
       end;
     end;
@@ -1222,8 +1262,10 @@ var
             begin
               VertexNumber := 0;
               IndexedFaceSet.FdCoordIndex.Items.Add(-1);
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-              IndexedFaceSet.FdNormalIndex.Items.Add(-1);
+              if TexCoordIndexOffset <> -1 then
+                IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+              if NormalIndexOffset <> -1 then
+                IndexedFaceSet.FdNormalIndex.Items.Add(-1);
             end;
           end;
         until false;
