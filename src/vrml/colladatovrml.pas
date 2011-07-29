@@ -175,7 +175,30 @@ function TStringTextureNodeMap.Find(const Key: string): TNodeX3DTextureNode;
 var
   Index: Integer;
 begin
-  if inherited Find(Key, Index) then
+  { do not use "inherited Find", it expects list is sorted }
+  Index := IndexOf(Key);
+  if Index <> -1 then
+    Result := Data[Index] else
+    Result := nil;
+end;
+
+type
+  { Collada materials. Data contains TColladaEffect, which is a reference
+    to Effects list (it is not owned by this TColladaMaterialsMap). }
+  TColladaMaterialsMap = class(specialize TFPGMap<string, TColladaEffect>)
+    { For given Key return it's data, or @nil if not found.
+      In our usage, we never insert @nil effect as data, so this is
+      not ambiguous. }
+    function Find(const Key: string): TColladaEffect;
+  end;
+
+function TColladaMaterialsMap.Find(const Key: string): TColladaEffect;
+var
+  Index: Integer;
+begin
+  { do not use "inherited Find", it expects list is sorted }
+  Index := IndexOf(Key);
+  if Index <> -1 then
     Result := Data[Index] else
     Result := nil;
 end;
@@ -191,12 +214,11 @@ var
     with a name equal to Collada effect name. }
   Effects: TColladaEffectsList;
 
-  { List of Collada materials. Nodes here are created by copying from Effects
-    list, and changing NodeName to Collada material name (forgetting effect name).
+  { List of Collada materials. Collada material is just a reference
+    to Collada effect with a name.
     This way we handle instance_effect in <material> node.
-    Many materials may refer to a single effect, so we make DeepCopy
-    of the effect (not just copy a reference). }
-  Materials: TVRMLNodesList;
+    Many materials may refer to a single effect. }
+  Materials: TColladaMaterialsMap;
 
   { List of Collada geometries. }
   Geometries: TColladaGeometriesList;
@@ -405,7 +427,7 @@ var
           RefersTo := ReadChildText(Child, 'init_from');
           Image := Images.FindName(RefersTo) as TNodeX3DTextureNode;
           if Image <> nil then
-            Surfaces.KeyData[Name] := Image else
+            Surfaces[Name] := Image else
             OnWarning(wtMajor, 'Collada', Format('<surface> refers to missing image name "%s"',
               [RefersTo]));
         end else
@@ -417,7 +439,7 @@ var
             RefersTo := ReadChildText(Child, 'source');
             Image := Surfaces.Find(RefersTo);
             if Image <> nil then
-              Samplers2D.KeyData[Name] := Image else
+              Samplers2D[Name] := Image else
               OnWarning(wtMajor, 'Collada', Format('<sampler2D> refers to missing surface name "%s"',
                 [RefersTo]));
           end; { else not handled <newparam> }
@@ -523,14 +545,23 @@ var
       ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
       ParamName: string;
       I: TXMLElementFilteringIterator;
+      Effect: TColladaEffect;
       Appearance: TNodeAppearance;
       Mat: TNodeMaterial;
     begin
+      Effect := TColladaEffect.Create;
+      Effects.Add(Effect);
+
       Appearance := TNodeAppearance.Create(MatId, WWWBasePath);
-      Materials.Add(Appearance);
+      Effect.Appearance := Appearance;
 
       Mat := TNodeMaterial.Create('', WWWBasePath);
       Appearance.FdMaterial.Value := Mat;
+
+      { Collada 1.3 doesn't really have a concept of effects used by materials.
+        But to be consistent, we add one effect (to Effects list)
+        and one reference to it (to Materials list). }
+      Materials[MatId] := Effect;
 
       ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
       if ShaderElement <> nil then
@@ -596,7 +627,6 @@ var
     var
       InstanceEffect: TDOMElement;
       EffectId: string;
-      Appearance: TNodeAppearance;
       Effect: TColladaEffect;
     begin
       if MatId = '' then Exit;
@@ -612,11 +642,7 @@ var
 
           Effect := Effects.Find(EffectId);
           if Effect <> nil then
-          begin
-            Appearance := Effect.Appearance.DeepCopy as TNodeAppearance;
-            Appearance.NodeName := MatId;
-            Materials.Add(Appearance);
-          end else
+            Materials[MatId] := Effect else
             OnWarning(wtMinor, 'Collada', Format('Material "%s" references ' +
               'non-existing effect "%s"', [MatId, EffectId]));
         end;
@@ -1166,14 +1192,14 @@ var
   procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
     NodeElement: TDOMElement);
 
-    { For Collada material id, return the X3D Material (or @nil if not found). }
+    { For Collada material id, return the X3D Appearance (or @nil if not found). }
     function MaterialToX3D(MaterialId: string;
       InstantiatingElement: TDOMElement): TNodeAppearance;
     var
-      MaterialIndex: Integer;
       BindMaterial, Technique: TDOMElement;
       InstanceMaterialSymbol, InstanceMaterialTarget: string;
       I: TXMLElementFilteringIterator;
+      Effect: TColladaEffect;
     begin
       if MaterialId = '' then Exit(nil);
 
@@ -1211,15 +1237,15 @@ var
         end;
       end;
 
-      MaterialIndex := Materials.FindNodeName(MaterialId);
-      if MaterialIndex = -1 then
+      Effect := Materials.Find(MaterialId);
+      if Effect = nil then
       begin
         OnWarning(wtMinor, 'Collada', Format('Referencing non-existing material name "%s"',
           [MaterialId]));
         Result := nil;
       end else
       begin
-        Result := Materials[MaterialIndex] as TNodeAppearance;
+        Result := Effect.Appearance;
       end;
     end;
 
@@ -1648,7 +1674,7 @@ begin
         WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
 
       Effects := TColladaEffectsList.Create;
-      Materials := TVRMLNodesList.Create;
+      Materials := TColladaMaterialsMap.Create;
       Geometries := TColladaGeometriesList.Create;
       VisualScenes := TVRMLNodesList.Create;
       Controllers := TColladaControllersList.Create;
@@ -1696,7 +1722,7 @@ begin
       finally FreeAndNil(I); end;
 
       Result.Meta.PutPreserve('source', ExtractFileName(FileName));
-      Result.Meta.KeyData['source-collada-version'] := Version;
+      Result.Meta['source-collada-version'] := Version;
     finally
       FreeAndNil(Doc);
 
@@ -1705,19 +1731,19 @@ begin
         and would be invalid reference after freeing effect. }
       VRMLNodesList_FreeUnusedAndNil(Images);
 
-      FreeAndNil(Effects);
+      FreeAndNil(Materials);
 
-      { Note: if some material will be used by some geometry, but the
+      { Note: if some effect will be used by some geometry, but the
         geometry will not be used, everything will be still Ok
-        (no memory leak). First freeing over Materials will not free this
-        material (since it's used), but then freeing over Geometries will
-        free the geometry together with material (since material usage will
+        (no memory leak). First freeing over Effects will not free this
+        effect (since it's used), but then freeing over Geometries will
+        free the geometry together with effect (since effect usage will
         drop to zero).
 
-        This means that also other complicated case, when one material is
+        This means that also other complicated case, when one effect is
         used twice, once by unused geometry node, second time by used geometry
         node, is also Ok. }
-      VRMLNodesList_FreeUnusedAndNil(Materials);
+      FreeAndNil(Effects);
       FreeAndNil(Geometries);
 
       VRMLNodesList_FreeUnusedAndNil(VisualScenes);
