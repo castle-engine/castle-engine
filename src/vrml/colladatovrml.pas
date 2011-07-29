@@ -946,10 +946,10 @@ var
     end;
 
   var
-    { Collada <source> indicated by the <vertices> element,
-      and expressed as an array of TVector3Single. }
-    Vertices: TDynVector3SingleArray;
-    VerticesId: string;
+    { Collada coordinates.
+      Based on <source> indicated by last <vertices> element. }
+    Coord: TNodeCoordinate;
+
     { Collada texture coords used by last polygon.
       Based on <source> indicated by <input semantic="TEXCOORD"> element within
       polygon. TexCoord.NodeName corresponds to <source> id chosen.
@@ -963,11 +963,20 @@ var
     procedure ReadVertices(VerticesElement: TDOMElement);
     var
       I: TXMLElementFilteringIterator;
-      InputSemantic, InputSourceName: string;
+      InputSemantic, InputSourceName, Id: string;
       InputSource: TColladaSource;
     begin
-      if not DOMGetAttribute(VerticesElement, 'id', VerticesId) then
-        VerticesId := '';
+      if Coord <> nil then
+      begin
+        OnWarning(wtMajor, 'Collada', '<vertices> specified multiple times within a geometry');
+        Coord.FreeIfUnused;
+        Coord := nil;
+      end;
+
+      if not DOMGetAttribute(VerticesElement, 'id', Id) then
+        Id := '';
+
+      Coord := TNodeCoordinate.Create(Id, WWWBasePath);
 
       I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
       try
@@ -981,7 +990,7 @@ var
             InputSource := Sources.Find(InputSourceName);
             if InputSource <> nil then
             begin
-              Vertices := InputSource.GetVectorXYZ;
+              Coord.FdPoint.Items.Assign(InputSource.GetVectorXYZ { TODO: mem leak });
               Exit;
             end else
             begin
@@ -1006,7 +1015,6 @@ var
       out InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
     var
       I: TXMLElementFilteringIterator;
-      Coord: TNodeCoordinate;
       PolygonsCount: Integer;
       InputSemantic, InputSource: string;
       Poly: TColladaPoly;
@@ -1028,14 +1036,11 @@ var
         But, since I currently ignore normals in Collada file, it's better
         to have some non-zero creaseAngle by default. }
       IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+      IndexedFaceSet.FdCoord.Value := Coord;
 
       Poly := TColladaPoly.Create;
       Poly.X3DGeometry := IndexedFaceSet;
       Geometry.Polys.Add(Poly);
-
-      Coord := TNodeCoordinate.Create(VerticesId, WWWBasePath);
-      IndexedFaceSet.FdCoord.Value := Coord;
-      Coord.FdPoint.Items.Assign(Vertices);
 
       if DOMGetAttribute(PolygonsElement, 'material', Poly.Material) then
       begin
@@ -1059,7 +1064,8 @@ var
             if InputSemantic = 'VERTEX' then
             begin
               if not (DOMGetAttribute(I.Current, 'source', InputSource) and
-                      (InputSource = '#' + VerticesId))  then
+                      (Coord <> nil) and
+                      (InputSource = '#' + Coord.NodeName))  then
                 OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" ' +
                   '(of <polygons> element within <mesh>) does not reference ' +
                   '<vertices> element within the same <mesh>');
@@ -1287,7 +1293,8 @@ var
     Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
     if Mesh <> nil then
     begin
-      Vertices := nil;
+      Coord := nil;
+      LastTexCoord := nil;
       Sources := TColladaSourcesList.Create;
       try
         I := TXMLElementIterator.Create(Mesh);
@@ -1307,7 +1314,10 @@ var
         finally FreeAndNil(I) end;
       finally
         FreeAndNil(Sources);
-        FreeAndNil(Vertices);
+        Coord.FreeIfUnused;
+        Coord := nil;
+        { LastTexCoord is for sure used by something, no need to LastTexCoord.FreeIfUnused }
+        LastTexCoord := nil;
       end;
     end;
   end;
