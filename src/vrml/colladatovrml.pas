@@ -202,9 +202,9 @@ begin
 end;
 
 type
-  { Collada <source>. This is a names container keeping a series of floats
-    in Collada. It may contain data for some specific purpose (like positions
-    or normals or tex coords) or interleaved data. }
+  { Collada <source>. This is a named container keeping a series of floats
+    in Collada. It may contain only data for some specific purpose (like positions
+    or normals or tex coords) or be interleaved with other data. }
   TColladaSource = class
     Name: string;
     Floats: TDynFloatArray;
@@ -221,14 +221,14 @@ type
       Params will be checked to contain at least three vector components
       'X', 'Y', 'Z'. (These should be specified in <param name="..." type="float"/>).
 
-      Order of X, Y, Z params (and thus order of components in our Floats)t
+      Order of X, Y, Z params (and thus order of components in our Floats)
       may be different, we will reorder them to XYZ anyway.
       This way Collada data may have XYZ or ST in a different order,
       and this method will reorder this suitable for X3D. }
-    function GetVectorXYZ: TDynVector3SingleArray;
+    procedure AssignToVectorXYZ(const Value: TDynVector3SingleArray);
 
-    { Like GetVectorXYZ, but for 2D vectors, with component names 'S' and 'T'. }
-    function GetVectorST: TDynVector2SingleArray;
+    { Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'. }
+    procedure AssignToVectorST(const Value: TDynVector2SingleArray);
   end;
 
 constructor TColladaSource.Create;
@@ -245,12 +245,10 @@ begin
   inherited;
 end;
 
-function TColladaSource.GetVectorXYZ: TDynVector3SingleArray;
+procedure TColladaSource.AssignToVectorXYZ(const Value: TDynVector3SingleArray);
 var
   XIndex, YIndex, ZIndex, I, MinCount: Integer;
 begin
-  Result := TDynVector3SingleArray.Create;
-
   XIndex := Params.IndexOf('X');
   if XIndex = -1 then
   begin
@@ -285,22 +283,19 @@ begin
     Count := (Floats.Count - Offset) div Stride;
   end;
 
-  Result.Count := Count;
-
+  Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Result.Items[I][0] := Floats.Items[Offset + Stride * I + XIndex];
-    Result.Items[I][1] := Floats.Items[Offset + Stride * I + YIndex];
-    Result.Items[I][2] := Floats.Items[Offset + Stride * I + ZIndex];
+    Value.Items[I][0] := Floats.Items[Offset + Stride * I + XIndex];
+    Value.Items[I][1] := Floats.Items[Offset + Stride * I + YIndex];
+    Value.Items[I][2] := Floats.Items[Offset + Stride * I + ZIndex];
   end;
 end;
 
-function TColladaSource.GetVectorST: TDynVector2SingleArray;
+procedure TColladaSource.AssignToVectorST(const Value: TDynVector2SingleArray);
 var
   SIndex, TIndex, I, MinCount: Integer;
 begin
-  Result := TDynVector2SingleArray.Create;
-
   SIndex := Params.IndexOf('S');
   if SIndex = -1 then
   begin
@@ -327,12 +322,11 @@ begin
     Count := (Floats.Count - Offset) div Stride;
   end;
 
-  Result.Count := Count;
-
+  Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Result.Items[I][0] := Floats.Items[Offset + Stride * I + SIndex];
-    Result.Items[I][1] := Floats.Items[Offset + Stride * I + TIndex];
+    Value.Items[I][0] := Floats.Items[Offset + Stride * I + SIndex];
+    Value.Items[I][1] := Floats.Items[Offset + Stride * I + TIndex];
   end;
 end;
 
@@ -987,7 +981,7 @@ var
             InputSource := Sources.Find(InputSourceName);
             if InputSource <> nil then
             begin
-              Coord.FdPoint.Items.Assign(InputSource.GetVectorXYZ { TODO: mem leak });
+              InputSource.AssignToVectorXYZ(Coord.FdPoint.Items);
               Exit;
             end else
             begin
@@ -1090,7 +1084,7 @@ var
                     { create and use new X3D tex coord node }
                     FreeIfUnusedAndNil(LastTexCoord);
                     LastTexCoord := TNodeTextureCoordinate.Create(InputSource, WWWBasePath);
-                    LastTexCoord.FdPoint.Items.Assign(TexCoordSource.GetVectorST { TODO: mem leak });
+                    TexCoordSource.AssignToVectorST(LastTexCoord.FdPoint.Items);
                     IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
                   end else
                     OnWarning(wtMinor, 'Collada', Format('<source> with id "%s" for texture coordinates not found',
