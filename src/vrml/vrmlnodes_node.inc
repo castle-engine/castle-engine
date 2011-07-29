@@ -1161,7 +1161,8 @@ end;
 
 procedure TVRMLNode.FreeIfUnused;
 begin
-  if (FVRML1Parents.Count = 0) and
+  if (Self <> nil) and
+     (FVRML1Parents.Count = 0) and
      (FParentFields.Count = 0) and
      (KeepExisting = 0) then
   begin
