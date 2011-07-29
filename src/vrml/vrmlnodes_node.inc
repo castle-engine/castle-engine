@@ -1012,7 +1012,23 @@
   TObjectsListItem_3 = TVRMLNode;
   {$I objectslist_3.inc}
   TVRMLNodesList = class(TObjectsList_3)
+    { @deprecated Deprecated name for FindName. }
     function FindNodeName(const Name: string): Integer;
+
+    { Find node by name, @nil if not found.
+
+      For empty node name, always returns @nil. This follows the definition
+      of NodeName: empty means that node has no name, so it should not be found
+      by searches by name, ever.
+
+      @seealso(IndexOfName Returns the node index. This is sometimes more
+        flexible (you can always quickly get actual node knowing the index,
+        by Items[Index], but not the other way around). It is also sometimes
+        less comfortable (often you're not interested in node index). }
+    function FindName(const Name: string): TVRMLNode;
+
+    { Find index of a node with given name, -1 if not found. }
+    function IndexOfName(const Name: string): Integer;
   end;
 
 {$endif read_interface}
@@ -3070,6 +3086,30 @@ end;
 
 function TVRMLNodesList.FindNodeName(const Name: string): Integer;
 begin
+  Result := IndexOfName(Name);
+end;
+
+function TVRMLNodesList.FindName(const Name: string): TVRMLNode;
+var
+  I: Integer;
+begin
+  if Name = '' then
+    Exit(nil);
+
+  for I := 0 to Count - 1 do
+  begin
+    Result := Items[I];
+    if Result.NodeName = Name then
+      Exit;
+  end;
+  Result := nil;
+end;
+
+function TVRMLNodesList.IndexOfName(const Name: string): Integer;
+begin
+  if Name = '' then
+    Exit(-1);
+
   for Result := 0 to Count - 1 do
     if Items[Result].NodeName = Name then
       Exit;
