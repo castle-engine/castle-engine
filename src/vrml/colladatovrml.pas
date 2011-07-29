@@ -71,6 +71,38 @@ begin
 end;
 
 type
+  TColladaEffect = class
+    Appearance: TNodeAppearance;
+    { If this effect contains a texture for diffuse, this is the name
+      of texture coordinates in Collada. }
+    DiffuseTexCoordName: string;
+    destructor Destroy; override;
+  end;
+
+destructor TColladaEffect.Destroy;
+begin
+  Appearance.FreeIfUnused;
+  Appearance := nil;
+  inherited;
+end;
+
+type
+  TColladaEffectsList = class(specialize TFPGObjectList<TColladaEffect>)
+    { Find a TColladaEffect with given Name, @nil if not found. }
+    function Find(const Name: string): TColladaEffect;
+  end;
+
+function TColladaEffectsList.Find(const Name: string): TColladaEffect;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Appearance.NodeName = Name then
+      Exit(Items[I]);
+  Result := nil;
+end;
+
+type
   { Represents Collada <polylist> or <polygons> (item read by ReadPolyCommon),
     which are X3D IndexedFaceSet with a material name. }
   TColladaPoly = class
@@ -157,7 +189,7 @@ var
 
   { List of Collada effects. Each contains an X3D Appearance node,
     with a name equal to Collada effect name. }
-  Effects: TVRMLNodesList;
+  Effects: TColladaEffectsList;
 
   { List of Collada materials. Nodes here are created by copying from Effects
     list, and changing NodeName to Collada material name (forgetting effect name).
@@ -189,14 +221,16 @@ var
   Version14: boolean; //< Collada version >= 1.4.x
 
   { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x.
-    If we have <color>, return this color (texture name is then set to empty).
-    If we have <texture>, return white color (and the appropriate texture name;
-    if it was empty, you want to treat it like not existing anyway). }
-  function ReadColorOrTexture(Element: TDOMElement; out TextureName: string): TVector3Single;
+    If we have <color>, return this color (texture and coord names are then set to empty).
+    If we have <texture>, return white color (and the appropriate texture
+    and coord names; if texture name was empty, you want to treat it like not
+    existing anyway). }
+  function ReadColorOrTexture(Element: TDOMElement; out TextureName, TexCoordName: string): TVector3Single;
   var
     Child: TDOMElement;
   begin
     TextureName := '';
+    TexCoordName := '';
     Result := White3Single;
     Child := DOMGetChildElement(Element, 'color', false);
     if Child <> nil then
@@ -209,7 +243,10 @@ var
     begin
       Child := DOMGetChildElement(Element, 'texture', false);
       if Child <> nil then
+      begin
         DOMGetAttribute(Child, 'texture', TextureName);
+        DOMGetAttribute(Child, 'texcoord', TexCoordName);
+      end;
     end;
   end;
 
@@ -217,9 +254,9 @@ var
     but allow only color specification. }
   function ReadColor(Element: TDOMElement): TVector3Single;
   var
-    IgnoreTextureName: string;
+    IgnoreTextureName, IgnoreTexCoordName: string;
   begin
-    Result := ReadColorOrTexture(Element, IgnoreTextureName);
+    Result := ReadColorOrTexture(Element, IgnoreTextureName, IgnoreTexCoordName);
   end;
 
   { Read elements of type "common_float_or_param_type" in Collada >= 1.4.x. }
@@ -255,6 +292,8 @@ var
     Adds effect to the Effects list. }
   procedure ReadEffect(EffectElement: TDOMElement);
   var
+    { Effect instance and nodes, available to local procedures inside ReadEffect. }
+    Effect: TColladaEffect;
     Appearance: TNodeAppearance;
     Mat: TNodeMaterial;
 
@@ -269,7 +308,7 @@ var
       PhongElement: TDOMElement;
       TransparencyColor: TVector3Single;
       I: TXMLElementIterator;
-      DiffuseTextureName: string;
+      DiffuseTextureName, DiffuseTexCoordName: string;
     begin
       { Actually only one <technique> within <profile_COMMON> is allowed }
       PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
@@ -298,12 +337,16 @@ var
               Mat.FdAmbientIntensity.Value := VectorAverage(ReadColor(I.Current)) else
             if I.Current.TagName = 'diffuse' then
             begin
-              Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current, DiffuseTextureName);
+              Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current,
+                DiffuseTextureName, DiffuseTexCoordName);
               if DiffuseTextureName <> '' then
               begin
                 Image := Samplers2D.Find(DiffuseTextureName);
                 if Image <> nil then
-                  Appearance.FdTexture.Value := Image else
+                begin
+                  Effect.DiffuseTexCoordName := DiffuseTexCoordName;
+                  Appearance.FdTexture.Value := Image;
+                end else
                   OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s"',
                     [DiffuseTextureName]));
               end;
@@ -390,8 +433,11 @@ var
     if not DOMGetAttribute(EffectElement, 'id', Id) then
       Id := '';
 
+    Effect := TColladaEffect.Create;
+    Effects.Add(Effect);
+
     Appearance := TNodeAppearance.Create(Id, WWWBasePath);
-    Effects.Add(Appearance);
+    Effect.Appearance := Appearance;
 
     Mat := TNodeMaterial.Create('', WWWBasePath);
     Appearance.FdMaterial.Value := Mat;
@@ -551,7 +597,7 @@ var
       InstanceEffect: TDOMElement;
       EffectId: string;
       Appearance: TNodeAppearance;
-      EffectIndex: Integer;
+      Effect: TColladaEffect;
     begin
       if MatId = '' then Exit;
 
@@ -564,10 +610,10 @@ var
           Delete(EffectId, 1, 1); { delete initial '#' char }
           { tests: Writeln('instantiating effect ', EffectId, ' as material ', MatId); }
 
-          EffectIndex := Effects.FindNodeName(EffectId);
-          if EffectIndex <> -1 then
+          Effect := Effects.Find(EffectId);
+          if Effect <> nil then
           begin
-            Appearance := Effects[EffectIndex].DeepCopy as TNodeAppearance;
+            Appearance := Effect.Appearance.DeepCopy as TNodeAppearance;
             Appearance.NodeName := MatId;
             Materials.Add(Appearance);
           end else
@@ -1601,7 +1647,7 @@ begin
       end else
         WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
 
-      Effects := TVRMLNodesList.Create;
+      Effects := TColladaEffectsList.Create;
       Materials := TVRMLNodesList.Create;
       Geometries := TColladaGeometriesList.Create;
       VisualScenes := TVRMLNodesList.Create;
@@ -1659,7 +1705,7 @@ begin
         and would be invalid reference after freeing effect. }
       VRMLNodesList_FreeUnusedAndNil(Images);
 
-      FreeWithContentsAndNil(Effects);
+      FreeAndNil(Effects);
 
       { Note: if some material will be used by some geometry, but the
         geometry will not be used, everything will be still Ok
