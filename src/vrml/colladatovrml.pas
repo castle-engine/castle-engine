@@ -990,12 +990,12 @@ var
 
     { Read common things of <polygons> and <polylist> and similar within <mesh>.
       - Creates IndexedFaceSet, initializes it's coord and some other
-        fiels (but leaves coordIndex empty).
+        fiels (but leaves coordIndex, texCoordIndex, normalIndex empty).
       - Adds to Geometry.Polys
-      - Reads <input> children, to calculate InputsCount, VerticesOffset, TexCoordOffset. }
+      - Reads <input> children, to calculate InputsCount, and *IndexOffset. }
     procedure ReadPolyCommon(PolygonsElement: TDOMElement;
       out IndexedFaceSet: TNodeIndexedFaceSet;
-      out InputsCount, VerticesOffset, TexCoordOffset: Integer);
+      out InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
     var
       I: TXMLElementFilteringIterator;
       Coord: TNodeCoordinate;
@@ -1006,15 +1006,14 @@ var
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
 
-      VerticesOffset := 0;
-      TexCoordOffset := 0;
+      CoordIndexOffset := 0;
+      TexCoordIndexOffset := 0;
+      NormalIndexOffset := 0;
 
       IndexedFaceSet := TNodeIndexedFaceSet.Create(Format('%s_collada_poly_%d',
         { There may be multiple <polylist> inside a single Collada <geometry> node,
           so use Geometry.Polys.Count to name them uniquely for X3D. }
         [Geometry.Name, Geometry.Polys.Count]), WWWBasePath);
-      IndexedFaceSet.FdCoordIndex.Items.Count := 0;
-      IndexedFaceSet.FdTexCoordIndex.Items.Count := 0;
       IndexedFaceSet.FdSolid.Value := false;
       { For VRML >= 2.0, creaseAngle is 0 by default.
         But, since I currently ignore normals in Collada file, it's better
@@ -1057,13 +1056,13 @@ var
                   '<vertices> element within the same <mesh>');
 
               { Collada requires offset in this case.
-                For us, if there's no offset, just leave VerticesOffset as it was. }
-              DOMGetIntegerAttribute(I.Current, 'offset', VerticesOffset);
+                For us, if there's no offset, just leave CoordIndexOffset default. }
+              DOMGetIntegerAttribute(I.Current, 'offset', CoordIndexOffset);
             end else
             if InputSemantic = 'TEXCOORD' then
-            begin
-              DOMGetIntegerAttribute(I.Current, 'offset', TexCoordOffset);
-            end;
+              DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset) else
+            if InputSemantic = 'NORMAL' then
+              DOMGetIntegerAttribute(I.Current, 'offset', NormalIndexOffset);
           end;
         end;
       finally FreeAndNil(I) end;
@@ -1074,7 +1073,7 @@ var
     var
       IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
-      VerticesOffset, TexCoordOffset: Integer;
+      CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
 
       procedure AddPolygon(const Indexes: string);
       var
@@ -1089,10 +1088,12 @@ var
           if Token = '' then Break;
           Index := StrToInt(Token);
 
-          if CurrentInput = VerticesOffset then
+          if CurrentInput = CoordIndexOffset then
             IndexedFaceSet.FdCoordIndex.Items.Add(Index) else
-          if CurrentInput = TexCoordOffset then
-            IndexedFaceSet.FdTexCoordIndex.Items.Add(Index);
+          if CurrentInput = TexCoordIndexOffset then
+            IndexedFaceSet.FdTexCoordIndex.Items.Add(Index) else
+          if CurrentInput = NormalIndexOffset then
+            IndexedFaceSet.FdNormalIndex.Items.Add(Index);
 
           Inc(CurrentInput);
           if CurrentInput = InputsCount then CurrentInput := 0;
@@ -1100,13 +1101,14 @@ var
 
         IndexedFaceSet.FdCoordIndex.Items.Add(-1);
         IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+        IndexedFaceSet.FdNormalIndex.Items.Add(-1);
       end;
 
     var
       I: TXMLElementFilteringIterator;
     begin
       ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
-        VerticesOffset, TexCoordOffset);
+        CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
 
       I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
       try
@@ -1120,13 +1122,13 @@ var
     var
       IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
-      VerticesOffset, TexCoordOffset: Integer;
+      CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
       VCount, P: TDOMElement;
       VCountContent, PContent, Token: string;
       SeekPosVCount, SeekPosP, ThisPolygonCount, CurrentInput, I, Index: Integer;
     begin
       ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
-        VerticesOffset, TexCoordOffset);
+        CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
 
       VCount := DOMGetChildElement(PolygonsElement, 'vcount', false);
       P := DOMGetChildElement(PolygonsElement, 'p', false);
@@ -1159,10 +1161,12 @@ var
             end;
             Index := StrToInt(Token);
 
-            if CurrentInput = VerticesOffset then
+            if CurrentInput = CoordIndexOffset then
               IndexedFaceSet.FdCoordIndex.Items.Add(Index) else
-            if CurrentInput = TexCoordOffset then
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(Index);
+            if CurrentInput = TexCoordIndexOffset then
+              IndexedFaceSet.FdTexCoordIndex.Items.Add(Index) else
+            if CurrentInput = NormalIndexOffset then
+              IndexedFaceSet.FdNormalIndex.Items.Add(Index);
 
             Inc(CurrentInput);
             if CurrentInput = InputsCount then CurrentInput := 0;
@@ -1170,6 +1174,7 @@ var
 
           IndexedFaceSet.FdCoordIndex.Items.Add(-1);
           IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+          IndexedFaceSet.FdNormalIndex.Items.Add(-1);
         until false;
       end;
     end;
@@ -1179,13 +1184,13 @@ var
     var
       IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
-      VerticesOffset, TexCoordOffset: Integer;
+      CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
       P: TDOMElement;
       PContent, Token: string;
       SeekPosP, CurrentInput, Index, VertexNumber: Integer;
     begin
       ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
-        VerticesOffset, TexCoordOffset);
+        CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
 
       P := DOMGetChildElement(PolygonsElement, 'p', false);
       if P <> nil then
@@ -1201,10 +1206,12 @@ var
           if Token = '' then Break; { end of triangles }
           Index := StrToInt(Token);
 
-          if CurrentInput = VerticesOffset then
+          if CurrentInput = CoordIndexOffset then
             IndexedFaceSet.FdCoordIndex.Items.Add(Index) else
-          if CurrentInput = TexCoordOffset then
-            IndexedFaceSet.FdTexCoordIndex.Items.Add(Index);
+          if CurrentInput = TexCoordIndexOffset then
+            IndexedFaceSet.FdTexCoordIndex.Items.Add(Index) else
+          if CurrentInput = NormalIndexOffset then
+            IndexedFaceSet.FdNormalIndex.Items.Add(Index);
 
           Inc(CurrentInput);
           if CurrentInput = InputsCount then
@@ -1216,6 +1223,7 @@ var
               VertexNumber := 0;
               IndexedFaceSet.FdCoordIndex.Items.Add(-1);
               IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+              IndexedFaceSet.FdNormalIndex.Items.Add(-1);
             end;
           end;
         until false;
