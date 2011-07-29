@@ -1570,44 +1570,45 @@ begin
   VisualScenes := nil;
   Controllers := nil;
   Images := nil;
+  Result := nil;
 
   try
-    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
-      even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Doc, FileName);
-
-    Check(Doc.DocumentElement.TagName = 'COLLADA',
-      'Root node of Collada file must be <COLLADA>');
-
-    if not DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
-    begin
-      Version := '';
-      Version14 := false;
-      OnWarning(wtMinor, 'Collada', '<COLLADA> element misses "version" attribute');
-    end else
-    begin
-      { TODO: uhm, terrible hack... I should move my lazy ass and tokenize
-        Version properly. }
-      Version14 := IsPrefix('1.4.', Version);
-    end;
-
-    if DOMGetAttribute(Doc.DocumentElement, 'base', WWWBasePath) then
-    begin
-      { COLLADA.base is exactly for the same purpose as WWWBasePath.
-        Use it (making sure it's absolute path). }
-      WWWBasePath := ExpandFileName(WWWBasePath);
-    end else
-      WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
-
-    Effects := TVRMLNodesList.Create;
-    Materials := TVRMLNodesList.Create;
-    Geometries := TColladaGeometriesList.Create;
-    VisualScenes := TVRMLNodesList.Create;
-    Controllers := TColladaControllersList.Create;
-    Images := TVRMLNodesList.Create;
-
-    Result := TVRMLRootNode.Create('', WWWBasePath);
     try
+      { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+        even in case of exception. So place it inside try..finally. }
+      ReadXMLFile(Doc, FileName);
+
+      Check(Doc.DocumentElement.TagName = 'COLLADA',
+        'Root node of Collada file must be <COLLADA>');
+
+      if not DOMGetAttribute(Doc.DocumentElement, 'version', Version) then
+      begin
+        Version := '';
+        Version14 := false;
+        OnWarning(wtMinor, 'Collada', '<COLLADA> element misses "version" attribute');
+      end else
+      begin
+        { TODO: uhm, terrible hack... I should move my lazy ass and tokenize
+          Version properly. }
+        Version14 := IsPrefix('1.4.', Version);
+      end;
+
+      if DOMGetAttribute(Doc.DocumentElement, 'base', WWWBasePath) then
+      begin
+        { COLLADA.base is exactly for the same purpose as WWWBasePath.
+          Use it (making sure it's absolute path). }
+        WWWBasePath := ExpandFileName(WWWBasePath);
+      end else
+        WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+
+      Effects := TVRMLNodesList.Create;
+      Materials := TVRMLNodesList.Create;
+      Geometries := TColladaGeometriesList.Create;
+      VisualScenes := TVRMLNodesList.Create;
+      Controllers := TColladaControllersList.Create;
+      Images := TVRMLNodesList.Create;
+
+      Result := TVRMLRootNode.Create('', WWWBasePath);
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
@@ -1650,33 +1651,35 @@ begin
 
       Result.Meta.PutPreserve('source', ExtractFileName(FileName));
       Result.Meta.KeyData['source-collada-version'] := Version;
-    except FreeAndNil(Result); raise; end;
-  finally
-    FreeAndNil(Doc);
+    finally
+      FreeAndNil(Doc);
 
-    { Free unused Images before freeing Effects.
-      That's because image may be used inside an effect,
-      and would be invalid reference after freeing effect. }
-    VRMLNodesList_FreeUnusedAndNil(Images);
+      { Free unused Images before freeing Effects.
+        That's because image may be used inside an effect,
+        and would be invalid reference after freeing effect. }
+      VRMLNodesList_FreeUnusedAndNil(Images);
 
-    FreeWithContentsAndNil(Effects);
+      FreeWithContentsAndNil(Effects);
 
-    { Note: if some material will be used by some geometry, but the
-      geometry will not be used, everything will be still Ok
-      (no memory leak). First freeing over Materials will not free this
-      material (since it's used), but then freeing over Geometries will
-      free the geometry together with material (since material usage will
-      drop to zero).
+      { Note: if some material will be used by some geometry, but the
+        geometry will not be used, everything will be still Ok
+        (no memory leak). First freeing over Materials will not free this
+        material (since it's used), but then freeing over Geometries will
+        free the geometry together with material (since material usage will
+        drop to zero).
 
-      This means that also other complicated case, when one material is
-      used twice, once by unused geometry node, second time by used geometry
-      node, is also Ok. }
-    VRMLNodesList_FreeUnusedAndNil(Materials);
-    FreeAndNil(Geometries);
+        This means that also other complicated case, when one material is
+        used twice, once by unused geometry node, second time by used geometry
+        node, is also Ok. }
+      VRMLNodesList_FreeUnusedAndNil(Materials);
+      FreeAndNil(Geometries);
 
-    VRMLNodesList_FreeUnusedAndNil(VisualScenes);
-    FreeAndNil(Controllers);
-  end;
+      VRMLNodesList_FreeUnusedAndNil(VisualScenes);
+      FreeAndNil(Controllers);
+    end;
+    { eventually free Result *after* freeing other lists, to make sure references
+      on Images, Materials etc. are valid when their unused items are freed. }
+  except FreeAndNil(Result); raise; end;
 end;
 
 end.
