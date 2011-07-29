@@ -227,7 +227,9 @@ type
       and this method will reorder this suitable for X3D. }
     procedure AssignToVectorXYZ(const Value: TDynVector3SingleArray);
 
-    { Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'. }
+    { Extract from source an array of TVector2Single, for texture coordinates.
+      Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'
+      (or 'U' and 'V'). }
     procedure AssignToVectorST(const Value: TDynVector2SingleArray);
   end;
 
@@ -299,15 +301,23 @@ begin
   SIndex := Params.IndexOf('S');
   if SIndex = -1 then
   begin
-    OnWarning(wtMajor, 'Collada', 'Missing "S" parameter (for 2D vector) in this <source>');
-    Exit;
+    SIndex := Params.IndexOf('U');
+    if SIndex = -1 then
+    begin
+      OnWarning(wtMajor, 'Collada', 'Missing "S" or "U" parameter (1st component of 2D tex coord) in this <source>');
+      Exit;
+    end;
   end;
 
   TIndex := Params.IndexOf('T');
   if TIndex = -1 then
   begin
-    OnWarning(wtMajor, 'Collada', 'Missing "T" parameter (for 2D vector) in this <source>');
-    Exit;
+    TIndex := Params.IndexOf('V');
+    if TIndex = -1 then
+    begin
+      OnWarning(wtMajor, 'Collada', 'Missing "T" or "V" parameter (2nd component of 2D tex coord) in this <source>');
+      Exit;
+    end;
   end;
 
   MinCount := Offset + Stride * (Count - 1) + Max(SIndex, TIndex) + 1;
