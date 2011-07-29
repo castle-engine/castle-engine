@@ -203,6 +203,158 @@ begin
     Result := nil;
 end;
 
+type
+  { Collada <source>. This is a names container keeping a series of floats
+    in Collada. It may contain data for some specific purpose (like positions
+    or normals or tex coords) or interleaved data. }
+  TColladaSource = class
+    Name: string;
+    Floats: TDynFloatArray;
+    Params: TDynStringArray;
+    { Collada <accessor> description of vectors inside Floats.
+      Note that Count here refers to count of whole vectors (so it's usually
+      < than Floats.Count). }
+    Count, Stride, Offset: Integer;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    { Extract from source an array of TVector3Single.
+      Params will be checked to contain at least three vector components
+      'X', 'Y', 'Z'. (These should be specified in <param name="..." type="float"/>).
+
+      Order of X, Y, Z params (and thus order of components in our Floats)t
+      may be different, we will reorder them to XYZ anyway.
+      This way Collada data may have XYZ or ST in a different order,
+      and this method will reorder this suitable for X3D. }
+    function GetVectorXYZ: TDynVector3SingleArray;
+
+    { Like GetVectorXYZ, but for 2D vectors, with component names 'S' and 'T'. }
+    function GetVectorST: TDynVector2SingleArray;
+  end;
+
+constructor TColladaSource.Create;
+begin
+  inherited;
+  Params := TDynStringArray.Create;
+  Floats := TDynFloatArray.Create;
+end;
+
+destructor TColladaSource.Destroy;
+begin
+  FreeAndNil(Params);
+  FreeAndNil(Floats);
+  inherited;
+end;
+
+function TColladaSource.GetVectorXYZ: TDynVector3SingleArray;
+var
+  XIndex, YIndex, ZIndex, I, MinCount: Integer;
+begin
+  Result := TDynVector3SingleArray.Create;
+
+  XIndex := Params.IndexOf('X');
+  if XIndex = -1 then
+  begin
+    OnWarning(wtMajor, 'Collada', 'Missing "X" parameter (for 3D vector) in this <source>');
+    Exit;
+  end;
+
+  YIndex := Params.IndexOf('Y');
+  if YIndex = -1 then
+  begin
+    OnWarning(wtMajor, 'Collada', 'Missing "Y" parameter (for 3D vector) in this <source>');
+    Exit;
+  end;
+
+  ZIndex := Params.IndexOf('Z');
+  if ZIndex = -1 then
+  begin
+    OnWarning(wtMajor, 'Collada', 'Missing "Z" parameter (for 3D vector) in this <source>');
+    Exit;
+  end;
+
+  MinCount := Offset + Stride * (Count - 1) + Max(XIndex, YIndex, ZIndex) + 1;
+  if Floats.Count < MinCount then
+  begin
+    OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
+      [MinCount, Floats.Count]));
+    { force Count smaller, also force other params to common values }
+    Stride := Max(Stride, 1);
+    XIndex := 0;
+    YIndex := 1;
+    ZIndex := 2;
+    Count := (Floats.Count - Offset) div Stride;
+  end;
+
+  Result.Count := Count;
+
+  for I := 0 to Count - 1 do
+  begin
+    Result.Items[I][0] := Floats.Items[Offset + Stride * I + XIndex];
+    Result.Items[I][1] := Floats.Items[Offset + Stride * I + YIndex];
+    Result.Items[I][2] := Floats.Items[Offset + Stride * I + ZIndex];
+  end;
+end;
+
+function TColladaSource.GetVectorST: TDynVector2SingleArray;
+var
+  SIndex, TIndex, I, MinCount: Integer;
+begin
+  Result := TDynVector2SingleArray.Create;
+
+  SIndex := Params.IndexOf('S');
+  if SIndex = -1 then
+  begin
+    OnWarning(wtMajor, 'Collada', 'Missing "S" parameter (for 2D vector) in this <source>');
+    Exit;
+  end;
+
+  TIndex := Params.IndexOf('T');
+  if TIndex = -1 then
+  begin
+    OnWarning(wtMajor, 'Collada', 'Missing "T" parameter (for 2D vector) in this <source>');
+    Exit;
+  end;
+
+  MinCount := Offset + Stride * (Count - 1) + Max(SIndex, TIndex) + 1;
+  if Floats.Count < MinCount then
+  begin
+    OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
+      [MinCount, Floats.Count]));
+    { force Count smaller, also force other params to common values }
+    Stride := Max(Stride, 1);
+    SIndex := 0;
+    TIndex := 1;
+    Count := (Floats.Count - Offset) div Stride;
+  end;
+
+  Result.Count := Count;
+
+  for I := 0 to Count - 1 do
+  begin
+    Result.Items[I][0] := Floats.Items[Offset + Stride * I + SIndex];
+    Result.Items[I][1] := Floats.Items[Offset + Stride * I + TIndex];
+  end;
+end;
+
+type
+  TColladaSourcesList = class(specialize TFPGObjectList<TColladaSource>)
+  public
+    { Find a TColladaSource with given Name, @nil if not found. }
+    function Find(const Name: string): TColladaSource;
+  end;
+
+function TColladaSourcesList.Find(const Name: string): TColladaSource;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(Items[I]);
+  Result := nil;
+end;
+
 { LoadCollada ---------------------------------------------------------------- }
 
 function LoadCollada(const FileName: string;
@@ -679,29 +831,22 @@ var
     { Collada Geometry constructed, available to all ReadPoly* local procedures. }
     Geometry: TColladaGeometry;
 
-    { Text is the name of the source, Object is the TDynVector3SingleArray
-      instance containing this source's data. }
-    SourcesList: TStringList;
+    Sources: TColladaSourcesList;
 
-    { Read <source> within <mesh>.
-
-      This is quite limited compared to what Collada offers, actually
-      we understand only float_array data accessed by accessor with
-      three parameters (although any accessor.stride >= 3).
-
-      In other words, <source> simply defines a named array of TVector3Single
-      for us. }
+    { Read <source> within <mesh>. }
     procedure ReadSource(SourceElement: TDOMElement);
     var
       FloatArray, Technique, Accessor: TDOMElement;
-      SeekPos, FloatArrayCount, I, AccessorCount, AccessorStride,
-        AccessorOffset, MinCount: Integer;
-      Floats: TDynFloatArray;
-      SourceId, FloatArrayContents, Token, AccessorSource: string;
-      Source: TDynVector3SingleArray;
+      SeekPos, FloatArrayCount, I: Integer;
+      FloatArrayContents, Token, AccessorSource, ParamName, ParamType, FloatArrayId: string;
+      Source: TColladaSource;
+      It: TXMLElementFilteringIterator;
     begin
-      if not DOMGetAttribute(SourceElement, 'id', SourceId) then
-        SourceId := '';
+      Source := TColladaSource.Create;
+      Sources.Add(Source);
+
+      if not DOMGetAttribute(SourceElement, 'id', Source.Name) then
+        Source.Name := '';
 
       FloatArray := DOMGetChildElement(SourceElement, 'float_array', false);
       if FloatArray <> nil then
@@ -712,94 +857,97 @@ var
           OnWarning(wtMinor, 'Collada', '<float_array> without a count attribute');
         end;
 
-        Floats := TDynFloatArray.Create(FloatArrayCount);
-        try
-          FloatArrayContents := DOMGetTextData(FloatArray);
+        if not DOMGetAttribute(FloatArray, 'id', FloatArrayId) then
+          FloatArrayId := '';
 
-          SeekPos := 1;
-          for I := 0 to FloatArrayCount - 1 do
+        Source.Floats.Count := FloatArrayCount;
+        FloatArrayContents := DOMGetTextData(FloatArray);
+
+        SeekPos := 1;
+        for I := 0 to FloatArrayCount - 1 do
+        begin
+          Token := NextToken(FloatArrayContents, SeekPos, WhiteSpaces);
+          if Token = '' then
           begin
-            Token := NextToken(FloatArrayContents, SeekPos, WhiteSpaces);
-            if Token = '' then
-            begin
-              OnWarning(wtMinor, 'Collada', 'Actual number of tokens in <float_array>' +
-                ' less than declated in the count attribute');
-              Break;
-            end;
-            Floats.Items[I] := StrToFloat(Token);
+            OnWarning(wtMinor, 'Collada', 'Actual number of tokens in <float_array>' +
+              ' less than declated in the count attribute');
+            Break;
+          end;
+          Source.Floats.Items[I] := StrToFloat(Token);
+        end;
+
+        Technique := DOMGetChildElement(SourceElement, 'technique_common', false);
+        if Technique = nil then
+        begin
+          Technique := DOMGetChildElement(SourceElement, 'technique', false);
+          { TODO: actually, I should search for technique with profile="COMMON"
+            in this case, right ? }
+        end;
+
+        if Technique <> nil then
+        begin
+          Accessor := DOMGetChildElement(Technique, 'accessor', false);
+
+          { read <accessor> attributes }
+
+          if not DOMGetIntegerAttribute(Accessor, 'count', Source.Count) then
+          begin
+            OnWarning(wtMinor, 'Collada', '<accessor> has no count attribute');
+            Source.Count := 0;
           end;
 
-          Technique := DOMGetChildElement(SourceElement, 'technique_common', false);
-          if Technique = nil then
+          if not DOMGetIntegerAttribute(Accessor, 'stride', Source.Stride) then
+            { default, according to Collada spec }
+            Source.Stride := 1;
+
+          if not DOMGetIntegerAttribute(Accessor, 'offset', Source.Offset) then
+            { default, according to Collada spec }
+            Source.Offset := 0;
+
+          if not DOMGetAttribute(Accessor, 'source', AccessorSource) then
           begin
-            Technique := DOMGetChildElement(SourceElement, 'technique', false);
-            { TODO: actually, I should search for technique with profile="COMMON"
-              in this case, right ? }
+            OnWarning(wtMinor, 'Collada', '<accessor> has no source attribute');
+            AccessorSource := '';
           end;
 
-          if Technique <> nil then
-          begin
-            Accessor := DOMGetChildElement(Technique, 'accessor', false);
+          { We read AccessorSource only to check here }
+          if AccessorSource <> '#' + FloatArrayId then
+            OnWarning(wtMajor, 'Collada', '<accessor> source does not refer to <float_array> in the same <source>, this is not supported');
 
-            { read <accessor> attributes }
-
-            if not DOMGetIntegerAttribute(Accessor, 'count', AccessorCount) then
+          It := TXMLElementFilteringIterator.Create(Accessor, 'param');
+          try
+            while It.GetNext do
             begin
-              OnWarning(wtMinor, 'Collada', '<accessor> has no count attribute');
-              AccessorCount := 0;
-            end;
-
-            if not DOMGetIntegerAttribute(Accessor, 'stride', AccessorStride) then
-              { default, according to Collada spec }
-              AccessorStride := 1;
-
-            if not DOMGetIntegerAttribute(Accessor, 'offset', AccessorOffset) then
-              { default, according to Collada spec }
-              AccessorOffset := 0;
-
-            if not DOMGetAttribute(Accessor, 'source', AccessorSource) then
-            begin
-              OnWarning(wtMinor, 'Collada', '<accessor> has no source attribute');
-              AccessorSource := '';
-            end;
-            { TODO: we ignore AccessorSource, just assume that it refers to
-              float_array within this <source> }
-
-            if AccessorStride >= 3 then
-            begin
-              { Max index accessed is
-                  AccessorOffset + AccessorStride * (AccessorCount - 1) + 2.
-                Minimum count is +1 to this.
-                Check do we have enough floats. }
-              MinCount := AccessorOffset + AccessorStride * (AccessorCount - 1) + 3;
-              if Floats.Count < MinCount then
+              if not DOMGetAttribute(It.Current, 'name', ParamName) then
               begin
-                OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float ' +
-                  'values (offset %d + stride %d * (count %d - 1) + 3) in <float_array>, ' +
-                  'but only %d are avilable', [MinCount,
-                    AccessorOffset, AccessorStride, AccessorCount, Floats.Count]));
-                { force AccessorCount smaller }
-                AccessorCount := (Floats.Count - AccessorOffset) div AccessorStride;
+                OnWarning(wtMajor, 'Collada', 'Missing "name" of <param>');
+                { TODO: this should not be required? }
+                Continue;
               end;
 
-              Source := TDynVector3SingleArray.Create(AccessorCount);
-              for I := 0 to AccessorCount - 1 do
+              if not DOMGetAttribute(It.Current, 'type', ParamType) then
               begin
-                Source.Items[I][0] := Floats.Items[AccessorOffset + AccessorStride * I    ];
-                Source.Items[I][1] := Floats.Items[AccessorOffset + AccessorStride * I + 1];
-                Source.Items[I][2] := Floats.Items[AccessorOffset + AccessorStride * I + 2];
+                OnWarning(wtMajor, 'Collada', 'Missing "type" of <param>');
+                Continue;
               end;
-              { tests: Writeln('added source ', SourceId, ' with ', AccessorCount, ' items'); }
-              SourcesList.AddObject(SourceId, Source);
+
+              if ParamType <> 'float' then
+              begin
+                OnWarning(wtMajor, 'Collada', Format('<param> type "%s" is not supported',
+                  [ParamType]));
+                Continue;
+              end;
+
+              Source.Params.Add(ParamName);
             end;
-          end;
-        finally FreeAndNil(Floats); end;
+          finally FreeAndNil(It) end;
+        end;
       end;
     end;
 
   var
-    { This is just a reference to one of the objects on SourcesList --- the one
-      referenced by <vertices> element. }
+    { Collada <source> indicated by the <vertices> element,
+      and expressed as an array of TVector3Single. }
     Vertices: TDynVector3SingleArray;
     VerticesId: string;
 
@@ -807,8 +955,8 @@ var
     procedure ReadVertices(VerticesElement: TDOMElement);
     var
       I: TXMLElementFilteringIterator;
-      InputSemantic, InputSource: string;
-      InputSourceIndex: Integer;
+      InputSemantic, InputSourceName: string;
+      InputSource: TColladaSource;
     begin
       if not DOMGetAttribute(VerticesElement, 'id', VerticesId) then
         VerticesId := '';
@@ -818,21 +966,20 @@ var
         while I.GetNext do
           if DOMGetAttribute(I.Current, 'semantic', InputSemantic) and
              (InputSemantic = 'POSITION') and
-             DOMGetAttribute(I.Current, 'source', InputSource) and
-             SCharIs(InputSource, 1, '#') then
+             DOMGetAttribute(I.Current, 'source', InputSourceName) and
+             SCharIs(InputSourceName, 1, '#') then
           begin
-            Delete(InputSource, 1, 1); { delete leading '#' char }
-            InputSourceIndex := SourcesList.IndexOf(InputSource);
-            if InputSourceIndex <> -1 then
+            Delete(InputSourceName, 1, 1); { delete leading '#' char }
+            InputSource := Sources.Find(InputSourceName);
+            if InputSource <> nil then
             begin
-              Vertices := SourcesList.Objects[InputSourceIndex] as
-                TDynVector3SingleArray;
+              Vertices := InputSource.GetVectorXYZ;
               Exit;
             end else
             begin
               OnWarning(wtMinor, 'Collada', Format('Source attribute ' +
                 '(of <input> element within <vertices>) ' +
-                'references non-existing source "%s"', [InputSource]));
+                'references non-existing source "%s"', [InputSourceName]));
             end;
           end;
       finally FreeAndNil(I) end;
@@ -1073,12 +1220,12 @@ var
     Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
     if Mesh <> nil then
     begin
-      SourcesList := TStringList.Create;
+      Vertices := nil;
+      Sources := TColladaSourcesList.Create;
       try
         I := TXMLElementIterator.Create(Mesh);
         try
           while I.GetNext do
-          begin
             if I.Current.TagName = 'source' then
               ReadSource(I.Current) else
             if I.Current.TagName = 'vertices' then
@@ -1090,9 +1237,11 @@ var
             if I.Current.TagName = 'triangles' then
               ReadTriangles(I.Current);
               { other I.Current.TagName not supported for now }
-          end;
         finally FreeAndNil(I) end;
-      finally StringList_FreeWithContentsAndNil(SourcesList); end;
+      finally
+        FreeAndNil(Sources);
+        FreeAndNil(Vertices);
+      end;
     end;
   end;
 
