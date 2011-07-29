@@ -327,29 +327,28 @@ var
     procedure ReadTechnique(TechniqueElement: TDOMElement);
     var
       Image: TNodeX3DTextureNode;
-      PhongElement: TDOMElement;
+      TechniqueChild: TDOMElement;
       TransparencyColor: TVector3Single;
       I: TXMLElementIterator;
       DiffuseTextureName, DiffuseTexCoordName: string;
     begin
-      { Actually only one <technique> within <profile_COMMON> is allowed }
-      PhongElement := DOMGetChildElement(TechniqueElement, 'phong', false);
-
-      { We actually treat <phong> and <blinn> elements the same.
-
+      { We actually treat <phong> and <blinn> and even <lambert> elements the same.
         X3D lighting equations specify that always Blinn
         (half-vector) technique is used. What's much more practically
         important, OpenGL uses Blinn method. So actually I always do
         blinn method (at least for real-time rendering). }
-      if PhongElement = nil then
-        PhongElement := DOMGetChildElement(TechniqueElement, 'blinn', false);
+      TechniqueChild := DOMGetChildElement(TechniqueElement, 'phong', false);
+      if TechniqueChild = nil then
+        TechniqueChild := DOMGetChildElement(TechniqueElement, 'blinn', false);
+      if TechniqueChild = nil then
+        TechniqueChild := DOMGetChildElement(TechniqueElement, 'lambert', false);
 
-      if PhongElement <> nil then
+      if TechniqueChild <> nil then
       begin
         { Initialize, in case no <transparent> child. }
         TransparencyColor := ZeroVector3Single;
 
-        I := TXMLElementIterator.Create(PhongElement);
+        I := TXMLElementIterator.Create(TechniqueChild);
         try
           while I.GetNext do
           begin
@@ -474,6 +473,8 @@ var
         try
           while I.GetNext do
             if I.Current.TagName = 'technique' then
+              { Actually only one <technique> within <profile_COMMON> is allowed.
+                But, since we loop anyway, it's not a problem to handle many. }
               ReadTechnique(I.Current) else
             if I.Current.TagName = 'newparam' then
               ReadNewParam(I.Current);
