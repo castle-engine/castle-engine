@@ -2770,7 +2770,7 @@ begin
     { Add lights to GlobalLights }
     if Active and (TNodeX3DLightNode(Node).Scope = lsGlobal) then
       ParentScene.GlobalLights.Add(
-        (Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
+        TNodeX3DLightNode(Node).CreateLightInstance(StateStack.Top));
   end else
 
   if Node is TNodeSwitch then
