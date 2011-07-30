@@ -948,18 +948,25 @@ var
     end;
 
   var
+    { We take care to share coordinates, tex coordinates and normal vectors,
+      so that they are stored efficiently in memory and can be saved using
+      X3D DEF/USE mechanism. Coordinates are always shared by all polygons
+      within the geometry. Each polygon may potentially have different tex coords
+      or normals arrays, or they may share the same. }
+
     { Collada coordinates.
       Based on <source> indicated by last <vertices> element. }
     Coord: TNodeCoordinate;
 
     { Collada texture coords used by last polygon.
       Based on <source> indicated by <input semantic="TEXCOORD"> element within
-      polygon. TexCoord.NodeName corresponds to <source> id chosen.
-
-      Each polygon may potentially have different tex coords,
-      or they may share the same tex coords. We take an effort to reUSE
-      them in X3D in the latter case. }
+      polygon. NodeName corresponds to <source> id. }
     LastTexCoord: TNodeTextureCoordinate;
+
+    { Collada normal used by last polygon.
+      Based on <source> indicated by <input semantic="NORMAL"> element within
+      polygon. NodeName corresponds to <source> id. }
+    LastNormal: TNodeNormal;
 
     { Read <vertices> within <mesh> }
     procedure ReadVertices(VerticesElement: TDOMElement);
@@ -1017,9 +1024,9 @@ var
     var
       I: TXMLElementFilteringIterator;
       PolygonsCount: Integer;
-      InputSemantic, InputSource: string;
+      InputSemantic, InputSourceId: string;
       Poly: TColladaPoly;
-      TexCoordSource: TColladaSource;
+      InputSource: TColladaSource;
     begin
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
@@ -1064,9 +1071,9 @@ var
           begin
             if InputSemantic = 'VERTEX' then
             begin
-              if not (DOMGetAttribute(I.Current, 'source', InputSource) and
+              if not (DOMGetAttribute(I.Current, 'source', InputSourceId) and
                       (Coord <> nil) and
-                      (InputSource = '#' + Coord.NodeName))  then
+                      (InputSourceId = '#' + Coord.NodeName))  then
                 OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" ' +
                   '(of <polygons> element within <mesh>) does not reference ' +
                   '<vertices> element within the same <mesh>');
@@ -1079,32 +1086,58 @@ var
             begin
               DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset);
 
-              if DOMGetAttribute(I.Current, 'source', InputSource) then
+              if DOMGetAttribute(I.Current, 'source', InputSourceId) then
               begin
-                if SCharIs(InputSource, 1, '#') then
-                  Delete(InputSource, 1, 1);
+                if SCharIs(InputSourceId, 1, '#') then
+                  Delete(InputSourceId, 1, 1);
                 if ((LastTexCoord <> nil) and
-                    (LastTexCoord.NodeName = InputSource)) then
+                    (LastTexCoord.NodeName = InputSourceId)) then
                   { we can reuse last X3D tex coord node }
                   IndexedFaceSet.FdTexCoord.Value := LastTexCoord else
                 begin
-                  TexCoordSource := Sources.Find(InputSource);
-                  if TexCoordSource <> nil then
+                  InputSource := Sources.Find(InputSourceId);
+                  if InputSource <> nil then
                   begin
                     { create and use new X3D tex coord node }
                     FreeIfUnusedAndNil(LastTexCoord);
-                    LastTexCoord := TNodeTextureCoordinate.Create(InputSource, WWWBasePath);
-                    TexCoordSource.AssignToVectorST(LastTexCoord.FdPoint.Items);
+                    LastTexCoord := TNodeTextureCoordinate.Create(InputSourceId, WWWBasePath);
+                    InputSource.AssignToVectorST(LastTexCoord.FdPoint.Items);
                     IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
                   end else
                     OnWarning(wtMinor, 'Collada', Format('<source> with id "%s" for texture coordinates not found',
-                      [InputSource]));
+                      [InputSourceId]));
                 end;
               end else
                 OnWarning(wtMinor, 'Collada', 'Missing source for <input> with semantic="TEXCOORD". We have texture coord indexes, but they will be ignored, since we have no actual texture coords');
             end else
             if InputSemantic = 'NORMAL' then
+            begin
               DOMGetIntegerAttribute(I.Current, 'offset', NormalIndexOffset);
+
+              if DOMGetAttribute(I.Current, 'source', InputSourceId) then
+              begin
+                if SCharIs(InputSourceId, 1, '#') then
+                  Delete(InputSourceId, 1, 1);
+                if ((LastNormal <> nil) and
+                    (LastNormal.NodeName = InputSourceId)) then
+                  { we can reuse last X3D normal node }
+                  IndexedFaceSet.FdNormal.Value := LastNormal else
+                begin
+                  InputSource := Sources.Find(InputSourceId);
+                  if InputSource <> nil then
+                  begin
+                    { create and use new X3D normal node }
+                    FreeIfUnusedAndNil(LastNormal);
+                    LastNormal := TNodeNormal.Create(InputSourceId, WWWBasePath);
+                    InputSource.AssignToVectorXYZ(LastNormal.FdVector.Items);
+                    IndexedFaceSet.FdNormal.Value := LastNormal;
+                  end else
+                    OnWarning(wtMinor, 'Collada', Format('<source> with id "%s" for normals not found',
+                      [InputSourceId]));
+                end;
+              end else
+                OnWarning(wtMinor, 'Collada', 'Missing source for <input> with semantic="NORMAL". We have normal indexes, but they will be ignored, since we have no actual normals');
+            end;
           end;
         end;
       finally FreeAndNil(I) end;
