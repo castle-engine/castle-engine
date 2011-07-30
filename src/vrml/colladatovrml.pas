@@ -2209,7 +2209,20 @@ var
                     see notes about SpotLight.beamWidth at VRML/X3D renderer. }
                   Light := Spot;
                 end else
-                  OnWarning(wtMinor, 'Collada', 'No supported light inside <technique_common>');
+                begin
+                  LightE := DOMGetChildElement(TechniqueE, 'ambient', false);
+                  if LightE <> nil then
+                  begin
+                    Point := TNodePointLight.Create(Id, WWWBasePath);
+                    { ambient light can be translated to normal PointLight with
+                      intensity = 0 (this scales diffuse and specular to zero). }
+                    Point.FdIntensity.Value := 0;
+                    Point.FdAmbientIntensity.Value := 1;
+                    Point.FdRadius.Value := MaxSingle;
+                    Light := Point;
+                  end else
+                    OnWarning(wtMinor, 'Collada', 'No supported light inside <technique_common>');
+                end;
               end;
             end;
           end else
