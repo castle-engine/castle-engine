@@ -472,10 +472,12 @@ var
 
   { Read the contents of the text data inside single child ChildTagName,
     interpret them as Float.
+
     Returns false when such child not found (or occurs more than once),
-    or when text cannot be converted to float. }
+    or when text cannot be converted to float.
+    In this case, Value is guaranteed not to be modified. }
   function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-    out Value: Float): boolean;
+    var Value: Float): boolean;
   var
     Child: TDOMElement;
   begin
@@ -483,7 +485,36 @@ var
     Result := Child <> nil;
     if Result then
     try
-        Value := StrToFloat(DOMGetTextData(Child));
+      Value := StrToFloat(DOMGetTextData(Child));
+    except on EConvertError do Result := false; end;
+  end;
+
+  function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
+    var Value: Single): boolean;
+  var
+    ValueFloat: Float;
+  begin
+    Result := ReadChildFloat(Element, ChildTagName, ValueFloat);
+    if Result then
+      Value := ValueFloat;
+  end;
+
+  { Read the contents of the text data inside single child ChildTagName,
+    interpret them as TVector3Single.
+
+    Returns false when such child not found (or occurs more than once),
+    or when cannot be converted to float.
+    In this case, Value is guaranteed not to be modified. }
+  function ReadChildVector(Element: TDOMElement; const ChildTagName: string;
+    var Value: TVector3Single): boolean;
+  var
+    Child: TDOMElement;
+  begin
+    Child := DOMGetChildElement(Element, ChildTagName, false);
+    Result := Child <> nil;
+    if Result then
+    try
+      Value := Vector3SingleFromStr(DOMGetTextData(Child));
     except on EConvertError do Result := false; end;
   end;
 
@@ -2050,11 +2081,25 @@ var
 
   { Read <library_lights> (Collada 1.4.x). Fills Lights list. }
   procedure ReadLibraryLights(LibraryE: TDOMElement);
+
+    function ReadAttenuation(E: TDOMElement): TVector3Single;
+    begin
+      Result := Vector3Single(1, 0, 0);
+      ReadChildFloat(E, 'constant_attenuation', Result[0]);
+      ReadChildFloat(E, 'linear_attenuation', Result[1]);
+      ReadChildFloat(E, 'quadratic_attenuation', Result[2]);
+    end;
+
   var
     I: TXMLElementFilteringIterator;
     Light: TNodeX3DLightNode;
+    Point: TNodePointLight;
+    Directional: TNodeDirectionalLight;
+    Spot: TNodeSpotLight;
     Id: string;
-    TechniqueE, PointE, DirectionalE, SpotE: TDOMElement;
+    TechniqueE, LightE: TDOMElement;
+    FalloffAngle: Float;
+    LightColor: TVector3Single;
   begin
     I := TXMLElementFilteringIterator.Create(LibraryE, 'light');
     try
@@ -2066,25 +2111,34 @@ var
           TechniqueE := DOMGetChildElement(I.Current, 'technique_common', false);
           if TechniqueE <> nil then
           begin
-            PointE := DOMGetChildElement(TechniqueE, 'point', false);
-            if PointE <> nil then
+            LightE := DOMGetChildElement(TechniqueE, 'point', false);
+            if LightE <> nil then
             begin
-              Light := TNodePointLight.Create(Id, WWWBasePath);
-              { TODO: light props }
+              Point := TNodePointLight.Create(Id, WWWBasePath);
+              Point.FdAttenuation.Value := ReadAttenuation(LightE);
+              Light := Point;
             end else
             begin
-              DirectionalE := DOMGetChildElement(TechniqueE, 'directional', false);
-              if DirectionalE <> nil then
+              LightE := DOMGetChildElement(TechniqueE, 'directional', false);
+              if LightE <> nil then
               begin
-                Light := TNodeDirectionalLight.Create(Id, WWWBasePath);
-                { TODO: light props }
+                Directional := TNodeDirectionalLight.Create(Id, WWWBasePath);
+                { default X3D light direction is -Z, matches Collada }
+                Light := Directional;
               end else
               begin
-                SpotE := DOMGetChildElement(TechniqueE, 'spot', false);
-                if SpotE <> nil then
+                LightE := DOMGetChildElement(TechniqueE, 'spot', false);
+                if LightE <> nil then
                 begin
-                  Light := TNodeSpotLight.Create(Id, WWWBasePath);
-                  { TODO: light props }
+                  Spot := TNodeSpotLight.Create(Id, WWWBasePath);
+                  Spot.FdAttenuation.Value := ReadAttenuation(LightE);
+                  { default X3D spot direction is -Z, matches Collada }
+                  if not ReadChildFloat(LightE, 'falloff_angle', FalloffAngle) then
+                    FalloffAngle := 180; { Collada default }
+                  Spot.FdCutOffAngle.Value := DegToRad(FalloffAngle);
+                  { falloff_exponent cannot be nicely translated to X3D beamWidth,
+                    see notes about SpotLight.beamWidth at VRML/X3D renderer. }
+                  Light := Spot;
                 end else
                   OnWarning(wtMinor, 'Collada', 'No supported light inside <technique_common>');
               end;
@@ -2094,7 +2148,9 @@ var
 
           if Light <> nil then
           begin
-            Light.FdGlobal.Value := false;
+            Light.FdGlobal.Value := true;
+            if ReadChildVector(LightE, 'color', LightColor) then
+              Light.FdColor.Value := LightColor;
             Lights.Add(Light);
           end;
         end;
