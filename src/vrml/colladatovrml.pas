@@ -1523,6 +1523,7 @@ var
                 Indexes.AddVertex(Vertex1);
                 Indexes.AddVertex(VertexPrevious);
                 Indexes.AddVertex(VertexNext);
+                Indexes.PolygonEnd;
                 VertexPrevious := VertexNext;
               end;
             end;
