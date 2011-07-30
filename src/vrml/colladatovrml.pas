@@ -432,6 +432,12 @@ begin
 end;
 
 type
+  { Indexes of a single vertex. Used only together with TColladaIndexes,
+    that knows which ones are relevant (Coord is always relevant,
+    but TexCoord is relevant only if TexCoordIndexOffset <> -1,
+    and Normal is relevant only if NormalIndexOffset <> -1). }
+  TIndex = record Coord, TexCoord, Normal: Integer end;
+
   { Handling Collada <p> (indexes inside polygons) to fill X3D IndexedFaceSet indexes. }
   TColladaIndexes = class
   private
@@ -443,7 +449,10 @@ type
       const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
     destructor Destroy; override;
     procedure BeginElement(const PElement: TDOMElement);
-    function NextVertex: boolean;
+    function ReadVertex(out Index: TIndex): boolean;
+    function ReadAddVertex(out Index: TIndex): boolean;
+    function ReadAddVertex: boolean;
+    procedure AddVertex(const Index: TIndex);
     procedure PolygonEnd;
   end;
 
@@ -471,10 +480,15 @@ begin
   inherited;
 end;
 
-function TColladaIndexes.NextVertex: boolean;
+const
+  EmptyIndex: TIndex = (Coord: -1; TexCoord: -1; Normal: -1);
+
+function TColladaIndexes.ReadVertex(out Index: TIndex): boolean;
 var
   I: Integer;
 begin
+  Index := EmptyIndex;
+
   for I := 0 to FInputsCount - 1 do
   begin
     if not Ints.GetNext then
@@ -485,22 +499,42 @@ begin
     end;
 
     if I = FCoordIndexOffset then
-      FIndexedFaceSet.FdCoordIndex.Items.Add(Ints.Current) else
+      Index.Coord := Ints.Current else
     if I = FTexCoordIndexOffset then
-      FIndexedFaceSet.FdTexCoordIndex.Items.Add(Ints.Current) else
+      Index.TexCoord := Ints.Current else
     if I = FNormalIndexOffset then
-      FIndexedFaceSet.FdNormalIndex.Items.Add(Ints.Current);
+      Index.Normal := Ints.Current;
   end;
+
   Result := true;
+end;
+
+function TColladaIndexes.ReadAddVertex(out Index: TIndex): boolean;
+begin
+  Result := ReadVertex(Index);
+  if Result then
+    AddVertex(Index);
+end;
+
+function TColladaIndexes.ReadAddVertex: boolean;
+var
+  IgnoreIndex: TIndex;
+begin
+  Result := ReadAddVertex(IgnoreIndex);
+end;
+
+procedure TColladaIndexes.AddVertex(const Index: TIndex);
+begin
+  FIndexedFaceSet.FdCoordIndex.Items.Add(Index.Coord);
+  if FTexCoordIndexOffset <> -1 then
+    FIndexedFaceSet.FdTexCoordIndex.Items.Add(Index.TexCoord) else
+  if FNormalIndexOffset <> -1 then
+    FIndexedFaceSet.FdNormalIndex.Items.Add(Index.Normal);
 end;
 
 procedure TColladaIndexes.PolygonEnd;
 begin
-  FIndexedFaceSet.FdCoordIndex.Items.Add(-1);
-  if FTexCoordIndexOffset <> -1 then
-    FIndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-  if FNormalIndexOffset <> -1 then
-    FIndexedFaceSet.FdNormalIndex.Items.Add(-1);
+  AddVertex(EmptyIndex);
 end;
 
 { LoadCollada ---------------------------------------------------------------- }
@@ -1400,7 +1434,7 @@ var
           while I.GetNext do
           begin
             Indexes.BeginElement(I.Current);
-            while Indexes.NextVertex do ;
+            while Indexes.ReadAddVertex do ;
             Indexes.PolygonEnd;
           end;
         finally FreeAndNil(I) end;
@@ -1429,7 +1463,7 @@ var
             while VCount.GetNext do
             begin
               for I := 0 to VCount.Current - 1 do
-                if not Indexes.NextVertex then
+                if not Indexes.ReadAddVertex then
                 begin
                   OnWarning(wtMinor, 'Collada', 'Unexpected end of <p> data in <polylist>');
                   Exit;
@@ -1454,12 +1488,47 @@ var
         begin
           Indexes.BeginElement(P);
           repeat
-            if not Indexes.NextVertex then Break;
-            if not Indexes.NextVertex then Break;
-            if not Indexes.NextVertex then Break;
+            if not Indexes.ReadAddVertex then Break;
+            if not Indexes.ReadAddVertex then Break;
+            if not Indexes.ReadAddVertex then Break;
             Indexes.PolygonEnd;
           until false;
         end;
+      finally FreeAndNil(Indexes) end;
+    end;
+
+    { Read <trifans> within <mesh> }
+    procedure ReadTriFans(PolygonsElement: TDOMElement);
+    var
+      I: TXMLElementFilteringIterator;
+      Indexes: TColladaIndexes;
+      Vertex1, Vertex2, VertexPrevious, VertexNext: TIndex;
+    begin
+      Indexes := ReadPolyCommon(PolygonsElement);
+      try
+        I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+        try
+          while I.GetNext do
+          begin
+            Indexes.BeginElement(I.Current);
+            if Indexes.ReadVertex(Vertex1) and
+               Indexes.ReadVertex(Vertex2) and
+               Indexes.ReadVertex(VertexPrevious) then
+            begin
+              Indexes.AddVertex(Vertex1);
+              Indexes.AddVertex(Vertex2);
+              Indexes.AddVertex(VertexPrevious);
+              Indexes.PolygonEnd;
+              while Indexes.ReadVertex(VertexNext) do
+              begin
+                Indexes.AddVertex(Vertex1);
+                Indexes.AddVertex(VertexPrevious);
+                Indexes.AddVertex(VertexNext);
+                VertexPrevious := VertexNext;
+              end;
+            end;
+          end;
+        finally FreeAndNil(I) end;
       finally FreeAndNil(Indexes) end;
     end;
 
@@ -1496,7 +1565,9 @@ var
             if I.Current.TagName = 'polylist' then
               ReadPolylist(I.Current) else
             if I.Current.TagName = 'triangles' then
-              ReadTriangles(I.Current);
+              ReadTriangles(I.Current) else
+            if I.Current.TagName = 'trifans' then
+              ReadTriFans(I.Current);
               { other I.Current.TagName not supported for now }
         finally FreeAndNil(I) end;
       finally
