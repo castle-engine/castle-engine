@@ -1070,7 +1070,7 @@ type
     { Write contents of all VRML "Info" nodes.
       Also write how many Info nodes there are in the scene.
       @deprecated Deprecated: this is useless, info nodes aren't that important,
-      and specific output to StdOut is probably also useless. }     
+      and specific output to StdOut is probably also useless. }
     procedure WritelnInfoNodes;
 
     { Actual VRML graph defining this VRML scene.
@@ -2750,19 +2750,25 @@ begin
 
   if Node is TNodeX3DLightNode then
   begin
-    { TODO: currently this means that lights within inactive Switch child
-      work as active, just like other lights.
-      Changing this (adding "if Active" test here) would mean that changing
-      Switch.FdWhichChoice needs to update this too...
+    (*Global lights within inactive Switch child are not active.
+      Although I didn't find where specification explicitly says this,
+      but it's natural. Allows e.g. to do
 
-      Hm, actually, where VRML spec says precisely that lights
-      are affected by active/inactive state? Anyway, if lights from
-      inactive state *should* be taken into account, then gathering
-      of lights should not be done by Traverse at all (but by some
-      EnumarateNodes call). }
+      Switch {
+        DEF SomeGroup1 { .. some lights and shapes .. }
+        DEF SomeGroup2 { .. some lights and shapes .. }
+      }
+      USE SomeGroup1
+
+      which is a trick used e.g. by our Collada importer.
+      Without this rule, SomeGroup1 would be affected be it's own lights
+      *two* times (and in addition by SomeGroup2 lights).
+
+      TODO: Changing things like Switch.FdWhichChoice should update
+      global lights set. *)
 
     { Add lights to GlobalLights }
-    if TNodeX3DLightNode(Node).Scope = lsGlobal then
+    if Active and (TNodeX3DLightNode(Node).Scope = lsGlobal) then
       ParentScene.GlobalLights.Add(
         (Node as TNodeX3DLightNode).CreateLightInstance(StateStack.Top));
   end else
