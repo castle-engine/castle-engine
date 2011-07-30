@@ -74,7 +74,10 @@ type
   TColladaEffect = class
     Appearance: TNodeAppearance;
     { If this effect contains a texture for diffuse, this is the name
-      of texture coordinates in Collada. }
+      of texture coordinates in Collada.
+      For now not used (we always take first input with TEXCOORD semantic
+      to control the main texture, that affects the look (after lighting
+      calculation, so not only diffuse). }
     DiffuseTexCoordName: string;
     destructor Destroy; override;
   end;
@@ -391,6 +394,9 @@ var
     comes from Collada "id" of <image> element (these are referred to
     by <init_from> contents from <surface>). }
   Images: TVRMLNodesList;
+
+  Cameras: TVRMLNodesList;
+  Lights: TVRMLNodesList;
 
   ResultModel: TNodeGroup absolute Result;
 
@@ -1541,12 +1547,33 @@ var
         Delete(GeometryId, 1, 1);
         Geometry := Geometries.Find(GeometryId);
         if Geometry = nil then
-        begin
-          OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing ' +
-            '<geometry> element "%s"', [GeometryId]));
-        end else
+          OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing <geometry> element "%s"',
+            [GeometryId])) else
           AddGeometryInstance(ParentGroup, Geometry, InstantiatingElement);
-      end;
+      end else
+        OnWarning(wtMajor, 'Collada', Format('Element <%s> missing url attribute (that has to start with #)',
+          [InstantiatingElement.TagName]));
+    end;
+
+    { Read <instance_*>, adding resulting X3D nodes into ParentGroup. }
+    procedure ReadInstance(ParentGroup: TNodeX3DGroupingNode;
+      InstantiatingElement: TDOMElement; List: TVRMLNodesList);
+    var
+      Id: string;
+      Node: TVRMLNode;
+    begin
+      if DOMGetAttribute(InstantiatingElement, 'url', Id) and
+         SCharIs(Id, 1, '#') then
+      begin
+        Delete(Id, 1, 1);
+        Node := List.FindName(Id);
+        if Node = nil then
+          OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing element "%s"',
+            [Id])) else
+          ParentGroup.FdChildren.Add(Node);
+      end else
+        OnWarning(wtMajor, 'Collada', Format('Element <%s> missing url attribute (that has to start with #)',
+          [InstantiatingElement.TagName]));
     end;
 
     { Read <instance_controller>, adding resulting X3D node into
@@ -1589,7 +1616,9 @@ var
             AddGeometryInstance(Group, Geometry, InstantiatingElement);
           end;
         end;
-      end;
+      end else
+        OnWarning(wtMajor, 'Collada', Format('Element <%s> missing url attribute (that has to start with #)',
+          [InstantiatingElement.TagName]));
     end;
 
   var
@@ -1704,6 +1733,10 @@ var
           ReadInstanceGeometry(NodeTransform, I.Current) else
         if I.Current.TagName = 'instance_controller' then
           ReadInstanceController(NodeTransform, I.Current) else
+        if I.Current.TagName = 'instance_camera' then
+          ReadInstance(NodeTransform, I.Current, Cameras) else
+        if I.Current.TagName = 'instance_light' then
+          ReadInstance(NodeTransform, I.Current, Lights) else
         if I.Current.TagName = 'node' then
           ReadNodeElement(NodeTransform, I.Current);
       end;
@@ -1890,11 +1923,112 @@ var
     finally FreeAndNil(I) end;
   end;
 
+  { Read <library_cameras> (Collada 1.4.x). Fills Cameras list. }
+  procedure ReadLibraryCameras(LibraryE: TDOMElement);
+  var
+    I: TXMLElementFilteringIterator;
+    Viewpoint: TNodeX3DViewpointNode;
+    Navigation: TNodeNavigationInfo;
+    CameraGroup: TNodeGroup;
+    Id: string;
+    OpticsE, TechniqueE, PerspectiveE, OrthographicE: TDOMElement;
+  begin
+    I := TXMLElementFilteringIterator.Create(LibraryE, 'camera');
+    try
+      while I.GetNext do
+        if DOMGetAttribute(I.Current, 'id', Id) then
+        begin
+          CameraGroup := TNodeGroup.Create(Id, WWWBasePath);
+          Cameras.Add(CameraGroup);
+
+          OpticsE := DOMGetChildElement(I.Current, 'optics', false);
+          if OpticsE <> nil then
+          begin
+            TechniqueE := DOMGetChildElement(OpticsE, 'technique_common', false);
+            if TechniqueE <> nil then
+            begin
+              PerspectiveE := DOMGetChildElement(TechniqueE, 'perspective', false);
+              if PerspectiveE <> nil then
+              begin
+                Viewpoint := TNodeViewpoint.Create(Id + '_viewpoint', WWWBasePath);
+                CameraGroup.FdChildren.Add(Viewpoint);
+                Navigation := TNodeNavigationInfo.Create(Id + '_navigation_info', WWWBasePath);
+                CameraGroup.FdChildren.Add(Navigation);
+                { TODO: camera props }
+              end else
+              begin
+                OrthographicE := DOMGetChildElement(TechniqueE, 'orthographic', false);
+                if OrthographicE <> nil then
+                begin
+                  Viewpoint := TNodeOrthoViewpoint.Create(Id + '_viewpoint', WWWBasePath);
+                  CameraGroup.FdChildren.Add(Viewpoint);
+                  Navigation := TNodeNavigationInfo.Create(Id + '_navigation_info', WWWBasePath);
+                  CameraGroup.FdChildren.Add(Navigation);
+                  { TODO: camera props }
+                end;
+              end;
+            end;
+          end;
+        end;
+    finally FreeAndNil(I) end;
+  end;
+
+  { Read <library_lights> (Collada 1.4.x). Fills Lights list. }
+  procedure ReadLibraryLights(LibraryE: TDOMElement);
+  var
+    I: TXMLElementFilteringIterator;
+    Light: TNodeX3DLightNode;
+    Id: string;
+    TechniqueE, PointE, DirectionalE, SpotE: TDOMElement;
+  begin
+    I := TXMLElementFilteringIterator.Create(LibraryE, 'light');
+    try
+      while I.GetNext do
+        if DOMGetAttribute(I.Current, 'id', Id) then
+        begin
+          Light := nil;
+
+          TechniqueE := DOMGetChildElement(I.Current, 'technique_common', false);
+          if TechniqueE <> nil then
+          begin
+            PointE := DOMGetChildElement(TechniqueE, 'point', false);
+            if PointE <> nil then
+            begin
+              Light := TNodePointLight.Create(Id, WWWBasePath);
+              { TODO: light props }
+            end else
+            begin
+              DirectionalE := DOMGetChildElement(TechniqueE, 'directional', false);
+              if DirectionalE <> nil then
+              begin
+                Light := TNodeDirectionalLight.Create(Id, WWWBasePath);
+                { TODO: light props }
+              end else
+              begin
+                SpotE := DOMGetChildElement(TechniqueE, 'spot', false);
+                if SpotE <> nil then
+                begin
+                  Light := TNodeSpotLight.Create(Id, WWWBasePath);
+                  { TODO: light props }
+                end { else unhandled light type };
+              end;
+            end;
+          end;
+
+          if Light <> nil then
+          begin
+            Light.FdGlobal.Value := false;
+            Lights.Add(Light);
+          end;
+        end;
+    finally FreeAndNil(I) end;
+  end;
+
 var
   Doc: TXMLDocument;
   Version: string;
   I: TXMLElementIterator;
-  LibraryElement: TDOMElement;
+  LibraryE: TDOMElement;
 begin
   Effects := nil;
   Materials := nil;
@@ -1902,6 +2036,8 @@ begin
   VisualScenes := nil;
   Controllers := nil;
   Images := nil;
+  Cameras := nil;
+  Lights := nil;
   Result := nil;
 
   try
@@ -1939,15 +2075,17 @@ begin
       VisualScenes := TVRMLNodesList.Create;
       Controllers := TColladaControllersList.Create;
       Images := TVRMLNodesList.Create;
+      Cameras := TVRMLNodesList.Create;
+      Lights := TVRMLNodesList.Create;
 
       Result := TVRMLRootNode.Create('', WWWBasePath);
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
       { First read library_images. These may be referred to inside effects. }
-      LibraryElement := DOMGetChildElement(Doc.DocumentElement, 'library_images', false);
-      if LibraryElement <> nil then
-        ReadLibraryImages(LibraryElement);
+      LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_images', false);
+      if LibraryE <> nil then
+        ReadLibraryImages(LibraryE);
 
       { Next read library_effects.
 
@@ -1956,9 +2094,9 @@ begin
         library_materials. Testcase: COLLLADA 1.4.1 Basic Samples/Cube/cube.dae.
 
         library_effects is only for Collada >= 1.4.x. }
-      LibraryElement := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
-      if LibraryElement <> nil then
-        ReadLibraryEffects(LibraryElement);
+      LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
+      if LibraryE <> nil then
+        ReadLibraryEffects(LibraryE);
 
       I := TXMLElementIterator.Create(Doc.DocumentElement);
       try
@@ -1970,6 +2108,10 @@ begin
             ReadLibraryMaterials(I.Current) else
           if I.Current.TagName = 'library_geometries' then { only Collada >= 1.4.x }
             ReadLibraryGeometries(I.Current) else
+          if I.Current.TagName = 'library_cameras' then { only Collada >= 1.4.x }
+            ReadLibraryCameras(I.Current) else
+          if I.Current.TagName = 'library_lights' then { only Collada >= 1.4.x }
+            ReadLibraryLights(I.Current) else
           if I.Current.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
             ReadLibraryVisualScenes(I.Current) else
           if I.Current.TagName = 'library_controllers' then { only Collada >= 1.4.x }
@@ -1977,7 +2119,7 @@ begin
           if I.Current.TagName = 'scene' then
             ReadSceneElement(I.Current);
             { other I.Current.TagName not supported for now, with the exception
-              of libraries handled earlier by LibraryElement. }
+              of libraries handled earlier by LibraryE. }
         end;
       finally FreeAndNil(I); end;
 
@@ -2006,6 +2148,8 @@ begin
       FreeAndNil(Effects);
       FreeAndNil(Geometries);
 
+      VRMLNodesList_FreeUnusedAndNil(Lights);
+      VRMLNodesList_FreeUnusedAndNil(Cameras);
       VRMLNodesList_FreeUnusedAndNil(VisualScenes);
       FreeAndNil(Controllers);
     end;
