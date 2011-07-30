@@ -1,16 +1,14 @@
-var SPoz: Integer;
+var
+  SPosition: Integer;
 begin
- SPoz := 1;
- result[0] := StrToFloat(NextToken(s, SPoz));
- result[1] := StrToFloat(NextToken(s, SPoz));
- result[2] := StrToFloat(NextToken(s, SPoz));
- Check(NextToken(s, SPoz) = '', 'expected end of string in Vector*FromStr');
+  SPosition := 1;
+  result[0] := StrToFloat(NextToken(S, SPosition));
+  result[1] := StrToFloat(NextToken(S, SPosition));
+  result[2] := StrToFloat(NextToken(S, SPosition));
+  if NextToken(S, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
 
- (* ta funkcje moznaby tez zrealizowac jako jedna z trzech wersji
-   DeFormat(s, '%.single. %.single. %.single.', [@result[0], @result[1], @result[2]]);
-   DeFormat(s, '%.double. %.double. %.double.', [@result[0], @result[1], @result[2]]);
-   DeFormat(s, '%.extended. %.extended. %.extended.', [@result[0], @result[1], @result[2]]);
- ale tak jak jest jest szybciej - DeFormat musi wykonac wiecej pracy
- (przeciez parsuje format i data w duzo bardziej ogolny sposob),
- a szybkosc tej procedury jest przydatna dla parsera VRMLa *)
+  { This could also be implemented by DeFormat, but this is faster
+    (which is important for e.g. reading 3D data where this function may be used
+    often) }
 end;

@@ -778,10 +778,16 @@ function Triangle3Single(const p0, p1, p2: TVector3Single): TTriangle3Single; ov
 function Triangle3Double(const T: TTriangle3Single): TTriangle3Double; overload;
 function Triangle3Double(const p0, p1, p2: TVector3Double): TTriangle3Double; overload;
 
+{ Convert string to vector. Each component is simply parsed by StrToFloat,
+  and components must be separated by whitespace (see @link(WhiteSpaces) constant).
+  @raises(EConvertError In case of problems during convertion (invalid float
+    or unexpected string end or expected but missed string end).)
+  @groupBegin }
 function Vector3SingleFromStr(const s: string): TVector3Single;
 function Vector3DoubleFromStr(const s: string): TVector3Double;
 function Vector3ExtendedFromStr(const s: string): TVector3Extended;
 function Vector4SingleFromStr(const s: string): TVector4Single;
+{ @groupEnd }
 
 { Convert between single and double precision matrices.
   @groupBegin }
@@ -3004,8 +3010,8 @@ begin
   Result[1] := StrToFloat(NextToken(S, SPosition));
   Result[2] := StrToFloat(NextToken(S, SPosition));
   Result[3] := StrToFloat(NextToken(S, SPosition));
-  Check(NextToken(s, SPosition) = '',
-    'Expected end of string in Vector4SingleFromStr');
+  if NextToken(s, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
 {$ifndef DELPHI}
