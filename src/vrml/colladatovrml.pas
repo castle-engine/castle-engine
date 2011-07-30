@@ -1965,10 +1965,13 @@ var
                   Navigation := TNodeNavigationInfo.Create(Id + '_navigation_info', WWWBasePath);
                   CameraGroup.FdChildren.Add(Navigation);
                   { TODO: camera props }
-                end;
+                end else
+                  OnWarning(wtMinor, 'Collada', 'No supported camera inside <technique_common>');
               end;
-            end;
-          end;
+            end else
+              OnWarning(wtMinor, 'Collada', 'No supported camera technique inside <optics>');
+          end else
+            OnWarning(wtMinor, 'Collada', 'No <optics> inside camera');
         end;
     finally FreeAndNil(I) end;
   end;
@@ -2010,10 +2013,12 @@ var
                 begin
                   Light := TNodeSpotLight.Create(Id, WWWBasePath);
                   { TODO: light props }
-                end { else unhandled light type };
+                end else
+                  OnWarning(wtMinor, 'Collada', 'No supported light inside <technique_common>');
               end;
             end;
-          end;
+          end else
+            OnWarning(wtMinor, 'Collada', 'No supported technique inside <light>');
 
           if Light <> nil then
           begin
