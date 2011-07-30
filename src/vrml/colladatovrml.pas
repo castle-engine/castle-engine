@@ -1532,6 +1532,47 @@ var
       finally FreeAndNil(Indexes) end;
     end;
 
+    { Read <tristrips> within <mesh> }
+    procedure ReadTriStrips(PolygonsElement: TDOMElement);
+    var
+      I: TXMLElementFilteringIterator;
+      Indexes: TColladaIndexes;
+      Vertex1, Vertex2, Vertex3, VertexNext: TIndex;
+      Turn: boolean;
+    begin
+      Indexes := ReadPolyCommon(PolygonsElement);
+      try
+        I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+        try
+          while I.GetNext do
+          begin
+            Turn := true;
+            Indexes.BeginElement(I.Current);
+            if Indexes.ReadVertex(Vertex1) and
+               Indexes.ReadVertex(Vertex2) and
+               Indexes.ReadVertex(Vertex3) then
+            begin
+              Indexes.AddVertex(Vertex1);
+              Indexes.AddVertex(Vertex2);
+              Indexes.AddVertex(Vertex3);
+              Indexes.PolygonEnd;
+              while Indexes.ReadVertex(VertexNext) do
+              begin
+                Indexes.AddVertex(Vertex3);
+                Indexes.AddVertex(Vertex2);
+                Indexes.AddVertex(VertexNext);
+                Indexes.PolygonEnd;
+                if Turn then
+                  Vertex2 := VertexNext else
+                  Vertex3 := VertexNext;
+                Turn := not Turn;
+              end;
+            end;
+          end;
+        finally FreeAndNil(I) end;
+      finally FreeAndNil(Indexes) end;
+    end;
+
   var
     Mesh: TDOMElement;
     I: TXMLElementIterator;
@@ -1567,7 +1608,9 @@ var
             if I.Current.TagName = 'triangles' then
               ReadTriangles(I.Current) else
             if I.Current.TagName = 'trifans' then
-              ReadTriFans(I.Current);
+              ReadTriFans(I.Current) else
+            if I.Current.TagName = 'tristrips' then
+              ReadTriStrips(I.Current);
               { other I.Current.TagName not supported for now }
         finally FreeAndNil(I) end;
       finally
