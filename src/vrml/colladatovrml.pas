@@ -2418,7 +2418,7 @@ begin
       if LibraryE <> nil then
         ReadLibraryImages(LibraryE);
 
-      { Next read library_effects.
+      { Read library_effects.
         Effects may be referenced by materials,
         and there's no guarantee that library_effects will occur before
         library_materials. Testcase: "COLLLADA 1.4.1 Basic Samples/Cube/cube.dae". }
@@ -2426,10 +2426,12 @@ begin
       if LibraryE <> nil then
         ReadLibraryEffects(LibraryE);
 
+      { Read libraries of things that may be referenced within library_visual_scenes.
+        For some models, <library_visual_scenes> may be before them (test from
+        collada.org/owl/ : "New Uploads/COLLADA 1.5.0 Kinematics/COLLADA 1.5.0 Kinematics/COLLADA/KR150/kr150.dae") }
       I := TXMLElementIterator.Create(Doc.DocumentElement);
       try
         while I.GetNext do
-        begin
           if I.Current.TagName = 'library' then { only Collada < 1.4.x }
             ReadLibrary(I.Current) else
           if I.Current.TagName = 'library_materials' then { only Collada >= 1.4.x }
@@ -2440,15 +2442,17 @@ begin
             ReadLibraryCameras(I.Current) else
           if I.Current.TagName = 'library_lights' then { only Collada >= 1.4.x }
             ReadLibraryLights(I.Current) else
+          if I.Current.TagName = 'library_controllers' then { only Collada >= 1.4.x }
+            ReadLibraryControllers(I.Current);
+      finally FreeAndNil(I); end;
+
+      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      try
+        while I.GetNext do
           if I.Current.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }
             ReadLibraryVisualScenes(I.Current) else
-          if I.Current.TagName = 'library_controllers' then { only Collada >= 1.4.x }
-            ReadLibraryControllers(I.Current) else
           if I.Current.TagName = 'scene' then
             ReadSceneElement(I.Current);
-            { other I.Current.TagName not supported for now, with the exception
-              of libraries handled earlier by LibraryE. }
-        end;
       finally FreeAndNil(I); end;
 
       Result.Meta.PutPreserve('source', ExtractFileName(FileName));
