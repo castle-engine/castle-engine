@@ -39,6 +39,8 @@ type
     procedure TestSphereRayIntersection;
     procedure TestMatrixMultiplication;
     procedure TestMatrixTranspose;
+    procedure TestVector3FromStr;
+    procedure TestVector4FromStr;
   end;
 
 function RandomVector: TVector3Single;
@@ -499,7 +501,6 @@ end;
 procedure TTestVectorMath.TestMatrixMultiplication;
 var
   M1, M2, M3, Result1, Result2: TMatrix4Single;
-  T1, T2, T3: TMatrix4Single;
 begin
   M1[0] := Vector4Single(1, 0, 0, 0);
   M1[1] := Vector4Single(0, 1, 0, 0);
@@ -544,6 +545,67 @@ begin
 
   MatrixTransposeTo1st(M1);
   Assert(MatricesPerfectlyEqual(M1, M2));
+end;
+
+procedure TTestVectorMath.TestVector3FromStr;
+var
+  V: TVector3Single;
+begin
+  try
+    V := Vector3SingleFromStr('1 2 abc');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  try
+    V := Vector3SingleFromStr('1 2 3 4');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  try
+    V := Vector3SingleFromStr('1 2');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  try
+    V := Vector3SingleFromStr('');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  V := Vector3SingleFromStr('  11       22 ' + NL + ' 33    ');
+  Assert(FloatsEqual(V[0], 11));
+  Assert(FloatsEqual(V[1], 22));
+  Assert(FloatsEqual(V[2], 33));
+end;
+
+procedure TTestVectorMath.TestVector4FromStr;
+var
+  V: TVector4Single;
+begin
+  try
+    V := Vector4SingleFromStr('1 2 3 abc');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  try
+    V := Vector4SingleFromStr('1 2 3 4 5');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  try
+    V := Vector4SingleFromStr('1 2 3');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  try
+    V := Vector4SingleFromStr('');
+    Assert(false, 'Should fail with EConvertError');
+  except on EConvertError do ; end;
+
+  V := Vector4SingleFromStr('  11       22 ' + NL + ' 33    44');
+  Assert(FloatsEqual(V[0], 11));
+  Assert(FloatsEqual(V[1], 22));
+  Assert(FloatsEqual(V[2], 33));
+  Assert(FloatsEqual(V[3], 44));
 end;
 
 initialization
