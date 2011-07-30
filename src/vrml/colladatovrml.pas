@@ -2313,18 +2313,15 @@ begin
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      { First read library_images. These may be referred to inside effects. }
+      { Read library_images. These may be referred to inside effects. }
       LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_images', false);
       if LibraryE <> nil then
         ReadLibraryImages(LibraryE);
 
       { Next read library_effects.
-
         Effects may be referenced by materials,
         and there's no guarantee that library_effects will occur before
-        library_materials. Testcase: COLLLADA 1.4.1 Basic Samples/Cube/cube.dae.
-
-        library_effects is only for Collada >= 1.4.x. }
+        library_materials. Testcase: "COLLLADA 1.4.1 Basic Samples/Cube/cube.dae". }
       LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
       if LibraryE <> nil then
         ReadLibraryEffects(LibraryE);
