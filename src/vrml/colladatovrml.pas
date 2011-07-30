@@ -432,8 +432,76 @@ begin
 end;
 
 type
-  { Collada <p> (indexes inside polygons) }
-  TColladaIndexes = class(TIntegersParser);
+  { Handling Collada <p> (indexes inside polygons) to fill X3D IndexedFaceSet indexes. }
+  TColladaIndexes = class
+  private
+    Ints: TIntegersParser;
+    FIndexedFaceSet: TNodeIndexedFaceSet;
+    FInputsCount, FCoordIndexOffset, FTexCoordIndexOffset, FNormalIndexOffset: Integer;
+  public
+    constructor Create(const IndexedFaceSet: TNodeIndexedFaceSet;
+      const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
+    destructor Destroy; override;
+    procedure BeginElement(const PElement: TDOMElement);
+    function NextVertex: boolean;
+    procedure PolygonEnd;
+  end;
+
+constructor TColladaIndexes.Create(
+  const IndexedFaceSet: TNodeIndexedFaceSet;
+  const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
+begin
+  inherited Create;
+  FIndexedFaceSet := IndexedFaceSet;
+  FInputsCount := InputsCount;
+  FCoordIndexOffset := CoordIndexOffset;
+  FTexCoordIndexOffset := TexCoordIndexOffset;
+  FNormalIndexOffset := NormalIndexOffset;
+end;
+
+procedure TColladaIndexes.BeginElement(const PElement: TDOMElement);
+begin
+  FreeAndNil(Ints);
+  Ints := TIntegersParser.Create(PElement);
+end;
+
+destructor TColladaIndexes.Destroy;
+begin
+  FreeAndNil(Ints);
+  inherited;
+end;
+
+function TColladaIndexes.NextVertex: boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to FInputsCount - 1 do
+  begin
+    if not Ints.GetNext then
+    begin
+      if I <> 0 then
+        OnWarning(wtMajor, 'Collada', 'Indexes in <p> suddenly end, in the middle of a vertex');
+      Exit(false);
+    end;
+
+    if I = FCoordIndexOffset then
+      FIndexedFaceSet.FdCoordIndex.Items.Add(Ints.Current) else
+    if I = FTexCoordIndexOffset then
+      FIndexedFaceSet.FdTexCoordIndex.Items.Add(Ints.Current) else
+    if I = FNormalIndexOffset then
+      FIndexedFaceSet.FdNormalIndex.Items.Add(Ints.Current);
+  end;
+  Result := true;
+end;
+
+procedure TColladaIndexes.PolygonEnd;
+begin
+  FIndexedFaceSet.FdCoordIndex.Items.Add(-1);
+  if FTexCoordIndexOffset <> -1 then
+    FIndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
+  if FNormalIndexOffset <> -1 then
+    FIndexedFaceSet.FdNormalIndex.Items.Add(-1);
+end;
 
 { LoadCollada ---------------------------------------------------------------- }
 
@@ -1179,20 +1247,20 @@ var
         ' with semantic="POSITION" and some source attribute');
     end;
 
-    { Read common things of <polygons> and <polylist> and similar within <mesh>.
-      - Creates IndexedFaceSet, initializes it's coord and some other
-        fiels (but leaves coordIndex, texCoordIndex, normalIndex empty).
+    { Read common things of polygons (<polygons>, <polylist>, <tri*>) within <mesh>.
+      - Creates IndexedFaceSet, initializes it's coordinates
+        and other fiels (but leaves *Index fields empty).
       - Adds it to Geometry.Polys.
-      - Reads <input> children, to calculate InputsCount, and *IndexOffset. }
-    procedure ReadPolyCommon(PolygonsElement: TDOMElement;
-      out IndexedFaceSet: TNodeIndexedFaceSet;
-      out InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
+      - Returns Indexes instance, to parse indexes of this polygon. }
+    function ReadPolyCommon(PolygonsElement: TDOMElement): TColladaIndexes;
     var
       I: TXMLElementFilteringIterator;
       PolygonsCount: Integer;
       InputSemantic, InputSourceId: string;
       Poly: TColladaPoly;
       InputSource: TColladaSource;
+      IndexedFaceSet: TNodeIndexedFaceSet;
+      InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
     begin
       if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
         PolygonsCount := 0;
@@ -1314,165 +1382,85 @@ var
           end;
         end;
       finally FreeAndNil(I) end;
+
+      Result := TColladaIndexes.Create(IndexedFaceSet,
+        InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
     end;
 
     { Read <polygons> within <mesh> }
     procedure ReadPolygons(PolygonsElement: TDOMElement);
     var
-      IndexedFaceSet: TNodeIndexedFaceSet;
-      InputsCount: Integer;
-      CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
-
-      procedure AddPolygon(const PElement: TDOMElement);
-      var
-        CurrentInput: Integer;
-        Indexes: TColladaIndexes;
-      begin
-        CurrentInput := 0;
-
-        Indexes := TColladaIndexes.Create(PElement);
-        try
-          while Indexes.GetNext do
-          begin
-            if CurrentInput = CoordIndexOffset then
-              IndexedFaceSet.FdCoordIndex.Items.Add(Indexes.Current) else
-            if CurrentInput = TexCoordIndexOffset then
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(Indexes.Current) else
-            if CurrentInput = NormalIndexOffset then
-              IndexedFaceSet.FdNormalIndex.Items.Add(Indexes.Current);
-
-            Inc(CurrentInput);
-            if CurrentInput = InputsCount then CurrentInput := 0;
-          end;
-
-          IndexedFaceSet.FdCoordIndex.Items.Add(-1);
-          if TexCoordIndexOffset <> -1 then
-            IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-          if NormalIndexOffset <> -1 then
-            IndexedFaceSet.FdNormalIndex.Items.Add(-1);
-        finally FreeAndNil(Indexes) end;
-      end;
-
-    var
       I: TXMLElementFilteringIterator;
+      Indexes: TColladaIndexes;
     begin
-      ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
-        CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
-
-      I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+      Indexes := ReadPolyCommon(PolygonsElement);
       try
-        while I.GetNext do
-          AddPolygon(I.Current);
-      finally FreeAndNil(I) end;
+        I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+        try
+          while I.GetNext do
+          begin
+            Indexes.BeginElement(I.Current);
+            while Indexes.NextVertex do ;
+            Indexes.PolygonEnd;
+          end;
+        finally FreeAndNil(I) end;
+      finally FreeAndNil(Indexes) end;
     end;
 
     { Read <polylist> within <mesh> }
     procedure ReadPolylist(PolygonsElement: TDOMElement);
     var
-      IndexedFaceSet: TNodeIndexedFaceSet;
-      InputsCount: Integer;
-      CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
       VCountE, P: TDOMElement;
-      CurrentInput, I: Integer;
+      I: Integer;
       Indexes: TColladaIndexes;
       VCount: TIntegersParser;
     begin
-      ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
-        CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
+      Indexes := ReadPolyCommon(PolygonsElement);
+      try
+        VCountE := DOMGetChildElement(PolygonsElement, 'vcount', false);
+        P := DOMGetChildElement(PolygonsElement, 'p', false);
 
-      VCountE := DOMGetChildElement(PolygonsElement, 'vcount', false);
-      P := DOMGetChildElement(PolygonsElement, 'p', false);
-
-      if (VCountE <> nil) and (P <> nil) then
-      begin
-        VCount := TIntegersParser.Create(VCountE);
-        Indexes := TColladaIndexes.Create(P);
-        try
-          { we will parse both VCount and Indexes now, at the same time }
-          while VCount.GetNext do
-          begin
-            CurrentInput := 0;
-
-            for I := 0 to VCount.Current * InputsCount - 1 do
+        if (VCountE <> nil) and (P <> nil) then
+        begin
+          Indexes.BeginElement(P);
+          VCount := TIntegersParser.Create(VCountE);
+          try
+            { we will parse both VCount and Indexes now, at the same time }
+            while VCount.GetNext do
             begin
-              if not Indexes.GetNext then
-              begin
-                OnWarning(wtMinor, 'Collada', 'Unexpected end of <p> data in <polylist>');
-                Exit;
-              end;
-
-              if CurrentInput = CoordIndexOffset then
-                IndexedFaceSet.FdCoordIndex.Items.Add(Indexes.Current) else
-              if CurrentInput = TexCoordIndexOffset then
-                IndexedFaceSet.FdTexCoordIndex.Items.Add(Indexes.Current) else
-              if CurrentInput = NormalIndexOffset then
-                IndexedFaceSet.FdNormalIndex.Items.Add(Indexes.Current);
-
-              Inc(CurrentInput);
-              if CurrentInput = InputsCount then CurrentInput := 0;
+              for I := 0 to VCount.Current - 1 do
+                if not Indexes.NextVertex then
+                begin
+                  OnWarning(wtMinor, 'Collada', 'Unexpected end of <p> data in <polylist>');
+                  Exit;
+                end;
+              Indexes.PolygonEnd;
             end;
-
-            IndexedFaceSet.FdCoordIndex.Items.Add(-1);
-            if TexCoordIndexOffset <> -1 then
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-            if NormalIndexOffset <> -1 then
-              IndexedFaceSet.FdNormalIndex.Items.Add(-1);
-          end;
-        finally
-          FreeAndNil(Indexes);
-          FreeAndNil(VCount);
+          finally FreeAndNil(VCount) end;
         end;
-      end;
+      finally FreeAndNil(Indexes) end;
     end;
 
     { Read <triangles> within <mesh> }
     procedure ReadTriangles(PolygonsElement: TDOMElement);
     var
-      IndexedFaceSet: TNodeIndexedFaceSet;
-      InputsCount: Integer;
-      CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
       P: TDOMElement;
-      CurrentInput, VertexNumber: Integer;
       Indexes: TColladaIndexes;
     begin
-      ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
-        CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
-
-      P := DOMGetChildElement(PolygonsElement, 'p', false);
-      if P <> nil then
-      begin
-        Indexes := TColladaIndexes.Create(P);
-        try
-          CurrentInput := 0;
-          VertexNumber := 0;
-
-          while Indexes.GetNext do
-          begin
-            if CurrentInput = CoordIndexOffset then
-              IndexedFaceSet.FdCoordIndex.Items.Add(Indexes.Current) else
-            if CurrentInput = TexCoordIndexOffset then
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(Indexes.Current) else
-            if CurrentInput = NormalIndexOffset then
-              IndexedFaceSet.FdNormalIndex.Items.Add(Indexes.Current);
-
-            Inc(CurrentInput);
-            if CurrentInput = InputsCount then
-            begin
-              CurrentInput := 0;
-              Inc(VertexNumber);
-              if VertexNumber = 3 then
-              begin
-                VertexNumber := 0;
-                IndexedFaceSet.FdCoordIndex.Items.Add(-1);
-                if TexCoordIndexOffset <> -1 then
-                  IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
-                if NormalIndexOffset <> -1 then
-                  IndexedFaceSet.FdNormalIndex.Items.Add(-1);
-              end;
-            end;
-          end;
-        finally FreeAndNil(Indexes) end;
-      end;
+      Indexes := ReadPolyCommon(PolygonsElement);
+      try
+        P := DOMGetChildElement(PolygonsElement, 'p', false);
+        if P <> nil then
+        begin
+          Indexes.BeginElement(P);
+          repeat
+            if not Indexes.NextVertex then Break;
+            if not Indexes.NextVertex then Break;
+            if not Indexes.NextVertex then Break;
+            Indexes.PolygonEnd;
+          until false;
+        end;
+      finally FreeAndNil(Indexes) end;
     end;
 
   var
