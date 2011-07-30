@@ -2389,7 +2389,7 @@ begin
       begin
         { TODO: uhm, terrible hack... I should move my lazy ass and tokenize
           Version properly. }
-        Version14 := IsPrefix('1.4.', Version);
+        Version14 := IsPrefix('1.4.', Version) or IsPrefix('1.5.', Version);
       end;
 
       if DOMGetAttribute(Doc.DocumentElement, 'base', WWWBasePath) then
