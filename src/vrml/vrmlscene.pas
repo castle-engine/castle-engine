@@ -1068,7 +1068,9 @@ type
     function InfoManifoldAndBorderEdges: string;
 
     { Write contents of all VRML "Info" nodes.
-      Also write how many Info nodes there are in the scene. }
+      Also write how many Info nodes there are in the scene.
+      @deprecated Deprecated: this is useless, info nodes aren't that important,
+      and specific output to StdOut is probably also useless. }     
     procedure WritelnInfoNodes;
 
     { Actual VRML graph defining this VRML scene.
