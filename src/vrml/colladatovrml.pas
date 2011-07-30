@@ -220,6 +220,15 @@ type
     constructor Create;
     destructor Destroy; override;
 
+    { Check components and counts before AssignToVectorXYZ.
+      It @false, a warning is done, and some parameters are adjusted.
+      You can then abort using this vector
+      (if it can be reasonably ignored, e.g. for normals),
+      or try AssignToVectorXYZ anyway
+      (if it's necessary, e.g. when this is for vertex positions). }
+    function CheckXYZ(out XIndex, YIndex, ZIndex: Integer): boolean;
+    function CheckST(out SIndex, TIndex: Integer): boolean;
+
     { Extract from source an array of TVector3Single.
       Params will be checked to contain at least three vector components
       'X', 'Y', 'Z'. (These should be specified in <param name="..." type="float"/>).
@@ -227,13 +236,15 @@ type
       Order of X, Y, Z params (and thus order of components in our Floats)
       may be different, we will reorder them to XYZ anyway.
       This way Collada data may have XYZ or ST in a different order,
-      and this method will reorder this suitable for X3D. }
-    procedure AssignToVectorXYZ(const Value: TDynVector3SingleArray);
+      and this method will reorder this suitable for X3D.
+
+      Returns if components were fully correct (no warnings). }
+    function AssignToVectorXYZ(const Value: TDynVector3SingleArray): boolean;
 
     { Extract from source an array of TVector2Single, for texture coordinates.
       Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'
       (or 'U' and 'V'). }
-    procedure AssignToVectorST(const Value: TDynVector2SingleArray);
+    function AssignToVectorST(const Value: TDynVector2SingleArray): boolean;
   end;
 
 constructor TColladaSource.Create;
@@ -250,33 +261,34 @@ begin
   inherited;
 end;
 
-procedure TColladaSource.AssignToVectorXYZ(const Value: TDynVector3SingleArray);
+function TColladaSource.CheckXYZ(out XIndex, YIndex, ZIndex: Integer): boolean;
 var
-  XIndex, YIndex, ZIndex, I, MinCount: Integer;
+  MinCount: Integer;
 begin
   XIndex := Params.IndexOf('X');
   if XIndex = -1 then
   begin
     OnWarning(wtMajor, 'Collada', 'Missing "X" parameter (for 3D vector) in this <source>');
-    Exit;
+    Exit(false);
   end;
 
   YIndex := Params.IndexOf('Y');
   if YIndex = -1 then
   begin
     OnWarning(wtMajor, 'Collada', 'Missing "Y" parameter (for 3D vector) in this <source>');
-    Exit;
+    Exit(false);
   end;
 
   ZIndex := Params.IndexOf('Z');
   if ZIndex = -1 then
   begin
     OnWarning(wtMajor, 'Collada', 'Missing "Z" parameter (for 3D vector) in this <source>');
-    Exit;
+    Exit(false);
   end;
 
   MinCount := Offset + Stride * (Count - 1) + Max(XIndex, YIndex, ZIndex) + 1;
-  if Floats.Count < MinCount then
+  Result := Floats.Count >= MinCount;
+  if not Result then
   begin
     OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
       [MinCount, Floats.Count]));
@@ -287,7 +299,13 @@ begin
     ZIndex := 2;
     Count := (Floats.Count - Offset) div Stride;
   end;
+end;
 
+function TColladaSource.AssignToVectorXYZ(const Value: TDynVector3SingleArray): boolean;
+var
+  XIndex, YIndex, ZIndex, I: Integer;
+begin
+  Result := CheckXYZ(XIndex, YIndex, ZIndex);
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
@@ -297,9 +315,9 @@ begin
   end;
 end;
 
-procedure TColladaSource.AssignToVectorST(const Value: TDynVector2SingleArray);
+function TColladaSource.CheckST(out SIndex, TIndex: Integer): boolean;
 var
-  SIndex, TIndex, I, MinCount: Integer;
+  MinCount: Integer;
 begin
   SIndex := Params.IndexOf('S');
   if SIndex = -1 then
@@ -308,7 +326,7 @@ begin
     if SIndex = -1 then
     begin
       OnWarning(wtMajor, 'Collada', 'Missing "S" or "U" parameter (1st component of 2D tex coord) in this <source>');
-      Exit;
+      Exit(false);
     end;
   end;
 
@@ -319,12 +337,13 @@ begin
     if TIndex = -1 then
     begin
       OnWarning(wtMajor, 'Collada', 'Missing "T" or "V" parameter (2nd component of 2D tex coord) in this <source>');
-      Exit;
+      Exit(false);
     end;
   end;
 
   MinCount := Offset + Stride * (Count - 1) + Max(SIndex, TIndex) + 1;
-  if Floats.Count < MinCount then
+  Result := Floats.Count >= MinCount;
+  if not Result then
   begin
     OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
       [MinCount, Floats.Count]));
@@ -334,7 +353,13 @@ begin
     TIndex := 1;
     Count := (Floats.Count - Offset) div Stride;
   end;
+end;
 
+function TColladaSource.AssignToVectorST(const Value: TDynVector2SingleArray): boolean;
+var
+  SIndex, TIndex, I: Integer;
+begin
+  Result := CheckST(SIndex, TIndex);
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
@@ -1011,6 +1036,8 @@ var
     { Collada coordinates.
       Based on <source> indicated by last <vertices> element. }
     Coord: TNodeCoordinate;
+    { Assigning to Coord using AssignToVectorXYZ went without trouble. }
+    CoordCorrect: boolean;
 
     { Collada texture coords used by last polygon.
       Based on <source> indicated by <input semantic="TEXCOORD"> element within
@@ -1039,6 +1066,7 @@ var
         Id := '';
 
       Coord := TNodeCoordinate.Create(Id, WWWBasePath);
+      CoordCorrect := true;
 
       I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
       try
@@ -1052,7 +1080,7 @@ var
             InputSource := Sources.Find(InputSourceName);
             if InputSource <> nil then
             begin
-              InputSource.AssignToVectorXYZ(Coord.FdPoint.Items);
+              CoordCorrect := InputSource.AssignToVectorXYZ(Coord.FdPoint.Items);
               Exit;
             end else
             begin
@@ -1140,6 +1168,10 @@ var
             begin
               DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset);
 
+              { In case of trouble with coordinates, don't use texCoord,
+                they may be invalid (this is for invalid Blender 1.3 exporter) }
+              if not CoordCorrect then Continue;
+
               if DOMGetAttribute(I.Current, 'source', InputSourceId) then
               begin
                 if SCharIs(InputSourceId, 1, '#') then
@@ -1167,6 +1199,10 @@ var
             if InputSemantic = 'NORMAL' then
             begin
               DOMGetIntegerAttribute(I.Current, 'offset', NormalIndexOffset);
+
+              { In case of trouble with coordinates, don't use normals,
+                they may be invalid (this is for invalid Blender 1.3 exporter) }
+              if not CoordCorrect then Continue;
 
               if DOMGetAttribute(I.Current, 'source', InputSourceId) then
               begin
