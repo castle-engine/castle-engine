@@ -4608,7 +4608,7 @@ begin
   end else
   begin
     Position := Box3DMiddle(Box);
-    Offset := 1.5 * Box3DAvgSize(Box);
+    Offset := 2 * Box3DAvgSize(Box);
 
     if WantedDirectionPositive then
       Position[WantedDirection] := Box[0, WantedDirection] - Offset else
