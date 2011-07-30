@@ -25,11 +25,10 @@ uses VRMLNodes;
 { Load Collada file as X3D.
 
   Written based on Collada 1.3.1 and 1.4.1 specifications.
-  Should handle any Collada 1.3.x or 1.4.x version.
+  Should handle any Collada 1.3.x or 1.4.x or 1.5.x version.
   http://www.gamasutra.com/view/feature/1580/introduction_to_collada.php?page=6
   suggests that "specification stayed quite stable between 1.1 and 1.3.1",
   which means that older versions (< 1.3.1) may be handled too.
-  TODO: test on Collada 1.5.
 
   @param(AllowKambiExtensions If @true we may use some of our engine specific
     extensions. For example, Material.mirror may be <> 0,
