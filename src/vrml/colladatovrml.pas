@@ -527,7 +527,7 @@ procedure TColladaIndexes.AddVertex(const Index: TIndex);
 begin
   FIndexedFaceSet.FdCoordIndex.Items.Add(Index.Coord);
   if FTexCoordIndexOffset <> -1 then
-    FIndexedFaceSet.FdTexCoordIndex.Items.Add(Index.TexCoord) else
+    FIndexedFaceSet.FdTexCoordIndex.Items.Add(Index.TexCoord);
   if FNormalIndexOffset <> -1 then
     FIndexedFaceSet.FdNormalIndex.Items.Add(Index.Normal);
 end;
