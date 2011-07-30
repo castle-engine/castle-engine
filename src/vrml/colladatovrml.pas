@@ -561,9 +561,10 @@ var
     var
       Image: TNodeX3DTextureNode;
       TechniqueChild: TDOMElement;
-      TransparencyColor: TVector3Single;
       I: TXMLElementIterator;
       DiffuseTextureName, DiffuseTexCoordName: string;
+      Transparency: Single;
+      HasTransparency: boolean;
     begin
       { We actually treat <phong> and <blinn> and even <lambert> elements the same.
         X3D lighting equations specify that always Blinn
@@ -578,8 +579,15 @@ var
 
       if TechniqueChild <> nil then
       begin
-        { Initialize, in case no <transparent> child. }
-        TransparencyColor := ZeroVector3Single;
+        { <transparent> (color) and <transparency> (float) should
+          be multiplied with each other. So says the Collada spec
+          ("Determining Transparency (Opacity)" in Chapter 7,
+          and forum https://collada.org/public_forum/viewtopic.php?t=386).
+          When only one is specified, the other is like 1.
+          However, when neither one is specified, we obviously want to leave
+          the model opaque (transparency = 0) so we need boolean HasTransparency. }
+        Transparency := 1;
+        HasTransparency := false;
 
         I := TXMLElementIterator.Create(TechniqueChild);
         try
@@ -618,28 +626,22 @@ var
                 ReadFloatOrParam(I.Current);
             end else
             if I.Current.TagName = 'transparent' then
-              TransparencyColor := ReadColor(I.Current) else
+            begin
+              Transparency *= VectorAverage(ReadColor(I.Current));
+              HasTransparency := true;
+            end else
             if I.Current.TagName = 'transparency' then
-              Mat.FdTransparency.Value := ReadFloatOrParam(I.Current) else
+            begin
+              Transparency *= ReadFloatOrParam(I.Current);
+              HasTransparency := true;
+            end else
             if I.Current.TagName = 'index_of_refraction' then
               {Mat.FdIndexOfRefraction.Value := } ReadFloatOrParam(I.Current);
           end;
         finally FreeAndNil(I) end;
 
-        { Collada says (e.g.
-          https://collada.org/public_forum/viewtopic.php?t=386)
-          to multiply TransparencyColor by Transparency.
-          Although I do not handle TransparencyColor, I still have to do
-          this, as there are many models with Transparency = 1 and
-          TransparencyColor = (0, 0, 0). }
-        Mat.FdTransparency.Value :=
-          Mat.FdTransparency.Value * VectorAverage(TransparencyColor);
-
-        { make sure to not mistakenly use blending on model that should
-          be opaque, but has Effect.FdTransparency.Value = some small
-          epsilon, due to numeric errors in above multiply. }
-        if Zero(Mat.FdTransparency.Value) then
-          Mat.FdTransparency.Value := 0.0;
+        if HasTransparency then
+          Mat.FdTransparency.Value := Transparency;
       end;
     end;
 
