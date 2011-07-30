@@ -1689,8 +1689,9 @@ var
             if I.Current.TagName = 'lines' then
               ReadLines(I.Current) else
             if I.Current.TagName = 'linestrips' then
-              ReadLineStrips(I.Current);
-              { other I.Current.TagName not supported for now }
+              ReadLineStrips(I.Current) else
+              OnWarning(wtMajor, 'Collada', Format('Element "%s" within <mesh> not supported',
+                [I.Current.TagName]));
         finally FreeAndNil(I) end;
       finally
         FreeAndNil(Sources);
