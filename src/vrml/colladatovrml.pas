@@ -914,6 +914,35 @@ var
 
     Sources: TColladaSourcesList;
 
+    { Read "double sided" geometry property.
+
+      There is no standard for this it seems, only some special MAYA markers:
+      <extra><technique profile="MAYA"><double_sided>1</double_sided></technique></extra>
+      Blender Collada 1.4 exporter, as well as various models from collada.org/owl
+      use this, so it seems like a standard in practice. }
+    function ReadDoubleSided(GeometryE: TDOMElement): boolean;
+    var
+      Child: TDOMElement;
+      Profile: string;
+    begin
+      Result := false;
+
+      Child := DOMGetChildElement(GeometryE, 'extra', false);
+      if Child = nil then Exit;
+
+      Child := DOMGetChildElement(Child, 'technique', false);
+      if Child = nil then Exit;
+
+      if not (DOMGetAttribute(Child, 'profile', Profile) and
+              (Profile = 'MAYA')) then
+        Exit;
+
+      Child := DOMGetChildElement(Child, 'double_sided', false);
+      if Child = nil then Exit;
+
+      Result := StrToIntDef(DOMGetTextData(Child), 0) <> 0;
+    end;
+
     { Read <source> within <mesh>. }
     procedure ReadSource(SourceElement: TDOMElement);
     var
@@ -1049,6 +1078,9 @@ var
       polygon. NodeName corresponds to <source> id. }
     LastNormal: TNodeNormal;
 
+    { DoubleSided, should be used by all ReadPoly* to set X3D solid field. }
+    DoubleSided: boolean;
+
     { Read <vertices> within <mesh> }
     procedure ReadVertices(VerticesElement: TDOMElement);
     var
@@ -1121,10 +1153,9 @@ var
         { There may be multiple <polylist> inside a single Collada <geometry> node,
           so use Geometry.Polys.Count to name them uniquely for X3D. }
         [Geometry.Name, Geometry.Polys.Count]), WWWBasePath);
-      IndexedFaceSet.FdSolid.Value := false;
+      IndexedFaceSet.FdSolid.Value := not DoubleSided;
       { For VRML >= 2.0, creaseAngle is 0 by default.
-        But, since I currently ignore normals in Collada file, it's better
-        to have some non-zero creaseAngle by default. }
+        TODO: what is the default normal generation for Collada? }
       IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
       IndexedFaceSet.FdCoord.Value := Coord;
 
@@ -1408,6 +1439,8 @@ var
   begin
     if not DOMGetAttribute(GeometryElement, 'id', GeometryId) then
       GeometryId := '';
+
+    DoubleSided := ReadDoubleSided(GeometryElement);
 
     Geometry := TColladaGeometry.Create;
     Geometry.Name := GeometryId;
