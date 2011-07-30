@@ -104,22 +104,23 @@ begin
 end;
 
 type
-  { Represents Collada <polylist> or <polygons> (item read by ReadPolyCommon),
-    which are X3D IndexedFaceSet with a material name. }
-  TColladaPoly = class
-    { Collada material name (from <polylist> "material" attribute).
+  { Collada primitive (item handled by ReadPrimitiveCommon,
+    from <poly*> or <tri*> or <lines*> elements within <mesh>),
+    which are X3D geometries with a material name. }
+  TColladaPrimitive = class
+    { Collada material name (from "material" attribute of primitive element).
       For Collada 1.3.x, this is just a name of material in material library.
       For Collada 1.4.x, when instantiating geometry you specify which material
       name (inside geometry) corresponds to which material name on Materials
       list. }
     Material: string;
-    X3DGeometry: TNodeIndexedFaceSet;
+    X3DGeometry: TVRMLGeometryNode;
     destructor Destroy; override;
   end;
 
-  TColladaPolysList = specialize TFPGObjectList<TColladaPoly>;
+  TColladaPrimitivesList = specialize TFPGObjectList<TColladaPrimitive>;
 
-destructor TColladaPoly.Destroy;
+destructor TColladaPrimitive.Destroy;
 begin
   FreeIfUnusedAndNil(X3DGeometry);
   inherited;
@@ -129,19 +130,19 @@ type
   TColladaGeometry = class
     { Collada geometry id. }
     Name: string;
-    Polys: TColladaPolysList;
+    Primitives: TColladaPrimitivesList;
     constructor Create;
     destructor Destroy; override;
   end;
 
 constructor TColladaGeometry.Create;
 begin
-  Polys := TColladaPolysList.Create;
+  Primitives := TColladaPrimitivesList.Create;
 end;
 
 destructor TColladaGeometry.Destroy;
 begin
-  FreeAndNil(Polys);
+  FreeAndNil(Primitives);
   inherited;
 end;
 
@@ -437,7 +438,7 @@ type
     and Normal is relevant only if NormalIndexOffset <> -1). }
   TIndex = record Coord, TexCoord, Normal: Integer end;
 
-  { Handling Collada <p> (indexes inside polygons) to fill X3D IndexedFaceSet indexes. }
+  { Handling Collada <p> (indexes inside primitives) to fill X3D IndexedFaceSet indexes. }
   TColladaIndexes = class
   private
     Ints: TIntegersParser;
@@ -1074,7 +1075,7 @@ var
   { Read <geometry>. It is added to the Geometries list. }
   procedure ReadGeometry(GeometryElement: TDOMElement);
   var
-    { Collada Geometry constructed, available to all ReadPoly* local procedures. }
+    { Collada Geometry constructed, available to all Read* primitives local procedures. }
     Geometry: TColladaGeometry;
 
     Sources: TColladaSourcesList;
@@ -1223,8 +1224,8 @@ var
   var
     { We take care to share coordinates, tex coordinates and normal vectors,
       so that they are stored efficiently in memory and can be saved using
-      X3D DEF/USE mechanism. Coordinates are always shared by all polygons
-      within the geometry. Each polygon may potentially have different tex coords
+      X3D DEF/USE mechanism. Coordinates are always shared by all primitives
+      within the geometry. Each primitive may potentially have different tex coords
       or normals arrays, or they may share the same. }
 
     { Collada coordinates.
@@ -1233,17 +1234,17 @@ var
     { Assigning to Coord using AssignToVectorXYZ went without trouble. }
     CoordCorrect: boolean;
 
-    { Collada texture coords used by last polygon.
+    { Collada texture coords used by last primitive.
       Based on <source> indicated by <input semantic="TEXCOORD"> element within
-      polygon. NodeName corresponds to <source> id. }
+      primitive. NodeName corresponds to <source> id. }
     LastTexCoord: TNodeTextureCoordinate;
 
-    { Collada normal used by last polygon.
+    { Collada normal used by last primitive.
       Based on <source> indicated by <input semantic="NORMAL"> element within
-      polygon. NodeName corresponds to <source> id. }
+      primitive. NodeName corresponds to <source> id. }
     LastNormal: TNodeNormal;
 
-    { DoubleSided, should be used by all ReadPoly* to set X3D solid field. }
+    { DoubleSided, should be used by ReadPrimitiveCommon to set X3D solid field. }
     DoubleSided: boolean;
 
     { Read <vertices> within <mesh> }
@@ -1292,53 +1293,49 @@ var
         ' with semantic="POSITION" and some source attribute');
     end;
 
-    { Read common things of polygons (<polygons>, <polylist>, <tri*>) within <mesh>.
+    { Read common things of primitive (<poly*>, <tri*>, <lines*>) within <mesh>.
       - Creates IndexedFaceSet, initializes it's coordinates
         and other fiels (but leaves *Index fields empty).
-      - Adds it to Geometry.Polys.
-      - Returns Indexes instance, to parse indexes of this polygon. }
-    function ReadPolyCommon(PolygonsElement: TDOMElement): TColladaIndexes;
+      - Adds it to Geometry.Primitives.
+      - Returns Indexes instance, to parse indexes of this primitive. }
+    function ReadPrimitiveCommon(PrimitiveE: TDOMElement): TColladaIndexes;
     var
       I: TXMLElementFilteringIterator;
-      PolygonsCount: Integer;
       InputSemantic, InputSourceId: string;
-      Poly: TColladaPoly;
+      Primitive: TColladaPrimitive;
       InputSource: TColladaSource;
       IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
     begin
-      if not DOMGetIntegerAttribute(PolygonsElement, 'count', PolygonsCount) then
-        PolygonsCount := 0;
-
       CoordIndexOffset := 0;
       TexCoordIndexOffset := -1;
       NormalIndexOffset := -1;
 
-      IndexedFaceSet := TNodeIndexedFaceSet.Create(Format('%s_collada_poly_%d',
-        { There may be multiple <polylist> inside a single Collada <geometry> node,
-          so use Geometry.Polys.Count to name them uniquely for X3D. }
-        [Geometry.Name, Geometry.Polys.Count]), WWWBasePath);
+      IndexedFaceSet := TNodeIndexedFaceSet.Create(Format('%s_collada_primitive_%d',
+        { There may be multiple primitives inside a single Collada <geometry> node,
+          so use Geometry.Primitives.Count to name them uniquely for X3D. }
+        [Geometry.Name, Geometry.Primitives.Count]), WWWBasePath);
       IndexedFaceSet.FdSolid.Value := not DoubleSided;
       { For VRML >= 2.0, creaseAngle is 0 by default.
         TODO: what is the default normal generation for Collada? }
       IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
       IndexedFaceSet.FdCoord.Value := Coord;
 
-      Poly := TColladaPoly.Create;
-      Poly.X3DGeometry := IndexedFaceSet;
-      Geometry.Polys.Add(Poly);
+      Primitive := TColladaPrimitive.Create;
+      Primitive.X3DGeometry := IndexedFaceSet;
+      Geometry.Primitives.Add(Primitive);
 
-      if DOMGetAttribute(PolygonsElement, 'material', Poly.Material) then
+      if DOMGetAttribute(PrimitiveE, 'material', Primitive.Material) then
       begin
         { Collada 1.4.1 spec says that this is just material name.
           Collada 1.3.1 spec says that this is URL. }
-        if (not Version14) and SCharIs(Poly.Material, 1, '#') then
-          Delete(Poly.Material, 1, 1);
-      end; { else leave Poly.Material as '' }
+        if (not Version14) and SCharIs(Primitive.Material, 1, '#') then
+          Delete(Primitive.Material, 1, 1);
+      end; { else leave Primitive.Material as '' }
 
       InputsCount := 0;
 
-      I := TXMLElementFilteringIterator.Create(PolygonsElement, 'input');
+      I := TXMLElementFilteringIterator.Create(PrimitiveE, 'input');
       try
         while I.GetNext do
         begin
@@ -1352,9 +1349,7 @@ var
               if not (DOMGetAttribute(I.Current, 'source', InputSourceId) and
                       (Coord <> nil) and
                       (InputSourceId = '#' + Coord.NodeName))  then
-                OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" ' +
-                  '(of <polygons> element within <mesh>) does not reference ' +
-                  '<vertices> element within the same <mesh>');
+                OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" (of primitive element within <mesh>) does not reference <vertices> element within the same <mesh>');
 
               { Collada requires offset in this case.
                 For us, if there's no offset, just leave CoordIndexOffset default. }
@@ -1433,14 +1428,14 @@ var
     end;
 
     { Read <polygons> within <mesh> }
-    procedure ReadPolygons(PolygonsElement: TDOMElement);
+    procedure ReadPolygons(PrimitiveE: TDOMElement);
     var
       I: TXMLElementFilteringIterator;
       Indexes: TColladaIndexes;
     begin
-      Indexes := ReadPolyCommon(PolygonsElement);
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
       try
-        I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+        I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
         try
           while I.GetNext do
           begin
@@ -1453,17 +1448,17 @@ var
     end;
 
     { Read <polylist> within <mesh> }
-    procedure ReadPolylist(PolygonsElement: TDOMElement);
+    procedure ReadPolylist(PrimitiveE: TDOMElement);
     var
       VCountE, P: TDOMElement;
       I: Integer;
       Indexes: TColladaIndexes;
       VCount: TIntegersParser;
     begin
-      Indexes := ReadPolyCommon(PolygonsElement);
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
       try
-        VCountE := DOMGetChildElement(PolygonsElement, 'vcount', false);
-        P := DOMGetChildElement(PolygonsElement, 'p', false);
+        VCountE := DOMGetChildElement(PrimitiveE, 'vcount', false);
+        P := DOMGetChildElement(PrimitiveE, 'p', false);
 
         if (VCountE <> nil) and (P <> nil) then
         begin
@@ -1487,14 +1482,14 @@ var
     end;
 
     { Read <triangles> within <mesh> }
-    procedure ReadTriangles(PolygonsElement: TDOMElement);
+    procedure ReadTriangles(PrimitiveE: TDOMElement);
     var
       P: TDOMElement;
       Indexes: TColladaIndexes;
     begin
-      Indexes := ReadPolyCommon(PolygonsElement);
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
       try
-        P := DOMGetChildElement(PolygonsElement, 'p', false);
+        P := DOMGetChildElement(PrimitiveE, 'p', false);
         if P <> nil then
         begin
           Indexes.BeginElement(P);
@@ -1509,15 +1504,15 @@ var
     end;
 
     { Read <trifans> within <mesh> }
-    procedure ReadTriFans(PolygonsElement: TDOMElement);
+    procedure ReadTriFans(PrimitiveE: TDOMElement);
     var
       I: TXMLElementFilteringIterator;
       Indexes: TColladaIndexes;
       Vertex1, Vertex2, VertexPrevious, VertexNext: TIndex;
     begin
-      Indexes := ReadPolyCommon(PolygonsElement);
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
       try
-        I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+        I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
         try
           while I.GetNext do
           begin
@@ -1545,16 +1540,16 @@ var
     end;
 
     { Read <tristrips> within <mesh> }
-    procedure ReadTriStrips(PolygonsElement: TDOMElement);
+    procedure ReadTriStrips(PrimitiveE: TDOMElement);
     var
       I: TXMLElementFilteringIterator;
       Indexes: TColladaIndexes;
       Vertex1, Vertex2, Vertex3, VertexNext: TIndex;
       Turn: boolean;
     begin
-      Indexes := ReadPolyCommon(PolygonsElement);
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
       try
-        I := TXMLElementFilteringIterator.Create(PolygonsElement, 'p');
+        I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
         try
           while I.GetNext do
           begin
@@ -1795,15 +1790,15 @@ var
     var
       Shape: TNodeShape;
       I: Integer;
-      Poly: TColladaPoly;
+      Primitive: TColladaPrimitive;
     begin
-      for I := 0 to Geometry.Polys.Count - 1 do
+      for I := 0 to Geometry.Primitives.Count - 1 do
       begin
-        Poly := Geometry.Polys[I];
+        Primitive := Geometry.Primitives[I];
         Shape := TNodeShape.Create('', WWWBasePath);
         Group.FdChildren.Add(Shape);
-        Shape.FdGeometry.Value := Poly.X3DGeometry;
-        Shape.Appearance := MaterialToX3D(Poly.Material, InstantiatingElement);
+        Shape.FdGeometry.Value := Primitive.X3DGeometry;
+        Shape.Appearance := MaterialToX3D(Primitive.Material, InstantiatingElement);
       end;
     end;
 
