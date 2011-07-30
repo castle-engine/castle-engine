@@ -2167,9 +2167,9 @@ var
     Point: TNodePointLight;
     Directional: TNodeDirectionalLight;
     Spot: TNodeSpotLight;
-    Id: string;
-    TechniqueE, LightE: TDOMElement;
-    FalloffAngle: Float;
+    Id, Profile: string;
+    TechniqueE, LightE, ExtraE: TDOMElement;
+    FalloffAngle, Radius: Float;
     LightColor: TVector3Single;
   begin
     I := TXMLElementFilteringIterator.Create(LibraryE, 'light');
@@ -2220,7 +2220,6 @@ var
                       intensity = 0 (this scales diffuse and specular to zero). }
                     Point.FdIntensity.Value := 0;
                     Point.FdAmbientIntensity.Value := 1;
-                    Point.FdRadius.Value := MaxSingle;
                     Light := Point;
                   end else
                     OnWarning(wtMinor, 'Collada', 'No supported light inside <technique_common>');
@@ -2235,6 +2234,21 @@ var
             Light.FdGlobal.Value := true;
             if ReadChildVector(LightE, 'color', LightColor) then
               Light.FdColor.Value := LightColor;
+            if Light is TVRMLPositionalLightNode then
+            begin
+              { calculate light radius }
+              Radius := MaxSingle;
+              ExtraE := DOMGetChildElement(I.Current, 'extra', false);
+              if ExtraE <> nil then
+              begin
+                TechniqueE := DOMGetChildElement(ExtraE, 'technique', false);
+                if (TechniqueE <> nil) and
+                   DOMGetAttribute(TechniqueE, 'profile', Profile) and
+                   (Profile = 'blender') then
+                  ReadChildFloat(TechniqueE, 'dist', Radius);
+              end;
+              TVRMLPositionalLightNode(Light).FdRadius.Value := Radius;
+            end;
             Lights.Add(Light);
           end;
         end;
