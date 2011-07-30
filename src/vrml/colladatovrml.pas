@@ -438,14 +438,16 @@ type
     and Normal is relevant only if NormalIndexOffset <> -1). }
   TIndex = record Coord, TexCoord, Normal: Integer end;
 
-  { Handling Collada <p> (indexes inside primitives) to fill X3D IndexedFaceSet indexes. }
+  { Handling Collada <p> (indexes inside primitives) to fill X3D geometry indexes.
+    Accepted geometry types are TNodeIndexedFaceSet and TNodeIndexedLineSet,
+    as only such may be created for Collada primitives. }
   TColladaIndexes = class
   private
     Ints: TIntegersParser;
-    FIndexedFaceSet: TNodeIndexedFaceSet;
+    FGeometry: TVRMLGeometryNode;
     FInputsCount, FCoordIndexOffset, FTexCoordIndexOffset, FNormalIndexOffset: Integer;
   public
-    constructor Create(const IndexedFaceSet: TNodeIndexedFaceSet;
+    constructor Create(const Geometry: TVRMLGeometryNode;
       const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
     destructor Destroy; override;
     procedure BeginElement(const PElement: TDOMElement);
@@ -457,11 +459,11 @@ type
   end;
 
 constructor TColladaIndexes.Create(
-  const IndexedFaceSet: TNodeIndexedFaceSet;
+  const Geometry: TVRMLGeometryNode;
   const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
 begin
   inherited Create;
-  FIndexedFaceSet := IndexedFaceSet;
+  FGeometry := Geometry;
   FInputsCount := InputsCount;
   FCoordIndexOffset := CoordIndexOffset;
   FTexCoordIndexOffset := TexCoordIndexOffset;
@@ -525,11 +527,18 @@ end;
 
 procedure TColladaIndexes.AddVertex(const Index: TIndex);
 begin
-  FIndexedFaceSet.FdCoordIndex.Items.Add(Index.Coord);
-  if FTexCoordIndexOffset <> -1 then
-    FIndexedFaceSet.FdTexCoordIndex.Items.Add(Index.TexCoord);
-  if FNormalIndexOffset <> -1 then
-    FIndexedFaceSet.FdNormalIndex.Items.Add(Index.Normal);
+  if FGeometry is TNodeIndexedFaceSet then
+  begin
+    TNodeIndexedFaceSet(FGeometry).FdCoordIndex.Items.Add(Index.Coord);
+    if FTexCoordIndexOffset <> -1 then
+      TNodeIndexedFaceSet(FGeometry).FdTexCoordIndex.Items.Add(Index.TexCoord);
+    if FNormalIndexOffset <> -1 then
+      TNodeIndexedFaceSet(FGeometry).FdNormalIndex.Items.Add(Index.Normal);
+  end else
+  begin
+    Assert(FGeometry is TNodeIndexedLineSet);
+    TNodeIndexedLineSet(FGeometry).FdCoordIndex.Items.Add(Index.Coord);
+  end;
 end;
 
 procedure TColladaIndexes.PolygonEnd;
@@ -1294,36 +1303,51 @@ var
     end;
 
     { Read common things of primitive (<poly*>, <tri*>, <lines*>) within <mesh>.
-      - Creates IndexedFaceSet, initializes it's coordinates
+      - Creates X3D geometry node, initializes it's coordinates
         and other fiels (but leaves *Index fields empty).
       - Adds it to Geometry.Primitives.
       - Returns Indexes instance, to parse indexes of this primitive. }
     function ReadPrimitiveCommon(PrimitiveE: TDOMElement): TColladaIndexes;
     var
       I: TXMLElementFilteringIterator;
-      InputSemantic, InputSourceId: string;
+      InputSemantic, InputSourceId, X3DGeometryName: string;
       Primitive: TColladaPrimitive;
       InputSource: TColladaSource;
       IndexedFaceSet: TNodeIndexedFaceSet;
+      IndexedLineSet: TNodeIndexedLineSet;
       InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
     begin
       CoordIndexOffset := 0;
       TexCoordIndexOffset := -1;
       NormalIndexOffset := -1;
 
-      IndexedFaceSet := TNodeIndexedFaceSet.Create(Format('%s_collada_primitive_%d',
+      Primitive := TColladaPrimitive.Create;
+      Geometry.Primitives.Add(Primitive);
+
+      IndexedFaceSet := nil;
+      IndexedLineSet := nil;
+
+      X3DGeometryName := Format('%s_collada_primitive_%d',
         { There may be multiple primitives inside a single Collada <geometry> node,
           so use Geometry.Primitives.Count to name them uniquely for X3D. }
-        [Geometry.Name, Geometry.Primitives.Count]), WWWBasePath);
-      IndexedFaceSet.FdSolid.Value := not DoubleSided;
-      { For VRML >= 2.0, creaseAngle is 0 by default.
-        TODO: what is the default normal generation for Collada? }
-      IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
-      IndexedFaceSet.FdCoord.Value := Coord;
+        [Geometry.Name, Geometry.Primitives.Count]);
 
-      Primitive := TColladaPrimitive.Create;
-      Primitive.X3DGeometry := IndexedFaceSet;
-      Geometry.Primitives.Add(Primitive);
+      if (PrimitiveE.TagName = 'lines') or
+         (PrimitiveE.TagName = 'linestrips') then
+      begin
+        IndexedLineSet := TNodeIndexedLineSet.Create(X3DGeometryName, WWWBasePath);
+        IndexedLineSet.FdCoord.Value := Coord;
+        Primitive.X3DGeometry := IndexedLineSet;
+      end else
+      begin
+        IndexedFaceSet := TNodeIndexedFaceSet.Create(X3DGeometryName, WWWBasePath);
+        IndexedFaceSet.FdSolid.Value := not DoubleSided;
+        { For VRML >= 2.0, creaseAngle is 0 by default.
+          TODO: what is the default normal generation for Collada? }
+        IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+        IndexedFaceSet.FdCoord.Value := Coord;
+        Primitive.X3DGeometry := IndexedFaceSet;
+      end;
 
       if DOMGetAttribute(PrimitiveE, 'material', Primitive.Material) then
       begin
@@ -1359,9 +1383,10 @@ var
             begin
               DOMGetIntegerAttribute(I.Current, 'offset', TexCoordIndexOffset);
 
-              { In case of trouble with coordinates, don't use texCoord,
+              { Only for IndexedFaceSet.
+                In case of trouble with coordinates, don't use texCoord,
                 they may be invalid (this is for invalid Blender 1.3 exporter) }
-              if not CoordCorrect then Continue;
+              if (IndexedFaceSet = nil) or (not CoordCorrect) then Continue;
 
               if DOMGetAttribute(I.Current, 'source', InputSourceId) then
               begin
@@ -1391,9 +1416,10 @@ var
             begin
               DOMGetIntegerAttribute(I.Current, 'offset', NormalIndexOffset);
 
-              { In case of trouble with coordinates, don't use normals,
+              { Only for IndexedFaceSet.
+                In case of trouble with coordinates, don't use normals,
                 they may be invalid (this is for invalid Blender 1.3 exporter) }
-              if not CoordCorrect then Continue;
+              if (IndexedFaceSet = nil) or (not CoordCorrect) then Continue;
 
               if DOMGetAttribute(I.Current, 'source', InputSourceId) then
               begin
@@ -1423,7 +1449,7 @@ var
         end;
       finally FreeAndNil(I) end;
 
-      Result := TColladaIndexes.Create(IndexedFaceSet,
+      Result := TColladaIndexes.Create(Primitive.X3DGeometry,
         InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
     end;
 
@@ -1580,6 +1606,48 @@ var
       finally FreeAndNil(Indexes) end;
     end;
 
+    { Read <lines> within <mesh> }
+    procedure ReadLines(PrimitiveE: TDOMElement);
+    var
+      P: TDOMElement;
+      Indexes: TColladaIndexes;
+    begin
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
+      try
+        P := DOMGetChildElement(PrimitiveE, 'p', false);
+        if P <> nil then
+        begin
+          Indexes.BeginElement(P);
+          repeat
+            if not Indexes.ReadAddVertex then Break;
+            if not Indexes.ReadAddVertex then Break;
+            Indexes.PolygonEnd;
+          until false;
+        end;
+      finally FreeAndNil(Indexes) end;
+    end;
+
+    { TODO: <linestrips> should work fine, but untested }
+    { Read <linestrips> within <mesh> }
+    procedure ReadLineStrips(PrimitiveE: TDOMElement);
+    var
+      I: TXMLElementFilteringIterator;
+      Indexes: TColladaIndexes;
+    begin
+      Indexes := ReadPrimitiveCommon(PrimitiveE);
+      try
+        I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
+        try
+          while I.GetNext do
+          begin
+            Indexes.BeginElement(I.Current);
+            while Indexes.ReadAddVertex do ;
+            Indexes.PolygonEnd;
+          end;
+        finally FreeAndNil(I) end;
+      finally FreeAndNil(Indexes) end;
+    end;
+
   var
     Mesh: TDOMElement;
     I: TXMLElementIterator;
@@ -1617,7 +1685,11 @@ var
             if I.Current.TagName = 'trifans' then
               ReadTriFans(I.Current) else
             if I.Current.TagName = 'tristrips' then
-              ReadTriStrips(I.Current);
+              ReadTriStrips(I.Current) else
+            if I.Current.TagName = 'lines' then
+              ReadLines(I.Current) else
+            if I.Current.TagName = 'linestrips' then
+              ReadLineStrips(I.Current);
               { other I.Current.TagName not supported for now }
         finally FreeAndNil(I) end;
       finally
