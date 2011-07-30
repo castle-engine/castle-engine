@@ -386,18 +386,54 @@ begin
 end;
 
 type
-  { Handle Collada <p> (indexes inside polygons) }
-  TColladaIndexes = class
+  { Parse a sequence of integeres inside a string inside an XML element. }
+  TIntegersParser = class
   private
     Content: string;
+    FCurrent: Int64;
+    SeekPos: Integer;
+    Ended: boolean;
   public
     constructor Create(const PElement: TDOMElement);
+    function GetNext: boolean;
+    property Current: Int64 read FCurrent;
   end;
 
-constructor TColladaIndexes.Create(const PElement: TDOMElement);
+constructor TIntegersParser.Create(const PElement: TDOMElement);
 begin
+  inherited Create;
   Content := DOMGetTextData(PElement);
+  SeekPos := 1;
 end;
+
+function TIntegersParser.GetNext: boolean;
+var
+  Token: string;
+begin
+  if Ended then Exit(false);
+
+  Token := NextToken(Content, SeekPos);
+  if Token = '' then
+  begin
+    Ended := true;
+    Result := false;
+  end else
+  try
+    FCurrent := StrToInt(Token);
+    Result := true;
+  except
+    on E: EConvertError do
+    begin
+      OnWarning(wtMajor, 'Collada', 'Invalid integer: ' + E.Message);
+      Ended := true; { don't read further }
+      Result := false;
+    end;
+  end;
+end;
+
+type
+  { Collada <p> (indexes inside polygons) }
+  TColladaIndexes = class(TIntegersParser);
 
 { LoadCollada ---------------------------------------------------------------- }
 
@@ -1289,30 +1325,25 @@ var
 
       procedure AddPolygon(const PElement: TDOMElement);
       var
-        SeekPos, Index, CurrentInput: Integer;
-        Token: string;
+        CurrentInput: Integer;
         Indexes: TColladaIndexes;
       begin
         CurrentInput := 0;
-        SeekPos := 1;
 
         Indexes := TColladaIndexes.Create(PElement);
         try
-          repeat
-            Token := NextToken(Indexes.Content, SeekPos);
-            if Token = '' then Break;
-            Index := StrToInt(Token);
-
+          while Indexes.GetNext do
+          begin
             if CurrentInput = CoordIndexOffset then
-              IndexedFaceSet.FdCoordIndex.Items.Add(Index) else
+              IndexedFaceSet.FdCoordIndex.Items.Add(Indexes.Current) else
             if CurrentInput = TexCoordIndexOffset then
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(Index) else
+              IndexedFaceSet.FdTexCoordIndex.Items.Add(Indexes.Current) else
             if CurrentInput = NormalIndexOffset then
-              IndexedFaceSet.FdNormalIndex.Items.Add(Index);
+              IndexedFaceSet.FdNormalIndex.Items.Add(Indexes.Current);
 
             Inc(CurrentInput);
             if CurrentInput = InputsCount then CurrentInput := 0;
-          until false;
+          end;
 
           IndexedFaceSet.FdCoordIndex.Items.Add(-1);
           if TexCoordIndexOffset <> -1 then
@@ -1341,51 +1372,41 @@ var
       IndexedFaceSet: TNodeIndexedFaceSet;
       InputsCount: Integer;
       CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
-      VCount, P: TDOMElement;
-      VCountContent, Token: string;
-      SeekPosVCount, SeekPosP, ThisPolygonCount, CurrentInput, I, Index: Integer;
+      VCountE, P: TDOMElement;
+      CurrentInput, I: Integer;
       Indexes: TColladaIndexes;
+      VCount: TIntegersParser;
     begin
       ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
         CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset);
 
-      VCount := DOMGetChildElement(PolygonsElement, 'vcount', false);
+      VCountE := DOMGetChildElement(PolygonsElement, 'vcount', false);
       P := DOMGetChildElement(PolygonsElement, 'p', false);
 
-      if (VCount <> nil) and (P <> nil) then
+      if (VCountE <> nil) and (P <> nil) then
       begin
-        VCountContent := DOMGetTextData(VCount);
+        VCount := TIntegersParser.Create(VCountE);
         Indexes := TColladaIndexes.Create(P);
         try
-          { we will parse both VCountContent and Indexes now, at the same time }
-
-          SeekPosVCount := 1;
-          SeekPosP := 1;
-
-          repeat
-            Token := NextToken(VCountContent, SeekPosVCount);
-            if Token = '' then Break; { end of polygons }
-
-            ThisPolygonCount := StrToInt(Token);
-
+          { we will parse both VCount and Indexes now, at the same time }
+          while VCount.GetNext do
+          begin
             CurrentInput := 0;
 
-            for I := 0 to ThisPolygonCount * InputsCount - 1 do
+            for I := 0 to VCount.Current * InputsCount - 1 do
             begin
-              Token := NextToken(Indexes.Content, SeekPosP);
-              if Token = '' then
+              if not Indexes.GetNext then
               begin
                 OnWarning(wtMinor, 'Collada', 'Unexpected end of <p> data in <polylist>');
                 Exit;
               end;
-              Index := StrToInt(Token);
 
               if CurrentInput = CoordIndexOffset then
-                IndexedFaceSet.FdCoordIndex.Items.Add(Index) else
+                IndexedFaceSet.FdCoordIndex.Items.Add(Indexes.Current) else
               if CurrentInput = TexCoordIndexOffset then
-                IndexedFaceSet.FdTexCoordIndex.Items.Add(Index) else
+                IndexedFaceSet.FdTexCoordIndex.Items.Add(Indexes.Current) else
               if CurrentInput = NormalIndexOffset then
-                IndexedFaceSet.FdNormalIndex.Items.Add(Index);
+                IndexedFaceSet.FdNormalIndex.Items.Add(Indexes.Current);
 
               Inc(CurrentInput);
               if CurrentInput = InputsCount then CurrentInput := 0;
@@ -1396,8 +1417,11 @@ var
               IndexedFaceSet.FdTexCoordIndex.Items.Add(-1);
             if NormalIndexOffset <> -1 then
               IndexedFaceSet.FdNormalIndex.Items.Add(-1);
-          until false;
-        finally FreeAndNil(Indexes) end;
+          end;
+        finally
+          FreeAndNil(Indexes);
+          FreeAndNil(VCount);
+        end;
       end;
     end;
 
@@ -1408,8 +1432,7 @@ var
       InputsCount: Integer;
       CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
       P: TDOMElement;
-      Token: string;
-      SeekPosP, CurrentInput, Index, VertexNumber: Integer;
+      CurrentInput, VertexNumber: Integer;
       Indexes: TColladaIndexes;
     begin
       ReadPolyCommon(PolygonsElement, IndexedFaceSet, InputsCount,
@@ -1420,21 +1443,17 @@ var
       begin
         Indexes := TColladaIndexes.Create(P);
         try
-          SeekPosP := 1;
           CurrentInput := 0;
           VertexNumber := 0;
 
-          repeat
-            Token := NextToken(Indexes.Content, SeekPosP);
-            if Token = '' then Break; { end of triangles }
-            Index := StrToInt(Token);
-
+          while Indexes.GetNext do
+          begin
             if CurrentInput = CoordIndexOffset then
-              IndexedFaceSet.FdCoordIndex.Items.Add(Index) else
+              IndexedFaceSet.FdCoordIndex.Items.Add(Indexes.Current) else
             if CurrentInput = TexCoordIndexOffset then
-              IndexedFaceSet.FdTexCoordIndex.Items.Add(Index) else
+              IndexedFaceSet.FdTexCoordIndex.Items.Add(Indexes.Current) else
             if CurrentInput = NormalIndexOffset then
-              IndexedFaceSet.FdNormalIndex.Items.Add(Index);
+              IndexedFaceSet.FdNormalIndex.Items.Add(Indexes.Current);
 
             Inc(CurrentInput);
             if CurrentInput = InputsCount then
@@ -1451,7 +1470,7 @@ var
                   IndexedFaceSet.FdNormalIndex.Items.Add(-1);
               end;
             end;
-          until false;
+          end;
         finally FreeAndNil(Indexes) end;
       end;
     end;
