@@ -760,8 +760,20 @@ var
                   Effect.DiffuseTexCoordName := DiffuseTexCoordName;
                   Appearance.FdTexture.Value := Image;
                 end else
-                  OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s"',
-                    [DiffuseTextureName]));
+                begin
+                  Image := Images.FindName(DiffuseTextureName) as TNodeX3DTextureNode;
+                  if Image <> nil then
+                  begin
+                    Effect.DiffuseTexCoordName := DiffuseTexCoordName;
+                    Appearance.FdTexture.Value := Image;
+                    { Happens e.g. on "Private Section/Faerie_Forrest_DAY/Faerie_Forrest_DAY.dae"
+                      from collada.org/owl models. }
+                    OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s". Found <image> with the same id, will use it',
+                      [DiffuseTextureName]));
+                  end else
+                    OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s"',
+                      [DiffuseTextureName]));
+                end;
               end;
             end else
             if I.Current.TagName = 'specular' then
