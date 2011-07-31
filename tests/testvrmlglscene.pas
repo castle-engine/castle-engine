@@ -65,7 +65,7 @@ begin
 
  EmptyScene := TVRMLGLScene.Create(nil);
  try
-  EmptyScene.Load(TNodeGroup_1.Create('', ''), true);
+  EmptyScene.Load(TVRMLRootNode.Create('', ''), true);
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);
