@@ -122,6 +122,7 @@
     but it's used with all VRML versions (including VRML 1.0 and Inventor).
     This makes things simple (previously we had two separate TVRMLRootNode_1
     and TVRMLRootNode, which was complicating stuff).
+    Children (for all VRML/X3D versions) are inside FdChildren field.
 
     This way VRML/X3D files may have many nodes at the top level
     (which is a standard feature of VRML >= 2.0, but we also allow it for
@@ -519,7 +520,11 @@ begin
     - they will make memory leaks (reference count will be > 0 for grouping node)
     - and, worse, TVRMLNode.Traverse will hang infinitely
 
-    TODO: So invalid VRML file can produce mem leaks and hang the engine... }
+    TODO: So invalid VRML file can produce mem leaks and hang the engine...
+
+    Later: actually, cycles have to be allowed for some cases, see TODOs
+    elsewhere. So we should just enable cycles. And here, we should not worry
+    about them. }
 end;
 
 procedure TNodeX3DGroupingNode.EventRemoveChildrenReceive(
@@ -602,12 +607,6 @@ begin
   FComponents := TStringLongIntMap.Create;
   FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
-
-  { This must be usable as VRML 1.0 root node, so VRML 1.0 children
-    inside must be allowed.
-    TODO: we now add VRML 1.0 children to FdChildren? }
-  VRML1ChildrenAllowed := true;
-  VRML1ChildrenParsingAllowed := true;
 end;
 
 destructor TVRMLRootNode.Destroy;
@@ -628,23 +627,17 @@ begin
   begin
     { Special things for root node saving:
       - NodeName is ignored (should be '').
-      - Fields are ignored, except "children", that holds VRML >= 2 children.
-        And it's output in a special way, without writing "children [...]"
-        around.
-        Other fields are ignored (should never have any meaning).
-
-      VRML <= 1 children are inside VRML1Children[], just like for regular
-      VRML <= 1 Group.
-      TODO: we now add VRML 1.0 children to FdChildren?
-    }
+      - Fields are ignored, except "children", that holds children
+        (for any VRML version, including VRML 1).
+        It's output in a special way, without writing "children [...]" around.
+        Other fields are ignored (should never have any meaning). }
 
     FileItems := TVRMLFileItemsList.Create;
     try
       for I := 0 to Prototypes.Count - 1 do
         FileItems.Add(Prototypes[I]);
 
-      for i := 0 to VRML1ChildrenCount - 1 do
-        FileItems.Add(VRML1Children[i]);
+      Assert(VRML1ChildrenCount = 0);
 
       for i := 0 to FdChildren.Count - 1 do
         FileItems.Add(FdChildren.Items[I]);
