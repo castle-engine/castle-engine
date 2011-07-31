@@ -925,7 +925,7 @@ begin
   { create SceneBrightestLight, if none }
   if SceneBrightestLight = nil then
   begin
-    SceneBrightestLight := TNodePointLight_2.Create('', '');
+    SceneBrightestLight := TNodePointLight.Create('', '');
     Scene.RootNode.SmartAddChild(SceneBrightestLight);
     Scene.ChangedAll;
   end;
