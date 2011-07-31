@@ -234,7 +234,6 @@
     private FEventLevel_changed: TVRMLEvent;
     public property EventLevel_changed: TVRMLEvent read FEventLevel_changed;
 
-    function ChildrenField: TMFNode; override;
     function TransformationChange: TNodeTransformationChange; override;
   end;
 
@@ -751,11 +750,6 @@ end;
 class function TVRMLLODNode.ClassNodeTypeName: string;
 begin
   Result := 'LOD';
-end;
-
-function TVRMLLODNode.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TVRMLLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);

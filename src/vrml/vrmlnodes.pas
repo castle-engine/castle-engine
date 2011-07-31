@@ -4456,7 +4456,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
   begin
     { Even when Proto.Node is a wrapper (TVRMLRootNode),
       we want to copy the whole Proto.Node, instead of copying separately
-      Proto.Node.SmartChildren[0], Proto.Node.SmartChildren[1] etc.
+      Proto.Node.FdChildren[0], Proto.Node.FdChildren[1] etc.
       This way, DEF / USE links, routes links (internal, for nested
       protos "IS" clauses, and non-internal) are preserved as they should. }
 
@@ -4479,9 +4479,9 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       raise;
     end;
 
-    if Proto.Node is TVRMLRootNode then
+    if NodeCopy is TVRMLRootNode then
     begin
-      if NodeCopy.SmartChildrenCount = 0 then
+      if TVRMLRootNode(NodeCopy).FdChildren.Count = 0 then
       begin
         { If exception occurs before NodeCopy is connected to Result,
           NodeCopy should be simply freed. }
@@ -4498,7 +4498,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
         has to keep pointer to NodeCopy.
 
         At the same time, Result must not be freed here because of ref count = 0... }
-      Result := NodeCopy.SmartExtractChild(0);
+      Result := TVRMLRootNode(NodeCopy).FdChildren.Extract(0);
 
       Assert(Result.PrototypeInstance =
         (Result.PrototypeInstanceSourceNode <> nil));
@@ -4506,7 +4506,7 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
         (Result.PrototypeInstanceHelpers = nil));
 
       { NewPrototypeInstanceHelpers is used to keep the rest of
-        NodeCopy.SmartChildren[1...] that should accompany this node. }
+        NodeCopy.FdChildren[1...] that should accompany this node. }
       NewPrototypeInstanceHelpers := NodeCopy;
     end else
     begin

@@ -83,8 +83,6 @@
     private FFdwOrder: TSFInt32;
     public property FdwOrder: TSFInt32 read FFdwOrder;
 
-    function ChildrenField: TMFNode; override;
-
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -375,11 +373,6 @@ class function TNodeCoordinateDeformer.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
-end;
-
-function TNodeCoordinateDeformer.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TNodeNurbsCurve_2.CreateNode;

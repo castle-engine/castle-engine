@@ -433,7 +433,7 @@ var
     begin
       NewNode := ParseNode(Lexer, Names, false);
       NewNode.PositionInParent := PositionInParent;
-      Result.SmartAddChild(NewNode);
+      Result.FdChildren.Add(NewNode);
     end;
 
   begin

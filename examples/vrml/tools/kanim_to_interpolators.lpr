@@ -57,7 +57,7 @@ end;
 var
   InputFileName, OutputFileName: string;
   Anim: TVRMLGLAnimation;
-  Vrml: TVRMLNode;
+  Vrml: TVRMLRootNode;
   Interp: TNodeCoordinateInterpolator;
   Coord: TNodeCoordinate;
   I: Integer;
@@ -73,7 +73,7 @@ begin
   try
     Writeln('Reading ', InputFileName, ' ...');
     Anim.LoadFromFile(InputFileName, false, false);
-    Vrml := Anim.Scenes[0].RootNode.DeepCopy;
+    Vrml := Anim.Scenes[0].RootNode.DeepCopy as TVRMLRootNode;
     try
       { find Coordinate node for the 1st time, to calculate CoordCount }
       Coord := Anim.Scenes[0].RootNode.FindNodeByName(
@@ -82,7 +82,7 @@ begin
       Writeln('Coordinate node ', CoordinateNodeName, ' found OK (', CoordCount, ' vertexes).');
 
       Interp := TNodeCoordinateInterpolator.Create('Interp', '');
-      Vrml.SmartAddChild(Interp);
+      Vrml.FdChildren.Add(Interp);
 
       Interp.FdKeyValue.Items.Count := 0;
       Interp.FdKeyValue.Items.AllowedCapacityOverflow := CoordCount * Anim.ScenesCount;

@@ -84,8 +84,6 @@
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
     public property FdRender: TSFBool read FFdRender;
-
-    function ChildrenField: TMFNode; override;
   end;
 
   TNodeGroup = class(TNodeX3DGroupingNode)
@@ -231,8 +229,6 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
-
-    function ChildrenField: TMFNode; override;
   end;
 
   { Switch node.
@@ -257,8 +253,6 @@
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
-
-    function ChildrenField: TMFNode; override;
 
     class function URNMatching(const URN: string): boolean; override;
 
@@ -506,11 +500,6 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DGroupingNode.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
-end;
-
 procedure TNodeX3DGroupingNode.EventAddChildrenReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
@@ -615,7 +604,8 @@ begin
   FSaveAsRootNode := true;
 
   { This must be usable as VRML 1.0 root node, so VRML 1.0 children
-    inside must be allowed. }
+    inside must be allowed.
+    TODO: we now add VRML 1.0 children to FdChildren? }
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
@@ -645,6 +635,7 @@ begin
 
       VRML <= 1 children are inside VRML1Children[], just like for regular
       VRML <= 1 Group.
+      TODO: we now add VRML 1.0 children to FdChildren?
     }
 
     FileItems := TVRMLFileItemsList.Create;
@@ -741,11 +732,6 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeStaticGroup.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
-end;
-
 procedure TNodeStaticGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
@@ -783,11 +769,6 @@ end;
 class function TNodeSwitch.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
-end;
-
-function TNodeSwitch.ChildrenField: TMFNode;
-begin
-  Result := FdChildren;
 end;
 
 procedure TNodeSwitch.DirectEnumerateActive(Func: TEnumerateChildrenFunction);

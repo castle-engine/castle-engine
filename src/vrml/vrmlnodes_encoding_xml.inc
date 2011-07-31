@@ -420,7 +420,7 @@ var
     begin
       NewNode := ParseXMLNode(Element, ContainerFieldDummy, Names, false);
       NewNode.PositionInParent := PositionInParent;
-      Result.SmartAddChild(NewNode);
+      Result.FdChildren.Add(NewNode);
     end;
 
   begin

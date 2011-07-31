@@ -83,7 +83,6 @@
     procedure RemoveParentField(Field: TVRMLField);
     procedure AddParentField(Field: TVRMLField);
     procedure TryFindNode_Found(Node: TVRMLNode);
-    function GetSmartChildren(Index: Integer): TVRMLNode; virtual;
     procedure SetHasInterfaceDeclarations(const Value: TVRMLAccessTypes);
     { Internal save to stream utility.
       When CurrentContainerField is not empty, it means we know our containing field
@@ -768,30 +767,6 @@
       ) }
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       virtual;
-
-    { Field that should be treated as general "children" field of this node.
-      This is used in some places, like SmartAddChild.
-
-      Should return nil if this node doesn't have such
-      field (that's the default implementation in this class).
-      This should always return the same value for given class instance
-      (in other words, don't implement this to sometimes return one field,
-      sometimes the other, sometimes nil, etc.). }
-    function ChildrenField: TMFNode; virtual;
-
-    { Operate on children nodes, suitable for both VRML 1.0 and
-      VRML 2.0 / X3D children. In VRML 1.0 (when ChildrenField is @nil),
-      these get/set our @link(VRML1Children) property. In VRML 2.0 / X3D
-      (when ChildrenField is non-nil) these get/set our ChildrenField.Items.
-
-      Useful to operate on grouping nodes both in VRML 1.0 and VRML 2.0 / X3D
-      style using the same code.
-      @groupBegin }
-    procedure SmartAddChild(Node: TVRMLNode);
-    property SmartChildren[Index: Integer]: TVRMLNode read GetSmartChildren;
-    function SmartChildrenCount: integer;
-    function SmartExtractChild(Index: Integer): TVRMLNode;
-    { @groupEnd }
 
     { Enumerates all children nodes (recursively),
       allowing you to decide for each node to replace or remove it.
@@ -2694,39 +2669,6 @@ end;
 procedure TVRMLNode.AddParentField(Field: TVRMLField);
 begin
   FParentFields.Add(Field);
-end;
-
-function TVRMLNode.ChildrenField: TMFNode;
-begin
-  Result := nil;
-end;
-
-procedure TVRMLNode.SmartAddChild(Node: TVRMLNode);
-begin
-  if ChildrenField = nil then
-    VRML1ChildAdd(Node) else
-    ChildrenField.Add(Node);
-end;
-
-function TVRMLNode.GetSmartChildren(Index: Integer): TVRMLNode;
-begin
-  if ChildrenField = nil then
-    Result := VRML1Children[Index] else
-    Result := ChildrenField.Items[Index];
-end;
-
-function TVRMLNode.SmartChildrenCount: integer;
-begin
-  if ChildrenField = nil then
-    Result := VRML1ChildrenCount else
-    Result := ChildrenField.Items.Count;
-end;
-
-function TVRMLNode.SmartExtractChild(Index: Integer): TVRMLNode;
-begin
-  if ChildrenField = nil then
-    Result := VRML1ChildExtract(Index) else
-    Result := ChildrenField.Extract(Index);
 end;
 
 class function TVRMLNode.VRML1ChildrenSaveToStream: boolean;
