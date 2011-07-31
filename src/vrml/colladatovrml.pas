@@ -1047,8 +1047,6 @@ var
            SCharIs(EffectId, 1, '#') then
         begin
           Delete(EffectId, 1, 1); { delete initial '#' char }
-          { tests: Writeln('instantiating effect ', EffectId, ' as material ', MatId); }
-
           Effect := Effects.Find(EffectId);
           if Effect <> nil then
             Materials[MatId] := Effect else
@@ -1667,6 +1665,7 @@ var
     begin
       Coord := nil;
       LastTexCoord := nil;
+      LastNormal := nil;
       Sources := TColladaSourcesList.Create;
       try
         I := TXMLElementIterator.Create(Mesh);
