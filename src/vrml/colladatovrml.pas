@@ -680,6 +680,7 @@ var
   var
     ValueFloat: Float;
   begin
+    ValueFloat := 0; { avoid uninitialized warnings }
     Result := ReadChildFloat(Element, ChildTagName, ValueFloat);
     if Result then
       Value := ValueFloat;
@@ -1763,7 +1764,7 @@ var
     SeekPos: Integer;
     Content: string;
 
-    function ReadVector(var Vector: TVector3Single): boolean;
+    function ReadVector(out Vector: TVector3Single): boolean;
     var
       Token: string;
       I: Integer;
