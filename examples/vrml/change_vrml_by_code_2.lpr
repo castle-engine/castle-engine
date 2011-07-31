@@ -65,13 +65,13 @@ begin
   { Scene.ChangedAll; }
 end;
 
-function CreateVrmlGraph: TNodeGroup;
+function CreateVrmlGraph: TVRMLRootNode;
 var
   Shape: TNodeShape;
   Mat: TNodeMaterial;
   I, J: Integer;
 begin
-  Result := TNodeGroup.Create('', '');
+  Result := TVRMLRootNode.Create('', '');
 
   Mat := TNodeMaterial.Create('', '');
   Mat.FdDiffuseColor.Value := Vector3Single(1, 1, 0);

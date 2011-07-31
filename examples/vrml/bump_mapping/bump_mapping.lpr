@@ -926,7 +926,7 @@ begin
   if SceneBrightestLight = nil then
   begin
     SceneBrightestLight := TNodePointLight.Create('', '');
-    (Scene.RootNode as TVRMLRootNode).FdChildren.Add(SceneBrightestLight);
+    Scene.RootNode.FdChildren.Add(SceneBrightestLight);
     Scene.ChangedAll;
   end;
 end;

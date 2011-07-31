@@ -48,7 +48,7 @@ type
 
     { Creates new @link(Scene), with new camera and such. }
     procedure Load(const SceneFileName: string);
-    procedure Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
+    procedure Load(ARootNode: TVRMLRootNode; const OwnsRootNode: boolean);
 
     function Scene: TVRMLGLScene;
     property SceneManager: TKamSceneManager read FSceneManager;
@@ -93,7 +93,7 @@ begin
   Load(LoadVRML(SceneFileName, false), true);
 end;
 
-procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLNode; const OwnsRootNode: boolean);
+procedure TGLWindowVRMLBrowser.Load(ARootNode: TVRMLRootNode; const OwnsRootNode: boolean);
 begin
   { destroy MainScene and Camera, we will recreate them }
   SceneManager.MainScene.Free;

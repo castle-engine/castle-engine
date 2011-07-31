@@ -26,7 +26,7 @@ uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
 
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
-    out RootNode: TVRMLNode; out Time: Single) of object;
+    out RootNode: TVRMLRootNode; out Time: Single) of object;
 
   { A "precalculated" animation of VRML model done by
     interpolating between any number of model states.
@@ -108,17 +108,17 @@ type
     Load_RootNodes: TVRMLNodesList;
     Load_Times: TDynSingleArray;
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
-      out RootNode: TVRMLNode; out Time: Single);
+      out RootNode: TVRMLRootNode; out Time: Single);
   private
     { Helpers for LoadFromVRMLEvents implementation. }
     LoadFromVRMLEvents_TimeBegin: Single;
     LoadFromVRMLEvents_Scene: TVRMLScene;
     LoadFromVRMLEvents_ScenesPerTime: Cardinal;
     procedure LoadFromVRMLEvents_GetRootNodeWithTime(const Index: Cardinal;
-      out RootNode: TVRMLNode; out Time: Single);
+      out RootNode: TVRMLRootNode; out Time: Single);
     procedure LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
       const Index: Cardinal;
-      out RootNode: TVRMLNode; out Time: Single);
+      out RootNode: TVRMLRootNode; out Time: Single);
 
     procedure SetOwnsFirstRootNode(const Value: boolean);
   protected
@@ -152,13 +152,14 @@ type
 
     destructor Destroy; override;
 
-    { This actually loads the animation scenes.
-      You must call this (or some other loading routine like LoadFromFile)
+    { Load the animation scenes.
+      Must be called (this or some other loading routine like LoadFromFile)
       before you do almost anything with this object.
-      Loaded changes to @true after calling this.
+      @link(Loaded) changes to @true after calling this.
 
       @param(RootNodes
         Models describing the "predefined" frames of animation.
+        They must descend from TVRMLRootNode.
 
         For all nodes except the first: They are @italic(always)
         owned by this class --- that's needed,
@@ -228,7 +229,7 @@ type
       @param(ProgressTitle When <> '' we will use Progress.Init, Step, Fini
         to display nice progress of operation.) }
     procedure LoadFromVRMLEvents(
-      RootNode: TVRMLNode;
+      RootNode: TVRMLRootNode;
       AOwnsRootNode: boolean;
       const ATimeBegin, ATimeEnd: Single;
       ScenesPerTime: Cardinal;
@@ -665,7 +666,7 @@ type
     FParentAnimation: TVRMLGLAnimation;
   public
     constructor CreateForAnimation(
-      ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+      ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
       ACustomRenderer: TVRMLGLRenderer;
       AParentAnimation: TVRMLGLAnimation);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
@@ -676,7 +677,7 @@ type
   end;
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
-  ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+  ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
   ACustomRenderer: TVRMLGLRenderer;
   AParentAnimation: TVRMLGLAnimation);
 begin
@@ -1133,7 +1134,7 @@ procedure TVRMLGLAnimation.LoadCore(
     end;
   end;
 
-  function CreateOneScene(Node: TVRMLNode;
+  function CreateOneScene(Node: TVRMLRootNode;
     OwnsRootNode: boolean): TVRMLGLAnimationScene;
   begin
     Result := TVRMLGLAnimationScene.CreateForAnimation(
@@ -1144,7 +1145,7 @@ var
   I: Integer;
   StructurallyEqual, RootNodesEqual: boolean;
   LastSceneIndex: Integer;
-  LastSceneRootNode, NewRootNode: TVRMLNode;
+  LastSceneRootNode, NewRootNode: TVRMLRootNode;
   LastTime, NewTime: Single;
   SceneIndex: Integer;
 begin
@@ -1211,7 +1212,7 @@ begin
         for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
           FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
             MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
-            LastSceneRootNode, NewRootNode), true);
+            LastSceneRootNode, NewRootNode) as TVRMLRootNode, true);
         FScenes.Last := CreateOneScene(NewRootNode, true);
         LastSceneRootNode := NewRootNode;
       end;
@@ -1237,9 +1238,9 @@ begin
 end;
 
 procedure TVRMLGLAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
-  out RootNode: TVRMLNode; out Time: Single);
+  out RootNode: TVRMLRootNode; out Time: Single);
 begin
-  RootNode := Load_RootNodes[Index];
+  RootNode := Load_RootNodes[Index] as TVRMLRootNode;
   Time := Load_Times[Index];
 end;
 
@@ -1260,7 +1261,7 @@ end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime(
   const Index: Cardinal;
-  out RootNode: TVRMLNode; out Time: Single);
+  out RootNode: TVRMLRootNode; out Time: Single);
 begin
   Time := LoadFromVRMLEvents_TimeBegin;
   if LoadFromVRMLEvents_ScenesPerTime <> 0 then
@@ -1270,19 +1271,19 @@ begin
     LoadFromVRMLEvents_Scene.ResetTime(Time) else
     LoadFromVRMLEvents_Scene.SetTime(Time);
 
-  RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy;
+  RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy as TVRMLRootNode;
 end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
   const Index: Cardinal;
-  out RootNode: TVRMLNode; out Time: Single);
+  out RootNode: TVRMLRootNode; out Time: Single);
 begin
   LoadFromVRMLEvents_GetRootNodeWithTime(Index, RootNode, Time);
   Progress.Step;
 end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents(
-  RootNode: TVRMLNode;
+  RootNode: TVRMLRootNode;
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
   ScenesPerTime: Cardinal;

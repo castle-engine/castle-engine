@@ -92,9 +92,9 @@
       loaded (at least, you don't have it's VRML graph). It means that
       any "#Viewpoint" within current model is considered invalid. }
     function LoadAnchor(
-      out NewRootNode: TVRMLNode;
+      out NewRootNode: TVRMLRootNode;
       out NewViewpoint: TVRMLViewpointNode;
-      CurrentRootNode: TVRMLNode): boolean;
+      CurrentRootNode: TVRMLRootNode): boolean;
   end;
 
   { Inline node.
@@ -281,9 +281,9 @@ begin
 end;
 
 function TNodeAnchor.LoadAnchor(
-  out NewRootNode: TVRMLNode;
+  out NewRootNode: TVRMLRootNode;
   out NewViewpoint: TVRMLViewpointNode;
-  CurrentRootNode: TVRMLNode): boolean;
+  CurrentRootNode: TVRMLRootNode): boolean;
 
   procedure ViewpointNameInvalid(const NewViewpointName: string);
   begin

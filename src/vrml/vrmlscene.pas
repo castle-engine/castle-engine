@@ -529,7 +529,7 @@ type
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
-    FRootNode: TVRMLNode;
+    FRootNode: TVRMLRootNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
@@ -832,7 +832,7 @@ type
       If AResetTime, we will also do ResetTimeAtLoad,
       changing @link(Time) --- this is usually what you want when you
       really load a new world. }
-    procedure Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+    procedure Load(ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
       const AResetTime: boolean = true);
 
     { Load the 3D model from given AFileName.
@@ -1073,34 +1073,21 @@ type
       and specific output to StdOut is probably also useless. }
     procedure WritelnInfoNodes;
 
-    { Actual VRML graph defining this VRML scene.
-      This class can be viewed as a wrapper around specified RootNode.
+    { Actual VRML/X3D graph defining this scene.
 
-      As such it is allowed to change contents of RootNode
-      (however, this object requires notification of such changes
-      via ChangedXxx methods, see their docs).
-      Moreover it is allowed to change value of RootNode
-      and even to set RootNode to nil for some time.
+      It is allowed to change contents of RootNode. Just make sure
+      the scene is notified about these changes --- you should assign
+      fields using methods like TVRMLField.Send or (if you assign field
+      values directly, like @code(TSFVec3f.Value := ...))
+      call TVRMLField.Changed. Eventually, you can call our ChangedField method
+      (but it's usually nicer to use TVRMLField.Changed).
 
-      This is useful for programs like view3dscene, that want to
-      have one TVRMLScene for all the lifetime and only
-      replace RootNode value from time to time.
-      This is useful because it allows to change viewed model
-      (by changing RootNode) while preserving values of things
-      like Attributes properties in subclass @link(TVRMLGLScene).
-      This is also used internally when user clicks on Anchor node,
-      if you have ProcessEvents.
-
-      That's why it is possible to change RootNode and it is even
-      possible to set it to nil. And when RootNode = nil everything
-      should work -- you can query such scene (with RootNode = nil)
-      for Vertices/TrianglesCount (answer will be 0),
-      for BoundingBox (answer will be EmptyBox3D),
-      you can render such scene (nothing will be rendered) etc.
-      Scene RootNode = nil will act quite like a Scene with
-      e.g. no TVRMLGeometryNode nodes.
-
-      Always call ChangedAll when you changed RootNode.
+      It is also allowed to change the value of RootNode
+      and even to set RootNode to @nil. Be sure to call ChangedAll after this.
+      Changing RootNode allows you to load
+      and unload whole new VRML/X3D graph (for example from some 3D file)
+      whenever you want, and keep the same TVRMLScene instance
+      (with the same rendering settings and such).
 
       Note that there is also a trick to conserve memory use.
       After you've done PrepareResources some things are precalculated here,
@@ -1117,7 +1104,7 @@ type
       to save some memory. This is actually useful when using TVRMLGLAnimation,
       as it creates a lot of intermediate node structures and TVRMLScene
       instances. }
-    property RootNode: TVRMLNode read FRootNode write FRootNode;
+    property RootNode: TVRMLRootNode read FRootNode write FRootNode;
 
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
@@ -2412,7 +2399,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLScene.Load(ARootNode: TVRMLNode; AOwnsRootNode: boolean;
+procedure TVRMLScene.Load(ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
 begin
   BeforeNodesFree;
@@ -5405,7 +5392,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
 
   procedure AnchorActivate(Anchor: TNodeAnchor);
   var
-    NewRootNode: TVRMLNode;
+    NewRootNode: TVRMLRootNode;
     NewViewpoint: TVRMLViewpointNode;
   begin
     if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then

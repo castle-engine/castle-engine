@@ -25,7 +25,7 @@
 uses SysUtils, VectorMath, VRMLNodes;
 
 var
-  Root: TNodeGroup;
+  Root: TVRMLRootNode;
   Sphere: TNodeSphere;
   SphereShape: TNodeShape;
   IndexedFaceSetCoordinate: TNodeCoordinate;
@@ -73,7 +73,7 @@ begin
   IndexedFaceSetShapeTranslated.FdTranslation.Value := Vector3Single(2, 0, 0);
   IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
 
-  Root := TNodeGroup.Create('', '');
+  Root := TVRMLRootNode.Create('', '');
   try
     Root.FdChildren.Add(SphereShape);
     Root.FdChildren.Add(IndexedFaceSetShapeTranslated);

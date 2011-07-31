@@ -37,6 +37,7 @@ var
   Animation: TVRMLGLAnimation;
   Translation: T3DTranslated;
   Scene2Transform: TNodeTransform;
+  Scene2NewRoot: TVRMLRootNode;
 begin
   Window := TGLUIWindow.Create(Application);
 
@@ -97,7 +98,11 @@ begin
   Scene2Transform.FdRotation.Axis := Vector3Single(1, 0, 0);
   Scene2Transform.FdRotation.RotationRad := -Pi/2;
   Scene2Transform.FdChildren.Add(Scene2.RootNode);
-  Scene2.RootNode := Scene2Transform;
+
+  Scene2NewRoot := TVRMLRootNode.Create('', '');
+  Scene2NewRoot.FdChildren.Add(Scene2Transform);
+
+  Scene2.RootNode := Scene2NewRoot;
   Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
 
   { initialize Animation }

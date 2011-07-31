@@ -589,7 +589,7 @@ end;
 { main program --------------------------------------------------------------- }
 
 var
-  RootNode: TVRMLNode;
+  RootNode: TVRMLRootNode;
 begin
   Window := TGLUIWindow.Create(Application);
 
