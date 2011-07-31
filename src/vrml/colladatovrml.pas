@@ -42,6 +42,50 @@ uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
   DOM, KambiXMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Math;
 
+{ Large missing stuff:
+
+  - GPU shaders. We fully support the equivalent X3D nodes (for GLSL),
+    so importing this from Collada (converting to X3D) is possible.
+
+  - Animations. As an argument for supporting it, Blender *can* export
+    some animations to Collada:
+
+    - Transformation animation: Blender exports it,
+      in a format that is close to Blender animation curves.
+      There's a separate info about location.x, location.y etc. animation.
+      Animation of rotation is animating angle of rotation around the X axis, etc.
+      Animations are connected to Collada nodes by
+
+        <channel source="#Cube_rotation_euler_Z-sampler" target="Cube/rotationZ.ANGLE"/>
+
+      "target" attribute uses Collada id path.
+      We'd have to group such animations of a vector components into a single
+      animation (in X3D, you cannot animate translation.x separately,
+      you only animate whole 3D translation vector).
+      This is doable for our importer.
+
+    - Shape keys animation from Blender is not exported to Collada, it seems.
+
+    - Armature animation: Blender exports armature bones animation.
+      Also, armature hierarchy is exported as Collada nodes.
+      Armature bone names and weights are exported too.
+
+      So armature is exported --- in a format reflecting armature setup in Blender,
+      not as a processed effect it has on a model skin.
+      Rendering it means performing bones+skin animation at runtime.
+      X3D equivalent of this is H-Anim with skin, which we support fully.
+      So importing such Collada is possible.
+
+      It depends on importing first normal transformation animation
+      (as the bones are animated just like normal transformations;
+      there's no point in importing skin stuff if you can't import bones animation).
+
+  These are all doable ideas, but also not trivial.
+  Since Blender can export animations to Collada (and not yet to X3D),
+  it would be quite useful.
+  Contributions are welcome!
+}
+
 { TCollada* helper containers ------------------------------------------------ }
 
 type
