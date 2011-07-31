@@ -824,6 +824,23 @@
       it's not linked anywhere. }
     function DeepCopy: TVRMLNode;
 
+    { Internal notes:
+
+      TODO: memory leaks are known to be possible in some difficult cases
+      with PrototypeInstanceHelpers. See e.g.
+      ../../../demo_models/vrml_2/warnings/errors/proto_leak.wrl and
+      ../../../demo_models/vrml_2/warnings/errors/proto_leak_2.wrl
+      for simple testcases. Reason: PrototypeInstanceHelpers may contain,
+      by DEF statements, links to Self.
+      This causes circular dependency (Self is child of some node on
+      PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
+      be freed only if Self is freed) causing some memory to be left
+      always allocated.
+
+      PrototypeInstanceHelpers are actually always TVRMLRootNode,
+      may be declared as such in the future if needed.
+    }
+
     { PrototypeInstance = @true indicates that this node was created
       from a non-external prototype instantiation.
 
@@ -849,17 +866,6 @@
         Any other nodes and accompanying scene graphs
         are not part of the transformation hierarchy, but may be referenced
         by ROUTE statements or Script nodes in the prototype definition.)
-
-      TODO: memory leaks are known to be possible in some difficult cases
-      with PrototypeInstanceHelpers. See e.g.
-      ../../../demo_models/vrml_2/warnings/errors/proto_leak.wrl and
-      ../../../demo_models/vrml_2/warnings/errors/proto_leak_2.wrl
-      for simple testcases. Reason: PrototypeInstanceHelpers may contain,
-      by DEF statements, links to Self.
-      This causes circular dependency (Self is child of some node on
-      PrototypeInstanceHelpers, but PrototypeInstanceHelpers will
-      be freed only if Self is freed) causing some memory to be left
-      always allocated.
 
       Note that for TVRMLPrototypeNode (within PrototypeInstanceSourceNode)
       these have a little different meaning: they describe the
