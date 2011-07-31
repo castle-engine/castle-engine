@@ -616,8 +616,8 @@ begin
 
   { This must be usable as VRML 1.0 root node, so VRML 1.0 children
     inside must be allowed. }
-  FParsingAllowedChildren := true;
-  FAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := true;
 end;
 
 destructor TVRMLRootNode.Destroy;

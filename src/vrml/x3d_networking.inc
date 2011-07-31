@@ -394,8 +394,8 @@ begin
   DefaultContainerField := 'children';
 
   { To allow inlined children (they are loaded as VRML 1.0 style children) }
-  FParsingAllowedChildren := false;
-  FAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := false;
 
   FInlined := nil;
 end;
@@ -615,9 +615,6 @@ begin
 
   FEventChildren := TVRMLEvent.Create(Self, 'children', TMFNode, false);
   Events.Add(FEventChildren);
-
-  FParsingAllowedChildren := false;
-  FAllowedChildren := true;
 
   FInlined := nil;
 end;

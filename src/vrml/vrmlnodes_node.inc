@@ -103,8 +103,28 @@
       be created by default constructor. They need to override this. }
     function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; virtual;
   protected
-    fAllowedChildren: boolean;
-    fParsingAllowedChildren: boolean;
+    { Are VRML 1.0 children allowed.
+      This condition is checked in VRML1ChildAdd, so it's strictly
+      impossible to add a node that is not allowed.
+
+      Note that in some special cases VRML1ChildrenAllowed and
+      VRML1ChildrenParsingAllowed values may be changed during object lifetime.
+      Currently, this may concern TVRMLUnknownNode.
+
+      Default @false. }
+    VRML1ChildrenAllowed: boolean;
+
+    { VRML 1.0 children allowed to be added during parsing.
+      This is used only by *Inline nodes for now, that do not allow
+      reading children during parsing but may get new children
+      in memory. So their VRML1ChildrenParsingAllowed must be empty,
+      but VRML1ChildrenAllowed must allow all.
+
+      When VRML1ChildrenAllowed is @false then VRML1ChildrenParsingAllowed should
+      also be @false.
+
+      Default @false. }
+    VRML1ChildrenParsingAllowed: boolean;
 
     { Enumerate all active child nodes of given node.
 
@@ -392,26 +412,6 @@
     procedure KeepExistingBegin;
     procedure KeepExistingEnd;
     { @groupEnd }
-
-    { What VRML 1.0 children are allowed.
-      This condition is checked in VRML1ChildAdd, so it's strictly
-      impossible to add a node that is not allowed.
-
-      Note that in some special cases AllowedChildren and
-      ParsingAllowedChildren values may be changed during object lifetime.
-      Currently, this may concern TVRMLUnknownNode. }
-    property AllowedChildren: boolean read fAllowedChildren default false;
-
-    { VRML 1.0 children allowed to be added during parsing.
-      This is used only by *Inline nodes for now, that do not allow
-      reading children during parsing but may get new children
-      in memory. So their ParsingAllowedChildren must be empty,
-      but AllowedChildren must allow all.
-
-      When AllowedChildren is @false then ParsingAllowedChildren should
-      alse be @false. }
-    property ParsingAllowedChildren: boolean
-      read fParsingAllowedChildren default false;
 
     { Name of this node, as defined by VRML "DEF" construct.
 
@@ -1073,8 +1073,8 @@ end;
 constructor TVRMLNode.Create(const ANodeName, AWWWBasePath: string);
 begin
   inherited Create;
-  FAllowedChildren := false;
-  FParsingAllowedChildren := false;
+  VRML1ChildrenAllowed := false;
+  VRML1ChildrenParsingAllowed := false;
 
   FNodeName := ANodeName;
   FWWWBasePath := AWWWBasePath;
@@ -1186,7 +1186,7 @@ end;
 
 procedure TVRMLNode.VRML1ChildAdd(Index: Integer; child: TVRMLNode);
 begin
- Check( {is child allowed in AllowedChildren ?} AllowedChildren,
+ Check(VRML1ChildrenAllowed,
    'Node '+NodeTypeName+' is not allowed to have child node of type '+
    Child.NodeTypeName);
  child.FVRML1Parents.Add(Self);
@@ -1227,7 +1227,7 @@ begin
 
   if Value <> FVRML1Children[I] then
   begin
-    Check( {is child allowed in AllowedChildren ?} AllowedChildren,
+    Check(VRML1ChildrenAllowed,
       'Node '+NodeTypeName+' is not allowed to have child node of type '+
       Value.NodeTypeName);
 
@@ -1553,7 +1553,7 @@ begin
       of TNodeShapeHints). }
     if not Handled then
     begin
-      if ParsingAllowedChildren then
+      if VRML1ChildrenParsingAllowed then
       begin
         ChildNode := ParseNode(Lexer, Names, false);
         ChildNode.PositionInParent := Position;

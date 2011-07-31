@@ -3593,7 +3593,7 @@ procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 (*TODO: use "fields" and "isA" VRML 1.0 extensibility features here.
 
   For now, we just always parse up to the matching closing "}".
-  The *AllowedChildren is set to false.
+  The VRML1Children*Allowed is set to false.
 
   We should handle:
 
@@ -3603,7 +3603,7 @@ procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
     this node anyway, but at least we'll know it's fields names and values,
     and we'll be able to save it back to stream.
 
-    The *AllowedChildren is set to true? To allow it to work like
+    The VRML1Children*Allowed set to true? To allow it to work like
     VRML 1.0 Group?
 
   - node that has "fields" and valid "isA". In this case we can create Fields
@@ -3611,13 +3611,13 @@ procedure TVRMLUnknownNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
     of type given by "isA", and replace (or add as a child)
     our TVRMLUnknownNode by this helper node.
 
-    The *AllowedChildren should be copied from referred "isA" node.
+    The VRML1Children*Allowed should be copied from referred "isA" node.
 *)
 begin
-  { w przypadku TVRMLUnknownNode musimy fAllowedChildren i fParseAllowedChildren
-    inicjowac na podstawie parsowania. }
-  fAllowedChildren := false;
-  fParsingAllowedChildren := false;
+  { In TVRMLUnknownNode case, VRML1Children*Allowed must be initialized during
+    parsing. }
+  VRML1ChildrenAllowed := false;
+  VRML1ChildrenParsingAllowed := false;
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
   Lexer.NextToken;

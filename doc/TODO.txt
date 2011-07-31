@@ -824,8 +824,6 @@ VRMLNodes:
   when implementing Vertices/TrianglesCount and Triangulate.
 
 - rename SmartChildren to just Children
-  AllowedChildren to AllowedVRML1Children
-  ParsingAllowedChildren to ParsingAllowedVRML1Children
 
 - I would eventually like to simplify HandleTransform, to avoid the need
   for traversing Shapes tree simultaneously with nodes. This is a little
@@ -1000,11 +998,6 @@ More shaders demos, for some day:
 
 ------------------------------------------------------------------------------
 Various:
-- install lazbuild on michalis.ii, uncomment,
-  add
-    make examples-laz      >> "$OUTPUT_LOG" 2>&1
-  to ~/sources/vrmlengine/trunk/www/snapshots-scripts/vrmlengine_snapshot
-
 - Make cameraXxx output events available from something like CameraSensor?
   Current extensions, Viewpoint,
   http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_viewpoint_camera_matrix

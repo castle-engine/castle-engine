@@ -1227,8 +1227,8 @@ begin
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
   Fields.Add(FFdCenter);
 
-  fParsingAllowedChildren := true;
-  fAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := true;
 end;
 
 class function TNodeLOD_1.ClassNodeTypeName: string;
@@ -2232,8 +2232,8 @@ end;
 procedure TNodeGroup_1.CreateNode;
 begin
   inherited;
-  fParsingAllowedChildren := true;
-  fAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := true;
 end;
 
 class function TNodeGroup_1.ClassNodeTypeName: string;
@@ -2249,8 +2249,8 @@ end;
 procedure TVRMLSeparatorNode.CreateNode;
 begin
   inherited;
-  fParsingAllowedChildren := true;
-  fAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := true;
 end;
 
 type
@@ -2309,8 +2309,8 @@ begin
    FdWhichChild.ChangesAlways := [chEverything];
   Fields.Add(FFdWhichChild);
 
-  fParsingAllowedChildren := true;
-  fAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := true;
 end;
 
 class function TNodeSwitch_1.ClassNodeTypeName: string;
@@ -2346,8 +2346,8 @@ end;
 procedure TNodeTransformSeparator.CreateNode;
 begin
   inherited;
-  fParsingAllowedChildren := true;
-  fAllowedChildren := true;
+  VRML1ChildrenAllowed := true;
+  VRML1ChildrenParsingAllowed := true;
 end;
 
 class function TNodeTransformSeparator.ClassNodeTypeName: string;
