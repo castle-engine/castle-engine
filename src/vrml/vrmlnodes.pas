@@ -1483,7 +1483,7 @@ type
 
   TVRMLPrototype = class(TVRMLPrototypeBase)
   private
-    FNode: TVRMLNode;
+    FNode: TVRMLRootNode;
   public
     destructor Destroy; override;
 
@@ -1491,18 +1491,8 @@ type
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
-    { These are actual prototype contents: all nodes, prototypes, routes
-      defined within this prototype.
-
-      We return a single TVRMLNode instance.
-      It may be a TVRMLRootNode, it even has to be TVRMLRootNode when
-      we have more than one node inside a prototype.
-
-      You have permission to write to this property, to be able to
-      write code that constructs prototypes (like needed by X3D XML reader).
-      Just be careful. This node is owned by prototype instance (will be
-      freed at destructor). }
-    property Node: TVRMLNode read FNode write FNode;
+    { Prototype contents: all nodes, prototypes, routes defined inside. }
+    property Node: TVRMLRootNode read FNode;
   end;
 
   TVRMLExternalPrototype = class(TVRMLPrototypeBase)
@@ -4452,15 +4442,14 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
 
   procedure InstantiateNonExternalPrototype(Proto: TVRMLPrototype);
   var
-    NodeCopy, NewPrototypeInstanceHelpers: TVRMLNode;
+    NodeCopy, NewPrototypeInstanceHelpers: TVRMLRootNode;
   begin
-    { Even when Proto.Node is a wrapper (TVRMLRootNode),
-      we want to copy the whole Proto.Node, instead of copying separately
+    { We want to copy the whole Proto.Node, instead of copying separately
       Proto.Node.FdChildren[0], Proto.Node.FdChildren[1] etc.
       This way, DEF / USE links, routes links (internal, for nested
       protos "IS" clauses, and non-internal) are preserved as they should. }
 
-    NodeCopy := Proto.Node.DeepCopy;
+    NodeCopy := Proto.Node.DeepCopy as TVRMLRootNode;
 
     Assert(NodeCopy.PrototypeInstance =
       (NodeCopy.PrototypeInstanceSourceNode <> nil));
@@ -4479,40 +4468,33 @@ function TVRMLPrototypeNode.Instantiate: TVRMLNode;
       raise;
     end;
 
-    if NodeCopy is TVRMLRootNode then
+    if NodeCopy.FdChildren.Count = 0 then
     begin
-      if TVRMLRootNode(NodeCopy).FdChildren.Count = 0 then
-      begin
-        { If exception occurs before NodeCopy is connected to Result,
-          NodeCopy should be simply freed. }
-        FreeAndNil(NodeCopy);
-        raise EVRMLPrototypeInstantiateError.CreateFmt(
-          'Prototype "%s" has no nodes, cannot instantiate',
-          [Proto.Name]);
-      end;
-
-      { ExtractChild/Item methods were really invented specially for this case.
-
-        We have to remove Result from NodeCopy, to avoid cycles
-        (that can cause mem leaks) because Result.FPrototypeInstanceHelpers
-        has to keep pointer to NodeCopy.
-
-        At the same time, Result must not be freed here because of ref count = 0... }
-      Result := TVRMLRootNode(NodeCopy).FdChildren.Extract(0);
-
-      Assert(Result.PrototypeInstance =
-        (Result.PrototypeInstanceSourceNode <> nil));
-      Assert(Result.PrototypeInstance or
-        (Result.PrototypeInstanceHelpers = nil));
-
-      { NewPrototypeInstanceHelpers is used to keep the rest of
-        NodeCopy.FdChildren[1...] that should accompany this node. }
-      NewPrototypeInstanceHelpers := NodeCopy;
-    end else
-    begin
-      Result := NodeCopy;
-      NewPrototypeInstanceHelpers := nil;
+      { If exception occurs before NodeCopy is connected to Result,
+        NodeCopy should be simply freed. }
+      FreeAndNil(NodeCopy);
+      raise EVRMLPrototypeInstantiateError.CreateFmt(
+        'Prototype "%s" has no nodes, cannot instantiate',
+        [Proto.Name]);
     end;
+
+    { ExtractChild/Item methods were really invented specially for this case.
+
+      We have to remove Result from NodeCopy, to avoid cycles
+      (that can cause mem leaks) because Result.FPrototypeInstanceHelpers
+      has to keep pointer to NodeCopy.
+
+      At the same time, Result must not be freed here because of ref count = 0... }
+    Result := NodeCopy.FdChildren.Extract(0);
+
+    Assert(Result.PrototypeInstance =
+      (Result.PrototypeInstanceSourceNode <> nil));
+    Assert(Result.PrototypeInstance or
+      (Result.PrototypeInstanceHelpers = nil));
+
+    { NewPrototypeInstanceHelpers is used to keep the rest of
+      NodeCopy.FdChildren[1...] that should accompany this node. }
+    NewPrototypeInstanceHelpers := NodeCopy;
 
     Result.NodeName := NodeName;
 
@@ -4754,7 +4736,7 @@ begin
   Names := TVRMLNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
-    Node := ParseVRMLStatements(E, false, nil, Names);
+    FNode := ParseVRMLStatements(E, false, nil, Names);
   finally
     FreeAndNil(Names);
     Names := OldNames;
