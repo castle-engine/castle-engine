@@ -126,6 +126,13 @@
       Default @false. }
     VRML1ChildrenParsingAllowed: boolean;
 
+    { Should SaveToStream save our VRML1Children.
+      In this class default implementation returns @true,
+      this is what you will want in 99% of cases.
+      It's useful to set this to false if you use
+      VRML1Children internally, e.g. *Inline nodes. }
+    class function VRML1ChildrenSaveToStream: boolean; virtual;
+
     { Enumerate all active child nodes of given node.
 
       "Active nodes" are the ones affecting current VRML graph look
@@ -785,13 +792,6 @@
     function SmartChildrenCount: integer;
     function SmartExtractChild(Index: Integer): TVRMLNode;
     { @groupEnd }
-
-    { Should SaveToStream save our VRML1Children.
-      In this class default implementation returns @true,
-      this is what you will want in 99% of cases.
-      It's useful to set this to false if you use
-      VRML1Children internally, e.g. *Inline nodes. }
-    class function VRML1ChildrenSaveToStream: boolean; virtual;
 
     { Enumerates all children nodes (recursively),
       allowing you to decide for each node to replace or remove it.
