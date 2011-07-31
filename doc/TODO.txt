@@ -8,7 +8,6 @@ Make news item around ~end of July about next engine progress and plans.
 
 3.11.0:
 - Blender exporter fixes.
-- Collada improvements.
 - Support for Ogre data files, notify on forum?
 - Make GLWinMessages buttons clickable, reported for castle many times.
   In fact, use there our buttons in GLControls, this would be best.
@@ -203,13 +202,6 @@ Scene manager / controls / better Lazarus integration:
   calculated based on initial mouse pos? But switching FullSize
   and such must also change it?
 
-- Lazarus vrml_browser: at the beginning, control doesn't receive key down/up?
-  At least arrows don't seem to work, when you open a model without
-  any NavigationInfo, like
-  demo_models/compositing_shaders/composed_shader_using_plugs.x3dv
-  After some escape + down + up tweaks, sometimes it catches focus...
-  Possibly fixed by engine-2.4.fixes improvements to focus, check.
-
 * TODO at TKamAbstractViewport.Camera: allow one camera instance be shared
   by a couple of viewports/scene manager. Also fix multiple_viewports then.
 
@@ -234,22 +226,6 @@ Scene manager / controls / better Lazarus integration:
   Rename Object3dAsVRML to load3d unit.
   Hmm, not really --- Load3D will be only for OpenGL, as it will create
     already TVRMLGLScene / TVRMLGLAnimation etc.
-
-- animating Background in kanim doesn't work out of the box,
-  since TKamSceneManager looks at MainScene.Background by default.
-  Concerns demo_models/kanim/background_color_animation.kanim,
-  probably also demo_models/kanim/slow_background_animation.kanim
-  (but didn't get to finishing loading slow_background_animation.kanim),
-  viewed e.g. in view3dscene (but probably everywhere with scene manager).
-
-  Overriding Background is possible, this works:
-
-    if (Items.List.Count <> 0) and
-       (Items.List[0] is TVRMLGLAnimation) then
-      Result := TVRMLGLAnimation(Items.List[0]).CurrentScene.Background else
-
-  Make this better? Or just ignore? Animating Background by kanim
-  wasn't ever really a good idea.
 
 - some more free notifications could be useful:
   - FreeAndNil(FMouseRayHit) when it's triangle is destroyed (e.g. octree rebuild)
@@ -534,11 +510,11 @@ Various ideas:
     NurbsSet
 
 ------------------------------------------------------------------------------
-Effects, techniques, passes:
-- victor amat
-  http://http.developer.nvidia.com/CgTutorial/cg_tutorial_appendix_c.html,
-- dane osowskiego i OGRE,
-- tak¿e http://http.developer.nvidia.com/GPUGems/gpugems_ch36.html chyba wszyscy o tym wspominaj±...
+Handle Cg?
+Handle CgFX format, that allows to express multiple techniques and rendering passes:
+- http://http.developer.nvidia.com/CgTutorial/cg_tutorial_appendix_c.html,
+- OGRE also handles it,
+- http://http.developer.nvidia.com/GPUGems/gpugems_ch36.html
 
 ------------------------------------------------------------------------------
 Occlusion culling:
