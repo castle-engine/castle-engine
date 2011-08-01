@@ -1669,9 +1669,11 @@ procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
 var
   I: Integer;
 begin
+  { do not assign to List.Items[I], to never free,
+    regardless of http://bugs.freepascal.org/view.php?id=19854 fixed or not. }
   for I := 0 to List.Count - 1 do
-    if TObject(PPointer(List.Items[I])^) = OldItem then
-      TObject(PPointer(List.Items[I])^) := NewItem;
+    if TObject(PPointer(List.List)[I]) = OldItem then
+      TObject(PPointer(List.List)[I]) := NewItem;
 end;
 
 procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
