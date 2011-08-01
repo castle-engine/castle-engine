@@ -45,7 +45,8 @@ unit KambiClassUtils;
 
 interface
 
-uses Classes, SysUtils, KambiUtils, KambiStringUtils, Contnrs;
+uses Classes, SysUtils, KambiUtils, KambiStringUtils, Contnrs,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 
@@ -649,6 +650,17 @@ type
     { Call all (non-nil) Items. }
     procedure ExecuteAll(Sender: TObject);
   end;
+
+{ Remove all nils.
+  Returns how many instances were removed (how much Count was decreased).
+  Do not call this with other TFPSList descendants,
+  only TFPGObjectList specializations. }
+function FPGObjectList_RemoveNils(List: TFPSList): Cardinal;
+
+{ Replace all OldItem instances with NewItem.
+  Do not call this with other TFPSList descendants,
+  only TFPGObjectList specializations. }
+procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
 
 {$undef read_interface}
 
@@ -1628,6 +1640,31 @@ begin
   for I := 0 to High do
     if Assigned(Items[I]) then
       Items[I](Sender);
+end;
+
+{ FGL helpers ---------------------------------------------------------------- }
+
+function FPGObjectList_RemoveNils(List: TFPSList): Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  I := 0;
+  while I < List.Count do
+  begin
+    if PPointer(List.Items[I])^ = nil then
+      begin List.Delete(I); Inc(Result) end else
+      Inc(I);
+  end;
+end;
+
+procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
+var
+  i: integer;
+begin
+  for i := 0 to List.Count - 1 do
+    if TObject(PPointer(List.Items[i])^) = OldItem then
+      TObject(PPointer(List.Items[i])^) := NewItem;
 end;
 
 initialization
