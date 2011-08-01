@@ -110,9 +110,9 @@ var fhead: TBitmapFileHeader;
         PutPaletteColor(bmprow^[bmpi], rgbrow^[bmpi]);
     16:for rgbi := 0 to ihead.biWidth-1 do
        begin
-        rgbrow^[rgbi, 0] := FiveBitsToByte((PArray_Word(bmprow)^[rgbi] and $7C00) shr 10);
-        rgbrow^[rgbi, 1] := FiveBitsToByte((PArray_Word(bmprow)^[rgbi] and $03E0) shr 5);
-        rgbrow^[rgbi, 2] := FiveBitsToByte(PArray_Word(bmprow)^[rgbi] and $001F);
+        rgbrow^[rgbi, 0] := FiveBitsToByte((PWord(bmprow)[rgbi] and $7C00) shr 10);
+        rgbrow^[rgbi, 1] := FiveBitsToByte((PWord(bmprow)[rgbi] and $03E0) shr 5);
+        rgbrow^[rgbi, 2] := FiveBitsToByte(PWord(bmprow)[rgbi] and $001F);
        end;
     24:{ bmprow in 24 bit bitmap have almost the same format as rgbrow  -
          we only have to swap bgr to rgb }

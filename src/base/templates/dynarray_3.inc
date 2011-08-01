@@ -64,9 +64,6 @@
       to compare your items, this will also provide methods like IndexOf,
       although implemented differently.)
 
-    @item(DYNARRAY_3_USE_PLUSMINUS_OP: Use the "+" operator to define functions
-      like @code(Sum).)
-
     @item(DYNARRAY_3_IS_FUNCTION: Define this if your item is a function / procedure
       pointer (not of object). This is needed in Delphi mode.
       Also, this automatically defines DYNARRAY_3_USE_EQUALITY_OP.)
@@ -271,10 +268,6 @@
     procedure SortByObject(IsSmallerFunc: TDynArrayItemIsSmallerFuncByObject_3;
       FirstIndex, LastIndex: integer;
       CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
-
-    {$ifdef DYNARRAY_3_USE_PLUSMINUS_OP}
-    function Sum: TDynArrayItem_3;
-    {$endif DYNARRAY_3_USE_PLUSMINUS_OP}
 
     property First: TDynArrayItem_3 read GetFirst write SetFirst;
     property Last : TDynArrayItem_3 read GetLast  write SetLast ;
@@ -619,17 +612,6 @@ begin
    FirstIndex, LastIndex,
    CountToUseSimpleSort);
 end;
-
-{$ifdef DYNARRAY_3_USE_PLUSMINUS_OP}
-function TDynArray_3.Sum: TDynArrayItem_3;
-var
-  I: Integer;
-begin
-  Result := 0; { this will be improved to some macro like DYNARRAY_ZERO_ITEM }
-  for I := 0 to High do
-    Result := Result + Items[I];
-end;
-{$endif DYNARRAY_3_USE_PLUSMINUS_OP}
 
 function TDynArray_3.GetFirst: TDynArrayItem_3;
 begin

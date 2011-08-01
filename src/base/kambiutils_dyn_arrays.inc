@@ -182,30 +182,9 @@ type
   {$define DYNARRAY_3_USE_PLUSMINUS_OP}
   TDynArrayItem_3  = Float   ; PDynArrayItem_3  = PFloat   ; {$I dynarray_3.inc}  {TDynFloatArray is below} { }         TArray_Float    = TInfiniteArray_3 ; PArray_Float    = PInfiniteArray_3 ;
 
-  {$define DYNARRAY_4_USE_EQUALITY_OP}
-  { Don't set USE_PLUSMINUS_OP here, as the sum may often not fit in the Byte } { }
-  TDynArrayItem_4  = Byte    ; PDynArrayItem_4  = PByte    ; {$I dynarray_4.inc}  TDynByteArray     = TDynArray_4 ; TArray_Byte     = TInfiniteArray_4 ; PArray_Byte     = PInfiniteArray_4 ;
-
-  {$define DYNARRAY_5_USE_EQUALITY_OP}
-  TDynArrayItem_5  = Shortint; PDynArrayItem_5  = PShortint; {$I dynarray_5.inc}  TDynShortintArray = TDynArray_5 ; TArray_Shortint = TInfiniteArray_5 ; PArray_Shortint = PInfiniteArray_5 ;
-
-  {$define DYNARRAY_6_USE_EQUALITY_OP}
-  TDynArrayItem_6  = Smallint; PDynArrayItem_6  = PSmallint; {$I dynarray_6.inc}  TDynSmallintArray = TDynArray_6 ; TArray_Smallint = TInfiniteArray_6 ; PArray_Smallint = PInfiniteArray_6 ;
-
-  {$define DYNARRAY_7_USE_EQUALITY_OP}
-  TDynArrayItem_7  = Word    ; PDynArrayItem_7  = PWord    ; {$I dynarray_7.inc}  TDynWordArray     = TDynArray_7 ; TArray_Word     = TInfiniteArray_7 ; PArray_Word     = PInfiniteArray_7 ;
-
   {$define DYNARRAY_8_USE_EQUALITY_OP}
   {$define DYNARRAY_8_USE_PLUSMINUS_OP}
   TDynArrayItem_8  = Longint ; PDynArrayItem_8  = PLongint ; {$I dynarray_8.inc}                                    TArray_Longint  = TInfiniteArray_8 ; PArray_Longint  = PInfiniteArray_8 ;
-
-  {$define DYNARRAY_9_USE_EQUALITY_OP}
-  {$define DYNARRAY_9_USE_PLUSMINUS_OP}
-  TDynArrayItem_9  = Int64   ; PDynArrayItem_9  = PInt64   ; {$I dynarray_9.inc}  TDynInt64Array    = TDynArray_9 ; TArray_Int64    = TInfiniteArray_9 ; PArray_Int64    = PInfiniteArray_9 ;
-
-  {$define DYNARRAY_10_USE_EQUALITY_OP}
-  {$define DYNARRAY_10_USE_PLUSMINUS_OP}
-  TDynArrayItem_10 = Extended; PDynArrayItem_10 = PExtended; {$I dynarray_10.inc} TDynExtendedArray = TDynArray_10; TArray_Extended = TInfiniteArray_10; PArray_Extended = PInfiniteArray_10;
 
   {$define DYNARRAY_11_USE_EQUALITY_OP}
   {$define DYNARRAY_11_USE_PLUSMINUS_OP}
@@ -262,6 +241,7 @@ type
 
   TDynCardinalArray = class(TDynArray_1)
     function BigSum: Int64;
+    function Sum: Cardinal;
   end;
 
   TDynBooleanArray = class(TDynArray_16)
@@ -280,6 +260,7 @@ type
   TDynLongIntArray = class(TDynArray_8)
   public
     function Max: LongInt;
+    function Sum: LongInt;
   end;
 
 {$endif}
@@ -464,13 +445,7 @@ end;
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
-{$I dynarray_4.inc}
-{$I dynarray_5.inc}
-{$I dynarray_6.inc}
-{$I dynarray_7.inc}
 {$I dynarray_8.inc}
-{$I dynarray_9.inc}
-{$I dynarray_10.inc}
 {$I dynarray_11.inc}
 {$I dynarray_12.inc}
 {$I dynarray_13.inc}
@@ -565,6 +540,15 @@ begin
  for i := 0 to Length-1 do result := result + Items[i];
 end;
 
+function TDynCardinalArray.Sum: Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to High do
+    Result += Items[I];
+end;
+
 { TDynBooleanArray ------------------------------------------------------------ }
 
 procedure TDynBooleanArray.SetFalse(Index: Integer);
@@ -593,6 +577,15 @@ begin
   Result := Low(LongInt);
   for I := 0 to High do
     MaxTo1st(Result, Items[I]);
+end;
+
+function TDynLongIntArray.Sum: LongInt;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to High do
+    Result += Items[I];
 end;
 
 {$endif}
