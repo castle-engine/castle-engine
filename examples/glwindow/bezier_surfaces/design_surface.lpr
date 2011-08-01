@@ -170,7 +170,7 @@ begin
   SafeRewrite(F, FileName);
   try
     Writeln(F, Surface.Curves.Count, ' ', CurveControlPointsCount);
-    for I := 0 to Surface.Curves.High do
+    for I := 0 to Surface.Curves.Count - 1 do
     begin
       Assert(CurveControlPointsCount = Cardinal(ControlPoints(I).Count));
       for J := 0 to CurveControlPointsCount - 1 do
@@ -338,8 +338,8 @@ procedure MouseDown(Window: TGLWindow; Btn: TMouseButton);
     glGetIntegerv(GL_VIEWPORT, @Viewport);
 
     BestDistance := MaxSingle;
-    for I := 0 to Surface.Curves.High do
-      for J := 0 to ControlPoints(I).High do
+    for I := 0 to Surface.Curves.Count - 1 do
+      for J := 0 to ControlPoints(I).Count - 1 do
       begin
         Project(ControlPoints(I).Items[J], WinX, WinY);
         Distance := Sqr(WinX - Window.MouseX) +
@@ -504,7 +504,7 @@ procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
   var
     Max: Integer;
   begin
-    Max := Surface.Curves.High;
+    Max := Surface.Curves.Count - 1;
     if not Between(CurrentCurve, 0, Max) then
       CurrentCurve := 0 else
       CurrentCurve := ChangeIntCycle(CurrentCurve, Change, Max);
@@ -515,7 +515,7 @@ procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
   var
     Max: Integer;
   begin
-    Max := ControlPoints(CurrentCurve).High;
+    Max := ControlPoints(CurrentCurve).Count - 1;
     if not Between(CurrentPoint, 0, Max) then
       CurrentPoint := 0 else
       CurrentPoint := ChangeIntCycle(CurrentPoint, Change, Max);

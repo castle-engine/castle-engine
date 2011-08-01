@@ -74,12 +74,6 @@
       growing count means that we add @nil items. }
     property Count: Integer read fCount write SetCount;
 
-    procedure IncCount;
-    procedure DecCount;
-
-    { Shortcut for Count - 1. Note that when Count = 0, High is -1. }
-    function High: Integer;
-
     { For how many items we have allocated memory. }
     property Capacity: integer read fCapacity write SetCapacity;
 
@@ -94,7 +88,7 @@
 
     { Sort Items between FirstIndex and LastIndex.
       FirstIndex and LastIndex must be valid indexes,
-      i.e. between 0 and High and FirstIndex <= LastIndex. }
+      i.e. between 0 and Count - 1 and FirstIndex <= LastIndex. }
     procedure Sort(FirstIndex, LastIndex: Cardinal;
       IsSmallerFunction: TObjectsListIsSmallerFunction_3); overload;
 
@@ -237,21 +231,6 @@ begin
  fCount := value;
 end;
 
-procedure TObjectsList_3.IncCount;
-begin
-  Count := FCount + 1;
-end;
-
-procedure TObjectsList_3.DecCount;
-begin
-  Count := FCount - 1;
-end;
-
-function TObjectsList_3.High: Integer;
-begin
- Result := FCount - 1;
-end;
-
 function TObjectsList_3.GetFirst: TObjectsListItem_3;
 begin
  Result := Items[0];
@@ -303,7 +282,7 @@ end;
 procedure TObjectsList_3.Sort(IsSmallerFunction: TObjectsListIsSmallerFunction_3);
 begin
   if Count <> 0 then
-    Sort(0, High, IsSmallerFunction);
+    Sort(0, Count - 1, IsSmallerFunction);
 end;
 
 procedure TObjectsList_3.Assign(Source: TPersistent);

@@ -107,12 +107,12 @@ begin
     Surface1.XBegin, Surface1.XEnd,
     Surface1.YBegin, Surface1.YEnd);
   try
-    for I := 0 to Surface1.Curves.High do
+    for I := 0 to Surface1.Curves.Count - 1 do
     begin
       C1 := Surface1.Curves.Items[I] as TRationalBezierCurve;
       C2 := Surface2.Curves.Items[I] as TRationalBezierCurve;
       MyCurve := TRationalBezierCurve.Create(C1.TBegin, C1.TEnd);
-      for J := 0 to C1.ControlPoints.High do
+      for J := 0 to C1.ControlPoints.Count - 1 do
       begin
         MyCurve.ControlPoints.Add(
           Lerp(F, C1.ControlPoints.Items[J],

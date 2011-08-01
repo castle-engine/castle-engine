@@ -451,7 +451,7 @@ var
 begin
   FAllocatedSources := TALSoundsList.Create;
   FAllocatedSources.Count := MinAllocatedSources;
-  for I := 0 to FAllocatedSources.High do
+  for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TALSound.Create;
 end;
 
@@ -462,7 +462,7 @@ begin
   if FAllocatedSources <> nil then
   begin
     { Stop using and free allocated sounds. }
-    for I := 0 to FAllocatedSources.High do
+    for I := 0 to FAllocatedSources.Count - 1 do
       { Although usually we are sure that every FAllocatedSources[I] <> nil,
         in this case we must take into account that maybe our constructor
         raise ENonMoreOpenALSources and so some FAllocatedSources[I] were
@@ -493,7 +493,7 @@ begin
     If no unused sound will be found, it will calculate
     MinImportanceIndex, this will be useful later. }
   MinImportanceIndex := -1;
-  for I := 0 to FAllocatedSources.High do
+  for I := 0 to FAllocatedSources.Count - 1 do
     if not FAllocatedSources[I].Used then
     begin
       Result := FAllocatedSources[I];
@@ -515,7 +515,7 @@ begin
     but actually it's not used anymore ? }
   if Result = nil then
   begin
-    for I := 0 to FAllocatedSources.High do
+    for I := 0 to FAllocatedSources.Count - 1 do
       if not alSourcePlayingOrPaused(FAllocatedSources[I].ALSource) then
       begin
         Result := FAllocatedSources[I];
@@ -577,7 +577,7 @@ begin
     begin
       OldAllocatedSourcesCount := FAllocatedSources.Count;
       FAllocatedSources.Count := MinAllocatedSources;
-      for I := OldAllocatedSourcesCount to FAllocatedSources.High do
+      for I := OldAllocatedSourcesCount to FAllocatedSources.Count - 1 do
         FAllocatedSources[I] := TALSound.Create;
     end;
   end;
@@ -598,7 +598,7 @@ begin
       RefreshUsedSources;
       FAllocatedSources.SortByImportance;
 
-      for I := MaxAllocatedSources to FAllocatedSources.High do
+      for I := MaxAllocatedSources to FAllocatedSources.Count - 1 do
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].DoUsingEnd;
@@ -616,7 +616,7 @@ begin
   CheckAL('before RefreshUsedSources');
 
   if FAllocatedSources <> nil then
-    for I := 0 to FAllocatedSources.High do
+    for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used and
          (not alSourcePlayingOrPaused(FAllocatedSources[I].ALSource)) then
       begin
@@ -629,7 +629,7 @@ var
   I: Integer;
 begin
   if FAllocatedSources <> nil then
-    for I := 0 to FAllocatedSources.High do
+    for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used then
         FAllocatedSources[I].DoUsingEnd;
 end;

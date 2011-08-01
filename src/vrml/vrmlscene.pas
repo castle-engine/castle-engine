@@ -1996,7 +1996,7 @@ end;
 function TVRMLBindableStack.Top: TNodeX3DBindableNode;
 begin
   if Count <> 0 then
-    Result := Items[High] as TNodeX3DBindableNode else
+    Result := Last as TNodeX3DBindableNode else
     Result := nil;
 end;
 
@@ -2021,7 +2021,7 @@ function TVRMLBindableStack.Pop: TNodeX3DBindableNode;
 begin
   if Count <> 0 then
   begin
-    Result := Items[High] as TNodeX3DBindableNode;
+    Result := Last as TNodeX3DBindableNode;
     Count := Count - 1;
   end else
     Result := nil;
@@ -2052,7 +2052,7 @@ begin
         graph part is acceptable, as far as I understand. }
       if not RootNode.IsNodePresent(Items[I], false) then
       begin
-        TopChanged := I = High;
+        TopChanged := I = Count - 1;
         Delete(I);
       end else
         Inc(I);
@@ -2082,11 +2082,11 @@ begin
       SendIsBound(Top, true);
       DoScheduleBoundChanged;
     end else
-    if NodeIndex <> High then
+    if NodeIndex <> Count - 1 then
     begin
       { Node on the stack, but not on top. So move it, as new top node. }
       SendIsBound(Top, false);
-      Exchange(NodeIndex, High);
+      Exchange(NodeIndex, Count - 1);
       SendIsBound(Top, true);
       DoScheduleBoundChanged;
     end;
@@ -2095,7 +2095,7 @@ begin
   begin
     if NodeIndex <> -1 then
     begin
-      if NodeIndex = High then
+      if NodeIndex = Count - 1 then
       begin
         SendIsBound(Top, false);
         Delete(NodeIndex);
@@ -2179,7 +2179,7 @@ end;
 
 function TDynGeneratedTextureArray.IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
 begin
-  for Result := 0 to High do
+  for Result := 0 to Count - 1 do
     if Items[Result].TextureNode = TextureNode then
       Exit;
   Result := -1;
@@ -2944,7 +2944,7 @@ procedure TVRMLScene.ChangedAll;
     { Here we only deal with light scope = lsGlobal case.
       Other scopes are handled during traversing. }
 
-    for I := 0 to GlobalLights.High do
+    for I := 0 to GlobalLights.Count - 1 do
     begin
       L := GlobalLights.Pointers[I];
       LNode := L^.Node;

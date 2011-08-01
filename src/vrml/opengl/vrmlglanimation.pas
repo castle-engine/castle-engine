@@ -1195,7 +1195,7 @@ begin
     if StructurallyEqual then
     begin
       { Try to merge it with LastSceneRootNode.
-        Then initialize FScenes[LastSceneIndex + 1 to FScenes.High]. }
+        Then initialize FScenes[LastSceneIndex + 1 to FScenes.Count - 1]. }
       RootNodesEqual := VRMLModelsMerge(NewRootNode, LastSceneRootNode);
       if RootNodesEqual then
       begin
@@ -1205,13 +1205,13 @@ begin
           along the way. When freeing FScenes, we will be smart and
           avoid deallocating the same pointer twice. }
         FreeAndNil(NewRootNode);
-        for SceneIndex := LastSceneIndex + 1 to FScenes.High do
+        for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 1 do
           FScenes[SceneIndex] := FScenes[LastSceneIndex];
       end else
       begin
-        for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
+        for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 2 do
           FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
-            MapRange(SceneIndex, LastSceneIndex, FScenes.High, 0.0, 1.0),
+            MapRange(SceneIndex, LastSceneIndex, FScenes.Count - 1, 0.0, 1.0),
             LastSceneRootNode, NewRootNode) as TVRMLRootNode, true);
         FScenes.Last := CreateOneScene(NewRootNode, true);
         LastSceneRootNode := NewRootNode;
@@ -1219,16 +1219,16 @@ begin
     end else
     begin
       { We cannot interpolate between last and new node.
-        So just duplicate last node until FScenes.High - 1,
-        and at FScenes.High insert new node. }
-      for SceneIndex := LastSceneIndex + 1 to FScenes.High - 1 do
+        So just duplicate last node until FScenes.Count - 2,
+        and at FScenes.Last insert new node. }
+      for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 2 do
         FScenes[SceneIndex] := FScenes[LastSceneIndex];
       FScenes.Last := CreateOneScene(NewRootNode, true);
       LastSceneRootNode := NewRootNode;
     end;
 
     LastTime := NewTime;
-    LastSceneIndex := FScenes.High;
+    LastSceneIndex := FScenes.Count - 1;
   end;
 
   { calculate TimeEnd at this point }
@@ -1397,13 +1397,13 @@ begin
       { Now we must note that we may have a sequences of the same scenes
         on FScenes. So we must deallocate smartly, to avoid deallocating
         the same pointer more than once. }
-      for I := 0 to FScenes.High - 1 do
+      for I := 0 to FScenes.Count - 2 do
       begin
         if FScenes[I] = FScenes[I+1] then
           FScenes[I] := nil { set to nil, just for safety } else
           FScenes.FreeAndNil(I);
       end;
-      FScenes.FreeAndNil(FScenes.High);
+      FScenes.FreeAndNil(FScenes.Count - 1);
     end;
 
     FreeAndNil(FScenes);
@@ -1444,7 +1444,7 @@ var
 begin
   if not Loaded then Exit;
 
-  for I := 0 to FScenes.High do
+  for I := 0 to FScenes.Count - 1 do
   begin
     { For I <> 0, we don't want to pass prManifoldAndBorderEdges to scenes. }
     SceneOptions := Options;
@@ -1473,7 +1473,7 @@ procedure TVRMLGLAnimation.FreeResources(Resources: TVRMLSceneFreeResources);
 var
   I: Integer;
 begin
-  for I := 0 to FScenes.High do
+  for I := 0 to FScenes.Count - 1 do
     FScenes[I].FreeResources(Resources);
 end;
 
@@ -1514,9 +1514,9 @@ begin
     SceneNumber := 0;
   end else
   begin
-    { I use FScenes.Count, not FScenes.High as the highest range value.
+    { I use FScenes.Count, not FScenes.Count - 1 as the highest range value.
       This is critical. On the short range (not looping), it may seem
-      that FScenes.High is more appropriate, since the last scene
+      that FScenes.Count - 1 is more appropriate, since the last scene
       corresponds exactly to TimeEnd. But that's not good for looping:
       in effect float range TimeDuration would contain one scene less,
       and so when looking at large Time values, the scenes are slightly shifted
@@ -1528,7 +1528,7 @@ begin
       backwards is @true). This is needed for tricks like smooth animations
       concatenation, see "the rift" in RiftCreatures unit.
 
-      When using FScenes.High, we would break this, as scenes are shifted
+      When using FScenes.Count - 1, we would break this, as scenes are shifted
       by one in each range. }
     SceneNumber := Floor(MapRange(Time, TimeBegin, TimeEnd, 0, FScenes.Count));
 
@@ -1537,7 +1537,7 @@ begin
     if TimeLoop then
     begin
       if TimeBackwards and Odd(DivResult) then
-        SceneNumber := FScenes.High - ModResult else
+        SceneNumber := FScenes.Count - 1 - ModResult else
         SceneNumber := ModResult;
     end else
     begin
@@ -1546,14 +1546,14 @@ begin
         if (DivResult < 0) or (DivResult > 1) then
           SceneNumber := 0 else
         if DivResult = 1 then
-          SceneNumber := FScenes.High - ModResult;
+          SceneNumber := FScenes.Count - 1 - ModResult;
           { else DivResult = 0, so SceneNumber is already correct }
       end else
       begin
         if DivResult < 0 then
           SceneNumber := 0 else
         if DivResult > 0 then
-          SceneNumber := FScenes.High;
+          SceneNumber := FScenes.Count - 1;
       end;
     end;
   end;
@@ -1573,7 +1573,7 @@ function TVRMLGLAnimation.BoundingBox: TBox3D;
     I: Integer;
   begin
     FBoundingBox := FScenes[0].BoundingBox;
-    for I := 1 to FScenes.High do
+    for I := 1 to FScenes.Count - 1 do
       Box3DSumTo1st(FBoundingBox, FScenes[I].BoundingBox);
     ValidBoundingBox := true;
   end;
@@ -1592,7 +1592,7 @@ procedure TVRMLGLAnimation.BeforeNodesFree;
 var
   I: Integer;
 begin
-  for I := 0 to FScenes.High do
+  for I := 0 to FScenes.Count - 1 do
     FScenes[I].BeforeNodesFree;
 end;
 
@@ -1600,7 +1600,7 @@ procedure TVRMLGLAnimation.ChangedAll;
 var
   I: Integer;
 begin
-  for I := 0 to FScenes.High do
+  for I := 0 to FScenes.Count - 1 do
     FScenes[I].ChangedAll;
   ValidBoundingBox := false;
 end;
@@ -1666,7 +1666,7 @@ begin
         in one consecutive range of FScenes. So we have to iterate over
         the first FScenes (while they are equal to FScenes[0]). }
 
-      for I := 0 to FScenes.High do
+      for I := 0 to FScenes.Count - 1 do
       begin
         if FScenes[I] = FScenes[0] then
           FScenes[I].OwnsRootNode := Value else
@@ -2007,7 +2007,7 @@ begin
     FShadowMaps := Value;
     if FScenes <> nil then
     begin
-      for I := 0 to FScenes.High do
+      for I := 0 to FScenes.Count - 1 do
         FScenes[I].ShadowMaps := Value;
     end;
   end;
@@ -2022,7 +2022,7 @@ begin
     FShadowMapsDefaultSize := Value;
     if FScenes <> nil then
     begin
-      for I := 0 to FScenes.High do
+      for I := 0 to FScenes.Count - 1 do
         FScenes[I].ShadowMapsDefaultSize := Value;
     end;
   end;

@@ -1944,7 +1944,7 @@ procedure TKamScriptFunction.CheckArguments;
 var
   I: Integer;
 begin
-  for I := 0 to Args.High do
+  for I := 0 to Args.Count - 1 do
     if ArgumentMustBeAssignable(I) and
        not ( (Args[I] is TKamScriptValue) and
              TKamScriptValue(Args[I]).Writeable ) then
@@ -2557,7 +2557,7 @@ begin
   end;
   Func := Functions[FuncIndex];
 
-  if High(Parameters) <> Func.Parameters.High then
+  if High(Parameters) <> Func.Parameters.Count - 1 then
     raise EKamScriptError.CreateFmt('KambiScript function "%s" requires %d parameters, but passed %d parameters',
       [FunctionName, Func.Parameters.Count, High(Parameters) + 1]);
 

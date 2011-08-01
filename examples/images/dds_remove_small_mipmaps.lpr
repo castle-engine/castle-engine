@@ -38,7 +38,7 @@ begin
     begin
       NeedsSave := false;
       I := 1; { start from 1, to never remove base image }
-      while I <= D.Images.High do
+      while I <= D.Images.Count - 1 do
       begin
         if (D.Images[I].Width < 4) or
            (D.Images[I].Height < 4) then

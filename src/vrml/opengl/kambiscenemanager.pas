@@ -1862,7 +1862,7 @@ var
   MainLightPosition: TVector4Single; { ignored }
   V: TKamAbstractViewport;
 begin
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
   begin
     V := Items[I];
     if V.ShadowVolumesPossible and
@@ -1912,7 +1912,7 @@ begin
 
   if FViewports <> nil then
   begin
-    for I := 0 to FViewports.High do
+    for I := 0 to FViewports.Count - 1 do
       if FViewports[I] is TKamViewport then
       begin
         Assert(TKamViewport(FViewports[I]).SceneManager = Self);

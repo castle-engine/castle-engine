@@ -367,14 +367,14 @@ begin
     so we try here to make nice error messages when some sector
     or waypoint is not initialized yet (i.e. = nil). }
 
-  for SectorIndex := 0 to High do
+  for SectorIndex := 0 to Count - 1 do
   begin
     S := Items[SectorIndex];
     if S = nil then
       raise ESectorNotInitialized.CreateFmt('Sector %d not initialized',
         [SectorIndex]);
 
-    for WaypointIndex := 0 to Waypoints.High do
+    for WaypointIndex := 0 to Waypoints.Count - 1 do
     begin
       W := Waypoints[WaypointIndex];
       if W = nil then
@@ -395,7 +395,7 @@ function TSceneSectorsList.SectorWithPoint(const Point: TVector3Single):
 var
   I: Integer;
 begin
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
   begin
     Result := Items[I];
     if Result.IsPointInside(Point) then
@@ -426,10 +426,10 @@ var
       Exit(true);
     end;
 
-    for WaypointIndex := 0 to SectorNow.Waypoints.High do
+    for WaypointIndex := 0 to SectorNow.Waypoints.Count - 1 do
     begin
       W := SectorNow.Waypoints[WaypointIndex];
-      for SectorIndex := 0 to W.Sectors.High do
+      for SectorIndex := 0 to W.Sectors.Count - 1 do
         if FindWayToSectorEnd(W.Sectors[SectorIndex], SectorDistance + 1) then
         begin
           Waypoints[SectorDistance] := W;

@@ -295,7 +295,7 @@ var
   I: Integer;
 begin
   SetLength(Result, Variables.Count);
-  for I := 0 to Variables.High do
+  for I := 0 to Variables.Count - 1 do
     Result[I] := Variables[I];
 end;
 

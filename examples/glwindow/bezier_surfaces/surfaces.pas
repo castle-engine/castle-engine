@@ -110,7 +110,7 @@ procedure TSurface.Render(const XSegments, YSegments: Cardinal);
     I: Cardinal;
   begin
     Result := TRationalBezierCurve.Create(YBegin, YEnd);
-    for I := 0 to Curves.High do
+    for I := 0 to Curves.Count - 1 do
     begin
       TRationalBezierCurve(Result).ControlPoints.Add(
         Curves.Items[I].Point(X));
@@ -170,7 +170,7 @@ begin
   Curve0 := Curves.Items[0] as TControlPointsCurve;
   CurveControlPointsCount := Curve0.ControlPoints.Count;
 
-  for I := 1 to Curves.High do
+  for I := 1 to Curves.Count - 1 do
   begin
     CurvePrev := Curves.Items[I-1] as TControlPointsCurve;
     CurveNow := Curves.Items[I] as TControlPointsCurve;

@@ -509,7 +509,7 @@ procedure TDDSImage.Close;
 var
   I: Integer;
 begin
-  for I := 0 to Images.High do
+  for I := 0 to Images.Count - 1 do
     if OwnsFirstImage or (I <> 0) then
       Images.FreeAndNil(I);
   Images.Count := 0;
@@ -1080,12 +1080,6 @@ var
       Images.SetAll(nil);
     end;
 
-    procedure AddOneImage(const Image: TEncodedImage);
-    begin
-      Images.IncCount;
-      Images.Last := Image;
-    end;
-
   var
     W, H, D: Cardinal;
     I: Integer;
@@ -1132,13 +1126,13 @@ var
                 H := Height;
                 for I := 0 to FMipmapsCount - 1 do
                 begin
-                  AddOneImage(ReadImage(W, H, 1, I));
+                  Images.Add(ReadImage(W, H, 1, I));
                   W := Max(1, W div 2);
                   H := Max(1, H div 2);
                 end;
               end else
               begin
-                AddOneImage(ReadImage(Width, Height, 1, 0));
+                Images.Add(ReadImage(Width, Height, 1, 0));
               end;
             end;
         end;
@@ -1151,14 +1145,14 @@ var
             D := Depth;
             for I := 0 to FMipmapsCount - 1 do
             begin
-              AddOneImage(ReadImage(W, H, D, I));
+              Images.Add(ReadImage(W, H, D, I));
               W := Max(1, W div 2);
               H := Max(1, H div 2);
               D := Max(1, D div 2);
             end;
           end else
           begin
-            AddOneImage(ReadImage(Width, Height, Depth, 0));
+            Images.Add(ReadImage(Width, Height, Depth, 0));
           end;
         end;
       else raise EInternalError.Create('DDSType?');
