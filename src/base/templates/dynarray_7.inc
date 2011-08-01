@@ -223,9 +223,6 @@
       Returns the index of removed item (-1 if not found). }
     function Remove(const Value: TDynArrayItem_7): Integer;
 
-    { Searches for and deletes all items equal to Value. }
-    procedure RemoveAll(const Value: TDynArrayItem_7);
-
     { If the Item is not already present in the array (checked like IndexOf)
       then add this item (like by Add). }
     procedure AddIfNotExists(const Item: TDynArrayItem_7);
@@ -494,19 +491,6 @@ function TDynArray_7.Remove(const Value: TDynArrayItem_7): Integer;
 begin
   Result := IndexOf(Value);
   if Result <> -1 then Delete(Result);
-end;
-
-procedure TDynArray_7.RemoveAll(const Value: TDynArrayItem_7);
-var
-  I: Integer;
-begin
-  I := 0;
-  while I < Count do
-  begin
-    if EqualItems(Items[I], Value) then
-      Delete(I, 1) else
-      Inc(I);
-  end;
 end;
 
 procedure TDynArray_7.AddIfNotExists(const Item: TDynArrayItem_7);

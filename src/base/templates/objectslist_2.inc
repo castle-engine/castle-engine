@@ -135,11 +135,6 @@
       Returns the index of removed item (-1 if not found). }
     function Remove(Item: TObjectsListItem_2): Integer; overload;
 
-    { Remove all found instances of given Item.
-      Returns how many instances were removed (that is, how much Count
-      was decreased). }
-    function RemoveAll(Item: TObjectsListItem_2): Cardinal;
-
     { Equivalent to doing Count := 0 }
     procedure Clear;
 
@@ -149,11 +144,6 @@
     { Move one list item to another index. Items in between will be
       appropriately shifted by one (to the left or right). }
     procedure Move(oldIndex, newIndex: integer);
-
-    { Replace all OldItem instances with NewItem. }
-    procedure ReplaceAll(OldItem, NewItem: TObjectsListItem_2);
-
-    procedure SetAll(Item: TObjectsListItem_2);
 
     { Freeing list (items) --------------------------------------------------- }
 
@@ -415,20 +405,6 @@ begin
  if Result <> -1 then Delete(Result);
 end;
 
-function TObjectsList_2.RemoveAll(Item: TObjectsListItem_2): Cardinal;
-var
-  I: Integer;
-begin
-  Result := 0;
-  I := 0;
-  while I < Count do
-  begin
-    if Items[I] = Item then
-      begin Delete(I); Inc(Result) end else
-      Inc(I);
-  end;
-end;
-
 procedure TObjectsList_2.Clear;
 begin Count := 0 end;
 
@@ -457,31 +433,6 @@ begin
   for i := oldIndex downto newIndex+1 do List^[i] := List^[i-1];
  end;
  List^[newIndex] := Item;
-end;
-
-procedure TObjectsList_2.ReplaceAll(OldItem, NewItem: TObjectsListItem_2);
-var i: integer;
-begin
- for i := 0 to Count-1 do if Items[i] = OldItem then Items[i] := NewItem;
-end;
-
-procedure TObjectsList_2.SetAll(Item: TObjectsListItem_2);
-{$ifdef CPU32}
-begin
-  {$ifdef KAMBI_CHECK_POINTER}
-  { It's actually legal to call FillDWord with nil pointer
-    when Count = 0. But pointer validity (-gc) checks will fail
-    (they detect that you try to dereference nil pointers). }
-  if Count = 0 then Exit;
-  {$endif}
-
-  FillDWord(List^, Count, PtrUInt(Item));
-{$else}
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do Items[I] := Item;
-{$endif}
 end;
 
 procedure TObjectsList_2.FreeAndNil(Index: integer);
