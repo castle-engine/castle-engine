@@ -1593,8 +1593,8 @@ var
         Shader.SetUniform('screen', 0);
         if CurrentScreenEffectsNeedDepth then
           Shader.SetUniform('screen_depth', 1);
-        Shader.SetUniform('screen_width', ScreenEffectTextureWidth);
-        Shader.SetUniform('screen_height', ScreenEffectTextureHeight);
+        Shader.SetUniform('screen_width', TGLint(ScreenEffectTextureWidth));
+        Shader.SetUniform('screen_height', TGLint(ScreenEffectTextureHeight));
 
         { Note that we ignore SetupUniforms result --- if some texture
           could not be bound, it will be undefined for shader.
