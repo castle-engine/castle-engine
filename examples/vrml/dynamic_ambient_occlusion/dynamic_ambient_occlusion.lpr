@@ -560,7 +560,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
       if GLVersion.IsFglrx then
       begin
         GLSLProgram[Pass].SetUniform('elements_count', Elements.Count);
-        GLSLProgram[Pass].SetUniform('tex_elements_size', ElementsTexSize);
+        GLSLProgram[Pass].SetUniform('tex_elements_size', TGLint(ElementsTexSize));
       end;
 
       GLSLProgram[Pass].SetUniform('zero_5', 0.5);
