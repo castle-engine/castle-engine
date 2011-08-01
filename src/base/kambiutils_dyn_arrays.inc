@@ -176,7 +176,7 @@ type
 
   {$define DYNARRAY_2_USE_EQUALITY_OP}
   {$define DYNARRAY_2_USE_PLUSMINUS_OP}
-  TDynArrayItem_2  = Integer ; PDynArrayItem_2  = PInteger ; {$I dynarray_2.inc}  TDynIntegerArray  = TDynArray_2 ; TArray_Integer  = TInfiniteArray_2 ; PArray_Integer  = PInfiniteArray_2 ;
+  TDynArrayItem_2  = Integer ; PDynArrayItem_2  = PInteger ; {$I dynarray_2.inc}                                       TArray_Integer  = TInfiniteArray_2 ; PArray_Integer  = PInfiniteArray_2 ;
 
   {$define DYNARRAY_3_USE_EQUALITY_OP}
   {$define DYNARRAY_3_USE_PLUSMINUS_OP}
@@ -261,6 +261,11 @@ type
   public
     function Max: LongInt;
     function Sum: LongInt;
+  end;
+
+  TDynIntegerArray = class(TDynArray_2)
+  public
+    function Sum: Integer;
   end;
 
 {$endif}
@@ -580,6 +585,15 @@ begin
 end;
 
 function TDynLongIntArray.Sum: LongInt;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to High do
+    Result += Items[I];
+end;
+
+function TDynIntegerArray.Sum: Integer;
 var
   I: Integer;
 begin
