@@ -662,6 +662,13 @@ function FPGObjectList_RemoveNils(List: TFPSList): Cardinal;
   only TFPGObjectList specializations. }
 procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
 
+{ Free and set to @nil given item on TFPGObjectList.
+
+  Usually, simply assigning to it @nil value (when list has FreeObjects = @true)
+  would do the trick. Unfortunately there's bug
+  http://bugs.freepascal.org/view.php?id=19854 . }
+procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
+
 {$undef read_interface}
 
 implementation
@@ -1660,11 +1667,21 @@ end;
 
 procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
 var
-  i: integer;
+  I: Integer;
 begin
-  for i := 0 to List.Count - 1 do
-    if TObject(PPointer(List.Items[i])^) = OldItem then
-      TObject(PPointer(List.Items[i])^) := NewItem;
+  for I := 0 to List.Count - 1 do
+    if TObject(PPointer(List.Items[I])^) = OldItem then
+      TObject(PPointer(List.Items[I])^) := NewItem;
+end;
+
+procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
+begin
+  { do not set the list item by normal List.Items, as it will cause
+    problems once http://bugs.freepascal.org/view.php?id=19854
+    will be fixed (if FreeObjects = true, then when assigning "Items[I] := nil",
+    previous Items[I] must contain a valid reference or nil, not something freed.
+    And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
+  FreeAndNil(PPointer(List.List)[I]);
 end;
 
 initialization
