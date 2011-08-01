@@ -1073,11 +1073,16 @@ var
     end { ReadImage };
 
     procedure AllocateImages(const Count: Cardinal);
+    var
+      I: Integer;
     begin
       Images.Count := Count;
       { zero memory, to allow easy deallocation in case an exception will
-        be raised during image reading. }
-      Images.SetAll(nil);
+        be raised during image reading. Although FGL generics zero the new
+        memory anyway, so it can be removed later (if this zeroing behavior
+        is guaranteed forever). }
+      for I := 0 to Integer(Count) - 1 do
+        Images[I] := nil;
     end;
 
   var
