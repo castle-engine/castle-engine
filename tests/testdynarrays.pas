@@ -138,14 +138,36 @@ begin
   Assert(iarr.Equal([99, 1, 3, 6, 8]));
 
   { simple DeleteDuplicates tests }
-  IArr.DeleteDuplicates;
+
+  { TDynArray.DeleteDuplicates removed, since not used, and not avail in FGL.
+
+procedure TDynArray.DeleteDuplicates;
+var
+  I, Index: integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    Index := I + 1;
+    repeat
+      Index := IndexOf(Items[I], Index);
+      if Index = -1 then Break;
+      Delete(Index);
+    until false;
+
+    Inc(I);
+  end;
+end;
+}
+
+{  IArr.DeleteDuplicates;
   Assert(iarr.Equal([99, 1, 3, 6, 8]));
   IArr.Insert(0, 3);
   IArr.DeleteDuplicates;
   Assert(iarr.Equal([3, 99, 1, 6, 8]));
   IArr.Count := 0;
   IArr.DeleteDuplicates;
-  Assert(iarr.Equal([]));
+  Assert(iarr.Equal([]));}
  finally
   iarr.Free;
   iarr2.Free;

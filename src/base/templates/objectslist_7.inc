@@ -140,9 +140,6 @@
       was decreased). }
     function RemoveAll(Item: TObjectsListItem_7): Cardinal;
 
-    { For each item of the list, delete all it's duplicates. }
-    procedure DeleteDuplicates;
-
     { Equivalent to doing Count := 0 }
     procedure Clear;
 
@@ -165,7 +162,7 @@
 
     { Clears list, freeing all list items first.
       Beware: this assumes that there are no duplicates (and, obviously,
-      only valid existing object instances). If unsure, see DeleteDuplicates. }
+      only valid existing object instances). }
     procedure FreeContents; override;
 
     constructor Create;
@@ -429,24 +426,6 @@ begin
     if Items[I] = Item then
       begin Delete(I); Inc(Result) end else
       Inc(I);
-  end;
-end;
-
-procedure TObjectsList_7.DeleteDuplicates;
-var
-  I, Index: integer;
-begin
-  I := 0;
-  while I < Count do
-  begin
-    Index := I + 1;
-    repeat
-      Index := IndexOf(Items[I], Index);
-      if Index = -1 then Break;
-      Delete(Index);
-    until false;
-
-    Inc(I);
   end;
 end;
 

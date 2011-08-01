@@ -219,13 +219,6 @@
       search the whole list). Returns -1 if not found. }
     function IndexOf(const Item: TDynArrayItem_5; StartIndex: Integer = 0): Integer;
 
-    { Search for given item, returns -1 if not found.
-      Searches within array range Items[BeginIndex] .. Items[EndIndex].
-      BeginIndex may be < 0 and EndIndex may be > High, it doesn't matter,
-      the range will be "clamped" as it should. }
-    function IndexInRange(const Item: TDynArrayItem_5;
-      BeginIndex, EndIndex: Integer): Integer;
-
     { Searches for and deletes the first item equal to Value.
       Returns the index of removed item (-1 if not found). }
     function Remove(const Value: TDynArrayItem_5): Integer;
@@ -236,8 +229,6 @@
     { If the Item is not already present in the array (checked like IndexOf)
       then add this item (like by Add). }
     procedure AddIfNotExists(const Item: TDynArrayItem_5);
-
-    procedure DeleteDuplicates;
     {$endif}
 
     { Delete items from the array, starting from given the Index.
@@ -499,16 +490,6 @@ begin
   Result := -1;
 end;
 
-function TDynArray_5.IndexInRange(const Item: TDynArrayItem_5;
-  BeginIndex, EndIndex: Integer): Integer;
-begin
-  if BeginIndex < 0 then BeginIndex := 0;
-  if EndIndex > High then EndIndex := High;
-  for Result := BeginIndex to EndIndex do
-    if EqualItems(Items[Result], Item) then Exit;
-  Result := -1;
-end;
-
 function TDynArray_5.Remove(const Value: TDynArrayItem_5): Integer;
 begin
   Result := IndexOf(Value);
@@ -535,24 +516,6 @@ begin
   I := IndexOf(Item);
   if I = -1 then
     Add(Item);
-end;
-
-procedure TDynArray_5.DeleteDuplicates;
-var
-  I, Index: integer;
-begin
-  I := 0;
-  while I < Count do
-  begin
-    Index := I + 1;
-    repeat
-      Index := IndexOf(Items[I], Index);
-      if Index = -1 then Break;
-      Delete(Index);
-    until false;
-
-    Inc(I);
-  end;
 end;
 {$endif}
 

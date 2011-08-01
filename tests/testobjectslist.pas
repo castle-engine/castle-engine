@@ -39,7 +39,29 @@ type
 
   TObjectsListItem = TItem;
   {$I objectslist.inc}
-  type TItemsList = TObjectsList;
+type
+  TItemsList = class(TObjectsList)
+    { For each item of the list, delete all it's duplicates. }
+    procedure DeleteDuplicates;
+  end;
+
+procedure TItemsList.DeleteDuplicates;
+var
+  I, Index: integer;
+begin
+  I := 0;
+  while I < Count do
+  begin
+    Index := I + 1;
+    repeat
+      Index := IndexOf(Items[I], Index);
+      if Index = -1 then Break;
+      Delete(Index);
+    until false;
+
+    Inc(I);
+  end;
+end;
 
 procedure TTestObjectsList.TestObjectsList;
 var ol, ol2: TItemsList;
