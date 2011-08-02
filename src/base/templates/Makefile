@@ -21,10 +21,7 @@
 # This Makefile creates all XXX_%d.inc files based on ../XXX.inc files.
 # I use these files as class templates.
 
-ALL_TARGETS=objectslist_1.inc objectslist_2.inc objectslist_3.inc objectslist_4.inc \
-  objectslist_5.inc objectslist_6.inc objectslist_7.inc objectslist_8.inc \
-  objectslist_9.inc objectslist_10.inc \
-  dynarray_1.inc dynarray_2.inc dynarray_3.inc dynarray_4.inc \
+ALL_TARGETS=dynarray_1.inc dynarray_2.inc dynarray_3.inc dynarray_4.inc \
   dynarray_5.inc dynarray_6.inc dynarray_7.inc dynarray_8.inc \
   dynarray_9.inc dynarray_10.inc \
   dynarray_11.inc dynarray_12.inc dynarray_13.inc dynarray_14.inc \
@@ -61,12 +58,4 @@ dynarray_%.inc: ../dynarray.inc
 	  -e 's/\bDYNARRAY_IS_FUNCTION\b/DYNARRAY_'$*'_IS_FUNCTION/ig' \
 	  -e 's/\bDYNARRAY_IS_FUNCTION_METHOD\b/DYNARRAY_'$*'_IS_FUNCTION_METHOD/ig' \
 	  -e 's/\bDYNARRAY_USE_PLUSMINUS_OP\b/DYNARRAY_'$*'_USE_PLUSMINUS_OP/ig' \
-	  $@
-
-objectslist_%.inc : ../objectslist.inc
-	cp -f $< $@
-	$(SED_DO) \
-	  -e 's/\bTObjectsList\b/TObjectsList_'$*'/ig' \
-	  -e 's/\bTObjectsListItem\b/TObjectsListItem_'$*'/ig' \
-	  -e 's/\bTObjectsListIsSmallerFunction\b/TObjectsListIsSmallerFunction_'$*'/ig' \
 	  $@
