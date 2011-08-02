@@ -100,8 +100,8 @@ type
   end;
 
 { Free with contents, and set variable to nil,
-  for TObjectsList_Abstract descendants. Similar to FreeAndNil,
-  but calls FreeWithContents instead of Free. }
+  for TObjectsList_Abstract and TFPGObjectList descendants.
+  Similar to FreeAndNil, but calls FreeWithContents instead of Free. }
 procedure FreeWithContentsAndNil(var Obj);
 
 { ---------------------------------------------------------------------------- }
@@ -779,9 +779,20 @@ begin
 end;
 
 procedure FreeWithContentsAndNil(var Obj);
+var
+  I: Integer;
 begin
-  TObjectsList_Abstract(Obj).FreeWithContents;
-  TObjectsList_Abstract(Obj) := nil;
+  if TObject(Obj) <> nil then
+  begin
+    if TObject(Obj) is TFPSList then
+    begin
+      for I := 0 to TFPSList(Obj).Count - 1 do
+        FPGObjectList_FreeAndNilItem(TFPSList(Obj), I);
+      TFPSList(Obj).Free;
+    end else
+      TObjectsList_Abstract(Obj).FreeWithContents;
+    TObject(Obj) := nil;
+  end;
 end;
 
 { TStrings helpers ------------------------------------------------------- }
