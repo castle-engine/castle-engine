@@ -65,7 +65,8 @@ unit Images;
 interface
 
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
-  KambiPng, KambiPngUtils, KambiPasJpeg, FileFilters, KambiClassUtils;
+  KambiPng, KambiPngUtils, KambiPasJpeg, FileFilters, KambiClassUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

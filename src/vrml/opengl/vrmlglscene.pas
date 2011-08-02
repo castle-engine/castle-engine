@@ -22,7 +22,8 @@ uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
   VRMLShapeOctree, GLShadowVolumeRenderer, Cameras, VRMLFields,
-  VRMLGLRendererLights, VRMLShape, Frustum, Base3D, GLShaders;
+  VRMLGLRendererLights, VRMLShape, Frustum, Base3D, GLShaders,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

@@ -19,7 +19,8 @@ unit VRMLFields;
 interface
 
 uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images, KambiStringUtils, KambiInterfaces, VRMLTime, DOM;
+  Images, KambiStringUtils, KambiInterfaces, VRMLTime, DOM,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

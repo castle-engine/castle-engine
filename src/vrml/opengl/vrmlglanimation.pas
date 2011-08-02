@@ -20,7 +20,8 @@ interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
   KambiUtils, Boxes3D, KambiClassUtils, VRMLAnimation, KeysMouse,
-  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle;
+  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

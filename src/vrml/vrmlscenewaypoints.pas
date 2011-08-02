@@ -22,7 +22,8 @@ unit VRMLSceneWaypoints;
 interface
 
 uses SysUtils, KambiUtils, KambiClassUtils, Classes,
-  VectorMath, Boxes3D, VRMLNodes, VRMLScene;
+  VectorMath, Boxes3D, VRMLNodes, VRMLScene,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

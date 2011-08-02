@@ -496,7 +496,7 @@ type
     descendant (for example, to translate many 3D objects by a single
     T3DCustomTranslated.Child).
 
-    This inherits from TObjectsList, getting many
+    This inherits from TKamObjectList, getting many
     features like TList notification mechanism (useful in some situations).
     Usually you want to use T3DList instead, which is a wrapper around
     this class. }

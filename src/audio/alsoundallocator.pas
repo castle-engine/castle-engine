@@ -19,7 +19,7 @@ unit ALSoundAllocator;
 interface
 
 uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils, VectorMath,
-  KambiXMLConfig;
+  KambiXMLConfig, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

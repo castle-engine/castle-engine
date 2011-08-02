@@ -66,7 +66,8 @@ unit KambiScript;
 
 interface
 
-uses SysUtils, Math, Contnrs, KambiUtils, KambiClassUtils, Classes;
+uses SysUtils, Math, Contnrs, KambiUtils, KambiClassUtils, Classes,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

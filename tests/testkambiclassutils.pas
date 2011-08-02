@@ -18,7 +18,7 @@ unit TestKambiClassUtils;
 interface
 
 uses Classes, SysUtils, fpcunit, testutils, testregistry, KambiUtils,
-  KambiClassUtils;
+  KambiClassUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;

@@ -580,8 +580,8 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse,
-  KambiStringUtils, KambiFilesUtils, KambiTimeUtils,
-  FileFilters, UIControls;
+  KambiStringUtils, KambiFilesUtils, KambiTimeUtils, FileFilters, UIControls,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

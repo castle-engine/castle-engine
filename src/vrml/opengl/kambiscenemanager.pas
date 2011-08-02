@@ -21,7 +21,8 @@ interface
 uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, Boxes3D, VRMLGLBackground, KambiUtils, KambiClassUtils,
-  GLShaders, GLImages, KambiTimeUtils;
+  GLShaders, GLImages, KambiTimeUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

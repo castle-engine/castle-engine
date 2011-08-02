@@ -25,7 +25,8 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
   KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle,
-  VRMLFields, GeometryArrays, FaceIndex;
+  VRMLFields, GeometryArrays, FaceIndex,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

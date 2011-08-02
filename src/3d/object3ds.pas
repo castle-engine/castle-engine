@@ -40,9 +40,8 @@ unit Object3DS;
 
 interface
 
-uses KambiUtils, Classes, KambiClassUtils, SysUtils, VectorMath;
-
-{$define read_interface}
+uses KambiUtils, Classes, KambiClassUtils, SysUtils, VectorMath,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
   EInvalid3dsFile = class(Exception);
@@ -87,9 +86,7 @@ type
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
   end;
 
-  TObjectsListItem_4 = TMaterial3ds;
-  {$I objectslist_4.inc}
-  TMaterial3dsList = class(TObjectsList_4)
+  TMaterial3dsList = class(specialize TFPGObjectList<TMaterial3ds>)
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
@@ -201,15 +198,9 @@ type
       Stream: TStream; ObjectEndPos: Int64); override;
   end;
 
-  TObjectsListItem_1 = TTrimesh3ds;
-  {$I objectslist_1.inc}
-  TTrimesh3dsList = TObjectsList_1;
-  TObjectsListItem_2 = TCamera3ds;
-  {$I objectslist_2.inc}
-  TCamera3dsList = TObjectsList_2;
-  TObjectsListItem_3 = TLight3ds;
-  {$I objectslist_3.inc}
-  TLight3dsList = TObjectsList_3;
+  TTrimesh3dsList = specialize TFPGObjectList<TTrimesh3ds>;
+  TCamera3dsList = specialize TFPGObjectList<TCamera3ds>;
+  TLight3dsList = specialize TFPGObjectList<TLight3ds>;
 
   { 3DS loader. }
   TScene3DS = class
@@ -233,8 +224,6 @@ type
     function SumTrimeshesFacesCount: Cardinal;
   end;
 
-{$undef read_interface}
-
 implementation
 
 { 3DS reading mostly based on spec from
@@ -252,12 +241,6 @@ implementation
 
   Moreover TScene3DS has a list of TMaterial3ds, that correspond
   to the MATERIAL chunk. }
-
-{$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
-{$I objectslist_3.inc}
-{$I objectslist_4.inc}
 
 function CreateObject3DS(AScene: Tscene3DS; Stream: TStream;
   ObjectEndPos: Int64): TObject3DS; forward;
@@ -901,10 +884,10 @@ var
 begin
   inherited Create;
 
-  Trimeshes := TTrimesh3dsList.Create(false);
-  Cameras := TCamera3dsList.Create(false);
-  Lights := TLight3dsList.Create(false);
-  Materials := TMaterial3dsList.Create(false);
+  Trimeshes := TTrimesh3dsList.Create;
+  Cameras := TCamera3dsList.Create;
+  Lights := TLight3dsList.Create;
+  Materials := TMaterial3dsList.Create;
 
   Stream.ReadBuffer(hmain, SizeOf(hmain));
   Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');
@@ -955,10 +938,10 @@ end;
 
 destructor TScene3DS.Destroy;
 begin
-  FreeWithContentsAndNil(Trimeshes);
-  FreeWithContentsAndNil(Cameras);
-  FreeWithContentsAndNil(Lights);
-  FreeWithContentsAndNil(Materials);
+  FreeAndNil(Trimeshes);
+  FreeAndNil(Cameras);
+  FreeAndNil(Lights);
+  FreeAndNil(Materials);
   inherited;
 end;
 

@@ -24,7 +24,8 @@ uses
   VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs,
-  RenderingCameraUnit, Base3D, VRMLShadowMaps;
+  RenderingCameraUnit, Base3D, VRMLShadowMaps,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

@@ -23,7 +23,8 @@ unit BezierCurve;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, Classes, Math, VectorMath, Curve;
+uses SysUtils, KambiUtils, KambiClassUtils, Classes, Math, VectorMath, Curve,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

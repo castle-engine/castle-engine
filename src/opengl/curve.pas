@@ -20,7 +20,8 @@ unit Curve;
 interface
 
 uses VectorMath, Boxes3D, KambiUtils, KambiScript,
-  KambiClassUtils, Classes, Base3D, Frustum;
+  KambiClassUtils, Classes, Base3D, Frustum,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 

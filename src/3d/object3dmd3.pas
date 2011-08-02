@@ -18,7 +18,8 @@ unit Object3DMD3;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils;
+uses SysUtils, Classes, KambiUtils, KambiClassUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 
