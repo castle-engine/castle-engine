@@ -22,7 +22,8 @@ unit Object3DOBJ;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils;
+uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
 
@@ -43,9 +44,7 @@ type
     constructor Create(const AName: string);
   end;
 
-  TObjectsListItem_1 = TWavefrontMaterial;
-  {$I objectslist_1.inc}
-  TWavefrontMaterialsList = class(TObjectsList_1)
+  TWavefrontMaterialsList = class(specialize TFPGObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
@@ -103,7 +102,6 @@ uses KambiStringUtils, KambiFilesUtils, KambiWarnings;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
-{$I objectslist_1.inc}
 
 { TWavefrontMaterial --------------------------------------------------------- }
 
@@ -417,7 +415,7 @@ begin
   FTexCoords := TDynVector2SingleArray.Create;
   FNormals := TDynVector3SingleArray.Create;
   FFaces := TDynWavefrontFaceArray.Create;
-  FMaterials := TWavefrontMaterialsList.Create(false);
+  FMaterials := TWavefrontMaterialsList.Create(true);
 
   UsedMaterial := nil;
 
@@ -460,7 +458,7 @@ begin
   FreeAndNil(FTexCoords);
   FreeAndNil(FNormals);
   FreeAndNil(FFaces);
-  FreeWithContentsAndNil(FMaterials);
+  FreeAndNil(FMaterials);
   inherited;
 end;
 
