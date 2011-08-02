@@ -24,8 +24,6 @@ uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
   GLShaders, GLImages, KambiTimeUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   TKamAbstractViewport = class;
 
@@ -554,9 +552,7 @@ type
       read FUseGlobalLights write FUseGlobalLights default false;
   end;
 
-  TObjectsListItem_1 = TKamAbstractViewport;
-  {$I objectslist_1.inc}
-  TKamAbstractViewportsList = class(TObjectsList_1)
+  TKamAbstractViewportsList = class(specialize TFPGObjectList<TKamAbstractViewport>)
   public
     { Does any viewport on the list has shadow volumes all set up? }
     function UsesShadowVolumes: boolean;
@@ -886,15 +882,10 @@ type
 
 procedure Register;
 
-{$undef read_interface}
-
 implementation
 
 uses SysUtils, RenderingCameraUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLExt,
   KambiLog, KambiStringUtils, VRMLGLRenderer, ALSoundEngine;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 procedure Register;
 begin

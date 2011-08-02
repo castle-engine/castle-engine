@@ -1205,7 +1205,7 @@ begin
           FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
             MapRange(SceneIndex, LastSceneIndex, FScenes.Count - 1, 0.0, 1.0),
             LastSceneRootNode, NewRootNode) as TVRMLRootNode, true);
-        FScenes.Last := CreateOneScene(NewRootNode, true);
+        FScenes[FScenes.Count - 1] := CreateOneScene(NewRootNode, true);
         LastSceneRootNode := NewRootNode;
       end;
     end else
@@ -1215,7 +1215,7 @@ begin
         and at FScenes.Last insert new node. }
       for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 2 do
         FScenes[SceneIndex] := FScenes[LastSceneIndex];
-      FScenes.Last := CreateOneScene(NewRootNode, true);
+      FScenes[FScenes.Count - 1] := CreateOneScene(NewRootNode, true);
       LastSceneRootNode := NewRootNode;
     end;
 
@@ -1393,9 +1393,9 @@ begin
       begin
         if FScenes[I] = FScenes[I+1] then
           FScenes[I] := nil { set to nil, just for safety } else
-          FScenes.FreeAndNil(I);
+          FPGObjectList_FreeAndNilItem(FScenes, I);
       end;
-      FScenes.FreeAndNil(FScenes.Count - 1);
+      FPGObjectList_FreeAndNilItem(FScenes, FScenes.Count - 1);
     end;
 
     FreeAndNil(FScenes);

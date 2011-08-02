@@ -38,15 +38,21 @@ type
     Str: string;
   end;
 
-  TObjectsListItem = TItem;
-  {$I objectslist.inc}
-type
-  TItemsList = class(TObjectsList)
+  TItemsList = class(specialize TFPGObjectList<TItem>)
     { For each item of the list, delete all it's duplicates. }
     procedure DeleteDuplicates;
+    procedure AddList(L: TItemsList);
   end;
 
 procedure TItemsList.DeleteDuplicates;
+
+  function IndexOf(Item: TItem; StartIndex: Integer): Integer;
+  begin
+    for result := StartIndex to Count - 1 do
+      if Item = Items[result] then exit;
+    result := -1;
+  end;
+
 var
   I, Index: integer;
 begin
@@ -57,11 +63,22 @@ begin
     repeat
       Index := IndexOf(Items[I], Index);
       if Index = -1 then Break;
+      FPGObjectList_NilItem(Self, Index);
       Delete(Index);
     until false;
 
     Inc(I);
   end;
+end;
+
+procedure TItemsList.AddList(L: TItemsList);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Pointer) * L.Count);
 end;
 
 procedure TTestObjectsList.TestObjectsList;
@@ -75,19 +92,15 @@ begin
  try ol.Add(TItem($454545)); ol.Delete(0);
  finally ol.Free end;
 
- ol := TItemsList.Create(false);
- try ol.Add(TItem.Create); ol.FreeContents
+ ol := TItemsList.Create(true);
+ try ol.Add(TItem.Create); ol.Clear;
  finally ol.Free end;
 
- ol := TItemsList.Create(false);
- try ol.Add(nil);
- finally ol.FreeWithContents end;
+ ol := TItemsList.Create(true);
+ try ol.Add(nil); ol.Clear;
+ finally ol.Free end;
 
- ol := TItemsList.Create(false);
- try ol.Add(TItem.Create);
- finally ol.FreeWithContents end;
-
- ol := TItemsList.Create(false);
+ ol := TItemsList.Create(true);
  try
   ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
@@ -95,14 +108,12 @@ begin
   try
    ol2.Add(TItem.Create); ol2.Last.Str := 'one';
    ol2.Add(TItem.Create); ol2.Last.Str := 'two';
-   { zwracam uwage ze dwa elementy na ol2 nie sa zwalniane - ich wskazniki
-     sa kopiowane do ol }
    ol.AddList(ol2);
   finally ol2.Free end;
+  ol.Clear;
+ finally ol.Free end;
 
- finally ol.FreeWithContents end;
-
- ol := TItemsList.Create(false);
+ ol := TItemsList.Create(true);
  try
   ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
@@ -124,9 +135,10 @@ begin
   Assert(ol[1] = ol[3]); { (1 i 3) i (2 i 4) to te same obiekty. }
   Assert(ol[2] = ol[4]);
 
-  { zeby FreeWithContents nie zrobilo dwa razy Free tego samego obiektu }
+  { zeby Clear nie zrobilo dwa razy Free tego samego obiektu }
   ol.DeleteDuplicates;
- finally ol.FreeWithContents end;
+  ol.Clear;
+ finally ol.Free end;
 end;
 
 initialization

@@ -969,9 +969,7 @@ type
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
   end;
 
-  TObjectsListItem_1 = TVRMLGLScene;
-  {$I objectslist_1.inc}
-  TVRMLGLScenesList = class(TObjectsList_1)
+  TVRMLGLScenesList = class(specialize TFPGObjectList<TVRMLGLScene>)
   private
     { Just call InvalidateBackground or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in
@@ -1016,7 +1014,6 @@ uses GLVersionUnit, Images, KambiLog, KambiWarnings,
   Math, RaysWindow, KambiStringUtils, RenderingCameraUnit;
 
 {$define read_implementation}
-{$I objectslist_1.inc}
 {$I dynarray_1.inc}
 
 procedure Register;

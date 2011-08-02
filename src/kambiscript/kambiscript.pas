@@ -69,8 +69,6 @@ interface
 uses SysUtils, Math, Contnrs, KambiUtils, KambiClassUtils, Classes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   { }
   TKamScriptValue = class;
@@ -183,9 +181,10 @@ type
     property Environment: TKamScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
-  TObjectsListItem_1 = TKamScriptExpression;
-  {$I objectslist_1.inc}
-  TKamScriptExpressionsList = class(TObjectsList_1)
+  TKamScriptExpressionsList = class(specialize TFPGObjectList<TKamScriptExpression>)
+  public
+    procedure AddArray(const A: array of TKamScriptExpression);
+    procedure AddList(const L: TKamScriptExpressionsList);
     procedure FreeContentsByParentExpression;
   end;
 
@@ -237,9 +236,10 @@ type
   TKamScriptValueClass = class of TKamScriptValue;
   TKamScriptValueClassArray = array of TKamScriptValueClass;
 
-  TObjectsListItem_2 = TKamScriptValue;
-  {$I objectslist_2.inc}
-  TKamScriptValuesList = TObjectsList_2;
+  TKamScriptValuesList = class(specialize TFPGObjectList<TKamScriptValue>)
+  public
+    procedure AddArray(const A: array of TKamScriptValue);
+  end;
 
   { This is a very special KambiScript value, used to represent user-defined
     function parameter. This poses itself as a TKamScriptValue descendant,
@@ -838,9 +838,7 @@ type
     property Body: TKamScriptExpression read FBody write FBody;
   end;
 
-  TObjectsListItem_3 = TKamScriptFunctionDefinition;
-  {$I objectslist_3.inc}
-  TKamScriptFunctionDefinitionsList = class(TObjectsList_3)
+  TKamScriptFunctionDefinitionsList = class(specialize TFPGObjectList<TKamScriptFunctionDefinition>)
     function IndexOf(const FunctionName: string): Integer;
   end;
 
@@ -898,16 +896,9 @@ procedure CreateValueIfNeeded(var Value: TKamScriptValue;
   var ParentOfValue: boolean;
   NeededClass: TKamScriptValueClass);
 
-{$undef read_interface}
-
 implementation
 
 uses KambiScriptCoreFunctions, KambiWarnings;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
-{$I objectslist_3.inc}
 
 { FPC 2.2.2 has bug http://bugs.freepascal.org/view.php?id=12214
   that strongly hits calculating invalid expressions.
@@ -986,6 +977,26 @@ end;
 
 { TKamScriptExpressionsList -------------------------------------------------- }
 
+procedure TKamScriptExpressionsList.AddArray(const A: array of TKamScriptExpression);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
+end;
+
+procedure TKamScriptExpressionsList.AddList(const L: TKamScriptExpressionsList);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Pointer) * L.Count);
+end;
+
 procedure TKamScriptExpressionsList.FreeContentsByParentExpression;
 var
   I: Integer;
@@ -1010,6 +1021,18 @@ function TKamScriptValue.CoreExecute: TKamScriptValue;
 begin
   { Since we own Execute result, we can simply return self here. }
   Result := Self;
+end;
+
+{ TKamScriptValuesList ------------------------------------------------------- }
+
+procedure TKamScriptValuesList.AddArray(const A: array of TKamScriptValue);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
 end;
 
 { TKamScriptParameterValue --------------------------------------------------- }
@@ -1930,14 +1953,16 @@ end;
 constructor TKamScriptFunction.Create(AArgs: TKamScriptExpressionsList);
 begin
   inherited Create;
-  FArgs := TKamScriptExpressionsList.CreateFromList(AArgs);
+  FArgs := TKamScriptExpressionsList.Create(false);
+  FArgs.AddList(AArgs);
   CheckArguments;
 end;
 
 constructor TKamScriptFunction.Create(const AArgs: array of TKamScriptExpression);
 begin
   inherited Create;
-  FArgs := TKamScriptExpressionsList.CreateFromArray(AArgs);
+  FArgs := TKamScriptExpressionsList.Create(false);
+  FArgs.AddArray(AArgs);
   CheckArguments;
 end;
 

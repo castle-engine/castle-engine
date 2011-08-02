@@ -28,8 +28,6 @@ uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
   VRMLFields, GeometryArrays, FaceIndex,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 const
   { }
   DefLocalTriangleOctreeMaxDepth = 10;
@@ -609,9 +607,7 @@ type
     function Node: TNodeX3DShapeNode;
   end;
 
-  TObjectsListItem_2 = TVRMLShapeTree;
-  {$I objectslist_2.inc}
-  TVRMLShapeTreesList = TObjectsList_2;
+  TVRMLShapeTreesList = specialize TFPGObjectList<TVRMLShapeTree>;
 
   { Internal (non-leaf) node of the TVRMLShapeTree.
     This is practically just a list of other children
@@ -807,19 +803,13 @@ type
     property Current: TVRMLShape read FCurrent;
   end;
 
-  TObjectsListItem_1 = TVRMLShape;
-  {$I objectslist_1.inc}
-  TVRMLShapesList = class(TObjectsList_1)
+  TVRMLShapesList = class(specialize TFPGObjectList<TVRMLShape>)
   private
     AddedCount: Integer;
     procedure AddToList(Shape: TVRMLShape);
     procedure AddToListIfVisible(Shape: TVRMLShape);
     procedure AddToListIfCollidable(Shape: TVRMLShape);
     procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
-  private
-    SortPosition: TVector3Single;
-    function IsSmallerFrontToBack(const A, B: TVRMLShape): boolean;
-    function IsSmallerBackToFront(const A, B: TVRMLShape): boolean;
   public
     constructor Create;
 
@@ -835,16 +825,10 @@ type
     procedure SortBackToFront(const Position: TVector3Single);
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses ProgressUnit, VRMLScene, NormalsCalculator, KambiLog, KambiWarnings,
   KambiStringUtils, VRMLArraysGenerator;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
 
 const
   UnknownTexCoord: TTriangle4Single = (
@@ -2575,28 +2559,47 @@ begin
   end;
 end;
 
-function TVRMLShapesList.IsSmallerFrontToBack(const A, B: TVRMLShape): boolean;
+var
+  { Has to be global (not private field in TVRMLShapesList),
+    since TFPGObjectList.Sort requires normal function (not "of object"). }
+  SortPosition: TVector3Single;
+
+function IsSmallerFrontToBack(const A, B: TVRMLShape): Integer;
 begin
   { We always treat empty box as closer than non-empty.
     And two empty boxes are always equal.
 
-    Remember that code below must make sure that IsSmaller = always false
-    for equal elements (our Sort depends on this). So A < B only when:
+    Remember that code below must make sure that Result = 0
+    for equal elements (Sort may depend on this). So A < B only when:
     - A empty, and B non-empty
     - both non-empty, and A closer }
 
-  Result := (not IsEmptyBox3D(B.BoundingBox)) and
+  if (not IsEmptyBox3D(B.BoundingBox)) and
     ( IsEmptyBox3D(A.BoundingBox) or
       ( PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition) <
-        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition)));
+        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition))) then
+    Result := -1 else
+  if (not IsEmptyBox3D(A.BoundingBox)) and
+    ( IsEmptyBox3D(B.BoundingBox) or
+      ( PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition) <
+        PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition))) then
+    Result :=  1 else
+    Result :=  0;
 end;
 
-function TVRMLShapesList.IsSmallerBackToFront(const A, B: TVRMLShape): boolean;
+function IsSmallerBackToFront(const A, B: TVRMLShape): Integer;
 begin
-  Result := (not IsEmptyBox3D(A.BoundingBox)) and
+  if (not IsEmptyBox3D(A.BoundingBox)) and
     ( IsEmptyBox3D(B.BoundingBox) or
       ( PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition) >
-        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition)));
+        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition))) then
+    Result := -1 else
+  if (not IsEmptyBox3D(B.BoundingBox)) and
+    ( IsEmptyBox3D(A.BoundingBox) or
+      ( PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition) >
+        PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition))) then
+    Result :=  1 else
+    Result :=  0;
 end;
 
 procedure TVRMLShapesList.SortFrontToBack(const Position: TVector3Single);

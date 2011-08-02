@@ -43,23 +43,12 @@ type
     S: string;
   end;
 
-{$define read_interface}
-
-  TObjectsListItem_1 = TFoo;
-  {$I objectslist_1.inc}
-  TFoosList = class(TObjectsList_1)
-  private
-    function IsFooSmaller(const A, B: TFoo): boolean;
+  TFoosList = class(specialize TFPGObjectList<TFoo>)
   public
     procedure SortFoo;
   end;
 
-{$undef read_interface}
-
 implementation
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
@@ -69,14 +58,14 @@ begin
   S := AnS;
 end;
 
+function IsFooSmaller(const A, B: TFoo): Integer;
+begin
+  Result := A.I - B.I;
+end;
+
 procedure TFoosList.SortFoo;
 begin
   Sort(@IsFooSmaller);
-end;
-
-function TFoosList.IsFooSmaller(const A, B: TFoo): boolean;
-begin
-  Result := A.I < B.I;
 end;
 
 { TTestKambiClassUtils ------------------------------------------------------- }

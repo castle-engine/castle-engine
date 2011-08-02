@@ -21,8 +21,6 @@ interface
 uses SysUtils, KambiOpenAL, KambiClassUtils, Classes, KambiUtils, VectorMath,
   KambiXMLConfig, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 const
   DefaultMinAllocatedSources = 4;
   DefaultMaxAllocatedSources = 16;
@@ -148,11 +146,7 @@ type
     property MaxDistance: Single read FMaxDistance write SetMaxDistance;
   end;
 
-  TObjectsListItem_1 = TALSound;
-  {$I objectslist_1.inc}
-  TALSoundsList = class(TObjectsList_1)
-  private
-    function IsSmallerByImportance(const AA, BB: TALSound): boolean;
+  TALSoundsList = class(specialize TFPGObjectList<TALSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -292,14 +286,9 @@ type
     { @groupEnd }
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses ALUtils;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 { TALSound ---------------------------------------------------------- }
 
@@ -423,17 +412,20 @@ end;
 
 { TALSoundsList ----------------------------------------------------- }
 
-function TALSoundsList.IsSmallerByImportance(
-  const AA, BB: TALSound): boolean;
+function IsSmallerByImportance(const AA, BB: TALSound): Integer;
 begin
-  Result :=
-    (AA.Used and (not BB.Used)) or
-    (AA.Used and BB.Used and (AA.Importance > BB.Importance));
+  if (AA.Used and (not BB.Used)) or
+     (AA.Used and BB.Used and (AA.Importance > BB.Importance)) then
+    Result := -1 else
+  if (BB.Used and (not AA.Used)) or
+     (BB.Used and AA.Used and (BB.Importance > AA.Importance)) then
+    Result :=  1 else
+    Result :=  0;
 end;
 
 procedure TALSoundsList.SortByImportance;
 begin
-  Sort({$ifdef FPC_OBJFPC} @ {$endif} IsSmallerByImportance);
+  Sort(@IsSmallerByImportance);
 end;
 
 { TALSoundAllocator ---------------------------------------------------------- }
@@ -471,7 +463,7 @@ begin
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].DoUsingEnd;
-        FAllocatedSources.FreeAndNil(I);
+        FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
       end;
 
     FreeAndNil(FAllocatedSources);
@@ -602,7 +594,7 @@ begin
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].DoUsingEnd;
-        FAllocatedSources.FreeAndNil(I);
+        FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
       end;
       FAllocatedSources.Count := MaxAllocatedSources;
     end;

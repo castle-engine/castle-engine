@@ -369,11 +369,7 @@ type
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TObjectsListItem_4 = TVRMLFileItem;
-  {$I objectslist_4.inc}
-  TVRMLFileItemsList = class(TObjectsList_4)
-  private
-    function IsSmallerPositionInParent(const A, B: TVRMLFileItem): boolean;
+  TVRMLFileItemsList = class(specialize TFPGObjectList<TVRMLFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -501,9 +497,7 @@ type
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TObjectsListItem_5 = TVRMLFieldOrEvent;
-  {$I objectslist_5.inc}
-  TVRMLFieldOrEventsList = TObjectsList_5;
+  TVRMLFieldOrEventsList = specialize TFPGObjectList<TVRMLFieldOrEvent>;
 
   TVRMLFieldClass = class of TVRMLField;
 
@@ -942,9 +936,7 @@ type
     function OnReceive: TDynVRMLEventReceiveArray;
   end;
 
-  TObjectsListItem_2 = TVRMLField;
-  {$I objectslist_2.inc}
-  TVRMLFieldsListBase = TObjectsList_2;
+  TVRMLFieldsListBase = specialize TFPGObjectList<TVRMLField>;
 
   TVRMLFieldsList = class(TVRMLFieldsListBase)
   private
@@ -970,9 +962,7 @@ type
   end;
   TVRMLSingleFieldClass = class of TVRMLSingleField;
 
-  TObjectsListItem_1 = TVRMLSingleField;
-  {$I ObjectsList_1.inc}
-  TVRMLSingleFieldsList = TObjectsList_1;
+  TVRMLSingleFieldsList = specialize TFPGObjectList<TVRMLSingleField>;
 
   EVRMLMultFieldDifferentCount = class(Exception);
 
@@ -2610,10 +2600,6 @@ implementation
 uses Math, VRMLNodes, KambiXMLUtils, KambiWarnings;
 
 {$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
-{$I objectslist_4.inc}
-{$I objectslist_5.inc}
 
 {$I vrmlevents.inc}
 
@@ -2701,13 +2687,11 @@ end;
 
 { TVRMLFileItemsList --------------------------------------------------------- }
 
-function TVRMLFileItemsList.IsSmallerPositionInParent(
-  const A, B: TVRMLFileItem): boolean;
+function IsSmallerPositionInParent(const A, B: TVRMLFileItem): Integer;
 begin
-  Result :=
-     (A.PositionInParent < B.PositionInParent) or
-    ((A.PositionInParent = B.PositionInParent) and
-     (A.PositionOnList < B.PositionOnList));
+  Result := A.PositionInParent - B.PositionInParent;
+  if Result = 0 then
+    Result := A.PositionOnList - B.PositionOnList;
 end;
 
 procedure TVRMLFileItemsList.SortPositionInParent;

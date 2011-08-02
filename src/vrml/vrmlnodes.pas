@@ -1260,9 +1260,7 @@ type
       CopyState: TVRMLNodeDeepCopyState): TVRMLInterfaceDeclaration;
   end;
 
-  TObjectsListItem_2 = TVRMLInterfaceDeclaration;
-  {$I objectslist_2.inc}
-  TVRMLInterfaceDeclarationsList = class(TObjectsList_2)
+  TVRMLInterfaceDeclarationsList = class(specialize TFPGObjectList<TVRMLInterfaceDeclaration>)
   public
     { Find field or event with given Name.
       @nil if not found. }
@@ -1477,9 +1475,7 @@ type
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
   end;
 
-  TObjectsListItem_4 = TVRMLPrototypeBase;
-  {$I objectslist_4.inc}
-  TVRMLPrototypeBasesList = class(TObjectsList_4);
+  TVRMLPrototypeBasesList = class(specialize TFPGObjectList<TVRMLPrototypeBase>);
 
   TVRMLPrototype = class(TVRMLPrototypeBase)
   private
@@ -1695,9 +1691,7 @@ type
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLRoute;
   end;
 
-  TObjectsListItem_5 = TVRMLRoute;
-  {$I objectslist_5.inc}
-  TVRMLRoutesList = class(TObjectsList_5);
+  TVRMLRoutesList = class(specialize TFPGObjectList<TVRMLRoute>);
 
   TVRMLImport = class(TVRMLFileItem)
   public
@@ -2262,10 +2256,6 @@ resourcestring
   end;
 }
 
-{$I objectslist_2.inc}
-{$I objectslist_3.inc}
-{$I objectslist_4.inc}
-{$I objectslist_5.inc}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
@@ -3312,7 +3302,7 @@ begin
   end else
   if Value > Items.Count then
   begin
-    { TObjectsList makes sure that increasing count sets new items to nil }
+    { TFPGObjectList makes sure that increasing count sets new items to nil }
     Items.Count := Value;
   end;
 end;

@@ -72,9 +72,7 @@
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
   end;
 
-  TObjectsListItem_2 = TMenuEntry;
-  {$I objectslist_2.inc}
-  TMenuEntriesList = TObjectsList_2;
+  TMenuEntriesList = specialize TFPGObjectList<TMenuEntry>;
 
   TMenuEntryWithCaption = class(TMenuEntry)
   private
@@ -125,13 +123,12 @@
     FEntries: TMenuEntriesList;
     function GetEntries(Index: Integer): TMenuEntry;
   public
-    { This objects OWNS his Entries. This means that when you Destroy this
-      object, all Entries[] on the list will be also destroyed.
-      This also means that EntryDelete frees deleted objects. }
+    { Items (entries) on the menu. Items are owned by this menu instance
+      (are automatically freed at destruction, at EntryDelete and such). }
     property Entries[Index: Integer]:TMenuEntry read GetEntries; default;
     function EntriesCount: Integer;
     procedure Insert(Index: Integer; Value: TMenuEntry);
-    { Same as Insert(EntriesCount, Value) }
+    { Add at the end. Same as Insert(EntriesCount, Value). }
     procedure Append(Value: TMenuEntry);
     procedure EntryDelete(Index: Integer);
     procedure EntriesDeleteAll;
@@ -400,9 +397,6 @@
     property Group: TMenuItemRadioGroup read FGroup write SetGroup;
   end;
 
-  TObjectsListItem_3 = TMenuItemRadio;
-  {$I objectslist_3.inc}
-
   { A group of radio buttons.
 
     An instance of this object is always
@@ -410,9 +404,9 @@
     All TMenuItemRadio within the same group share the same
     TMenuItemRadioGroup instance.
 
-    Never modify anything within this group using general TObjectsList_x
+    Never modify anything within this group using general TFPGObjectList
     properties. Instead always use methods defined here. }
-  TMenuItemRadioGroup = class(TObjectsList_3)
+  TMenuItemRadioGroup = class(specialize TFPGObjectList<TMenuItemRadio>)
   private
     FSelected: TMenuItemRadio;
     procedure SetSelected(Value: TMenuItemRadio);
@@ -478,9 +472,6 @@ function SQuoteMenuEntryCaption(const S: string): string;
   Such separation makes implementation of these things simple --
   it's not cluttered with GTK/Xlib/WinAPI/Glut specific details.
 }
-
-{$I objectslist_2.inc}
-{$I objectslist_3.inc}
 
 { TMenuEntry ------------------------------------------------------------ }
 
@@ -560,12 +551,12 @@ end;
 constructor TMenu.Create(const ACaption: String);
 begin
   inherited Create(ACaption);
-  FEntries := TMenuEntriesList.Create(false);
+  FEntries := TMenuEntriesList.Create(true);
 end;
 
 destructor TMenu.Destroy;
 begin
-  FreeWithContentsAndNil(FEntries);
+  FreeAndNil(FEntries);
   inherited;
 end;
 
@@ -609,7 +600,6 @@ var
 begin
   MenuFinalize;
 
-  FEntries[Index].Free;
   FEntries.Delete(Index);
 
   { update changed FParentMenuPosition values }
@@ -622,7 +612,7 @@ end;
 procedure TMenu.EntriesDeleteAll;
 begin
   MenuFinalize;
-  FEntries.FreeContents;
+  FEntries.Clear;
   MenuInitialize;
 end;
 

@@ -20,9 +20,7 @@
     procedure Unprepare; virtual; abstract;
   end;
 
-  TObjectsListItem_1 = TResourceRenderer;
-  {$I objectslist_1.inc}
-  TResourceRenderersList = class(TObjectsList_1)
+  TResourceRenderersList = class(specialize TFPGObjectList<TResourceRenderer>)
   private
     InsideUnprepareAll: Cardinal;
   public
@@ -53,7 +51,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I objectslist_1.inc}
 
 { TResourceRenderer ---------------------------------------------------------- }
 

@@ -178,7 +178,8 @@ const
 implementation
 
 uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, KambiWarnings,
-  KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles, Boxes3D;
+  KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles, Boxes3D,
+  KambiClassUtils;
 
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;
@@ -973,7 +974,7 @@ procedure LoadVRMLSequence(const FileName: string;
         RootNodes[I] := LoadVRML(ModelFileNames[I]);
       except
         for J := 0 to I - 1 do
-          RootNodes.FreeAndNil(J);
+          FPGObjectList_FreeAndNilItem(RootNodes, J);
         raise;
       end;
     finally FreeAndNil(ModelFileNames) end;

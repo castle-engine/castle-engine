@@ -35,9 +35,7 @@
     procedure IncreaseTimeTick; virtual; abstract;
   end;
 
-  TObjectsListItem_8 = TVRMLChangesEngine;
-  {$I objectslist_8.inc}
-  TVRMLChangesEnginesList = class(TObjectsList_8)
+  TVRMLChangesEnginesList = class(specialize TFPGObjectList<TVRMLChangesEngine>)
   public
     { Notify listeners about a field value change.
       See TVRMLScene.ChangedField for exact specification. }
@@ -58,7 +56,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I objectslist_8.inc}
 
 procedure TVRMLChangesEnginesList.ChangedField(Field: TVRMLField);
 var

@@ -185,9 +185,7 @@
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TObjectsListItem_3 = TVRMLEvent;
-  {$I objectslist_3.inc}
-  TVRMLEventsList = class(TObjectsList_3)
+  TVRMLEventsList = class(specialize TFPGObjectList<TVRMLEvent>)
   public
     function IndexOf(const Name: string): Integer;
   end;
@@ -195,7 +193,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I objectslist_3.inc}
 {$I dynarray_1.inc}
 
 { TDynVRMLEventReceiveArray -------------------------------------------------- }

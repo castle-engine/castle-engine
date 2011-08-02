@@ -374,15 +374,10 @@ type
   end;
 
   { @exclude }
-  TObjectsListItem_2 = TProximitySensorInstance;
-  { @exclude }
-  {$I objectslist_2.inc}
-  { @exclude }
-  TProximitySensorInstancesList = TObjectsList_2;
-
-  TObjectsListItem_3 = TTimeDependentNodeHandler;
-  {$I objectslist_3.inc}
-  TTimeDependentHandlersList = TObjectsList_3;
+  TProximitySensorInstancesList = specialize TFPGObjectList<TProximitySensorInstance>;
+  TTimeDependentHandlersList = class(specialize TFPGObjectList<TTimeDependentNodeHandler>)
+    procedure AddIfNotExists(const Item: TTimeDependentNodeHandler);
+  end;
 
   TCompiledScriptHandler = procedure (
     Value: TVRMLField; const Time: TVRMLTime) of object;
@@ -1973,8 +1968,6 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
 {$I dynarray_3.inc}
 {$I dynarray_5.inc}
 {$I dynarray_7.inc}
-{$I objectslist_2.inc}
-{$I objectslist_3.inc}
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -2288,6 +2281,14 @@ begin
     Items[I].ShapeTrees := nil;
   end;
   Count := 0;
+end;
+
+{ TTimeDependentHandlersList ------------------------------------------------- }
+
+procedure TTimeDependentHandlersList.AddIfNotExists(const Item: TTimeDependentNodeHandler);
+begin
+  if IndexOf(Item) = -1 then
+    Add(Item);
 end;
 
 { TVRMLScene ----------------------------------------------------------- }
@@ -3981,7 +3982,7 @@ var
       implementation, because we have to remove it from our property
       PointingDeviceActiveSensors. }
 
-    if (not Enabled) and PointingDeviceActiveSensors.Exists(DragSensor) then
+    if (not Enabled) and (PointingDeviceActiveSensors.IndexOf(DragSensor) <> -1) then
     begin
       DragSensor.Deactivate(Time);
       FPointingDeviceActiveSensors.Remove(DragSensor);
@@ -5443,7 +5444,7 @@ begin
             begin
               { Send isActive = true and make DoPointingDeviceSensorsChange
                 only if FPointingDeviceActiveSensor changes. }
-              if not PointingDeviceActiveSensors.Exists(ToActivate) then
+              if PointingDeviceActiveSensors.IndexOf(ToActivate) = -1 then
               begin
                 PointingDeviceActiveSensors.Add(ToActivate);
                 { We do this only when PointingDeviceOverItem <> nil,

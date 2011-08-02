@@ -26,7 +26,7 @@
     function EnabledCount: Integer;
     function Enabled(Index: Integer): boolean;
 
-    procedure Assign(Source: TPersistent); override;
+    procedure Assign(Source: TPointingDeviceSensorsList);
   end;
 
   { }
@@ -263,14 +263,11 @@ begin
     TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
 end;
 
-procedure TPointingDeviceSensorsList.Assign(Source: TPersistent);
+procedure TPointingDeviceSensorsList.Assign(Source: TPointingDeviceSensorsList);
 begin
   inherited;
-  if Source is TPointingDeviceSensorsList then
-  begin
-    Transform := TPointingDeviceSensorsList(Source).Transform;
-    InvertedTransform := TPointingDeviceSensorsList(Source).InvertedTransform;
-  end;
+  Transform := Source.Transform;
+  InvertedTransform := Source.InvertedTransform;
 end;
 
 { Rest of nodes -------------------------------------------------------------- }

@@ -68,8 +68,6 @@ uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, KambiPngUtils, KambiPasJpeg, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   { See TImage.AlphaChannelType. }
   TAlphaChannelType = (atNone, atSimpleYesNo, atFullRange);
@@ -597,13 +595,9 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TImage); virtual;
   end;
 
-  TObjectsListItem_1 = TImage;
-  {$I objectslist_1.inc}
-  TImageList = TObjectsList_1;
+  TImageList = specialize TFPGObjectList<TImage>;
 
-  TObjectsListItem_2 = TEncodedImage;
-  {$I objectslist_2.inc}
-  TEncodedImageList = TObjectsList_2;
+  TEncodedImageList = specialize TFPGObjectList<TEncodedImage>;
 
   TS3TCCompression = (
     { s3tcDxt1_RGB and s3tcDxt1_RGBA are the same compression method,
@@ -1618,10 +1612,6 @@ var
 implementation
 
 uses ProgressUnit, KambiStringUtils, KambiFilesUtils, KambiWarnings, DDS;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
 
 { image loading utilities --------------------------------------------------- }
 

@@ -511,7 +511,7 @@ var
 begin
   for I := 0 to Images.Count - 1 do
     if OwnsFirstImage or (I <> 0) then
-      Images.FreeAndNil(I);
+      FPGObjectList_FreeAndNilItem(Images, I);
   Images.Count := 0;
 end;
 

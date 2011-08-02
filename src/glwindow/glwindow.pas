@@ -2558,9 +2558,7 @@ end;
   { Deprecated name for TGLUIWindow. @deprecated }
   TGLWindowNavigated = TGLUIWindow;
 
-  TObjectsListItem_1 = TGLWindow;
-  {$I objectslist_1.inc}
-  TGLWindowsList = class(TObjectsList_1)
+  TGLWindowsList = class(specialize TFPGObjectList<TGLWindow>)
   private
     { Call wszystkie OnIdle / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoIdle / DoTimer  is a simplest
@@ -2893,7 +2891,6 @@ uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
 
 {$define read_implementation}
 
-{$I objectslist_1.inc}
 {$I dynarray_2.inc}
 {$I glwindowmenu.inc}
 {$I glwindow_backend.inc}

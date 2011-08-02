@@ -87,21 +87,8 @@ type
     function Eof: boolean;
   end;
 
-{ ---------------------------------------------------------------------------- }
-{ @section(TObjectsList_Abstract) }
-
-type
-  { Abstract base class for all lists using our "faked generics" in objectslist.inc. }
-  TObjectsList_Abstract = class(TPersistent)
-  public
-    procedure FreeContents; virtual; abstract;
-    { Free contents and destroy yourself, if Self <> nil. }
-    procedure FreeWithContents;
-  end;
-
-{ Free with contents, and set variable to nil,
-  for TObjectsList_Abstract and TFPGObjectList descendants.
-  Similar to FreeAndNil, but calls FreeWithContents instead of Free. }
+{ Free with contents, and set variable to nil, for TFPGObjectList descendants.
+  Similar to FreeAndNil, but frees children. }
 procedure FreeWithContentsAndNil(var Obj);
 
 { ---------------------------------------------------------------------------- }
@@ -669,6 +656,9 @@ procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
   http://bugs.freepascal.org/view.php?id=19854 . }
 procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
 
+{ Set to @nil (never freeing) given item on TFPGObjectList. }
+procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
+
 {$undef read_interface}
 
 implementation
@@ -763,35 +753,16 @@ begin
  Result := ReadBuf = '';
 end;
 
-{ TObjectsList_Abstract ---------------------------------------------------- }
-
-procedure TObjectsList_Abstract.FreeWithContents;
-begin
-  if Self <> nil then
-  begin
-    FreeContents;
-
-    { This is written as "Self.Destroy" to actually do the desctruction,
-      freeing memory etc. If I would just call it "Destroy", it would
-      perform what destructor does but leaving object instance unfreed. }
-    Self.Destroy;
-  end;
-end;
-
 procedure FreeWithContentsAndNil(var Obj);
 var
   I: Integer;
 begin
   if TObject(Obj) <> nil then
   begin
-    if TObject(Obj) is TFPSList then
-    begin
-      for I := 0 to TFPSList(Obj).Count - 1 do
-        FPGObjectList_FreeAndNilItem(TFPSList(Obj), I);
-      TFPSList(Obj).Free;
-    end else
-      TObjectsList_Abstract(Obj).FreeWithContents;
-    TObject(Obj) := nil;
+    for I := 0 to TFPSList(Obj).Count - 1 do
+      FPGObjectList_FreeAndNilItem(TFPSList(Obj), I);
+    TFPSList(Obj).Free;
+    TFPSList(Obj) := nil;
   end;
 end;
 
@@ -1695,6 +1666,16 @@ begin
     previous Items[I] must contain a valid reference or nil, not something freed.
     And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
   FreeAndNil(PPointer(List.List)[I]);
+end;
+
+procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
+begin
+  { do not set the list item by normal List.Items, as it will cause
+    problems once http://bugs.freepascal.org/view.php?id=19854
+    will be fixed (if FreeObjects = true, then when assigning "Items[I] := nil",
+    previous Items[I] must contain a valid reference or nil, not something freed.
+    And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
+  PPointer(List.List)[I] := nil;
 end;
 
 initialization

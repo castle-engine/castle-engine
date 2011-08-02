@@ -991,9 +991,7 @@
     function NiceName: string;
   end;
 
-  TObjectsListItem_3 = TVRMLNode;
-  {$I objectslist_3.inc}
-  TVRMLNodesList = class(TObjectsList_3)
+  TVRMLNodesList = class(specialize TFPGObjectList<TVRMLNode>)
     { @deprecated Deprecated name for FindName. }
     function FindNodeName(const Name: string): Integer;
 
@@ -1011,6 +1009,8 @@
 
     { Find index of a node with given name, -1 if not found. }
     function IndexOfName(const Name: string): Integer;
+
+    procedure AddIfNotExists(const Node: TVRMLNode);
   end;
 
 {$endif read_interface}
@@ -1120,7 +1120,7 @@ begin
   begin
     for I := 0 to FEvents.Count - 1 do
       if FEvents[I].ParentInterfaceDeclaration = nil then
-        FEvents.FreeAndNil(I);
+        FPGObjectList_FreeAndNilItem(FEvents, I);
     FreeAndNil(FEvents);
   end;
 
@@ -1128,7 +1128,7 @@ begin
   begin
     for I := 0 to FFields.Count - 1 do
       if FFields[I].ParentInterfaceDeclaration = nil then
-        FFields.FreeAndNil(I);
+        FPGObjectList_FreeAndNilItem(FFields, I);
     FreeAndNil(FFields);
   end;
 
@@ -3064,6 +3064,12 @@ begin
     if Items[Result].NodeName = Name then
       Exit;
   Result := -1;
+end;
+
+procedure TVRMLNodesList.AddIfNotExists(const Node: TVRMLNode);
+begin
+  if IndexOf(Node) = -1 then
+    Add(Node);
 end;
 
 procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
