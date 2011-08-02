@@ -26,8 +26,6 @@ interface
 uses SysUtils, KambiUtils, KambiClassUtils, Classes, Math, VectorMath, Curve,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   { Rational Bezier curve (Bezier curve with weights).
     Note: for Bezier Curve ControlPoints.Count MAY be 1.
@@ -61,9 +59,7 @@ type
     destructor Destroy; override;
   end;
 
-  TObjectsListItem_1 = TRationalBezierCurve;
-  {$I ObjectsList_1.inc}
-  TRationalBezierCurvesList = TObjectsList_1;
+  TRationalBezierCurvesList = specialize TFPGObjectList<TRationalBezierCurve>;
 
   { Smooth interpolated curve, each ControlPoints[i]..ControlPoints[i+1]
     segment is converted to a rational Bezier curve (with 4 control points)
@@ -96,7 +92,7 @@ type
       All Weights are set to 1.0 (so actually these are all normal
       Bezier curves; but I'm treating normal Bezier curves as Rational
       Bezier curves everywhere here) }
-    function ToRationalBezierCurves: TRationalBezierCurvesList;
+    function ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurvesList;
 
     procedure UpdateControlPoints; override;
 
@@ -106,14 +102,9 @@ type
     destructor Destroy; override;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses GL, GLU, KambiGLUtils;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 { TRationalBezierCurve ----------------------------------------------- }
 
@@ -261,7 +252,7 @@ begin
   Result := BezierCurves[i].Point(t);
 end;
 
-function TSmoothInterpolatedCurve.ToRationalBezierCurves: TRationalBezierCurvesList;
+function TSmoothInterpolatedCurve.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurvesList;
 var
   S: TDynVector3SingleArray;
 
@@ -277,7 +268,7 @@ var
   i: Integer;
   NewCurve: TRationalBezierCurve;
 begin
-  Result := TRationalBezierCurvesList.Create(false);
+  Result := TRationalBezierCurvesList.Create(ResultOwnsCurves);
   try
     if ControlPoints.Count <= 1 then Exit;
 
@@ -353,9 +344,9 @@ var
   i: Integer;
 begin
   inherited;
-  FreeWithContentsAndNil(BezierCurves);
+  FreeAndNil(BezierCurves);
 
-  BezierCurves := ToRationalBezierCurves;
+  BezierCurves := ToRationalBezierCurves(true);
 
   ConvexHullPoints.SetLength(0);
   ConvexHullPoints.AppendDynArray(ControlPoints);
@@ -374,8 +365,8 @@ end;
 
 destructor TSmoothInterpolatedCurve.Destroy;
 begin
-  FreeWithContentsAndNil(BezierCurves);
-  ConvexHullPoints.Free;
+  FreeAndNil(BezierCurves);
+  FreeAndNil(ConvexHullPoints);
   inherited;
 end;
 

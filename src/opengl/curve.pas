@@ -23,8 +23,6 @@ uses VectorMath, Boxes3D, KambiUtils, KambiScript,
   KambiClassUtils, Classes, Base3D, Frustum,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   { "Curve" is, in the sense of this class, some 3d object that
     @unorderedList(
@@ -84,9 +82,7 @@ type
     constructor Create(const ATBegin, ATEnd: Float); reintroduce;
   end;
 
-  TObjectsListItem_2 = TCurve;
-  {$I objectslist_2.inc}
-  TCurvesList = TObjectsList_2;
+  TCurvesList = specialize TFPGObjectList<TCurve>;
 
   { @abstract(This is a curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as KambiScript expressions.) }
@@ -193,9 +189,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TObjectsListItem_1 = TControlPointsCurve;
-  {$I objectslist_1.inc}
-  TControlPointsCurvesList = TObjectsList_1;
+  TControlPointsCurvesList = specialize TFPGObjectList<TControlPointsCurve>;
 
   { @abstract(This is a class for curves that pass exactly through
     ControlPoints.)
@@ -312,15 +306,9 @@ type
     class function NiceClassName: string; override;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses SysUtils, GL, GLU, ConvexHullUnit, KambiGLUtils;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
 
 { TCurve ------------------------------------------------------------ }
 

@@ -88,7 +88,7 @@ uses KambiClassUtils, GL, GLU, KambiGLUtils, VectorMath, SysUtils,
 constructor TSurface.Create(const AXBegin, AXEnd, AYBegin, AYEnd: Float);
 begin
   inherited Create;
-  Curves := TCurvesList.Create(false);
+  Curves := TCurvesList.Create(true);
   FXBegin := AXBegin;
   FXEnd   := AXEnd;
   FYBegin := AYBegin;
@@ -97,7 +97,7 @@ end;
 
 destructor TSurface.Destroy;
 begin
-  FreeWithContentsAndNil(Curves);
+  FreeAndNil(Curves);
   inherited;
 end;
 
