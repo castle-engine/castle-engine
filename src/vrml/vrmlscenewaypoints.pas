@@ -25,8 +25,6 @@ uses SysUtils, KambiUtils, KambiClassUtils, Classes,
   VectorMath, Boxes3D, VRMLNodes, VRMLScene,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   TSceneSectorsList = class;
 
@@ -43,9 +41,7 @@ type
     property Sectors: TSceneSectorsList read FSectors;
   end;
 
-  TObjectsListItem_1 = TSceneWaypoint;
-  {$I objectslist_1.inc}
-  TSceneWaypointsList = class(TObjectsList_1)
+  TSceneWaypointsList = class(specialize TFPGObjectList<TSceneWaypoint>)
   public
     { Shapes placed under the name Waypoint<index>_<ignored>
       are removed from the Scene, and are added as new waypoint with
@@ -107,9 +103,7 @@ type
   ESectorNotInitialized = class(Exception);
   EWaypointNotInitialized = class(Exception);
 
-  TObjectsListItem_2 = TSceneSector;
-  {$I objectslist_2.inc}
-  TSceneSectorsList = class(TObjectsList_2)
+  TSceneSectorsList = class(specialize TFPGObjectList<TSceneSector>)
   public
     { Shapes placed under the name Sector<index>_<ignored>
       are removed from the Scene, and are added to sector <index> BoundingBoxes.
@@ -162,15 +156,9 @@ type
       Waypoints: TSceneWaypointsList): boolean;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses KambiStringUtils, VRMLShape;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
-{$I objectslist_2.inc}
 
 { TSceneWaypoint ------------------------------------------------------------- }
 

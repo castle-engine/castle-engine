@@ -23,8 +23,6 @@ uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
   KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
-{$define read_interface}
-
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
     out RootNode: TVRMLRootNode; out Time: Single) of object;
@@ -638,21 +636,14 @@ type
     { @groupEnd }
   end;
 
-  TObjectsListItem_1 = TVRMLGLAnimation;
-  {$I objectslist_1.inc}
-  TVRMLGLAnimationsList = TObjectsList_1;
+  TVRMLGLAnimationsList = specialize TFPGObjectList<TVRMLGLAnimation>;
 
 procedure Register;
-
-{$undef read_interface}
 
 implementation
 
 uses Math, VRMLFields, ProgressUnit, Object3DAsVRML, KambiLog, DateUtils,
   VRMLShape;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 procedure Register;
 begin
