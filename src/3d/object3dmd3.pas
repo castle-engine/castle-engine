@@ -86,9 +86,7 @@ type
     VertexesInFrameCount: Cardinal;
   end;
 
-  TObjectsListItem_1 = TMd3Surface;
-  {$I objectslist_1.inc}
-  TMd3SurfacesList = TObjectsList_1;
+  TMd3SurfacesList = specialize TFPGObjectList<TMd3Surface>;
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
@@ -153,7 +151,6 @@ uses VectorMath, KambiFilesUtils, KambiStringUtils;
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 {$I dynarray_3.inc}
-{$I objectslist_1.inc}
 
 const
   GoodIdent = 'IDP3';
@@ -353,7 +350,7 @@ begin
     end;
   end;
 
-  Surfaces := TMd3SurfacesList.Create(false);
+  Surfaces := TMd3SurfacesList.Create(true);
 
   if Header.NumSurfaces <> 0 then
   begin
@@ -373,7 +370,7 @@ end;
 
 destructor TObject3DMD3.Destroy;
 begin
-  FreeWithContentsAndNil(Surfaces);
+  FreeAndNil(Surfaces);
   inherited;
 end;
 
