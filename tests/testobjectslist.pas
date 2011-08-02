@@ -30,9 +30,6 @@ implementation
 
 uses KambiUtils, KambiClassUtils;
 
-{$define read_interface}
-{$define read_implementation}
-
 type
   TItem = class
     Str: string;
@@ -135,7 +132,7 @@ begin
   Assert(ol[1] = ol[3]); { (1 i 3) i (2 i 4) to te same obiekty. }
   Assert(ol[2] = ol[4]);
 
-  { zeby Clear nie zrobilo dwa razy Free tego samego obiektu }
+  { delete dups, preventing Clear from Freeing two times the same reference }
   ol.DeleteDuplicates;
   ol.Clear;
  finally ol.Free end;
