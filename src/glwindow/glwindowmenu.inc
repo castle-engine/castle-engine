@@ -560,7 +560,7 @@ end;
 constructor TMenu.Create(const ACaption: String);
 begin
   inherited Create(ACaption);
-  FEntries := TMenuEntriesList.Create;
+  FEntries := TMenuEntriesList.Create(false);
 end;
 
 destructor TMenu.Destroy;
@@ -839,7 +839,7 @@ end;
 
 procedure TMenuItemRadio.CreateCommon;
 begin
-  FGroup := TMenuItemRadioGroup.Create;
+  FGroup := TMenuItemRadioGroup.Create(false);
   FGroup.Add(Self);
 end;
 
@@ -987,7 +987,7 @@ end;
 
 procedure GLWindowMenu_Init;
 begin
- MenuItems := TMenuEntriesList.Create;
+ MenuItems := TMenuEntriesList.Create(false);
 end;
 
 procedure GLWindowMenu_Fini;

@@ -1892,7 +1892,7 @@ begin
   FDefaultViewport := true;
   FAlwaysApplyProjection := false;
 
-  FViewports := TKamAbstractViewportsList.Create;
+  FViewports := TKamAbstractViewportsList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
 end;
 

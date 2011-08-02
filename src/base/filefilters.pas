@@ -18,9 +18,8 @@ unit FileFilters;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils;
-
-{$define read_interface}
+uses SysUtils, Classes, KambiUtils, KambiClassUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
   TFileFilter = class
@@ -35,13 +34,11 @@ type
     property Patterns: TStringList read FPatterns;
   end;
 
-  TObjectsListItem_1 = TFileFilter;
-  {$I objectslist_1.inc}
-  TFileFiltersList = class(TObjectsList_1)
+  TFileFiltersList = class(specialize TFPGObjectList<TFileFilter>)
   private
     FDefaultFilter: Integer;
   public
-    constructor Create;
+    constructor Create(AFreeObjects: boolean);
 
     { Add one file filter, selectable by user.
       @param(Name Is a name displayed for for user.)
@@ -73,14 +70,9 @@ type
     procedure AddFiltersFromString(const FiltersStr: string);
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses StrUtils, KambiStringUtils;
-
-{$define read_implementation}
-{$I objectslist_1.inc}
 
 { TFileFilter ---------------------------------------------------------------- }
 
@@ -98,7 +90,7 @@ end;
 
 { TFileFiltersList ----------------------------------------------------------- }
 
-constructor TFileFiltersList.Create;
+constructor TFileFiltersList.Create(AFreeObjects: boolean);
 begin
   inherited;
   FDefaultFilter := 0;

@@ -2444,7 +2444,7 @@ var
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
   inherited Create;
-  PointingDeviceSensors := TPointingDeviceSensorsList.Create;
+  PointingDeviceSensors := TPointingDeviceSensorsList.Create(false);
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
@@ -2569,7 +2569,7 @@ begin
   if Source.Effects <> nil then
   begin
     if Effects = nil then
-      Effects := TVRMLNodesList.Create;
+      Effects := TVRMLNodesList.Create(false);
     Effects.Assign(Source.Effects);
   end else
     FreeAndNil(Effects);
@@ -3191,12 +3191,12 @@ constructor TMFNode.CreateUndefined(AParentNode: TVRMLFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
-  FItems := TVRMLNodesList.Create;
+  FItems := TVRMLNodesList.Create(false);
 
   AllowedChildren := acAll;
   { AllowedChildrenClasses may remain nil in this case }
 
-  FDefaultItems := TVRMLNodesList.Create;
+  FDefaultItems := TVRMLNodesList.Create(false);
   FDefaultValueExists := false;
 end;
 
@@ -4584,7 +4584,7 @@ end;
 constructor TVRMLPrototypeBase.Create;
 begin
   inherited;
-  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
+  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(false);
 end;
 
 destructor TVRMLPrototypeBase.Destroy;

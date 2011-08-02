@@ -32,7 +32,7 @@ begin
 
   OnWarning := @OnWarningWrite;
 
-  Vars := TKamScriptValuesList.Create;
+  Vars := TKamScriptValuesList.Create(false);
   try
     Vars.Add(TKamScriptImage.Create(true));
     Vars.Last.Name := 'result';

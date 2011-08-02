@@ -355,7 +355,7 @@ type
     if Child is TNodeEffect then
     begin
       if State.Effects = nil then
-        State.Effects := TVRMLNodesList.Create;
+        State.Effects := TVRMLNodesList.Create(false);
       State.Effects.Add(Child);
     end;
   end;
@@ -632,7 +632,7 @@ begin
         It's output in a special way, without writing "children [...]" around.
         Other fields are ignored (should never have any meaning). }
 
-    FileItems := TVRMLFileItemsList.Create;
+    FileItems := TVRMLFileItemsList.Create(false);
     try
       for I := 0 to Prototypes.Count - 1 do
         FileItems.Add(Prototypes[I]);

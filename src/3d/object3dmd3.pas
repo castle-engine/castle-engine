@@ -352,7 +352,7 @@ begin
     end;
   end;
 
-  Surfaces := TMd3SurfacesList.Create;
+  Surfaces := TMd3SurfacesList.Create(false);
 
   if Header.NumSurfaces <> 0 then
   begin

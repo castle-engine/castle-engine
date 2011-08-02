@@ -2324,8 +2324,8 @@ begin
 
   FAttributes := AttributesClass.Create;
 
-  GLTextureNodes := TGLTextureNodes.Create;
-  BumpMappingRenderers := TBumpMappingRenderersList.Create;
+  GLTextureNodes := TGLTextureNodes.Create(false);
+  BumpMappingRenderers := TBumpMappingRenderersList.Create(false);
   ScreenEffectPrograms := TGLSLProgramsList.Create;
 
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;

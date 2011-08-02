@@ -176,7 +176,7 @@ uses KambiStringUtils, VRMLShape;
 constructor TSceneWaypoint.Create;
 begin
   inherited Create;
-  FSectors := TSceneSectorsList.Create;
+  FSectors := TSceneSectorsList.Create(false);
 end;
 
 destructor TSceneWaypoint.Destroy;
@@ -235,7 +235,7 @@ var
   I: Integer;
   SI: TVRMLShapeTreeIterator;
 begin
-  NodesToRemove := TVRMLNodesList.Create;
+  NodesToRemove := TVRMLNodesList.Create(false);
   try
     SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
@@ -257,7 +257,7 @@ begin
   inherited Create;
   FBoundingBoxes := TDynBox3DArray.Create;
   FVisibleSectors := TDynBooleanArray.Create;
-  FWaypoints := TSceneWaypointsList.Create;
+  FWaypoints := TSceneWaypointsList.Create(false);
 end;
 
 destructor TSceneSector.Destroy;
@@ -340,7 +340,7 @@ var
   I: Integer;
   SI: TVRMLShapeTreeIterator;
 begin
-  NodesToRemove := TVRMLNodesList.Create;
+  NodesToRemove := TVRMLNodesList.Create(false);
   try
     SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
@@ -453,7 +453,7 @@ begin
     so Waypoints.Count will have to be > 0 in this case.
     Just like I promised in the interface. }
 
-  SectorsVisited := TSceneSectorsList.Create;
+  SectorsVisited := TSceneSectorsList.Create(false);
   try
     Result := FindWayToSectorEnd(SectorBegin, 0);
   finally SectorsVisited.Free end;

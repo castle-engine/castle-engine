@@ -3897,7 +3897,7 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
 
-  FScenes := TVRMLGLScenesList.Create;
+  FScenes := TVRMLGLScenesList.Create(false);
 end;
 
 destructor TVRMLSceneRenderingAttributes.Destroy;

@@ -2073,7 +2073,7 @@ end;
 constructor TVRMLShapeTreeGroup.Create(AParentScene: TObject);
 begin
   inherited Create(AParentScene);
-  FChildren := TVRMLShapeTreesList.Create;
+  FChildren := TVRMLShapeTreesList.Create(false);
 end;
 
 destructor TVRMLShapeTreeGroup.Destroy;
@@ -2516,7 +2516,7 @@ end;
 
 constructor TVRMLShapesList.Create;
 begin
-  inherited;
+  inherited Create(false);
 end;
 
 constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree;

@@ -449,7 +449,7 @@ procedure TALSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin
-  FAllocatedSources := TALSoundsList.Create;
+  FAllocatedSources := TALSoundsList.Create(false);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TALSound.Create;

@@ -3632,7 +3632,7 @@ procedure InitializeImagesFileFilters;
 
   function CreateImagesFilters: TFileFiltersList;
   begin
-    Result := TFileFiltersList.Create;
+    Result := TFileFiltersList.Create(true);
     Result.AddFilter('All Files', ['*']);
     Result.AddFilter('All Images', []);
     Result.DefaultFilter := 1;
@@ -3684,8 +3684,8 @@ end;
 initialization
   InitializeImagesFileFilters;
 finalization
-  FreeWithContentsAndNil(LoadImage_FileFilters);
-  FreeWithContentsAndNil(SaveImage_FileFilters);
+  FreeAndNil(LoadImage_FileFilters);
+  FreeAndNil(SaveImage_FileFilters);
 end.
 
 (* ----------------------------------------------------------------------------------

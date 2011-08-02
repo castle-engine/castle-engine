@@ -2503,7 +2503,7 @@ end;
 constructor TKamScriptFunctionDefinition.Create;
 begin
   inherited;
-  FParameters := TKamScriptValuesList.Create;
+  FParameters := TKamScriptValuesList.Create(false);
 end;
 
 destructor TKamScriptFunctionDefinition.Destroy;
@@ -2530,7 +2530,7 @@ end;
 constructor TKamScriptProgram.Create;
 begin
   inherited;
-  FFunctions := TKamScriptFunctionDefinitionsList.Create;
+  FFunctions := TKamScriptFunctionDefinitionsList.Create(false);
   FEnvironment := TKamScriptEnvironment.Create;
 end;
 

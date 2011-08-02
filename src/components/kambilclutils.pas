@@ -58,11 +58,11 @@ procedure FileFiltersToOpenDialog(const FileFilters: string;
 var
   FFList: TFileFiltersList;
 begin
-  FFList := TFileFiltersList.Create;
+  FFList := TFileFiltersList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
     FileFiltersToOpenDialog(FFList, LCLFilter, FilterIndex);
-  finally FreeWithContentsAndNil(FFList) end;
+  finally FreeAndNil(FFList) end;
 end;
 
 procedure FileFiltersToOpenDialog(FFList: TFileFiltersList;

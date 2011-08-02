@@ -901,10 +901,10 @@ var
 begin
   inherited Create;
 
-  Trimeshes := TTrimesh3dsList.Create;
-  Cameras := TCamera3dsList.Create;
-  Lights := TLight3dsList.Create;
-  Materials := TMaterial3dsList.Create;
+  Trimeshes := TTrimesh3dsList.Create(false);
+  Cameras := TCamera3dsList.Create(false);
+  Lights := TLight3dsList.Create(false);
+  Materials := TMaterial3dsList.Create(false);
 
   Stream.ReadBuffer(hmain, SizeOf(hmain));
   Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');

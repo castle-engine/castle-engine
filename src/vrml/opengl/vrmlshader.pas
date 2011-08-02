@@ -700,8 +700,8 @@ end;
 constructor TVRMLShaderProgram.Create;
 begin
   inherited;
-  EventsObserved := TVRMLEventsList.Create;
-  UniformsTextures := TVRMLFieldsList.Create;
+  EventsObserved := TVRMLEventsList.Create(false);
+  UniformsTextures := TVRMLFieldsList.Create(false);
 end;
 
 destructor TVRMLShaderProgram.Destroy;
@@ -1186,7 +1186,7 @@ begin
 
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
-  UniformsNodes := TVRMLNodesList.Create;
+  UniformsNodes := TVRMLNodesList.Create(false);
 
   WarnMissingPlugs := true;
 end;

@@ -206,7 +206,7 @@ const
         tokFuncName: begin
             FC := Lexer.TokenFunctionClass;
             Lexer.NextToken;
-            FParams := TKamScriptExpressionsList.Create;
+            FParams := TKamScriptExpressionsList.Create(false);
             try
               try
                 Lexer.CheckTokenIs(tokLParen);
@@ -363,7 +363,7 @@ begin
 
     if Lexer.Token = tokSemicolon then
     begin
-      SequenceArgs := TKamScriptExpressionsList.Create;
+      SequenceArgs := TKamScriptExpressionsList.Create(false);
       try
         try
           SequenceArgs.Add(Result);
@@ -400,7 +400,7 @@ var
       Result.Name := Lexer.TokenString;
       Lexer.NextToken;
 
-      BodyVariables := TKamScriptValuesList.Create;
+      BodyVariables := TKamScriptValuesList.Create(false);
       try
         Lexer.CheckTokenIs(tokLParen);
         Lexer.NextToken;

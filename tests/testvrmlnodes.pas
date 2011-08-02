@@ -1408,7 +1408,7 @@ begin
     I4.PositionInParent := -10;
     I5 := TNodeTimeSensor.Create('', '');
     I5.PositionInParent := 10;
-    List := TVRMLFileItemsList.Create;
+    List := TVRMLFileItemsList.Create(false);
 
     { QuickSort, used underneath SortPositionInParent, is not stable.
       Which means that items with equal PositionInParent (default -1

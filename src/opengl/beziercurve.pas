@@ -276,7 +276,7 @@ var
   i: Integer;
   NewCurve: TRationalBezierCurve;
 begin
-  Result := TRationalBezierCurvesList.Create;
+  Result := TRationalBezierCurvesList.Create(false);
   try
     if ControlPoints.Count <= 1 then Exit;
 

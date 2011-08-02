@@ -29,7 +29,7 @@ type
     FLastEventTimes: TDynVRMLTimeArray;
     InsideAfterExecute: boolean;
   public
-    constructor Create;
+    constructor Create(AFreeObjects: boolean);
     destructor Destroy; override;
 
     { List of field/events associated with this list's KamScript variables.
@@ -490,10 +490,10 @@ end;
 
 { TKamScriptVRMLValuesList -------------------------------------------------- }
 
-constructor TKamScriptVRMLValuesList.Create;
+constructor TKamScriptVRMLValuesList.Create(AFreeObjects: boolean);
 begin
-  inherited Create;
-  FFieldOrEvents := TVRMLFieldOrEventsList.Create;
+  inherited;
+  FFieldOrEvents := TVRMLFieldOrEventsList.Create(false);
   FLastEventTimes := TDynVRMLTimeArray.Create;
 end;
 

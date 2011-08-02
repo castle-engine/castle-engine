@@ -158,7 +158,7 @@ procedure TTestKambiClassUtils.TestObjectsListSort;
 var
   L: TFoosList;
 begin
-  L := TFoosList.Create;
+  L := TFoosList.Create(false);
   try
     L.Add(TFoo.Create(123, 'abc'));
     L.Add(TFoo.Create(-5, 'ZZZ'));

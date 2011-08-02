@@ -155,7 +155,7 @@
       only valid existing object instances). }
     procedure FreeContents; override;
 
-    constructor Create;
+    constructor Create(Ignored: boolean);
 
     { Inits list contents with InitialItems.
       This is just a shortcut for Create + AddArray(InitialItems). }
@@ -445,21 +445,21 @@ begin
  Clear;
 end;
 
-constructor TObjectsList_3.Create;
+constructor TObjectsList_3.Create(Ignored: boolean);
 begin
- inherited;
+ inherited Create;
 end;
 
 constructor TObjectsList_3.CreateFromArray
   (const InitialItems: array of TObjectsListItem_3);
 begin
- Create();
+ Create(false);
  AddArray(InitialItems);
 end;
 
 constructor TObjectsList_3.CreateFromList(InitialItems: TObjectsList_3);
 begin
- Create();
+ Create(false);
  AddList(InitialItems);
 end;
 

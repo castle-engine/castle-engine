@@ -1022,8 +1022,8 @@
 constructor TVRMLNodeDeepCopyState.Create;
 begin
   inherited;
-  Original := TVRMLNodesList.Create;
-  New := TVRMLNodesList.Create;
+  Original := TVRMLNodesList.Create(false);
+  New := TVRMLNodesList.Create(false);
 end;
 
 destructor TVRMLNodeDeepCopyState.Destroy;
@@ -1060,17 +1060,17 @@ begin
   FNodeName := ANodeName;
   FWWWBasePath := AWWWBasePath;
 
-  FVRML1Children := TVRMLNodesList.Create;
-  FVRML1Parents := TVRMLNodesList.Create;
-  FParentFields := TVRMLFieldsList.Create;
-  FFields := TVRMLFieldsList.Create;
+  FVRML1Children := TVRMLNodesList.Create(false);
+  FVRML1Parents := TVRMLNodesList.Create(false);
+  FParentFields := TVRMLFieldsList.Create(false);
+  FFields := TVRMLFieldsList.Create(false);
 
-  FEvents := TVRMLEventsList.Create;
+  FEvents := TVRMLEventsList.Create(false);
 
-  FPrototypes := TVRMLPrototypeBasesList.Create;
-  FRoutes := TVRMLRoutesList.Create;
-  FImportsList := TVRMLFileItemsList.Create;
-  FExportsList := TVRMLFileItemsList.Create;
+  FPrototypes := TVRMLPrototypeBasesList.Create(false);
+  FRoutes := TVRMLRoutesList.Create(false);
+  FImportsList := TVRMLFileItemsList.Create(false);
+  FExportsList := TVRMLFileItemsList.Create(false);
 
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
@@ -2356,7 +2356,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
   var
     I: integer;
   begin
-    Result := TVRMLFileItemsList.Create;
+    Result := TVRMLFileItemsList.Create(false);
     try
       if HasInterfaceDeclarations <> [] then
       begin
@@ -2847,7 +2847,7 @@ begin
     begin
       { make sure InterfaceDeclarations is non-nil }
       if FInterfaceDeclarations = nil then
-        FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create;
+        FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(false);
     end else
     begin
       { make sure InterfaceDeclarations is nil }

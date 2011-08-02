@@ -1979,7 +1979,7 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
 
 constructor TVRMLBindableStack.Create(AParentScene: TVRMLScene);
 begin
-  inherited Create;
+  inherited Create(false);
   FParentScene := AParentScene;
 end;
 
@@ -2271,7 +2271,7 @@ begin
 
   if (Result = nil) and AutoCreate then
   begin
-    Node.ShapeTrees := TVRMLShapeTreesList.Create;
+    Node.ShapeTrees := TVRMLShapeTreesList.Create(false);
     Result := TVRMLShapeTreesList(Node.ShapeTrees);
     Add(Node);
   end;
@@ -2310,17 +2310,17 @@ begin
   FNavigationInfoStack := TNavigationInfoStack.Create(Self);
   FViewpointStack := TViewpointStack.Create(Self);
 
-  FPointingDeviceActiveSensors := TVRMLNodesList.Create;
+  FPointingDeviceActiveSensors := TVRMLNodesList.Create(false);
 
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
-  TransformInstancesList := TTransformInstancesList.Create;
-  BillboardInstancesList := TTransformInstancesList.Create;
+  TransformInstancesList := TTransformInstancesList.Create(false);
+  BillboardInstancesList := TTransformInstancesList.Create(false);
   GeneratedTextures := TDynGeneratedTextureArray.Create;
-  ProximitySensors := TProximitySensorInstancesList.Create;
-  ScreenEffectNodes := TVRMLNodesList.Create;
-  ScheduledHumanoidAnimateSkin := TVRMLNodesList.Create;
-  KeyDeviceSensorNodes := TVRMLNodesList.Create;
-  TimeDependentHandlers := TTimeDependentHandlersList.Create;
+  ProximitySensors := TProximitySensorInstancesList.Create(false);
+  ScreenEffectNodes := TVRMLNodesList.Create(false);
+  ScheduledHumanoidAnimateSkin := TVRMLNodesList.Create(false);
+  KeyDeviceSensorNodes := TVRMLNodesList.Create(false);
+  TimeDependentHandlers := TTimeDependentHandlersList.Create(false);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;

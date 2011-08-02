@@ -578,7 +578,7 @@ begin
       Lights.ShadowCastersBox := EmptyBox3D;
 
       { calculate Lights.LightsCastingOnEverything first }
-      Lights.LightsCastingOnEverything := TVRMLNodesList.Create;
+      Lights.LightsCastingOnEverything := TVRMLNodesList.Create(false);
       Model.EnumerateNodes(TNodeX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
 
       Shapes.Traverse(@Lights.ShapeAdd, false);

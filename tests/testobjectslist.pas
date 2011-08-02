@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2010 Michalis Kamburelis.
+  Copyright 2004-2011 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -66,31 +66,31 @@ end;
 procedure TTestObjectsList.TestObjectsList;
 var ol, ol2: TItemsList;
 begin
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try ol.Add(TItem.Create); ol[0].Str := 'foo'; ol[0].Free;
  finally ol.Free end;
 
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try ol.Add(TItem($454545)); ol.Delete(0);
  finally ol.Free end;
 
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try ol.Add(TItem.Create); ol.FreeContents
  finally ol.Free end;
 
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try ol.Add(nil);
  finally ol.FreeWithContents end;
 
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try ol.Add(TItem.Create);
  finally ol.FreeWithContents end;
 
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try
   ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
-  ol2 := TItemsList.Create;
+  ol2 := TItemsList.Create(false);
   try
    ol2.Add(TItem.Create); ol2.Last.Str := 'one';
    ol2.Add(TItem.Create); ol2.Last.Str := 'two';
@@ -101,11 +101,11 @@ begin
 
  finally ol.FreeWithContents end;
 
- ol := TItemsList.Create;
+ ol := TItemsList.Create(false);
  try
   ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
-  ol2 := TItemsList.Create;
+  ol2 := TItemsList.Create(false);
   try
    ol2.Add(TItem.Create); ol2.Last.Str := 'one';
    ol2.Add(TItem.Create); ol2.Last.Str := 'two';

@@ -495,7 +495,7 @@ constructor TDDSImage.Create;
 begin
   inherited;
   FOwnsFirstImage := true;
-  FImages := TEncodedImageList.Create;
+  FImages := TEncodedImageList.Create(false);
 end;
 
 destructor TDDSImage.Destroy;
@@ -1369,7 +1369,7 @@ var
 begin
   if (DDSType = dtVolume) and (Depth > 1) then
   begin
-    NewImages := TEncodedImageList.Create;
+    NewImages := TEncodedImageList.Create(false);
 
     for I := 0 to Images.Count - 1 do
     begin

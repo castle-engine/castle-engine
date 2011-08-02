@@ -105,7 +105,7 @@ begin
   AnimRootNodes := nil;
   AnimTimes := nil;
   try
-    AnimRootNodes := TVRMLNodesList.Create;
+    AnimRootNodes := TVRMLNodesList.Create(false);
     AnimTimes := TDynSingleArray.Create;
 
     AnimRootNodes.Count := Parameters.High div 2;

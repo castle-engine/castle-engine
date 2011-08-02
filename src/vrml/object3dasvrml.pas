@@ -389,7 +389,7 @@ begin
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Appearances := TVRMLNodesList.Create;
+      Appearances := TVRMLNodesList.Create(false);
       Appearances.Count := Obj.Materials.Count;
       for I := 0 to Obj.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(Obj.Materials[I]);
@@ -650,7 +650,7 @@ begin
       AddLights;
 
       { Convert every 3DS material into VRML/X3D Appearance node }
-      Appearances := TVRMLNodesList.Create;
+      Appearances := TVRMLNodesList.Create(false);
       Appearances.Count := O3ds.Materials.Count;
       for i := 0 to O3ds.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(O3ds.Materials[i]);

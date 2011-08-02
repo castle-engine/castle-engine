@@ -1153,7 +1153,7 @@ begin
 
   FOwnsFirstRootNode := AOwnsFirstRootNode;
 
-  FScenes := TVRMLGLScenesList.Create;
+  FScenes := TVRMLGLScenesList.Create(false);
 
   { calculate FScenes contents now }
 
@@ -1338,7 +1338,7 @@ var
   RootNodes: TVRMLNodesList;
   ATimes: TDynSingleArray;
 begin
-  RootNodes := TVRMLNodesList.Create;
+  RootNodes := TVRMLNodesList.Create(false);
   try
     ATimes := TDynSingleArray.Create;
     try
@@ -1359,7 +1359,7 @@ var
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
   Times := TDynSingleArray.Create;
-  RootNodes := TVRMLNodesList.Create;
+  RootNodes := TVRMLNodesList.Create(false);
   try
     LoadVRMLSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,

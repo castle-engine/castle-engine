@@ -2570,11 +2570,11 @@ begin
       Effects := TColladaEffectsList.Create;
       Materials := TColladaMaterialsMap.Create;
       Geometries := TColladaGeometriesList.Create;
-      VisualScenes := TVRMLNodesList.Create;
+      VisualScenes := TVRMLNodesList.Create(false);
       Controllers := TColladaControllersList.Create;
-      Images := TVRMLNodesList.Create;
-      Cameras := TVRMLNodesList.Create;
-      Lights := TVRMLNodesList.Create;
+      Images := TVRMLNodesList.Create(false);
+      Cameras := TVRMLNodesList.Create(false);
+      Lights := TVRMLNodesList.Create(false);
 
       Result := TVRMLRootNode.Create('', WWWBasePath);
       Result.HasForceVersion := true;

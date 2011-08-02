@@ -52,7 +52,7 @@ var
 var
   Vars: TKamScriptValuesList;
 begin
-  Vars := TKamScriptValuesList.Create;
+  Vars := TKamScriptValuesList.Create(false);
   try
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
@@ -153,7 +153,7 @@ var
 var
   Vars: TKamScriptValuesList;
 begin
-  Vars := TKamScriptValuesList.Create;
+  Vars := TKamScriptValuesList.Create(false);
   try
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
@@ -242,7 +242,7 @@ var
   Vars: TKamScriptValuesList;
   Prog: TKamScriptProgram;
 begin
-  Vars := TKamScriptValuesList.Create;
+  Vars := TKamScriptValuesList.Create(false);
   try
     Vars.Add(TKamScriptFloat.Create(true));
     Vars.Add(TKamScriptVec3f.Create(true));

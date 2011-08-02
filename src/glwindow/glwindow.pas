@@ -3596,11 +3596,11 @@ function TGLWindow.FileDialog(const Title: string; var FileName: string;
 var
   FFList: TFileFiltersList;
 begin
-  FFList := TFileFiltersList.Create;
+  FFList := TFileFiltersList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
     Result := FileDialog(Title, FileName, OpenDialog, FFList);
-  finally FreeWithContentsAndNil(FFList) end;
+  finally FreeAndNil(FFList) end;
 end;
 
 function TGLWindow.ColorDialog(var Color: TVector3Byte): boolean;
@@ -4778,7 +4778,7 @@ end;
 constructor TGLApplication.Create(AOwner: TComponent);
 begin
   inherited;
-  FOpenWindows := TGLWindowsList.Create;
+  FOpenWindows := TGLWindowsList.Create(false);
   FTimerMilisec := 1000;
   CreateBackend;
 end;

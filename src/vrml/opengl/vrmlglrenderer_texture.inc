@@ -780,7 +780,7 @@ constructor TGLMultiTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLN
 begin
   Assert(ANode is TNodeMultiTexture, 'TGLMultiTextureNode.Create acceps as Node only TNodeMultiTexture');
   inherited;
-  PreparedTextureChildren := TVRMLNodesList.Create;
+  PreparedTextureChildren := TVRMLNodesList.Create(false);
 end;
 
 destructor TGLMultiTextureNode.Destroy;

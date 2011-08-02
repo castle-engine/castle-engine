@@ -417,7 +417,7 @@ begin
   FTexCoords := TDynVector2SingleArray.Create;
   FNormals := TDynVector3SingleArray.Create;
   FFaces := TDynWavefrontFaceArray.Create;
-  FMaterials := TWavefrontMaterialsList.Create;
+  FMaterials := TWavefrontMaterialsList.Create(false);
 
   UsedMaterial := nil;
 
