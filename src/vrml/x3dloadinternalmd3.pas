@@ -14,7 +14,7 @@
 }
 
 { MD3 (Quake3 and derivatives) format handling (TObject3DMD3). }
-unit Object3DMD3;
+unit X3DLoadInternalMD3;
 
 interface
 

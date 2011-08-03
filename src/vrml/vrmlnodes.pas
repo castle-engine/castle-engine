@@ -2219,7 +2219,7 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, Object3DAsVRML, KambiZStream, VRMLCameraUtils, KambiWarnings,
+  Math, X3DLoad, KambiZStream, VRMLCameraUtils, KambiWarnings,
   KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   KambiLog, KambiScriptParser, DataURI, URIParser,
   NURBS, Quaternions, Cameras, KambiXMLUtils;

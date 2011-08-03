@@ -455,7 +455,7 @@
 
       WWWBasePath is set in constructor, and eventually adjusted by
       various parsing/converting routines (TVRMLNode.Parse, but also
-      potentially other things from Object3DAsVRML).
+      potentially other things from X3DLoad).
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;

@@ -1960,7 +1960,7 @@ type
 implementation
 
 uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
-  Object3DAsVRML;
+  X3DLoad;
 
 {$define read_implementation}
 {$I dynarray_1.inc}

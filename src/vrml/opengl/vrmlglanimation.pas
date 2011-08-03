@@ -642,7 +642,7 @@ procedure Register;
 
 implementation
 
-uses Math, VRMLFields, ProgressUnit, Object3DAsVRML, KambiLog, DateUtils,
+uses Math, VRMLFields, ProgressUnit, X3DLoad, KambiLog, DateUtils,
   VRMLShape;
 
 procedure Register;

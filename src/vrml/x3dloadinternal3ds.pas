@@ -15,11 +15,10 @@
 
 { 3DS loader (TScene3DS). }
 
-unit Object3DS;
+unit X3DLoadInternal3DS;
 
 { TODO
-  - properties that are read from 3ds but not used anywhere (not in
-    Object3DOpenGL nor in Object3DAsVRML) because their exact
+  - properties that are read from 3ds but not used anywhere because their exact
     interpretation is not known for me:
       TCamera3ds.Lens
       TMaterialMap3ds.Offset (I don't know wheteher use it before of after
@@ -27,8 +26,7 @@ unit Object3DS;
       TMaterial3ds.TextureMap2
       TMaterial3ds.ShininessStrenth, TransparencyFalloff, ReflectBlur
 
-  - TFace3ds.Wrap interpretation is known but it is not used by Object3DOpenGL
-    nor Object3DAsVRML (because
+  - TFace3ds.Wrap interpretation is known but it is not used (because
     1. implementing it requires some mess in code
        since this Wrap is the property of _each face_ (instead of _each texture_,
        which would be simpler to map to OpenGL and VRML)

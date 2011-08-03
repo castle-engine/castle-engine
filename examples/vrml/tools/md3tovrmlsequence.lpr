@@ -29,7 +29,7 @@
 program md3tovrmlsequence;
 
 uses SysUtils, KambiUtils, KambiFilesUtils,
-  VRMLNodes, Object3DMD3, Object3DAsVRML;
+  VRMLNodes, X3DLoadInternalMD3, X3DLoad;
 
 var
   Md3: TObject3DMD3;

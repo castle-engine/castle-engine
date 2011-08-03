@@ -14,7 +14,7 @@
 }
 
 { Convert Collada to X3D. }
-unit ColladaToVRML;
+unit X3DLoadInternalCollada;
 
 {$I kambiconf.inc}
 

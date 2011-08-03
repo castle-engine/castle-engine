@@ -16,7 +16,7 @@
 { 3D Videoscape GEO files handling (TObject3DGEO).
   See [http://local.wasp.uwa.edu.au/~pbourke/dataformats/geo/],
   handles at least geometry exported by Blender exporter. }
-unit Object3DGEO;
+unit X3DLoadInternalGEO;
 
 interface
 

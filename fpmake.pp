@@ -68,10 +68,6 @@ begin
     P.Targets.AddUnit('geometryarrays.pas');
     P.Targets.AddUnit('kambioctree.pas');
     P.Targets.AddUnit('nurbs.pas');
-    P.Targets.AddUnit('object3dgeo.pas');
-    P.Targets.AddUnit('object3dmd3.pas');
-    P.Targets.AddUnit('object3dobj.pas');
-    P.Targets.AddUnit('object3ds.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
     P.Targets.AddUnit('renderingcameraunit.pas');
@@ -84,10 +80,14 @@ begin
     P.Targets.AddUnit('gl3d.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml');
-    P.Targets.AddUnit('colladatovrml.pas');
     P.Targets.AddUnit('vrmllighting.pas');
     P.Targets.AddUnit('normalscalculator.pas');
-    P.Targets.AddUnit('object3dasvrml.pas');
+    P.Targets.AddUnit('x3dload.pas');
+    P.Targets.AddUnit('x3dloadinternalcollada.pas');
+    P.Targets.AddUnit('x3dloadinternalgeo.pas');
+    P.Targets.AddUnit('x3dloadinternalmd3.pas');
+    P.Targets.AddUnit('x3dloadinternalobj.pas');
+    P.Targets.AddUnit('x3dloadinternal3ds.pas');
     P.Targets.AddUnit('vrmlanimation.pas');
     P.Targets.AddUnit('vrmlcamerautils.pas');
     P.Targets.AddUnit('vrmlfields.pas');

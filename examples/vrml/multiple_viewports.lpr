@@ -25,7 +25,7 @@
 
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, GLControls, KambiWarnings,
-  KambiUtils, KambiGLUtils, OpenGLFonts, Object3DAsVRML, GLShaders;
+  KambiUtils, KambiGLUtils, OpenGLFonts, X3DLoad, GLShaders;
 
 { TBackground ---------------------------------------------------------------- }
 

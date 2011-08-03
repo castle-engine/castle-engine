@@ -60,11 +60,11 @@
       if it's really important format.)
   )
 }
-unit Object3DAsVRML;
+unit X3DLoad;
 
 interface
 
-uses VectorMath, SysUtils, VRMLNodes, Object3DMD3,
+uses VectorMath, SysUtils, VRMLNodes, X3DLoadInternalMD3,
   KambiUtils, Classes;
 
 function LoadGEO(const filename: string): TVRMLRootNode;
@@ -177,8 +177,9 @@ const
 
 implementation
 
-uses Object3DGEO, Object3DS, Object3DOBJ, VRMLCameraUtils, KambiWarnings,
-  KambiStringUtils, VRMLAnimation, ColladaToVRML, EnumerateFiles, Boxes3D,
+uses X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
+  VRMLCameraUtils, KambiWarnings,
+  KambiStringUtils, VRMLAnimation, X3DLoadInternalCollada, EnumerateFiles, Boxes3D,
   KambiClassUtils;
 
 const

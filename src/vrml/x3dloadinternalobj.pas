@@ -18,7 +18,7 @@
   See [http://www.fileformat.info/format/wavefrontobj/]
   and [http://www.fileformat.info/format/material/].
   Texture filename is also read from material file. }
-unit Object3DOBJ;
+unit X3DLoadInternalOBJ;
 
 interface
 

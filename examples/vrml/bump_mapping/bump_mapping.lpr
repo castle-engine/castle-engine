@@ -57,7 +57,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
   ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, KambiWarnings,
-  VRMLScene, VRMLGLScene, Object3DAsVRML, ProgressUnit, VRMLGLBackground,
+  VRMLScene, VRMLGLScene, X3DLoad, ProgressUnit, VRMLGLBackground,
   VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, GLControls;
 
 const

@@ -91,20 +91,20 @@
         <UnitName Value="NURBS"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/3d/object3dgeo.pas"/>
-        <UnitName Value="Object3DGEO"/>
+        <Filename Value="../src/vrml/x3dloadinternalgeo.pas"/>
+        <UnitName Value="X3DLoadInternalGEO"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/3d/object3dmd3.pas"/>
-        <UnitName Value="Object3DMD3"/>
+        <Filename Value="../src/vrml/x3dloadinternalmd3.pas"/>
+        <UnitName Value="X3DLoadInternalMD3"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/3d/object3dobj.pas"/>
-        <UnitName Value="Object3DOBJ"/>
+        <Filename Value="../src/vrml/x3dloadinternalobj.pas"/>
+        <UnitName Value="X3DLoadInternalOBJ"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/3d/object3ds.pas"/>
-        <UnitName Value="Object3Ds"/>
+        <Filename Value="../src/vrml/x3dloadinternal3ds.pas"/>
+        <UnitName Value="X3DLoadInternal3DS"/>
       </Item14>
       <Item15>
         <Filename Value="../src/3d/opengl/gl3d.pas"/>
@@ -550,16 +550,16 @@
         <UnitName Value="UIControls"/>
       </Item123>
       <Item124>
-        <Filename Value="../src/vrml/colladatovrml.pas"/>
-        <UnitName Value="ColladaToVRML"/>
+        <Filename Value="../src/vrml/x3dloadinternalcollada.pas"/>
+        <UnitName Value="X3DLoadInternalCollada"/>
       </Item124>
       <Item125>
         <Filename Value="../src/vrml/normalscalculator.pas"/>
         <UnitName Value="NormalsCalculator"/>
       </Item125>
       <Item126>
-        <Filename Value="../src/vrml/object3dasvrml.pas"/>
-        <UnitName Value="Object3DAsVRML"/>
+        <Filename Value="../src/vrml/x3dload.pas"/>
+        <UnitName Value="X3DLoad"/>
       </Item126>
       <Item127>
         <Filename Value="../src/vrml/opengl/glsl/shadow_map_common.fs.inc"/>

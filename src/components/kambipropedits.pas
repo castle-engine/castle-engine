@@ -27,7 +27,7 @@ procedure Register;
 
 implementation
 
-uses VRMLScene, PropEdits, KambiLCLUtils, Object3DAsVRML, UIControls,
+uses VRMLScene, PropEdits, KambiLCLUtils, X3DLoad, UIControls,
   KambiGLControl, GLControls, Images;
 
 type
