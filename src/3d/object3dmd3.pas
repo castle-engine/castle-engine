@@ -18,7 +18,7 @@ unit Object3DMD3;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils,
+uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
@@ -47,16 +47,8 @@ type
   {$I dynarray_2.inc}
   TDynMd3VertexArray = TDynArray_2;
 
-  TMd3TexCoord = record
-    St: array [0..1] of Single;
-  end;
-  PMd3TexCoord = ^TMd3TexCoord;
-
-  TDynArrayItem_3 = TMd3TexCoord;
-  PDynArrayItem_3 = PMd3TexCoord;
-  {$define DYNARRAY_3_IS_STRUCT}
-  {$I dynarray_3.inc}
-  TDynMd3TexCoordArray = TDynArray_3;
+  TMd3TexCoord = TVector2Single;
+  TDynMd3TexCoordArray = TDynVector2SingleArray;
 
   TMd3Surface = class
   private
@@ -142,7 +134,7 @@ const
 
 implementation
 
-uses VectorMath, KambiFilesUtils, KambiStringUtils;
+uses KambiFilesUtils, KambiStringUtils;
 
 { MD3 reading code is implemented based on
   [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html] }
@@ -150,7 +142,6 @@ uses VectorMath, KambiFilesUtils, KambiStringUtils;
 {$define read_implementation}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
-{$I dynarray_3.inc}
 
 const
   GoodIdent = 'IDP3';

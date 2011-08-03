@@ -769,14 +769,14 @@ var
     TextureCoords: TDynMd3TexCoordArray): TNodeTextureCoordinate;
   var
     I: Integer;
-    V: PMd3TexCoord;
+    V: PVector2Single;
   begin
     Result := TNodeTextureCoordinate.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := TextureCoords.Count;
     V := TextureCoords.Pointers[0];
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.Items[I] := Vector2Single(V^.St[0], 1-V^.St[1]);
+      Result.FdPoint.Items.Items[I] := Vector2Single(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
