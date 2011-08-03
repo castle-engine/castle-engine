@@ -1388,7 +1388,8 @@ begin
       end;
     end;
 
-    FreeWithContentsAndNil(FImages);
+    Close;
+    FreeAndNil(FImages);
     FImages := NewImages;
   end;
 end;
