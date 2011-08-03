@@ -32,7 +32,7 @@ begin
 
   OnWarning := @OnWarningWrite;
 
-  Vars := TKamScriptValuesList.Create(false);
+  Vars := TKamScriptValuesList.Create(true);
   try
     Vars.Add(TKamScriptImage.Create(true));
     Vars.Last.Name := 'result';
@@ -68,5 +68,5 @@ begin
       Prog.ExecuteFunction('main', []);
       SaveImage(TKamScriptImage(Vars[0]).Value, Parameters[2]);
     finally FreeAndNil(Prog) end;
-  finally FreeWithContentsAndNil(Vars) end;
+  finally FreeAndNil(Vars) end;
 end.

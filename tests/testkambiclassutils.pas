@@ -147,7 +147,7 @@ procedure TTestKambiClassUtils.TestObjectsListSort;
 var
   L: TFoosList;
 begin
-  L := TFoosList.Create(false);
+  L := TFoosList.Create(true);
   try
     L.Add(TFoo.Create(123, 'abc'));
     L.Add(TFoo.Create(-5, 'ZZZ'));
@@ -157,7 +157,7 @@ begin
     Assert(L[0].I = -5);
     Assert(L[1].I = 65);
     Assert(L[2].I = 123);
-  finally FreeWithContentsAndNil(L) end;
+  finally FreeAndNil(L) end;
 end;
 
 initialization

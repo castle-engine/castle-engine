@@ -4574,12 +4574,12 @@ end;
 constructor TVRMLPrototypeBase.Create;
 begin
   inherited;
-  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(false);
+  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(true);
 end;
 
 destructor TVRMLPrototypeBase.Destroy;
 begin
-  FreeWithContentsAndNil(FInterfaceDeclarations);
+  FreeAndNil(FInterfaceDeclarations);
   inherited;
 end;
 

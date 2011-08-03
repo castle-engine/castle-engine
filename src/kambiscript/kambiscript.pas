@@ -2529,14 +2529,14 @@ end;
 constructor TKamScriptFunctionDefinition.Create;
 begin
   inherited;
-  FParameters := TKamScriptValuesList.Create(false);
+  FParameters := TKamScriptValuesList.Create(true);
 end;
 
 destructor TKamScriptFunctionDefinition.Destroy;
 begin
   if Body <> nil then
     Body.FreeByParentExpression;
-  FreeWithContentsAndNil(FParameters);
+  FreeAndNil(FParameters);
   inherited;
 end;
 
@@ -2556,13 +2556,13 @@ end;
 constructor TKamScriptProgram.Create;
 begin
   inherited;
-  FFunctions := TKamScriptFunctionDefinitionsList.Create(false);
+  FFunctions := TKamScriptFunctionDefinitionsList.Create(true);
   FEnvironment := TKamScriptEnvironment.Create;
 end;
 
 destructor TKamScriptProgram.Destroy;
 begin
-  FreeWithContentsAndNil(FFunctions);
+  FreeAndNil(FFunctions);
   FreeAndNil(FEnvironment);
   inherited;
 end;

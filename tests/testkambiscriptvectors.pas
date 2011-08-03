@@ -52,7 +52,7 @@ var
 var
   Vars: TKamScriptValuesList;
 begin
-  Vars := TKamScriptValuesList.Create(false);
+  Vars := TKamScriptValuesList.Create(true);
   try
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
@@ -132,7 +132,7 @@ begin
     ExecuteExpectError;
     FreeAndNil(Prog);
   finally
-    FreeWithContentsAndNil(Vars);
+    FreeAndNil(Vars);
   end;
 end;
 
@@ -153,7 +153,7 @@ var
 var
   Vars: TKamScriptValuesList;
 begin
-  Vars := TKamScriptValuesList.Create(false);
+  Vars := TKamScriptValuesList.Create(true);
   try
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
@@ -233,7 +233,7 @@ begin
     ExecuteExpectError;
     FreeAndNil(Prog);
   finally
-    FreeWithContentsAndNil(Vars);
+    FreeAndNil(Vars);
   end;
 end;
 
@@ -242,7 +242,7 @@ var
   Vars: TKamScriptValuesList;
   Prog: TKamScriptProgram;
 begin
-  Vars := TKamScriptValuesList.Create(false);
+  Vars := TKamScriptValuesList.Create(true);
   try
     Vars.Add(TKamScriptFloat.Create(true));
     Vars.Add(TKamScriptVec3f.Create(true));
@@ -265,7 +265,7 @@ begin
     Assert(VectorsEqual((Vars[2] as TKamScriptVec4f).Value,
       Vector4Single(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2, 44 * 666)));
   finally
-    FreeWithContentsAndNil(Vars);
+    FreeAndNil(Vars);
   end;
 end;
 

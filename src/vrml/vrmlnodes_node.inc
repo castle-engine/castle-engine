@@ -1067,10 +1067,10 @@ begin
 
   FEvents := TVRMLEventsList.Create(false);
 
-  FPrototypes := TVRMLPrototypeBasesList.Create(false);
-  FRoutes := TVRMLRoutesList.Create(false);
-  FImportsList := TVRMLFileItemsList.Create(false);
-  FExportsList := TVRMLFileItemsList.Create(false);
+  FPrototypes := TVRMLPrototypeBasesList.Create(true);
+  FRoutes := TVRMLRoutesList.Create(true);
+  FImportsList := TVRMLFileItemsList.Create(true);
+  FExportsList := TVRMLFileItemsList.Create(true);
 
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
@@ -1104,11 +1104,10 @@ begin
     FPrototypeInstance := false;
   end;
 
-  FreeWithContentsAndNil(FPrototypes);
-
-  FreeWithContentsAndNil(FRoutes);
-  FreeWithContentsAndNil(FImportsList);
-  FreeWithContentsAndNil(FExportsList);
+  FreeAndNil(FPrototypes);
+  FreeAndNil(FRoutes);
+  FreeAndNil(FImportsList);
+  FreeAndNil(FExportsList);
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
     Reason: Fields and Events may contains references to InterfaceDeclarations
@@ -1132,7 +1131,7 @@ begin
     FreeAndNil(FFields);
   end;
 
-  FreeWithContentsAndNil(FInterfaceDeclarations);
+  FreeAndNil(FInterfaceDeclarations);
 
   FreeAndNil(FVRML1Children);
   FreeAndNil(FVRML1Parents);
@@ -2847,11 +2846,11 @@ begin
     begin
       { make sure InterfaceDeclarations is non-nil }
       if FInterfaceDeclarations = nil then
-        FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(false);
+        FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(true);
     end else
     begin
       { make sure InterfaceDeclarations is nil }
-      FreeWithContentsAndNil(FInterfaceDeclarations);
+      FreeAndNil(FInterfaceDeclarations);
     end;
   end;
 end;

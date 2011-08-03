@@ -118,7 +118,7 @@ begin
   FreeAndNil(CompiledScriptContents);
 
   FreeAndNil(KambiScriptProgram);
-  FreeWithContentsAndNil(KambiScriptVariables);
+  FreeAndNil(KambiScriptVariables);
 
   inherited;
 end;
@@ -211,9 +211,9 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
     I: Integer;
   begin
     FreeAndNil(KambiScriptProgram);
-    FreeWithContentsAndNil(KambiScriptVariables);
+    FreeAndNil(KambiScriptVariables);
 
-    KambiScriptVariables := TKamScriptVRMLValuesList.Create(false);
+    KambiScriptVariables := TKamScriptVRMLValuesList.Create(true);
 
     { Add fields and output events (coming from interface decl,
       not normal Script fields/events) to KambiScriptVariables. }

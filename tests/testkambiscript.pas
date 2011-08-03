@@ -147,7 +147,7 @@ var
 var
   Vars: TKamScriptValuesList;
 begin
-  Vars := TKamScriptValuesList.Create(false);
+  Vars := TKamScriptValuesList.Create(true);
   try
     Vars.Add(TKamScriptInteger.Create(true, 23));
     Vars.Add(TKamScriptFloat.Create(true, 3.14));
@@ -395,7 +395,7 @@ begin
     ExecuteExpectError;
     FreeAndNil(Prog);
   finally
-    FreeWithContentsAndNil(Vars);
+    FreeAndNil(Vars);
   end;
 end;
 
@@ -416,7 +416,7 @@ var
 var
   Vars: TKamScriptValuesList;
 begin
-  Vars := TKamScriptValuesList.Create(false);
+  Vars := TKamScriptValuesList.Create(true);
   try
     Vars.Add(TKamScriptInteger.Create(true, 23));
     Vars.Add(TKamScriptFloat.Create(true, 3.14));
@@ -454,7 +454,7 @@ begin
 
     FreeAndNil(Prog);
   finally
-    FreeWithContentsAndNil(Vars);
+    FreeAndNil(Vars);
   end;
 end;
 
