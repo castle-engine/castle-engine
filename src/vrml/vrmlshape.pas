@@ -2058,12 +2058,12 @@ end;
 constructor TVRMLShapeTreeGroup.Create(AParentScene: TObject);
 begin
   inherited Create(AParentScene);
-  FChildren := TVRMLShapeTreesList.Create(false);
+  FChildren := TVRMLShapeTreesList.Create(true);
 end;
 
 destructor TVRMLShapeTreeGroup.Destroy;
 begin
-  FreeWithContentsAndNil(FChildren);
+  FreeAndNil(FChildren);
   inherited;
 end;
 

@@ -87,10 +87,6 @@ type
     function Eof: boolean;
   end;
 
-{ Free with contents, and set variable to nil, for TFPGObjectList descendants.
-  Similar to FreeAndNil, but frees children. }
-procedure FreeWithContentsAndNil(var Obj);
-
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
 
@@ -747,19 +743,6 @@ begin
   SetLength(ReadBuf, ReadCnt);
  end;
  Result := ReadBuf = '';
-end;
-
-procedure FreeWithContentsAndNil(var Obj);
-var
-  I: Integer;
-begin
-  if TObject(Obj) <> nil then
-  begin
-    for I := 0 to TFPSList(Obj).Count - 1 do
-      FPGObjectList_FreeAndNilItem(TFPSList(Obj), I);
-    TFPSList(Obj).Free;
-    TFPSList(Obj) := nil;
-  end;
 end;
 
 { TStrings helpers ------------------------------------------------------- }
