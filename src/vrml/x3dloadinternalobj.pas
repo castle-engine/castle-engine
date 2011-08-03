@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Wavefront OBJ 3D format handling (TObject3DOBJ).
-
+{ Load Wavefront OBJ 3D format.
   See [http://www.fileformat.info/format/wavefrontobj/]
   and [http://www.fileformat.info/format/material/].
   Texture filename is also read from material file. }
@@ -22,10 +21,18 @@ unit X3DLoadInternalOBJ;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses VRMLNodes;
+
+function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
+
+implementation
+
+uses KambiStringUtils, KambiFilesUtils, KambiWarnings,
+  VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils;
 
 {$define read_interface}
+{$define read_implementation}
 
 type
   TWavefrontMaterial = class
@@ -63,6 +70,7 @@ type
   PDynArrayItem_1 = PWavefrontFace;
   {$define DYNARRAY_1_IS_STRUCT}
   {$I dynarray_1.inc}
+type
   TDynWavefrontFaceArray = TDynArray_1;
 
   { 3D model in OBJ file format. }
@@ -93,15 +101,6 @@ type
   end;
 
   EInvalidOBJFile = class(Exception);
-
-{$undef read_interface}
-
-implementation
-
-uses KambiStringUtils, KambiFilesUtils, KambiWarnings;
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 { TWavefrontMaterial --------------------------------------------------------- }
 
@@ -460,6 +459,194 @@ begin
   FreeAndNil(FFaces);
   FreeAndNil(FMaterials);
   inherited;
+end;
+
+{ LoadWavefrontOBJ ----------------------------------------------------------- }
+
+function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
+const
+  { When constructing large index arrays, we use larger AllowedCapacityOverflow
+    to make them faster.
+    TODO: would be better to allocate necessary space once, by assigning Count. }
+  AllowedIndicesArraysOverflows = 100;
+var
+  WWWBasePath: string;
+
+  function MatOBJNameToVRMLName(const MatOBJName: string): string;
+  begin
+    Result := 'Material_' + ToVRMLName(MatOBJName);
+  end;
+
+  function MaterialToVRML(const Material: TWavefrontMaterial): TNodeAppearance;
+  var
+    Mat: TNodeMaterial;
+    Texture: TNodeImageTexture;
+  begin
+    Result := TNodeAppearance.Create(
+      MatOBJNameToVRMLName(Material.Name), WWWBasePath);
+
+    Mat := TNodeMaterial.Create('', WWWBasePath);
+    Result.FdMaterial.Value := Mat;
+    Mat.FdAmbientIntensity.Value := AmbientIntensity(
+      Material.AmbientColor, Material.DiffuseColor);
+    Mat.FdDiffuseColor.Value := Material.DiffuseColor;
+    Mat.FdSpecularColor.Value := Material.SpecularColor;
+    Mat.FdTransparency.Value := 1 - Material.Opacity;
+    Mat.FdShininess.Value := Material.SpecularExponent / 128.0;
+
+    if Material.DiffuseTextureFileName <> '' then
+    begin
+      Texture := TNodeImageTexture.Create('', WWWBasePath);
+      Result.FdTexture.Value := Texture;
+      Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.DiffuseTextureFileName));
+
+      if Material.BumpTextureFileName <> '' then
+      begin
+        Texture := TNodeImageTexture.Create('', WWWBasePath);
+        Result.FdNormalMap.Value := Texture;
+        Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.BumpTextureFileName));
+      end;
+    end;
+  end;
+
+var
+  Obj: TObject3DOBJ;
+  Coord: TNodeCoordinate;
+  Faces: TNodeIndexedFaceSet;
+  TexCoord: TNodeTextureCoordinate;
+  i: integer;
+  FacesWithTexCoord, FacesWithNormal: boolean;
+  Normal: TNodeNormal;
+  FacesWithMaterial: TWavefrontMaterial;
+  Appearances: TVRMLNodesList;
+  Shape: TNodeShape;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  Appearances := nil;
+  Obj := TObject3DOBJ.Create(filename);
+  try
+    result := TVRMLRootNode.Create('', WWWBasePath);
+    try
+      Result.HasForceVersion := true;
+      Result.ForceVersion := X3DVersion;
+
+      Appearances := TVRMLNodesList.Create(false);
+      Appearances.Count := Obj.Materials.Count;
+      for I := 0 to Obj.Materials.Count - 1 do
+        Appearances[I] := MaterialToVRML(Obj.Materials[I]);
+
+      Coord := TNodeCoordinate.Create('',WWWBasePath);
+      Coord.FdPoint.Items.Assign(obj.Verts);
+
+      TexCoord := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoord.FdPoint.Items.Assign(obj.TexCoords);
+
+      Normal := TNodeNormal.Create('', WWWBasePath);
+      Normal.FdVector.Items.Assign(Obj.Normals);
+
+      i := 0;
+      while i < obj.Faces.Count do
+      begin
+        FacesWithTexCoord := Obj.Faces.Items[i].HasTexCoords;
+        FacesWithNormal := Obj.Faces.Items[i].HasNormals;
+        FacesWithMaterial := Obj.Faces.Items[i].Material;
+
+        Shape := TNodeShape.Create('', WWWBasePath);
+        Result.FdChildren.Add(Shape);
+
+        if FacesWithMaterial <> nil then
+        begin
+          { We find appearance by name, using FindNodeByName. We're sure
+            that we will find it --- because we added them all to Appearances. }
+          Shape.Appearance := Appearances[Appearances.FindNodeName(
+            MatOBJNameToVRMLName(FacesWithMaterial.Name))] as TNodeAppearance;
+        end else
+          Shape.Material := TNodeMaterial.Create('', WWWBasePath);
+
+        { We don't do anything special for the case when FacesWithMaterial = nil
+          and FacesWithTexCoord = true. This may be generated e.g. by Blender
+          exporter, if Blender object has UV texture coords but no material.
+
+          We will then just output VRML/X3D texCoord
+          field, but without texture it will not have any effect.
+          This is natural, and there's no reason for now to do anything else. }
+
+        Faces := TNodeIndexedFaceSet.Create('', WWWBasePath);
+        Shape.FdGeometry.Value := Faces;
+        Faces.FdCreaseAngle.Value := NiceCreaseAngle;
+        Faces.FdSolid.Value := false;
+        Faces.FdCoord.Value := Coord;
+        Faces.FdCoordIndex.Items.SetLength(0);
+        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        if FacesWithTexCoord then
+        begin
+          Faces.FdTexCoord.Value := TexCoord;
+          Faces.FdTexCoordIndex.Items.SetLength(0);
+          Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        end;
+        if FacesWithNormal then
+        begin
+          Faces.FdNormal.Value := Normal;
+          Faces.FdNormalIndex.Items.SetLength(0);
+          Faces.FdNormalIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        end;
+
+        { We add Faces as long as FacesWithXxx parameters stay the same.
+          We know that at least the next face is Ok. }
+        repeat
+          Faces.FdCoordIndex.Items.AppendArray(
+            [obj.Faces.Items[i].VertIndices[0],
+             obj.Faces.Items[i].VertIndices[1],
+             obj.Faces.Items[i].VertIndices[2], -1]);
+
+          if FacesWithTexCoord then
+            Faces.FdTexCoordIndex.Items.AppendArray(
+              [obj.Faces.Items[i].TexCoordIndices[0],
+               obj.Faces.Items[i].TexCoordIndices[1],
+               obj.Faces.Items[i].TexCoordIndices[2], -1]);
+
+          if FacesWithNormal then
+            Faces.FdNormalIndex.Items.AppendArray(
+              [obj.Faces.Items[i].NormalIndices[0],
+               obj.Faces.Items[i].NormalIndices[1],
+               obj.Faces.Items[i].NormalIndices[2], -1]);
+
+          Inc(i);
+        until (i >= obj.Faces.Count) or
+          (FacesWithTexCoord <> obj.Faces.Items[i].HasTexCoords) or
+          (FacesWithNormal   <> obj.Faces.Items[i].HasNormals) or
+          (FacesWithMaterial <> obj.Faces.Items[i].Material);
+
+        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
+        Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := 4;
+        Faces.FdNormalIndex.Items.AllowedCapacityOverflow := 4;
+      end;
+
+      if Coord <> nil then
+      begin
+        Coord.FreeIfUnused;
+        Coord := nil;
+      end;
+
+      if TexCoord <> nil then
+      begin
+        TexCoord.FreeIfUnused;
+        TexCoord := nil;
+      end;
+
+      if Normal <> nil then
+      begin
+        Normal.FreeIfUnused;
+        Normal := nil;
+      end;
+
+      for I := 0 to Appearances.Count - 1 do
+        Appearances[I].FreeIfUnused;
+    except FreeAndNil(result); raise end;
+  finally
+    FreeAndNil(obj);
+    FreeAndNil(Appearances);
+  end;
 end;
 
 end.

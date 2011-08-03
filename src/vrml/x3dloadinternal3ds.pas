@@ -17,7 +17,35 @@
 
 unit X3DLoadInternal3DS;
 
-{ TODO
+interface
+
+uses VRMLNodes;
+
+function Load3DS(const filename: string): TVRMLRootNode;
+
+implementation
+
+uses KambiUtils, Classes, KambiClassUtils, SysUtils, VectorMath, VRMLCameraUtils,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils,
+  KambiWarnings;
+
+{ 3DS reading mostly based on spec from
+  [http://www.martinreddy.net/gfx/3d/3DS.spec].
+
+  TScene3DS corresponds to the whole 3DS file,
+  that is the MAIN chunk, and also (since we don't handle keyframes from 3DS)
+  the OBJMESH chunk.
+
+  It contains lists of triangle meshes, cameras and lights. They are all TObject3DS,
+  and correspond to OBJBLOCK chunk, with inside TRIMESH, CAMERA or LIGHT chunk.
+  As far as I understand, OBJBLOCK in 3DS may contain only *one* of
+  trimesh, light or camera. We assume this.
+  - Trimesh wraps OBJBLOCK chunk with VERTLIST subchunk.
+
+  Moreover TScene3DS has a list of TMaterial3ds, that correspond
+  to the MATERIAL chunk.
+
+  TODO:
   - properties that are read from 3ds but not used anywhere because their exact
     interpretation is not known for me:
       TCamera3ds.Lens
@@ -33,13 +61,9 @@ unit X3DLoadInternal3DS;
     2. and I don't have enough test 3ds scenes with textures to really
        see the difference. So, I will probably implement it someday when
        I'll need it.
-    )
 }
 
-interface
-
-uses KambiUtils, Classes, KambiClassUtils, SysUtils, VectorMath,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+{ Declare classes ------------------------------------------------------------ }
 
 type
   EInvalid3dsFile = class(Exception);
@@ -221,27 +245,6 @@ type
     function SumTrimeshesVertsCount: Cardinal;
     function SumTrimeshesFacesCount: Cardinal;
   end;
-
-implementation
-
-{ 3DS reading mostly based on spec from
-  [http://www.martinreddy.net/gfx/3d/3DS.spec].
-
-  TScene3DS corresponds to the whole 3DS file,
-  that is the MAIN chunk, and also (since we don't handle keyframes from 3DS)
-  the OBJMESH chunk.
-
-  It contains lists of triangle meshes, cameras and lights. They are all TObject3DS,
-  and correspond to OBJBLOCK chunk, with inside TRIMESH, CAMERA or LIGHT chunk.
-  As far as I understand, OBJBLOCK in 3DS may contain only *one* of
-  trimesh, light or camera. We assume this.
-  - Trimesh wraps OBJBLOCK chunk with VERTLIST subchunk.
-
-  Moreover TScene3DS has a list of TMaterial3ds, that correspond
-  to the MATERIAL chunk. }
-
-function CreateObject3DS(AScene: Tscene3DS; Stream: TStream;
-  ObjectEndPos: Int64): TObject3DS; forward;
 
 { Chunks utilities ----------------------------------------------------------- }
 
@@ -957,6 +960,237 @@ var
 begin
   result := 0;
   for i := 0 to Trimeshes.Count-1 do result += Trimeshes[i].FacesCount;
+end;
+
+{ Load3DS -------------------------------------------------------------------- }
+
+function Load3DS(const filename: string): TVRMLRootNode;
+var
+  WWWBasePath: string;
+  O3ds: TScene3DS;
+
+  { Prefix names with things like "Material_", to make sure these
+    names not collide with each other. (I don't know if they are in
+    separate namespace in 3DS, but better be safe.)
+
+    Note that we don't check here whether all names are really unique,
+    as they don't have to be unique for VRML/X3D. We just make reasonable
+    effort to keep them unique (to help storing them with DEF/USE),
+    if they were unique in 3DS. }
+
+  function MaterialVRMLName(const Mat3dsName: string): string;
+  begin Result := 'Material_' + ToVRMLName(Mat3dsName) end;
+
+  function TrimeshVRMLName(const Tri3dsName: string): string;
+  begin Result := 'Trimesh_' + ToVRMLName(Tri3dsName) end;
+
+  function ViewpointVRMLName(const Camera3dsName: string): string;
+  begin Result := 'Camera_' + ToVRMLName(Camera3dsName) end;
+
+  function LightVRMLName(const Light3dsName: string): string;
+  begin Result := 'Light_' + ToVRMLName(Light3dsName) end;
+
+  procedure AddViewpoints;
+  var
+    Viewpoint: TVRMLNode;
+    I: Integer;
+  begin
+    for I := 0 to O3ds.Cameras.Count - 1 do
+    begin
+      Viewpoint := MakeVRMLCameraNode(2, WWWBasePath,
+        O3ds.Cameras[I].Position,
+        O3ds.Cameras[I].Direction,
+        O3ds.Cameras[I].Up,
+        O3ds.Cameras[I].Up { GravityUp equals Up });
+      Viewpoint.NodeName := ViewpointVRMLName(O3ds.Cameras[I].Name);
+      Result.FdChildren.Add(Viewpoint);
+
+      { TODO: use other 3ds camera fields }
+    end;
+  end;
+
+  procedure AddLights;
+  var
+    I: Integer;
+    Light: TNodePointLight;
+  begin
+    for I := 0 to O3ds.Lights.Count - 1 do
+    begin
+      Light := TNodePointLight.Create(LightVRMLName(
+        O3ds.Lights[I].Name), WWWBasePath);
+      Result.FdChildren.Add(Light);
+
+      Light.FdOn.Value := O3ds.Lights[I].Enabled;
+      Light.FdLocation.Value := O3ds.Lights[I].Pos;
+      Light.FdColor.Value := O3ds.Lights[I].Col;
+    end;
+  end;
+
+  function MaterialToVRML(Material: TMaterial3ds): TNodeAppearance;
+  var
+    Mat: TNodeMaterial;
+    Tex: TNodeImageTexture;
+    TexTransform: TNodeTextureTransform;
+  begin
+    Result := TNodeAppearance.Create(MaterialVRMLName(Material.Name), WWWBasePath);
+
+    Mat := TNodeMaterial.Create('', WWWBasePath);
+    Mat.FdDiffuseColor.Value := Vector3SingleCut(Material.DiffuseColor);
+    Mat.FdAmbientIntensity.Value := AmbientIntensity(Material.AmbientColor, Material.DiffuseColor);
+    Mat.FdSpecularColor.Value := Vector3SingleCut(Material.SpecularColor);
+    Mat.FdShininess.Value := Material.Shininess;
+    Mat.FdTransparency.Value := Material.Transparency;
+    Result.FdMaterial.Value := Mat;
+
+    if Material.TextureMap1.Exists then
+    begin
+      Tex := TNodeImageTexture.Create('', WWWBasePath);
+      Tex.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath,
+        Material.TextureMap1.MapFilename));
+      Result.FdTexture.Value := Tex;
+
+      TexTransform := TNodeTextureTransform.Create('', WWWBasePath);
+      TexTransform.FdScale.Value := Material.TextureMap1.Scale;
+      Result.FdTextureTransform.Value := TexTransform;
+
+      if Material.TextureMapBump.Exists then
+      begin
+        Tex := TNodeImageTexture.Create('', WWWBasePath);
+        Tex.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath,
+          Material.TextureMapBump.MapFilename));
+        Result.FdNormalMap.Value := Tex;
+
+        { We don't have separate TextureTransform for bump map.
+          Just check that in 3DS bump map and diffuse textures have equal transform. }
+        if not VectorsEqual(
+            Material.TextureMap1.Scale,
+            Material.TextureMapBump.Scale) then
+          OnWarning(wtMinor, 'VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
+      end;
+    end;
+  end;
+
+  { How many faces have the same material index.
+    Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
+  function SameMaterialFacesCount(Faces: PArray_Face3ds; FacesCount: integer;
+    StartFace: integer): integer;
+  var
+    I: Integer;
+  begin
+    I := StartFace + 1;
+    while (I < FacesCount) and
+          (Faces^[I].FaceMaterialIndex = Faces^[StartFace].FaceMaterialIndex) do
+      Inc(i);
+    Result := I - StartFace;
+  end;
+
+var
+  Trimesh3ds: TTrimesh3ds;
+  Appearances: TVRMLNodesList;
+  Coord: TNodeCoordinate;
+  IFS: TNodeIndexedFaceSet;
+  TexCoord: TNodeTextureCoordinate;
+  Shape: TNodeShape;
+  I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  Appearances := nil;
+  O3ds := TScene3DS.Create(filename);
+  try
+    Result := TVRMLRootNode.Create('', WWWBasePath);
+    try
+      Result.HasForceVersion := true;
+      Result.ForceVersion := X3DVersion;
+
+      AddViewpoints;
+      AddLights;
+
+      { Convert every 3DS material into VRML/X3D Appearance node }
+      Appearances := TVRMLNodesList.Create(false);
+      Appearances.Count := O3ds.Materials.Count;
+      for i := 0 to O3ds.Materials.Count - 1 do
+        Appearances[I] := MaterialToVRML(O3ds.Materials[i]);
+
+      { Add 3DS triangle meshes. Each trimesh is split into a number of
+        VRML/X3D IndexedFaceSet nodes, sharing common Coordinate node,
+        but having different materials. }
+      for i := 0 to O3ds.Trimeshes.Count-1 do
+      begin
+        Trimesh3ds := O3ds.Trimeshes[I];
+
+        { Create Coordinate node }
+        Coord := TNodeCoordinate.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
+        Coord.FdPoint.Count := Trimesh3ds.VertsCount;
+        for J := 0 to Trimesh3ds.VertsCount-1 do
+          Coord.FdPoint.Items.Items[J] := Trimesh3ds.Verts^[J].Pos;
+
+        { Create TextureCoordinate node, or nil if not available }
+        if Trimesh3ds.HasTexCoords then
+        begin
+          TexCoord := TNodeTextureCoordinate.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
+          TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
+          for j := 0 to Trimesh3ds.VertsCount - 1 do
+            TexCoord.FdPoint.Items.Items[J] := Trimesh3ds.Verts^[J].TexCoord;
+        end else
+          TexCoord := nil;
+
+        { Convert faces with equal material to IndexedFaceSet }
+        J := 0;
+        while J < Trimesh3ds.FacesCount do
+        begin
+          FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;
+
+          IFS := TNodeIndexedFaceSet.Create('', WWWBasePath);
+          IFS.FdTexCoord.Value := TexCoord;
+          IFS.FdCoord.Value := Coord;
+          { We don't support 3DS smoothing groups.
+            So instead assign some sensible non-zero crease angle. }
+          IFS.FdCreaseAngle.Value := NiceCreaseAngle;
+          IFS.FdSolid.Value := false;
+
+          Shape := TNodeShape.Create('', WWWBasePath);
+          Shape.FdGeometry.Value := IFS;
+          Shape.Appearance := TNodeAppearance(Appearances[FaceMaterialNum]);
+
+          Result.FdChildren.Add(Shape);
+
+          ThisMaterialFacesCount := SameMaterialFacesCount(Trimesh3ds.Faces,
+            Trimesh3ds.FacesCount, J);
+
+          IFS.FdCoordIndex.Count := ThisMaterialFacesCount * 4;
+          for FaceNum := 0 to ThisMaterialFacesCount - 1 do
+          begin
+            with IFS.FdCoordIndex.Items do
+            begin
+              Items[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              Items[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              Items[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              Items[FaceNum * 4 + 3] := -1;
+            end;
+            Inc(J);
+          end;
+
+          { If Trimesh3ds.HasTexCoords then IFS.texCoordIndex should be taken
+            from IFS.coordIndex. And VRML 2.0/X3D do this by default, so no need
+            to do anything. }
+        end;
+
+        Coord.FreeIfUnused;
+        Coord := nil;
+        if TexCoord <> nil then
+        begin
+          TexCoord.FreeIfUnused;
+          TexCoord := nil;
+        end;
+      end;
+
+      for I := 0 to Appearances.Count - 1 do
+        Appearances[I].FreeIfUnused;
+    except FreeAndNil(result); raise end;
+  finally
+    FreeAndNil(O3ds);
+    FreeAndNil(Appearances)
+  end;
 end;
 
 end.

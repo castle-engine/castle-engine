@@ -13,35 +13,34 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3D Videoscape GEO files handling (TObject3DGEO).
-  See [http://local.wasp.uwa.edu.au/~pbourke/dataformats/geo/],
-  handles at least geometry exported by Blender exporter. }
+{ Load 3D Videoscape GEO models.
+  See [http://local.wasp.uwa.edu.au/~pbourke/dataformats/geo/].
+  We handle basic geometry, we can open files exported by Blender exporter. }
 unit X3DLoadInternalGEO;
 
 interface
 
-uses VectorMath, KambiUtils, Classes, SysUtils, Boxes3D, Base3D;
+uses VRMLNodes;
+
+function LoadGEO(const filename: string): TVRMLRootNode;
+
+implementation
+
+uses VectorMath, KambiUtils, Classes, SysUtils, Boxes3D, Base3D,
+  KambiFilesUtils, KambiStringUtils, X3DLoadInternalUtils;
+
+{ TObject3DGEO ---------------------------------------------------------------- }
 
 type
   { Reader of GEO files.
     Note that contents of Verts and Faces are read-only for user of this unit. }
-  TObject3DGEO = class(T3D)
-  private
-    FBoundingBox: TBox3D;
+  TObject3DGEO = class
   public
     Verts: TDynVector3SingleArray;
     Faces: TDynVector3CardinalArray;
-
-    constructor Create(const fname: string); reintroduce;
+    constructor Create(const fname: string);
     destructor Destroy; override;
-    function BoundingBox: TBox3D; override;
   end;
-
-implementation
-
-uses KambiFilesUtils, KambiStringUtils;
-
-{ TObject3DGEO ---------------------------------------------------------------- }
 
 constructor TObject3DGEO.Create(const fname: string);
 type
@@ -98,7 +97,7 @@ var
   Line: string;
   VertsCount, PolysCount, VertsInPolysCount: Integer;
 begin
- inherited Create(nil);
+ inherited Create;
  Verts := TDynVector3SingleArray.Create;
  Faces := TDynVector3CardinalArray.Create;
 
@@ -155,9 +154,6 @@ begin
       ReadGEOFace(F);
   end;
  finally CloseFile(f) end;
-
- fBoundingBox := CalculateBoundingBox(
-   PVector3Single(Verts.Items), Verts.Count, SizeOf(TVector3Single));
 end;
 
 destructor TObject3DGEO.Destroy;
@@ -167,9 +163,47 @@ begin
  inherited;
 end;
 
-function TObject3DGEO.BoundingBox: TBox3D;
+{ LoadGEO -------------------------------------------------------------------- }
+
+function LoadGEO(const filename: string): TVRMLRootNode;
+var
+  geo: TObject3DGEO;
+  verts: TNodeCoordinate;
+  faces: TNodeIndexedFaceSet;
+  Shape: TNodeShape;
+  i: integer;
+  WWWBasePath: string;
 begin
-  result := FBoundingBox
+  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  geo := TObject3DGEO.Create(filename);
+  try
+    result := TVRMLRootNode.Create('', WWWBasePath);
+    try
+      Result.HasForceVersion := true;
+      Result.ForceVersion := X3DVersion;
+
+      Shape := TNodeShape.Create('', WWWBasePath);
+      result.FdChildren.Add(Shape);
+      Shape.Material := TNodeMaterial.Create('', WWWBasePath);
+
+      faces := TNodeIndexedFaceSet.Create('', WWWBasePath);
+      Shape.FdGeometry.Value := faces;
+      faces.FdCreaseAngle.Value := NiceCreaseAngle;
+      faces.FdSolid.Value := false;
+      faces.FdCoordIndex.Count := geo.Faces.Count * 4;
+      for i := 0 to geo.Faces.Count-1 do
+      begin
+        faces.FdCoordIndex.Items[i * 4    ] := geo.Faces.Items[i][0];
+        faces.FdCoordIndex.Items[i * 4 + 1] := geo.Faces.Items[i][1];
+        faces.FdCoordIndex.Items[i * 4 + 2] := geo.Faces.Items[i][2];
+        faces.FdCoordIndex.Items[i * 4 + 3] := -1;
+      end;
+
+      verts := TNodeCoordinate.Create('', WWWBasePath);
+      faces.FdCoord.Value := verts;
+      verts.FdPoint.Items.Assign(geo.Verts);
+    except result.Free; raise end;
+  finally geo.Free end;
 end;
 
 end.

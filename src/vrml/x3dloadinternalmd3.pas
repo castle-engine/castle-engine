@@ -13,12 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ MD3 (Quake3 and derivatives) format handling (TObject3DMD3). }
+{ Loading MD3 (Quake3 and derivatives) format. Format specification is on
+  [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html]. }
 unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath,
+uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath, VRMLNodes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
@@ -125,25 +126,41 @@ type
       out ATextureFileName: string): boolean;
   end;
 
-  EInvalidMD3 = class(Exception);
+{ Load a specific animation frame from a given MD3 model.
+  @param Md3 is the MD3 file to use.
+  @param FrameNumber is the frame number to load, must be < Md3.Count.
+  @param WWWBasePath is the base URL, set for TVRMLNode.WWWBasePath. }
+function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
+  const WWWBasePath: string): TVRMLRootNode;
 
-const
-  Md3XyzScale = 1/64;
+{ Load MD3 animation into a single animated X3D model. }
+function LoadMD3(const FileName: string): TVRMLRootNode;
+
+{ Load MD3 animation as a sequence of static X3D models. }
+procedure LoadMD3Sequence(
+  const FileName: string;
+  RootNodes: TVRMLNodesList;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
 
 {$undef read_interface}
 
 implementation
 
-uses KambiFilesUtils, KambiStringUtils;
-
-{ MD3 reading code is implemented based on
-  [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html] }
+uses KambiFilesUtils, KambiStringUtils, Boxes3D, X3DLoadInternalUtils,
+  VRMLCameraUtils;
 
 {$define read_implementation}
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
 
+type
+  EInvalidMD3 = class(Exception);
+
 const
+  Md3XyzScale = 1/64;
   GoodIdent = 'IDP3';
   GoodVersion = 15;
 
@@ -444,6 +461,174 @@ begin
     if FileExists(ATextureFileName) then
       Result := true;
   end;
+end;
+
+{ Converting to X3D ---------------------------------------------------------- }
+
+function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
+  const WWWBasePath: string): TVRMLRootNode;
+var
+  Texture: TNodeImageTexture;
+  SceneBox: TBox3D;
+
+  function MakeCoordinates(Vertexes: TDynMd3VertexArray;
+    VertexesInFrameCount: Cardinal): TNodeCoordinate;
+  var
+    I: Integer;
+    V: PMd3Vertex;
+  begin
+    Result := TNodeCoordinate.Create('', WWWBasePath);
+    Result.FdPoint.Items.Count := VertexesInFrameCount;
+    V := Vertexes.Pointers[VertexesInFrameCount * FrameNumber];
+    for I := 0 to VertexesInFrameCount - 1 do
+    begin
+      Result.FdPoint.Items.Items[I] := Vector3Single(
+        V^.Position[0] * Md3XyzScale,
+        V^.Position[1] * Md3XyzScale,
+        V^.Position[2] * Md3XyzScale);
+      Inc(V);
+    end;
+
+    Box3DSumTo1st(SceneBox, CalculateBoundingBox(Result.FdPoint.Items));
+  end;
+
+  function MakeTextureCoordinates(
+    TextureCoords: TDynMd3TexCoordArray): TNodeTextureCoordinate;
+  var
+    I: Integer;
+    V: PVector2Single;
+  begin
+    Result := TNodeTextureCoordinate.Create('', WWWBasePath);
+    Result.FdPoint.Items.Count := TextureCoords.Count;
+    V := TextureCoords.Pointers[0];
+    for I := 0 to TextureCoords.Count - 1 do
+    begin
+      Result.FdPoint.Items.Items[I] := Vector2Single(V^[0], 1-V^[1]);
+      Inc(V);
+    end;
+  end;
+
+  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet;
+  var
+    I: Integer;
+  begin
+    Result := TNodeIndexedFaceSet.Create('', WWWBasePath);
+    Result.FdCreaseAngle.Value := NiceCreaseAngle;
+    Result.FdSolid.Value := false;
+    Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
+    Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
+    for I := 0 to Triangles.Count - 1 do
+    begin
+      Result.FdCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
+      Result.FdCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
+      Result.FdCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
+      Result.FdCoordIndex.Items.Items[I*4 + 3] := -1;
+
+      Result.FdTexCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.Items[I*4 + 3] := -1;
+    end;
+  end;
+
+  function MakeShape(Surface: TMd3Surface): TNodeShape;
+  var
+    IFS: TNodeIndexedFaceSet;
+  begin
+    IFS := MakeIndexes(Surface.Triangles);
+    IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
+    IFS.FdTexCoord.Value := MakeTextureCoordinates(Surface.TextureCoords);
+
+    Result := TNodeShape.Create(ToVRMLName(Surface.Name), WWWBasePath);
+    Result.FdGeometry.Value := IFS;
+    Result.Material := TNodeMaterial.Create('', WWWBasePath);
+    Result.Texture := Texture;
+  end;
+
+var
+  I: Integer;
+begin
+  Result := TVRMLRootNode.Create(
+    ToVRMLName(Md3.Name
+      { Although adding here FrameNumber is not a bad idea, but VRMLGLAnimation
+        requires for now that sequence of VRML models have the same node names }
+      { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
+
+  Result.HasForceVersion := true;
+  Result.ForceVersion := X3DVersion;
+
+  SceneBox := EmptyBox3D;
+
+  if Md3.TextureFileName <> '' then
+  begin
+    Texture := TNodeImageTexture.Create('', WWWBasePath);
+    Texture.FdUrl.Items.Add(Md3.TextureFileName);
+  end else
+    Texture := nil;
+
+  for I := 0 to Md3.Surfaces.Count - 1 do
+    Result.FdChildren.Add(MakeShape(Md3.Surfaces[I]));
+
+  { MD3 files have no camera. I add camera here, just to force GravityUp
+    to be in +Z, since this is the convention used in all MD3 files that
+    I saw (so I guess that Quake3 engine generally uses this convention). }
+  Result.FdChildren.Add(CameraNodeForWholeScene(2, WWWBasePath, SceneBox,
+    0, 2, false, true));
+
+  if Texture <> nil then
+  begin
+    Texture.FreeIfUnused;
+    Texture := nil;
+  end;
+end;
+
+function LoadMD3(const FileName: string): TVRMLRootNode;
+var
+  Md3: TObject3DMD3;
+  WWWBasePath: string;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+  Md3 := TObject3DMD3.Create(FileName);
+  try
+    Result := LoadMD3Frame(Md3, 0, WWWBasePath);
+  finally FreeAndNil(Md3) end;
+end;
+
+procedure LoadMD3Sequence(
+  const FileName: string;
+  RootNodes: TVRMLNodesList;
+  Times: TDynSingleArray;
+  out ScenesPerTime: Cardinal;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
+var
+  Md3: TObject3DMD3;
+  WWWBasePath: string;
+  I: Integer;
+begin
+  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+  Md3 := TObject3DMD3.Create(FileName);
+  try
+    { handle each MD3 frame }
+    for I := 0 to Md3.FramesCount - 1 do
+    begin
+      RootNodes.Add(LoadMD3Frame(Md3, I, WWWBasePath));
+      Times.Add(I / 30);
+    end;
+
+    ScenesPerTime := 30;
+    { Default ScenesPerTime and times are set such that one MD3
+      frame will result in one frame inside TVRMLGLAnimation.
+      So don't try to merge these frames (on the assumption that
+      they are not merged in MD3... so hopefully there's no need for it ?). }
+    EqualityEpsilon := 0.0;
+
+    { Really, no sensible default for Loop/Backwards here...
+      I set Loop to @false, otherwise it's not clear for user when
+      animation ends. }
+    TimeLoop := false;
+    TimeBackwards := false;
+  finally FreeAndNil(Md3) end;
 end;
 
 end.

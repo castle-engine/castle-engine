@@ -58,7 +58,7 @@ begin
       begin
         Node := LoadMD3Frame(Md3, I, WWWBasePath);
         try
-          OutputFileName := DeleteFileExt(FileName) + Format('_%.6d.wrl', [I]);
+          OutputFileName := DeleteFileExt(FileName) + Format('_%.6d.x3dv', [I]);
           SaveVRML(Node, OutputFileName, 'md3tovrmlsequence', '', xeClassic);
           Writeln('Wrote ', OutputFileName);
           Writeln(KAnimFile, '  <frame file_name="',

@@ -88,6 +88,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalmd3.pas');
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternal3ds.pas');
+    P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('vrmlanimation.pas');
     P.Targets.AddUnit('vrmlcamerautils.pas');
     P.Targets.AddUnit('vrmlfields.pas');

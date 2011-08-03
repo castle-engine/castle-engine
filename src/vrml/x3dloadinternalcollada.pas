@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Convert Collada to X3D. }
+{ Load Collada. }
 unit X3DLoadInternalCollada;
 
 {$I kambiconf.inc}
@@ -40,7 +40,7 @@ implementation
 
 uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
   DOM, KambiXMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Math;
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Math, X3DLoadInternalUtils;
 
 { Large missing stuff:
 
@@ -1387,7 +1387,7 @@ var
         IndexedFaceSet.FdSolid.Value := not DoubleSided;
         { For VRML >= 2.0, creaseAngle is 0 by default.
           TODO: what is the default normal generation for Collada? }
-        IndexedFaceSet.FdCreaseAngle.Value := DefaultVRML1CreaseAngle;
+        IndexedFaceSet.FdCreaseAngle.Value := NiceCreaseAngle;
         IndexedFaceSet.FdCoord.Value := Coord;
         Primitive.X3DGeometry := IndexedFaceSet;
       end;
