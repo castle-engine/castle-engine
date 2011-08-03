@@ -155,10 +155,6 @@ procedure Strings_SetText(SList: TStrings; const S: string);
   Removes the last strings if necessary. }
 procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 
-{ Free all objects within the StringList,
-  then free and set to @nil the StringList itself. }
-procedure StringList_FreeWithContentsAndNil(var StringList: TStringList);
-
 { ---------------------------------------------------------------------------- }
 { @section(TStream utilities) }
 
@@ -856,15 +852,6 @@ procedure Strings_Trim(Strings: TStrings; MaxCount: Cardinal);
 begin
   while Cardinal(Strings.Count) > MaxCount do
     Strings.Delete(Strings.Count - 1);
-end;
-
-procedure StringList_FreeWithContentsAndNil(var StringList: TStringList);
-var
-  I: Integer;
-begin
-  for I := 0 to StringList.Count - 1 do
-    StringList.Objects[I].Free;
-  FreeAndNil(StringList);
 end;
 
 { TStream helpers -------------------------------------------------------- }
