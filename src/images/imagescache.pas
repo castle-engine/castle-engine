@@ -189,7 +189,7 @@ begin
       if C^.References = 1 then
       begin
         FreeAndNil(C^.Image);
-        CachedImages.Delete(I, 1);
+        CachedImages.Delete(I);
         CheckEmpty;
       end else
         Dec(C^.References);

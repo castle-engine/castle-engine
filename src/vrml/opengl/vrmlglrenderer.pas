@@ -1514,7 +1514,7 @@ begin
       if TextureImageCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureImageCaches.Items[I].GLName));
-        TextureImageCaches.Delete(I, 1);
+        TextureImageCaches.Delete(I);
       end;
       Exit;
     end;
@@ -1604,7 +1604,7 @@ begin
       if TextureVideoCaches.Items[I].References = 0 then
       begin
         FreeAndNil(TextureVideoCaches.Items[I].GLVideo);
-        TextureVideoCaches.Delete(I, 1);
+        TextureVideoCaches.Delete(I);
       end;
       Exit;
     end;
@@ -1700,7 +1700,7 @@ begin
       if TextureCubeMapCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureCubeMapCaches.Items[I].GLName));
-        TextureCubeMapCaches.Delete(I, 1);
+        TextureCubeMapCaches.Delete(I);
       end;
       Exit;
     end;
@@ -1787,7 +1787,7 @@ begin
       if Texture3DCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(Texture3DCaches.Items[I].GLName));
-        Texture3DCaches.Delete(I, 1);
+        Texture3DCaches.Delete(I);
       end;
       Exit;
     end;
@@ -1894,7 +1894,7 @@ begin
       if TextureDepthOrFloatCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
-        TextureDepthOrFloatCaches.Delete(I, 1);
+        TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
     end;
@@ -1973,7 +1973,7 @@ begin
       if TextureDepthOrFloatCaches.Items[I].References = 0 then
       begin
         glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
-        TextureDepthOrFloatCaches.Delete(I, 1);
+        TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
     end;

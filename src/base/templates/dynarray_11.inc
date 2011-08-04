@@ -225,21 +225,10 @@
     procedure AddIfNotExists(const Item: TDynArrayItem_11);
     {$endif}
 
-    { Delete items from the array, starting from given the Index.
-      By default DelCount is 1, so it simply removes one item.
-
-      This can be used like Delete from Pascal's RTL on strings:
-      deletes Count items starting from position Index.
-      Count of array will be decreased by Count items,
-      and the last items of array will be shifted to the left to take
-      positions of deleted items.
-
-      Note that Index and DelCount parameters will be checked for
-      correctness and eventually corrected. So if Index is >= Count
-      then nothing will be removed. And if DelCount items from
-      Index would be larger than Count then DelCount will be corrected
-      to be smaller. }
-    procedure Delete(const Index: Integer; DelCount: Integer = 1);
+    { Delete item of given Index from the array.
+      Count of array will be decreased by 1,
+      and the last items of array will be shifted to the left. }
+    procedure Delete(const Index: Integer);
 
     { Insert Item at position Index into array.
       Index must be in range 0 .. Count (yes, we can @noAutoLink(insert)
@@ -496,32 +485,30 @@ begin
 end;
 {$endif}
 
-procedure TDynArray_11.Delete(const Index: Integer; DelCount: Integer);
+procedure TDynArray_11.Delete(const Index: Integer);
 var i: integer;
 begin
-  { Make sure Index and DelCount are sensible first }
-  if Index >= Count then
+  { Make sure Index is sensible }
+  if (Index < 0) or (Index >= Count) then
     Exit;
-  MinTo1st(DelCount, Count - Index);
 
   {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
-  for i := Index to Index + DelCount - 1 do
-    Finalize(Items[i]);
+  Finalize(Items[Index]);
   {$endif}
 
   { This copies elements from Index+Count .. Count-1
     to positions Index .. Count -Count -1 using direct memory
     copying (Move), so it doesn't care about Initialize/Finalize.
     This way it's fast. }
-  for i := Index to Count - 1 - DelCount do
-    { Instead of Items[i] := Items[i + DelCount]; }
+  for i := Index to Count - 2 do
+    { Instead of Items[i] := Items[i + 1]; }
     System.Move(
-      {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i+DelCount],
+      {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i+1],
       {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i],
       SizeOf(TDynArrayItem_11));
 
   { Decrease Count without doing Finalize on the tail of the array. }
-  SetCountNoInitFini(Count - DelCount);
+  SetCountNoInitFini(Count - 1);
 end;
 
 procedure TDynArray_11.Insert(Index: integer; const Item: TDynArrayItem_11);

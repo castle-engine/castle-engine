@@ -191,7 +191,7 @@ begin
       if C^.References = 1 then
       begin
         FreeAndNil(C^.Video);
-        CachedVideos.Delete(I, 1);
+        CachedVideos.Delete(I);
         CheckEmpty;
       end else
         Dec(C^.References);

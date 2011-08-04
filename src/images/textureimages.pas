@@ -296,7 +296,7 @@ begin
       begin
         FreeAndNil(C^.Image);
         FreeAndNil(C^.DDS);
-        CachedTextures.Delete(I, 1);
+        CachedTextures.Delete(I);
         CheckEmpty;
       end else
         Dec(C^.References);

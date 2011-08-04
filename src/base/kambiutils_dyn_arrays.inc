@@ -259,6 +259,7 @@ type
   public
     function Max: LongInt;
     function Sum: LongInt;
+    procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
   end;
 
   TDynIntegerArray = class(TDynArray_2)
@@ -590,6 +591,21 @@ begin
   Result := 0;
   for I := 0 to High do
     Result += Items[I];
+end;
+
+procedure TDynLongIntArray.DeleteRange(const Index: Integer; DelCount: Integer);
+var i: integer;
+begin
+  { Make sure Index and DelCount are sensible first }
+  if Index >= Count then
+    Exit;
+  MinTo1st(DelCount, Count - Index);
+
+  for i := Index to Count - 1 - DelCount do
+    { Instead of Items[i] := Items[i + DelCount]; }
+    System.Move(Items[i+DelCount], Items[i], SizeOf(Longint));
+
+  SetCountNoInitFini(Count - DelCount);
 end;
 
 function TDynIntegerArray.Sum: Integer;

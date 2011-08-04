@@ -72,7 +72,7 @@ begin
    sarr.Count := 4;
    sarr[0] := 'FOO';
    sarr[1] := 'foo bar xyz';
-   sarr.Delete(0, 1);
+   sarr.Delete(0);
    sarr.AddArray(twoStrings);
    sarr.Add('trzy?');
 
@@ -109,9 +109,9 @@ begin
  sarr := TDynStringArray.Create;
  try
   { na tablicy o 0 liczbie elementow tez wszystko powinno isc ok }
-  Assert(sarr.Length = 0);
+  Assert(sarr.Count = 0);
   sarr.Reverse;
-  Assert(sarr.Length = 0);
+  Assert(sarr.Count = 0);
  finally sarr.Free end;
 
  iarr := nil;
