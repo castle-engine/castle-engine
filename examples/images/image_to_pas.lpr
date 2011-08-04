@@ -103,7 +103,7 @@ begin
   ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
   Parameters.CheckHighAtLeast(2);
   UnitName := Parameters[1];
-  Parameters.Delete(1, 1);
+  Parameters.Delete(1);
 
   { init progres }
   Progress.UserInterface := ProgressConsoleInterface;

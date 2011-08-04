@@ -108,8 +108,8 @@ begin
   { parse fixed position params }
   if Parameters.High = 4 then
   begin
-    ResizeX := StrToInt(Parameters[3]); Parameters.Delete(3, 1);
-    ResizeY := StrToInt(Parameters[3]); Parameters.Delete(3, 1);
+    ResizeX := StrToInt(Parameters[3]); Parameters.Delete(3);
+    ResizeY := StrToInt(Parameters[3]); Parameters.Delete(3);
   end;
   Parameters.CheckHigh(2);
   InputImageName := Parameters[1];

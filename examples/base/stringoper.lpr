@@ -207,7 +207,7 @@ begin
  CommandNum := ParamToCommand(Parameters[1]);
  if CommandNum = -1 then
   raise EInvalidParams.Create('invalid first parameter "'+Parameters[1]+'"');
- Parameters.Delete(1, 1);
+ Parameters.Delete(1);
  if Commands[CommandNum].ParCountRequired <> -1 then
   Parameters.CheckHigh(Commands[CommandNum].ParCountRequired);
 
