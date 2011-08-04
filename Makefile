@@ -105,8 +105,6 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/tools/gen_light_map \
   examples/vrml/tools/md3tovrmlsequence \
   examples/vrml/tools/kanim_to_interpolators \
-  examples/vrml/direct_vrmlglscene_test_1 \
-  examples/vrml/direct_vrmlglscene_test_2 \
   examples/vrml/multiple_viewports \
   examples/vrml/demo_animation \
   examples/vrml/fog_culling \
