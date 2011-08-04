@@ -205,20 +205,20 @@ procedure LoadVRMLSequence(const FileName: string;
 
   procedure LoadKanim;
   var
-    ModelFileNames: TDynStringArray;
+    ModelFileNames: TStringList;
     I, J: Integer;
   begin
-    ModelFileNames := TDynStringArray.Create;
+    ModelFileNames := TStringList.Create;
     try
       TVRMLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
         ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
 
-      Assert(ModelFileNames.Length = Times.Length);
-      Assert(ModelFileNames.Length >= 1);
+      Assert(ModelFileNames.Count = Times.Length);
+      Assert(ModelFileNames.Count >= 1);
 
       { Now use ModelFileNames to load RootNodes }
       RootNodes.Count := ModelFileNames.Count;
-      for I := 0 to ModelFileNames.High do
+      for I := 0 to ModelFileNames.Count - 1 do
       try
         RootNodes[I] := LoadVRML(ModelFileNames[I]);
       except

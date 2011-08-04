@@ -363,7 +363,7 @@ var
 
     if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
-      Result.Items.AppendDynArray(FdKeyValue.Items, Index * FrameValues, FrameValues);
+      Result.Items.AddList(FdKeyValue.Items, Index * FrameValues, FrameValues);
     end else
       OnWarning(wtMajor, 'VRML/X3D', Format('Not enough keyValue items for %s interpolator',
         [NodeTypeName]));

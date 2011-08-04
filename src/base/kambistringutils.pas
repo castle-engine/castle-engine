@@ -43,8 +43,7 @@ unit KambiStringUtils;
 interface
 
 uses
-  {$ifdef MSWINDOWS} Windows, {$endif}
-  Variants, SysUtils, KambiUtils;
+  {$ifdef MSWINDOWS} Windows, {$endif} Variants, SysUtils, KambiUtils, Classes;
 
 type
   { }
@@ -259,13 +258,13 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
-{ Returns TDynStringArray with tokens extracted from S.
+{ Returns TKamStringList with tokens extracted from S.
   Token is something delimited by TokenDelims.
   TokenDelims are not contained in resulting items.
-  E.g. CreateTokens('foo, bar', [' ', ',']) returns TDynStringArray
+  E.g. CreateTokens('foo, bar', [' ', ',']) returns TKamStringList
   with 2 items: 'foo' and 'bar'. }
 function CreateTokens(const s: string;
-  const TokenDelims: TSetOfChars = WhiteSpaces): TDynStringArray;
+  const TokenDelims: TSetOfChars = WhiteSpaces): TKamStringList;
 
 { Advanced version of NextToken, that avoids splitting string inside
   pairs of "restricted" characters, like quotes.
@@ -491,10 +490,10 @@ function TryDeFormat(Data: string; const Format: string;
   (it is ignored), and in fact whole "xxxx|" (with bar) may be omitted.
   The rest (after "|") is treated as a filename list, separated by semicolon ";".
 
-  As Extensions, we set an array of all extensions extracted from these
+  As Extensions contents, we set an array of all extensions extracted from these
   filenames. For example above, we would set Extensions to array
   with two items: @code(['.ext1', '.ext2']). }
-procedure GetFileFilterExts(const FileFilter: string; var Extensions: TDynStringArray);
+procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
 
 { Extract file filter name, from a file filter usually specified
   a TOpenDialog.Filter value.
@@ -1178,11 +1177,11 @@ begin
 end;
 
 function CreateTokens(const s: string;
-  const TokenDelims: TSetOfChars): TDynStringArray;
+  const TokenDelims: TSetOfChars): TKamStringList;
 var SeekPos: Integer;
     Token: string;
 begin
- Result := TDynStringArray.Create;
+ Result := TKamStringList.Create;
  try
   SeekPos := 1;
   repeat
@@ -1570,11 +1569,11 @@ begin
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
 
-procedure GetFileFilterExts(const FileFilter: string; var Extensions: TDynStringArray);
+procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
 var p, SeekPos: integer;
     ExtsStr, filemask: string;
 begin
- Extensions.SetLength(0);
+ Extensions.Clear;
  ExtsStr := GetFileFilterExtsStr(FileFilter);
  SeekPos := 1;
  repeat

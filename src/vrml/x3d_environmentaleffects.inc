@@ -432,7 +432,7 @@ procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
     for i := 0 to Urls.Count-1 do
     begin
       try
-        URL := PathFromWWWBasePath(Urls.Items.Items[i]);
+        URL := PathFromWWWBasePath(Urls.Items[i]);
         FBgImages.Images[bs] := VRMLCache.TextureImage_IncReference(URL);
         Break;
       except

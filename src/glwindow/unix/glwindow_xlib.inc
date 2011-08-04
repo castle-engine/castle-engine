@@ -138,7 +138,7 @@ begin
    VisualAttr.AllowedCapacityOverflow := 20;
    if DoubleBuffer then
      VisualAttr.Add(GLX_DOUBLEBUFFER);
-   VisualAttr.AppendArray([
+   VisualAttr.AddArray([
      GLX_RGBA,
      { Buffer sizes below are all in bits. }
      GLX_DEPTH_SIZE, DepthBufferBits,
@@ -160,7 +160,7 @@ begin
          WritelnLog('glX', 'glX extensions: ' + GlxExtensions);
        if glext_ExtensionSupported('GLX_ARB_multisample', GlxExtensions) then
        begin
-         VisualAttr.AppendArray([
+         VisualAttr.AddArray([
            GLX_SAMPLE_BUFFERS_ARB, 1,
            GLX_SAMPLES_ARB, MultiSampling ]);
          if Log then

@@ -69,11 +69,11 @@ begin
   sarr := TDynStringArray.Create;
   try
    sarr.AllowedCapacityOverflow := Random(8);
-   sarr.SetLength(4);
+   sarr.Count := 4;
    sarr[0] := 'FOO';
    sarr[1] := 'foo bar xyz';
    sarr.Delete(0, 1);
-   sarr.AppendArray(twoStrings);
+   sarr.AddArray(twoStrings);
    sarr.Add('trzy?');
 
    Assert(not sarr.Equal(['foo bar xyz', '', '']));
@@ -123,10 +123,10 @@ begin
   Assert(iarr.Sum = 0);
   Assert(iarr2.Sum = 0);
 
-  iarr.AppendArray([1, 3, 6, 8]);
+  iarr.AddArray([1, 3, 6, 8]);
   Assert(not iarr.Equal(iarr2));
   Assert(iarr.Sum = 1 + 3 + 6 + 8);
-  iarr2.AppendArray([1, 3, 6, 8]);
+  iarr2.AddArray([1, 3, 6, 8]);
   Assert(iarr.Equal(iarr2));
   iarr2.Insert(0, 99);
   Assert(not iarr.Equal(iarr2));
@@ -201,14 +201,14 @@ begin
     V1.Add(Vector3Single(7.0, 8.0, 9.0));
 
     V2.Add(Vector3Single(6.0, 6.0, 6.0));
-    V2.AppendDynArray(V1);
+    V2.AddList(V1);
     V2.Add(Vector3Single(6.0, 6.0, 6.0));
 
     Assert(VectorsPerfectlyEqual(V1.Items[0], V2.Items[1]));
     Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[2]));
     Assert(VectorsPerfectlyEqual(V1.Items[2], V2.Items[3]));
 
-    V2.AppendDynArray(V1, 1, 1);
+    V2.AddList(V1, 1, 1);
     Assert(V2.Count = 6);
     Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[5]));
   finally

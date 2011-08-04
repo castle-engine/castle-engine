@@ -594,19 +594,19 @@ begin
         { We add Faces as long as FacesWithXxx parameters stay the same.
           We know that at least the next face is Ok. }
         repeat
-          Faces.FdCoordIndex.Items.AppendArray(
+          Faces.FdCoordIndex.Items.AddArray(
             [obj.Faces.Items[i].VertIndices[0],
              obj.Faces.Items[i].VertIndices[1],
              obj.Faces.Items[i].VertIndices[2], -1]);
 
           if FacesWithTexCoord then
-            Faces.FdTexCoordIndex.Items.AppendArray(
+            Faces.FdTexCoordIndex.Items.AddArray(
               [obj.Faces.Items[i].TexCoordIndices[0],
                obj.Faces.Items[i].TexCoordIndices[1],
                obj.Faces.Items[i].TexCoordIndices[2], -1]);
 
           if FacesWithNormal then
-            Faces.FdNormalIndex.Items.AppendArray(
+            Faces.FdNormalIndex.Items.AddArray(
               [obj.Faces.Items[i].NormalIndices[0],
                obj.Faces.Items[i].NormalIndices[1],
                obj.Faces.Items[i].NormalIndices[2], -1]);

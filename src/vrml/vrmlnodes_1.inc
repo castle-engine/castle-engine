@@ -1114,7 +1114,7 @@ begin
       As long as model stays static (and for strict VRML 1.0, it should
       always remain static), this will not be actually often called. }
     CoordSubrange.Items.Count := 0;
-    CoordSubrange.Items.AppendDynArray(FullCoord.Items, StartIndex, NumPoints);
+    CoordSubrange.Items.AddList(FullCoord.Items, StartIndex, NumPoints);
     ACoord := CoordSubrange;
   end;
 end;
@@ -2399,8 +2399,7 @@ begin
 
   { change "url" field to "name", with default value being an empty string }
   FdUrl.AddAlternativeName('name', 1);
-  FdUrl.Items.Count := 1;
-  FdUrl.Items[0] := '';
+  FdUrl.Items.Add('');
   FdUrl.AssignDefaultValueFromValue;
 
   { bboxSize is (0, 0, 0) in VRMl 1.0 (in VRML 2.0/X3D it's (-1, -1, -1)) }

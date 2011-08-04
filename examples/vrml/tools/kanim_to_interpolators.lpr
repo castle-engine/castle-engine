@@ -95,7 +95,7 @@ begin
         begin
           Coord := Anim.Scenes[I].RootNode.FindNodeByName(
             TNodeCoordinate, CoordinateNodeName, false) as TNodeCoordinate;
-          Interp.FdKeyValue.Items.AppendDynArray(Coord.FdPoint.Items);
+          Interp.FdKeyValue.Items.AddList(Coord.FdPoint.Items);
           Interp.FdKey.Items.Add(I / (Anim.ScenesCount - 1));
           Progress.Step;
 

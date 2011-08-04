@@ -34,6 +34,8 @@ type
     procedure TestCompressWhiteSpace;
     procedure TestFormatIndexedName;
     procedure TestIntToStr64;
+    procedure TestKamStringList;
+    procedure TestKamStringListNewlinesInside;
   end;
 
 implementation
@@ -210,6 +212,102 @@ begin
 
   A6 := QWord($FFEE000000000000);
   Assert(IntToStr16(A6) = 'FFEE000000000000');
+end;
+
+procedure TTestKambiStringUtils.TestKamStringList;
+
+{ Useful to debug state in the middle:
+  procedure WritelnList(const S: TKamStringList);
+  var
+    I: Integer;
+  begin
+    Writeln(S.Count);
+    for I := 0 to S.Count - 1 do
+      Writeln(Format('%4d: %s', [I, S[I]]));
+  end;
+}
+
+var sarr, sarr2: TKamStringList;
+    i, j: integer;
+const twoStrings: array[0..1]of string = ('raz','dwa');
+begin
+ for i := 1 to 100 do
+ begin
+  sarr := TKamStringList.Create;
+  try
+   sarr.Count := 4;
+   Assert(sarr.Count = 4);
+   sarr[0] := 'FOO';
+   sarr[1] := 'foo bar xyz';
+   sarr.Delete(0);
+   sarr.AddArray(twoStrings);
+   sarr.Add('trzy?');
+
+   Assert(not sarr.Equal(['foo bar xyz', '', '']));
+   Assert(sarr.Equal(['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
+
+   sarr.Reverse;
+   Assert(sarr.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+
+   sarr2 := TKamStringList.Create;
+   try
+    sarr2.Add('blah');
+    Assert(sarr2.Equal(['blah']));
+    sarr2.Assign(sarr);
+    Assert(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+
+    {sortuj ustalone 6 stringow}
+    sarr.Sort;
+    Assert(sarr.Equal(['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
+
+    { sprawdz ze kolejnosc na sarr2 pozostala niezmieniona }
+    Assert(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+   finally sarr2.Free end;
+
+   {dodaj losowe stringi, sortuj, sprawdz}
+   for j := 0 to 20 do
+    sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
+   sarr.Sort;
+   for j := 0 to sarr.Count-2 do Assert(sarr[j] <= sarr[j+1]);
+
+  finally sarr.Free end;
+ end;
+
+ sarr := TKamStringList.Create;
+ try
+  { na tablicy o 0 liczbie elementow tez wszystko powinno isc ok }
+  Assert(sarr.Count = 0);
+  sarr.Reverse;
+  Assert(sarr.Count = 0);
+ finally sarr.Free end;
+end;
+
+procedure TTestKambiStringUtils.TestKamStringListNewlinesInside;
+var
+  SL: TKamStringList;
+begin
+  SL := TKamStringList.Create;
+  try
+    SL.Add('');
+    SL.Add(NL + 'foo' + NL + 'bar' + NL);
+    SL.Add('');
+    SL.Add('');
+    Assert(SL.Count = 4);
+    Assert(SL.IndexOf('') = 0);
+
+    SL.Delete(0);
+    Assert(SL.Count = 3);
+    Assert(SL[0] = NL + 'foo' + NL + 'bar' + NL);
+    Assert(SL[1] = '');
+    Assert(SL[2] = '');
+    Assert(SL.IndexOf('') = 1);
+
+    SL.Delete(1);
+    SL.Delete(1);
+    Assert(SL.Count = 1);
+    Assert(SL[0] = NL + 'foo' + NL + 'bar' + NL);
+    Assert(SL.IndexOf(NL + 'foo' + NL + 'bar' + NL) = 0);
+  finally FreeAndNil(SL) end;
 end;
 
 initialization

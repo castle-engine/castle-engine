@@ -1365,7 +1365,7 @@ type
       seems so, I'm not sure...). }
     procedure FieldOrEventHandleIsClause(
       Destination, Source: TVRMLFieldOrEvent;
-      NewIsClauseNames: TDynStringArray);
+      NewIsClauseNames: TKamStringList);
   protected
     function DeepCopyCreate(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
   public
@@ -4135,7 +4135,7 @@ end;
 
 procedure TVRMLPrototypeNode.FieldOrEventHandleIsClause(
   Destination, Source: TVRMLFieldOrEvent;
-  NewIsClauseNames: TDynStringArray);
+  NewIsClauseNames: TKamStringList);
 var
   DestinationField, SourceField: TVRMLField;
   DestinationEvent, SourceEvent: TVRMLEvent;
@@ -4152,7 +4152,7 @@ begin
 
     See comments in the interface for more. }
 
-  NewIsClauseNames.AppendDynArray(Source.IsClauseNames);
+  NewIsClauseNames.AddStrings(Source.IsClauseNames);
 
   if Source is TVRMLField then
   begin
@@ -4249,15 +4249,15 @@ procedure TVRMLPrototypeNode.InstantiateIsClauses(
     OurFieldIndex: Integer;
     I: Integer;
     IsClauseName: string;
-    NewIsClauseNames: TDynStringArray;
+    NewIsClauseNames: TKamStringList;
   begin
     if InstanceField.IsClauseNames.Count <> 0 then
     begin
-      NewIsClauseNames := TDynStringArray.Create;
+      NewIsClauseNames := TKamStringList.Create;
       try
         for I := 0 to InstanceField.IsClauseNames.Count - 1 do
         begin
-          IsClauseName := InstanceField.IsClauseNames.Items[I];
+          IsClauseName := InstanceField.IsClauseNames[I];
           OurFieldIndex := Fields.IndexOf(IsClauseName);
           if OurFieldIndex <> -1 then
           begin
@@ -4348,15 +4348,15 @@ procedure TVRMLPrototypeNode.InstantiateIsClauses(
     OurEventIndex: Integer;
     I: Integer;
     IsClauseName: string;
-    NewIsClauseNames: TDynStringArray;
+    NewIsClauseNames: TKamStringList;
   begin
     if InstanceEvent.IsClauseNames.Count <> 0 then
     begin
-      NewIsClauseNames := TDynStringArray.Create;
+      NewIsClauseNames := TKamStringList.Create;
       try
         for I := 0 to InstanceEvent.IsClauseNames.Count - 1 do
         begin
-          IsClauseName := InstanceEvent.IsClauseNames.Items[I];
+          IsClauseName := InstanceEvent.IsClauseNames[I];
 
           { Event from prototype definition can only correspond to the
             same event type of prototype declaration. It cannot reference
@@ -4995,7 +4995,7 @@ begin
 
   for I := 0 to URLList.Count - 1 do
   begin
-    S := URLList.Items.Items[I];
+    S := URLList.Items[I];
     if IsPrefix('urn:', S) then
       Loaded := LoadFromURN(S) else
       Loaded := LoadFromExternalVRML(S);

@@ -2406,7 +2406,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
     For XML encoding, also gather from fields/events inside interface
     declarations (for classic encoding,
     they are saved by TVRMLInterfaceDeclaration.SaveToStream). }
-  procedure CollectIsClauses(out NodeFields, ProtoFields: TDynStringArray);
+  procedure CollectIsClauses(out NodeFields, ProtoFields: TKamStringList);
 
     procedure AddIsClauses(Item: TVRMLFieldOrEvent);
     var
@@ -2425,8 +2425,8 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
   var
     I: Integer;
   begin
-    NodeFields := TDynStringArray.Create;
-    ProtoFields := TDynStringArray.Create;
+    NodeFields := TKamStringList.Create;
+    ProtoFields := TKamStringList.Create;
 
     for I := 0 to Fields.Count - 1 do
     begin
@@ -2451,7 +2451,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
   procedure Classic;
   var
     FileItems: TVRMLFileItemList;
-    NodeFields, ProtoFields: TDynStringArray;
+    NodeFields, ProtoFields: TKamStringList;
     I: Integer;
   begin
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
@@ -2496,7 +2496,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
     WriteContainerField: string;
     ElementName: string;
     ProtoInstance: boolean;
-    NodeFields, ProtoFields: TDynStringArray;
+    NodeFields, ProtoFields: TKamStringList;
   begin
     { Knowing CurrentContainerField and DefaultContainerField,
       we can always correctly set containerField= ourselves. }

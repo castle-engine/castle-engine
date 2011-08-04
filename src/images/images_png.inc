@@ -15,7 +15,7 @@
 
 { function our_png_error_fn and our_png_warning_fn are used as libpng
   error and warning handlers in both SavePNG and LoadPNG.
-  They both require png_get_error_ptr(png_ptr) to be valid TDynStringArray
+  They both require png_get_error_ptr(png_ptr) to be valid TStringList
    object. Warning function
     - appends warning to string list
     - calls WarningWrite ONLY if compiled with DEBUG defined
@@ -26,28 +26,28 @@
 
 procedure our_png_error_fn(png_ptr : png_structp; s : png_const_charp);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-var warnings: TDynStringArray;
+var warnings: TStringList;
     errs: string;
     i: integer;
 begin
  { we're raising exception EInvalidPng;
    we use error s and collected warnings to construct exception message }
  errs:='Png error - libpng returned error : '+s;
- warnings := TDynStringArray(png_get_error_ptr(png_ptr));
- if warnings.length > 0 then
+ warnings := TStringList(png_get_error_ptr(png_ptr));
+ if warnings.Count > 0 then
  begin
   errs := errs+nl+'There were libpng warnings :';
-  for i := 0 to warnings.high do errs := errs+nl+warnings[i];
+  for i := 0 to warnings.Count - 1 do errs := errs+nl+warnings[i];
  end;
  raise EInvalidPng.Create(errs);
 end;
 
 procedure our_png_warning_fn(png_ptr : png_structp; s : png_const_charp);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-var warnings: TDynStringArray;
+var warnings: TStringList;
 begin
  { we're collecting warnings from libpng. }
- warnings := TDynStringArray(png_get_error_ptr(png_ptr));
+ warnings := TStringList(png_get_error_ptr(png_ptr));
  warnings.Add(s);
  (* {$ifdef DEBUG} WarningWrite('DEBUG ONLY message : libpng warning : '+s); {$endif} *)
 end;
@@ -144,10 +144,10 @@ var
 var
   row_pointers: TDynPointerArray;
   i: Cardinal;
-  warningslist: TDynStringArray;
+  warningslist: TStringList;
   IsAlpha, IsGrayscale: boolean;
 begin
- warningslist := TDynStringArray.Create;
+ warningslist := TStringList.Create;
  png_ptr := nil;
  try
   png_ptr := png_create_read_struct(SO_PNG_LIBPNG_VER_STRING,
@@ -258,13 +258,13 @@ end;
 procedure SavePNG(Img: TImage; Stream: TStream; Interlaced: boolean);
 var png_ptr: png_structp;
     info_ptr: png_infop;
-    warningslist: TDynStringArray;
+    warningslist: TStringList;
     InterlaceType: LongWord;
     row_pointers: TDynPointerArray;
     i: Cardinal;
     ColorType: LongInt;
 begin
- warningslist := TDynStringArray.Create;
+ warningslist := TStringList.Create;
  png_ptr := nil;
  try
   png_ptr := png_create_write_struct(SO_PNG_LIBPNG_VER_STRING,

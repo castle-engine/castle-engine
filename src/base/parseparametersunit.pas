@@ -477,7 +477,7 @@ begin
   begin
    if Parameters[i] = '--' then
    begin
-    if not ParseOnlyKnownLongOptions then Parameters.Delete(i, 1);
+    if not ParseOnlyKnownLongOptions then Parameters.Delete(I);
     Break
    end;
 
@@ -526,7 +526,7 @@ begin
 
     { teraz zajmij sie opcja OptionNum o nazwie OptionName }
 
-    Parameters.Delete(i, 1);
+    Parameters.Delete(i);
     SeparateArgs := EmptySeparateArgs;
 
     { upewnij sie ze HasArgument ma dopuszczalna wartosc. Odczytaj argumenty
@@ -538,7 +538,7 @@ begin
       raise EMissingOptionArgument.Create('Missing argument for option '+OptionName);
      HasArgument := true;
      Argument := Parameters[i];
-     Parameters.Delete(i, 1);
+     Parameters.Delete(i);
     end else
     if (Options^[OptionNum].Argument = oaNone) and HasArgument then
      raise EExcessiveOptionArgument.Create('Excessive argument for option '+OptionName) else
@@ -557,7 +557,7 @@ begin
          'this option needs %d arguments but we have only %d', [OptionName,
          OptionSeparateArgumentToCount(Options^[OptionNum].Argument), j-1]);
       SeparateArgs[j] := Parameters[i];
-      Parameters.Delete(i, 1);
+      Parameters.Delete(i);
      end;
     end;
 

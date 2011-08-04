@@ -84,10 +84,10 @@ var
     you want from -h option to write proper default DefaultDirsToClean,
     not (already extended) DirsToClean.
     Same for FilesToClean and DefaultFilesToClean. }
-  FilesToClean: TDynStringArray;
-  DefaultFilesToClean: TDynStringArray;
-  DirsToClean: TDynStringArray;
-  DefaultDirsToClean: TDynStringArray;
+  FilesToClean: TKamStringList;
+  DefaultFilesToClean: TKamStringList;
+  DirsToClean: TKamStringList;
+  DefaultDirsToClean: TKamStringList;
 
 { funcs ------------------------------------------------------------ }
 
@@ -262,10 +262,10 @@ var
   i: Integer;
 begin
   try
-    FilesToClean := TDynStringArray.Create;
-    DefaultFilesToClean := TDynStringArray.Create;
-    DirsToClean := TDynStringArray.Create;
-    DefaultDirsToClean := TDynStringArray.Create;
+    FilesToClean := TKamStringList.Create;
+    DefaultFilesToClean := TKamStringList.Create;
+    DirsToClean := TKamStringList.Create;
+    DefaultDirsToClean := TKamStringList.Create;
 
     DefaultFilesToCleanInit;
     DefaultDirsToCleanInit;
@@ -276,7 +276,7 @@ begin
     if Parameters.High = 2 then
     begin
       Action := ActionParStrToAction(Parameters[2]);
-      Parameters.Delete(2, 1);
+      Parameters.Delete(2);
     end;
     if Parameters.High = 1 then
       StartPath := InclPathDelim(Parameters[1]) else
@@ -284,8 +284,8 @@ begin
       raise EinvalidParams.Create('Excessive parameter "' + Parameters[1] + '"');
 
     { do the job }
-    FilesToClean.AppendDynArray(DefaultFilesToClean);
-    DirsToClean.AppendDynArray(DefaultDirsToClean);
+    FilesToClean.AddStrings(DefaultFilesToClean);
+    DirsToClean.AddStrings(DefaultDirsToClean);
 
     for i := 0 to FilesToClean.Count-1 do CleanFiles(FilesToClean[i]);
     for i := 0 to DirsToClean.Count-1 do CleanDirs(DirsToClean[i]);

@@ -21,7 +21,7 @@
       Templates for classes that work like dynamic arrays.
       Base @link(TDynArrayBase) class and many TDyn*Array classes
       implementing TDynArrayBase descendants that can store base Pascal types,
-      like TDynIntegerArray, TDynStringArray, TDynFloatArray etc.
+      like TDynIntegerArray, TDynFloatArray etc.
 
       New TDyn*Xxx classes may be created much like instantiating templates in C++,
       thanks to some tricks with include files and compiler defines,
@@ -108,7 +108,7 @@ uses
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
   {$endif}
-  Variants, SysUtils, Math;
+  Variants, SysUtils, Math, Classes {TODO-move TKamStringList and params out};
 
 {$define read_interface}
 

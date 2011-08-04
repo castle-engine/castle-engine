@@ -117,12 +117,12 @@ type
 
   TShaderSource = class
   private
-    FSource: array [TShaderType] of TDynStringArray;
-    function GetSource(const AType: TShaderType): TDynStringArray;
+    FSource: array [TShaderType] of TKamStringList;
+    function GetSource(const AType: TShaderType): TKamStringList;
   public
     constructor Create;
     destructor Destroy; override;
-    property Source [AType: TShaderType]: TDynStringArray read GetSource; default;
+    property Source [AType: TShaderType]: TKamStringList read GetSource; default;
 
     { Append AppendCode to our code.
       Has some special features:
@@ -274,7 +274,7 @@ type
 
       Returns if plug code was inserted (always @true when
       InsertAtBeginIfNotFound). }
-    function PlugDirectly(Code: TDynStringArray;
+    function PlugDirectly(Code: TKamStringList;
       const CodeIndex: Cardinal;
       const PlugName, PlugValue: string;
       const InsertAtBeginIfNotFound: boolean): boolean;
@@ -533,7 +533,7 @@ var
 begin
   inherited;
   for SourceType := Low(SourceType) to High(SourceType) do
-    FSource[SourceType] := TDynStringArray.Create;
+    FSource[SourceType] := TKamStringList.Create;
 end;
 
 destructor TShaderSource.Destroy;
@@ -545,7 +545,7 @@ begin
   inherited;
 end;
 
-function TShaderSource.GetSource(const AType: TShaderType): TDynStringArray;
+function TShaderSource.GetSource(const AType: TShaderType): TKamStringList;
 begin
   Result := FSource[AType];
 end;
@@ -1284,7 +1284,7 @@ const
   end;
 
 var
-  Code: TDynStringArray;
+  Code: TKamStringList;
 
   procedure InsertIntoCode(const CodeIndex, P: Integer; const S: string);
   begin
@@ -1311,7 +1311,7 @@ var
   Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
     PlugForwardDeclaration: string;
   CompleteCodeForPlugValue: TShaderSource;
-  CodeForPlugValue: TDynStringArray;
+  CodeForPlugValue: TKamStringList;
   AnyOccurences, AnyOccurencesInThisCodeIndex: boolean;
 begin
   CompleteCodeForPlugValue := Source;
@@ -1386,7 +1386,7 @@ begin
   CodeForPlugValue.Add(PlugValue);
 end;
 
-function TVRMLShader.PlugDirectly(Code: TDynStringArray;
+function TVRMLShader.PlugDirectly(Code: TKamStringList;
   const CodeIndex: Cardinal;
   const PlugName, PlugValue: string;
   const InsertAtBeginIfNotFound: boolean): boolean;

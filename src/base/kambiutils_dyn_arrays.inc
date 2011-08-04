@@ -15,7 +15,7 @@
 
 (*
   Base abstract dynamic array class (TDynArrayBase)
-  and dynamic arrays for basic types (TDynIntegerArray, TDynStringArray etc.)
+  and dynamic arrays for basic types (TDynIntegerArray etc.)
 
   Our dynarray.inc work like templates / generics, but hacked with only
   include files (so they work with compiler).
@@ -369,13 +369,13 @@ begin SetLength(Length+LenChange) end;
 procedure TDynArrayBase.SwapItems(Index1, Index2: Cardinal);
 var p1, p2: PByte;
 begin
- {$I norqcheckbegin.inc}
- PtrUInt(p1) := PtrUInt(A) + Index1 * ItemSize;
- PtrUInt(p2) := PtrUInt(A) + Index2 * ItemSize;
- {$I norqcheckend.inc}
- move(p1^, SwapItemsBuf^, ItemSize);
- move(p2^, p1^, ItemSize);
- move(SwapItemsBuf^, p2^, ItemSize);
+  {$I norqcheckbegin.inc}
+  PtrUInt(p1) := PtrUInt(A) + Index1 * ItemSize;
+  PtrUInt(p2) := PtrUInt(A) + Index2 * ItemSize;
+  {$I norqcheckend.inc}
+  Move(p1^, SwapItemsBuf^, ItemSize);
+  Move(p2^, p1^, ItemSize);
+  Move(SwapItemsBuf^, p2^, ItemSize);
 end;
 
 procedure TDynArrayBase.FillChar(FillValue: byte);
@@ -384,13 +384,14 @@ begin
 end;
 
 procedure TDynArrayBase.Reverse;
-var i: Integer;
+var
+  I: Integer;
 begin
- { musimy osobno sprawdzac przypadek Count = 0, bo (0-1) div 2 = -1 div 2 = 0
-   a to spowodowaloby blad w ponzszej for, iterowalaby od 0 do 0 a nie przeciez
-   elementu numer 0 gdy Count = 0. }
- if Count = 0 then Exit;
- for i := 0 to (Count-1) div 2 do SwapItems(i, Count-1-i);
+  { Need to specially check for Count = 0 case, since (0-1) div 2 = -1 div 2 = 0
+    which means that loop would try invalid SwapItems(0, -1). }
+  if Count = 0 then Exit;
+  for I := 0 to (Count - 1) div 2 do
+    SwapItems(I, Count - 1 - I);
 end;
 
 procedure TDynArrayBase.Clear;

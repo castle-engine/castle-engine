@@ -287,7 +287,7 @@ begin
       NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.Items[0], ControlPoints.Items[1]));
       NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.Items[0], ControlPoints.Items[1]));
       NewCurve.ControlPoints.Add(ControlPoints.Items[1]);
-      NewCurve.Weights.AppendArray([1.0, 1.0, 1.0, 1.0]);
+      NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
       NewCurve.UpdateControlPoints;
       Result.Add(NewCurve);
 
@@ -323,7 +323,7 @@ begin
         NewCurve.ControlPoints.Add(MiddlePoint(i-1, +1));
         NewCurve.ControlPoints.Add(MiddlePoint(i  , -1));
         NewCurve.ControlPoints.Add(ControlPoints.Items[i]);
-        NewCurve.Weights.AppendArray([1.0, 1.0, 1.0, 1.0]);
+        NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
         NewCurve.UpdateControlPoints;
         Result.Add(NewCurve);
       end;
@@ -349,7 +349,7 @@ begin
   BezierCurves := ToRationalBezierCurves(true);
 
   ConvexHullPoints.SetLength(0);
-  ConvexHullPoints.AppendDynArray(ControlPoints);
+  ConvexHullPoints.AddList(ControlPoints);
   for i := 0 to BezierCurves.Count-1 do
   begin
     ConvexHullPoints.Add(BezierCurves[i].ControlPoints.Items[1]);

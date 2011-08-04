@@ -136,9 +136,9 @@ begin
   Arr := TKamScriptXxxArray(AResult).Value;
   { initially Arr is empty. This is needed to set explicitly,
     since CreateValueIfNeeded could left previous AResult }
-  Arr.Count := 0;
+  Arr.Clear;
   for I := 0 to Length(Arguments) - 1 do
-    Arr.AppendDynArray(TKamScriptXxxArray(Arguments[I]).Value);
+    Arr.AddList(TKamScriptXxxArray(Arguments[I]).Value);
 
   TKamScriptXxxArray(AResult).ValueAssigned := true;
 end;

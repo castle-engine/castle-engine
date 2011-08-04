@@ -830,7 +830,7 @@ procedure TGLWindow.OpenWinSystemDepend;
           VisualAttr := TDynLongIntArray.Create;
           try
             VisualAttr.AllowedCapacityOverflow := 20;
-            VisualAttr.AppendArray([
+            VisualAttr.AddArray([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
               WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
               { If indexed mode will be implemented in GLWindow one day, this can take
@@ -838,8 +838,8 @@ procedure TGLWindow.OpenWinSystemDepend;
               WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
               WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
             if DoubleBuffer then
-              VisualAttr.AppendArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
-            VisualAttr.AppendArray([
+              VisualAttr.AddArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
+            VisualAttr.AddArray([
               WGL_COLOR_BITS_ARB, ColorBits,
               WGL_DEPTH_BITS_ARB, DepthBufferBits,
               WGL_STENCIL_BITS_ARB, StencilBufferBits,
@@ -853,7 +853,7 @@ procedure TGLWindow.OpenWinSystemDepend;
             begin
               if Load_WGL_ARB_multisample then
               begin
-                VisualAttr.AppendArray([
+                VisualAttr.AddArray([
                   WGL_SAMPLE_BUFFERS_ARB, 1,
                   WGL_SAMPLES_ARB, MultiSampling ]);
                 if Log then
@@ -865,7 +865,7 @@ procedure TGLWindow.OpenWinSystemDepend;
             end;
 
             { end of VisualAttr array }
-            VisualAttr.AppendArray([0, 0]);
+            VisualAttr.AddArray([0, 0]);
 
             FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
 

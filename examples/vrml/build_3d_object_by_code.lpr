@@ -46,7 +46,7 @@ begin
   SphereShape.FdGeometry.Value := Sphere;
 
   IndexedFaceSetCoordinate := TNodeCoordinate.Create('', '');
-  IndexedFaceSetCoordinate.FdPoint.Items.AppendArray(
+  IndexedFaceSetCoordinate.FdPoint.Items.AddArray(
     [Vector3Single(0, 0, 0),
      Vector3Single(1, 0, 0),
      Vector3Single(1, 1, 0),
@@ -59,7 +59,7 @@ begin
     ]);
 
   IndexedFaceSet := TNodeIndexedFaceSet.Create('', '');
-  IndexedFaceSet.FdCoordIndex.Items.AppendArray(
+  IndexedFaceSet.FdCoordIndex.Items.AddArray(
     { Two quad faces. These are just indexes for
       the array placed in IndexedFaceSet.FdCoordinate array. }
     [0, 1, 2, 3, 0, -1, 4, 5, 6, 7, 4]);

@@ -20,7 +20,7 @@ unit VRMLAnimation;
 
 interface
 
-uses KambiUtils, DOM, Base3D;
+uses KambiUtils, DOM, Base3D, Classes;
 
 type
   { An abstract (cannot be rendered) precalculated animation.
@@ -51,7 +51,7 @@ type
       TVRMLGLAnimationInfo that also wants to read animation data,
       but doesn't have an TVRMLGLAnimation instance available. }
     class procedure LoadFromFileToVars(const FileName: string;
-      ModelFileNames: TDynStringArray;
+      ModelFileNames: TStringList;
       Times: TDynSingleArray;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
@@ -69,7 +69,7 @@ type
       if necessary). }
     class procedure LoadFromDOMElementToVars(Element: TDOMElement;
       const BasePath: string;
-      ModelFileNames: TDynStringArray;
+      ModelFileNames: TStringList;
       Times: TDynSingleArray;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
@@ -81,7 +81,7 @@ implementation
 uses SysUtils, KambiXMLRead, KambiXMLUtils, KambiFilesUtils;
 
 class procedure TVRMLAnimation.LoadFromFileToVars(const FileName: string;
-  ModelFileNames: TDynStringArray;
+  ModelFileNames: TStringList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -110,7 +110,7 @@ const
 class procedure TVRMLAnimation.LoadFromDOMElementToVars(
   Element: TDOMElement;
   const BasePath: string;
-  ModelFileNames: TDynStringArray;
+  ModelFileNames: TStringList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -125,7 +125,7 @@ var
   Attr: TDOMAttr;
 begin
   Assert(Times.Length = 0);
-  Assert(ModelFileNames.Length = 0);
+  Assert(ModelFileNames.Count = 0);
 
   AbsoluteBasePath := ExpandFileName(BasePath);
 

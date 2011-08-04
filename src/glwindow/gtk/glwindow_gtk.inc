@@ -1045,7 +1045,7 @@ begin
   VisualAttr.AllowedCapacityOverflow := 20;
   if DoubleBuffer then
     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
-  VisualAttr.AppendArray([
+  VisualAttr.AddArray([
     GDK_GL_RGBA,
     { Note that sizes of buffers in VisualAttr must be given in bits
       (not in e.g. bytes), so this is exactly what I have in my variables. }
@@ -1072,7 +1072,7 @@ begin
     {$ifdef GLWINDOW_GTK_2}
     { I guess that gtkglext should internally check for
       glXQueryExtensionsString and GLX_ARB_multisample availability. }
-    VisualAttr.AppendArray([
+    VisualAttr.AddArray([
       GDK_GL_SAMPLE_BUFFERS, 1,
       GDK_GL_SAMPLES, MultiSampling ]);
     {$else}

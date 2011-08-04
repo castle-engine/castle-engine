@@ -380,7 +380,7 @@ type
   { Common class for VRML field or event. }
   TVRMLFieldOrEvent = class(TVRMLFileItem)
   private
-    FIsClauseNames: TDynStringArray;
+    FIsClauseNames: TKamStringList;
 
     FName: string;
 
@@ -435,7 +435,7 @@ type
       in the file), event though it also has an "IS" clause.
       Although there is TVRMLField.ValueFromIsClause, which indicates
       whether current value was obtained from "IS" clause. }
-    property IsClauseNames: TDynStringArray read FIsClauseNames;
+    property IsClauseNames: TKamStringList read FIsClauseNames;
 
     { Parse only "IS" clause, if it's not present --- don't do nothing.
       For example, for the TVRMLField descendant, this does not try to parse
@@ -2718,7 +2718,7 @@ constructor TVRMLFieldOrEvent.Create(AParentNode: TVRMLFileItem;
   const AName: string);
 begin
   inherited Create;
-  FIsClauseNames := TDynStringArray.Create;
+  FIsClauseNames := TKamStringList.Create;
   FParentNode := AParentNode;
   FName := AName;
 end;
@@ -2820,7 +2820,7 @@ begin
   begin
     if N <> '' then
       Writer.WriteIndent(N + ' ');
-    Writer.Writeln('IS ' + IsClauseNames.Items[I]);
+    Writer.Writeln('IS ' + IsClauseNames[I]);
   end;
 end;
 
@@ -5174,7 +5174,7 @@ constructor TMF_CLASS.Create(AParentNode: TVRMLFileItem;
 begin
   inherited Create(AParentNode, AName);
 
-  Items.AppendArray(InitialContent);
+  Items.AddArray(InitialContent);
 
   AssignDefaultValueFromValue;
 end;
