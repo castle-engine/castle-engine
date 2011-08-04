@@ -26,24 +26,9 @@
     procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean); virtual; abstract;
   end;
 
-  { Abstract 3D object notified about changes to VRML/X3D nodes/fields. }
-  TVRMLChangesEngine = class(T3D)
-  public
-    procedure ChangedAll; virtual; abstract;
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
-    procedure ChangedField(Field: TVRMLField); virtual; abstract;
-    procedure IncreaseTimeTick; virtual; abstract;
-  end;
-
-  TVRMLChangesEngineList = class(specialize TFPGObjectList<TVRMLChangesEngine>)
-  public
-    { Notify listeners about a field value change.
-      See TVRMLScene.ChangedField for exact specification. }
-    procedure ChangedField(Field: TVRMLField);
-  end;
-
-  { Abstract 3D handling VRML/X3D events. }
-  TVRMLEventsEngine = class(TVRMLChangesEngine)
+  { Abstract 3D object handling VRML/X3D events.
+    Is also notified about changes to VRML/X3D nodes/fields. }
+  TVRMLEventsEngine = class(T3D)
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TVRMLField); virtual; abstract;
   public
@@ -52,12 +37,24 @@
     function GetNavigationInfoStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetBackgroundStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetFogStack: TVRMLBindableStackBasic; virtual; abstract;
+
+    procedure ChangedAll; virtual; abstract;
+    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
+    procedure ChangedField(Field: TVRMLField); virtual; abstract;
+    procedure IncreaseTimeTick; virtual; abstract;
+  end;
+
+  TVRMLEventsEngineList = class(specialize TFPGObjectList<TVRMLEventsEngine>)
+  public
+    { Notify listeners about a field value change.
+      See TVRMLScene.ChangedField for exact specification. }
+    procedure ChangedField(Field: TVRMLField);
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-procedure TVRMLChangesEngineList.ChangedField(Field: TVRMLField);
+procedure TVRMLEventsEngineList.ChangedField(Field: TVRMLField);
 var
   I: Integer;
 begin
