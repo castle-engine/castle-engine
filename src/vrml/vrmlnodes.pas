@@ -204,7 +204,7 @@ const
 
 type
   { forward declarations } { }
-  TVRMLNodesList = class;
+  TVRMLNodeList = class;
   TVRMLNode = class;
   TNodeCoordinate3 = class;
   TNodeShapeHints = class;
@@ -351,7 +351,7 @@ type
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
 
-  TPointingDeviceSensorsList = class;
+  TPointingDeviceSensorList = class;
 
   { Current "state" (current transformation and such)
     when traversing VRML graph.
@@ -564,7 +564,7 @@ type
       group node affects all children in this group node.
       (And when multiple pointing device sensors are within the same
       grouping node, they all work.) }
-    PointingDeviceSensors: TPointingDeviceSensorsList;
+    PointingDeviceSensors: TPointingDeviceSensorList;
 
     { For Humanoid skeleton, these contain cummulated joint transformation. }
     HumanoidTransform, HumanoidInvertedTransform: TMatrix4Single;
@@ -590,7 +590,7 @@ type
     LocalFog: TNodeLocalFog;
 
     { Effects (TNodeEffect) affecting this state. }
-    Effects: TVRMLNodesList;
+    Effects: TVRMLNodeList;
 
     function AddClipPlane: PClipPlane;
   end;
@@ -679,8 +679,8 @@ type
   TSFNode = class;
   TMFNode = class;
   TVRMLPrototypeNode = class;
-  TVRMLPrototypeBasesList = class;
-  TVRMLRoutesList = class;
+  TVRMLPrototypeBaseList = class;
+  TVRMLRouteList = class;
   TVRMLInterfaceDeclaration = class;
   TVRMLNames = class;
   TVRMLNodeNames = class;
@@ -689,7 +689,7 @@ type
   TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
   TVRMLAccessTypes = set of TVRMLAccessType;
 
-  TVRMLInterfaceDeclarationsList = class;
+  TVRMLInterfaceDeclarationList = class;
 
   TNodeDestructionNotification = procedure (Node: TVRMLNode) of object;
 
@@ -725,14 +725,14 @@ type
     References: Cardinal;
     Node: TVRMLRootNode;
   end;
-  TCachedNodesList = specialize TFPGObjectList<TCachedNode>;
+  TCachedNodeList = specialize TFPGObjectList<TCachedNode>;
 
   { Cache for VRML resources not specific to renderer (OpenGL).
     Includes all TTexturesImagesVideosCache resources (image, texture, movie
     data) and adds cache for 3D models. }
   TVRMLNodesCache = class(TTexturesImagesVideosCache)
   private
-    CachedNodes: TCachedNodesList;
+    CachedNodes: TCachedNodeList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -919,7 +919,7 @@ type
 
     Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
     Reasons ? 1. We don't want to use TDynArray descendant.
-    We want to use TVRMLNodesList. 2. We don't want to do parsing
+    We want to use TVRMLNodeList. 2. We don't want to do parsing
     using SFNode, because MFNode doesn't allow NULL items.
 
     Just like for TSFNode:
@@ -930,8 +930,8 @@ type
     classes.  }
   TMFNode = class(TVRMLMultField)
   private
-    FItems: TVRMLNodesList;
-    FDefaultItems: TVRMLNodesList;
+    FItems: TVRMLNodeList;
+    FDefaultItems: TVRMLNodeList;
     FDefaultValueExists: boolean;
     FParentNode: TVRMLNode;
     AllowedChildren: TAllowedChildren;
@@ -984,7 +984,7 @@ type
       like @link(Add). They take care of calling appropriate
       AddParentField / RemoveParentField, otherwise you
       could break reference-counting of nodes by ParentFields. }
-    property Items: TVRMLNodesList read FItems;
+    property Items: TVRMLNodeList read FItems;
 
     property ItemsArray[Index: Integer]: TVRMLNode read GetItems; default;
 
@@ -1001,7 +1001,7 @@ type
       explanation. }
     function Extract(Index: Integer): TVRMLNode;
     procedure Clear;
-    procedure AssignItems(SourceItems: TVRMLNodesList);
+    procedure AssignItems(SourceItems: TVRMLNodeList);
     procedure Replace(Index: Integer; Node: TVRMLNode);
 
     procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
@@ -1042,12 +1042,12 @@ type
       like AssignDefaultItems (they take care of calling appropriate
       AddParentField / RemoveParentField, otherwise you
       could break reference-counting of nodes by ParentFields). }
-    property DefaultItems: TVRMLNodesList read FDefaultItems;
+    property DefaultItems: TVRMLNodeList read FDefaultItems;
 
     { Operate on DefaultItems, just like analogous AssignItems and
       Clear.
       @groupBegin }
-    procedure AssignDefaultItems(SourceItems: TVRMLNodesList);
+    procedure AssignDefaultItems(SourceItems: TVRMLNodeList);
     procedure ClearDefault;
     { @groupEnd }
 
@@ -1260,7 +1260,7 @@ type
       CopyState: TVRMLNodeDeepCopyState): TVRMLInterfaceDeclaration;
   end;
 
-  TVRMLInterfaceDeclarationsList = class(specialize TFPGObjectList<TVRMLInterfaceDeclaration>)
+  TVRMLInterfaceDeclarationList = class(specialize TFPGObjectList<TVRMLInterfaceDeclaration>)
   public
     { Find field or event with given Name.
       @nil if not found. }
@@ -1432,7 +1432,7 @@ type
   TVRMLPrototypeBase = class(TVRMLFileItem)
   private
     FName: string;
-    FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
+    FInterfaceDeclarations: TVRMLInterfaceDeclarationList;
 
     FWWWBasePath: string;
 
@@ -1459,7 +1459,7 @@ type
     constructor Create;
     destructor Destroy; override;
     property Name: string read FName write FName;
-    property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
+    property InterfaceDeclarations: TVRMLInterfaceDeclarationList
       read FInterfaceDeclarations;
 
     { Parse prototype, and add it to Names.Prototypes.
@@ -1475,7 +1475,7 @@ type
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
   end;
 
-  TVRMLPrototypeBasesList = class(specialize TFPGObjectList<TVRMLPrototypeBase>);
+  TVRMLPrototypeBaseList = class(specialize TFPGObjectList<TVRMLPrototypeBase>);
 
   TVRMLPrototype = class(TVRMLPrototypeBase)
   private
@@ -1691,7 +1691,7 @@ type
     function DeepCopy(CopyState: TVRMLNodeDeepCopyState): TVRMLRoute;
   end;
 
-  TVRMLRoutesList = class(specialize TFPGObjectList<TVRMLRoute>);
+  TVRMLRouteList = class(specialize TFPGObjectList<TVRMLRoute>);
 
   TVRMLImport = class(TVRMLFileItem)
   public
@@ -1985,7 +1985,7 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
 
 { Free all unused VRML/X3D nodes on the list, then free and @nil the list
   itself. }
-procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
+procedure VRMLNodeList_FreeUnusedAndNil(var List: TVRMLNodeList);
 
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
@@ -2434,7 +2434,7 @@ var
 procedure TVRMLGraphTraverseState.CommonCreate;
 begin
   inherited Create;
-  PointingDeviceSensors := TPointingDeviceSensorsList.Create(false);
+  PointingDeviceSensors := TPointingDeviceSensorList.Create(false);
 end;
 
 constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
@@ -2559,7 +2559,7 @@ begin
   if Source.Effects <> nil then
   begin
     if Effects = nil then
-      Effects := TVRMLNodesList.Create(false);
+      Effects := TVRMLNodeList.Create(false);
     Effects.Assign(Source.Effects);
   end else
     FreeAndNil(Effects);
@@ -2736,7 +2736,7 @@ end;
 constructor TVRMLNodesCache.Create;
 begin
   inherited;
-  CachedNodes := TCachedNodesList.Create;
+  CachedNodes := TCachedNodeList.Create;
 end;
 
 destructor TVRMLNodesCache.Destroy;
@@ -3181,12 +3181,12 @@ constructor TMFNode.CreateUndefined(AParentNode: TVRMLFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
-  FItems := TVRMLNodesList.Create(false);
+  FItems := TVRMLNodeList.Create(false);
 
   AllowedChildren := acAll;
   { AllowedChildrenClasses may remain nil in this case }
 
-  FDefaultItems := TVRMLNodesList.Create(false);
+  FDefaultItems := TVRMLNodeList.Create(false);
   FDefaultValueExists := false;
 end;
 
@@ -3376,7 +3376,7 @@ begin
   FDefaultItems.Count := 0;
 end;
 
-procedure TMFNode.AssignItems(SourceItems: TVRMLNodesList);
+procedure TMFNode.AssignItems(SourceItems: TVRMLNodeList);
 var
   I: Integer;
 begin
@@ -3388,7 +3388,7 @@ begin
     Items[I].AddParentField(Self);
 end;
 
-procedure TMFNode.AssignDefaultItems(SourceItems: TVRMLNodesList);
+procedure TMFNode.AssignDefaultItems(SourceItems: TVRMLNodeList);
 var
   I: Integer;
 begin
@@ -4035,9 +4035,9 @@ begin
   Result.FieldOrEvent.ParentInterfaceDeclaration := Result;
 end;
 
-{ TVRMLInterfaceDeclarationsList --------------------------------------------- }
+{ TVRMLInterfaceDeclarationList --------------------------------------------- }
 
-function TVRMLInterfaceDeclarationsList.TryFindName(
+function TVRMLInterfaceDeclarationList.TryFindName(
   const Name: string): TVRMLFieldOrEvent;
 var
   I: Integer;
@@ -4051,7 +4051,7 @@ begin
   Result := nil;
 end;
 
-function TVRMLInterfaceDeclarationsList.TryFindFieldName(const Name: string): TVRMLField;
+function TVRMLInterfaceDeclarationList.TryFindFieldName(const Name: string): TVRMLField;
 var
   I: Integer;
 begin
@@ -4065,7 +4065,7 @@ begin
   Result := nil;
 end;
 
-function TVRMLInterfaceDeclarationsList.TryFindEventName(const Name: string): TVRMLEvent;
+function TVRMLInterfaceDeclarationList.TryFindEventName(const Name: string): TVRMLEvent;
 var
   I: Integer;
 begin
@@ -4574,7 +4574,7 @@ end;
 constructor TVRMLPrototypeBase.Create;
 begin
   inherited;
-  FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(true);
+  FInterfaceDeclarations := TVRMLInterfaceDeclarationList.Create(true);
 end;
 
 destructor TVRMLPrototypeBase.Destroy;

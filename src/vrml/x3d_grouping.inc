@@ -355,7 +355,7 @@ type
     if Child is TNodeEffect then
     begin
       if State.Effects = nil then
-        State.Effects := TVRMLNodesList.Create(false);
+        State.Effects := TVRMLNodeList.Create(false);
       State.Effects.Add(Child);
     end;
   end;
@@ -621,7 +621,7 @@ end;
 procedure TVRMLRootNode.SaveToStream(Writer: TX3DWriter);
 var
   I: integer;
-  FileItems: TVRMLFileItemsList;
+  FileItems: TVRMLFileItemList;
 begin
   if SaveAsRootNode then
   begin
@@ -632,7 +632,7 @@ begin
         It's output in a special way, without writing "children [...]" around.
         Other fields are ignored (should never have any meaning). }
 
-    FileItems := TVRMLFileItemsList.Create(false);
+    FileItems := TVRMLFileItemList.Create(false);
     try
       for I := 0 to Prototypes.Count - 1 do
         FileItems.Add(Prototypes[I]);

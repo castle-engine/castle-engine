@@ -958,8 +958,8 @@ type
       uninitialized values) in UnprepareAll. }
 
     GLTextureNodes: TGLTextureNodes;
-    BumpMappingRenderers: TBumpMappingRenderersList;
-    ScreenEffectPrograms: TGLSLProgramsList;
+    BumpMappingRenderers: TBumpMappingRendererList;
+    ScreenEffectPrograms: TGLSLProgramList;
 
     { To which fonts we made a reference in the cache ? }
     FontsReferences: array [TVRMLFontFamily, boolean, boolean] of boolean;
@@ -1146,7 +1146,7 @@ type
     procedure RenderCleanState(const Beginning: boolean);
 
     procedure PrepareIDecls(Nodes: TMFNode; State: TVRMLGraphTraverseState);
-    procedure PrepareIDecls(Nodes: TVRMLNodesList; State: TVRMLGraphTraverseState);
+    procedure PrepareIDecls(Nodes: TVRMLNodeList; State: TVRMLGraphTraverseState);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -2325,8 +2325,8 @@ begin
   FAttributes := AttributesClass.Create;
 
   GLTextureNodes := TGLTextureNodes.Create(false);
-  BumpMappingRenderers := TBumpMappingRenderersList.Create(false);
-  ScreenEffectPrograms := TGLSLProgramsList.Create;
+  BumpMappingRenderers := TBumpMappingRendererList.Create(false);
+  ScreenEffectPrograms := TGLSLProgramList.Create;
 
   TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
 
@@ -2509,7 +2509,7 @@ begin
   PrepareIDecls(Nodes.Items, State);
 end;
 
-procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TVRMLNodesList;
+procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TVRMLNodeList;
   State: TVRMLGraphTraverseState);
 var
   I: Integer;
@@ -3479,7 +3479,7 @@ var
   var
     I, J: Integer;
     UniformField: TVRMLField;
-    IDecls: TVRMLInterfaceDeclarationsList;
+    IDecls: TVRMLInterfaceDeclarationList;
   begin
     IDecls := Node.InterfaceDeclarations;
     Result := 0;

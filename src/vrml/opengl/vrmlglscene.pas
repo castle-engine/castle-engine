@@ -68,7 +68,7 @@ type
   TTestShapeVisibility = function (Shape: TVRMLGLShape): boolean
     of object;
 
-  TVRMLGLScenesList = class;
+  TVRMLGLSceneList = class;
 
   { Values for TVRMLSceneRenderingAttributes.WireframeEffect.
 
@@ -148,7 +148,7 @@ type
   TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
   private
     { Scenes that use Renderer with this TVRMLSceneRenderingAttributes instance. }
-    FScenes: TVRMLGLScenesList;
+    FScenes: TVRMLGLSceneList;
 
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
@@ -969,7 +969,7 @@ type
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
   end;
 
-  TVRMLGLScenesList = class(specialize TFPGObjectList<TVRMLGLScene>)
+  TVRMLGLSceneList = class(specialize TFPGObjectList<TVRMLGLScene>)
   private
     { Just call InvalidateBackground or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in
@@ -1138,7 +1138,7 @@ end;
 
 type
   TShapesSplitBlendingHelper = class
-    Shapes: array [boolean] of TVRMLShapesList;
+    Shapes: array [boolean] of TVRMLShapeList;
     TestShapeVisibility: TTestShapeVisibility;
 
     procedure AddToList(Shape: TVRMLShape);
@@ -1199,12 +1199,12 @@ begin
     Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-{ Create two TVRMLShapesList lists simultaneously, one with opaque shapes
+{ Create two TVRMLShapeList lists simultaneously, one with opaque shapes
   (UseBlending = @false), the other with transparent shapes
   (UseBlending = @true).
 
-  It's exactly like you would create a list TVRMLShapesList by traversing
-  the Tree (by @code(TVRMLShapesList.Create(Tree: TVRMLShapeTree;
+  It's exactly like you would create a list TVRMLShapeList by traversing
+  the Tree (by @code(TVRMLShapeList.Create(Tree: TVRMLShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean))),
   and then filter it to two lists: one only with UseBlending = @false,
   the other with the rest.
@@ -1218,13 +1218,13 @@ procedure VRMLShapesSplitBlending(
   Tree: TVRMLShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   TestShapeVisibility: TTestShapeVisibility;
-  out OpaqueShapes, TransparentShapes: TVRMLShapesList);
+  out OpaqueShapes, TransparentShapes: TVRMLShapeList);
 var
   Helper: TShapesSplitBlendingHelper;
   Capacity: Integer;
 begin
-  OpaqueShapes      := TVRMLShapesList.Create;
-  TransparentShapes := TVRMLShapesList.Create;
+  OpaqueShapes      := TVRMLShapeList.Create;
+  TransparentShapes := TVRMLShapeList.Create;
 
   Helper := TShapesSplitBlendingHelper.Create;
   try
@@ -2109,7 +2109,7 @@ var
   end;
 
 var
-  OpaqueShapes, TransparentShapes: TVRMLShapesList;
+  OpaqueShapes, TransparentShapes: TVRMLShapeList;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
   I: Integer;
   LightRenderEvent: TVRMLLightRenderEvent;
@@ -3895,7 +3895,7 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
 
-  FScenes := TVRMLGLScenesList.Create(false);
+  FScenes := TVRMLGLSceneList.Create(false);
 end;
 
 destructor TVRMLSceneRenderingAttributes.Destroy;
@@ -4007,9 +4007,9 @@ begin
   end;
 end;
 
-{ TVRMLGLScenesList ------------------------------------------------------ }
+{ TVRMLGLSceneList ------------------------------------------------------ }
 
-procedure TVRMLGLScenesList.GLContextClose;
+procedure TVRMLGLSceneList.GLContextClose;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4020,7 +4020,7 @@ begin
      Items[I].GLContextClose;
 end;
 
-procedure TVRMLGLScenesList.InvalidateBackground;
+procedure TVRMLGLSceneList.InvalidateBackground;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4031,7 +4031,7 @@ begin
      Items[I].InvalidateBackground;
 end;
 
-procedure TVRMLGLScenesList.CloseGLRenderer;
+procedure TVRMLGLSceneList.CloseGLRenderer;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4042,7 +4042,7 @@ begin
      Items[I].CloseGLRenderer;
 end;
 
-procedure TVRMLGLScenesList.ViewChangedSuddenly;
+procedure TVRMLGLSceneList.ViewChangedSuddenly;
 var
   I: Integer;
 begin

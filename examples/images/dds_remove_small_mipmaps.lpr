@@ -15,11 +15,14 @@
 
 { Remove from DDS mipmaps the levels with one of the sizes < 4.
 
-  This workarounds GIMP-DDS bugs related to this, it generates invalid
-  images for them. }
+  This workarounds bug in older version of GIMP-DDS, it generated invalid
+  images for smaller mipmaps. The bug is fixed in GIMP-DDS >= 2.0.9.
+  See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=564111 ,
+  http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=564113 . }
 program dds_remove_smallest_mipmaps;
 
-uses SysUtils, KambiUtils, Images, DDS, KambiWarnings, KambiStringUtils;
+uses SysUtils, KambiUtils, Images, DDS, KambiWarnings, KambiStringUtils,
+  KambiClassUtils;
 
 var
   D: TDDSImage;
@@ -45,7 +48,7 @@ begin
         begin
           Writeln(Format('Removing mipmap with size %d x %d.',
             [D.Images[I].Width, D.Images[I].Height]));
-          D.Images.FreeAndNil(I);
+          FPGObjectList_FreeAndNilItem(D.Images, I);
           D.Images.Delete(I);
           D.MipmapsCount := D.MipmapsCount - 1;
           NeedsSave := true;

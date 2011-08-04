@@ -187,20 +187,20 @@ type
 
   TVRMLShapeOctree = class(TVRMLBaseTrianglesOctree)
   private
-    FShapesList: TVRMLShapesList;
+    FShapesList: TVRMLShapeList;
     FOwnsShapesList: boolean;
   protected
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
-      const ARootBox: TBox3D; AShapesList: TVRMLShapesList;
+      const ARootBox: TBox3D; AShapesList: TVRMLShapeList;
       AOwnsShapesList: boolean);
 
     destructor Destroy; override;
 
     function TreeRoot: TVRMLShapeOctreeNode;
-    property ShapesList: TVRMLShapesList read FShapesList;
+    property ShapesList: TVRMLShapeList read FShapesList;
     property OwnsShapesList: boolean read FOwnsShapesList;
 
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
@@ -633,7 +633,7 @@ end;
 { TVRMLShapeOctree ------------------------------------------ }
 
 constructor TVRMLShapeOctree.Create(const ALimits: TOctreeLimits;
-  const ARootBox: TBox3D; AShapesList: TVRMLShapesList;
+  const ARootBox: TBox3D; AShapesList: TVRMLShapeList;
   AOwnsShapesList: boolean);
 begin
   inherited Create(ALimits, ARootBox, TVRMLShapeOctreeNode, true);

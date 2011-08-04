@@ -26,11 +26,11 @@ uses SysUtils, KambiUtils, KambiClassUtils, Classes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  TSceneSectorsList = class;
+  TSceneSectorList = class;
 
   TSceneWaypoint = class
   private
-    FSectors: TSceneSectorsList;
+    FSectors: TSceneSectorList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -38,10 +38,10 @@ type
     Position: TVector3Single;
 
     { Sectors that contain this waypoint. }
-    property Sectors: TSceneSectorsList read FSectors;
+    property Sectors: TSceneSectorList read FSectors;
   end;
 
-  TSceneWaypointsList = class(specialize TFPGObjectList<TSceneWaypoint>)
+  TSceneWaypointList = class(specialize TFPGObjectList<TSceneWaypoint>)
   public
     { Shapes placed under the name Waypoint<index>_<ignored>
       are removed from the Scene, and are added as new waypoint with
@@ -57,7 +57,7 @@ type
   private
     FBoundingBoxes: TDynBox3DArray;
     FVisibleSectors: TDynBooleanArray;
-    FWaypoints: TSceneWaypointsList;
+    FWaypoints: TSceneWaypointList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -97,13 +97,13 @@ type
     property VisibleSectors: TDynBooleanArray read FVisibleSectors;
 
     { Waypoints that are included in this sector. }
-    property Waypoints: TSceneWaypointsList read FWaypoints;
+    property Waypoints: TSceneWaypointList read FWaypoints;
   end;
 
   ESectorNotInitialized = class(Exception);
   EWaypointNotInitialized = class(Exception);
 
-  TSceneSectorsList = class(specialize TFPGObjectList<TSceneSector>)
+  TSceneSectorList = class(specialize TFPGObjectList<TSceneSector>)
   public
     { Shapes placed under the name Sector<index>_<ignored>
       are removed from the Scene, and are added to sector <index> BoundingBoxes.
@@ -123,7 +123,7 @@ type
 
       @raises ESectorNotInitialized When some sector is nil.
       @raises EWaypointNotInitialized When some waypoint is nil. }
-    procedure LinkToWaypoints(Waypoints: TSceneWaypointsList;
+    procedure LinkToWaypoints(Waypoints: TSceneWaypointList;
       const SectorsBoxesMargin: Single);
 
     { Returns sector with given point (using IsPointInside of each sector).
@@ -153,7 +153,7 @@ type
       Right now it uses depth-first search. For small sectors+waypoints
       graphs it doesn't matter. }
     class function FindWay(SectorBegin, SectorEnd: TSceneSector;
-      Waypoints: TSceneWaypointsList): boolean;
+      Waypoints: TSceneWaypointList): boolean;
   end;
 
 implementation
@@ -165,7 +165,7 @@ uses KambiStringUtils, VRMLShape;
 constructor TSceneWaypoint.Create;
 begin
   inherited Create;
-  FSectors := TSceneSectorsList.Create(false);
+  FSectors := TSceneSectorList.Create(false);
 end;
 
 destructor TSceneWaypoint.Destroy;
@@ -174,11 +174,11 @@ begin
   inherited;
 end;
 
-{ TSceneWaypointsList -------------------------------------------------------- }
+{ TSceneWaypointList -------------------------------------------------------- }
 
-procedure TSceneWaypointsList.ExtractPositions(Scene: TVRMLScene);
+procedure TSceneWaypointList.ExtractPositions(Scene: TVRMLScene);
 var
-  NodesToRemove: TVRMLNodesList;
+  NodesToRemove: TVRMLNodeList;
 
   procedure TraverseForWaypoints(Shape: TVRMLShape);
 
@@ -224,7 +224,7 @@ var
   I: Integer;
   SI: TVRMLShapeTreeIterator;
 begin
-  NodesToRemove := TVRMLNodesList.Create(false);
+  NodesToRemove := TVRMLNodeList.Create(false);
   try
     SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
@@ -246,7 +246,7 @@ begin
   inherited Create;
   FBoundingBoxes := TDynBox3DArray.Create;
   FVisibleSectors := TDynBooleanArray.Create;
-  FWaypoints := TSceneWaypointsList.Create(false);
+  FWaypoints := TSceneWaypointList.Create(false);
 end;
 
 destructor TSceneSector.Destroy;
@@ -281,11 +281,11 @@ begin
   Result := false;
 end;
 
-{ TSceneSectorsList -------------------------------------------------------- }
+{ TSceneSectorList -------------------------------------------------------- }
 
-procedure TSceneSectorsList.ExtractBoundingBoxes(Scene: TVRMLScene);
+procedure TSceneSectorList.ExtractBoundingBoxes(Scene: TVRMLScene);
 var
-  NodesToRemove: TVRMLNodesList;
+  NodesToRemove: TVRMLNodeList;
 
   procedure TraverseForSectors(Shape: TVRMLShape);
 
@@ -329,7 +329,7 @@ var
   I: Integer;
   SI: TVRMLShapeTreeIterator;
 begin
-  NodesToRemove := TVRMLNodesList.Create(false);
+  NodesToRemove := TVRMLNodeList.Create(false);
   try
     SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
@@ -344,7 +344,7 @@ begin
   Scene.ChangedAll;
 end;
 
-procedure TSceneSectorsList.LinkToWaypoints(Waypoints: TSceneWaypointsList;
+procedure TSceneSectorList.LinkToWaypoints(Waypoints: TSceneWaypointList;
   const SectorsBoxesMargin: Single);
 var
   S: TSceneSector;
@@ -379,7 +379,7 @@ begin
   end;
 end;
 
-function TSceneSectorsList.SectorWithPoint(const Point: TVector3Single):
+function TSceneSectorList.SectorWithPoint(const Point: TVector3Single):
   TSceneSector;
 var
   I: Integer;
@@ -393,11 +393,11 @@ begin
   Result := nil;
 end;
 
-class function TSceneSectorsList.FindWay(SectorBegin, SectorEnd: TSceneSector;
-  Waypoints: TSceneWaypointsList): boolean;
+class function TSceneSectorList.FindWay(SectorBegin, SectorEnd: TSceneSector;
+  Waypoints: TSceneWaypointList): boolean;
 var
   { This is used to avoid falling into loops. }
-  SectorsVisited: TSceneSectorsList;
+  SectorsVisited: TSceneSectorList;
 
   function FindWayToSectorEnd(SectorNow: TSceneSector;
     SectorDistance: Integer): boolean;
@@ -442,7 +442,7 @@ begin
     so Waypoints.Count will have to be > 0 in this case.
     Just like I promised in the interface. }
 
-  SectorsVisited := TSceneSectorsList.Create(false);
+  SectorsVisited := TSceneSectorList.Create(false);
   try
     Result := FindWayToSectorEnd(SectorBegin, 0);
   finally SectorsVisited.Free end;

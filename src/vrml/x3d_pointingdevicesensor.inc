@@ -16,7 +16,7 @@
 {$ifdef read_interface}
   { List of pointing device sensors. Only nodes descending from
     X3DPointingDeviceSensorNode, and additionally an Anchor node. }
-  TPointingDeviceSensorsList = class(TVRMLNodesList)
+  TPointingDeviceSensorList = class(TVRMLNodeList)
   public
     { Transformation (and inverse) of all the sensors on this list.
       VRML/X3D specification guarantees that all sensors within a single state
@@ -26,7 +26,7 @@
     function EnabledCount: Integer;
     function Enabled(Index: Integer): boolean;
 
-    procedure Assign(Source: TPointingDeviceSensorsList);
+    procedure Assign(Source: TPointingDeviceSensorList);
   end;
 
   { }
@@ -245,9 +245,9 @@
 
 {$ifdef read_implementation}
 
-{ TPointingDeviceSensorsList ------------------------------------------------- }
+{ TPointingDeviceSensorList ------------------------------------------------- }
 
-function TPointingDeviceSensorsList.EnabledCount: Integer;
+function TPointingDeviceSensorList.EnabledCount: Integer;
 var
   I: Integer;
 begin
@@ -257,13 +257,13 @@ begin
       Inc(Result);
 end;
 
-function TPointingDeviceSensorsList.Enabled(Index: Integer): boolean;
+function TPointingDeviceSensorList.Enabled(Index: Integer): boolean;
 begin
   Result := (not (Items[Index] is TNodeX3DPointingDeviceSensorNode)) or
     TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
 end;
 
-procedure TPointingDeviceSensorsList.Assign(Source: TPointingDeviceSensorsList);
+procedure TPointingDeviceSensorList.Assign(Source: TPointingDeviceSensorList);
 begin
   inherited;
   Transform := Source.Transform;

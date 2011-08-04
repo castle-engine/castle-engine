@@ -19,7 +19,7 @@
 {$ifdef read_interface}
 
   { }
-  TVRMLBindableStackBasic = class(TVRMLNodesList)
+  TVRMLBindableStackBasic = class(TVRMLNodeList)
   public
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
@@ -35,7 +35,7 @@
     procedure IncreaseTimeTick; virtual; abstract;
   end;
 
-  TVRMLChangesEnginesList = class(specialize TFPGObjectList<TVRMLChangesEngine>)
+  TVRMLChangesEngineList = class(specialize TFPGObjectList<TVRMLChangesEngine>)
   public
     { Notify listeners about a field value change.
       See TVRMLScene.ChangedField for exact specification. }
@@ -57,7 +57,7 @@
 
 {$ifdef read_implementation}
 
-procedure TVRMLChangesEnginesList.ChangedField(Field: TVRMLField);
+procedure TVRMLChangesEngineList.ChangedField(Field: TVRMLField);
 var
   I: Integer;
 begin

@@ -1603,8 +1603,8 @@ var
     Initialization / finalization of this unit automatically take care of them.
 
     @groupBegin }
-  LoadImage_FileFilters: TFileFiltersList;
-  SaveImage_FileFilters: TFileFiltersList;
+  LoadImage_FileFilters: TFileFilterList;
+  SaveImage_FileFilters: TFileFilterList;
   { @groupEnd }
 
 {$undef read_interface}
@@ -3621,15 +3621,15 @@ end;
 
 procedure InitializeImagesFileFilters;
 
-  function CreateImagesFilters: TFileFiltersList;
+  function CreateImagesFilters: TFileFilterList;
   begin
-    Result := TFileFiltersList.Create(true);
+    Result := TFileFilterList.Create(true);
     Result.AddFilter('All Files', ['*']);
     Result.AddFilter('All Images', []);
     Result.DefaultFilter := 1;
   end;
 
-  procedure AddImageFormat(Filters: TFileFiltersList; Format: TImageFormatInfo);
+  procedure AddImageFormat(Filters: TFileFilterList; Format: TImageFormatInfo);
   var
     F: TFileFilter;
     ExtIndex: Integer;

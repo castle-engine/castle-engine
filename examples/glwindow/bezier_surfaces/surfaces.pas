@@ -49,7 +49,7 @@ type
       this list.
 
       @noAutoLinkHere }
-    Curves: TCurvesList;
+    Curves: TCurveList;
 
     { XBegin/XEnd determine the valid range of t.
       Must be XBegin <= XEnd.
@@ -88,7 +88,7 @@ uses KambiClassUtils, GL, GLU, KambiGLUtils, VectorMath, SysUtils,
 constructor TSurface.Create(const AXBegin, AXEnd, AYBegin, AYEnd: Float);
 begin
   inherited Create;
-  Curves := TCurvesList.Create(true);
+  Curves := TCurveList.Create(true);
   FXBegin := AXBegin;
   FXEnd   := AXEnd;
   FYBegin := AYBegin;

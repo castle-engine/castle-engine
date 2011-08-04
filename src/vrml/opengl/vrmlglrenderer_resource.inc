@@ -20,7 +20,7 @@
     procedure Unprepare; virtual; abstract;
   end;
 
-  TResourceRenderersList = class(specialize TFPGObjectList<TResourceRenderer>)
+  TResourceRendererList = class(specialize TFPGObjectList<TResourceRenderer>)
   private
     InsideUnprepareAll: Cardinal;
   public
@@ -62,16 +62,16 @@ begin
   FNode := ANode;
 end;
 
-{ TResourceRenderersList ----------------------------------------------------- }
+{ TResourceRendererList ----------------------------------------------------- }
 
-function TResourceRenderersList.NodeIndex(ANode: TVRMLNode): Integer;
+function TResourceRendererList.NodeIndex(ANode: TVRMLNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Node = ANode then Exit;
   Result := -1;
 end;
 
-function TResourceRenderersList.Node(ANode: TVRMLNode): TResourceRenderer;
+function TResourceRendererList.Node(ANode: TVRMLNode): TResourceRenderer;
 var
   I: Integer;
 begin
@@ -83,7 +83,7 @@ begin
   Result := nil;
 end;
 
-procedure TResourceRenderersList.Unprepare(ANode: TVRMLNode);
+procedure TResourceRendererList.Unprepare(ANode: TVRMLNode);
 var
   I: integer;
 begin
@@ -115,7 +115,7 @@ begin
   end;
 end;
 
-procedure TResourceRenderersList.UnprepareAll;
+procedure TResourceRendererList.UnprepareAll;
 var
   I: Integer;
 begin

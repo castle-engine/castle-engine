@@ -79,7 +79,7 @@ type
     VertexesInFrameCount: Cardinal;
   end;
 
-  TMd3SurfacesList = specialize TFPGObjectList<TMd3Surface>;
+  TMd3SurfaceList = specialize TFPGObjectList<TMd3Surface>;
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
@@ -109,7 +109,7 @@ type
   public
     Name: string;
 
-    Surfaces: TMd3SurfacesList;
+    Surfaces: TMd3SurfaceList;
 
     FramesCount: Cardinal;
 
@@ -139,7 +139,7 @@ function LoadMD3(const FileName: string): TVRMLRootNode;
 { Load MD3 animation as a sequence of static X3D models. }
 procedure LoadMD3Sequence(
   const FileName: string;
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -358,7 +358,7 @@ begin
     end;
   end;
 
-  Surfaces := TMd3SurfacesList.Create(true);
+  Surfaces := TMd3SurfaceList.Create(true);
 
   if Header.NumSurfaces <> 0 then
   begin
@@ -596,7 +596,7 @@ end;
 
 procedure LoadMD3Sequence(
   const FileName: string;
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;

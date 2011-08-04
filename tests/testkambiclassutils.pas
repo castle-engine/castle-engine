@@ -43,7 +43,7 @@ type
     S: string;
   end;
 
-  TFoosList = class(specialize TFPGObjectList<TFoo>)
+  TFooList = class(specialize TFPGObjectList<TFoo>)
   public
     procedure SortFoo;
   end;
@@ -63,7 +63,7 @@ begin
   Result := A.I - B.I;
 end;
 
-procedure TFoosList.SortFoo;
+procedure TFooList.SortFoo;
 begin
   Sort(@IsFooSmaller);
 end;
@@ -145,9 +145,9 @@ end;
 
 procedure TTestKambiClassUtils.TestObjectsListSort;
 var
-  L: TFoosList;
+  L: TFooList;
 begin
-  L := TFoosList.Create(true);
+  L := TFooList.Create(true);
   try
     L.Add(TFoo.Create(123, 'abc'));
     L.Add(TFoo.Create(-5, 'ZZZ'));

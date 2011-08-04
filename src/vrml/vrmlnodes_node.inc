@@ -21,7 +21,7 @@
   TVRMLNodeDeepCopyState = class
   private
     { These two lists must always have exactly the same length. }
-    Original, New: TVRMLNodesList;
+    Original, New: TVRMLNodeList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -47,20 +47,20 @@
   private
     fNodeName: string;
     FWWWBasePath: string;
-    FVRML1Children, FVRML1Parents: TVRMLNodesList;
+    FVRML1Children, FVRML1Parents: TVRMLNodeList;
     FKeepExisting: Cardinal;
-    FParentFields: TVRMLFieldsList;
-    FPrototypes: TVRMLPrototypeBasesList;
-    FRoutes: TVRMLRoutesList;
-    FImportsList, FExportsList: TVRMLFileItemsList;
-    FFields: TVRMLFieldsList;
-    FEvents: TVRMLEventsList;
+    FParentFields: TVRMLFieldList;
+    FPrototypes: TVRMLPrototypeBaseList;
+    FRoutes: TVRMLRouteList;
+    FImportsList, FExportsList: TVRMLFileItemList;
+    FFields: TVRMLFieldList;
+    FEvents: TVRMLEventList;
     FPrototypeInstance: boolean;
     FPrototypeInstanceSourceNode: TVRMLPrototypeNode;
     FPrototypeInstanceHelpers: TVRMLNode;
     FDefaultContainerField: string;
     FHasInterfaceDeclarations: TVRMLAccessTypes;
-    FInterfaceDeclarations: TVRMLInterfaceDeclarationsList;
+    FInterfaceDeclarations: TVRMLInterfaceDeclarationList;
     FCDataField: TMFString;
     FDestructionNotifications: TDynNodeDestructionNotificationArray;
     FScene: TVRMLEventsEngine;
@@ -267,11 +267,11 @@
       added when reading node.
 
       All fields on this list are owned by this object. }
-    property Fields: TVRMLFieldsList read FFields;
+    property Fields: TVRMLFieldList read FFields;
 
     { Explicit events (that is, not exposed by some field) of this node.
       For exposed events, see each field's property ExposedEvents. }
-    property Events: TVRMLEventsList read FEvents;
+    property Events: TVRMLEventList read FEvents;
 
     { Search by name for given field or event (exposed by some field or not).
 
@@ -800,10 +800,10 @@
     function RemoveChildrenWithMatchingName(
       const Wildcard: string; IgnoreCase: Boolean): Cardinal;
 
-    property Prototypes: TVRMLPrototypeBasesList read FPrototypes;
-    property Routes: TVRMLRoutesList read FRoutes;
-    property ImportsList: TVRMLFileItemsList read FImportsList;
-    property ExportsList: TVRMLFileItemsList read FExportsList;
+    property Prototypes: TVRMLPrototypeBaseList read FPrototypes;
+    property Routes: TVRMLRouteList read FRoutes;
+    property ImportsList: TVRMLFileItemList read FImportsList;
+    property ExportsList: TVRMLFileItemList read FExportsList;
 
     { Create a deep copy of this node and all it's children.
 
@@ -920,7 +920,7 @@
       read FHasInterfaceDeclarations
       write SetHasInterfaceDeclarations default [];
 
-    property InterfaceDeclarations: TVRMLInterfaceDeclarationsList
+    property InterfaceDeclarations: TVRMLInterfaceDeclarationList
       read FInterfaceDeclarations;
     { @groupEnd }
 
@@ -991,7 +991,7 @@
     function NiceName: string;
   end;
 
-  TVRMLNodesList = class(specialize TFPGObjectList<TVRMLNode>)
+  TVRMLNodeList = class(specialize TFPGObjectList<TVRMLNode>)
     { @deprecated Deprecated name for FindName. }
     function FindNodeName(const Name: string): Integer;
 
@@ -1022,8 +1022,8 @@
 constructor TVRMLNodeDeepCopyState.Create;
 begin
   inherited;
-  Original := TVRMLNodesList.Create(false);
-  New := TVRMLNodesList.Create(false);
+  Original := TVRMLNodeList.Create(false);
+  New := TVRMLNodeList.Create(false);
 end;
 
 destructor TVRMLNodeDeepCopyState.Destroy;
@@ -1060,17 +1060,17 @@ begin
   FNodeName := ANodeName;
   FWWWBasePath := AWWWBasePath;
 
-  FVRML1Children := TVRMLNodesList.Create(false);
-  FVRML1Parents := TVRMLNodesList.Create(false);
-  FParentFields := TVRMLFieldsList.Create(false);
-  FFields := TVRMLFieldsList.Create(false);
+  FVRML1Children := TVRMLNodeList.Create(false);
+  FVRML1Parents := TVRMLNodeList.Create(false);
+  FParentFields := TVRMLFieldList.Create(false);
+  FFields := TVRMLFieldList.Create(false);
 
-  FEvents := TVRMLEventsList.Create(false);
+  FEvents := TVRMLEventList.Create(false);
 
-  FPrototypes := TVRMLPrototypeBasesList.Create(true);
-  FRoutes := TVRMLRoutesList.Create(true);
-  FImportsList := TVRMLFileItemsList.Create(true);
-  FExportsList := TVRMLFileItemsList.Create(true);
+  FPrototypes := TVRMLPrototypeBaseList.Create(true);
+  FRoutes := TVRMLRouteList.Create(true);
+  FImportsList := TVRMLFileItemList.Create(true);
+  FExportsList := TVRMLFileItemList.Create(true);
 
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
@@ -2351,11 +2351,11 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
 
   { Collect node contents to save.
     You want to save here exactly what you read in ParseNodeBodyElement. }
-  function ContentsToSave: TVRMLFileItemsList;
+  function ContentsToSave: TVRMLFileItemList;
   var
     I: integer;
   begin
-    Result := TVRMLFileItemsList.Create(false);
+    Result := TVRMLFileItemList.Create(false);
     try
       if HasInterfaceDeclarations <> [] then
       begin
@@ -2450,7 +2450,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
 
   procedure Classic;
   var
-    FileItems: TVRMLFileItemsList;
+    FileItems: TVRMLFileItemList;
     NodeFields, ProtoFields: TDynStringArray;
     I: Integer;
   begin
@@ -2490,7 +2490,7 @@ procedure TVRMLNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerF
 
   procedure Xml;
   var
-    FileItems: TVRMLFileItemsList;
+    FileItems: TVRMLFileItemList;
     HasContent: boolean;
     I: Integer;
     WriteContainerField: string;
@@ -2846,7 +2846,7 @@ begin
     begin
       { make sure InterfaceDeclarations is non-nil }
       if FInterfaceDeclarations = nil then
-        FInterfaceDeclarations := TVRMLInterfaceDeclarationsList.Create(true);
+        FInterfaceDeclarations := TVRMLInterfaceDeclarationList.Create(true);
     end else
     begin
       { make sure InterfaceDeclarations is nil }
@@ -3031,14 +3031,14 @@ begin
     Result += '(' + NodeName + ')';
 end;
 
-{ TVRMLNodesList ------------------------------------------------------------- }
+{ TVRMLNodeList ------------------------------------------------------------- }
 
-function TVRMLNodesList.FindNodeName(const Name: string): Integer;
+function TVRMLNodeList.FindNodeName(const Name: string): Integer;
 begin
   Result := IndexOfName(Name);
 end;
 
-function TVRMLNodesList.FindName(const Name: string): TVRMLNode;
+function TVRMLNodeList.FindName(const Name: string): TVRMLNode;
 var
   I: Integer;
 begin
@@ -3054,7 +3054,7 @@ begin
   Result := nil;
 end;
 
-function TVRMLNodesList.IndexOfName(const Name: string): Integer;
+function TVRMLNodeList.IndexOfName(const Name: string): Integer;
 begin
   if Name = '' then
     Exit(-1);
@@ -3065,13 +3065,13 @@ begin
   Result := -1;
 end;
 
-procedure TVRMLNodesList.AddIfNotExists(const Node: TVRMLNode);
+procedure TVRMLNodeList.AddIfNotExists(const Node: TVRMLNode);
 begin
   if IndexOf(Node) = -1 then
     Add(Node);
 end;
 
-procedure VRMLNodesList_FreeUnusedAndNil(var List: TVRMLNodesList);
+procedure VRMLNodeList_FreeUnusedAndNil(var List: TVRMLNodeList);
 var
   I: Integer;
 begin

@@ -1135,7 +1135,7 @@ begin
 end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
+  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Prepare string with encoded filter names and patterns, as specified
     in WinAPI OPENFILENAME reference.
@@ -1143,7 +1143,7 @@ function TGLWindow.FileDialog(const Title: string; var FileName: string;
     Note that Windows encoding of OpenFileName has limitations here, since all filters
     are passed in a string: pattern cannot contain ';', and WinAPI reference
     says that it also cannot contain a space. }
-  function MakeStrFilter(FileFilters: TFileFiltersList): string;
+  function MakeStrFilter(FileFilters: TFileFilterList): string;
   var
     I, J: Integer;
     Filter: TFileFilter;

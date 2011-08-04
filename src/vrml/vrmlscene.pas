@@ -362,20 +362,20 @@ type
   end;
 
   { List of transform nodes (INodeTransform),
-    used to extract TVRMLShapeTreesList for this node. }
-  TTransformInstancesList = class(TVRMLNodesList)
+    used to extract TVRMLShapeTreeList for this node. }
+  TTransformInstancesList = class(TVRMLNodeList)
   public
-    { Returns existing TVRMLShapeTreesList corresponding to given Node.
+    { Returns existing TVRMLShapeTreeList corresponding to given Node.
       If not found, and AutoCreate, then creates new.
       If not found, and not AutoCreate, then return @nil. }
     function Instances(Node: TVRMLNode;
-      const AutoCreate: boolean): TVRMLShapeTreesList;
+      const AutoCreate: boolean): TVRMLShapeTreeList;
     procedure FreeShapeTrees;
   end;
 
   { @exclude }
-  TProximitySensorInstancesList = specialize TFPGObjectList<TProximitySensorInstance>;
-  TTimeDependentHandlersList = class(specialize TFPGObjectList<TTimeDependentNodeHandler>)
+  TProximitySensorInstanceList = specialize TFPGObjectList<TProximitySensorInstance>;
+  TTimeDependentHandlerList = class(specialize TFPGObjectList<TTimeDependentNodeHandler>)
     procedure AddIfNotExists(const Item: TTimeDependentNodeHandler);
   end;
 
@@ -549,7 +549,7 @@ type
       We don't do AnimateSkin immediately, as it would force slowdown
       when many joints are changed at once (e.g. many joints, and each one
       animated with it's own OrientationInterpolator). }
-    ScheduledHumanoidAnimateSkin: TVRMLNodesList;
+    ScheduledHumanoidAnimateSkin: TVRMLNodeList;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -569,7 +569,7 @@ type
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
     procedure TransformationChanged(TransformNode: TVRMLNode;
-      Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
+      Instances: TVRMLShapeTreeList; const Changes: TVRMLChanges);
   private
     { For all INodeTransform, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -622,9 +622,9 @@ type
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
   private
-    KeyDeviceSensorNodes: TVRMLNodesList;
-    TimeDependentHandlers: TTimeDependentHandlersList;
-    ProximitySensors: TProximitySensorInstancesList;
+    KeyDeviceSensorNodes: TVRMLNodeList;
+    TimeDependentHandlers: TTimeDependentHandlerList;
+    ProximitySensors: TProximitySensorInstanceList;
 
     procedure ChangedAllEnumerateCallback(Node: TVRMLNode);
     procedure ScriptsInitializeCallback(Node: TVRMLNode);
@@ -664,7 +664,7 @@ type
     FPointingDeviceOverItem: PVRMLTriangle;
     FPointingDeviceOverPoint: TVector3Single;
     FPointingDeviceActive: boolean;
-    FPointingDeviceActiveSensors: TVRMLNodesList;
+    FPointingDeviceActiveSensors: TVRMLNodeList;
     procedure SetPointingDeviceActive(const Value: boolean);
   private
     FLogChanges: boolean;
@@ -790,7 +790,7 @@ type
     Dirty: Cardinal;
 
     { List of TNodeScreenEffect nodes, collected by ChangedAll. }
-    ScreenEffectNodes: TVRMLNodesList;
+    ScreenEffectNodes: TVRMLNodeList;
 
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
@@ -1415,7 +1415,7 @@ type
       This is just a shortcut for
       PointingDeviceOverItem^.State.PointingDeviceSensors,
       returning @nil if PointingDeviceOverItem = @nil. }
-    function PointingDeviceSensors: TPointingDeviceSensorsList;
+    function PointingDeviceSensors: TPointingDeviceSensorList;
 
     { Currently active pointing-device sensors.
       Only TNodeX3DPointingDeviceSensorNode instances.
@@ -1429,7 +1429,7 @@ type
       button). This means that when user moves the mouse while given
       sensors are active, he can move mouse over other items, even the ones
       where the active sensors aren't listed --- but the sensors remain active. }
-    property PointingDeviceActiveSensors: TVRMLNodesList
+    property PointingDeviceActiveSensors: TVRMLNodeList
       read FPointingDeviceActiveSensors;
 
     { Clear any references to OverItem passed previously to PointingDeviceMove.
@@ -2259,14 +2259,14 @@ end;
 { TTransformInstancesList ------------------------------------------------- }
 
 function TTransformInstancesList.Instances(Node: TVRMLNode;
-  const AutoCreate: boolean): TVRMLShapeTreesList;
+  const AutoCreate: boolean): TVRMLShapeTreeList;
 begin
-  Result := Node.ShapeTrees as TVRMLShapeTreesList;
+  Result := Node.ShapeTrees as TVRMLShapeTreeList;
 
   if (Result = nil) and AutoCreate then
   begin
-    Node.ShapeTrees := TVRMLShapeTreesList.Create(false);
-    Result := TVRMLShapeTreesList(Node.ShapeTrees);
+    Node.ShapeTrees := TVRMLShapeTreeList.Create(false);
+    Result := TVRMLShapeTreeList(Node.ShapeTrees);
     Add(Node);
   end;
 end;
@@ -2283,9 +2283,9 @@ begin
   Count := 0;
 end;
 
-{ TTimeDependentHandlersList ------------------------------------------------- }
+{ TTimeDependentHandlerList ------------------------------------------------- }
 
-procedure TTimeDependentHandlersList.AddIfNotExists(const Item: TTimeDependentNodeHandler);
+procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TTimeDependentNodeHandler);
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
@@ -2312,17 +2312,17 @@ begin
   FNavigationInfoStack := TNavigationInfoStack.Create(Self);
   FViewpointStack := TViewpointStack.Create(Self);
 
-  FPointingDeviceActiveSensors := TVRMLNodesList.Create(false);
+  FPointingDeviceActiveSensors := TVRMLNodeList.Create(false);
 
   FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
   TransformInstancesList := TTransformInstancesList.Create(false);
   BillboardInstancesList := TTransformInstancesList.Create(false);
   GeneratedTextures := TDynGeneratedTextureArray.Create;
-  ProximitySensors := TProximitySensorInstancesList.Create(false);
-  ScreenEffectNodes := TVRMLNodesList.Create(false);
-  ScheduledHumanoidAnimateSkin := TVRMLNodesList.Create(false);
-  KeyDeviceSensorNodes := TVRMLNodesList.Create(false);
-  TimeDependentHandlers := TTimeDependentHandlersList.Create(false);
+  ProximitySensors := TProximitySensorInstanceList.Create(false);
+  ScreenEffectNodes := TVRMLNodeList.Create(false);
+  ScheduledHumanoidAnimateSkin := TVRMLNodeList.Create(false);
+  KeyDeviceSensorNodes := TVRMLNodeList.Create(false);
+  TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -3414,7 +3414,7 @@ begin
 end;
 
 procedure TVRMLScene.TransformationChanged(TransformNode: TVRMLNode;
-  Instances: TVRMLShapeTreesList; const Changes: TVRMLChanges);
+  Instances: TVRMLShapeTreeList; const Changes: TVRMLChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
@@ -3542,7 +3542,7 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   var
-    Instances: TVRMLShapeTreesList;
+    Instances: TVRMLShapeTreeList;
   begin
     Check(Supports(Node, INodeTransform),
       'chTransform flag may be set only for INodeTransform');
@@ -4504,16 +4504,16 @@ function TVRMLScene.CreateShapeOctree(
   const Collidable: boolean): TVRMLShapeOctree;
 var
   I: Integer;
-  ShapesList: TVRMLShapesList;
+  ShapesList: TVRMLShapeList;
 begin
   Inc(Dirty);
   try
 
   if Collidable then
     { Add only active and collidable shapes }
-    ShapesList := TVRMLShapesList.Create(Shapes, true, false, true) else
+    ShapesList := TVRMLShapeList.Create(Shapes, true, false, true) else
     { Add only active and visible shapes }
-    ShapesList := TVRMLShapesList.Create(Shapes, true, true, false);
+    ShapesList := TVRMLShapeList.Create(Shapes, true, true, false);
 
   Result := TVRMLShapeOctree.Create(Limits, BoundingBox, ShapesList, true);
   try
@@ -5180,8 +5180,8 @@ var
   TouchSensor: TNodeTouchSensor;
   ActiveSensor: TNodeX3DPointingDeviceSensorNode;
   OldIsOver, NewIsOver: boolean;
-  OldSensors: TVRMLNodesList;
-  NewSensors: TVRMLNodesList;
+  OldSensors: TVRMLNodeList;
+  NewSensors: TVRMLNodeList;
   I: Integer;
 begin
   if ProcessEvents then
@@ -5418,7 +5418,7 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
 var
   I: Integer;
   ToActivate: TVRMLNode;
-  Sensors: TPointingDeviceSensorsList;
+  Sensors: TPointingDeviceSensorList;
   ActiveChanged: boolean;
   ActiveSensor: TNodeX3DPointingDeviceSensorNode;
 begin
@@ -5496,7 +5496,7 @@ begin
   end;
 end;
 
-function TVRMLScene.PointingDeviceSensors: TPointingDeviceSensorsList;
+function TVRMLScene.PointingDeviceSensors: TPointingDeviceSensorList;
 begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
@@ -5867,7 +5867,7 @@ begin
         (BillboardInstancesList[I] as TNodeBillboard).CameraChanged(
           FCameraPosition, FCameraDirection, FCameraUp);
         TransformationChanged(BillboardInstancesList[I],
-          BillboardInstancesList[I].ShapeTrees as TVRMLShapeTreesList,
+          BillboardInstancesList[I].ShapeTrees as TVRMLShapeTreeList,
           [chTransform]);
       end;
     end;

@@ -607,7 +607,7 @@ type
     function Node: TNodeX3DShapeNode;
   end;
 
-  TVRMLShapeTreesList = specialize TFPGObjectList<TVRMLShapeTree>;
+  TVRMLShapeTreeList = specialize TFPGObjectList<TVRMLShapeTree>;
 
   { Internal (non-leaf) node of the TVRMLShapeTree.
     This is practically just a list of other children
@@ -622,7 +622,7 @@ type
     complicated than this, because of DEF/USE mechanism.) }
   TVRMLShapeTreeGroup = class(TVRMLShapeTree)
   private
-    FChildren: TVRMLShapeTreesList;
+    FChildren: TVRMLShapeTreeList;
   public
     constructor Create(AParentScene: TObject);
     destructor Destroy; override;
@@ -632,7 +632,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
 
-    property Children: TVRMLShapeTreesList read FChildren;
+    property Children: TVRMLShapeTreeList read FChildren;
 
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
 
@@ -777,7 +777,7 @@ type
     function DebugInfo(const Indent: string = ''): string; override;
   end;
 
-  TVRMLShapesList = class;
+  TVRMLShapeList = class;
 
   { Iterates over all TVRMLShape items that would be enumerated by
     Tree.Traverse. Sometimes it's easier to write code using this iterator
@@ -791,7 +791,7 @@ type
     FOnlyActive, FOnlyVisible, FOnlyCollidable: boolean;
     function CurrentMatches: boolean;
     {$else}
-    List: TVRMLShapesList;
+    List: TVRMLShapeList;
     CurrentIndex: Integer;
     {$endif}
   public
@@ -803,7 +803,7 @@ type
     property Current: TVRMLShape read FCurrent;
   end;
 
-  TVRMLShapesList = class(specialize TFPGObjectList<TVRMLShape>)
+  TVRMLShapeList = class(specialize TFPGObjectList<TVRMLShape>)
   private
     AddedCount: Integer;
     procedure AddToList(Shape: TVRMLShape);
@@ -1713,7 +1713,7 @@ procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunctio
   end;
 
   { Scan IDecls for SFNode and MFNode fields, handling texture nodes inside. }
-  procedure HandleShaderFields(IDecls: TVRMLInterfaceDeclarationsList);
+  procedure HandleShaderFields(IDecls: TVRMLInterfaceDeclarationList);
   var
     I, J: Integer;
     UniformField: TVRMLField;
@@ -2058,7 +2058,7 @@ end;
 constructor TVRMLShapeTreeGroup.Create(AParentScene: TObject);
 begin
   inherited Create(AParentScene);
-  FChildren := TVRMLShapeTreesList.Create(true);
+  FChildren := TVRMLShapeTreeList.Create(true);
 end;
 
 destructor TVRMLShapeTreeGroup.Destroy;
@@ -2477,7 +2477,7 @@ constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
-  List := TVRMLShapesList.Create(Tree, OnlyActive, OnlyVisible, OnlyCollidable);
+  List := TVRMLShapeList.Create(Tree, OnlyActive, OnlyVisible, OnlyCollidable);
   CurrentIndex := -1;
 end;
 
@@ -2497,14 +2497,14 @@ end;
 
 {$endif SHAPE_ITERATOR_SOPHISTICATED}
 
-{ TVRMLShapesList ------------------------------------------------------- }
+{ TVRMLShapeList ------------------------------------------------------- }
 
-constructor TVRMLShapesList.Create;
+constructor TVRMLShapeList.Create;
 begin
   inherited Create(false);
 end;
 
-constructor TVRMLShapesList.Create(Tree: TVRMLShapeTree;
+constructor TVRMLShapeList.Create(Tree: TVRMLShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   Create;
@@ -2526,13 +2526,13 @@ begin
   Assert(AddedCount = Count);
 end;
 
-procedure TVRMLShapesList.AddToList(Shape: TVRMLShape);
+procedure TVRMLShapeList.AddToList(Shape: TVRMLShape);
 begin
   Items[AddedCount] := Shape;
   Inc(AddedCount);
 end;
 
-procedure TVRMLShapesList.AddToListIfVisible(Shape: TVRMLShape);
+procedure TVRMLShapeList.AddToListIfVisible(Shape: TVRMLShape);
 begin
   if Shape.Visible then
   begin
@@ -2541,7 +2541,7 @@ begin
   end;
 end;
 
-procedure TVRMLShapesList.AddToListIfCollidable(Shape: TVRMLShape);
+procedure TVRMLShapeList.AddToListIfCollidable(Shape: TVRMLShape);
 begin
   if Shape.Collidable then
   begin
@@ -2550,7 +2550,7 @@ begin
   end;
 end;
 
-procedure TVRMLShapesList.AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+procedure TVRMLShapeList.AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
 begin
   if Shape.Visible and Shape.Collidable then
   begin
@@ -2560,7 +2560,7 @@ begin
 end;
 
 var
-  { Has to be global (not private field in TVRMLShapesList),
+  { Has to be global (not private field in TVRMLShapeList),
     since TFPGObjectList.Sort requires normal function (not "of object"). }
   SortPosition: TVector3Single;
 
@@ -2602,13 +2602,13 @@ begin
     Result :=  0;
 end;
 
-procedure TVRMLShapesList.SortFrontToBack(const Position: TVector3Single);
+procedure TVRMLShapeList.SortFrontToBack(const Position: TVector3Single);
 begin
   SortPosition := Position;
   Sort(@IsSmallerFrontToBack);
 end;
 
-procedure TVRMLShapesList.SortBackToFront(const Position: TVector3Single);
+procedure TVRMLShapeList.SortBackToFront(const Position: TVector3Single);
 begin
   SortPosition := Position;
   Sort(@IsSmallerBackToFront);

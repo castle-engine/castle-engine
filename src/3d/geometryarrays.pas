@@ -79,7 +79,7 @@ type
     { Offset, only for Generation = tgExplicit. }
     Offset: Integer;
   end;
-  TGeometryTexCoordsList = specialize TFPGObjectList<TGeometryTexCoord>;
+  TGeometryTexCoordList = specialize TFPGObjectList<TGeometryTexCoord>;
 
   TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
     atMatrix3, atMatrix4);
@@ -93,7 +93,7 @@ type
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
-  TGeometryAttribsList = class(specialize TFPGObjectList<TGeometryAttrib>)
+  TGeometryAttribList = class(specialize TFPGObjectList<TGeometryAttrib>)
   public
     function Find(const Name: string): TGeometryAttrib;
   end;
@@ -135,8 +135,8 @@ type
     FogCoordOffset: Integer;
     FFogDirectValues: boolean;
 
-    FTexCoords: TGeometryTexCoordsList;
-    FAttribs: TGeometryAttribsList;
+    FTexCoords: TGeometryTexCoordList;
+    FAttribs: TGeometryAttribList;
 
     FCullBackFaces: boolean;
     FFrontFaceCcw: boolean;
@@ -270,7 +270,7 @@ type
       Index is texture unit (counted from renderer first available texture
       unit). If given item is @nil on this list, then this texture unit
       is not allocated (just like it would be outside of TexCoords.Count). }
-    property TexCoords: TGeometryTexCoordsList read FTexCoords;
+    property TexCoords: TGeometryTexCoordList read FTexCoords;
 
     procedure AddTexCoord2D(const TextureUnit: Cardinal);
     procedure AddTexCoord3D(const TextureUnit: Cardinal);
@@ -291,7 +291,7 @@ type
     function TexCoord3D(const TextureUnit, Index: Cardinal): PVector3Single;
     function TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
 
-    property Attribs: TGeometryAttribsList read FAttribs;
+    property Attribs: TGeometryAttribList read FAttribs;
 
     procedure AddGLSLAttributeFloat(const Name: string; const Internal: boolean);
     procedure AddGLSLAttributeVector2(const Name: string; const Internal: boolean);
@@ -355,9 +355,9 @@ implementation
 
 uses SysUtils, KambiStringUtils;
 
-{ TGeometryAttribsList ------------------------------------------------------- }
+{ TGeometryAttribList ------------------------------------------------------- }
 
-function TGeometryAttribsList.Find(const Name: string): TGeometryAttrib;
+function TGeometryAttribList.Find(const Name: string): TGeometryAttrib;
 var
   I: Integer;
 begin
@@ -375,8 +375,8 @@ begin
   inherited;
   FCoordinateSize := SizeOf(TVector3Single) * 2;
   FAttributeSize := 0;
-  FTexCoords := TGeometryTexCoordsList.Create;
-  FAttribs := TGeometryAttribsList.Create;
+  FTexCoords := TGeometryTexCoordList.Create;
+  FAttribs := TGeometryAttribList.Create;
 end;
 
 destructor TGeometryArrays.Destroy;

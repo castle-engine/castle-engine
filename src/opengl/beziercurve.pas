@@ -59,7 +59,7 @@ type
     destructor Destroy; override;
   end;
 
-  TRationalBezierCurvesList = specialize TFPGObjectList<TRationalBezierCurve>;
+  TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
 
   { Smooth interpolated curve, each ControlPoints[i]..ControlPoints[i+1]
     segment is converted to a rational Bezier curve (with 4 control points)
@@ -72,7 +72,7 @@ type
     (For TControlPointsCurve it must be >= 2) }
   TSmoothInterpolatedCurve = class(TInterpolatedCurve)
   private
-    BezierCurves: TRationalBezierCurvesList;
+    BezierCurves: TRationalBezierCurveList;
     ConvexHullPoints: TDynVector3SingleArray;
   protected
     function CreateConvexHullPoints: TDynVector3SingleArray; override;
@@ -92,7 +92,7 @@ type
       All Weights are set to 1.0 (so actually these are all normal
       Bezier curves; but I'm treating normal Bezier curves as Rational
       Bezier curves everywhere here) }
-    function ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurvesList;
+    function ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 
     procedure UpdateControlPoints; override;
 
@@ -252,7 +252,7 @@ begin
   Result := BezierCurves[i].Point(t);
 end;
 
-function TSmoothInterpolatedCurve.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurvesList;
+function TSmoothInterpolatedCurve.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 var
   S: TDynVector3SingleArray;
 
@@ -268,7 +268,7 @@ var
   i: Integer;
   NewCurve: TRationalBezierCurve;
 begin
-  Result := TRationalBezierCurvesList.Create(ResultOwnsCurves);
+  Result := TRationalBezierCurveList.Create(ResultOwnsCurves);
   try
     if ControlPoints.Count <= 1 then Exit;
 

@@ -51,7 +51,7 @@ type
     constructor Create(const AName: string);
   end;
 
-  TWavefrontMaterialsList = class(specialize TFPGObjectList<TWavefrontMaterial>)
+  TWavefrontMaterialList = class(specialize TFPGObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
@@ -80,7 +80,7 @@ type
     FTexCoords: TDynVector2SingleArray;
     FNormals: TDynVector3SingleArray;
     FFaces: TDynWavefrontFaceArray;
-    FMaterials: TWavefrontMaterialsList;
+    FMaterials: TWavefrontMaterialList;
   public
     constructor Create(const fname: string);
     destructor Destroy; override;
@@ -97,7 +97,7 @@ type
     property Faces: TDynWavefrontFaceArray read FFaces;
     { @groupEnd }
 
-    property Materials: TWavefrontMaterialsList read FMaterials;
+    property Materials: TWavefrontMaterialList read FMaterials;
   end;
 
   EInvalidOBJFile = class(Exception);
@@ -130,9 +130,9 @@ begin
   BumpTextureFileName := '';
 end;
 
-{ TWavefrontMaterialsList ---------------------------------------------------- }
+{ TWavefrontMaterialList ---------------------------------------------------- }
 
-function TWavefrontMaterialsList.TryFindName(const Name: string):
+function TWavefrontMaterialList.TryFindName(const Name: string):
   TWavefrontMaterial;
 var
   I: Integer;
@@ -414,7 +414,7 @@ begin
   FTexCoords := TDynVector2SingleArray.Create;
   FNormals := TDynVector3SingleArray.Create;
   FFaces := TDynWavefrontFaceArray.Create;
-  FMaterials := TWavefrontMaterialsList.Create(true);
+  FMaterials := TWavefrontMaterialList.Create(true);
 
   UsedMaterial := nil;
 
@@ -518,7 +518,7 @@ var
   FacesWithTexCoord, FacesWithNormal: boolean;
   Normal: TNodeNormal;
   FacesWithMaterial: TWavefrontMaterial;
-  Appearances: TVRMLNodesList;
+  Appearances: TVRMLNodeList;
   Shape: TNodeShape;
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(filename));
@@ -530,7 +530,7 @@ begin
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Appearances := TVRMLNodesList.Create(false);
+      Appearances := TVRMLNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;
       for I := 0 to Obj.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(Obj.Materials[I]);

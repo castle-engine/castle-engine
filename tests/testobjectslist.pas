@@ -35,13 +35,13 @@ type
     Str: string;
   end;
 
-  TItemsList = class(specialize TFPGObjectList<TItem>)
+  TItemList = class(specialize TFPGObjectList<TItem>)
     { For each item of the list, delete all it's duplicates. }
     procedure DeleteDuplicates;
-    procedure AddList(L: TItemsList);
+    procedure AddList(L: TItemList);
   end;
 
-procedure TItemsList.DeleteDuplicates;
+procedure TItemList.DeleteDuplicates;
 
   function IndexOf(Item: TItem; StartIndex: Integer): Integer;
   begin
@@ -68,7 +68,7 @@ begin
   end;
 end;
 
-procedure TItemsList.AddList(L: TItemsList);
+procedure TItemList.AddList(L: TItemList);
 var
   OldCount: Integer;
 begin
@@ -79,29 +79,29 @@ begin
 end;
 
 procedure TTestObjectsList.TestObjectsList;
-var ol, ol2: TItemsList;
+var ol, ol2: TItemList;
 begin
- ol := TItemsList.Create(false);
+ ol := TItemList.Create(false);
  try ol.Add(TItem.Create); ol[0].Str := 'foo'; ol[0].Free;
  finally ol.Free end;
 
- ol := TItemsList.Create(false);
+ ol := TItemList.Create(false);
  try ol.Add(TItem($454545)); ol.Delete(0);
  finally ol.Free end;
 
- ol := TItemsList.Create(true);
+ ol := TItemList.Create(true);
  try ol.Add(TItem.Create); ol.Clear;
  finally ol.Free end;
 
- ol := TItemsList.Create(true);
+ ol := TItemList.Create(true);
  try ol.Add(nil); ol.Clear;
  finally ol.Free end;
 
- ol := TItemsList.Create(true);
+ ol := TItemList.Create(true);
  try
   ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
-  ol2 := TItemsList.Create(false);
+  ol2 := TItemList.Create(false);
   try
    ol2.Add(TItem.Create); ol2.Last.Str := 'one';
    ol2.Add(TItem.Create); ol2.Last.Str := 'two';
@@ -110,11 +110,11 @@ begin
   ol.Clear;
  finally ol.Free end;
 
- ol := TItemsList.Create(true);
+ ol := TItemList.Create(true);
  try
   ol.Add(TItem.Create); ol.Last.Str := 'first item';
 
-  ol2 := TItemsList.Create(false);
+  ol2 := TItemList.Create(false);
   try
    ol2.Add(TItem.Create); ol2.Last.Str := 'one';
    ol2.Add(TItem.Create); ol2.Last.Str := 'two';

@@ -1524,7 +1524,7 @@ begin
 end;
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
+  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 {$ifndef GLWINDOW_GTK_1}
   { FileChooser is available only in GTK >= 2.4.
@@ -1537,7 +1537,7 @@ var
   HasDefaultFilter: boolean;
 
   procedure DialogAddFilters(Dialog: PGtkFileChooserDialog;
-    FileFilters: TFileFiltersList);
+    FileFilters: TFileFilterList);
   var
     I, J: Integer;
     GtkFilter: PGtkFileFilter;

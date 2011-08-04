@@ -72,7 +72,7 @@
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
   end;
 
-  TMenuEntriesList = specialize TFPGObjectList<TMenuEntry>;
+  TMenuEntryList = specialize TFPGObjectList<TMenuEntry>;
 
   TMenuEntryWithCaption = class(TMenuEntry)
   private
@@ -120,7 +120,7 @@
     This is the basic class to represent a drop-down menu, a submenu etc. }
   TMenu = class(TMenuEntryWithCaption)
   private
-    FEntries: TMenuEntriesList;
+    FEntries: TMenuEntryList;
     function GetEntries(Index: Integer): TMenuEntry;
   public
     { Items (entries) on the menu. Items are owned by this menu instance
@@ -551,7 +551,7 @@ end;
 constructor TMenu.Create(const ACaption: String);
 begin
   inherited Create(ACaption);
-  FEntries := TMenuEntriesList.Create(true);
+  FEntries := TMenuEntryList.Create(true);
 end;
 
 destructor TMenu.Destroy;
@@ -650,7 +650,7 @@ var
     it for now -- all my programs use a limited set of menu items, and usually
     free those menu items right before exiting. So there's no need to optimize
     this for them. }
-  MenuItems: TMenuEntriesList;
+  MenuItems: TMenuEntryList;
 
 function TMenuItem.DoCommand: boolean;
 begin
@@ -977,7 +977,7 @@ end;
 
 procedure GLWindowMenu_Init;
 begin
- MenuItems := TMenuEntriesList.Create(false);
+ MenuItems := TMenuEntryList.Create(false);
 end;
 
 procedure GLWindowMenu_Fini;

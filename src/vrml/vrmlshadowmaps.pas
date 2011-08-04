@@ -81,7 +81,7 @@ type
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     ShadowCastersBox: TBox3D;
-    LightsCastingOnEverything: TVRMLNodesList;
+    LightsCastingOnEverything: TVRMLNodeList;
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
@@ -578,7 +578,7 @@ begin
       Lights.ShadowCastersBox := EmptyBox3D;
 
       { calculate Lights.LightsCastingOnEverything first }
-      Lights.LightsCastingOnEverything := TVRMLNodesList.Create(false);
+      Lights.LightsCastingOnEverything := TVRMLNodeList.Create(false);
       Model.EnumerateNodes(TNodeX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
 
       Shapes.Traverse(@Lights.ShapeAdd, false);

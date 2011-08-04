@@ -139,7 +139,7 @@ end;
 { $I glwindow_dialogs_by_glwinmessages.inc}
 
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
+  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO }
 end;

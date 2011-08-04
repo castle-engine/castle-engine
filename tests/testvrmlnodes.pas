@@ -1389,7 +1389,7 @@ end;
 
 procedure TTestVRMLNodes.TestSortPositionInParent;
 var
-  List: TVRMLFileItemsList;
+  List: TVRMLFileItemList;
   I0, I1, I2, I3, I4, I5: TNodeTimeSensor;
 begin
   I0 := nil;
@@ -1408,7 +1408,7 @@ begin
     I4.PositionInParent := -10;
     I5 := TNodeTimeSensor.Create('', '');
     I5.PositionInParent := 10;
-    List := TVRMLFileItemsList.Create(false);
+    List := TVRMLFileItemList.Create(false);
 
     { QuickSort, used underneath SortPositionInParent, is not stable.
       Which means that items with equal PositionInParent (default -1

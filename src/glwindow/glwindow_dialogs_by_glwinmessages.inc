@@ -1,5 +1,5 @@
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
-  OpenDialog: boolean; FileFilters: TFileFiltersList): boolean;
+  OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   Result := MessageInputQuery(Self, Title, FileName, taLeft);
 end;

@@ -76,7 +76,7 @@ type
     [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
   TVRMLGLAnimation = class(TVRMLAnimation)
   private
-    FScenes: TVRMLGLScenesList;
+    FScenes: TVRMLGLSceneList;
     function GetScenes(I: Integer): TVRMLGLScene;
   private
     Renderer: TVRMLGLRenderer;
@@ -104,7 +104,7 @@ type
     function InfoBoundingBox: string;
   private
     { Helpers for Load implementation. }
-    Load_RootNodes: TVRMLNodesList;
+    Load_RootNodes: TVRMLNodeList;
     Load_Times: TDynSingleArray;
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TVRMLRootNode; out Time: Single);
@@ -205,7 +205,7 @@ type
         same node that are in fact equal.)
     }
     procedure Load(
-      RootNodes: TVRMLNodesList;
+      RootNodes: TVRMLNodeList;
       AOwnsFirstRootNode: boolean;
       ATimes: TDynSingleArray;
       ScenesPerTime: Cardinal;
@@ -636,7 +636,7 @@ type
     { @groupEnd }
   end;
 
-  TVRMLGLAnimationsList = specialize TFPGObjectList<TVRMLGLAnimation>;
+  TVRMLGLAnimationList = specialize TFPGObjectList<TVRMLGLAnimation>;
 
 procedure Register;
 
@@ -1145,7 +1145,7 @@ begin
 
   FOwnsFirstRootNode := AOwnsFirstRootNode;
 
-  FScenes := TVRMLGLScenesList.Create(false);
+  FScenes := TVRMLGLSceneList.Create(false);
 
   { calculate FScenes contents now }
 
@@ -1237,7 +1237,7 @@ begin
 end;
 
 procedure TVRMLGLAnimation.Load(
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   AOwnsFirstRootNode: boolean;
   ATimes: TDynSingleArray;
   ScenesPerTime: Cardinal;
@@ -1327,10 +1327,10 @@ procedure TVRMLGLAnimation.LoadStatic(
   RootNode: TVRMLNode;
   AOwnsRootNode: boolean);
 var
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   ATimes: TDynSingleArray;
 begin
-  RootNodes := TVRMLNodesList.Create(false);
+  RootNodes := TVRMLNodeList.Create(false);
   try
     ATimes := TDynSingleArray.Create;
     try
@@ -1345,13 +1345,13 @@ procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
   const AllowStdIn, LoadTime: boolean);
 var
   Times: TDynSingleArray;
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
   Times := TDynSingleArray.Create;
-  RootNodes := TVRMLNodesList.Create(false);
+  RootNodes := TVRMLNodeList.Create(false);
   try
     LoadVRMLSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,

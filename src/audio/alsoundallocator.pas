@@ -146,7 +146,7 @@ type
     property MaxDistance: Single read FMaxDistance write SetMaxDistance;
   end;
 
-  TALSoundsList = class(specialize TFPGObjectList<TALSound>)
+  TALSoundList = class(specialize TFPGObjectList<TALSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -192,7 +192,7 @@ type
     yourself often enough. }
   TALSoundAllocator = class
   private
-    FAllocatedSources: TALSoundsList;
+    FAllocatedSources: TALSoundList;
     FMinAllocatedSources: Cardinal;
     FMaxAllocatedSources: Cardinal;
     procedure SetMinAllocatedSources(const Value: Cardinal);
@@ -229,7 +229,7 @@ type
       Useful only for advanced or debuging tasks, in normal circumstances
       we mange this completely ourselves. This is @nil when ALContextOpen
       was not yet called. }
-    property AllocatedSources: TALSoundsList read FAllocatedSources;
+    property AllocatedSources: TALSoundList read FAllocatedSources;
 
     { Detect unused sounds. If you rely on your sources receiving
       TALSound.OnUsingEnd in a timely manner, be sure to call
@@ -410,7 +410,7 @@ begin
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
 end;
 
-{ TALSoundsList ----------------------------------------------------- }
+{ TALSoundList ----------------------------------------------------- }
 
 function IsSmallerByImportance(const AA, BB: TALSound): Integer;
 begin
@@ -423,7 +423,7 @@ begin
     Result :=  0;
 end;
 
-procedure TALSoundsList.SortByImportance;
+procedure TALSoundList.SortByImportance;
 begin
   Sort(@IsSmallerByImportance);
 end;
@@ -441,7 +441,7 @@ procedure TALSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin
-  FAllocatedSources := TALSoundsList.Create(false);
+  FAllocatedSources := TALSoundList.Create(false);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TALSound.Create;

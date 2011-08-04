@@ -50,9 +50,9 @@ var
   end;
 
 var
-  Vars: TKamScriptValuesList;
+  Vars: TKamScriptValueList;
 begin
-  Vars := TKamScriptValuesList.Create(true);
+  Vars := TKamScriptValueList.Create(true);
   try
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
@@ -151,9 +151,9 @@ var
   end;
 
 var
-  Vars: TKamScriptValuesList;
+  Vars: TKamScriptValueList;
 begin
-  Vars := TKamScriptValuesList.Create(true);
+  Vars := TKamScriptValueList.Create(true);
   try
     Vars.Add(TKamScriptInteger.Create(true));
     Vars.Add(TKamScriptFloat.Create(true));
@@ -239,10 +239,10 @@ end;
 
 procedure TTestKambiScriptVectors.TestMatrixSingle;
 var
-  Vars: TKamScriptValuesList;
+  Vars: TKamScriptValueList;
   Prog: TKamScriptProgram;
 begin
-  Vars := TKamScriptValuesList.Create(true);
+  Vars := TKamScriptValueList.Create(true);
   try
     Vars.Add(TKamScriptFloat.Create(true));
     Vars.Add(TKamScriptVec3f.Create(true));

@@ -2269,10 +2269,10 @@ end;
         so user will just always see everything. An overloaded version
         allows you to pass file filters encoded in a single string,
         this may be slightly more comfortable for call, see
-        TFileFiltersList.AddFiltersFromString
+        TFileFilterList.AddFiltersFromString
         for explanation how to encode filters in a string.) }
     function FileDialog(const Title: string; var FileName: string;
-      OpenDialog: boolean; FileFilters: TFileFiltersList = nil): boolean; overload;
+      OpenDialog: boolean; FileFilters: TFileFilterList = nil): boolean; overload;
     function FileDialog(const Title: string; var FileName: string;
       OpenDialog: boolean; const FileFilters: string): boolean; overload;
 
@@ -2558,7 +2558,7 @@ end;
   { Deprecated name for TGLUIWindow. @deprecated }
   TGLWindowNavigated = TGLUIWindow;
 
-  TGLWindowsList = class(specialize TFPGObjectList<TGLWindow>)
+  TGLWindowList = class(specialize TFPGObjectList<TGLWindow>)
   private
     { Call wszystkie OnIdle / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoIdle / DoTimer  is a simplest
@@ -2602,7 +2602,7 @@ end;
       Update in TGLWindow.MakeCurrent, also TGLWindow.Close. }
     Current: TGLWindow;
 
-    FOpenWindows: TGLWindowsList;
+    FOpenWindows: TGLWindowList;
     function GetOpenWindows(Index: integer): TGLWindow;
 
     { Add new item to OpenWindows.
@@ -3591,9 +3591,9 @@ end;
 function TGLWindow.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; const FileFilters: string): boolean;
 var
-  FFList: TFileFiltersList;
+  FFList: TFileFilterList;
 begin
-  FFList := TFileFiltersList.Create(true);
+  FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
     Result := FileDialog(Title, FileName, OpenDialog, FFList);
@@ -4745,23 +4745,23 @@ begin
   Result := FTooltipY;
 end;
 
-{ TGLWindowsList ------------------------------------------------------------ }
+{ TGLWindowList ------------------------------------------------------------ }
 
-procedure TGLWindowsList.PostRedisplay;
+procedure TGLWindowList.PostRedisplay;
 var
   i: Integer;
 begin
   for i := 0 to Count - 1 do Items[i].PostRedisplay;
 end;
 
-procedure TGLWindowsList.DoIdle;
+procedure TGLWindowList.DoIdle;
 var
   i: integer;
 begin
   for i := 0 to Count - 1 do Items[i].DoIdle;
 end;
 
-procedure TGLWindowsList.DoTimer;
+procedure TGLWindowList.DoTimer;
 var
   i: integer;
 begin
@@ -4775,7 +4775,7 @@ end;
 constructor TGLApplication.Create(AOwner: TComponent);
 begin
   inherited;
-  FOpenWindows := TGLWindowsList.Create(false);
+  FOpenWindows := TGLWindowList.Create(false);
   FTimerMilisec := 1000;
   CreateBackend;
 end;

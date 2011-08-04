@@ -28,7 +28,7 @@
     CompiledScriptContents: TStringList;
 
     KambiScriptProgram: TKamScriptProgram;
-    KambiScriptVariables: TKamScriptVRMLValuesList;
+    KambiScriptVariables: TKamScriptVRMLValueList;
 
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -213,7 +213,7 @@ procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
     FreeAndNil(KambiScriptProgram);
     FreeAndNil(KambiScriptVariables);
 
-    KambiScriptVariables := TKamScriptVRMLValuesList.Create(true);
+    KambiScriptVariables := TKamScriptVRMLValueList.Create(true);
 
     { Add fields and output events (coming from interface decl,
       not normal Script fields/events) to KambiScriptVariables. }

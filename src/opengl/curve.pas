@@ -82,7 +82,7 @@ type
     constructor Create(const ATBegin, ATEnd: Float); reintroduce;
   end;
 
-  TCurvesList = specialize TFPGObjectList<TCurve>;
+  TCurveList = specialize TFPGObjectList<TCurve>;
 
   { @abstract(This is a curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as KambiScript expressions.) }
@@ -189,7 +189,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TControlPointsCurvesList = specialize TFPGObjectList<TControlPointsCurve>;
+  TControlPointsCurveList = specialize TFPGObjectList<TControlPointsCurve>;
 
   { @abstract(This is a class for curves that pass exactly through
     ControlPoints.)

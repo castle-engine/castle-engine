@@ -391,7 +391,7 @@ type
     { @groupEnd }
   end;
 
-  TGLSLProgramsList = specialize TFPGObjectList<TGLSLProgram>;
+  TGLSLProgramList = specialize TFPGObjectList<TGLSLProgram>;
 
 const
   GLSupportNames: array [TGLSupport] of string =

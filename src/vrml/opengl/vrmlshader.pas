@@ -44,7 +44,7 @@ type
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single);
     procedure AddPointer(Ptr: Pointer);
-    procedure AddEffects(Nodes: TVRMLNodesList);
+    procedure AddEffects(Nodes: TVRMLNodeList);
   public
     function ToString: string;
     procedure Clear;
@@ -58,7 +58,7 @@ type
   TVRMLShaderProgram = class(TGLSLProgram)
   private
     { Events where we registered our EventReceive method. }
-    EventsObserved: TVRMLEventsList;
+    EventsObserved: TVRMLEventList;
 
     { Set uniform variable from VRML/X3D field value.
       Uniform name is contained in UniformName. UniformValue indicates
@@ -94,7 +94,7 @@ type
       const EnableDisable: boolean);
   protected
     { Nodes that have interface declarations with textures for this shader. }
-    UniformsTextures: TVRMLFieldsList;
+    UniformsTextures: TVRMLFieldList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -109,7 +109,7 @@ type
       using the UniformsTextures list. These methods add fields to this list.
       @groupBegin }
     procedure BindUniforms(const Node: TVRMLNode; const EnableDisable: boolean);
-    procedure BindUniforms(const Nodes: TVRMLNodesList; const EnableDisable: boolean);
+    procedure BindUniforms(const Nodes: TVRMLNodeList; const EnableDisable: boolean);
     { @groupEnd }
   end;
 
@@ -219,7 +219,7 @@ type
   private
     { When adding new field, remember to clear it in Clear method. }
     { List of effect nodes that determine uniforms of our program. }
-    UniformsNodes: TVRMLNodesList;
+    UniformsNodes: TVRMLNodeList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVarianceShadowMaps: boolean;
@@ -257,13 +257,13 @@ type
       - Actually adding this feature to shader source may be done at LinkProgram.
     }
     AppearanceEffects: TMFNode;
-    GroupEffects: TVRMLNodesList;
+    GroupEffects: TVRMLNodeList;
     Lighting, MaterialFromColor: boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
-    procedure EnableEffects(Effects: TVRMLNodesList;
+    procedure EnableEffects(Effects: TVRMLNodeList;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
 
@@ -362,7 +362,7 @@ type
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
       out Node: TNodeComposedShader): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
-    procedure EnableGroupEffects(Effects: TVRMLNodesList);
+    procedure EnableGroupEffects(Effects: TVRMLNodeList);
     procedure EnableLighting;
     procedure EnableMaterialFromColor;
 
@@ -493,7 +493,7 @@ end;
 
 {$include norqcheckend.inc}
 
-procedure TShaderCodeHash.AddEffects(Nodes: TVRMLNodesList);
+procedure TShaderCodeHash.AddEffects(Nodes: TVRMLNodeList);
 var
   I: Integer;
 begin
@@ -700,8 +700,8 @@ end;
 constructor TVRMLShaderProgram.Create;
 begin
   inherited;
-  EventsObserved := TVRMLEventsList.Create(false);
-  UniformsTextures := TVRMLFieldsList.Create(false);
+  EventsObserved := TVRMLEventList.Create(false);
+  UniformsTextures := TVRMLFieldList.Create(false);
 end;
 
 destructor TVRMLShaderProgram.Destroy;
@@ -975,7 +975,7 @@ begin
   end;
 end;
 
-procedure TVRMLShaderProgram.BindUniforms(const Nodes: TVRMLNodesList;
+procedure TVRMLShaderProgram.BindUniforms(const Nodes: TVRMLNodeList;
   const EnableDisable: boolean);
 var
   I: Integer;
@@ -1186,7 +1186,7 @@ begin
 
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
-  UniformsNodes := TVRMLNodesList.Create(false);
+  UniformsNodes := TVRMLNodeList.Create(false);
 
   WarnMissingPlugs := true;
 end;
@@ -1421,7 +1421,7 @@ begin
   EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
 end;
 
-procedure TVRMLShader.EnableEffects(Effects: TVRMLNodesList;
+procedure TVRMLShader.EnableEffects(Effects: TVRMLNodeList;
   const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 
@@ -2304,7 +2304,7 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableGroupEffects(Effects: TVRMLNodesList);
+procedure TVRMLShader.EnableGroupEffects(Effects: TVRMLNodeList);
 begin
   GroupEffects := Effects;
   if GroupEffects.Count <> 0 then

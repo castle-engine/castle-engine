@@ -1074,7 +1074,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end;
 
   var
-    MultiTexCoord: TVRMLNodesList;
+    MultiTexCoord: TVRMLNodeList;
     I, LastCoord: Integer;
   begin
     if TexCoord = nil then

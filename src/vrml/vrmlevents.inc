@@ -185,7 +185,7 @@
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TVRMLEventsList = class(specialize TFPGObjectList<TVRMLEvent>)
+  TVRMLEventList = class(specialize TFPGObjectList<TVRMLEvent>)
   public
     function IndexOf(const Name: string): Integer;
   end;
@@ -614,9 +614,9 @@ begin
   end;
 end;
 
-{ TVRMLEventsList ------------------------------------------------------------ }
+{ TVRMLEventList ------------------------------------------------------------ }
 
-function TVRMLEventsList.IndexOf(const Name: string): Integer;
+function TVRMLEventList.IndexOf(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;

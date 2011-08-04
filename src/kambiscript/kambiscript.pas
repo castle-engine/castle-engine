@@ -181,10 +181,10 @@ type
     property Environment: TKamScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
-  TKamScriptExpressionsList = class(specialize TFPGObjectList<TKamScriptExpression>)
+  TKamScriptExpressionList = class(specialize TFPGObjectList<TKamScriptExpression>)
   public
     procedure AddArray(const A: array of TKamScriptExpression);
-    procedure AddList(const L: TKamScriptExpressionsList);
+    procedure AddList(const L: TKamScriptExpressionList);
     procedure FreeContentsByParentExpression;
   end;
 
@@ -236,7 +236,7 @@ type
   TKamScriptValueClass = class of TKamScriptValue;
   TKamScriptValueClassArray = array of TKamScriptValueClass;
 
-  TKamScriptValuesList = class(specialize TFPGObjectList<TKamScriptValue>)
+  TKamScriptValueList = class(specialize TFPGObjectList<TKamScriptValue>)
   public
     procedure AddArray(const A: array of TKamScriptValue);
   end;
@@ -469,7 +469,7 @@ type
 
   TKamScriptFunction = class(TKamScriptExpression)
   private
-    FArgs: TKamScriptExpressionsList;
+    FArgs: TKamScriptExpressionList;
     LastExecuteResult: TKamScriptValue;
     ParentOfLastExecuteResult: boolean;
 
@@ -496,7 +496,7 @@ type
 
     function CoreExecute: TKamScriptValue; override;
   public
-    { Constructor initializing Args from given TKamScriptExpressionsList.
+    { Constructor initializing Args from given TKamScriptExpressionList.
       AArgs list contents is copied, i.e. AArgs refence is not
       stored or freed by TKamScriptFunction. But items on AArags are not copied
       recursively, we copy references from AArags items, and so we become
@@ -505,7 +505,7 @@ type
       @raises(EKamScriptFunctionArgumentsError if you specified invalid
         number of arguments for this function.)
     }
-    constructor Create(AArgs: TKamScriptExpressionsList); overload;
+    constructor Create(AArgs: TKamScriptExpressionList); overload;
     constructor Create(const AArgs: array of TKamScriptExpression); overload;
     destructor Destroy; override;
 
@@ -604,7 +604,7 @@ type
 
     { Function arguments. Don't modify this list after function is created
       (although you can modify values inside arguments). }
-    property Args: TKamScriptExpressionsList read FArgs;
+    property Args: TKamScriptExpressionList read FArgs;
   end;
 
   TKamScriptFunctionClass = class of TKamScriptFunction;
@@ -813,7 +813,7 @@ type
   TKamScriptFunctionDefinition = class
   private
     FName: string;
-    FParameters: TKamScriptValuesList;
+    FParameters: TKamScriptValueList;
     FBody: TKamScriptExpression;
   public
     constructor Create;
@@ -832,13 +832,13 @@ type
       OwnedByParentExpression) by this class.
 
       They must always be of TKamScriptParameterValue class. }
-    property Parameters: TKamScriptValuesList read FParameters;
+    property Parameters: TKamScriptValueList read FParameters;
 
     { Function body. }
     property Body: TKamScriptExpression read FBody write FBody;
   end;
 
-  TKamScriptFunctionDefinitionsList = class(specialize TFPGObjectList<TKamScriptFunctionDefinition>)
+  TKamScriptFunctionDefinitionList = class(specialize TFPGObjectList<TKamScriptFunctionDefinition>)
     function IndexOf(const FunctionName: string): Integer;
   end;
 
@@ -846,13 +846,13 @@ type
 
   TKamScriptProgram = class
   private
-    FFunctions: TKamScriptFunctionDefinitionsList;
+    FFunctions: TKamScriptFunctionDefinitionList;
     FEnvironment: TKamScriptEnvironment;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property Functions: TKamScriptFunctionDefinitionsList read FFunctions;
+    property Functions: TKamScriptFunctionDefinitionList read FFunctions;
 
     { Execute a user-defined function (from Functions list of this program).
 
@@ -975,9 +975,9 @@ begin
   end;
 end;
 
-{ TKamScriptExpressionsList -------------------------------------------------- }
+{ TKamScriptExpressionList -------------------------------------------------- }
 
-procedure TKamScriptExpressionsList.AddArray(const A: array of TKamScriptExpression);
+procedure TKamScriptExpressionList.AddArray(const A: array of TKamScriptExpression);
 var
   OldCount: Integer;
 begin
@@ -987,7 +987,7 @@ begin
     System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
 end;
 
-procedure TKamScriptExpressionsList.AddList(const L: TKamScriptExpressionsList);
+procedure TKamScriptExpressionList.AddList(const L: TKamScriptExpressionList);
 var
   OldCount: Integer;
 begin
@@ -997,7 +997,7 @@ begin
     System.Move(L.List^[0], List^[OldCount], SizeOf(Pointer) * L.Count);
 end;
 
-procedure TKamScriptExpressionsList.FreeContentsByParentExpression;
+procedure TKamScriptExpressionList.FreeContentsByParentExpression;
 var
   I: Integer;
 begin
@@ -1023,9 +1023,9 @@ begin
   Result := Self;
 end;
 
-{ TKamScriptValuesList ------------------------------------------------------- }
+{ TKamScriptValueList ------------------------------------------------------- }
 
-procedure TKamScriptValuesList.AddArray(const A: array of TKamScriptValue);
+procedure TKamScriptValueList.AddArray(const A: array of TKamScriptValue);
 var
   OldCount: Integer;
 begin
@@ -1950,10 +1950,10 @@ end;
 
 { TKamScriptFunction --------------------------------------------------------- }
 
-constructor TKamScriptFunction.Create(AArgs: TKamScriptExpressionsList);
+constructor TKamScriptFunction.Create(AArgs: TKamScriptExpressionList);
 begin
   inherited Create;
-  FArgs := TKamScriptExpressionsList.Create(false);
+  FArgs := TKamScriptExpressionList.Create(false);
   FArgs.AddList(AArgs);
   CheckArguments;
 end;
@@ -1961,7 +1961,7 @@ end;
 constructor TKamScriptFunction.Create(const AArgs: array of TKamScriptExpression);
 begin
   inherited Create;
-  FArgs := TKamScriptExpressionsList.Create(false);
+  FArgs := TKamScriptExpressionList.Create(false);
   FArgs.AddArray(AArgs);
   CheckArguments;
 end;
@@ -2529,7 +2529,7 @@ end;
 constructor TKamScriptFunctionDefinition.Create;
 begin
   inherited;
-  FParameters := TKamScriptValuesList.Create(true);
+  FParameters := TKamScriptValueList.Create(true);
 end;
 
 destructor TKamScriptFunctionDefinition.Destroy;
@@ -2540,9 +2540,9 @@ begin
   inherited;
 end;
 
-{ TKamScriptFunctionDefinitionsList ------------------------------------------ }
+{ TKamScriptFunctionDefinitionList ------------------------------------------ }
 
-function TKamScriptFunctionDefinitionsList.IndexOf(
+function TKamScriptFunctionDefinitionList.IndexOf(
   const FunctionName: string): Integer;
 begin
   for Result := 0 to Count - 1 do
@@ -2556,7 +2556,7 @@ end;
 constructor TKamScriptProgram.Create;
 begin
   inherited;
-  FFunctions := TKamScriptFunctionDefinitionsList.Create(true);
+  FFunctions := TKamScriptFunctionDefinitionList.Create(true);
   FEnvironment := TKamScriptEnvironment.Create;
 end;
 

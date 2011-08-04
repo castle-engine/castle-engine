@@ -34,7 +34,7 @@ type
     property Patterns: TStringList read FPatterns;
   end;
 
-  TFileFiltersList = class(specialize TFPGObjectList<TFileFilter>)
+  TFileFilterList = class(specialize TFPGObjectList<TFileFilter>)
   private
     FDefaultFilter: Integer;
   public
@@ -88,15 +88,15 @@ begin
   inherited;
 end;
 
-{ TFileFiltersList ----------------------------------------------------------- }
+{ TFileFilterList ----------------------------------------------------------- }
 
-constructor TFileFiltersList.Create(AFreeObjects: boolean);
+constructor TFileFilterList.Create(AFreeObjects: boolean);
 begin
   inherited;
   FDefaultFilter := 0;
 end;
 
-procedure TFileFiltersList.AddFilter(const Name: string;
+procedure TFileFilterList.AddFilter(const Name: string;
   const Patterns: array of string);
 var
   Filter: TFileFilter;
@@ -109,7 +109,7 @@ begin
     Filter.FPatterns.Append(Patterns[I]);
 end;
 
-procedure TFileFiltersList.AddFiltersFromString(const FiltersStr: string);
+procedure TFileFilterList.AddFiltersFromString(const FiltersStr: string);
 
   procedure AddFilterFromPair(Name: string; const Patterns: string);
   var

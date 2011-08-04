@@ -83,7 +83,7 @@ function ParseConstantFloatExpression(const S: string): Float;
 function ParseProgram(const S: string;
   const Variables: array of TKamScriptValue): TKamScriptProgram; overload;
 function ParseProgram(const S: string;
-  const Variables: TKamScriptValuesList): TKamScriptProgram; overload;
+  const Variables: TKamScriptValueList): TKamScriptProgram; overload;
 { @groupEnd }
 
 implementation
@@ -166,7 +166,7 @@ const
   function Factor: TKamScriptExpression;
   var
     FC: TKamScriptFunctionClass;
-    FParams: TKamScriptExpressionsList;
+    FParams: TKamScriptExpressionList;
   begin
     Result := nil;
     try
@@ -206,7 +206,7 @@ const
         tokFuncName: begin
             FC := Lexer.TokenFunctionClass;
             Lexer.NextToken;
-            FParams := TKamScriptExpressionsList.Create(false);
+            FParams := TKamScriptExpressionList.Create(false);
             try
               try
                 Lexer.CheckTokenIs(tokLParen);
@@ -290,7 +290,7 @@ type
   TKamScriptValuesArray = array of TKamScriptValue;
 
 function VariablesListToArray(
-  const Variables: TKamScriptValuesList): TKamScriptValuesArray;
+  const Variables: TKamScriptValueList): TKamScriptValuesArray;
 var
   I: Integer;
 begin
@@ -302,7 +302,7 @@ end;
 function Expression(
   const Lexer: TKamScriptLexer;
   Environment: TKamScriptEnvironment;
-  const Variables: TKamScriptValuesList): TKamScriptExpression;
+  const Variables: TKamScriptValueList): TKamScriptExpression;
 begin
   Result := Expression(Lexer, Environment, VariablesListToArray(Variables));
 end;
@@ -355,7 +355,7 @@ function Expression(
   end;
 
 var
-  SequenceArgs: TKamScriptExpressionsList;
+  SequenceArgs: TKamScriptExpressionList;
 begin
   Result := nil;
   try
@@ -363,7 +363,7 @@ begin
 
     if Lexer.Token = tokSemicolon then
     begin
-      SequenceArgs := TKamScriptExpressionsList.Create(false);
+      SequenceArgs := TKamScriptExpressionList.Create(false);
       try
         try
           SequenceArgs.Add(Result);
@@ -391,7 +391,7 @@ var
 
   function AFunction: TKamScriptFunctionDefinition;
   var
-    BodyVariables: TKamScriptValuesList;
+    BodyVariables: TKamScriptValueList;
     Parameter: TKamScriptValue;
   begin
     Result := TKamScriptFunctionDefinition.Create;
@@ -400,7 +400,7 @@ var
       Result.Name := Lexer.TokenString;
       Lexer.NextToken;
 
-      BodyVariables := TKamScriptValuesList.Create(false);
+      BodyVariables := TKamScriptValueList.Create(false);
       try
         Lexer.CheckTokenIs(tokLParen);
         Lexer.NextToken;
@@ -507,7 +507,7 @@ end;
 { ParseProgram --------------------------------------------------------------- }
 
 function ParseProgram(const S: string;
-  const Variables: TKamScriptValuesList): TKamScriptProgram;
+  const Variables: TKamScriptValueList): TKamScriptProgram;
 begin
   Result := ParseProgram(S, VariablesListToArray(Variables));
 end;

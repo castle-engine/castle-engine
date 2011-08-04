@@ -323,7 +323,7 @@ type
       (because QuickSort is not stable), so using this to preserve order
       may be helpful.
 
-      TVRMLFileItemsList.Add sets this, which allows to preserve
+      TVRMLFileItemList.Add sets this, which allows to preserve
       order when saving. }
     PositionOnList: Integer;
   public
@@ -369,7 +369,7 @@ type
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TVRMLFileItemsList = class(specialize TFPGObjectList<TVRMLFileItem>)
+  TVRMLFileItemList = class(specialize TFPGObjectList<TVRMLFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -497,7 +497,7 @@ type
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TVRMLFieldOrEventsList = specialize TFPGObjectList<TVRMLFieldOrEvent>;
+  TVRMLFieldOrEventList = specialize TFPGObjectList<TVRMLFieldOrEvent>;
 
   TVRMLFieldClass = class of TVRMLField;
 
@@ -936,9 +936,7 @@ type
     function OnReceive: TDynVRMLEventReceiveArray;
   end;
 
-  TVRMLFieldsListBase = specialize TFPGObjectList<TVRMLField>;
-
-  TVRMLFieldsList = class(TVRMLFieldsListBase)
+  TVRMLFieldList = class(specialize TFPGObjectList<TVRMLField>)
   private
     function GetByName(const AName: string): TVRMLField;
   public
@@ -962,7 +960,7 @@ type
   end;
   TVRMLSingleFieldClass = class of TVRMLSingleField;
 
-  TVRMLSingleFieldsList = specialize TFPGObjectList<TVRMLSingleField>;
+  TVRMLSingleFieldList = specialize TFPGObjectList<TVRMLSingleField>;
 
   EVRMLMultFieldDifferentCount = class(Exception);
 
@@ -2685,7 +2683,7 @@ begin
   Result := sxChildElement;
 end;
 
-{ TVRMLFileItemsList --------------------------------------------------------- }
+{ TVRMLFileItemList --------------------------------------------------------- }
 
 function IsSmallerPositionInParent(const A, B: TVRMLFileItem): Integer;
 begin
@@ -2694,12 +2692,12 @@ begin
     Result := A.PositionOnList - B.PositionOnList;
 end;
 
-procedure TVRMLFileItemsList.SortPositionInParent;
+procedure TVRMLFileItemList.SortPositionInParent;
 begin
   Sort(@IsSmallerPositionInParent);
 end;
 
-procedure TVRMLFileItemsList.SaveToStream(Writer: TX3DWriter);
+procedure TVRMLFileItemList.SaveToStream(Writer: TX3DWriter);
 var
   I: Integer;
 begin
@@ -2708,7 +2706,7 @@ begin
     Items[I].SaveToStream(Writer);
 end;
 
-procedure TVRMLFileItemsList.Add(Item: TVRMLFileItem);
+procedure TVRMLFileItemList.Add(Item: TVRMLFileItem);
 begin
   Item.PositionOnList := Count;
   inherited Add(Item);
@@ -3233,16 +3231,16 @@ begin
     Result := nil;
 end;
 
-{ TVRMLFieldsList ------------------------------------------------------------- }
+{ TVRMLFieldList ------------------------------------------------------------- }
 
-function TVRMLFieldsList.IndexOf(const AName: string): integer;
+function TVRMLFieldList.IndexOf(const AName: string): integer;
 begin
   for result := 0 to Count-1 do
     if Items[result].IsName(AName) then exit;
   result := -1;
 end;
 
-function TVRMLFieldsList.GetByName(const AName: string): TVRMLField;
+function TVRMLFieldList.GetByName(const AName: string): TVRMLField;
 var i: integer;
 begin
   i := IndexOf(AName);
@@ -3251,7 +3249,7 @@ begin
     raise Exception.Create('Field name '+AName+' not found');
 end;
 
-function TVRMLFieldsList.IndexOfExposedEvent(const EventName: string;
+function TVRMLFieldList.IndexOfExposedEvent(const EventName: string;
   out Event: TVRMLEvent): Integer;
 var
   InEvent: boolean;

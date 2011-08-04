@@ -78,7 +78,7 @@ function LoadAsVRML(const filename: string;
 
 const
   { File filters for files loaded by LoadVRML, suitable
-    for TFileFiltersList.AddFiltersFromString and
+    for TFileFilterList.AddFiltersFromString and
     TGLWindow.FileDialog. }
   LoadVRML_FileFilters =
   'All Files|*|' +
@@ -112,7 +112,7 @@ const
   This handles animations in kanim and MD3 formats.
 
   @param(RootNodes Sequence of root nodes will be stored there.
-    Pass here some created and empty instance of TVRMLNodesList.)
+    Pass here some created and empty instance of TVRMLNodeList.)
 
   @param(ATimes Sequence of time values.
     Pass here some created and empty instance of TDynSingleArray.)
@@ -120,7 +120,7 @@ const
 procedure LoadVRMLSequence(
   const FileName: string;
   AllowStdIn: boolean;
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -128,7 +128,7 @@ procedure LoadVRMLSequence(
 
 const
   { File filters for files loaded by LoadVRMLSequence, suitable
-    for TFileFiltersList.AddFiltersFromString and
+    for TFileFilterList.AddFiltersFromString and
     TGLWindow.FileDialog. }
   LoadVRMLSequence_FileFilters =
   'All Files|*|' +
@@ -197,7 +197,7 @@ end;
 
 procedure LoadVRMLSequence(const FileName: string;
   AllowStdIn: boolean;
-  RootNodes: TVRMLNodesList;
+  RootNodes: TVRMLNodeList;
   Times: TDynSingleArray;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;

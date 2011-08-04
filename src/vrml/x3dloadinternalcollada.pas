@@ -96,13 +96,13 @@ type
     BoundShapeMatrixIdentity: boolean;
   end;
 
-  TColladaControllersList = class(specialize TFPGObjectList<TColladaController>)
+  TColladaControllerList = class(specialize TFPGObjectList<TColladaController>)
   public
     { Find a TColladaController with given Name, @nil if not found. }
     function Find(const Name: string): TColladaController;
   end;
 
-function TColladaControllersList.Find(const Name: string): TColladaController;
+function TColladaControllerList.Find(const Name: string): TColladaController;
 var
   I: Integer;
 begin
@@ -132,12 +132,12 @@ begin
 end;
 
 type
-  TColladaEffectsList = class(specialize TFPGObjectList<TColladaEffect>)
+  TColladaEffectList = class(specialize TFPGObjectList<TColladaEffect>)
     { Find a TColladaEffect with given Name, @nil if not found. }
     function Find(const Name: string): TColladaEffect;
   end;
 
-function TColladaEffectsList.Find(const Name: string): TColladaEffect;
+function TColladaEffectList.Find(const Name: string): TColladaEffect;
 var
   I: Integer;
 begin
@@ -162,7 +162,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaPrimitivesList = specialize TFPGObjectList<TColladaPrimitive>;
+  TColladaPrimitiveList = specialize TFPGObjectList<TColladaPrimitive>;
 
 destructor TColladaPrimitive.Destroy;
 begin
@@ -174,14 +174,14 @@ type
   TColladaGeometry = class
     { Collada geometry id. }
     Name: string;
-    Primitives: TColladaPrimitivesList;
+    Primitives: TColladaPrimitiveList;
     constructor Create;
     destructor Destroy; override;
   end;
 
 constructor TColladaGeometry.Create;
 begin
-  Primitives := TColladaPrimitivesList.Create;
+  Primitives := TColladaPrimitiveList.Create;
 end;
 
 destructor TColladaGeometry.Destroy;
@@ -191,13 +191,13 @@ begin
 end;
 
 type
-  TColladaGeometriesList = class (specialize TFPGObjectList<TColladaGeometry>)
+  TColladaGeometryList = class (specialize TFPGObjectList<TColladaGeometry>)
   public
     { Find item with given Name, @nil if not found. }
     function Find(const Name: string): TColladaGeometry;
   end;
 
-function TColladaGeometriesList.Find(const Name: string): TColladaGeometry;
+function TColladaGeometryList.Find(const Name: string): TColladaGeometry;
 var
   I: Integer;
 begin
@@ -413,13 +413,13 @@ begin
 end;
 
 type
-  TColladaSourcesList = class(specialize TFPGObjectList<TColladaSource>)
+  TColladaSourceList = class(specialize TFPGObjectList<TColladaSource>)
   public
     { Find a TColladaSource with given Name, @nil if not found. }
     function Find(const Name: string): TColladaSource;
   end;
 
-function TColladaSourcesList.Find(const Name: string): TColladaSource;
+function TColladaSourceList.Find(const Name: string): TColladaSource;
 var
   I: Integer;
 begin
@@ -599,7 +599,7 @@ var
 
   { List of Collada effects. Each contains an X3D Appearance node,
     with a name equal to Collada effect name. }
-  Effects: TColladaEffectsList;
+  Effects: TColladaEffectList;
 
   { List of Collada materials. Collada material is just a reference
     to Collada effect with a name.
@@ -608,25 +608,25 @@ var
   Materials: TColladaMaterialsMap;
 
   { List of Collada geometries. }
-  Geometries: TColladaGeometriesList;
+  Geometries: TColladaGeometryList;
 
   { List of Collada visual scenes, for <visual_scene> Collada elements.
     Every visual scene is X3D TNodeX3DGroupingNode instance.
     This is for Collada >= 1.4.x (for Collada < 1.4.x,
     the <scene> element is directly placed as a rendered scene). }
-  VisualScenes: TVRMLNodesList;
+  VisualScenes: TVRMLNodeList;
 
   { List of Collada controllers. Read from library_controllers, used by
     instance_controller. }
-  Controllers: TColladaControllersList;
+  Controllers: TColladaControllerList;
 
   { List of Collada images (TNodeX3DTextureNode). NodeName of every instance
     comes from Collada "id" of <image> element (these are referred to
     by <init_from> contents from <surface>). }
-  Images: TVRMLNodesList;
+  Images: TVRMLNodeList;
 
-  Cameras: TVRMLNodesList;
-  Lights: TVRMLNodesList;
+  Cameras: TVRMLNodeList;
+  Lights: TVRMLNodeList;
 
   ResultModel: TNodeGroup absolute Result;
 
@@ -1130,7 +1130,7 @@ var
     { Collada Geometry constructed, available to all Read* primitives local procedures. }
     Geometry: TColladaGeometry;
 
-    Sources: TColladaSourcesList;
+    Sources: TColladaSourceList;
 
     { Read "double sided" geometry property.
 
@@ -1711,7 +1711,7 @@ var
       Coord := nil;
       LastTexCoord := nil;
       LastNormal := nil;
-      Sources := TColladaSourcesList.Create;
+      Sources := TColladaSourceList.Create;
       try
         I := TXMLElementIterator.Create(Mesh);
         try
@@ -1943,7 +1943,7 @@ var
 
     { Read <instance_*>, adding resulting X3D nodes into ParentGroup. }
     procedure ReadInstance(ParentGroup: TNodeX3DGroupingNode;
-      InstantiatingElement: TDOMElement; List: TVRMLNodesList);
+      InstantiatingElement: TDOMElement; List: TVRMLNodeList);
     var
       Id: string;
       Node: TVRMLNode;
@@ -2567,14 +2567,14 @@ begin
       end else
         WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
 
-      Effects := TColladaEffectsList.Create;
+      Effects := TColladaEffectList.Create;
       Materials := TColladaMaterialsMap.Create;
-      Geometries := TColladaGeometriesList.Create;
-      VisualScenes := TVRMLNodesList.Create(false);
-      Controllers := TColladaControllersList.Create;
-      Images := TVRMLNodesList.Create(false);
-      Cameras := TVRMLNodesList.Create(false);
-      Lights := TVRMLNodesList.Create(false);
+      Geometries := TColladaGeometryList.Create;
+      VisualScenes := TVRMLNodeList.Create(false);
+      Controllers := TColladaControllerList.Create;
+      Images := TVRMLNodeList.Create(false);
+      Cameras := TVRMLNodeList.Create(false);
+      Lights := TVRMLNodeList.Create(false);
 
       Result := TVRMLRootNode.Create('', WWWBasePath);
       Result.HasForceVersion := true;
@@ -2630,7 +2630,7 @@ begin
       { Free unused Images before freeing Effects.
         That's because image may be used inside an effect,
         and would be invalid reference after freeing effect. }
-      VRMLNodesList_FreeUnusedAndNil(Images);
+      VRMLNodeList_FreeUnusedAndNil(Images);
 
       FreeAndNil(Materials);
 
@@ -2647,9 +2647,9 @@ begin
       FreeAndNil(Effects);
       FreeAndNil(Geometries);
 
-      VRMLNodesList_FreeUnusedAndNil(Lights);
-      VRMLNodesList_FreeUnusedAndNil(Cameras);
-      VRMLNodesList_FreeUnusedAndNil(VisualScenes);
+      VRMLNodeList_FreeUnusedAndNil(Lights);
+      VRMLNodeList_FreeUnusedAndNil(Cameras);
+      VRMLNodeList_FreeUnusedAndNil(VisualScenes);
       FreeAndNil(Controllers);
     end;
     { eventually free Result *after* freeing other lists, to make sure references

@@ -329,7 +329,7 @@ procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
 
   procedure DumpShapeGroup(Shape: TVRMLShapeTreeGroup);
   var
-    List: TVRMLShapeTreesList;
+    List: TVRMLShapeTreeList;
     I: Integer;
   begin
     Writeln('Grouping shape: ', Shape.ClassName);

@@ -98,7 +98,7 @@ procedure TTestVRMLScene.TestIterator;
   procedure CheckIterator(const FileName: string);
   var
     Scene: TVRMLScene;
-    List: TVRMLShapesList;
+    List: TVRMLShapeList;
     SI: TVRMLShapeTreeIterator;
     OnlyActive: boolean;
     I: Integer;
@@ -111,7 +111,7 @@ procedure TTestVRMLScene.TestIterator;
         { Compare the simple iterator implementation (that just calls
           Traverse and gathers results to the list) with actual sophisticated
           implementation in TVRMLShapeTreeIterator. }
-        List := TVRMLShapesList.Create(Scene.Shapes, OnlyActive);
+        List := TVRMLShapeList.Create(Scene.Shapes, OnlyActive);
         SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
         for I := 0 to List.Count - 1 do
         begin

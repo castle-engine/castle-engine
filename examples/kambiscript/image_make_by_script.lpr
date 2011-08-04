@@ -25,14 +25,14 @@ uses SysUtils, KambiUtils, KambiFilesUtils, KambiStringUtils, Images,
   KambiWarnings;
 
 var
-  Vars: TKamScriptValuesList;
+  Vars: TKamScriptValueList;
   Prog: TKamScriptProgram;
 begin
   Parameters.CheckHigh(2);
 
   OnWarning := @OnWarningWrite;
 
-  Vars := TKamScriptValuesList.Create(true);
+  Vars := TKamScriptValueList.Create(true);
   try
     Vars.Add(TKamScriptImage.Create(true));
     Vars.Last.Name := 'result';

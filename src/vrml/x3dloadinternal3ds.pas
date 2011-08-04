@@ -1086,7 +1086,7 @@ var
 
 var
   Trimesh3ds: TTrimesh3ds;
-  Appearances: TVRMLNodesList;
+  Appearances: TVRMLNodeList;
   Coord: TNodeCoordinate;
   IFS: TNodeIndexedFaceSet;
   TexCoord: TNodeTextureCoordinate;
@@ -1106,7 +1106,7 @@ begin
       AddLights;
 
       { Convert every 3DS material into VRML/X3D Appearance node }
-      Appearances := TVRMLNodesList.Create(false);
+      Appearances := TVRMLNodeList.Create(false);
       Appearances.Count := O3ds.Materials.Count;
       for i := 0 to O3ds.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(O3ds.Materials[i]);

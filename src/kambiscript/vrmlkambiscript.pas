@@ -23,9 +23,9 @@ uses VRMLFields, KambiScript, KambiUtils, KambiClassUtils, VRMLTime;
 {$define read_interface}
 
 type
-  TKamScriptVRMLValuesList = class(TKamScriptValuesList)
+  TKamScriptVRMLValueList = class(TKamScriptValueList)
   private
-    FFieldOrEvents: TVRMLFieldOrEventsList;
+    FFieldOrEvents: TVRMLFieldOrEventList;
     FLastEventTimes: TDynVRMLTimeArray;
     InsideAfterExecute: boolean;
   public
@@ -35,7 +35,7 @@ type
     { List of field/events associated with this list's KamScript variables.
       This list is read-only (use @link(Add) to add here).
       It always has the same Count as our own count. }
-    property FieldOrEvents: TVRMLFieldOrEventsList read FFieldOrEvents;
+    property FieldOrEvents: TVRMLFieldOrEventList read FFieldOrEvents;
 
     { Create TKamScriptValue descendant suitable to hold FieldOrEvent
       value, and add it to Items.
@@ -482,36 +482,36 @@ begin
       But in this case, we know FieldOrEvent comes from a Script node,
       and in this situation ChangedField doesn't do anything anyway. }
 
-    { This is needed for TKamScriptVRMLValuesList.AfterExecute trick.
+    { This is needed for TKamScriptVRMLValueList.AfterExecute trick.
       We handled this change, so we mark it by ValueAssigned = false. }
     Value.ValueAssigned := false;
   end;
 end;
 
-{ TKamScriptVRMLValuesList -------------------------------------------------- }
+{ TKamScriptVRMLValueList -------------------------------------------------- }
 
-constructor TKamScriptVRMLValuesList.Create(AFreeObjects: boolean);
+constructor TKamScriptVRMLValueList.Create(AFreeObjects: boolean);
 begin
   inherited;
-  FFieldOrEvents := TVRMLFieldOrEventsList.Create(false);
+  FFieldOrEvents := TVRMLFieldOrEventList.Create(false);
   FLastEventTimes := TDynVRMLTimeArray.Create;
 end;
 
-destructor TKamScriptVRMLValuesList.Destroy;
+destructor TKamScriptVRMLValueList.Destroy;
 begin
   SysUtils.FreeAndNil(FFieldOrEvents);
   SysUtils.FreeAndNil(FLastEventTimes);
   inherited;
 end;
 
-procedure TKamScriptVRMLValuesList.Add(FieldOrEvent: TVRMLFieldOrEvent);
+procedure TKamScriptVRMLValueList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
   inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
   FLastEventTimes.Add(OldestVRMLTime);
 end;
 
-procedure TKamScriptVRMLValuesList.BeforeExecute;
+procedure TKamScriptVRMLValueList.BeforeExecute;
 var
   I: Integer;
 begin
@@ -522,7 +522,7 @@ begin
   end;
 end;
 
-procedure TKamScriptVRMLValuesList.AfterExecute;
+procedure TKamScriptVRMLValueList.AfterExecute;
 var
   I: Integer;
   WasSomeValueAssigned: boolean;
@@ -577,7 +577,7 @@ begin
   end;
 end;
 
-procedure TKamScriptVRMLValuesList.ResetLastEventTimes;
+procedure TKamScriptVRMLValueList.ResetLastEventTimes;
 var
   I: Integer;
 begin

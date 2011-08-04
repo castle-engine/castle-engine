@@ -21,7 +21,7 @@ interface
 uses FileFilters, Dialogs;
 
 { Convert file filters into LCL OpenDialog.Filter, OpenDialog.FilterIndex.
-  FileFilters must be encoded as for TFileFiltersList.AddFiltersFromString.
+  FileFilters must be encoded as for TFileFilterList.AddFiltersFromString.
 
   @groupBegin }
 procedure FileFiltersToOpenDialog(const FileFilters: string;
@@ -31,7 +31,7 @@ procedure FileFiltersToOpenDialog(const FileFilters: string;
 { @groupEnd }
 
 { Convert file filters into LCL OpenDialog.Filter, OpenDialog.FilterIndex. }
-procedure FileFiltersToOpenDialog(FFList: TFileFiltersList;
+procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 
 { Make each '&' inside string '&&', this way the string will not contain
@@ -56,16 +56,16 @@ end;
 procedure FileFiltersToOpenDialog(const FileFilters: string;
   out LCLFilter: string; out FilterIndex: Integer);
 var
-  FFList: TFileFiltersList;
+  FFList: TFileFilterList;
 begin
-  FFList := TFileFiltersList.Create(true);
+  FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
     FileFiltersToOpenDialog(FFList, LCLFilter, FilterIndex);
   finally FreeAndNil(FFList) end;
 end;
 
-procedure FileFiltersToOpenDialog(FFList: TFileFiltersList;
+procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 var
   Filter: TFileFilter;

@@ -552,7 +552,7 @@ type
       read FUseGlobalLights write FUseGlobalLights default false;
   end;
 
-  TKamAbstractViewportsList = class(specialize TFPGObjectList<TKamAbstractViewport>)
+  TKamAbstractViewportList = class(specialize TFPGObjectList<TKamAbstractViewport>)
   public
     { Does any viewport on the list has shadow volumes all set up? }
     function UsesShadowVolumes: boolean;
@@ -606,7 +606,7 @@ type
     FMainScene: TVRMLGLScene;
     FItems: T3DList;
     FDefaultViewport: boolean;
-    FViewports: TKamAbstractViewportsList;
+    FViewports: TKamAbstractViewportList;
 
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
@@ -732,7 +732,7 @@ type
       in this unit (when you change TKamViewport.SceneManager
       or TKamSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
-    property Viewports: TKamAbstractViewportsList read FViewports;
+    property Viewports: TKamAbstractViewportList read FViewports;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -1846,9 +1846,9 @@ begin
   end;
 end;
 
-{ TKamAbstractViewportsList -------------------------------------------------- }
+{ TKamAbstractViewportList -------------------------------------------------- }
 
-function TKamAbstractViewportsList.UsesShadowVolumes: boolean;
+function TKamAbstractViewportList.UsesShadowVolumes: boolean;
 var
   I: Integer;
   MainLightPosition: TVector4Single; { ignored }
@@ -1884,7 +1884,7 @@ begin
   FDefaultViewport := true;
   FAlwaysApplyProjection := false;
 
-  FViewports := TKamAbstractViewportsList.Create(false);
+  FViewports := TKamAbstractViewportList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
 end;
 

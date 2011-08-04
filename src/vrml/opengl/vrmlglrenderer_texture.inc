@@ -144,7 +144,7 @@
       Shader: TVRMLShader); virtual; abstract;
   end;
 
-  TGLTextureNodes = class(TResourceRenderersList)
+  TGLTextureNodes = class(TResourceRendererList)
   private
     function GetItems(const Index: Integer): TGLTextureNode;
   public
@@ -219,7 +219,7 @@
     hidden from the interface. }
   TGLMultiTextureNode = class(TGLTextureNode)
   private
-    PreparedTextureChildren: TVRMLNodesList;
+    PreparedTextureChildren: TVRMLNodeList;
   protected
     class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
@@ -677,7 +677,7 @@ procedure TGLTextureNodes.PrepareInterfaceDeclarationsTextures(
 var
   I, J: Integer;
   UniformField: TVRMLField;
-  IDecls: TVRMLInterfaceDeclarationsList;
+  IDecls: TVRMLInterfaceDeclarationList;
 begin
   IDecls := ANode.InterfaceDeclarations;
   if IDecls = nil then Exit; { ignore nodes without interface declararations }
@@ -715,7 +715,7 @@ procedure TGLTextureNodes.UnprepareInterfaceDeclarationsTextures(
 var
   I, J: Integer;
   UniformField: TVRMLField;
-  IDecls: TVRMLInterfaceDeclarationsList;
+  IDecls: TVRMLInterfaceDeclarationList;
 begin
   IDecls := ANode.InterfaceDeclarations;
   if IDecls = nil then Exit; { ignore nodes without interface declararations }
@@ -780,7 +780,7 @@ constructor TGLMultiTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLN
 begin
   Assert(ANode is TNodeMultiTexture, 'TGLMultiTextureNode.Create acceps as Node only TNodeMultiTexture');
   inherited;
-  PreparedTextureChildren := TVRMLNodesList.Create(false);
+  PreparedTextureChildren := TVRMLNodeList.Create(false);
 end;
 
 destructor TGLMultiTextureNode.Destroy;

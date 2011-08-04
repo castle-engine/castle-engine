@@ -23,7 +23,7 @@
       Shader: TVRMLShader): boolean;
   end;
 
-  TBumpMappingRenderersList = class(TResourceRenderersList)
+  TBumpMappingRendererList = class(TResourceRendererList)
   private
     function GetItems(const Index: Integer): TBumpMappingRenderer;
   public
@@ -164,24 +164,24 @@ begin
   end;
 end;
 
-{ TBumpMappingRenderersList -------------------------------------------------- }
+{ TBumpMappingRendererList -------------------------------------------------- }
 
-function TBumpMappingRenderersList.NodeIndex(ANode: TNodeAppearance): Integer;
+function TBumpMappingRendererList.NodeIndex(ANode: TNodeAppearance): Integer;
 begin
   Result := inherited NodeIndex(ANode);
 end;
 
-function TBumpMappingRenderersList.Node(ANode: TNodeAppearance): TBumpMappingRenderer;
+function TBumpMappingRendererList.Node(ANode: TNodeAppearance): TBumpMappingRenderer;
 begin
   Result := TBumpMappingRenderer(inherited Node(ANode));
 end;
 
-function TBumpMappingRenderersList.GetItems(const Index: Integer): TBumpMappingRenderer;
+function TBumpMappingRendererList.GetItems(const Index: Integer): TBumpMappingRenderer;
 begin
   Result := TBumpMappingRenderer(inherited Items[Index]);
 end;
 
-procedure TBumpMappingRenderersList.Prepare(State: TVRMLGraphTraverseState;
+procedure TBumpMappingRendererList.Prepare(State: TVRMLGraphTraverseState;
   ARenderer: TVRMLGLRenderer);
 var
   ANode: TNodeAppearance;
@@ -200,7 +200,7 @@ begin
   end;
 end;
 
-function TBumpMappingRenderersList.Enable(State: TVRMLGraphTraverseState;
+function TBumpMappingRendererList.Enable(State: TVRMLGraphTraverseState;
   var BoundTextureUnits: Cardinal;
   Shader: TVRMLShader): TBumpMappingRenderer;
 var
