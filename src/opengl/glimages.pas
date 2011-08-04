@@ -1971,7 +1971,7 @@ var
 begin
   if (BoundFboStack <> nil) and (BoundFboStack.Count <> 0) then
   begin
-    BoundFboStack.DecLength;
+    BoundFboStack.Count := BoundFboStack.Count - 1;
     if BoundFboStack.Count <> 0 then
       PreviousFbo := BoundFboStack.Last else
       PreviousFbo := 0;

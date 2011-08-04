@@ -63,7 +63,7 @@ type
   { Base abstract dynamic array class. }
   TDynArrayBase = class
   private
-    FLength: Integer;
+    FCount: Integer;
     FCapacity, FAllowedCapacityOverflow: Cardinal;
     ItemSize: Cardinal;
 
@@ -78,20 +78,24 @@ type
     { @noAutoLinkHere }
     A: pointer;
 
-    { In this class, SetLength is just equivalent to SetLengthNoInitFini.
+    { In this class, SetCount is just equivalent to SetCountNoInitFini.
 
-      In descendants, you can override SetLength to allow to Initialize
+      In descendants, you can override SetCount to allow to Initialize
       and Finalize items. But this procedure, @name, is not virtual
       and is not intended to be overriden, so you can use this in cases
       when you're sure that you don't want to do Initialize / Finalize
       your items. }
-    procedure SetLengthNoInitFini(NewLength: Integer);
+    procedure SetCountNoInitFini(NewCount: Integer);
+    procedure SetCount(NewCount: Integer); virtual;
+    procedure IncCount;
+    procedure DecCount;
+    procedure ChangeCount(LenChange: Integer);
   public
-    { How much the allocated @link(Capacity) may be larger than @link(Length).
+    { How much the allocated @link(Capacity) may be larger than @link(Count).
       Larger values allow us to be more prepared for adding new items,
       but also waste more memory.
 
-      Always @code((Capacity - Length) <= AllowedCapacityOverflow).
+      Always @code((Capacity - Count) <= AllowedCapacityOverflow).
 
       For arrays that are going to be read-only for some time,
       it's useful to even set AllowedCapacityOverflow := 0. }
@@ -100,18 +104,12 @@ type
 
     property Capacity: Cardinal read FCapacity;
 
-    procedure SetLength(NewLength: Integer); virtual;
-    procedure IncLength;
-    procedure DecLength;
-    procedure ChangeLength(LenChange: Integer);
-
-    { Count of items. Count is the same thing as Length.
+    { Count of items.
       These are actually always unsigned, but are declared as signed Integers
       to avoid range errors on constructs like @code(Count - 1). }
-    property Length: Integer read FLength write SetLength;
-    property Count: Integer read FLength write SetLength;
+    property Count: Integer read FCount write SetCount;
 
-    { Last item index. Just @code(Length - 1), in particular when Count = 0
+    { Last item index. Just @code(Count - 1), in particular when Count = 0
       then High = -1. }
     function High: Integer;
 
@@ -126,7 +124,7 @@ type
     { Remove all items, equivalent to doing @code(Count := 0). }
     procedure Clear;
 
-    constructor Create(ElementSize, InitialLength: Integer);
+    constructor Create(ElementSize, InitialCount: Integer);
 
     destructor Destroy; override;
 
@@ -274,34 +272,34 @@ type
 
 { TDynArrayBase ---------------------------------------- }
 
-constructor TDynArrayBase.Create(ElementSize, InitialLength: Integer);
+constructor TDynArrayBase.Create(ElementSize, InitialCount: Integer);
 begin
  inherited Create;
  ItemSize := ElementSize;
  FAllowedCapacityOverflow := 4;
  SwapItemsBuf := GetMem(ItemSize);
- SetLength(InitialLength);
+ SetCount(InitialCount);
 end;
 
 destructor TDynArrayBase.Destroy;
 begin
- { SetLength sluzy tylko temu zeby zrobic ew. Finalize na elementach tablicy.
+ { SetCount sluzy tylko temu zeby zrobic ew. Finalize na elementach tablicy.
    Dopiero FreeMemNiling gwarantuje ze pamiec zaalokowana dla A zostanie
    rzeczywiscie zwolniona. }
- SetLength(0);
+ SetCount(0);
  FreeMemNiling(A);
  FreeMemNiling(SwapItemsBuf);
  inherited;
 end;
 
-function TDynArrayBase.High: Integer; begin result := Length-1 end;
+function TDynArrayBase.High: Integer; begin result := Count-1 end;
 
 procedure TDynArrayBase.SetAllowedCapacityOverflow(Value: Cardinal);
 var NewCapacity: Cardinal;
 begin
- if Capacity - Cardinal(Length) > Value then
+ if Capacity - Cardinal(Count) > Value then
  begin
-  NewCapacity := Cardinal(Length) + Value;
+  NewCapacity := Cardinal(Count) + Value;
   ReallocMem(A, NewCapacity * ItemSize);
   FCapacity := NewCapacity;
  end;
@@ -309,26 +307,26 @@ begin
 end;
 
 { Note that the only methods that reallocate some memory are
-  SetAllowedCapacityCount and this SetLengthNoInitFini.
+  SetAllowedCapacityCount and this SetCountNoInitFini.
   These are also the only methods that can change FCapacity,
-  FLength (only by SetLengthNoInitFini) and
+  FCount (only by SetCountNoInitFini) and
   FAllowedCapacityOverflow (only by SetAllowedCapacityCount).
   In these methods we care about keeping assertions
 
-    Length <= Capacity
+    Count <= Capacity
 
   and
 
-    (Capacity-Length) <= AllowedCapacityOverflow.
+    (Capacity-Count) <= AllowedCapacityOverflow.
 
-  Note that items with indexes Length .. Capacity-1 are never
+  Note that items with indexes Count .. Capacity-1 are never
   read/written and are never supposed to be initialized by Initialize.
-  So only on items with indexes 0 .. Length-1 you can call
+  So only on items with indexes 0 .. Count-1 you can call
   Initialize / Finalize, other indexes are just our "safety bag
-  of memory" and are not used by SetLength implementation in descendants
+  of memory" and are not used by SetCount implementation in descendants
   that call Initialize / Finalize. }
 
-procedure TDynArrayBase.SetLengthNoInitFini(NewLength: Integer);
+procedure TDynArrayBase.SetCountNoInitFini(NewCount: Integer);
 
   procedure ReallocCapacity(NewCapacity: Cardinal);
   begin
@@ -337,34 +335,34 @@ procedure TDynArrayBase.SetLengthNoInitFini(NewLength: Integer);
   end;
 
 begin
- if NewLength > Length then
+ if NewCount > Count then
  begin
-  if Cardinal(NewLength) > Capacity then
-   ReallocCapacity(Cardinal(NewLength) + AllowedCapacityOverflow);
+  if Cardinal(NewCount) > Capacity then
+   ReallocCapacity(Cardinal(NewCount) + AllowedCapacityOverflow);
    { else no need to do any memory reallocation }
  end else
- if NewLength < Length then
+ if NewCount < Count then
  begin
-  if Capacity - Cardinal(NewLength) > AllowedCapacityOverflow then
-   ReallocCapacity(NewLength);
+  if Capacity - Cardinal(NewCount) > AllowedCapacityOverflow then
+   ReallocCapacity(NewCount);
  end;
 
- FLength := NewLength;
+ FCount := NewCount;
 end;
 
-procedure TDynArrayBase.SetLength(NewLength: Integer);
+procedure TDynArrayBase.SetCount(NewCount: Integer);
 begin
- SetLengthNoInitFini(NewLength);
+ SetCountNoInitFini(NewCount);
 end;
 
-procedure TDynArrayBase.IncLength;
-begin ChangeLength(1) end;
+procedure TDynArrayBase.IncCount;
+begin ChangeCount(1) end;
 
-procedure TDynArrayBase.DecLength;
-begin ChangeLength(-1) end;
+procedure TDynArrayBase.DecCount;
+begin ChangeCount(-1) end;
 
-procedure TDynArrayBase.ChangeLength(LenChange: Integer);
-begin SetLength(Length+LenChange) end;
+procedure TDynArrayBase.ChangeCount(LenChange: Integer);
+begin SetCount(Count+LenChange) end;
 
 procedure TDynArrayBase.SwapItems(Index1, Index2: Cardinal);
 var p1, p2: PByte;
@@ -380,7 +378,7 @@ end;
 
 procedure TDynArrayBase.FillChar(FillValue: byte);
 begin
- System.FillChar(A^, ItemSize * Cardinal(Length), FillValue);
+ System.FillChar(A^, ItemSize * Cardinal(Count), FillValue);
 end;
 
 procedure TDynArrayBase.Reverse;
@@ -543,7 +541,7 @@ function TDynCardinalArray.BigSum: Int64;
 var i: integer;
 begin
  result := 0;
- for i := 0 to Length-1 do result := result + Items[i];
+ for i := 0 to Count-1 do result := result + Items[i];
 end;
 
 function TDynCardinalArray.Sum: Cardinal;

@@ -124,7 +124,7 @@ var
   FrameFileName: string;
   Attr: TDOMAttr;
 begin
-  Assert(Times.Length = 0);
+  Assert(Times.Count = 0);
   Assert(ModelFileNames.Count = 0);
 
   AbsoluteBasePath := ExpandFileName(BasePath);

@@ -34,7 +34,7 @@ uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
   It's smart and ignores incorrect indexes (outside Vertices range),
   and incorrect triangles in the face (see IndexedPolygonNormal).
 
-  Returns a list of normalized vectors. This has the same length
+  Returns a list of normalized vectors. This has the same Count
   as CoordIndex, and should be accessed in the same way.
   This way you (may) have different normal vector values for each
   vertex on each face, so it's most flexible.
@@ -70,7 +70,7 @@ function CreateNormals(CoordIndex: TDynLongintArray;
 { Calculate flat per-face normals for indexed faces.
 
   Note that the result is not a compatible replacement for CreateNormals,
-  as it's length is the number of @italic(faces). For each face, a single
+  as it's Count is the number of @italic(faces). For each face, a single
   normal is stored, as this is most sensible compact representation.
   Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TDynLongintArray;
@@ -120,7 +120,7 @@ function CreateNormals(CoordIndex: TDynLongintArray;
   const FromCCW, Convex: boolean): TDynVector3SingleArray;
 var
   Faces: TDynFaceArray;
-  { For each vertex (this array length is always Vertices.Count),
+  { For each vertex (this array Count is always Vertices.Count),
     to which faces this vertex belongs? Contains indexes to Faces[] list.
 
     Although vertex may be more than once on the same face (in case
@@ -138,7 +138,7 @@ var
     I := 0;
     while I < CoordIndex.Count do
     begin
-      ThisFaceNum := Faces.Length;
+      ThisFaceNum := Faces.Count;
       ThisFace := Faces.Add;
 
       ThisFace^.StartIndex := I;
@@ -243,7 +243,7 @@ var
         if not HandledFaces[I] then
         begin
           { calculate SmoothFaces }
-          SmoothFaces.SetLength(1);
+          SmoothFaces.Count := 1;
           SmoothFaces[0] := i;
 
           for J := I + 1 to ThisVertexFaces.Count - 1 do
@@ -288,7 +288,7 @@ begin
       { calculate Faces and VerticesFaces contents }
       CalculateFacesAndVerticesFaces;
 
-      Result := TDynVector3SingleArray.Create(CoordIndex.Length);
+      Result := TDynVector3SingleArray.Create(CoordIndex.Count);
 
       { for each vertex, calculate all his normals (on all his faces) }
       for I := 0 to Vertices.Count - 1 do CalculateVertexNormals(I);
@@ -308,8 +308,8 @@ var
   I, StartIndex: Integer;
   FaceNumber: Integer;
 begin
-  { CoordIndex.Length is just a maximum length, we will shrink it later. }
-  Result := TDynVector3SingleArray.Create(CoordIndex.Length);
+  { CoordIndex.Count is just a maximum Count, we will shrink it later. }
+  Result := TDynVector3SingleArray.Create(CoordIndex.Count);
   try
     FaceNumber := 0;
 
@@ -328,7 +328,7 @@ begin
       Inc(I);
     end;
 
-    Result.Length := FaceNumber;
+    Result.Count := FaceNumber;
 
     if not FromCCW then Result.Negate;
   except FreeAndNil(Result); raise end;

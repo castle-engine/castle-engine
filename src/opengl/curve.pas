@@ -484,7 +484,7 @@ begin
 
  for i := 0 to 2 do
  begin
-  Newton[i].SetLength(ControlPoints.Count);
+  Newton[i].Count := ControlPoints.Count;
   for j := 0 to ControlPoints.Count-1 do
    Newton[i].Items[j] := ControlPoints.Items[j, i];
 

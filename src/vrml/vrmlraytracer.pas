@@ -1105,7 +1105,7 @@ begin
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { calculate ShadowCache }
     ShadowCache := TDynPointerArray.Create;
-    ShadowCache.SetLength(LightItems.Length);
+    ShadowCache.Count := LightItems.Count;
     ShadowCache.SetAll(nil);
     {$endif}
 

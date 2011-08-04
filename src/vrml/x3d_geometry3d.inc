@@ -963,7 +963,7 @@ begin
       CoordNode := TNodeCoordinate.Create('', WWWBasePath);
       IFS.FdCoord.Value := CoordNode;
 
-      CoordNode.FdPoint.Items.Length := SidesCount;
+      CoordNode.FdPoint.Items.Count := SidesCount;
 
       for I := 0 to E.High do
       begin
@@ -983,7 +983,7 @@ begin
       Len := SidesCount;
       if FdBeginCap.Value or FdEndCap.Value then
         Len += FdCrossSection.Count;
-      TexCoordNode.FdPoint.Items.Length := Len;
+      TexCoordNode.FdPoint.Items.Count := Len;
 
       for I := 0 to E.High do
         for J := 0 to FdCrossSection.Count - 1 do
@@ -1036,8 +1036,8 @@ begin
         Len += FdCrossSection.Count + 1;
       if FdEndCap  .Value then
         Len += FdCrossSection.Count + 1;
-      IFS.FdCoordIndex.Items.Length := Len;
-      IFS.FdTexCoordIndex.Items.Length := Len;
+      IFS.FdCoordIndex.Items.Count := Len;
+      IFS.FdTexCoordIndex.Items.Count := Len;
 
       Index := 0;
 

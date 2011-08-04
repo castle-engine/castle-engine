@@ -49,7 +49,7 @@ type
     class function NiceClassName: string; override;
   public
     { Curve weights.
-      Must always be Weights.Length = ControlPoints.Length.
+      Must always be Weights.Count = ControlPoints.Count.
       After changing Weights you also have to call UpdateControlPoints.}
     Weights: TDynFloatArray;
 
@@ -213,7 +213,7 @@ end;
 procedure TRationalBezierCurve.UpdateControlPoints;
 begin
   inherited;
-  Assert(Weights.Length = ControlPoints.Length);
+  Assert(Weights.Count = ControlPoints.Count);
 end;
 
 constructor TRationalBezierCurve.Create(const ATBegin, ATEnd: Float);
@@ -348,7 +348,7 @@ begin
 
   BezierCurves := ToRationalBezierCurves(true);
 
-  ConvexHullPoints.SetLength(0);
+  ConvexHullPoints.Clear;
   ConvexHullPoints.AddList(ControlPoints);
   for i := 0 to BezierCurves.Count-1 do
   begin

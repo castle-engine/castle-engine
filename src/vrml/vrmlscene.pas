@@ -4811,7 +4811,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
             EdgePtr^ := EdgesSingle.Items[EdgesSingle.Count - 1];
-            EdgesSingle.DecLength;
+            EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
           end;

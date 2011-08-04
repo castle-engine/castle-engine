@@ -1457,10 +1457,10 @@ end;
 function TNodeMaterial_1.AllMaterialsTransparent: boolean;
 var i: Integer;
 begin
-  if FdTransparency.Items.Length = 0 then
+  if FdTransparency.Items.Count = 0 then
     result := DefaultMaterialTransparency > SingleEqualityEpsilon else
   begin
-    for i := 0 to FdTransparency.Items.Length-1 do
+    for i := 0 to FdTransparency.Items.Count-1 do
       if FdTransparency.Items.Items[i] <= SingleEqualityEpsilon then Exit(false);
     result := true;
   end;

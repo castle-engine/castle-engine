@@ -128,10 +128,10 @@
   public
     { Note that we do not want to use below "overload" keyword,
       as we do *not* want here to allow cross-class (Delphi-style) overloading.
-      This would allow caller to call Create(ElementSize, InitialLength),
+      This would allow caller to call Create(ElementSize, InitialCount),
       with disastrous consequences if ElementSize is wrong.
 
-      The constructor Create(ElementSize, InitialLength) should only
+      The constructor Create(ElementSize, InitialCount) should only
       be available to TDynArray_11 implementation, and hidden from the
       outside world.
 
@@ -140,7 +140,7 @@
     { }
 
     constructor Create; {$ifndef FPC_OBJFPC} overload; {$endif}
-    constructor Create(InitialLength: Integer); {$ifndef FPC_OBJFPC} overload; {$endif}
+    constructor Create(InitialCount: Integer); {$ifndef FPC_OBJFPC} overload; {$endif}
     constructor CreateCopy(Source: TDynArray_11);
 
     { Direct access to your items, you can both read and write using this.
@@ -171,14 +171,14 @@
     {$endif}
 
     {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
-    procedure SetLength(NewLength: Integer); override;
+    procedure SetCount(NewCount: Integer); override;
     {$endif}
 
-    { Add new item at the end of the array. Increases length by 1. }
+    { Add new item at the end of the array. Increases Count by 1. }
     procedure Add(const Item: TDynArrayItem_11); overload;
     procedure Add(const Item: TDynArrayItem_11; const DuplicateCount: Cardinal); overload;
 
-    { Increase the length by 1, and return the pointer to the new item at the end. }
+    { Increase the Count by 1, and return the pointer to the new item at the end. }
     function Add: PDynArrayItem_11; overload;
 
     procedure AddArray(const NewItems: array of TDynArrayItem_11); overload;
@@ -189,7 +189,7 @@
 
     { Copy the contents of Source to this object.
 
-      This is equivalent to doing @code(Length := 0) and
+      This is equivalent to doing @code(Count := 0) and
       @code(AddList(Source)).
       Maybe some day I will make TDynArray_11 descendant of TPersistent,
       then I will make Assign compatible with the TPersistent.Assign interface.
@@ -230,7 +230,7 @@
 
       This can be used like Delete from Pascal's RTL on strings:
       deletes Count items starting from position Index.
-      Length of array will be decreased by Count items,
+      Count of array will be decreased by Count items,
       and the last items of array will be shifted to the left to take
       positions of deleted items.
 
@@ -282,9 +282,9 @@ begin
   inherited Create(SizeOf(TDynArrayItem_11), 0)
 end;
 
-constructor TDynArray_11.Create(InitialLength: Integer);
+constructor TDynArray_11.Create(InitialCount: Integer);
 begin
-  inherited Create(SizeOf(TDynArrayItem_11), InitialLength);
+  inherited Create(SizeOf(TDynArrayItem_11), InitialCount);
 end;
 
 constructor TDynArray_11.CreateCopy(Source: TDynArray_11);
@@ -323,27 +323,27 @@ end;
 {$endif}
 
 {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
-procedure TDynArray_11.SetLength(NewLength: Integer);
+procedure TDynArray_11.SetCount(NewCount: Integer);
 var
   oldlen, i: integer;
 begin
-  if NewLength < Length then
+  if NewCount < Count then
   begin
-    for i := NewLength to Length-1 do Finalize(Items[i]);
-    inherited SetLength(NewLength);
+    for i := NewCount to Count-1 do Finalize(Items[i]);
+    inherited SetCount(NewCount);
   end else
   begin
-    oldlen := Length;
-    inherited SetLength(NewLength);
-    for i := oldlen to NewLength-1 do Initialize(Items[i]);
+    oldlen := Count;
+    inherited SetCount(NewCount);
+    for i := oldlen to NewCount-1 do Initialize(Items[i]);
   end;
 end;
 {$endif}
 
 procedure TDynArray_11.Add(const Item: TDynArrayItem_11);
 begin
-  IncLength;
-  Items[Length-1] := Item;
+  IncCount;
+  Items[Count-1] := Item;
 end;
 
 procedure TDynArray_11.Add(const Item: TDynArrayItem_11; const DuplicateCount: Cardinal);
@@ -358,30 +358,30 @@ end;
 
 function TDynArray_11.Add: PDynArrayItem_11;
 begin
-  IncLength;
-  Result := @(Items[Length-1]);
+  IncCount;
+  Result := @(Items[Count-1]);
 end;
 
 procedure TDynArray_11.AddArray(const NewItems: array of TDynArrayItem_11;
   NewItemsAddCount: integer);
 var
-  OldLength: Integer;
+  OldCount: Integer;
 {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
   I: Integer;
 {$endif}
 begin
-  OldLength := Length;
-  SetLength(Length + NewItemsAddCount);
+  OldCount := Count;
+  SetCount(Count + NewItemsAddCount);
 {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
   { We're copying one-by-one, so that Initialize/Finalize
    of items is properly called. }
   for i := 0 to NewItemsAddCount - 1 do
-    Items[OldLength + i] := NewItems[i];
+    Items[OldCount + i] := NewItems[i];
 {$else}
   { In this case we can copy memory fast, using Move }
   System.Move(
     {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} NewItems[0],
-    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[OldLength],
+    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[OldCount],
     NewItemsAddCount * SizeOf(TDynArrayItem_11));
 {$endif}
 end;
@@ -407,17 +407,17 @@ var
   i: Integer;
 {$endif}
 begin
-  Length := Source.Length;
+  Count := Source.Count;
   {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
   { We're copying one-by-one, so that Initialize/Finalize
     of items is properly called. }
-  for i := 0 to Source.Length-1 do Items[i] := Source.Items[i];
+  for i := 0 to Source.Count-1 do Items[i] := Source.Items[i];
   {$else}
   { In this case we can copy memory fast, using Move }
   System.Move(
     {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Source.Items[0],
     {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[0],
-    Length * SizeOf(TDynArrayItem_11));
+    Count * SizeOf(TDynArrayItem_11));
   {$endif}
 end;
 
@@ -464,7 +464,7 @@ function TDynArray_11.Equal(const Arr: array of TDynArrayItem_11;
 var
   i: Integer;
 begin
-  if ArrCount <> Length then begin result := false; Exit end;
+  if ArrCount <> Count then begin result := false; Exit end;
 
   for i := 0 to ArrCount-1 do
     if not EqualItems(Arr[i], Items[i]) then
@@ -509,26 +509,26 @@ begin
     Finalize(Items[i]);
   {$endif}
 
-  { This copies elements from Index+Count .. Length-1
-    to positions Index .. Length -Count -1 using direct memory
+  { This copies elements from Index+Count .. Count-1
+    to positions Index .. Count -Count -1 using direct memory
     copying (Move), so it doesn't care about Initialize/Finalize.
     This way it's fast. }
-  for i := Index to Length - 1 - DelCount do
+  for i := Index to Count - 1 - DelCount do
     { Instead of Items[i] := Items[i + DelCount]; }
     System.Move(
       {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i+DelCount],
       {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_11_IS_FUNCTION} @ {$endif} {$endif} Items[i],
       SizeOf(TDynArrayItem_11));
 
-  { Decrease Length without doing Finalize on the tail of the array. }
-  SetLengthNoInitFini(Length - DelCount);
+  { Decrease Count without doing Finalize on the tail of the array. }
+  SetCountNoInitFini(Count - DelCount);
 end;
 
 procedure TDynArray_11.Insert(Index: integer; const Item: TDynArrayItem_11);
 var
   i: integer;
 begin
-  IncLength;
+  IncCount;
   for i := High downto Index+1 do Items[i] := Items[i-1];
   Items[Index] := Item;
 end;
@@ -543,7 +543,7 @@ var
   {$endif}
 begin
   {$ifdef DYNARRAY_11_IS_INIT_FINI_TYPE}
-  for i := 0 to Length-1 do Items[i] := Item;
+  for i := 0 to Count-1 do Items[i] := Item;
   {$else}
   case SizeOf(TDynArrayItem_11) of
     1: System.FillChar(Items^, Count, ItemAsByte);
@@ -552,7 +552,7 @@ begin
     4: FillDWord(Items^, Count, ItemAsDWord);
     {$endif}
     else
-      for i := 0 to Length-1 do Items[i] := Item;
+      for i := 0 to Count-1 do Items[i] := Item;
   end;
   {$endif}
 end;

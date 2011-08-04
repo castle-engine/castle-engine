@@ -576,18 +576,18 @@ begin
         Faces.FdCreaseAngle.Value := NiceCreaseAngle;
         Faces.FdSolid.Value := false;
         Faces.FdCoord.Value := Coord;
-        Faces.FdCoordIndex.Items.SetLength(0);
+        Faces.FdCoordIndex.Items.Clear;
         Faces.FdCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
         if FacesWithTexCoord then
         begin
           Faces.FdTexCoord.Value := TexCoord;
-          Faces.FdTexCoordIndex.Items.SetLength(0);
+          Faces.FdTexCoordIndex.Items.Clear;
           Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
         end;
         if FacesWithNormal then
         begin
           Faces.FdNormal.Value := Normal;
-          Faces.FdNormalIndex.Items.SetLength(0);
+          Faces.FdNormalIndex.Items.Clear;
           Faces.FdNormalIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
         end;
 

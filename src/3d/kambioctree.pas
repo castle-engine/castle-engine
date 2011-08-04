@@ -512,7 +512,7 @@ begin
   end else
   begin
    CreateTreeSubNodes(true);
-   for i := 0 to ItemsIndices.Length - 1 do
+   for i := 0 to ItemsIndices.Count - 1 do
     PutItemIntoSubNodes(ItemsIndices[i]);
    if not FParentTree.ItemsInNonLeafNodes then
     FreeAndNil(FItemsIndices);

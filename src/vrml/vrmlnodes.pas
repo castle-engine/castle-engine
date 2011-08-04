@@ -2387,15 +2387,15 @@ end;
 
 procedure TLightInstancesList.AppendInWorldCoordinates(const List: TLightInstancesList);
 var
-  OldLength: Integer;
+  OldCount: Integer;
   I: Integer;
 begin
-  OldLength := Length;
-  SetLength(Length + List.Count);
+  OldCount := Count;
+  Count := Count + List.Count;
   for I := 0 to List.Count - 1 do
   begin
-    Items[OldLength + I] := List.Items[I];
-    Items[OldLength + I].WorldCoordinates := true;
+    Items[OldCount + I] := List.Items[I];
+    Items[OldCount + I].WorldCoordinates := true;
   end;
 end;
 
@@ -5956,7 +5956,7 @@ procedure TDynNodeDestructionNotificationArray.ExecuteAll(Node: TVRMLNode);
 var
   I: Integer;
 begin
-  for I := 0 to Length - 1 do
+  for I := 0 to Count - 1 do
     Items[I](Node);
 end;
 

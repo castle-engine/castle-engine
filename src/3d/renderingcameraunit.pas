@@ -150,7 +150,7 @@ procedure TDynCameraChangedEventArray.ExecuteAll(RenderingCamera: TRenderingCame
 var
   I: Integer;
 begin
-  for I := 0 to Length - 1 do
+  for I := 0 to Count - 1 do
     Items[I](RenderingCamera);
 end;
 

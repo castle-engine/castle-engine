@@ -81,7 +81,7 @@
       where camera is defined).
 
       Dodajemy do tego dodatki Kambiego :
-      jesli FdDirection.Length > 0 to CamDirection nie jest liczone z
+      jesli FdDirection.Count > 0 to CamDirection nie jest liczone z
       FdOrientation ale jest brane wprost z FdDirection.Items[0].
       Podobnie dla FdUp.
 
@@ -433,7 +433,7 @@ procedure TVRMLViewpointNode.GetView(
 begin
   CamPos := Position.Value;
 
-  if FdDirection.Items.Length > 0 then
+  if FdDirection.Items.Count > 0 then
   begin
     CamDir := FdDirection.Items.Items[0];
     if ZeroVector(CamDir) then
@@ -444,7 +444,7 @@ begin
   end else
     CamDir := FdOrientation.RotatedPoint( DefaultVRMLCameraDirection );
 
-  if FdUp.Items.Length > 0 then
+  if FdUp.Items.Count > 0 then
   begin
     CamUp := FdUp.Items.Items[0];
     if ZeroVector(CamUp) then

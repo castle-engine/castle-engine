@@ -244,7 +244,7 @@ end;
 
 procedure TGLNotifications.Clear;
 begin
-  Messages.SetLength(0);
+  Messages.Clear;
   PostRedisplayMessages;
 end;
 

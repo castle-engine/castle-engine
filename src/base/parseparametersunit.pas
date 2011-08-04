@@ -481,7 +481,7 @@ begin
     Break
    end;
 
-   Assert(SimpleShortOptions.Length = 0);
+   Assert(SimpleShortOptions.Count = 0);
 
    { calculate OptionNum; Ustaw je na numer w Params jezeli Parameters[i] to opcja
      (w tym przypadku musisz tez ustalic OptionName), wpp. (jesli to nie opcja
@@ -514,7 +514,7 @@ begin
    if OptionNum <> -1 then
    begin
     { najpierw zajmij sie SimpleShortOptions }
-    for k := 0 to SimpleShortOptions.Length-1 do
+    for k := 0 to SimpleShortOptions.Count-1 do
     begin
      if not (Options^[SimpleShortOptions[k]].Argument in [oaNone, oaOptional]) then
       raise EMissingOptionArgument.Create('Missing argument for short option -'+
@@ -522,7 +522,7 @@ begin
         'option can have an argument');
      OptionProc(SimpleShortOptions[k], false, '', EmptySeparateArgs, OptionProcData);
     end;
-    SimpleShortOptions.Length := 0;
+    SimpleShortOptions.Count := 0;
 
     { teraz zajmij sie opcja OptionNum o nazwie OptionName }
 

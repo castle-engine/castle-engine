@@ -139,7 +139,7 @@ begin
     PolysCount := -1;
   end;
 
-  Verts.SetLength(VertsCount);
+  Verts.Count := VertsCount;
   for i := 0 to Verts.Count-1 do
     Readln(f, Verts.Items[i][0], Verts.Items[i][1], Verts.Items[i][2]);
 

@@ -213,7 +213,7 @@ procedure LoadVRMLSequence(const FileName: string;
       TVRMLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
         ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
 
-      Assert(ModelFileNames.Count = Times.Length);
+      Assert(ModelFileNames.Count = Times.Count);
       Assert(ModelFileNames.Count >= 1);
 
       { Now use ModelFileNames to load RootNodes }
@@ -242,7 +242,7 @@ procedure LoadVRMLSequence(const FileName: string;
 var
   Ext: string;
 begin
-  Assert(Times.Length = 0);
+  Assert(Times.Count = 0);
   Assert(RootNodes.Count = 0);
 
   Ext := ExtractFileExt(FileName);

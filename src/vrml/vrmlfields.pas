@@ -3326,7 +3326,7 @@ procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 var
   SingleItem: TVRMLSingleField;
 begin
-  RawItems.SetLength(0);
+  RawItems.Clear;
 
   RawItems.AllowedCapacityOverflow := 100;
   SingleItem := nil;
@@ -3382,7 +3382,7 @@ begin
     comma is ignored (it was only for VRML 1.0 anyway), we just read
     single values up to the end of stream. }
 
-  RawItems.SetLength(0);
+  RawItems.Clear;
 
   RawItems.AllowedCapacityOverflow := 100;
   SingleItem := CreateItemBeforeParse;

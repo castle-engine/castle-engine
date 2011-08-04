@@ -202,7 +202,7 @@ procedure TDynVRMLEventReceiveArray.ExecuteAll(
 var
   I: Integer;
 begin
-  for I := 0 to Length - 1 do
+  for I := 0 to Count - 1 do
     Items[I](Event, Value, Time);
 end;
 

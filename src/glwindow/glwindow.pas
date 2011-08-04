@@ -2900,7 +2900,7 @@ uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
 procedure TDynGLWindowFuncArray.ExecuteAll(Window: TGLwindow);
 var i: integer;
 begin
- for i := 0 to Length-1 do
+ for i := 0 to Count-1 do
   if {$ifndef FPC_OBJFPC} @ {$endif} Items[i] <> nil then
   begin
    Items[i](Window);
