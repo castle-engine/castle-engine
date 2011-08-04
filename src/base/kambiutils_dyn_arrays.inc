@@ -67,11 +67,11 @@ type
     FCapacity, FAllowedCapacityOverflow: Cardinal;
     ItemSize: Cardinal;
 
-    { This is the buffer used by SwapItems, allocated for ItemSize bytes
-      in constructor, freed in desctructor. This way SwapItems doesn't
+    { This is the buffer used by Exchange, allocated for ItemSize bytes
+      in constructor, freed in desctructor. This way Exchange doesn't
       have to do any Get/FreeMem and can work fast, not dependent on the
       speed of memory manager. }
-    SwapItemsBuf: Pointer;
+    ExchangeBuf: Pointer;
 
     procedure SetAllowedCapacityOverflow(Value: Cardinal);
   protected
@@ -113,7 +113,7 @@ type
       then High = -1. }
     function High: Integer;
 
-    procedure SwapItems(Index1, Index2: Cardinal);
+    procedure Exchange(Index1, Index2: Cardinal);
 
     { Fill the array memory. }
     procedure FillChar(FillValue: byte);
@@ -277,7 +277,7 @@ begin
  inherited Create;
  ItemSize := ElementSize;
  FAllowedCapacityOverflow := 4;
- SwapItemsBuf := GetMem(ItemSize);
+ ExchangeBuf := GetMem(ItemSize);
  SetCount(InitialCount);
 end;
 
@@ -288,7 +288,7 @@ begin
    rzeczywiscie zwolniona. }
  SetCount(0);
  FreeMemNiling(A);
- FreeMemNiling(SwapItemsBuf);
+ FreeMemNiling(ExchangeBuf);
  inherited;
 end;
 
@@ -364,16 +364,16 @@ begin ChangeCount(-1) end;
 procedure TDynArrayBase.ChangeCount(LenChange: Integer);
 begin SetCount(Count+LenChange) end;
 
-procedure TDynArrayBase.SwapItems(Index1, Index2: Cardinal);
+procedure TDynArrayBase.Exchange(Index1, Index2: Cardinal);
 var p1, p2: PByte;
 begin
   {$I norqcheckbegin.inc}
   PtrUInt(p1) := PtrUInt(A) + Index1 * ItemSize;
   PtrUInt(p2) := PtrUInt(A) + Index2 * ItemSize;
   {$I norqcheckend.inc}
-  Move(p1^, SwapItemsBuf^, ItemSize);
+  Move(p1^, ExchangeBuf^, ItemSize);
   Move(p2^, p1^, ItemSize);
-  Move(SwapItemsBuf^, p2^, ItemSize);
+  Move(ExchangeBuf^, p2^, ItemSize);
 end;
 
 procedure TDynArrayBase.FillChar(FillValue: byte);
@@ -386,10 +386,10 @@ var
   I: Integer;
 begin
   { Need to specially check for Count = 0 case, since (0-1) div 2 = -1 div 2 = 0
-    which means that loop would try invalid SwapItems(0, -1). }
+    which means that loop would try invalid Exchange(0, -1). }
   if Count = 0 then Exit;
   for I := 0 to (Count - 1) div 2 do
-    SwapItems(I, Count - 1 - I);
+    Exchange(I, Count - 1 - I);
 end;
 
 procedure TDynArrayBase.Clear;

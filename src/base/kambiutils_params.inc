@@ -136,7 +136,7 @@ var
   I: Integer;
 begin
   { Need to specially check for Count = 0 case, since (0-1) div 2 = -1 div 2 = 0
-    which means that loop would try invalid SwapItems(0, -1). }
+    which means that loop would try invalid Exchange(0, -1). }
   if Count = 0 then Exit;
   for I := 0 to (Count - 1) div 2 do
     Exchange(I, Count - 1 - I);
