@@ -15,41 +15,20 @@
 
 { function our_png_error_fn and our_png_warning_fn are used as libpng
   error and warning handlers in both SavePNG and LoadPNG.
-  They both require png_get_error_ptr(png_ptr) to be valid TStringList
-   object. Warning function
-    - appends warning to string list
-    - calls WarningWrite ONLY if compiled with DEBUG defined
-   Error function raises EInvalidPng exception with appropriate message.
-    Warnings saved in the string list are appended to the exception
-    message - so expection message is error_message + all warning_messages.
- -------------------------------------------------------------------------- }
+
+  They could use png_get_error_ptr(png_ptr) for some pointer data,
+  but for now it is not used. }
 
 procedure our_png_error_fn(png_ptr : png_structp; s : png_const_charp);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-var warnings: TStringList;
-    errs: string;
-    i: integer;
 begin
- { we're raising exception EInvalidPng;
-   we use error s and collected warnings to construct exception message }
- errs:='Png error - libpng returned error : '+s;
- warnings := TStringList(png_get_error_ptr(png_ptr));
- if warnings.Count > 0 then
- begin
-  errs := errs+nl+'There were libpng warnings :';
-  for i := 0 to warnings.Count - 1 do errs := errs+nl+warnings[i];
- end;
- raise EInvalidPng.Create(errs);
+  raise EInvalidPng.Create('PNG error ' + S);
 end;
 
 procedure our_png_warning_fn(png_ptr : png_structp; s : png_const_charp);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
-var warnings: TStringList;
 begin
- { we're collecting warnings from libpng. }
- warnings := TStringList(png_get_error_ptr(png_ptr));
- warnings.Add(s);
- (* {$ifdef DEBUG} WarningWrite('DEBUG ONLY message : libpng warning : '+s); {$endif} *)
+  OnWarning(wtMinor, 'PNG', S);
 end;
 
 { read / write funcs. One is used in LoadPNG and the other one in SavePNG but
@@ -144,14 +123,12 @@ var
 var
   row_pointers: TFPList;
   i: Cardinal;
-  warningslist: TStringList;
   IsAlpha, IsGrayscale: boolean;
 begin
- warningslist := TStringList.Create;
  png_ptr := nil;
  try
   png_ptr := png_create_read_struct(SO_PNG_LIBPNG_VER_STRING,
-    WarningsList,
+    nil { we could pass here data to warning/error handlers },
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn,
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_read_struct failed');
@@ -250,7 +227,6 @@ begin
     png_destroy_read_struct(@png_ptr, nil, nil) else
     png_destroy_read_struct(@png_ptr, @info_ptr, nil);
   end;
-  FreeAndNil(warningslist);
  end;
 end;
 
@@ -259,17 +235,15 @@ end;
 procedure SavePNG(Img: TImage; Stream: TStream; Interlaced: boolean);
 var png_ptr: png_structp;
     info_ptr: png_infop;
-    warningslist: TStringList;
     InterlaceType: LongWord;
     row_pointers: TFPList;
     i: Cardinal;
     ColorType: LongInt;
 begin
- warningslist := TStringList.Create;
  png_ptr := nil;
  try
   png_ptr := png_create_write_struct(SO_PNG_LIBPNG_VER_STRING,
-    WarningsList,
+    nil { we could pass here data to warning/error handlers },
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_error_fn,
     {$ifdef FPC_OBJFPC} @ {$endif} our_png_warning_fn);
   Check( png_ptr <> nil, 'png_create_write_struct failed');
@@ -325,7 +299,6 @@ begin
     png_destroy_write_struct(@png_ptr, @info_ptr) else
     png_destroy_write_struct(@png_ptr, nil);
   end;
-  FreeAndNil(warningslist);
  end;
 end;
 
