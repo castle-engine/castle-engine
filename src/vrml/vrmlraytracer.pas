@@ -34,7 +34,7 @@ unit VRMLRayTracer;
 
 interface
 
-uses VectorMath, Images, RaysWindow, KambiUtils,
+uses VectorMath, Images, RaysWindow, KambiUtils, Classes,
   VRMLTriangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
 
 type
@@ -144,7 +144,7 @@ type
     for documentation. }
   TPathTracer = class(TRayTracer)
   private
-    CollectedLightItems: TDynPointerArray;
+    CollectedLightItems: TFPList;
     procedure CollectLightItems(const Triangle: PVRMLTriangle);
   public
     constructor Create;
@@ -614,7 +614,7 @@ procedure TPathTracer.Execute;
 var
   { In LightItems we have pointers to Octree.Triangles[] pointing
     to the items with emission color > 0. In other words, light sources. }
-  LightItems: TDynPointerArray;
+  LightItems: TFPList;
 
   {$ifdef PATHTR_USES_SHADOW_CACHE}
   { For each light in LightItems[I], ShadowCache[I] gives the pointer
@@ -624,7 +624,7 @@ var
 
     This index is updated and used in IsLightShadowed.
     The idea of "shadow cache" comes from RGK, crystalized in "Graphic Gems II". }
-  ShadowCache: TDynPointerArray;
+  ShadowCache: TFPList;
   {$endif}
 
   { TODO: comments below are in Polish. }
@@ -1096,17 +1096,16 @@ begin
   SFCurve := nil;
   try
     { calculate LightItems }
-    LightItems := TDynPointerArray.Create;
-    LightItems.AllowedCapacityOverflow := Octree.TrianglesCount div 4;
+    LightItems := TFPList.Create;
+    LightItems.Capacity := Octree.TrianglesCount div 4;
     CollectedLightItems := LightItems;
     Octree.EnumerateTriangles(@CollectLightItems);
-    LightItems.AllowedCapacityOverflow := 4;
 
     {$ifdef PATHTR_USES_SHADOW_CACHE}
     { calculate ShadowCache }
-    ShadowCache := TDynPointerArray.Create;
+    ShadowCache := TFPList.Create;
     ShadowCache.Count := LightItems.Count;
-    ShadowCache.SetAll(nil);
+    { Setting TFPList.Count already makes sure that new pointers are nil }
     {$endif}
 
     { calculate RaysWindow }

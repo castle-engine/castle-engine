@@ -142,7 +142,7 @@ var
   end;
 
 var
-  row_pointers: TDynPointerArray;
+  row_pointers: TFPList;
   i: Cardinal;
   warningslist: TStringList;
   IsAlpha, IsGrayscale: boolean;
@@ -229,12 +229,13 @@ begin
          Result.PixelSize * Result.Width]));
 
    { now ready row_pointers as ScanLines }
-   row_pointers := TDynPointerArray.Create(result.Height);
+   row_pointers := TFPList.Create;
    try
+    row_pointers.Count := result.Height;
     for i := 0 to result.Height-1 do
      row_pointers[i] := Result.RowPtr(Result.Height -i -1);
     { and go : uncompress image to result.data, therefore loading png image }
-    png_read_image(png_ptr, @row_pointers.Items[0]);
+    png_read_image(png_ptr, PPPng_Byte(row_pointers.List));
    finally
     row_pointers.Free;
    end;
@@ -260,7 +261,7 @@ var png_ptr: png_structp;
     info_ptr: png_infop;
     warningslist: TStringList;
     InterlaceType: LongWord;
-    row_pointers: TDynPointerArray;
+    row_pointers: TFPList;
     i: Cardinal;
     ColorType: LongInt;
 begin
@@ -306,11 +307,12 @@ begin
     TImage - a wiec bitdepth = 8 , type = RGB[A] i juz. }
 
   { wiec ready row_pointers and go }
-  row_pointers := TDynPointerArray.Create(Img.Height);
+  row_pointers := TFPList.Create;
   try
+   row_pointers.Count := Img.Height;
    for i := 0 to Img.Height-1 do
     row_pointers[i] := Img.RowPtr(Img.Height-i-1);
-   png_write_image(png_ptr, @row_pointers.Items[0]);
+   png_write_image(png_ptr, PPPng_Byte(row_pointers.List));
   finally
    row_pointers.Free;
   end;

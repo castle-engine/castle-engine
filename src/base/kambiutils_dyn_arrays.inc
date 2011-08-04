@@ -192,9 +192,6 @@ type
   {$define DYNARRAY_12_USE_PLUSMINUS_OP}
   TDynArrayItem_12 = Single  ; PDynArrayItem_12 = PSingle  ; {$I dynarray_12.inc} {TDynSingleArray is below} { }        TArray_Single   = TInfiniteArray_12; PArray_Single   = PInfiniteArray_12;
 
-  {$define DYNARRAY_13_USE_EQUALITY_OP}
-  TDynArrayItem_13 = Pointer ; PDynArrayItem_13 = PPointer ; {$I dynarray_13.inc} TDynPointerArray  = TDynArray_13; TArray_Pointer  = TInfiniteArray_13; PArray_Pointer  = PInfiniteArray_13;
-
   {$define DYNARRAY_14_USE_EQUALITY_OP}
   {$define DYNARRAY_14_USE_PLUSMINUS_OP}
   TDynArrayItem_14 = LongWord; PDynArrayItem_14 = PLongWord; {$I dynarray_14.inc} TDynLongWordArray = TDynArray_14; TArray_LongWord = TInfiniteArray_14; PArray_LongWord = PInfiniteArray_14;
@@ -453,7 +450,6 @@ end;
 {$I dynarray_8.inc}
 {$I dynarray_11.inc}
 {$I dynarray_12.inc}
-{$I dynarray_13.inc}
 {$I dynarray_14.inc}
 {$I dynarray_15.inc}
 {$I dynarray_16.inc}
