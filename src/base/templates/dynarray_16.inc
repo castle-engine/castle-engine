@@ -181,16 +181,16 @@
     { Increase the length by 1, and return the pointer to the new item at the end. }
     function Add: PDynArrayItem_16; overload;
 
-    procedure AppendArray(const NewItems: array of TDynArrayItem_16); overload;
-    procedure AppendArray(const NewItems: array of TDynArrayItem_16; NewItemsAddCount: integer); overload;
+    procedure AddArray(const NewItems: array of TDynArrayItem_16); overload;
+    procedure AddArray(const NewItems: array of TDynArrayItem_16; NewItemsAddCount: integer); overload;
 
-    procedure AppendDynArray(Arr: TDynArray_16); overload;
-    procedure AppendDynArray(Arr: TDynArray_16; Index, ACount: Integer); overload;
+    procedure AddList(Arr: TDynArray_16); overload;
+    procedure AddList(Arr: TDynArray_16; Index, ACount: Integer); overload;
 
     { Copy the contents of Source to this object.
 
       This is equivalent to doing @code(Length := 0) and
-      @code(AppendDynarray(Source)).
+      @code(AddList(Source)).
       Maybe some day I will make TDynArray_16 descendant of TPersistent,
       then I will make Assign compatible with the TPersistent.Assign interface.
 
@@ -203,7 +203,7 @@
       DYNARRAY_16_IS_INIT_FINI_TYPE). }
     procedure Assign(Source: TDynArray_16);
 
-    { Clear (like @code(Count := 0)) and then @code(AppendArray(NewItems)). }
+    { Clear (like @code(Count := 0)) and then @code(AddArray(NewItems)). }
     procedure AssignArray(const NewItems: array of TDynArrayItem_16);
 
     {$ifdef DYNARRAY_16_USE_EQUALITY}
@@ -362,7 +362,7 @@ begin
   Result := @(Items[Length-1]);
 end;
 
-procedure TDynArray_16.AppendArray(const NewItems: array of TDynArrayItem_16;
+procedure TDynArray_16.AddArray(const NewItems: array of TDynArrayItem_16;
   NewItemsAddCount: integer);
 var
   OldLength: Integer;
@@ -386,19 +386,19 @@ begin
 {$endif}
 end;
 
-procedure TDynArray_16.AppendArray(const NewItems: array of TDynArrayItem_16);
+procedure TDynArray_16.AddArray(const NewItems: array of TDynArrayItem_16);
 begin
-  AppendArray(NewItems, System.High(NewItems)+1);
+  AddArray(NewItems, System.High(NewItems)+1);
 end;
 
-procedure TDynArray_16.AppendDynArray(Arr: TDynArray_16);
+procedure TDynArray_16.AddList(Arr: TDynArray_16);
 begin
-  AppendArray(Arr.ItemsArray^, Arr.Count);
+  AddArray(Arr.ItemsArray^, Arr.Count);
 end;
 
-procedure TDynArray_16.AppendDynArray(Arr: TDynArray_16; Index, ACount: Integer);
+procedure TDynArray_16.AddList(Arr: TDynArray_16; Index, ACount: Integer);
 begin
-  AppendArray(PInfiniteArray_16(@Arr.Items[Index])^, ACount);
+  AddArray(PInfiniteArray_16(@Arr.Items[Index])^, ACount);
 end;
 
 procedure TDynArray_16.Assign(Source: TDynArray_16);
@@ -424,7 +424,7 @@ end;
 procedure TDynArray_16.AssignArray(const NewItems: array of TDynArrayItem_16);
 begin
   Count := 0;
-  AppendArray(NewItems);
+  AddArray(NewItems);
 end;
 
 {$ifdef DYNARRAY_16_USE_EQUALITY}
