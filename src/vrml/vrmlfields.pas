@@ -4677,7 +4677,7 @@ begin
      (AttributeValue[1] = '"') and
      (AttributeValue[Length(AttributeValue)] = '"') then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: found quotes around SFString value. Assuming incorrect X3D file, and stripping quotes from ''' + AttributeValue + '''. Note: this may cause accidental stripping of legal quotes (that could actually be wanted in string content). Well, thank the authors of many incorrect X3D files... this hack may hopefully be removed in the future.');
+    OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: found extra quotes around SFString value. Assuming this is a mistake, and stripping quotes from ''' + AttributeValue + '''. Fix your model: SFString field values should not be enclosed in extra quotes!');
     Value := Copy(AttributeValue, 2, Length(AttributeValue) - 2);
   end else
     Value := AttributeValue;
