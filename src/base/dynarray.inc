@@ -141,7 +141,6 @@
 
     constructor Create; {$ifndef FPC_OBJFPC} overload; {$endif}
     constructor Create(InitialCount: Integer); {$ifndef FPC_OBJFPC} overload; {$endif}
-    constructor CreateCopy(Source: TDynArray);
 
     { Direct access to your items, you can both read and write using this.
 
@@ -274,12 +273,6 @@ end;
 constructor TDynArray.Create(InitialCount: Integer);
 begin
   inherited Create(SizeOf(TDynArrayItem), InitialCount);
-end;
-
-constructor TDynArray.CreateCopy(Source: TDynArray);
-begin
-  Create;
-  Assign(Source);
 end;
 
 function TDynArray.GetItems:
