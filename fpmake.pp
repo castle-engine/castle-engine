@@ -207,7 +207,6 @@ begin
     P.Targets.AddUnit('kambipasjpeg_error_mgrs.pas');
     P.Targets.AddUnit('kambipasjpeg_stream_mgrs.pas');
     P.Targets.AddUnit('kambipng.pas');
-    P.Targets.AddUnit('kambipngutils.pas');
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');
 

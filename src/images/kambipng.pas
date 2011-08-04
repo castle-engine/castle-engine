@@ -86,8 +86,8 @@ uses KambiZlib;
 
   Unfortunately, they are specific to so/dll version. Very bad --- I'd like
   to have application that can run with every version that is compatible
-  instead of only some given version. So I use my functions (defined in
-  KambiPngUtils unit) SO_PNG_LIBPNG_VER_STRING, SO_PNG_VER_MAJOR etc.
+  instead of only some given version. So I use my functions
+  SO_PNG_LIBPNG_VER_STRING, SO_PNG_VER_MAJOR etc.
   that return the real .so (or .dll) version number
   (using png_access_version_number). This version can be then passed to
   png_create_write_struct to ensure that libpng will not return with error :

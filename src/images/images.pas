@@ -65,7 +65,7 @@ unit Images;
 interface
 
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
-  KambiPng, KambiPngUtils, KambiPasJpeg, FileFilters, KambiClassUtils,
+  KambiPng, KambiPasJpeg, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -3674,6 +3674,7 @@ end;
 
 initialization
   InitializeImagesFileFilters;
+  InitializePNG;
 finalization
   FreeAndNil(LoadImage_FileFilters);
   FreeAndNil(SaveImage_FileFilters);
