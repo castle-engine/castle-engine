@@ -112,14 +112,14 @@ end;
 function Coords_BoundingBox(State: TVRMLGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
+  Result := CalculateBoundingBox(PVector3Single(Coord.Items.List),
     Coord.Items.Count, 0, State.Transform);
 end;
 
 function Coords_LocalBoundingBox(State: TVRMLGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3Single(Coord.Items.ItemsArray),
+  Result := CalculateBoundingBox(PVector3Single(Coord.Items.List),
     Coord.Items.Count, 0);
 end;
 

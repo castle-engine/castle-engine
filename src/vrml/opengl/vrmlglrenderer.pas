@@ -2472,7 +2472,7 @@ begin
 
   if Arrays.Indexes <> nil then
     BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER_ARB,
-      Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.ItemsArray);
+      Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.List);
 
   VboAllocatedUsage := DataUsage;
 

@@ -328,7 +328,7 @@ type
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
 
     { Append List to our contents, setting every light's WorldCoordinates = @true. }
-    procedure AppendInWorldCoordinates(const List: TLightInstancesList);
+    procedure AppendInWorldCoordinates(const AList: TLightInstancesList);
   end;
   TArray_LightInstance = TInfiniteArray_1;
   PArray_LightInstance = PInfiniteArray_1;
@@ -2385,16 +2385,16 @@ begin
         Exit(false);
 end;
 
-procedure TLightInstancesList.AppendInWorldCoordinates(const List: TLightInstancesList);
+procedure TLightInstancesList.AppendInWorldCoordinates(const AList: TLightInstancesList);
 var
   OldCount: Integer;
   I: Integer;
 begin
   OldCount := Count;
-  Count := Count + List.Count;
-  for I := 0 to List.Count - 1 do
+  Count := Count + AList.Count;
+  for I := 0 to AList.Count - 1 do
   begin
-    Items[OldCount + I] := List.Items[I];
+    Items[OldCount + I] := AList.Items[I];
     Items[OldCount + I].WorldCoordinates := true;
   end;
 end;

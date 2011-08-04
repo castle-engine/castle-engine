@@ -114,7 +114,7 @@
     function GetItems:
       {$ifdef FPC_OBJFPC} PDynArrayItem_13 {$else} PInfiniteArray_13 {$endif};
       {$ifdef SUPPORTS_INLINE} inline; {$endif}
-    function GetItemsArray: PInfiniteArray_13;
+    function GetList: PInfiniteArray_13;
     function GetFirst: TDynArrayItem_13;
     function GetLast: TDynArrayItem_13;
     procedure SetFirst(const Value: TDynArrayItem_13);
@@ -156,10 +156,10 @@
     { Pointer to your items. Exactly like @link(Items), but always of
       PInfiniteArray_13 type.
 
-      This means that you can always read/write items like @code(ItemsArray^[Index]).
+      This means that you can always read/write items like @code(List^[Index]).
       Under ObjFpc you will not be able to write
-      @code(ItemsArray[Index]) (i.e. omit this ^ character). }
-    property ItemsArray: PInfiniteArray_13 read GetItemsArray;
+      @code(List[Index]) (i.e. omit this ^ character). }
+    property List: PInfiniteArray_13 read GetList;
 
     property Pointers[ItemNum: integer]: PDynArrayItem_13 read GetPointers;
       {$ifdef DYNARRAY_13_IS_STRUCT} default; {$endif}
@@ -289,7 +289,7 @@ begin
     {$ifdef FPC_OBJFPC} PDynArrayItem_13 {$else} PInfiniteArray_13 {$endif} (A);
 end;
 
-function TDynArray_13.GetItemsArray: PInfiniteArray_13;
+function TDynArray_13.GetList: PInfiniteArray_13;
 begin
   Result := PInfiniteArray_13(A);
 end;
@@ -382,7 +382,7 @@ end;
 
 procedure TDynArray_13.AddList(Arr: TDynArray_13);
 begin
-  AddArray(Arr.ItemsArray^, Arr.Count);
+  AddArray(Arr.List^, Arr.Count);
 end;
 
 procedure TDynArray_13.AddList(Arr: TDynArray_13; Index, ACount: Integer);
@@ -440,7 +440,7 @@ end;
 
 function TDynArray_13.Equal(DynArr: TDynArray_13): boolean;
 begin
-  Result := Equal(DynArr.ItemsArray^, DynArr.Count);
+  Result := Equal(DynArr.List^, DynArr.Count);
 end;
 
 function TDynArray_13.Equal(const Arr: array of TDynArrayItem_13): boolean;

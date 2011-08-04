@@ -114,7 +114,7 @@ begin
 
   FaceNormal := IndexedConvexPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    { I pass ShapeElements, not Coord.ItemsArray, pointer here,
+    { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
     PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
@@ -125,7 +125,7 @@ begin
 
   FaceArea := IndexedConvexPolygonArea(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    { I pass ShapeElements, not Coord.ItemsArray, pointer here,
+    { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }
     PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
@@ -389,7 +389,7 @@ begin
   { fill textures }
   PositionArea := ElementsPositionAreaTex.AlphaPixels;
   Normal := ElementsNormalTex.RGBPixels;
-  Element := PAOElement(Elements.ItemsArray);
+  Element := PAOElement(Elements.List);
   for I := 0 to Elements.Count - 1 do
   begin
     PositionArea^[0] := ClampedCheck(Element^.Position[0] / PositionScale[0] - PositionShift[0]);

@@ -5155,7 +5155,7 @@ end;
 
 { Note that because of FPC 2.0.2 bug, code below will not compile
   with FPC 2.0.2 in objfpc mode. For objfpc mode I would have to
-  change below Items.Items[I] to Items.ItemsArray^[I],
+  change below Items.Items[I] to Items.List^[I],
   i.e. Items property of my dynamic array classes will not work
   correctly in objfpc mode in FPC 2.0.2.
   Fixed in FPC 2.0.3 and 2.1.1 (revision 2911).

@@ -411,7 +411,7 @@ function TGeometryArrays.IndexesPtr(const Index: Cardinal): PLongInt;
 begin
   Result := PLongInt(PtrUInt(Index * SizeOf(LongInt)));
   if not DataFreed then
-    PtrUInt(Result) += PtrUInt(FIndexes.ItemsArray);
+    PtrUInt(Result) += PtrUInt(FIndexes.List);
 end;
 
 function TGeometryArrays.Position: PVector3Single;

@@ -806,7 +806,7 @@ end;
 
 function CalculateBoundingBox(Verts: TDynVector3SingleArray): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3Single(Verts.ItemsArray), Verts.Count, 0);
+  Result := CalculateBoundingBox(PVector3Single(Verts.List), Verts.Count, 0);
 end;
 
 function CalculateBoundingBoxFromIndices(

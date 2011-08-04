@@ -333,7 +333,7 @@ end;
 procedure ParseParameters(Options: TDynOptionArray; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
- ParseParameters(Options.ItemsArray, Options.Count,
+ ParseParameters(Options.List, Options.Count,
    OptionProc, OptionProcData,
    ParseOnlyKnownLongOptions);
 end;

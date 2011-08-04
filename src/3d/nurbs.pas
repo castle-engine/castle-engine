@@ -495,7 +495,7 @@ begin
   end else
   { Otherwise, all the weights are assumed 1.0 }
   begin
-    Result := CalculateBoundingBox(PVector3Single(Point.ItemsArray),
+    Result := CalculateBoundingBox(PVector3Single(Point.List),
       Point.Count, 0);
   end;
 end;
@@ -550,7 +550,7 @@ begin
   end else
   { Otherwise, all the weights are assumed 1.0 }
   begin
-    Result := CalculateBoundingBox(PVector3Single(Point.ItemsArray),
+    Result := CalculateBoundingBox(PVector3Single(Point.List),
       Point.Count, 0);
   end;
 end;

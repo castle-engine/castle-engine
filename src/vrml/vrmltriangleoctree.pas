@@ -518,7 +518,7 @@ var
   I: Integer;
   T: PVRMLTriangle;
 begin
-  T := PVRMLTriangle(Triangles.ItemsArray);
+  T := PVRMLTriangle(Triangles.List);
   for I := 0 to Triangles.Count - 1 do
   begin
     T^.UpdateWorld;

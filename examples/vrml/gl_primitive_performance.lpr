@@ -118,7 +118,7 @@ begin
     rmVBOTriangles:
       begin
         glDrawElements(GL_TRIANGLES, TrianglesCoordIndex.Count, GL_UNSIGNED_INT,
-          TrianglesCoordIndex.ItemsArray);
+          TrianglesCoordIndex.List);
       end;
 
   end;
@@ -198,7 +198,7 @@ begin
           { enable/create vertex arrays/buffers for new Mode }
           if Mode in VARModes then
           begin
-            glVertexPointer(3, GL_FLOAT, 0, Vertexes.ItemsArray);
+            glVertexPointer(3, GL_FLOAT, 0, Vertexes.List);
             glEnableClientState(GL_VERTEX_ARRAY);
 
             if Mode in VARLockedModes then
@@ -209,7 +209,7 @@ begin
             glGenBuffersARB(1, @VBOVertex);
             glBindBufferARB(GL_ARRAY_BUFFER_ARB, VBOVertex);
             glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-              3 * SizeOf(Single) * Vertexes.Count, Vertexes.ItemsArray,
+              3 * SizeOf(Single) * Vertexes.Count, Vertexes.List,
               GL_STATIC_DRAW_ARB);
             glVertexPointer(3, GL_FLOAT, 0, nil);
             glEnableClientState(GL_VERTEX_ARRAY);

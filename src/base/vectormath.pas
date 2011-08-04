@@ -2612,8 +2612,8 @@ var
   Dest: PSingle;
 begin
   Result := TDynVector2SingleArray.Create(Count);
-  Source := PDouble(ItemsArray);
-  Dest := PSingle(Result.ItemsArray);
+  Source := PDouble(List);
+  Dest := PSingle(Result.List);
   for I := 0 to Count * 2 - 1 do
   begin
     Dest^ := Source^;
@@ -2629,8 +2629,8 @@ var
   Dest: PSingle;
 begin
   Result := TDynVector3SingleArray.Create(Count);
-  Source := PDouble(ItemsArray);
-  Dest := PSingle(Result.ItemsArray);
+  Source := PDouble(List);
+  Dest := PSingle(Result.List);
   for I := 0 to Count * 3 - 1 do
   begin
     Dest^ := Source^;
@@ -2646,8 +2646,8 @@ var
   Dest: PSingle;
 begin
   Result := TDynVector4SingleArray.Create(Count);
-  Source := PDouble(ItemsArray);
-  Dest := PSingle(Result.ItemsArray);
+  Source := PDouble(List);
+  Dest := PSingle(Result.List);
   for I := 0 to Count * 4 - 1 do
   begin
     Dest^ := Source^;
@@ -2663,8 +2663,8 @@ var
   Dest: PSingle;
 begin
   Result := TDynMatrix3SingleArray.Create(Count);
-  Source := PDouble(ItemsArray);
-  Dest := PSingle(Result.ItemsArray);
+  Source := PDouble(List);
+  Dest := PSingle(Result.List);
   for I := 0 to Count * 3 * 3 - 1 do
   begin
     Dest^ := Source^;
@@ -2680,8 +2680,8 @@ var
   Dest: PSingle;
 begin
   Result := TDynMatrix4SingleArray.Create(Count);
-  Source := PDouble(ItemsArray);
-  Dest := PSingle(Result.ItemsArray);
+  Source := PDouble(List);
+  Dest := PSingle(Result.List);
   for I := 0 to Count * 4 * 4 - 1 do
   begin
     Dest^ := Source^;

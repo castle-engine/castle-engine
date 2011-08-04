@@ -487,8 +487,8 @@ var
   Dest: PSingle;
 begin
   Count := Source.Count;
-  Src := PDouble(Source.ItemsArray);
-  Dest := PSingle(ItemsArray);
+  Src := PDouble(Source.List);
+  Dest := PSingle(List);
   for I := 0 to Count - 1 do
   begin
     Dest^ := Src^;
@@ -522,8 +522,8 @@ var
   Dest: PDouble;
 begin
   Count := Source.Count;
-  Src := PSingle(Source.ItemsArray);
-  Dest := PDouble(ItemsArray);
+  Src := PSingle(Source.List);
+  Dest := PDouble(List);
   for I := 0 to Count - 1 do
   begin
     Dest^ := Src^;

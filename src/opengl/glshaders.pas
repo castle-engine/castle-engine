@@ -1327,7 +1327,7 @@ var
   Location: TGLint;
   Ints: TDynLongIntArray;
 begin
-  { We cannot pass Value.ItemsArray, as Pascal booleans do not have 4 bytes
+  { We cannot pass Value.List, as Pascal booleans do not have 4 bytes
     (well, actually I could change this by compiler directive or
     by using LongBool for TDynBooleanArray --- but for TDynBooleanArray
     this would enlarge it 4 times, not nice).
@@ -1338,8 +1338,8 @@ begin
   Ints := Value.ToLongInt;
   try
     case Support of
-      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
+      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
     end;
   finally FreeAndNil(Ints) end;
 end;
@@ -1350,8 +1350,8 @@ var
 begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1360,8 +1360,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1370,8 +1370,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1380,8 +1380,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1390,8 +1390,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1400,8 +1400,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1410,8 +1410,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.ItemsArray)); SetUniformEnd(Name, ForceException); end;
+    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
