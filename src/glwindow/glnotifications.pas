@@ -37,7 +37,9 @@ type
   {$define DYNARRAY_1_IS_STRUCT}
   {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
   {$I dynarray_1.inc}
-  TDynMessageStructArray = TDynArray_1;
+  TDynMessageStructArray = class(TDynArray_1)
+    procedure DeleteRange(const Index: Integer; DelCount: Integer);
+  end;
 
   THorizPosition = (hpLeft, hpMiddle, hpRight);
   TVertPosition = (vpDown, vpMiddle, vpUp);
@@ -160,6 +162,21 @@ uses BFNT_BitstreamVeraSans_Unit, KambiLog;
 {$define read_implementation}
 {$I dynarray_1.inc}
 
+procedure TDynMessageStructArray.DeleteRange(const Index: Integer; DelCount: Integer);
+var
+  I: Integer;
+begin
+  { Make sure Index and DelCount are sensible first }
+  if Index >= Count then
+    Exit;
+  MinTo1st(DelCount, Count - Index);
+
+  for I := Index to Count - 1 - DelCount do
+    List^[I] := List^[I + DelCount];
+
+  Count := Count - DelCount;
+end;
+
 { TGLNotifications ------------------------------------------------------- }
 
 const HorizMargin = 10; { marginesy wyswietlania, w pixelach }
@@ -206,7 +223,7 @@ procedure TGLNotifications.Show(s: TStrings);
       of messages, so no need to. }
     for i := 0 to s.Count-1 do
     begin
-      if Messages.Count = MaxMessages then Messages.Delete(0, 1);
+      if Messages.Count = MaxMessages then Messages.Delete(0);
       ms.Text := s[i];
       ms.Time := GetTickCount;
       Messages.Add(ms);
@@ -293,8 +310,8 @@ begin
   gtc := GetTickCount;
   for i := Messages.Count-1 downto 0 do
     if TimeTickSecondLater(messages.Items[i].Time, gtc, MessageTimeout) then
-    begin { delete messages 0..i }
-      Messages.Delete(0, i+1);
+    begin { delete messages 0..I }
+      Messages.DeleteRange(0, I + 1);
       PostRedisplayMessages;
       break;
     end;
