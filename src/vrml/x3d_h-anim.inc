@@ -533,7 +533,8 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
        (FdSkinCoord.Value is TNodeCoordinate) then
     begin
       SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
-      VertexJoints := TDynVertexJointsArray.Create(SkinCoord.Count);
+      VertexJoints := TDynVertexJointsArray.Create;
+      VertexJoints.Count := SkinCoord.Count;
 
       for I := 0 to SkinCoord.Count - 1 do
       begin

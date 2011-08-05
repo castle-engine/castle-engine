@@ -135,7 +135,6 @@ begin
 
  VisualAttr := TDynLongIntArray.Create;
  try
-   VisualAttr.AllowedCapacityOverflow := 20;
    if DoubleBuffer then
      VisualAttr.Add(GLX_DOUBLEBUFFER);
    VisualAttr.AddArray([

@@ -1042,7 +1042,6 @@ begin
    constants is the same as GLX_ constants. }
  VisualAttr := TDynLongIntArray.Create;
  try
-  VisualAttr.AllowedCapacityOverflow := 20;
   if DoubleBuffer then
     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
   VisualAttr.AddArray([
@@ -1086,7 +1085,7 @@ begin
 
   {$ifdef GLWINDOW_GTK_2}
 
-  GLConfig := gdk_gl_config_new(VisualAttr.Pointers[0]);
+  GLConfig := gdk_gl_config_new(PInteger(VisualAttr.List));
   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
     to know whether such gl configuration was possible. }
   if GLConfig = nil then
@@ -1099,7 +1098,7 @@ begin
 
   {$else}
 
-  GLAreaGtk := PGtkGLArea( gtk_gl_area_new(@VisualAttr.Items[0]) );
+  GLAreaGtk := PGtkGLArea( gtk_gl_area_new(PInteger(VisualAttr.List)) );
   if GLAreaGtk = nil then
    ContextNotPossible;
 

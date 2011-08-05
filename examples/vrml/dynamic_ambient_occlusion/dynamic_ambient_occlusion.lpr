@@ -159,7 +159,7 @@ procedure CalculateElements;
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
       Elements.Count := Elements.Count + Coord.Count;
-      ShapeElements := Elements.Pointers[ShapeElementIndex];
+      ShapeElements := @(Elements.List^[ShapeElementIndex]);
 
       SetLength(Shapes[ShapeIndex].CoordToElement, Coord.Count);
 

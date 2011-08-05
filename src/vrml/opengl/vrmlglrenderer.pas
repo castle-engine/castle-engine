@@ -1419,7 +1419,7 @@ var
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
   begin
-    TextureCached := TextureImageCaches.Pointers[I];
+    TextureCached := @(TextureImageCaches.List^[I]);
 
     { Once I had an idea to make here comparison with
       TextureImage = TextureCached^.Image. Since we have ImagesCache,
@@ -1538,7 +1538,7 @@ var
 begin
   for I := 0 to TextureVideoCaches.Count - 1 do
   begin
-    TextureCached := TextureVideoCaches.Pointers[I];
+    TextureCached := @(TextureVideoCaches.List^[I]);
 
     if ( ( (TextureFullUrl <> '') and
            (TextureCached^.FullUrl = TextureFullUrl) ) or
@@ -1629,7 +1629,7 @@ var
 begin
   for I := 0 to TextureCubeMapCaches.Count - 1 do
   begin
-    TextureCached := TextureCubeMapCaches.Pointers[I];
+    TextureCached := @(TextureCubeMapCaches.List^[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
@@ -1723,7 +1723,7 @@ var
 begin
   for I := 0 to Texture3DCaches.Count - 1 do
   begin
-    TextureCached := Texture3DCaches.Pointers[I];
+    TextureCached := @(Texture3DCaches.List^[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
@@ -1809,7 +1809,7 @@ var
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
-    TextureCached := TextureDepthOrFloatCaches.Pointers[I];
+    TextureCached := @(TextureDepthOrFloatCaches.List^[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.Wrap = TextureWrap) then
@@ -1917,7 +1917,7 @@ var
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
-    TextureCached := TextureDepthOrFloatCaches.Pointers[I];
+    TextureCached := @(TextureDepthOrFloatCaches.List^[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.Wrap = TextureWrap) then

@@ -829,7 +829,6 @@ procedure TGLWindow.OpenWinSystemDepend;
 
           VisualAttr := TDynLongIntArray.Create;
           try
-            VisualAttr.AllowedCapacityOverflow := 20;
             VisualAttr.AddArray([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
               WGL_SUPPORT_OPENGL_ARB, GL_TRUE,

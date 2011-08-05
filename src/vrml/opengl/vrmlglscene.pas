@@ -2620,7 +2620,7 @@ begin
       glBegin(GL_QUADS) else
       glBegin(GL_TRIANGLES);
 
-    TPtr := Triangles.Pointers[0];
+    TPtr := PTriangle3Single(Triangles.List);
 
     if TransformIsIdentity then
     begin
@@ -2655,7 +2655,7 @@ begin
 
       if LightCap then
       begin
-        TPtr := TrianglesForLightCap.Pointers[0];
+        TPtr := PTriangle3Single(TrianglesForLightCap.List);
         for I := 0 to TrianglesForLightCap.Count - 1 do
         begin
           RenderTriangle3Single(TPtr^);
@@ -2665,7 +2665,7 @@ begin
 
       if DarkCap then
       begin
-        T4Ptr := TrianglesForDarkCap.Pointers[0];
+        T4Ptr := PTriangle4Single(TrianglesForDarkCap.List);
         for I := 0 to TrianglesForDarkCap.Count - 1 do
         begin
           RenderTriangle4Single(T4Ptr^);
@@ -2745,7 +2745,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Triangles.Pointers[EdgePtr^.Triangles[0]];
+    TrianglePtr := @(Triangles.List^[EdgePtr^.Triangles[0]]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2777,7 +2777,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Triangles.Pointers[EdgePtr^.TriangleIndex];
+    TrianglePtr := @(Triangles.List^[EdgePtr^.TriangleIndex]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2987,7 +2987,7 @@ var
     OpaqueCount: Cardinal;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
-    TrianglePtr := Triangles.Pointers[0];
+    TrianglePtr := PTriangle3Single(Triangles.List);
 
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos[3] <> 0);
@@ -3057,7 +3057,7 @@ begin
 
       { for each 2-manifold edge, possibly render it's shadow quad }
       ManifoldEdgesNow := ManifoldEdges;
-      ManifoldEdgePtr := ManifoldEdgesNow.Pointers[0];
+      ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
       for I := 0 to ManifoldEdgesNow.Count - 1 do
       begin
         PlaneSide0 := TrianglesPlaneSide.Items[ManifoldEdgePtr^.Triangles[0]];
@@ -3092,7 +3092,7 @@ begin
 
       { for each border edge, always render it's shadow quad }
       BorderEdgesNow := BorderEdges;
-      BorderEdgePtr := BorderEdgesNow.Pointers[0];
+      BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
       for I := 0 to BorderEdgesNow.Count - 1 do
       begin
         PlaneSide0 := TrianglesPlaneSide.Items[BorderEdgePtr^.TriangleIndex];
@@ -3199,7 +3199,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Triangles.Pointers[EdgePtr^.Triangles[0]];
+    TrianglePtr := @(Triangles.List^[EdgePtr^.Triangles[0]]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -3239,7 +3239,7 @@ begin
     try
       { calculate TrianglesPlaneSide array }
       TrianglesPlaneSide.Count := Triangles.Count;
-      TrianglePtr := Triangles.Pointers[0];
+      TrianglePtr := PTriangle3Single(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
       begin
         TrianglesPlaneSide.Items[I] := PlaneSide(TrianglePtr^);
@@ -3247,7 +3247,7 @@ begin
       end;
 
       { for each edge, possibly render it's shadow quad }
-      EdgePtr := Edges.Pointers[0];
+      EdgePtr := PManifoldEdge(Edges.List);
       for I := 0 to Edges.Count - 1 do
       begin
         PlaneSide0 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[0]];
@@ -3275,7 +3275,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Triangles.Pointers[EdgePtr^.TriangleIndex];
+    TrianglePtr := @(Triangles.List^[EdgePtr^.TriangleIndex]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
@@ -3295,7 +3295,7 @@ begin
     Edges := BorderEdges;
 
     { for each edge, render it }
-    EdgePtr := Edges.Pointers[0];
+    EdgePtr := PBorderEdge(Edges.List);
     for I := 0 to Edges.Count - 1 do
     begin
       RenderEdge;

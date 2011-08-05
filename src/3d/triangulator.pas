@@ -183,8 +183,9 @@ begin
 
     Corners := Count; { Corners = always "how many Outs are false" }
     P0 := -1;
-    Outs := TDynBooleanArray.Create(Count);
+    Outs := TDynBooleanArray.Create;
     try
+      Outs.Count := Count;
       Outs.SetAll(false);
 
       while Corners >= 3 do

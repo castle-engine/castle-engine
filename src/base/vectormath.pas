@@ -2528,7 +2528,8 @@ function TDynVector3SingleArray.ToVector4Single(const W: Single): TDynVector4Sin
 var
   I: Integer;
 begin
-  Result := TDynVector4SingleArray.Create(Count);
+  Result := TDynVector4SingleArray.Create;
+  Result.Count := Count;
   for I := 0 to Count - 1 do
     Result.Items[I] := Vector4Single(Items[I], W);
 end;
@@ -2541,7 +2542,7 @@ begin
   MergeDistance := Sqr(MergeDistance);
   Result := 0;
 
-  V1 := PVector3Single(Items);
+  V1 := PVector3Single(List);
   for I := 0 to Count - 1 do
   begin
     { Find vertexes closer to Items[I], and merge them.
@@ -2553,7 +2554,7 @@ begin
       so time saving would be minimal (and small temporary memory cost
       introduced). }
 
-    V2 := PVector3Single(Pointers[I + 1]);
+    V2 := @(List^[I + 1]);
     for J := I + 1 to Count - 1 do
     begin
       if PointsDistanceSqr(V1^, V2^) < MergeDistance then
@@ -2611,7 +2612,8 @@ var
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynVector2SingleArray.Create(Count);
+  Result := TDynVector2SingleArray.Create;
+  Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
   for I := 0 to Count * 2 - 1 do
@@ -2628,7 +2630,8 @@ var
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynVector3SingleArray.Create(Count);
+  Result := TDynVector3SingleArray.Create;
+  Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
   for I := 0 to Count * 3 - 1 do
@@ -2645,7 +2648,8 @@ var
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynVector4SingleArray.Create(Count);
+  Result := TDynVector4SingleArray.Create;
+  Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
   for I := 0 to Count * 4 - 1 do
@@ -2662,7 +2666,8 @@ var
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynMatrix3SingleArray.Create(Count);
+  Result := TDynMatrix3SingleArray.Create;
+  Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
   for I := 0 to Count * 3 * 3 - 1 do
@@ -2679,7 +2684,8 @@ var
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynMatrix4SingleArray.Create(Count);
+  Result := TDynMatrix4SingleArray.Create;
+  Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
   for I := 0 to Count * 4 * 4 - 1 do

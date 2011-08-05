@@ -83,7 +83,7 @@ begin
   try
     for I := 0 to Coord.Count - 1 do
     begin
-      VertexTransfer := RadianceTransfer.Pointers[I * SHBasisCount];
+      VertexTransfer := @(RadianceTransfer.List^[I * SHBasisCount]);
 
       { V = scene-space vertex coord }
       V := MatrixMultPoint(Transform, Coord.Items[I]);

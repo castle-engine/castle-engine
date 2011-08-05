@@ -247,8 +247,8 @@ var
   j, r: LongInt;
   saved, dsaved, temp: Single;
 begin
-  left := TDynDoubleArray.Create(order);
-  right := TDynDoubleArray.Create(order);
+  left  := TDynDoubleArray.Create; left .Count := order;
+  right := TDynDoubleArray.Create; right.Count := order;
 
   basis[0] := 1.0;
   for j := 1 to  order - 1 do
@@ -296,8 +296,8 @@ var
 begin
   UseWeight := Cardinal(Weight.Count) = PointsCount;
 
-  basis := TDynDoubleArray.Create(order);
-  deriv := TDynDoubleArray.Create(order);
+  basis := TDynDoubleArray.Create; basis.Count := order;
+  deriv := TDynDoubleArray.Create; deriv.Count := order;
 
   span := findSpan(PointsCount, order, u, Knot);
 
@@ -356,10 +356,10 @@ var
 begin
   UseWeight := Weight.Count = Points.Count;
 
-  uBasis := TDynDoubleArray.Create(UOrder);
-  vBasis := TDynDoubleArray.Create(VOrder);
-  uDeriv := TDynDoubleArray.Create(UOrder);
-  vDeriv := TDynDoubleArray.Create(VOrder);
+  uBasis := TDynDoubleArray.Create; uBasis.Count := UOrder;
+  vBasis := TDynDoubleArray.Create; vBasis.Count := VOrder;
+  uDeriv := TDynDoubleArray.Create; uDeriv.Count := UOrder;
+  vDeriv := TDynDoubleArray.Create; vDeriv.Count := VOrder;
 
   uSpan := findSpan(uDimension, uOrder, u, uKnot);
   vSpan := findSpan(vDimension, vOrder, v, vKnot);
@@ -387,7 +387,7 @@ begin
       dugain := uDeriv[i] * vBasis[j];
       dvgain := uBasis[i] * vDeriv[j];
 
-      P := Points.Items[index];
+      P := Points.List^[index];
 
       Result += P * gain;
 
@@ -440,19 +440,19 @@ begin
       nkPeriodicUniform:
         begin
           for I := 0 to Knot.Count - 1 do
-            Knot.Items[I] := I;
+            Knot.List^[I] := I;
         end;
       nkEndpointUniform:
         begin
           for I := 0 to Order - 1 do
           begin
-            Knot.Items[I] := 0;
-            Knot.Items[Cardinal(I) + Dimension] := Dimension - Order + 1;
+            Knot.List^[I] := 0;
+            Knot.List^[Cardinal(I) + Dimension] := Dimension - Order + 1;
           end;
           for I := 0 to Dimension - Order - 1 do
-            Knot.Items[Cardinal(I) + Order] := I + 1;
+            Knot.List^[Cardinal(I) + Order] := I + 1;
           for I := 0 to Order + Dimension - 1 do
-            Knot.Items[I] /= Dimension - Order + 1;
+            Knot.List^[I] /= Dimension - Order + 1;
         end;
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
@@ -471,16 +471,16 @@ begin
     if Point.Count = 0 then
       Result := EmptyBox3D else
     begin
-      W := Weight.Items[0];
+      W := Weight.List^[0];
       if W = 0 then W := 1;
 
-      Result[0] := Point.Items[0] / W;
+      Result[0] := Point.List^[0] / W;
       Result[1] := Result[0];
 
       for I := 1 to Point.Count - 1 do
       begin
-        V := @(Point.Items[I]);
-        W := Weight.Items[I];
+        V := @(Point.List^[I]);
+        W := Weight.List^[I];
         if W = 0 then W := 1;
 
         MinTo1st(Result[0][0], V^[0] / W);
@@ -525,18 +525,18 @@ begin
     if Point.Count = 0 then
       Result := EmptyBox3D else
     begin
-      W := Weight.Items[0];
+      W := Weight.List^[0];
       if W = 0 then W := 1;
 
-      Result[0] := MatrixMultPoint(Transform, Point.Items[0] / W);
+      Result[0] := MatrixMultPoint(Transform, Point.List^[0] / W);
       Result[1] := Result[0];
 
       for I := 1 to Point.Count - 1 do
       begin
-        W := Weight.Items[I];
+        W := Weight.List^[I];
         if W = 0 then W := 1;
 
-        V := MatrixMultPoint(Transform, Point.Items[I] / W);
+        V := MatrixMultPoint(Transform, Point.List^[I] / W);
 
         MinTo1st(Result[0][0], V[0]);
         MinTo1st(Result[0][1], V[1]);

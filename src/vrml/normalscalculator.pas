@@ -235,7 +235,8 @@ var
     SmoothFaces := nil;
     HandledFaces := nil;
     try
-      HandledFaces := TDynBooleanArray.Create(ThisVertexFaces.Count);
+      HandledFaces := TDynBooleanArray.Create;
+      HandledFaces.Count := ThisVertexFaces.Count;
       HandledFaces.SetAll(false);
       SmoothFaces := TDynIntegerArray.Create;
 
@@ -288,7 +289,8 @@ begin
       { calculate Faces and VerticesFaces contents }
       CalculateFacesAndVerticesFaces;
 
-      Result := TDynVector3SingleArray.Create(CoordIndex.Count);
+      Result := TDynVector3SingleArray.Create;
+      Result.Count := CoordIndex.Count;
 
       { for each vertex, calculate all his normals (on all his faces) }
       for I := 0 to Vertices.Count - 1 do CalculateVertexNormals(I);
@@ -309,8 +311,9 @@ var
   FaceNumber: Integer;
 begin
   { CoordIndex.Count is just a maximum Count, we will shrink it later. }
-  Result := TDynVector3SingleArray.Create(CoordIndex.Count);
+  Result := TDynVector3SingleArray.Create;
   try
+    Result.Count := CoordIndex.Count;
     FaceNumber := 0;
 
     I := 0;
@@ -388,8 +391,9 @@ begin
   { Node coordinate-based, but specified with empty coord }
   if C = nil then Exit(nil);
 
-  Result := TDynVector3SingleArray.Create(C.Count);
+  Result := TDynVector3SingleArray.Create;
   try
+    Result.Count := C.Count;
     Result.FillChar(0);
 
     Calculator := TCoordinateNormalsCalculator.Create;

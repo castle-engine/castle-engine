@@ -2354,7 +2354,7 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Result := Pointers[I];
+    Result := @(List^[I]);
     if Result^.Node.NodeName = NodeName then
       Exit;
   end;
@@ -5716,7 +5716,7 @@ begin
   begin
     I := IndexOfName(BindToName);
     if I <> -1 then
-      P := Pointers[I] else
+      P := @(List^[I]) else
       P := Add;
     P^.Node := Node;
     P^.Name := BindToName;

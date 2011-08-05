@@ -609,7 +609,8 @@ begin
 
  { prepare to calculate M }
  n := X.Count - 1;
- M := TDynFloatArray.Create(n+1);
+ M := TDynFloatArray.Create;
+ M.Count := n+1;
 
  { Algorytm obliczania wartosci M[0..n] z notatek SLE, te same oznaczenia.
    Sa tutaj polaczone algorytmy na Periodic i not Perdiodic, zeby mozliwie
@@ -624,9 +625,9 @@ begin
  q := nil;
  s := nil;
  try
-  u := TDynFloatArray.Create(n);
-  q := TDynFloatArray.Create(n);
-  if Periodic then s := TDynFloatArray.Create(n);
+  u := TDynFloatArray.Create; U.Count := N;
+  q := TDynFloatArray.Create; Q.Count := N;
+  if Periodic then begin s := TDynFloatArray.Create; S.Count := N; end;
 
   { calculate u[0], q[0], s[0] }
   u[0] := 0;
@@ -658,8 +659,8 @@ begin
    t := nil;
    v := nil;
    try
-    t := TDynFloatArray.Create(n+1);
-    v := TDynFloatArray.Create(n+1);
+    t := TDynFloatArray.Create; T.Count := N + 1;
+    v := TDynFloatArray.Create; V.Count := N + 1;
 
     t[n] := 1;
     v[n] := 0;
@@ -761,7 +762,8 @@ begin
    Spline[0] and Spline[1] and Spline[2] will share the same reference to X.
    Only Spline[2] will own SplineX. (Spline[2] will be always Freed as the
    last one, so it's safest to set OwnsX in Spline[2]) }
- SplineX := TDynFloatArray.Create(ControlPoints.Count);
+ SplineX := TDynFloatArray.Create;
+ SplineX.Count := ControlPoints.Count;
  for i := 0 to ControlPoints.Count-1 do SplineX[i] := ControlPointT(i);
 
  for i := 0 to 2 do
@@ -769,7 +771,8 @@ begin
   FreeAndNil(Spline[i]);
 
   { calculate SplineY }
-  SplineY := TDynFloatArray.Create(ControlPoints.Count);
+  SplineY := TDynFloatArray.Create;
+  SplineY.Count := ControlPoints.Count;
   for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.Items[j, i];
 
   Spline[i] := TNaturalCubicSpline.Create(SplineX, SplineY, i = 2, true,

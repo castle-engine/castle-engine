@@ -479,7 +479,7 @@ var
   begin
     Result := TNodeCoordinate.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
-    V := Vertexes.Pointers[VertexesInFrameCount * FrameNumber];
+    V := @(Vertexes.List^[VertexesInFrameCount * FrameNumber]);
     for I := 0 to VertexesInFrameCount - 1 do
     begin
       Result.FdPoint.Items.Items[I] := Vector3Single(
@@ -500,7 +500,7 @@ var
   begin
     Result := TNodeTextureCoordinate.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := TextureCoords.Count;
-    V := TextureCoords.Pointers[0];
+    V := PVector2Single(TextureCoords.List);
     for I := 0 to TextureCoords.Count - 1 do
     begin
       Result.FdPoint.Items.Items[I] := Vector2Single(V^[0], 1-V^[1]);

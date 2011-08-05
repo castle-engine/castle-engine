@@ -836,11 +836,11 @@ var leavesCounts: TDynCardinalArray;
   begin
    if TreeNode.IsLeaf then
    begin
-    Inc(leavesCounts.Items[TreeNode.Depth]);
-    itemsCounts.Items[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
+    Inc(leavesCounts.List^[TreeNode.Depth]);
+    itemsCounts.List^[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
    end else
    begin
-    Inc(nonLeafNodesCounts.Items[TreeNode.Depth]);
+    Inc(nonLeafNodesCounts.List^[TreeNode.Depth]);
     for b0 := Low(boolean) to High(boolean) do
      for b1 := Low(boolean) to High(boolean) do
       for b2 := Low(boolean) to High(boolean) do
@@ -863,11 +863,14 @@ begin
  nonLeafNodesCounts := nil;
  itemsCounts := nil;
  try
-  leavesCounts := TDynCardinalArray.Create(MaxDepth+1);
+  leavesCounts := TDynCardinalArray.Create;
+  leavesCounts.Count := MaxDepth+1;
   leavesCounts.FillChar(0);
-  nonLeafNodesCounts := TDynCardinalArray.Create(MaxDepth+1);
+  nonLeafNodesCounts := TDynCardinalArray.Create;
+  nonLeafNodesCounts.Count := MaxDepth+1;
   nonLeafNodesCounts.FillChar(0);
-  itemsCounts := TDynCardinalArray.Create(MaxDepth+1);
+  itemsCounts := TDynCardinalArray.Create;
+  itemsCounts.Count := MaxDepth+1;
   itemsCounts.FillChar(0);
 
   StatNode(FTreeRoot);

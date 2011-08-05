@@ -104,7 +104,7 @@ var
   LightUniqueName: string;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].Light = Light then Exit(Pointers[I]);
+    if Items[I].Light = Light then Exit(@(List^[I]));
 
   { add a new TLight record }
   Result := Add;
@@ -585,7 +585,7 @@ begin
 
       for I := 0 to Lights.Count - 1 do
       begin
-        L := Lights.Pointers[I];
+        L := @(Lights.List^[I]);
 
         Lights.HandleLightAutomaticProjection(L^);
 

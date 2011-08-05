@@ -560,7 +560,8 @@ function TDynBooleanArray.ToLongInt: TDynLongIntArray;
 var
   I: Integer;
 begin
-  Result := TDynLongIntArray.Create(Count);
+  Result := TDynLongIntArray.Create;
+  Result.Count := Count;
   for I := 0 to Count - 1 do
     Result.Items[I] := Ord(Items[I]);
 end;

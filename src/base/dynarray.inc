@@ -126,21 +126,7 @@
     function Propagate_IsSmallerFunc(const Val1, Val2: pointer): boolean;
     function Propagate_IsSmallerFuncByObject(const Val1, Val2: pointer): boolean;
   public
-    { Note that we do not want to use below "overload" keyword,
-      as we do *not* want here to allow cross-class (Delphi-style) overloading.
-      This would allow caller to call Create(ElementSize, InitialCount),
-      with disastrous consequences if ElementSize is wrong.
-
-      The constructor Create(ElementSize, InitialCount) should only
-      be available to TDynArray implementation, and hidden from the
-      outside world.
-
-      Unfortunately for Delphi, we cannot do this AFAIK (overloading is always
-      cross-class). Under FPC ObjFpc thankfully we can. }
-    { }
-
-    constructor Create; {$ifndef FPC_OBJFPC} overload; {$endif}
-    constructor Create(InitialCount: Integer); {$ifndef FPC_OBJFPC} overload; {$endif}
+    constructor Create;
 
     { Direct access to your items, you can both read and write using this.
 
@@ -159,9 +145,6 @@
       Under ObjFpc you will not be able to write
       @code(List[Index]) (i.e. omit this ^ character). }
     property List: PInfiniteArray read GetList;
-
-    property Pointers[ItemNum: integer]: PDynArrayItem read GetPointers;
-      {$ifdef DYNARRAY_IS_STRUCT} default; {$endif}
 
     {$ifndef DYNARRAY_IS_STRUCT}
     { }
@@ -267,11 +250,6 @@
 constructor TDynArray.Create;
 begin
   inherited Create(SizeOf(TDynArrayItem), 0)
-end;
-
-constructor TDynArray.Create(InitialCount: Integer);
-begin
-  inherited Create(SizeOf(TDynArrayItem), InitialCount);
 end;
 
 function TDynArray.GetItems:

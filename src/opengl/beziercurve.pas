@@ -125,8 +125,10 @@ var
     // using nice FPC memory manager should make this memory allocating
     // (in each call to Point) painless. So I don't care about optimizing
     // this by moving W to private class-scope.
-    W := TDynVector3SingleArray.Create(ControlPoints.Count);
-    Wgh := TDynFloatArray.Create(Weights.Count);
+    W := TDynVector3SingleArray.Create;
+    W.Count := ControlPoints.Count;
+    Wgh := TDynFloatArray.Create;
+    Wgh.Count := Weights.Count;
 
     Move(ControlPoints.Items[0], W.Items[0],   W.Count   * SizeOf(TVector3Single));
     Move(Weights.Items[0],       Wgh.Items[0], Wgh.Count * SizeOf(Float));
@@ -219,7 +221,8 @@ end;
 constructor TRationalBezierCurve.Create(const ATBegin, ATEnd: Float);
 begin
   inherited;
-  Weights := TDynFloatArray.Create(ControlPoints.Count);
+  Weights := TDynFloatArray.Create;
+  Weights.Count := ControlPoints.Count;
 end;
 
 destructor TRationalBezierCurve.Destroy;
@@ -298,7 +301,8 @@ begin
     C := nil;
     S := nil;
     try
-      C := TDynVector3SingleArray.Create(ControlPoints.Count-1);
+      C := TDynVector3SingleArray.Create;
+      C.Count := ControlPoints.Count-1;
       { calculate C values }
       for i := 0 to C.Count-1 do
       begin
@@ -307,7 +311,8 @@ begin
           1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 
-      S := TDynVector3SingleArray.Create(ControlPoints.Count);
+      S := TDynVector3SingleArray.Create;
+      S.Count := ControlPoints.Count;
       { calculate S values }
       for i := 1 to S.Count-2 do
         S.Items[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/

@@ -532,7 +532,7 @@ var
   I: Integer;
 begin
   for I := 0 to Triangles.Count - 1 do
-    EnumerateTriangleFunc(Triangles.Pointers[I]);
+    EnumerateTriangleFunc(@(Triangles.List^[I]));
 end;
 
 function TVRMLTriangleOctree.TrianglesCount: Cardinal;

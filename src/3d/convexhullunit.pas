@@ -104,8 +104,9 @@ begin
    i0:=i;
   end;
 
- InResult:=TDynBooleanArray.Create(Points.Count);
+ InResult:=TDynBooleanArray.Create;
  try
+  InResult.Count := Points.Count;
   InResult.SetAll(false);
   Result:=TDynIntegerArray.Create;
   try 

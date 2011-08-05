@@ -262,10 +262,14 @@ begin
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange1);
 
   if FacesNeeded then
-    Arrays.Faces := TFaceIndexesList.Create(IFSIndexesCount);
+  begin
+    Arrays.Faces := TFaceIndexesList.Create;
+    Arrays.Faces.Count := IFSIndexesCount;
+  end;
 
   { calculate IndexesFromCoordIndex contents: triangulate }
-  IndexesFromCoordIndex := TDynLongIntArray.Create(IFSIndexesCount);
+  IndexesFromCoordIndex := TDynLongIntArray.Create;
+  IndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);

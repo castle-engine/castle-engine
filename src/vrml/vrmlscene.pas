@@ -2948,7 +2948,7 @@ procedure TVRMLScene.ChangedAll;
 
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := GlobalLights.Pointers[I];
+      L := @(GlobalLights.List^[I]);
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -4780,7 +4780,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
     begin
       if EdgesSingle.Count <> 0 then
       begin
-        EdgePtr := EdgesSingle.Pointers[0];
+        EdgePtr := PManifoldEdge(EdgesSingle.List);
         for I := 0 to EdgesSingle.Count - 1 do
         begin
           { It would also be possible to get EdgePtr^.V0/1 by code like
@@ -4853,7 +4853,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
     try
       EdgesSingle.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
 
-      TrianglePtr := Triangles.Pointers[0];
+      TrianglePtr := PTriangle3Single(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
       begin
         { TrianglePtr points to Triangles[I] now }

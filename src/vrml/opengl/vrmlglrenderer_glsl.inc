@@ -68,8 +68,9 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
       begin
         Assert(TextureField is TMFNode);
 
-        UniformValue := TDynLongIntArray.Create(TMFNode(TextureField).Count);
+        UniformValue := TDynLongIntArray.Create;
         try
+          UniformValue.Count := TMFNode(TextureField).Count;
           for J := 0 to TMFNode(TextureField).Count - 1 do
           begin
             BoundValue := BindSingleTexture(TMFNode(TextureField).Items[J]);

@@ -159,8 +159,9 @@ begin
     Use width for VRML 1.0. }
   XScale := YScale;
 
-  TextWidths := TDynSingleArray.Create(Strings.Count);
+  TextWidths := TDynSingleArray.Create;
   try
+    TextWidths.Count := Strings.Count;
     MaxTextWidth := 0;
     for I := 0 to TextWidths.Count - 1 do
     begin
