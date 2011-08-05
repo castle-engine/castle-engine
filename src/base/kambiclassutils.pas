@@ -1596,7 +1596,7 @@ procedure TDynNotifyEventArray.ExecuteAll(Sender: TObject);
 var
   I: Integer;
 begin
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     if Assigned(Items[I]) then
       Items[I](Sender);
 end;

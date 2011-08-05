@@ -1417,7 +1417,7 @@ var
   I: Integer;
   TextureCached: PTextureImageCache;
 begin
-  for I := 0 to TextureImageCaches.High do
+  for I := 0 to TextureImageCaches.Count - 1 do
   begin
     TextureCached := TextureImageCaches.Pointers[I];
 
@@ -1504,7 +1504,7 @@ procedure TVRMLGLRendererContextCache.TextureImage_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to TextureImageCaches.High do
+  for I := 0 to TextureImageCaches.Count - 1 do
     if TextureImageCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureImageCaches.Items[I].References);
@@ -1536,7 +1536,7 @@ var
   I: Integer;
   TextureCached: PTextureVideoCache;
 begin
-  for I := 0 to TextureVideoCaches.High do
+  for I := 0 to TextureVideoCaches.Count - 1 do
   begin
     TextureCached := TextureVideoCaches.Pointers[I];
 
@@ -1594,7 +1594,7 @@ procedure TVRMLGLRendererContextCache.TextureVideo_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to TextureVideoCaches.High do
+  for I := 0 to TextureVideoCaches.Count - 1 do
     if TextureVideoCaches.Items[I].GLVideo = TextureVideo then
     begin
       Dec(TextureVideoCaches.Items[I].References);
@@ -1627,7 +1627,7 @@ var
   I: Integer;
   TextureCached: PTextureCubeMapCache;
 begin
-  for I := 0 to TextureCubeMapCaches.High do
+  for I := 0 to TextureCubeMapCaches.Count - 1 do
   begin
     TextureCached := TextureCubeMapCaches.Pointers[I];
 
@@ -1691,7 +1691,7 @@ procedure TVRMLGLRendererContextCache.TextureCubeMap_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to TextureCubeMapCaches.High do
+  for I := 0 to TextureCubeMapCaches.Count - 1 do
     if TextureCubeMapCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureCubeMapCaches.Items[I].References);
@@ -1721,7 +1721,7 @@ var
   I: Integer;
   TextureCached: PTexture3DCache;
 begin
-  for I := 0 to Texture3DCaches.High do
+  for I := 0 to Texture3DCaches.Count - 1 do
   begin
     TextureCached := Texture3DCaches.Pointers[I];
 
@@ -1778,7 +1778,7 @@ procedure TVRMLGLRendererContextCache.Texture3D_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to Texture3DCaches.High do
+  for I := 0 to Texture3DCaches.Count - 1 do
     if Texture3DCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(Texture3DCaches.Items[I].References);
@@ -1807,7 +1807,7 @@ var
   I: Integer;
   TextureCached: PTextureDepthOrFloatCache;
 begin
-  for I := 0 to TextureDepthOrFloatCaches.High do
+  for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
     TextureCached := TextureDepthOrFloatCaches.Pointers[I];
 
@@ -1885,7 +1885,7 @@ procedure TVRMLGLRendererContextCache.TextureDepth_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to TextureDepthOrFloatCaches.High do
+  for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
     if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches.Items[I].References);
@@ -1915,7 +1915,7 @@ var
   TextureCached: PTextureDepthOrFloatCache;
   InternalFormat: TGLenum;
 begin
-  for I := 0 to TextureDepthOrFloatCaches.High do
+  for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
     TextureCached := TextureDepthOrFloatCaches.Pointers[I];
 
@@ -1964,7 +1964,7 @@ procedure TVRMLGLRendererContextCache.TextureFloat_DecReference(
 var
   I: Integer;
 begin
-  for I := 0 to TextureDepthOrFloatCaches.High do
+  for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
     if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
     begin
       Dec(TextureDepthOrFloatCaches.Items[I].References);
@@ -3284,7 +3284,7 @@ begin
       glPopMatrix;
     end;
 
-    for I := 0 to TextureTransformUnitsUsedMore.High do
+    for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
     begin
       ActiveTexture(TextureTransformUnitsUsedMore.Items[I]);
       glPopMatrix;

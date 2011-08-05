@@ -2342,7 +2342,7 @@ end;
 
 function TLightInstancesList.IndexOfNode(Node: TNodeX3DLightNode): integer;
 begin
-  for Result := 0 to High do
+  for Result := 0 to Count - 1 do
     if Items[Result].Node = Node then
       Exit;
   Result := -1;
@@ -2352,7 +2352,7 @@ function TLightInstancesList.FindName(NodeName: string): PLightInstance;
 var
   I: Integer;
 begin
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
   begin
     Result := Pointers[I];
     if Result^.Node.NodeName = NodeName then
@@ -2380,7 +2380,7 @@ begin
     (SecondValue is TLightInstancesList) and
     (TLightInstancesList(SecondValue).Count = Count);
   if Result then
-    for I := 0 to High do
+    for I := 0 to Count - 1 do
       if not LightInstanceEquals(Items[I], TLightInstancesList(SecondValue).Items[I]) then
         Exit(false);
 end;
@@ -2403,7 +2403,7 @@ end;
 
 function TDynClipPlaneArray.IndexOfNode(Node: TNodeClipPlane): Integer;
 begin
-  for Result := 0 to High do
+  for Result := 0 to Count - 1 do
     if Items[Result].Node = Node then
       Exit;
   Result := -1;
@@ -2419,7 +2419,7 @@ begin
     (TDynClipPlaneArray(SecondValue).Count = Count);
 
   if Result then
-    for I := 0 to High do
+    for I := 0 to Count - 1 do
       if (Items[I].Node <> TDynClipPlaneArray(SecondValue).Items[I].Node) or
          MatricesPerfectlyEqual(Items[I].Transform, TDynClipPlaneArray(SecondValue).Items[I].Transform) then
         Exit(false);
@@ -5894,9 +5894,9 @@ var
 begin
   Assert(Key.Count > 0);
 
-  if Fraction <= Key.Items[0] then
+  if Fraction <= Key.First then
     Result := 0 else
-  if Fraction >= Key.Items[Key.High] then
+  if Fraction >= Key.Last then
     Result := Key.Count else
   begin
     { Then for sure we're between two Key values.
@@ -5915,7 +5915,7 @@ begin
       in every possible way. }
 
     A := 0;
-    B := Key.High;
+    B := Key.Count - 1;
     while B - A > 1 do
     begin
       Result := (A + B) div 2;

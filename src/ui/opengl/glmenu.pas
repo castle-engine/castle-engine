@@ -1307,12 +1307,12 @@ begin
 
   { Calculate positions of all rectangles. }
 
-  { we iterate downwards from Rectangles.High to 0, updating ItemsBelowHeight.
+  { we iterate downwards from Rectangles.Count - 1 to 0, updating ItemsBelowHeight.
     That's OpenGL (and so, Rectangles.Items[I].Y0) coordinates grow up, while
     our menu items are specified from highest to lowest. }
   ItemsBelowHeight := 0;
 
-  for I := Rectangles.High downto 0 do
+  for I := Rectangles.Count - 1 downto 0 do
   begin
     Rectangles.Items[I].X0 := PositionAbsolute[0] + AllItemsRectangleMargin;
     Rectangles.Items[I].Y0 := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
@@ -1324,7 +1324,7 @@ begin
   FAllItemsRectangle.Y0 := PositionAbsolute[1];
 
   { Calculate FAccessoryRectangles[].X0, Y0, Height }
-  for I := 0 to Rectangles.High do
+  for I := 0 to Rectangles.Count - 1 do
   begin
     FAccessoryRectangles.Items[I].X0 := Rectangles.Items[I].X0 +
       MaxItemWidth + MarginBeforeAccessory;

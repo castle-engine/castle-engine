@@ -117,7 +117,7 @@ var
 { This initializes W and Wgh (0-th step of de Casteljau algorithm).
   It uses ControlPoints, Weights. }
 {$define DE_CASTELJAU_BEGIN:=
-  n := ControlPoints.High;
+  n := ControlPoints.Count - 1;
 
   W := nil;
   Wgh := nil;

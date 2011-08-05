@@ -263,7 +263,7 @@ var
 begin
   { This could be implemented as IsPointInsideMargin(Point, 0),
     but is not (for speed). }
-  for I := 0 to BoundingBoxes.High do
+  for I := 0 to BoundingBoxes.Count - 1 do
     if Box3DPointInside(Point, BoundingBoxes.Items[I]) then
       Exit(true);
   Result := false;
@@ -274,7 +274,7 @@ function TSceneSector.IsPointInsideMargin(const Point: TVector3Single;
 var
   I: Integer;
 begin
-  for I := 0 to BoundingBoxes.High do
+  for I := 0 to BoundingBoxes.Count - 1 do
     if Box3DPointInside(Point,
       BoxExpand(BoundingBoxes.Items[I], SectorsBoxesMargin)) then
       Exit(true);

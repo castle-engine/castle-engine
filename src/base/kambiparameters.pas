@@ -230,6 +230,8 @@ type
     on the command-line. }
   TParameters = class(TKamStringList)
   public
+    function High: Integer;
+
     { Does the number of parameters (High) satisfy given condition.
       @raises EInvalidParams When High is wrong.
       @groupBegin }
@@ -366,6 +368,11 @@ end;
 { Since we can modify Parameters, we can't really output
   in CheckHigh* for user how many parameters were excepted (because you maybe
   ate some). Output only how many params are missing/too much. }
+
+function TParameters.High: Integer;
+begin
+  Result := Count - 1;
+end;
 
 procedure TParameters.CheckHigh(ParamValue: integer);
 begin

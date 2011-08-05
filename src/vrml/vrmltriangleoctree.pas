@@ -309,7 +309,7 @@ function TTriangleOctreeNode.CommonSphereLeaf(const pos: TVector3Single;
 var
   i: integer;
 begin
-  for i := 0 to ItemsIndices.High do
+  for i := 0 to ItemsIndices.Count - 1 do
   begin
     Inc(ParentTree.DirectCollisionTestsCounter);
     Result := Items[i];
@@ -345,7 +345,7 @@ function TTriangleOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
 var
   i: integer;
 begin
-  for i := 0 to ItemsIndices.High do
+  for i := 0 to ItemsIndices.Count - 1 do
   begin
     Inc(ParentTree.DirectCollisionTestsCounter);
     Result := Items[i];
@@ -508,7 +508,7 @@ begin
   if IsValidTriangle(Position) then
   begin
     Triangles.Add^.Init(Shape, Position, Normal, TexCoord, Face);
-    TreeRoot.AddItem(Triangles.High);
+    TreeRoot.AddItem(Triangles.Count - 1);
   end;
 end;
 

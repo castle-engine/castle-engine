@@ -599,8 +599,8 @@ var u, q, s, t, v: TDynFloatArray;
 begin
  inherited Create;
  Assert(X.Count = Y.Count);
- FMinX := X[0];
- FMaxX := X[X.High];
+ FMinX := X.First;
+ FMaxX := X.Last;
  FOwnsX := AOwnsX;
  FOwnsY := AOwnsY;
  FX := X;
@@ -608,7 +608,7 @@ begin
  FPeriodic := APeriodic;
 
  { prepare to calculate M }
- n := X.High;
+ n := X.Count - 1;
  M := TDynFloatArray.Create(n+1);
 
  { Algorytm obliczania wartosci M[0..n] z notatek SLE, te same oznaczenia.
@@ -723,7 +723,7 @@ begin
    TODO: nalezoloby pomyslec o wykorzystaniu faktu
    ze czesto wiadomo iz wezly x[i] sa rownoodlegle. }
  KMin := 1;
- KMax := FX.High;
+ KMax := FX.Count - 1;
  repeat
   KMiddle:=(KMin + KMax) div 2;
   { jak jest ulozony x w stosunku do przedzialu FX[KMiddle-1]..FX[KMiddle] ? }

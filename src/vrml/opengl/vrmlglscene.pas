@@ -3641,10 +3641,10 @@ var
       OrthoViewDimensions[3] :=  1;
 
       FieldOfView := TNodeOrthoViewpoint(ViewpointNode).FdFieldOfView.Items;
-      if FieldOfView.High >= 0 then OrthoViewDimensions[0] := FieldOfView.Items[0];
-      if FieldOfView.High >= 1 then OrthoViewDimensions[1] := FieldOfView.Items[1];
-      if FieldOfView.High >= 2 then OrthoViewDimensions[2] := FieldOfView.Items[2];
-      if FieldOfView.High >= 3 then OrthoViewDimensions[3] := FieldOfView.Items[3];
+      if FieldOfView.Count > 0 then OrthoViewDimensions[0] := FieldOfView.Items[0];
+      if FieldOfView.Count > 1 then OrthoViewDimensions[1] := FieldOfView.Items[1];
+      if FieldOfView.Count > 2 then OrthoViewDimensions[2] := FieldOfView.Items[2];
+      if FieldOfView.Count > 3 then OrthoViewDimensions[3] := FieldOfView.Items[3];
     end else
     if (ViewpointNode <> nil) and
        (ViewpointNode is TNodeOrthographicCamera) then

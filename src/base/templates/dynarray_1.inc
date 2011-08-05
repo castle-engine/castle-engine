@@ -229,11 +229,10 @@
       and the last items of array will be shifted to the left. }
     procedure Delete(const Index: Integer);
 
-    { Insert Item at position Index into array.
+    { Insert Item at position Index.
       Index must be in range 0 .. Count (yes, we can @noAutoLink(insert)
-      element at the end of the array).
-      After insertion array has Count increased by 1, Items[Index] = Item and all
-      items that were on positions [Index..old High] are now at [Index+1..new High]. }
+      element at the end of the array). The following items in the array
+      are shifted to the right and arrat Count is increased by 1. }
     procedure Insert(Index: integer; const Item: TDynArrayItem_1);
 
     procedure SetAll(const Item: TDynArrayItem_1);
@@ -245,7 +244,7 @@
       (like IsSmallerFunc that must be passed to @link(KambiUtils.Sort)).
 
       If you don't give First/LastIndex it assumes FirstIndex = 0 and
-      LastIndex = High, so the whole array will be sorted. }
+      LastIndex = Count - 1, so the whole array will be sorted. }
     procedure Sort(IsSmallerFunc: TDynArrayItemIsSmallerFunc_1;
       CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
     procedure Sort(IsSmallerFunc: TDynArrayItemIsSmallerFunc_1;
@@ -370,7 +369,7 @@ end;
 
 procedure TDynArray_1.AddArray(const NewItems: array of TDynArrayItem_1);
 begin
-  AddArray(NewItems, System.High(NewItems)+1);
+  AddArray(NewItems, High(NewItems)+1);
 end;
 
 procedure TDynArray_1.AddList(Arr: TDynArray_1);
@@ -438,7 +437,7 @@ end;
 
 function TDynArray_1.Equal(const Arr: array of TDynArrayItem_1): boolean;
 begin
-  Result := Equal(Arr, System.High(Arr)+1);
+  Result := Equal(Arr, High(Arr)+1);
 end;
 
 function TDynArray_1.Equal(const Arr: array of TDynArrayItem_1;
@@ -457,7 +456,7 @@ end;
 
 function TDynArray_1.IndexOf(const Item: TDynArrayItem_1; StartIndex: Integer): Integer;
 begin
-  for Result := StartIndex to High do
+  for Result := StartIndex to Count - 1 do
     if EqualItems(Items[Result], Item) then Exit;
   Result := -1;
 end;
@@ -509,7 +508,7 @@ var
   i: integer;
 begin
   IncCount;
-  for i := High downto Index+1 do Items[i] := Items[i-1];
+  for i := Count - 1 downto Index+1 do Items[i] := Items[i-1];
   Items[Index] := Item;
 end;
 
@@ -543,14 +542,14 @@ procedure TDynArray_1.Sort(
   IsSmallerFunc: TDynArrayItemIsSmallerFunc_1;
   CountToUseSimpleSort: Integer);
 begin
-  Sort(IsSmallerFunc, 0, High, CountToUseSimpleSort);
+  Sort(IsSmallerFunc, 0, Count - 1, CountToUseSimpleSort);
 end;
 
 procedure TDynArray_1.SortByObject(
   IsSmallerFunc: TDynArrayItemIsSmallerFuncByObject_1;
   CountToUseSimpleSort: Integer);
 begin
-  SortByObject(IsSmallerFunc, 0, High, CountToUseSimpleSort);
+  SortByObject(IsSmallerFunc, 0, Count - 1, CountToUseSimpleSort);
 end;
 
 { -----------------------------------------------------------------------------

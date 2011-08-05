@@ -906,10 +906,10 @@ begin
   OrthoViewDimensions[2] :=  1;
   OrthoViewDimensions[3] :=  1;
 
-  if FdFieldOfView.Items.High >= 0 then OrthoViewDimensions[0] := FdFieldOfView.Items[0];
-  if FdFieldOfView.Items.High >= 1 then OrthoViewDimensions[1] := FdFieldOfView.Items[1];
-  if FdFieldOfView.Items.High >= 2 then OrthoViewDimensions[2] := FdFieldOfView.Items[2];
-  if FdFieldOfView.Items.High >= 3 then OrthoViewDimensions[3] := FdFieldOfView.Items[3];
+  if FdFieldOfView.Items.Count > 0 then OrthoViewDimensions[0] := FdFieldOfView.Items[0];
+  if FdFieldOfView.Items.Count > 1 then OrthoViewDimensions[1] := FdFieldOfView.Items[1];
+  if FdFieldOfView.Items.Count > 2 then OrthoViewDimensions[2] := FdFieldOfView.Items[2];
+  if FdFieldOfView.Items.Count > 3 then OrthoViewDimensions[3] := FdFieldOfView.Items[3];
 
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window,

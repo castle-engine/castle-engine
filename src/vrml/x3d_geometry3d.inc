@@ -832,8 +832,8 @@ var
 begin
   SpinePoints := FdSpine.Items;
   Result := (SpinePoints.Count <> 0) and
-    VectorsPerfectlyEqual(SpinePoints.Items[SpinePoints.High],
-                          SpinePoints.Items[0]);
+    VectorsPerfectlyEqual(SpinePoints.Last,
+                          SpinePoints.First);
 end;
 
 function TNodeExtrusion.CrossSectionClosed: boolean;
@@ -842,8 +842,8 @@ var
 begin
   CrossSectionPoints := FdCrossSection.Items;
   Result := (CrossSectionPoints.Count <> 0) and
-    VectorsPerfectlyEqual(CrossSectionPoints.Items[CrossSectionPoints.High],
-                          CrossSectionPoints.Items[0]);
+    VectorsPerfectlyEqual(CrossSectionPoints.Last,
+                          CrossSectionPoints.First);
 end;
 
 function TNodeExtrusion.Proxy(var State: TVRMLGraphTraverseState;
@@ -907,11 +907,11 @@ var
       This will allow the correct smoothing between spine/crossSection
       edges when calculating normal vectors. }
 
-   if (SpineIndex = FdSpine.Items.High) and
+   if (SpineIndex = FdSpine.Items.Count - 1) and
        E.BeginEndCapsMatching then
       SpineIndex := 0;
 
-    if (CrossSectionIndex = FdCrossSection.Items.High) and
+    if (CrossSectionIndex = FdCrossSection.Items.Count - 1) and
        E.CrossSectionClosed then
       CrossSectionIndex := 0;
 

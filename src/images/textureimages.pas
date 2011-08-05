@@ -220,7 +220,7 @@ var
   C: PCachedTexture;
 begin
   C := @CachedTextures.Items[0];
-  for I := 0 to CachedTextures.High do
+  for I := 0 to CachedTextures.Count - 1 do
   begin
     if C^.FileName = FileName then
     begin
@@ -261,7 +261,7 @@ var
   C: PCachedTexture;
 begin
   C := @CachedTextures.Items[0];
-  for I := 0 to CachedTextures.High do
+  for I := 0 to CachedTextures.Count - 1 do
   begin
     if C^.Image = Image then
     begin

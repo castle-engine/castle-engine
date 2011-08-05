@@ -109,10 +109,6 @@ type
       to avoid range errors on constructs like @code(Count - 1). }
     property Count: Integer read FCount write SetCount;
 
-    { Last item index. Just @code(Count - 1), in particular when Count = 0
-      then High = -1. }
-    function High: Integer;
-
     procedure Exchange(Index1, Index2: Cardinal);
 
     { Fill the array memory. }
@@ -290,8 +286,6 @@ begin
  inherited;
 end;
 
-function TDynArrayBase.High: Integer; begin result := Count-1 end;
-
 procedure TDynArrayBase.SetAllowedCapacityOverflow(Value: Cardinal);
 var NewCapacity: Cardinal;
 begin
@@ -461,7 +455,7 @@ var OldCount, i: Integer;
 begin
  OldCount := Count;
  Count := Count + Floats.Count;
- for i := 0 to Floats.High do Items[OldCount+i] := Floats.Items[i];
+ for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
 end;
 
 { TDynSingleArray ------------------------------------------------------------ }
@@ -471,7 +465,7 @@ var OldCount, i: Integer;
 begin
  OldCount := Count;
  Count := Count + Floats.Count;
- for i := 0 to Floats.High do Items[OldCount+i] := Floats.Items[i];
+ for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
 end;
 
 function TDynSingleArray.ToDouble: TDynDoubleArray;
@@ -546,7 +540,7 @@ var
   I: Integer;
 begin
   Result := 0;
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     Result += Items[I];
 end;
 
@@ -567,7 +561,7 @@ var
   I: Integer;
 begin
   Result := TDynLongIntArray.Create(Count);
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     Result.Items[I] := Ord(Items[I]);
 end;
 
@@ -576,7 +570,7 @@ var
   I: Integer;
 begin
   Result := Low(LongInt);
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     MaxTo1st(Result, Items[I]);
 end;
 
@@ -585,7 +579,7 @@ var
   I: Integer;
 begin
   Result := 0;
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     Result += Items[I];
 end;
 
@@ -610,7 +604,7 @@ var
   I: Integer;
 begin
   Result := 0;
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     Result += Items[I];
 end;
 

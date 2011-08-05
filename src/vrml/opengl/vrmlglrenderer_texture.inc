@@ -1208,10 +1208,10 @@ begin
   TextureWrap[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
 
   { calculate Width, Height }
-  if TextureNode.FdDimensions.Items.High >= 0 then
+  if TextureNode.FdDimensions.Items.Count - 1 >= 0 then
     NodeWidth := Max(TextureNode.FdDimensions.Items[0], 0) else
     NodeWidth := DefaultRenderedTextureWidth;
-  if TextureNode.FdDimensions.Items.High >= 1 then
+  if TextureNode.FdDimensions.Items.Count - 1 >= 1 then
     NodeHeight := Max(TextureNode.FdDimensions.Items[1], 0) else
     NodeHeight := DefaultRenderedTextureHeight;
   Width  := NodeWidth ;
@@ -1378,10 +1378,10 @@ var
          (Viewpoint is TNodeOrthoViewpoint) then
       begin
         FieldOfView := TNodeOrthoViewpoint(Viewpoint).FdFieldOfView.Items;
-        if FieldOfView.High >= 0 then FinalFieldOfView[0] := FieldOfView.Items[0];
-        if FieldOfView.High >= 1 then FinalFieldOfView[1] := FieldOfView.Items[1];
-        if FieldOfView.High >= 2 then FinalFieldOfView[2] := FieldOfView.Items[2];
-        if FieldOfView.High >= 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
+        if FieldOfView.Count > 0 then FinalFieldOfView[0] := FieldOfView.Items[0];
+        if FieldOfView.Count > 1 then FinalFieldOfView[1] := FieldOfView.Items[1];
+        if FieldOfView.Count > 2 then FinalFieldOfView[2] := FieldOfView.Items[2];
+        if FieldOfView.Count > 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
       end else
       if (Viewpoint <> nil) and
          (Viewpoint is TNodeOrthographicCamera) then

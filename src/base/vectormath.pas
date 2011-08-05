@@ -2529,7 +2529,7 @@ var
   I: Integer;
 begin
   Result := TDynVector4SingleArray.Create(Count);
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
     Result.Items[I] := Vector4Single(Items[I], W);
 end;
 
@@ -2542,7 +2542,7 @@ begin
   Result := 0;
 
   V1 := PVector3Single(Items);
-  for I := 0 to High do
+  for I := 0 to Count - 1 do
   begin
     { Find vertexes closer to Items[I], and merge them.
 
@@ -2554,7 +2554,7 @@ begin
       introduced). }
 
     V2 := PVector3Single(Pointers[I + 1]);
-    for J := I + 1 to High do
+    for J := I + 1 to Count - 1 do
     begin
       if PointsDistanceSqr(V1^, V2^) < MergeDistance then
         { We do the VectorsPerfectlyEqual comparison only to get nice Result.
@@ -2582,7 +2582,7 @@ begin
   begin
     Min := Items[0];
     Max := Items[0];
-    for I := 1 to High do
+    for I := 1 to Count - 1 do
     begin
       if Items[I][0] < Min[0] then Min[0] := Items[I][0] else
       if Items[I][0] > Max[0] then Max[0] := Items[I][0];

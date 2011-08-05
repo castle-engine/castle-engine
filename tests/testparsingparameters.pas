@@ -98,8 +98,8 @@ procedure AssertParsedParsEqual(const ParsedPars1: TDynParsedOptionArray;
   const ParsedPars2: array of TParsedOption);
 var i, j: Integer;
 begin
- Assert(ParsedPars1.High = High(ParsedPars2));
- for i := 0 to ParsedPars1.High do
+ Assert(ParsedPars1.Count - 1 = High(ParsedPars2));
+ for i := 0 to ParsedPars1.Count - 1 do
  begin
   Assert(ParsedPars1.Items[i].OptionNum   = ParsedPars2[i].OptionNum);
   Assert(ParsedPars1.Items[i].HasArgument = ParsedPars2[i].HasArgument);
@@ -114,7 +114,7 @@ function DynParsedOptionArrayToStr(const name: string;
 var i: Integer;
 begin
  result := name + nl;
- for i := 0 to v.High do
+ for i := 0 to v.Count - 1 do
   result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
     [ i,
       v.Items[i].OptionNum,

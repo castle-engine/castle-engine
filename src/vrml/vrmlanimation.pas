@@ -174,7 +174,7 @@ begin
           AbsoluteBasePath }
         FrameFileName := CombinePaths(AbsoluteBasePath, FrameFileName);
 
-        if (Times.Count > 0) and (FrameTime <= Times.Items[Times.High]) then
+        if (Times.Count > 0) and (FrameTime <= Times.Last) then
           raise Exception.Create(
             'Frames within <animation> element must be specified in ' +
             'increasing time order');

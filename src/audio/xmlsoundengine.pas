@@ -321,7 +321,7 @@ begin
       { We do progress to "SoundInfos.Count - 1" because we start
         iterating from ST = 1 because ST = 0 = stNone never exists. }
       Assert(SoundInfos.Items[stNone].FileName = '');
-      for ST := 1 to SoundInfos.High do
+      for ST := 1 to SoundInfos.Count - 1 do
       begin
         if SoundInfos.Items[ST].FileName <> '' then
         begin
@@ -343,7 +343,7 @@ begin
   if ALActive then
   begin
     StopAllSources;
-    for ST := 0 to SoundInfos.High do
+    for ST := 0 to SoundInfos.Count - 1 do
       FreeBuffer(SoundInfos.Items[ST].Buffer);
   end;
   inherited;
@@ -403,7 +403,7 @@ begin
     SoundInfos.Items[stNone].FileName := '';
     SoundInfos.Items[stNone].Buffer := 0;
     { initialize other than stNone sounds }
-    for ST := 1 to SoundInfos.High do
+    for ST := 1 to SoundInfos.Count - 1 do
     begin
       SoundInfos.Items[ST].FileName :=
         CombinePaths(SoundsXmlPath, SoundNames[ST] + '.wav');

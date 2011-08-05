@@ -137,7 +137,7 @@ var
   C: PCachedImage;
 begin
   C := @CachedImages.Items[0];
-  for I := 0 to CachedImages.High do
+  for I := 0 to CachedImages.Count - 1 do
   begin
     if C^.FileName = FileName then
     begin
@@ -176,7 +176,7 @@ var
   C: PCachedImage;
 begin
   C := @CachedImages.Items[0];
-  for I := 0 to CachedImages.High do
+  for I := 0 to CachedImages.Count - 1 do
   begin
     if C^.Image = Image then
     begin

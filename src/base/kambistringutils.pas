@@ -52,7 +52,6 @@ type
     procedure SetCount(const Value: Integer);
   public
     constructor Create;
-    function High: Integer;
     property Count: Integer read GetCount write SetCount;
     { Add strings from Source list.
       Alias for AddStrings, useful for kambiscriptarrays_implement.inc
@@ -929,11 +928,6 @@ begin
   end;
 end;
 
-function TKamStringList.High: Integer;
-begin
-  Result := Count - 1;
-end;
-
 procedure TKamStringList.AddList(const Source: TStringList);
 begin
   AddStrings(Source);
@@ -943,7 +937,7 @@ procedure TKamStringList.AddArray(const A: array of string);
 var
   I: Integer;
 begin
-  for I := 0 to System.High(A) do
+  for I := 0 to High(A) do
     Add(A[I]);
 end;
 
@@ -979,7 +973,7 @@ function TKamStringList.Equal(const A: array of string): boolean;
 var
   I: Integer;
 begin
-  if System.High(A) <> High then Exit(false);
+  if High(A) <> Count - 1 then Exit(false);
   for I := 0 to Count - 1 do
     if DoCompareText(A[I], Strings[I]) <> 0 then
       Exit(false);
