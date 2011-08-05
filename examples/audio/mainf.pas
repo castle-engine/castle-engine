@@ -126,7 +126,7 @@ var
   S: string;
 begin
   ListAllocatedSources.Clear;
-  for I := 0 to SoundEngine.AllocatedSources.High do
+  for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
   begin
     S := Format('%d: AL source: %4d, used: %5s',
       [ I,
