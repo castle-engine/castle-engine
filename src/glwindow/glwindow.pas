@@ -2881,7 +2881,7 @@ procedure Resize2D(Window: TGLWindow);
 
 implementation
 
-uses ParseParametersUnit, KambiLog, GLImages, GLVersionUnit
+uses KambiParameters, KambiLog, GLImages, GLVersionUnit
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}
@@ -3883,7 +3883,7 @@ begin
 
  for ParamKind := Low(ParamKind) to High(ParamKind) do
   if ParamKind in AllowedOptions then
-   ParseParametersUnit.ParseParameters(OptionsForParam[ParamKind].pOptions,
+   Parameters.Parse(OptionsForParam[ParamKind].pOptions,
      OptionsForParam[ParamKind].Count,
      OptionsForParam[ParamKind].OptionProc, @Data, true);
 
