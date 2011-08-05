@@ -34,11 +34,6 @@
     @item(Filenames operations (they somehow complement the standard set
       of routines in SysUtils).)
 
-    @item(Processing command-line options.
-      See @link(Parameters) list. See the unit ParseParametersUnit that
-      builds upon them and provides complete and comfortable command-line
-      parsing.)
-
     @item(Basic algorithms: @link(Sort).)
   )
 
@@ -108,7 +103,7 @@ uses
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
   {$endif}
-  Variants, SysUtils, Math, Classes {TODO-move TKamStringList and params out};
+  Variants, SysUtils, Math;
 
 {$define read_interface}
 
@@ -139,7 +134,6 @@ type
 {$I kambiutils_dyn_arrays.inc}
 {$I kambiutils_miscella.inc}
 {$I kambiutils_program_exit.inc}
-{$I kambiutils_params.inc}
 {$ifdef UNIX}      {$I kambiutils_os_specific_unix.inc}    {$endif}
 {$ifdef MSWINDOWS} {$I kambiutils_os_specific_windows.inc} {$endif}
 {$I kambiutils_math.inc}
@@ -164,7 +158,6 @@ uses KambiStringUtils, KambiFilesUtils;
 {$I kambiutils_dyn_arrays.inc}
 {$I kambiutils_miscella.inc}
 {$I kambiutils_program_exit.inc}
-{$I kambiutils_params.inc}
 {$I kambiutils_math.inc}
 {$I kambiutils_filenames.inc}
 
@@ -185,7 +178,6 @@ uses KambiStringUtils, KambiFilesUtils;
 
 initialization
  InitializationProgramExit;
- InitializationParams;
  InitializationOSSpecific;
 
  Randomize; { required by e.g. GetTempFname }
@@ -194,6 +186,5 @@ initialization
  DefaultFormatSettings.DecimalSeparator := '.';
 finalization
  FinalizationOSSpecific;
- FinalizationParams;
  FinalizationProgramExit;
 end.

@@ -14,7 +14,6 @@
 }
 
 { String utilities.
-
   Also some operations on chars and PChars.
   And various convertions strings<->numbers.
 
@@ -44,6 +43,28 @@ interface
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif} Variants, SysUtils, KambiUtils, Classes;
+
+type
+  { List of strings. This is a slightly extended version of standard TStringList.
+    The default CaseSensitive value is @true. }
+  TKamStringList = class(TStringList)
+  private
+    procedure SetCount(const Value: Integer);
+  public
+    constructor Create;
+    function High: Integer;
+    property Count: Integer read GetCount write SetCount;
+    { Add strings from Source list.
+      Alias for AddStrings, useful for kambiscriptarrays_implement.inc
+      (since it's consistent with AddList in other lists). }
+    procedure AddList(const Source: TStringList);
+    procedure AddArray(const A: array of string);
+    procedure AssignArray(const A: array of string);
+    function Equal(List: TKamStringList): boolean; overload;
+    function Equal(const A: array of string): boolean; overload;
+    { Reverse the order of items on the array. }
+    procedure Reverse;
+  end;
 
 type
   { }
@@ -883,6 +904,89 @@ function SCompressWhiteSpace(const S: string): string;
 implementation
 
 uses KambiFilesUtils;
+
+{ TKamStringList ------------------------------------------------------------- }
+
+constructor TKamStringList.Create;
+begin
+  inherited;
+  CaseSensitive := true;
+end;
+
+procedure TKamStringList.SetCount(const Value: Integer);
+var
+  I: Integer;
+begin
+  { Use local variable I, instead of comparing Value = Count for,
+    to possibly speed up a little (GetCount is virtual) }
+  if Value < Count then
+  begin
+    for I := 1 to Count - Value do Delete(Count - 1);
+  end else
+  if Value > Count then
+  begin
+    for I := 1 to Value - Count do Add('');
+  end;
+end;
+
+function TKamStringList.High: Integer;
+begin
+  Result := Count - 1;
+end;
+
+procedure TKamStringList.AddList(const Source: TStringList);
+begin
+  AddStrings(Source);
+end;
+
+procedure TKamStringList.AddArray(const A: array of string);
+var
+  I: Integer;
+begin
+  for I := 0 to System.High(A) do
+    Add(A[I]);
+end;
+
+procedure TKamStringList.AssignArray(const A: array of string);
+begin
+  Clear;
+  AddArray(A);
+end;
+
+procedure TKamStringList.Reverse;
+var
+  I: Integer;
+begin
+  { Need to specially check for Count = 0 case, since (0-1) div 2 = -1 div 2 = 0
+    which means that loop would try invalid Exchange(0, -1). }
+  if Count = 0 then Exit;
+  for I := 0 to (Count - 1) div 2 do
+    Exchange(I, Count - 1 - I);
+end;
+
+function TKamStringList.Equal(List: TKamStringList): boolean;
+var
+  I: Integer;
+begin
+  if List.Count <> Count then Exit(false);
+  for I := 0 to Count - 1 do
+    if DoCompareText(List[I], Strings[I]) <> 0 then
+      Exit(false);
+  Result := true;
+end;
+
+function TKamStringList.Equal(const A: array of string): boolean;
+var
+  I: Integer;
+begin
+  if System.High(A) <> High then Exit(false);
+  for I := 0 to Count - 1 do
+    if DoCompareText(A[I], Strings[I]) <> 0 then
+      Exit(false);
+  Result := true;
+end;
+
+{ routines ------------------------------------------------------------------- }
 
 function RandomString: string;
 var i: integer;

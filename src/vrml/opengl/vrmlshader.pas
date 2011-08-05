@@ -22,7 +22,7 @@ interface
 
 uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils, Boxes3D,
-  VRMLGLRendererTextureEnv;
+  VRMLGLRendererTextureEnv, KambiStringUtils;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -383,7 +383,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 
 implementation
 
-uses SysUtils, GL, GLExt, KambiStringUtils, KambiGLUtils, KambiWarnings,
+uses SysUtils, GL, GLExt, KambiGLUtils, KambiWarnings,
   KambiLog, StrUtils, Base3D, GLVersionUnit;
 
 { TODO: a way to turn off using fixed-function pipeline completely

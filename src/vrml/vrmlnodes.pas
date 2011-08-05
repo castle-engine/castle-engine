@@ -181,7 +181,7 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3D, Images, TTFontsTypes,
   Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages,
-  KambiXMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator,
+  KambiXMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, KambiStringUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 {$define read_interface}
@@ -2220,7 +2220,7 @@ uses
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
   Math, X3DLoad, KambiZStream, VRMLCameraUtils, KambiWarnings,
-  KambiStringUtils, KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
+  KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
   KambiLog, KambiScriptParser, DataURI, URIParser,
   NURBS, Quaternions, Cameras, KambiXMLUtils;
 
