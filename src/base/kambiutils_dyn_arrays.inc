@@ -590,16 +590,17 @@ begin
 end;
 
 procedure TDynLongIntArray.DeleteRange(const Index: Integer; DelCount: Integer);
-var i: integer;
+var
+  I: Integer;
 begin
   { Make sure Index and DelCount are sensible first }
   if Index >= Count then
     Exit;
   MinTo1st(DelCount, Count - Index);
 
-  for i := Index to Count - 1 - DelCount do
-    { Instead of Items[i] := Items[i + DelCount]; }
-    System.Move(Items[i+DelCount], Items[i], SizeOf(Longint));
+  for I := Index to Count - 1 - DelCount do
+    { Instead of Items[I] := Items[I + DelCount]; }
+    System.Move(Items[I + DelCount], Items[I], SizeOf(Longint));
 
   SetCountNoInitFini(Count - DelCount);
 end;
