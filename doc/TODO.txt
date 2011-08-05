@@ -26,9 +26,6 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
 - Change TBox3D and TQuaternion to nicer old-style objects with methods.
   (Keep normal procedures for some time as deprecated, for compatibility.)
   Seek for other records, something worth changing?
-- Use generics more intensively.
-  At least all TObjectsList templates can be changed to generics?
-  These seem to work perfectly for existing cases?
 - Use fpimage to read some image formats:
   http://wiki.freepascal.org/fcl-image
 
@@ -1167,3 +1164,31 @@ Various:
   http://www.gpgpu.org/phpBB2/viewtopic.php?p=6100&sid=8da4dfe88523858a837e5f57a936b0b1 (about textures, but still)
   Defer for later.
 
+- Convert rest of TDynArray templates to generics, using FGL.TFPSList.
+  Not possible for now, or at least not comfortable:
+  1. Making array of records not possible currently,
+     or anything else without built-in "=" (like TVector3Single).
+     Using it for methods (callbacks "of object") is also not really
+     possible, as default "=" comparison for them is useless (compares
+     only half of data).
+     See http://bugs.freepascal.org/view.php?id=15480
+
+  2. Also, it's very troublesome that we cannot derive our own TFPGList generic
+     descendant. See
+     http://bugs.freepascal.org/view.php?id=9007
+     http://bugs.freepascal.org/view.php?id=8591
+     Closed unfortunately by just making a proper error message, it seems.
+     This forces us to repeat some implementation (AddArray, AddList,
+     also AssignInterleaved and probably some more).
+
+  3. Converting some of our lists, using primitives (bools, ints, floats)
+     is possible. But 2. is still troublesome (need to repeat AddList etc.).
+     And it causes some minor pain in VRMLFields, where RawItems
+     is currently declared as TDynArrayBase. Could be changed to TFPSList
+     once *all* VRML/X3D fields use generics. When only part of them are
+     generics, part dynarray, then RawItems is TObject and some checks
+     are necessary.
+
+  1. is a showstopper. 2. is a serious nuisance. Both are FPC problems.
+  3. will disappear once 1. is gone.
+  Started in unfinished/migrate_dynarray_on_primitives_to_fgl.patch

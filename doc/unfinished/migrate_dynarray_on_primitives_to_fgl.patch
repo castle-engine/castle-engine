@@ -1,0 +1,878 @@
+Index: kambi_vrml_game_engine/tests/testdynarrays.pas
+===================================================================
+--- kambi_vrml_game_engine/tests/testdynarrays.pas	(revision 9820)
++++ kambi_vrml_game_engine/tests/testdynarrays.pas	(working copy)
+@@ -27,6 +27,7 @@
+     procedure TestVectorMathDynArrays;
+     procedure TestDynArraysAssign;
+     procedure TestDynArraysAssignLerp;
++    procedure TestZero;
+   end;
+ 
+ implementation
+@@ -248,6 +249,35 @@
+   end;
+ end;
+ 
++procedure TTestDynArrays.TestZero;
++var
++  B: TDynBooleanArray;
++  O: TDynIntegerArray;
++  F: TDynSingleArray;
++  I: Integer;
++begin
++  { For lists based on TFPGList, increasing count always initializes new memory
++    to zero. }
++
++  B := TDynBooleanArray.Create;
++  B.Count := 10;
++  for I := 0 to B.Count - 1 do
++    Assert(not B[I]);
++  FreeAndNil(B);
++
++  O := TDynIntegerArray.Create;
++  O.Count := 10;
++  for I := 0 to O.Count - 1 do
++    Assert(O[I] = 0);
++  FreeAndNil(O);
++
++  F := TDynSingleArray.Create;
++  F.Count := 10;
++  for I := 0 to F.Count - 1 do
++    Assert(F[I] = 0);
++  FreeAndNil(F);
++end;
++
+ initialization
+  RegisterTest(TTestDynArrays);
+ end.
+Index: kambi_vrml_game_engine/src/vrml/vrmlnodes_avalon.inc
+===================================================================
+--- kambi_vrml_game_engine/src/vrml/vrmlnodes_avalon.inc	(revision 9650)
++++ kambi_vrml_game_engine/src/vrml/vrmlnodes_avalon.inc	(working copy)
+@@ -408,8 +408,8 @@
+     end;
+ 
+     if FdManifold.Value then
+-      IFS.FdCoordIndex.Items.AssignArray(TeapotManifoldCoordIndex) else
+-      IFS.FdCoordIndex.Items.AssignArray(TeapotCoordIndex);
++      IFS.FdCoordIndex.Items.AddArray(TeapotManifoldCoordIndex) else
++      IFS.FdCoordIndex.Items.AddArray(TeapotCoordIndex);
+ 
+     IFS.FdSolid.Value := FdSolid.Value;
+ 
+Index: kambi_vrml_game_engine/src/vrml/x3dloadinternalobj.pas
+===================================================================
+--- kambi_vrml_game_engine/src/vrml/x3dloadinternalobj.pas	(revision 9818)
++++ kambi_vrml_game_engine/src/vrml/x3dloadinternalobj.pas	(working copy)
+@@ -577,18 +577,18 @@
+         Faces.FdSolid.Value := false;
+         Faces.FdCoord.Value := Coord;
+         Faces.FdCoordIndex.Items.Clear;
+-        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
++        Faces.FdCoordIndex.Items.Capacity := AllowedIndicesArraysOverflows;
+         if FacesWithTexCoord then
+         begin
+           Faces.FdTexCoord.Value := TexCoord;
+           Faces.FdTexCoordIndex.Items.Clear;
+-          Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
++          Faces.FdTexCoordIndex.Items.Capacity := AllowedIndicesArraysOverflows;
+         end;
+         if FacesWithNormal then
+         begin
+           Faces.FdNormal.Value := Normal;
+           Faces.FdNormalIndex.Items.Clear;
+-          Faces.FdNormalIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
++          Faces.FdNormalIndex.Items.Capacity := AllowedIndicesArraysOverflows;
+         end;
+ 
+         { We add Faces as long as FacesWithXxx parameters stay the same.
+@@ -616,10 +616,6 @@
+           (FacesWithTexCoord <> obj.Faces.Items[i].HasTexCoords) or
+           (FacesWithNormal   <> obj.Faces.Items[i].HasNormals) or
+           (FacesWithMaterial <> obj.Faces.Items[i].Material);
+-
+-        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
+-        Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := 4;
+-        Faces.FdNormalIndex.Items.AllowedCapacityOverflow := 4;
+       end;
+ 
+       if Coord <> nil then
+Index: kambi_vrml_game_engine/src/vrml/vrmlfields.pas
+===================================================================
+--- kambi_vrml_game_engine/src/vrml/vrmlfields.pas	(revision 9825)
++++ kambi_vrml_game_engine/src/vrml/vrmlfields.pas	(working copy)
+@@ -986,7 +986,7 @@
+   { Multiple values VRML field. Remember that such field may always have
+     any number of items, including zero.
+ 
+-    Note that we keep MF fields contents in TDyn*Array instances
++    Note that we keep MF fields contents in TDyn*Array (or TFPSList) instances
+     (RawItems in this class, also accessible as Items (with more concrete
+     class) in descendants). This means that they are in compact form,
+     easy for reading, or even for feeding the list into OpenGL.
+@@ -1066,9 +1066,11 @@
+ 
+       @italic(Descendants implementors notes): You have to initialize this field
+       in descendants' constructor, it will be always freed in our
+-      destructor. }
+-    RawItems: TDynArrayBase;
++      destructor.
+ 
++      TODO: this is either TDyn*Array or TFPSList for now. }
++    RawItems: TObject;
++
+     { A corresponding SF field class. All items that will be passed
+       to RawItemsAdd will be of this class. }
+     property ItemClass: TVRMLSingleFieldClass read fItemClass;
+@@ -3309,12 +3311,16 @@
+ 
+ function TVRMLSimpleMultField.GetCount: Integer;
+ begin
+-  Result := RawItems.Count;
++  if RawItems is TFPSList then
++    Result := TFPSList(RawItems)     .Count else
++    Result := TDynArrayBase(RawItems).Count;
+ end;
+ 
+ procedure TVRMLSimpleMultField.SetCount(const Value: Integer);
+ begin
+-  RawItems.Count := Value;
++  if RawItems is TFPSList then
++    TFPSList(RawItems)     .Count := Value else
++    TDynArrayBase(RawItems).Count := Value;
+ end;
+ 
+ function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
+@@ -3326,9 +3332,11 @@
+ var
+   SingleItem: TVRMLSingleField;
+ begin
+-  RawItems.Clear;
++  if RawItems is TFPSList then
++    TFPSList(RawItems)     .Clear else
++    TDynArrayBase(RawItems).Clear;
+ 
+-  RawItems.AllowedCapacityOverflow := 100;
++//  RawItems.AllowedCapacityOverflow := 100;
+   SingleItem := nil;
+   try
+     SingleItem := CreateItemBeforeParse;
+@@ -3369,7 +3377,7 @@
+ 
+   finally
+     FreeAndNil(SingleItem);
+-    RawItems.AllowedCapacityOverflow := 4;
++//    RawItems.AllowedCapacityOverflow := 4;
+   end;
+ end;
+ 
+@@ -3382,9 +3390,11 @@
+     comma is ignored (it was only for VRML 1.0 anyway), we just read
+     single values up to the end of stream. }
+ 
+-  RawItems.Clear;
++  if RawItems is TFPSList then
++    TFPSList(RawItems)     .Clear else
++    TDynArrayBase(RawItems).Clear;
+ 
+-  RawItems.AllowedCapacityOverflow := 100;
++//  RawItems.AllowedCapacityOverflow := 100;
+   SingleItem := CreateItemBeforeParse;
+   try
+     while Lexer.Token <> vtEnd do
+@@ -3394,7 +3404,7 @@
+     end;
+   finally
+     FreeAndNil(SingleItem);
+-    RawItems.AllowedCapacityOverflow := 4;
++//    RawItems.AllowedCapacityOverflow := 4;
+   end;
+ end;
+ 
+@@ -3409,7 +3419,7 @@
+       { The general "for I := ..." code below can handle correctly any RawItems.Count
+         value. But for aesthetics, i.e. more clear output for humans,
+         I handle the RawItems.Count = 0 and 1 cases separately. }
+-      case RawItems.Count of
++      case Count of
+         0: Writer.Write('[]');
+         1: Writer.Write(RawItemToString(0, Writer.Encoding));
+         else
+@@ -3420,16 +3430,16 @@
+             { For really long fields, writing indentation before each item
+               can cost a significant disk space. So do not indent when
+               there are many items. }
+-            IndentMultiValueFields := RawItems.Count <= 10;
++            IndentMultiValueFields := Count <= 10;
+ 
+             WriteIndentNextTime := IndentMultiValueFields;
+-            for i := 0 to RawItems.Count-1 do
++            for i := 0 to Count - 1 do
+             begin
+               if WriteIndentNextTime then Writer.WriteIndent('');
+               Writer.Write(RawItemToString(i, Writer.Encoding) +',');
+               { After the last item we always write newline,
+                 no matter what's SaveToStreamDoNewLineAfterRawItem }
+-              if (i = RawItems.Count - 1) or
++              if (i = Count - 1) or
+                  SaveToStreamDoNewLineAfterRawItem(i) then
+                 begin Writer.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
+                 begin Writer.Write(' '); WriteIndentNextTime := false; end;
+@@ -3440,10 +3450,10 @@
+           end;
+       end;
+     xeXML:
+-      for I := 0 to RawItems.Count - 1 do
++      for I := 0 to Count - 1 do
+       begin
+         Writer.Write(RawItemToString(I, Writer.Encoding));
+-        if I <> RawItems.Count - 1 then
++        if I <> Count - 1 then
+           Writer.Write(' ');
+       end;
+     else raise EInternalError.Create('TVRMLSimpleMultField.SaveToStreamValue Encoding?');
+Index: kambi_vrml_game_engine/src/vrml/normalscalculator.pas
+===================================================================
+--- kambi_vrml_game_engine/src/vrml/normalscalculator.pas	(revision 9818)
++++ kambi_vrml_game_engine/src/vrml/normalscalculator.pas	(working copy)
+@@ -235,8 +235,8 @@
+     SmoothFaces := nil;
+     HandledFaces := nil;
+     try
+-      HandledFaces := TDynBooleanArray.Create(ThisVertexFaces.Count);
+-      HandledFaces.SetAll(false);
++      HandledFaces := TDynBooleanArray.Create;
++      HandledFaces.Count := ThisVertexFaces.Count; { TFPGList initialized everything to false }
+       SmoothFaces := TDynIntegerArray.Create;
+ 
+       for I := 0 to ThisVertexFaces.Count - 1 do
+Index: kambi_vrml_game_engine/src/3d/triangulator.pas
+===================================================================
+--- kambi_vrml_game_engine/src/3d/triangulator.pas	(revision 9676)
++++ kambi_vrml_game_engine/src/3d/triangulator.pas	(working copy)
+@@ -183,9 +183,9 @@
+ 
+     Corners := Count; { Corners = always "how many Outs are false" }
+     P0 := -1;
+-    Outs := TDynBooleanArray.Create(Count);
++    Outs := TDynBooleanArray.Create;
+     try
+-      Outs.SetAll(false);
++      Outs.Count := Count; { TFPGList initialized everything to false }
+ 
+       while Corners >= 3 do
+       begin
+Index: kambi_vrml_game_engine/src/3d/kambioctree.pas
+===================================================================
+--- kambi_vrml_game_engine/src/3d/kambioctree.pas	(revision 9818)
++++ kambi_vrml_game_engine/src/3d/kambioctree.pas	(working copy)
+@@ -483,7 +483,7 @@
+ procedure TOctreeNode.CreateLeafItems;
+ begin
+  FItemsIndices := TDynIntegerArray.Create;
+- ItemsIndices.AllowedCapacityOverflow := Max(FParentTree.LeafCapacity div 4, 4);
++ ItemsIndices.Capacity := Max(FParentTree.LeafCapacity div 4, 4);
+ end;
+ 
+ procedure TOctreeNode.FreeAndNilTreeSubNodes;
+@@ -836,11 +836,11 @@
+   begin
+    if TreeNode.IsLeaf then
+    begin
+-    Inc(leavesCounts.Items[TreeNode.Depth]);
+-    itemsCounts.Items[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
++    Inc(leavesCounts.List^[TreeNode.Depth]);
++    itemsCounts.List^[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
+    end else
+    begin
+-    Inc(nonLeafNodesCounts.Items[TreeNode.Depth]);
++    Inc(nonLeafNodesCounts.List^[TreeNode.Depth]);
+     for b0 := Low(boolean) to High(boolean) do
+      for b1 := Low(boolean) to High(boolean) do
+       for b2 := Low(boolean) to High(boolean) do
+@@ -863,12 +863,12 @@
+  nonLeafNodesCounts := nil;
+  itemsCounts := nil;
+  try
+-  leavesCounts := TDynCardinalArray.Create(MaxDepth+1);
+-  leavesCounts.FillChar(0);
+-  nonLeafNodesCounts := TDynCardinalArray.Create(MaxDepth+1);
+-  nonLeafNodesCounts.FillChar(0);
+-  itemsCounts := TDynCardinalArray.Create(MaxDepth+1);
+-  itemsCounts.FillChar(0);
++  leavesCounts := TDynCardinalArray.Create;
++  leavesCounts.Count := MaxDepth+1; { TFPGList already initialized all to zero }
++  nonLeafNodesCounts := TDynCardinalArray.Create;
++  nonLeafNodesCounts.Count := MaxDepth+1; { TFPGList already initialized all to zero }
++  itemsCounts := TDynCardinalArray.Create;
++  itemsCounts.Count := MaxDepth+1; { TFPGList already initialized all to zero }
+ 
+   StatNode(FTreeRoot);
+ 
+Index: kambi_vrml_game_engine/src/3d/convexhullunit.pas
+===================================================================
+--- kambi_vrml_game_engine/src/3d/convexhullunit.pas	(revision 9650)
++++ kambi_vrml_game_engine/src/3d/convexhullunit.pas	(working copy)
+@@ -104,9 +104,9 @@
+    i0:=i;
+   end;
+ 
+- InResult:=TDynBooleanArray.Create(Points.Count);
++ InResult:=TDynBooleanArray.Create;
+  try
+-  InResult.SetAll(false);
++  InResult.Count := Points.Count; { TFPGList initialized everything to false }
+   Result:=TDynIntegerArray.Create;
+   try 
+    MarkNext(i0);  
+Index: kambi_vrml_game_engine/src/3d/nurbs.pas
+===================================================================
+--- kambi_vrml_game_engine/src/3d/nurbs.pas	(revision 9825)
++++ kambi_vrml_game_engine/src/3d/nurbs.pas	(working copy)
+@@ -247,8 +247,8 @@
+   j, r: LongInt;
+   saved, dsaved, temp: Single;
+ begin
+-  left := TDynDoubleArray.Create(order);
+-  right := TDynDoubleArray.Create(order);
++  left  := TDynDoubleArray.Create; left .Count := order;
++  right := TDynDoubleArray.Create; right.Count := order;
+ 
+   basis[0] := 1.0;
+   for j := 1 to  order - 1 do
+@@ -296,8 +296,8 @@
+ begin
+   UseWeight := Cardinal(Weight.Count) = PointsCount;
+ 
+-  basis := TDynDoubleArray.Create(order);
+-  deriv := TDynDoubleArray.Create(order);
++  basis := TDynDoubleArray.Create; basis.Count := order;
++  deriv := TDynDoubleArray.Create; deriv.Count := order;
+ 
+   span := findSpan(PointsCount, order, u, Knot);
+ 
+@@ -356,10 +356,10 @@
+ begin
+   UseWeight := Weight.Count = Points.Count;
+ 
+-  uBasis := TDynDoubleArray.Create(UOrder);
+-  vBasis := TDynDoubleArray.Create(VOrder);
+-  uDeriv := TDynDoubleArray.Create(UOrder);
+-  vDeriv := TDynDoubleArray.Create(VOrder);
++  uBasis := TDynDoubleArray.Create; uBasis.Count := UOrder;
++  vBasis := TDynDoubleArray.Create; vBasis.Count := VOrder;
++  uDeriv := TDynDoubleArray.Create; uDeriv.Count := UOrder;
++  vDeriv := TDynDoubleArray.Create; vDeriv.Count := VOrder;
+ 
+   uSpan := findSpan(uDimension, uOrder, u, uKnot);
+   vSpan := findSpan(vDimension, vOrder, v, vKnot);
+@@ -387,7 +387,7 @@
+       dugain := uDeriv[i] * vBasis[j];
+       dvgain := uBasis[i] * vDeriv[j];
+ 
+-      P := Points.Items[index];
++      P := Points.List^[index];
+ 
+       Result += P * gain;
+ 
+@@ -440,19 +440,19 @@
+       nkPeriodicUniform:
+         begin
+           for I := 0 to Knot.Count - 1 do
+-            Knot.Items[I] := I;
++            Knot.List^[I] := I;
+         end;
+       nkEndpointUniform:
+         begin
+           for I := 0 to Order - 1 do
+           begin
+-            Knot.Items[I] := 0;
+-            Knot.Items[Cardinal(I) + Dimension] := Dimension - Order + 1;
++            Knot.List^[I] := 0;
++            Knot.List^[Cardinal(I) + Dimension] := Dimension - Order + 1;
+           end;
+           for I := 0 to Dimension - Order - 1 do
+-            Knot.Items[Cardinal(I) + Order] := I + 1;
++            Knot.List^[Cardinal(I) + Order] := I + 1;
+           for I := 0 to Order + Dimension - 1 do
+-            Knot.Items[I] /= Dimension - Order + 1;
++            Knot.List^[I] /= Dimension - Order + 1;
+         end;
+       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
+     end;
+@@ -471,16 +471,16 @@
+     if Point.Count = 0 then
+       Result := EmptyBox3D else
+     begin
+-      W := Weight.Items[0];
++      W := Weight.List^[0];
+       if W = 0 then W := 1;
+ 
+-      Result[0] := Point.Items[0] / W;
++      Result[0] := Point.List^[0] / W;
+       Result[1] := Result[0];
+ 
+       for I := 1 to Point.Count - 1 do
+       begin
+-        V := @(Point.Items[I]);
+-        W := Weight.Items[I];
++        V := @(Point.List^[I]);
++        W := Weight.List^[I];
+         if W = 0 then W := 1;
+ 
+         MinTo1st(Result[0][0], V^[0] / W);
+@@ -525,18 +525,18 @@
+     if Point.Count = 0 then
+       Result := EmptyBox3D else
+     begin
+-      W := Weight.Items[0];
++      W := Weight.List^[0];
+       if W = 0 then W := 1;
+ 
+-      Result[0] := MatrixMultPoint(Transform, Point.Items[0] / W);
++      Result[0] := MatrixMultPoint(Transform, Point.List^[0] / W);
+       Result[1] := Result[0];
+ 
+       for I := 1 to Point.Count - 1 do
+       begin
+-        W := Weight.Items[I];
++        W := Weight.List^[I];
+         if W = 0 then W := 1;
+ 
+-        V := MatrixMultPoint(Transform, Point.Items[I] / W);
++        V := MatrixMultPoint(Transform, Point.List^[I] / W);
+ 
+         MinTo1st(Result[0][0], V[0]);
+         MinTo1st(Result[0][1], V[1]);
+Index: kambi_vrml_game_engine/src/base/kambiutils_dyn_arrays.inc
+===================================================================
+--- kambi_vrml_game_engine/src/base/kambiutils_dyn_arrays.inc	(revision 9834)
++++ kambi_vrml_game_engine/src/base/kambiutils_dyn_arrays.inc	(working copy)
+@@ -162,51 +162,24 @@
+ 
+ { Declare all TDynXxxArray for standard Pascal types }
+ 
+-type
+-  {$define DYNARRAY_1_USE_EQUALITY_OP}
+-  {$define DYNARRAY_1_USE_PLUSMINUS_OP}
+-  { }
+-  TDynArrayItem_1  = Cardinal; PDynArrayItem_1  = PCardinal; {$I dynarray_1.inc}  {TDynCardinalArray is below} { }      TArray_Cardinal = TInfiniteArray_1 ; PArray_Cardinal = PInfiniteArray_1 ;
++  TDynLongWordArray = class(specialize TFPGList<LongWord>)
++  public
++    procedure AddList(L: TDynLongWordArray);
++    procedure AddArray(const A: array of LongWord);
++  end;
+ 
+-  {$define DYNARRAY_2_USE_EQUALITY_OP}
+-  {$define DYNARRAY_2_USE_PLUSMINUS_OP}
+-  TDynArrayItem_2  = Integer ; PDynArrayItem_2  = PInteger ; {$I dynarray_2.inc}                                       TArray_Integer  = TInfiniteArray_2 ; PArray_Integer  = PInfiniteArray_2 ;
+-
+-  {$define DYNARRAY_3_USE_EQUALITY_OP}
+-  {$define DYNARRAY_3_USE_PLUSMINUS_OP}
+-  TDynArrayItem_3  = Float   ; PDynArrayItem_3  = PFloat   ; {$I dynarray_3.inc}  {TDynFloatArray is below} { }         TArray_Float    = TInfiniteArray_3 ; PArray_Float    = PInfiniteArray_3 ;
+-
+-  {$define DYNARRAY_8_USE_EQUALITY_OP}
+-  {$define DYNARRAY_8_USE_PLUSMINUS_OP}
+-  TDynArrayItem_8  = Longint ; PDynArrayItem_8  = PLongint ; {$I dynarray_8.inc}                                    TArray_Longint  = TInfiniteArray_8 ; PArray_Longint  = PInfiniteArray_8 ;
+-
+-  {$define DYNARRAY_11_USE_EQUALITY_OP}
+-  {$define DYNARRAY_11_USE_PLUSMINUS_OP}
+-  TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} {TDynDoubleArray is below} { }        TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
+-
+-  {$define DYNARRAY_12_USE_EQUALITY_OP}
+-  {$define DYNARRAY_12_USE_PLUSMINUS_OP}
+-  TDynArrayItem_12 = Single  ; PDynArrayItem_12 = PSingle  ; {$I dynarray_12.inc} {TDynSingleArray is below} { }        TArray_Single   = TInfiniteArray_12; PArray_Single   = PInfiniteArray_12;
+-
+-  {$define DYNARRAY_14_USE_EQUALITY_OP}
+-  {$define DYNARRAY_14_USE_PLUSMINUS_OP}
+-  TDynArrayItem_14 = LongWord; PDynArrayItem_14 = PLongWord; {$I dynarray_14.inc} TDynLongWordArray = TDynArray_14; TArray_LongWord = TInfiniteArray_14; PArray_LongWord = PInfiniteArray_14;
+-
+-  {$define DYNARRAY_15_USE_EQUALITY_OP}
+-  {$define DYNARRAY_15_IS_INIT_FINI_TYPE}
+-  TDynArrayItem_15 = String  ; PDynArrayItem_15 = PString  ; {$I dynarray_15.inc} TDynStringArray   = TDynArray_15; TArray_String   = TInfiniteArray_15; PArray_String   = PInfiniteArray_15;
+-
+-  {$define DYNARRAY_16_USE_EQUALITY_OP}
+-  TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below} { }       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
+-
+   TDynSingleArray = class;
+   TDynDoubleArray = class;
+ 
+-  TDynFloatArray = class(TDynArray_3)
++  TDynFloatArray = class(specialize TFPGList<Float>)
++  public
+     procedure AppendFloats(Floats: TDynSingleArray);
++    procedure AddList(L: TDynFloatArray);
++    procedure AddArray(const A: array of Float);
+   end;
+ 
+-  TDynSingleArray = class(TDynArray_12)
++  TDynSingleArray = class(specialize TFPGList<Single>)
++  public
+     procedure AppendFloats(Floats: TDynFloatArray);
+     function ToDouble: TDynDoubleArray;
+     { Assign value from TDynDoubleArray, converting to double-precision. }
+@@ -222,44 +195,68 @@
+       (although it's Ok for current implementation). }
+     procedure AssignLerp(const Fraction: Single;
+       V1, V2: TDynSingleArray; Index1, Index2, ACount: Integer);
++    procedure AddList(L: TDynSingleArray);
++    procedure AddArray(const A: array of Single);
+   end;
+ 
+-  TDynDoubleArray = class(TDynArray_11)
++  TDynDoubleArray = class(specialize TFPGList<Double>)
++  public
+     function ToSingle: TDynSingleArray;
+     { Assign value from TDynSingleArray, converting to double-precision. }
+     procedure Assign(Source: TDynSingleArray); overload;
++    procedure AddList(L: TDynDoubleArray);
++    procedure AddArray(const A: array of Double);
+   end;
+ 
+-  TDynCardinalArray = class(TDynArray_1)
++  TDynCardinalArray = class(specialize TFPGList<Cardinal>)
++  public
+     function BigSum: Int64;
+     function Sum: Cardinal;
++    procedure AddList(L: TDynCardinalArray);
++    procedure AddArray(const A: array of Cardinal);
+   end;
+ 
+-  TDynBooleanArray = class(TDynArray_16)
++  TDynBooleanArray = class(specialize TFPGList<boolean>)
+   public
+     { Set appropriate item to given value.
+       These are useful methods to pass as callback in some situations
+       (e.g. TVRMLGLScene.RenderFrustumOctree passes
+       RenderFrustumOctree_Visible.SetTrue method as callback
+-      that should mark visible items.) }
++      that should mark visible items.)
++      @groupBegin }
+     procedure SetFalse(Index: Integer);
+     procedure SetTrue(Index: Integer);
+-
++    { @groupEnd }
+     function ToLongInt: TDynLongIntArray;
++    procedure AddList(L: TDynBooleanArray);
++    procedure AddArray(const A: array of boolean);
+   end;
+ 
+-  TDynLongIntArray = class(TDynArray_8)
++  TArray_LongInt = array [0..MaxInt div SizeOf(LongInt)-1] of LongInt;
++  PArray_LongInt = ^TArray_LongInt;
++
++  TDynLongIntArray = class(specialize TFPGList<LongInt>)
+   public
+     function Max: LongInt;
+     function Sum: LongInt;
+     procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
++    procedure AddList(L: TDynLongIntArray);
++    procedure AddArray(const A: array of LongInt);
+   end;
+ 
+-  TDynIntegerArray = class(TDynArray_2)
++  TDynIntegerArray = class(specialize TFPGList<Integer>)
+   public
+     function Sum: Integer;
++    procedure AddList(L: TDynIntegerArray);
++    procedure AddArray(const A: array of Integer);
+   end;
+ 
++  TDynStringArray = class(specialize TFPGList<string>)
++  public
++    procedure AddList(L: TDynStringArray);
++    procedure AddArray(const A: array of string);
++  end;
++
+ {$endif}
+ 
+ {$ifdef read_implementation}
+@@ -436,18 +433,28 @@
+   end;
+ end;
+ 
+-{ include all implementations ---------------------------------------- }
++{ TDynLongWordArray ------------------------------------------------------------ }
+ 
+-{$I dynarray_1.inc}
+-{$I dynarray_2.inc}
+-{$I dynarray_3.inc}
+-{$I dynarray_8.inc}
+-{$I dynarray_11.inc}
+-{$I dynarray_12.inc}
+-{$I dynarray_14.inc}
+-{$I dynarray_15.inc}
+-{$I dynarray_16.inc}
++procedure TDynLongWordArray.AddList(L: TDynLongWordArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(LongWord) * L.Count);
++end;
+ 
++procedure TDynLongWordArray.AddArray(const A: array of LongWord);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(LongWord) * (High(A) + 1));
++end;
++
+ { TDynFloatArray ------------------------------------------------------------ }
+ 
+ procedure TDynFloatArray.AppendFloats(Floats: TDynSingleArray);
+@@ -458,6 +465,26 @@
+  for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
+ end;
+ 
++procedure TDynFloatArray.AddList(L: TDynFloatArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(Float) * L.Count);
++end;
++
++procedure TDynFloatArray.AddArray(const A: array of Float);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(Float) * (High(A) + 1));
++end;
++
+ { TDynSingleArray ------------------------------------------------------------ }
+ 
+ procedure TDynSingleArray.AppendFloats(Floats: TDynFloatArray);
+@@ -501,6 +528,26 @@
+     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+ end;
+ 
++procedure TDynSingleArray.AddList(L: TDynSingleArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(Single) * L.Count);
++end;
++
++procedure TDynSingleArray.AddArray(const A: array of Single);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(Single) * (High(A) + 1));
++end;
++
+ { TDynDoubleArray ------------------------------------------------------------ }
+ 
+ function TDynDoubleArray.ToSingle: TDynSingleArray;
+@@ -526,6 +573,26 @@
+   end;
+ end;
+ 
++procedure TDynDoubleArray.AddList(L: TDynDoubleArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(Double) * L.Count);
++end;
++
++procedure TDynDoubleArray.AddArray(const A: array of Double);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(Double) * (High(A) + 1));
++end;
++
+ { TDynCardinalArray ------------------------------------------------------------ }
+ 
+ function TDynCardinalArray.BigSum: Int64;
+@@ -544,6 +611,26 @@
+     Result += Items[I];
+ end;
+ 
++procedure TDynCardinalArray.AddList(L: TDynCardinalArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(Cardinal) * L.Count);
++end;
++
++procedure TDynCardinalArray.AddArray(const A: array of Cardinal);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(Cardinal) * (High(A) + 1));
++end;
++
+ { TDynBooleanArray ------------------------------------------------------------ }
+ 
+ procedure TDynBooleanArray.SetFalse(Index: Integer);
+@@ -560,11 +647,34 @@
+ var
+   I: Integer;
+ begin
+-  Result := TDynLongIntArray.Create(Count);
++  Result := TDynLongIntArray.Create;
++  Result.Count := Count;
+   for I := 0 to Count - 1 do
+     Result.Items[I] := Ord(Items[I]);
+ end;
+ 
++procedure TDynBooleanArray.AddList(L: TDynBooleanArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(boolean) * L.Count);
++end;
++
++procedure TDynBooleanArray.AddArray(const A: array of boolean);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(boolean) * (High(A) + 1));
++end;
++
++{ TDynLongIntArray ----------------------------------------------------------- }
++
+ function TDynLongIntArray.Max: LongInt;
+ var
+   I: Integer;
+@@ -593,12 +703,33 @@
+   MinTo1st(DelCount, Count - Index);
+ 
+   for I := Index to Count - 1 - DelCount do
+-    { Instead of Items[I] := Items[I + DelCount]; }
+-    System.Move(Items[I + DelCount], Items[I], SizeOf(Longint));
++    Items[I] := Items[I + DelCount];
+ 
+-  SetCountNoInitFini(Count - DelCount);
++  Count := Count - DelCount;
+ end;
+ 
++procedure TDynLongIntArray.AddList(L: TDynLongIntArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(LongInt) * L.Count);
++end;
++
++procedure TDynLongIntArray.AddArray(const A: array of LongInt);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(LongInt) * (High(A) + 1));
++end;
++
++{ TDynIntegerArray ----------------------------------------------------------- }
++
+ function TDynIntegerArray.Sum: Integer;
+ var
+   I: Integer;
+@@ -608,4 +739,46 @@
+     Result += Items[I];
+ end;
+ 
++procedure TDynIntegerArray.AddList(L: TDynIntegerArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(Integer) * L.Count);
++end;
++
++procedure TDynIntegerArray.AddArray(const A: array of Integer);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(Integer) * (High(A) + 1));
++end;
++
++{ TDynStringArray ------------------------------------------------------------ }
++
++procedure TDynStringArray.AddList(L: TDynStringArray);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + L.Count;
++  if L.Count <> 0 then
++    System.Move(L.List^[0], List^[OldCount], SizeOf(string) * L.Count);
++end;
++
++procedure TDynStringArray.AddArray(const A: array of string);
++var
++  OldCount: Integer;
++begin
++  OldCount := Count;
++  Count := Count + High(A) + 1;
++  if High(A) <> -1 then
++    System.Move(A[0], List^[OldCount], SizeOf(string) * (High(A) + 1));
++end;
++
+ {$endif}
+Index: kambi_vrml_game_engine/src/glwindow/gtk/glwindow_gtk.inc
+===================================================================
+--- kambi_vrml_game_engine/src/glwindow/gtk/glwindow_gtk.inc	(revision 9816)
++++ kambi_vrml_game_engine/src/glwindow/gtk/glwindow_gtk.inc	(working copy)
+@@ -1042,7 +1042,6 @@
+    constants is the same as GLX_ constants. }
+  VisualAttr := TDynLongIntArray.Create;
+  try
+-  VisualAttr.AllowedCapacityOverflow := 20;
+   if DoubleBuffer then
+     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
+   VisualAttr.AddArray([
+@@ -1086,7 +1085,7 @@
+ 
+   {$ifdef GLWINDOW_GTK_2}
+ 
+-  GLConfig := gdk_gl_config_new(VisualAttr.Pointers[0]);
++  GLConfig := gdk_gl_config_new(PInteger(VisualAttr.List));
+   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
+     to know whether such gl configuration was possible. }
+   if GLConfig = nil then
