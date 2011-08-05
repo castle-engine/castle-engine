@@ -38,7 +38,7 @@ program precompute_shadow_field;
 
 uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
   VRMLScene, ShadowFields, KambiTimeUtils, VectorMath,
-  CubeMap, Boxes3D, SphericalHarmonics, ParseParametersUnit;
+  CubeMap, Boxes3D, SphericalHarmonics, KambiParameters;
 
 var
   Scene: TVRMLScene;
@@ -85,7 +85,7 @@ var
   BoundingSphereRadius: Single;
   InputFileName, OutputFileName: string;
 begin
-  ParseParameters(Options, @OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
 

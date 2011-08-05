@@ -26,7 +26,7 @@
 program algets;
 
 uses KambiOpenAL, ALUtils, SysUtils, KambiUtils, VectorMath,
-  KambiStringUtils, EFX, ALSoundEngine, KambiTimeUtils;
+  KambiStringUtils, EFX, ALSoundEngine, KambiTimeUtils, KambiParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 

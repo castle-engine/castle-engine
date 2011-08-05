@@ -1,8 +1,8 @@
-{ Simple example how to parse command-line parameters using ParseParametersUnit.
+{ Simple example how to parse command-line parameters using KambiParameters.
   Call with --help to get help. }
 program demo_parseparameters;
 
-uses SysUtils, KambiUtils, ParseParametersUnit;
+uses SysUtils, KambiUtils, KambiParameters;
 
 var
   Number: Integer = 0;
@@ -19,7 +19,7 @@ begin
   case OptionNum of
     0: begin
         Writeln(
-          'demo_parsingparameters: Demo how to use the ParseParametersUnit.' +nl+
+          'demo_parsingparameters: Demo how to use the KambiParameters.' +nl+
           nl+
           'Available options are:' +nl+
           HelpOptionHelp +nl+
@@ -59,12 +59,12 @@ var
 begin
   { Do parsing parameters }
 
-  ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
 
   { Report state of Parameters[1] .. Parameters[Parameters.High] and Number after
     parsing parameters. }
 
-  Writeln(Format('After ParseParameters, %d non-options are left.',
+  Writeln(Format('After Parameters.Parse, %d non-options are left.',
     [Parameters.High]));
   for i := 1 to Parameters.High do
     Writeln('Parameters[', i, '] = ', Parameters[i]);

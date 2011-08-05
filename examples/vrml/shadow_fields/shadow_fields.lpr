@@ -42,7 +42,7 @@
 program shadow_fields;
 
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
-  GLWindow, VRMLGLScene, Cameras, KambiWarnings,
+  GLWindow, VRMLGLScene, Cameras, KambiWarnings, KambiParameters,
   ShadowFields, KambiUtils, CubeMap, VRMLNodes, KambiSceneManager,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
 

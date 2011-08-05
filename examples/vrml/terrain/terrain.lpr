@@ -53,7 +53,7 @@
 program terrain;
 
 uses SysUtils, Classes, Boxes3D,
-  KambiUtils, GLWindow, GL, GLExt, KambiGLUtils,
+  KambiUtils, GLWindow, GL, GLExt, KambiGLUtils, KambiParameters,
   Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
   KambiStringUtils, GLMenu, UIControls, Images, RenderElevations,
   GLShaders, GLImages, VRMLFields, VRMLNodes;

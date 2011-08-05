@@ -41,7 +41,7 @@ function VRMLNodesDetailOptionsHelp: string;
 
 implementation
 
-uses SysUtils, KambiUtils, ParseParametersUnit, VRMLNodes;
+uses SysUtils, KambiUtils, KambiParameters, VRMLNodes;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
@@ -75,7 +75,7 @@ const
     (Short: #0; Long: 'detail-rect-divisions'; Argument: oaRequired)
   );
 begin
- ParseParameters(Options, @OptionProc, nil, true);
+ Parameters.Parse(Options, @OptionProc, nil, true);
 end;
 
 function VRMLNodesDetailOptionsHelp: string;

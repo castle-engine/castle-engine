@@ -23,7 +23,7 @@
 program dds_decompose;
 
 uses SysUtils, KambiUtils, Images, DDS, KambiWarnings, KambiStringUtils,
-  ParseParametersUnit;
+  KambiParameters;
 
 var
   SaveDecomposed: boolean = true;
@@ -47,7 +47,7 @@ var
   I: Integer;
 begin
   OnWarning := @OnWarningWrite;
-  ParseParameters(Options, @OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
   DImg := TDDSImage.Create;
   try

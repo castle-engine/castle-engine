@@ -21,7 +21,7 @@
   on supplied images. }
 program image_identify;
 
-uses SysUtils, KambiUtils, Images;
+uses SysUtils, KambiUtils, Images, KambiParameters;
 
 var
   I: Integer;

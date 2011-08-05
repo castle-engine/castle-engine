@@ -28,7 +28,7 @@ program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Base3D,
+  KambiGLUtils, VRMLScene, VRMLGLScene, Base3D, KambiParameters,
   KambiFilesUtils, KambiStringUtils, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, KambiWarnings,
   GLVersionUnit, Math, KambiSceneManager, RenderingCameraUnit;

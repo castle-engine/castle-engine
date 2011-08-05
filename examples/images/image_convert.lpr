@@ -17,7 +17,7 @@
 
 program image_convert;
 
-uses SysUtils, KambiUtils, Images, ParseParametersUnit;
+uses SysUtils, KambiUtils, Images, KambiParameters;
 
 var
   { required params }
@@ -103,7 +103,7 @@ var
   Img: TImage;
 begin
   { parse free position params }
-  ParseParameters(Options, @OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
 
   { parse fixed position params }
   if Parameters.High = 4 then

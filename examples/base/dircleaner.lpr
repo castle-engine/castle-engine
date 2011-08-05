@@ -33,7 +33,7 @@
     DefaultDirsToCleanInit to know default masks for removed files.
 
 }
-uses SysUtils, KambiUtils, ParseParametersUnit, EnumerateFiles,
+uses SysUtils, KambiUtils, KambiParameters, EnumerateFiles,
   KambiFilesUtils, KambiStringUtils;
 
 { RemoveNonEmptyDir utility -------------------------------------------------- }
@@ -271,7 +271,7 @@ begin
     DefaultDirsToCleanInit;
 
     { parse params }
-    ParseParameters(Options, @OptionProc, nil);
+    Parameters.Parse(Options, @OptionProc, nil);
 
     if Parameters.High = 2 then
     begin

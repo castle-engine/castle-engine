@@ -23,7 +23,7 @@ program change_vrml_by_code_2;
 
 uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, KambiSceneManager,
-  KambiFilesUtils, Quaternions {$ifdef LOG} ,KambiLog {$endif};
+  KambiFilesUtils, Quaternions {$ifdef LOG} ,KambiLog {$endif}, KambiParameters;
 
 var
   Window: TGLUIWindow;

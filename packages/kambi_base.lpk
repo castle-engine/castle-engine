@@ -248,8 +248,8 @@
         <UnitName Value="KambiZStream"/>
       </Item49>
       <Item50>
-        <Filename Value="../src/base/parseparametersunit.pas"/>
-        <UnitName Value="ParseParametersUnit"/>
+        <Filename Value="../src/base/kambiparameters.pas"/>
+        <UnitName Value="KambiParameters"/>
       </Item50>
       <Item51>
         <Filename Value="../src/base/progressconsole.pas"/>

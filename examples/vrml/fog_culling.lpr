@@ -34,7 +34,7 @@ uses SysUtils, VectorMath, GL, GLU, GLWindow, KambiStringUtils,
   KambiClassUtils, KambiUtils, Classes, KambiWarnings,
   KambiGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
   ProgressUnit, ProgressConsole, KambiFilesUtils, Base3D,
-  KambiSceneManager;
+  KambiSceneManager, KambiParameters;
 
 var
   Window: TGLUIWindow;

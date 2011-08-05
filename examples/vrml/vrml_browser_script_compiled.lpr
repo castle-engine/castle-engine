@@ -25,7 +25,7 @@ program vrml_browser_script_compiled;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole, KambiWarnings,
-  VRMLScene, VRMLFields, VRMLTime, SysUtils;
+  VRMLScene, VRMLFields, VRMLTime, SysUtils, KambiParameters;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;

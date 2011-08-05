@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses ParseParametersUnit, KambiUtils, KambiStringUtils;
+uses KambiParameters, KambiUtils, KambiStringUtils;
 
 type
   TParsedOption = record
@@ -62,7 +62,7 @@ begin
 end;
 
 { Parse command-line parameters returning a list of parsed options.
-  Works exactly like previous ParseParameters procedure,
+  Works exactly like previous TParameters.Parse procedure,
   but instead of using a callback like OptionProc, this time
   it returns a list.
   @groupBegin }
@@ -73,7 +73,7 @@ function ParseParameters(
 begin
  result := TDynParsedOptionArray.Create;
  try
-  ParseParametersUnit.ParseParameters(Options, OptionsCount,
+  Parameters.Parse(Options, OptionsCount,
     {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
     ParseOnlyKnownLongOptions);
  except result.Free; raise end;

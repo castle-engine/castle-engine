@@ -19,7 +19,7 @@
 program efx_demo;
 
 uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, EFX, KambiTimeUtils,
-  ALSoundEngine, ALSoundAllocator;
+  ALSoundEngine, ALSoundAllocator, KambiParameters;
 
 type
   TDemoMode = (

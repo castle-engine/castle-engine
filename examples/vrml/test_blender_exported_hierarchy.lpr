@@ -23,7 +23,7 @@
   names some objects in Blender, and you want to detect this inside the game). }
 program test_blender_exported_hierarchy;
 
-uses SysUtils, KambiUtils, VRMLShape, VRMLScene;
+uses SysUtils, KambiUtils, VRMLShape, VRMLScene, KambiParameters;
 
 procedure Traverse(Shape: TVRMLShape);
 begin

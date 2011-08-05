@@ -28,8 +28,8 @@
   to play whole animation xxx.kanim. }
 program md3tovrmlsequence;
 
-uses SysUtils, KambiUtils, KambiFilesUtils,
-  VRMLNodes, X3DLoadInternalMD3, X3DLoad;
+uses SysUtils, KambiUtils, KambiFilesUtils, VRMLNodes, X3DLoadInternalMD3,
+  X3DLoad, KambiParameters;
 
 var
   Md3: TObject3DMD3;

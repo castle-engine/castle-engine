@@ -29,7 +29,7 @@ uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLWindow,
   KambiClassUtils, KambiUtils, SysUtils, Classes, RenderingCameraUnit,
   KambiGLUtils, VRMLGLScene, KeysMouse, KambiSceneManager,
   KambiFilesUtils, KambiWarnings, SphericalHarmonics, Math, Images, GLCubeMap,
-  KambiStringUtils;
+  KambiStringUtils, KambiParameters;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);

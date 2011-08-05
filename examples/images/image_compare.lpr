@@ -17,7 +17,7 @@
   bother showing visual differences between images. See ImageMagick's
   "compare" tool for such fun (http://www.imagemagick.org/script/compare.php).
 }
-uses SysUtils, KambiUtils, VectorMath, Images;
+uses SysUtils, KambiUtils, VectorMath, Images, KambiParameters;
 const
   Tolerance = 5;
 var

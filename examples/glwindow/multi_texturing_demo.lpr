@@ -28,7 +28,7 @@
 
 program multi_texturing_demo;
 
-uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
+uses GLWindow, GL, GLU, GLExt, KambiGLUtils, KambiParameters,
   Boxes3D, Frustum, SysUtils, KambiUtils, VectorMath,
   KambiSceneManager, GLImages, Base3D;
 

@@ -54,7 +54,7 @@ program simplest_vrml_browser;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, SysUtils, KambiWarnings;
+  VRMLScene, SysUtils, KambiWarnings, KambiParameters;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;

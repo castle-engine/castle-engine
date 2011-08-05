@@ -31,7 +31,7 @@
 program alplay;
 
 uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, SoundFile, KambiTimeUtils,
-  KambiWarnings, ALSoundEngine;
+  KambiWarnings, ALSoundEngine, KambiParameters;
 
 var
   Buffer, Source: TALuint;

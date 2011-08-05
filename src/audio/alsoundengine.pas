@@ -211,7 +211,7 @@ type
       const MaxDistance: Single): TALSound;
 
     { Parse parameters in @link(Parameters) and interprets and removes
-      recognized options. Internally it uses ParseParameters with
+      recognized options. Internally it uses Parameters.Parse with
       ParseOnlyKnownLongOptions = @true. Recognized options:
 
       @definitionList(
@@ -357,7 +357,7 @@ property SoundEngine: TALSoundEngine read GetSoundEngine write SetSoundEngine;
 implementation
 
 uses KambiUtils, KambiStringUtils, ALUtils, KambiLog,
-  SoundFile, VorbisFile, EFX, ParseParametersUnit, StrUtils;
+  SoundFile, VorbisFile, EFX, KambiParameters, StrUtils;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -1060,7 +1060,7 @@ const
     (Short: #0; Long: 'no-sound'; Argument: oaNone)
   );
 begin
-  ParseParametersUnit.ParseParameters(OpenALOptions, @OptionProc, Self, true);
+  Parameters.Parse(OpenALOptions, @OptionProc, Self, true);
 end;
 
 function TALSoundEngine.ParseParametersHelp: string;

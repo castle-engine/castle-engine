@@ -20,7 +20,7 @@
 }
 
 uses SysUtils, KambiUtils, KambiFilesUtils, KambiStringUtils, Images,
-  KambiClassUtils,
+  KambiClassUtils, KambiParameters,
   KambiScript, KambiScriptParser, KambiScriptVectors, KambiScriptImages,
   KambiWarnings;
 

@@ -143,7 +143,7 @@ begin
     P.Targets.AddUnit('kambixmlutils.pas');
     P.Targets.AddUnit('kambizlib.pas');
     P.Targets.AddUnit('kambizstream.pas');
-    P.Targets.AddUnit('parseparametersunit.pas');
+    P.Targets.AddUnit('kambiparameters.pas');
     P.Targets.AddUnit('progressconsole.pas');
     P.Targets.AddUnit('progressunit.pas');
     P.Targets.AddUnit('recentfiles.pas');

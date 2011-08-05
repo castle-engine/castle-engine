@@ -29,7 +29,7 @@ program simplest_vrml_browser_with_shadow_volumes;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
-  VRMLScene, KambiWarnings;
+  VRMLScene, KambiWarnings, KambiParameters;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;

@@ -20,7 +20,7 @@
 }
 program shading_langs_demo;
 
-uses GLWindow, KambiGLUtils,
+uses GLWindow, KambiGLUtils, KambiParameters,
   Base3D, Frustum, KambiSceneManager, Boxes3D, SysUtils, KambiUtils, VectorMath,
   KambiStringUtils, GLImages, GL, GLU, GLExt, GLShaders;
 

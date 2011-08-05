@@ -56,7 +56,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   KambiClassUtils, KambiFilesUtils, KambiStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
-  ParseParametersUnit, KambiLog, RaysWindow, UIControls, Classes, KambiWarnings,
+  KambiParameters, KambiLog, RaysWindow, UIControls, Classes, KambiWarnings,
   VRMLScene, VRMLGLScene, X3DLoad, ProgressUnit, VRMLGLBackground,
   VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, GLControls;
 
@@ -1283,7 +1283,7 @@ begin
 
   { parse params }
   Glw.ParseParameters(StandardParseOptions);
-  ParseParameters(Options, @OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtMost(1);
   if Parameters.High >= 1 then
     VrmlFileName := Parameters[1];

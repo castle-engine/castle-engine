@@ -59,7 +59,7 @@ program precompute_radiance_transfer;
 
 uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes,
   SphereSampling, ProgressUnit, ProgressConsole,
-  SphericalHarmonics, ParseParametersUnit, KambiTimeUtils, VRMLShape;
+  SphericalHarmonics, KambiParameters, KambiTimeUtils, VRMLShape;
 
 var
   Scene: TVRMLScene;
@@ -202,7 +202,7 @@ var
   RadianceTransfer: TDynVector3SingleArray;
   S: string;
 begin
-  ParseParameters(Options, @OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(2);
 
   Progress.UserInterface := ProgressConsoleInterface;

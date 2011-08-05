@@ -8,7 +8,7 @@
 
 program kambi_calc;
 
-uses KambiUtils, KambiScriptParser;
+uses KambiParameters, KambiScriptParser;
 
 begin
   Parameters.CheckHigh(1);

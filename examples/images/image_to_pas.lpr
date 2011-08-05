@@ -45,7 +45,7 @@
 program image_to_pas;
 
 uses SysUtils, Images, KambiUtils, KambiFilesUtils, ProgressUnit,
-  ProgressConsole, KambiTimeUtils, ParseParametersUnit;
+  ProgressConsole, KambiTimeUtils, KambiParameters;
 
 var
   ShowProgress: boolean = true;
@@ -100,7 +100,7 @@ var
   AlphaStrip: boolean = false;
 begin
   { parse params }
-  ParseParameters(Options, {$ifdef FPC_OBJFPC} @ {$endif} OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtLeast(2);
   UnitName := Parameters[1];
   Parameters.Delete(1);

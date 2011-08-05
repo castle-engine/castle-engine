@@ -67,7 +67,7 @@ program demo_animation;
 uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiClassUtils, KambiUtils, SysUtils, Classes, X3DLoad,
   KambiGLUtils, VRMLGLScene, VRMLGLAnimation,
-  KambiFilesUtils, ParseParametersUnit, GLProgress, ProgressUnit,
+  KambiFilesUtils, KambiParameters, GLProgress, ProgressUnit,
   KambiSceneManager;
 
 var
@@ -158,7 +158,7 @@ begin
   Window := TGLUIWindow.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
-  ParseParameters(Options, @OptionProc, nil);
+  Parameters.Parse(Options, @OptionProc, nil);
 
   try
     OnWarning := @OnWarningWrite;
