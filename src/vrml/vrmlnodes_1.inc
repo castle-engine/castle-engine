@@ -1114,7 +1114,7 @@ begin
       As long as model stays static (and for strict VRML 1.0, it should
       always remain static), this will not be actually often called. }
     CoordSubrange.Items.Count := 0;
-    CoordSubrange.Items.AddList(FullCoord.Items, StartIndex, NumPoints);
+    CoordSubrange.Items.AddListRange(FullCoord.Items, StartIndex, NumPoints);
     ACoord := CoordSubrange;
   end;
 end;

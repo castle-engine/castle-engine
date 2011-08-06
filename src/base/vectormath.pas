@@ -422,6 +422,11 @@ type
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TDynVector3SingleArray; Index1, Index2, ACount: Integer);
 
+    procedure AddList(L: TDynVector3SingleArray);
+    procedure AddListRange(L: TDynVector3SingleArray; Index, AddCount: Integer);
+    procedure AddArray(const A: array of TVector3Single);
+    procedure AssignArray(const A: array of TVector3Single);
+
     { Convert to TDynVector4SingleArray, with 4th vector component in
       new array set to constant W. }
     function ToVector4Single(const W: Single): TDynVector4SingleArray;
@@ -448,6 +453,11 @@ type
       @seealso TDynVector3SingleArray.AssignLerp }
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TDynVector2SingleArray; Index1, Index2, ACount: Integer);
+
+    procedure AddList(L: TDynVector2SingleArray);
+    procedure AddListRange(L: TDynVector2SingleArray; Index, AddCount: Integer);
+    procedure AddArray(const A: array of TVector2Single);
+    procedure AssignArray(const A: array of TVector2Single);
   end;
 
   TDynArrayItem_5 = TVector4Single;
@@ -456,7 +466,13 @@ type
   {$I dynarray_5.inc}
   TArray_Vector4Single = TInfiniteArray_5;
   PArray_Vector4Single = PInfiniteArray_5;
-  TDynVector4SingleArray = class(TDynArray_5);
+  TDynVector4SingleArray = class(TDynArray_5)
+  public
+    procedure AddList(L: TDynVector4SingleArray);
+    procedure AddListRange(L: TDynVector4SingleArray; Index, AddCount: Integer);
+    procedure AddArray(const A: array of TVector4Single);
+    procedure AssignArray(const A: array of TVector4Single);
+  end;
 
   TDynArrayItem_3 = TVector3Cardinal;
   PDynArrayItem_3 = PVector3Cardinal;
@@ -475,6 +491,8 @@ type
   TDynVector2DoubleArray = class(TDynArray_6)
   public
     function ToVector2Single: TDynVector2SingleArray;
+    procedure AddList(L: TDynVector2DoubleArray);
+    procedure AddArray(const A: array of TVector2Double);
   end;
 
   TDynArrayItem_7 = TVector3Double;
@@ -486,6 +504,8 @@ type
   TDynVector3DoubleArray = class(TDynArray_7)
   public
     function ToVector3Single: TDynVector3SingleArray;
+    procedure AddList(L: TDynVector3DoubleArray);
+    procedure AddArray(const A: array of TVector3Double);
   end;
 
   TDynArrayItem_8 = TVector4Double;
@@ -497,6 +517,8 @@ type
   TDynVector4DoubleArray = class(TDynArray_8)
   public
     function ToVector4Single: TDynVector4SingleArray;
+    procedure AddList(L: TDynVector4DoubleArray);
+    procedure AddArray(const A: array of TVector4Double);
   end;
 
   TDynArrayItem_9 = TMatrix3Single;
@@ -505,7 +527,11 @@ type
   {$I dynarray_9.inc}
   TArray_Matrix3Single = TInfiniteArray_9;
   PArray_Matrix3Single = PInfiniteArray_9;
-  TDynMatrix3SingleArray = TDynArray_9;
+  TDynMatrix3SingleArray = class(TDynArray_9)
+  public
+    procedure AddList(L: TDynMatrix3SingleArray);
+    procedure AddArray(const A: array of TMatrix3Single);
+  end;
 
   TDynArrayItem_10 = TMatrix3Double;
   PDynArrayItem_10 = PMatrix3Double;
@@ -516,6 +542,8 @@ type
   TDynMatrix3DoubleArray = class(TDynArray_10)
   public
     function ToMatrix3Single: TDynMatrix3SingleArray;
+    procedure AddList(L: TDynMatrix3DoubleArray);
+    procedure AddArray(const A: array of TMatrix3Double);
   end;
 
   TDynArrayItem_11 = TMatrix4Single;
@@ -524,7 +552,11 @@ type
   {$I dynarray_11.inc}
   TArray_Matrix4Single = TInfiniteArray_11;
   PArray_Matrix4Single = PInfiniteArray_11;
-  TDynMatrix4SingleArray = TDynArray_11;
+  TDynMatrix4SingleArray = class(TDynArray_11)
+  public
+    procedure AddList(L: TDynMatrix4SingleArray);
+    procedure AddArray(const A: array of TMatrix4Single);
+  end;
 
   TDynArrayItem_12 = TMatrix4Double;
   PDynArrayItem_12 = PMatrix4Double;
@@ -535,6 +567,8 @@ type
   TDynMatrix4DoubleArray = class(TDynArray_12)
   public
     function ToMatrix4Single: TDynMatrix4SingleArray;
+    procedure AddList(L: TDynMatrix4DoubleArray);
+    procedure AddArray(const A: array of TMatrix4Double);
   end;
 
   { Exceptions }
@@ -2572,6 +2606,42 @@ begin
   end;
 end;
 
+procedure TDynVector3SingleArray.AddList(L: TDynVector3SingleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TVector3Single) * L.Count);
+end;
+
+procedure TDynVector3SingleArray.AddListRange(L: TDynVector3SingleArray; Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if L.Count <> 0 then
+    System.Move(L.List^[Index], List^[OldCount], SizeOf(TVector3Single) * AddCount);
+end;
+
+procedure TDynVector3SingleArray.AddArray(const A: array of TVector3Single);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TVector3Single) * (High(A) + 1));
+end;
+
+procedure TDynVector3SingleArray.AssignArray(const A: array of TVector3Single);
+begin
+  Clear;
+  AddArray(A);
+end;
+
 { TDynVector2SingleArray ----------------------------------------------------- }
 
 function TDynVector2SingleArray.MinMax(out Min, Max: TVector2Single): boolean;
@@ -2604,7 +2674,81 @@ begin
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
-{ TDyn*Double ---------------------------------------------------------------- }
+procedure TDynVector2SingleArray.AddList(L: TDynVector2SingleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TVector2Single) * L.Count);
+end;
+
+procedure TDynVector2SingleArray.AddListRange(L: TDynVector2SingleArray; Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if L.Count <> 0 then
+    System.Move(L.List^[Index], List^[OldCount], SizeOf(TVector2Single) * AddCount);
+end;
+
+procedure TDynVector2SingleArray.AddArray(const A: array of TVector2Single);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TVector2Single) * (High(A) + 1));
+end;
+
+procedure TDynVector2SingleArray.AssignArray(const A: array of TVector2Single);
+begin
+  Clear;
+  AddArray(A);
+end;
+
+{ TDynVector4SingleArray ----------------------------------------------------- }
+
+procedure TDynVector4SingleArray.AddList(L: TDynVector4SingleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TVector4Single) * L.Count);
+end;
+
+procedure TDynVector4SingleArray.AddListRange(L: TDynVector4SingleArray; Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if L.Count <> 0 then
+    System.Move(L.List^[Index], List^[OldCount], SizeOf(TVector4Single) * AddCount);
+end;
+
+procedure TDynVector4SingleArray.AddArray(const A: array of TVector4Single);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TVector4Single) * (High(A) + 1));
+end;
+
+procedure TDynVector4SingleArray.AssignArray(const A: array of TVector4Single);
+begin
+  Clear;
+  AddArray(A);
+end;
+
+{ TDynVector2DoubleArray ----------------------------------------------------- }
 
 function TDynVector2DoubleArray.ToVector2Single: TDynVector2SingleArray;
 var
@@ -2624,6 +2768,28 @@ begin
   end;
 end;
 
+procedure TDynVector2DoubleArray.AddList(L: TDynVector2DoubleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TVector2Double) * L.Count);
+end;
+
+procedure TDynVector2DoubleArray.AddArray(const A: array of TVector2Double);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TVector2Double) * (High(A) + 1));
+end;
+
+{ TDynVector3DoubleArray ----------------------------------------------------- }
+
 function TDynVector3DoubleArray.ToVector3Single: TDynVector3SingleArray;
 var
   I: Integer;
@@ -2641,6 +2807,28 @@ begin
     Inc(Dest);
   end;
 end;
+
+procedure TDynVector3DoubleArray.AddList(L: TDynVector3DoubleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TVector3Double) * L.Count);
+end;
+
+procedure TDynVector3DoubleArray.AddArray(const A: array of TVector3Double);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TVector3Double) * (High(A) + 1));
+end;
+
+{ TDynVector4DoubleArray ----------------------------------------------------- }
 
 function TDynVector4DoubleArray.ToVector4Single: TDynVector4SingleArray;
 var
@@ -2660,6 +2848,72 @@ begin
   end;
 end;
 
+procedure TDynVector4DoubleArray.AddList(L: TDynVector4DoubleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TVector4Double) * L.Count);
+end;
+
+procedure TDynVector4DoubleArray.AddArray(const A: array of TVector4Double);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TVector4Double) * (High(A) + 1));
+end;
+
+{ TDynMatrix3SingleArray ----------------------------------------------------- }
+
+procedure TDynMatrix3SingleArray.AddList(L: TDynMatrix3SingleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TMatrix3Single) * L.Count);
+end;
+
+procedure TDynMatrix3SingleArray.AddArray(const A: array of TMatrix3Single);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TMatrix3Single) * (High(A) + 1));
+end;
+
+{ TDynMatrix4SingleArray ----------------------------------------------------- }
+
+procedure TDynMatrix4SingleArray.AddList(L: TDynMatrix4SingleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TMatrix4Single) * L.Count);
+end;
+
+procedure TDynMatrix4SingleArray.AddArray(const A: array of TMatrix4Single);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TMatrix4Single) * (High(A) + 1));
+end;
+
+{ TDynMatrix3DoubleArray ----------------------------------------------------- }
+
 function TDynMatrix3DoubleArray.ToMatrix3Single: TDynMatrix3SingleArray;
 var
   I: Integer;
@@ -2678,6 +2932,28 @@ begin
   end;
 end;
 
+procedure TDynMatrix3DoubleArray.AddList(L: TDynMatrix3DoubleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TMatrix3Double) * L.Count);
+end;
+
+procedure TDynMatrix3DoubleArray.AddArray(const A: array of TMatrix3Double);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TMatrix3Double) * (High(A) + 1));
+end;
+
+{ TDynMatrix4DoubleArray ----------------------------------------------------- }
+
 function TDynMatrix4DoubleArray.ToMatrix4Single: TDynMatrix4SingleArray;
 var
   I: Integer;
@@ -2694,6 +2970,26 @@ begin
     Inc(Source);
     Inc(Dest);
   end;
+end;
+
+procedure TDynMatrix4DoubleArray.AddList(L: TDynMatrix4DoubleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(TMatrix4Double) * L.Count);
+end;
+
+procedure TDynMatrix4DoubleArray.AddArray(const A: array of TMatrix4Double);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(TMatrix4Double) * (High(A) + 1));
 end;
 
 { FloatsEqual ------------------------------------------------------------- }

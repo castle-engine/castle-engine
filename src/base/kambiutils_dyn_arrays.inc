@@ -76,7 +76,7 @@ type
     procedure SetAllowedCapacityOverflow(Value: Cardinal);
   protected
     { @noAutoLinkHere }
-    A: pointer;
+    FList: Pointer;
 
     { In this class, SetCount is just equivalent to SetCountNoInitFini.
 
@@ -190,11 +190,11 @@ type
 
   {$define DYNARRAY_14_USE_EQUALITY_OP}
   {$define DYNARRAY_14_USE_PLUSMINUS_OP}
-  TDynArrayItem_14 = LongWord; PDynArrayItem_14 = PLongWord; {$I dynarray_14.inc} TDynLongWordArray = TDynArray_14; TArray_LongWord = TInfiniteArray_14; PArray_LongWord = PInfiniteArray_14;
+  TDynArrayItem_14 = LongWord; PDynArrayItem_14 = PLongWord; {$I dynarray_14.inc} {TDynLongWordArray = TDynArray_14;} TArray_LongWord = TInfiniteArray_14; PArray_LongWord = PInfiniteArray_14;
 
   {$define DYNARRAY_15_USE_EQUALITY_OP}
   {$define DYNARRAY_15_IS_INIT_FINI_TYPE}
-  TDynArrayItem_15 = String  ; PDynArrayItem_15 = PString  ; {$I dynarray_15.inc} TDynStringArray   = TDynArray_15; TArray_String   = TInfiniteArray_15; PArray_String   = PInfiniteArray_15;
+  TDynArrayItem_15 = String  ; PDynArrayItem_15 = PString  ; {$I dynarray_15.inc} {TDynStringArray   = TDynArray_15;} TArray_String   = TInfiniteArray_15; PArray_String   = PInfiniteArray_15;
 
   {$define DYNARRAY_16_USE_EQUALITY_OP}
   TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below} { }       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
@@ -202,8 +202,16 @@ type
   TDynSingleArray = class;
   TDynDoubleArray = class;
 
+  TDynLongWordArray = class(TDynArray_14)
+  public
+    procedure AddList(L: TDynLongWordArray);
+    procedure AddArray(const A: array of LongWord);
+  end;
+
   TDynFloatArray = class(TDynArray_3)
     procedure AppendFloats(Floats: TDynSingleArray);
+    procedure AddList(L: TDynFloatArray);
+    procedure AddArray(const A: array of Float);
   end;
 
   TDynSingleArray = class(TDynArray_12)
@@ -222,17 +230,24 @@ type
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TDynSingleArray; Index1, Index2, ACount: Integer);
+    procedure AddList(L: TDynSingleArray);
+    procedure AddListRange(L: TDynSingleArray; Index, AddCount: Integer);
+    procedure AddArray(const A: array of Single);
   end;
 
   TDynDoubleArray = class(TDynArray_11)
     function ToSingle: TDynSingleArray;
     { Assign value from TDynSingleArray, converting to double-precision. }
     procedure Assign(Source: TDynSingleArray); overload;
+    procedure AddList(L: TDynDoubleArray);
+    procedure AddArray(const A: array of Double);
   end;
 
   TDynCardinalArray = class(TDynArray_1)
     function BigSum: Int64;
     function Sum: Cardinal;
+    procedure AddList(L: TDynCardinalArray);
+    procedure AddArray(const A: array of Cardinal);
   end;
 
   TDynBooleanArray = class(TDynArray_16)
@@ -241,11 +256,14 @@ type
       These are useful methods to pass as callback in some situations
       (e.g. TVRMLGLScene.RenderFrustumOctree passes
       RenderFrustumOctree_Visible.SetTrue method as callback
-      that should mark visible items.) }
+      that should mark visible items.)
+      @groupBegin }
     procedure SetFalse(Index: Integer);
     procedure SetTrue(Index: Integer);
-
+    { @groupEnd }
     function ToLongInt: TDynLongIntArray;
+    procedure AddList(L: TDynBooleanArray);
+    procedure AddArray(const A: array of boolean);
   end;
 
   TDynLongIntArray = class(TDynArray_8)
@@ -253,11 +271,22 @@ type
     function Max: LongInt;
     function Sum: LongInt;
     procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
+    procedure AddList(L: TDynLongIntArray);
+    procedure AddArray(const A: array of LongInt);
   end;
 
   TDynIntegerArray = class(TDynArray_2)
   public
     function Sum: Integer;
+    procedure AddList(L: TDynIntegerArray);
+    procedure AddArray(const A: array of Integer);
+  end;
+
+  TDynStringArray = class(TDynArray_15)
+  public
+    procedure AddList(L: TDynStringArray);
+    procedure AddArray(const A: array of string);
+    procedure AssignArray(const A: array of string);
   end;
 
 {$endif}
@@ -281,7 +310,7 @@ begin
    Dopiero FreeMemNiling gwarantuje ze pamiec zaalokowana dla A zostanie
    rzeczywiscie zwolniona. }
  SetCount(0);
- FreeMemNiling(A);
+ FreeMemNiling(FList);
  FreeMemNiling(ExchangeBuf);
  inherited;
 end;
@@ -292,7 +321,7 @@ begin
  if Capacity - Cardinal(Count) > Value then
  begin
   NewCapacity := Cardinal(Count) + Value;
-  ReallocMem(A, NewCapacity * ItemSize);
+  ReallocMem(FList, NewCapacity * ItemSize);
   FCapacity := NewCapacity;
  end;
  FAllowedCapacityOverflow := Value;
@@ -322,7 +351,7 @@ procedure TDynArrayBase.SetCountNoInitFini(NewCount: Integer);
 
   procedure ReallocCapacity(NewCapacity: Cardinal);
   begin
-   ReallocMem(A, NewCapacity * ItemSize);
+   ReallocMem(FList, NewCapacity * ItemSize);
    FCapacity := NewCapacity;
   end;
 
@@ -360,8 +389,8 @@ procedure TDynArrayBase.Exchange(Index1, Index2: Cardinal);
 var p1, p2: PByte;
 begin
   {$I norqcheckbegin.inc}
-  PtrUInt(p1) := PtrUInt(A) + Index1 * ItemSize;
-  PtrUInt(p2) := PtrUInt(A) + Index2 * ItemSize;
+  PtrUInt(p1) := PtrUInt(FList) + Index1 * ItemSize;
+  PtrUInt(p2) := PtrUInt(FList) + Index2 * ItemSize;
   {$I norqcheckend.inc}
   Move(p1^, ExchangeBuf^, ItemSize);
   Move(p2^, p1^, ItemSize);
@@ -370,7 +399,7 @@ end;
 
 procedure TDynArrayBase.FillChar(FillValue: byte);
 begin
- System.FillChar(A^, ItemSize * Cardinal(Count), FillValue);
+ System.FillChar(FList^, ItemSize * Cardinal(Count), FillValue);
 end;
 
 procedure TDynArrayBase.Reverse;
@@ -399,7 +428,7 @@ begin
     raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
       [Count, CopyCount]);
 
-  Source := A;
+  Source := FList;
   for I := 0 to CopyCount - 1 do
   begin
     Move(Source^, Target^, ItemSize);
@@ -430,13 +459,11 @@ begin
       This would cause noticeable slowdown when using AssignToInterleavedIndexed
       for VRMLArraysGenerator, that in turn affects dynamic scenes
       and especially dynamic shading like radiance_transfer. }
-    Move(Pointer(PtrUInt(A) + PtrUInt(Index) * ItemSize)^,
+    Move(Pointer(PtrUInt(FList) + PtrUInt(Index) * ItemSize)^,
       Target^, ItemSize);
     PtrUInt(Target) += Stride;
   end;
 end;
-
-{ include all implementations ---------------------------------------- }
 
 {$I dynarray_1.inc}
 {$I dynarray_2.inc}
@@ -448,6 +475,28 @@ end;
 {$I dynarray_15.inc}
 {$I dynarray_16.inc}
 
+{ TDynLongWordArray ------------------------------------------------------------ }
+
+procedure TDynLongWordArray.AddList(L: TDynLongWordArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(LongWord) * L.Count);
+end;
+
+procedure TDynLongWordArray.AddArray(const A: array of LongWord);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(LongWord) * (High(A) + 1));
+end;
+
 { TDynFloatArray ------------------------------------------------------------ }
 
 procedure TDynFloatArray.AppendFloats(Floats: TDynSingleArray);
@@ -456,6 +505,26 @@ begin
  OldCount := Count;
  Count := Count + Floats.Count;
  for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
+end;
+
+procedure TDynFloatArray.AddList(L: TDynFloatArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Float) * L.Count);
+end;
+
+procedure TDynFloatArray.AddArray(const A: array of Float);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Float) * (High(A) + 1));
 end;
 
 { TDynSingleArray ------------------------------------------------------------ }
@@ -501,6 +570,36 @@ begin
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
+procedure TDynSingleArray.AddList(L: TDynSingleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Single) * L.Count);
+end;
+
+procedure TDynSingleArray.AddListRange(L: TDynSingleArray; Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if L.Count <> 0 then
+    System.Move(L.List^[Index], List^[OldCount], SizeOf(Single) * AddCount);
+end;
+
+procedure TDynSingleArray.AddArray(const A: array of Single);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Single) * (High(A) + 1));
+end;
+
 { TDynDoubleArray ------------------------------------------------------------ }
 
 function TDynDoubleArray.ToSingle: TDynSingleArray;
@@ -526,6 +625,26 @@ begin
   end;
 end;
 
+procedure TDynDoubleArray.AddList(L: TDynDoubleArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Double) * L.Count);
+end;
+
+procedure TDynDoubleArray.AddArray(const A: array of Double);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Double) * (High(A) + 1));
+end;
+
 { TDynCardinalArray ------------------------------------------------------------ }
 
 function TDynCardinalArray.BigSum: Int64;
@@ -542,6 +661,26 @@ begin
   Result := 0;
   for I := 0 to Count - 1 do
     Result += Items[I];
+end;
+
+procedure TDynCardinalArray.AddList(L: TDynCardinalArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Cardinal) * L.Count);
+end;
+
+procedure TDynCardinalArray.AddArray(const A: array of Cardinal);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Cardinal) * (High(A) + 1));
 end;
 
 { TDynBooleanArray ------------------------------------------------------------ }
@@ -565,6 +704,28 @@ begin
   for I := 0 to Count - 1 do
     Result.Items[I] := Ord(Items[I]);
 end;
+
+procedure TDynBooleanArray.AddList(L: TDynBooleanArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(boolean) * L.Count);
+end;
+
+procedure TDynBooleanArray.AddArray(const A: array of boolean);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(boolean) * (High(A) + 1));
+end;
+
+{ TDynLongIntArray ----------------------------------------------------------- }
 
 function TDynLongIntArray.Max: LongInt;
 var
@@ -594,11 +755,32 @@ begin
   MinTo1st(DelCount, Count - Index);
 
   for I := Index to Count - 1 - DelCount do
-    { Instead of Items[I] := Items[I + DelCount]; }
-    System.Move(Items[I + DelCount], Items[I], SizeOf(Longint));
+    Items[I] := Items[I + DelCount];
 
-  SetCountNoInitFini(Count - DelCount);
+  Count := Count - DelCount;
 end;
+
+procedure TDynLongIntArray.AddList(L: TDynLongIntArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(LongInt) * L.Count);
+end;
+
+procedure TDynLongIntArray.AddArray(const A: array of LongInt);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(LongInt) * (High(A) + 1));
+end;
+
+{ TDynIntegerArray ----------------------------------------------------------- }
 
 function TDynIntegerArray.Sum: Integer;
 var
@@ -607,6 +789,54 @@ begin
   Result := 0;
   for I := 0 to Count - 1 do
     Result += Items[I];
+end;
+
+procedure TDynIntegerArray.AddList(L: TDynIntegerArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(Integer) * L.Count);
+end;
+
+procedure TDynIntegerArray.AddArray(const A: array of Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(Integer) * (High(A) + 1));
+end;
+
+{ TDynStringArray ------------------------------------------------------------ }
+
+procedure TDynStringArray.AddList(L: TDynStringArray);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + L.Count;
+  if L.Count <> 0 then
+    System.Move(L.List^[0], List^[OldCount], SizeOf(string) * L.Count);
+end;
+
+procedure TDynStringArray.AddArray(const A: array of string);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], List^[OldCount], SizeOf(string) * (High(A) + 1));
+end;
+
+procedure TDynStringArray.AssignArray(const A: array of string);
+begin
+  Clear;
+  AddArray(A);
 end;
 
 {$endif}

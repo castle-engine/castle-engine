@@ -163,12 +163,6 @@
     { Increase the Count by 1, and return the pointer to the new item at the end. }
     function Add: PDynArrayItem_8; overload;
 
-    procedure AddArray(const NewItems: array of TDynArrayItem_8); overload;
-    procedure AddArray(const NewItems: array of TDynArrayItem_8; NewItemsAddCount: integer); overload;
-
-    procedure AddList(Arr: TDynArray_8); overload;
-    procedure AddList(Arr: TDynArray_8; Index, ACount: Integer); overload;
-
     { Copy the contents of Source to this object.
 
       This is equivalent to doing @code(Count := 0) and
@@ -184,9 +178,6 @@
       (well, with proper Initialize/Finalize in case
       DYNARRAY_8_IS_INIT_FINI_TYPE). }
     procedure Assign(Source: TDynArray_8);
-
-    { Clear (like @code(Count := 0)) and then @code(AddArray(NewItems)). }
-    procedure AssignArray(const NewItems: array of TDynArrayItem_8);
 
     {$ifdef DYNARRAY_8_USE_EQUALITY}
     function EqualItems(const Item1, Item2: TDynArrayItem_8): boolean;
@@ -256,12 +247,12 @@ function TDynArray_8.GetItems:
   {$ifdef FPC_OBJFPC} PDynArrayItem_8 {$else} PInfiniteArray_8 {$endif};
 begin
   Result :=
-    {$ifdef FPC_OBJFPC} PDynArrayItem_8 {$else} PInfiniteArray_8 {$endif} (A);
+    {$ifdef FPC_OBJFPC} PDynArrayItem_8 {$else} PInfiniteArray_8 {$endif} (FList);
 end;
 
 function TDynArray_8.GetList: PInfiniteArray_8;
 begin
-  Result := PInfiniteArray_8(A);
+  Result := PInfiniteArray_8(FList);
 end;
 
 function TDynArray_8.GetPointers(ItemNum: integer): PDynArrayItem_8;
@@ -321,45 +312,6 @@ begin
   Result := @(Items[Count-1]);
 end;
 
-procedure TDynArray_8.AddArray(const NewItems: array of TDynArrayItem_8;
-  NewItemsAddCount: integer);
-var
-  OldCount: Integer;
-{$ifdef DYNARRAY_8_IS_INIT_FINI_TYPE}
-  I: Integer;
-{$endif}
-begin
-  OldCount := Count;
-  SetCount(Count + NewItemsAddCount);
-{$ifdef DYNARRAY_8_IS_INIT_FINI_TYPE}
-  { We're copying one-by-one, so that Initialize/Finalize
-   of items is properly called. }
-  for i := 0 to NewItemsAddCount - 1 do
-    Items[OldCount + i] := NewItems[i];
-{$else}
-  { In this case we can copy memory fast, using Move }
-  System.Move(
-    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_8_IS_FUNCTION} @ {$endif} {$endif} NewItems[0],
-    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_8_IS_FUNCTION} @ {$endif} {$endif} Items[OldCount],
-    NewItemsAddCount * SizeOf(TDynArrayItem_8));
-{$endif}
-end;
-
-procedure TDynArray_8.AddArray(const NewItems: array of TDynArrayItem_8);
-begin
-  AddArray(NewItems, High(NewItems)+1);
-end;
-
-procedure TDynArray_8.AddList(Arr: TDynArray_8);
-begin
-  AddArray(Arr.List^, Arr.Count);
-end;
-
-procedure TDynArray_8.AddList(Arr: TDynArray_8; Index, ACount: Integer);
-begin
-  AddArray(PInfiniteArray_8(@Arr.Items[Index])^, ACount);
-end;
-
 procedure TDynArray_8.Assign(Source: TDynArray_8);
 {$ifdef DYNARRAY_8_IS_INIT_FINI_TYPE}
 var
@@ -378,12 +330,6 @@ begin
     {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_8_IS_FUNCTION} @ {$endif} {$endif} Items[0],
     Count * SizeOf(TDynArrayItem_8));
   {$endif}
-end;
-
-procedure TDynArray_8.AssignArray(const NewItems: array of TDynArrayItem_8);
-begin
-  Count := 0;
-  AddArray(NewItems);
 end;
 
 {$ifdef DYNARRAY_8_USE_EQUALITY}

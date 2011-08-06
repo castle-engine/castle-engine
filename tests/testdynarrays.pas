@@ -208,7 +208,7 @@ begin
     Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[2]));
     Assert(VectorsPerfectlyEqual(V1.Items[2], V2.Items[3]));
 
-    V2.AddList(V1, 1, 1);
+    V2.AddListRange(V1, 1, 1);
     Assert(V2.Count = 6);
     Assert(VectorsPerfectlyEqual(V1.Items[1], V2.Items[5]));
   finally

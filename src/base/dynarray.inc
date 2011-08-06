@@ -163,12 +163,6 @@
     { Increase the Count by 1, and return the pointer to the new item at the end. }
     function Add: PDynArrayItem; overload;
 
-    procedure AddArray(const NewItems: array of TDynArrayItem); overload;
-    procedure AddArray(const NewItems: array of TDynArrayItem; NewItemsAddCount: integer); overload;
-
-    procedure AddList(Arr: TDynArray); overload;
-    procedure AddList(Arr: TDynArray; Index, ACount: Integer); overload;
-
     { Copy the contents of Source to this object.
 
       This is equivalent to doing @code(Count := 0) and
@@ -184,9 +178,6 @@
       (well, with proper Initialize/Finalize in case
       DYNARRAY_IS_INIT_FINI_TYPE). }
     procedure Assign(Source: TDynArray);
-
-    { Clear (like @code(Count := 0)) and then @code(AddArray(NewItems)). }
-    procedure AssignArray(const NewItems: array of TDynArrayItem);
 
     {$ifdef DYNARRAY_USE_EQUALITY}
     function EqualItems(const Item1, Item2: TDynArrayItem): boolean;
@@ -256,12 +247,12 @@ function TDynArray.GetItems:
   {$ifdef FPC_OBJFPC} PDynArrayItem {$else} PInfiniteArray {$endif};
 begin
   Result :=
-    {$ifdef FPC_OBJFPC} PDynArrayItem {$else} PInfiniteArray {$endif} (A);
+    {$ifdef FPC_OBJFPC} PDynArrayItem {$else} PInfiniteArray {$endif} (FList);
 end;
 
 function TDynArray.GetList: PInfiniteArray;
 begin
-  Result := PInfiniteArray(A);
+  Result := PInfiniteArray(FList);
 end;
 
 function TDynArray.GetPointers(ItemNum: integer): PDynArrayItem;
@@ -321,45 +312,6 @@ begin
   Result := @(Items[Count-1]);
 end;
 
-procedure TDynArray.AddArray(const NewItems: array of TDynArrayItem;
-  NewItemsAddCount: integer);
-var
-  OldCount: Integer;
-{$ifdef DYNARRAY_IS_INIT_FINI_TYPE}
-  I: Integer;
-{$endif}
-begin
-  OldCount := Count;
-  SetCount(Count + NewItemsAddCount);
-{$ifdef DYNARRAY_IS_INIT_FINI_TYPE}
-  { We're copying one-by-one, so that Initialize/Finalize
-   of items is properly called. }
-  for i := 0 to NewItemsAddCount - 1 do
-    Items[OldCount + i] := NewItems[i];
-{$else}
-  { In this case we can copy memory fast, using Move }
-  System.Move(
-    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_IS_FUNCTION} @ {$endif} {$endif} NewItems[0],
-    {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_IS_FUNCTION} @ {$endif} {$endif} Items[OldCount],
-    NewItemsAddCount * SizeOf(TDynArrayItem));
-{$endif}
-end;
-
-procedure TDynArray.AddArray(const NewItems: array of TDynArrayItem);
-begin
-  AddArray(NewItems, High(NewItems)+1);
-end;
-
-procedure TDynArray.AddList(Arr: TDynArray);
-begin
-  AddArray(Arr.List^, Arr.Count);
-end;
-
-procedure TDynArray.AddList(Arr: TDynArray; Index, ACount: Integer);
-begin
-  AddArray(PInfiniteArray(@Arr.Items[Index])^, ACount);
-end;
-
 procedure TDynArray.Assign(Source: TDynArray);
 {$ifdef DYNARRAY_IS_INIT_FINI_TYPE}
 var
@@ -378,12 +330,6 @@ begin
     {$ifndef FPC_OBJFPC} {$ifdef DYNARRAY_IS_FUNCTION} @ {$endif} {$endif} Items[0],
     Count * SizeOf(TDynArrayItem));
   {$endif}
-end;
-
-procedure TDynArray.AssignArray(const NewItems: array of TDynArrayItem);
-begin
-  Count := 0;
-  AddArray(NewItems);
 end;
 
 {$ifdef DYNARRAY_USE_EQUALITY}

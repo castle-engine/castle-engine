@@ -408,8 +408,8 @@ begin
     end;
 
     if FdManifold.Value then
-      IFS.FdCoordIndex.Items.AssignArray(TeapotManifoldCoordIndex) else
-      IFS.FdCoordIndex.Items.AssignArray(TeapotCoordIndex);
+      IFS.FdCoordIndex.Items.AddArray(TeapotManifoldCoordIndex) else
+      IFS.FdCoordIndex.Items.AddArray(TeapotCoordIndex);
 
     IFS.FdSolid.Value := FdSolid.Value;
 
