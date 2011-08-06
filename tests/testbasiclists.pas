@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestDynArrays;
+unit TestBasicLists;
 
 interface
 
@@ -21,12 +21,12 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestDynArrays = class(TTestCase)
+  TTestBasicLists = class(TTestCase)
     procedure TestSetCountItems;
-    procedure TestDynArrays;
-    procedure TestVectorMathDynArrays;
-    procedure TestDynArraysAssign;
-    procedure TestDynArraysAssignLerp;
+    procedure TestPrimitiveLists;
+    procedure TestVectorMathLists;
+    procedure TestListsAssign;
+    procedure TestListsAssignLerp;
     procedure TestZero;
   end;
 
@@ -43,7 +43,7 @@ begin
     Result :=  0;
 end;
 
-procedure TTestDynArrays.TestSetCountItems;
+procedure TTestBasicLists.TestSetCountItems;
 var
   iarr: TDynIntegerArray;
 begin
@@ -63,7 +63,7 @@ begin
   finally FreeAndNil(iarr) end;
 end;
 
-procedure TTestDynArrays.TestDynArrays;
+procedure TTestBasicLists.TestPrimitiveLists;
 
   function Equal(const S1: TDynStringArray; const S2: array of string): boolean;
   var
@@ -198,9 +198,9 @@ begin
 
   { simple DeleteDuplicates tests }
 
-  { TDynArray.DeleteDuplicates removed, since not used, and not avail in FGL.
+  { DeleteDuplicates removed, since not used, and not avail in FGL.
 
-procedure TDynArray.DeleteDuplicates;
+procedure DeleteDuplicates;
 var
   I, Index: integer;
 begin
@@ -233,7 +233,7 @@ end;
  end;
 end;
 
-procedure TTestDynArrays.TestVectorMathDynArrays;
+procedure TTestBasicLists.TestVectorMathLists;
 var
   vecs: TDynVector3SingleArray;
 begin
@@ -248,7 +248,7 @@ begin
   finally FreeAndNil(vecs) end;
 end;
 
-procedure TTestDynArrays.TestDynArraysAssign;
+procedure TTestBasicLists.TestListsAssign;
 var
   V1, V2: TDynVector3SingleArray;
 begin
@@ -276,7 +276,7 @@ begin
   end;
 end;
 
-procedure TTestDynArrays.TestDynArraysAssignLerp;
+procedure TTestBasicLists.TestListsAssignLerp;
 var
   V1, V2, V3: TDynVector3SingleArray;
 begin
@@ -307,7 +307,7 @@ begin
   end;
 end;
 
-procedure TTestDynArrays.TestZero;
+procedure TTestBasicLists.TestZero;
 var
   B: TDynBooleanArray;
   O: TDynIntegerArray;
@@ -337,5 +337,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestDynArrays);
+ RegisterTest(TTestBasicLists);
 end.

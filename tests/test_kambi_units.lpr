@@ -18,7 +18,7 @@ uses
 
   { Test units (their order determines default tests order) }
   TestKambiUtils,
-  TestDynArrays,
+  TestBasicLists,
   TestKambiClassUtils,
   TestVectorMath,
   TestImages,
