@@ -1011,6 +1011,8 @@
     function IndexOfName(const Name: string): Integer;
 
     procedure AddIfNotExists(const Node: TVRMLNode);
+
+    function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
   end;
 
 {$endif read_interface}
@@ -3069,6 +3071,21 @@ procedure TVRMLNodeList.AddIfNotExists(const Node: TVRMLNode);
 begin
   if IndexOf(Node) = -1 then
     Add(Node);
+end;
+
+function TVRMLNodeList.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result :=
+    (SecondValue <> nil) and
+    (SecondValue is TVRMLNodeList) and
+    (TVRMLNodeList(SecondValue).Count = Count);
+
+  if Result then
+    for I := 0 to Count - 1 do
+      if Items[I] <> TVRMLNodeList(SecondValue)[I] then
+        Exit(false);
 end;
 
 procedure VRMLNodeList_FreeUnusedAndNil(var List: TVRMLNodeList);

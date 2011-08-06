@@ -13,6 +13,10 @@ unit GenericStructList;
   {$DEFINE OldSyntax}
 {$IFEND}
 
+{$define HAS_ENUMERATOR}
+{$ifdef VER2_2} {$undef HAS_ENUMERATOR} {$endif}
+{$ifdef VER2_4_0} {$undef HAS_ENUMERATOR} {$endif}
+
 interface
 
 uses FGL;
@@ -39,7 +43,7 @@ type
       TTypeList = array[0..MaxGListSize] of T;
       PTypeList = ^TTypeList;
       PT = ^T;
-      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
+  {$ifdef HAS_ENUMERATOR} TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>; {$endif}
   {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
@@ -53,7 +57,7 @@ type
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
     function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
+    {$ifdef HAS_ENUMERATOR} function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif} {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -125,10 +129,12 @@ begin
   Result := T(inherited First^);
 end;
 
+{$ifdef HAS_ENUMERATOR} 
 function TGenericStructList.GetEnumerator: TFPGListEnumeratorSpec;
 begin
   Result := TFPGListEnumeratorSpec.Create(Self);
 end;
+{$endif}
 
 function TGenericStructList.IndexOf(const Item: T): Integer;
 begin
