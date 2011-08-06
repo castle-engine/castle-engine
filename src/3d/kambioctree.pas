@@ -483,7 +483,7 @@ end;
 procedure TOctreeNode.CreateLeafItems;
 begin
  FItemsIndices := TDynIntegerArray.Create;
- ItemsIndices.AllowedCapacityOverflow := Max(FParentTree.LeafCapacity div 4, 4);
+ ItemsIndices.Capacity := Max(FParentTree.LeafCapacity div 4, 4);
 end;
 
 procedure TOctreeNode.FreeAndNilTreeSubNodes;
@@ -620,7 +620,7 @@ procedure TOctreeNode.EnumerateCollidingOctreeItems(
   var i: Integer;
   begin
    for i := 0 to ItemsIndices.Count - 1 do
-    EnumerateOctreeItemsFunc(ItemsIndices.Items[i], CollidesForSure);
+    EnumerateOctreeItemsFunc(ItemsIndices[i], CollidesForSure);
   end;
 
 begin
@@ -864,14 +864,11 @@ begin
  itemsCounts := nil;
  try
   leavesCounts := TDynCardinalArray.Create;
-  leavesCounts.Count := MaxDepth+1;
-  leavesCounts.FillChar(0);
+  leavesCounts.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
   nonLeafNodesCounts := TDynCardinalArray.Create;
-  nonLeafNodesCounts.Count := MaxDepth+1;
-  nonLeafNodesCounts.FillChar(0);
+  nonLeafNodesCounts.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
   itemsCounts := TDynCardinalArray.Create;
-  itemsCounts.Count := MaxDepth+1;
-  itemsCounts.FillChar(0);
+  itemsCounts.Count := MaxDepth + 1; { TFPGList initialized everything to false }
 
   StatNode(FTreeRoot);
 

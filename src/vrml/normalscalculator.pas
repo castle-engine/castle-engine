@@ -166,8 +166,8 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        @(CoordIndex.Items[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
-        Vertices.Items, Vertices.Count,
+        @(CoordIndex.List^[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
+        PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 1), Convex);
 
       { move to next face (omits the negative index we're standing on) }
@@ -187,10 +187,10 @@ var
   begin
     Found := false;
     for I := Face.StartIndex to Face.StartIndex + Face.IndicesCount - 1 do
-      if CoordIndex.Items[I] = VertexNum then
+      if CoordIndex.List^[I] = VertexNum then
       begin
         Found := true; { Found := true, but keep looking in case duplicated }
-        NormalsResult.Items[I] := Normal;
+        NormalsResult.List^[I] := Normal;
       end;
     Assert(Found, 'NormalsCalculator.SetNormal failed, vertex not on face');
   end;
@@ -216,8 +216,8 @@ var
           so
             CosAngleBetweenNormals(...) < CosCreaseAngle }
         if CosAngleBetweenNormals(
-          Faces.Items[ThisVertexFaces.Items[FaceNum]].Normal,
-          Faces.Items[ThisVertexFaces.Items[FaceNums[i]]].Normal) <
+          Faces.List^[ThisVertexFaces.List^[FaceNum]].Normal,
+          Faces.List^[ThisVertexFaces.List^[FaceNums[i]]].Normal) <
           CosCreaseAngle then
           Exit(false);
       Result := true;
@@ -237,8 +237,7 @@ var
     HandledFaces := nil;
     try
       HandledFaces := TDynBooleanArray.Create;
-      HandledFaces.Count := ThisVertexFaces.Count;
-      HandledFaces.SetAll(false);
+      HandledFaces.Count := ThisVertexFaces.Count; { TFPGList initialized everything to false }
       SmoothFaces := TDynIntegerArray.Create;
 
       for I := 0 to ThisVertexFaces.Count - 1 do
@@ -257,13 +256,13 @@ var
           for J := 0 to SmoothFaces.Count - 1 do
           begin
             HandledFaces[SmoothFaces[J]] := true;
-            VectorAddTo1st(Normal, faces.Items[ThisVertexFaces[SmoothFaces[J]]].Normal);
+            VectorAddTo1st(Normal, faces.List^[ThisVertexFaces[SmoothFaces[J]]].Normal);
           end;
           NormalizeTo1st(Normal);
 
           { use calculated normal vector }
           for J := 0 to SmoothFaces.Count - 1 do
-            SetNormal(VertexNum, Faces.Items[ThisVertexFaces[SmoothFaces[J]]], Normal);
+            SetNormal(VertexNum, Faces.List^[ThisVertexFaces[SmoothFaces[J]]], Normal);
         end;
     finally
       SmoothFaces.Free;
@@ -321,11 +320,11 @@ begin
     while I < CoordIndex.Count do
     begin
       StartIndex := I;
-      while (I < CoordIndex.Count) and (CoordIndex.Items[I] >= 0) do Inc(I);
-      Result.Items[FaceNumber] := IndexedPolygonNormal(
-        @(CoordIndex.Items[StartIndex]),
+      while (I < CoordIndex.Count) and (CoordIndex.List^[I] >= 0) do Inc(I);
+      Result.List^[FaceNumber] := IndexedPolygonNormal(
+        @(CoordIndex.List^[StartIndex]),
         I - StartIndex,
-        Vertices.Items, Vertices.Count,
+        PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 0), Convex);
       Inc(FaceNumber);
 
@@ -363,7 +362,7 @@ begin
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.Items[Indexes[I]];
+      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
@@ -372,11 +371,11 @@ begin
 
   FaceNormal := IndexedPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    Coord.Items, Coord.Count,
+    PVector3Single(Coord.List), Coord.Count,
     Vector3Single(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
-    VectorAddTo1st(Normals.Items[DirectIndexes[I]], FaceNormal);
+    VectorAddTo1st(Normals.List^[DirectIndexes[I]], FaceNormal);
 end;
 
 function CreateSmoothNormalsCoordinateNode(
@@ -394,8 +393,7 @@ begin
 
   Result := TDynVector3SingleArray.Create;
   try
-    Result.Count := C.Count;
-    Result.FillChar(0);
+    Result.Count := C.Count; { TFPSList initialized everything to 0 }
 
     Calculator := TCoordinateNormalsCalculator.Create;
     try

@@ -158,11 +158,11 @@ begin
   begin
     ParentMenu := NextMenuItem.Parent;
     Position := FirstSeparator.MenuIndex;
-    Assert(ParentMenu.Items[Position] = FirstSeparator);
+    Assert(ParentMenu[Position] = FirstSeparator);
     FirstSeparator := nil;
     repeat
       ParentMenu.Delete(Position);
-    until (ParentMenu.Items[Position] = NextMenuItem);
+    until (ParentMenu[Position] = NextMenuItem);
   end;
 
   inherited;

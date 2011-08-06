@@ -104,7 +104,7 @@ var
   LightUniqueName: string;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].Light = Light then Exit(@(List^[I]));
+    if List^[I].Light = Light then Exit(@(List^[I]));
 
   { add a new TLight record }
   Result := Add;
@@ -479,11 +479,11 @@ begin
     of both lists. }
 
   for I := 0 to App.FdReceiveShadows.Count - 1 do
-    if App.FdReceiveShadows.Items[I] is TNodeX3DLightNode then
-      HandleLight(TNodeX3DLightNode(App.FdReceiveShadows.Items[I]));
+    if App.FdReceiveShadows[I] is TNodeX3DLightNode then
+      HandleLight(TNodeX3DLightNode(App.FdReceiveShadows[I]));
 
   for I := 0 to LightsCastingOnEverything.Count - 1 do
-    HandleLight(TNodeX3DLightNode(LightsCastingOnEverything.Items[I]));
+    HandleLight(TNodeX3DLightNode(LightsCastingOnEverything[I]));
 end;
 
 procedure TDynLightArray.HandleLightAutomaticProjection(const L: TLight);

@@ -634,7 +634,7 @@ begin
        (FdReplaceNames.Items[I] = VRML1Children[0].NodeName) then
     begin
       VRML1ChildRemove(0);
-      VRML1ChildAdd(0, FdReplaceNodes.Items[I]);
+      VRML1ChildAdd(0, FdReplaceNodes[I]);
       Exit;
     end;
 
@@ -650,7 +650,7 @@ begin
     if (FdReplaceNames.Items[I] <> '') and
        (FdReplaceNames.Items[I] = Node.NodeName) then
     begin
-      Node := FdReplaceNodes.Items[I];
+      Node := FdReplaceNodes[I];
       Exit;
     end;
 end;

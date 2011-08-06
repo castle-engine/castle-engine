@@ -509,8 +509,8 @@ var
 begin
   MF := Value as TMFNode;
   for I := 0 to MF.Count - 1 do
-    if FdChildren.Items.IndexOf(MF.Items[I]) = -1 then
-      FdChildren.Add(MF.Items[I]);
+    if FdChildren.Items.IndexOf(MF[I]) = -1 then
+      FdChildren.Add(MF[I]);
 
   { X3D spec says explicitly
     "A children field is not allowed to contain nodes that are
@@ -545,7 +545,7 @@ begin
     This seems to be undefined case in VRML 97? }
 
   for I := 0 to MF.Count - 1 do
-    FdChildren.Items.Remove(MF.Items[I]);
+    FdChildren.Items.Remove(MF[I]);
 end;
 
 procedure TNodeGroup.CreateNode;
@@ -578,7 +578,7 @@ var
 begin
   inherited;
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+    Func(Self, FdChildren[I]);
 end;
 
 procedure TStringStringMap.PutPreserve(const Name, Content: string);
@@ -640,7 +640,7 @@ begin
       Assert(VRML1ChildrenCount = 0);
 
       for i := 0 to FdChildren.Count - 1 do
-        FileItems.Add(FdChildren.Items[I]);
+        FileItems.Add(FdChildren[I]);
 
       for I := 0 to Routes.Count - 1 do
         FileItems.Add(Routes[I]);
@@ -730,7 +730,7 @@ var
   I: Integer;
 begin
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+    Func(Self, FdChildren[I]);
 end;
 
 procedure TNodeSwitch.CreateNode;
@@ -767,7 +767,7 @@ end;
 procedure TNodeSwitch.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   if Between(FdWhichChoice.Value, 0, FdChildren.Count - 1) then
-    Func(Self, FdChildren.Items[FdWhichChoice.Value]);
+    Func(Self, FdChildren[FdWhichChoice.Value]);
 end;
 
 function TNodeSwitch.TransformationChange: TNodeTransformationChange;
@@ -829,7 +829,7 @@ var
   I: Integer;
 begin
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+    Func(Self, FdChildren[I]);
 end;
 
 function TNodeTransform.TransformationChange: TNodeTransformationChange;

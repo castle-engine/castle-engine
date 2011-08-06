@@ -123,98 +123,30 @@ type
     constructor Create(ElementSize, InitialCount: Integer);
 
     destructor Destroy; override;
-
-    { Copy our contents to given Target memory. Each item in Target
-      is separated by the Stride bytes.
-
-      We copy CopyCount items (you usually want to pass the count of Target
-      data here). Our Count must be >= CopyCount,
-      we check it and eventually raise EAssignInterleavedRangeError.
-
-      Warning: this is safely usable only for arrays of types that don't
-      require initialization / finalization. Otherwise target memory data
-      will be properly referenced.
-
-      @raises EAssignInterleavedRangeError When Count < CopyCount. }
-    procedure AssignToInterleaved(Target: Pointer;
-      const Stride, CopyCount: Cardinal);
-
-    { Copy our contents to given Target memory. Each item in Target
-      is separated by the Stride bytes.
-
-      We copy CopyCount items (you usually want to pass the count of Target
-      data here). Indexes.Count must be >= CopyCount,
-      we check it and eventually raise EAssignInterleavedRangeError.
-
-      Item number I is taken from Items[Indexes[I]].
-      All values on Indexes list must be valid (that is >= 0 and < our Count),
-      or we raise EAssignInterleavedRangeError.
-
-      Warning: this is safely usable only for arrays of types that don't
-      require initialization / finalization. Otherwise target memory data
-      will be properly referenced.
-
-      @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
-        or some index points outside of array.) }
-    procedure AssignToInterleavedIndexed(Target: Pointer;
-      const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);
   end;
 
 { Declare all TDynXxxArray for standard Pascal types }
 
 type
-  {$define DYNARRAY_1_USE_EQUALITY_OP}
-  {$define DYNARRAY_1_USE_PLUSMINUS_OP}
-  { }
-  TDynArrayItem_1  = Cardinal; PDynArrayItem_1  = PCardinal; {$I dynarray_1.inc}  {TDynCardinalArray is below} { }      TArray_Cardinal = TInfiniteArray_1 ; PArray_Cardinal = PInfiniteArray_1 ;
-
-  {$define DYNARRAY_2_USE_EQUALITY_OP}
-  {$define DYNARRAY_2_USE_PLUSMINUS_OP}
-  TDynArrayItem_2  = Integer ; PDynArrayItem_2  = PInteger ; {$I dynarray_2.inc}                                       TArray_Integer  = TInfiniteArray_2 ; PArray_Integer  = PInfiniteArray_2 ;
-
-  {$define DYNARRAY_3_USE_EQUALITY_OP}
-  {$define DYNARRAY_3_USE_PLUSMINUS_OP}
-  TDynArrayItem_3  = Float   ; PDynArrayItem_3  = PFloat   ; {$I dynarray_3.inc}  {TDynFloatArray is below} { }         TArray_Float    = TInfiniteArray_3 ; PArray_Float    = PInfiniteArray_3 ;
-
-  {$define DYNARRAY_8_USE_EQUALITY_OP}
-  {$define DYNARRAY_8_USE_PLUSMINUS_OP}
-  TDynArrayItem_8  = Longint ; PDynArrayItem_8  = PLongint ; {$I dynarray_8.inc}                                    TArray_Longint  = TInfiniteArray_8 ; PArray_Longint  = PInfiniteArray_8 ;
-
-  {$define DYNARRAY_11_USE_EQUALITY_OP}
-  {$define DYNARRAY_11_USE_PLUSMINUS_OP}
-  TDynArrayItem_11 = Double  ; PDynArrayItem_11 = PDouble  ; {$I dynarray_11.inc} {TDynDoubleArray is below} { }        TArray_Double   = TInfiniteArray_11; PArray_Double   = PInfiniteArray_11;
-
-  {$define DYNARRAY_12_USE_EQUALITY_OP}
-  {$define DYNARRAY_12_USE_PLUSMINUS_OP}
-  TDynArrayItem_12 = Single  ; PDynArrayItem_12 = PSingle  ; {$I dynarray_12.inc} {TDynSingleArray is below} { }        TArray_Single   = TInfiniteArray_12; PArray_Single   = PInfiniteArray_12;
-
-  {$define DYNARRAY_14_USE_EQUALITY_OP}
-  {$define DYNARRAY_14_USE_PLUSMINUS_OP}
-  TDynArrayItem_14 = LongWord; PDynArrayItem_14 = PLongWord; {$I dynarray_14.inc} {TDynLongWordArray = TDynArray_14;} TArray_LongWord = TInfiniteArray_14; PArray_LongWord = PInfiniteArray_14;
-
-  {$define DYNARRAY_15_USE_EQUALITY_OP}
-  {$define DYNARRAY_15_IS_INIT_FINI_TYPE}
-  TDynArrayItem_15 = String  ; PDynArrayItem_15 = PString  ; {$I dynarray_15.inc} {TDynStringArray   = TDynArray_15;} TArray_String   = TInfiniteArray_15; PArray_String   = PInfiniteArray_15;
-
-  {$define DYNARRAY_16_USE_EQUALITY_OP}
-  TDynArrayItem_16 = Boolean ; PDynArrayItem_16 = PBoolean ; {$I dynarray_16.inc} {TDynBooleanArray is below} { }       TArray_Boolean  = TInfiniteArray_16; PArray_Boolean  = PInfiniteArray_16;
-
   TDynSingleArray = class;
   TDynDoubleArray = class;
 
-  TDynLongWordArray = class(TDynArray_14)
+  TDynLongWordArray = class(specialize TFPGList<LongWord>)
   public
     procedure AddList(L: TDynLongWordArray);
     procedure AddArray(const A: array of LongWord);
   end;
 
-  TDynFloatArray = class(TDynArray_3)
+  TDynFloatArray = class(specialize TFPGList<Float>)
     procedure AppendFloats(Floats: TDynSingleArray);
     procedure AddList(L: TDynFloatArray);
     procedure AddArray(const A: array of Float);
   end;
 
-  TDynSingleArray = class(TDynArray_12)
+  TArray_Single = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
+  PArray_Single = ^TArray_Single;
+
+  TDynSingleArray = class(specialize TFPGList<Single>)
     procedure AppendFloats(Floats: TDynFloatArray);
     function ToDouble: TDynDoubleArray;
     { Assign value from TDynDoubleArray, converting to double-precision. }
@@ -235,7 +167,7 @@ type
     procedure AddArray(const A: array of Single);
   end;
 
-  TDynDoubleArray = class(TDynArray_11)
+  TDynDoubleArray = class(specialize TFPGList<Double>)
     function ToSingle: TDynSingleArray;
     { Assign value from TDynSingleArray, converting to double-precision. }
     procedure Assign(Source: TDynSingleArray); overload;
@@ -243,14 +175,14 @@ type
     procedure AddArray(const A: array of Double);
   end;
 
-  TDynCardinalArray = class(TDynArray_1)
+  TDynCardinalArray = class(specialize TFPGList<Cardinal>)
     function BigSum: Int64;
     function Sum: Cardinal;
     procedure AddList(L: TDynCardinalArray);
     procedure AddArray(const A: array of Cardinal);
   end;
 
-  TDynBooleanArray = class(TDynArray_16)
+  TDynBooleanArray = class(specialize TFPGList<boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -266,23 +198,28 @@ type
     procedure AddArray(const A: array of boolean);
   end;
 
-  TDynLongIntArray = class(TDynArray_8)
+  TArray_LongInt = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
+  PArray_LongInt = ^TArray_LongInt;
+
+  TDynLongIntArray = class(specialize TFPGList<LongInt>)
   public
     function Max: LongInt;
     function Sum: LongInt;
     procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
     procedure AddList(L: TDynLongIntArray);
     procedure AddArray(const A: array of LongInt);
+    { Add given Item a number of times to the list. }
+    procedure AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
   end;
 
-  TDynIntegerArray = class(TDynArray_2)
+  TDynIntegerArray = class(specialize TFPGList<Integer>)
   public
     function Sum: Integer;
     procedure AddList(L: TDynIntegerArray);
     procedure AddArray(const A: array of Integer);
   end;
 
-  TDynStringArray = class(TDynArray_15)
+  TDynStringArray = class(specialize TFPGList<string>)
   public
     procedure AddList(L: TDynStringArray);
     procedure AddArray(const A: array of string);
@@ -417,63 +354,6 @@ procedure TDynArrayBase.Clear;
 begin
   Count := 0;
 end;
-
-procedure TDynArrayBase.AssignToInterleaved(Target: Pointer;
-  const Stride, CopyCount: Cardinal);
-var
-  I: Integer;
-  Source: Pointer;
-begin
-  if Count < CopyCount then
-    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
-      [Count, CopyCount]);
-
-  Source := FList;
-  for I := 0 to CopyCount - 1 do
-  begin
-    Move(Source^, Target^, ItemSize);
-    PtrUInt(Source) += ItemSize;
-    PtrUInt(Target) += Stride;
-  end;
-end;
-
-procedure TDynArrayBase.AssignToInterleavedIndexed(Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);
-var
-  I: Integer;
-  Index: LongInt;
-begin
-  if Indexes.Count < CopyCount then
-    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
-      [Indexes.Count, CopyCount]);
-
-  for I := 0 to CopyCount - 1 do
-  begin
-    Index := Indexes.Items[I];
-    if (Index < 0) or
-       (Index >= Count) then
-      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
-        [Index, Count]);
-
-    { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
-      This would cause noticeable slowdown when using AssignToInterleavedIndexed
-      for VRMLArraysGenerator, that in turn affects dynamic scenes
-      and especially dynamic shading like radiance_transfer. }
-    Move(Pointer(PtrUInt(FList) + PtrUInt(Index) * ItemSize)^,
-      Target^, ItemSize);
-    PtrUInt(Target) += Stride;
-  end;
-end;
-
-{$I dynarray_1.inc}
-{$I dynarray_2.inc}
-{$I dynarray_3.inc}
-{$I dynarray_8.inc}
-{$I dynarray_11.inc}
-{$I dynarray_12.inc}
-{$I dynarray_14.inc}
-{$I dynarray_15.inc}
-{$I dynarray_16.inc}
 
 { TDynLongWordArray ------------------------------------------------------------ }
 
@@ -778,6 +658,16 @@ begin
   Count := Count + High(A) + 1;
   if High(A) <> -1 then
     System.Move(A[0], List^[OldCount], SizeOf(LongInt) * (High(A) + 1));
+end;
+
+procedure TDynLongIntArray.AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
+var
+  I, C: Integer;
+begin
+  C := Count;
+  Count := Count + DuplicateCount;
+  for I := C to Count - 1 do
+    Items[I] := Item;
 end;
 
 { TDynIntegerArray ----------------------------------------------------------- }

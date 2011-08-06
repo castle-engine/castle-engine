@@ -307,7 +307,7 @@ var
   I: Integer;
 begin
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+    Func(Self, FdChildren[I]);
 end;
 
 procedure TNodeMatrixTransform.ApplyTransform(State: TVRMLGraphTraverseState);

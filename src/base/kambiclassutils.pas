@@ -1585,8 +1585,8 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Assigned(Items[I]) then
-      Items[I](Sender);
+    if Assigned(List^[I]) then
+      List^[I](Sender);
 end;
 
 { FGL helpers ---------------------------------------------------------------- }

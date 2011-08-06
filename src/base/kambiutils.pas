@@ -103,8 +103,7 @@ uses
   {$ifdef UNIX}
     {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
   {$endif}
-  Variants, SysUtils, Math,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  Variants, SysUtils, Math, FGL;
 
 {$define read_interface}
 

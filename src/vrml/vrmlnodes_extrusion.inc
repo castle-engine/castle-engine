@@ -145,8 +145,8 @@ begin
     Also, High checked that we have at least one scale. }
 
   if Node.FdScale.Count < Node.FdSpine.Count then
-    Scale := Node.FdScale.Items.Items[0] else
-    Scale := Node.FdScale.Items.Items[Spine];
+    Scale := Node.FdScale.Items.List^[0] else
+    Scale := Node.FdScale.Items.List^[Spine];
 end;
 
 procedure TVRMLExtrusion.SpineOrientationTo1st(Spine: Cardinal;
@@ -157,8 +157,8 @@ begin
     Also, High checked that we have at least one orientation. }
 
   if Node.FdOrientation.Count < Node.FdSpine.Count then
-    Orientation := Node.FdOrientation.Items.Items[0] else
-    Orientation := Node.FdOrientation.Items.Items[Spine];
+    Orientation := Node.FdOrientation.Items.List^[0] else
+    Orientation := Node.FdOrientation.Items.List^[Spine];
 end;
 
 procedure TVRMLExtrusion.SpineTransformTo1st(Spine: Cardinal;
@@ -181,8 +181,8 @@ var
         This follows X3D / VRML spec ("If the Z-axis of the
         first point is undefined..."). }
       Z := VectorProduct(
-        VectorSubtract(SpinePoints.Items[I + 1], SpinePoints.Items[I]),
-        VectorSubtract(SpinePoints.Items[I - 1], SpinePoints.Items[I]));
+        VectorSubtract(SpinePoints.List^[I + 1], SpinePoints.List^[I]),
+        VectorSubtract(SpinePoints.List^[I - 1], SpinePoints.List^[I]));
       if not ZeroVector(Z) then
       begin
         Result := true;
@@ -201,7 +201,7 @@ var
   begin
     for I := 1 to High do
     begin
-      Y := VectorSubtract(SpinePoints.Items[I], SpinePoints.Items[I - 1]);
+      Y := VectorSubtract(SpinePoints.List^[I], SpinePoints.List^[I - 1]);
       if not ZeroVector(Y) then
       begin
         NormalizeTo1st(Y);
@@ -264,15 +264,15 @@ var
   procedure CalculateYZForClosed(out Y, Z: TVector3Single);
   begin
     { Same for Spine = 0 and High, as this is the same point actually. }
-    Y := VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[High - 1]);
+    Y := VectorSubtract(SpinePoints.List^[1], SpinePoints.List^[High - 1]);
 
     if not ZeroVector(Y) then
       NormalizeTo1st(Y) else
       FindFirstNonCoincident(Y);
 
     Z := VectorProduct(
-      VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[0]),
-      VectorSubtract(SpinePoints.Items[High - 1], SpinePoints.Items[0]));
+      VectorSubtract(SpinePoints.List^[1], SpinePoints.List^[0]),
+      VectorSubtract(SpinePoints.List^[High - 1], SpinePoints.List^[0]));
 
     if not ZeroVector(Z) then
       NormalizeTo1st(Z) else
@@ -300,7 +300,7 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := VectorSubtract(SpinePoints.Items[1], SpinePoints.Items[0]);
+      Y := VectorSubtract(SpinePoints.List^[1], SpinePoints.List^[0]);
       if not ZeroVector(Y) then
         NormalizeTo1st(Y) else
         FindFirstNonCoincident(Y);
@@ -315,7 +315,7 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := VectorSubtract(SpinePoints.Items[High], SpinePoints.Items[High - 1]);
+      Y := VectorSubtract(SpinePoints.List^[High], SpinePoints.List^[High - 1]);
       if not ZeroVector(Y) then
         NormalizeTo1st(Y) else
         Y := LastY;
@@ -328,15 +328,15 @@ begin
       in this case, and that's good. This is the most common case
       for this routine. }
 
-    Y := VectorSubtract(SpinePoints.Items[Spine + 1], SpinePoints.Items[Spine - 1]);
+    Y := VectorSubtract(SpinePoints.List^[Spine + 1], SpinePoints.List^[Spine - 1]);
 
     if not ZeroVector(Y) then
       NormalizeTo1st(Y) else
       Y := LastY;
 
     Z := VectorProduct(
-      VectorSubtract(SpinePoints.Items[Spine + 1], SpinePoints.Items[Spine]),
-      VectorSubtract(SpinePoints.Items[Spine - 1], SpinePoints.Items[Spine]));
+      VectorSubtract(SpinePoints.List^[Spine + 1], SpinePoints.List^[Spine]),
+      VectorSubtract(SpinePoints.List^[Spine - 1], SpinePoints.List^[Spine]));
 
     if not ZeroVector(Z) then
       NormalizeTo1st(Z) else
@@ -357,7 +357,7 @@ begin
   SpineOrientationTo1st(Spine, Orientation);
 
   Transform := MatrixMult(
-    TransformToCoordsMatrix(SpinePoints.Items[Spine], X, Y, Z),
+    TransformToCoordsMatrix(SpinePoints.List^[Spine], X, Y, Z),
     MatrixMult(RotationMatrixRad(Orientation[3],
       Orientation[0], Orientation[1], Orientation[2]),
       ScalingMatrix(Vector3Single(Scale[0], 1, Scale[1]))));

@@ -458,10 +458,10 @@ end;
 
 function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
 const
-  { When constructing large index arrays, we use larger AllowedCapacityOverflow
+  { When constructing large index arrays, we use larger Capacity
     to make them faster.
     TODO: would be better to allocate necessary space once, by assigning Count. }
-  AllowedIndicesArraysOverflows = 100;
+  IndicesCapacity = 100;
 var
   WWWBasePath: string;
 
@@ -540,9 +540,9 @@ begin
       i := 0;
       while i < obj.Faces.Count do
       begin
-        FacesWithTexCoord := Obj.Faces.Items[i].HasTexCoords;
-        FacesWithNormal := Obj.Faces.Items[i].HasNormals;
-        FacesWithMaterial := Obj.Faces.Items[i].Material;
+        FacesWithTexCoord := Obj.Faces.List^[i].HasTexCoords;
+        FacesWithNormal := Obj.Faces.List^[i].HasNormals;
+        FacesWithMaterial := Obj.Faces.List^[i].Material;
 
         Shape := TNodeShape.Create('', WWWBasePath);
         Result.FdChildren.Add(Shape);
@@ -570,49 +570,45 @@ begin
         Faces.FdSolid.Value := false;
         Faces.FdCoord.Value := Coord;
         Faces.FdCoordIndex.Items.Clear;
-        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+        Faces.FdCoordIndex.Items.Capacity := IndicesCapacity;
         if FacesWithTexCoord then
         begin
           Faces.FdTexCoord.Value := TexCoord;
           Faces.FdTexCoordIndex.Items.Clear;
-          Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+          Faces.FdTexCoordIndex.Items.Capacity := IndicesCapacity;
         end;
         if FacesWithNormal then
         begin
           Faces.FdNormal.Value := Normal;
           Faces.FdNormalIndex.Items.Clear;
-          Faces.FdNormalIndex.Items.AllowedCapacityOverflow := AllowedIndicesArraysOverflows;
+          Faces.FdNormalIndex.Items.Capacity := IndicesCapacity;
         end;
 
         { We add Faces as long as FacesWithXxx parameters stay the same.
           We know that at least the next face is Ok. }
         repeat
           Faces.FdCoordIndex.Items.AddArray(
-            [obj.Faces.Items[i].VertIndices[0],
-             obj.Faces.Items[i].VertIndices[1],
-             obj.Faces.Items[i].VertIndices[2], -1]);
+            [obj.Faces.List^[i].VertIndices[0],
+             obj.Faces.List^[i].VertIndices[1],
+             obj.Faces.List^[i].VertIndices[2], -1]);
 
           if FacesWithTexCoord then
             Faces.FdTexCoordIndex.Items.AddArray(
-              [obj.Faces.Items[i].TexCoordIndices[0],
-               obj.Faces.Items[i].TexCoordIndices[1],
-               obj.Faces.Items[i].TexCoordIndices[2], -1]);
+              [obj.Faces.List^[i].TexCoordIndices[0],
+               obj.Faces.List^[i].TexCoordIndices[1],
+               obj.Faces.List^[i].TexCoordIndices[2], -1]);
 
           if FacesWithNormal then
             Faces.FdNormalIndex.Items.AddArray(
-              [obj.Faces.Items[i].NormalIndices[0],
-               obj.Faces.Items[i].NormalIndices[1],
-               obj.Faces.Items[i].NormalIndices[2], -1]);
+              [obj.Faces.List^[i].NormalIndices[0],
+               obj.Faces.List^[i].NormalIndices[1],
+               obj.Faces.List^[i].NormalIndices[2], -1]);
 
           Inc(i);
         until (i >= obj.Faces.Count) or
-          (FacesWithTexCoord <> obj.Faces.Items[i].HasTexCoords) or
-          (FacesWithNormal   <> obj.Faces.Items[i].HasNormals) or
-          (FacesWithMaterial <> obj.Faces.Items[i].Material);
-
-        Faces.FdCoordIndex.Items.AllowedCapacityOverflow := 4;
-        Faces.FdTexCoordIndex.Items.AllowedCapacityOverflow := 4;
-        Faces.FdNormalIndex.Items.AllowedCapacityOverflow := 4;
+          (FacesWithTexCoord <> obj.Faces.List^[i].HasTexCoords) or
+          (FacesWithNormal   <> obj.Faces.List^[i].HasNormals) or
+          (FacesWithMaterial <> obj.Faces.List^[i].Material);
       end;
 
       if Coord <> nil then

@@ -1028,7 +1028,7 @@ begin
     BIND_PER_PART_INDEXED,
     BIND_PER_FACE_INDEXED:
       Result := (FdNormalIndex.Count <> 0) and
-                (FdNormalIndex.Items.Items[0] >= 0);
+                (FdNormalIndex.Items.List^[0] >= 0);
     else
       Result := true;
   end;
@@ -1339,7 +1339,7 @@ function TNodeMaterial_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3Sing
 begin
   if MATERIAL_FUNCTION_FIELD.Count = 0 then
     result := MATERIAL_FUNCTION_DEFAULT else
-    result := MATERIAL_FUNCTION_FIELD.Items.Items[
+    result := MATERIAL_FUNCTION_FIELD.Items.List^[
       min(MatNum, MATERIAL_FUNCTION_FIELD.Count - 1)];
 end;
 
@@ -1386,7 +1386,7 @@ function TNodeMaterial_1.MATERIAL_FUNCTION_NAME(MatNum: integer): Single;
 begin
  if MATERIAL_FUNCTION_FIELD.Count = 0 then
   result := MATERIAL_FUNCTION_DEFAULT else
-  result := MATERIAL_FUNCTION_FIELD.Items.Items[
+  result := MATERIAL_FUNCTION_FIELD.Items.List^[
     min(MatNum, MATERIAL_FUNCTION_FIELD.Count-1)];
 end;}
 
@@ -1424,7 +1424,7 @@ function TNodeMaterial_1.Shininess(MatNum: integer): Single;
 begin
   if FdShininess.Count = 0 then
     result := DefaultMaterialShininess else
-    result := FdShininess.Items.Items[min(MatNum, FdShininess.Count-1)];
+    result := FdShininess.Items.List^[min(MatNum, FdShininess.Count-1)];
 end;
 
 function TNodeMaterial_1.ShininessExp(MatNum: integer): Single;
@@ -1461,7 +1461,7 @@ begin
     result := DefaultMaterialTransparency > SingleEqualityEpsilon else
   begin
     for i := 0 to FdTransparency.Items.Count-1 do
-      if FdTransparency.Items.Items[i] <= SingleEqualityEpsilon then Exit(false);
+      if FdTransparency.Items.List^[i] <= SingleEqualityEpsilon then Exit(false);
     result := true;
   end;
 end;
@@ -1505,7 +1505,7 @@ begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
     CalculateReflSpecular(Result) else
-    Result := A.Items[Min(FIndex, A.Count - 1)];
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TVRMLMaterialInfo_1.ReflDiffuse: TVector3Single;
@@ -1515,7 +1515,7 @@ begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
     CalculateReflDiffuse(Result) else
-    Result := A.Items[Min(FIndex, A.Count - 1)];
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TVRMLMaterialInfo_1.TransSpecular: TVector3Single;
@@ -1525,7 +1525,7 @@ begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
     CalculateTransSpecular(Result) else
-    Result := A.Items[Min(FIndex, A.Count - 1)];
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TVRMLMaterialInfo_1.TransDiffuse: TVector3Single;
@@ -1535,7 +1535,7 @@ begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
     CalculateTransDiffuse(Result) else
-    Result := A.Items[Min(FIndex, A.Count - 1)];
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TVRMLMaterialInfo_1.ReflSpecularExp: Single;

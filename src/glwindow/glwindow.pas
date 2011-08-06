@@ -2896,9 +2896,9 @@ procedure TDynGLWindowFuncArray.ExecuteAll(Window: TGLwindow);
 var i: integer;
 begin
  for i := 0 to Count-1 do
-  if {$ifndef FPC_OBJFPC} @ {$endif} Items[i] <> nil then
+  if Assigned(List^[i]) then
   begin
-   Items[i](Window);
+   List^[i](Window);
   end;
 end;
 
@@ -4292,7 +4292,7 @@ procedure TGLUIWindow.UpdateFocusAndMouseCursor;
 
     for I := 0 to Controls.Count - 1 do
     begin
-      Result := Controls.Items[I];
+      Result := Controls[I];
       if Result.PositionInside(MouseX, MouseY) then
         Exit;
     end;
@@ -4395,7 +4395,7 @@ begin
 
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
       begin
         HandleMouseAndKeys := not C.ExclusiveEvents;
@@ -4420,7 +4420,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.KeyDown(Key, Ch) then Exit;
     end;
@@ -4438,7 +4438,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.KeyUp(Key, Ch) then Exit;
     end;
@@ -4456,7 +4456,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseDown(Button) then Exit;
     end;
@@ -4474,7 +4474,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseUp(Button) then Exit;
     end;
@@ -4492,7 +4492,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseWheel(Scroll, Vertical) then Exit;
     end;
@@ -4531,7 +4531,7 @@ begin
 
     for I := 0 to Controls.Count - 1 do
     begin
-      Result := Controls.Items[I].AllowSuspendForInput;
+      Result := Controls[I].AllowSuspendForInput;
       if not Result then Exit;
     end;
   end;
@@ -4558,7 +4558,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
     end;

@@ -954,8 +954,8 @@ begin
   for I := 0 to ShaderIds.Count - 1 do
   begin
     Result += NL + Format('Shader number %d (OpenGL id %d) log:',
-      [I, ShaderIds.Items[I]]) + NL +
-      ShaderInfoLog(ShaderIds.Items[I]);
+      [I, ShaderIds[I]]) + NL +
+      ShaderInfoLog(ShaderIds[I]);
   end;
 
   Result += NL + 'Program info log:' + NL + ProgramInfoLog;
@@ -1048,14 +1048,14 @@ begin
     gsARBExtension:
       for I := 0 to ShaderIds.Count - 1 do
       begin
-        glDetachObjectARB(ProgramId, ShaderIds.Items[I]);
-        glDeleteObjectARB(ShaderIds.Items[I]);
+        glDetachObjectARB(ProgramId, ShaderIds[I]);
+        glDeleteObjectARB(ShaderIds[I]);
       end;
     gsStandard    :
       for I := 0 to ShaderIds.Count - 1 do
       begin
-        glDetachShader   (ProgramId, ShaderIds.Items[I]);
-        glDeleteShader   (ShaderIds.Items[I]);
+        glDetachShader   (ProgramId, ShaderIds[I]);
+        glDeleteShader   (ShaderIds[I]);
       end;
   end;
   ShaderIds.Count := 0;

@@ -129,9 +129,9 @@ begin
         Faces.SetLength(VertsInPolysCount - PolysCount * 2);
 
       To cooperate with other Flavor, we do not set Faces.Count directly,
-      instead we set only AllowedCapacityOverflow.
+      instead we set only Capacity.
     }
-    Faces.AllowedCapacityOverflow := VertsInPolysCount - PolysCount * 2;
+    Faces.Capacity := VertsInPolysCount - PolysCount * 2;
   end else
   begin
     { In newer formats, 2nd line contains just VertsCount. }
@@ -141,7 +141,7 @@ begin
 
   Verts.Count := VertsCount;
   for i := 0 to Verts.Count-1 do
-    Readln(f, Verts.Items[i][0], Verts.Items[i][1], Verts.Items[i][2]);
+    Readln(f, Verts.List^[i][0], Verts.List^[i][1], Verts.List^[i][2]);
 
   if PolysCount <> -1 then
   begin
@@ -193,10 +193,10 @@ begin
       faces.FdCoordIndex.Count := geo.Faces.Count * 4;
       for i := 0 to geo.Faces.Count-1 do
       begin
-        faces.FdCoordIndex.Items[i * 4    ] := geo.Faces.Items[i][0];
-        faces.FdCoordIndex.Items[i * 4 + 1] := geo.Faces.Items[i][1];
-        faces.FdCoordIndex.Items[i * 4 + 2] := geo.Faces.Items[i][2];
-        faces.FdCoordIndex.Items[i * 4 + 3] := -1;
+        faces.FdCoordIndex.Items.List^[i * 4    ] := geo.Faces.List^[i][0];
+        faces.FdCoordIndex.Items.List^[i * 4 + 1] := geo.Faces.List^[i][1];
+        faces.FdCoordIndex.Items.List^[i * 4 + 2] := geo.Faces.List^[i][2];
+        faces.FdCoordIndex.Items.List^[i * 4 + 3] := -1;
       end;
 
       verts := TNodeCoordinate.Create('', WWWBasePath);

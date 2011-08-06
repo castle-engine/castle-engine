@@ -265,8 +265,8 @@ begin
     { calculate x relative to 0..PixelWidth, then convert to 0..GLMaxX }
     case HorizMessgPosition of
       hpLeft: x := HorizMargin;
-      hpRight: x := PixelWidth-messageFont.TextWidth(messages.Items[i].Text)-HorizMargin;
-      hpMiddle: x:=(PixelWidth-messageFont.TextWidth(messages.Items[i].Text)) div 2;
+      hpRight: x := PixelWidth-messageFont.TextWidth(messages.List^[i].Text)-HorizMargin;
+      hpMiddle: x:=(PixelWidth-messageFont.TextWidth(messages.List^[i].Text)) div 2;
     end;
     x := x * GLMaxX div PixelWidth;
 
@@ -280,7 +280,7 @@ begin
 
     { draw Text at position x, y }
     glRasterPos2i(x, y);
-    messageFont.print(messages.Items[i].Text);
+    messageFont.print(messages.List^[i].Text);
   end;
 end;
 
@@ -297,7 +297,7 @@ var
 begin
   gtc := GetTickCount;
   for i := Messages.Count-1 downto 0 do
-    if TimeTickSecondLater(messages.Items[i].Time, gtc, MessageTimeout) then
+    if TimeTickSecondLater(messages.List^[i].Time, gtc, MessageTimeout) then
     begin { delete messages 0..I }
       Messages.DeleteRange(0, I + 1);
       PostRedisplayMessages;

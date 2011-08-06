@@ -1003,8 +1003,8 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Items[I].FreeByParentExpression;
-    Items[I] := nil;
+    List^[I].FreeByParentExpression;
+    List^[I] := nil;
   end;
 end;
 
@@ -2546,7 +2546,7 @@ function TKamScriptFunctionDefinitionList.IndexOf(
   const FunctionName: string): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if SameText(FunctionName, Items[Result].Name) then
+    if SameText(FunctionName, List^[Result].Name) then
       Exit;
   Result := -1;
 end;

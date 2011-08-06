@@ -73,7 +73,7 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
           UniformValue.Count := TMFNode(TextureField).Count;
           for J := 0 to TMFNode(TextureField).Count - 1 do
           begin
-            BoundValue := BindSingleTexture(TMFNode(TextureField).Items[J]);
+            BoundValue := BindSingleTexture(TMFNode(TextureField)[J]);
             { We cannot just resign from setting the field entirely,
               and setting to -1 would likely produce wild OpenGL warnings
               (setting texture sampler to -1...).

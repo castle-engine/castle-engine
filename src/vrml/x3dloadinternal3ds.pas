@@ -574,7 +574,7 @@ begin
     In the latter case, mark it initialized (if not already), or raise exception
     (because it means material properties were specified two times). }
   ind := MaterialIndex(MatName);
-  with Items[ind] do
+  with List^[ind] do
   begin
     Check3dsFile( not Initialized, 'Duplicate material '+MatName+' specification');
     { if not Initialized then material was added to the list by MaterialIndex
@@ -1122,7 +1122,7 @@ begin
         Coord := TNodeCoordinate.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
-          Coord.FdPoint.Items.Items[J] := Trimesh3ds.Verts^[J].Pos;
+          Coord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].Pos;
 
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
@@ -1130,7 +1130,7 @@ begin
           TexCoord := TNodeTextureCoordinate.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
-            TexCoord.FdPoint.Items.Items[J] := Trimesh3ds.Verts^[J].TexCoord;
+            TexCoord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].TexCoord;
         end else
           TexCoord := nil;
 
@@ -1162,10 +1162,10 @@ begin
           begin
             with IFS.FdCoordIndex.Items do
             begin
-              Items[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
-              Items[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
-              Items[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
-              Items[FaceNum * 4 + 3] := -1;
+              List^[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              List^[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              List^[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              List^[FaceNum * 4 + 3] := -1;
             end;
             Inc(J);
           end;

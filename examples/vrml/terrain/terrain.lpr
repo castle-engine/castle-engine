@@ -519,12 +519,12 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
       for X := 0 to CountSteps - 1 do
         for Z := 0 to CountSteps - 1 do
         begin
-          Grid.FdHeight.Items.Items[X + Z * CountSteps] := Elevation.Height(
+          Grid.FdHeight.Items.List^[X + Z * CountSteps] := Elevation.Height(
             MapRange(X, 0, CountSteps, MinX, MaxX),
             MapRange(Z, 0, CountSteps, MinZ, MaxZ));
 
-          Color.FdColor.Items.Items[X + Z * CountSteps] :=
-            ColorFromHeight(Elevation, Grid.FdHeight.Items[X + Z * CountSteps]);
+          Color.FdColor.Items.List^[X + Z * CountSteps] :=
+            ColorFromHeight(Elevation, Grid.FdHeight.List^[X + Z * CountSteps]);
         end;
 
       Appearance := TNodeAppearance.Create('', '');

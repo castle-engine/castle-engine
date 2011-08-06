@@ -154,8 +154,8 @@ function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   Knot, Weight: TDynDoubleArray;
   Tangent: PVector3Single): TVector3Single;
 begin
-  Result := NurbsCurvePoint(Points.Items, Points.Count, U, Order, Knot, Weight,
-    Tangent);
+  Result := NurbsCurvePoint(PVector3Single(Points.List), Points.Count,
+    U, Order, Knot, Weight, Tangent);
 end;
 
 {$ifdef KAMBI_VRMLENGINE_LGPL}

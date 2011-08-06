@@ -2139,7 +2139,7 @@ end;
 function TDynGeneratedTextureArray.IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].TextureNode = TextureNode then
+    if List^[Result].TextureNode = TextureNode then
       Exit;
   Result := -1;
 end;
@@ -2216,9 +2216,9 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if (Items[I].TextureNode is TNodeGeneratedShadowMap) and
-       (TNodeGeneratedShadowMap(Items[I].TextureNode).FdLight.Value = LightNode) then
-      Items[I].Handler.UpdateNeeded := true;
+    if (List^[I].TextureNode is TNodeGeneratedShadowMap) and
+       (TNodeGeneratedShadowMap(List^[I].TextureNode).FdLight.Value = LightNode) then
+      List^[I].Handler.UpdateNeeded := true;
 end;
 
 function TDynGeneratedTextureArray.Add: PGeneratedTexture;
@@ -2248,8 +2248,8 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Items[I].ShapeTrees.Free;
-    Items[I].ShapeTrees := nil;
+    List^[I].ShapeTrees.Free;
+    List^[I].ShapeTrees := nil;
   end;
   Count := 0;
 end;
@@ -2621,9 +2621,9 @@ procedure TChangedAllTraverser.Traverse(
     SwitchTree.SwitchNode := SwitchNode;
     ShapesGroup.Children.Add(SwitchTree);
 
-    for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
+    for I := 0 to SwitchNode.FdChildren.Count - 1 do
     begin
-      ChildNode := SwitchNode.FdChildren.Items[I];
+      ChildNode := SwitchNode.FdChildren[I];
       ChildGroup := TVRMLShapeTreeGroup.Create(ParentScene);
       SwitchTree.Children.Add(ChildGroup);
 
@@ -2663,9 +2663,9 @@ procedure TChangedAllTraverser.Traverse(
 
     ParentScene.UpdateLODLevel(LODTree);
 
-    for I := 0 to LODNode.FdChildren.Items.Count - 1 do
+    for I := 0 to LODNode.FdChildren.Count - 1 do
     begin
-      ChildNode := LODNode.FdChildren.Items[I];
+      ChildNode := LODNode.FdChildren[I];
       ChildGroup := TVRMLShapeTreeGroup(LODTree.Children.Items[I]);
 
       Traverser := TChangedAllTraverser.Create;
@@ -3273,7 +3273,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     begin
       if List <> nil then
         for I := 0 to List.Count - 1 do
-          if List.Items[I].Node = LightNode then
+          if List.List^[I].Node = LightNode then
             LightNode.UpdateLightInstanceState(List.List^[I], StateStack.Top);
     end;
 
@@ -5867,9 +5867,9 @@ var
   I: Integer;
 begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
-    if CompiledScriptHandlers.Items[I].Name = HandlerName then
+    if CompiledScriptHandlers.List^[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.Items[I].Handler(ReceivedValue, Time);
+      CompiledScriptHandlers.List^[I].Handler(ReceivedValue, Time);
       Break;
     end;
 end;

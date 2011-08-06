@@ -479,12 +479,12 @@ begin
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
@@ -703,12 +703,12 @@ begin
 
     if CoordIndex <> nil then
     begin
-      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex]);
-      IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 1]);
 
       while BeginIndex + 2 < EndIndex do
       begin
-        IndexesFromCoordIndex.Add(CoordIndex.Items[BeginIndex + 2]);
+        IndexesFromCoordIndex.Add(CoordIndex.Items.List^[BeginIndex + 2]);
         Inc(BeginIndex);
       end;
     end;
@@ -929,7 +929,7 @@ begin
   Arrays.Counts.Add(EndIndex - BeginIndex);
   if CoordIndex <> nil then
     for I := BeginIndex to EndIndex - 1 do
-      IndexesFromCoordIndex.Add(CoordIndex.Items[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.List^[I]);
 end;
 
 procedure TAbstractLineSetGenerator.PrepareIndexesPrimitives;

@@ -435,7 +435,7 @@ begin
 
   if FdDirection.Items.Count > 0 then
   begin
-    CamDir := FdDirection.Items.Items[0];
+    CamDir := FdDirection.Items.List^[0];
     if ZeroVector(CamDir) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
@@ -446,7 +446,7 @@ begin
 
   if FdUp.Items.Count > 0 then
   begin
-    CamUp := FdUp.Items.Items[0];
+    CamUp := FdUp.Items.List^[0];
     if ZeroVector(CamUp) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
@@ -550,7 +550,7 @@ var
   I: Integer;
 begin
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+    Func(Self, FdChildren[I]);
 end;
 
 procedure TNodeBillboard.ApplyTransform(State: TVRMLGraphTraverseState);
@@ -671,7 +671,7 @@ var
 begin
   FdProxy.EnumerateValid(Func);
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren.Items[I]);
+    Func(Self, FdChildren[I]);
 end;
 
 procedure TNodeCollision.DirectEnumerateActiveForTraverse(
@@ -683,7 +683,7 @@ procedure TNodeCollision.DirectEnumerateActiveForTraverse(
     I: Integer;
   begin
     for I := 0 to FdChildren.Count - 1 do
-      Func(Self, FdChildren.Items[I]);
+      Func(Self, FdChildren[I]);
   end;
 
 begin
@@ -757,7 +757,7 @@ begin
   { For now we simply always use the best LOD version,
     avoiding whole issue of choosing proper LOD child. }
   if FdChildren.Items.Count >= 1 then
-    Func(Self, FdChildren.Items[0]);
+    Func(Self, FdChildren[0]);
 end;
 
 function TVRMLLODNode.TransformationChange: TNodeTransformationChange;

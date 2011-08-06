@@ -59,18 +59,18 @@ var InResult:TDynBooleanArray;
    for i:=0 to Points.Count-1 do
     if not InResult[i] then
     begin
-     if FloatsEqual(Points.Items[i][1], Points.Items[Start][1]) then
+     if FloatsEqual(Points.List^[i][1], Points.List^[Start][1]) then
      begin
-      if RightSide = (Points.Items[i][0] > Points.Items[Start][0]) then
+      if RightSide = (Points.List^[i][0] > Points.List^[Start][0]) then
       begin
        MaxCotanAngle:=MaxSingle;
        MaxCotanAngleI:=i;
       end;
      end else
-     if RightSide = (Points.Items[i][1] > Points.Items[Start][1]) then
+     if RightSide = (Points.List^[i][1] > Points.List^[Start][1]) then
      begin
-      ThisCotan:=(Points.Items[i][0] - Points.Items[Start][0]) /
-                 (Points.Items[i][1] - Points.Items[Start][1]);
+      ThisCotan:=(Points.List^[i][0] - Points.List^[Start][0]) /
+                 (Points.List^[i][1] - Points.List^[Start][1]);
       if ThisCotan > MaxCotanAngle then
       begin
        MaxCotanAngle:=ThisCotan;
@@ -95,12 +95,12 @@ begin
  Assert(Points.Count >= 1);
 
  { find i0, index of lowest point in Points }
- MinY:=Points.Items[0][1];
+ MinY:=Points.List^[0][1];
  i0:=0;
  for i:=1 to Points.Count-1 do
-  if Points.Items[i][1] < MinY then
+  if Points.List^[i][1] < MinY then
   begin
-   MinY:=Points.Items[i][1];
+   MinY:=Points.List^[i][1];
    i0:=i;
   end;
 

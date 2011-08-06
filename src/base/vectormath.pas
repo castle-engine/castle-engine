@@ -236,7 +236,8 @@ unit VectorMath;
 
 interface
 
-uses SysUtils, KambiUtils {$ifdef HAS_MATRIX_UNIT}, Matrix{$endif};
+uses SysUtils, KambiUtils {$ifdef HAS_MATRIX_UNIT}, Matrix{$endif},
+  GenericStructList;
 
 {$define read_interface}
 
@@ -378,30 +379,29 @@ type
   { The "infinite" arrays, useful for some type-casting hacks }
 
   { }
-  TArray_Vector2Byte = packed array[0..MaxInt div SizeOf(TVector2Byte)-1]of TVector2Byte;
+  TArray_Vector2Byte = packed array [0..MaxInt div SizeOf(TVector2Byte)-1] of TVector2Byte;
   PArray_Vector2Byte = ^TArray_Vector2Byte;
-  TArray_Vector3Byte = packed array[0..MaxInt div SizeOf(TVector3Byte)-1]of TVector3Byte;
+  TArray_Vector3Byte = packed array [0..MaxInt div SizeOf(TVector3Byte)-1] of TVector3Byte;
   PArray_Vector3Byte = ^TArray_Vector3Byte;
-  TArray_Vector4Byte = packed array[0..MaxInt div SizeOf(TVector4Byte)-1]of TVector4Byte;
+  TArray_Vector4Byte = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
   PArray_Vector4Byte = ^TArray_Vector4Byte;
-  TArray_Vector2Cardinal = packed array[0..MaxInt div SizeOf(TVector2Cardinal)-1]of TVector2Cardinal;
+
+  TArray_Vector2Cardinal = packed array [0..MaxInt div SizeOf(TVector2Cardinal) - 1] of TVector2Cardinal;
   PArray_Vector2Cardinal = ^TArray_Vector2Cardinal;
-  TArray_Vector2Extended = packed array[0..MaxInt div SizeOf(TVector2Extended)-1]of TVector2Extended;
+
+  TArray_Vector2Extended = packed array [0..MaxInt div SizeOf(TVector2Extended) - 1] of TVector2Extended;
   PArray_Vector2Extended = ^TArray_Vector2Extended;
 
-  { Dynamic arrays (using my TDynArray template),
-    and some more "infinite" arrays defined by the way. }
+  TArray_Vector2Single = packed array [0..MaxInt div SizeOf(TVector2Single) - 1] of TVector2Single;
+  PArray_Vector2Single = ^TArray_Vector2Single;
+  TArray_Vector3Single = packed array [0..MaxInt div SizeOf(TVector3Single) - 1] of TVector3Single;
+  PArray_Vector3Single = ^TArray_Vector3Single;
+  TArray_Vector4Single = packed array [0..MaxInt div SizeOf(TVector4Single) - 1] of TVector4Single;
+  PArray_Vector4Single = ^TArray_Vector4Single;
 
-  { }
   TDynVector4SingleArray = class;
 
-  TDynArrayItem_1 = TVector3Single;
-  PDynArrayItem_1 = PVector3Single;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TArray_Vector3Single = TInfiniteArray_1;
-  PArray_Vector3Single = PInfiniteArray_1;
-  TDynVector3SingleArray = class(TDynArray_1)
+  TDynVector3SingleArray = class(specialize TGenericStructList<TVector3Single>)
   public
     procedure AssignNegated(Source: TDynVector3SingleArray);
     { Negate all items. }
@@ -437,13 +437,7 @@ type
     function MergeCloseVertexes(MergeDistance: Single): Cardinal;
   end;
 
-  TDynArrayItem_2 = TVector2Single;
-  PDynArrayItem_2 = PVector2Single;
-  {$define DYNARRAY_2_IS_STRUCT}
-  {$I dynarray_2.inc}
-  TArray_Vector2Single = TInfiniteArray_2;
-  PArray_Vector2Single = PInfiniteArray_2;
-  TDynVector2SingleArray = class(TDynArray_2)
+  TDynVector2SingleArray = class(specialize TGenericStructList<TVector2Single>)
   public
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
@@ -460,13 +454,7 @@ type
     procedure AssignArray(const A: array of TVector2Single);
   end;
 
-  TDynArrayItem_5 = TVector4Single;
-  PDynArrayItem_5 = PVector4Single;
-  {$define DYNARRAY_5_IS_STRUCT}
-  {$I dynarray_5.inc}
-  TArray_Vector4Single = TInfiniteArray_5;
-  PArray_Vector4Single = PInfiniteArray_5;
-  TDynVector4SingleArray = class(TDynArray_5)
+  TDynVector4SingleArray = class(specialize TGenericStructList<TVector4Single>)
   public
     procedure AddList(L: TDynVector4SingleArray);
     procedure AddListRange(L: TDynVector4SingleArray; Index, AddCount: Integer);
@@ -474,106 +462,55 @@ type
     procedure AssignArray(const A: array of TVector4Single);
   end;
 
-  TDynArrayItem_3 = TVector3Cardinal;
-  PDynArrayItem_3 = PVector3Cardinal;
-  {$define DYNARRAY_3_IS_STRUCT}
-  {$I dynarray_3.inc}
-  TArray_Vector3Cardinal = TInfiniteArray_3;
-  PArray_Vector3Cardinal = PInfiniteArray_3;
-  TDynVector3CardinalArray = TDynArray_3;
+  TDynVector3CardinalArray = specialize TGenericStructList<TVector3Cardinal>;
 
-  TDynArrayItem_6 = TVector2Double;
-  PDynArrayItem_6 = PVector2Double;
-  {$define DYNARRAY_6_IS_STRUCT}
-  {$I dynarray_6.inc}
-  TArray_Vector2Double = TInfiniteArray_6;
-  PArray_Vector2Double = PInfiniteArray_6;
-  TDynVector2DoubleArray = class(TDynArray_6)
+  TDynVector2DoubleArray = class(specialize TGenericStructList<TVector2Double>)
   public
     function ToVector2Single: TDynVector2SingleArray;
     procedure AddList(L: TDynVector2DoubleArray);
     procedure AddArray(const A: array of TVector2Double);
   end;
 
-  TDynArrayItem_7 = TVector3Double;
-  PDynArrayItem_7 = PVector3Double;
-  {$define DYNARRAY_7_IS_STRUCT}
-  {$I dynarray_7.inc}
-  TArray_Vector3Double = TInfiniteArray_7;
-  PArray_Vector3Double = PInfiniteArray_7;
-  TDynVector3DoubleArray = class(TDynArray_7)
+  TDynVector3DoubleArray = class(specialize TGenericStructList<TVector3Double>)
   public
     function ToVector3Single: TDynVector3SingleArray;
     procedure AddList(L: TDynVector3DoubleArray);
     procedure AddArray(const A: array of TVector3Double);
   end;
 
-  TDynArrayItem_8 = TVector4Double;
-  PDynArrayItem_8 = PVector4Double;
-  {$define DYNARRAY_8_IS_STRUCT}
-  {$I dynarray_8.inc}
-  TArray_Vector4Double = TInfiniteArray_8;
-  PArray_Vector4Double = PInfiniteArray_8;
-  TDynVector4DoubleArray = class(TDynArray_8)
+  TDynVector4DoubleArray = class(specialize TGenericStructList<TVector4Double>)
   public
     function ToVector4Single: TDynVector4SingleArray;
     procedure AddList(L: TDynVector4DoubleArray);
     procedure AddArray(const A: array of TVector4Double);
   end;
 
-  TDynArrayItem_9 = TMatrix3Single;
-  PDynArrayItem_9 = PMatrix3Single;
-  {$define DYNARRAY_9_IS_STRUCT}
-  {$I dynarray_9.inc}
-  TArray_Matrix3Single = TInfiniteArray_9;
-  PArray_Matrix3Single = PInfiniteArray_9;
-  TDynMatrix3SingleArray = class(TDynArray_9)
+  TDynMatrix3SingleArray = class(specialize TGenericStructList<TMatrix3Single>)
   public
     procedure AddList(L: TDynMatrix3SingleArray);
     procedure AddArray(const A: array of TMatrix3Single);
   end;
 
-  TDynArrayItem_10 = TMatrix3Double;
-  PDynArrayItem_10 = PMatrix3Double;
-  {$define DYNARRAY_10_IS_STRUCT}
-  {$I dynarray_10.inc}
-  TArray_Matrix3Double = TInfiniteArray_10;
-  PArray_Matrix3Double = PInfiniteArray_10;
-  TDynMatrix3DoubleArray = class(TDynArray_10)
+  TDynMatrix3DoubleArray = class(specialize TGenericStructList<TMatrix3Double>)
   public
     function ToMatrix3Single: TDynMatrix3SingleArray;
     procedure AddList(L: TDynMatrix3DoubleArray);
     procedure AddArray(const A: array of TMatrix3Double);
   end;
 
-  TDynArrayItem_11 = TMatrix4Single;
-  PDynArrayItem_11 = PMatrix4Single;
-  {$define DYNARRAY_11_IS_STRUCT}
-  {$I dynarray_11.inc}
-  TArray_Matrix4Single = TInfiniteArray_11;
-  PArray_Matrix4Single = PInfiniteArray_11;
-  TDynMatrix4SingleArray = class(TDynArray_11)
+  TDynMatrix4SingleArray = class(specialize TGenericStructList<TMatrix4Single>)
   public
     procedure AddList(L: TDynMatrix4SingleArray);
     procedure AddArray(const A: array of TMatrix4Single);
   end;
 
-  TDynArrayItem_12 = TMatrix4Double;
-  PDynArrayItem_12 = PMatrix4Double;
-  {$define DYNARRAY_12_IS_STRUCT}
-  {$I dynarray_12.inc}
-  TArray_Matrix4Double = TInfiniteArray_12;
-  PArray_Matrix4Double = PInfiniteArray_12;
-  TDynMatrix4DoubleArray = class(TDynArray_12)
+  TDynMatrix4DoubleArray = class(specialize TGenericStructList<TMatrix4Double>)
   public
     function ToMatrix4Single: TDynMatrix4SingleArray;
     procedure AddList(L: TDynMatrix4DoubleArray);
     procedure AddArray(const A: array of TMatrix4Double);
   end;
 
-  { Exceptions }
-
-  { }
   EVectorMathInvalidOp = class(Exception);
 
   TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
@@ -2454,17 +2391,6 @@ implementation
 uses Math, KambiStringUtils;
 
 {$define read_implementation}
-{$I dynarray_1.inc}
-{$I dynarray_2.inc}
-{$I dynarray_3.inc}
-{$I dynarray_5.inc}
-{$I dynarray_6.inc}
-{$I dynarray_7.inc}
-{$I dynarray_8.inc}
-{$I dynarray_9.inc}
-{$I dynarray_10.inc}
-{$I dynarray_11.inc}
-{$I dynarray_12.inc}
 
 {$I vectormath_operators.inc}
 
@@ -2529,7 +2455,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    VectorNegateTo1st(Items[I]);
+    VectorNegateTo1st(List^[I]);
 end;
 
 procedure TDynVector3SingleArray.Normalize;
@@ -2537,7 +2463,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    NormalizeTo1st(Items[I]);
+    NormalizeTo1st(List^[I]);
 end;
 
 procedure TDynVector3SingleArray.MultiplyComponents(const V: TVector3Single);
@@ -2545,7 +2471,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    VectorMultiplyComponentsTo1st(Items[I], V);
+    VectorMultiplyComponentsTo1st(List^[I], V);
 end;
 
 procedure TDynVector3SingleArray.AssignLerp(const Fraction: Single;
@@ -2555,7 +2481,7 @@ var
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
-    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
 end;
 
 function TDynVector3SingleArray.ToVector4Single(const W: Single): TDynVector4SingleArray;
@@ -2565,7 +2491,7 @@ begin
   Result := TDynVector4SingleArray.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
-    Result.Items[I] := Vector4Single(Items[I], W);
+    Result.List^[I] := Vector4Single(List^[I], W);
 end;
 
 function TDynVector3SingleArray.MergeCloseVertexes(MergeDistance: Single): Cardinal;
@@ -2579,10 +2505,10 @@ begin
   V1 := PVector3Single(List);
   for I := 0 to Count - 1 do
   begin
-    { Find vertexes closer to Items[I], and merge them.
+    { Find vertexes closer to List^[I], and merge them.
 
       Note that this is not optimal: we could avoid processing
-      here Items[I] that were detected previously (and possibly merged)
+      here List^[I] that were detected previously (and possibly merged)
       as being equal to some previous items. But in practice this seems
       not needed, as there are not many merged vertices in typical situation,
       so time saving would be minimal (and small temporary memory cost
@@ -2651,15 +2577,15 @@ begin
   Result := Count > 0;
   if Result then
   begin
-    Min := Items[0];
-    Max := Items[0];
+    Min := List^[0];
+    Max := List^[0];
     for I := 1 to Count - 1 do
     begin
-      if Items[I][0] < Min[0] then Min[0] := Items[I][0] else
-      if Items[I][0] > Max[0] then Max[0] := Items[I][0];
+      if List^[I][0] < Min[0] then Min[0] := List^[I][0] else
+      if List^[I][0] > Max[0] then Max[0] := List^[I][0];
 
-      if Items[I][1] < Min[1] then Min[1] := Items[I][1] else
-      if Items[I][1] > Max[1] then Max[1] := Items[I][1];
+      if List^[I][1] < Min[1] then Min[1] := List^[I][1] else
+      if List^[I][1] > Max[1] then Max[1] := List^[I][1];
     end;
   end;
 end;
@@ -2671,7 +2597,7 @@ var
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
-    Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
 end;
 
 procedure TDynVector2SingleArray.AddList(L: TDynVector2SingleArray);

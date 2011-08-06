@@ -243,15 +243,15 @@ procedure TNodeComposedTexture3D.LoadTextureData;
   var
     Tex: TVRML2DTextureNode;
   begin
-    if not ((FdTexture.Items[Index] <> nil) and
-            (FdTexture.Items[Index] is TVRML2DTextureNode)) then
+    if not ((FdTexture[Index] <> nil) and
+            (FdTexture[Index] is TVRML2DTextureNode)) then
     begin
       OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
 
-    Tex := TVRML2DTextureNode(FdTexture.Items[Index]);
+    Tex := TVRML2DTextureNode(FdTexture[Index]);
     if not Tex.IsTextureImage then
     begin
       Exit(nil);{ Tex.IsTextureImage already did proper OnWarning }

@@ -236,7 +236,7 @@ type
     property AggressiveUpdateGap: TMilisecTime
       read FAggressiveUpdateGap write FAggressiveUpdateGap default DefaultAggressiveUpdateGap;
     { @groupEnd }
-    
+
     property TabOrder;
     property TabStop default true;
   end;
@@ -818,7 +818,7 @@ procedure TKamOpenGLControl.UpdateFocusAndMouseCursor;
 
     for I := 0 to Controls.Count - 1 do
     begin
-      Result := Controls.Items[I];
+      Result := Controls[I];
       if Result.PositionInside(MouseX, MouseY) then
         Exit;
     end;
@@ -933,7 +933,7 @@ begin
 
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if HandleMouseAndKeys and C.PositionInside(MouseX, MouseY) then
       begin
         HandleMouseAndKeys := not C.ExclusiveEvents;
@@ -962,7 +962,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.KeyDown(Key, Ch) then
         begin
@@ -988,7 +988,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.KeyUp(Key, Ch) then
         begin
@@ -1012,7 +1012,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseDown(MyButton) then
           Exit;
@@ -1033,7 +1033,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseUp(MyButton) then
           Exit;
@@ -1054,7 +1054,7 @@ begin
   begin
     for I := 0 to Controls.Count - 1 do
     begin
-      C := Controls.Items[I];
+      C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
         if C.MouseMove(MouseX, MouseY, NewX, NewY) then Exit;
     end;

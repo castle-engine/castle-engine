@@ -501,7 +501,7 @@ begin
   if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
 
   for I := 0 to VertexJoints.Count - 1 do
-    SkinCoord.Items[I] := UpdateVertex(VertexJoints.Items[I]);
+    SkinCoord.List^[I] := UpdateVertex(VertexJoints.List^[I]);
 end;
 
 procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
@@ -532,14 +532,14 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
 
       for I := 0 to SkinCoord.Count - 1 do
       begin
-        VertexJoints.Items[I].RestPosition := SkinCoord.Items[I];
-        VertexJoints.Items[I].Count := 0; { initially }
+        VertexJoints.List^[I].RestPosition := SkinCoord.List^[I];
+        VertexJoints.List^[I].Count := 0; { initially }
       end;
 
       for I := 0 to FdJoints.Count - 1 do
-        if FdJoints.Items[I] is TNodeHAnimJoint then
+        if FdJoints[I] is TNodeHAnimJoint then
         begin
-          Joint := TNodeHAnimJoint(FdJoints.Items[I]);
+          Joint := TNodeHAnimJoint(FdJoints[I]);
           SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
           for J := 0 to SkinCoordIndex.Count - 1 do
           begin
@@ -556,7 +556,7 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
               Weight := Joint.FdSkinCoordWeight.Items[J] else
               Weight := 1;
 
-            VertexJoints.Items[CoordIndex].Add(Joint, Weight);
+            VertexJoints.List^[CoordIndex].Add(Joint, Weight);
           end;
         end;
     end;
@@ -695,9 +695,9 @@ begin
 
   { animate centers of children joints }
   for I := 0 to FdChildren.Count - 1 do
-    if FdChildren.Items[I] is TNodeHAnimJoint then
+    if FdChildren[I] is TNodeHAnimJoint then
     begin
-      ChildJoint := TNodeHAnimJoint(FdChildren.Items[I]);
+      ChildJoint := TNodeHAnimJoint(FdChildren[I]);
 
       { TODO: it's a little hack to update ChildJoint.FdCenter this way.
         The cleaner way would be to just

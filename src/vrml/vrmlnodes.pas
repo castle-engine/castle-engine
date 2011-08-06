@@ -2320,7 +2320,7 @@ end;
 function TLightInstancesList.IndexOfNode(Node: TNodeX3DLightNode): integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].Node = Node then
+    if List^[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -2358,7 +2358,7 @@ begin
     (TLightInstancesList(SecondValue).Count = Count);
   if Result then
     for I := 0 to Count - 1 do
-      if not LightInstanceEquals(Items[I], TLightInstancesList(SecondValue).Items[I]) then
+      if not LightInstanceEquals(List^[I], TLightInstancesList(SecondValue).List^[I]) then
         Exit(false);
 end;
 
@@ -2371,8 +2371,8 @@ begin
   Count := Count + AList.Count;
   for I := 0 to AList.Count - 1 do
   begin
-    Items[OldCount + I] := AList.Items[I];
-    Items[OldCount + I].WorldCoordinates := true;
+    List^[OldCount + I] := AList.List^[I];
+    List^[OldCount + I].WorldCoordinates := true;
   end;
 end;
 
@@ -2381,7 +2381,7 @@ end;
 function TDynClipPlaneArray.IndexOfNode(Node: TNodeClipPlane): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].Node = Node then
+    if List^[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -2397,8 +2397,8 @@ begin
 
   if Result then
     for I := 0 to Count - 1 do
-      if (Items[I].Node <> TDynClipPlaneArray(SecondValue).Items[I].Node) or
-         MatricesPerfectlyEqual(Items[I].Transform, TDynClipPlaneArray(SecondValue).Items[I].Transform) then
+      if (List^[I].Node <> TDynClipPlaneArray(SecondValue).List^[I].Node) or
+         MatricesPerfectlyEqual(List^[I].Transform, TDynClipPlaneArray(SecondValue).List^[I].Transform) then
         Exit(false);
 end;
 
@@ -5668,7 +5668,7 @@ end;
 function TVRMLNodeNames.IndexOfNode(Node: TVRMLNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].Node = Node then
+    if List^[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -5676,7 +5676,7 @@ end;
 function TVRMLNodeNames.IndexOfName(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if Items[Result].Name = Name then
+    if List^[Result].Name = Name then
       Exit;
   Result := -1;
 end;
@@ -5719,8 +5719,8 @@ begin
   I := IndexOfName(Name);
   if I <> -1 then
   begin
-    Result := Items[I].Node;
-    NodeFinished := Items[I].Finished;
+    Result := List^[I].Node;
+    NodeFinished := List^[I].Finished;
   end else
     Result := nil;
 end;
@@ -5946,7 +5946,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I](Node);
+    List^[I](Node);
 end;
 
 { unit init/fini ------------------------------------------------------------ }

@@ -74,12 +74,12 @@ begin
         glBegin(GL_POLYGON);
           for I := 0 to CoordIndex.Count - 1 do
           begin
-            if CoordIndex.Items[I] < 0 then
+            if CoordIndex.List^[I] < 0 then
             begin
               glEnd;
               glBegin(GL_POLYGON);
             end else
-              glVertexv(Vertexes.Items[CoordIndex.Items[I]]);
+              glVertexv(Vertexes.List^[CoordIndex.List^[I]]);
           end;
         glEnd;
       end;
@@ -88,12 +88,12 @@ begin
         glBegin(GL_TRIANGLE_FAN);
           for I := 0 to CoordIndex.Count - 1 do
           begin
-            if CoordIndex.Items[I] < 0 then
+            if CoordIndex.List^[I] < 0 then
             begin
               glEnd;
               glBegin(GL_TRIANGLE_FAN);
             end else
-              glVertexv(Vertexes.Items[CoordIndex.Items[I]]);
+              glVertexv(Vertexes.List^[CoordIndex.List^[I]]);
           end;
         glEnd;
       end;
@@ -101,7 +101,7 @@ begin
       begin
         glBegin(GL_TRIANGLES);
           for I := 0 to TrianglesCoordIndex.Count - 1 do
-            glVertexv(Vertexes.Items[TrianglesCoordIndex.Items[I]]);
+            glVertexv(Vertexes.List^[TrianglesCoordIndex.List^[I]]);
         glEnd;
       end;
     rmVARTrianglesByVertex,
@@ -110,7 +110,7 @@ begin
       begin
         glBegin(GL_TRIANGLES);
           for I := 0 to TrianglesCoordIndex.Count - 1 do
-            glArrayElement(TrianglesCoordIndex.Items[I]);
+            glArrayElement(TrianglesCoordIndex.List^[I]);
         glEnd;
       end;
     rmVARTriangles,
@@ -279,9 +279,9 @@ procedure MakeTrianglesCoordIndex;
     begin
       C := TrianglesCoordIndex.Count;
       TrianglesCoordIndex.Count := TrianglesCoordIndex.Count + 3;
-      TrianglesCoordIndex.Items[C    ] := CoordIndex.Items[FirstIndex    ];
-      TrianglesCoordIndex.Items[C + 1] := CoordIndex.Items[BeginIndex + 1];
-      TrianglesCoordIndex.Items[C + 2] := CoordIndex.Items[BeginIndex + 2];
+      TrianglesCoordIndex.List^[C    ] := CoordIndex.List^[FirstIndex    ];
+      TrianglesCoordIndex.List^[C + 1] := CoordIndex.List^[BeginIndex + 1];
+      TrianglesCoordIndex.List^[C + 2] := CoordIndex.List^[BeginIndex + 2];
       Inc(BeginIndex);
     end;
   end;
@@ -294,7 +294,7 @@ begin
   begin
     EndIndex := BeginIndex;
     while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items[EndIndex] >= 0) do
+          (CoordIndex.List^[EndIndex] >= 0) do
       Inc(EndIndex);
     Poly(BeginIndex, EndIndex);
     BeginIndex := EndIndex + 1;

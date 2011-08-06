@@ -151,7 +151,7 @@ var
   function NextNotOut(Index: Integer): Integer;
   begin
     Result := Index;
-    repeat Result := (Result+1) mod Count until not Outs.Items[Result];
+    repeat Result := (Result+1) mod Count until not Outs[Result];
   end;
 
 var
@@ -185,8 +185,7 @@ begin
     P0 := -1;
     Outs := TDynBooleanArray.Create;
     try
-      Outs.Count := Count;
-      Outs.SetAll(false);
+      Outs.Count := Count; { TFPGList initialized everything to false }
 
       while Corners >= 3 do
       begin
@@ -210,7 +209,7 @@ begin
 
           Empty := true;
           for I := 0 to Count - 1 do
-            if (not Outs.Items[I]) and
+            if (not Outs[I]) and
                (I <> P0) and
                (I <> P1) and
                (I <> P2) and
@@ -225,7 +224,7 @@ begin
 
         NewTriangle(P0, P1, P2);
 
-        Outs.Items[P1] := true;
+        Outs[P1] := true;
         Dec(Corners);
       end;
     finally Outs.Free end;

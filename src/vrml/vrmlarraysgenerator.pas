@@ -226,6 +226,92 @@ implementation
 uses SysUtils, KambiLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   Boxes3D, Triangulator, KambiStringUtils, FaceIndex, KambiWarnings;
 
+{ Copying to interleaved memory utilities ------------------------------------ }
+
+{ Copy Source contents to given Target memory. Each item in Target
+  is separated by the Stride bytes.
+
+  We copy CopyCount items (you usually want to pass the count of Target
+  data here). Source.Count must be >= CopyCount,
+  we check it and eventually raise EAssignInterleavedRangeError.
+
+  Warning: this is safely usable only for arrays of types that don't
+  require initialization / finalization. Otherwise target memory data
+  will be properly referenced.
+
+  @raises EAssignInterleavedRangeError When Count < CopyCount. }
+procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
+  const Stride, CopyCount: Cardinal); forward;
+
+{ Copy Source contents to given Target memory. Each item in Target
+  is separated by the Stride bytes.
+
+  We copy CopyCount items (you usually want to pass the count of Target
+  data here). Indexes.Count must be >= CopyCount,
+  we check it and eventually raise EAssignInterleavedRangeError.
+
+  Item number I is taken from Items[Indexes[I]].
+  All values on Indexes list must be valid (that is >= 0 and < Source.Count),
+  or we raise EAssignInterleavedRangeError.
+
+  Warning: this is safely usable only for arrays of types that don't
+  require initialization / finalization. Otherwise target memory data
+  will be properly referenced.
+
+  @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
+    or some index points outside of array.) }
+procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
+  const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray); forward;
+
+procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
+  const Stride, CopyCount: Cardinal);
+var
+  I: Integer;
+  SourcePtr: Pointer;
+begin
+  if Source.Count < CopyCount then
+    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
+      [Source.Count, CopyCount]);
+
+  SourcePtr := Source.List;
+  for I := 0 to CopyCount - 1 do
+  begin
+    Move(SourcePtr^, Target^, Source.ItemSize);
+    PtrUInt(SourcePtr) += Source.ItemSize;
+    PtrUInt(Target) += Stride;
+  end;
+end;
+
+procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
+  const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);
+var
+  I: Integer;
+  Index: LongInt;
+begin
+  if Indexes.Count < CopyCount then
+    raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
+      [Indexes.Count, CopyCount]);
+
+  for I := 0 to CopyCount - 1 do
+  begin
+    Index := Indexes.List^[I];
+    if (Index < 0) or
+       (Index >= Source.Count) then
+      raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
+        [Index, Source.Count]);
+
+    { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
+      This would cause noticeable slowdown when using AssignToInterleavedIndexed
+      for VRMLArraysGenerator, that in turn affects dynamic scenes
+      and especially dynamic shading like radiance_transfer. }
+    Move(Pointer(PtrUInt(Source.List) + PtrUInt(Index) * PtrUInt(Source.ItemSize))^,
+      Target^, Source.ItemSize);
+    PtrUInt(Target) += Stride;
+  end;
+end;
+
+{ classes -------------------------------------------------------------------- }
+
 type
   TTextureCoordsImplementation = (
     { Texture coords not generated, because not needed by Renderer. }
@@ -703,14 +789,13 @@ begin
 
         Arrays.Count := Coord.Count;
 
-        Coord.Items.AssignToInterleaved(Arrays.Position, Arrays.CoordinateSize, Arrays.Count);
+        AssignToInterleaved(Coord.Items, Arrays.Position, Arrays.CoordinateSize, Arrays.Count);
       end else
       begin
         Arrays.Count := IndexesFromCoordIndex.Count;
 
         { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
-        Coord.Items.AssignToInterleavedIndexed(
-          Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+        AssignToInterleavedIndexed(Coord.Items, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
       end;
 
       GenerateCoordinateBegin;
@@ -750,7 +835,7 @@ begin
   begin
     if Arrays.Indexes = nil then
       Inc(ArrayIndexNum) else
-      ArrayIndexNum := CoordIndex.Items.Items[IndexNum];
+      ArrayIndexNum := CoordIndex.Items.List^[IndexNum];
   end else
     ArrayIndexNum := IndexNum;
 end;
@@ -762,8 +847,8 @@ begin
   Assert(IndexNum < CoordCount);
 
   if CoordIndex <> nil then
-    Result := Coord.ItemsSafe[CoordIndex.Items.Items[IndexNum]] else
-    Result := Coord.Items.Items[IndexNum];
+    Result := Coord.ItemsSafe[CoordIndex.Items.List^[IndexNum]] else
+    Result := Coord.Items.List^[IndexNum];
 end;
 
 function TVRMLArraysGenerator.CoordCount: Integer;
@@ -819,7 +904,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         or
         ( (Tex is TNodeMultiTexture) and
           (TNodeMultiTexture(Tex).FdTexture.Count > TexUnit) and
-          IsSingleTexture3D(TNodeMultiTexture(Tex).FdTexture.Items[TexUnit])
+          IsSingleTexture3D(TNodeMultiTexture(Tex).FdTexture[TexUnit])
         )));
   end;
 
@@ -1087,7 +1172,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       MultiTexCoord := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Items;
       SetTexLengths(MultiTexCoord.Count);
       for I := 0 to MultiTexCoord.Count - 1 do
-        AddSingleTexCoord(I, MultiTexCoord.Items[I]);
+        AddSingleTexCoord(I, MultiTexCoord[I]);
     end else
     begin
       SetTexLengths(1);
@@ -1248,7 +1333,7 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
     I: Integer;
 
     procedure Handle(const Dimensions: TTexCoordDimensions;
-      TexCoordArray: TDynArrayBase);
+      TexCoordArray: TFPSList);
     var
       A: Pointer;
     begin
@@ -1257,14 +1342,14 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
       if TexImplementation = tcCoordIndexed then
       begin
         if Arrays.Indexes <> nil then
-          TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize, Arrays.Count) else
-          TexCoordArray.AssignToInterleavedIndexed(A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
+          AssignToInterleaved(TexCoordArray, A, Arrays.AttributeSize, Arrays.Count) else
+          AssignToInterleavedIndexed(TexCoordArray, A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
       end else
       begin
         Assert(TexImplementation = tcNonIndexed);
         Assert(CoordIndex = nil); { tcNonIndexed happens only for non-indexed triangle/quad primitives }
         Assert(Arrays.Indexes = nil);
-        TexCoordArray.AssignToInterleaved(A, Arrays.AttributeSize, Arrays.Count);
+        AssignToInterleaved(TexCoordArray, A, Arrays.AttributeSize, Arrays.Count);
       end;
     end;
 
@@ -1362,11 +1447,11 @@ begin
             TexCoordIndex.Count >= CoordIndex.Count, so the IndexNum index
             is Ok for sure. That's why we don't do "ItemsSafe"
             for TexCoordIndex. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.Items[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.List^[IndexNum]);
         tcCoordIndexed:
           { We already checked that IndexNum < CoordCount, so the first index
             is Ok for sure. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.Items[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.List^[IndexNum]);
         tcNonIndexed:
           SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, IndexNum);
         else raise EInternalError.Create('TAbstractTextureCoordinateGenerator.GetTextureCoord?');
@@ -1406,7 +1491,7 @@ procedure TAbstractTextureCoordinateGenerator.GenerateVertex(indexNum: integer);
 begin
   inherited;
   if TexImplementation = tcTexIndexed then
-    DoTexCoord(TexCoordIndex.Items.Items[IndexNum]);
+    DoTexCoord(TexCoordIndex.Items.List^[IndexNum]);
 end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
@@ -1427,7 +1512,7 @@ procedure TAbstractMaterial1Generator.UpdateMat1Implementation;
       { For VRML 1.0, [-1] value is default for materialIndex
         and should be treated as "empty", as far as I understand
         the spec. }
-      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.Items[0] = -1)));
+      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.List^[0] = -1)));
   end;
 
 begin
@@ -1501,7 +1586,7 @@ begin
     miPerFace:
       FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
-      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.Items[RangeNumber]);
+      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.List^[RangeNumber]);
   end;
 end;
 
@@ -1591,7 +1676,7 @@ begin
       VertexIndex := IndexNum;
 
     VertexColor := OnRadianceTransfer(Geometry,
-      @(RadianceTransfer.Items[VertexIndex * RadianceTransferVertexSize]),
+      @(RadianceTransfer.List^[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
     Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
@@ -1673,7 +1758,7 @@ begin
 
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
         Result := niPerVertexNormalIndexed;
     BIND_PER_VERTEX:
       if CoordIndex <> nil then
@@ -1684,7 +1769,7 @@ begin
     BIND_PER_PART, BIND_PER_FACE:
       Result := niPerFace;
     BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.Items[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
         Result := niPerFaceNormalIndexed;
   end;
 
@@ -1699,7 +1784,7 @@ function TAbstractNormalGenerator.CcwNormalsSafe(
   const Index: Integer): TVector3Single;
 begin
   if Index < CcwNormals.Count then
-    Result := CcwNormals.Items[Index] else
+    Result := CcwNormals.List^[Index] else
     Result := ZeroVector3Single;
 end;
 
@@ -1708,17 +1793,17 @@ procedure TAbstractNormalGenerator.GetNormal(
 begin
   case NorImplementation of
     niOverall:
-      N := CcwNormals.Items[0];
+      N := CcwNormals.List^[0];
     niPerVertexNonIndexed:
-      N := CcwNormals.Items[IndexNum];
+      N := CcwNormals.List^[IndexNum];
     niPerVertexCoordIndexed:
-      N := CcwNormals.Items[CoordIndex.Items.Items[IndexNum]];
+      N := CcwNormals.List^[CoordIndex.Items.List^[IndexNum]];
     niPerVertexNormalIndexed:
-      N := CcwNormals.Items[NormalIndex.ItemsSafe[IndexNum]];
+      N := CcwNormals.List^[NormalIndex.ItemsSafe[IndexNum]];
     niPerFace:
-      N := CcwNormals.Items[RangeNumber];
+      N := CcwNormals.List^[RangeNumber];
     niPerFaceNormalIndexed:
-      N := CcwNormals.Items[NormalIndex.ItemsSafe[RangeNumber]];
+      N := CcwNormals.List^[NormalIndex.ItemsSafe[RangeNumber]];
     else
       raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
@@ -1784,13 +1869,13 @@ begin
   if NorImplementation = niPerVertexCoordIndexed then
   begin
     if Arrays.Indexes <> nil then
-      CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
-      CcwNormals.AssignToInterleavedIndexed(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+      AssignToInterleaved(CcwNormals, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
+      AssignToInterleavedIndexed(CcwNormals, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
     Assert(Arrays.Indexes = nil);
-    CcwNormals.AssignToInterleaved(Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
+    AssignToInterleaved(CcwNormals, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
   end else
   if NorImplementation = niOverall then
   begin
@@ -1850,11 +1935,11 @@ procedure TAbstractFogGenerator.GenerateVertex(
   begin
     { make IndexNum independent of coordIndex, always work like index to coords }
     if CoordIndex <> nil then
-      IndexNum := CoordIndex.Items.Items[IndexNum];
+      IndexNum := CoordIndex.Items.List^[IndexNum];
 
     { calculate Fog, based on FogCoord and IndexNum }
     if IndexNum < FogCoord.Count then
-      Result := FogCoord.Items[IndexNum] else
+      Result := FogCoord.List^[IndexNum] else
     if FogCoord.Count <> 0 then
       Result := FogCoord.Last else
       Result := 0; //< some default
@@ -1866,8 +1951,8 @@ procedure TAbstractFogGenerator.GenerateVertex(
   begin
     { calculate global vertex position }
     if CoordIndex <> nil then
-      Position := Coord.Items.Items[CoordIndex.Items.Items[IndexNum]] else
-      Position := Coord.Items.Items[IndexNum];
+      Position := Coord.Items.List^[CoordIndex.Items.List^[IndexNum]] else
+      Position := Coord.Items.List^[IndexNum];
     Position := MatrixMultPoint(State.Transform, Position);
 
     Projected := PointOnLineClosestToPoint(
@@ -2011,7 +2096,7 @@ begin
   if Attrib <> nil then
   begin
     if CoordIndex <> nil then
-      VertexIndex := CoordIndex.Items.Items[IndexNum] else
+      VertexIndex := CoordIndex.Items.List^[IndexNum] else
       VertexIndex := IndexNum;
 
     for I := 0 to Attrib.Count - 1 do

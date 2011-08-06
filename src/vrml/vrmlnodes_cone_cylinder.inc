@@ -254,7 +254,7 @@ begin
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, @(Coord.List^[BottomCircleIndex]));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
-      Normal.Items[BottomCircleIndex + I] := Vector3Single(0, -1, 0);
+      Normal.List^[BottomCircleIndex + I] := Vector3Single(0, -1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
@@ -262,26 +262,21 @@ begin
     end;
 
     BottomMiddleIndex := Coord.Count;
-    Coord.Count := Coord.Count + 1;
-    Coord.Last := Vector3Single(0, -Height / 2, 0);
-    Normal.Count := Normal.Count + 1;
-    Normal.Last := Vector3Single(0, -1, 0);
+    Coord.Add^ := Vector3Single(0, -Height / 2, 0);
+    Normal.Add^ := Vector3Single(0, -1, 0);
     if TexCoord <> nil then
-    begin
-      TexCoord.Count := TexCoord.Count + 1;
-      TexCoord.Last := Vector2Single(0.5, 0.5);
-    end;
+      TexCoord.Add^ := Vector2Single(0.5, 0.5);
 
     BottomFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
     for I := 0 to QuadricSlices - 1 do
     begin
       if I <> QuadricSlices - 1 then
-        CoordIndex.Items[BottomFaceIndex + I * 4  ] := BottomCircleIndex + I + 1 else
-        CoordIndex.Items[BottomFaceIndex + I * 4  ] := BottomCircleIndex;
-      CoordIndex.Items[BottomFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
-      CoordIndex.Items[BottomFaceIndex + I * 4 + 2] := BottomMiddleIndex;
-      CoordIndex.Items[BottomFaceIndex + I * 4 + 3] := -1;
+        CoordIndex.List^[BottomFaceIndex + I * 4  ] := BottomCircleIndex + I + 1 else
+        CoordIndex.List^[BottomFaceIndex + I * 4  ] := BottomCircleIndex;
+      CoordIndex.List^[BottomFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
+      CoordIndex.List^[BottomFaceIndex + I * 4 + 2] := BottomMiddleIndex;
+      CoordIndex.List^[BottomFaceIndex + I * 4 + 3] := -1;
     end;
 
     if MaterialIndex <> nil then
@@ -290,8 +285,8 @@ begin
         For VRML 1.0 Cone (TopRadius = 0), this is material 1,
         for VRML 1.0 Cylinder this is material 2. }
       if TopRadius = 0 then
-        MaterialIndex.Add(1, QuadricSlices) else
-        MaterialIndex.Add(2, QuadricSlices);
+        MaterialIndex.AddDuplicate(1, QuadricSlices) else
+        MaterialIndex.AddDuplicate(2, QuadricSlices);
     end;
   end;
 
@@ -302,7 +297,7 @@ begin
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, @(Coord.List^[TopCircleIndex]));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
-      Normal.Items[TopCircleIndex + I] := Vector3Single(0, 1, 0);
+      Normal.List^[TopCircleIndex + I] := Vector3Single(0, 1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
@@ -310,33 +305,28 @@ begin
     end;
 
     TopMiddleIndex := Coord.Count;
-    Coord.Count := Coord.Count + 1;
-    Coord.Last := Vector3Single(0, Height / 2, 0);
-    Normal.Count := Normal.Count + 1;
-    Normal.Last := Vector3Single(0, 1, 0);
+    Coord.Add^ := Vector3Single(0, Height / 2, 0);
+    Normal.Add^ := Vector3Single(0, 1, 0);
     if TexCoord <> nil then
-    begin
-      TexCoord.Count := TexCoord.Count + 1;
-      TexCoord.Last := Vector2Single(0.5, 0.5);
-    end;
+      TexCoord.Add^ := Vector2Single(0.5, 0.5);
 
     TopFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
     for I := 0 to QuadricSlices - 1 do
     begin
-      CoordIndex.Items[TopFaceIndex + I * 4    ] := TopCircleIndex + I;
+      CoordIndex.List^[TopFaceIndex + I * 4    ] := TopCircleIndex + I;
       if I <> QuadricSlices - 1 then
-        CoordIndex.Items[TopFaceIndex + I * 4 + 1] := TopCircleIndex + I + 1 else
-        CoordIndex.Items[TopFaceIndex + I * 4 + 1] := TopCircleIndex;
-      CoordIndex.Items[TopFaceIndex + I * 4 + 2] := TopMiddleIndex;
-      CoordIndex.Items[TopFaceIndex + I * 4 + 3] := -1;
+        CoordIndex.List^[TopFaceIndex + I * 4 + 1] := TopCircleIndex + I + 1 else
+        CoordIndex.List^[TopFaceIndex + I * 4 + 1] := TopCircleIndex;
+      CoordIndex.List^[TopFaceIndex + I * 4 + 2] := TopMiddleIndex;
+      CoordIndex.List^[TopFaceIndex + I * 4 + 3] := -1;
     end;
 
     if MaterialIndex <> nil then
     begin
       { fill materialIndex for top disk (this will be called only for VRML 1.0
         Cylinder). }
-      MaterialIndex.Add(1, QuadricSlices);
+      MaterialIndex.AddDuplicate(1, QuadricSlices);
     end;
   end;
 
@@ -354,16 +344,16 @@ begin
     SideBottomCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, @(Coord.List^[SideBottomCircleIndex]));
-    Coord.Last := Coord.Items[SideBottomCircleIndex];
+    Coord.List^[Coord.Count - 1] := Coord.List^[SideBottomCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.Items[SideBottomCircleIndex + I] := SideNormal(I);
-    Normal.Last := Normal.Items[SideBottomCircleIndex];
+      Normal.List^[SideBottomCircleIndex + I] := SideNormal(I);
+    Normal.List^[Normal.Count - 1] := Normal.List^[SideBottomCircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.Items[SideBottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 0);
+        TexCoord.List^[SideBottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 0);
     end;
 
     { Add additional "stacks" to the geometry. }
@@ -376,31 +366,31 @@ begin
         MiddleCircleIndex := Coord.Count;
         Coord.Count := Coord.Count + QuadricSlices + 1;
         GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, @(Coord.List^[MiddleCircleIndex]));
-        Coord.Last := Coord.Items[MiddleCircleIndex];
+        Coord.List^[Coord.Count - 1] := Coord.List^[MiddleCircleIndex];
         Normal.Count := Normal.Count + QuadricSlices + 1;
         for I := 0 to QuadricSlices - 1 do
-          Normal.Items[MiddleCircleIndex + I] := Normal.Items[SideBottomCircleIndex + I];
-        Normal.Last := Normal.Items[MiddleCircleIndex];
+          Normal.List^[MiddleCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
+        Normal.List^[Normal.Count - 1] := Normal.List^[MiddleCircleIndex];
         if TexCoord <> nil then
         begin
           TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
           for I := 0 to QuadricSlices do
-            TexCoord.Items[MiddleCircleIndex + I] := Vector2Single(I / QuadricSlices, Stack);
+            TexCoord.List^[MiddleCircleIndex + I] := Vector2Single(I / QuadricSlices, Stack);
         end;
 
         MiddleFaceIndex := CoordIndex.Count;
         CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
         for I := 0 to QuadricSlices - 1 do
         begin
-          CoordIndex.Items[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
-          CoordIndex.Items[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-          CoordIndex.Items[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-          CoordIndex.Items[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
-          CoordIndex.Items[MiddleFaceIndex + I * 5 + 4] := -1;
+          CoordIndex.List^[MiddleFaceIndex + I * 5    ] := MiddleCircleIndex     + I;
+          CoordIndex.List^[MiddleFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+          CoordIndex.List^[MiddleFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+          CoordIndex.List^[MiddleFaceIndex + I * 5 + 3] := MiddleCircleIndex     + I + 1;
+          CoordIndex.List^[MiddleFaceIndex + I * 5 + 4] := -1;
         end;
 
         if MaterialIndex <> nil then
-          MaterialIndex.Add(0, QuadricSlices);
+          MaterialIndex.AddDuplicate(0, QuadricSlices);
 
         { Next stack added. Now replace SideBottomCircleIndex,
           to say that the the current circle is the bottom now. }
@@ -413,16 +403,16 @@ begin
       QuadricSlices * top points.
       See comments at the beginning about "How to make smooth normals...". }
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, @(Coord.List^[SideTopCircleIndex]));
-    Coord.Last := Coord.Items[SideTopCircleIndex];
+    Coord.List^[Coord.Count - 1] := Coord.List^[SideTopCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.Items[SideTopCircleIndex + I] := Normal.Items[SideBottomCircleIndex + I];
-    Normal.Last := Normal.Items[SideTopCircleIndex];
+      Normal.List^[SideTopCircleIndex + I] := Normal.List^[SideBottomCircleIndex + I];
+    Normal.List^[Normal.Count - 1] := Normal.List^[SideTopCircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.Items[SideTopCircleIndex + I] := Vector2Single(I / QuadricSlices, 1);
+        TexCoord.List^[SideTopCircleIndex + I] := Vector2Single(I / QuadricSlices, 1);
     end;
 
     SideFaceIndex := CoordIndex.Count;
@@ -431,11 +421,11 @@ begin
       CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
       for I := 0 to QuadricSlices - 1 do
       begin
-        CoordIndex.Items[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
-        CoordIndex.Items[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
-        CoordIndex.Items[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
-        CoordIndex.Items[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
-        CoordIndex.Items[SideFaceIndex + I * 5 + 4] := -1;
+        CoordIndex.List^[SideFaceIndex + I * 5    ] := SideTopCircleIndex    + I;
+        CoordIndex.List^[SideFaceIndex + I * 5 + 1] := SideBottomCircleIndex + I;
+        CoordIndex.List^[SideFaceIndex + I * 5 + 2] := SideBottomCircleIndex + I + 1;
+        CoordIndex.List^[SideFaceIndex + I * 5 + 3] := SideTopCircleIndex    + I + 1;
+        CoordIndex.List^[SideFaceIndex + I * 5 + 4] := -1;
       end;
     end else
     begin
@@ -448,15 +438,15 @@ begin
       CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
       for I := 0 to QuadricSlices - 1 do
       begin
-        CoordIndex.Items[SideFaceIndex + I * 4    ] := SideBottomCircleIndex + I;
-        CoordIndex.Items[SideFaceIndex + I * 4 + 1] := SideBottomCircleIndex + I + 1;
-        CoordIndex.Items[SideFaceIndex + I * 4 + 2] := SideTopCircleIndex    + I + 1;
-        CoordIndex.Items[SideFaceIndex + I * 4 + 3] := -1;
+        CoordIndex.List^[SideFaceIndex + I * 4    ] := SideBottomCircleIndex + I;
+        CoordIndex.List^[SideFaceIndex + I * 4 + 1] := SideBottomCircleIndex + I + 1;
+        CoordIndex.List^[SideFaceIndex + I * 4 + 2] := SideTopCircleIndex    + I + 1;
+        CoordIndex.List^[SideFaceIndex + I * 4 + 3] := -1;
       end;
     end;
 
     if MaterialIndex <> nil then
-      MaterialIndex.Add(0, QuadricSlices);
+      MaterialIndex.AddDuplicate(0, QuadricSlices);
   end;
 end;
 

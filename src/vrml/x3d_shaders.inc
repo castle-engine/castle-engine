@@ -239,8 +239,8 @@ var
 begin
   Result := '(urls:';
   for I := 0 to FdParts.Count - 1 do
-    if FdParts.Items[I] is TNodeShaderPart then
-      Result += ' ' + TNodeShaderPart(FdParts.Items[I]).UsedFullUrl;
+    if FdParts[I] is TNodeShaderPart then
+      Result += ' ' + TNodeShaderPart(FdParts[I]).UsedFullUrl;
   Result += ')';
 end;
 

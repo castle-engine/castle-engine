@@ -232,7 +232,7 @@ var
     if Locations <> nil then
     begin
       for I := 0 to Locations.Count - 1 do
-        TGLSLProgram.DisableVertexAttribArray(Locations.Items[I]);
+        TGLSLProgram.DisableVertexAttribArray(Locations[I]);
       FreeAndNil(Locations);
     end;
   end;

@@ -1067,7 +1067,7 @@ type
       @italic(Descendants implementors notes): You have to initialize this field
       in descendants' constructor, it will be always freed in our
       destructor. }
-    RawItems: TDynArrayBase;
+    RawItems: TFPSList;
 
     { A corresponding SF field class. All items that will be passed
       to RawItemsAdd will be of this class. }
@@ -3328,7 +3328,7 @@ var
 begin
   RawItems.Clear;
 
-  RawItems.AllowedCapacityOverflow := 100;
+  RawItems.Capacity := 100;
   SingleItem := nil;
   try
     SingleItem := CreateItemBeforeParse;
@@ -3367,10 +3367,7 @@ begin
       RawItemsAdd(SingleItem);
     end;
 
-  finally
-    FreeAndNil(SingleItem);
-    RawItems.AllowedCapacityOverflow := 4;
-  end;
+  finally FreeAndNil(SingleItem) end;
 end;
 
 procedure TVRMLSimpleMultField.ParseXMLAttributeLexer(Lexer: TVRMLLexer);
@@ -3384,7 +3381,7 @@ begin
 
   RawItems.Clear;
 
-  RawItems.AllowedCapacityOverflow := 100;
+  RawItems.Capacity := 100;
   SingleItem := CreateItemBeforeParse;
   try
     while Lexer.Token <> vtEnd do
@@ -3392,10 +3389,7 @@ begin
       SingleItem.ParseValue(Lexer, nil);
       RawItemsAdd(SingleItem);
     end;
-  finally
-    FreeAndNil(SingleItem);
-    RawItems.AllowedCapacityOverflow := 4;
-  end;
+  finally FreeAndNil(SingleItem) end;
 end;
 
 procedure TVRMLSimpleMultField.SaveToStreamValue(Writer: TX3DWriter);
@@ -5236,7 +5230,7 @@ begin
     0: DefaultValuesCount := 0;
     1: begin
          DefaultValuesCount := 1;
-         DefaultValue := Items.Items[0];
+         DefaultValue := Items.List^[0];
        end;
     else DefaultValuesCount := -1;
   end;
@@ -5255,7 +5249,7 @@ end;
 function TMF_CLASS.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.Items[Index] else
+    Result := Items.List^[Index] else
   begin
     OnWarning_InvalidIndex(Index, Count);
     Result := TMF_DYN_DEFAULT_SAFE_VALUE;
@@ -5265,7 +5259,7 @@ end;
 procedure TMF_CLASS.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Items.Items[Index] := Value else
+    Items.List^[Index] := Value else
   begin
     OnWarning_InvalidIndex(Index, Count);
   end;
@@ -5298,7 +5292,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.Items[0]));
+     (DefaultValue = Items.List^[0]));
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5311,7 +5305,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not (TMF_CLASS(SecondValue).Items.Items[I] = Items.Items[I]) then
+   if not (TMF_CLASS(SecondValue).Items.List^[I] = Items.List^[I]) then
     Exit(false);
 end;
 }
@@ -5335,7 +5329,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not CompareMem(@TMF_CLASS(SecondValue).Items.Items[I], @Items.Items[I],
+   if not CompareMem(@(TMF_CLASS(SecondValue).Items.List^[I]), @(Items.List^[I]),
      SizeOf(TMF_STATIC_ITEM)) then
     Exit(false);
 end;
@@ -5347,7 +5341,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-      VectorsPerfectlyEqual(DefaultValue, Items.Items[0]) );
+      VectorsPerfectlyEqual(DefaultValue, Items.List^[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5360,14 +5354,14 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not VectorsEqual(TMF_CLASS(SecondValue).Items.Items[I], Items.Items[I],
+   if not VectorsEqual(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
      EqualityEpsilon) then
     Exit(false);
 end;
 
 function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := VectorToRawStr(Items.Items[ItemNum])
+  Result := VectorToRawStr(Items.List^[ItemNum])
 end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -5386,7 +5380,7 @@ begin
   Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.Items[I] := Lerp(A, Items1.Items[I], Items2.Items[I]);
+    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
 end;
 
 function TMF_CLASS.CanAssignLerp: boolean;
@@ -5401,7 +5395,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-      MatricesPerfectlyEqual(DefaultValue, Items.Items[0]) );
+      MatricesPerfectlyEqual(DefaultValue, Items.List^[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5414,7 +5408,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not MatricesEqual(TMF_CLASS(SecondValue).Items.Items[I], Items.Items[I],
+   if not MatricesEqual(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
      EqualityEpsilon) then
     Exit(false);
 end;
@@ -5423,9 +5417,9 @@ function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncodin
 var
   Column: Integer;
 begin
-  Result := VectorToRawStr(Items.Items[ItemNum][0]);
+  Result := VectorToRawStr(Items.List^[ItemNum][0]);
   for Column := 1 to TSF_MATRIX_COLS - 1 do
-    Result += ' ' + VectorToRawStr(Items.Items[ItemNum][Column]);
+    Result += ' ' + VectorToRawStr(Items.List^[ItemNum][Column]);
 end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -5444,7 +5438,7 @@ begin
   Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.Items[I] := Lerp(A, Items1.Items[I], Items2.Items[I]);
+    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
 end;
 
 function TMF_CLASS.CanAssignLerp: boolean;
@@ -5459,7 +5453,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.Items[0]) );
+     (DefaultValue = Items.List^[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5472,7 +5466,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not FloatsEqual(TMF_CLASS(SecondValue).Items.Items[I], Items.Items[I],
+   if not FloatsEqual(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
      EqualityEpsilon) then
     Exit(false);
 end;
@@ -5625,7 +5619,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 
 function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := BoolKeywords[Encoding][Items.Items[ItemNum]];
+  Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
 
 class function TMFBool.VRMLTypeName: string;
@@ -5637,12 +5631,12 @@ end;
 
 function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin
-  Result := SaveToStreamLineUptoNegative and (Items.Items[ItemNum] < 0);
+  Result := SaveToStreamLineUptoNegative and (Items[ItemNum] < 0);
 end;
 
 function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := IntToStr(Items.Items[ItemNum])
+  Result := IntToStr(Items[ItemNum])
 end;
 
 class function TMFLong.VRMLTypeName: string;
@@ -5802,7 +5796,7 @@ end;
 
 function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := FloatToRawStr(Items.Items[ItemNum]);
+  Result := FloatToRawStr(Items[ItemNum]);
 end;
 
 procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -5817,7 +5811,7 @@ begin
   Items.Count := Val1.Items.Count;
 
   for I := 0 to Items.Count - 1 do
-    Items.Items[I] := Lerp(A, Val1.Items.Items[I], Val2.Items.Items[I]);
+    Items[I] := Lerp(A, Val1.Items[I], Val2.Items[I]);
 end;
 
 function TMFFloat.CanAssignLerp: boolean;
@@ -5839,7 +5833,7 @@ end;
 
 function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := FloatToRawStr(Items.Items[ItemNum]);
+  Result := FloatToRawStr(Items[ItemNum]);
 end;
 
 procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -5854,7 +5848,7 @@ begin
   Items.Count := Val1.Items.Count;
 
   for I := 0 to Items.Count - 1 do
-   Items.Items[I] := Lerp(A, Val1.Items.Items[I], Val2.Items.Items[I]);
+   Items[I] := Lerp(A, Val1.Items[I], Val2.Items[I]);
 end;
 
 function TMFDouble.CanAssignLerp: boolean;
@@ -5879,8 +5873,8 @@ end;
 function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
 begin
   case Encoding of
-    xeClassic: Result := StringToX3DClassic(Items.Items[ItemNum]);
-    xeXML    : Result := StringToX3DXmlMulti(Items.Items[ItemNum]);
+    xeClassic: Result := StringToX3DClassic(Items[ItemNum]);
+    xeXML    : Result := StringToX3DXmlMulti(Items[ItemNum]);
     else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
   end;
 end;

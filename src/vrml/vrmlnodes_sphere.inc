@@ -75,30 +75,30 @@ begin
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices do
   begin
-    Coord.Items[BottomIndex + I] := Vector3Single(0, -Radius, 0);
-    Normal.Items[BottomIndex + I] := Vector3Single(0, -1, 0);
+    Coord.List^[BottomIndex + I] := Vector3Single(0, -Radius, 0);
+    Normal.List^[BottomIndex + I] := Vector3Single(0, -1, 0);
   end;
   if TexCoord <> nil then
   begin
     TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices do
-      TexCoord.Items[BottomIndex + I] := Vector2Single(I / QuadricSlices, 0);
+      TexCoord.List^[BottomIndex + I] := Vector2Single(I / QuadricSlices, 0);
   end;
 
   BottomCircleIndex := Coord.Count;
   Coord.Count := Coord.Count + QuadricSlices + 1;
   StackCircle(1, StackRadius, StackHeight);
   GenerateCircle(QuadricSlices, StackRadius, StackHeight, @(Coord.List^[BottomCircleIndex]));
-  Coord.Last := Coord.Items[BottomCircleIndex];
+  Coord[Coord.Count - 1] := Coord.List^[BottomCircleIndex];
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices - 1 do
-    Normal.Items[BottomCircleIndex + I] := Normalized(Coord.Items[BottomCircleIndex + I]);
-  Normal.Last := Normal.Items[BottomCircleIndex];
+    Normal.List^[BottomCircleIndex + I] := Normalized(Coord.List^[BottomCircleIndex + I]);
+  Normal[Normal.Count - 1] := Normal.List^[BottomCircleIndex];
   if TexCoord <> nil then
   begin
     TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices  do
-      TexCoord.Items[BottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 1 / QuadricStacks);
+      TexCoord.List^[BottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 1 / QuadricStacks);
   end;
 
   { Bottom stack, from triangles }
@@ -106,10 +106,10 @@ begin
   CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
   for I := 0 to QuadricSlices - 1 do
   begin
-    CoordIndex.Items[StackFaceIndex + I * 4    ] := BottomCircleIndex + I + 1;
-    CoordIndex.Items[StackFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
-    CoordIndex.Items[StackFaceIndex + I * 4 + 2] := BottomIndex + I;
-    CoordIndex.Items[StackFaceIndex + I * 4 + 3] := -1;
+    CoordIndex.List^[StackFaceIndex + I * 4    ] := BottomCircleIndex + I + 1;
+    CoordIndex.List^[StackFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
+    CoordIndex.List^[StackFaceIndex + I * 4 + 2] := BottomIndex + I;
+    CoordIndex.List^[StackFaceIndex + I * 4 + 3] := -1;
   end;
 
   for StackNum := 2 to QuadricStacks - 1 do
@@ -120,16 +120,16 @@ begin
     Coord.Count := Coord.Count + QuadricSlices + 1;
     StackCircle(StackNum, StackRadius, StackHeight);
     GenerateCircle(QuadricSlices, StackRadius, StackHeight, @(Coord.List^[CircleIndex]));
-    Coord.Last := Coord.Items[CircleIndex];
+    Coord[Coord.Count - 1] := Coord.List^[CircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.Items[CircleIndex + I] := Normalized(Coord.Items[CircleIndex + I]);
-    Normal.Last := Normal.Items[CircleIndex];
+      Normal.List^[CircleIndex + I] := Normalized(Coord.List^[CircleIndex + I]);
+    Normal[Normal.Count - 1] := Normal.List^[CircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices  do
-        TexCoord.Items[CircleIndex + I] := Vector2Single(I / QuadricSlices, StackNum / QuadricStacks);
+        TexCoord.List^[CircleIndex + I] := Vector2Single(I / QuadricSlices, StackNum / QuadricStacks);
     end;
 
     { Next stack, from quads }
@@ -137,11 +137,11 @@ begin
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
     for I := 0 to QuadricSlices - 1 do
     begin
-      CoordIndex.Items[StackFaceIndex + I * 5    ] := BottomCircleIndex + I;
-      CoordIndex.Items[StackFaceIndex + I * 5 + 1] := BottomCircleIndex + I + 1;
-      CoordIndex.Items[StackFaceIndex + I * 5 + 2] := CircleIndex + I + 1;
-      CoordIndex.Items[StackFaceIndex + I * 5 + 3] := CircleIndex + I;
-      CoordIndex.Items[StackFaceIndex + I * 5 + 4] := -1;
+      CoordIndex.List^[StackFaceIndex + I * 5    ] := BottomCircleIndex + I;
+      CoordIndex.List^[StackFaceIndex + I * 5 + 1] := BottomCircleIndex + I + 1;
+      CoordIndex.List^[StackFaceIndex + I * 5 + 2] := CircleIndex + I + 1;
+      CoordIndex.List^[StackFaceIndex + I * 5 + 3] := CircleIndex + I;
+      CoordIndex.List^[StackFaceIndex + I * 5 + 4] := -1;
     end;
 
     BottomCircleIndex := CircleIndex;
@@ -152,14 +152,14 @@ begin
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices do
   begin
-    Coord.Items[TopIndex + I] := Vector3Single(0, Radius, 0);
-    Normal.Items[TopIndex + I] := Vector3Single(0, 1, 0);
+    Coord.List^[TopIndex + I] := Vector3Single(0, Radius, 0);
+    Normal.List^[TopIndex + I] := Vector3Single(0, 1, 0);
   end;
   if TexCoord <> nil then
   begin
     TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices do
-      TexCoord.Items[TopIndex + I] := Vector2Single(I / QuadricSlices, 1);
+      TexCoord.List^[TopIndex + I] := Vector2Single(I / QuadricSlices, 1);
   end;
 
   { Top stack, from triangles }
@@ -167,10 +167,10 @@ begin
   CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
   for I := 0 to QuadricSlices - 1 do
   begin
-    CoordIndex.Items[StackFaceIndex + I * 4    ] := BottomCircleIndex + I;
-    CoordIndex.Items[StackFaceIndex + I * 4 + 1] := BottomCircleIndex + I + 1;
-    CoordIndex.Items[StackFaceIndex + I * 4 + 2] := TopIndex + I;
-    CoordIndex.Items[StackFaceIndex + I * 4 + 3] := -1;
+    CoordIndex.List^[StackFaceIndex + I * 4    ] := BottomCircleIndex + I;
+    CoordIndex.List^[StackFaceIndex + I * 4 + 1] := BottomCircleIndex + I + 1;
+    CoordIndex.List^[StackFaceIndex + I * 4 + 2] := TopIndex + I;
+    CoordIndex.List^[StackFaceIndex + I * 4 + 3] := -1;
   end;
 end;
 

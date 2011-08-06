@@ -1885,7 +1885,7 @@ var
           shape only once within this frame (FrameId is useful here). }
         for I := 0 to Node.ItemsIndices.Count - 1 do
         begin
-          Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.Items[I]]);
+          Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
           if Shape.RenderedFrameId <> FrameId then
           begin
             RenderShape_SomeTests(Shape);
@@ -1944,7 +1944,7 @@ var
 
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.Items[I]]);
+        Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
         if Shape.RenderedFrameId <> FrameId then
           Box3DSumTo1st(Box, Shape.BoundingBox);
       end;
@@ -2170,7 +2170,7 @@ begin
                 OpaqueShapes.SortFrontToBack(CameraPosition);
 
               for I := 0 to OpaqueShapes.Count - 1 do
-                RenderShape_SomeTests(TVRMLGLShape(OpaqueShapes.Items[I]));
+                RenderShape_SomeTests(TVRMLGLShape(OpaqueShapes[I]));
             end;
 
             { draw partially transparent objects }
@@ -2190,9 +2190,9 @@ begin
 
               for I := 0 to TransparentShapes.Count - 1 do
               begin
-                AdjustBlendFunc(TVRMLGLShape(TransparentShapes.Items[I]),
+                AdjustBlendFunc(TVRMLGLShape(TransparentShapes[I]),
                   BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                RenderShape_SomeTests(TVRMLGLShape(TransparentShapes.Items[I]));
+                RenderShape_SomeTests(TVRMLGLShape(TransparentShapes[I]));
               end;
             end;
           finally
@@ -2992,7 +2992,7 @@ var
       OpaqueTrianglesBegin;
       for I := 0 to Integer(OpaqueCount) - 1 do
       begin
-        TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
+        TrianglesPlaneSide.List^[I] := PlaneSide_Identity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       OpaqueTrianglesEnd;
@@ -3000,7 +3000,7 @@ var
       TransparentTrianglesBegin;
       for I := OpaqueCount to Triangles.Count - 1 do
       begin
-        TrianglesPlaneSide.Items[I] := PlaneSide_Identity(TrianglePtr^);
+        TrianglesPlaneSide.List^[I] := PlaneSide_Identity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       TransparentTrianglesEnd;
@@ -3009,7 +3009,7 @@ var
       OpaqueTrianglesBegin;
       for I := 0 to Integer(OpaqueCount) - 1 do
       begin
-        TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
+        TrianglesPlaneSide.List^[I] := PlaneSide_NotIdentity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       OpaqueTrianglesEnd;
@@ -3017,7 +3017,7 @@ var
       TransparentTrianglesBegin;
       for I := OpaqueCount to Triangles.Count - 1 do
       begin
-        TrianglesPlaneSide.Items[I] := PlaneSide_NotIdentity(TrianglePtr^);
+        TrianglesPlaneSide.List^[I] := PlaneSide_NotIdentity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       TransparentTrianglesEnd;
@@ -3049,8 +3049,8 @@ begin
       ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
       for I := 0 to ManifoldEdgesNow.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.Items[ManifoldEdgePtr^.Triangles[0]];
-        PlaneSide1 := TrianglesPlaneSide.Items[ManifoldEdgePtr^.Triangles[1]];
+        PlaneSide0 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[1]];
 
         { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
           so only then render it's shadow quad.
@@ -3084,7 +3084,7 @@ begin
       BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
       for I := 0 to BorderEdgesNow.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.Items[BorderEdgePtr^.TriangleIndex];
+        PlaneSide0 := TrianglesPlaneSide.List^[BorderEdgePtr^.TriangleIndex];
 
         { We want to have consistent CCW orientation of shadow quads faces,
           so that face is oriented CCW <=> you're looking at it from outside
@@ -3231,7 +3231,7 @@ begin
       TrianglePtr := PTriangle3Single(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
       begin
-        TrianglesPlaneSide.Items[I] := PlaneSide(TrianglePtr^);
+        TrianglesPlaneSide.List^[I] := PlaneSide(TrianglePtr^);
         Inc(TrianglePtr);
       end;
 
@@ -3239,8 +3239,8 @@ begin
       EdgePtr := PManifoldEdge(Edges.List);
       for I := 0 to Edges.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[0]];
-        PlaneSide1 := TrianglesPlaneSide.Items[EdgePtr^.Triangles[1]];
+        PlaneSide0 := TrianglesPlaneSide.List^[EdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.List^[EdgePtr^.Triangles[1]];
 
         if PlaneSide0 <> PlaneSide1 then
           RenderEdge(0, 1);
@@ -3513,11 +3513,11 @@ begin
       end;
 
       FBackground := TVRMLGLBackground.Create(
-        @(BgNode.FdGroundAngle.Items.Items[0]), GroundAngleCount,
-        @(BgNode.FdGroundColor.Items.Items[0]), GroundColorCount,
+        PArray_Single(BgNode.FdGroundAngle.Items.List), GroundAngleCount,
+        PArray_Vector3Single(BgNode.FdGroundColor.Items.List), GroundColorCount,
         BgNode.BgImages,
-        @(BgNode.FdSkyAngle.Items.Items[0]), SkyAngleCount,
-        @(BgNode.FdSkyColor.Items.Items[0]), SkyColorCount,
+        PArray_Single(BgNode.FdSkyAngle.Items.List), SkyAngleCount,
+        PArray_Vector3Single(BgNode.FdSkyColor.Items.List), SkyColorCount,
         BackgroundSkySphereRadius);
     end;
   end else
@@ -3744,8 +3744,8 @@ begin
 
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
-    Shape := TVRMLGLShape(GeneratedTextures.Items[I].Shape);
-    TextureNode := GeneratedTextures.Items[I].TextureNode;
+    Shape := TVRMLGLShape(GeneratedTextures.List^[I].Shape);
+    TextureNode := GeneratedTextures.List^[I].TextureNode;
 
     if TextureNode is TNodeGeneratedCubeMapTexture then
       AvoidShapeRendering := Shape else
@@ -3797,22 +3797,22 @@ begin
   begin
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      if GeneratedTextures.Items[I].TextureNode is TNodeGeneratedCubeMapTexture then
+      if GeneratedTextures.List^[I].TextureNode is TNodeGeneratedCubeMapTexture then
       begin
         if [vcVisibleGeometry, vcVisibleNonGeometry] * Changes <> [] then
-          GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
+          GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
       end else
-      if GeneratedTextures.Items[I].TextureNode is TNodeGeneratedShadowMap then
+      if GeneratedTextures.List^[I].TextureNode is TNodeGeneratedShadowMap then
       begin
         if vcVisibleGeometry in Changes then
-          GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
+          GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
       end else
         { Even mere vcCamera causes regenerate of RenderedTexture,
           as RenderedTexture with viewpoint = NULL uses current camera.
           So any Changes <> [] causes regeneration of RenderedTexture.
           Also, for other than RenderedTexture nodes, default is to regenerate
           (safer).  }
-        GeneratedTextures.Items[I].Handler.UpdateNeeded := true;
+        GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
     end;
   end;
 end;

@@ -58,7 +58,7 @@ implementation
 function TDynRectangleArray.FindRectangle(const X, Y: Integer): integer;
 begin
   for Result := Count - 1 downto 0 do
-    if PointInRectangle(X, Y, Items[Result]) then
+    if PointInRectangle(X, Y, List^[Result]) then
       Exit;
   Result := -1;
 end;

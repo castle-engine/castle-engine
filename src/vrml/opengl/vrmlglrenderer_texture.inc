@@ -695,7 +695,7 @@ begin
       if UniformField is TMFNode then
       begin
         for J := 0 to TMFNode(UniformField).Count - 1 do
-          PrepareTexture(TMFNode(UniformField).Items[J]);
+          PrepareTexture(TMFNode(UniformField)[J]);
       end;
     end;
   end;
@@ -733,7 +733,7 @@ begin
       if UniformField is TMFNode then
       begin
         for J := 0 to TMFNode(UniformField).Count - 1 do
-          UnprepareTexture(TMFNode(UniformField).Items[J]);
+          UnprepareTexture(TMFNode(UniformField)[J]);
       end;
     end;
   end;
@@ -832,7 +832,7 @@ begin
 
   for I := 0 to TextureNode.FdTexture.Count - 1 do
   begin
-    ChildTex := TextureNode.FdTexture.Items[I];
+    ChildTex := TextureNode.FdTexture[I];
     if (ChildTex <> nil) and
        (ChildTex is TNodeX3DTextureNode) then
     begin
@@ -915,7 +915,7 @@ begin
 
   for I := 0 to TexCoordsNeeded - 1 do
   begin
-    ChildTex := TextureNode.FdTexture.Items.Items[I];
+    ChildTex := TextureNode.FdTexture[I];
     Success := false;
 
     if (ChildTex <> nil) and

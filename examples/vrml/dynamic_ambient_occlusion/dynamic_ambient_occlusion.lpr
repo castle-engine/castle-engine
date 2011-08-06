@@ -97,7 +97,7 @@ begin
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.Items[Indexes[I]];
+      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
@@ -165,7 +165,7 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          MatrixMultPoint(Shape.State.Transform, Coord.Items.Items[I]);
+          MatrixMultPoint(Shape.State.Transform, Coord.Items.List^[I]);
         ShapeElements[I].Normal := ZeroVector3Single;
         ShapeElements[I].Area := 0;
       end;
@@ -236,11 +236,11 @@ begin
 
   for I := 0 to Elements.Count - 1 do
   begin
-    if not PerfectlyZeroVector(Elements.Items[I].Normal) then
+    if not PerfectlyZeroVector(Elements.List^[I].Normal) then
     begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
-        Elements.Items[GoodElementsCount] := Elements.Items[I];
+        Elements.List^[GoodElementsCount] := Elements.List^[I];
       Shapes[ShapeIndex].CoordToElement[ShapeCoord] := GoodElementsCount;
       Inc(GoodElementsCount);
     end else
@@ -272,9 +272,9 @@ begin
   Writeln('Elements: ', Elements.Count);
   for I := 0 to Elements.Count - 1 do
   begin
-    Writeln('pos ', VectorToNiceStr(Elements.Items[I].Position),
-            ' nor ', VectorToNiceStr(Elements.Items[I].Normal),
-            ' area ', Elements.Items[I].Area:1:10);
+    Writeln('pos ', VectorToNiceStr(Elements.List^[I].Position),
+            ' nor ', VectorToNiceStr(Elements.List^[I].Normal),
+            ' area ', Elements.List^[I].Area:1:10);
   end;}
 end;
 
@@ -353,7 +353,7 @@ begin
   { calculate maximum area, which is just AreaScale }
   AreaScale := 0;
   for I := 0 to Elements.Count - 1 do
-    MaxTo1st(AreaScale, Elements.Items[I].Area);
+    MaxTo1st(AreaScale, Elements.List^[I].Area);
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
@@ -493,14 +493,14 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         end;
 
         glPushMatrix;
-          NewZ := Elements.Items[I].Normal;
+          NewZ := Elements.List^[I].Normal;
           NewX := AnyOrthogonalVector(NewZ);
           NewY := VectorProduct(NewZ, NewX);
-          glMultMatrix(TransformToCoordsMatrix(Elements.Items[I].Position,
+          glMultMatrix(TransformToCoordsMatrix(Elements.List^[I].Position,
             NewX, NewY, NewZ));
 
           { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
-          Radius := Sqrt(Elements.Items[I].Area/Pi);
+          Radius := Sqrt(Elements.List^[I].Area/Pi);
           gluDisk(Q, 0, Radius, 8, 2);
 
         glPopMatrix;

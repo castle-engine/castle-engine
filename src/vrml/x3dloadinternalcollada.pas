@@ -353,9 +353,9 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.Items[I][0] := Floats.Items[Offset + Stride * I + XIndex];
-    Value.Items[I][1] := Floats.Items[Offset + Stride * I + YIndex];
-    Value.Items[I][2] := Floats.Items[Offset + Stride * I + ZIndex];
+    Value.List^[I][0] := Floats.List^[Offset + Stride * I + XIndex];
+    Value.List^[I][1] := Floats.List^[Offset + Stride * I + YIndex];
+    Value.List^[I][2] := Floats.List^[Offset + Stride * I + ZIndex];
   end;
 end;
 
@@ -407,8 +407,8 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.Items[I][0] := Floats.Items[Offset + Stride * I + SIndex];
-    Value.Items[I][1] := Floats.Items[Offset + Stride * I + TIndex];
+    Value.List^[I][0] := Floats.List^[Offset + Stride * I + SIndex];
+    Value.List^[I][1] := Floats.List^[Offset + Stride * I + TIndex];
   end;
 end;
 
@@ -1201,7 +1201,7 @@ var
               ' less than declated in the count attribute');
             Break;
           end;
-          Source.Floats.Items[I] := StrToFloat(Token);
+          Source.Floats.List^[I] := StrToFloat(Token);
         end;
 
         Technique := DOMGetChildElement(SourceElement, 'technique_common', false);

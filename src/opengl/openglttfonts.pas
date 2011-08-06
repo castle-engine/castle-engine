@@ -246,17 +246,17 @@ var i, poz,
    for PolygonNum := 1 to Znak^.Info.PolygonsCount do
    begin
     { read pkNewPolygon starter }
-    Assert(Znak^.items[poz].Kind = pkNewPolygon);
-    linesCount := Znak^.items[poz].Count;
+    Assert(Znak^.Items[poz].Kind = pkNewPolygon);
+    linesCount := Znak^.Items[poz].Count;
     Inc(poz);
 
     gluTessBeginContour(tobj);
     for LineNum := 1 to linesCount do
     begin
      { read pkLines/Bezier starter }
-     Assert(Znak^.items[poz].Kind in [pkLines, pkBezier]);
-     PointsKind := Znak^.items[poz].Kind;
-     PointsCount := Znak^.items[poz].Count;
+     Assert(Znak^.Items[poz].Kind in [pkLines, pkBezier]);
+     PointsKind := Znak^.Items[poz].Kind;
+     PointsCount := Znak^.Items[poz].Count;
      Inc(poz);
 
      case PointsKind of
@@ -265,7 +265,7 @@ var i, poz,
         begin
          for PointNum := 1 to PointsCount-1 do
          begin
-          with Znak^.items[poz] do
+          with Znak^.Items[poz] do
           begin
            { vertexy dla tesselatora musza byc podawane w postaci 3 x GLdouble
              (a my mamy 2 x GLfloat). Nie mozna ich tworzyc tymczasowo (za pomoca
@@ -478,8 +478,8 @@ begin
   poz := 0;
   for PolygonNum := 1 to Znak^.Info.PolygonsCount do
   begin
-   Assert(Znak^.items[poz].Kind = pkNewPolygon);
-   linesCount := Znak^.items[poz].Count;
+   Assert(Znak^.Items[poz].Kind = pkNewPolygon);
+   linesCount := Znak^.Items[poz].Count;
    Inc(poz);
 
    { Set Normal, only to have it initially set to anything.
@@ -491,9 +491,9 @@ begin
 
    for LineNum := 1 to LinesCount do
    begin
-    Assert(Znak^.items[poz].Kind in [pkLines, pkBezier]);
-    PointsKind := Znak^.items[poz].Kind;
-    PointsCount := Znak^.items[poz].Count;
+    Assert(Znak^.Items[poz].Kind in [pkLines, pkBezier]);
+    PointsKind := Znak^.Items[poz].Kind;
+    PointsCount := Znak^.Items[poz].Count;
     Inc(poz);
 
     case PointsKind of
@@ -504,7 +504,7 @@ begin
         begin
           { Thanks to the fact that each line always has as it's last point
             the first point of next line (or the first point of this polygon),
-            we can safely assume here that Znak^.items[poz+1] is the next char. }
+            we can safely assume here that Znak^.Items[poz+1] is the next char. }
           Character := @Znak^.Items[poz];
           NextCharacter := @Znak^.Items[poz + 1];
 
@@ -540,7 +540,7 @@ begin
 
    {na koncu - laczymy ostatnia pare z pierwsza}
    if not onlyLines then
-   with Znak^.items[poz-1] do
+   with Znak^.Items[poz-1] do
    begin
     glVertex2f(x, y);
     glNormalv(Normal);

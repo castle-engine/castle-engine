@@ -87,14 +87,14 @@ var
       begin
         ThisIndex := Index + I * (Detail[C2] + 2) + J;
 
-        Coord.Items[ThisIndex][C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
-        Coord.Items[ThisIndex][C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
-        Coord.Items[ThisIndex][ConstCoord] := ConstCoordValue;
+        Coord.List^[ThisIndex][C1] := Lerp(I / (Detail[C1] + 1), X1, X2);
+        Coord.List^[ThisIndex][C2] := Lerp(J / (Detail[C2] + 1), Y1, Y2);
+        Coord.List^[ThisIndex][ConstCoord] := ConstCoordValue;
 
-        Normal.Items[ThisIndex] := N;
+        Normal.List^[ThisIndex] := N;
 
         if TexCoord <> nil then
-          TexCoord.Items[ThisIndex] := MakeTexCoord(
+          TexCoord.List^[ThisIndex] := MakeTexCoord(
             Lerp(I / (Detail[C1] + 1), TexX1, TexX2),
             Lerp(J / (Detail[C2] + 1), TexY1, TexY2));
       end;
@@ -104,15 +104,15 @@ var
       begin
         FaceIndex := CoordIndex.Count;
         CoordIndex.Count := CoordIndex.Count + 5;
-        CoordIndex.Items[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
-        CoordIndex.Items[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
-        CoordIndex.Items[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
-        CoordIndex.Items[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
-        CoordIndex.Items[FaceIndex + 4] := -1;
+        CoordIndex.List^[FaceIndex    ] := Index + (I - 1) * (Detail[C2] + 2) + J - 1;
+        CoordIndex.List^[FaceIndex + 1] := Index +  I      * (Detail[C2] + 2) + J - 1;
+        CoordIndex.List^[FaceIndex + 2] := Index +  I      * (Detail[C2] + 2) + J;
+        CoordIndex.List^[FaceIndex + 3] := Index + (I - 1) * (Detail[C2] + 2) + J;
+        CoordIndex.List^[FaceIndex + 4] := -1;
       end;
 
     if MaterialIndex <> nil then
-      MaterialIndex.Add(FaceMaterialIndex, (Detail[C1] + 1) * (Detail[C2] + 1));
+      MaterialIndex.AddDuplicate(FaceMaterialIndex, (Detail[C1] + 1) * (Detail[C2] + 1));
   end;
 
 begin

@@ -23,7 +23,11 @@ type
     This is equivalent to TFPGList, except it doesn't override IndexOf,
     so your type doesn't need to have a "=" operator built-in inside FPC.
     When calling IndexOf or Remove, it will simply compare values using
-    CompareByte, this is what TFPSList.IndexOf  uses. }
+    CompareByte, this is what TFPSList.IndexOf uses.
+
+    The only new method is @link(Add) without parameters, that returns
+    the pointer to newly created item. Comfortable and efficient way
+    to add and initialize new item. }
   generic TGenericStructList<T> = class(TFPSList)
   private
     type
@@ -56,6 +60,7 @@ type
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
+    function Add: PT;
   end;
 
 implementation
@@ -158,6 +163,12 @@ procedure TGenericStructList.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
+end;
+
+function TGenericStructList.Add: PT;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
 end;
 
 end.

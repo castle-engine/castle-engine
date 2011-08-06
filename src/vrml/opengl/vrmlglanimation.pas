@@ -812,8 +812,7 @@ procedure TVRMLGLAnimation.LoadCore(
           [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
 
       for I := 0 to Field1.Items.Count - 1 do
-        CheckVRMLModelsStructurallyEqual(Field1.Items.Items[I],
-                                         Field2.Items.Items[I]);
+        CheckVRMLModelsStructurallyEqual(Field1[I], Field2[I]);
     end;
 
   var
@@ -981,14 +980,13 @@ procedure TVRMLGLAnimation.LoadCore(
       Assert(Field1.Items.Count = Field2.Items.Count);
       for I := 0 to Field1.Items.Count - 1 do
       begin
-        if VRMLModelsMerge(Field1.Items.Items[I],
-                           Field2.Items.Items[I]) then
+        if VRMLModelsMerge(Field1[I], Field2[I]) then
         begin
           { Think of this as
-              Field1.Items.Items[I] := Field2.Items.Items[I]
-            but I can't call this directly, I must use Field1.ReplaceChild
+              Field1[I] := Field2[I]
+            but I can't call this directly, I must use Field1.Replace
             to not mess reference counts. }
-          Field1.Replace(I, Field2.Items.Items[I]);
+          Field1.Replace(I, Field2[I]);
         end else
           Result := false;
       end;
@@ -1060,8 +1058,7 @@ procedure TVRMLGLAnimation.LoadCore(
       I: Integer;
     begin
       for I := 0 to Field1.Items.Count - 1 do
-        Target.Add(VRMLModelLerp(A, Field1.Items.Items[I],
-                                    Field2.Items.Items[I]));
+        Target.Add(VRMLModelLerp(A, Field1[I], Field2[I]));
     end;
 
   var

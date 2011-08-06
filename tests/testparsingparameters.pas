@@ -100,11 +100,11 @@ begin
  Assert(ParsedPars1.Count - 1 = High(ParsedPars2));
  for i := 0 to ParsedPars1.Count - 1 do
  begin
-  Assert(ParsedPars1.Items[i].OptionNum   = ParsedPars2[i].OptionNum);
-  Assert(ParsedPars1.Items[i].HasArgument = ParsedPars2[i].HasArgument);
-  Assert(ParsedPars1.Items[i].Argument    = ParsedPars2[i].Argument);
+  Assert(ParsedPars1.List^[i].OptionNum   = ParsedPars2[i].OptionNum);
+  Assert(ParsedPars1.List^[i].HasArgument = ParsedPars2[i].HasArgument);
+  Assert(ParsedPars1.List^[i].Argument    = ParsedPars2[i].Argument);
   for j := Low(TSeparateArgs) to High(TSeparateArgs) do
-   Assert(ParsedPars1.Items[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
+   Assert(ParsedPars1.List^[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
  end;
 end;
 
@@ -116,9 +116,9 @@ begin
  for i := 0 to v.Count - 1 do
   result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
     [ i,
-      v.Items[i].OptionNum,
-      BoolToStr[v.Items[i].HasArgument],
-      v.Items[i].Argument]) + nl;
+      v.List^[i].OptionNum,
+      BoolToStr[v.List^[i].HasArgument],
+      v.List^[i].Argument]) + nl;
 end;
 
 function ParsToStr: string;
