@@ -398,7 +398,7 @@ begin
 
     { create coordIndex for rendering by separate triangles }
     TrianglesCoordIndex := TDynLongIntArray.Create;
-    TrianglesCoordIndex.AllowedCapacityOverflow := CoordIndex.Count;
+    TrianglesCoordIndex.Capacity := CoordIndex.Count;
     MakeTrianglesCoordIndex;
 
     Writeln('Vertexes count: ', Vertexes.Count);

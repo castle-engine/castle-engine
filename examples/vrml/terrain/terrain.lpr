@@ -524,7 +524,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
             MapRange(Z, 0, CountSteps, MinZ, MaxZ));
 
           Color.FdColor.Items.List^[X + Z * CountSteps] :=
-            ColorFromHeight(Elevation, Grid.FdHeight.List^[X + Z * CountSteps]);
+            ColorFromHeight(Elevation, Grid.FdHeight.Items.List^[X + Z * CountSteps]);
         end;
 
       Appearance := TNodeAppearance.Create('', '');

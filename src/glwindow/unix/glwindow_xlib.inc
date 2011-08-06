@@ -177,7 +177,7 @@ begin
    { end of VisualAttr array }
    VisualAttr.Add(None);
 
-   viinfo := glXChooseVisual(Application.XDisplay, Application.XScreen, VisualAttr.List);
+   viinfo := glXChooseVisual(Application.XDisplay, Application.XScreen, PInteger(VisualAttr.List));
  finally FreeAndNil(VisualAttr) end;
 
  if viinfo = nil then

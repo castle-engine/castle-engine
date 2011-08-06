@@ -1,3 +1,4 @@
+
 {
   Copyright 2004-2011 Michalis Kamburelis.
 
@@ -411,7 +412,7 @@ end;
 
 procedure TControlPointsCurve.UpdateControlPoints;
 begin
- FBoundingBox := CalculateBoundingBox(PVector3Single(ControlPoints.Items),
+ FBoundingBox := CalculateBoundingBox(PVector3Single(ControlPoints.List),
    ControlPoints.Count, 0);
 end;
 

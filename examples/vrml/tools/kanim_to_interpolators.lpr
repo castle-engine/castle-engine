@@ -85,7 +85,7 @@ begin
       Vrml.FdChildren.Add(Interp);
 
       Interp.FdKeyValue.Items.Count := 0;
-      Interp.FdKeyValue.Items.AllowedCapacityOverflow := CoordCount * Anim.ScenesCount;
+      Interp.FdKeyValue.Items.Capacity := CoordCount * Anim.ScenesCount;
 
       Progress.UserInterface := ProgressConsoleInterface;
       Progress.Init(Anim.ScenesCount, 'Converting to interpolators');
