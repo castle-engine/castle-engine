@@ -2150,7 +2150,7 @@ begin
         GL_FRAMEBUFFER_COMPLETE_EXT:
           Success := true;
         GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-          OnWarning(wtMinor, 'FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach');
+          OnWarning(wtMinor, 'FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "view3dscene --screenshot"), you may get only a black screen.');
         else
           raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
             [ FramebufferStatusToString(Status), Status]);
