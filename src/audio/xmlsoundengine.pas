@@ -253,7 +253,7 @@ type
 
 implementation
 
-uses ProgressUnit, KambiFilesUtils, DOM, KambiXMLRead, KambiXMLUtils,
+uses ProgressUnit, KambiFilesUtils, DOM, XMLRead, KambiXMLUtils,
   VorbisFile, KambiStringUtils;
 
 { TXmlSoundEngine ----------------------------------------------------------- }

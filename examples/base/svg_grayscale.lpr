@@ -46,7 +46,7 @@ program svg_grayscale;
 
 {$I kambiconf.inc}
 
-uses SysUtils, DOM, KambiXMLRead, NoIndentXMLWrite, KambiStringUtils, VectorMath,
+uses SysUtils, DOM, XMLRead, NoIndentXMLWrite, KambiStringUtils, VectorMath,
   StrUtils, KambiXMLUtils, Classes, KambiUtils, KambiParameters;
 
 var

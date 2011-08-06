@@ -123,17 +123,9 @@
     {$define SUPPORTS_INLINE}
   {$endif}
 
-  {$ifdef VER2_0}   {$define USE_KAMBI_XMLREAD} {$endif}
-  {$ifdef VER2_2_0} {$define USE_KAMBI_XMLREAD} {$endif}
-  {$ifdef VER2_2_2} {$define USE_KAMBI_XMLREAD} {$endif}
-
-  { Do not use KambiXMLRead for FPC > 2.2.2, no need
-    (http://bugs.freepascal.org/view.php?id=11957 already fixed there)
-    and no way (not compatible, internal things in DOM unit changed). }
-
-  {$ifndef USE_KAMBI_XMLREAD}
-    {$define KambiXMLRead := XMLRead}
-  {$endif}
+  {$ifdef VER2_0}   {$fatal FPC 2.0.x is not supported anymore, see http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_fpc_ver} {$endif}
+  {$ifdef VER2_2_0} {$fatal FPC 2.2.0 is not supported anymore, see http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_fpc_ver} {$endif}
+  {$ifdef VER2_2_2} {$fatal FPC 2.2.2 is not supported anymore, see http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_fpc_ver} {$endif}
 
   {$define TOBJECT_HAS_EQUALS}
   {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}

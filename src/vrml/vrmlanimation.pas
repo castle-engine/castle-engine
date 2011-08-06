@@ -78,7 +78,7 @@ type
 
 implementation
 
-uses SysUtils, KambiXMLRead, KambiXMLUtils, KambiFilesUtils;
+uses SysUtils, XMLRead, KambiXMLUtils, KambiFilesUtils;
 
 class procedure TVRMLAnimation.LoadFromFileToVars(const FileName: string;
   ModelFileNames: TStringList;

@@ -181,7 +181,7 @@ uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
   VRMLFields, Boxes3D, Images, TTFontsTypes,
   Videos, VRMLTime, Base3D,
   KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages,
-  KambiXMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, KambiStringUtils,
+  XMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, KambiStringUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}

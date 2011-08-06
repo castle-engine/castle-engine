@@ -39,7 +39,7 @@ function LoadCollada(const FileName: string;
 implementation
 
 uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
-  DOM, KambiXMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
+  DOM, XMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Math, X3DLoadInternalUtils;
 
 { Large missing stuff:
