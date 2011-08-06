@@ -330,7 +330,7 @@ begin
     Exit(false);
   end;
 
-  MinCount := Offset + Stride * (Count - 1) + Max(XIndex, YIndex, ZIndex) + 1;
+  MinCount := Offset + Stride * (Count - 1) + KambiUtils.Max(XIndex, YIndex, ZIndex) + 1;
   Result := Floats.Count >= MinCount;
   if not Result then
   begin

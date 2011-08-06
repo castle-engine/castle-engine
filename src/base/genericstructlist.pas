@@ -2,6 +2,8 @@
   Based on FPC FGL unit, copyright by FPC team.
   License of FPC RTL is the same as our engine (modified LGPL,
   see COPYING.txt for details).
+  Fixed to compile also under FPC 2.4.0 and 2.2.4.
+  Some small comfortable methods added.
 }
 
 { Generic list of any type (TGenericStructList). }
@@ -9,9 +11,8 @@ unit GenericStructList;
 
 {$mode objfpc}{$H+}
 
-{$IF defined(VER2_4)}
-  {$DEFINE OldSyntax}
-{$IFEND}
+{$IF defined(VER2_2)} {$DEFINE OldSyntax} {$IFEND}
+{$IF defined(VER2_4)} {$DEFINE OldSyntax} {$IFEND}
 
 {$define HAS_ENUMERATOR}
 {$ifdef VER2_2} {$undef HAS_ENUMERATOR} {$endif}
@@ -61,9 +62,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-{$ifndef VER2_4}
+{$ifndef OldSyntax}
     procedure Assign(Source: TFPGList);
-{$endif VER2_4}
+{$endif OldSyntax}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -151,7 +152,7 @@ begin
   Result := T(inherited Last^);
 end;
 
-{$ifndef VER2_4}
+{$ifndef OldSyntax}
 procedure TGenericStructList.Assign(Source: TGenericStructList);
 var
   i: Integer;
@@ -160,7 +161,7 @@ begin
   for I := 0 to Source.Count - 1 do
     Add(Source[i]);
 end;
-{$endif VER2_4}
+{$endif OldSyntax}
 
 function TGenericStructList.Remove(const Item: T): Integer;
 begin
