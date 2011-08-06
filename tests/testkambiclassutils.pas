@@ -34,6 +34,7 @@ type
     procedure TestStreamPeekChar;
     procedure TestBufferedReadStream;
     procedure TestObjectsListSort;
+    procedure TestNotifyEventArray;
   end;
 
   TFoo = class
@@ -158,6 +159,55 @@ begin
     Assert(L[1].I = 65);
     Assert(L[2].I = 123);
   finally FreeAndNil(L) end;
+end;
+
+type
+  TObj = class
+    procedure Dummy(Sender: TObject);
+  end;
+
+procedure TObj.Dummy(Sender: TObject);
+begin
+end;
+
+procedure TTestKambiClassUtils.TestNotifyEventArray;
+{ There's a trap when implementing lists of methods: normal comparison operator
+  is nonsense for methods, it compares only the code pointer.
+  See http://bugs.freepascal.org/view.php?id=11868 ,
+  http://bugs.freepascal.org/view.php?id=9228 .
+  Make sure our TDynNotifyEventArray doesn't have this problem. }
+var
+  A: TDynNotifyEventArray;
+  O1, O2, O3: TObj;
+begin
+  A := TDynNotifyEventArray.Create;
+  try
+    O1 := TObj.Create;
+    O2 := TObj.Create;
+    O3 := TObj.Create;
+    Assert(A.IndexOf(@O1.Dummy) = -1);
+    Assert(A.IndexOf(@O2.Dummy) = -1);
+    Assert(A.IndexOf(@O3.Dummy) = -1);
+
+    A.Add(@O1.Dummy);
+    Assert(A.IndexOf(@O1.Dummy) = 0);
+    Assert(A.IndexOf(@O2.Dummy) = -1);
+    Assert(A.IndexOf(@O3.Dummy) = -1);
+
+    A.Add(@O2.Dummy);
+    Assert(A.IndexOf(@O1.Dummy) = 0);
+    Assert(A.IndexOf(@O2.Dummy) = 1);
+    Assert(A.IndexOf(@O3.Dummy) = -1);
+
+    A.Remove(@O1.Dummy);
+    Assert(A.IndexOf(@O1.Dummy) = -1);
+    Assert(A.IndexOf(@O2.Dummy) = 0);
+    Assert(A.IndexOf(@O3.Dummy) = -1);
+    
+    FreeAndNil(O1);
+    FreeAndNil(O2);
+    FreeAndNil(O3);
+  finally FreeAndNil(A) end;
 end;
 
 initialization
