@@ -18,21 +18,14 @@ unit RenderingCameraUnit;
 
 interface
 
-uses KambiUtils, VectorMath, Frustum, Cameras;
-
-{$define read_interface}
+uses KambiUtils, VectorMath, Frustum, Cameras, GenericStructList;
 
 type
   TRenderingCamera = class;
 
   TCameraChangedEvent = procedure (RenderingCamera: TRenderingCamera) of object;
 
-  TDynArrayItem_1 = TCameraChangedEvent;
-  PDynArrayItem_1 = ^TCameraChangedEvent;
-  {$define DYNARRAY_1_IS_FUNCTION}
-  {$define DYNARRAY_1_IS_FUNCTION_METHOD}
-  {$I dynarray_1.inc}
-  TDynCameraChangedEventArray = class(TDynArray_1)
+  TDynCameraChangedEventArray = class(specialize TGenericStructList<TCameraChangedEvent>)
   public
     { This calls all functions (all Items). }
     procedure ExecuteAll(RenderingCamera: TRenderingCamera);
@@ -135,14 +128,9 @@ type
 var
   RenderingCamera: TRenderingCamera;
 
-{$undef read_interface}
-
 implementation
 
 uses SysUtils, KambiLog;
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 { TDynCameraChangedEventArray ------------------------------------------------ }
 

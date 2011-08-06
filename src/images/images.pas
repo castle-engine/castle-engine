@@ -686,10 +686,6 @@ type
   { }
   TImageClass = class of TImage;
   TEncodedImageClass = class of TEncodedImage;
-
-  { Note: Don't name it TDynImageClassesArray,
-    as such naming convention is reserved for TDynArray_Base descendants. }
-  { }
   TDynArrayImageClasses = array of TImageClass;
 
 { Check is ImageClass one of the items in the ImageClasses array,

@@ -20,9 +20,7 @@ unit X3DLoadInternalMD3;
 interface
 
 uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath, VRMLNodes,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
-
-{$define read_interface}
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 type
   TMd3Triangle = record
@@ -30,11 +28,9 @@ type
   end;
   PMd3Triangle = ^TMd3Triangle;
 
-  TDynArrayItem_1 = TMd3Triangle;
-  PDynArrayItem_1 = PMd3Triangle;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TDynMd3TriangleArray = TDynArray_1;
+  TDynMd3TriangleArray = class(specialize TGenericStructList<TMd3Triangle>)
+    function Add: PMd3Triangle;
+  end;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
@@ -42,11 +38,7 @@ type
   end;
   PMd3Vertex = ^TMd3Vertex;
 
-  TDynArrayItem_2 = TMd3Vertex;
-  PDynArrayItem_2 = PMd3Vertex;
-  {$define DYNARRAY_2_IS_STRUCT}
-  {$I dynarray_2.inc}
-  TDynMd3VertexArray = TDynArray_2;
+  TDynMd3VertexArray = specialize TGenericStructList<TMd3Vertex>;
 
   TMd3TexCoord = TVector2Single;
   TDynMd3TexCoordArray = TDynVector2SingleArray;
@@ -145,16 +137,10 @@ procedure LoadMD3Sequence(
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
-{$undef read_interface}
-
 implementation
 
 uses KambiFilesUtils, KambiStringUtils, Boxes3D, X3DLoadInternalUtils,
   VRMLCameraUtils;
-
-{$define read_implementation}
-{$I dynarray_1.inc}
-{$I dynarray_2.inc}
 
 type
   EInvalidMD3 = class(Exception);
@@ -214,6 +200,12 @@ type
     OffsetXYZNormal: LongInt;
     OffsetEnd: LongInt;
   end;
+
+function TDynMd3TriangleArray.Add: PMd3Triangle;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 { TMd3Surface ---------------------------------------------------------------- }
 
@@ -282,7 +274,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
     for I := 0 to Vertexes.Count - 1 do
     begin
-      Stream.ReadBuffer(Vertexes.Items[I], SizeOf(TMd3Vertex));
+      Stream.ReadBuffer(Vertexes.List^[I], SizeOf(TMd3Vertex));
     end;
   end;
 
@@ -292,7 +284,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Stream.ReadBuffer(TextureCoords.Items[I], SizeOf(TMd3TexCoord));
+      Stream.ReadBuffer(TextureCoords.List^[I], SizeOf(TMd3TexCoord));
     end;
   end;
 
@@ -482,7 +474,7 @@ var
     V := @(Vertexes.List^[VertexesInFrameCount * FrameNumber]);
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.Items[I] := Vector3Single(
+      Result.FdPoint.Items.List^[I] := Vector3Single(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -503,7 +495,7 @@ var
     V := PVector2Single(TextureCoords.List);
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.Items[I] := Vector2Single(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.List^[I] := Vector2Single(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -519,15 +511,15 @@ var
     Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
-      Result.FdCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
-      Result.FdCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
-      Result.FdCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
-      Result.FdCoordIndex.Items.Items[I*4 + 3] := -1;
+      Result.FdCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
+      Result.FdCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
+      Result.FdCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
+      Result.FdCoordIndex.Items.List^[I*4 + 3] := -1;
 
-      Result.FdTexCoordIndex.Items.Items[I*4 + 0] := Triangles.Items[I].Indexes[0];
-      Result.FdTexCoordIndex.Items.Items[I*4 + 1] := Triangles.Items[I].Indexes[1];
-      Result.FdTexCoordIndex.Items.Items[I*4 + 2] := Triangles.Items[I].Indexes[2];
-      Result.FdTexCoordIndex.Items.Items[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.List^[I*4 + 3] := -1;
     end;
   end;
 

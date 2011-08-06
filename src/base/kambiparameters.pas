@@ -21,9 +21,7 @@ unit KambiParameters;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, KambiStringUtils;
-
-{$define read_interface}
+uses SysUtils, VectorMath, KambiUtils, KambiStringUtils, GenericStructList;
 
 type
   EInvalidParams = class(EWithHiddenClassName);
@@ -141,14 +139,9 @@ type
   end;
   POption = ^TOption;
 
-  TDynArrayItem_2 = TOption;
-  PDynArrayItem_2 = POption;
-  {$define DYNARRAY_2_IS_STRUCT}
-  {$define DYNARRAY_2_IS_INIT_FINI_TYPE}
-  {$I DynArray_2.inc}
-  TDynOptionArray = TDynArray_2;
-  TOption_Array = TInfiniteArray_2;
-  POption_Array = PInfiniteArray_2;
+  TDynOptionArray = specialize TGenericStructList<TOption>;
+  TOption_Array = array [0..MaxInt div SizeOf(TOption) - 1] of TOption;
+  POption_Array = ^TOption_Array;
 
   { Storing and processing command-line parameters and options.
     For simple processing, you can just read values of this list,
@@ -341,12 +334,7 @@ var
     (e.g. you can assign to another TKamStringList instance). }
   Parameters: TParameters;
 
-{$undef read_interface}
-
 implementation
-
-{$define read_implementation}
-{$I dynarray_2.inc}
 
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer; forward;
 
@@ -421,7 +409,7 @@ end;
 procedure TParameters.Parse(Options: TDynOptionArray; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
-  Parse(Options.List, Options.Count,
+  Parse(POption_Array(Options.List), Options.Count,
     OptionProc, OptionProcData,
     ParseOnlyKnownLongOptions);
 end;

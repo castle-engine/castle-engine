@@ -44,12 +44,7 @@
     procedure Add(Joint: TNodeHAnimJoint; const Weight: Single);
   end;
   PVertexJoints = ^TVertexJoints;
-  TDynArrayItem_5 = TVertexJoints;
-  PDynArrayItem_5 = PVertexJoints;
-  {$define DYNARRAY_5_IS_STRUCT}
-  {$define DYNARRAY_5_IS_INIT_FINI_TYPE}
-  {$I dynarray_5.inc}
-  TDynVertexJointsArray = TDynArray_5;
+  TDynVertexJointsArray = specialize TGenericStructList<TVertexJoints>;
 
   TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
   private
@@ -281,7 +276,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I dynarray_5.inc}
 
 procedure TNodeHAnimDisplacer.CreateNode;
 begin

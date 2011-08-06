@@ -276,7 +276,7 @@ var
 begin
   for I := 0 to BoundingBoxes.Count - 1 do
     if Box3DPointInside(Point,
-      BoxExpand(BoundingBoxes.Items[I], SectorsBoxesMargin)) then
+      BoxExpand(BoundingBoxes.List^[I], SectorsBoxesMargin)) then
       Exit(true);
   Result := false;
 end;

@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses KambiParameters, KambiUtils, KambiStringUtils;
+uses KambiParameters, KambiUtils, KambiStringUtils, GenericStructList;
 
 type
   TParsedOption = record
@@ -38,16 +38,15 @@ type
   end;
   PParsedOption = ^TParsedOption;
 
-  TDynArrayItem_1 = TParsedOption;
-  PDynArrayItem_1 = PParsedOption;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$define read_interface}
-  {$define read_implementation}
-  {$I DynArray_1.inc}
+  TDynParsedOptionArray = class(specialize TGenericStructList<TParsedOption>)
+    function Add: PParsedOption;
+  end;
 
-type
-  TDynParsedOptionArray = TDynArray_1;
+function TDynParsedOptionArray.Add: PParsedOption;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);

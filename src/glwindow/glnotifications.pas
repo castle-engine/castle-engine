@@ -19,9 +19,7 @@ unit GLNotifications;
 interface
 
 uses GL, GLU, GLWindow, Classes, SysUtils, KambiUtils, KambiGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath;
-
-{$define read_interface}
+  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath, GenericStructList;
 
 type
   { Internal TMessageStruct type. @exclude }
@@ -32,12 +30,7 @@ type
   { @exclude }
   PMessageStruct = ^TMessageStruct;
 
-  TDynArrayItem_1 = TMessageStruct;
-  PDynArrayItem_1 = PMessageStruct;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$I dynarray_1.inc}
-  TDynMessageStructArray = class(TDynArray_1)
+  TDynMessageStructArray = class(specialize TGenericStructList<TMessageStruct>)
     procedure DeleteRange(const Index: Integer; DelCount: Integer);
   end;
 
@@ -153,14 +146,9 @@ type
     destructor Destroy; override;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses BFNT_BitstreamVeraSans_Unit, KambiLog;
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 procedure TDynMessageStructArray.DeleteRange(const Index: Integer; DelCount: Integer);
 var

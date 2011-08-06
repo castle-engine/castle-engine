@@ -581,7 +581,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
   KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse,
   KambiStringUtils, KambiFilesUtils, KambiTimeUtils, FileFilters, UIControls,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}
 
@@ -711,14 +711,10 @@ type
   TMenuCommandFunc = procedure(Window: TGLWindow; Item: TMenuItem);
   TGLContextLoweredFunc = procedure(Window: TGLWindow; const FailureMessage: string);
 
-  TDynArrayItem_2 = TGLWindowFunc;
-  PDynArrayItem_2 = ^TGLWindowFunc;
-  {$define DYNARRAY_2_IS_FUNCTION}
-  {$I dynarray_2.inc}
   { List of @link(TGLWindowFunc) procedures. }
-  TDynGLWindowFuncArray = class(TDynArray_2)
+  TDynGLWindowFuncArray = class(specialize TGenericStructList<TGLWindowFunc>)
   public
-    { Call all (non-nil) Items. With given Glwin parameter. }
+    { Call all (non-nil) Items. }
     procedure ExecuteAll(Window: TGLWindow);
   end;
 
@@ -2891,7 +2887,6 @@ uses KambiParameters, KambiLog, GLImages, GLVersionUnit
 
 {$define read_implementation}
 
-{$I dynarray_2.inc}
 {$I glwindowmenu.inc}
 {$I glwindow_backend.inc}
 

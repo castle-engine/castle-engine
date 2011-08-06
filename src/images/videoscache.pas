@@ -18,9 +18,7 @@ unit VideosCache;
 
 interface
 
-uses KambiUtils, ImagesCache, Videos;
-
-{$define read_interface}
+uses KambiUtils, ImagesCache, Videos, GenericStructList;
 
 type
   { Internal for TVideosCache }
@@ -31,12 +29,9 @@ type
   end;
   PCachedVideo = ^TCachedVideo;
 
-  TDynArrayItem_1 = TCachedVideo;
-  PDynArrayItem_1 = PCachedVideo;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$I dynarray_1.inc}
-  TDynCachedVideoArray = TDynArray_1;
+  TDynCachedVideoArray = class(specialize TGenericStructList<TCachedVideo>)
+    function Add: PCachedVideo;
+  end;
 
   { A cache of loaded videos.
 
@@ -99,14 +94,15 @@ type
     function Empty: boolean; override;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses SysUtils, KambiStringUtils;
 
-{$define read_implementation}
-{$I dynarray_1.inc}
+function TDynCachedVideoArray.Add: PCachedVideo;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 { $define DEBUG_CACHE}
 
@@ -132,7 +128,7 @@ var
   I: Integer;
   C: PCachedVideo;
 begin
-  C := @CachedVideos.Items[0];
+  C := PCachedVideo(CachedVideos.List);
   for I := 0 to CachedVideos.Count - 1 do
   begin
     if C^.FileName = FileName then
@@ -177,7 +173,7 @@ var
   I: Integer;
   C: PCachedVideo;
 begin
-  C := @CachedVideos.Items[0];
+  C := PCachedVideo(CachedVideos.List);
   for I := 0 to CachedVideos.Count - 1 do
   begin
     if C^.Video = Video then

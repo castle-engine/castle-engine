@@ -22,9 +22,7 @@ unit VRMLTriangle;
 interface
 
 uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Base3D, Boxes3D,
-  KambiOctree, FaceIndex;
-
-{$define read_interface}
+  KambiOctree, FaceIndex, GenericStructList;
 
 { TVRMLTriangle  ------------------------------------------------------------ }
 
@@ -157,11 +155,9 @@ type
   end;
   PVRMLTriangle = ^TVRMLTriangle;
 
-  TDynArrayItem_1 = TVRMLTriangle;
-  PDynArrayItem_1 = PVRMLTriangle;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TDynVRMLTriangleArray = TDynArray_1;
+  TDynVRMLTriangleArray = class(specialize TGenericStructList<TVRMLTriangle>)
+    function Add: PVRMLTriangle;
+  end;
 
 { TVRMLBaseTrianglesOctree ----------------------------------------------------------- }
 
@@ -670,14 +666,15 @@ type
     constructor Create(AOneItem: PVRMLTriangle);
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses KambiStringUtils, VRMLShape;
 
-{$define read_implementation}
-{$I dynarray_1.inc}
+function TDynVRMLTriangleArray.Add: PVRMLTriangle;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 { TVRMLTriangle  ------------------------------------------------------------- }
 

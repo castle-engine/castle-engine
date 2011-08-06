@@ -570,7 +570,7 @@ begin
         begin
           if Items[I].ValueAssigned then
             WasSomeValueAssigned := true;
-          VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.Items[I]);
+          VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.List^[I]);
         end;
       until not WasSomeValueAssigned;
     finally InsideAfterExecute := false end;
@@ -582,7 +582,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    FLastEventTimes.Items[I] := OldestVRMLTime;
+    FLastEventTimes.List^[I] := OldestVRMLTime;
 end;
 
 end.

@@ -18,9 +18,7 @@ unit ImagesCache;
 
 interface
 
-uses KambiUtils, Images;
-
-{$define read_interface}
+uses KambiUtils, Images, GenericStructList;
 
 type
   { Internal for TImagesCache }
@@ -31,12 +29,9 @@ type
   end;
   PCachedImage = ^TCachedImage;
 
-  TDynArrayItem_1 = TCachedImage;
-  PDynArrayItem_1 = PCachedImage;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$I dynarray_1.inc}
-  TDynCachedImageArray = TDynArray_1;
+  TDynCachedImageArray = class(specialize TGenericStructList<TCachedImage>)
+    function Add: PCachedImage;
+  end;
 
   { A cache of loaded images.
 
@@ -103,16 +98,17 @@ type
     property OnEmpty: TProcedure read FOnEmpty write FOnEmpty;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses SysUtils, KambiStringUtils;
 
-{$define read_implementation}
-{$I dynarray_1.inc}
-
 { $define DEBUG_CACHE}
+
+function TDynCachedImageArray.Add: PCachedImage;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 constructor TImagesCache.Create;
 begin
@@ -136,7 +132,7 @@ var
   I: Integer;
   C: PCachedImage;
 begin
-  C := @CachedImages.Items[0];
+  C := PCachedImage(CachedImages.List);
   for I := 0 to CachedImages.Count - 1 do
   begin
     if C^.FileName = FileName then
@@ -175,7 +171,7 @@ var
   I: Integer;
   C: PCachedImage;
 begin
-  C := @CachedImages.Items[0];
+  C := PCachedImage(CachedImages.List);
   for I := 0 to CachedImages.Count - 1 do
   begin
     if C^.Image = Image then

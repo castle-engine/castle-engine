@@ -18,7 +18,7 @@ unit VRMLTime;
 
 interface
 
-uses KambiUtils, KambiTimeUtils;
+uses KambiUtils, KambiTimeUtils, GenericStructList;
 
 type
   { This is a complete timestamp for VRML events.
@@ -85,21 +85,10 @@ operator <  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 operator <= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 {$endif FPC_OBJFPC}
 
-{$define read_interface}
-
 type
-  TDynArrayItem_1 = TVRMLTime;
-  PDynArrayItem_1 = PVRMLTime;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TDynVRMLTimeArray = TDynArray_1;
-
-{$undef read_interface}
+  TDynVRMLTimeArray = specialize TGenericStructList<TVRMLTime>;
 
 implementation
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 {$ifdef FPC_OBJFPC}
 operator >  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;

@@ -90,7 +90,7 @@ type
 implementation
 
 uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields,
-  KambiTimeUtils;
+  KambiTimeUtils, GenericStructList;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -152,16 +152,7 @@ type
   end;
   PVRMLTokenInfo = ^TVRMLTokenInfo;
 
-  TDynArrayItem_1 = TVRMLTokenInfo;
-  PDynArrayItem_1 = PVRMLTokenInfo;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$define read_interface}
-  {$define read_implementation}
-  {$I dynarray_1.inc}
-
-type
-  TDynVRMLTokenInfoArray = class(TDynArray_1)
+  TDynVRMLTokenInfoArray = class(specialize TGenericStructList<TVRMLTokenInfo>)
     procedure AssertEqual(SecondValue: TDynVRMLTokenInfoArray);
     procedure ReadFromFile(const FileName: string);
   end;

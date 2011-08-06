@@ -18,9 +18,7 @@ unit FaceIndex;
 
 interface
 
-uses KambiUtils;
-
-{$define read_interface}
+uses KambiUtils, GenericStructList;
 
 type
   { Describe a range of indexes where the face (polygon and such) is located.
@@ -35,20 +33,11 @@ type
     IndexBegin, IndexEnd: Integer;
   end;
 
-  TDynArrayItem_1 = TFaceIndex;
-  PDynArrayItem_1 = ^TFaceIndex;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TFaceIndexesList = TDynArray_1;
+  TFaceIndexesList = specialize TGenericStructList<TFaceIndex>;
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
 
-{$undef read_interface}
-
 implementation
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 end.

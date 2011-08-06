@@ -51,10 +51,7 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
 implementation
 
 uses SysUtils, KambiUtils, VRMLFields, KambiStringUtils, KambiWarnings,
-  Boxes3D, KambiLog, VectorMath;
-
-{$define read_interface}
-{$define read_implementation}
+  Boxes3D, KambiLog, VectorMath, GenericStructList;
 
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers
@@ -71,17 +68,14 @@ type
   end;
   PLight = ^TLight;
 
-  TDynArrayItem_1 = TLight;
-  PDynArrayItem_1 = PLight;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-type
-  TDynLightArray = class(TDynArray_1)
+  TDynLightArray = class(specialize TGenericStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TVRMLNodeList;
+
+    function Add: PLight;
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
@@ -97,6 +91,12 @@ type
     { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
     procedure HandleLightCastingOnEverything(Node: TVRMLNode);
   end;
+
+function TDynLightArray.Add: PLight;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 function TDynLightArray.FindLight(Light: TNodeX3DLightNode): PLight;
 var

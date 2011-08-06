@@ -31,9 +31,7 @@ unit EnumerateFiles;
 
 interface
 
-uses SysUtils, KambiUtils, Classes;
-
-{$define read_interface}
+uses SysUtils, KambiUtils, Classes, GenericStructList;
 
 type
   { }
@@ -45,12 +43,7 @@ type
   end;
   PEnumeratedFileInfo = ^TEnumeratedFileInfo;
 
-  TDynArrayItem_1 = TEnumeratedFileInfo;
-  PDynArrayItem_1 = PEnumeratedFileInfo;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$I dynarray_1.inc}
-  TDynEnumeratedFileInfoArray = TDynArray_1;
+  TDynEnumeratedFileInfoArray = specialize TGenericStructList<TEnumeratedFileInfo>;
 
 type
   TEnumFileProc =
@@ -174,14 +167,9 @@ function EnumFilesObj(const Mask: string; Attr: integer;
   we still set NewBase (to original Base). }
 function SearchFileHard(const Path, Base: string; out NewBase: string): boolean;
 
-{$undef read_interface}
-
 implementation
 
 uses KambiFilesUtils;
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 { EnumFiles ------------------------------------------------------------ }
 

@@ -4477,22 +4477,18 @@ begin
 
   Result := TVRMLTriangleOctree.Create(Limits, BoundingBox);
   try
-    Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
-    try
-      if (ProgressTitle <> '') and
-         (Progress.UserInterface <> nil) and
-         (not Progress.Active) then
-      begin
-        Progress.Init(TrianglesCount(false), ProgressTitle, true);
-        try
-          TriangleOctreeToAdd := Result;
-          FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
-        finally Progress.Fini end;
-      end else
-        FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
-    finally
-      Result.Triangles.AllowedCapacityOverflow := 4;
-    end;
+    Result.Triangles.Capacity := TrianglesCount(false);
+    if (ProgressTitle <> '') and
+       (Progress.UserInterface <> nil) and
+       (not Progress.Active) then
+    begin
+      Progress.Init(TrianglesCount(false), ProgressTitle, true);
+      try
+        TriangleOctreeToAdd := Result;
+        FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
+      finally Progress.Fini end;
+    end else
+      FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
   finally Dec(Dirty) end;

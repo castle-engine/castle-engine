@@ -18,9 +18,7 @@ unit Boxes3D;
 
 interface
 
-uses VectorMath, SysUtils, KambiUtils;
-
-{$define read_interface}
+uses VectorMath, SysUtils, KambiUtils, GenericStructList;
 
 type
   { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
@@ -492,20 +490,9 @@ function Box3DPointMaxDistance(const Box: TBox3D; const Point: TVector3Single;
   const EmptyBoxDistance: Single): Single;
 
 type
-  TDynArrayItem_1 = TBox3D;
-  PDynArrayItem_1 = PBox3D;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TArray_Box3D = TInfiniteArray_1;
-  PArray_Box3D = PInfiniteArray_1;
-  TDynBox3DArray = TDynArray_1;
-
-{$undef read_interface}
+  TDynBox3DArray = specialize TGenericStructList<TBox3D>;
 
 implementation
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 function IsEmptyBox3D(const Box: TBox3D): boolean;
 begin

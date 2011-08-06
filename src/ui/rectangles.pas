@@ -25,9 +25,7 @@ unit Rectangles;
 
 interface
 
-{$define read_interface}
-
-uses KambiUtils, SysUtils;
+uses KambiUtils, SysUtils, GenericStructList;
 
 type
   { 2D rectangle. }
@@ -36,12 +34,7 @@ type
   end;
   PRectangle = ^TRectangle;
 
-  TDynArrayItem_1 = TRectangle;
-  PDynArrayItem_1 = PRectangle;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-
-  TDynRectangleArray = class(TDynArray_1)
+  TDynRectangleArray = class(specialize TGenericStructList<TRectangle>)
   public
     { FindRectangle returns index of the rectangle that contains point (X, Y).
 
@@ -58,12 +51,7 @@ function Rectangle(const X0, Y0, Width, Height: Integer): TRectangle;
 
 function PointInRectangle(const X, Y: Integer; const Rectangle: TRectangle): boolean;
 
-{$undef read_interface}
-
 implementation
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 { TDynRectangleArray -------------------------------------------------------------- }
 

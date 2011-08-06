@@ -46,9 +46,7 @@ unit KambiClassUtils;
 interface
 
 uses Classes, SysUtils, KambiUtils, KambiStringUtils, Contnrs,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
-
-{$define read_interface}
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
@@ -619,12 +617,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  {$define DYNARRAY_17_IS_FUNCTION}
-  {$define DYNARRAY_17_IS_FUNCTION_METHOD}
-  TDynArrayItem_17 = TNotifyEvent;
-  PDynArrayItem_17 = ^TDynArrayItem_17;
-  {$I dynarray_17.inc}
-  TDynNotifyEventArray = class(TDynArray_17)
+  TDynNotifyEventArray = class(specialize TGenericStructList<TNotifyEvent>)
   public
     { Call all (non-nil) Items. }
     procedure ExecuteAll(Sender: TObject);
@@ -651,8 +644,6 @@ procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
 { Set to @nil (never freeing) given item on TFPGObjectList. }
 procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 
-{$undef read_interface}
-
 implementation
 
 uses
@@ -661,9 +652,6 @@ uses
   {$endif}
   {$ifdef MSWINDOWS} Windows {$endif}
   , StrUtils, KambiFilesUtils;
-
-{$define read_implementation}
-{$I dynarray_17.inc}
 
 { TTextReader ---------------------------------------------------------------- }
 

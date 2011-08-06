@@ -1388,26 +1388,22 @@ begin
     begin
       { Add 12 triangles for 6 cube (LocalBoundingBox) sides.
         No point in progress here, as this is always fast. }
-      Result.Triangles.AllowedCapacityOverflow := 12;
-      try
-        LocalTriangulateBox(LocalBoundingBox);
-      finally Result.Triangles.AllowedCapacityOverflow := 4 end;
+      Result.Triangles.Capacity := 12;
+      LocalTriangulateBox(LocalBoundingBox);
     end else
     begin
-      Result.Triangles.AllowedCapacityOverflow := TrianglesCount(false);
-      try
-        if (ProgressTitle <> '') and
-           (Progress.UserInterface <> nil) and
-           (not Progress.Active) then
-        begin
-          Progress.Init(TrianglesCount(false), ProgressTitle, true);
-          try
-            TriangleOctreeToAdd := Result;
-            LocalTriangulate(false, @AddTriangleToOctreeProgress);
-          finally Progress.Fini end;
-        end else
-          LocalTriangulate(false, @Result.AddItemTriangle);
-      finally Result.Triangles.AllowedCapacityOverflow := 4 end;
+      Result.Triangles.Capacity := TrianglesCount(false);
+      if (ProgressTitle <> '') and
+         (Progress.UserInterface <> nil) and
+         (not Progress.Active) then
+      begin
+        Progress.Init(TrianglesCount(false), ProgressTitle, true);
+        try
+          TriangleOctreeToAdd := Result;
+          LocalTriangulate(false, @AddTriangleToOctreeProgress);
+        finally Progress.Fini end;
+      end else
+        LocalTriangulate(false, @Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
 end;

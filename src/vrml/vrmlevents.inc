@@ -20,16 +20,9 @@
   TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
     const Time: TVRMLTime) of object;
 
-  TDynArrayItem_1 = TVRMLEventReceive;
-  PDynArrayItem_1 = ^TVRMLEventReceive;
-  {$define DYNARRAY_1_IS_FUNCTION}
-  {$define DYNARRAY_1_IS_FUNCTION_METHOD}
-  {$define DYNARRAY_1_USE_EQUALITY}
-  {$I dynarray_1.inc}
-  TDynVRMLEventReceiveArray = class(TDynArray_1)
+  TDynVRMLEventReceiveArray = class(specialize TGenericStructList<TVRMLEventReceive>)
   public
-    { This calls all functions (all Items) passing them
-      (Event, Value, Time) parameters. }
+    { Call all functions. }
     procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
   end;
@@ -193,7 +186,6 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-{$I dynarray_1.inc}
 
 { TDynVRMLEventReceiveArray -------------------------------------------------- }
 

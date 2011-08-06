@@ -95,10 +95,7 @@ function CreateSmoothNormalsCoordinateNode(
 
 implementation
 
-uses VRMLFields, Triangulator;
-
-{$define read_interface}
-{$define read_implementation}
+uses VRMLFields, Triangulator, GenericStructList;
 
 type
   TFace = record
@@ -108,11 +105,15 @@ type
   end;
   PFace = ^TFace;
 
-  TDynArrayItem_1 = TFace;
-  PDynArrayItem_1 = PFace;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  type TDynFaceArray = TDynArray_1;
+  TDynFaceArray = class(specialize TGenericStructList<TFace>)
+    function Add: PFace;
+  end;
+
+function TDynFaceArray.Add: PFace;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 function CreateNormals(CoordIndex: TDynLongintArray;
   Vertices: TDynVector3SingleArray;

@@ -90,7 +90,7 @@ procedure FreeMemNilingAllChars(var Font: TTrueTypeFont); overload;
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses SysUtils, KambiUtils, GenericStructList;
 
 const
   IdentityMat2:Mat2= { identity matrix }
@@ -172,15 +172,8 @@ begin
  end;
 end;
 
-{$define read_interface}
-{$define read_implementation}
 type
-  TDynArrayItem_1 = TTTFCharItem;
-  PDynArrayItem_1 = PTTFCharItem;
-{$define DYNARRAY_1_IS_STRUCT}
-{$I dynarray_1.inc}
-type
-  TDynTTFCharItemArray = TDynArray_1;
+  TTTFCharItemList = specialize TGenericStructList<TTTFCharItem>;
 
 function Font2TTFChar_HDc(dc: HDC; c: char): PTTFChar;
 var GlyphMetrics: TGlyphMetrics;
@@ -193,7 +186,7 @@ var GlyphMetrics: TGlyphMetrics;
 type TArray_PointFX = packed array[0..High(Word)] of TPointFX;
      PArray_PointFX = ^TArray_PointFX;
 var PointsFX: PArray_PointFX;
-    ResultItems: TDynTTFCharItemArray;
+    ResultItems: TTTFCharItemList;
     ResultInfo: TTTFCharInfo;
     lastPunkt: record x, y: Single end;
     Dlug: Cardinal;
@@ -228,7 +221,7 @@ var PointsFX: PArray_PointFX;
 begin
  Result := nil; { <- only to avoid stupid Delphi warning }
 
- ResultItems := TDynTTFCharItemArray.Create;
+ ResultItems := TTTFCharItemList.Create;
  try
   Buffer := nil;
   try

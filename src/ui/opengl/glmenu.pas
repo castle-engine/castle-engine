@@ -1231,11 +1231,11 @@ begin
     MaxTo1st(MaxItemWidth, MenuFont.TextWidth(Items[I]));
 
     if Items.Objects[I] <> nil then
-      FAccessoryRectangles.Items[I].Width :=
+      FAccessoryRectangles.List^[I].Width :=
         TGLMenuItemAccessory(Items.Objects[I]).GetWidth(MenuFont) else
-      FAccessoryRectangles.Items[I].Width := 0;
+      FAccessoryRectangles.List^[I].Width := 0;
 
-    MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.Items[I].Width);
+    MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.List^[I].Width);
   end;
 
   { calculate FAllItemsRectangle Width and Height }
@@ -1308,14 +1308,14 @@ begin
   { Calculate positions of all rectangles. }
 
   { we iterate downwards from Rectangles.Count - 1 to 0, updating ItemsBelowHeight.
-    That's OpenGL (and so, Rectangles.Items[I].Y0) coordinates grow up, while
+    That's OpenGL (and so, Rectangles.List^[I].Y0) coordinates grow up, while
     our menu items are specified from highest to lowest. }
   ItemsBelowHeight := 0;
 
   for I := Rectangles.Count - 1 downto 0 do
   begin
-    Rectangles.Items[I].X0 := PositionAbsolute[0] + AllItemsRectangleMargin;
-    Rectangles.Items[I].Y0 := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
+    Rectangles.List^[I].X0 := PositionAbsolute[0] + AllItemsRectangleMargin;
+    Rectangles.List^[I].Y0 := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
 
     if I > 0 then
       ItemsBelowHeight += Cardinal(MenuFont.RowHeight + Integer(SpaceBetweenItems(I)));
@@ -1326,10 +1326,10 @@ begin
   { Calculate FAccessoryRectangles[].X0, Y0, Height }
   for I := 0 to Rectangles.Count - 1 do
   begin
-    FAccessoryRectangles.Items[I].X0 := Rectangles.Items[I].X0 +
+    FAccessoryRectangles.List^[I].X0 := Rectangles.List^[I].X0 +
       MaxItemWidth + MarginBeforeAccessory;
-    FAccessoryRectangles.Items[I].Y0 := Rectangles.Items[I].Y0;
-    FAccessoryRectangles.Items[I].Height := Rectangles.Items[I].Height;
+    FAccessoryRectangles.List^[I].Y0 := Rectangles.List^[I].Y0;
+    FAccessoryRectangles.List^[I].Height := Rectangles.List^[I].Height;
   end;
 end;
 
@@ -1401,23 +1401,23 @@ begin
       glColorv(CurrentItemBorderColor);
       glLineWidth(1.0);
       DrawGLRectBorder(
-        Rectangles.Items[I].X0 - CurrentItemBorderMargin,
-        Rectangles.Items[I].Y0,
-        Rectangles.Items[I].X0 + Rectangles.Items[I].Width + CurrentItemBorderMargin,
-        Rectangles.Items[I].Y0 + Rectangles.Items[I].Height);
+        Rectangles.List^[I].X0 - CurrentItemBorderMargin,
+        Rectangles.List^[I].Y0,
+        Rectangles.List^[I].X0 + Rectangles.List^[I].Width + CurrentItemBorderMargin,
+        Rectangles.List^[I].Y0 + Rectangles.List^[I].Height);
 
       glColorv(CurrentItemColor);
     end else
       glColorv(NonCurrentItemColor);
 
     glPushMatrix;
-      glTranslatef(Rectangles.Items[I].X0, Rectangles.Items[I].Y0 + MenuFont.Descend, 0);
+      glTranslatef(Rectangles.List^[I].X0, Rectangles.List^[I].Y0 + MenuFont.Descend, 0);
       glRasterPos2i(0, 0);
       MenuFont.Print(Items[I]);
     glPopMatrix;
 
     if Items.Objects[I] <> nil then
-      TGLMenuItemAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.Items[I]);
+      TGLMenuItemAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.List^[I]);
   end;
 
   if DesignerMode then
@@ -1577,11 +1577,11 @@ begin
       then user just moves mouse within current item.
       So maybe we should call TGLMenuItemAccessory.MouseMove. }
     if (Items.Objects[CurrentItem] <> nil) and
-       (PointInRectangle(MX, MY, FAccessoryRectangles.Items[CurrentItem])) and
+       (PointInRectangle(MX, MY, FAccessoryRectangles.List^[CurrentItem])) and
        (ItemAccessoryGrabbed = CurrentItem) then
       TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseMove(
         MX, MY, Container.MousePressed,
-        FAccessoryRectangles.Items[CurrentItem], Self);
+        FAccessoryRectangles.List^[CurrentItem], Self);
   end;
 
   if DesignerMode then
@@ -1604,12 +1604,12 @@ begin
 
   if (CurrentItem <> -1) and
      (Items.Objects[CurrentItem] <> nil) and
-     (PointInRectangle(MX, MY, FAccessoryRectangles.Items[CurrentItem])) and
+     (PointInRectangle(MX, MY, FAccessoryRectangles.List^[CurrentItem])) and
      (Container.MousePressed - [Button] = []) then
   begin
     ItemAccessoryGrabbed := CurrentItem;
     TGLMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
-      MX, MY, Button, FAccessoryRectangles.Items[CurrentItem], Self);
+      MX, MY, Button, FAccessoryRectangles.List^[CurrentItem], Self);
     Result := ExclusiveEvents;
   end;
 

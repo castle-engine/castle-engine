@@ -31,7 +31,7 @@ uses VectorMath, GL, GLU, GLExt, GLWindow,
   KambiGLUtils, VRMLScene, VRMLGLScene, Base3D, KambiParameters,
   KambiFilesUtils, KambiStringUtils, GLShaders, VRMLShape,
   VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, KambiWarnings,
-  GLVersionUnit, Math, KambiSceneManager, RenderingCameraUnit;
+  GLVersionUnit, Math, KambiSceneManager, RenderingCameraUnit, GenericStructList;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -58,15 +58,7 @@ type
     Position, Normal: TVector3Single;
   end;
   PAOElement = ^TAOElement;
-
-  TDynArrayItem_1 = TAOElement;
-  PDynArrayItem_1 = PAOElement;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define read_interface}
-  {$define read_implementation}
-  {$I dynarray_1.inc}
-type
-  TDynAOElementArray = TDynArray_1;
+  TDynAOElementArray = specialize TGenericStructList<TAOElement>;
 
 var
   Elements: TDynAOElementArray;

@@ -65,9 +65,7 @@ unit TextureImages;
 
 interface
 
-uses Images, DDS, KambiUtils, VideosCache;
-
-{$define read_interface}
+uses Images, DDS, KambiUtils, VideosCache, GenericStructList;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -119,12 +117,9 @@ type
   end;
   PCachedTexture = ^TCachedTexture;
 
-  TDynArrayItem_1 = TCachedTexture;
-  PDynArrayItem_1 = PCachedTexture;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$define DYNARRAY_1_IS_INIT_FINI_TYPE}
-  {$I dynarray_1.inc}
-  TDynCachedTextureArray = TDynArray_1;
+  TDynCachedTextureArray = class(specialize TGenericStructList<TCachedTexture>)
+    function Add: PCachedTexture;
+  end;
 
   { A cache of loaded images for textures.
 
@@ -150,18 +145,19 @@ type
 
     procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage); overload;
     procedure TextureImage_DecReference(var Image: TEncodedImage); overload;
-    
+
     function Empty: boolean; override;
   end;
-
-{$undef read_interface}
 
 implementation
 
 uses SysUtils, KambiStringUtils;
 
-{$define read_implementation}
-{$I dynarray_1.inc}
+function TDynCachedTextureArray.Add: PCachedTexture;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage;
 begin
@@ -219,7 +215,7 @@ var
   I: Integer;
   C: PCachedTexture;
 begin
-  C := @CachedTextures.Items[0];
+  C := PCachedTexture(CachedTextures.List);
   for I := 0 to CachedTextures.Count - 1 do
   begin
     if C^.FileName = FileName then
@@ -260,7 +256,7 @@ var
   I: Integer;
   C: PCachedTexture;
 begin
-  C := @CachedTextures.Items[0];
+  C := PCachedTexture(CachedTextures.List);
   for I := 0 to CachedTextures.Count - 1 do
   begin
     if C^.Image = Image then
