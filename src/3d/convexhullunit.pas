@@ -48,8 +48,8 @@ var InResult:TDynBooleanArray;
 
     Return false if RightSide and Start is the highest vertex,
     or (not RightSide) and Start is the lowest vertex.
-    Else sets Next as appropriate and returns true. 
-    
+    Else sets Next as appropriate and returns true.
+
     Returned Next for SURE has InResult[Next] = false. }
   var MaxCotanAngle, ThisCotan:Single;
       MaxCotanAngleI, i:Integer;
@@ -104,18 +104,17 @@ begin
    i0:=i;
   end;
 
- InResult:=TDynBooleanArray.Create;
+ InResult := TDynBooleanArray.Create;
  try
-  InResult.Count := Points.Count;
-  InResult.SetAll(false);
+  InResult.Count := Points.Count; { TFPGList already initializes all to false }
   Result:=TDynIntegerArray.Create;
-  try 
-   MarkNext(i0);  
-  
+  try
+   MarkNext(i0);
+
    i:=i0;
    while FindNext(i, NextI, true ) do begin i:=NextI; MarkNext(i); end;
    while FindNext(i, NextI, false) do begin i:=NextI; MarkNext(i); end;
-   
+
   except Result.Free; raise end;
  finally InResult.Free end;
 end;
