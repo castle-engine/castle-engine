@@ -29,9 +29,7 @@ type
   end;
   PCachedImage = ^TCachedImage;
 
-  TDynCachedImageArray = class(specialize TGenericStructList<TCachedImage>)
-    function Add: PCachedImage;
-  end;
+  TDynCachedImageArray = specialize TGenericStructList<TCachedImage>;
 
   { A cache of loaded images.
 
@@ -103,12 +101,6 @@ implementation
 uses SysUtils, KambiStringUtils;
 
 { $define DEBUG_CACHE}
-
-function TDynCachedImageArray.Add: PCachedImage;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 constructor TImagesCache.Create;
 begin

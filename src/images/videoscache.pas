@@ -29,9 +29,7 @@ type
   end;
   PCachedVideo = ^TCachedVideo;
 
-  TDynCachedVideoArray = class(specialize TGenericStructList<TCachedVideo>)
-    function Add: PCachedVideo;
-  end;
+  TDynCachedVideoArray = specialize TGenericStructList<TCachedVideo>;
 
   { A cache of loaded videos.
 
@@ -97,12 +95,6 @@ type
 implementation
 
 uses SysUtils, KambiStringUtils;
-
-function TDynCachedVideoArray.Add: PCachedVideo;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 { $define DEBUG_CACHE}
 

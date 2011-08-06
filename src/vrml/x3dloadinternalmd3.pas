@@ -28,9 +28,7 @@ type
   end;
   PMd3Triangle = ^TMd3Triangle;
 
-  TDynMd3TriangleArray = class(specialize TGenericStructList<TMd3Triangle>)
-    function Add: PMd3Triangle;
-  end;
+  TDynMd3TriangleArray = specialize TGenericStructList<TMd3Triangle>;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
@@ -200,12 +198,6 @@ type
     OffsetXYZNormal: LongInt;
     OffsetEnd: LongInt;
   end;
-
-function TDynMd3TriangleArray.Add: PMd3Triangle;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 { TMd3Surface ---------------------------------------------------------------- }
 

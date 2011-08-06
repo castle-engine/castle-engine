@@ -38,15 +38,7 @@ type
   end;
   PParsedOption = ^TParsedOption;
 
-  TDynParsedOptionArray = class(specialize TGenericStructList<TParsedOption>)
-    function Add: PParsedOption;
-  end;
-
-function TDynParsedOptionArray.Add: PParsedOption;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
+  TDynParsedOptionArray = specialize TGenericStructList<TParsedOption>;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);

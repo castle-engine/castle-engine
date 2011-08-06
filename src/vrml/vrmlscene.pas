@@ -87,9 +87,7 @@ type
   end;
   PManifoldEdge = ^TManifoldEdge;
 
-  TDynManifoldEdgeArray = class(specialize TGenericStructList<TManifoldEdge>)
-    function Add: PManifoldEdge;
-  end;
+  TDynManifoldEdgeArray = specialize TGenericStructList<TManifoldEdge>;
 
   { Scene edge that has one neighbor, i.e. border edge.
     It's used by @link(TVRMLScene.BorderEdges),
@@ -334,7 +332,6 @@ type
     function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
     procedure AddShapeTexture(Shape: TVRMLShape; Tex: TNodeX3DTextureNode);
     procedure UpdateShadowMaps(LightNode: TNodeX3DLightNode);
-    function Add: PGeneratedTexture;
   end;
 
   { List of transform nodes (INodeTransform),
@@ -364,9 +361,7 @@ type
     Name: string;
   end;
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  TDynCompiledScriptHandlerInfoArray = class(specialize TGenericStructList<TCompiledScriptHandlerInfo>)
-    function Add: PCompiledScriptHandlerInfo;
-  end;
+  TDynCompiledScriptHandlerInfoArray = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
 
   { Possible spatial structure types that may be managed by TVRMLScene,
     see TVRMLScene.Spatial. }
@@ -1928,12 +1923,6 @@ implementation
 uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
   X3DLoad;
 
-function TDynManifoldEdgeArray.Add: PManifoldEdge;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
-
 { TVRMLBindableStack ----------------------------------------------------- }
 
 constructor TVRMLBindableStack.Create(AParentScene: TVRMLScene);
@@ -2221,12 +2210,6 @@ begin
       List^[I].Handler.UpdateNeeded := true;
 end;
 
-function TDynGeneratedTextureArray.Add: PGeneratedTexture;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
-
 { TTransformInstancesList ------------------------------------------------- }
 
 function TTransformInstancesList.Instances(Node: TVRMLNode;
@@ -2260,14 +2243,6 @@ procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TTimeDependentNod
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
-end;
-
-{ TDynCompiledScriptHandlerInfoArray ----------------------------------------- }
-
-function TDynCompiledScriptHandlerInfoArray.Add: PCompiledScriptHandlerInfo;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
 end;
 
 { TVRMLScene ----------------------------------------------------------- }

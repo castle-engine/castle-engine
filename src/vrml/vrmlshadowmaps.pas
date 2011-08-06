@@ -75,8 +75,6 @@ type
     ShadowCastersBox: TBox3D;
     LightsCastingOnEverything: TVRMLNodeList;
 
-    function Add: PLight;
-
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
     function FindLight(Light: TNodeX3DLightNode): PLight;
@@ -91,12 +89,6 @@ type
     { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
     procedure HandleLightCastingOnEverything(Node: TVRMLNode);
   end;
-
-function TDynLightArray.Add: PLight;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 function TDynLightArray.FindLight(Light: TNodeX3DLightNode): PLight;
 var

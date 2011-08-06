@@ -155,9 +155,7 @@ type
   end;
   PVRMLTriangle = ^TVRMLTriangle;
 
-  TDynVRMLTriangleArray = class(specialize TGenericStructList<TVRMLTriangle>)
-    function Add: PVRMLTriangle;
-  end;
+  TDynVRMLTriangleArray = specialize TGenericStructList<TVRMLTriangle>;
 
 { TVRMLBaseTrianglesOctree ----------------------------------------------------------- }
 
@@ -669,12 +667,6 @@ type
 implementation
 
 uses KambiStringUtils, VRMLShape;
-
-function TDynVRMLTriangleArray.Add: PVRMLTriangle;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 { TVRMLTriangle  ------------------------------------------------------------- }
 

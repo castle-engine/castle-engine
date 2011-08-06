@@ -591,9 +591,7 @@ type
   end;
   PTextureImageCache = ^TTextureImageCache;
 
-  TDynTextureImageCacheArray = class(specialize TGenericStructList<TTextureImageCache>)
-    function Add: PTextureImageCache;
-  end;
+  TDynTextureImageCacheArray = specialize TGenericStructList<TTextureImageCache>;
 
   TTextureVideoCache = record
     FullUrl: string;
@@ -624,9 +622,7 @@ type
   end;
   PTextureVideoCache = ^TTextureVideoCache;
 
-  TDynTextureVideoCacheArray = class(specialize TGenericStructList<TTextureVideoCache>)
-    function Add: PTextureVideoCache;
-  end;
+  TDynTextureVideoCacheArray = specialize TGenericStructList<TTextureVideoCache>;
 
   TTextureCubeMapCache = record
     InitialNode: TNodeX3DEnvironmentTextureNode;
@@ -645,9 +641,7 @@ type
   end;
   PTextureCubeMapCache = ^TTextureCubeMapCache;
 
-  TDynTextureCubeMapCacheArray = class(specialize TGenericStructList<TTextureCubeMapCache>)
-    function Add: PTextureCubeMapCache;
-  end;
+  TDynTextureCubeMapCacheArray = specialize TGenericStructList<TTextureCubeMapCache>;
 
   TTexture3DCache = record
     InitialNode: TNodeX3DTexture3DNode;
@@ -667,9 +661,7 @@ type
   end;
   PTexture3DCache = ^TTexture3DCache;
 
-  TDynTexture3DCacheArray = class(specialize TGenericStructList<TTexture3DCache>)
-    function Add: PTexture3DCache;
-  end;
+  TDynTexture3DCacheArray = specialize TGenericStructList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields.
@@ -684,9 +676,7 @@ type
   end;
   PTextureDepthOrFloatCache = ^TTextureDepthOrFloatCache;
 
-  TDynTextureDepthOrFloatCacheArray = class(specialize TGenericStructList<TTextureDepthOrFloatCache>)
-    function Add: PTextureDepthOrFloatCache;
-  end;
+  TDynTextureDepthOrFloatCacheArray = specialize TGenericStructList<TTextureDepthOrFloatCache>;
 
   TVRMLRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -1259,38 +1249,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
 {$I vrmlglrenderer_texture.inc}
 {$I vrmlglrenderer_bumpmapping.inc}
 {$I vrmlglrenderer_glsl.inc}
-
-{ TDynTexture*Array ---------------------------------------------------------- }
-
-function TDynTextureImageCacheArray.Add: PTextureImageCache;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
-
-function TDynTextureVideoCacheArray.Add: PTextureVideoCache;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
-
-function TDynTextureCubeMapCacheArray.Add: PTextureCubeMapCache;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
-
-function TDynTexture3DCacheArray.Add: PTexture3DCache;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
-
-function TDynTextureDepthOrFloatCacheArray.Add: PTextureDepthOrFloatCache;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 { TVRMLGLRendererContextCache -------------------------------------------- }
 

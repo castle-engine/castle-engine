@@ -339,7 +339,6 @@ type
     { Find record with given TNodeClipPlane, returns -1 if not found. }
     function IndexOfNode(Node: TNodeClipPlane): Integer;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
-    function Add: PClipPlane;
   end;
 
   TPointingDeviceSensorList = class;
@@ -1763,8 +1762,6 @@ type
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
     function Bound(Node: TVRMLNode): boolean;
-
-    function Add: PVRMLNodeNameRec;
   end;
 
   TVRMLPrototypeNames = class(TStringListCaseSens)
@@ -2400,12 +2397,6 @@ begin
       if (List^[I].Node <> TDynClipPlaneArray(SecondValue).List^[I].Node) or
          MatricesPerfectlyEqual(List^[I].Transform, TDynClipPlaneArray(SecondValue).List^[I].Transform) then
         Exit(false);
-end;
-
-function TDynClipPlaneArray.Add: PClipPlane;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
 end;
 
 { TVRMLGraphTraverseState ---------------------------------------------------- }
@@ -5728,12 +5719,6 @@ end;
 function TVRMLNodeNames.Bound(Node: TVRMLNode): boolean;
 begin
   Result := IndexOfNode(Node) <> -1;
-end;
-
-function TVRMLNodeNames.Add: PVRMLNodeNameRec;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
 end;
 
 { TVRMLPrototypeNames -------------------------------------------------------- }

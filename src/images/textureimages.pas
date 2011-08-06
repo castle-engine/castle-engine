@@ -117,9 +117,7 @@ type
   end;
   PCachedTexture = ^TCachedTexture;
 
-  TDynCachedTextureArray = class(specialize TGenericStructList<TCachedTexture>)
-    function Add: PCachedTexture;
-  end;
+  TDynCachedTextureArray = specialize TGenericStructList<TCachedTexture>;
 
   { A cache of loaded images for textures.
 
@@ -152,12 +150,6 @@ type
 implementation
 
 uses SysUtils, KambiStringUtils;
-
-function TDynCachedTextureArray.Add: PCachedTexture;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
 
 function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage;
 begin

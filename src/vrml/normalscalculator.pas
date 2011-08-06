@@ -105,15 +105,7 @@ type
   end;
   PFace = ^TFace;
 
-  TDynFaceArray = class(specialize TGenericStructList<TFace>)
-    function Add: PFace;
-  end;
-
-function TDynFaceArray.Add: PFace;
-begin
-  Count := Count + 1;
-  Result := @(List^[Count - 1]);
-end;
+  TDynFaceArray = specialize TGenericStructList<TFace>;
 
 function CreateNormals(CoordIndex: TDynLongintArray;
   Vertices: TDynVector3SingleArray;
