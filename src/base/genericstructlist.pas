@@ -24,6 +24,10 @@ type
     so your type doesn't need to have a "=" operator built-in inside FPC.
     When calling IndexOf or Remove, it will simply compare values using
     CompareByte, this is what TFPSList.IndexOf uses.
+    This way it works to create lists of records, vectors (constant size arrays),
+    old-style TP objects, and also is suitable to create a list of methods
+    (since for methods, the "=" is broken, for Delphi compatibility,
+    see http://bugs.freepascal.org/view.php?id=9228).
 
     The only new method is @link(Add) without parameters, that returns
     the pointer to newly created item. Comfortable and efficient way
