@@ -6,7 +6,7 @@
     <CompilerOptions>
       <Version Value="9"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/templates;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/kambiscript;../src/3d;../src/vrml/opengl/glsl"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/kambiscript;../src/3d;../src/vrml/opengl/glsl"/>
         <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/vrml;../src/vrml/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/kambiscript;../src/ui;../src/ui/opengl"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>

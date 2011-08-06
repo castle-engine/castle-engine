@@ -55,7 +55,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <SearchPaths>
-      <IncludeFiles Value="../../../src/base;../../../src/base/templates"/>
+      <IncludeFiles Value="../../../src/base"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

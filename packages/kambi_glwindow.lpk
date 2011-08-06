@@ -6,7 +6,7 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/glwindow/unix;../src/glwindow/windows;../src/glwindow/gtk;../src/base;../src/base/templates"/>
+        <IncludeFiles Value="../src/glwindow/unix;../src/glwindow/windows;../src/glwindow/gtk;../src/base"/>
         <OtherUnitFiles Value="../src/glwindow;../src/glwindow/windows"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
