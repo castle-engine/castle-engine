@@ -228,6 +228,9 @@ uses SysUtils, KambiLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
 
 { Copying to interleaved memory utilities ------------------------------------ }
 
+type
+  EAssignInterleavedRangeError = class(Exception);
+
 { Copy Source contents to given Target memory. Each item in Target
   is separated by the Stride bytes.
 

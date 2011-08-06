@@ -17,15 +17,8 @@
   but generally usable.
 
   @unorderedList(
-    @item(
-      Templates for classes that work like dynamic arrays.
-      Base @link(TDynArrayBase) class and many TDyn*Array classes
-      implementing TDynArrayBase descendants that can store base Pascal types,
-      like TDynIntegerArray, TDynFloatArray etc.
-
-      New TDyn*Xxx classes may be created much like instantiating templates in C++,
-      thanks to some tricks with include files and compiler defines,
-      see comments at the beginning of dynarray.inc file.)
+    @item(Lists of primitives, using FPC generics.
+      Like TDynIntegerArray, TDynFloatArray etc.)
 
     @item(Basic operations on numbers.)
 

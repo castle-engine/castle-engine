@@ -898,13 +898,15 @@ type
   { VRML/X3D field holding a list of nodes.
 
     Just like SFNode, it's defined in this unit, as it uses TVRMLNode.
-    Note that items of MFNode @italic(cannot) be nil (i.e. VRML doesn't
+    Note that items of MFNode @italic(cannot) be nil (i.e. VRML/X3D doesn't
     allow to use NULL inside MFNode), contrary to SFNode.
 
     Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
-    Reasons ? 1. We don't want to use TDynArray descendant.
-    We want to use TVRMLNodeList. 2. We don't want to do parsing
-    using SFNode, because MFNode doesn't allow NULL items.
+    One reason is that we don't want to parse MFNode items
+    by SFNode parser, because MFNode doesn't allow NULL items.
+    (In the past, another argument was that we want to use TVRMLNodeList
+    and it wasn't compatible with TVRMLSimpleMultField.
+    But now TVRMLNodeList descends from TFPSList, so it isn't a problem.)
 
     Just like for TSFNode:
     Note that we store AllowedChildren list, which is a list of
