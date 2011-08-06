@@ -222,8 +222,8 @@ uses
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   KambiGLUtils, VRMLGLRendererLights, TTFontsTypes,
   GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, KambiClassUtils, DDS, Base3D, FGL
-  {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  GLCubeMap, KambiClassUtils, DDS, Base3D,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
   GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps,
   VRMLGLRendererTextureEnv;
 
@@ -591,12 +591,8 @@ type
   end;
   PTextureImageCache = ^TTextureImageCache;
 
-  TDynArrayItem_2 = TTextureImageCache;
-  PDynArrayItem_2 = PTextureImageCache;
-  {$define DYNARRAY_2_IS_STRUCT}
-  {$define DYNARRAY_2_IS_INIT_FINI_TYPE}
-  {$I dynarray_2.inc}
-  TDynTextureImageCacheArray = class(TDynArray_2)
+  TDynTextureImageCacheArray = class(specialize TGenericStructList<TTextureImageCache>)
+    function Add: PTextureImageCache;
   end;
 
   TTextureVideoCache = record
@@ -628,12 +624,8 @@ type
   end;
   PTextureVideoCache = ^TTextureVideoCache;
 
-  TDynArrayItem_7 = TTextureVideoCache;
-  PDynArrayItem_7 = PTextureVideoCache;
-  {$define DYNARRAY_7_IS_STRUCT}
-  {$define DYNARRAY_7_IS_INIT_FINI_TYPE}
-  {$I dynarray_7.inc}
-  TDynTextureVideoCacheArray = class(TDynArray_7)
+  TDynTextureVideoCacheArray = class(specialize TGenericStructList<TTextureVideoCache>)
+    function Add: PTextureVideoCache;
   end;
 
   TTextureCubeMapCache = record
@@ -653,12 +645,8 @@ type
   end;
   PTextureCubeMapCache = ^TTextureCubeMapCache;
 
-  TDynArrayItem_9 = TTextureCubeMapCache;
-  PDynArrayItem_9 = PTextureCubeMapCache;
-  {$define DYNARRAY_9_IS_STRUCT}
-  {$define DYNARRAY_9_IS_INIT_FINI_TYPE}
-  {$I dynarray_9.inc}
-  TDynTextureCubeMapCacheArray = class(TDynArray_9)
+  TDynTextureCubeMapCacheArray = class(specialize TGenericStructList<TTextureCubeMapCache>)
+    function Add: PTextureCubeMapCache;
   end;
 
   TTexture3DCache = record
@@ -679,12 +667,9 @@ type
   end;
   PTexture3DCache = ^TTexture3DCache;
 
-  TDynArrayItem_11 = TTexture3DCache;
-  PDynArrayItem_11 = PTexture3DCache;
-  {$define DYNARRAY_11_IS_STRUCT}
-  {$define DYNARRAY_11_IS_INIT_FINI_TYPE}
-  {$I dynarray_11.inc}
-  TDynTexture3DCacheArray = TDynArray_11;
+  TDynTexture3DCacheArray = class(specialize TGenericStructList<TTexture3DCache>)
+    function Add: PTexture3DCache;
+  end;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields.
@@ -699,12 +684,9 @@ type
   end;
   PTextureDepthOrFloatCache = ^TTextureDepthOrFloatCache;
 
-  TDynArrayItem_13 = TTextureDepthOrFloatCache;
-  PDynArrayItem_13 = PTextureDepthOrFloatCache;
-  {$define DYNARRAY_13_IS_STRUCT}
-  {$define DYNARRAY_13_IS_INIT_FINI_TYPE}
-  {$I dynarray_13.inc}
-  TDynTextureDepthOrFloatCacheArray = TDynArray_13;
+  TDynTextureDepthOrFloatCacheArray = class(specialize TGenericStructList<TTextureDepthOrFloatCache>)
+    function Add: PTextureDepthOrFloatCache;
+  end;
 
   TVRMLRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -1269,11 +1251,6 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
   RenderingCameraUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}
-{$I dynarray_2.inc}
-{$I dynarray_7.inc}
-{$I dynarray_9.inc}
-{$I dynarray_11.inc}
-{$I dynarray_13.inc}
 
 {$I vrmlmeshrenderer.inc}
 {$I vrmlmeshrenderer_x3d_text.inc}
@@ -1282,6 +1259,38 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
 {$I vrmlglrenderer_texture.inc}
 {$I vrmlglrenderer_bumpmapping.inc}
 {$I vrmlglrenderer_glsl.inc}
+
+{ TDynTexture*Array ---------------------------------------------------------- }
+
+function TDynTextureImageCacheArray.Add: PTextureImageCache;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
+
+function TDynTextureVideoCacheArray.Add: PTextureVideoCache;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
+
+function TDynTextureCubeMapCacheArray.Add: PTextureCubeMapCache;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
+
+function TDynTexture3DCacheArray.Add: PTexture3DCache;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
+
+function TDynTextureDepthOrFloatCacheArray.Add: PTextureDepthOrFloatCache;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 { TVRMLGLRendererContextCache -------------------------------------------- }
 
@@ -1505,15 +1514,15 @@ var
   I: Integer;
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
-    if TextureImageCaches.Items[I].GLName = TextureGLName then
+    if TextureImageCaches.List^[I].GLName = TextureGLName then
     begin
-      Dec(TextureImageCaches.Items[I].References);
+      Dec(TextureImageCaches.List^[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureImageCaches.Items[I].FullUrl,
-                                    TextureImageCaches.Items[I].References]);
-      if TextureImageCaches.Items[I].References = 0 then
+        WritelnLog('--', '%s: %d', [TextureImageCaches.List^[I].FullUrl,
+                                    TextureImageCaches.List^[I].References]);
+      if TextureImageCaches.List^[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureImageCaches.Items[I].GLName));
+        glDeleteTextures(1, @(TextureImageCaches.List^[I].GLName));
         TextureImageCaches.Delete(I);
       end;
       Exit;
@@ -1595,15 +1604,15 @@ var
   I: Integer;
 begin
   for I := 0 to TextureVideoCaches.Count - 1 do
-    if TextureVideoCaches.Items[I].GLVideo = TextureVideo then
+    if TextureVideoCaches.List^[I].GLVideo = TextureVideo then
     begin
-      Dec(TextureVideoCaches.Items[I].References);
+      Dec(TextureVideoCaches.List^[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureVideoCaches.Items[I].FullUrl,
-                                    TextureVideoCaches.Items[I].References]);
-      if TextureVideoCaches.Items[I].References = 0 then
+        WritelnLog('--', '%s: %d', [TextureVideoCaches.List^[I].FullUrl,
+                                    TextureVideoCaches.List^[I].References]);
+      if TextureVideoCaches.List^[I].References = 0 then
       begin
-        FreeAndNil(TextureVideoCaches.Items[I].GLVideo);
+        FreeAndNil(TextureVideoCaches.List^[I].GLVideo);
         TextureVideoCaches.Delete(I);
       end;
       Exit;
@@ -1692,14 +1701,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureCubeMapCaches.Count - 1 do
-    if TextureCubeMapCaches.Items[I].GLName = TextureGLName then
+    if TextureCubeMapCaches.List^[I].GLName = TextureGLName then
     begin
-      Dec(TextureCubeMapCaches.Items[I].References);
+      Dec(TextureCubeMapCaches.List^[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches.Items[I].InitialNode), TextureCubeMapCaches.Items[I].References]);
-      if TextureCubeMapCaches.Items[I].References = 0 then
+        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches.List^[I].InitialNode), TextureCubeMapCaches.List^[I].References]);
+      if TextureCubeMapCaches.List^[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureCubeMapCaches.Items[I].GLName));
+        glDeleteTextures(1, @(TextureCubeMapCaches.List^[I].GLName));
         TextureCubeMapCaches.Delete(I);
       end;
       Exit;
@@ -1779,14 +1788,14 @@ var
   I: Integer;
 begin
   for I := 0 to Texture3DCaches.Count - 1 do
-    if Texture3DCaches.Items[I].GLName = TextureGLName then
+    if Texture3DCaches.List^[I].GLName = TextureGLName then
     begin
-      Dec(Texture3DCaches.Items[I].References);
+      Dec(Texture3DCaches.List^[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches.Items[I].InitialNode), Texture3DCaches.Items[I].References]);
-      if Texture3DCaches.Items[I].References = 0 then
+        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches.List^[I].InitialNode), Texture3DCaches.List^[I].References]);
+      if Texture3DCaches.List^[I].References = 0 then
       begin
-        glDeleteTextures(1, @(Texture3DCaches.Items[I].GLName));
+        glDeleteTextures(1, @(Texture3DCaches.List^[I].GLName));
         Texture3DCaches.Delete(I);
       end;
       Exit;
@@ -1886,14 +1895,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
-    if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
+    if TextureDepthOrFloatCaches.List^[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthOrFloatCaches.Items[I].References);
+      Dec(TextureDepthOrFloatCaches.List^[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), TextureDepthOrFloatCaches.Items[I].References]);
-      if TextureDepthOrFloatCaches.Items[I].References = 0 then
+        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.List^[I].InitialNode), TextureDepthOrFloatCaches.List^[I].References]);
+      if TextureDepthOrFloatCaches.List^[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
+        glDeleteTextures(1, @(TextureDepthOrFloatCaches.List^[I].GLName));
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
@@ -1965,14 +1974,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
-    if TextureDepthOrFloatCaches.Items[I].GLName = TextureGLName then
+    if TextureDepthOrFloatCaches.List^[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthOrFloatCaches.Items[I].References);
+      Dec(TextureDepthOrFloatCaches.List^[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.Items[I].InitialNode), TextureDepthOrFloatCaches.Items[I].References]);
-      if TextureDepthOrFloatCaches.Items[I].References = 0 then
+        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.List^[I].InitialNode), TextureDepthOrFloatCaches.List^[I].References]);
+      if TextureDepthOrFloatCaches.List^[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureDepthOrFloatCaches.Items[I].GLName));
+        glDeleteTextures(1, @(TextureDepthOrFloatCaches.List^[I].GLName));
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
@@ -2605,7 +2614,7 @@ begin
   Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.Items[I].Node.FdEffects, State);
+      PrepareIDecls(Lights.List^[I].Node.FdEffects, State);
 
   Texture := State.Texture;
   if Texture <> nil then
@@ -2729,7 +2738,7 @@ begin
   Result := Index <> -1;
 
   if Result then
-    AlphaChannelType := GLTextureNodes.Items[Index].AlphaChannelType;
+    AlphaChannelType := GLTextureNodes[Index].AlphaChannelType;
 end;
 
 { Render ---------------------------------------------------------------------- }
@@ -3236,7 +3245,7 @@ begin
           begin
             ActiveTexture(I);
             glPushMatrix;
-            Child := Transforms.Items[I];
+            Child := Transforms[I];
             if (Child <> nil) and
                (Child is TNodeX3DTextureTransformNode) then
             begin
@@ -3286,7 +3295,7 @@ begin
 
     for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
     begin
-      ActiveTexture(TextureTransformUnitsUsedMore.Items[I]);
+      ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
       glPopMatrix;
     end;
 
@@ -3486,7 +3495,7 @@ var
     Assert(IDecls <> nil);
     for I := 0 to IDecls.Count - 1 do
     begin
-      UniformField := IDecls.Items[I].Field;
+      UniformField := IDecls.List^[I].Field;
 
       if UniformField <> nil then
       begin
