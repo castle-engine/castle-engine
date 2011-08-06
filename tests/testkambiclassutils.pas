@@ -203,7 +203,7 @@ begin
     Assert(A.IndexOf(@O1.Dummy) = -1);
     Assert(A.IndexOf(@O2.Dummy) = 0);
     Assert(A.IndexOf(@O3.Dummy) = -1);
-    
+
     FreeAndNil(O1);
     FreeAndNil(O2);
     FreeAndNil(O3);
