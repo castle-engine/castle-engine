@@ -230,44 +230,12 @@ unit VectorMath;
 
 {$I kambiconf.inc}
 
-{$ifdef FPC}
-  {$define HAS_MATRIX_UNIT}
-{$endif}
-
 interface
 
-uses SysUtils, KambiUtils {$ifdef HAS_MATRIX_UNIT}, Matrix{$endif},
-  GenericStructList;
+uses SysUtils, KambiUtils, Matrix, GenericStructList;
 
 {$define read_interface}
 
-{$ifndef HAS_MATRIX_UNIT}
-type    Tvector2_single_data   =array[0..1] of single;
-        Tvector2_double_data   =array[0..1] of double;
-        Tvector2_extended_data =array[0..1] of extended;
-
-        Tvector3_single_data   =array[0..2] of single;
-        Tvector3_double_data   =array[0..2] of double;
-        Tvector3_extended_data =array[0..2] of extended;
-
-        Tvector4_single_data   =array[0..3] of single;
-        Tvector4_double_data   =array[0..3] of double;
-        Tvector4_extended_data =array[0..3] of extended;
-
-        Tmatrix2_single_data   =array[0..1] of Tvector2_single_data;
-        Tmatrix2_double_data   =array[0..1] of Tvector2_double_data;
-        Tmatrix2_extended_data =array[0..1] of Tvector2_extended_data;
-
-        Tmatrix3_single_data   =array[0..2] of Tvector3_single_data;
-        Tmatrix3_double_data   =array[0..2] of Tvector3_double_data;
-        Tmatrix3_extended_data =array[0..2] of Tvector3_extended_data;
-
-        Tmatrix4_single_data   =array[0..3] of Tvector4_single_data;
-        Tmatrix4_double_data   =array[0..3] of Tvector4_double_data;
-        Tmatrix4_extended_data =array[0..3] of Tvector4_extended_data;
-{$endif}
-
-{$ifdef HAS_MATRIX_UNIT}
 { Define pointer types for all Matrix unit types. }
 type
   { }
@@ -294,7 +262,6 @@ type
   Pmatrix4_single   = ^Tmatrix4_single  ;
   Pmatrix4_double   = ^Tmatrix4_double  ;
   Pmatrix4_extended = ^Tmatrix4_extended;
-{$endif}
 
 { Most types below are packed anyway, so the "packed" keyword below
   is often not needed (but it doesn't hurt).
@@ -770,7 +737,6 @@ function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 function Matrix4Single(const M: TMatrix4Double): TMatrix4Single;
 { @groupEnd }
 
-{$ifdef FPC_OBJFPC}
 { Overload := operator to allow convertion between
   Matrix unit objects and this unit's arrays easy. }
 operator := (const V: TVector2_Single): TVector2Single;
@@ -779,7 +745,6 @@ operator := (const V: TVector4_Single): TVector4Single;
 operator := (const V: TVector2Single): TVector2_Single;
 operator := (const V: TVector3Single): TVector3_Single;
 operator := (const V: TVector4Single): TVector4_Single;
-{$endif}
 
 { Simple vectors operations  ------------------------------------------------- }
 
@@ -810,21 +775,16 @@ function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single; ov
 function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double; overload;
 function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double; overload;
 function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double; overload;
-
-{$ifdef FPC}
 function Lerp(const a: Single; const M1, M2: TMatrix3Single): TMatrix3Single; overload;
 function Lerp(const a: Single; const M1, M2: TMatrix4Single): TMatrix4Single; overload;
 function Lerp(const a: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
 function Lerp(const a: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
-{$endif FPC}
 { @groupEnd }
 
-{$ifdef HAS_MATRIX_UNIT}
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single; overload;
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector4_Single): TVector4_Single; overload;
 function Vector_Init_Lerp(const A: Double; const V1, V2: TVector3_Double): TVector3_Double; overload;
 function Vector_Init_Lerp(const A: Double; const V1, V2: TVector4_Double): TVector4_Double; overload;
-{$endif}
 
 { Normalize the first 3 vector components. For zero vectors, does nothing.
   @groupBegin }
@@ -832,20 +792,17 @@ procedure NormalizeTo1st3Singlev(vv: PVector3Single);
 procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
 { @groupEnd }
 
-{$ifndef DELPHI}
 procedure NormalizeTo1st(var v: TVector3Single); overload;
 procedure NormalizeTo1st(var v: TVector3Double); overload;
 
 function Normalized(const v: TVector3Single): TVector3Single; overload;
 function Normalized(const v: TVector3Double): TVector3Double; overload;
 
-{$ifdef HAS_MATRIX_UNIT}
 function Vector_Get_Normalized(const V: TVector3_Single): TVector3_Single; overload;
 function Vector_Get_Normalized(const V: TVector3_Double): TVector3_Double; overload;
 
 procedure Vector_Normalize(var V: TVector3_Single); overload;
 procedure Vector_Normalize(var V: TVector3_Double); overload;
-{$endif HAS_MATRIX_UNIT}
 
 { This normalizes Plane by scaling all @italic(four) coordinates of Plane
   so that length of plane vector (taken from 1st @italic(three) coordinates)
@@ -1994,7 +1951,6 @@ function MatrixRow(const m: TMatrix2Double; const Row: Integer): TVector2Double;
 function MatrixRow(const m: TMatrix3Double; const Row: Integer): TVector3Double; overload;
 function MatrixRow(const m: TMatrix4Double; const Row: Integer): TVector4Double; overload;
 
-{$ifdef HAS_MATRIX_UNIT}
 function MatrixDeterminant(const M: TMatrix2Single): Single; overload;
 function MatrixDeterminant(const M: TMatrix2Double): Double; overload;
 function MatrixDeterminant(const M: TMatrix3Single): Single; overload;
@@ -2047,7 +2003,6 @@ function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double)
 function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean; overload;
 function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean; overload;
 { @groupEnd }
-{$endif HAS_MATRIX_UNIT}
 
 { Multiply vector by a transposition of the same vector.
   For 3d vectors, this results in a 3x3 matrix.
@@ -2270,8 +2225,6 @@ function InverseFastLookDirMatrix(const Direction, Up: TVector3Single): TMatrix4
 function InverseFastLookDirMatrix(const Direction, Up: TVector3Double): TMatrix4Single;
 { @groupEnd }
 
-{$endif not DELPHI}
-
 { ---------------------------------------------------------------------------- }
 { @section(Grayscale convertion stuff) }
 
@@ -2349,8 +2302,6 @@ function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Sing
 function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
 { @groupEnd }
 
-{$ifdef FPC}
-
 { Place color intensity (calculated like for grayscale)
   into the given color component. Set the other components zero.
   @groupBegin }
@@ -2379,8 +2330,6 @@ function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
 function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single;
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 { @groupEnd }
-
-{$endif FPC}
 
 {$I vectormath_operators.inc}
 
@@ -3242,7 +3191,6 @@ begin
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
-{$ifndef DELPHI}
 function Matrix2Double(const M: TMatrix2Single): TMatrix2Double;
 begin
   Result[0][0] := M[0][0];
@@ -3336,7 +3284,6 @@ begin
   Result[3][2] := M[3][2];
   Result[3][3] := M[3][3];
 end;
-{$endif not DELPHI}
 
 { some math on vectors ------------------------------------------------------- }
 
@@ -3409,7 +3356,6 @@ begin
  result[3] := V1[3] + a*(V2[3]-V1[3]);
 end;
 
-{$ifdef HAS_MATRIX_UNIT}
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single;
 begin
   Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
@@ -3439,7 +3385,6 @@ begin
   Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
   Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
 end;
-{$endif HAS_MATRIX_UNIT}
 
 procedure NormalizeTo1st3Singlev(vv: PVector3Single);
 var
@@ -3473,7 +3418,6 @@ function ZeroVector(const v: TVector4Cardinal): boolean;
 begin
   result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
-{$ifndef DELPHI}
 
 function VectorLen(const v: TVector3Byte): Single;
 begin
@@ -4087,7 +4031,6 @@ begin
   result := a * d - b * c;
 end;
 
-{$ifdef HAS_MATRIX_UNIT}
 function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
 var
   D: Double;
@@ -4162,8 +4105,6 @@ begin
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
-{$endif HAS_MATRIX_UNIT}
-{$endif not DELPHI}
 
 { grayscale ------------------------------------------------------------------ }
 
@@ -4267,8 +4208,6 @@ begin
   Result[2] := Result[0];
 end;
 
-{$ifdef FPC}
-
 {$define COL_MOD_CONVERT:=
 var
   i: integer;
@@ -4311,7 +4250,5 @@ function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_S
 {$define COL_MOD_STRIP_NUM := 2}
 function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single; COL_MOD_STRIP
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
-
-{$endif FPC}
 
 end.

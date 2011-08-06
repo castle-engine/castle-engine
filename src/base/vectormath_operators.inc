@@ -1,5 +1,3 @@
-{$ifdef FPC_OBJFPC}
-
 { Overload operators for our vector/matrix types.
   This can only be used in FPC with ObjFpc mode, Delphi doesn't allow this.
 
@@ -476,5 +474,3 @@ operator / (const m:Tmatrix4_extended_data;const x:extended) : Tmatrix4_extended
 {$i vectormath_operators_matrix_implementation.inc}
 
 {$endif read_implementation}
-
-{$endif FPC_OBJFPC}
