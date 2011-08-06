@@ -19,7 +19,7 @@ unit Base3D;
 interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse,
-  KambiUtils;
+  KambiUtils, FGL;
 
 type
   TRenderFromViewFunction = procedure of object;
@@ -165,7 +165,7 @@ type
 
   { List of lights. Always TLightInstancesList, but we cannot declare it here
     as such. }
-  TAbstractLightInstancesList = TDynArrayBase;
+  TAbstractLightInstancesList = TFPSList;
 
   TRenderingPass = 0..1;
 

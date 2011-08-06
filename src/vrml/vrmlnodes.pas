@@ -315,11 +315,7 @@ type
   end;
   PLightInstance = ^TLightInstance;
 
-  TDynArrayItem_1 = TLightInstance;
-  PDynArrayItem_1 = PLightInstance;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TLightInstancesList = class(TDynArray_1)
+  TLightInstancesList = class(specialize TGenericStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TNodeX3DLightNode): integer;
@@ -330,8 +326,6 @@ type
     { Append List to our contents, setting every light's WorldCoordinates = @true. }
     procedure AppendInWorldCoordinates(const AList: TLightInstancesList);
   end;
-  TArray_LightInstance = TInfiniteArray_1;
-  PArray_LightInstance = PInfiniteArray_1;
 
   { Clipping plane, along with a tranformation. }
   TClipPlane = record
@@ -340,15 +334,12 @@ type
   end;
   PClipPlane = ^TClipPlane;
 
-  TDynArrayItem_3 = TClipPlane;
-  PDynArrayItem_3 = PClipPlane;
-  {$define DYNARRAY_3_IS_STRUCT}
-  {$I dynarray_3.inc}
-  TDynClipPlaneArray = class(TDynArray_3)
+  TDynClipPlaneArray = class(specialize TGenericStructList<TClipPlane>)
   public
     { Find record with given TNodeClipPlane, returns -1 if not found. }
     function IndexOfNode(Node: TNodeClipPlane): Integer;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    function Add: PClipPlane;
   end;
 
   TPointingDeviceSensorList = class;
@@ -693,15 +684,9 @@ type
 
   TNodeDestructionNotification = procedure (Node: TVRMLNode) of object;
 
-  TDynArrayItem_2 = TNodeDestructionNotification;
-  PDynArrayItem_2 = ^TNodeDestructionNotification;
-  {$define DYNARRAY_2_IS_FUNCTION}
-  {$define DYNARRAY_2_IS_FUNCTION_METHOD}
-  {$define DYNARRAY_2_USE_EQUALITY}
-  {$I dynarray_2.inc}
-  TDynNodeDestructionNotificationArray = class(TDynArray_2)
+  TDynNodeDestructionNotificationArray = class(specialize TGenericStructList<TNodeDestructionNotification>)
   public
-    { This calls all functions (all Items) passing them Node parameter. }
+    { Call all functions. }
     procedure ExecuteAll(Node: TVRMLNode);
   end;
 
@@ -1732,14 +1717,9 @@ type
     Finished: boolean;
   end;
   PVRMLNodeNameRec = ^TVRMLNodeNameRec;
-  TDynArrayItem_4 = TVRMLNodeNameRec;
-  PDynArrayItem_4 = PVRMLNodeNameRec;
-  {$define DYNARRAY_4_IS_STRUCT}
-  {$define DYNARRAY_4_IS_INIT_FINI_TYPE}
-  {$I dynarray_4.inc}
 
   { List to keep VRML/X3D node names while parsing VRML file. }
-  TVRMLNodeNames = class(TDynArray_4)
+  TVRMLNodeNames = class(specialize TGenericStructList<TVRMLNodeNameRec>)
   private
     FAutoRemove: boolean;
     procedure DestructionNotification(Node: TVRMLNode);
@@ -1783,6 +1763,8 @@ type
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
     function Bound(Node: TVRMLNode): boolean;
+
+    function Add: PVRMLNodeNameRec;
   end;
 
   TVRMLPrototypeNames = class(TStringListCaseSens)
@@ -2256,11 +2238,6 @@ resourcestring
   end;
 }
 
-{$I dynarray_1.inc}
-{$I dynarray_2.inc}
-{$I dynarray_3.inc}
-{$I dynarray_4.inc}
-
 {$I vrmlnodes_extrusion.inc}
 {$I vrmlnodes_elevationgrid.inc}
 {$I vrmlnodes_boundingboxes.inc}
@@ -2423,6 +2400,12 @@ begin
       if (Items[I].Node <> TDynClipPlaneArray(SecondValue).Items[I].Node) or
          MatricesPerfectlyEqual(Items[I].Transform, TDynClipPlaneArray(SecondValue).Items[I].Transform) then
         Exit(false);
+end;
+
+function TDynClipPlaneArray.Add: PClipPlane;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
 end;
 
 { TVRMLGraphTraverseState ---------------------------------------------------- }
@@ -5745,6 +5728,12 @@ end;
 function TVRMLNodeNames.Bound(Node: TVRMLNode): boolean;
 begin
   Result := IndexOfNode(Node) <> -1;
+end;
+
+function TVRMLNodeNames.Add: PVRMLNodeNameRec;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
 end;
 
 { TVRMLPrototypeNames -------------------------------------------------------- }

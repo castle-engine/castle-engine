@@ -23,7 +23,7 @@ uses
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
   VRMLShapeOctree, GLShadowVolumeRenderer, Cameras, VRMLFields,
   VRMLGLRendererLights, VRMLShape, Frustum, Base3D, GLShaders,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}
 
@@ -996,25 +996,14 @@ const
   prShadowVolume = [prTrianglesListShadowCasters, prManifoldAndBorderEdges];
 
 type
-  TDynArrayItem_1 = TTriangle4Single;
-  PDynArrayItem_1 = PTriangle4Single;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TArray_Triangle4Single = TInfiniteArray_1;
-  PArray_Triangle4Single = PInfiniteArray_1;
-  TDynTriangle4SingleArray = TDynArray_1;
+  TDynTriangle4SingleArray = specialize TGenericStructList<TTriangle4Single>;
 
 procedure Register;
-
-{$undef read_interface}
 
 implementation
 
 uses GLVersionUnit, Images, KambiLog, KambiWarnings,
   Math, RaysWindow, KambiStringUtils, RenderingCameraUnit;
-
-{$define read_implementation}
-{$I dynarray_1.inc}
 
 procedure Register;
 begin
@@ -2605,13 +2594,13 @@ begin
   if LightCap then
   begin
     TrianglesForLightCap := TDynTriangle3SingleArray.Create;
-    TrianglesForLightCap.AllowedCapacityOverflow := Triangles.Count;
+    TrianglesForLightCap.Capacity := Triangles.Count;
   end;
 
   if DarkCap then
   begin
     TrianglesForDarkCap := TDynTriangle4SingleArray.Create;
-    TrianglesForDarkCap.AllowedCapacityOverflow := Triangles.Count;
+    TrianglesForDarkCap.Capacity := Triangles.Count;
   end;
 
   try

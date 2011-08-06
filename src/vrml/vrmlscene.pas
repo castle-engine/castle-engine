@@ -25,22 +25,13 @@ uses
   VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs,
   RenderingCameraUnit, Base3D, VRMLShadowMaps,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
-
-{$define read_interface}
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 const
   DefaultShadowMapsDefaultSize = 256;
 
 type
-  { }
-  TDynArrayItem_1 = TTriangle3Single;
-  PDynArrayItem_1 = PTriangle3Single;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-  TArray_Triangle3Single = TInfiniteArray_1;
-  PArray_Triangle3Single = PInfiniteArray_1;
-  TDynTriangle3SingleArray = TDynArray_1;
+  TDynTriangle3SingleArray = specialize TGenericStructList<TTriangle3Single>;
 
   { Internal helper type for TVRMLScene.
     @exclude }
@@ -96,13 +87,8 @@ type
   end;
   PManifoldEdge = ^TManifoldEdge;
 
-  TDynArrayItem_2 = TManifoldEdge;
-  PDynArrayItem_2 = PManifoldEdge;
-  {$define DYNARRAY_2_IS_STRUCT}
-  {$I dynarray_2.inc}
-
-  TDynManifoldEdgeArray = class(TDynArray_2)
-  private
+  TDynManifoldEdgeArray = class(specialize TGenericStructList<TManifoldEdge>)
+    function Add: PManifoldEdge;
   end;
 
   { Scene edge that has one neighbor, i.e. border edge.
@@ -121,11 +107,7 @@ type
   end;
   PBorderEdge = ^TBorderEdge;
 
-  TDynArrayItem_3 = TBorderEdge;
-  PDynArrayItem_3 = PBorderEdge;
-  {$define DYNARRAY_3_IS_STRUCT}
-  {$I dynarray_3.inc}
-  TDynBorderEdgeArray = TDynArray_3;
+  TDynBorderEdgeArray = specialize TGenericStructList<TBorderEdge>;
 
   { These are various features that may be freed by
     TVRMLScene.FreeResources.
@@ -340,25 +322,19 @@ type
     Handler: TGeneratedTextureHandler;
     Shape: TVRMLShape;
   end;
-  { @exclude }
   PGeneratedTexture = ^TGeneratedTexture;
-  { @exclude }
-  TDynArrayItem_7 = TGeneratedTexture;
-  { @exclude }
-  PDynArrayItem_7 = PGeneratedTexture;
-  {$define DYNARRAY_7_IS_STRUCT}
-  { @exclude }
-  {$I dynarray_7.inc}
+
   { @exclude
     Internal for TVRMLScene: list of generated textures
     (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
     along with their shape. }
-  TDynGeneratedTextureArray = class(TDynArray_7)
+  TDynGeneratedTextureArray = class(specialize TGenericStructList<TGeneratedTexture>)
   public
     function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
     function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
     procedure AddShapeTexture(Shape: TVRMLShape; Tex: TNodeX3DTextureNode);
     procedure UpdateShadowMaps(LightNode: TNodeX3DLightNode);
+    function Add: PGeneratedTexture;
   end;
 
   { List of transform nodes (INodeTransform),
@@ -387,18 +363,10 @@ type
     Handler: TCompiledScriptHandler;
     Name: string;
   end;
-  { @exclude }
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  { @exclude }
-  TDynArrayItem_5 = TCompiledScriptHandlerInfo;
-  { @exclude }
-  PDynArrayItem_5 = PCompiledScriptHandlerInfo;
-  {$define DYNARRAY_5_IS_STRUCT}
-  {$define DYNARRAY_5_IS_INIT_FINI_TYPE}
-  { @exclude }
-  {$I dynarray_5.inc}
-  { @exclude }
-  TDynCompiledScriptHandlerInfoArray = TDynArray_5;
+  TDynCompiledScriptHandlerInfoArray = class(specialize TGenericStructList<TCompiledScriptHandlerInfo>)
+    function Add: PCompiledScriptHandlerInfo;
+  end;
 
   { Possible spatial structure types that may be managed by TVRMLScene,
     see TVRMLScene.Spatial. }
@@ -1955,19 +1923,16 @@ type
       default DefaultShadowMapsDefaultSize;
   end;
 
-{$undef read_interface}
-
 implementation
 
 uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
   X3DLoad;
 
-{$define read_implementation}
-{$I dynarray_1.inc}
-{$I dynarray_2.inc}
-{$I dynarray_3.inc}
-{$I dynarray_5.inc}
-{$I dynarray_7.inc}
+function TDynManifoldEdgeArray.Add: PManifoldEdge;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
@@ -2185,7 +2150,7 @@ var
 begin
   Index := IndexOfTextureNode(TextureNode);
   if Index <> -1 then
-    Result := @(Items[Index]) else
+    Result := @(List^[Index]) else
     Result := nil;
 end;
 
@@ -2256,6 +2221,12 @@ begin
       Items[I].Handler.UpdateNeeded := true;
 end;
 
+function TDynGeneratedTextureArray.Add: PGeneratedTexture;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
+end;
+
 { TTransformInstancesList ------------------------------------------------- }
 
 function TTransformInstancesList.Instances(Node: TVRMLNode;
@@ -2289,6 +2260,14 @@ procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TTimeDependentNod
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
+end;
+
+{ TDynCompiledScriptHandlerInfoArray ----------------------------------------- }
+
+function TDynCompiledScriptHandlerInfoArray.Add: PCompiledScriptHandlerInfo;
+begin
+  Count := Count + 1;
+  Result := @(List^[Count - 1]);
 end;
 
 { TVRMLScene ----------------------------------------------------------- }
@@ -3295,7 +3274,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       if List <> nil then
         for I := 0 to List.Count - 1 do
           if List.Items[I].Node = LightNode then
-            LightNode.UpdateLightInstanceState(List.Items[I], StateStack.Top);
+            LightNode.UpdateLightInstanceState(List.List^[I], StateStack.Top);
     end;
 
   var
@@ -3646,7 +3625,7 @@ var
         if SI.Current.State.Lights <> nil then
           for J := 0 to SI.Current.State.Lights.Count - 1 do
           begin
-            LightInstance := @(SI.Current.State.Lights.Items[J]);
+            LightInstance := @(SI.Current.State.Lights.List^[J]);
             if LightInstance^.Node = LightNode then
             begin
               LightNode.UpdateLightInstance(LightInstance^);
@@ -3771,7 +3750,7 @@ var
         MultiTrans := TNodeMultiTextureTransform(
           Appearance.FdTextureTransform.Value).FdTextureTransform;
         for I := 0 to MultiTrans.Count - 1 do
-          if MultiTrans.Items[I] = TextureTransform then
+          if MultiTrans[I] = TextureTransform then
             Exit(true);
       end;
     end;
@@ -4682,51 +4661,49 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
   begin
     Result := TDynTrianglesShadowCastersArray.Create;
     try
-      Result.AllowedCapacityOverflow := TrianglesCount(false);
+      Result.Capacity := TrianglesCount(false);
+      TriangleAdder := TTriangleAdder.Create;
       try
-        TriangleAdder := TTriangleAdder.Create;
+        TriangleAdder.TriangleList := Result;
+
+        { This variable allows a small optimization: if there are
+          no transparent triangles for shadow casters,
+          then there's no need to iterate over Shapes
+          second time. }
+        WasSomeTransparentShadowCaster := false;
+
+        { Add all opaque triangles }
+        SI := TVRMLShapeTreeIterator.Create(Shapes, true);
         try
-          TriangleAdder.TriangleList := Result;
+          while SI.GetNext do
+            if ShadowCaster(SI.Current) then
+            begin
+              if not SI.Current.Transparent then
+                SI.Current.Triangulate(false, @TriangleAdder.AddTriangle) else
+                WasSomeTransparentShadowCaster := true;
+            end;
+        finally FreeAndNil(SI) end;
 
-          { This variable allows a small optimization: if there are
-            no transparent triangles for shadow casters,
-            then there's no need to iterate over Shapes
-            second time. }
-          WasSomeTransparentShadowCaster := false;
+        { Mark OpaqueCount border }
+        Result.FOpaqueCount := Result.Count;
 
-          { Add all opaque triangles }
+        { Add all transparent triangles }
+        if WasSomeTransparentShadowCaster then
+        begin
           SI := TVRMLShapeTreeIterator.Create(Shapes, true);
           try
             while SI.GetNext do
-              if ShadowCaster(SI.Current) then
-              begin
-                if not SI.Current.Transparent then
-                  SI.Current.Triangulate(false, @TriangleAdder.AddTriangle) else
-                  WasSomeTransparentShadowCaster := true;
-              end;
+              if ShadowCaster(SI.Current) and
+                 SI.Current.Transparent then
+                SI.Current.Triangulate(false, @TriangleAdder.AddTriangle);
           finally FreeAndNil(SI) end;
+        end;
 
-          { Mark OpaqueCount border }
-          Result.FOpaqueCount := Result.Count;
+        if Log then
+          WritelnLog('Shadows', Format('Shadows casters triangles: %d opaque, %d total',
+            [Result.OpaqueCount, Result.Count]));
 
-          { Add all transparent triangles }
-          if WasSomeTransparentShadowCaster then
-          begin
-            SI := TVRMLShapeTreeIterator.Create(Shapes, true);
-            try
-              while SI.GetNext do
-                if ShadowCaster(SI.Current) and
-                   SI.Current.Transparent then
-                  SI.Current.Triangulate(false, @TriangleAdder.AddTriangle);
-            finally FreeAndNil(SI) end;
-          end;
-
-          if Log then
-            WritelnLog('Shadows', Format('Shadows casters triangles: %d opaque, %d total',
-              [Result.OpaqueCount, Result.Count]));
-
-        finally FreeAndNil(TriangleAdder) end;
-      finally Result.AllowedCapacityOverflow := 4 end;
+      finally FreeAndNil(TriangleAdder) end;
     except Result.Free; raise end;
   end;
 
@@ -4781,7 +4758,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
         begin
           { It would also be possible to get EdgePtr^.V0/1 by code like
 
-            TrianglePtr := @Triangles.Items[EdgePtr^.Triangles[0]];
+            TrianglePtr := @Triangles.List^[EdgePtr^.Triangles[0]];
             EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
             EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
@@ -4799,14 +4776,14 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
             EdgePtr^.Triangles[1] := TriangleIndex;
 
             { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
-            FManifoldEdges.Add(EdgePtr^);
+            FManifoldEdges.Add^ := EdgePtr^;
 
             { Remove this from EdgesSingle.
               Note that we delete from EdgesSingle fast, using assignment and
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
-            EdgePtr^ := EdgesSingle.Items[EdgesSingle.Count - 1];
+            EdgePtr^ := EdgesSingle.List^[EdgesSingle.Count - 1];
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
@@ -4840,14 +4817,14 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
     FManifoldEdges := TDynManifoldEdgeArray.Create;
     { There is a precise relation between number of edges and number of faces
       on a closed manifold: E = T * 3 / 2. }
-    FManifoldEdges.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
+    FManifoldEdges.Capacity := Triangles.Count * 3 div 2;
 
     { EdgesSingle are edges that have no neighbor,
       i.e. have only one adjacent triangle. At the end, what's left here
       will be simply copied to BorderEdges. }
     EdgesSingle := TDynManifoldEdgeArray.Create;
     try
-      EdgesSingle.AllowedCapacityOverflow := Triangles.Count * 3 div 2;
+      EdgesSingle.Capacity := Triangles.Count * 3 div 2;
 
       TrianglePtr := PTriangle3Single(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
@@ -4869,8 +4846,8 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
         FBorderEdges.Count := EdgesSingle.Count;
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          FBorderEdges.Items[I].VertexIndex := EdgesSingle.Items[I].VertexIndex;
-          FBorderEdges.Items[I].TriangleIndex := EdgesSingle.Items[I].Triangles[0];
+          FBorderEdges.List^[I].VertexIndex := EdgesSingle.List^[I].VertexIndex;
+          FBorderEdges.List^[I].TriangleIndex := EdgesSingle.List^[I].Triangles[0];
         end;
       end;
     finally FreeAndNil(EdgesSingle); end;

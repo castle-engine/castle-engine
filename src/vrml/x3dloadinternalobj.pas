@@ -29,10 +29,8 @@ implementation
 
 uses KambiStringUtils, KambiFilesUtils, KambiWarnings,
   VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils;
-
-{$define read_interface}
-{$define read_implementation}
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils,
+  GenericStructList;
 
 type
   TWavefrontMaterial = class
@@ -66,12 +64,7 @@ type
   end;
   PWavefrontFace = ^TWavefrontFace;
 
-  TDynArrayItem_1 = TWavefrontFace;
-  PDynArrayItem_1 = PWavefrontFace;
-  {$define DYNARRAY_1_IS_STRUCT}
-  {$I dynarray_1.inc}
-type
-  TDynWavefrontFaceArray = TDynArray_1;
+  TDynWavefrontFaceArray = specialize TGenericStructList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class
