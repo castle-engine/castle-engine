@@ -124,7 +124,7 @@ type
 { include everything }
 
 {$I kambiutils_basic_algorithms.inc}
-{$I kambiutils_dyn_arrays.inc}
+{$I kambiutils_primitive_lists.inc}
 {$I kambiutils_miscella.inc}
 {$I kambiutils_program_exit.inc}
 {$ifdef UNIX}      {$I kambiutils_os_specific_unix.inc}    {$endif}
@@ -148,7 +148,7 @@ uses KambiStringUtils, KambiFilesUtils;
 {$define read_implementation}
 
 {$I kambiutils_basic_algorithms.inc}
-{$I kambiutils_dyn_arrays.inc}
+{$I kambiutils_primitive_lists.inc}
 {$I kambiutils_miscella.inc}
 {$I kambiutils_program_exit.inc}
 {$I kambiutils_math.inc}
