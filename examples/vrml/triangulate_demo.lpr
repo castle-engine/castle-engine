@@ -44,7 +44,7 @@ begin
       This method is useful in larger programs, when besides writing triangles,
       you want to e.g. render or perform collision detection with the scene.
       In such case, you will have Scene.OctreeVisibleTriangles
-      created anyway. So why not use it to also get triangles?
+      created anyway. So you can use it also to get triangles list.
 
     var
       TriangleInfo: PVRMLTriangle;
