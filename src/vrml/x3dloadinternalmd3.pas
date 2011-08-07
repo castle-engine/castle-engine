@@ -22,6 +22,23 @@ interface
 uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath, VRMLNodes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
+{ Load MD3 animation into a single animated X3D model. }
+function LoadMD3(const FileName: string): TVRMLRootNode;
+
+{ Load MD3 animation as a sequence of static X3D models. }
+procedure LoadMD3Sequence(
+  const FileName: string;
+  RootNodes: TVRMLNodeList;
+  Times: TSingleList;
+  out ScenesPerTime: Cardinal;
+  out EqualityEpsilon: Single;
+  out TimeLoop, TimeBackwards: boolean);
+
+implementation
+
+uses KambiFilesUtils, KambiStringUtils, Boxes3D, X3DLoadInternalUtils,
+  VRMLCameraUtils;
+
 type
   TMd3Triangle = record
     Indexes: array [0..2] of LongWord;
@@ -121,24 +138,7 @@ type
   @param FrameNumber is the frame number to load, must be < Md3.Count.
   @param WWWBasePath is the base URL, set for TVRMLNode.WWWBasePath. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TVRMLRootNode;
-
-{ Load MD3 animation into a single animated X3D model. }
-function LoadMD3(const FileName: string): TVRMLRootNode;
-
-{ Load MD3 animation as a sequence of static X3D models. }
-procedure LoadMD3Sequence(
-  const FileName: string;
-  RootNodes: TVRMLNodeList;
-  Times: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
-
-implementation
-
-uses KambiFilesUtils, KambiStringUtils, Boxes3D, X3DLoadInternalUtils,
-  VRMLCameraUtils;
+  const WWWBasePath: string): TVRMLRootNode; forward;
 
 type
   EInvalidMD3 = class(Exception);
