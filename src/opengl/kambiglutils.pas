@@ -37,8 +37,7 @@ unit KambiGLUtils;
 
 interface
 
-uses Math, GL, GLU, GLExt,
-  SysUtils, KambiUtils, VectorMath, Boxes3D,
+uses Math, GL, GLU, GLExt, SysUtils, KambiUtils, VectorMath, Boxes3D,
   Images, Matrix, Rectangles;
 
 {$define read_interface}
@@ -951,206 +950,206 @@ procedure LoadAllExtensions;
   {$endif}
 
 begin
- FreeAndNil(GLVersion);
- GLVersion := TGLVersion.Create(glGetString(GL_VERSION),
-   glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+  FreeAndNil(GLVersion);
+  GLVersion := TGLVersion.Create(glGetString(GL_VERSION),
+    glGetString(GL_VENDOR), glGetString(GL_RENDERER));
 
- FreeAndNil(GLUVersion);
- { gluGetString is valid for version 1.1 or later }
- if Assigned(gluGetString) then
-   GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
-   GLUVersion := TGenericGLVersion.Create('1.0');
+  FreeAndNil(GLUVersion);
+  { gluGetString is valid for version 1.1 or later }
+  if Assigned(gluGetString) then
+    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
+    GLUVersion := TGenericGLVersion.Create('1.0');
 
- GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
- GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
- GL_version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
- GL_version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
- GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
+  GL_version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
+  GL_version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
+  GL_version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
+  GL_version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
+  GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
 
- GL_ARB_imaging := Load_GL_ARB_imaging;
- GL_ARB_multitexture := Load_GL_ARB_multitexture;
- GL_ARB_transpose_matrix := Load_GL_ARB_transpose_matrix;
- GL_ARB_multisample := Load_GL_ARB_multisample;
- GL_ARB_texture_env_add := Load_GL_ARB_texture_env_add;
- GL_ARB_texture_cube_map := Load_GL_ARB_texture_cube_map;
- GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
- GL_ARB_point_parameters := Load_GL_ARB_point_parameters;
- GL_ARB_shadow := Load_GL_ARB_shadow;
- GL_ARB_shadow_ambient := Load_GL_ARB_shadow_ambient;
- GL_ARB_texture_border_clamp := Load_GL_ARB_texture_border_clamp;
- GL_ARB_texture_compression := Load_GL_ARB_texture_compression;
- GL_ARB_texture_env_combine := Load_GL_ARB_texture_env_combine;
- GL_ARB_texture_env_crossbar := Load_GL_ARB_texture_env_crossbar;
- GL_ARB_texture_env_dot3 := Load_GL_ARB_texture_env_dot3;
- GL_ARB_texture_mirrored_repeat := Load_GL_ARB_texture_mirrored_repeat;
- GL_ARB_vertex_blend := Load_GL_ARB_vertex_blend;
- GL_ARB_vertex_program := Load_GL_ARB_vertex_program;
- GL_ARB_window_pos := Load_GL_ARB_window_pos;
- GL_EXT_422_pixels := Load_GL_EXT_422_pixels;
- GL_EXT_abgr := Load_GL_EXT_abgr;
- GL_EXT_bgra := Load_GL_EXT_bgra;
- GL_EXT_blend_color := Load_GL_EXT_blend_color;
- GL_EXT_blend_func_separate := Load_GL_EXT_blend_func_separate;
- GL_EXT_blend_logic_op := Load_GL_EXT_blend_logic_op;
- GL_EXT_blend_minmax := Load_GL_EXT_blend_minmax;
- GL_EXT_blend_subtract := Load_GL_EXT_blend_subtract;
- GL_EXT_clip_volume_hint := Load_GL_EXT_clip_volume_hint;
- GL_EXT_color_subtable := Load_GL_EXT_color_subtable;
- GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
- GL_EXT_convolution := Load_GL_EXT_convolution;
- GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
- GL_EXT_histogram := Load_GL_EXT_histogram;
- GL_EXT_multi_draw_arrays := Load_GL_EXT_multi_draw_arrays;
- GL_EXT_packed_pixels := Load_GL_EXT_packed_pixels;
- GL_EXT_paletted_texture := Load_GL_EXT_paletted_texture;
- GL_EXT_point_parameters := Load_GL_EXT_point_parameters;
- GL_EXT_polygon_offset := Load_GL_EXT_polygon_offset;
- GL_EXT_secondary_color := Load_GL_EXT_secondary_color;
- GL_EXT_separate_specular_color := Load_GL_EXT_separate_specular_color;
- GL_EXT_shadow_funcs := Load_GL_EXT_shadow_funcs;
- GL_EXT_shared_texture_palette := Load_GL_EXT_shared_texture_palette;
- GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
- GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
- GL_EXT_subtexture := Load_GL_EXT_subtexture;
- GL_EXT_texture3D := Load_GL_EXT_texture3D;
- GL_EXT_texture_compression_s3tc := Load_GL_EXT_texture_compression_s3tc;
- GL_EXT_texture_env_add := Load_GL_EXT_texture_env_add;
- GL_EXT_texture_env_combine := Load_GL_EXT_texture_env_combine;
- GL_EXT_texture_env_dot3 := Load_GL_EXT_texture_env_dot3;
- GL_EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
- GL_EXT_texture_lod_bias := Load_GL_EXT_texture_lod_bias;
- GL_EXT_texture_object := Load_GL_EXT_texture_object;
- GL_EXT_vertex_array := Load_GL_EXT_vertex_array;
- GL_EXT_vertex_shader := Load_GL_EXT_vertex_shader;
- GL_EXT_vertex_weighting := Load_GL_EXT_vertex_weighting;
- GL_HP_occlusion_test := Load_GL_HP_occlusion_test;
- GL_NV_blend_square := Load_GL_NV_blend_square;
- GL_NV_copy_depth_to_color := Load_GL_NV_copy_depth_to_color;
- GL_NV_depth_clamp := Load_GL_NV_depth_clamp;
- GL_NV_evaluators := Load_GL_NV_evaluators;
- GL_NV_fence := Load_GL_NV_fence;
- GL_NV_fog_distance := Load_GL_NV_fog_distance;
- GL_NV_light_max_exponent := Load_GL_NV_light_max_exponent;
- GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
- GL_NV_occlusion_query := Load_GL_NV_occlusion_query;
- GL_NV_packed_depth_stencil := Load_GL_NV_packed_depth_stencil;
- GL_NV_point_sprite := Load_GL_NV_point_sprite;
- GL_NV_register_combiners := Load_GL_NV_register_combiners;
- GL_NV_register_combiners2 := Load_GL_NV_register_combiners2;
- GL_NV_texgen_emboss := Load_GL_NV_texgen_emboss;
- GL_NV_texgen_reflection := Load_GL_NV_texgen_reflection;
- GL_NV_texture_compression_vtc := Load_GL_NV_texture_compression_vtc;
- GL_NV_texture_env_combine4 := Load_GL_NV_texture_env_combine4;
- GL_NV_texture_rectangle := Load_GL_NV_texture_rectangle;
- GL_NV_texture_shader := Load_GL_NV_texture_shader;
- GL_NV_texture_shader2 := Load_GL_NV_texture_shader2;
- GL_NV_texture_shader3 := Load_GL_NV_texture_shader3;
- GL_NV_vertex_array_range := Load_GL_NV_vertex_array_range;
- GL_NV_vertex_array_range2 := Load_GL_NV_vertex_array_range2;
- GL_NV_vertex_program := Load_GL_NV_vertex_program;
- GL_NV_vertex_program1_1 := Load_GL_NV_vertex_program1_1;
- GL_ATI_element_array := Load_GL_ATI_element_array;
- GL_ATI_envmap_bumpmap := Load_GL_ATI_envmap_bumpmap;
- GL_ATI_fragment_shader := Load_GL_ATI_fragment_shader;
- GL_ATI_pn_triangles := Load_GL_ATI_pn_triangles;
- GL_ATI_texture_mirror_once := Load_GL_ATI_texture_mirror_once;
- GL_ATI_vertex_array_object := Load_GL_ATI_vertex_array_object;
- GL_ATI_vertex_streams := Load_GL_ATI_vertex_streams;
- GL_3DFX_texture_compression_FXT1 := Load_GL_3DFX_texture_compression_FXT1;
- GL_IBM_cull_vertex := Load_GL_IBM_cull_vertex;
- GL_IBM_multimode_draw_arrays := Load_GL_IBM_multimode_draw_arrays;
- GL_IBM_raster_pos_clip := Load_GL_IBM_raster_pos_clip;
- GL_IBM_texture_mirrored_repeat := Load_GL_IBM_texture_mirrored_repeat;
- GL_IBM_vertex_array_lists := Load_GL_IBM_vertex_array_lists;
- GL_MESA_resize_buffers := Load_GL_MESA_resize_buffers;
- GL_MESA_window_pos := Load_GL_MESA_window_pos;
- GL_OML_interlace := Load_GL_OML_interlace;
- GL_OML_resample := Load_GL_OML_resample;
- GL_OML_subsample := Load_GL_OML_subsample;
- GL_SGIS_generate_mipmap := Load_GL_SGIS_generate_mipmap;
- GL_SGIS_multisample := Load_GL_SGIS_multisample;
- GL_SGIS_pixel_texture := Load_GL_SGIS_pixel_texture;
- GL_SGIS_texture_border_clamp := Load_GL_SGIS_texture_border_clamp;
- GL_SGIS_texture_color_mask := Load_GL_SGIS_texture_color_mask;
- GL_SGIS_texture_edge_clamp := Load_GL_SGIS_texture_edge_clamp;
- GL_SGIS_texture_lod := Load_GL_SGIS_texture_lod;
- GL_SGIS_depth_texture := Load_GL_SGIS_depth_texture;
- GL_SGIX_fog_offset := Load_GL_SGIX_fog_offset;
- GL_SGIX_interlace := Load_GL_SGIX_interlace;
- GL_SGIX_shadow_ambient := Load_GL_SGIX_shadow_ambient;
- GL_SGI_color_matrix := Load_GL_SGI_color_matrix;
- GL_SGI_color_table := Load_GL_SGI_color_table;
- GL_SGI_texture_color_table := Load_GL_SGI_texture_color_table;
- GL_SUN_vertex := Load_GL_SUN_vertex;
- GL_ARB_fragment_program := Load_GL_ARB_fragment_program;
- GL_ATI_text_fragment_shader := Load_GL_ATI_text_fragment_shader;
- GL_APPLE_client_storage := Load_GL_APPLE_client_storage;
- GL_APPLE_element_array := Load_GL_APPLE_element_array;
- GL_APPLE_fence := Load_GL_APPLE_fence;
- GL_APPLE_vertex_array_object := Load_GL_APPLE_vertex_array_object;
- GL_APPLE_vertex_array_range := Load_GL_APPLE_vertex_array_range;
- GL_ARB_matrix_palette := Load_GL_ARB_matrix_palette;
- GL_NV_element_array := Load_GL_NV_element_array;
- GL_NV_float_buffer := Load_GL_NV_float_buffer;
- GL_NV_fragment_program := Load_GL_NV_fragment_program;
- GL_NV_primitive_restart := Load_GL_NV_primitive_restart;
- GL_NV_vertex_program2 := Load_GL_NV_vertex_program2;
- GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
- GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
- GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
- GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
- GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
- GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
- GL_ATI_texture_float := Load_GL_ATI_texture_float;
- GL_ARB_texture_float := Load_GL_ARB_texture_float;
- GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
+  GL_ARB_imaging := Load_GL_ARB_imaging;
+  GL_ARB_multitexture := Load_GL_ARB_multitexture;
+  GL_ARB_transpose_matrix := Load_GL_ARB_transpose_matrix;
+  GL_ARB_multisample := Load_GL_ARB_multisample;
+  GL_ARB_texture_env_add := Load_GL_ARB_texture_env_add;
+  GL_ARB_texture_cube_map := Load_GL_ARB_texture_cube_map;
+  GL_ARB_depth_texture := Load_GL_ARB_depth_texture;
+  GL_ARB_point_parameters := Load_GL_ARB_point_parameters;
+  GL_ARB_shadow := Load_GL_ARB_shadow;
+  GL_ARB_shadow_ambient := Load_GL_ARB_shadow_ambient;
+  GL_ARB_texture_border_clamp := Load_GL_ARB_texture_border_clamp;
+  GL_ARB_texture_compression := Load_GL_ARB_texture_compression;
+  GL_ARB_texture_env_combine := Load_GL_ARB_texture_env_combine;
+  GL_ARB_texture_env_crossbar := Load_GL_ARB_texture_env_crossbar;
+  GL_ARB_texture_env_dot3 := Load_GL_ARB_texture_env_dot3;
+  GL_ARB_texture_mirrored_repeat := Load_GL_ARB_texture_mirrored_repeat;
+  GL_ARB_vertex_blend := Load_GL_ARB_vertex_blend;
+  GL_ARB_vertex_program := Load_GL_ARB_vertex_program;
+  GL_ARB_window_pos := Load_GL_ARB_window_pos;
+  GL_EXT_422_pixels := Load_GL_EXT_422_pixels;
+  GL_EXT_abgr := Load_GL_EXT_abgr;
+  GL_EXT_bgra := Load_GL_EXT_bgra;
+  GL_EXT_blend_color := Load_GL_EXT_blend_color;
+  GL_EXT_blend_func_separate := Load_GL_EXT_blend_func_separate;
+  GL_EXT_blend_logic_op := Load_GL_EXT_blend_logic_op;
+  GL_EXT_blend_minmax := Load_GL_EXT_blend_minmax;
+  GL_EXT_blend_subtract := Load_GL_EXT_blend_subtract;
+  GL_EXT_clip_volume_hint := Load_GL_EXT_clip_volume_hint;
+  GL_EXT_color_subtable := Load_GL_EXT_color_subtable;
+  GL_EXT_compiled_vertex_array := Load_GL_EXT_compiled_vertex_array;
+  GL_EXT_convolution := Load_GL_EXT_convolution;
+  GL_EXT_fog_coord := Load_GL_EXT_fog_coord;
+  GL_EXT_histogram := Load_GL_EXT_histogram;
+  GL_EXT_multi_draw_arrays := Load_GL_EXT_multi_draw_arrays;
+  GL_EXT_packed_pixels := Load_GL_EXT_packed_pixels;
+  GL_EXT_paletted_texture := Load_GL_EXT_paletted_texture;
+  GL_EXT_point_parameters := Load_GL_EXT_point_parameters;
+  GL_EXT_polygon_offset := Load_GL_EXT_polygon_offset;
+  GL_EXT_secondary_color := Load_GL_EXT_secondary_color;
+  GL_EXT_separate_specular_color := Load_GL_EXT_separate_specular_color;
+  GL_EXT_shadow_funcs := Load_GL_EXT_shadow_funcs;
+  GL_EXT_shared_texture_palette := Load_GL_EXT_shared_texture_palette;
+  GL_EXT_stencil_two_side := Load_GL_EXT_stencil_two_side;
+  GL_EXT_stencil_wrap := Load_GL_EXT_stencil_wrap;
+  GL_EXT_subtexture := Load_GL_EXT_subtexture;
+  GL_EXT_texture3D := Load_GL_EXT_texture3D;
+  GL_EXT_texture_compression_s3tc := Load_GL_EXT_texture_compression_s3tc;
+  GL_EXT_texture_env_add := Load_GL_EXT_texture_env_add;
+  GL_EXT_texture_env_combine := Load_GL_EXT_texture_env_combine;
+  GL_EXT_texture_env_dot3 := Load_GL_EXT_texture_env_dot3;
+  GL_EXT_texture_filter_anisotropic := Load_GL_EXT_texture_filter_anisotropic;
+  GL_EXT_texture_lod_bias := Load_GL_EXT_texture_lod_bias;
+  GL_EXT_texture_object := Load_GL_EXT_texture_object;
+  GL_EXT_vertex_array := Load_GL_EXT_vertex_array;
+  GL_EXT_vertex_shader := Load_GL_EXT_vertex_shader;
+  GL_EXT_vertex_weighting := Load_GL_EXT_vertex_weighting;
+  GL_HP_occlusion_test := Load_GL_HP_occlusion_test;
+  GL_NV_blend_square := Load_GL_NV_blend_square;
+  GL_NV_copy_depth_to_color := Load_GL_NV_copy_depth_to_color;
+  GL_NV_depth_clamp := Load_GL_NV_depth_clamp;
+  GL_NV_evaluators := Load_GL_NV_evaluators;
+  GL_NV_fence := Load_GL_NV_fence;
+  GL_NV_fog_distance := Load_GL_NV_fog_distance;
+  GL_NV_light_max_exponent := Load_GL_NV_light_max_exponent;
+  GL_NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
+  GL_NV_occlusion_query := Load_GL_NV_occlusion_query;
+  GL_NV_packed_depth_stencil := Load_GL_NV_packed_depth_stencil;
+  GL_NV_point_sprite := Load_GL_NV_point_sprite;
+  GL_NV_register_combiners := Load_GL_NV_register_combiners;
+  GL_NV_register_combiners2 := Load_GL_NV_register_combiners2;
+  GL_NV_texgen_emboss := Load_GL_NV_texgen_emboss;
+  GL_NV_texgen_reflection := Load_GL_NV_texgen_reflection;
+  GL_NV_texture_compression_vtc := Load_GL_NV_texture_compression_vtc;
+  GL_NV_texture_env_combine4 := Load_GL_NV_texture_env_combine4;
+  GL_NV_texture_rectangle := Load_GL_NV_texture_rectangle;
+  GL_NV_texture_shader := Load_GL_NV_texture_shader;
+  GL_NV_texture_shader2 := Load_GL_NV_texture_shader2;
+  GL_NV_texture_shader3 := Load_GL_NV_texture_shader3;
+  GL_NV_vertex_array_range := Load_GL_NV_vertex_array_range;
+  GL_NV_vertex_array_range2 := Load_GL_NV_vertex_array_range2;
+  GL_NV_vertex_program := Load_GL_NV_vertex_program;
+  GL_NV_vertex_program1_1 := Load_GL_NV_vertex_program1_1;
+  GL_ATI_element_array := Load_GL_ATI_element_array;
+  GL_ATI_envmap_bumpmap := Load_GL_ATI_envmap_bumpmap;
+  GL_ATI_fragment_shader := Load_GL_ATI_fragment_shader;
+  GL_ATI_pn_triangles := Load_GL_ATI_pn_triangles;
+  GL_ATI_texture_mirror_once := Load_GL_ATI_texture_mirror_once;
+  GL_ATI_vertex_array_object := Load_GL_ATI_vertex_array_object;
+  GL_ATI_vertex_streams := Load_GL_ATI_vertex_streams;
+  GL_3DFX_texture_compression_FXT1 := Load_GL_3DFX_texture_compression_FXT1;
+  GL_IBM_cull_vertex := Load_GL_IBM_cull_vertex;
+  GL_IBM_multimode_draw_arrays := Load_GL_IBM_multimode_draw_arrays;
+  GL_IBM_raster_pos_clip := Load_GL_IBM_raster_pos_clip;
+  GL_IBM_texture_mirrored_repeat := Load_GL_IBM_texture_mirrored_repeat;
+  GL_IBM_vertex_array_lists := Load_GL_IBM_vertex_array_lists;
+  GL_MESA_resize_buffers := Load_GL_MESA_resize_buffers;
+  GL_MESA_window_pos := Load_GL_MESA_window_pos;
+  GL_OML_interlace := Load_GL_OML_interlace;
+  GL_OML_resample := Load_GL_OML_resample;
+  GL_OML_subsample := Load_GL_OML_subsample;
+  GL_SGIS_generate_mipmap := Load_GL_SGIS_generate_mipmap;
+  GL_SGIS_multisample := Load_GL_SGIS_multisample;
+  GL_SGIS_pixel_texture := Load_GL_SGIS_pixel_texture;
+  GL_SGIS_texture_border_clamp := Load_GL_SGIS_texture_border_clamp;
+  GL_SGIS_texture_color_mask := Load_GL_SGIS_texture_color_mask;
+  GL_SGIS_texture_edge_clamp := Load_GL_SGIS_texture_edge_clamp;
+  GL_SGIS_texture_lod := Load_GL_SGIS_texture_lod;
+  GL_SGIS_depth_texture := Load_GL_SGIS_depth_texture;
+  GL_SGIX_fog_offset := Load_GL_SGIX_fog_offset;
+  GL_SGIX_interlace := Load_GL_SGIX_interlace;
+  GL_SGIX_shadow_ambient := Load_GL_SGIX_shadow_ambient;
+  GL_SGI_color_matrix := Load_GL_SGI_color_matrix;
+  GL_SGI_color_table := Load_GL_SGI_color_table;
+  GL_SGI_texture_color_table := Load_GL_SGI_texture_color_table;
+  GL_SUN_vertex := Load_GL_SUN_vertex;
+  GL_ARB_fragment_program := Load_GL_ARB_fragment_program;
+  GL_ATI_text_fragment_shader := Load_GL_ATI_text_fragment_shader;
+  GL_APPLE_client_storage := Load_GL_APPLE_client_storage;
+  GL_APPLE_element_array := Load_GL_APPLE_element_array;
+  GL_APPLE_fence := Load_GL_APPLE_fence;
+  GL_APPLE_vertex_array_object := Load_GL_APPLE_vertex_array_object;
+  GL_APPLE_vertex_array_range := Load_GL_APPLE_vertex_array_range;
+  GL_ARB_matrix_palette := Load_GL_ARB_matrix_palette;
+  GL_NV_element_array := Load_GL_NV_element_array;
+  GL_NV_float_buffer := Load_GL_NV_float_buffer;
+  GL_NV_fragment_program := Load_GL_NV_fragment_program;
+  GL_NV_primitive_restart := Load_GL_NV_primitive_restart;
+  GL_NV_vertex_program2 := Load_GL_NV_vertex_program2;
+  GL_ATI_separate_stencil := Load_GL_ATI_separate_stencil;
+  GL_ARB_texture_non_power_of_two := Load_GL_ARB_texture_non_power_of_two;
+  GL_ARB_vertex_buffer_object := Load_GL_ARB_vertex_buffer_object;
+  GL_EXT_framebuffer_object := Load_GL_EXT_framebuffer_object;
+  GL_ARB_occlusion_query := Load_GL_ARB_occlusion_query;
+  GL_EXT_packed_depth_stencil := Load_GL_EXT_packed_depth_stencil;
+  GL_ATI_texture_float := Load_GL_ATI_texture_float;
+  GL_ARB_texture_float := Load_GL_ARB_texture_float;
+  GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
 
- GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
- GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
+  GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
+  GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
 
- if GL_ARB_multitexture then
-   GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
-   GLMaxTextureUnits := 1;
+  if GL_ARB_multitexture then
+    GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
+    GLMaxTextureUnits := 1;
 
- if GL_ARB_texture_cube_map then
-   GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
-   GLMaxCubeMapTextureSizeARB := 0;
+  if GL_ARB_texture_cube_map then
+    GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
+    GLMaxCubeMapTextureSizeARB := 0;
 
- if GL_EXT_texture3D then
- begin
-   GLMax3DTextureSizeEXT := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
-   if GLMax3DTextureSizeEXT = 0 then
-   begin
-     GL_EXT_texture3D := false;
-     if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_texture3D: reported as supported, but GL_MAX_3D_TEXTURE_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
-   end;
- end else
-   GLMax3DTextureSizeEXT := 0;
+  if GL_EXT_texture3D then
+  begin
+    GLMax3DTextureSizeEXT := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
+    if GLMax3DTextureSizeEXT = 0 then
+    begin
+      GL_EXT_texture3D := false;
+      if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_texture3D: reported as supported, but GL_MAX_3D_TEXTURE_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
+    end;
+  end else
+    GLMax3DTextureSizeEXT := 0;
 
- if GL_EXT_texture_filter_anisotropic then
-   GLMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
-   GLMaxTextureMaxAnisotropyEXT := 0.0;
+  if GL_EXT_texture_filter_anisotropic then
+    GLMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
+    GLMaxTextureMaxAnisotropyEXT := 0.0;
 
- if GL_ARB_occlusion_query then
-   glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @GLQueryCounterBits) else
-   GLQueryCounterBits := 0;
+  if GL_ARB_occlusion_query then
+    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @GLQueryCounterBits) else
+    GLQueryCounterBits := 0;
 
- if GL_EXT_framebuffer_object then
- begin
-   GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE_EXT);
-   if GLMaxRenderbufferSize = 0 then
-   begin
-     GL_EXT_framebuffer_object := false;
-     if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_framebuffer_object: reported as supported, but GL_MAX_RENDERBUFFER_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
-   end;
- end else
-   GLMaxRenderbufferSize := 0;
+  if GL_EXT_framebuffer_object then
+  begin
+    GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE_EXT);
+    if GLMaxRenderbufferSize = 0 then
+    begin
+      GL_EXT_framebuffer_object := false;
+      if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_framebuffer_object: reported as supported, but GL_MAX_RENDERBUFFER_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
+    end;
+  end else
+    GLMaxRenderbufferSize := 0;
 
- if GL_ARB_texture_rectangle then
-   GLMaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
-   GLMaxRectangleTextureSize := 0;
+  if GL_ARB_texture_rectangle then
+    GLMaxRectangleTextureSize := glGetInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB) else
+    GLMaxRectangleTextureSize := 0;
 
- GLMaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
+  GLMaxClipPlanes := glGetInteger(GL_MAX_CLIP_PLANES);
 
   { calculate GLUseMultiTexturing: check extensions required for multitexturing.
 
@@ -1232,8 +1231,8 @@ end;
 
 function glGetFloat(pname: TGLEnum): TGLfloat;
 begin
- FillChar(result, SizeOf(result), 0);
- glGetFloatv(pname, @result)
+  FillChar(result, SizeOf(result), 0);
+  glGetFloatv(pname, @result)
 end;
 
 function glGetInteger(pname: TGLEnum): TGLint;
@@ -1252,14 +1251,14 @@ end;
 
 function glGetBoolean(pname: TGLEnum): TGLboolean;
 begin
- FillChar(result, SizeOf(result), 0);
- glGetBooleanv(pname, @result)
+  FillChar(result, SizeOf(result), 0);
+  glGetBooleanv(pname, @result)
 end;
 
 function glGetDouble(pname: TGLEnum): TGLdouble;
 begin
- FillChar(result, SizeOf(result), 0);
- glGetDoublev(pname, @result)
+  FillChar(result, SizeOf(result), 0);
+  glGetDoublev(pname, @result)
 end;
 
 { ---------------------------------------------------- }
@@ -1372,26 +1371,28 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTe
 
 procedure SavePixelStoreUnpack(out pixUnpack: TPixelStoreUnpack);
 begin
- with pixUnpack do begin
-  UnpackSwapBytes := glGetBoolean(GL_UNPACK_SWAP_BYTES);
-  UnpackLSBFirst := glGetBoolean(GL_UNPACK_LSB_FIRST);
-  UnpackRowLength := glGetInteger(GL_UNPACK_ROW_LENGTH);
-  UnpackSkipRows := glGetInteger(GL_UNPACK_SKIP_ROWS);
-  UnpackSkipPixels := glGetInteger(GL_UNPACK_SKIP_PIXELS);
-  UnpackAlignment := glGetInteger(GL_UNPACK_ALIGNMENT);
- end;
+  with pixUnpack do
+  begin
+    UnpackSwapBytes := glGetBoolean(GL_UNPACK_SWAP_BYTES);
+    UnpackLSBFirst := glGetBoolean(GL_UNPACK_LSB_FIRST);
+    UnpackRowLength := glGetInteger(GL_UNPACK_ROW_LENGTH);
+    UnpackSkipRows := glGetInteger(GL_UNPACK_SKIP_ROWS);
+    UnpackSkipPixels := glGetInteger(GL_UNPACK_SKIP_PIXELS);
+    UnpackAlignment := glGetInteger(GL_UNPACK_ALIGNMENT);
+  end;
 end;
 
 procedure LoadPixelStoreUnpack(const pixUnpack: TPixelStoreUnpack);
 begin
- with pixUnpack do begin
-  glPixelStorei(GL_UNPACK_SWAP_BYTES, UnpackSwapBytes);
-  glPixelStorei(GL_UNPACK_LSB_FIRST, UnpackLSBFirst);
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, UnpackRowLength);
-  glPixelStorei(GL_UNPACK_SKIP_ROWS,  UnpackSkipRows);
-  glPixelStorei(GL_UNPACK_SKIP_PIXELS, UnpackSkipPixels);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, UnpackAlignment);
- end;
+  with pixUnpack do
+  begin
+    glPixelStorei(GL_UNPACK_SWAP_BYTES, UnpackSwapBytes);
+    glPixelStorei(GL_UNPACK_LSB_FIRST, UnpackLSBFirst);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, UnpackRowLength);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS,  UnpackSkipRows);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, UnpackSkipPixels);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, UnpackAlignment);
+  end;
 end;
 
 procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
@@ -1458,90 +1459,95 @@ end;
 { $define TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
 
 procedure ProjectionGLPerspective(const fovy, aspect, zNear, zFar: TGLdouble);
-var oldMatrixMode: TGLenum;
+var
+  oldMatrixMode: TGLenum;
 begin
- oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
- glMatrixMode(GL_PROJECTION);
+  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
+  glMatrixMode(GL_PROJECTION);
 
- {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
- glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
- {$else}
- if ZFar = ZFarInfinity then
- begin
-   glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
- end else
- begin
-   glLoadIdentity;
-   gluPerspective(fovy, aspect, zNear, zFar);
- end;
- {$endif}
+  {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
+  glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
+  {$else}
+  if ZFar = ZFarInfinity then
+  begin
+    glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
+  end else
+  begin
+    glLoadIdentity;
+    gluPerspective(fovy, aspect, zNear, zFar);
+  end;
+  {$endif}
 
- glMatrixMode(oldMatrixMode);
+  glMatrixMode(oldMatrixMode);
 end;
 
 procedure ProjectionGLOrtho(const left, right, bottom, top, zNear, zFar: TGLdouble);
-var oldMatrixMode: TGLenum;
+var
+  oldMatrixMode: TGLenum;
 begin
- oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
- glMatrixMode(GL_PROJECTION);
+  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
+  glMatrixMode(GL_PROJECTION);
 
- {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
- glLoadMatrix(OrthoProjMatrix(left, right, bottom, top, zNear, zFar));
- {$else}
- glLoadIdentity;
- glOrtho(left, right, bottom, top, zNear, zFar);
- {$endif}
+  {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
+  glLoadMatrix(OrthoProjMatrix(left, right, bottom, top, zNear, zFar));
+  {$else}
+  glLoadIdentity;
+  glOrtho(left, right, bottom, top, zNear, zFar);
+  {$endif}
 
- glMatrixMode(oldMatrixMode);
+  glMatrixMode(oldMatrixMode);
 end;
 
 { poly stipple ------------------------------------------------------------ }
 
 function RandomBitsByte(OneChance:Extended):byte;
-var i:integer;
+var
+  i:integer;
 begin
- { notka - Wynik Random jest zawsze w przedziale [0,1). To wazne zeby tu bylo
-   porownanie ostre "<". Wtedy dla szansy = dokladnie 0 nigdy nie bedzie Random<0.
-   (dla szansy = 1 warunek zarowno z "<=" jak i z "<" gwarantowalby ze
-   zawsze taka szansa zachodzi - bo zawsze zachodzilaby ostra nierownosc wiec
-   i nieostra takze.) }
- result:=0;
- for i:=0 to 7 do if Random<OneChance then result := result + (1 shl i);
+  { notka - Wynik Random jest zawsze w przedziale [0,1). To wazne zeby tu bylo
+    porownanie ostre "<". Wtedy dla szansy = dokladnie 0 nigdy nie bedzie Random<0.
+    (dla szansy = 1 warunek zarowno z "<=" jak i z "<" gwarantowalby ze
+    zawsze taka szansa zachodzi - bo zawsze zachodzilaby ostra nierownosc wiec
+    i nieostra takze.) }
+  result:=0;
+  for i:=0 to 7 do if Random<OneChance then result := result + (1 shl i);
 end;
 
 function RandomPolyStipple(const BlackChance: Extended): TPolygonStipple;
 var i: integer;
 begin
- for i := 0 to High(result) do result[i] := RandomBitsByte(BlackChance);
+  for i := 0 to High(result) do result[i] := RandomBitsByte(BlackChance);
 end;
 
 function RandomPolyStippleBy16(const BlackChance: Extended): TPolygonStipple;
-var b: byte;
-    x, y: integer;
+var
+  b: byte;
+  x, y: integer;
 begin
- for x := 0 to 1 do
-  for y := 0 to 15 do
-  begin
-   b := RandomBitsByte(BlackChance);
-   result[y*4 + x] := b;
-   result[y*4 + x+2] := b;
-   result[(y+16)*4 + x] := b;
-   result[(y+16)*4 + x+2] := b;
-  end;
+  for x := 0 to 1 do
+    for y := 0 to 15 do
+    begin
+      b := RandomBitsByte(BlackChance);
+      result[y*4 + x] := b;
+      result[y*4 + x+2] := b;
+      result[(y+16)*4 + x] := b;
+      result[(y+16)*4 + x+2] := b;
+    end;
 end;
 
 function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
-var b: byte;
-    y, i, j: integer;
+var
+  b: byte;
+  y, i, j: integer;
 begin
- for y := 0 to 7 do
- begin
-  b := RandomBitsByte(BlackChance);
+  for y := 0 to 7 do
+  begin
+    b := RandomBitsByte(BlackChance);
 
-  for i := 0 to 3 do
-   for j := 0 to 3 do
-    result[(y+8*j)*4 + i] := b;
- end;
+    for i := 0 to 3 do
+      for j := 0 to 3 do
+        result[(y+8*j)*4 + i] := b;
+  end;
 end;
 
 {inne proste procedury pomocnicze
@@ -1549,59 +1555,59 @@ end;
 
 procedure SetGLenabled(value: TGLenum; isEnabled: boolean);
 begin
- if isEnabled then glEnable(value) else glDisable(value);
+  if isEnabled then glEnable(value) else glDisable(value);
 end;
 
 procedure VerticalGLLine(x, y1, y2: TGLfloat);
 begin
- glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
+  glBegin(GL_LINES); glVertex2f(x, y1); glVertex2f(x, y2); glEnd;
 end;
 
 procedure HorizontalGLLine(x1, x2, y: TGLfloat);
 begin
- glBegin(GL_LINES); glVertex2f(x1, y); glVertex2f(x2, y); glEnd;
+  glBegin(GL_LINES); glVertex2f(x1, y); glVertex2f(x2, y); glEnd;
 end;
 
 {$define DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION:=
- glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); (* this changes GL_POLYGON_BIT attrib *)
- glColorv(InsideCol);
- glRectf(x1, y1, x2, y2);
- glColorv(BorderCol);
- DrawGLRectBorder(x1, y1, x2, y2);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); (* this changes GL_POLYGON_BIT attrib *)
+  glColorv(InsideCol);
+  glRectf(x1, y1, x2, y2);
+  glColorv(BorderCol);
+  DrawGLRectBorder(x1, y1, x2, y2);
 }
 
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f);
 begin
- glPushAttrib(GL_POLYGON_BIT);
-   DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
- glPopAttrib;
+  glPushAttrib(GL_POLYGON_BIT);
+    DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
+  glPopAttrib;
 end;
 
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple);
 begin
- if Stipple <> nil then
- begin
-  glPushAttrib(GL_POLYGON_STIPPLE_BIT or GL_POLYGON_BIT);
-    KamGLPolygonStipple(Stipple);
-    glEnable(GL_POLYGON_STIPPLE);
-    DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
-  glPopAttrib;
- end else
- begin
-  glPushAttrib(GL_POLYGON_BIT);
-    glDisable(GL_POLYGON_STIPPLE);
-    DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
-  glPopAttrib;
- end;
+  if Stipple <> nil then
+  begin
+    glPushAttrib(GL_POLYGON_STIPPLE_BIT or GL_POLYGON_BIT);
+      KamGLPolygonStipple(Stipple);
+      glEnable(GL_POLYGON_STIPPLE);
+      DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
+    glPopAttrib;
+  end else
+  begin
+    glPushAttrib(GL_POLYGON_BIT);
+      glDisable(GL_POLYGON_STIPPLE);
+      DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
+    glPopAttrib;
+  end;
 end;
 
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat);
 begin
- glBegin(GL_LINE_LOOP);
-   glVertex2f(x1, y1); glVertex2f(x2, y1); glVertex2f(x2, y2); glVertex2f(x1, y2);
- glEnd;
+  glBegin(GL_LINE_LOOP);
+    glVertex2f(x1, y1); glVertex2f(x2, y1); glVertex2f(x2, y2); glVertex2f(x1, y2);
+  glEnd;
 end;
 
 procedure DrawGLRectBorder(const Rectangle: TRectangle);
@@ -1614,52 +1620,52 @@ var
   modelMatrix, projMatrix: T16dArray;
   viewport: TViewPortArray;
 begin
- glGetDoublev(GL_MODELVIEW_MATRIX, @modelMatrix);
- glGetDoublev(GL_PROJECTION_MATRIX, @projMatrix);
- glGetIntegerv(GL_VIEWPORT, @viewport);
- Check( gluUnProject(winx, winy, winz, modelMatrix, projMatrix, viewport,
-   @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
+  glGetDoublev(GL_MODELVIEW_MATRIX, @modelMatrix);
+  glGetDoublev(GL_PROJECTION_MATRIX, @projMatrix);
+  glGetIntegerv(GL_VIEWPORT, @viewport);
+  Check( gluUnProject(winx, winy, winz, modelMatrix, projMatrix, viewport,
+    @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
 end;
 
 procedure DrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
- HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
+  HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
 
- { TODO: tutaj powinienes przelaczac glEdgeFlag }
+  { TODO: tutaj powinienes przelaczac glEdgeFlag }
 
- glBegin(GL_TRIANGLES);
-  glVertex2f(0, 2);
-  glVertex2f(-1, HeadLength);
-  glVertex2f(-HeadThickness, HeadLength);
+  glBegin(GL_TRIANGLES);
+    glVertex2f(0, 2);
+    glVertex2f(-1, HeadLength);
+    glVertex2f(-HeadThickness, HeadLength);
 
-  glVertex2f(0, 2);
-  glVertex2f(-HeadThickness, HeadLength);
-  glVertex2f(HeadThickness, HeadLength);
+    glVertex2f(0, 2);
+    glVertex2f(-HeadThickness, HeadLength);
+    glVertex2f(HeadThickness, HeadLength);
 
-  glVertex2f(0, 2);
-  glVertex2f(HeadThickness, HeadLength);
-  glVertex2f(1, HeadLength);
- glEnd;
+    glVertex2f(0, 2);
+    glVertex2f(HeadThickness, HeadLength);
+    glVertex2f(1, HeadLength);
+  glEnd;
 
- glBegin(GL_QUADS);
-  glVertex2f(-HeadThickness, HeadLength);
-  glVertex2f(-HeadThickness, 0);
-  glVertex2f(HeadThickness, 0);
-  glVertex2f(HeadThickness, HeadLength);
- glEnd;
+  glBegin(GL_QUADS);
+    glVertex2f(-HeadThickness, HeadLength);
+    glVertex2f(-HeadThickness, 0);
+    glVertex2f(HeadThickness, 0);
+    glVertex2f(HeadThickness, HeadLength);
+  glEnd;
 end;
 
 function NewGLUQuadric(texture: boolean; normals: TGLenum;
   orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
- result := gluNewQuadric();
- if result = nil then
-   raise Exception.Create('gluNewQuadric cannot be created');
- gluQuadricCallback(result, GLU_ERROR, TCallBack(@ReportGLError));
- gluQuadricTexture(result, Ord(texture));
- gluQuadricNormals(result, normals);
- gluQuadricOrientation(result, orientation);
- gluQuadricDrawStyle(result, drawStyle);
+  result := gluNewQuadric();
+  if result = nil then
+    raise Exception.Create('gluNewQuadric cannot be created');
+  gluQuadricCallback(result, GLU_ERROR, TCallBack(@ReportGLError));
+  gluQuadricTexture(result, Ord(texture));
+  gluQuadricNormals(result, normals);
+  gluQuadricOrientation(result, orientation);
+  gluQuadricDrawStyle(result, drawStyle);
 end;
 
 procedure KamGluSphere(
@@ -1681,10 +1687,11 @@ procedure DrawGLPlane(x1, y1, x2, y2: TGLfloat; constValue: TGLfloat;
   constCoordGivesNormal1: boolean;
   MakeTextureCoords: boolean;
   texX1, texY1, texX2, texY2: TGLfloat; order_ST_XYZ: boolean);
-var xstep, ystep, texXStep, texYStep, texY, y, ynext, texYnext: TGLfloat;
-    indX, indY, i, j: integer;
-    v: TVector3f;
-    normalnaKolejnosc: boolean;
+var
+  xstep, ystep, texXStep, texYStep, texY, y, ynext, texYnext: TGLfloat;
+  indX, indY, i, j: integer;
+  v: TVector3f;
+  normalnaKolejnosc: boolean;
 
   procedure RysujDwojka(x, texX: TGLfloat);
 
@@ -1703,24 +1710,24 @@ var xstep, ystep, texXStep, texYStep, texY, y, ynext, texYnext: TGLfloat;
 
     procedure Nizej;
     begin
-     v[indY] := y;
-     TexCoordXYZ(texX, texY);
-     glVertex3fv(@v);
+      v[indY] := y;
+      TexCoordXYZ(texX, texY);
+      glVertex3fv(@v);
     end;
 
     procedure Wyzej;
     begin
-     v[indY] := ynext;
-     TexCoordXYZ(texX, texYnext);
-     glVertex3fv(@v);
+      v[indY] := ynext;
+      TexCoordXYZ(texX, texYnext);
+      glVertex3fv(@v);
     end;
 
   begin
-   v[indX] := x;
+    v[indX] := x;
 
-   if normalnaKolejnosc then
-    begin Wyzej; Nizej; end else
-    begin Nizej; Wyzej; end;
+    if normalnaKolejnosc then
+      begin Wyzej; Nizej; end else
+      begin Nizej; Wyzej; end;
   end;
 
 const
@@ -1729,81 +1736,81 @@ const
   (( (-1,  0,  0), ( 0, +1,  0), ( 0,  0, -1) ),
    ( (+1,  0,  0), ( 0, -1,  0), ( 0,  0, +1) ));
 begin
- RestOf3dCoords(constCoord, indX, indY);
+  RestOf3dCoords(constCoord, indX, indY);
 
- normalnaKolejnosc:=
-  ((normals3f[true, constCoord][constCoord] > 0) and constCoordGivesNormal1) or
-  ((normals3f[true, constCoord][constCoord] < 0) and (not constCoordGivesNormal1));
+  normalnaKolejnosc:=
+    ((normals3f[true, constCoord][constCoord] > 0) and constCoordGivesNormal1) or
+    ((normals3f[true, constCoord][constCoord] < 0) and (not constCoordGivesNormal1));
 
- glNormal3fv(@normals3f[normalnaKolejnosc, constCoord]);
+  glNormal3fv(@normals3f[normalnaKolejnosc, constCoord]);
 
- texXStep:=(texX2-texX1) / (DetailLevelX + 1);
- texYStep:=(texY2-texY1) / (DetailLevelY + 1);
- xstep:=(x2-x1) / (DetailLevelX + 1);
- ystep:=(y2-y1) / (DetailLevelY + 1);
+  texXStep:=(texX2-texX1) / (DetailLevelX + 1);
+  texYStep:=(texY2-texY1) / (DetailLevelY + 1);
+  xstep:=(x2-x1) / (DetailLevelX + 1);
+  ystep:=(y2-y1) / (DetailLevelY + 1);
 
- { TODO: zrobic aby wybor normalnego wektora dzialal bez wzgledu
-   na to czy x1 <= x2 i y1 <= y2. }
+  { TODO: zrobic aby wybor normalnego wektora dzialal bez wzgledu
+    na to czy x1 <= x2 i y1 <= y2. }
 
- v[constCoord] := constValue;
+  v[constCoord] := constValue;
 
- ynext := y1;
- texYnext := texY1;
- for j := 0 to DetailLevelY do
- begin
-  glBegin(GL_QUAD_STRIP);
-
-  y := ynext;
-  texY := texYnext;
-  if j = DetailLevelY then
+  ynext := y1;
+  texYnext := texY1;
+  for j := 0 to DetailLevelY do
   begin
-   {podobnie jak ponizej przy x2, dbam tutaj zeby na koncu polygon dosiegnal
-    y2 i texY2 - nie mozemy w tym celu polegac na tym ze
-    y1 + ystep * (DetailY+1) da nam dokladnie y2 - drobny blad w obliczeniach
-    i OpenGL zacznie nam renderowac obiekty ze szczelinami pomiedzy !}
-   ynext := y2;
-   texYnext := texY2;
-  end else
-  begin
-   ynext := y1 + ystep * (j+1);
-   texYnext := texY1 + texYStep * (j+1);
+    glBegin(GL_QUAD_STRIP);
+
+      y := ynext;
+      texY := texYnext;
+      if j = DetailLevelY then
+      begin
+        {podobnie jak ponizej przy x2, dbam tutaj zeby na koncu polygon dosiegnal
+         y2 i texY2 - nie mozemy w tym celu polegac na tym ze
+         y1 + ystep * (DetailY+1) da nam dokladnie y2 - drobny blad w obliczeniach
+         i OpenGL zacznie nam renderowac obiekty ze szczelinami pomiedzy !}
+        ynext := y2;
+        texYnext := texY2;
+      end else
+      begin
+        ynext := y1 + ystep * (j+1);
+        texYnext := texY1 + texYStep * (j+1);
+      end;
+
+      {normalnie, zapisalbym ponizej jako
+         for i := 0 to DetailLevelX+1 do
+          RysujDwojka(x1 + xstep * i, texX1 + texXStep * i);
+       ale w obliczeniach zmiennoprzecinkowych nie mozem byc pewni ze na koncu
+       x1 + xstep * (DetailLevelX+1) da nam x2 - a powinno ! Drobne przesuniecie
+       w liczbach zmiennoprzecinkowych moze spowodowac ze pomiedzy dwoma polygonami
+       teoretycznie stykajacymi sie faktycznie powstaje szczelina - mniej lub
+       bardziej widoczna, w zaleznosci od punktu patrzenia. }
+      for i := 0 to DetailLevelX do
+        RysujDwojka(x1 + xstep * i, texX1 + texXStep * i);
+      RysujDwojka(x2, texX2);
+
+    glEnd;
   end;
-
-  {normalnie, zapisalbym ponizej jako
-     for i := 0 to DetailLevelX+1 do
-      RysujDwojka(x1 + xstep * i, texX1 + texXStep * i);
-   ale w obliczeniach zmiennoprzecinkowych nie mozem byc pewni ze na koncu
-   x1 + xstep * (DetailLevelX+1) da nam x2 - a powinno ! Drobne przesuniecie
-   w liczbach zmiennoprzecinkowych moze spowodowac ze pomiedzy dwoma polygonami
-   teoretycznie stykajacymi sie faktycznie powstaje szczelina - mniej lub
-   bardziej widoczna, w zaleznosci od punktu patrzenia. }
-   for i := 0 to DetailLevelX do
-    RysujDwojka(x1 + xstep * i, texX1 + texXStep * i);
-   RysujDwojka(x2, texX2);
-
-  glEnd;
- end;
 end;
 
 procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean; MakeTextureCoords: boolean);
 begin
- DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[0, 0], 0, DetailY, DetailZ, not ccwOutside, MakeTextureCoords);
- DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[1, 0], 0, DetailY, DetailZ, ccwOutside    , MakeTextureCoords);
+  DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[0, 0], 0, DetailY, DetailZ, not ccwOutside, MakeTextureCoords);
+  DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[1, 0], 0, DetailY, DetailZ, ccwOutside    , MakeTextureCoords);
 
- DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[0, 1], 1, DetailX, DetailZ, not ccwOutside, MakeTextureCoords);
- DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[1, 1], 1, DetailX, DetailZ, ccwOutside    , MakeTextureCoords);
+  DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[0, 1], 1, DetailX, DetailZ, not ccwOutside, MakeTextureCoords);
+  DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[1, 1], 1, DetailX, DetailZ, ccwOutside    , MakeTextureCoords);
 
- DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[0, 2], 2, DetailX, DetailY, not ccwOutside, MakeTextureCoords);
- DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[1, 2], 2, DetailX, DetailY, ccwOutside    , MakeTextureCoords);
+  DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[0, 2], 2, DetailX, DetailY, not ccwOutside, MakeTextureCoords);
+  DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[1, 2], 2, DetailX, DetailY, ccwOutside    , MakeTextureCoords);
 end;
 
 procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat;
   DetailX, DetailY, DetailZ: integer; ccwOutside: boolean;
   MakeTextureCoords: boolean);
 begin
- DrawGLBox(Box3D(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
-   DetailX, DetailY, DetailZ, ccwOutside, MakeTextureCoords);
+  DrawGLBox(Box3D(Vector3Single(x1, y1, z1), Vector3Single(x2, y2, z2)),
+    DetailX, DetailY, DetailZ, ccwOutside, MakeTextureCoords);
 end;
 
 procedure glDrawBox3DWire(const Box: TBox3D);
@@ -1887,79 +1894,81 @@ procedure DrawGLTriangle(const p1, p2, p3: TVector3f;
   procedure PairMix(const v1, v2: TVector3f; const tex1, tex2: TVector2f;
     v2part: TGLfloat; var vresult: TVector3f; var texResult: TVector2f);
   begin
-   vresult := Lerp(v2part, v1, v2);
-   texResult := Lerp(v2part, tex1, tex2);
+    vresult := Lerp(v2part, v1, v2);
+    texResult := Lerp(v2part, tex1, tex2);
   end;
 
   procedure PairAssign(
     out v: TVector3f; out texv: TVector2f;
     const newv: TVector3f; const newtexv: TVector2f);
   begin
-   v := newv; texv := newtexv;
+    v := newv; texv := newtexv;
   end;
 
   procedure glUsePair(const v: TVector3f; const texv: TVector2f);
   begin
-   glTexCoordv(texv); glVertexv(v);
+    glTexCoordv(texv); glVertexv(v);
   end;
 
   procedure glUsePairMix(const v1, v2: TVector3f; const tex1, tex2: TVector2f; v2part: TGLfloat);
-  var vresult: TVector3f;
-      texResult: TVector2f;
+  var
+    vresult: TVector3f;
+    texResult: TVector2f;
   begin
-   vresult := Lerp(v2part, v1, v2);
-   texResult := Lerp(v2part, tex1, tex2);
-   glTexCoordv(texResult); glVertexv(vresult);
+    vresult := Lerp(v2part, v1, v2);
+    texResult := Lerp(v2part, tex1, tex2);
+    glTexCoordv(texResult); glVertexv(vresult);
   end;
 
-var i, j: Cardinal;
-    Left, Right, NextLeft, NextRight: TVector3f;
-    TexLeft, TexRight, TexNextLeft, TexNextRight: TVector2f;
+var
+  i, j: Cardinal;
+  Left, Right, NextLeft, NextRight: TVector3f;
+  TexLeft, TexRight, TexNextLeft, TexNextRight: TVector2f;
 begin
- glNormalv( Normalized(VectorProduct(VectorSubtract(p2, p1), VectorSubtract(p2, p3))) );
- PairAssign(NextLeft, TexNextLeft, p1, Tex1);
- PairAssign(NextRight, TexNextRight, p1, Tex1);
- for i := 0 to DetailLev do
- begin
-  {rysuj Triangle strip o i kreskach}
-  PairAssign(Left, TexLeft, NextLeft, TexNextLeft);
-  PairAssign(Right, TexRight, NextRight, TexNextRight);
-  if i = DetailLev then
+  glNormalv( Normalized(VectorProduct(VectorSubtract(p2, p1), VectorSubtract(p2, p3))) );
+  PairAssign(NextLeft, TexNextLeft, p1, Tex1);
+  PairAssign(NextRight, TexNextRight, p1, Tex1);
+  for i := 0 to DetailLev do
   begin
-   PairAssign(NextLeft, TexNextLeft, p2, Tex2);
-   PairAssign(NextRight, TexNextRight, p3, Tex3);
-  end else
-  begin
-   {gdyby i = DetailLev to ponizsze wzorki TEORETYCZNIE dalyby dobre wartosci -
-    w praktyce, mogloby byc ze NextLeft jest nieco rozny od p2 i podobnie
-    NextRight i p3 i wtedy - katastrofa : w OpenGL'u zaczniemy widziec
-    szczeliny miedzy dwoma trojkatami narysowanymi ta procedura.}
-   PairMix(p1, p2, Tex1, Tex2, (i+1)/(DetailLev+1), NextLeft, TexNextLeft);
-   PairMix(p1, p3, Tex1, Tex3, (i+1)/(DetailLev+1), NextRight, TexNextRight);
-  end;
-
-  glBegin(GL_TRIANGLE_STRIP);
-   glUsePair(NextRight, TexNextRight);
-   glUsePair(Right, TexRight);
-
-   if i >= 1 then
-   begin
-    glUsePairMix(NextLeft, NextRight, TexNextLeft, TexNextRight, i/(i+1));
-
-    {ponizsza petla for biegnie do i-1 zamiast do i bo chcemy vertex Left
-     narysowac osobno (zeby uniknac bledu obliczen zmiennnoprzec.).
-     (notka : powyzszy check na i >= 1 musi byc wykonany przed ta petla, bo
-     gdy i = 0 instrukcja i-1 na Cardinalach powoduje RangeError.}
-    for j := i-1 downto 1 do
+    {rysuj Triangle strip o i kreskach}
+    PairAssign(Left, TexLeft, NextLeft, TexNextLeft);
+    PairAssign(Right, TexRight, NextRight, TexNextRight);
+    if i = DetailLev then
     begin
-     glUsePairMix(Left, Right, TexLeft, TexRight, j/i);
-     glUsePairMix(NextLeft, NextRight, TexNextLeft, TexNextRight, j/(i+1));
+      PairAssign(NextLeft, TexNextLeft, p2, Tex2);
+      PairAssign(NextRight, TexNextRight, p3, Tex3);
+    end else
+    begin
+      {gdyby i = DetailLev to ponizsze wzorki TEORETYCZNIE dalyby dobre wartosci -
+       w praktyce, mogloby byc ze NextLeft jest nieco rozny od p2 i podobnie
+       NextRight i p3 i wtedy - katastrofa : w OpenGL'u zaczniemy widziec
+       szczeliny miedzy dwoma trojkatami narysowanymi ta procedura.}
+      PairMix(p1, p2, Tex1, Tex2, (i+1)/(DetailLev+1), NextLeft, TexNextLeft);
+      PairMix(p1, p3, Tex1, Tex3, (i+1)/(DetailLev+1), NextRight, TexNextRight);
     end;
-    glUsePair(Left, TexLeft);
-   end;
-   glUsePair(NextLeft, TexNextLeft);
-  glEnd;
- end;
+
+    glBegin(GL_TRIANGLE_STRIP);
+      glUsePair(NextRight, TexNextRight);
+      glUsePair(Right, TexRight);
+
+      if i >= 1 then
+      begin
+        glUsePairMix(NextLeft, NextRight, TexNextLeft, TexNextRight, i/(i+1));
+
+        {ponizsza petla for biegnie do i-1 zamiast do i bo chcemy vertex Left
+         narysowac osobno (zeby uniknac bledu obliczen zmiennnoprzec.).
+         (notka : powyzszy check na i >= 1 musi byc wykonany przed ta petla, bo
+         gdy i = 0 instrukcja i-1 na Cardinalach powoduje RangeError.}
+        for j := i-1 downto 1 do
+        begin
+          glUsePairMix(Left, Right, TexLeft, TexRight, j/i);
+          glUsePairMix(NextLeft, NextRight, TexNextLeft, TexNextRight, j/(i+1));
+        end;
+        glUsePair(Left, TexLeft);
+      end;
+      glUsePair(NextLeft, TexNextLeft);
+    glEnd;
+  end;
 end;
 
 {$define PROJECTION_PUSH_POP_BEGIN:=
@@ -2092,14 +2101,15 @@ function GLInformationString: string;
 
   function GetInteger(param: TGLenum): string;
   begin
-   result := IntToStr(glGetInteger(param));
+    Result := IntToStr(glGetInteger(param));
   end;
 
   function GetInteger2(param: TGLenum; const form: string): string;
-  var v: packed array[0..1]of TGLint;
+  var
+    v: packed array [0..1] of TGLint;
   begin
-   glGetIntegerv(param, @v);
-   result := Format(form, [v[0], v[1]]);
+    glGetIntegerv(param, @v);
+    result := Format(form, [v[0], v[1]]);
   end;
 
   function GetBoolean(param: TGLenum): string;
@@ -2202,101 +2212,101 @@ function GLInformationString: string;
   end;
 
 begin
- result:=
-  'OpenGL information (detected by ' + ProgramName +'):' +nl+
-  nl+
+  Result:=
+    'OpenGL information (detected by ' + ProgramName +'):' +nl+
+    nl+
 
-  '--------' +nl+
-  'Version:' +nl+
-  '  Version string: ' +glGetString(GL_VERSION) +nl+
-  VersionReport(GLVersion) +nl+
-  '  Vendor: ' +glGetString(GL_VENDOR) +nl+
-  '  Renderer: ' +glGetString(GL_RENDERER) +nl+
-  VendorReport(GLVersion) +nl+
-  nl+
+    '--------' +nl+
+    'Version:' +nl+
+    '  Version string: ' +glGetString(GL_VERSION) +nl+
+    VersionReport(GLVersion) +nl+
+    '  Vendor: ' +glGetString(GL_VENDOR) +nl+
+    '  Renderer: ' +glGetString(GL_RENDERER) +nl+
+    VendorReport(GLVersion) +nl+
+    nl+
 
-  '------------------------' +nl+
-  'Real versions available:' +nl+
-  '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
-  nl+
-  '  1.2: ' + BoolToStr[GL_version_1_2] +nl+
-  '  1.3: ' + BoolToStr[GL_version_1_3] +nl+
-  '  1.4: ' + BoolToStr[GL_version_1_4] +nl+
-  '  1.5: ' + BoolToStr[GL_version_1_5] +nl+
-  '  2.0: ' + BoolToStr[GL_version_2_0] +nl+
-  nl+
+    '------------------------' +nl+
+    'Real versions available:' +nl+
+    '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
+    nl+
+    '  1.2: ' + BoolToStr[GL_version_1_2] +nl+
+    '  1.3: ' + BoolToStr[GL_version_1_3] +nl+
+    '  1.4: ' + BoolToStr[GL_version_1_4] +nl+
+    '  1.5: ' + BoolToStr[GL_version_1_5] +nl+
+    '  2.0: ' + BoolToStr[GL_version_2_0] +nl+
+    nl+
 
-  '---------' +nl+
-  'Features:' +nl+
-  '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
-  '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
-  '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
-  '  Multi-texturing (a couple of related extensions): ' + BoolToStr[GLUseMultiTexturing] +nl+
-  '  Framebuffer Object: ' + BoolToStr[GL_EXT_framebuffer_object] +nl+
-  '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
-  '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
-  '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
-  nl+
-  '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
-  nl+
+    '---------' +nl+
+    'Features:' +nl+
+    '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
+    '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
+    '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
+    '  Multi-texturing (a couple of related extensions): ' + BoolToStr[GLUseMultiTexturing] +nl+
+    '  Framebuffer Object: ' + BoolToStr[GL_EXT_framebuffer_object] +nl+
+    '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
+    '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
+    '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
+    nl+
+    '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
+    nl+
 
-  '-----------------------------' +nl+
-  'OpenGL utility (GLU) version:' +nl+
-  '  Version string: ' +gluGetString(GLU_VERSION) +nl+
-  VersionReport(GLUVersion) +nl+
-  '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
-  nl+
+    '-----------------------------' +nl+
+    'OpenGL utility (GLU) version:' +nl+
+    '  Version string: ' +gluGetString(GLU_VERSION) +nl+
+    VersionReport(GLUVersion) +nl+
+    '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
+    nl+
 
-  '---------------------------' +nl+
-  'Current buffers bit depths:' +nl+
-  '  Color (red / greeen / blue / alpha): '
-    +GetInteger(GL_RED_BITS) +' / '
-    +GetInteger(GL_GREEN_BITS) +' / '
-    +GetInteger(GL_BLUE_BITS) +' / '
-    +GetInteger(GL_ALPHA_BITS) +nl+
-  '  Depth: ' +GetInteger(GL_DEPTH_BITS) +nl+
-  '  Index: ' +GetInteger(GL_INDEX_BITS) +nl+
-  '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
-  '  Accumulation (red / greeen / blue / alpha): '
-    +GetInteger(GL_ACCUM_RED_BITS) +' / '
-    +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
-    +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
-    +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
-  '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
-  '  Multisampling (full-screen antialiasing):' +nl+
-  '    Sample buffers: ' + GetSampleBuffers +nl+
-  '    Samples: ' + GetSamples +nl+
-  nl+
+    '---------------------------' +nl+
+    'Current buffers bit depths:' +nl+
+    '  Color (red / greeen / blue / alpha): '
+      +GetInteger(GL_RED_BITS) +' / '
+      +GetInteger(GL_GREEN_BITS) +' / '
+      +GetInteger(GL_BLUE_BITS) +' / '
+      +GetInteger(GL_ALPHA_BITS) +nl+
+    '  Depth: ' +GetInteger(GL_DEPTH_BITS) +nl+
+    '  Index: ' +GetInteger(GL_INDEX_BITS) +nl+
+    '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
+    '  Accumulation (red / greeen / blue / alpha): '
+      +GetInteger(GL_ACCUM_RED_BITS) +' / '
+      +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
+      +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
+      +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
+    '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
+    '  Multisampling (full-screen antialiasing):' +nl+
+    '    Sample buffers: ' + GetSampleBuffers +nl+
+    '    Samples: ' + GetSamples +nl+
+    nl+
 
-  '-------------' +nl+
-  'Stack depths:' +nl+
-  '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
-  '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
-  '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
-  '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
-  '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
-  '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
-  nl+
+    '-------------' +nl+
+    'Stack depths:' +nl+
+    '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
+    '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
+    '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
+    '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
+    '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
+    '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
+    nl+
 
-  '-------' +nl+
-  'Limits:' +nl+
-  '  Max clip planes: ' + IntToStr(GLMaxClipPlanes) +nl+
-  '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-  '  Max lights: ' + IntToStr(GLMaxLights) +nl+
-  '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
-  '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
-  '  Max texture size: ' + IntToStr(GLMaxTextureSize) +nl+
-  '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-  '  Max texture units: ' + IntToStr(GLMaxTextureUnits) +nl+
-  '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
-  '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
-  '  Max rectangle texture size: ' + GetMaxRectangleTextureSize +nl+
-  '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
-  '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
-    GetQueryCounterBits +nl+
-  '  Max renderbuffer size: ' + GetMaxRenderbufferSize;
+    '-------' +nl+
+    'Limits:' +nl+
+    '  Max clip planes: ' + IntToStr(GLMaxClipPlanes) +nl+
+    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
+    '  Max lights: ' + IntToStr(GLMaxLights) +nl+
+    '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
+    '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
+    '  Max texture size: ' + IntToStr(GLMaxTextureSize) +nl+
+    '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
+    '  Max texture units: ' + IntToStr(GLMaxTextureUnits) +nl+
+    '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
+    '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
+    '  Max rectangle texture size: ' + GetMaxRectangleTextureSize +nl+
+    '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
+    '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
+      GetQueryCounterBits +nl+
+    '  Max renderbuffer size: ' + GetMaxRenderbufferSize;
 
- CheckGLErrors;
+   CheckGLErrors;
 end;
 
 function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
@@ -2424,11 +2434,18 @@ begin
 end;
 
 initialization
- { This is needed for gllistIBase declaration to be correct. }
- Assert(SizeOf(TGLint) = SizeOf(TGLuint));
+  { This is needed for gllistIBase declaration to be correct. }
+  Assert(SizeOf(TGLint) = SizeOf(TGLuint));
 
-  { If DISABLE_FP_EXCEPTIONS is defined then in the initialization
-    this unit will mask all floating point exceptions.
+  { This Set8087CW is actually not needed, because FPC GL units,
+    since version 2.2.2, already do this, for all necessary platforms,
+    thanks to Michalis bug reports :) See
+    - http://www.freepascal.org/mantis/view.php?id=5914
+    - http://www.freepascal.org/mantis/view.php?id=7570
+    - http://bugs.freepascal.org/view.php?id=10507
+
+    The purpose of this Set8087CW is to mask (filter out, ignore)
+    all floating point exceptions.
     This sucks, but it's the fault of OpenGL implementations and we can't
     do anything about it:
 
@@ -2444,11 +2461,6 @@ initialization
       them to normal C++/Pascal exceptions. So one should explicitly mask
       FPU exceptions before using any OpenGL routine under Windows.
 
-      See also explanation in my bug report to FPC:
-      [http://www.freepascal.org/mantis/view.php?id=5914]
-      (note that it was written when I thought (incorrectly, see below)
-      that this is Windows-only issue).
-
     - Linux:
 
       Radeon open-source OpenGL driver may cause EDivByZero exceptions.
@@ -2463,25 +2475,12 @@ initialization
       done also by GTK glarea in first gtk_glarea_make_current)
       when no depth buffer was requested.
 
-    I want to mention here that Mesa3d doesn't cause such problems.
+    Mesa3d doesn't cause such problems.
     So maybe it's possible to make an efficient OpenGL
-    implementation that doesn't require caller to disable fp exceptions ?
-    Other implementors: please take this good example. Thanks.
-
-    For more reasoning see related bug reports I submitted to FPC:
-    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=5914]
-      (old id is 3955)
-    - see FPC bug [http://www.freepascal.org/mantis/view.php?id=7570]
-
-    Although FPC 2.2.0 does this in GL unit, it's under ifdef x86...
-    and x86 doesn't seem to be defined... see
-    [http://bugs.freepascal.org/view.php?id=10507]. }
-  {$define DISABLE_FP_EXCEPTIONS}
-
-  {$ifdef DISABLE_FP_EXCEPTIONS}
+    implementation that doesn't require caller to disable fp exceptions?
+  }
   Set8087CW($133F);
-  {$endif}
 
- Pointer(glListIBase) := glListBase;
- Pointer(KamGLPolygonStipple) := glPolygonStipple;
+  Pointer(glListIBase) := glListBase;
+  Pointer(KamGLPolygonStipple) := glPolygonStipple;
 end.
