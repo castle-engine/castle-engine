@@ -129,7 +129,8 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/vrml_browser/vrml_browser \
   examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls \
   examples/lazarus/camera/camera \
-  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually
+  examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
+  tests/test_kambi_units
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
