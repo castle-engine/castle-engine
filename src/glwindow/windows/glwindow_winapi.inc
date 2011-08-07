@@ -868,7 +868,7 @@ procedure TGLWindow.OpenWinSystemDepend;
 
             FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
 
-            Success := wglChoosePixelFormatARB(H_Dc, VisualAttr.List,
+            Success := wglChoosePixelFormatARB(H_Dc, PGLint(VisualAttr.List),
               @VisualAttrFloat[0], 1, @PixelFormat, @ReturnedFormats);
           finally FreeAndNil(VisualAttr) end;
 
