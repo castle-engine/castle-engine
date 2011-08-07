@@ -90,7 +90,6 @@ uses Math, GL, GLU, GLExt,
 { @section(Utils needed only when using GL, GLU, GLExt bindings.
   Not needed when using OpenGLh binding.) }
 
-{$ifndef USE_OLD_OPENGLH}
 type
   { Types with leading "T" } { }
   TGLenum     = GLenum;
@@ -365,7 +364,6 @@ var
 
   Inits also GLVersion and GLUVersion from GLVersionUnit. }
 procedure LoadAllExtensions;
-{$endif}
 
 { OpenGL vector/matrix types ------------------------------------------------- }
 
@@ -1003,8 +1001,6 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
 
 {$I glext_packed_depth_stencil.inc}
 
-{$ifndef USE_OLD_OPENGLH}
-
 procedure LoadAllExtensions;
 
   {$ifdef NEEDS_FOG_COORD_FIX}
@@ -1275,7 +1271,6 @@ begin
   if GL_ARB_vertex_buffer_object then
     Pointer(glBufferSubDataARB) := Glext.wglGetProcAddress('glBufferSubDataARB');
 end;
-{$endif}
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
 
@@ -1700,18 +1695,13 @@ end;
 
 function UnProjectGL(winx, winy, winz :TGLdouble): TVector3d;
 var
-  modelMatrix, projMatrix:
-    {$ifdef USE_OLD_OPENGLH} TMatrix4d {$else} T16dArray {$endif};
-  viewport:
-    {$ifdef USE_OLD_OPENGLH} TVector4i {$else} TViewPortArray {$endif};
+  modelMatrix, projMatrix: T16dArray;
+  viewport: TViewPortArray;
 begin
  glGetDoublev(GL_MODELVIEW_MATRIX, @modelMatrix);
  glGetDoublev(GL_PROJECTION_MATRIX, @projMatrix);
  glGetIntegerv(GL_VIEWPORT, @viewport);
- Check( gluUnProject(winx, winy, winz,
-   {$ifdef USE_OLD_OPENGLH} @ {$endif} modelMatrix,
-   {$ifdef USE_OLD_OPENGLH} @ {$endif} projMatrix,
-   {$ifdef USE_OLD_OPENGLH} @ {$endif} viewport,
+ Check( gluUnProject(winx, winy, winz, modelMatrix, projMatrix, viewport,
    @result[0], @result[1], @result[2]) = GL_TRUE, 'gluUnProject');
 end;
 
@@ -1749,8 +1739,7 @@ begin
  result := gluNewQuadric();
  if result = nil then
    raise Exception.Create('gluNewQuadric cannot be created');
- gluQuadricCallback(result, GLU_ERROR,
-   {$ifndef USE_OLD_OPENGLH} TCallBack {$endif} (@ReportGLError));
+ gluQuadricCallback(result, GLU_ERROR, TCallBack(@ReportGLError));
  gluQuadricTexture(result, Ord(texture));
  gluQuadricNormals(result, normals);
  gluQuadricOrientation(result, orientation);

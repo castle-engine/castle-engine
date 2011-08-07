@@ -279,11 +279,7 @@ var i, poz,
              pamieci. Wiec wskazniki na elementy tablicy dynamicznej nie maja
              zadnej trwalosci ! }
            AddVertex(vertices^, Vector3Double(x, y, polZ) );
-           gluTessVertex(tobj,
-             {$ifndef USE_OLD_OPENGLH} T3dArray ( {$endif}
-             LastAdded(vertices^)
-             {$ifndef USE_OLD_OPENGLH} ^) {$endif}
-             , LastAdded(vertices^) );
+           gluTessVertex(tobj, T3dArray(LastAdded(vertices^)^), LastAdded(vertices^) );
           end;
           Inc(poz);
          end;
