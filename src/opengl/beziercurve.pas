@@ -130,8 +130,8 @@ var
     Wgh := TDynFloatArray.Create;
     Wgh.Count := Weights.Count;
 
-    Move(ControlPoints.List^[0], W.List^[0],   W.Count   * SizeOf(TVector3Single));
-    Move(Weights.List^[0],       Wgh.List^[0], Wgh.Count * SizeOf(Float));
+    Move(ControlPoints.L[0], W.L[0],   W.Count   * SizeOf(TVector3Single));
+    Move(Weights.L[0],       Wgh.L[0], Wgh.Count * SizeOf(Float));
 }
 
 { This caculates in W and Wgh k-th step of de Casteljau algorithm.
@@ -142,11 +142,11 @@ begin
   for i := 0 to n - k do
   begin
     for j := 0 to 2 do
-      W.List^[i][j]:=(1-u) * Wgh[i  ] * W.List^[i  ][j] +
-                         u * Wgh[i+1] * W.List^[i+1][j];
-    Wgh.List^[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
+      W.L[i][j]:=(1-u) * Wgh[i  ] * W.L[i  ][j] +
+                         u * Wgh[i+1] * W.L[i+1][j];
+    Wgh.L[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
     for j := 0 to 2 do
-      W.List^[i][j] /= Wgh.List^[i];
+      W.L[i][j] /= Wgh.L[i];
   end;
 end;}
 
@@ -176,19 +176,19 @@ begin
   u := Proportion;
 
   DE_CASTELJAU_BEGIN
-    B1.ControlPoints.List^[0] := ControlPoints.List^[0];
-    B1.Weights      .List^[0] := Wgh          .List^[0];
-    B2.ControlPoints.List^[n] := ControlPoints.List^[n];
-    B2.Weights      .List^[n] := Wgh          .List^[n];
+    B1.ControlPoints.L[0] := ControlPoints.L[0];
+    B1.Weights      .L[0] := Wgh          .L[0];
+    B2.ControlPoints.L[n] := ControlPoints.L[n];
+    B2.Weights      .L[n] := Wgh          .L[n];
 
     for k := 1 to n do
     begin
       DE_CASTELJAU_STEP
 
-      B1.ControlPoints.List^[k]   := W  .List^[0];
-      B1.Weights      .List^[k]   := Wgh.List^[0];
-      B2.ControlPoints.List^[n-k] := W  .List^[n-k];
-      B2.Weights      .List^[n-k] := Wgh.List^[n-k];
+      B1.ControlPoints.L[k]   := W  .L[0];
+      B1.Weights      .L[k]   := Wgh.L[0];
+      B2.ControlPoints.L[n-k] := W  .L[n-k];
+      B2.Weights      .L[n-k] := Wgh.L[n-k];
     end;
   DE_CASTELJAU_END
 end;
@@ -203,7 +203,7 @@ begin
 
   DE_CASTELJAU_BEGIN
     for k := 1 to n do DE_CASTELJAU_STEP
-    Result := W.List^[0];
+    Result := W.L[0];
   DE_CASTELJAU_END
 end;
 
@@ -247,7 +247,7 @@ var
   i: Integer;
 begin
   if ControlPoints.Count = 1 then
-    Exit(ControlPoints.List^[0]);
+    Exit(ControlPoints.L[0]);
 
   for i := 0 to BezierCurves.Count-1 do
     if t <= BezierCurves[i].TEnd then Break;
@@ -261,9 +261,9 @@ var
 
   function MiddlePoint(i, Sign: Integer): TVector3Single;
   begin
-    Result := ControlPoints.List^[i];
+    Result := ControlPoints.L[i];
     VectorAddTo1st(Result,
-      VectorScale(S.List^[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
+      VectorScale(S.L[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
   end;
 
 var
@@ -286,10 +286,10 @@ begin
         ControlPoints.Count = 2. So I must implement a special case for
         ControlPoints.Count = 2. }
       NewCurve := TRationalBezierCurve.Create(ControlPointT(0), ControlPointT(1));
-      NewCurve.ControlPoints.Add(ControlPoints.List^[0]);
-      NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.List^[0], ControlPoints.List^[1]));
-      NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.List^[0], ControlPoints.List^[1]));
-      NewCurve.ControlPoints.Add(ControlPoints.List^[1]);
+      NewCurve.ControlPoints.Add(ControlPoints.L[0]);
+      NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.L[0], ControlPoints.L[1]));
+      NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.L[0], ControlPoints.L[1]));
+      NewCurve.ControlPoints.Add(ControlPoints.L[1]);
       NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
       NewCurve.UpdateControlPoints;
       Result.Add(NewCurve);
@@ -306,8 +306,8 @@ begin
       { calculate C values }
       for i := 0 to C.Count-1 do
       begin
-        C.List^[i] := VectorSubtract(ControlPoints.List^[i+1], ControlPoints.List^[i]);
-        VectorScaleTo1st(C.List^[i],
+        C.L[i] := VectorSubtract(ControlPoints.L[i+1], ControlPoints.L[i]);
+        VectorScaleTo1st(C.L[i],
           1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 
@@ -315,19 +315,19 @@ begin
       S.Count := ControlPoints.Count;
       { calculate S values }
       for i := 1 to S.Count-2 do
-        S.List^[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/
+        S.L[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/
                             (ControlPointT(i+1) - ControlPointT(i-1)),
-                            C.List^[i-1], C.List^[i]);
-      S.List^[0        ] := VectorSubtract(VectorScale(C.List^[0        ], 2), S.List^[1        ]);
-      S.List^[S.Count-1] := VectorSubtract(VectorScale(C.List^[S.Count-2], 2), S.List^[S.Count-2]);
+                            C.L[i-1], C.L[i]);
+      S.L[0        ] := VectorSubtract(VectorScale(C.L[0        ], 2), S.L[1        ]);
+      S.L[S.Count-1] := VectorSubtract(VectorScale(C.L[S.Count-2], 2), S.L[S.Count-2]);
 
       for i := 1 to ControlPoints.Count-1 do
       begin
         NewCurve := TRationalBezierCurve.Create(ControlPointT(i-1), ControlPointT(i));
-        NewCurve.ControlPoints.Add(ControlPoints.List^[i-1]);
+        NewCurve.ControlPoints.Add(ControlPoints.L[i-1]);
         NewCurve.ControlPoints.Add(MiddlePoint(i-1, +1));
         NewCurve.ControlPoints.Add(MiddlePoint(i  , -1));
-        NewCurve.ControlPoints.Add(ControlPoints.List^[i]);
+        NewCurve.ControlPoints.Add(ControlPoints.L[i]);
         NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
         NewCurve.UpdateControlPoints;
         Result.Add(NewCurve);
@@ -357,8 +357,8 @@ begin
   ConvexHullPoints.AddList(ControlPoints);
   for i := 0 to BezierCurves.Count-1 do
   begin
-    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.List^[1]);
-    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.List^[2]);
+    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.L[1]);
+    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.L[2]);
   end;
 end;
 

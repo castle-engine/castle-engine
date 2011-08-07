@@ -83,15 +83,15 @@ begin
   try
     for I := 0 to Coord.Count - 1 do
     begin
-      VertexTransfer := @(RadianceTransfer.List^[I * SHBasisCount]);
+      VertexTransfer := Addr(RadianceTransfer.L[I * SHBasisCount]);
 
       { V = scene-space vertex coord }
-      V := MatrixMultPoint(Transform, Coord.List^[I]);
+      V := MatrixMultPoint(Transform, Coord.L[I]);
 
       { N = scene-space normal coord
         TODO: MatrixMultDirection will not work under non-uniform scaling
         matrix correctly. }
-      N := Normalized(MatrixMultDirection(Transform, Normals.List^[I]));
+      N := Normalized(MatrixMultDirection(Transform, Normals.L[I]));
 
       for SHBase := 0 to SHBasisCount - 1 do
         VertexTransfer[SHBase] := ZeroVector3Single;

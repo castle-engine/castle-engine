@@ -38,7 +38,7 @@ type
   TItemList = class(specialize TFPGObjectList<TItem>)
     { For each item of the list, delete all it's duplicates. }
     procedure DeleteDuplicates;
-    procedure AddList(L: TItemList);
+    procedure AddList(Source: TItemList);
   end;
 
 procedure TItemList.DeleteDuplicates;
@@ -68,14 +68,14 @@ begin
   end;
 end;
 
-procedure TItemList.AddList(L: TItemList);
+procedure TItemList.AddList(Source: TItemList);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
-  Count := Count + L.Count;
-  if L.Count <> 0 then
-    System.Move(L.List^[0], List^[OldCount], SizeOf(Pointer) * L.Count);
+  Count := Count + Source.Count;
+  if Source.Count <> 0 then
+    System.Move(Source.List^[0], List^[OldCount], SizeOf(Pointer) * Source.Count);
 end;
 
 procedure TTestObjectsList.TestObjectsList;

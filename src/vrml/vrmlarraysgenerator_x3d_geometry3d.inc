@@ -180,7 +180,7 @@ begin
 
   if not FaceConvex then
   begin
-    TriangulateFace(Addr(CoordIndex.Items.List^[BeginIndex]),
+    TriangulateFace(Addr(CoordIndex.Items.L[BeginIndex]),
       EndIndex - BeginIndex, PVector3Single(Coord.Items.List),
       @GenerateTriangle, BeginIndex);
   end else
@@ -208,7 +208,7 @@ procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
 begin
   if not FaceConvex then
   begin
-    TriangulateFace(Addr(CoordIndex.Items.List^[BeginIndex]),
+    TriangulateFace(Addr(CoordIndex.Items.L[BeginIndex]),
       EndIndex - BeginIndex, PVector3Single(Coord.Items.List),
       @PrepareIndexesTriangle1, BeginIndex);
   end else
@@ -220,9 +220,9 @@ end;
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
   const TriIndices: TVector3Longint);
 begin
-  IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[TriIndices[0]]; Inc(IFSNextIndex);
-  IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[TriIndices[1]]; Inc(IFSNextIndex);
-  IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[TriIndices[2]]; Inc(IFSNextIndex);
+  IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[0]]; Inc(IFSNextIndex);
+  IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[1]]; Inc(IFSNextIndex);
+  IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[2]]; Inc(IFSNextIndex);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange2(
@@ -234,24 +234,24 @@ begin
 
   if not FaceConvex then
   begin
-    TriangulateFace(Addr(CoordIndex.Items.List^[BeginIndex]),
+    TriangulateFace(Addr(CoordIndex.Items.L[BeginIndex]),
       EndIndex - BeginIndex, PVector3Single(Coord.Items.List),
       @PrepareIndexesTriangle2, BeginIndex);
   end else
   begin
     for I := BeginIndex to EndIndex - 3 do
     begin
-      IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[BeginIndex]; Inc(IFSNextIndex);
-      IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[I + 1];      Inc(IFSNextIndex);
-      IndexesFromCoordIndex.List^[IFSNextIndex] := CoordIndex.Items.List^[I + 2];      Inc(IFSNextIndex);
+      IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[BeginIndex]; Inc(IFSNextIndex);
+      IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 1];      Inc(IFSNextIndex);
+      IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[I + 2];      Inc(IFSNextIndex);
     end;
   end;
 
   if FacesNeeded then
     for I := IFSNextIndexBegin to IFSNextIndex - 1 do
     begin
-      Arrays.Faces.List^[I].IndexBegin := BeginIndex;
-      Arrays.Faces.List^[I].IndexEnd := EndIndex;
+      Arrays.Faces.L[I].IndexBegin := BeginIndex;
+      Arrays.Faces.L[I].IndexEnd := EndIndex;
     end;
 end;
 

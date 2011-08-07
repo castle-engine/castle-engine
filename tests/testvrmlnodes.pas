@@ -206,7 +206,7 @@ begin
     'TDynVRMLTokenInfoArray.Equal: different counts %d and %d',
     [Count, SecondValue.Count]));
   for I := 0 to Count - 1 do
-    AssertEqualTokens(List^[I], SecondValue.List^[I]);
+    AssertEqualTokens(L[I], SecondValue.L[I]);
 end;
 
 { Note that this can be used to test correctly only files that can

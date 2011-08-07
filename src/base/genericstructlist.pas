@@ -34,9 +34,7 @@ type
     (since for methods, the "=" is broken, for Delphi compatibility,
     see http://bugs.freepascal.org/view.php?id=9228).
 
-    The only new method is @link(Add) without parameters, that returns
-    the pointer to newly created item. Comfortable and efficient way
-    to add and initialize new item. }
+    We also add some trivial helper methods like @link(Add) and @link(L). }
   generic TGenericStructList<T> = class(TFPSList)
   private
     type
@@ -69,6 +67,24 @@ type
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
+
+    { Pointer to items. Exactly like @link(List), but this points to a single item,
+      which means you can access particular item by @code(L[I]) instead of
+      @code(List^[I]) in FPC objfpc mode.
+
+      This is just trivial shortcut,  but we use direct access a @italic(lot)
+      for structures. Reasonis: using Items[] default
+      property means copying the structures, which is
+      @orderedList(
+        @item(very dangerous (you can trivially easy modify a temporary result))
+        @item(slow (important for us, since these are used for vector arrays that
+         are crucial for renderer and various processing).)
+      ) }
+    function L: PT;
+
+    { Increase Count and return pointer to new item.
+      Comfortable and efficient way to add a new item that you want to immediately
+      initialize. }
     function Add: PT;
   end;
 
@@ -130,7 +146,7 @@ begin
   Result := T(inherited First^);
 end;
 
-{$ifdef HAS_ENUMERATOR} 
+{$ifdef HAS_ENUMERATOR}
 function TGenericStructList.GetEnumerator: TFPGListEnumeratorSpec;
 begin
   Result := TFPGListEnumeratorSpec.Create(Self);
@@ -176,10 +192,15 @@ begin
   inherited Sort(@ItemPtrCompare);
 end;
 
+function TGenericStructList.L: PT;
+begin
+  Result := PT(FList);
+end;
+
 function TGenericStructList.Add: PT;
 begin
   Count := Count + 1;
-  Result := @(List^[Count - 1]);
+  Result := Addr(L[Count - 1]);
 end;
 
 end.

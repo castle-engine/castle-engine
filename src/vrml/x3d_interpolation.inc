@@ -315,7 +315,7 @@
   function KeyValue(Index: Integer): SingleInterpolatorType;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.List^[Index] else
+      Result := FdKeyValue.Items.L[Index] else
       Result := SingleInterpolatorDefault;
   end;
 

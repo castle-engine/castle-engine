@@ -97,7 +97,7 @@ begin
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
+      DirectIndexes[I] := CoordIndex.L[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
@@ -109,7 +109,7 @@ begin
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
+    PVector3Single(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
     Vector3Single(0, 0, 0));
 
   { We assume here that polygon is convex, while in fact it doesn't
@@ -120,7 +120,7 @@ begin
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3Single(@(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
+    PVector3Single(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
 
   { Split FaceArea into the number of polygon corners. }
   FaceArea /= Length(Indexes);
@@ -151,7 +151,7 @@ procedure CalculateElements;
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
       Elements.Count := Elements.Count + Coord.Count;
-      ShapeElements := @(Elements.List^[ShapeElementIndex]);
+      ShapeElements := Addr(Elements.L[ShapeElementIndex]);
 
       SetLength(Shapes[ShapeIndex].CoordToElement, Coord.Count);
 
@@ -165,7 +165,7 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          MatrixMultPoint(Shape.State.Transform, Coord.Items.List^[I]);
+          MatrixMultPoint(Shape.State.Transform, Coord.Items.L[I]);
         ShapeElements[I].Normal := ZeroVector3Single;
         ShapeElements[I].Area := 0;
       end;
@@ -236,11 +236,11 @@ begin
 
   for I := 0 to Elements.Count - 1 do
   begin
-    if not PerfectlyZeroVector(Elements.List^[I].Normal) then
+    if not PerfectlyZeroVector(Elements.L[I].Normal) then
     begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
-        Elements.List^[GoodElementsCount] := Elements.List^[I];
+        Elements.L[GoodElementsCount] := Elements.L[I];
       Shapes[ShapeIndex].CoordToElement[ShapeCoord] := GoodElementsCount;
       Inc(GoodElementsCount);
     end else
@@ -272,9 +272,9 @@ begin
   Writeln('Elements: ', Elements.Count);
   for I := 0 to Elements.Count - 1 do
   begin
-    Writeln('pos ', VectorToNiceStr(Elements.List^[I].Position),
-            ' nor ', VectorToNiceStr(Elements.List^[I].Normal),
-            ' area ', Elements.List^[I].Area:1:10);
+    Writeln('pos ', VectorToNiceStr(Elements.L[I].Position),
+            ' nor ', VectorToNiceStr(Elements.L[I].Normal),
+            ' area ', Elements.L[I].Area:1:10);
   end;}
 end;
 
@@ -353,7 +353,7 @@ begin
   { calculate maximum area, which is just AreaScale }
   AreaScale := 0;
   for I := 0 to Elements.Count - 1 do
-    MaxTo1st(AreaScale, Elements.List^[I].Area);
+    MaxTo1st(AreaScale, Elements.L[I].Area);
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
@@ -493,14 +493,14 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         end;
 
         glPushMatrix;
-          NewZ := Elements.List^[I].Normal;
+          NewZ := Elements.L[I].Normal;
           NewX := AnyOrthogonalVector(NewZ);
           NewY := VectorProduct(NewZ, NewX);
-          glMultMatrix(TransformToCoordsMatrix(Elements.List^[I].Position,
+          glMultMatrix(TransformToCoordsMatrix(Elements.L[I].Position,
             NewX, NewY, NewZ));
 
           { Area = Pi * Radius^2, so Radius := Sqrt(Area/Pi) }
-          Radius := Sqrt(Elements.List^[I].Area/Pi);
+          Radius := Sqrt(Elements.L[I].Area/Pi);
           gluDisk(Q, 0, Radius, 8, 2);
 
         glPopMatrix;

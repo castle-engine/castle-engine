@@ -139,7 +139,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I](RenderingCamera);
+    L[I](RenderingCamera);
 end;
 
 { TRenderingCamera --------------------------------------------------------------- }

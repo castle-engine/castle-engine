@@ -1885,7 +1885,7 @@ var
           shape only once within this frame (FrameId is useful here). }
         for I := 0 to Node.ItemsIndices.Count - 1 do
         begin
-          Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
+          Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
           if Shape.RenderedFrameId <> FrameId then
           begin
             RenderShape_SomeTests(Shape);
@@ -1944,7 +1944,7 @@ var
 
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.List^[I]]);
+        Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
         if Shape.RenderedFrameId <> FrameId then
           Box3DSumTo1st(Box, Shape.BoundingBox);
       end;
@@ -2734,7 +2734,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := @(Triangles.List^[EdgePtr^.Triangles[0]]);
+    TrianglePtr := Addr(Triangles.L[EdgePtr^.Triangles[0]]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2766,7 +2766,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := @(Triangles.List^[EdgePtr^.TriangleIndex]);
+    TrianglePtr := Addr(Triangles.L[EdgePtr^.TriangleIndex]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2992,7 +2992,7 @@ var
       OpaqueTrianglesBegin;
       for I := 0 to Integer(OpaqueCount) - 1 do
       begin
-        TrianglesPlaneSide.List^[I] := PlaneSide_Identity(TrianglePtr^);
+        TrianglesPlaneSide.L[I] := PlaneSide_Identity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       OpaqueTrianglesEnd;
@@ -3000,7 +3000,7 @@ var
       TransparentTrianglesBegin;
       for I := OpaqueCount to Triangles.Count - 1 do
       begin
-        TrianglesPlaneSide.List^[I] := PlaneSide_Identity(TrianglePtr^);
+        TrianglesPlaneSide.L[I] := PlaneSide_Identity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       TransparentTrianglesEnd;
@@ -3009,7 +3009,7 @@ var
       OpaqueTrianglesBegin;
       for I := 0 to Integer(OpaqueCount) - 1 do
       begin
-        TrianglesPlaneSide.List^[I] := PlaneSide_NotIdentity(TrianglePtr^);
+        TrianglesPlaneSide.L[I] := PlaneSide_NotIdentity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       OpaqueTrianglesEnd;
@@ -3017,7 +3017,7 @@ var
       TransparentTrianglesBegin;
       for I := OpaqueCount to Triangles.Count - 1 do
       begin
-        TrianglesPlaneSide.List^[I] := PlaneSide_NotIdentity(TrianglePtr^);
+        TrianglesPlaneSide.L[I] := PlaneSide_NotIdentity(TrianglePtr^);
         Inc(TrianglePtr);
       end;
       TransparentTrianglesEnd;
@@ -3049,8 +3049,8 @@ begin
       ManifoldEdgePtr := PManifoldEdge(ManifoldEdgesNow.List);
       for I := 0 to ManifoldEdgesNow.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[0]];
-        PlaneSide1 := TrianglesPlaneSide.List^[ManifoldEdgePtr^.Triangles[1]];
+        PlaneSide0 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.L[ManifoldEdgePtr^.Triangles[1]];
 
         { Only if PlaneSide0 <> PlaneSide1 it's a silhouette edge,
           so only then render it's shadow quad.
@@ -3084,7 +3084,7 @@ begin
       BorderEdgePtr := PBorderEdge(BorderEdgesNow.List);
       for I := 0 to BorderEdgesNow.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.List^[BorderEdgePtr^.TriangleIndex];
+        PlaneSide0 := TrianglesPlaneSide.L[BorderEdgePtr^.TriangleIndex];
 
         { We want to have consistent CCW orientation of shadow quads faces,
           so that face is oriented CCW <=> you're looking at it from outside
@@ -3188,7 +3188,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := @(Triangles.List^[EdgePtr^.Triangles[0]]);
+    TrianglePtr := Addr(Triangles.L[EdgePtr^.Triangles[0]]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -3231,7 +3231,7 @@ begin
       TrianglePtr := PTriangle3Single(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
       begin
-        TrianglesPlaneSide.List^[I] := PlaneSide(TrianglePtr^);
+        TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
         Inc(TrianglePtr);
       end;
 
@@ -3239,8 +3239,8 @@ begin
       EdgePtr := PManifoldEdge(Edges.List);
       for I := 0 to Edges.Count - 1 do
       begin
-        PlaneSide0 := TrianglesPlaneSide.List^[EdgePtr^.Triangles[0]];
-        PlaneSide1 := TrianglesPlaneSide.List^[EdgePtr^.Triangles[1]];
+        PlaneSide0 := TrianglesPlaneSide.L[EdgePtr^.Triangles[0]];
+        PlaneSide1 := TrianglesPlaneSide.L[EdgePtr^.Triangles[1]];
 
         if PlaneSide0 <> PlaneSide1 then
           RenderEdge(0, 1);
@@ -3264,7 +3264,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := @(Triangles.List^[EdgePtr^.TriangleIndex]);
+    TrianglePtr := Addr(Triangles.L[EdgePtr^.TriangleIndex]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
@@ -3744,8 +3744,8 @@ begin
 
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
-    Shape := TVRMLGLShape(GeneratedTextures.List^[I].Shape);
-    TextureNode := GeneratedTextures.List^[I].TextureNode;
+    Shape := TVRMLGLShape(GeneratedTextures.L[I].Shape);
+    TextureNode := GeneratedTextures.L[I].TextureNode;
 
     if TextureNode is TNodeGeneratedCubeMapTexture then
       AvoidShapeRendering := Shape else
@@ -3797,22 +3797,22 @@ begin
   begin
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      if GeneratedTextures.List^[I].TextureNode is TNodeGeneratedCubeMapTexture then
+      if GeneratedTextures.L[I].TextureNode is TNodeGeneratedCubeMapTexture then
       begin
         if [vcVisibleGeometry, vcVisibleNonGeometry] * Changes <> [] then
-          GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
+          GeneratedTextures.L[I].Handler.UpdateNeeded := true;
       end else
-      if GeneratedTextures.List^[I].TextureNode is TNodeGeneratedShadowMap then
+      if GeneratedTextures.L[I].TextureNode is TNodeGeneratedShadowMap then
       begin
         if vcVisibleGeometry in Changes then
-          GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
+          GeneratedTextures.L[I].Handler.UpdateNeeded := true;
       end else
         { Even mere vcCamera causes regenerate of RenderedTexture,
           as RenderedTexture with viewpoint = NULL uses current camera.
           So any Changes <> [] causes regeneration of RenderedTexture.
           Also, for other than RenderedTexture nodes, default is to regenerate
           (safer).  }
-        GeneratedTextures.List^[I].Handler.UpdateNeeded := true;
+        GeneratedTextures.L[I].Handler.UpdateNeeded := true;
     end;
   end;
 end;

@@ -141,7 +141,7 @@ begin
 
   Verts.Count := VertsCount;
   for i := 0 to Verts.Count-1 do
-    Readln(f, Verts.List^[i][0], Verts.List^[i][1], Verts.List^[i][2]);
+    Readln(f, Verts.L[i][0], Verts.L[i][1], Verts.L[i][2]);
 
   if PolysCount <> -1 then
   begin
@@ -193,10 +193,10 @@ begin
       faces.FdCoordIndex.Count := geo.Faces.Count * 4;
       for i := 0 to geo.Faces.Count-1 do
       begin
-        faces.FdCoordIndex.Items.List^[i * 4    ] := geo.Faces.List^[i][0];
-        faces.FdCoordIndex.Items.List^[i * 4 + 1] := geo.Faces.List^[i][1];
-        faces.FdCoordIndex.Items.List^[i * 4 + 2] := geo.Faces.List^[i][2];
-        faces.FdCoordIndex.Items.List^[i * 4 + 3] := -1;
+        faces.FdCoordIndex.Items.L[i * 4    ] := geo.Faces.L[i][0];
+        faces.FdCoordIndex.Items.L[i * 4 + 1] := geo.Faces.L[i][1];
+        faces.FdCoordIndex.Items.L[i * 4 + 2] := geo.Faces.L[i][2];
+        faces.FdCoordIndex.Items.L[i * 4 + 3] := -1;
       end;
 
       verts := TNodeCoordinate.Create('', WWWBasePath);

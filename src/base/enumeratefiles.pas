@@ -375,7 +375,7 @@ begin
      eoRecursive in Options,
      eoDirContentsLast in Options);
     for i := 0 to FileInfos.Count - 1 do
-     FileProc(FileInfos.List^[i], FileProcData);
+     FileProc(FileInfos.L[i], FileProcData);
   finally FileInfos.Free end;
  end else
  begin

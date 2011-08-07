@@ -401,7 +401,7 @@ procedure TControlPointsCurve.RenderControlPoints;
 var i: Integer;
 begin
  glBegin(GL_POINTS);
- for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.List^[i]);
+ for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
  glEnd;
 end;
 
@@ -437,7 +437,7 @@ begin
    glBegin(GL_POLYGON);
    try
     for i := 0 to CH.Count-1 do
-     glVertexv(CHPoints.List^[CH[i]]);
+     glVertexv(CHPoints.L[CH[i]]);
    finally glEnd end;
   finally CH.Free end;
  finally DestroyConvexHullPoints(CHPoints) end;
@@ -459,7 +459,7 @@ begin
  Create(KamScriptCurve.TBegin, KamScriptCurve.TEnd);
  ControlPoints.Count := ControlPointsCount;
  for i := 0 to ControlPointsCount-1 do
-  ControlPoints.List^[i] := KamScriptCurve.PointOfSegment(i, ControlPointsCount-1);
+  ControlPoints.L[i] := KamScriptCurve.PointOfSegment(i, ControlPointsCount-1);
  UpdateControlPoints;
 end;
 
@@ -487,15 +487,15 @@ begin
  begin
   Newton[i].Count := ControlPoints.Count;
   for j := 0 to ControlPoints.Count-1 do
-   Newton[i].List^[j] := ControlPoints.List^[j, i];
+   Newton[i].L[j] := ControlPoints.L[j, i];
 
   { licz kolumny tablicy ilorazow roznicowych in place, overriding Newton[i] }
   for k := 1 to ControlPoints.Count-1 do
    { licz k-ta kolumne }
    for l := ControlPoints.Count-1 downto k do
     { licz l-ty iloraz roznicowy w k-tej kolumnie }
-    Newton[i].List^[l]:=
-      (Newton[i].List^[l] - Newton[i].List^[l-1]) /
+    Newton[i].L[l]:=
+      (Newton[i].L[l] - Newton[i].L[l-1]) /
       (ControlPointT(l) - ControlPointT(l-k));
  end;
 end;
@@ -507,11 +507,11 @@ begin
  for i := 0 to 2 do
  begin
   { Oblicz F przy pomocy uogolnionego schematu Hornera z Li(t).
-    Wspolczynniki b_k sa w tablicy Newton[i].List^[k],
+    Wspolczynniki b_k sa w tablicy Newton[i].L[k],
     wartosci t_k sa w ControlPointT(k). }
-  F := Newton[i].List^[ControlPoints.Count-1];
+  F := Newton[i].L[ControlPoints.Count-1];
   for k := ControlPoints.Count-2 downto 0 do
-   F := F*(t-ControlPointT(k)) + Newton[i].List^[k];
+   F := F*(t-ControlPointT(k)) + Newton[i].L[k];
   { Dopiero teraz przepisz F do Result[i]. Dzieki temu obliczenia wykonujemy
     na Floatach. Tak, to naprawde pomaga -- widac ze kiedy uzywamy tego to
     musimy miec wiecej ControlPoints zeby dostac Floating Point Overflow. }
@@ -774,7 +774,7 @@ begin
   { calculate SplineY }
   SplineY := TDynFloatArray.Create;
   SplineY.Count := ControlPoints.Count;
-  for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.List^[j, i];
+  for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.L[j, i];
 
   Spline[i] := TNaturalCubicSpline.Create(SplineX, SplineY, i = 2, true,
     Closed);

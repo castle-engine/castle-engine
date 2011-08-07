@@ -49,7 +49,7 @@ begin
   if Index < Coord.Count then
   begin
     WasSomeValidIndex := true;
-    Result := Coord.Items.List^[Index];
+    Result := Coord.Items.L[Index];
   end else
   begin
     CoordIndex.OnWarning_WrongVertexIndex(
@@ -63,7 +63,7 @@ begin
   { nie musimy sprawdzac czy indexNum jest dobry -
     CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy between
     0..VertIndices.Count-1 }
-  Result := CoordIndex.Items.List^[IndexNum];
+  Result := CoordIndex.Items.L[IndexNum];
 end;
 
 function IndexedCoords_BoundingBox(Geometry: TVRMLGeometryNode;
@@ -487,12 +487,12 @@ begin
     Result[1, 2] := FdZSpacing.Value * (FdZDimension.Value - 1);
 
     { now calculate Result[0, 1] and Result[1, 1] }
-    Y := FdHeight.Items.List^[0];
+    Y := FdHeight.Items.L[0];
     Result[0, 1] := Y;
     Result[1, 1] := Y;
     for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
     begin
-      Y := FdHeight.Items.List^[I];
+      Y := FdHeight.Items.L[I];
       MinTo1st(Result[0, 1], Y);
       MaxTo1st(Result[1, 1], Y);
     end;
@@ -520,7 +520,7 @@ begin
       E.SpineTransformTo1st(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := @(FdCrossSection.Items.List^[J]);
+        Point2d := Addr(FdCrossSection.Items.L[J]);
         Box3DSumTo1st(Result, MatrixMultPoint(Transform,
           Vector3Single(Point2d^[0], 0, Point2d^[1])));
       end;
@@ -547,7 +547,7 @@ begin
       E.SpineTransformTo1st(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := @(FdCrossSection.Items.List^[J]);
+        Point2d := Addr(FdCrossSection.Items.L[J]);
         Box3DSumTo1st(Result,
           MatrixMultPoint(State.Transform,
             MatrixMultPoint(Transform,

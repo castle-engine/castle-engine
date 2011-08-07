@@ -912,7 +912,7 @@ begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
     CalculateReflSpecular(Result) else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TVRMLMaterialInfo.ReflDiffuse: TVector3Single;
@@ -922,7 +922,7 @@ begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
     CalculateReflDiffuse(Result) else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TVRMLMaterialInfo.TransSpecular: TVector3Single;
@@ -932,7 +932,7 @@ begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
     CalculateTransSpecular(Result) else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TVRMLMaterialInfo.TransDiffuse: TVector3Single;
@@ -942,7 +942,7 @@ begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
     CalculateTransDiffuse(Result) else
-    Result := A.List^[0];
+    Result := A.L[0];
 end;
 
 function TVRMLMaterialInfo.ReflSpecularExp: Single;

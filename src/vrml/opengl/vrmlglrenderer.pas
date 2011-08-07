@@ -1386,7 +1386,7 @@ var
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
   begin
-    TextureCached := @(TextureImageCaches.List^[I]);
+    TextureCached := Addr(TextureImageCaches.L[I]);
 
     { Once I had an idea to make here comparison with
       TextureImage = TextureCached^.Image. Since we have ImagesCache,
@@ -1472,15 +1472,15 @@ var
   I: Integer;
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
-    if TextureImageCaches.List^[I].GLName = TextureGLName then
+    if TextureImageCaches.L[I].GLName = TextureGLName then
     begin
-      Dec(TextureImageCaches.List^[I].References);
+      Dec(TextureImageCaches.L[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureImageCaches.List^[I].FullUrl,
-                                    TextureImageCaches.List^[I].References]);
-      if TextureImageCaches.List^[I].References = 0 then
+        WritelnLog('--', '%s: %d', [TextureImageCaches.L[I].FullUrl,
+                                    TextureImageCaches.L[I].References]);
+      if TextureImageCaches.L[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureImageCaches.List^[I].GLName));
+        glDeleteTextures(1, Addr(TextureImageCaches.L[I].GLName));
         TextureImageCaches.Delete(I);
       end;
       Exit;
@@ -1505,7 +1505,7 @@ var
 begin
   for I := 0 to TextureVideoCaches.Count - 1 do
   begin
-    TextureCached := @(TextureVideoCaches.List^[I]);
+    TextureCached := Addr(TextureVideoCaches.L[I]);
 
     if ( ( (TextureFullUrl <> '') and
            (TextureCached^.FullUrl = TextureFullUrl) ) or
@@ -1562,15 +1562,15 @@ var
   I: Integer;
 begin
   for I := 0 to TextureVideoCaches.Count - 1 do
-    if TextureVideoCaches.List^[I].GLVideo = TextureVideo then
+    if TextureVideoCaches.L[I].GLVideo = TextureVideo then
     begin
-      Dec(TextureVideoCaches.List^[I].References);
+      Dec(TextureVideoCaches.L[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureVideoCaches.List^[I].FullUrl,
-                                    TextureVideoCaches.List^[I].References]);
-      if TextureVideoCaches.List^[I].References = 0 then
+        WritelnLog('--', '%s: %d', [TextureVideoCaches.L[I].FullUrl,
+                                    TextureVideoCaches.L[I].References]);
+      if TextureVideoCaches.L[I].References = 0 then
       begin
-        FreeAndNil(TextureVideoCaches.List^[I].GLVideo);
+        FreeAndNil(TextureVideoCaches.L[I].GLVideo);
         TextureVideoCaches.Delete(I);
       end;
       Exit;
@@ -1596,7 +1596,7 @@ var
 begin
   for I := 0 to TextureCubeMapCaches.Count - 1 do
   begin
-    TextureCached := @(TextureCubeMapCaches.List^[I]);
+    TextureCached := Addr(TextureCubeMapCaches.L[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
@@ -1659,14 +1659,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureCubeMapCaches.Count - 1 do
-    if TextureCubeMapCaches.List^[I].GLName = TextureGLName then
+    if TextureCubeMapCaches.L[I].GLName = TextureGLName then
     begin
-      Dec(TextureCubeMapCaches.List^[I].References);
+      Dec(TextureCubeMapCaches.L[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches.List^[I].InitialNode), TextureCubeMapCaches.List^[I].References]);
-      if TextureCubeMapCaches.List^[I].References = 0 then
+        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches.L[I].InitialNode), TextureCubeMapCaches.L[I].References]);
+      if TextureCubeMapCaches.L[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureCubeMapCaches.List^[I].GLName));
+        glDeleteTextures(1, Addr(TextureCubeMapCaches.L[I].GLName));
         TextureCubeMapCaches.Delete(I);
       end;
       Exit;
@@ -1690,7 +1690,7 @@ var
 begin
   for I := 0 to Texture3DCaches.Count - 1 do
   begin
-    TextureCached := @(Texture3DCaches.List^[I]);
+    TextureCached := Addr(Texture3DCaches.L[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.MinFilter = MinFilter) and
@@ -1746,14 +1746,14 @@ var
   I: Integer;
 begin
   for I := 0 to Texture3DCaches.Count - 1 do
-    if Texture3DCaches.List^[I].GLName = TextureGLName then
+    if Texture3DCaches.L[I].GLName = TextureGLName then
     begin
-      Dec(Texture3DCaches.List^[I].References);
+      Dec(Texture3DCaches.L[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches.List^[I].InitialNode), Texture3DCaches.List^[I].References]);
-      if Texture3DCaches.List^[I].References = 0 then
+        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches.L[I].InitialNode), Texture3DCaches.L[I].References]);
+      if Texture3DCaches.L[I].References = 0 then
       begin
-        glDeleteTextures(1, @(Texture3DCaches.List^[I].GLName));
+        glDeleteTextures(1, Addr(Texture3DCaches.L[I].GLName));
         Texture3DCaches.Delete(I);
       end;
       Exit;
@@ -1776,7 +1776,7 @@ var
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
-    TextureCached := @(TextureDepthOrFloatCaches.List^[I]);
+    TextureCached := Addr(TextureDepthOrFloatCaches.L[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.Wrap = TextureWrap) then
@@ -1853,14 +1853,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
-    if TextureDepthOrFloatCaches.List^[I].GLName = TextureGLName then
+    if TextureDepthOrFloatCaches.L[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthOrFloatCaches.List^[I].References);
+      Dec(TextureDepthOrFloatCaches.L[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.List^[I].InitialNode), TextureDepthOrFloatCaches.List^[I].References]);
-      if TextureDepthOrFloatCaches.List^[I].References = 0 then
+        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.L[I].InitialNode), TextureDepthOrFloatCaches.L[I].References]);
+      if TextureDepthOrFloatCaches.L[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureDepthOrFloatCaches.List^[I].GLName));
+        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches.L[I].GLName));
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
@@ -1884,7 +1884,7 @@ var
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
-    TextureCached := @(TextureDepthOrFloatCaches.List^[I]);
+    TextureCached := Addr(TextureDepthOrFloatCaches.L[I]);
 
     if (TextureCached^.InitialNode = Node) and
        (TextureCached^.Wrap = TextureWrap) then
@@ -1932,14 +1932,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
-    if TextureDepthOrFloatCaches.List^[I].GLName = TextureGLName then
+    if TextureDepthOrFloatCaches.L[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthOrFloatCaches.List^[I].References);
+      Dec(TextureDepthOrFloatCaches.L[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.List^[I].InitialNode), TextureDepthOrFloatCaches.List^[I].References]);
-      if TextureDepthOrFloatCaches.List^[I].References = 0 then
+        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.L[I].InitialNode), TextureDepthOrFloatCaches.L[I].References]);
+      if TextureDepthOrFloatCaches.L[I].References = 0 then
       begin
-        glDeleteTextures(1, @(TextureDepthOrFloatCaches.List^[I].GLName));
+        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches.L[I].GLName));
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
@@ -2572,7 +2572,7 @@ begin
   Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.List^[I].Node.FdEffects, State);
+      PrepareIDecls(Lights.L[I].Node.FdEffects, State);
 
   Texture := State.Texture;
   if Texture <> nil then
@@ -3253,7 +3253,7 @@ begin
 
     for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
     begin
-      ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
+      ActiveTexture(TextureTransformUnitsUsedMore.L[I]);
       glPopMatrix;
     end;
 
@@ -3284,7 +3284,7 @@ var
     if (GLMaxClipPlanes > 0) and (ClipPlanes <> nil) then
       for I := 0 to ClipPlanes.Count - 1 do
       begin
-        ClipPlane := @(ClipPlanes.List^[I]);
+        ClipPlane := Addr(ClipPlanes.L[I]);
         if ClipPlane^.Node.FdEnabled.Value then
         begin
           Assert(ClipPlanesEnabled < GLMaxClipPlanes);
@@ -3453,7 +3453,7 @@ var
     Assert(IDecls <> nil);
     for I := 0 to IDecls.Count - 1 do
     begin
-      UniformField := IDecls.List^[I].Field;
+      UniformField := IDecls[I].Field;
 
       if UniformField <> nil then
       begin

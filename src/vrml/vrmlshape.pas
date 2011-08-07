@@ -1922,7 +1922,7 @@ var
       TexCoord := UnknownTexCoord;
 
     if Arrays.Faces <> nil then
-      Face := Arrays.Faces.List^[RangeBeginIndex + I1] else
+      Face := Arrays.Faces.L[RangeBeginIndex + I1] else
       Face := UnknownFaceIndex;
 
     TriangleEvent(Self, Position, Normal, TexCoord, Face);

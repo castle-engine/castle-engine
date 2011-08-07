@@ -124,15 +124,15 @@ var
           case Justify of
             fjBegin :
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.List^[I] := Vector2Single(
+                LineBounds.Items.L[I] := Vector2Single(
                   TextWidths[I] * XScale, FinalRowHeight);
             fjMiddle:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.List^[I] := Vector2Single(
+                LineBounds.Items.L[I] := Vector2Single(
                   (MaxTextWidth + TextWidths[I]) * XScale / 2, FinalRowHeight);
             fjEnd   :
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.List^[I] := Vector2Single(
+                LineBounds.Items.L[I] := Vector2Single(
                   MaxTextWidth * XScale, FinalRowHeight);
             else raise EInternalError.Create('Invalid font justify value');
           end;
@@ -165,8 +165,8 @@ begin
     MaxTextWidth := 0;
     for I := 0 to TextWidths.Count - 1 do
     begin
-      TextWidths.List^[I] := CurrentFont.TextWidth(Strings[I]);
-      MaxTo1st(MaxTextWidth, TextWidths.List^[I]);
+      TextWidths.L[I] := CurrentFont.TextWidth(Strings[I]);
+      MaxTo1st(MaxTextWidth, TextWidths.L[I]);
     end;
 
     glPushMatrix;

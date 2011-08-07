@@ -158,7 +158,7 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        @(CoordIndex.List^[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
+        Addr(CoordIndex.L[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 1), Convex);
 
@@ -179,10 +179,10 @@ var
   begin
     Found := false;
     for I := Face.StartIndex to Face.StartIndex + Face.IndicesCount - 1 do
-      if CoordIndex.List^[I] = VertexNum then
+      if CoordIndex.L[I] = VertexNum then
       begin
         Found := true; { Found := true, but keep looking in case duplicated }
-        NormalsResult.List^[I] := Normal;
+        NormalsResult.L[I] := Normal;
       end;
     Assert(Found, 'NormalsCalculator.SetNormal failed, vertex not on face');
   end;
@@ -208,8 +208,8 @@ var
           so
             CosAngleBetweenNormals(...) < CosCreaseAngle }
         if CosAngleBetweenNormals(
-          Faces.List^[ThisVertexFaces.List^[FaceNum]].Normal,
-          Faces.List^[ThisVertexFaces.List^[FaceNums[i]]].Normal) <
+          Faces.L[ThisVertexFaces.L[FaceNum]].Normal,
+          Faces.L[ThisVertexFaces.L[FaceNums[i]]].Normal) <
           CosCreaseAngle then
           Exit(false);
       Result := true;
@@ -248,13 +248,13 @@ var
           for J := 0 to SmoothFaces.Count - 1 do
           begin
             HandledFaces[SmoothFaces[J]] := true;
-            VectorAddTo1st(Normal, faces.List^[ThisVertexFaces[SmoothFaces[J]]].Normal);
+            VectorAddTo1st(Normal, faces.L[ThisVertexFaces[SmoothFaces[J]]].Normal);
           end;
           NormalizeTo1st(Normal);
 
           { use calculated normal vector }
           for J := 0 to SmoothFaces.Count - 1 do
-            SetNormal(VertexNum, Faces.List^[ThisVertexFaces[SmoothFaces[J]]], Normal);
+            SetNormal(VertexNum, Faces.L[ThisVertexFaces[SmoothFaces[J]]], Normal);
         end;
     finally
       SmoothFaces.Free;
@@ -312,9 +312,9 @@ begin
     while I < CoordIndex.Count do
     begin
       StartIndex := I;
-      while (I < CoordIndex.Count) and (CoordIndex.List^[I] >= 0) do Inc(I);
-      Result.List^[FaceNumber] := IndexedPolygonNormal(
-        @(CoordIndex.List^[StartIndex]),
+      while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
+      Result.L[FaceNumber] := IndexedPolygonNormal(
+        Addr(CoordIndex.L[StartIndex]),
         I - StartIndex,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 0), Convex);
@@ -354,7 +354,7 @@ begin
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
+      DirectIndexes[I] := CoordIndex.L[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
@@ -367,7 +367,7 @@ begin
     Vector3Single(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
-    VectorAddTo1st(Normals.List^[DirectIndexes[I]], FaceNormal);
+    VectorAddTo1st(Normals.L[DirectIndexes[I]], FaceNormal);
 end;
 
 function CreateSmoothNormalsCoordinateNode(

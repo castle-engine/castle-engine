@@ -84,7 +84,7 @@ type
 
     { Finish calculating light's projectionXxx parameters,
       and assing them to the light node. }
-    procedure HandleLightAutomaticProjection(const L: TLight);
+    procedure HandleLightAutomaticProjection(const Light: TLight);
 
     { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
     procedure HandleLightCastingOnEverything(Node: TVRMLNode);
@@ -96,7 +96,7 @@ var
   LightUniqueName: string;
 begin
   for I := 0 to Count - 1 do
-    if List^[I].Light = Light then Exit(@(List^[I]));
+    if L[I].Light = Light then Exit(Addr(L[I]));
 
   { add a new TLight record }
   Result := Add;
@@ -478,7 +478,7 @@ begin
     HandleLight(TNodeX3DLightNode(LightsCastingOnEverything[I]));
 end;
 
-procedure TDynLightArray.HandleLightAutomaticProjection(const L: TLight);
+procedure TDynLightArray.HandleLightAutomaticProjection(const Light: TLight);
 var
   ProjectionNear, ProjectionFar: Single;
 begin
@@ -491,9 +491,9 @@ begin
   begin
     { Projection near/far must include all shadow casters between
       light source and the shadow receivers. }
-    L.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
+    Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
     MaxTo1st(ProjectionNear, 0);
-    MinTo1st(ProjectionFar, L.MaxShadowReceiverDistance);
+    MinTo1st(ProjectionFar, Light.MaxShadowReceiverDistance);
 
     if ProjectionNear > ProjectionFar then
     begin
@@ -518,13 +518,13 @@ begin
 
   if Log then
     WritelnLog('Shadow Maps', Format('Auto-calculated light source %s projectionNear is %f, projectionFar is %f',
-      [L.Light.NodeTypeName, ProjectionNear, ProjectionFar]));
+      [Light.Light.NodeTypeName, ProjectionNear, ProjectionFar]));
 
   { Set light node's projectionXxx values, if they are needed. }
-  if L.Light.FdProjectionNear.Value = 0 then
-    L.Light.FdProjectionNear.Value := ProjectionNear;
-  if L.Light.FdProjectionFar.Value = 0 then
-    L.Light.FdProjectionFar.Value := ProjectionFar;
+  if Light.Light.FdProjectionNear.Value = 0 then
+    Light.Light.FdProjectionNear.Value := ProjectionNear;
+  if Light.Light.FdProjectionFar.Value = 0 then
+    Light.Light.FdProjectionFar.Value := ProjectionFar;
 end;
 
 procedure TDynLightArray.HandleLightCastingOnEverything(Node: TVRMLNode);
@@ -577,7 +577,7 @@ begin
 
       for I := 0 to Lights.Count - 1 do
       begin
-        L := @(Lights.List^[I]);
+        L := Addr(Lights.L[I]);
 
         Lights.HandleLightAutomaticProjection(L^);
 

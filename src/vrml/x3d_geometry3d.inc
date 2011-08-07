@@ -821,9 +821,9 @@ end;
 
 function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
 begin
-  Result[0] := FdCrossSection.Items.List^[Index][0];
+  Result[0] := FdCrossSection.Items.L[Index][0];
   Result[1] := 0;
-  Result[2] := FdCrossSection.Items.List^[Index][1];
+  Result[2] := FdCrossSection.Items.L[Index][1];
 end;
 
 function TNodeExtrusion.SpineClosed: boolean;
@@ -897,8 +897,8 @@ var
     SpecialTex: boolean; SpecialTexIndex: Integer);
   begin
     if SpecialTex then
-      IFS.FdTexCoordIndex.Items.List^[Index] := SpecialTexIndex else
-      IFS.FdTexCoordIndex.Items.List^[Index] :=
+      IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
+      IFS.FdTexCoordIndex.Items.L[Index] :=
         SpineIndex * FdCrossSection.Count + CrossSectionIndex;
 
     { For closed spine and/or crossSection, specify the same indexes.
@@ -915,7 +915,7 @@ var
        E.CrossSectionClosed then
       CrossSectionIndex := 0;
 
-    IFS.FdCoordIndex.Items.List^[Index] :=
+    IFS.FdCoordIndex.Items.L[Index] :=
       SpineIndex * FdCrossSection.Count + CrossSectionIndex;
 
     Inc(Index);
@@ -923,8 +923,8 @@ var
 
   procedure NextIndexFaceDelimiter;
   begin
-    IFS.FdCoordIndex.Items.List^[Index] := -1;
-    IFS.FdTexCoordIndex.Items.List^[Index] := -1;
+    IFS.FdCoordIndex.Items.L[Index] := -1;
+    IFS.FdTexCoordIndex.Items.L[Index] := -1;
     Inc(Index);
   end;
 
@@ -970,7 +970,7 @@ begin
         E.SpineTransformTo1st(I, LastY, LastZ, Transform);
         for J := 0 to FdCrossSection.Count - 1 do
         begin
-          CoordNode.FdPoint.Items.List^[I * FdCrossSection.Count + J] :=
+          CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
             MatrixMultPoint(Transform, CrossSection3D(J));
         end;
       end;
@@ -987,7 +987,7 @@ begin
 
       for I := 0 to E.High do
         for J := 0 to FdCrossSection.Count - 1 do
-          TexCoordNode.FdPoint.Items.List^[I * FdCrossSection.Count + J] :=
+          TexCoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
             SideTexCoord(I, J);
 
       { calculate TexCapsTranslation, TexCapsScale }
@@ -1020,10 +1020,10 @@ begin
 
         for I := 0 to FdCrossSection.Count - 1 do
         begin
-          TexCoordNode.FdPoint.Items.List^[
+          TexCoordNode.FdPoint.Items.L[
             SidesCount + I] :=
             VectorScale(VectorAdd(
-              FdCrossSection.Items.List^[I],
+              FdCrossSection.Items.L[I],
               Vector2Single(TexCapsTranslation, TexCapsTranslation)),
               TexCapsScale);
         end;

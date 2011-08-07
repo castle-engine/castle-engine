@@ -45,27 +45,27 @@ var
     triangulation. }
   procedure Quad(const IndexNum, I1, I2, I3, I4: Integer);
   begin
-    if PointsDistanceSqr(Coords.List^[I1], Coords.List^[I3]) <
-       PointsDistanceSqr(Coords.List^[I2], Coords.List^[I4]) then
+    if PointsDistanceSqr(Coords.L[I1], Coords.L[I3]) <
+       PointsDistanceSqr(Coords.L[I2], Coords.L[I4]) then
     begin
-      CoordIndexes.List^[IndexNum    ] := I1;
-      CoordIndexes.List^[IndexNum + 1] := I2;
-      CoordIndexes.List^[IndexNum + 2] := I3;
-      CoordIndexes.List^[IndexNum + 3] := -1;
-      CoordIndexes.List^[IndexNum + 4] := I3;
-      CoordIndexes.List^[IndexNum + 5] := I4;
-      CoordIndexes.List^[IndexNum + 6] := I1;
-      CoordIndexes.List^[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum    ] := I1;
+      CoordIndexes.L[IndexNum + 1] := I2;
+      CoordIndexes.L[IndexNum + 2] := I3;
+      CoordIndexes.L[IndexNum + 3] := -1;
+      CoordIndexes.L[IndexNum + 4] := I3;
+      CoordIndexes.L[IndexNum + 5] := I4;
+      CoordIndexes.L[IndexNum + 6] := I1;
+      CoordIndexes.L[IndexNum + 7] := -1;
     end else
     begin
-      CoordIndexes.List^[IndexNum    ] := I1;
-      CoordIndexes.List^[IndexNum + 1] := I2;
-      CoordIndexes.List^[IndexNum + 2] := I4;
-      CoordIndexes.List^[IndexNum + 3] := -1;
-      CoordIndexes.List^[IndexNum + 4] := I2;
-      CoordIndexes.List^[IndexNum + 5] := I3;
-      CoordIndexes.List^[IndexNum + 6] := I4;
-      CoordIndexes.List^[IndexNum + 7] := -1;
+      CoordIndexes.L[IndexNum    ] := I1;
+      CoordIndexes.L[IndexNum + 1] := I2;
+      CoordIndexes.L[IndexNum + 2] := I4;
+      CoordIndexes.L[IndexNum + 3] := -1;
+      CoordIndexes.L[IndexNum + 4] := I2;
+      CoordIndexes.L[IndexNum + 5] := I3;
+      CoordIndexes.L[IndexNum + 6] := I4;
+      CoordIndexes.L[IndexNum + 7] := -1;
     end;
   end;
 
@@ -108,13 +108,13 @@ begin
       for J := 0 to ZDimension - 1 do
         for I := 0 to XDimension - 1 do
         begin
-          Coords.List^[I + J * XDimension] := Vector3Single(
+          Coords.L[I + J * XDimension] := Vector3Single(
             FdXSpacing.Value * I,
-            FdHeight.Items.List^[I + J * XDimension],
+            FdHeight.Items.L[I + J * XDimension],
             FdZSpacing.Value * J);
 
           if not TexCoordProvided then
-            TexCoords.List^[I + J * XDimension] := Vector2Single(
+            TexCoords.L[I + J * XDimension] := Vector2Single(
               I / (XDimension - 1),
               J / (ZDimension - 1));
         end;

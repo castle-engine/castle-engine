@@ -242,9 +242,9 @@ begin
     vecs.Add(Vector3Single(1.0, 2.0, 3.0));
     vecs.Add(Vector3Single(4.0, 5.0, 6.0));
     vecs.Add(Vector3Single(1.0, 2.0, 3.0));
-    Assert(    VectorsPerfectlyEqual(vecs.List^[0], vecs.List^[2]));
-    Assert(not VectorsPerfectlyEqual(vecs.List^[0], vecs.List^[1]));
-    Assert(not VectorsPerfectlyEqual(vecs.List^[2], vecs.List^[1]));
+    Assert(    VectorsPerfectlyEqual(vecs.L[0], vecs.L[2]));
+    Assert(not VectorsPerfectlyEqual(vecs.L[0], vecs.L[1]));
+    Assert(not VectorsPerfectlyEqual(vecs.L[2], vecs.L[1]));
   finally FreeAndNil(vecs) end;
 end;
 
@@ -263,13 +263,13 @@ begin
     V2.AddList(V1);
     V2.Add(Vector3Single(6.0, 6.0, 6.0));
 
-    Assert(VectorsPerfectlyEqual(V1.List^[0], V2.List^[1]));
-    Assert(VectorsPerfectlyEqual(V1.List^[1], V2.List^[2]));
-    Assert(VectorsPerfectlyEqual(V1.List^[2], V2.List^[3]));
+    Assert(VectorsPerfectlyEqual(V1.L[0], V2.L[1]));
+    Assert(VectorsPerfectlyEqual(V1.L[1], V2.L[2]));
+    Assert(VectorsPerfectlyEqual(V1.L[2], V2.L[3]));
 
     V2.AddListRange(V1, 1, 1);
     Assert(V2.Count = 6);
-    Assert(VectorsPerfectlyEqual(V1.List^[1], V2.List^[5]));
+    Assert(VectorsPerfectlyEqual(V1.L[1], V2.L[5]));
   finally
     FreeAndNil(V1);
     FreeAndNil(V2);
@@ -294,10 +294,10 @@ begin
     V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
     Assert(V3.Count = 2);
 
-    Assert(VectorsPerfectlyEqual(V3.List^[0], Lerp(0.2,
+    Assert(VectorsPerfectlyEqual(V3.L[0], Lerp(0.2,
       Vector3Single(1.0, 2.0, 3.0),
       Vector3Single(11.0, 12.0, 13.0))));
-    Assert(VectorsPerfectlyEqual(V3.List^[1], Lerp(0.2,
+    Assert(VectorsPerfectlyEqual(V3.L[1], Lerp(0.2,
       Vector3Single(4.0, 5.0, 6.0),
       Vector3Single(17.0, 18.0, 19.0))));
   finally

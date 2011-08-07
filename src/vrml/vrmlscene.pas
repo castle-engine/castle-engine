@@ -2128,7 +2128,7 @@ end;
 function TDynGeneratedTextureArray.IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].TextureNode = TextureNode then
+    if L[Result].TextureNode = TextureNode then
       Exit;
   Result := -1;
 end;
@@ -2139,7 +2139,7 @@ var
 begin
   Index := IndexOfTextureNode(TextureNode);
   if Index <> -1 then
-    Result := @(List^[Index]) else
+    Result := Addr(L[Index]) else
     Result := nil;
 end;
 
@@ -2205,9 +2205,9 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if (List^[I].TextureNode is TNodeGeneratedShadowMap) and
-       (TNodeGeneratedShadowMap(List^[I].TextureNode).FdLight.Value = LightNode) then
-      List^[I].Handler.UpdateNeeded := true;
+    if (L[I].TextureNode is TNodeGeneratedShadowMap) and
+       (TNodeGeneratedShadowMap(L[I].TextureNode).FdLight.Value = LightNode) then
+      L[I].Handler.UpdateNeeded := true;
 end;
 
 { TTransformInstancesList ------------------------------------------------- }
@@ -2231,8 +2231,8 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    List^[I].ShapeTrees.Free;
-    List^[I].ShapeTrees := nil;
+    Items[I].ShapeTrees.Free;
+    Items[I].ShapeTrees := nil;
   end;
   Count := 0;
 end;
@@ -2902,7 +2902,7 @@ procedure TVRMLScene.ChangedAll;
 
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := @(GlobalLights.List^[I]);
+      L := Addr(GlobalLights.L[I]);
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -3248,8 +3248,8 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     begin
       if List <> nil then
         for I := 0 to List.Count - 1 do
-          if List.List^[I].Node = LightNode then
-            LightNode.UpdateLightInstanceState(List.List^[I], StateStack.Top);
+          if List.L[I].Node = LightNode then
+            LightNode.UpdateLightInstanceState(List.L[I], StateStack.Top);
     end;
 
   var
@@ -3600,7 +3600,7 @@ var
         if SI.Current.State.Lights <> nil then
           for J := 0 to SI.Current.State.Lights.Count - 1 do
           begin
-            LightInstance := @(SI.Current.State.Lights.List^[J]);
+            LightInstance := Addr(SI.Current.State.Lights.L[J]);
             if LightInstance^.Node = LightNode then
             begin
               LightNode.UpdateLightInstance(LightInstance^);
@@ -4733,7 +4733,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
         begin
           { It would also be possible to get EdgePtr^.V0/1 by code like
 
-            TrianglePtr := @Triangles.List^[EdgePtr^.Triangles[0]];
+            TrianglePtr := @Triangles.L[EdgePtr^.Triangles[0]];
             EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
             EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
@@ -4758,7 +4758,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
               deleting only from the end (normal Delete would want to shift
               EdgesSingle contents in memory, to preserve order of items;
               but we don't care about order). }
-            EdgePtr^ := EdgesSingle.List^[EdgesSingle.Count - 1];
+            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
             EdgesSingle.Count := EdgesSingle.Count - 1;
 
             Exit;
@@ -4821,8 +4821,8 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
         FBorderEdges.Count := EdgesSingle.Count;
         for I := 0 to EdgesSingle.Count - 1 do
         begin
-          FBorderEdges.List^[I].VertexIndex := EdgesSingle.List^[I].VertexIndex;
-          FBorderEdges.List^[I].TriangleIndex := EdgesSingle.List^[I].Triangles[0];
+          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
+          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
         end;
       end;
     finally FreeAndNil(EdgesSingle); end;
@@ -5842,9 +5842,9 @@ var
   I: Integer;
 begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
-    if CompiledScriptHandlers.List^[I].Name = HandlerName then
+    if CompiledScriptHandlers.L[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.List^[I].Handler(ReceivedValue, Time);
+      CompiledScriptHandlers.L[I].Handler(ReceivedValue, Time);
       Break;
     end;
 end;

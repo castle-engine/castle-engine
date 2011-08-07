@@ -54,7 +54,7 @@ begin
   Arr := TKamScriptXxxArray(AResult).Value;
   Arr.Count := Length(Arguments);
   for I := 0 to Length(Arguments) - 1 do
-    Arr.List^[I] := TKamScriptXxxElement(Arguments[I]).Value;
+    Arr.L[I] := TKamScriptXxxElement(Arguments[I]).Value;
 
   TKamScriptXxxArray(AResult).ValueAssigned := true;
 end;
@@ -100,7 +100,7 @@ begin
     raise EKamScriptError.CreateFmt('Invalid index %d for array_get, array count is %d',
       [Index, Arr.Count]);
 
-  TKamScriptXxxElement(AResult).Value := Arr.List^[Index];
+  TKamScriptXxxElement(AResult).Value := Arr.L[Index];
 end;
 
 class procedure TKamScriptXxxArray.HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
@@ -120,7 +120,7 @@ begin
     raise EKamScriptError.CreateFmt('Invalid index %d for array_set, array count is %d',
       [Index, Arr.Count]);
 
-  Arr.List^[Index] := TKamScriptXxxElement(Arguments[2]).Value;
+  Arr.L[Index] := TKamScriptXxxElement(Arguments[2]).Value;
   TKamScriptXxxArray(Arguments[0]).ValueAssigned := true;
 
   AResult := Arguments[0];

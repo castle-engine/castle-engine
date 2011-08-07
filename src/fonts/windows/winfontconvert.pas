@@ -196,8 +196,8 @@ var PointsFX: PArray_PointFX;
   begin
     ResultItems.IncLength;
     Assert(Kind <> pkPoint);
-    ResultItems.List^[ResultItems.High].Kind := Kind;
-    ResultItems.List^[ResultItems.High].Count := Count;
+    ResultItems.L[ResultItems.High].Kind := Kind;
+    ResultItems.L[ResultItems.High].Count := Count;
   end;
 
   procedure ResultItemsAdd(Kind: TPolygonKind {Count: Cardinal = 0 }); overload;
@@ -208,9 +208,9 @@ var PointsFX: PArray_PointFX;
   procedure ResultItemsAdd(x, y: Single); overload;
   begin
     ResultItems.IncLength;
-    ResultItems.List^[ResultItems.High].Kind := pkPoint;
-    ResultItems.List^[ResultItems.High].x := x;
-    ResultItems.List^[ResultItems.High].y := y;
+    ResultItems.L[ResultItems.High].Kind := pkPoint;
+    ResultItems.L[ResultItems.High].x := x;
+    ResultItems.L[ResultItems.High].y := y;
   end;
 
   function ToFloat(const Val: TFixed): Extended;
@@ -284,23 +284,23 @@ begin
 
   { calculate "Count" fields for items with Kind <> pkPoint in ResultItems }
   for i := 0 to ResultItems.High do
-     case ResultItems.List^[i].Kind of
+     case ResultItems.L[i].Kind of
      pkNewPolygon:
        begin
         dlug := 0;
         for j := i+1 to ResultItems.High do
-         case ResultItems.List^[j].Kind of
+         case ResultItems.L[j].Kind of
           pkLines, pkBezier : Inc(dlug);
           pkNewPolygon : break;
          end;
-        ResultItems.List^[i].Count := dlug;
+        ResultItems.L[i].Count := dlug;
        end;
      pkLines, pkBezier:
        begin
         dlug := 0;
         for j := i+1 to ResultItems.High do
-         if ResultItems.List^[j].Kind = pkPoint then Inc(dlug) else break;
-        ResultItems.List^[i].Count := dlug;
+         if ResultItems.L[j].Kind = pkPoint then Inc(dlug) else break;
+        ResultItems.L[i].Count := dlug;
        end;
     end;
 
@@ -308,14 +308,14 @@ begin
   ResultInfo.ItemsCount := ResultItems.Count;
   ResultInfo.PolygonsCount := 0;
   for i := 0 to ResultItems.High do
-   if ResultItems.List^[i].Kind = pkNewPolygon then Inc(ResultInfo.PolygonsCount);
+   if ResultItems.L[i].Kind = pkNewPolygon then Inc(ResultInfo.PolygonsCount);
 
   { get mem for Result and fill Result^ with calculated data }
   Result := GetMem(SizeOf(TTTFCharInfo) +
     ResultInfo.ItemsCount*SizeOf(TTTFCharItem));
   try
    Result^.Info := ResultInfo;
-   Move(ResultItems.List^[0], Result^.Items,
+   Move(ResultItems.L[0], Result^.Items,
      ResultInfo.ItemsCount*SizeOf(TTTFCharItem));
   except FreeMem(Result); raise end;
 

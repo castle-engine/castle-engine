@@ -308,13 +308,13 @@ begin
     try
       { We do progress to "SoundInfos.Count - 1" because we start
         iterating from ST = 1 because ST = 0 = stNone never exists. }
-      Assert(SoundInfos.List^[stNone].FileName = '');
+      Assert(SoundInfos.L[stNone].FileName = '');
       for ST := 1 to SoundInfos.Count - 1 do
       begin
-        if SoundInfos.List^[ST].FileName <> '' then
+        if SoundInfos.L[ST].FileName <> '' then
         begin
-          SoundInfos.List^[ST].Buffer := LoadBuffer(
-              SoundInfos.List^[ST].FileName);
+          SoundInfos.L[ST].Buffer := LoadBuffer(
+              SoundInfos.L[ST].FileName);
         end;
         Progress.Step;
       end;
@@ -332,7 +332,7 @@ begin
   begin
     StopAllSources;
     for ST := 0 to SoundInfos.Count - 1 do
-      FreeBuffer(SoundInfos.List^[ST].Buffer);
+      FreeBuffer(SoundInfos.L[ST].Buffer);
   end;
   inherited;
 end;
@@ -341,11 +341,11 @@ function TXmlSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
-    SoundInfos.List^[SoundType].Buffer, false, Looping,
-    SoundInfos.List^[SoundType].DefaultImportance,
-    SoundInfos.List^[SoundType].Gain,
-    SoundInfos.List^[SoundType].MinGain,
-    SoundInfos.List^[SoundType].MaxGain,
+    SoundInfos.L[SoundType].Buffer, false, Looping,
+    SoundInfos.L[SoundType].DefaultImportance,
+    SoundInfos.L[SoundType].Gain,
+    SoundInfos.L[SoundType].MinGain,
+    SoundInfos.L[SoundType].MaxGain,
     ZeroVector3Single);
 end;
 
@@ -354,11 +354,11 @@ function TXmlSoundEngine.Sound3d(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
-    SoundInfos.List^[SoundType].Buffer, true, Looping,
-    SoundInfos.List^[SoundType].DefaultImportance,
-    SoundInfos.List^[SoundType].Gain,
-    SoundInfos.List^[SoundType].MinGain,
-    SoundInfos.List^[SoundType].MaxGain,
+    SoundInfos.L[SoundType].Buffer, true, Looping,
+    SoundInfos.L[SoundType].DefaultImportance,
+    SoundInfos.L[SoundType].Gain,
+    SoundInfos.L[SoundType].MinGain,
+    SoundInfos.L[SoundType].MaxGain,
     Position);
 end;
 
@@ -388,18 +388,18 @@ begin
     { Init all SoundInfos to default values }
     SoundInfos.Count := SoundNames.Count;
     { stNone has specific info: FileName is '', Buffer is 0, rest doesn't matter }
-    SoundInfos.List^[stNone].FileName := '';
-    SoundInfos.List^[stNone].Buffer := 0;
+    SoundInfos.L[stNone].FileName := '';
+    SoundInfos.L[stNone].Buffer := 0;
     { initialize other than stNone sounds }
     for ST := 1 to SoundInfos.Count - 1 do
     begin
-      SoundInfos.List^[ST].FileName :=
+      SoundInfos.L[ST].FileName :=
         CombinePaths(SoundsXmlPath, SoundNames[ST] + '.wav');
-      SoundInfos.List^[ST].Gain := 1;
-      SoundInfos.List^[ST].MinGain := 0;
-      SoundInfos.List^[ST].MaxGain := 1;
-      SoundInfos.List^[ST].DefaultImportance := MaxSoundImportance;
-      SoundInfos.List^[ST].Buffer := 0; {< initially, will be loaded later }
+      SoundInfos.L[ST].Gain := 1;
+      SoundInfos.L[ST].MinGain := 0;
+      SoundInfos.L[ST].MaxGain := 1;
+      SoundInfos.L[ST].DefaultImportance := MaxSoundImportance;
+      SoundInfos.L[ST].Buffer := 0; {< initially, will be loaded later }
     end;
 
     SoundElements := SoundConfig.DocumentElement.ChildNodes;
@@ -422,30 +422,30 @@ begin
             and when it's present as set to empty string.
             Standard SoundElement.GetAttribute wouldn't allow me this. }
           if DOMGetAttribute(SoundElement, 'file_name',
-            SoundInfos.List^[ST].FileName) and
-            (SoundInfos.List^[ST].FileName <> '') then
+            SoundInfos.L[ST].FileName) and
+            (SoundInfos.L[ST].FileName <> '') then
             { Make FileName absolute, using SoundsXmlPath, if non-empty FileName
               was specified in XML file. }
-            SoundInfos.List^[ST].FileName := CombinePaths(
+            SoundInfos.L[ST].FileName := CombinePaths(
               SoundsXmlPath,
-              SoundInfos.List^[ST].FileName);
+              SoundInfos.L[ST].FileName);
 
-          DOMGetSingleAttribute(SoundElement, 'gain', SoundInfos.List^[ST].Gain);
-          DOMGetSingleAttribute(SoundElement, 'min_gain', SoundInfos.List^[ST].MinGain);
-          DOMGetSingleAttribute(SoundElement, 'max_gain', SoundInfos.List^[ST].MaxGain);
+          DOMGetSingleAttribute(SoundElement, 'gain', SoundInfos.L[ST].Gain);
+          DOMGetSingleAttribute(SoundElement, 'min_gain', SoundInfos.L[ST].MinGain);
+          DOMGetSingleAttribute(SoundElement, 'max_gain', SoundInfos.L[ST].MaxGain);
 
           { MaxGain is max 1. Although some OpenAL implementations allow > 1,
             Windows impl (from Creative) doesn't. For consistent results,
             we don't allow it anywhere. }
-          if SoundInfos.List^[ST].MaxGain > 1 then
-            SoundInfos.List^[ST].MaxGain := 1;
+          if SoundInfos.L[ST].MaxGain > 1 then
+            SoundInfos.L[ST].MaxGain := 1;
 
           if DOMGetAttribute(SoundElement, 'default_importance', S) then
           begin
             SoundImportanceIndex := SoundImportanceNames.IndexOf(S);
             if SoundImportanceIndex = -1 then
-              SoundInfos.List^[ST].DefaultImportance := StrToInt(S) else
-              SoundInfos.List^[ST].DefaultImportance :=
+              SoundInfos.L[ST].DefaultImportance := StrToInt(S) else
+              SoundInfos.L[ST].DefaultImportance :=
                 PtrUInt(SoundImportanceNames.Objects[SoundImportanceIndex]);
           end;
         end;
@@ -510,9 +510,9 @@ end;
 procedure TMusicPlayer.AllocateSource;
 begin
   FAllocatedSource := FEngine.PlaySound(
-    FEngine.SoundInfos.List^[PlayedSound].Buffer, false, true,
+    FEngine.SoundInfos.L[PlayedSound].Buffer, false, true,
     MaxSoundImportance,
-    MusicVolume * FEngine.SoundInfos.List^[PlayedSound].Gain, 0, 1,
+    MusicVolume * FEngine.SoundInfos.L[PlayedSound].Gain, 0, 1,
     ZeroVector3Single);
 
   if FAllocatedSource <> nil then
@@ -555,7 +555,7 @@ begin
   begin
     FMusicVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := MusicVolume * FEngine.SoundInfos.List^[PlayedSound].Gain;
+      FAllocatedSource.Gain := MusicVolume * FEngine.SoundInfos.L[PlayedSound].Gain;
   end;
 end;
 

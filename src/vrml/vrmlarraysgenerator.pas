@@ -297,7 +297,7 @@ begin
 
   for I := 0 to CopyCount - 1 do
   begin
-    Index := Indexes.List^[I];
+    Index := Indexes.L[I];
     if (Index < 0) or
        (Index >= Source.Count) then
       raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
@@ -838,7 +838,7 @@ begin
   begin
     if Arrays.Indexes = nil then
       Inc(ArrayIndexNum) else
-      ArrayIndexNum := CoordIndex.Items.List^[IndexNum];
+      ArrayIndexNum := CoordIndex.Items.L[IndexNum];
   end else
     ArrayIndexNum := IndexNum;
 end;
@@ -850,8 +850,8 @@ begin
   Assert(IndexNum < CoordCount);
 
   if CoordIndex <> nil then
-    Result := Coord.ItemsSafe[CoordIndex.Items.List^[IndexNum]] else
-    Result := Coord.Items.List^[IndexNum];
+    Result := Coord.ItemsSafe[CoordIndex.Items.L[IndexNum]] else
+    Result := Coord.Items.L[IndexNum];
 end;
 
 function TVRMLArraysGenerator.CoordCount: Integer;
@@ -1450,11 +1450,11 @@ begin
             TexCoordIndex.Count >= CoordIndex.Count, so the IndexNum index
             is Ok for sure. That's why we don't do "ItemsSafe"
             for TexCoordIndex. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.List^[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, TexCoordIndex.Items.L[IndexNum]);
         tcCoordIndexed:
           { We already checked that IndexNum < CoordCount, so the first index
             is Ok for sure. }
-          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.List^[IndexNum]);
+          SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, CoordIndex.Items.L[IndexNum]);
         tcNonIndexed:
           SetTexFromTexCoordArray(Arrays.TexCoords[TextureUnit].Dimensions, IndexNum);
         else raise EInternalError.Create('TAbstractTextureCoordinateGenerator.GetTextureCoord?');
@@ -1494,7 +1494,7 @@ procedure TAbstractTextureCoordinateGenerator.GenerateVertex(indexNum: integer);
 begin
   inherited;
   if TexImplementation = tcTexIndexed then
-    DoTexCoord(TexCoordIndex.Items.List^[IndexNum]);
+    DoTexCoord(TexCoordIndex.Items.L[IndexNum]);
 end;
 
 { TAbstractMaterial1Generator ------------------------------------------ }
@@ -1515,7 +1515,7 @@ procedure TAbstractMaterial1Generator.UpdateMat1Implementation;
       { For VRML 1.0, [-1] value is default for materialIndex
         and should be treated as "empty", as far as I understand
         the spec. }
-      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.List^[0] = -1)));
+      (not ((MFIndexes.Count = 1) and (MFIndexes.Items.L[0] = -1)));
   end;
 
 begin
@@ -1589,7 +1589,7 @@ begin
     miPerFace:
       FaceMaterial1Color := GetMaterial1Color(RangeNumber);
     miPerFaceMatIndexed:
-      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.List^[RangeNumber]);
+      FaceMaterial1Color := GetMaterial1Color(MaterialIndex.Items.L[RangeNumber]);
   end;
 end;
 
@@ -1679,7 +1679,7 @@ begin
       VertexIndex := IndexNum;
 
     VertexColor := OnRadianceTransfer(Geometry,
-      @(RadianceTransfer.List^[VertexIndex * RadianceTransferVertexSize]),
+      Addr(RadianceTransfer.L[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
     Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
@@ -1761,7 +1761,7 @@ begin
 
   case NormalBinding of
     BIND_DEFAULT, BIND_PER_VERTEX_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
         Result := niPerVertexNormalIndexed;
     BIND_PER_VERTEX:
       if CoordIndex <> nil then
@@ -1772,7 +1772,7 @@ begin
     BIND_PER_PART, BIND_PER_FACE:
       Result := niPerFace;
     BIND_PER_PART_INDEXED, BIND_PER_FACE_INDEXED:
-      if (NormalIndex.Count > 0) and (NormalIndex.Items.List^[0] >= 0) then
+      if (NormalIndex.Count > 0) and (NormalIndex.Items.L[0] >= 0) then
         Result := niPerFaceNormalIndexed;
   end;
 
@@ -1787,7 +1787,7 @@ function TAbstractNormalGenerator.CcwNormalsSafe(
   const Index: Integer): TVector3Single;
 begin
   if Index < CcwNormals.Count then
-    Result := CcwNormals.List^[Index] else
+    Result := CcwNormals.L[Index] else
     Result := ZeroVector3Single;
 end;
 
@@ -1796,17 +1796,17 @@ procedure TAbstractNormalGenerator.GetNormal(
 begin
   case NorImplementation of
     niOverall:
-      N := CcwNormals.List^[0];
+      N := CcwNormals.L[0];
     niPerVertexNonIndexed:
-      N := CcwNormals.List^[IndexNum];
+      N := CcwNormals.L[IndexNum];
     niPerVertexCoordIndexed:
-      N := CcwNormals.List^[CoordIndex.Items.List^[IndexNum]];
+      N := CcwNormals.L[CoordIndex.Items.L[IndexNum]];
     niPerVertexNormalIndexed:
-      N := CcwNormals.List^[NormalIndex.ItemsSafe[IndexNum]];
+      N := CcwNormals.L[NormalIndex.ItemsSafe[IndexNum]];
     niPerFace:
-      N := CcwNormals.List^[RangeNumber];
+      N := CcwNormals.L[RangeNumber];
     niPerFaceNormalIndexed:
-      N := CcwNormals.List^[NormalIndex.ItemsSafe[RangeNumber]];
+      N := CcwNormals.L[NormalIndex.ItemsSafe[RangeNumber]];
     else
       raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
@@ -1938,11 +1938,11 @@ procedure TAbstractFogGenerator.GenerateVertex(
   begin
     { make IndexNum independent of coordIndex, always work like index to coords }
     if CoordIndex <> nil then
-      IndexNum := CoordIndex.Items.List^[IndexNum];
+      IndexNum := CoordIndex.Items.L[IndexNum];
 
     { calculate Fog, based on FogCoord and IndexNum }
     if IndexNum < FogCoord.Count then
-      Result := FogCoord.List^[IndexNum] else
+      Result := FogCoord.L[IndexNum] else
     if FogCoord.Count <> 0 then
       Result := FogCoord.Last else
       Result := 0; //< some default
@@ -1954,8 +1954,8 @@ procedure TAbstractFogGenerator.GenerateVertex(
   begin
     { calculate global vertex position }
     if CoordIndex <> nil then
-      Position := Coord.Items.List^[CoordIndex.Items.List^[IndexNum]] else
-      Position := Coord.Items.List^[IndexNum];
+      Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]] else
+      Position := Coord.Items.L[IndexNum];
     Position := MatrixMultPoint(State.Transform, Position);
 
     Projected := PointOnLineClosestToPoint(
@@ -2099,7 +2099,7 @@ begin
   if Attrib <> nil then
   begin
     if CoordIndex <> nil then
-      VertexIndex := CoordIndex.Items.List^[IndexNum] else
+      VertexIndex := CoordIndex.Items.L[IndexNum] else
       VertexIndex := IndexNum;
 
     for I := 0 to Attrib.Count - 1 do

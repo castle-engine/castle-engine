@@ -836,11 +836,11 @@ var leavesCounts: TDynCardinalArray;
   begin
    if TreeNode.IsLeaf then
    begin
-    Inc(leavesCounts.List^[TreeNode.Depth]);
-    itemsCounts.List^[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
+    Inc(leavesCounts.L[TreeNode.Depth]);
+    itemsCounts.L[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
    end else
    begin
-    Inc(nonLeafNodesCounts.List^[TreeNode.Depth]);
+    Inc(nonLeafNodesCounts.L[TreeNode.Depth]);
     for b0 := Low(boolean) to High(boolean) do
      for b1 := Low(boolean) to High(boolean) do
       for b2 := Low(boolean) to High(boolean) do

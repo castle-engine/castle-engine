@@ -264,7 +264,7 @@ begin
   { This could be implemented as IsPointInsideMargin(Point, 0),
     but is not (for speed). }
   for I := 0 to BoundingBoxes.Count - 1 do
-    if Box3DPointInside(Point, BoundingBoxes.List^[I]) then
+    if Box3DPointInside(Point, BoundingBoxes.L[I]) then
       Exit(true);
   Result := false;
 end;
@@ -276,7 +276,7 @@ var
 begin
   for I := 0 to BoundingBoxes.Count - 1 do
     if Box3DPointInside(Point,
-      BoxExpand(BoundingBoxes.List^[I], SectorsBoxesMargin)) then
+      BoxExpand(BoundingBoxes.L[I], SectorsBoxesMargin)) then
       Exit(true);
   Result := false;
 end;

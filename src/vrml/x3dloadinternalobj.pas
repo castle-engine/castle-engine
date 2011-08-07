@@ -540,9 +540,9 @@ begin
       i := 0;
       while i < obj.Faces.Count do
       begin
-        FacesWithTexCoord := Obj.Faces.List^[i].HasTexCoords;
-        FacesWithNormal := Obj.Faces.List^[i].HasNormals;
-        FacesWithMaterial := Obj.Faces.List^[i].Material;
+        FacesWithTexCoord := Obj.Faces.L[i].HasTexCoords;
+        FacesWithNormal := Obj.Faces.L[i].HasNormals;
+        FacesWithMaterial := Obj.Faces.L[i].Material;
 
         Shape := TNodeShape.Create('', WWWBasePath);
         Result.FdChildren.Add(Shape);
@@ -588,27 +588,27 @@ begin
           We know that at least the next face is Ok. }
         repeat
           Faces.FdCoordIndex.Items.AddArray(
-            [obj.Faces.List^[i].VertIndices[0],
-             obj.Faces.List^[i].VertIndices[1],
-             obj.Faces.List^[i].VertIndices[2], -1]);
+            [obj.Faces.L[i].VertIndices[0],
+             obj.Faces.L[i].VertIndices[1],
+             obj.Faces.L[i].VertIndices[2], -1]);
 
           if FacesWithTexCoord then
             Faces.FdTexCoordIndex.Items.AddArray(
-              [obj.Faces.List^[i].TexCoordIndices[0],
-               obj.Faces.List^[i].TexCoordIndices[1],
-               obj.Faces.List^[i].TexCoordIndices[2], -1]);
+              [obj.Faces.L[i].TexCoordIndices[0],
+               obj.Faces.L[i].TexCoordIndices[1],
+               obj.Faces.L[i].TexCoordIndices[2], -1]);
 
           if FacesWithNormal then
             Faces.FdNormalIndex.Items.AddArray(
-              [obj.Faces.List^[i].NormalIndices[0],
-               obj.Faces.List^[i].NormalIndices[1],
-               obj.Faces.List^[i].NormalIndices[2], -1]);
+              [obj.Faces.L[i].NormalIndices[0],
+               obj.Faces.L[i].NormalIndices[1],
+               obj.Faces.L[i].NormalIndices[2], -1]);
 
           Inc(i);
         until (i >= obj.Faces.Count) or
-          (FacesWithTexCoord <> obj.Faces.List^[i].HasTexCoords) or
-          (FacesWithNormal   <> obj.Faces.List^[i].HasNormals) or
-          (FacesWithMaterial <> obj.Faces.List^[i].Material);
+          (FacesWithTexCoord <> obj.Faces.L[i].HasTexCoords) or
+          (FacesWithNormal   <> obj.Faces.L[i].HasNormals) or
+          (FacesWithMaterial <> obj.Faces.L[i].Material);
       end;
 
       if Coord <> nil then

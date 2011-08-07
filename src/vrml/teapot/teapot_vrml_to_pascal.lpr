@@ -44,9 +44,9 @@ var
     for I := 0 to C.FdPoint.Count - 1 do
     begin
       Write(Format('(%g, %g, %g)', [
-        C.FdPoint.Items.List^[I][0],
-        C.FdPoint.Items.List^[I][1],
-        C.FdPoint.Items.List^[I][2] ]));
+        C.FdPoint.Items.L[I][0],
+        C.FdPoint.Items.L[I][1],
+        C.FdPoint.Items.L[I][2] ]));
       if I < C.FdPoint.Count - 1 then Write(',');
       Writeln;
     end;
@@ -55,9 +55,9 @@ var
     Writeln('Teapot' + PascalName + 'CoordIndex: array [0..', IFS.FdCoordIndex.Count - 1, '] of LongInt = (');
     for I := 0 to IFS.FdCoordIndex.Count - 1 do
     begin
-      Write(IFS.FdCoordIndex.List^[I]);
+      Write(IFS.FdCoordIndex.L[I]);
       if I < IFS.FdCoordIndex.Count - 1 then Write(', ');
-      if IFS.FdCoordIndex.List^[I] < 0 then Writeln;
+      if IFS.FdCoordIndex.L[I] < 0 then Writeln;
     end;
     Writeln(');');
   end;

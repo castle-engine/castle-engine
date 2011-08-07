@@ -266,7 +266,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
     for I := 0 to Vertexes.Count - 1 do
     begin
-      Stream.ReadBuffer(Vertexes.List^[I], SizeOf(TMd3Vertex));
+      Stream.ReadBuffer(Vertexes.L[I], SizeOf(TMd3Vertex));
     end;
   end;
 
@@ -276,7 +276,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Stream.ReadBuffer(TextureCoords.List^[I], SizeOf(TMd3TexCoord));
+      Stream.ReadBuffer(TextureCoords.L[I], SizeOf(TMd3TexCoord));
     end;
   end;
 
@@ -463,10 +463,10 @@ var
   begin
     Result := TNodeCoordinate.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
-    V := @(Vertexes.List^[VertexesInFrameCount * FrameNumber]);
+    V := Addr(Vertexes.L[VertexesInFrameCount * FrameNumber]);
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector3Single(
+      Result.FdPoint.Items.L[I] := Vector3Single(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -487,7 +487,7 @@ var
     V := PVector2Single(TextureCoords.List);
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.List^[I] := Vector2Single(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.L[I] := Vector2Single(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -503,15 +503,15 @@ var
     Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
-      Result.FdCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdCoordIndex.Items.L[I*4 + 3] := -1;
 
-      Result.FdTexCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
-      Result.FdTexCoordIndex.Items.List^[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.L[I*4 + 3] := -1;
     end;
   end;
 

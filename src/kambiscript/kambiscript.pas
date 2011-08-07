@@ -184,7 +184,7 @@ type
   TKamScriptExpressionList = class(specialize TFPGObjectList<TKamScriptExpression>)
   public
     procedure AddArray(const A: array of TKamScriptExpression);
-    procedure AddList(const L: TKamScriptExpressionList);
+    procedure AddList(const Source: TKamScriptExpressionList);
     procedure FreeContentsByParentExpression;
   end;
 
@@ -987,14 +987,14 @@ begin
     System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
 end;
 
-procedure TKamScriptExpressionList.AddList(const L: TKamScriptExpressionList);
+procedure TKamScriptExpressionList.AddList(const Source: TKamScriptExpressionList);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
-  Count := Count + L.Count;
-  if L.Count <> 0 then
-    System.Move(L.List^[0], List^[OldCount], SizeOf(Pointer) * L.Count);
+  Count := Count + Source.Count;
+  if Source.Count <> 0 then
+    System.Move(Source.List^[0], List^[OldCount], SizeOf(Pointer) * Source.Count);
 end;
 
 procedure TKamScriptExpressionList.FreeContentsByParentExpression;
@@ -1003,8 +1003,8 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    List^[I].FreeByParentExpression;
-    List^[I] := nil;
+    Items[I].FreeByParentExpression;
+    FPGObjectList_NilItem(Self, I);
   end;
 end;
 
@@ -2546,7 +2546,7 @@ function TKamScriptFunctionDefinitionList.IndexOf(
   const FunctionName: string): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if SameText(FunctionName, List^[Result].Name) then
+    if SameText(FunctionName, Items[Result].Name) then
       Exit;
   Result := -1;
 end;

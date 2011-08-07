@@ -5149,7 +5149,7 @@ end;
 
 { Note that because of FPC 2.0.2 bug, code below will not compile
   with FPC 2.0.2 in objfpc mode. For objfpc mode I would have to
-  change below Items.Items[I] to Items.List^[I],
+  change below Items.Items[I] to Items.L[I],
   i.e. Items property of my dynamic array classes will not work
   correctly in objfpc mode in FPC 2.0.2.
   Fixed in FPC 2.0.3 and 2.1.1 (revision 2911).
@@ -5230,7 +5230,7 @@ begin
     0: DefaultValuesCount := 0;
     1: begin
          DefaultValuesCount := 1;
-         DefaultValue := Items.List^[0];
+         DefaultValue := Items.L[0];
        end;
     else DefaultValuesCount := -1;
   end;
@@ -5249,7 +5249,7 @@ end;
 function TMF_CLASS.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.List^[Index] else
+    Result := Items.L[Index] else
   begin
     OnWarning_InvalidIndex(Index, Count);
     Result := TMF_DYN_DEFAULT_SAFE_VALUE;
@@ -5259,7 +5259,7 @@ end;
 procedure TMF_CLASS.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Items.List^[Index] := Value else
+    Items.L[Index] := Value else
   begin
     OnWarning_InvalidIndex(Index, Count);
   end;
@@ -5292,7 +5292,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.List^[0]));
+     (DefaultValue = Items.L[0]));
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5305,7 +5305,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not (TMF_CLASS(SecondValue).Items.List^[I] = Items.List^[I]) then
+   if not (TMF_CLASS(SecondValue).Items.L[I] = Items.L[I]) then
     Exit(false);
 end;
 }
@@ -5329,7 +5329,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not CompareMem(@(TMF_CLASS(SecondValue).Items.List^[I]), @(Items.List^[I]),
+   if not CompareMem(@(TMF_CLASS(SecondValue).Items.L[I]), @(Items.L[I]),
      SizeOf(TMF_STATIC_ITEM)) then
     Exit(false);
 end;
@@ -5341,7 +5341,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-      VectorsPerfectlyEqual(DefaultValue, Items.List^[0]) );
+      VectorsPerfectlyEqual(DefaultValue, Items.L[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5354,14 +5354,14 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not VectorsEqual(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
+   if not VectorsEqual(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
      EqualityEpsilon) then
     Exit(false);
 end;
 
 function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := VectorToRawStr(Items.List^[ItemNum])
+  Result := VectorToRawStr(Items.L[ItemNum])
 end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -5380,7 +5380,7 @@ begin
   Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
+    Items.L[I] := Lerp(A, Items1.L[I], Items2.L[I]);
 end;
 
 function TMF_CLASS.CanAssignLerp: boolean;
@@ -5395,7 +5395,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-      MatricesPerfectlyEqual(DefaultValue, Items.List^[0]) );
+      MatricesPerfectlyEqual(DefaultValue, Items.L[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5408,7 +5408,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not MatricesEqual(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
+   if not MatricesEqual(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
      EqualityEpsilon) then
     Exit(false);
 end;
@@ -5417,9 +5417,9 @@ function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncodin
 var
   Column: Integer;
 begin
-  Result := VectorToRawStr(Items.List^[ItemNum][0]);
+  Result := VectorToRawStr(Items.L[ItemNum][0]);
   for Column := 1 to TSF_MATRIX_COLS - 1 do
-    Result += ' ' + VectorToRawStr(Items.List^[ItemNum][Column]);
+    Result += ' ' + VectorToRawStr(Items.L[ItemNum][Column]);
 end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
@@ -5438,7 +5438,7 @@ begin
   Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
+    Items.L[I] := Lerp(A, Items1.L[I], Items2.L[I]);
 end;
 
 function TMF_CLASS.CanAssignLerp: boolean;
@@ -5453,7 +5453,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.List^[0]) );
+     (DefaultValue = Items.L[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TVRMLField;
@@ -5466,7 +5466,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not FloatsEqual(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
+   if not FloatsEqual(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
      EqualityEpsilon) then
     Exit(false);
 end;

@@ -2319,7 +2319,7 @@ end;
 function TLightInstancesList.IndexOfNode(Node: TNodeX3DLightNode): integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Node = Node then
+    if L[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -2330,7 +2330,7 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Result := @(List^[I]);
+    Result := Addr(L[I]);
     if Result^.Node.NodeName = NodeName then
       Exit;
   end;
@@ -2357,7 +2357,7 @@ begin
     (TLightInstancesList(SecondValue).Count = Count);
   if Result then
     for I := 0 to Count - 1 do
-      if not LightInstanceEquals(List^[I], TLightInstancesList(SecondValue).List^[I]) then
+      if not LightInstanceEquals(L[I], TLightInstancesList(SecondValue).L[I]) then
         Exit(false);
 end;
 
@@ -2370,8 +2370,8 @@ begin
   Count := Count + AList.Count;
   for I := 0 to AList.Count - 1 do
   begin
-    List^[OldCount + I] := AList.List^[I];
-    List^[OldCount + I].WorldCoordinates := true;
+    L[OldCount + I] := AList.L[I];
+    L[OldCount + I].WorldCoordinates := true;
   end;
 end;
 
@@ -2380,7 +2380,7 @@ end;
 function TDynClipPlaneArray.IndexOfNode(Node: TNodeClipPlane): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Node = Node then
+    if L[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -2396,8 +2396,8 @@ begin
 
   if Result then
     for I := 0 to Count - 1 do
-      if (List^[I].Node <> TDynClipPlaneArray(SecondValue).List^[I].Node) or
-         MatricesPerfectlyEqual(List^[I].Transform, TDynClipPlaneArray(SecondValue).List^[I].Transform) then
+      if (L[I].Node <> TDynClipPlaneArray(SecondValue).L[I].Node) or
+         MatricesPerfectlyEqual(L[I].Transform, TDynClipPlaneArray(SecondValue).L[I].Transform) then
         Exit(false);
 end;
 
@@ -5661,7 +5661,7 @@ end;
 function TVRMLNodeNames.IndexOfNode(Node: TVRMLNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Node = Node then
+    if L[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -5669,7 +5669,7 @@ end;
 function TVRMLNodeNames.IndexOfName(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if List^[Result].Name = Name then
+    if L[Result].Name = Name then
       Exit;
   Result := -1;
 end;
@@ -5692,7 +5692,7 @@ begin
   begin
     I := IndexOfName(BindToName);
     if I <> -1 then
-      P := @(List^[I]) else
+      P := Addr(L[I]) else
       P := Add;
     P^.Node := Node;
     P^.Name := BindToName;
@@ -5712,8 +5712,8 @@ begin
   I := IndexOfName(Name);
   if I <> -1 then
   begin
-    Result := List^[I].Node;
-    NodeFinished := List^[I].Finished;
+    Result := L[I].Node;
+    NodeFinished := L[I].Finished;
   end else
     Result := nil;
 end;
@@ -5933,7 +5933,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I](Node);
+    L[I](Node);
 end;
 
 { unit init/fini ------------------------------------------------------------ }

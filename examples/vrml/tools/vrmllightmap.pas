@@ -94,10 +94,10 @@ var i: Integer;
 begin
  result := ZeroVector3Single;
  for i := 0 to Lights.Count-1 do
-  if Octree.LightNotBlocked(Lights.List^[i], Point, PointPlaneNormal,
+  if Octree.LightNotBlocked(Lights.L[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
    VectorAddTo1st(result, VRML97LightContribution_CameraIndependent(
-     Lights.List^[i], Point, PointPlaneNormal, White3Single));
+     Lights.L[i], Point, PointPlaneNormal, White3Single));
 end;
 
 procedure TriangleLightMapTo1st(const Image: TImage;

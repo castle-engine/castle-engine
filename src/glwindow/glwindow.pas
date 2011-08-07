@@ -2896,9 +2896,9 @@ procedure TDynGLWindowFuncArray.ExecuteAll(Window: TGLwindow);
 var i: integer;
 begin
  for i := 0 to Count-1 do
-  if Assigned(List^[i]) then
+  if Assigned(L[i]) then
   begin
-   List^[i](Window);
+   L[i](Window);
   end;
 end;
 

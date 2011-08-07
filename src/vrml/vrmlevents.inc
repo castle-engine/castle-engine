@@ -195,7 +195,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    List^[I](Event, Value, Time);
+    L[I](Event, Value, Time);
 end;
 
 { TVRMLEvent ----------------------------------------------------------------- }
@@ -241,7 +241,7 @@ procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);
     I: Integer;
   begin
     for I := 0 to HandlersToRemove.Count - 1 do
-      OnReceive.Remove(HandlersToRemove.List^[I]);
+      OnReceive.Remove(HandlersToRemove.L[I]);
     HandlersToRemove.Count := 0;
   end;
 

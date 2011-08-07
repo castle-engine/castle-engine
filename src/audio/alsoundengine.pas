@@ -774,7 +774,7 @@ begin
       inherited;
 
       for I := 0 to BuffersCache.Count - 1 do
-        alFreeBuffer(BuffersCache.List^[I].Buffer);
+        alFreeBuffer(BuffersCache[I].Buffer);
       BuffersCache.Count := 0;
 
       EndAL;
@@ -852,7 +852,7 @@ begin
 
           Investigation: I found that sometimes changing the buffer
           of the sound doesn't work immediately. Simple
-            Writeln(SoundInfos.List^[PlayedSound].Buffer, ' ',
+            Writeln(SoundInfos.L[PlayedSound].Buffer, ' ',
               alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
           right after alCommonSourceSetup shows this (may output
           two different values). Then if you wait a little, OpenAL
@@ -905,14 +905,14 @@ begin
 
   { try to load from cache (Result and Duration) }
   for I := 0 to BuffersCache.Count - 1 do
-    if BuffersCache.List^[I].FileName = FullFileName then
+    if BuffersCache[I].FileName = FullFileName then
     begin
-      Inc(BuffersCache.List^[I].References);
+      Inc(BuffersCache[I].References);
       if Log then
         WritelnLog('Sound', Format('Loaded "%s" from cache, now has %d references',
-          [FullFileName, BuffersCache.List^[I].References]));
-      Duration := BuffersCache.List^[I].Duration;
-      Exit(BuffersCache.List^[I].Buffer);
+          [FullFileName, BuffersCache[I].References]));
+      Duration := BuffersCache[I].Duration;
+      Exit(BuffersCache[I].Buffer);
     end;
 
   { actually load, and add to cache }
@@ -943,13 +943,13 @@ begin
   if Buffer = 0 then Exit;
 
   for I := 0 to BuffersCache.Count - 1 do
-    if BuffersCache.List^[I].Buffer = Buffer then
+    if BuffersCache[I].Buffer = Buffer then
     begin
       Buffer := 0;
-      Dec(BuffersCache.List^[I].References);
-      if BuffersCache.List^[I].References = 0 then
+      Dec(BuffersCache[I].References);
+      if BuffersCache[I].References = 0 then
       begin
-        alFreeBuffer(BuffersCache.List^[I].Buffer);
+        alFreeBuffer(BuffersCache[I].Buffer);
         BuffersCache.Delete(I);
       end;
       Exit;

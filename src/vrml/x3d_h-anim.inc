@@ -501,7 +501,7 @@ begin
   if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
 
   for I := 0 to VertexJoints.Count - 1 do
-    SkinCoord.List^[I] := UpdateVertex(VertexJoints.List^[I]);
+    SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
 end;
 
 procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
@@ -532,8 +532,8 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
 
       for I := 0 to SkinCoord.Count - 1 do
       begin
-        VertexJoints.List^[I].RestPosition := SkinCoord.List^[I];
-        VertexJoints.List^[I].Count := 0; { initially }
+        VertexJoints.L[I].RestPosition := SkinCoord.L[I];
+        VertexJoints.L[I].Count := 0; { initially }
       end;
 
       for I := 0 to FdJoints.Count - 1 do
@@ -556,7 +556,7 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
               Weight := Joint.FdSkinCoordWeight.Items[J] else
               Weight := 1;
 
-            VertexJoints.List^[CoordIndex].Add(Joint, Weight);
+            VertexJoints.L[CoordIndex].Add(Joint, Weight);
           end;
         end;
     end;

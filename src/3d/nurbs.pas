@@ -387,7 +387,7 @@ begin
       dugain := uDeriv[i] * vBasis[j];
       dvgain := uBasis[i] * vDeriv[j];
 
-      P := Points.List^[index];
+      P := Points.L[index];
 
       Result += P * gain;
 
@@ -440,19 +440,19 @@ begin
       nkPeriodicUniform:
         begin
           for I := 0 to Knot.Count - 1 do
-            Knot.List^[I] := I;
+            Knot.L[I] := I;
         end;
       nkEndpointUniform:
         begin
           for I := 0 to Order - 1 do
           begin
-            Knot.List^[I] := 0;
-            Knot.List^[Cardinal(I) + Dimension] := Dimension - Order + 1;
+            Knot.L[I] := 0;
+            Knot.L[Cardinal(I) + Dimension] := Dimension - Order + 1;
           end;
           for I := 0 to Dimension - Order - 1 do
-            Knot.List^[Cardinal(I) + Order] := I + 1;
+            Knot.L[Cardinal(I) + Order] := I + 1;
           for I := 0 to Order + Dimension - 1 do
-            Knot.List^[I] /= Dimension - Order + 1;
+            Knot.L[I] /= Dimension - Order + 1;
         end;
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
@@ -471,16 +471,16 @@ begin
     if Point.Count = 0 then
       Result := EmptyBox3D else
     begin
-      W := Weight.List^[0];
+      W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result[0] := Point.List^[0] / W;
+      Result[0] := Point.L[0] / W;
       Result[1] := Result[0];
 
       for I := 1 to Point.Count - 1 do
       begin
-        V := @(Point.List^[I]);
-        W := Weight.List^[I];
+        V := Addr(Point.L[I]);
+        W := Weight.L[I];
         if W = 0 then W := 1;
 
         MinTo1st(Result[0][0], V^[0] / W);
@@ -525,18 +525,18 @@ begin
     if Point.Count = 0 then
       Result := EmptyBox3D else
     begin
-      W := Weight.List^[0];
+      W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result[0] := MatrixMultPoint(Transform, Point.List^[0] / W);
+      Result[0] := MatrixMultPoint(Transform, Point.L[0] / W);
       Result[1] := Result[0];
 
       for I := 1 to Point.Count - 1 do
       begin
-        W := Weight.List^[I];
+        W := Weight.L[I];
         if W = 0 then W := 1;
 
-        V := MatrixMultPoint(Transform, Point.List^[I] / W);
+        V := MatrixMultPoint(Transform, Point.L[I] / W);
 
         MinTo1st(Result[0][0], V[0]);
         MinTo1st(Result[0][1], V[1]);
