@@ -77,7 +77,6 @@ EXAMPLES_BASE_NAMES := \
   examples/base/test_platform_specific_utils \
   examples/kambiscript/kambi_calc \
   examples/kambiscript/image_make_by_script \
-  examples/base/svg_grayscale \
   examples/base/stringoper \
   examples/images/image_convert \
   examples/images/dds_decompose \
@@ -102,7 +101,6 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/triangulate_demo \
   examples/vrml/test_blender_exported_hierarchy \
   examples/vrml/tools/gen_light_map \
-  examples/vrml/tools/md3tovrmlsequence \
   examples/vrml/tools/kanim_to_interpolators \
   examples/vrml/multiple_viewports \
   examples/vrml/demo_animation \
