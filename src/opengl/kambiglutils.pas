@@ -29,48 +29,6 @@ unit KambiGLUtils;
 {$I kambiconf.inc}
 {$I openglmac.inc}
 
-{ This unit defines, among many other things, comfortable versions
-  of some OpenGL functions. They introduce overloading
-  (e.g. one name, glVertexv, for all glVertex* functtions)
-  and allow passing records or arrays (instead of pointers)
-  as parameters (this is an elegant way to allow things like
-    glVertexv( Vector3Single(1, 2, 3)  );
-  ).
-
-  There are a couple ways to define such "aliases" to OpenGL functions:
-
-  1) One, unsafe but fast, is to declare these functions like
-       procedure glVertexv(const v: TVector3f); OPENGL_CALL overload;
-         external OpenGLDLL name 'glVertex3fv';
-     This results in quick code, but it has some disadvantages:
-     - it assumes that v will be passed by reference
-       (Which seems to be not true under FPC 1.0.6 under Linux,
-       and generally depends on compiler taste.
-       FPC constref could be useful here (but not available in all commonly
-       used FPC versions). GPC has "protected var" for this.)
-     - This links my program directly to OpenGL library,
-       thus disabling any way to select OpenGL library at runtime
-
-  2) Second way, safer, is to do some "stub": declare
-     normal function
-       procedure glVertexv(const v: TVector3f); overload;
-     and in implementation just call appropriate function from GL, GLU, GLExt
-       procedure glVertexv(const v: TVector3f);
-       begin glVertex3fv(@v); end;
-     This will work slightly slower, but it also proved to be much
-     safer solution.
-
-  3) There's also another solution: just copy function pointers.
-     This is fast, but it
-     - can't be used for overloaded functions (since you can't have many
-       vars with the same name).
-     - has part of the disadvantages of 1) : it relies that parameters
-       are passed correctly.
-
-  Define IMPLEMENT_OPENGL_STUBS to use 2), otherwise we'll try to use 1).
-}
-{$define IMPLEMENT_OPENGL_STUBS}
-
 { See
   http://www.freepascal.org/mantis/view.php?id=10460
   for NEEDS_FOG_COORD_FIX explanation. }
@@ -439,12 +397,23 @@ function glGetDouble(pname: TGLEnum): TGLdouble;
 { @groupEnd }
 
 { ------------------------------------------------------------------------------
-  Comfortable wrappers for OpenGL functions.
-  Overloaded for our vectors types. }
+  Comfortable wrappers around many OpenGL functions.
+  Overloaded for our vector types.
 
-{ Types that are called always through stubs, regardless of
-  IMPLEMENT_OPENGL_STUBS. They are, both in FPC and Delphi, passed by value
-  (not by reference) when they are used as constant parameters. }
+  Note that functions here simply call appropriate OpenGL functions.
+  Long time ago we tried using tricks to speed this up (eliminate
+  function call overhead), by importing these functions from so/dll
+  under different names, like
+
+    procedure glVertexv(const V: TVector3Single); OPENGL_CALL overload; external OpenGLDLL name 'glVertex3fv';
+
+  But this is problematic: it assumes that TVector3Single will be passed
+  by reference. Which actually is not guaranteed by a compiler (FPC sometimes
+  doesn't). In newer FPC versions, we could use "constref" for this.
+  Or we could just declare these functions as "inline".
+  However, speeding these functions is just not needed at all anymore
+  (especially with new VBO renderer that passes everything through arrays).
+}
 
 { }
 procedure glColorv(const v: TVector3ub); overload;
@@ -476,8 +445,6 @@ procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4d); overload;
 procedure glMultiTexCoordv(const Target: TGLEnum; const v: TVector4f); overload;
 
 procedure glClearColorv(const v: TVector3f; alpha: Single);
-
-{$ifdef IMPLEMENT_OPENGL_STUBS}
 
 procedure glNormalv(const v: TVector3d); overload;
 procedure glNormalv(const v: TVector3f); overload;
@@ -530,53 +497,6 @@ procedure glLoadMatrix(const m: TMatrix4f); overload;
 procedure glLoadMatrix(const m: TMatrix4d); overload;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
-
-{$else IMPLEMENT_OPENGL_STUBS}
-
-procedure glNormalv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glNormal3dv';
-procedure glNormalv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glNormal3fv';
-
-procedure glColorv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glColor3dv';
-procedure glColorv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glColor3fv';
-
-procedure glColorv(const v: TVector4d); OPENGL_CALL overload; external openglDLL name 'glColor4dv';
-procedure glColorv(const v: TVector4f); OPENGL_CALL overload; external openglDLL name 'glColor4fv';
-
-procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  OPENGL_CALL overload; external openglDLL name 'glMaterialfv';
-
-procedure glVertexv(const v: TVector2d); OPENGL_CALL overload; external openglDLL name 'glVertex2dv';
-procedure glVertexv(const v: TVector2f); OPENGL_CALL overload; external openglDLL name 'glVertex2fv';
-procedure glVertexv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glVertex3dv';
-procedure glVertexv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glVertex3fv';
-procedure glVertexv(const v: TVector4d); OPENGL_CALL overload; external openglDLL name 'glVertex4dv';
-procedure glVertexv(const v: TVector4f); OPENGL_CALL overload; external openglDLL name 'glVertex4fv';
-
-procedure glTexCoordv(const v: TVector2d); OPENGL_CALL overload; external openglDLL name 'glTexCoord2dv';
-procedure glTexCoordv(const v: TVector2f); OPENGL_CALL overload; external openglDLL name 'glTexCoord2fv';
-procedure glTexCoordv(const v: TVector3d); OPENGL_CALL overload; external openglDLL name 'glTexCoord3dv';
-procedure glTexCoordv(const v: TVector3f); OPENGL_CALL overload; external openglDLL name 'glTexCoord3fv';
-procedure glTexCoordv(const v: TVector4d); OPENGL_CALL overload; external openglDLL name 'glTexCoord4dv';
-procedure glTexCoordv(const v: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexCoord4fv';
-
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4d); OPENGL_CALL overload; external openglDLL name 'glTexGendv';
-procedure glTexGenv(coord, pname: TGLenum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexGenfv';
-
-procedure glLightv(light, pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glLightfv';
-procedure glLightv(light, pname: TGLEnum; const params: TVector3f); OPENGL_CALL overload; external openglDLL name 'glLightfv';
-
-procedure glLightModelv(pname: TGLenum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glLightModelfv';
-procedure glLightModelv(pname: TGLenum; const params: TVector4i); OPENGL_CALL overload; external openglDLL name 'glLightModeliv';
-
-procedure glFogv(pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glFogfv';
-
-procedure glMultMatrix(const m: TMatrix4f); OPENGL_CALL overload; external openglDLL name 'glMultMatrixf';
-procedure glMultMatrix(const m: TMatrix4d); OPENGL_CALL overload; external openglDLL name 'glMultMatrixd';
-procedure glLoadMatrix(const m: TMatrix4f); OPENGL_CALL overload; external openglDLL name 'glLoadMatrixf';
-procedure glLoadMatrix(const m: TMatrix4d); OPENGL_CALL overload; external openglDLL name 'glLoadMatrixd';
-
-procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); OPENGL_CALL overload; external openglDLL name 'glTexEnvfv';
-
-{$endif IMPLEMENT_OPENGL_STUBS}
 
 { Simple save/restore of OpenGL pixel store ---------------------------------- }
 
@@ -1402,8 +1322,6 @@ begin
   glClearColor(v[0], v[1], v[2], alpha);
 end;
 
-{$ifdef IMPLEMENT_OPENGL_STUBS}
-
 procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
 procedure glNormalv(const v: TVector3f); begin glNormal3fv(@v); end;
 
@@ -1449,8 +1367,6 @@ procedure glLoadMatrix(const m: TMatrix4f); begin glLoadMatrixf(@m) end;
 procedure glLoadMatrix(const m: TMatrix4d); begin glLoadMatrixd(@m) end;
 
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); begin glTexEnvfv(target, pname, @params); end;
-
-{$endif IMPLEMENT_OPENGL_STUBS}
 
 { uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
 
