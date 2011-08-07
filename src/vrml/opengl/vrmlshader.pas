@@ -2163,7 +2163,10 @@ procedure TVRMLShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   if ClipPlane = '' then
+  begin
     ClipPlane := 'gl_ClipVertex = kambi_vertex_eye;';
+    FCodeHash.AddInteger(2003);
+  end;
 end;
 
 procedure TVRMLShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
@@ -2181,6 +2184,8 @@ begin
     '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +
     'if (2.0 * gl_FragColor.a < 1.0)' + NL +
     '  discard;' + NL;
+
+  FCodeHash.AddInteger(2011);
 end;
 
 procedure TVRMLShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
