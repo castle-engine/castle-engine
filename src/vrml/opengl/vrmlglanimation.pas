@@ -105,7 +105,7 @@ type
   private
     { Helpers for Load implementation. }
     Load_RootNodes: TVRMLNodeList;
-    Load_Times: TDynSingleArray;
+    Load_Times: TSingleList;
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TVRMLRootNode; out Time: Single);
   private
@@ -207,7 +207,7 @@ type
     procedure Load(
       RootNodes: TVRMLNodeList;
       AOwnsFirstRootNode: boolean;
-      ATimes: TDynSingleArray;
+      ATimes: TSingleList;
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
 
@@ -1236,7 +1236,7 @@ end;
 procedure TVRMLGLAnimation.Load(
   RootNodes: TVRMLNodeList;
   AOwnsFirstRootNode: boolean;
-  ATimes: TDynSingleArray;
+  ATimes: TSingleList;
   ScenesPerTime: Cardinal;
   const EqualityEpsilon: Single);
 begin
@@ -1325,11 +1325,11 @@ procedure TVRMLGLAnimation.LoadStatic(
   AOwnsRootNode: boolean);
 var
   RootNodes: TVRMLNodeList;
-  ATimes: TDynSingleArray;
+  ATimes: TSingleList;
 begin
   RootNodes := TVRMLNodeList.Create(false);
   try
-    ATimes := TDynSingleArray.Create;
+    ATimes := TSingleList.Create;
     try
       RootNodes.Add(RootNode);
       ATimes.Add(0);
@@ -1341,13 +1341,13 @@ end;
 procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
   const AllowStdIn, LoadTime: boolean);
 var
-  Times: TDynSingleArray;
+  Times: TSingleList;
   RootNodes: TVRMLNodeList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
-  Times := TDynSingleArray.Create;
+  Times := TSingleList.Create;
   RootNodes := TVRMLNodeList.Create(false);
   try
     LoadVRMLSequence(FileName, AllowStdIn,

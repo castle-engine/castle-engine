@@ -768,12 +768,12 @@ procedure TVRMLShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TVRMLField;
   const EnableDisable: boolean);
 var
-  TempF: TDynSingleArray;
-  TempVec2f: TDynVector2SingleArray;
-  TempVec3f: TDynVector3SingleArray;
-  TempVec4f: TDynVector4SingleArray;
-  TempMat3f: TDynMatrix3SingleArray;
-  TempMat4f: TDynMatrix4SingleArray;
+  TempF: TSingleList;
+  TempVec2f: TVector2SingleList;
+  TempVec3f: TVector3SingleList;
+  TempVec4f: TVector4SingleList;
+  TempMat3f: TMatrix3SingleList;
+  TempMat4f: TMatrix4SingleList;
 begin
   { program must be active to set uniform values. }
   if EnableDisable then

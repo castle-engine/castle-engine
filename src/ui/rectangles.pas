@@ -34,7 +34,7 @@ type
   end;
   PRectangle = ^TRectangle;
 
-  TDynRectangleArray = class(specialize TGenericStructList<TRectangle>)
+  TRectangleList = class(specialize TGenericStructList<TRectangle>)
   public
     { FindRectangle returns index of the rectangle that contains point (X, Y).
 
@@ -53,9 +53,9 @@ function PointInRectangle(const X, Y: Integer; const Rectangle: TRectangle): boo
 
 implementation
 
-{ TDynRectangleArray -------------------------------------------------------------- }
+{ TRectangleList -------------------------------------------------------------- }
 
-function TDynRectangleArray.FindRectangle(const X, Y: Integer): integer;
+function TRectangleList.FindRectangle(const X, Y: Integer): integer;
 begin
   for Result := Count - 1 downto 0 do
     if PointInRectangle(X, Y, L[Result]) then

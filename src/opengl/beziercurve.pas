@@ -51,7 +51,7 @@ type
     { Curve weights.
       Must always be Weights.Count = ControlPoints.Count.
       After changing Weights you also have to call UpdateControlPoints.}
-    Weights: TDynFloatArray;
+    Weights: TFloatList;
 
     procedure UpdateControlPoints; override;
 
@@ -73,10 +73,10 @@ type
   TSmoothInterpolatedCurve = class(TInterpolatedCurve)
   private
     BezierCurves: TRationalBezierCurveList;
-    ConvexHullPoints: TDynVector3SingleArray;
+    ConvexHullPoints: TVector3SingleList;
   protected
-    function CreateConvexHullPoints: TDynVector3SingleArray; override;
-    procedure DestroyConvexHullPoints(Points: TDynVector3SingleArray); override;
+    function CreateConvexHullPoints: TVector3SingleList; override;
+    procedure DestroyConvexHullPoints(Points: TVector3SingleList); override;
   public
     function Point(const t: Float): TVector3Single; override;
 
@@ -110,8 +110,8 @@ uses GL, GLU, KambiGLUtils;
 
 {$define DE_CASTELJAU_DECLARE:=
 var
-  W: TDynVector3SingleArray;
-  Wgh: TDynFloatArray;
+  W: TVector3SingleList;
+  Wgh: TFloatList;
   i, k, n, j: Integer;}
 
 { This initializes W and Wgh (0-th step of de Casteljau algorithm).
@@ -125,9 +125,9 @@ var
     // using nice FPC memory manager should make this memory allocating
     // (in each call to Point) painless. So I don't care about optimizing
     // this by moving W to private class-scope.
-    W := TDynVector3SingleArray.Create;
+    W := TVector3SingleList.Create;
     W.Count := ControlPoints.Count;
-    Wgh := TDynFloatArray.Create;
+    Wgh := TFloatList.Create;
     Wgh.Count := Weights.Count;
 
     Move(ControlPoints.L[0], W.L[0],   W.Count   * SizeOf(TVector3Single));
@@ -221,7 +221,7 @@ end;
 constructor TRationalBezierCurve.Create(const ATBegin, ATEnd: Float);
 begin
   inherited;
-  Weights := TDynFloatArray.Create;
+  Weights := TFloatList.Create;
   Weights.Count := ControlPoints.Count;
 end;
 
@@ -233,12 +233,12 @@ end;
 
 { TSmoothInterpolatedCurve ------------------------------------------------------------ }
 
-function TSmoothInterpolatedCurve.CreateConvexHullPoints: TDynVector3SingleArray;
+function TSmoothInterpolatedCurve.CreateConvexHullPoints: TVector3SingleList;
 begin
   Result := ConvexHullPoints;
 end;
 
-procedure TSmoothInterpolatedCurve.DestroyConvexHullPoints(Points: TDynVector3SingleArray);
+procedure TSmoothInterpolatedCurve.DestroyConvexHullPoints(Points: TVector3SingleList);
 begin
 end;
 
@@ -257,7 +257,7 @@ end;
 
 function TSmoothInterpolatedCurve.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 var
-  S: TDynVector3SingleArray;
+  S: TVector3SingleList;
 
   function MiddlePoint(i, Sign: Integer): TVector3Single;
   begin
@@ -267,7 +267,7 @@ var
   end;
 
 var
-  C: TDynVector3SingleArray;
+  C: TVector3SingleList;
   i: Integer;
   NewCurve: TRationalBezierCurve;
 begin
@@ -301,7 +301,7 @@ begin
     C := nil;
     S := nil;
     try
-      C := TDynVector3SingleArray.Create;
+      C := TVector3SingleList.Create;
       C.Count := ControlPoints.Count-1;
       { calculate C values }
       for i := 0 to C.Count-1 do
@@ -311,7 +311,7 @@ begin
           1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 
-      S := TDynVector3SingleArray.Create;
+      S := TVector3SingleList.Create;
       S.Count := ControlPoints.Count;
       { calculate S values }
       for i := 1 to S.Count-2 do
@@ -365,7 +365,7 @@ end;
 constructor TSmoothInterpolatedCurve.Create(const ATBegin, ATEnd: Float);
 begin
   inherited;
-  ConvexHullPoints := TDynVector3SingleArray.Create;
+  ConvexHullPoints := TVector3SingleList.Create;
 end;
 
 destructor TSmoothInterpolatedCurve.Destroy;

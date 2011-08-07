@@ -31,7 +31,7 @@ const
   DefaultShadowMapsDefaultSize = 256;
 
 type
-  TDynTriangle3SingleArray = specialize TGenericStructList<TTriangle3Single>;
+  TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
 
   { Internal helper type for TVRMLScene.
     @exclude }
@@ -87,7 +87,7 @@ type
   end;
   PManifoldEdge = ^TManifoldEdge;
 
-  TDynManifoldEdgeArray = specialize TGenericStructList<TManifoldEdge>;
+  TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
 
   { Scene edge that has one neighbor, i.e. border edge.
     It's used by @link(TVRMLScene.BorderEdges),
@@ -105,7 +105,7 @@ type
   end;
   PBorderEdge = ^TBorderEdge;
 
-  TDynBorderEdgeArray = specialize TGenericStructList<TBorderEdge>;
+  TBorderEdgeList = specialize TGenericStructList<TBorderEdge>;
 
   { These are various features that may be freed by
     TVRMLScene.FreeResources.
@@ -326,7 +326,7 @@ type
     Internal for TVRMLScene: list of generated textures
     (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
     along with their shape. }
-  TDynGeneratedTextureArray = class(specialize TGenericStructList<TGeneratedTexture>)
+  TGeneratedTextureList = class(specialize TGenericStructList<TGeneratedTexture>)
   public
     function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
     function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
@@ -361,7 +361,7 @@ type
     Name: string;
   end;
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  TDynCompiledScriptHandlerInfoArray = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
+  TCompiledScriptHandlerInfoList = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
 
   { Possible spatial structure types that may be managed by TVRMLScene,
     see TVRMLScene.Spatial. }
@@ -398,7 +398,7 @@ type
     (with OpaqueCount marking the border) is useful for shadow volumes
     algorithm, that must treat transparent shadow casters a little
     differently. }
-  TDynTrianglesShadowCastersArray = class(TDynTriangle3SingleArray)
+  TTrianglesShadowCastersList = class(TTriangle3SingleList)
   private
     FOpaqueCount: Cardinal;
   public
@@ -550,7 +550,7 @@ type
   private
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
-    FTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+    FTrianglesListShadowCasters: TTrianglesShadowCastersList;
 
     { Removes fvTrianglesListShadowCasters from Validities,
       and clears FTrianglesListShadowCasters variable. }
@@ -563,8 +563,8 @@ type
       const ViewpointDescription: string):
       TVRMLViewpointNode;
   private
-    FManifoldEdges: TDynManifoldEdgeArray;
-    FBorderEdges: TDynBorderEdgeArray;
+    FManifoldEdges: TManifoldEdgeList;
+    FBorderEdges: TBorderEdgeList;
     FOwnsManifoldAndBorderEdges: boolean;
 
     { Removes fvManifoldAndBorderEdges from Validities,
@@ -643,7 +643,7 @@ type
     FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
     FCameraViewKnown: boolean;
 
-    FCompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray;
+    FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
     function OverrideOctreeLimits(
       const BaseLimits: TOctreeLimits;
@@ -772,7 +772,7 @@ type
 
     procedure InvalidateBackground; virtual;
   protected
-    GeneratedTextures: TDynGeneratedTextureArray;
+    GeneratedTextures: TGeneratedTextureList;
 
     { Called after PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed.
@@ -1255,13 +1255,13 @@ type
     { Returns an array of triangles that should be shadow casters
       for this scene.
 
-      Additionally, TDynTrianglesShadowCastersArray contains some
+      Additionally, TTrianglesShadowCastersList contains some
       additional information needed for rendering with shadows:
-      currently, this means TDynTrianglesShadowCastersArray.OpaqueCount.
+      currently, this means TTrianglesShadowCastersList.OpaqueCount.
 
       Results of these functions are cached, and are also owned by this object.
       So don't modify it, don't free it. }
-    function TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+    function TrianglesListShadowCasters: TTrianglesShadowCastersList;
 
     { ManifoldEdges is a list of edges that have exactly @bold(two) neighbor
       triangles, and BorderEdges is a list of edges that have exactly @bold(one)
@@ -1300,8 +1300,8 @@ type
       This uses TrianglesListShadowCasters.
 
       @groupBegin }
-    function ManifoldEdges: TDynManifoldEdgeArray;
-    function BorderEdges: TDynBorderEdgeArray;
+    function ManifoldEdges: TManifoldEdgeList;
+    function BorderEdges: TBorderEdgeList;
     { @groupEnd }
 
     { This allows you to "share" @link(ManifoldEdges) and
@@ -1315,8 +1315,8 @@ type
       This is handy if you know that this scene has the same
       ManifoldEdges and BorderEdges contents as some other scene. In particular,
       this is extremely handy in cases of animations in TVRMLGLAnimation,
-      where all scenes actually need only a single instance of TDynManifoldEdgeArray
-      and TDynBorderEdgeArray,
+      where all scenes actually need only a single instance of TManifoldEdgeList
+      and TBorderEdgeList,
       this greatly speeds up TVRMLGLAnimation loading and reduces memory use.
 
       Note that passing here as values the same references
@@ -1326,8 +1326,8 @@ type
       it will remain owned in this case (while in normal sharing situation,
       values set here are assumed to be owned by something else). }
     procedure ShareManifoldAndBorderEdges(
-      ManifoldShared: TDynManifoldEdgeArray;
-      BorderShared: TDynBorderEdgeArray);
+      ManifoldShared: TManifoldEdgeList;
+      BorderShared: TBorderEdgeList);
 
     { Frees some scene resources, to conserve memory.
       See TVRMLSceneFreeResources documentation. }
@@ -1596,7 +1596,7 @@ type
 
     { List of handlers for VRML Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
-    property CompiledScriptHandlers: TDynCompiledScriptHandlerInfoArray
+    property CompiledScriptHandlers: TCompiledScriptHandlerInfoList
       read FCompiledScriptHandlers;
 
     { Register compiled script handler, for VRML Script node with
@@ -2123,9 +2123,9 @@ begin
   Result := (inherited Top) as TNodeNavigationInfo;
 end;
 
-{ TDynGeneratedTextureArray -------------------------------------------------- }
+{ TGeneratedTextureList -------------------------------------------------- }
 
-function TDynGeneratedTextureArray.IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
+function TGeneratedTextureList.IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].TextureNode = TextureNode then
@@ -2133,7 +2133,7 @@ begin
   Result := -1;
 end;
 
-function TDynGeneratedTextureArray.FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
+function TGeneratedTextureList.FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
 var
   Index: Integer;
 begin
@@ -2143,7 +2143,7 @@ begin
     Result := nil;
 end;
 
-procedure TDynGeneratedTextureArray.AddShapeTexture(Shape: TVRMLShape;
+procedure TGeneratedTextureList.AddShapeTexture(Shape: TVRMLShape;
   Tex: TNodeX3DTextureNode);
 var
   GenTex: PGeneratedTexture;
@@ -2200,7 +2200,7 @@ begin
   end;
 end;
 
-procedure TDynGeneratedTextureArray.UpdateShadowMaps(LightNode: TNodeX3DLightNode);
+procedure TGeneratedTextureList.UpdateShadowMaps(LightNode: TNodeX3DLightNode);
 var
   I: Integer;
 begin
@@ -2268,10 +2268,10 @@ begin
 
   FPointingDeviceActiveSensors := TVRMLNodeList.Create(false);
 
-  FCompiledScriptHandlers := TDynCompiledScriptHandlerInfoArray.Create;
+  FCompiledScriptHandlers := TCompiledScriptHandlerInfoList.Create;
   TransformInstancesList := TTransformInstancesList.Create(false);
   BillboardInstancesList := TTransformInstancesList.Create(false);
-  GeneratedTextures := TDynGeneratedTextureArray.Create;
+  GeneratedTextures := TGeneratedTextureList.Create;
   ProximitySensors := TProximitySensorInstanceList.Create(false);
   ScreenEffectNodes := TVRMLNodeList.Create(false);
   ScheduledHumanoidAnimateSkin := TVRMLNodeList.Create(false);
@@ -4597,7 +4597,7 @@ end;
 
 type
   TTriangleAdder = class
-    TriangleList: TDynTriangle3SingleArray;
+    TriangleList: TTriangle3SingleList;
     procedure AddTriangle(Shape: TObject;
       const Position: TTriangle3Single;
       const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
@@ -4613,9 +4613,9 @@ begin
     TriangleList.Add(Position);
 end;
 
-function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
 
-  function CreateTrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
+  function CreateTrianglesListShadowCasters: TTrianglesShadowCastersList;
 
     function ShadowCaster(AShape: TVRMLShape): boolean;
     var
@@ -4634,7 +4634,7 @@ function TVRMLScene.TrianglesListShadowCasters: TDynTrianglesShadowCastersArray;
     TriangleAdder: TTriangleAdder;
     WasSomeTransparentShadowCaster: boolean;
   begin
-    Result := TDynTrianglesShadowCastersArray.Create;
+    Result := TTrianglesShadowCastersList.Create;
     try
       Result.Capacity := TrianglesCount(false);
       TriangleAdder := TTriangleAdder.Create;
@@ -4716,12 +4716,12 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
       all odd occurrences, assuming that ordering of faces is consistent,
       so that counterpart edges are properly detected. }
     procedure AddEdgeCheckManifold(
-      EdgesSingle: TDynManifoldEdgeArray;
+      EdgesSingle: TManifoldEdgeList;
       const TriangleIndex: Cardinal;
       const V0: TVector3Single;
       const V1: TVector3Single;
       const VertexIndex: Cardinal;
-      Triangles: TDynTriangle3SingleArray);
+      Triangles: TTriangle3SingleList);
     var
       I: Integer;
       EdgePtr: PManifoldEdge;
@@ -4777,9 +4777,9 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
 
   var
     I: Integer;
-    Triangles: TDynTriangle3SingleArray;
+    Triangles: TTriangle3SingleList;
     TrianglePtr: PTriangle3Single;
-    EdgesSingle: TDynManifoldEdgeArray;
+    EdgesSingle: TManifoldEdgeList;
   begin
     Assert(FManifoldEdges = nil);
     Assert(FBorderEdges = nil);
@@ -4789,7 +4789,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
       shadow volumes rendering result bad. }
     Triangles := TrianglesListShadowCasters;
 
-    FManifoldEdges := TDynManifoldEdgeArray.Create;
+    FManifoldEdges := TManifoldEdgeList.Create;
     { There is a precise relation between number of edges and number of faces
       on a closed manifold: E = T * 3 / 2. }
     FManifoldEdges.Capacity := Triangles.Count * 3 div 2;
@@ -4797,7 +4797,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
     { EdgesSingle are edges that have no neighbor,
       i.e. have only one adjacent triangle. At the end, what's left here
       will be simply copied to BorderEdges. }
-    EdgesSingle := TDynManifoldEdgeArray.Create;
+    EdgesSingle := TManifoldEdgeList.Create;
     try
       EdgesSingle.Capacity := Triangles.Count * 3 div 2;
 
@@ -4811,7 +4811,7 @@ procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
         Inc(TrianglePtr);
       end;
 
-      FBorderEdges := TDynBorderEdgeArray.Create;
+      FBorderEdges := TBorderEdgeList.Create;
 
       if EdgesSingle.Count <> 0 then
       begin
@@ -4842,21 +4842,21 @@ begin
   end;
 end;
 
-function TVRMLScene.ManifoldEdges: TDynManifoldEdgeArray;
+function TVRMLScene.ManifoldEdges: TManifoldEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FManifoldEdges;
 end;
 
-function TVRMLScene.BorderEdges: TDynBorderEdgeArray;
+function TVRMLScene.BorderEdges: TBorderEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FBorderEdges;
 end;
 
 procedure TVRMLScene.ShareManifoldAndBorderEdges(
-  ManifoldShared: TDynManifoldEdgeArray;
-  BorderShared: TDynBorderEdgeArray);
+  ManifoldShared: TManifoldEdgeList;
+  BorderShared: TBorderEdgeList);
 begin
   Assert(
     (ManifoldShared = FManifoldEdges) =

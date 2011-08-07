@@ -115,13 +115,13 @@ const
     Pass here some created and empty instance of TVRMLNodeList.)
 
   @param(ATimes Sequence of time values.
-    Pass here some created and empty instance of TDynSingleArray.)
+    Pass here some created and empty instance of TSingleList.)
 }
 procedure LoadVRMLSequence(
   const FileName: string;
   AllowStdIn: boolean;
   RootNodes: TVRMLNodeList;
-  Times: TDynSingleArray;
+  Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
@@ -198,7 +198,7 @@ end;
 procedure LoadVRMLSequence(const FileName: string;
   AllowStdIn: boolean;
   RootNodes: TVRMLNodeList;
-  Times: TDynSingleArray;
+  Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);

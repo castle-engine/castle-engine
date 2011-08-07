@@ -143,10 +143,10 @@ type
 
       Default implementation in this class returns ControlPoints as
       CreateConvexHullPoints. (and does nothing in DestroyConvexHullPoints) }
-    function CreateConvexHullPoints: TDynVector3SingleArray; virtual;
-    procedure DestroyConvexHullPoints(Points: TDynVector3SingleArray); virtual;
+    function CreateConvexHullPoints: TVector3SingleList; virtual;
+    procedure DestroyConvexHullPoints(Points: TVector3SingleList); virtual;
   public
-    ControlPoints: TDynVector3SingleArray;
+    ControlPoints: TVector3SingleList;
 
     { glBegin(GL_POINTS) + glVertex fo each ControlPoints[i] + glEnd. }
     procedure RenderControlPoints;
@@ -221,7 +221,7 @@ type
   private
     { Values for Newton's polynomial form of Lx, Ly and Lz.
       Will be calculated in UpdateControlPoints. }
-    Newton: array[0..2]of TDynFloatArray;
+    Newton: array[0..2]of TFloatList;
   public
     procedure UpdateControlPoints; override;
     function Point(const t: Float): TVector3Single; override;
@@ -239,8 +239,8 @@ type
     FMinX, FMaxX: Float;
     FOwnsX, FOwnsY: boolean;
     FPeriodic: boolean;
-    FX, FY: TDynFloatArray;
-    M: TDynFloatArray;
+    FX, FY: TFloatList;
+    M: TFloatList;
   public
     property MinX: Float read FMinX;
     property MaxX: Float read FMaxX;
@@ -254,7 +254,7 @@ type
       Warning: we will copy references to X and Y ! So make sure that these
       objects are available for the life of this object.
       We will free in destructor X if OwnsX and free Y if OwnsY. }
-    constructor Create(X, Y: TDynFloatArray; AOwnsX, AOwnsY, APeriodic: boolean);
+    constructor Create(X, Y: TFloatList; AOwnsX, AOwnsY, APeriodic: boolean);
     destructor Destroy; override;
 
     { Evaluate value of natural cubic spline at x.
@@ -416,18 +416,18 @@ begin
    ControlPoints.Count, 0);
 end;
 
-function TControlPointsCurve.CreateConvexHullPoints: TDynVector3SingleArray;
+function TControlPointsCurve.CreateConvexHullPoints: TVector3SingleList;
 begin
  Result := ControlPoints;
 end;
 
-procedure TControlPointsCurve.DestroyConvexHullPoints(Points: TDynVector3SingleArray);
+procedure TControlPointsCurve.DestroyConvexHullPoints(Points: TVector3SingleList);
 begin
 end;
 
 procedure TControlPointsCurve.RenderConvexHull;
-var CHPoints: TDynVector3SingleArray;
-    CH: TDynIntegerArray;
+var CHPoints: TVector3SingleList;
+    CH: TIntegerList;
     i: Integer;
 begin
  CHPoints := CreateConvexHullPoints;
@@ -446,7 +446,7 @@ end;
 constructor TControlPointsCurve.Create(const ATBegin, ATEnd: Float);
 begin
  inherited Create(ATBegin, ATEnd);
- ControlPoints := TDynVector3SingleArray.Create;
+ ControlPoints := TVector3SingleList.Create;
  { DON'T call UpdateControlPoints from here - UpdateControlPoints is virtual !
    So we set FBoundingBox by hand. }
  FBoundingBox := EmptyBox3D;
@@ -528,7 +528,7 @@ constructor TLagrangeInterpolatedCurve.Create(const ATBegin, ATEnd: Float);
 var i: Integer;
 begin
  inherited Create(ATBegin, ATEnd);
- for i := 0 to 2 do Newton[i] := TDynFloatArray.Create;
+ for i := 0 to 2 do Newton[i] := TFloatList.Create;
 end;
 
 destructor TLagrangeInterpolatedCurve.Destroy;
@@ -540,7 +540,7 @@ end;
 
 { TNaturalCubicSpline -------------------------------------------------------- }
 
-constructor TNaturalCubicSpline.Create(X, Y: TDynFloatArray;
+constructor TNaturalCubicSpline.Create(X, Y: TFloatList;
   AOwnsX, AOwnsY, APeriodic: boolean);
 
 { Based on SLE (== Stanislaw Lewanowicz) notes on ii.uni.wroc.pl lecture. }
@@ -594,7 +594,7 @@ var
    Result := 6 * IlorazRoznicowy(k-1, k+1);
   end;
 
-var u, q, s, t, v: TDynFloatArray;
+var u, q, s, t, v: TFloatList;
     hk, dk, pk, delta_k, delta_n, h_n, h_n1: Float;
     k: Integer;
 begin
@@ -610,7 +610,7 @@ begin
 
  { prepare to calculate M }
  n := X.Count - 1;
- M := TDynFloatArray.Create;
+ M := TFloatList.Create;
  M.Count := n+1;
 
  { Algorytm obliczania wartosci M[0..n] z notatek SLE, te same oznaczenia.
@@ -626,9 +626,9 @@ begin
  q := nil;
  s := nil;
  try
-  u := TDynFloatArray.Create; U.Count := N;
-  q := TDynFloatArray.Create; Q.Count := N;
-  if Periodic then begin s := TDynFloatArray.Create; S.Count := N; end;
+  u := TFloatList.Create; U.Count := N;
+  q := TFloatList.Create; Q.Count := N;
+  if Periodic then begin s := TFloatList.Create; S.Count := N; end;
 
   { calculate u[0], q[0], s[0] }
   u[0] := 0;
@@ -660,8 +660,8 @@ begin
    t := nil;
    v := nil;
    try
-    t := TDynFloatArray.Create; T.Count := N + 1;
-    v := TDynFloatArray.Create; V.Count := N + 1;
+    t := TFloatList.Create; T.Count := N + 1;
+    v := TFloatList.Create; V.Count := N + 1;
 
     t[n] := 1;
     v[n] := 0;
@@ -755,7 +755,7 @@ end;
 
 procedure TNaturalCubicSplineCurve_Abstract.UpdateControlPoints;
 var i, j: Integer;
-    SplineX, SplineY: TDynFloatArray;
+    SplineX, SplineY: TFloatList;
 begin
  inherited;
 
@@ -763,7 +763,7 @@ begin
    Spline[0] and Spline[1] and Spline[2] will share the same reference to X.
    Only Spline[2] will own SplineX. (Spline[2] will be always Freed as the
    last one, so it's safest to set OwnsX in Spline[2]) }
- SplineX := TDynFloatArray.Create;
+ SplineX := TFloatList.Create;
  SplineX.Count := ControlPoints.Count;
  for i := 0 to ControlPoints.Count-1 do SplineX[i] := ControlPointT(i);
 
@@ -772,7 +772,7 @@ begin
   FreeAndNil(Spline[i]);
 
   { calculate SplineY }
-  SplineY := TDynFloatArray.Create;
+  SplineY := TFloatList.Create;
   SplineY.Count := ControlPoints.Count;
   for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.L[j, i];
 

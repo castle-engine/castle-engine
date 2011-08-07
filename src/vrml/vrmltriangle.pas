@@ -155,7 +155,7 @@ type
   end;
   PVRMLTriangle = ^TVRMLTriangle;
 
-  TDynVRMLTriangleArray = specialize TGenericStructList<TVRMLTriangle>;
+  TVRMLTriangleList = specialize TGenericStructList<TVRMLTriangle>;
 
 { TVRMLBaseTrianglesOctree ----------------------------------------------------------- }
 

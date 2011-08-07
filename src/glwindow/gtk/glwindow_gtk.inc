@@ -1008,7 +1008,7 @@ const
   end;
 
 var
-  VisualAttr: TDynLongIntArray;
+  VisualAttr: TLongIntList;
   GLAreaContainer: PGtkWidget;
 begin
  RedisplayPosted := false; { reset to default value }
@@ -1040,7 +1040,7 @@ begin
    The code for initializing VisualAttr is quite the same
    as the code from glwindow_xlib.inc because the meaning of GDK_GL_
    constants is the same as GLX_ constants. }
- VisualAttr := TDynLongIntArray.Create;
+ VisualAttr := TLongIntList.Create;
  try
   if DoubleBuffer then
     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);

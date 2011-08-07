@@ -175,12 +175,12 @@ procedure TTestKambiClassUtils.TestNotifyEventArray;
   is nonsense for methods, it compares only the code pointer.
   See http://bugs.freepascal.org/view.php?id=11868 ,
   http://bugs.freepascal.org/view.php?id=9228 .
-  Make sure our TDynNotifyEventArray doesn't have this problem. }
+  Make sure our TNotifyEventList doesn't have this problem. }
 var
-  A: TDynNotifyEventArray;
+  A: TNotifyEventList;
   O1, O2, O3: TObj;
 begin
-  A := TDynNotifyEventArray.Create;
+  A := TNotifyEventList.Create;
   try
     O1 := TObj.Create;
     O2 := TObj.Create;

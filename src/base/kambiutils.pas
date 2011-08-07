@@ -18,7 +18,7 @@
 
   @unorderedList(
     @item(Lists of primitives, using FPC generics.
-      Like TDynIntegerArray, TDynFloatArray etc.)
+      Like TIntegerList, TFloatList etc.)
 
     @item(Basic operations on numbers.)
 
@@ -37,7 +37,7 @@
   like LCL, VCL, or CLX.
   The only classes defined and used here are exceptions
   (the base Exception class comes from SysUtils unit)
-  and TDyn*Array classes.
+  and primitives lists classes.
 
   Initialization of this unit does some generally-useful things:
 

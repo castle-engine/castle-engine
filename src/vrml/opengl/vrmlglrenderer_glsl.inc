@@ -56,7 +56,7 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
   var
     J: Integer;
     BoundValue: LongInt;
-    UniformValue: TDynLongIntArray;
+    UniformValue: TLongIntList;
   begin
     try
       if TextureField is TSFNode then
@@ -68,7 +68,7 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
       begin
         Assert(TextureField is TMFNode);
 
-        UniformValue := TDynLongIntArray.Create;
+        UniformValue := TLongIntList.Create;
         try
           UniformValue.Count := TMFNode(TextureField).Count;
           for J := 0 to TMFNode(TextureField).Count - 1 do

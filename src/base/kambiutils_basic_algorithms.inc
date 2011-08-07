@@ -95,8 +95,6 @@ const
     ArrStride must be > 0, actually it must be > ArrRecordSize for sensible
     behavior. (Unless ArrRecordSize is 0, then ArrStride may be 0 too.).)
 
-  See TDyn*Array classes (like TDynIntegerArray) contain also sort methods
-  that are type-safe and easier to use.
   @groupBegin }
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;

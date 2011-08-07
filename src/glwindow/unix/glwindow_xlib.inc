@@ -125,7 +125,7 @@ var
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
-  VisualAttr: TDynLongIntArray;
+  VisualAttr: TLongIntList;
   GlxExtensions: string;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
@@ -133,7 +133,7 @@ const
 begin
  Application.InitializeXDisplay;
 
- VisualAttr := TDynLongIntArray.Create;
+ VisualAttr := TLongIntList.Create;
  try
    if DoubleBuffer then
      VisualAttr.Add(GLX_DOUBLEBUFFER);

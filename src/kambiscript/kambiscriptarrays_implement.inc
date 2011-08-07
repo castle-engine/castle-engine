@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-constructor TKamScriptXxxArray.Create(const AWriteable: boolean; const AValue: TDynXxxArray);
+constructor TKamScriptXxxArray.Create(const AWriteable: boolean; const AValue: TXxxList);
 begin
   Create(AWriteable);
   Value := AValue;
@@ -22,7 +22,7 @@ end;
 constructor TKamScriptXxxArray.Create(const AWriteable: boolean);
 begin
   inherited;
-  FValue := TDynXxxArray.Create;
+  FValue := TXxxList.Create;
 end;
 
 destructor TKamScriptXxxArray.Destroy;
@@ -31,7 +31,7 @@ begin
   inherited;
 end;
 
-procedure TKamScriptXxxArray.SetValue(const AValue: TDynXxxArray);
+procedure TKamScriptXxxArray.SetValue(const AValue: TXxxList);
 begin
   FValue.Assign(AValue);
   ValueAssigned := true;
@@ -47,7 +47,7 @@ end;
 class procedure TKamScriptXxxArray.HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
-  Arr: TDynXxxArray;
+  Arr: TXxxList;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptXxxArray);
 
@@ -89,7 +89,7 @@ end;
 class procedure TKamScriptXxxArray.HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
-  Arr: TDynXxxArray;
+  Arr: TXxxList;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptXxxElement);
 
@@ -106,7 +106,7 @@ end;
 class procedure TKamScriptXxxArray.HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
-  Arr: TDynXxxArray;
+  Arr: TXxxList;
 begin
   if ParentOfResult then
     AResult.FreeByParentExpression;
@@ -129,7 +129,7 @@ end;
 class procedure TKamScriptXxxArray.HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
-  Arr: TDynXxxArray;
+  Arr: TXxxList;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptXxxArray);
 

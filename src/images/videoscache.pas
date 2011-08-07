@@ -29,7 +29,7 @@ type
   end;
   PCachedVideo = ^TCachedVideo;
 
-  TDynCachedVideoArray = specialize TGenericStructList<TCachedVideo>;
+  TCachedVideoList = specialize TGenericStructList<TCachedVideo>;
 
   { A cache of loaded videos.
 
@@ -81,7 +81,7 @@ type
     this class does the job of memory-leak detector. }
   TImagesVideosCache = class(TImagesCache)
   private
-    CachedVideos: TDynCachedVideoArray;
+    CachedVideos: TCachedVideoList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -101,7 +101,7 @@ uses SysUtils, KambiStringUtils;
 constructor TImagesVideosCache.Create;
 begin
   inherited;
-  CachedVideos := TDynCachedVideoArray.Create;
+  CachedVideos := TCachedVideoList.Create;
 end;
 
 destructor TImagesVideosCache.Destroy;

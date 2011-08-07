@@ -46,9 +46,9 @@ var
   Window: TGLUIWindow;
   Scene: TVRMLScene;
   Shape: TVRMLShape;
-  Vertexes: TDynVector3SingleArray;
-  CoordIndex: TDynLongIntArray;
-  TrianglesCoordIndex: TDynLongIntArray;
+  Vertexes: TVector3SingleList;
+  CoordIndex: TLongIntList;
+  TrianglesCoordIndex: TLongIntList;
 
   Mode: TRenderMode = rmDirectOnceTriangles;
   Wireframe: boolean;
@@ -305,8 +305,8 @@ procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
 
   procedure DumpShape(Shape: TVRMLShape);
   var
-    Vertexes: TDynVector3SingleArray;
-    CoordIndex: TDynLongIntArray;
+    Vertexes: TVector3SingleList;
+    CoordIndex: TLongIntList;
   begin
     if Shape.Geometry is TNodeIndexedFaceSet_1 then
     begin
@@ -397,7 +397,7 @@ begin
       raise Exception.Create('Specified shape is not IndexedFaceSet');
 
     { create coordIndex for rendering by separate triangles }
-    TrianglesCoordIndex := TDynLongIntArray.Create;
+    TrianglesCoordIndex := TLongIntList.Create;
     TrianglesCoordIndex.Capacity := CoordIndex.Count;
     MakeTrianglesCoordIndex;
 

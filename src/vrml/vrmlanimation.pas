@@ -52,7 +52,7 @@ type
       but doesn't have an TVRMLGLAnimation instance available. }
     class procedure LoadFromFileToVars(const FileName: string;
       ModelFileNames: TStringList;
-      Times: TDynSingleArray;
+      Times: TSingleList;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
       out ATimeLoop, ATimeBackwards: boolean);
@@ -70,7 +70,7 @@ type
     class procedure LoadFromDOMElementToVars(Element: TDOMElement;
       const BasePath: string;
       ModelFileNames: TStringList;
-      Times: TDynSingleArray;
+      Times: TSingleList;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
       out ATimeLoop, ATimeBackwards: boolean);
@@ -82,7 +82,7 @@ uses SysUtils, XMLRead, KambiXMLUtils, KambiFilesUtils;
 
 class procedure TVRMLAnimation.LoadFromFileToVars(const FileName: string;
   ModelFileNames: TStringList;
-  Times: TDynSingleArray;
+  Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
@@ -111,7 +111,7 @@ class procedure TVRMLAnimation.LoadFromDOMElementToVars(
   Element: TDOMElement;
   const BasePath: string;
   ModelFileNames: TStringList;
-  Times: TDynSingleArray;
+  Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);

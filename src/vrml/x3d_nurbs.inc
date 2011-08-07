@@ -731,15 +731,15 @@ end;
 { Convert X3D or VRML 97 NurbsCurve to LineSet. }
 procedure NurbsCurveProxy(
   const LS: TNodeLineSet;
-  const ControlPoint: TDynVector3SingleArray;
+  const ControlPoint: TVector3SingleList;
   const Tessellation, Order: LongInt;
-  const FieldKnot, Weight: TDynDoubleArray);
+  const FieldKnot, Weight: TDoubleList);
 var
   ResultCoord: TNodeCoordinate;
   Tess: Cardinal;
   I: Integer;
   Increase: Double;
-  Knot: TDynDoubleArray;
+  Knot: TDoubleList;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -754,7 +754,7 @@ begin
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
-  Knot := TDynDoubleArray.Create;
+  Knot := TDoubleList.Create;
   Knot.Assign(FieldKnot);
   NurbsKnotIfNeeded(Knot, ControlPoint.Count, Order, nkEndpointUniform);
 
@@ -783,7 +783,7 @@ end;
 function TNodeNurbsCurve.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
-  ControlPoint: TDynVector3SingleArray;
+  ControlPoint: TVector3SingleList;
 begin
   Result := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
@@ -922,8 +922,8 @@ end;
 procedure TNodeNurbsOrientationInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
-  ControlPoint: TDynVector3SingleArray;
-  Knot: TDynDoubleArray;
+  ControlPoint: TVector3SingleList;
+  Knot: TDoubleList;
   Tangent: TVector3Single;
   Orientation: TVector4Single;
 begin
@@ -948,7 +948,7 @@ begin
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
-  Knot := TDynDoubleArray.Create;
+  Knot := TDoubleList.Create;
   Knot.Assign(FdKnot.Items);
   NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
 
@@ -986,9 +986,9 @@ end;
   IndexedQuadSet. This is for Proxy methods implementation. }
 procedure NurbsPatchSurfaceProxy(
   const QS: TNodeIndexedQuadSet;
-  const ControlPoint: TDynVector3SingleArray;
+  const ControlPoint: TVector3SingleList;
   const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
-  const FieldUKnot, FieldVKnot, Weight: TDynDoubleArray;
+  const FieldUKnot, FieldVKnot, Weight: TDoubleList;
   const PossiblyUClosed, PossiblyVClosed, Solid, Ccw: boolean;
   const TexCoord: TVRMLNode);
 
@@ -1057,12 +1057,12 @@ var
   end;
 
 var
-  ResultCoord, ResultNormal: TDynVector3SingleArray;
-  ResultIndex: TDynLongIntArray;
+  ResultCoord, ResultNormal: TVector3SingleList;
+  ResultIndex: TLongIntList;
   I, J, NextIndex: Cardinal;
   UIncrease, VIncrease: Double;
-  UKnot, VKnot: TDynDoubleArray;
-  ResultTexCoord: TDynVector2SingleArray;
+  UKnot, VKnot: TDoubleList;
+  ResultTexCoord: TVector2SingleList;
   Normal: TVector3Single;
 begin
   if ControlPoint.Count = 0 then Exit;
@@ -1127,10 +1127,10 @@ begin
   VClosed := CalculateVClosed;
 
   { calculate correct UKnot, VKnot vectors }
-  UKnot := TDynDoubleArray.Create;
+  UKnot := TDoubleList.Create;
   UKnot.Assign(FieldUKnot);
   NurbsKnotIfNeeded(UKnot, UDimension, UOrder, nkEndpointUniform);
-  VKnot := TDynDoubleArray.Create;
+  VKnot := TDoubleList.Create;
   VKnot.Assign(FieldVKnot);
   NurbsKnotIfNeeded(VKnot, VDimension, VOrder, nkEndpointUniform);
 
@@ -1218,7 +1218,7 @@ end;
 function TNodeNurbsPatchSurface.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
-  ControlPoint: TDynVector3SingleArray;
+  ControlPoint: TVector3SingleList;
 begin
   Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try
@@ -1347,8 +1347,8 @@ end;
 procedure TNodeNurbsPositionInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
-  ControlPoint: TDynVector3SingleArray;
-  Knot: TDynDoubleArray;
+  ControlPoint: TVector3SingleList;
+  Knot: TDoubleList;
   OutputValue: TVector3Single;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
@@ -1371,7 +1371,7 @@ begin
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
-  Knot := TDynDoubleArray.Create;
+  Knot := TDoubleList.Create;
   Knot.Assign(FdKnot.Items);
   NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
 
@@ -1499,10 +1499,10 @@ end;
 procedure TNodeNurbsSurfaceInterpolator.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
-  ControlPoint: TDynVector3SingleArray;
+  ControlPoint: TVector3SingleList;
   OutputNormal: TVector3Single;
   OutputPosition: TVector3Single;
-  UKnot, VKnot: TDynDoubleArray;
+  UKnot, VKnot: TDoubleList;
 begin
   if not (EventPosition_Changed.SendNeeded or
           EventNormal_Changed.SendNeeded) then Exit;
@@ -1546,10 +1546,10 @@ begin
   }
 
   { calculate correct UKnot, VKnot vectors }
-  UKnot := TDynDoubleArray.Create;
+  UKnot := TDoubleList.Create;
   UKnot.Assign(FdUKnot.Items);
   NurbsKnotIfNeeded(UKnot, FdUDimension.Value, FdUOrder.Value, nkEndpointUniform);
-  VKnot := TDynDoubleArray.Create;
+  VKnot := TDoubleList.Create;
   VKnot.Assign(FdVKnot.Items);
   NurbsKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value, nkEndpointUniform);
 

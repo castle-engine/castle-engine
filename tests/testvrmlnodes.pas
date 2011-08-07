@@ -138,7 +138,7 @@ begin
  end;
 end;
 
-{ TVRMLTokenInfo and TDynVRMLTokenInfoArray ---------------------------------- }
+{ TVRMLTokenInfo and TVRMLTokenInfoList ---------------------------------- }
 
 type
   TVRMLTokenInfo = record
@@ -152,13 +152,13 @@ type
   end;
   PVRMLTokenInfo = ^TVRMLTokenInfo;
 
-  TDynVRMLTokenInfoArray = class(specialize TGenericStructList<TVRMLTokenInfo>)
-    procedure AssertEqual(SecondValue: TDynVRMLTokenInfoArray);
+  TVRMLTokenInfoList = class(specialize TGenericStructList<TVRMLTokenInfo>)
+    procedure AssertEqual(SecondValue: TVRMLTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TDynVRMLTokenInfoArray.AssertEqual(
-  SecondValue: TDynVRMLTokenInfoArray);
+procedure TVRMLTokenInfoList.AssertEqual(
+  SecondValue: TVRMLTokenInfoList);
 
   procedure AssertEqualTokens(const T1, T2: TVRMLTokenInfo);
 
@@ -203,7 +203,7 @@ var
   I: Integer;
 begin
   Assert(Count = SecondValue.Count, Format(
-    'TDynVRMLTokenInfoArray.Equal: different counts %d and %d',
+    'TVRMLTokenInfoList.Equal: different counts %d and %d',
     [Count, SecondValue.Count]));
   for I := 0 to Count - 1 do
     AssertEqualTokens(L[I], SecondValue.L[I]);
@@ -215,7 +215,7 @@ end;
   methods because of unfortunately
   1. invalid VRML files (that use some funny node names)
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
-procedure TDynVRMLTokenInfoArray.ReadFromFile(const FileName: string);
+procedure TVRMLTokenInfoList.ReadFromFile(const FileName: string);
 var
   Lexer: TVRMLLexer;
 
@@ -248,7 +248,7 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
 
   procedure TestReadWrite(const FileName: string);
   var
-    First, Second: TDynVRMLTokenInfoArray;
+    First, Second: TVRMLTokenInfoList;
     Node: TVRMLNode;
     S: TMemoryStream;
     SPeek: TPeekCharStream;
@@ -258,14 +258,14 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
     Second := nil;
     Node := nil;
     try
-      First := TDynVRMLTokenInfoArray.Create;
+      First := TVRMLTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
       Node := LoadVRMLClassic(FileName, false);
       NewFile := GetTempPath + 'test_kambi_vrml_game_engine.wrl';
       SaveVRML(Node, NewFile, ProgramName, '', xeClassic, false);
 
-      Second := TDynVRMLTokenInfoArray.Create;
+      Second := TVRMLTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
 
       First.AssertEqual(Second);
@@ -903,10 +903,10 @@ end;
 
 procedure TTestVRMLNodes.TestDestructionNotification;
 var
-  A: TDynNodeDestructionNotificationArray;
+  A: TNodeDestructionNotificationList;
   M1, M2, M3: TMyObject;
 begin
-  A := TDynNodeDestructionNotificationArray.Create;
+  A := TNodeDestructionNotificationList.Create;
   M1 := TMyObject.Create;
   M2 := TMyObject.Create;
   M3 := TMyObject.Create;

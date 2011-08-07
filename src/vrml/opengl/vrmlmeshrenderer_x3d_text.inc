@@ -28,7 +28,7 @@ type
     procedure RenderText(
       const Size, Spacing: Single;
       const Justify: TVRMLFontJustify;
-      const Strings: TDynStringArray;
+      const Strings: TGenericStringList;
       CurrentFont: TGLOutlineFont;
       const Depth: Single;
       const CullBackFaces: boolean;
@@ -55,14 +55,14 @@ type
 procedure TAbstractTextRenderer.RenderText(
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
-  const Strings: TDynStringArray;
+  const Strings: TGenericStringList;
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
   const CullBackFaces: boolean;
   const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
 
 var
-  TextWidths: TDynSingleArray;
+  TextWidths: TSingleList;
 
   { StringPos* ignore Size, just assume that CurrentFont has right size. }
   function StringPosX(I: Integer): TGLfloat;
@@ -159,7 +159,7 @@ begin
     Use width for VRML 1.0. }
   XScale := YScale;
 
-  TextWidths := TDynSingleArray.Create;
+  TextWidths := TSingleList.Create;
   try
     TextWidths.Count := Strings.Count;
     MaxTextWidth := 0;

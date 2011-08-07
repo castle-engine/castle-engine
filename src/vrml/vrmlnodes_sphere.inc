@@ -14,9 +14,9 @@
 }
 
 { Make a sphere. }
-procedure Sphere_Proxy(CoordIndex: TDynLongIntArray;
-  Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
-  TexCoord: TDynVector2SingleArray;
+procedure Sphere_Proxy(CoordIndex: TLongIntList;
+  Coord: TVector3SingleList; Normal: TVector3SingleList;
+  TexCoord: TVector2SingleList;
   OverTriangulate: boolean; const Radius: Single;
   KambiTriangulation: TNodeKambiTriangulation);
 var
@@ -180,7 +180,7 @@ var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate;
-  TexCoords: TDynVector2SingleArray;
+  TexCoords: TVector2SingleList;
   IFS: TNodeIndexedFaceSet absolute Result;
 begin
   IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);

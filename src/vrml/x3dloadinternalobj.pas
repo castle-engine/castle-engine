@@ -64,15 +64,15 @@ type
   end;
   PWavefrontFace = ^TWavefrontFace;
 
-  TDynWavefrontFaceArray = specialize TGenericStructList<TWavefrontFace>;
+  TWavefrontFaceList = specialize TGenericStructList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class
   private
-    FVerts: TDynVector3SingleArray;
-    FTexCoords: TDynVector2SingleArray;
-    FNormals: TDynVector3SingleArray;
-    FFaces: TDynWavefrontFaceArray;
+    FVerts: TVector3SingleList;
+    FTexCoords: TVector2SingleList;
+    FNormals: TVector3SingleList;
+    FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
   public
     constructor Create(const fname: string);
@@ -84,10 +84,10 @@ type
 
       Contents of Verts, TexCoords, Normals and Faces are read-only
       for users of this class. }
-    property Verts: TDynVector3SingleArray read FVerts;
-    property TexCoords: TDynVector2SingleArray read FTexCoords;
-    property Normals: TDynVector3SingleArray read FNormals;
-    property Faces: TDynWavefrontFaceArray read FFaces;
+    property Verts: TVector3SingleList read FVerts;
+    property TexCoords: TVector2SingleList read FTexCoords;
+    property Normals: TVector3SingleList read FNormals;
+    property Faces: TWavefrontFaceList read FFaces;
     { @groupEnd }
 
     property Materials: TWavefrontMaterialList read FMaterials;
@@ -403,10 +403,10 @@ begin
 
   BasePath := ExtractFilePath(ExpandFileName(FName));
 
-  FVerts := TDynVector3SingleArray.Create;
-  FTexCoords := TDynVector2SingleArray.Create;
-  FNormals := TDynVector3SingleArray.Create;
-  FFaces := TDynWavefrontFaceArray.Create;
+  FVerts := TVector3SingleList.Create;
+  FTexCoords := TVector2SingleList.Create;
+  FNormals := TVector3SingleList.Create;
+  FFaces := TWavefrontFaceList.Create;
   FMaterials := TWavefrontMaterialList.Create(true);
 
   UsedMaterial := nil;

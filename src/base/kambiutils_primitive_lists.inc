@@ -18,20 +18,20 @@
 {$ifdef read_interface}
 
 type
-  TDynSingleArray = class;
-  TDynDoubleArray = class;
-  TDynLongIntArray = class;
+  TSingleList = class;
+  TDoubleList = class;
+  TLongIntList = class;
 
-  TDynLongWordArray = class(specialize TFPGList<LongWord>)
+  TLongWordList = class(specialize TFPGList<LongWord>)
   public
-    procedure AddList(Source: TDynLongWordArray);
+    procedure AddList(Source: TLongWordList);
     procedure AddArray(const A: array of LongWord);
     function L: PLongWord;
   end;
 
-  TDynFloatArray = class(specialize TFPGList<Float>)
-    procedure AppendFloats(Floats: TDynSingleArray);
-    procedure AddList(Source: TDynFloatArray);
+  TFloatList = class(specialize TFPGList<Float>)
+    procedure AppendFloats(Floats: TSingleList);
+    procedure AddList(Source: TFloatList);
     procedure AddArray(const A: array of Float);
     function L: PFloat;
   end;
@@ -39,11 +39,11 @@ type
   TArray_Single = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
   PArray_Single = ^TArray_Single;
 
-  TDynSingleArray = class(specialize TFPGList<Single>)
-    procedure AppendFloats(Floats: TDynFloatArray);
-    function ToDouble: TDynDoubleArray;
-    { Assign value from TDynDoubleArray, converting to double-precision. }
-    procedure Assign(Source: TDynDoubleArray); overload;
+  TSingleList = class(specialize TFPGList<Single>)
+    procedure AppendFloats(Floats: TFloatList);
+    function ToDouble: TDoubleList;
+    { Assign value from TDoubleList, converting to double-precision. }
+    procedure Assign(Source: TDoubleList); overload;
 
     { Assign linear interpolation between two other float arrays.
       We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
@@ -54,31 +54,31 @@ type
       But their ranges should not overlap, for future optimizations
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TDynSingleArray; Index1, Index2, ACount: Integer);
-    procedure AddList(Source: TDynSingleArray);
-    procedure AddListRange(Source: TDynSingleArray; Index, AddCount: Integer);
+      V1, V2: TSingleList; Index1, Index2, ACount: Integer);
+    procedure AddList(Source: TSingleList);
+    procedure AddListRange(Source: TSingleList; Index, AddCount: Integer);
     procedure AddArray(const A: array of Single);
     function L: PSingle;
   end;
 
-  TDynDoubleArray = class(specialize TFPGList<Double>)
-    function ToSingle: TDynSingleArray;
-    { Assign value from TDynSingleArray, converting to double-precision. }
-    procedure Assign(Source: TDynSingleArray); overload;
-    procedure AddList(Source: TDynDoubleArray);
+  TDoubleList = class(specialize TFPGList<Double>)
+    function ToSingle: TSingleList;
+    { Assign value from TSingleList, converting to double-precision. }
+    procedure Assign(Source: TSingleList); overload;
+    procedure AddList(Source: TDoubleList);
     procedure AddArray(const A: array of Double);
     function L: PDouble;
   end;
 
-  TDynCardinalArray = class(specialize TFPGList<Cardinal>)
+  TCardinalList = class(specialize TFPGList<Cardinal>)
     function BigSum: Int64;
     function Sum: Cardinal;
-    procedure AddList(Source: TDynCardinalArray);
+    procedure AddList(Source: TCardinalList);
     procedure AddArray(const A: array of Cardinal);
     function L: PCardinal;
   end;
 
-  TDynBooleanArray = class(specialize TFPGList<boolean>)
+  TBooleanList = class(specialize TFPGList<boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -89,8 +89,8 @@ type
     procedure SetFalse(Index: Integer);
     procedure SetTrue(Index: Integer);
     { @groupEnd }
-    function ToLongInt: TDynLongIntArray;
-    procedure AddList(Source: TDynBooleanArray);
+    function ToLongInt: TLongIntList;
+    procedure AddList(Source: TBooleanList);
     procedure AddArray(const A: array of boolean);
     function L: PBoolean;
   end;
@@ -98,29 +98,29 @@ type
   TArray_LongInt = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
   PArray_LongInt = ^TArray_LongInt;
 
-  TDynLongIntArray = class(specialize TFPGList<LongInt>)
+  TLongIntList = class(specialize TFPGList<LongInt>)
   public
     function Max: LongInt;
     function Sum: LongInt;
     procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
-    procedure AddList(Source: TDynLongIntArray);
+    procedure AddList(Source: TLongIntList);
     procedure AddArray(const A: array of LongInt);
     { Add given Item a number of times to the list. }
     procedure AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
     function L: PLongInt;
   end;
 
-  TDynIntegerArray = class(specialize TFPGList<Integer>)
+  TIntegerList = class(specialize TFPGList<Integer>)
   public
     function Sum: Integer;
-    procedure AddList(Source: TDynIntegerArray);
+    procedure AddList(Source: TIntegerList);
     procedure AddArray(const A: array of Integer);
     function L: PInteger;
   end;
 
-  TDynStringArray = class(specialize TFPGList<string>)
+  TGenericStringList = class(specialize TFPGList<string>)
   public
-    procedure AddList(Source: TDynStringArray);
+    procedure AddList(Source: TGenericStringList);
     procedure AddArray(const A: array of string);
     procedure AssignArray(const A: array of string);
     function L: PString;
@@ -130,9 +130,9 @@ type
 
 {$ifdef read_implementation}
 
-{ TDynLongWordArray ------------------------------------------------------------ }
+{ TLongWordList ------------------------------------------------------------ }
 
-procedure TDynLongWordArray.AddList(Source: TDynLongWordArray);
+procedure TLongWordList.AddList(Source: TLongWordList);
 var
   OldCount: Integer;
 begin
@@ -142,7 +142,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(LongWord) * Source.Count);
 end;
 
-procedure TDynLongWordArray.AddArray(const A: array of LongWord);
+procedure TLongWordList.AddArray(const A: array of LongWord);
 var
   OldCount: Integer;
 begin
@@ -152,14 +152,14 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(LongWord) * (High(A) + 1));
 end;
 
-function TDynLongWordArray.L: PLongWord;
+function TLongWordList.L: PLongWord;
 begin
   Result := PLongWord(FList);
 end;
 
-{ TDynFloatArray ------------------------------------------------------------ }
+{ TFloatList ------------------------------------------------------------ }
 
-procedure TDynFloatArray.AppendFloats(Floats: TDynSingleArray);
+procedure TFloatList.AppendFloats(Floats: TSingleList);
 var OldCount, i: Integer;
 begin
  OldCount := Count;
@@ -167,7 +167,7 @@ begin
  for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
 end;
 
-procedure TDynFloatArray.AddList(Source: TDynFloatArray);
+procedure TFloatList.AddList(Source: TFloatList);
 var
   OldCount: Integer;
 begin
@@ -177,7 +177,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(Float) * Source.Count);
 end;
 
-procedure TDynFloatArray.AddArray(const A: array of Float);
+procedure TFloatList.AddArray(const A: array of Float);
 var
   OldCount: Integer;
 begin
@@ -187,14 +187,14 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(Float) * (High(A) + 1));
 end;
 
-function TDynFloatArray.L: PFloat;
+function TFloatList.L: PFloat;
 begin
   Result := PFloat(FList);
 end;
 
-{ TDynSingleArray ------------------------------------------------------------ }
+{ TSingleList ------------------------------------------------------------ }
 
-procedure TDynSingleArray.AppendFloats(Floats: TDynFloatArray);
+procedure TSingleList.AppendFloats(Floats: TFloatList);
 var OldCount, i: Integer;
 begin
  OldCount := Count;
@@ -202,13 +202,13 @@ begin
  for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
 end;
 
-function TDynSingleArray.ToDouble: TDynDoubleArray;
+function TSingleList.ToDouble: TDoubleList;
 begin
-  Result := TDynDoubleArray.Create;
+  Result := TDoubleList.Create;
   Result.Assign(Self);
 end;
 
-procedure TDynSingleArray.Assign(Source: TDynDoubleArray);
+procedure TSingleList.Assign(Source: TDoubleList);
 var
   I: Integer;
   Src: PDouble;
@@ -225,8 +225,8 @@ begin
   end;
 end;
 
-procedure TDynSingleArray.AssignLerp(const Fraction: Single;
-  V1, V2: TDynSingleArray; Index1, Index2, ACount: Integer);
+procedure TSingleList.AssignLerp(const Fraction: Single;
+  V1, V2: TSingleList; Index1, Index2, ACount: Integer);
 var
   I: Integer;
 begin
@@ -235,7 +235,7 @@ begin
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
-procedure TDynSingleArray.AddList(Source: TDynSingleArray);
+procedure TSingleList.AddList(Source: TSingleList);
 var
   OldCount: Integer;
 begin
@@ -245,7 +245,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(Single) * Source.Count);
 end;
 
-procedure TDynSingleArray.AddListRange(Source: TDynSingleArray; Index, AddCount: Integer);
+procedure TSingleList.AddListRange(Source: TSingleList; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
@@ -255,7 +255,7 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(Single) * AddCount);
 end;
 
-procedure TDynSingleArray.AddArray(const A: array of Single);
+procedure TSingleList.AddArray(const A: array of Single);
 var
   OldCount: Integer;
 begin
@@ -265,20 +265,20 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(Single) * (High(A) + 1));
 end;
 
-function TDynSingleArray.L: PSingle;
+function TSingleList.L: PSingle;
 begin
   Result := PSingle(FList);
 end;
 
-{ TDynDoubleArray ------------------------------------------------------------ }
+{ TDoubleList ------------------------------------------------------------ }
 
-function TDynDoubleArray.ToSingle: TDynSingleArray;
+function TDoubleList.ToSingle: TSingleList;
 begin
-  Result := TDynSingleArray.Create;
+  Result := TSingleList.Create;
   Result.Assign(Self);
 end;
 
-procedure TDynDoubleArray.Assign(Source: TDynSingleArray);
+procedure TDoubleList.Assign(Source: TSingleList);
 var
   I: Integer;
   Src: PSingle;
@@ -295,7 +295,7 @@ begin
   end;
 end;
 
-procedure TDynDoubleArray.AddList(Source: TDynDoubleArray);
+procedure TDoubleList.AddList(Source: TDoubleList);
 var
   OldCount: Integer;
 begin
@@ -305,7 +305,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(Double) * Source.Count);
 end;
 
-procedure TDynDoubleArray.AddArray(const A: array of Double);
+procedure TDoubleList.AddArray(const A: array of Double);
 var
   OldCount: Integer;
 begin
@@ -315,21 +315,21 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(Double) * (High(A) + 1));
 end;
 
-function TDynDoubleArray.L: PDouble;
+function TDoubleList.L: PDouble;
 begin
   Result := PDouble(FList);
 end;
 
-{ TDynCardinalArray ------------------------------------------------------------ }
+{ TCardinalList ------------------------------------------------------------ }
 
-function TDynCardinalArray.BigSum: Int64;
+function TCardinalList.BigSum: Int64;
 var i: integer;
 begin
  result := 0;
  for i := 0 to Count-1 do result := result + Items[i];
 end;
 
-function TDynCardinalArray.Sum: Cardinal;
+function TCardinalList.Sum: Cardinal;
 var
   I: Integer;
 begin
@@ -338,7 +338,7 @@ begin
     Result += Items[I];
 end;
 
-procedure TDynCardinalArray.AddList(Source: TDynCardinalArray);
+procedure TCardinalList.AddList(Source: TCardinalList);
 var
   OldCount: Integer;
 begin
@@ -348,7 +348,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(Cardinal) * Source.Count);
 end;
 
-procedure TDynCardinalArray.AddArray(const A: array of Cardinal);
+procedure TCardinalList.AddArray(const A: array of Cardinal);
 var
   OldCount: Integer;
 begin
@@ -358,34 +358,34 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(Cardinal) * (High(A) + 1));
 end;
 
-function TDynCardinalArray.L: PCardinal;
+function TCardinalList.L: PCardinal;
 begin
   Result := PCardinal(FList);
 end;
 
-{ TDynBooleanArray ------------------------------------------------------------ }
+{ TBooleanList ------------------------------------------------------------ }
 
-procedure TDynBooleanArray.SetFalse(Index: Integer);
+procedure TBooleanList.SetFalse(Index: Integer);
 begin
  Items[Index] := false;
 end;
 
-procedure TDynBooleanArray.SetTrue(Index: Integer);
+procedure TBooleanList.SetTrue(Index: Integer);
 begin
  Items[Index] := true;
 end;
 
-function TDynBooleanArray.ToLongInt: TDynLongIntArray;
+function TBooleanList.ToLongInt: TLongIntList;
 var
   I: Integer;
 begin
-  Result := TDynLongIntArray.Create;
+  Result := TLongIntList.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
     Result.Items[I] := Ord(Items[I]);
 end;
 
-procedure TDynBooleanArray.AddList(Source: TDynBooleanArray);
+procedure TBooleanList.AddList(Source: TBooleanList);
 var
   OldCount: Integer;
 begin
@@ -395,7 +395,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(boolean) * Source.Count);
 end;
 
-procedure TDynBooleanArray.AddArray(const A: array of boolean);
+procedure TBooleanList.AddArray(const A: array of boolean);
 var
   OldCount: Integer;
 begin
@@ -405,14 +405,14 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(boolean) * (High(A) + 1));
 end;
 
-function TDynBooleanArray.L: PBoolean;
+function TBooleanList.L: PBoolean;
 begin
   Result := PBoolean(FList);
 end;
 
-{ TDynLongIntArray ----------------------------------------------------------- }
+{ TLongIntList ----------------------------------------------------------- }
 
-function TDynLongIntArray.Max: LongInt;
+function TLongIntList.Max: LongInt;
 var
   I: Integer;
 begin
@@ -421,7 +421,7 @@ begin
     MaxTo1st(Result, Items[I]);
 end;
 
-function TDynLongIntArray.Sum: LongInt;
+function TLongIntList.Sum: LongInt;
 var
   I: Integer;
 begin
@@ -430,7 +430,7 @@ begin
     Result += Items[I];
 end;
 
-procedure TDynLongIntArray.DeleteRange(const Index: Integer; DelCount: Integer);
+procedure TLongIntList.DeleteRange(const Index: Integer; DelCount: Integer);
 var
   I: Integer;
 begin
@@ -445,7 +445,7 @@ begin
   Count := Count - DelCount;
 end;
 
-procedure TDynLongIntArray.AddList(Source: TDynLongIntArray);
+procedure TLongIntList.AddList(Source: TLongIntList);
 var
   OldCount: Integer;
 begin
@@ -455,7 +455,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(LongInt) * Source.Count);
 end;
 
-procedure TDynLongIntArray.AddArray(const A: array of LongInt);
+procedure TLongIntList.AddArray(const A: array of LongInt);
 var
   OldCount: Integer;
 begin
@@ -465,7 +465,7 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(LongInt) * (High(A) + 1));
 end;
 
-procedure TDynLongIntArray.AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
+procedure TLongIntList.AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
 var
   I, C: Integer;
 begin
@@ -475,14 +475,14 @@ begin
     Items[I] := Item;
 end;
 
-function TDynLongIntArray.L: PLongInt;
+function TLongIntList.L: PLongInt;
 begin
   Result := PLongInt(FList);
 end;
 
-{ TDynIntegerArray ----------------------------------------------------------- }
+{ TIntegerList ----------------------------------------------------------- }
 
-function TDynIntegerArray.Sum: Integer;
+function TIntegerList.Sum: Integer;
 var
   I: Integer;
 begin
@@ -491,7 +491,7 @@ begin
     Result += Items[I];
 end;
 
-procedure TDynIntegerArray.AddList(Source: TDynIntegerArray);
+procedure TIntegerList.AddList(Source: TIntegerList);
 var
   OldCount: Integer;
 begin
@@ -501,7 +501,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(Integer) * Source.Count);
 end;
 
-procedure TDynIntegerArray.AddArray(const A: array of Integer);
+procedure TIntegerList.AddArray(const A: array of Integer);
 var
   OldCount: Integer;
 begin
@@ -511,14 +511,14 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(Integer) * (High(A) + 1));
 end;
 
-function TDynIntegerArray.L: PInteger;
+function TIntegerList.L: PInteger;
 begin
   Result := PInteger(FList);
 end;
 
-{ TDynStringArray ------------------------------------------------------------ }
+{ TGenericStringList ------------------------------------------------------------ }
 
-procedure TDynStringArray.AddList(Source: TDynStringArray);
+procedure TGenericStringList.AddList(Source: TGenericStringList);
 var
   OldCount: Integer;
 begin
@@ -528,7 +528,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(string) * Source.Count);
 end;
 
-procedure TDynStringArray.AddArray(const A: array of string);
+procedure TGenericStringList.AddArray(const A: array of string);
 var
   OldCount: Integer;
 begin
@@ -538,13 +538,13 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(string) * (High(A) + 1));
 end;
 
-procedure TDynStringArray.AssignArray(const A: array of string);
+procedure TGenericStringList.AssignArray(const A: array of string);
 begin
   Clear;
   AddArray(A);
 end;
 
-function TDynStringArray.L: PString;
+function TGenericStringList.L: PString;
 begin
   Result := PString(FList);
 end;

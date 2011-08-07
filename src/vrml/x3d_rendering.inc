@@ -246,7 +246,7 @@
       Returns @true if this is available. In this case, RangeCount must
       be set to something <> nil, and the rest of returned variables
       are mainly to generate proper warnings by MakeCoordRanges. }
-    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+    function CoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; virtual;
 
@@ -452,13 +452,17 @@
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
 
-    { Returns normal.vector, assuming that "normal" field is set
-      and specified Normal node. Otherwise returns @nil. }
+    { Returns normal vectors that are specified explicitly.
+      The vectors are taken from the Normal node inside our FdNormal field.
+      In case of problems (no Normal node specified, invalid node specified etc.)
+      returns @nil. }
     function Normal: TMFVec3f;
 
-    { Returns normal.vector, assuming that "normal" field is set
-      and specified Normal node, as TDynVector3Single. Otherwise returns @nil. }
-    function NormalItems: TDynVector3SingleArray;
+    { Returns normal vectors that are specified explicitly.
+      The vectors are taken from the Normal node inside our FdNormal field.
+      In case of problems (no Normal node specified, invalid node specified etc.)
+      returns @nil. }
+    function NormalItems: TVector3SingleList;
   end;
 
   TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
@@ -680,7 +684,7 @@
     function Coord(State: TVRMLGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+    function CoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
 
@@ -754,7 +758,7 @@
     private FFdFanCount: TMFInt32;
     public property FdFanCount: TMFInt32 read FFdFanCount;
 
-    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+    function CoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
 
@@ -789,7 +793,7 @@
     private FFdStripCount: TMFInt32;
     public property FdStripCount: TMFInt32 read FFdStripCount;
 
-    function CoordRangesCounts(out RangeCount: TDynLongIntArray;
+    function CoordRangesCounts(out RangeCount: TLongIntList;
       out SRanges, SRangeName: string;
       out RangeMinimumCount: Cardinal): boolean; override;
 
@@ -832,7 +836,7 @@ begin
 end;
 
 function TVRMLGeometryNode.CoordRangesCounts(
-  out RangeCount: TDynLongIntArray;
+  out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -845,7 +849,7 @@ procedure TVRMLGeometryNode.MakeCoordRanges(
 var
   BeginIndex, EndIndex: Integer;
   RangeNumber: Cardinal;
-  RangeCount: TDynLongIntArray;
+  RangeCount: TLongIntList;
   SRanges, SRangeName: string;
   RangeMinimumCount: Cardinal;
   C: TMFVec3f;
@@ -1111,7 +1115,7 @@ begin
     Result := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.NormalItems: TDynVector3SingleArray;
+function TNodeX3DComposedGeometryNode.NormalItems: TVector3SingleList;
 begin
   if (FdNormal.Value <> nil) and
      (FdNormal.Value is TNodeNormal) then
@@ -1557,7 +1561,7 @@ begin
 end;
 
 function TNodeLineSet.CoordRangesCounts(
-  out RangeCount: TDynLongIntArray;
+  out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -1720,7 +1724,7 @@ begin
 end;
 
 function TNodeTriangleFanSet.CoordRangesCounts(
-  out RangeCount: TDynLongIntArray;
+  out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin
@@ -1769,7 +1773,7 @@ begin
 end;
 
 function TNodeTriangleStripSet.CoordRangesCounts(
-  out RangeCount: TDynLongIntArray;
+  out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
 begin

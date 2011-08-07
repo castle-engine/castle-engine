@@ -86,7 +86,7 @@ operator <= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
 {$endif FPC_OBJFPC}
 
 type
-  TDynVRMLTimeArray = specialize TGenericStructList<TVRMLTime>;
+  TVRMLTimeList = specialize TGenericStructList<TVRMLTime>;
 
 implementation
 

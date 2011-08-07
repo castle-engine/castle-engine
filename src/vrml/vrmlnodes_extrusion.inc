@@ -165,7 +165,7 @@ procedure TVRMLExtrusion.SpineTransformTo1st(Spine: Cardinal;
   var LastY, LastZ: TVector3Single;
   out Transform: TMatrix4Single);
 var
-  SpinePoints: TDynVector3SingleArray;
+  SpinePoints: TVector3SingleList;
 
   { Calculate Z by searching for the first non-colinear three spine
     points. @false if not found. }

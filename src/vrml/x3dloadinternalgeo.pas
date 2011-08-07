@@ -36,8 +36,8 @@ type
     Note that contents of Verts and Faces are read-only for user of this unit. }
   TObject3DGEO = class
   public
-    Verts: TDynVector3SingleArray;
-    Faces: TDynVector3CardinalArray;
+    Verts: TVector3SingleList;
+    Faces: TVector3CardinalList;
     constructor Create(const fname: string);
     destructor Destroy; override;
   end;
@@ -98,8 +98,8 @@ var
   VertsCount, PolysCount, VertsInPolysCount: Integer;
 begin
  inherited Create;
- Verts := TDynVector3SingleArray.Create;
- Faces := TDynVector3CardinalArray.Create;
+ Verts := TVector3SingleList.Create;
+ Faces := TVector3CardinalList.Create;
 
  SafeReset(f, fname, true);
  try

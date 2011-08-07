@@ -183,7 +183,7 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOpacity: Single;
-    FVerticalSeparators: TDynCardinalArray;
+    FVerticalSeparators: TCardinalList;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
   public
@@ -202,7 +202,7 @@ type
 
       Values are the horizontal positions of the separators (with respect
       to this panel @link(Left)). Width of the separator is in SeparatorSize. }
-    property VerticalSeparators: TDynCardinalArray read FVerticalSeparators;
+    property VerticalSeparators: TCardinalList read FVerticalSeparators;
     class function SeparatorSize: Cardinal;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
@@ -728,7 +728,7 @@ constructor TKamPanel.Create(AOwner: TComponent);
 begin
   inherited;
   FOpacity := 1;
-  FVerticalSeparators := TDynCardinalArray.Create;
+  FVerticalSeparators := TCardinalList.Create;
 end;
 
 destructor TKamPanel.Destroy;

@@ -55,14 +55,14 @@ type
 
   TSceneSector = class
   private
-    FBoundingBoxes: TDynBox3DArray;
-    FVisibleSectors: TDynBooleanArray;
+    FBoundingBoxes: TBox3DList;
+    FVisibleSectors: TBooleanList;
     FWaypoints: TSceneWaypointList;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property BoundingBoxes: TDynBox3DArray read FBoundingBoxes;
+    property BoundingBoxes: TBox3DList read FBoundingBoxes;
 
     { Returns whether Point is inside the sector.
       Implementation in TSceneSector just returns if Point is inside
@@ -94,7 +94,7 @@ type
       Always Sectors[I].VisibleSectors[I] = @true, i.e. the sector
       is visible from itself (assuming that VisibleSectors has
       enough length to contain I). }
-    property VisibleSectors: TDynBooleanArray read FVisibleSectors;
+    property VisibleSectors: TBooleanList read FVisibleSectors;
 
     { Waypoints that are included in this sector. }
     property Waypoints: TSceneWaypointList read FWaypoints;
@@ -244,8 +244,8 @@ end;
 constructor TSceneSector.Create;
 begin
   inherited Create;
-  FBoundingBoxes := TDynBox3DArray.Create;
-  FVisibleSectors := TDynBooleanArray.Create;
+  FBoundingBoxes := TBox3DList.Create;
+  FVisibleSectors := TBooleanList.Create;
   FWaypoints := TSceneWaypointList.Create(false);
 end;
 

@@ -112,12 +112,12 @@ type
     and still allowing fast dynamic updates in common cases. }
   TGeometryArrays = class
   private
-    FIndexes: TDynLongIntArray;
+    FIndexes: TLongIntList;
     FIndexesCount: Cardinal;
     FHasIndexes: boolean;
     FPrimitive: TGeometryPrimitive;
     FCount: Integer;
-    FCounts: TDynCardinalArray;
+    FCounts: TCardinalList;
     FDataFreed: boolean;
 
     FAttributeArray: Pointer;
@@ -175,7 +175,7 @@ type
       this vertex position will just have to be duplicated (which is OK,
       as the calculation results couldn't be shared anyway,
       since normal/color are different). }
-    property Indexes: TDynLongIntArray read FIndexes write FIndexes;
+    property Indexes: TLongIntList read FIndexes write FIndexes;
 
     { Information about Indexes.
 
@@ -205,7 +205,7 @@ type
 
       The sum of values must be equal to the Indexes.Count
       (if Indexes assigned) or arrays Count (if Indexes not assigned). }
-    property Counts: TDynCardinalArray read FCounts write FCounts;
+    property Counts: TCardinalList read FCounts write FCounts;
 
     { Memory containing vertex positions and normals, that is everything
       that changes during Coordinate.coord animation.

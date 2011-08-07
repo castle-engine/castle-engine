@@ -139,7 +139,7 @@ type
   end;
   POption = ^TOption;
 
-  TDynOptionArray = specialize TGenericStructList<TOption>;
+  TOptionList = specialize TGenericStructList<TOption>;
   TOption_Array = array [0..MaxInt div SizeOf(TOption) - 1] of TOption;
   POption_Array = ^TOption_Array;
 
@@ -308,7 +308,7 @@ type
     procedure Parse(const Options: array of TOption;
       OptionProc: TOptionProc; OptionProcData: Pointer;
       ParseOnlyKnownLongOptions: boolean = false); overload;
-    procedure Parse(Options: TDynOptionArray;
+    procedure Parse(Options: TOptionList;
       OptionProc: TOptionProc; OptionProcData: Pointer;
       ParseOnlyKnownLongOptions: boolean = false); overload;
     { @groupEnd }
@@ -406,7 +406,7 @@ begin
     ParseOnlyKnownLongOptions);
 end;
 
-procedure TParameters.Parse(Options: TDynOptionArray; OptionProc: TOptionProc;
+procedure TParameters.Parse(Options: TOptionList; OptionProc: TOptionProc;
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
   Parse(POption_Array(Options.List), Options.Count,
@@ -503,7 +503,7 @@ procedure TParameters.Parse(
   end;
 
   function ParseShortParameter(const s: string; var HasArgument: boolean;
-    var Argument: string; SimpleShortOptions: TDynIntegerArray): Integer;
+    var Argument: string; SimpleShortOptions: TIntegerList): Integer;
   { s jest jakims parametrem zaczynajacym sie od '-' i nie bedacym '-'.
     Dziala tak jak ParseLongParameter tyle ze nigdy nie zwraca -1
     (podany s MUSI zawierac znany parametr).
@@ -544,10 +544,10 @@ var i, j, k, OptionNum: Integer;
     HasArgument: boolean;
     Argument, OptionName: string;
     SeparateArgs: TSeparateArgs;
-    SimpleShortOptions: TDynIntegerArray;
+    SimpleShortOptions: TIntegerList;
 begin
  i := 1;
- SimpleShortOptions := TDynIntegerArray.Create;
+ SimpleShortOptions := TIntegerList.Create;
  try
 
   while i <= High do

@@ -45,9 +45,9 @@ end;
 
 procedure TTestBasicLists.TestSetCountItems;
 var
-  iarr: TDynIntegerArray;
+  iarr: TIntegerList;
 begin
-  iarr := TDynIntegerArray.Create;
+  iarr := TIntegerList.Create;
   try
     Assert(iarr.Count = 0);
 
@@ -65,7 +65,7 @@ end;
 
 procedure TTestBasicLists.TestPrimitiveLists;
 
-  function Equal(const S1: TDynStringArray; const S2: array of string): boolean;
+  function Equal(const S1: TGenericStringList; const S2: array of string): boolean;
   var
     I: Integer;
   begin
@@ -79,7 +79,7 @@ procedure TTestBasicLists.TestPrimitiveLists;
     end;
   end;
 
-  function Equal(const S1: TDynIntegerArray; const S2: array of Integer): boolean;
+  function Equal(const S1: TIntegerList; const S2: array of Integer): boolean;
   var
     I: Integer;
   begin
@@ -93,7 +93,7 @@ procedure TTestBasicLists.TestPrimitiveLists;
     end;
   end;
 
-  function Equal(const S1, S2: TDynIntegerArray): boolean;
+  function Equal(const S1, S2: TIntegerList): boolean;
   var
     I: Integer;
   begin
@@ -107,7 +107,7 @@ procedure TTestBasicLists.TestPrimitiveLists;
     end;
   end;
 
-  procedure Reverse(S: TDynStringArray);
+  procedure Reverse(S: TGenericStringList);
   var
     I: Integer;
   begin
@@ -118,14 +118,14 @@ procedure TTestBasicLists.TestPrimitiveLists;
       S.Exchange(I, S.Count - 1 - I);
   end;
 
-var sarr, sarr2: TDynStringArray;
-    iarr, iarr2: TDynIntegerArray; { tablica int nie jest init_fini }
+var sarr, sarr2: TGenericStringList;
+    iarr, iarr2: TIntegerList; { tablica int nie jest init_fini }
     i, j: integer;
 const twoStrings: array[0..1]of string = ('raz','dwa');
 begin
  for i := 1 to 100 do
  begin
-  sarr := TDynStringArray.Create;
+  sarr := TGenericStringList.Create;
   try
    sarr.Capacity := Random(8);
    sarr.Count := 4;
@@ -141,7 +141,7 @@ begin
    Reverse(sarr);
    Assert(Equal(sarr, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
-   sarr2 := TDynStringArray.Create;
+   sarr2 := TGenericStringList.Create;
    try
     sarr2.Add('blah');
     Assert(Equal(sarr2, ['blah']));
@@ -165,7 +165,7 @@ begin
   finally sarr.Free end;
  end;
 
- sarr := TDynStringArray.Create;
+ sarr := TGenericStringList.Create;
  try
   { na tablicy o 0 liczbie elementow tez wszystko powinno isc ok }
   Assert(sarr.Count = 0);
@@ -176,8 +176,8 @@ begin
  iarr := nil;
  iarr2 := nil;
  try
-  iarr := TDynIntegerArray.Create;
-  iarr2 := TDynIntegerArray.Create;
+  iarr := TIntegerList.Create;
+  iarr2 := TIntegerList.Create;
   Assert(Equal(iarr, iarr2));
   Assert(iarr.Sum = 0);
   Assert(iarr2.Sum = 0);
@@ -235,9 +235,9 @@ end;
 
 procedure TTestBasicLists.TestVectorMathLists;
 var
-  vecs: TDynVector3SingleArray;
+  vecs: TVector3SingleList;
 begin
-  vecs := TDynVector3SingleArray.Create;
+  vecs := TVector3SingleList.Create;
   try
     vecs.Add(Vector3Single(1.0, 2.0, 3.0));
     vecs.Add(Vector3Single(4.0, 5.0, 6.0));
@@ -250,10 +250,10 @@ end;
 
 procedure TTestBasicLists.TestListsAssign;
 var
-  V1, V2: TDynVector3SingleArray;
+  V1, V2: TVector3SingleList;
 begin
-  V1 := TDynVector3SingleArray.Create;
-  V2 := TDynVector3SingleArray.Create;
+  V1 := TVector3SingleList.Create;
+  V2 := TVector3SingleList.Create;
   try
     V1.Add(Vector3Single(1.0, 2.0, 3.0));
     V1.Add(Vector3Single(4.0, 5.0, 6.0));
@@ -278,11 +278,11 @@ end;
 
 procedure TTestBasicLists.TestListsAssignLerp;
 var
-  V1, V2, V3: TDynVector3SingleArray;
+  V1, V2, V3: TVector3SingleList;
 begin
-  V1 := TDynVector3SingleArray.Create;
-  V2 := TDynVector3SingleArray.Create;
-  V3 := TDynVector3SingleArray.Create;
+  V1 := TVector3SingleList.Create;
+  V2 := TVector3SingleList.Create;
+  V3 := TVector3SingleList.Create;
   try
     V1.Add(Vector3Single(1.0, 2.0, 3.0));
     V1.Add(Vector3Single(4.0, 5.0, 6.0));
@@ -309,27 +309,27 @@ end;
 
 procedure TTestBasicLists.TestZero;
 var
-  B: TDynBooleanArray;
-  O: TDynIntegerArray;
-  F: TDynSingleArray;
+  B: TBooleanList;
+  O: TIntegerList;
+  F: TSingleList;
   I: Integer;
 begin
   { For lists based on TFPGList, increasing count always initializes new memory
     to zero. }
 
-  B := TDynBooleanArray.Create;
+  B := TBooleanList.Create;
   B.Count := 10;
   for I := 0 to B.Count - 1 do
     Assert(not B[I]);
   FreeAndNil(B);
 
-  O := TDynIntegerArray.Create;
+  O := TIntegerList.Create;
   O.Count := 10;
   for I := 0 to O.Count - 1 do
     Assert(O[I] = 0);
   FreeAndNil(O);
 
-  F := TDynSingleArray.Create;
+  F := TSingleList.Create;
   F.Count := 10;
   for I := 0 to F.Count - 1 do
     Assert(F[I] = 0);

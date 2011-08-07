@@ -145,7 +145,7 @@ procedure TriangulateFace(
   end;
 
 var
-  Outs: TDynBooleanArray;
+  Outs: TBooleanList;
 
   { Increase Index, until a value with Outs[Result]=false is found. }
   function NextNotOut(Index: Integer): Integer;
@@ -183,7 +183,7 @@ begin
 
     Corners := Count; { Corners = always "how many Outs are false" }
     P0 := -1;
-    Outs := TDynBooleanArray.Create;
+    Outs := TBooleanList.Create;
     try
       Outs.Count := Count; { TFPGList initialized everything to false }
 

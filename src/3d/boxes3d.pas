@@ -149,7 +149,7 @@ function CalculateBoundingBox(
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal;
   const Transform: TMatrix4Single): TBox3D; overload;
-function CalculateBoundingBox(Verts: TDynVector3SingleArray): TBox3D; overload;
+function CalculateBoundingBox(Verts: TVector3SingleList): TBox3D; overload;
 function CalculateBoundingBox(
   GetVertex: TGetVertexFromIndexFunc;
   VertsCount: integer): TBox3D; overload;
@@ -490,7 +490,7 @@ function Box3DPointMaxDistance(const Box: TBox3D; const Point: TVector3Single;
   const EmptyBoxDistance: Single): Single;
 
 type
-  TDynBox3DArray = specialize TGenericStructList<TBox3D>;
+  TBox3DList = specialize TGenericStructList<TBox3D>;
 
 implementation
 
@@ -791,7 +791,7 @@ begin
  finally Calculator.Free end;
 end;
 
-function CalculateBoundingBox(Verts: TDynVector3SingleArray): TBox3D;
+function CalculateBoundingBox(Verts: TVector3SingleList): TBox3D;
 begin
   Result := CalculateBoundingBox(PVector3Single(Verts.List), Verts.Count, 0);
 end;

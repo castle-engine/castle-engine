@@ -28,7 +28,7 @@ type
   end;
   PMd3Triangle = ^TMd3Triangle;
 
-  TDynMd3TriangleArray = specialize TGenericStructList<TMd3Triangle>;
+  TMd3TriangleList = specialize TGenericStructList<TMd3Triangle>;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
@@ -36,10 +36,10 @@ type
   end;
   PMd3Vertex = ^TMd3Vertex;
 
-  TDynMd3VertexArray = specialize TGenericStructList<TMd3Vertex>;
+  TMd3VertexList = specialize TGenericStructList<TMd3Vertex>;
 
   TMd3TexCoord = TVector2Single;
-  TDynMd3TexCoordArray = TDynVector2SingleArray;
+  TMd3TexCoordList = TVector2SingleList;
 
   TMd3Surface = class
   private
@@ -52,9 +52,9 @@ type
   public
     Name: string;
 
-    Vertexes: TDynMd3VertexArray;
-    TextureCoords: TDynMd3TexCoordArray;
-    Triangles: TDynMd3TriangleArray;
+    Vertexes: TMd3VertexList;
+    TextureCoords: TMd3TexCoordList;
+    Triangles: TMd3TriangleList;
 
     { Frames within this surface.
       This is always the same as the TObject3DMD3.FramesCount of enclosing
@@ -130,7 +130,7 @@ function LoadMD3(const FileName: string): TVRMLRootNode;
 procedure LoadMD3Sequence(
   const FileName: string;
   RootNodes: TVRMLNodeList;
-  Times: TDynSingleArray;
+  Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
@@ -204,9 +204,9 @@ type
 constructor TMd3Surface.Create;
 begin
   inherited;
-  Vertexes := TDynMd3VertexArray.Create;
-  Triangles := TDynMd3TriangleArray.Create;
-  TextureCoords := TDynMd3TexCoordArray.Create;
+  Vertexes := TMd3VertexList.Create;
+  Triangles := TMd3TriangleList.Create;
+  TextureCoords := TMd3TexCoordList.Create;
 end;
 
 destructor TMd3Surface.Destroy;
@@ -455,7 +455,7 @@ var
   Texture: TNodeImageTexture;
   SceneBox: TBox3D;
 
-  function MakeCoordinates(Vertexes: TDynMd3VertexArray;
+  function MakeCoordinates(Vertexes: TMd3VertexList;
     VertexesInFrameCount: Cardinal): TNodeCoordinate;
   var
     I: Integer;
@@ -477,7 +477,7 @@ var
   end;
 
   function MakeTextureCoordinates(
-    TextureCoords: TDynMd3TexCoordArray): TNodeTextureCoordinate;
+    TextureCoords: TMd3TexCoordList): TNodeTextureCoordinate;
   var
     I: Integer;
     V: PVector2Single;
@@ -492,7 +492,7 @@ var
     end;
   end;
 
-  function MakeIndexes(Triangles: TDynMd3TriangleArray): TNodeIndexedFaceSet;
+  function MakeIndexes(Triangles: TMd3TriangleList): TNodeIndexedFaceSet;
   var
     I: Integer;
   begin
@@ -581,7 +581,7 @@ end;
 procedure LoadMD3Sequence(
   const FileName: string;
   RootNodes: TVRMLNodeList;
-  Times: TDynSingleArray;
+  Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);

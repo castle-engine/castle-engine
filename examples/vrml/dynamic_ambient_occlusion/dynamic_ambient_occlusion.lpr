@@ -58,10 +58,10 @@ type
     Position, Normal: TVector3Single;
   end;
   PAOElement = ^TAOElement;
-  TDynAOElementArray = specialize TGenericStructList<TAOElement>;
+  TAOElementList = specialize TGenericStructList<TAOElement>;
 
 var
-  Elements: TDynAOElementArray;
+  Elements: TAOElementList;
 
 type
   TShapeInfo = record
@@ -76,8 +76,8 @@ var
 type
   TElementsCalculator = class
   public
-    CoordIndex: TDynLongIntArray;
-    Coord: TDynVector3SingleArray;
+    CoordIndex: TLongIntList;
+    Coord: TVector3SingleList;
     ShapeElements: PAOElement;
 
     procedure Polygon(const Indexes: array of Cardinal);
@@ -880,7 +880,7 @@ end;
 begin
   Glw := TGLUIWindow.Create(Application);
 
-  Elements := TDynAOElementArray.Create;
+  Elements := TAOElementList.Create;
 
   Parameters.CheckHigh(1);
   try

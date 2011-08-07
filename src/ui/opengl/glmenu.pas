@@ -321,8 +321,8 @@ type
     FPositionRelativeMenuY: TPositionRelative;
     FPositionRelativeScreenX: TPositionRelative;
     FPositionRelativeScreenY: TPositionRelative;
-    FRectangles: TDynRectangleArray;
-    FAccessoryRectangles: TDynRectangleArray;
+    FRectangles: TRectangleList;
+    FAccessoryRectangles: TRectangleList;
     FAllItemsRectangle: TRectangle;
     FKeyNextItem: TKey;
     FKeyPreviousItem: TKey;
@@ -445,9 +445,9 @@ type
       relative to some menu item or to whole menu rectangle.
       Note that AllItemsRectangle includes also some outside margin.
       @groupBegin }
-    property Rectangles: TDynRectangleArray read FRectangles;
+    property Rectangles: TRectangleList read FRectangles;
     property AllItemsRectangle: TRectangle read FAllItemsRectangle;
-    property AccessoryRectangles: TDynRectangleArray read FAccessoryRectangles;
+    property AccessoryRectangles: TRectangleList read FAccessoryRectangles;
     { @groupEnd }
 
     function DrawStyle: TUIControlDrawStyle; override;
@@ -1098,8 +1098,8 @@ begin
   inherited;
   FItems := TStringList.Create;
   FCurrentItem := 0;
-  FRectangles := TDynRectangleArray.Create;
-  FAccessoryRectangles := TDynRectangleArray.Create;
+  FRectangles := TRectangleList.Create;
+  FAccessoryRectangles := TRectangleList.Create;
 
   FPositionRelativeMenuX := prMiddle;
   FPositionRelativeMenuY := prMiddle;

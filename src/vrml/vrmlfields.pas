@@ -501,7 +501,7 @@ type
 
   TVRMLFieldClass = class of TVRMLField;
 
-  TDynVRMLEventReceiveArray = class;
+  TVRMLEventReceiveList = class;
 
   { Base class for all VRML fields.
 
@@ -933,7 +933,7 @@ type
       graph inside the event handler (for example, load something on
       Inline.load or Inline.url changes), and let the TVRMLField.ChangesAlways
       cause appropriate action on this change. }
-    function OnReceive: TDynVRMLEventReceiveArray;
+    function OnReceive: TVRMLEventReceiveList;
   end;
 
   TVRMLFieldList = class(specialize TFPGObjectList<TVRMLField>)
@@ -986,7 +986,7 @@ type
   { Multiple values VRML field. Remember that such field may always have
     any number of items, including zero.
 
-    Note that we keep MF fields contents in TDyn*Array instances
+    Note that we keep MF fields contents in TFPSList instances
     (RawItems in this class, also accessible as Items (with more concrete
     class) in descendants). This means that they are in compact form,
     easy for reading, or even for feeding the list into OpenGL.
@@ -995,7 +995,7 @@ type
     A long list of vertexes, MFVec3f, would be kept as a list of pointers
     to a lot of TSFVec3f instances. This would be quite memory-consuming,
     and very uncomfortable for access. On the contrary, current implementation
-    keeps all these vertexes inside one TDynVector3SingleArray instance,
+    keeps all these vertexes inside one TVector3SingleList instance,
     that internally keeps all items in one continuos piece of memory.
 
     @italic(Descendants implementors notes): to make new descendant:
@@ -1839,14 +1839,14 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: boolean;
-    function GetItems: TDynBooleanArray;
-    procedure SetItems(const Value: TDynBooleanArray);
+    function GetItems: TBooleanList;
+    procedure SetItems(const Value: TBooleanList);
     function GetItemsSafe(Index: Integer): boolean;
     procedure SetItemsSafe(Index: Integer; const Value: boolean);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynBooleanArray read GetItems write SetItems;
+    property Items: TBooleanList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -1881,8 +1881,8 @@ type
     WrongVertexIndexWarnings: Integer;
     function GetItemsSafe(Index: Integer): LongInt;
     procedure SetItemsSafe(Index: Integer; const Value: LongInt);
-    function GetItems: TDynLongIntArray;
-    procedure SetItems(const Value: TDynLongIntArray);
+    function GetItems: TLongIntList;
+    procedure SetItems(const Value: TLongIntList);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
@@ -1894,7 +1894,7 @@ type
       read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
       default false;
 
-    property Items: TDynLongintArray read GetItems write SetItems;
+    property Items: TLongintList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of Longint);
@@ -1952,14 +1952,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Single;
-    function GetItems: TDynMatrix3SingleArray;
-    procedure SetItems(const Value: TDynMatrix3SingleArray);
+    function GetItems: TMatrix3SingleList;
+    procedure SetItems(const Value: TMatrix3SingleList);
     function GetItemsSafe(Index: Integer): TMatrix3Single;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Single);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynMatrix3SingleArray read GetItems write SetItems;
+    property Items: TMatrix3SingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix3Single);
@@ -1991,14 +1991,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Double;
-    function GetItems: TDynMatrix3DoubleArray;
-    procedure SetItems(const Value: TDynMatrix3DoubleArray);
+    function GetItems: TMatrix3DoubleList;
+    procedure SetItems(const Value: TMatrix3DoubleList);
     function GetItemsSafe(Index: Integer): TMatrix3Double;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Double);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynMatrix3DoubleArray read GetItems write SetItems;
+    property Items: TMatrix3DoubleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix3Double);
@@ -2030,14 +2030,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Single;
-    function GetItems: TDynMatrix4SingleArray;
-    procedure SetItems(const Value: TDynMatrix4SingleArray);
+    function GetItems: TMatrix4SingleList;
+    procedure SetItems(const Value: TMatrix4SingleList);
     function GetItemsSafe(Index: Integer): TMatrix4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Single);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynMatrix4SingleArray read GetItems write SetItems;
+    property Items: TMatrix4SingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix4Single);
@@ -2069,14 +2069,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Double;
-    function GetItems: TDynMatrix4DoubleArray;
-    procedure SetItems(const Value: TDynMatrix4DoubleArray);
+    function GetItems: TMatrix4DoubleList;
+    procedure SetItems(const Value: TMatrix4DoubleList);
     function GetItemsSafe(Index: Integer): TMatrix4Double;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Double);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynMatrix4DoubleArray read GetItems write SetItems;
+    property Items: TMatrix4DoubleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TMatrix4Double);
@@ -2110,12 +2110,12 @@ type
     DefaultValue: TVector2Single;
     function GetItemsSafe(Index: Integer): TVector2Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector2Single);
-    function GetItems: TDynVector2SingleArray;
-    procedure SetItems(const Value: TDynVector2SingleArray);
+    function GetItems: TVector2SingleList;
+    procedure SetItems(const Value: TVector2SingleList);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector2SingleArray read GetItems write SetItems;
+    property Items: TVector2SingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector2Single);
@@ -2149,12 +2149,12 @@ type
     DefaultValue: TVector3Single;
     function GetItemsSafe(Index: Integer): TVector3Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector3Single);
-    function GetItems: TDynVector3SingleArray;
-    procedure SetItems(const Value: TDynVector3SingleArray);
+    function GetItems: TVector3SingleList;
+    procedure SetItems(const Value: TVector3SingleList);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector3SingleArray read GetItems write SetItems;
+    property Items: TVector3SingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector3Single);
@@ -2194,12 +2194,12 @@ type
     DefaultValue: TVector4Single;
     function GetItemsSafe(Index: Integer): TVector4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Single);
-    function GetItems: TDynVector4SingleArray;
-    procedure SetItems(const Value: TDynVector4SingleArray);
+    function GetItems: TVector4SingleList;
+    procedure SetItems(const Value: TVector4SingleList);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector4SingleArray read GetItems write SetItems;
+    property Items: TVector4SingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector4Single);
@@ -2236,14 +2236,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector2Double;
-    function GetItems: TDynVector2DoubleArray;
-    procedure SetItems(const Value: TDynVector2DoubleArray);
+    function GetItems: TVector2DoubleList;
+    procedure SetItems(const Value: TVector2DoubleList);
     function GetItemsSafe(Index: Integer): TVector2Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector2Double);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector2DoubleArray read GetItems write SetItems;
+    property Items: TVector2DoubleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector2Double);
@@ -2275,14 +2275,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Double;
-    function GetItems: TDynVector3DoubleArray;
-    procedure SetItems(const Value: TDynVector3DoubleArray);
+    function GetItems: TVector3DoubleList;
+    procedure SetItems(const Value: TVector3DoubleList);
     function GetItemsSafe(Index: Integer): TVector3Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector3Double);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector3DoubleArray read GetItems write SetItems;
+    property Items: TVector3DoubleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector3Double);
@@ -2314,14 +2314,14 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector4Double;
-    function GetItems: TDynVector4DoubleArray;
-    procedure SetItems(const Value: TDynVector4DoubleArray);
+    function GetItems: TVector4DoubleList;
+    procedure SetItems(const Value: TVector4DoubleList);
     function GetItemsSafe(Index: Integer): TVector4Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Double);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector4DoubleArray read GetItems write SetItems;
+    property Items: TVector4DoubleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of TVector4Double);
@@ -2353,14 +2353,14 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: TVector4Single;
-    function GetItems: TDynVector4SingleArray;
-    procedure SetItems(const Value: TDynVector4SingleArray);
+    function GetItems: TVector4SingleList;
+    procedure SetItems(const Value: TVector4SingleList);
     function GetItemsSafe(Index: Integer): TVector4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Single);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
-    property Items: TDynVector4SingleArray read GetItems write SetItems;
+    property Items: TVector4SingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -2393,15 +2393,15 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: Single;
-    function GetItems: TDynSingleArray;
-    procedure SetItems(const Value: TDynSingleArray);
+    function GetItems: TSingleList;
+    procedure SetItems(const Value: TSingleList);
     function GetItemsSafe(Index: Integer): Single;
     procedure SetItemsSafe(Index: Integer; const Value: Single);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
-    property Items: TDynSingleArray read GetItems write SetItems;
+    property Items: TSingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -2434,15 +2434,15 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: Double;
-    function GetItems: TDynDoubleArray;
-    procedure SetItems(const Value: TDynDoubleArray);
+    function GetItems: TDoubleList;
+    procedure SetItems(const Value: TDoubleList);
     function GetItemsSafe(Index: Integer): Double;
     procedure SetItemsSafe(Index: Integer; const Value: Double);
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
-    property Items: TDynDoubleArray read GetItems write SetItems;
+    property Items: TDoubleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string;
@@ -2480,15 +2480,15 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: string;
-    function GetItems: TDynStringArray;
-    procedure SetItems(const Value: TDynStringArray);
+    function GetItems: TGenericStringList;
+    procedure SetItems(const Value: TGenericStringList);
     function GetItemsSafe(Index: Integer): string;
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    property Items: TDynStringArray read GetItems write SetItems;
+    property Items: TGenericStringList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of string);
@@ -3224,7 +3224,7 @@ begin
   Result := 'XFAny';
 end;
 
-function TVRMLField.OnReceive: TDynVRMLEventReceiveArray;
+function TVRMLField.OnReceive: TVRMLEventReceiveList;
 begin
   if FExposedEvents[false] <> nil then
     Result := FExposedEvents[false].OnReceive else
@@ -5475,7 +5475,7 @@ end;
 {$define TMF_CLASS := TMFBool}
 {$define TMF_STATIC_ITEM := boolean}
 {$define TMF_CLASS_ITEM := TSFBool}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynBooleanArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TBooleanList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := false}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
@@ -5483,7 +5483,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_CLASS := TMFLong}
 {$define TMF_STATIC_ITEM := Longint}
 {$define TMF_CLASS_ITEM := TSFLong}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynLongintArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TLongintList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
@@ -5491,7 +5491,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_CLASS := TMFVec2f}
 {$define TMF_STATIC_ITEM := TVector2Single}
 {$define TMF_CLASS_ITEM := TSFVec2f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2SingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector2SingleList}
 {$define TMF_SCALAR := Single}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector2Single}
 IMPLEMENT_MF_CLASS
@@ -5500,7 +5500,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFVec3f}
 {$define TMF_STATIC_ITEM := TVector3Single}
 {$define TMF_CLASS_ITEM := TSFVec3f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3SingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector3SingleList}
 {$define TMF_SCALAR := Single}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector3Single}
 IMPLEMENT_MF_CLASS
@@ -5509,7 +5509,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFVec4f}
 {$define TMF_STATIC_ITEM := TVector4Single}
 {$define TMF_CLASS_ITEM := TSFVec4f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector4SingleList}
 {$define TMF_SCALAR := Single}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := Vector4Single(0, 0, 0, 1)}
 IMPLEMENT_MF_CLASS
@@ -5518,7 +5518,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFVec2d}
 {$define TMF_STATIC_ITEM := TVector2Double}
 {$define TMF_CLASS_ITEM := TSFVec2d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector2DoubleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector2DoubleList}
 {$define TMF_SCALAR := Double}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector2Double}
 IMPLEMENT_MF_CLASS
@@ -5527,7 +5527,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFVec3d}
 {$define TMF_STATIC_ITEM := TVector3Double}
 {$define TMF_CLASS_ITEM := TSFVec3d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector3DoubleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector3DoubleList}
 {$define TMF_SCALAR := Double}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ZeroVector3Double}
 IMPLEMENT_MF_CLASS
@@ -5536,7 +5536,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFVec4d}
 {$define TMF_STATIC_ITEM := TVector4Double}
 {$define TMF_CLASS_ITEM := TSFVec4d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4DoubleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector4DoubleList}
 {$define TMF_SCALAR := Double}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := Vector4Double(0, 0, 0, 1)}
 IMPLEMENT_MF_CLASS
@@ -5545,7 +5545,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFRotation}
 {$define TMF_STATIC_ITEM := TVector4Single}
 {$define TMF_CLASS_ITEM := TSFRotation}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynVector4SingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector4SingleList}
 {$define TMF_SCALAR := Single}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := DefaultRotation}
 IMPLEMENT_MF_CLASS
@@ -5554,7 +5554,7 @@ IMPLEMENT_MF_CLASS_USING_VECTORS
 {$define TMF_CLASS := TMFFloat}
 {$define TMF_STATIC_ITEM := Single}
 {$define TMF_CLASS_ITEM := TSFFloat}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynSingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TSingleList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
@@ -5562,7 +5562,7 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_CLASS := TMFDouble}
 {$define TMF_STATIC_ITEM := Double}
 {$define TMF_CLASS_ITEM := TSFDouble}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynDoubleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TDoubleList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
@@ -5570,7 +5570,7 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_CLASS := TMFString}
 {$define TMF_STATIC_ITEM := string}
 {$define TMF_CLASS_ITEM := TSFString}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynStringArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TGenericStringList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ''}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
@@ -5578,7 +5578,7 @@ IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
 {$define TMF_CLASS := TMFMatrix3f}
 {$define TMF_STATIC_ITEM := TMatrix3Single}
 {$define TMF_CLASS_ITEM := TSFMatrix3f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix3SingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix3SingleList}
 {$define TMF_SCALAR := Single}
 {$define TSF_MATRIX_COLS := 3}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix3Single}
@@ -5588,7 +5588,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 {$define TMF_CLASS := TMFMatrix3d}
 {$define TMF_STATIC_ITEM := TMatrix3Double}
 {$define TMF_CLASS_ITEM := TSFMatrix3d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix3DoubleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix3DoubleList}
 {$define TMF_SCALAR := Double}
 {$define TSF_MATRIX_COLS := 3}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix3Double}
@@ -5598,7 +5598,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 {$define TMF_CLASS := TMFMatrix4f}
 {$define TMF_STATIC_ITEM := TMatrix4Single}
 {$define TMF_CLASS_ITEM := TSFMatrix4f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix4SingleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix4SingleList}
 {$define TMF_SCALAR := Single}
 {$define TSF_MATRIX_COLS := 4}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix4Single}
@@ -5608,7 +5608,7 @@ IMPLEMENT_MF_CLASS_USING_MATRICES
 {$define TMF_CLASS := TMFMatrix4d}
 {$define TMF_STATIC_ITEM := TMatrix4Double}
 {$define TMF_CLASS_ITEM := TSFMatrix4d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDynMatrix4DoubleArray}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix4DoubleList}
 {$define TMF_SCALAR := Double}
 {$define TSF_MATRIX_COLS := 4}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := IdentityMatrix4Double}

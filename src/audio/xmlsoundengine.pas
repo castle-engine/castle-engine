@@ -89,7 +89,7 @@ type
     Buffer: TALbuffer;
   end;
 
-  TDynSoundInfoArray = specialize TGenericStructList<TSoundInfo>;
+  TSoundInfoList = specialize TGenericStructList<TSoundInfo>;
 
 type
   TMusicPlayer = class;
@@ -111,7 +111,7 @@ type
     FSoundNames: TStringList;
     FSoundsXmlFileName: string;
 
-    SoundInfos: TDynSoundInfoArray;
+    SoundInfos: TSoundInfoList;
 
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
@@ -276,7 +276,7 @@ begin
   FSoundNames.CaseSensitive := true;
   FSoundNames.Append(''); { stNone entry }
 
-  SoundInfos := TDynSoundInfoArray.Create;
+  SoundInfos := TSoundInfoList.Create;
 
   FMusicPlayer := TMusicPlayer.Create(Self);
 

@@ -261,7 +261,7 @@ type
     { Meaningful only when svNormals in Validities.
       Normals may be assigned only if svNormals in Validities. }
     FNormalsCached: TVRMLShapeNormalsCached;
-    FNormals: TDynVector3SingleArray;
+    FNormals: TVector3SingleList;
     { Meaningful only when svNormals in Validities and
       NormalsCached = ncCreaseAngle. }
     FNormalsCreaseAngle: Single;
@@ -520,10 +520,10 @@ type
       is passed to all Create*Normals internally).
 
       @groupBegin }
-    function NormalsSmooth(OverTriangulate: boolean): TDynVector3SingleArray;
-    function NormalsFlat(OverTriangulate: boolean): TDynVector3SingleArray;
+    function NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
+    function NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
     function NormalsCreaseAngle(OverTriangulate: boolean;
-      const CreaseAngle: Single): TDynVector3SingleArray;
+      const CreaseAngle: Single): TVector3SingleList;
     { @groupEnd }
 
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
@@ -1596,7 +1596,7 @@ begin
   {$endif}
 end;
 
-function TVRMLShape.NormalsSmooth(OverTriangulate: boolean): TDynVector3SingleArray;
+function TVRMLShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
 var
   G: TVRMLGeometryNode;
   S: TVRMLGraphTraverseState;
@@ -1624,7 +1624,7 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsFlat(OverTriangulate: boolean): TDynVector3SingleArray;
+function TVRMLShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
 var
   G: TVRMLGeometryNode;
   S: TVRMLGraphTraverseState;
@@ -1654,7 +1654,7 @@ begin
 end;
 
 function TVRMLShape.NormalsCreaseAngle(OverTriangulate: boolean;
-  const CreaseAngle: Single): TDynVector3SingleArray;
+  const CreaseAngle: Single): TVector3SingleList;
 var
   G: TVRMLGeometryNode;
   S: TVRMLGraphTraverseState;

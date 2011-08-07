@@ -25,7 +25,7 @@ type
 
   TCameraChangedEvent = procedure (RenderingCamera: TRenderingCamera) of object;
 
-  TDynCameraChangedEventArray = class(specialize TGenericStructList<TCameraChangedEvent>)
+  TCameraChangedEventList = class(specialize TGenericStructList<TCameraChangedEvent>)
   public
     { This calls all functions (all Items). }
     procedure ExecuteAll(RenderingCamera: TRenderingCamera);
@@ -47,7 +47,7 @@ type
   { Current camera used for rendering. }
   TRenderingCamera = class
   private
-    FOnChanged: TDynCameraChangedEventArray;
+    FOnChanged: TCameraChangedEventList;
     FTarget: TRenderTarget;
   public
     constructor Create;
@@ -122,7 +122,7 @@ type
       this, registered OnChanged callbacks may read it. }
     procedure Changed;
 
-    property OnChanged: TDynCameraChangedEventArray read FOnChanged;
+    property OnChanged: TCameraChangedEventList read FOnChanged;
   end;
 
 var
@@ -132,9 +132,9 @@ implementation
 
 uses SysUtils, KambiLog;
 
-{ TDynCameraChangedEventArray ------------------------------------------------ }
+{ TCameraChangedEventList ------------------------------------------------ }
 
-procedure TDynCameraChangedEventArray.ExecuteAll(RenderingCamera: TRenderingCamera);
+procedure TCameraChangedEventList.ExecuteAll(RenderingCamera: TRenderingCamera);
 var
   I: Integer;
 begin
@@ -147,7 +147,7 @@ end;
 constructor TRenderingCamera.Create;
 begin
   inherited;
-  FOnChanged := TDynCameraChangedEventArray.Create;
+  FOnChanged := TCameraChangedEventList.Create;
 end;
 
 destructor TRenderingCamera.Destroy;

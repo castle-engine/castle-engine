@@ -54,7 +54,7 @@ type
     OverTriangulate: boolean;
   protected
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
-    IndexesFromCoordIndex: TDynLongIntArray;
+    IndexesFromCoordIndex: TLongIntList;
 
     { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
       and other Arrays attribute arrays. Calculated in
@@ -264,7 +264,7 @@ procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
 procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray); forward;
+  const Stride, CopyCount: Cardinal; Indexes: TLongIntList); forward;
 
 procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
   const Stride, CopyCount: Cardinal);
@@ -286,7 +286,7 @@ begin
 end;
 
 procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TDynLongIntArray);
+  const Stride, CopyCount: Cardinal; Indexes: TLongIntList);
 var
   I: Integer;
   Index: LongInt;
@@ -523,7 +523,7 @@ type
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
   private
     RadianceTransferVertexSize: Cardinal;
-    RadianceTransfer: TDynVector3SingleArray;
+    RadianceTransfer: TVector3SingleList;
     FaceColor: TVector4Single;
   protected
     Color: TMFVec3f;
@@ -594,12 +594,12 @@ type
   private
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
-    CcwNormals: TDynVector3SingleArray;
+    CcwNormals: TVector3SingleList;
     FaceNormal: TVector3Single;
     function CcwNormalsSafe(const Index: Integer): TVector3Single;
   protected
     NormalIndex: TMFLong;
-    Normals: TDynVector3SingleArray;
+    Normals: TVector3SingleList;
     NormalsCcw: boolean;
 
     { This is calculated in constructor. Unlike similar TexImplementation
@@ -653,7 +653,7 @@ type
     (using TVRMLGeometryNode.FogCoord). }
   TAbstractFogGenerator = class(TAbstractNormalGenerator)
   private
-    FogCoord: TDynSingleArray;
+    FogCoord: TSingleList;
   protected
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
     procedure GenerateVertex(IndexNum: Integer); override;
@@ -1864,7 +1864,7 @@ begin
     if NormalsCcw then
       CcwNormals := Normals else
     begin
-      CcwNormals := TDynVector3SingleArray.Create;
+      CcwNormals := TVector3SingleList.Create;
       CcwNormals.AssignNegated(Normals);
     end;
   end;

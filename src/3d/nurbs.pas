@@ -66,12 +66,12 @@ function ActualTessellation(const Tessellation: Integer;
 function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray;
+  Knot, Weight: TDoubleList;
   Tangent: PVector3Single): TVector3Single;
-function NurbsCurvePoint(const Points: TDynVector3SingleArray;
+function NurbsCurvePoint(const Points: TVector3SingleList;
   const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray;
+  Knot, Weight: TDoubleList;
   Tangent: PVector3Single): TVector3Single;
 { @groupEnd }
 
@@ -92,11 +92,11 @@ function NurbsCurvePoint(const Points: TDynVector3SingleArray;
   Normal, if non-nil, will be set to the normal at given point of the
   surface. It will be normalized. You can use this to pass these normals
   to rendering. Or to generate normals for X3D NurbsSurfaceInterpolator node. }
-function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
+function NurbsSurfacePoint(const Points: TVector3SingleList;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
-  UKnot, VKnot, Weight: TDynDoubleArray;
+  UKnot, VKnot, Weight: TDoubleList;
   Normal: PVector3Single): TVector3Single;
 
 type
@@ -122,18 +122,18 @@ type
 { Calculate a default knot, if Knot doesn't already have required number of items.
   After this, it's guaranteed that Knot.Count is Dimension + Order
   (just as required by NurbsCurvePoint, NurbsSurfacePoint). }
-procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
+procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynDoubleArray): TBox3D;
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynSingleArray): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TDoubleList): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TSingleList): TBox3D;
 
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynDoubleArray; const Transform: TMatrix4Single): TBox3D;
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynSingleArray; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TDoubleList; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TSingleList; const Transform: TMatrix4Single): TBox3D;
 
 implementation
 
@@ -148,10 +148,10 @@ begin
   Inc(Result);
 end;
 
-function NurbsCurvePoint(const Points: TDynVector3SingleArray;
+function NurbsCurvePoint(const Points: TVector3SingleList;
   const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray;
+  Knot, Weight: TDoubleList;
   Tangent: PVector3Single): TVector3Single;
 begin
   Result := NurbsCurvePoint(PVector3Single(Points.List), Points.Count,
@@ -165,17 +165,17 @@ end;
 function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray;
+  Knot, Weight: TDoubleList;
   Tangent: PVector3Single): TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
+function NurbsSurfacePoint(const Points: TVector3SingleList;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
-  UKnot, VKnot, Weight: TDynDoubleArray;
+  UKnot, VKnot, Weight: TDoubleList;
   Normal: PVector3Single): TVector3Single;
 begin
   Result := ZeroVector3Single;
@@ -201,7 +201,7 @@ end;
           return;
 }
 function findSpan(const dimension, order: LongInt;
-  const u: Single; Knot: TDynDoubleArray): LongInt;
+  const u: Single; Knot: TDoubleList): LongInt;
 var
   low, mid, high, oldLow, oldMid, oldHigh, n: LongInt;
 begin
@@ -241,14 +241,14 @@ begin
 end;
 
 procedure basisFuns(const span: LongInt; const u: Single; const order: LongInt;
-  Knot, basis, deriv: TDynDoubleArray);
+  Knot, basis, deriv: TDoubleList);
 var
-  left, right: TDynDoubleArray;
+  left, right: TDoubleList;
   j, r: LongInt;
   saved, dsaved, temp: Single;
 begin
-  left  := TDynDoubleArray.Create; left .Count := order;
-  right := TDynDoubleArray.Create; right.Count := order;
+  left  := TDoubleList.Create; left .Count := order;
+  right := TDoubleList.Create; right.Count := order;
 
   basis[0] := 1.0;
   for j := 1 to  order - 1 do
@@ -283,21 +283,21 @@ end;
 function NurbsCurvePoint(const Points: PVector3Single;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
-  Knot, Weight: TDynDoubleArray;
+  Knot, Weight: TDoubleList;
   Tangent: PVector3Single): TVector3Single;
 var
   i: Integer;
   w, duw: Single;
   span: LongInt;
-  basis, deriv: TDynDoubleArray;
+  basis, deriv: TDoubleList;
   UseWeight: boolean;
   du: TVector3Single;
   index: Cardinal;
 begin
   UseWeight := Cardinal(Weight.Count) = PointsCount;
 
-  basis := TDynDoubleArray.Create; basis.Count := order;
-  deriv := TDynDoubleArray.Create; deriv.Count := order;
+  basis := TDoubleList.Create; basis.Count := order;
+  deriv := TDoubleList.Create; deriv.Count := order;
 
   span := findSpan(PointsCount, order, u, Knot);
 
@@ -337,14 +337,14 @@ begin
   FreeAndNil(deriv);
 end;
 
-function NurbsSurfacePoint(const Points: TDynVector3SingleArray;
+function NurbsSurfacePoint(const Points: TVector3SingleList;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
-  UKnot, VKnot, Weight: TDynDoubleArray;
+  UKnot, VKnot, Weight: TDoubleList;
   Normal: PVector3Single): TVector3Single;
 var
-  uBasis, vBasis, uDeriv, vDeriv: TDynDoubleArray;
+  uBasis, vBasis, uDeriv, vDeriv: TDoubleList;
   uSpan, vSpan: LongInt;
   I, J: LongInt;
   uBase, vBase, index: Cardinal;
@@ -356,10 +356,10 @@ var
 begin
   UseWeight := Weight.Count = Points.Count;
 
-  uBasis := TDynDoubleArray.Create; uBasis.Count := UOrder;
-  vBasis := TDynDoubleArray.Create; vBasis.Count := VOrder;
-  uDeriv := TDynDoubleArray.Create; uDeriv.Count := UOrder;
-  vDeriv := TDynDoubleArray.Create; vDeriv.Count := VOrder;
+  uBasis := TDoubleList.Create; uBasis.Count := UOrder;
+  vBasis := TDoubleList.Create; vBasis.Count := VOrder;
+  uDeriv := TDoubleList.Create; uDeriv.Count := UOrder;
+  vDeriv := TDoubleList.Create; vDeriv.Count := VOrder;
 
   uSpan := findSpan(uDimension, uOrder, u, uKnot);
   vSpan := findSpan(vDimension, vOrder, v, vKnot);
@@ -427,7 +427,7 @@ end;
 
 {$endif KAMBI_VRMLENGINE_LGPL}
 
-procedure NurbsKnotIfNeeded(Knot: TDynDoubleArray;
+procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 var
   I: Integer;
@@ -459,8 +459,8 @@ begin
   end;
 end;
 
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynDoubleArray): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TDoubleList): TBox3D;
 var
   V: PVector3Single;
   W: Single;
@@ -500,10 +500,10 @@ begin
   end;
 end;
 
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynSingleArray): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TSingleList): TBox3D;
 var
-  WeightDouble: TDynDoubleArray;
+  WeightDouble: TDoubleList;
 begin
   { Direct implementation using single would be much faster...
     But not important, this is only for VRML 2.0. }
@@ -513,8 +513,8 @@ begin
   finally FreeAndNil(WeightDouble) end;
 end;
 
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynDoubleArray; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TDoubleList; const Transform: TMatrix4Single): TBox3D;
 var
   V: TVector3Single;
   W: Single;
@@ -555,10 +555,10 @@ begin
   end;
 end;
 
-function NurbsBoundingBox(Point: TDynVector3SingleArray;
-  Weight: TDynSingleArray; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3SingleList;
+  Weight: TSingleList; const Transform: TMatrix4Single): TBox3D;
 var
-  WeightDouble: TDynDoubleArray;
+  WeightDouble: TDoubleList;
 begin
   { Direct implementation using single would be much faster...
     But not important, this is only for VRML 2.0. }

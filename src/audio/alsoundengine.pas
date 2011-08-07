@@ -84,7 +84,7 @@ type
     FDistanceModel: TALDistanceModel;
     BuffersCache: TALBuffersCacheList;
     FDevices: TALDeviceDescriptionList;
-    FOnOpenClose: TDynNotifyEventArray;
+    FOnOpenClose: TNotifyEventList;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -254,7 +254,7 @@ type
     { Events fired after OpenAL context and device are being open or closed.
       More precisely, when ALInitialized changes (and so, possibly, ALActive
       changed). }
-    property OnOpenClose: TDynNotifyEventArray read FOnOpenClose;
+    property OnOpenClose: TNotifyEventList read FOnOpenClose;
 
     { Should we save @link(Enable) to config file in SaveToConfig call.
       This is always reset to @true after setting @link(Enable) value. }
@@ -408,7 +408,7 @@ begin
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
   BuffersCache := TALBuffersCacheList.Create;
-  FOnOpenClose := TDynNotifyEventArray.Create;
+  FOnOpenClose := TNotifyEventList.Create;
 
   { Default OpenAL listener attributes }
   ListenerPosition := ZeroVector3Single;

@@ -194,7 +194,7 @@ function Text_LocalBoundingBox(State: TVRMLGraphTraverseState;
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
   const TTFont: PTrueTypeFont;
-  const Strings: TDynStringArray;
+  const Strings: TGenericStringList;
   const Depth: Single): TBox3D;
 var
   DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;

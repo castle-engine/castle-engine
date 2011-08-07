@@ -591,7 +591,7 @@ type
   end;
   PTextureImageCache = ^TTextureImageCache;
 
-  TDynTextureImageCacheArray = specialize TGenericStructList<TTextureImageCache>;
+  TTextureImageCacheList = specialize TGenericStructList<TTextureImageCache>;
 
   TTextureVideoCache = record
     FullUrl: string;
@@ -622,7 +622,7 @@ type
   end;
   PTextureVideoCache = ^TTextureVideoCache;
 
-  TDynTextureVideoCacheArray = specialize TGenericStructList<TTextureVideoCache>;
+  TTextureVideoCacheList = specialize TGenericStructList<TTextureVideoCache>;
 
   TTextureCubeMapCache = record
     InitialNode: TNodeX3DEnvironmentTextureNode;
@@ -641,7 +641,7 @@ type
   end;
   PTextureCubeMapCache = ^TTextureCubeMapCache;
 
-  TDynTextureCubeMapCacheArray = specialize TGenericStructList<TTextureCubeMapCache>;
+  TTextureCubeMapCacheList = specialize TGenericStructList<TTextureCubeMapCache>;
 
   TTexture3DCache = record
     InitialNode: TNodeX3DTexture3DNode;
@@ -661,7 +661,7 @@ type
   end;
   PTexture3DCache = ^TTexture3DCache;
 
-  TDynTexture3DCacheArray = specialize TGenericStructList<TTexture3DCache>;
+  TTexture3DCacheList = specialize TGenericStructList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields.
@@ -676,7 +676,7 @@ type
   end;
   PTextureDepthOrFloatCache = ^TTextureDepthOrFloatCache;
 
-  TDynTextureDepthOrFloatCacheArray = specialize TGenericStructList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = specialize TGenericStructList<TTextureDepthOrFloatCache>;
 
   TVRMLRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -757,11 +757,11 @@ type
   TVRMLGLRendererContextCache = class
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
-    TextureImageCaches: TDynTextureImageCacheArray;
-    TextureVideoCaches: TDynTextureVideoCacheArray;
-    TextureCubeMapCaches: TDynTextureCubeMapCacheArray;
-    Texture3DCaches: TDynTexture3DCacheArray;
-    TextureDepthOrFloatCaches: TDynTextureDepthOrFloatCacheArray;
+    TextureImageCaches: TTextureImageCacheList;
+    TextureVideoCaches: TTextureVideoCacheList;
+    TextureCubeMapCaches: TTextureCubeMapCacheList;
+    Texture3DCaches: TTexture3DCacheList;
+    TextureDepthOrFloatCaches: TTextureDepthOrFloatCacheList;
     ShapeCaches: TShapeCacheList;
     ProgramCaches: TShaderProgramCacheList;
 
@@ -984,7 +984,7 @@ type
       in addition to 0..TextureTransformUnitsUsed - 1.
       Cleared by RenderShapeBegin, added by PushTextureUnit,
       used by RenderShapeEnd. }
-    TextureTransformUnitsUsedMore: TDynLongIntArray;
+    TextureTransformUnitsUsedMore: TLongIntList;
 
     FCullFace: TCullFace;
     FSmoothShading: boolean;
@@ -1255,11 +1255,11 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
 constructor TVRMLGLRendererContextCache.Create;
 begin
   inherited;
-  TextureImageCaches := TDynTextureImageCacheArray.Create;
-  TextureVideoCaches := TDynTextureVideoCacheArray.Create;
-  TextureCubeMapCaches := TDynTextureCubeMapCacheArray.Create;
-  Texture3DCaches := TDynTexture3DCacheArray.Create;
-  TextureDepthOrFloatCaches := TDynTextureDepthOrFloatCacheArray.Create;
+  TextureImageCaches := TTextureImageCacheList.Create;
+  TextureVideoCaches := TTextureVideoCacheList.Create;
+  TextureCubeMapCaches := TTextureCubeMapCacheList.Create;
+  Texture3DCaches := TTexture3DCacheList.Create;
+  TextureDepthOrFloatCaches := TTextureDepthOrFloatCacheList.Create;
   ShapeCaches := TShapeCacheList.Create;
   ProgramCaches := TShaderProgramCacheList.Create;
 end;
@@ -2295,7 +2295,7 @@ begin
   BumpMappingRenderers := TBumpMappingRendererList.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
 
-  TextureTransformUnitsUsedMore := TDynLongIntArray.Create;
+  TextureTransformUnitsUsedMore := TLongIntList.Create;
 
   PreparedShader := TVRMLShader.Create;
 
@@ -3273,7 +3273,7 @@ var
   { Initialize OpenGL clip planes, looking at ClipPlanes list.
     We know we're inside GL_MODELVIEW mode,
     and we know all clip planes are currently disabled. }
-  procedure ClipPlanesBegin(ClipPlanes: TDynClipPlaneArray);
+  procedure ClipPlanesBegin(ClipPlanes: TClipPlaneList);
   var
     I: Integer;
     ClipPlane: PClipPlane;

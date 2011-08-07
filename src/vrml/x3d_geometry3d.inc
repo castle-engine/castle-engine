@@ -828,7 +828,7 @@ end;
 
 function TNodeExtrusion.SpineClosed: boolean;
 var
-  SpinePoints: TDynVector3SingleArray;
+  SpinePoints: TVector3SingleList;
 begin
   SpinePoints := FdSpine.Items;
   Result := (SpinePoints.Count <> 0) and
@@ -838,7 +838,7 @@ end;
 
 function TNodeExtrusion.CrossSectionClosed: boolean;
 var
-  CrossSectionPoints: TDynVector2SingleArray;
+  CrossSectionPoints: TVector2SingleList;
 begin
   CrossSectionPoints := FdCrossSection.Items;
   Result := (CrossSectionPoints.Count <> 0) and

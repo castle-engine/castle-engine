@@ -107,7 +107,7 @@ type
   EGLSLUniformNotFound = class(EGLSLUniformInvalid);
   EGLSLUniformTypeMismatch = class(EGLSLUniformInvalid);
 
-  TDynGLuintArray = TDynCardinalArray;
+  TGLuintList = TCardinalList;
 
   { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
     but doesn't exist in the shader. }
@@ -144,7 +144,7 @@ type
     { Actually, this should be TGLhandleARB for gsARBExtension version.
       But TGLhandleARB = TGLuint in practice, so this is not a problem. }
     ProgramId: TGLuint;
-    ShaderIds: TDynGLuintArray;
+    ShaderIds: TGLuintList;
 
     FUniformNotFoundAction: TUniformNotFoundAction;
     FUniformTypeMismatchAction: TUniformTypeMismatchAction;
@@ -324,14 +324,14 @@ type
     procedure SetUniform(const Name: string; const Value: TMatrix3Single ; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TMatrix4Single ; const ForceException: boolean = false);
 
-    procedure SetUniform(const Name: string; const Value: TDynBooleanArray      ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynLongIntArray      ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynSingleArray       ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynVector2SingleArray; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynVector3SingleArray; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynVector4SingleArray; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynMatrix3SingleArray; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TDynMatrix4SingleArray; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TBooleanList      ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TLongIntList      ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TSingleList       ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean = false);
     { @groupEnd }
 
     { Load and enable vertex attribute data.
@@ -678,7 +678,7 @@ begin
   if ProgramId = 0 then
     raise EGLSLError.Create('Cannot create GLSL shader program');
 
-  ShaderIds := TDynGLuintArray.Create;
+  ShaderIds := TGLuintList.Create;
 
   FUniformNotFoundAction := uaException;
   FUniformTypeMismatchAction := utGLError;
@@ -1322,14 +1322,14 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynBooleanArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceException: boolean);
 var
   Location: TGLint;
-  Ints: TDynLongIntArray;
+  Ints: TLongIntList;
 begin
   { We cannot pass Value.List, as Pascal booleans do not have 4 bytes
     (well, actually I could change this by compiler directive or
-    by using LongBool for TDynBooleanArray --- but for TDynBooleanArray
+    by using LongBool for TBooleanList --- but for TBooleanList
     this would enlarge it 4 times, not nice).
 
     Unfortunately, there's no glUniform*ub (unsigned byte) or such function.
@@ -1344,7 +1344,7 @@ begin
   finally FreeAndNil(Ints) end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynLongIntArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1355,7 +1355,7 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynSingleArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1365,7 +1365,7 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector2SingleArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1375,7 +1375,7 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector3SingleArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1385,7 +1385,7 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynVector4SingleArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1395,7 +1395,7 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix3SingleArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean);
 var
   Location: TGLint;
 begin
@@ -1405,7 +1405,7 @@ begin
   end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TDynMatrix4SingleArray; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean);
 var
   Location: TGLint;
 begin

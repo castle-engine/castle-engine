@@ -334,7 +334,7 @@ type
   end;
   PClipPlane = ^TClipPlane;
 
-  TDynClipPlaneArray = class(specialize TGenericStructList<TClipPlane>)
+  TClipPlaneList = class(specialize TGenericStructList<TClipPlane>)
   public
     { Find record with given TNodeClipPlane, returns -1 if not found. }
     function IndexOfNode(Node: TNodeClipPlane): Integer;
@@ -573,7 +573,7 @@ type
 
       Always @nil if empty. This allows us to optimize TVRMLGraphTraverseState
       processing. }
-    ClipPlanes: TDynClipPlaneArray;
+    ClipPlanes: TClipPlaneList;
 
     { Local fog settings. When @nil, it means use global fog (or no fog,
       if no global fog defined in file). }
@@ -683,7 +683,7 @@ type
 
   TNodeDestructionNotification = procedure (Node: TVRMLNode) of object;
 
-  TDynNodeDestructionNotificationArray = class(specialize TGenericStructList<TNodeDestructionNotification>)
+  TNodeDestructionNotificationList = class(specialize TGenericStructList<TNodeDestructionNotification>)
   public
     { Call all functions. }
     procedure ExecuteAll(Node: TVRMLNode);
@@ -2148,7 +2148,7 @@ const
 var
   { Functions registered here will be called when any TVRMLNode descendant
     will be destroyed. }
-  AnyNodeDestructionNotifications: TDynNodeDestructionNotificationArray;
+  AnyNodeDestructionNotifications: TNodeDestructionNotificationList;
 
   { Cache, for all the resources not tied with renderer context. }
   VRMLCache: TVRMLNodesCache;
@@ -2170,7 +2170,7 @@ var
 
   This is useful to interpreting TNodeX3DInterpolatorNode.KeyRange
   and such fields. }
-function KeyRange(Key: TDynSingleArray;
+function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
 
 { Free TVRMLNode if it is unused (see TVRMLNode.FreeIfUnused),
@@ -2375,9 +2375,9 @@ begin
   end;
 end;
 
-{ TDynClipPlaneArray --------------------------------------------------------- }
+{ TClipPlaneList --------------------------------------------------------- }
 
-function TDynClipPlaneArray.IndexOfNode(Node: TNodeClipPlane): Integer;
+function TClipPlaneList.IndexOfNode(Node: TNodeClipPlane): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].Node = Node then
@@ -2385,19 +2385,19 @@ begin
   Result := -1;
 end;
 
-function TDynClipPlaneArray.Equals(SecondValue: TObject): boolean;
+function TClipPlaneList.Equals(SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
   Result :=
     (SecondValue <> nil) and
-    (SecondValue is TDynClipPlaneArray) and
-    (TDynClipPlaneArray(SecondValue).Count = Count);
+    (SecondValue is TClipPlaneList) and
+    (TClipPlaneList(SecondValue).Count = Count);
 
   if Result then
     for I := 0 to Count - 1 do
-      if (L[I].Node <> TDynClipPlaneArray(SecondValue).L[I].Node) or
-         MatricesPerfectlyEqual(L[I].Transform, TDynClipPlaneArray(SecondValue).L[I].Transform) then
+      if (L[I].Node <> TClipPlaneList(SecondValue).L[I].Node) or
+         MatricesPerfectlyEqual(L[I].Transform, TClipPlaneList(SecondValue).L[I].Transform) then
         Exit(false);
 end;
 
@@ -2480,7 +2480,7 @@ end;
 function TVRMLGraphTraverseState.AddClipPlane: PClipPlane;
 begin
   if ClipPlanes = nil then
-    ClipPlanes := TDynClipPlaneArray.Create;
+    ClipPlanes := TClipPlaneList.Create;
   Result := ClipPlanes.Add();
 end;
 
@@ -2527,7 +2527,7 @@ begin
   if Source.ClipPlanes <> nil then
   begin
     if ClipPlanes = nil then
-      ClipPlanes := TDynClipPlaneArray.Create;
+      ClipPlanes := TClipPlaneList.Create;
     ClipPlanes.Assign(Source.ClipPlanes);
   end else
     FreeAndNil(ClipPlanes);
@@ -5863,7 +5863,7 @@ begin
     FreeAndNil(StateNodes.Nodes[SN]);
 end;
 
-function KeyRange(Key: TDynSingleArray;
+function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
 var
   A, B: Integer;
@@ -5926,9 +5926,9 @@ begin
   Temp.FreeIfUnused;
 end;
 
-{ TDynNodeDestructionNotifications ------------------------------------------- }
+{ TNodeDestructionNotificationList ------------------------------------------- }
 
-procedure TDynNodeDestructionNotificationArray.ExecuteAll(Node: TVRMLNode);
+procedure TNodeDestructionNotificationList.ExecuteAll(Node: TVRMLNode);
 var
   I: Integer;
 begin
@@ -5949,7 +5949,7 @@ begin
 end;
 
 initialization
-  AnyNodeDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
+  AnyNodeDestructionNotifications := TNodeDestructionNotificationList.Create;
 
   VRMLFieldsManager.RegisterClasses([TSFNode, TMFNode]);
 

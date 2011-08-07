@@ -366,11 +366,11 @@ type
   TArray_Vector4Single = packed array [0..MaxInt div SizeOf(TVector4Single) - 1] of TVector4Single;
   PArray_Vector4Single = ^TArray_Vector4Single;
 
-  TDynVector4SingleArray = class;
+  TVector4SingleList = class;
 
-  TDynVector3SingleArray = class(specialize TGenericStructList<TVector3Single>)
+  TVector3SingleList = class(specialize TGenericStructList<TVector3Single>)
   public
-    procedure AssignNegated(Source: TDynVector3SingleArray);
+    procedure AssignNegated(Source: TVector3SingleList);
     { Negate all items. }
     procedure Negate;
     { Normalize all items. Zero vectors are left as zero. }
@@ -387,16 +387,16 @@ type
       But their ranges should not overlap, for future optimizations
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TDynVector3SingleArray; Index1, Index2, ACount: Integer);
+      V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
 
-    procedure AddList(Source: TDynVector3SingleArray);
-    procedure AddListRange(Source: TDynVector3SingleArray; Index, AddCount: Integer);
+    procedure AddList(Source: TVector3SingleList);
+    procedure AddListRange(Source: TVector3SingleList; Index, AddCount: Integer);
     procedure AddArray(const A: array of TVector3Single);
     procedure AssignArray(const A: array of TVector3Single);
 
-    { Convert to TDynVector4SingleArray, with 4th vector component in
+    { Convert to TVector4SingleList, with 4th vector component in
       new array set to constant W. }
-    function ToVector4Single(const W: Single): TDynVector4SingleArray;
+    function ToVector4Single(const W: Single): TVector4SingleList;
 
     { When two vertexes on the list are closer than MergeDistance,
       set them truly (exactly) equal.
@@ -404,77 +404,77 @@ type
     function MergeCloseVertexes(MergeDistance: Single): Cardinal;
   end;
 
-  TDynVector2SingleArray = class(specialize TGenericStructList<TVector2Single>)
+  TVector2SingleList = class(specialize TGenericStructList<TVector2Single>)
   public
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
     function MinMax(out Min, Max: TVector2Single): boolean;
 
     { Assign linear interpolation between two other vector arrays.
-      @seealso TDynVector3SingleArray.AssignLerp }
+      @seealso TVector3SingleList.AssignLerp }
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TDynVector2SingleArray; Index1, Index2, ACount: Integer);
+      V1, V2: TVector2SingleList; Index1, Index2, ACount: Integer);
 
-    procedure AddList(Source: TDynVector2SingleArray);
-    procedure AddListRange(Source: TDynVector2SingleArray; Index, AddCount: Integer);
+    procedure AddList(Source: TVector2SingleList);
+    procedure AddListRange(Source: TVector2SingleList; Index, AddCount: Integer);
     procedure AddArray(const A: array of TVector2Single);
     procedure AssignArray(const A: array of TVector2Single);
   end;
 
-  TDynVector4SingleArray = class(specialize TGenericStructList<TVector4Single>)
+  TVector4SingleList = class(specialize TGenericStructList<TVector4Single>)
   public
-    procedure AddList(Source: TDynVector4SingleArray);
-    procedure AddListRange(Source: TDynVector4SingleArray; Index, AddCount: Integer);
+    procedure AddList(Source: TVector4SingleList);
+    procedure AddListRange(Source: TVector4SingleList; Index, AddCount: Integer);
     procedure AddArray(const A: array of TVector4Single);
     procedure AssignArray(const A: array of TVector4Single);
   end;
 
-  TDynVector3CardinalArray = specialize TGenericStructList<TVector3Cardinal>;
+  TVector3CardinalList = specialize TGenericStructList<TVector3Cardinal>;
 
-  TDynVector2DoubleArray = class(specialize TGenericStructList<TVector2Double>)
+  TVector2DoubleList = class(specialize TGenericStructList<TVector2Double>)
   public
-    function ToVector2Single: TDynVector2SingleArray;
-    procedure AddList(Source: TDynVector2DoubleArray);
+    function ToVector2Single: TVector2SingleList;
+    procedure AddList(Source: TVector2DoubleList);
     procedure AddArray(const A: array of TVector2Double);
   end;
 
-  TDynVector3DoubleArray = class(specialize TGenericStructList<TVector3Double>)
+  TVector3DoubleList = class(specialize TGenericStructList<TVector3Double>)
   public
-    function ToVector3Single: TDynVector3SingleArray;
-    procedure AddList(Source: TDynVector3DoubleArray);
+    function ToVector3Single: TVector3SingleList;
+    procedure AddList(Source: TVector3DoubleList);
     procedure AddArray(const A: array of TVector3Double);
   end;
 
-  TDynVector4DoubleArray = class(specialize TGenericStructList<TVector4Double>)
+  TVector4DoubleList = class(specialize TGenericStructList<TVector4Double>)
   public
-    function ToVector4Single: TDynVector4SingleArray;
-    procedure AddList(Source: TDynVector4DoubleArray);
+    function ToVector4Single: TVector4SingleList;
+    procedure AddList(Source: TVector4DoubleList);
     procedure AddArray(const A: array of TVector4Double);
   end;
 
-  TDynMatrix3SingleArray = class(specialize TGenericStructList<TMatrix3Single>)
+  TMatrix3SingleList = class(specialize TGenericStructList<TMatrix3Single>)
   public
-    procedure AddList(Source: TDynMatrix3SingleArray);
+    procedure AddList(Source: TMatrix3SingleList);
     procedure AddArray(const A: array of TMatrix3Single);
   end;
 
-  TDynMatrix3DoubleArray = class(specialize TGenericStructList<TMatrix3Double>)
+  TMatrix3DoubleList = class(specialize TGenericStructList<TMatrix3Double>)
   public
-    function ToMatrix3Single: TDynMatrix3SingleArray;
-    procedure AddList(Source: TDynMatrix3DoubleArray);
+    function ToMatrix3Single: TMatrix3SingleList;
+    procedure AddList(Source: TMatrix3DoubleList);
     procedure AddArray(const A: array of TMatrix3Double);
   end;
 
-  TDynMatrix4SingleArray = class(specialize TGenericStructList<TMatrix4Single>)
+  TMatrix4SingleList = class(specialize TGenericStructList<TMatrix4Single>)
   public
-    procedure AddList(Source: TDynMatrix4SingleArray);
+    procedure AddList(Source: TMatrix4SingleList);
     procedure AddArray(const A: array of TMatrix4Single);
   end;
 
-  TDynMatrix4DoubleArray = class(specialize TGenericStructList<TMatrix4Double>)
+  TMatrix4DoubleList = class(specialize TGenericStructList<TMatrix4Double>)
   public
-    function ToMatrix4Single: TDynMatrix4SingleArray;
-    procedure AddList(Source: TDynMatrix4DoubleArray);
+    function ToMatrix4Single: TMatrix4SingleList;
+    procedure AddList(Source: TMatrix4DoubleList);
     procedure AddArray(const A: array of TMatrix4Double);
   end;
 
@@ -2391,15 +2391,15 @@ uses Math, KambiStringUtils;
 {$define TVector4_ := TVector4_Double}
 {$I vectormath_dualimplementation.inc}
 
-{ TDynVector3SingleArray ----------------------------------------------------- }
+{ TVector3SingleList ----------------------------------------------------- }
 
-procedure TDynVector3SingleArray.AssignNegated(Source: TDynVector3SingleArray);
+procedure TVector3SingleList.AssignNegated(Source: TVector3SingleList);
 begin
   Assign(Source);
   Negate;
 end;
 
-procedure TDynVector3SingleArray.Negate;
+procedure TVector3SingleList.Negate;
 var
   I: Integer;
 begin
@@ -2407,7 +2407,7 @@ begin
     VectorNegateTo1st(L[I]);
 end;
 
-procedure TDynVector3SingleArray.Normalize;
+procedure TVector3SingleList.Normalize;
 var
   I: Integer;
 begin
@@ -2415,7 +2415,7 @@ begin
     NormalizeTo1st(L[I]);
 end;
 
-procedure TDynVector3SingleArray.MultiplyComponents(const V: TVector3Single);
+procedure TVector3SingleList.MultiplyComponents(const V: TVector3Single);
 var
   I: Integer;
 begin
@@ -2423,8 +2423,8 @@ begin
     VectorMultiplyComponentsTo1st(L[I], V);
 end;
 
-procedure TDynVector3SingleArray.AssignLerp(const Fraction: Single;
-  V1, V2: TDynVector3SingleArray; Index1, Index2, ACount: Integer);
+procedure TVector3SingleList.AssignLerp(const Fraction: Single;
+  V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
 var
   I: Integer;
 begin
@@ -2433,17 +2433,17 @@ begin
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
-function TDynVector3SingleArray.ToVector4Single(const W: Single): TDynVector4SingleArray;
+function TVector3SingleList.ToVector4Single(const W: Single): TVector4SingleList;
 var
   I: Integer;
 begin
-  Result := TDynVector4SingleArray.Create;
+  Result := TVector4SingleList.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
     Result.L[I] := Vector4Single(L[I], W);
 end;
 
-function TDynVector3SingleArray.MergeCloseVertexes(MergeDistance: Single): Cardinal;
+function TVector3SingleList.MergeCloseVertexes(MergeDistance: Single): Cardinal;
 var
   V1, V2: PVector3Single;
   I, J: Integer;
@@ -2481,7 +2481,7 @@ begin
   end;
 end;
 
-procedure TDynVector3SingleArray.AddList(Source: TDynVector3SingleArray);
+procedure TVector3SingleList.AddList(Source: TVector3SingleList);
 var
   OldCount: Integer;
 begin
@@ -2491,7 +2491,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TVector3Single) * Source.Count);
 end;
 
-procedure TDynVector3SingleArray.AddListRange(Source: TDynVector3SingleArray; Index, AddCount: Integer);
+procedure TVector3SingleList.AddListRange(Source: TVector3SingleList; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
@@ -2501,7 +2501,7 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3Single) * AddCount);
 end;
 
-procedure TDynVector3SingleArray.AddArray(const A: array of TVector3Single);
+procedure TVector3SingleList.AddArray(const A: array of TVector3Single);
 var
   OldCount: Integer;
 begin
@@ -2511,15 +2511,15 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TVector3Single) * (High(A) + 1));
 end;
 
-procedure TDynVector3SingleArray.AssignArray(const A: array of TVector3Single);
+procedure TVector3SingleList.AssignArray(const A: array of TVector3Single);
 begin
   Clear;
   AddArray(A);
 end;
 
-{ TDynVector2SingleArray ----------------------------------------------------- }
+{ TVector2SingleList ----------------------------------------------------- }
 
-function TDynVector2SingleArray.MinMax(out Min, Max: TVector2Single): boolean;
+function TVector2SingleList.MinMax(out Min, Max: TVector2Single): boolean;
 var
   I: Integer;
 begin
@@ -2539,8 +2539,8 @@ begin
   end;
 end;
 
-procedure TDynVector2SingleArray.AssignLerp(const Fraction: Single;
-  V1, V2: TDynVector2SingleArray; Index1, Index2, ACount: Integer);
+procedure TVector2SingleList.AssignLerp(const Fraction: Single;
+  V1, V2: TVector2SingleList; Index1, Index2, ACount: Integer);
 var
   I: Integer;
 begin
@@ -2549,7 +2549,7 @@ begin
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
-procedure TDynVector2SingleArray.AddList(Source: TDynVector2SingleArray);
+procedure TVector2SingleList.AddList(Source: TVector2SingleList);
 var
   OldCount: Integer;
 begin
@@ -2559,7 +2559,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TVector2Single) * Source.Count);
 end;
 
-procedure TDynVector2SingleArray.AddListRange(Source: TDynVector2SingleArray; Index, AddCount: Integer);
+procedure TVector2SingleList.AddListRange(Source: TVector2SingleList; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
@@ -2569,7 +2569,7 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(TVector2Single) * AddCount);
 end;
 
-procedure TDynVector2SingleArray.AddArray(const A: array of TVector2Single);
+procedure TVector2SingleList.AddArray(const A: array of TVector2Single);
 var
   OldCount: Integer;
 begin
@@ -2579,15 +2579,15 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TVector2Single) * (High(A) + 1));
 end;
 
-procedure TDynVector2SingleArray.AssignArray(const A: array of TVector2Single);
+procedure TVector2SingleList.AssignArray(const A: array of TVector2Single);
 begin
   Clear;
   AddArray(A);
 end;
 
-{ TDynVector4SingleArray ----------------------------------------------------- }
+{ TVector4SingleList ----------------------------------------------------- }
 
-procedure TDynVector4SingleArray.AddList(Source: TDynVector4SingleArray);
+procedure TVector4SingleList.AddList(Source: TVector4SingleList);
 var
   OldCount: Integer;
 begin
@@ -2597,7 +2597,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TVector4Single) * Source.Count);
 end;
 
-procedure TDynVector4SingleArray.AddListRange(Source: TDynVector4SingleArray; Index, AddCount: Integer);
+procedure TVector4SingleList.AddListRange(Source: TVector4SingleList; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
@@ -2607,7 +2607,7 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4Single) * AddCount);
 end;
 
-procedure TDynVector4SingleArray.AddArray(const A: array of TVector4Single);
+procedure TVector4SingleList.AddArray(const A: array of TVector4Single);
 var
   OldCount: Integer;
 begin
@@ -2617,21 +2617,21 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TVector4Single) * (High(A) + 1));
 end;
 
-procedure TDynVector4SingleArray.AssignArray(const A: array of TVector4Single);
+procedure TVector4SingleList.AssignArray(const A: array of TVector4Single);
 begin
   Clear;
   AddArray(A);
 end;
 
-{ TDynVector2DoubleArray ----------------------------------------------------- }
+{ TVector2DoubleList ----------------------------------------------------- }
 
-function TDynVector2DoubleArray.ToVector2Single: TDynVector2SingleArray;
+function TVector2DoubleList.ToVector2Single: TVector2SingleList;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynVector2SingleArray.Create;
+  Result := TVector2SingleList.Create;
   Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
@@ -2643,7 +2643,7 @@ begin
   end;
 end;
 
-procedure TDynVector2DoubleArray.AddList(Source: TDynVector2DoubleArray);
+procedure TVector2DoubleList.AddList(Source: TVector2DoubleList);
 var
   OldCount: Integer;
 begin
@@ -2653,7 +2653,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TVector2Double) * Source.Count);
 end;
 
-procedure TDynVector2DoubleArray.AddArray(const A: array of TVector2Double);
+procedure TVector2DoubleList.AddArray(const A: array of TVector2Double);
 var
   OldCount: Integer;
 begin
@@ -2663,15 +2663,15 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TVector2Double) * (High(A) + 1));
 end;
 
-{ TDynVector3DoubleArray ----------------------------------------------------- }
+{ TVector3DoubleList ----------------------------------------------------- }
 
-function TDynVector3DoubleArray.ToVector3Single: TDynVector3SingleArray;
+function TVector3DoubleList.ToVector3Single: TVector3SingleList;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynVector3SingleArray.Create;
+  Result := TVector3SingleList.Create;
   Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
@@ -2683,7 +2683,7 @@ begin
   end;
 end;
 
-procedure TDynVector3DoubleArray.AddList(Source: TDynVector3DoubleArray);
+procedure TVector3DoubleList.AddList(Source: TVector3DoubleList);
 var
   OldCount: Integer;
 begin
@@ -2693,7 +2693,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TVector3Double) * Source.Count);
 end;
 
-procedure TDynVector3DoubleArray.AddArray(const A: array of TVector3Double);
+procedure TVector3DoubleList.AddArray(const A: array of TVector3Double);
 var
   OldCount: Integer;
 begin
@@ -2703,15 +2703,15 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TVector3Double) * (High(A) + 1));
 end;
 
-{ TDynVector4DoubleArray ----------------------------------------------------- }
+{ TVector4DoubleList ----------------------------------------------------- }
 
-function TDynVector4DoubleArray.ToVector4Single: TDynVector4SingleArray;
+function TVector4DoubleList.ToVector4Single: TVector4SingleList;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynVector4SingleArray.Create;
+  Result := TVector4SingleList.Create;
   Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
@@ -2723,7 +2723,7 @@ begin
   end;
 end;
 
-procedure TDynVector4DoubleArray.AddList(Source: TDynVector4DoubleArray);
+procedure TVector4DoubleList.AddList(Source: TVector4DoubleList);
 var
   OldCount: Integer;
 begin
@@ -2733,7 +2733,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TVector4Double) * Source.Count);
 end;
 
-procedure TDynVector4DoubleArray.AddArray(const A: array of TVector4Double);
+procedure TVector4DoubleList.AddArray(const A: array of TVector4Double);
 var
   OldCount: Integer;
 begin
@@ -2743,9 +2743,9 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TVector4Double) * (High(A) + 1));
 end;
 
-{ TDynMatrix3SingleArray ----------------------------------------------------- }
+{ TMatrix3SingleList ----------------------------------------------------- }
 
-procedure TDynMatrix3SingleArray.AddList(Source: TDynMatrix3SingleArray);
+procedure TMatrix3SingleList.AddList(Source: TMatrix3SingleList);
 var
   OldCount: Integer;
 begin
@@ -2755,7 +2755,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix3Single) * Source.Count);
 end;
 
-procedure TDynMatrix3SingleArray.AddArray(const A: array of TMatrix3Single);
+procedure TMatrix3SingleList.AddArray(const A: array of TMatrix3Single);
 var
   OldCount: Integer;
 begin
@@ -2765,9 +2765,9 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TMatrix3Single) * (High(A) + 1));
 end;
 
-{ TDynMatrix4SingleArray ----------------------------------------------------- }
+{ TMatrix4SingleList ----------------------------------------------------- }
 
-procedure TDynMatrix4SingleArray.AddList(Source: TDynMatrix4SingleArray);
+procedure TMatrix4SingleList.AddList(Source: TMatrix4SingleList);
 var
   OldCount: Integer;
 begin
@@ -2777,7 +2777,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix4Single) * Source.Count);
 end;
 
-procedure TDynMatrix4SingleArray.AddArray(const A: array of TMatrix4Single);
+procedure TMatrix4SingleList.AddArray(const A: array of TMatrix4Single);
 var
   OldCount: Integer;
 begin
@@ -2787,15 +2787,15 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TMatrix4Single) * (High(A) + 1));
 end;
 
-{ TDynMatrix3DoubleArray ----------------------------------------------------- }
+{ TMatrix3DoubleList ----------------------------------------------------- }
 
-function TDynMatrix3DoubleArray.ToMatrix3Single: TDynMatrix3SingleArray;
+function TMatrix3DoubleList.ToMatrix3Single: TMatrix3SingleList;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynMatrix3SingleArray.Create;
+  Result := TMatrix3SingleList.Create;
   Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
@@ -2807,7 +2807,7 @@ begin
   end;
 end;
 
-procedure TDynMatrix3DoubleArray.AddList(Source: TDynMatrix3DoubleArray);
+procedure TMatrix3DoubleList.AddList(Source: TMatrix3DoubleList);
 var
   OldCount: Integer;
 begin
@@ -2817,7 +2817,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix3Double) * Source.Count);
 end;
 
-procedure TDynMatrix3DoubleArray.AddArray(const A: array of TMatrix3Double);
+procedure TMatrix3DoubleList.AddArray(const A: array of TMatrix3Double);
 var
   OldCount: Integer;
 begin
@@ -2827,15 +2827,15 @@ begin
     System.Move(A[0], L[OldCount], SizeOf(TMatrix3Double) * (High(A) + 1));
 end;
 
-{ TDynMatrix4DoubleArray ----------------------------------------------------- }
+{ TMatrix4DoubleList ----------------------------------------------------- }
 
-function TDynMatrix4DoubleArray.ToMatrix4Single: TDynMatrix4SingleArray;
+function TMatrix4DoubleList.ToMatrix4Single: TMatrix4SingleList;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TDynMatrix4SingleArray.Create;
+  Result := TMatrix4SingleList.Create;
   Result.Count := Count;
   Source := PDouble(List);
   Dest := PSingle(Result.List);
@@ -2847,7 +2847,7 @@ begin
   end;
 end;
 
-procedure TDynMatrix4DoubleArray.AddList(Source: TDynMatrix4DoubleArray);
+procedure TMatrix4DoubleList.AddList(Source: TMatrix4DoubleList);
 var
   OldCount: Integer;
 begin
@@ -2857,7 +2857,7 @@ begin
     System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix4Double) * Source.Count);
 end;
 
-procedure TDynMatrix4DoubleArray.AddArray(const A: array of TMatrix4Double);
+procedure TMatrix4DoubleList.AddArray(const A: array of TMatrix4Double);
 var
   OldCount: Integer;
 begin

@@ -105,7 +105,7 @@ type
     FBoundingSphereRadiusSqr: Single;
     FBoundingSphereCenter: TVector3Single;
 
-    FItemsIndices: TDynIntegerArray;
+    FItemsIndices: TIntegerList;
 
     FIsLeaf: boolean;
 
@@ -168,7 +168,7 @@ type
 
       Never put any items in the octree node by direct ItemsIndices.Add.
       Instead you must use @link(AddItem) method. }
-    property ItemsIndices: TDynIntegerArray read FItemsIndices;
+    property ItemsIndices: TIntegerList read FItemsIndices;
 
     { Number of items stored here.
       Same thing as ItemsIndices.Count, but has somewhat nicer name
@@ -482,7 +482,7 @@ end;
 
 procedure TOctreeNode.CreateLeafItems;
 begin
- FItemsIndices := TDynIntegerArray.Create;
+ FItemsIndices := TIntegerList.Create;
  ItemsIndices.Capacity := Max(FParentTree.LeafCapacity div 4, 4);
 end;
 
@@ -827,9 +827,9 @@ begin
 end;
 
 function TOctree.Statistics: string;
-var leavesCounts: TDynCardinalArray;
-    nonLeafNodesCounts: TDynCardinalArray;
-    itemsCounts: TDynCardinalArray;
+var leavesCounts: TCardinalList;
+    nonLeafNodesCounts: TCardinalList;
+    itemsCounts: TCardinalList;
 
   procedure StatNode(TreeNode: TOctreeNode);
   var b0, b1, b2: boolean;
@@ -863,11 +863,11 @@ begin
  nonLeafNodesCounts := nil;
  itemsCounts := nil;
  try
-  leavesCounts := TDynCardinalArray.Create;
+  leavesCounts := TCardinalList.Create;
   leavesCounts.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
-  nonLeafNodesCounts := TDynCardinalArray.Create;
+  nonLeafNodesCounts := TCardinalList.Create;
   nonLeafNodesCounts.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
-  itemsCounts := TDynCardinalArray.Create;
+  itemsCounts := TCardinalList.Create;
   itemsCounts.Count := MaxDepth + 1; { TFPGList initialized everything to false }
 
   StatNode(FTreeRoot);

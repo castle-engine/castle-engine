@@ -19,9 +19,9 @@
     material binding per part. Will be used with
     material binding BIND_PER_FACE_INDEXED. Pass @nil if you don't
     need it.) }
-procedure Box_Proxy(CoordIndex: TDynLongIntArray;
-  Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
-  TexCoord: TDynVector2SingleArray; MaterialIndex: TDynLongIntArray;
+procedure Box_Proxy(CoordIndex: TLongIntList;
+  Coord: TVector3SingleList; Normal: TVector3SingleList;
+  TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
   OverTriangulate: boolean; Sizes: TVector3Single;
   KambiTriangulation: TNodeKambiTriangulation);
 
@@ -149,7 +149,7 @@ var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate;
-  TexCoords: TDynVector2SingleArray;
+  TexCoords: TVector2SingleList;
   IFS: TNodeIndexedFaceSet absolute Result;
 begin
   IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
@@ -194,7 +194,7 @@ var
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
   MaterialBinding: TNodeMaterialBinding;
-  MaterialIndex: TDynLongIntArray;
+  MaterialIndex: TLongIntList;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);

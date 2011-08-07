@@ -1364,7 +1364,7 @@ var
 
     procedure DoOrthographic;
     var
-      FieldOfView: TDynSingleArray;
+      FieldOfView: TSingleList;
       FinalFieldOfView: TVector4Single;
     begin
       { default VRML/X3D fov }

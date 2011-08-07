@@ -63,12 +63,12 @@ uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes,
 
 var
   Scene: TVRMLScene;
-  Normals: TDynVector3SingleArray;
+  Normals: TVector3SingleList;
   SHBasisCount: Integer = 25;
   RaysPerVertex: Cardinal = 1000;
 
-procedure ComputeTransfer(RadianceTransfer: TDynVector3SingleArray;
-  Coord: TDynVector3SingleArray; const Transform: TMatrix4Single;
+procedure ComputeTransfer(RadianceTransfer: TVector3SingleList;
+  Coord: TVector3SingleList; const Transform: TMatrix4Single;
   const DiffuseColor: TVector3Single);
 var
   I, J, SHBase: Integer;
@@ -199,7 +199,7 @@ var
   SI: TVRMLShapeTreeIterator;
   Geometry: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  RadianceTransfer: TDynVector3SingleArray;
+  RadianceTransfer: TVector3SingleList;
   S: string;
 begin
   Parameters.Parse(Options, @OptionProc, nil);

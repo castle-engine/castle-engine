@@ -38,11 +38,11 @@ type
   end;
   PParsedOption = ^TParsedOption;
 
-  TDynParsedOptionArray = specialize TGenericStructList<TParsedOption>;
+  TParsedOptionList = specialize TGenericStructList<TParsedOption>;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var ParsedArray: TDynParsedOptionArray absolute Data;
+var ParsedArray: TParsedOptionList absolute Data;
     LastItem: PParsedOption;
 begin
  LastItem := ParsedArray.Add;
@@ -60,9 +60,9 @@ end;
 function ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
   ParseOnlyKnownLongOptions: boolean = false)
-  : TDynParsedOptionArray;
+  : TParsedOptionList;
 begin
- result := TDynParsedOptionArray.Create;
+ result := TParsedOptionList.Create;
  try
   Parameters.Parse(Options, OptionsCount,
     {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
@@ -72,7 +72,7 @@ end;
 
 function ParseParameters(
   const Options: array of TOption; ParseOnlyKnownLongOptions: boolean = false)
-  : TDynParsedOptionArray;
+  : TParsedOptionList;
 begin
  result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
 end;
@@ -85,7 +85,7 @@ begin
  for i := 0 to Parameters.High do Assert(Parameters[i] = ParsValues[i]);
 end;
 
-procedure AssertParsedParsEqual(const ParsedPars1: TDynParsedOptionArray;
+procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
   const ParsedPars2: array of TParsedOption);
 var i, j: Integer;
 begin
@@ -101,7 +101,7 @@ begin
 end;
 
 function DynParsedOptionArrayToStr(const name: string;
-  v: TDynParsedOptionArray): string;
+  v: TParsedOptionList): string;
 var i: Integer;
 begin
  result := name + nl;
@@ -127,7 +127,7 @@ procedure TTestParsingParameters.TestParsingParameters;
     const Options: array of TOption;
     const GoodAnswer: array of TParsedOption; const GoodRest: array of string;
     ParseOnlyKnownLongOptions: boolean);
-  var Answer: TDynParsedOptionArray;
+  var Answer: TParsedOptionList;
   begin
    Parameters.AssignArray(StartPars);
    AssertParsEqual(StartPars);
@@ -154,7 +154,7 @@ procedure TTestParsingParameters.TestParsingParameters;
 
   procedure CheckParsFail(TestName: string; const StartPars: array of string;
     const Options: array of TOption; EClass: ExceptClass; const EMessage: string);
-  var Answer: TDynParsedOptionArray;
+  var Answer: TParsedOptionList;
   begin
    Parameters.AssignArray(StartPars);
    AssertParsEqual(StartPars);

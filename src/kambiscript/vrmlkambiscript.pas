@@ -26,7 +26,7 @@ type
   TKamScriptVRMLValueList = class(TKamScriptValueList)
   private
     FFieldOrEvents: TVRMLFieldOrEventList;
-    FLastEventTimes: TDynVRMLTimeArray;
+    FLastEventTimes: TVRMLTimeList;
     InsideAfterExecute: boolean;
   public
     constructor Create(AFreeObjects: boolean);
@@ -494,7 +494,7 @@ constructor TKamScriptVRMLValueList.Create(AFreeObjects: boolean);
 begin
   inherited;
   FFieldOrEvents := TVRMLFieldOrEventList.Create(false);
-  FLastEventTimes := TDynVRMLTimeArray.Create;
+  FLastEventTimes := TVRMLTimeList.Create;
 end;
 
 destructor TKamScriptVRMLValueList.Destroy;

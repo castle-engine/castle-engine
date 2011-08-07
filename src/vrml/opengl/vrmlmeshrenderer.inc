@@ -161,13 +161,13 @@ end;
 
 procedure TBaseCoordinateRenderer.Render;
 var
-  Locations: TDynLongIntArray;
+  Locations: TLongIntList;
 
   procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
   var
     I: Integer;
   begin
-    Locations := TDynLongIntArray.Create;
+    Locations := TLongIntList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
     try
       case Arrays.Attribs[I].AType of

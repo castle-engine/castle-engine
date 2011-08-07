@@ -996,7 +996,7 @@ const
   prShadowVolume = [prTrianglesListShadowCasters, prManifoldAndBorderEdges];
 
 type
-  TDynTriangle4SingleArray = specialize TGenericStructList<TTriangle4Single>;
+  TTriangle4SingleList = specialize TGenericStructList<TTriangle4Single>;
 
 procedure Register;
 
@@ -2434,8 +2434,8 @@ procedure TVRMLGLScene.RenderAllShadowVolume(
   zostaly uznane za "front facing"). }
 
 var
-  TrianglesForLightCap: TDynTriangle3SingleArray;
-  TrianglesForDarkCap: TDynTriangle4SingleArray;
+  TrianglesForLightCap: TTriangle3SingleList;
+  TrianglesForDarkCap: TTriangle4SingleList;
 
   procedure RenderShadowQuad(
     const P0, P1: TVector3Single;
@@ -2572,7 +2572,7 @@ var
 
 var
   I: Integer;
-  Triangles: TDynTriangle3SingleArray;
+  Triangles: TTriangle3SingleList;
   TransformedTri: TTriangle3Single;
   TPtr: PTriangle3Single;
   T4Ptr: PTriangle4Single;
@@ -2593,13 +2593,13 @@ begin
 
   if LightCap then
   begin
-    TrianglesForLightCap := TDynTriangle3SingleArray.Create;
+    TrianglesForLightCap := TTriangle3SingleList.Create;
     TrianglesForLightCap.Capacity := Triangles.Count;
   end;
 
   if DarkCap then
   begin
-    TrianglesForDarkCap := TDynTriangle4SingleArray.Create;
+    TrianglesForDarkCap := TTriangle4SingleList.Create;
     TrianglesForDarkCap.Capacity := Triangles.Count;
   end;
 
@@ -2725,7 +2725,7 @@ procedure TVRMLGLScene.RenderSilhouetteShadowVolume(
 }
 
 var
-  Triangles: TDynTrianglesShadowCastersArray;
+  Triangles: TTrianglesShadowCastersList;
 
   procedure RenderShadowQuad(EdgePtr: PManifoldEdge;
     const P0Index, P1Index: Cardinal); overload;
@@ -2795,7 +2795,7 @@ var
     of PlaneSide_NotIdentity and rendering caps --- we have to transform
     each triangle only once. }
   procedure InitializeTrianglesPlaneSideAndRenderCaps(
-    TrianglesPlaneSide: TDynBooleanArray;
+    TrianglesPlaneSide: TBooleanList;
     LightCap, DarkCap: boolean);
 
     procedure RenderCaps(const T: TTriangle3Single);
@@ -3027,15 +3027,15 @@ var
 var
   I: Integer;
   PlaneSide0, PlaneSide1: boolean;
-  TrianglesPlaneSide: TDynBooleanArray;
-  ManifoldEdgesNow: TDynManifoldEdgeArray;
+  TrianglesPlaneSide: TBooleanList;
+  ManifoldEdgesNow: TManifoldEdgeList;
   ManifoldEdgePtr: PManifoldEdge;
-  BorderEdgesNow: TDynBorderEdgeArray;
+  BorderEdgesNow: TBorderEdgeList;
   BorderEdgePtr: PBorderEdge;
 begin
   Triangles := TrianglesListShadowCasters;
 
-  TrianglesPlaneSide := TDynBooleanArray.Create;
+  TrianglesPlaneSide := TBooleanList.Create;
   try
     InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
       LightCap, DarkCap);
@@ -3178,7 +3178,7 @@ procedure TVRMLGLScene.RenderSilhouetteEdges(
   as OpenGL line. }
 
 var
-  Triangles: TDynTriangle3SingleArray;
+  Triangles: TTriangle3SingleList;
   EdgePtr: PManifoldEdge;
 
   procedure RenderEdge(
@@ -3217,14 +3217,14 @@ var
   I: Integer;
   TrianglePtr: PTriangle3Single;
   PlaneSide0, PlaneSide1: boolean;
-  TrianglesPlaneSide: TDynBooleanArray;
-  Edges: TDynManifoldEdgeArray;
+  TrianglesPlaneSide: TBooleanList;
+  Edges: TManifoldEdgeList;
 begin
   glBegin(GL_LINES);
     Triangles := TrianglesListShadowCasters;
     Edges := ManifoldEdges;
 
-    TrianglesPlaneSide := TDynBooleanArray.Create;
+    TrianglesPlaneSide := TBooleanList.Create;
     try
       { calculate TrianglesPlaneSide array }
       TrianglesPlaneSide.Count := Triangles.Count;
@@ -3255,7 +3255,7 @@ end;
 procedure TVRMLGLScene.RenderBorderEdges(
   const Transform: TMatrix4Single);
 var
-  Triangles: TDynTriangle3SingleArray;
+  Triangles: TTriangle3SingleList;
   EdgePtr: PBorderEdge;
 
   procedure RenderEdge;
@@ -3277,7 +3277,7 @@ var
 
 var
   I: Integer;
-  Edges: TDynBorderEdgeArray;
+  Edges: TBorderEdgeList;
 begin
   glBegin(GL_LINES);
     Triangles := TrianglesListShadowCasters;
@@ -3606,7 +3606,7 @@ var
 
   procedure DoOrthographic;
   var
-    FieldOfView: TDynSingleArray;
+    FieldOfView: TSingleList;
     MaxSize: Single;
   begin
     MaxSize := Box3DMaxSize(Box, false, { any dummy value } 1.0);

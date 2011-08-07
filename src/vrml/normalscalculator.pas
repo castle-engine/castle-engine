@@ -62,10 +62,10 @@ uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
   @param(Convex Set this to @true if you know the faces are convex.
     This makes calculation faster (but may yield incorrect results
     for concave polygons).) }
-function CreateNormals(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
+function CreateNormals(CoordIndex: TLongintList;
+  Vertices: TVector3SingleList;
   CreaseAngleRad: Single;
-  const FromCCW, Convex: boolean): TDynVector3SingleArray;
+  const FromCCW, Convex: boolean): TVector3SingleList;
 
 { Calculate flat per-face normals for indexed faces.
 
@@ -73,9 +73,9 @@ function CreateNormals(CoordIndex: TDynLongintArray;
   as it's Count is the number of @italic(faces). For each face, a single
   normal is stored, as this is most sensible compact representation.
   Using something larger would be a waste of memory and time. }
-function CreateFlatNormals(coordIndex: TDynLongintArray;
-  vertices: TDynVector3SingleArray;
-  const FromCCW, Convex: boolean): TDynVector3SingleArray;
+function CreateFlatNormals(coordIndex: TLongintList;
+  vertices: TVector3SingleList;
+  const FromCCW, Convex: boolean): TVector3SingleList;
 
 { Calculate always smooth normals per-vertex, for VRML coordinate-based
   node. We use TVRMLGeometryNode.CoordPolygons for this, so the node class
@@ -91,7 +91,7 @@ function CreateFlatNormals(coordIndex: TDynLongintArray;
 function CreateSmoothNormalsCoordinateNode(
   Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  const FromCCW: boolean): TDynVector3SingleArray;
+  const FromCCW: boolean): TVector3SingleList;
 
 implementation
 
@@ -105,22 +105,22 @@ type
   end;
   PFace = ^TFace;
 
-  TDynFaceArray = specialize TGenericStructList<TFace>;
+  TFaceList = specialize TGenericStructList<TFace>;
 
-function CreateNormals(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
+function CreateNormals(CoordIndex: TLongintList;
+  Vertices: TVector3SingleList;
   CreaseAngleRad: Single;
-  const FromCCW, Convex: boolean): TDynVector3SingleArray;
+  const FromCCW, Convex: boolean): TVector3SingleList;
 var
-  Faces: TDynFaceArray;
+  Faces: TFaceList;
   { For each vertex (this array Count is always Vertices.Count),
     to which faces this vertex belongs? Contains indexes to Faces[] list.
 
     Although vertex may be more than once on the same face (in case
     of incorrect data, or some concave faces), a face is mentioned
     at most once (for given vertex) in this structure. }
-  VerticesFaces: array of TDynIntegerArray;
-  NormalsResult: TDynVector3SingleArray absolute Result;
+  VerticesFaces: array of TIntegerList;
+  NormalsResult: TVector3SingleList absolute Result;
   CosCreaseAngle: Single;
 
   procedure CalculateFacesAndVerticesFaces;
@@ -190,13 +190,13 @@ var
   procedure CalculateVertexNormals(VertexNum: Integer);
   var
     { Initialized to VerticesFaces[VertexNum] }
-    ThisVertexFaces: TDynIntegerArray;
+    ThisVertexFaces: TIntegerList;
 
     { Can face FaceNum may be smoothed together with all faces in FaceNums.
       This is the moment when CreaseAngleRad comes into play.
       FaceNum and FaceNums[] are indexes to ThisVertexFaces array. }
     function FaceCanBeSmoothedWithFaces(FaceNum: integer;
-      FaceNums: TDynIntegerArray): boolean;
+      FaceNums: TIntegerList): boolean;
     var
       I: integer;
     begin
@@ -218,9 +218,9 @@ var
   var
     I, J: Integer;
     { Current face group that shares a common normal vector on this vertex. }
-    SmoothFaces: TDynIntegerArray;
+    SmoothFaces: TIntegerList;
     { Did we store normal vector for given face (and this vertex VertexNum) }
-    HandledFaces: TDynBooleanArray;
+    HandledFaces: TBooleanList;
     Normal: TVector3Single;
   begin
     ThisVertexFaces := VerticesFaces[VertexNum];
@@ -228,9 +228,9 @@ var
     SmoothFaces := nil;
     HandledFaces := nil;
     try
-      HandledFaces := TDynBooleanArray.Create;
+      HandledFaces := TBooleanList.Create;
       HandledFaces.Count := ThisVertexFaces.Count; { TFPGList initialized everything to false }
-      SmoothFaces := TDynIntegerArray.Create;
+      SmoothFaces := TIntegerList.Create;
 
       for I := 0 to ThisVertexFaces.Count - 1 do
         if not HandledFaces[I] then
@@ -275,13 +275,13 @@ begin
   try
     try
       for I := 0 to vertices.Count - 1 do
-        VerticesFaces[I] := TDynIntegerArray.Create;
-      Faces := TDynFaceArray.Create;
+        VerticesFaces[I] := TIntegerList.Create;
+      Faces := TFaceList.Create;
 
       { calculate Faces and VerticesFaces contents }
       CalculateFacesAndVerticesFaces;
 
-      Result := TDynVector3SingleArray.Create;
+      Result := TVector3SingleList.Create;
       Result.Count := CoordIndex.Count;
 
       { for each vertex, calculate all his normals (on all his faces) }
@@ -295,15 +295,15 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function CreateFlatNormals(CoordIndex: TDynLongintArray;
-  Vertices: TDynVector3SingleArray;
-  const FromCCW, Convex: boolean): TDynVector3SingleArray;
+function CreateFlatNormals(CoordIndex: TLongintList;
+  Vertices: TVector3SingleList;
+  const FromCCW, Convex: boolean): TVector3SingleList;
 var
   I, StartIndex: Integer;
   FaceNumber: Integer;
 begin
   { CoordIndex.Count is just a maximum Count, we will shrink it later. }
-  Result := TDynVector3SingleArray.Create;
+  Result := TVector3SingleList.Create;
   try
     Result.Count := CoordIndex.Count;
     FaceNumber := 0;
@@ -334,9 +334,9 @@ end;
 type
   TCoordinateNormalsCalculator = class
   public
-    Normals: TDynVector3SingleArray;
-    CoordIndex: TDynLongIntArray;
-    Coord: TDynVector3SingleArray;
+    Normals: TVector3SingleList;
+    CoordIndex: TLongIntList;
+    Coord: TVector3SingleList;
     Convex: boolean;
     procedure Polygon(const Indexes: array of Cardinal);
   end;
@@ -373,7 +373,7 @@ end;
 function CreateSmoothNormalsCoordinateNode(
   Node: TVRMLGeometryNode;
   State: TVRMLGraphTraverseState;
-  const FromCCW: boolean): TDynVector3SingleArray;
+  const FromCCW: boolean): TVector3SingleList;
 var
   Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;
@@ -383,7 +383,7 @@ begin
   { Node coordinate-based, but specified with empty coord }
   if C = nil then Exit(nil);
 
-  Result := TDynVector3SingleArray.Create;
+  Result := TVector3SingleList.Create;
   try
     Result.Count := C.Count; { TFPSList initialized everything to 0 }
 

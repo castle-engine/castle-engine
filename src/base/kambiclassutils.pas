@@ -617,7 +617,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TDynNotifyEventArray = class(specialize TGenericStructList<TNotifyEvent>)
+  TNotifyEventList = class(specialize TGenericStructList<TNotifyEvent>)
   public
     { Call all (non-nil) Items. }
     procedure ExecuteAll(Sender: TObject);
@@ -1578,9 +1578,9 @@ begin
     Add(Value);
 end;
 
-{ TDynNotifyEventArray  ------------------------------------------------------ }
+{ TNotifyEventList  ------------------------------------------------------ }
 
-procedure TDynNotifyEventArray.ExecuteAll(Sender: TObject);
+procedure TNotifyEventList.ExecuteAll(Sender: TObject);
 var
   I: Integer;
 begin

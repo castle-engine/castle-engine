@@ -44,11 +44,11 @@
     procedure Add(Joint: TNodeHAnimJoint; const Weight: Single);
   end;
   PVertexJoints = ^TVertexJoints;
-  TDynVertexJointsArray = specialize TGenericStructList<TVertexJoints>;
+  TVertexJointsList = specialize TGenericStructList<TVertexJoints>;
 
   TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
   private
-    VertexJoints: TDynVertexJointsArray;
+    VertexJoints: TVertexJointsList;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -489,7 +489,7 @@ function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
 
 var
   I: Integer;
-  SkinCoord: TDynVector3SingleArray;
+  SkinCoord: TVector3SingleList;
 begin
   if not (
     (FdSkinCoord.Value <> nil) and
@@ -515,9 +515,9 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
 
   procedure CalculateVertexJoints;
   var
-    SkinCoord: TDynVector3SingleArray;
+    SkinCoord: TVector3SingleList;
     I, J: Integer;
-    SkinCoordIndex: TDynLongIntArray;
+    SkinCoordIndex: TLongIntList;
     CoordIndex: Integer;
     Weight: Single;
     Joint: TNodeHAnimJoint;
@@ -527,7 +527,7 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
        (FdSkinCoord.Value is TNodeCoordinate) then
     begin
       SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
-      VertexJoints := TDynVertexJointsArray.Create;
+      VertexJoints := TVertexJointsList.Create;
       VertexJoints.Count := SkinCoord.Count;
 
       for I := 0 to SkinCoord.Count - 1 do

@@ -907,7 +907,7 @@ end;
 
 function TVRMLMaterialInfo.ReflSpecular: TVector3Single;
 var
-  A: TDynVector3SingleArray;
+  A: TVector3SingleList;
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
@@ -917,7 +917,7 @@ end;
 
 function TVRMLMaterialInfo.ReflDiffuse: TVector3Single;
 var
-  A: TDynVector3SingleArray;
+  A: TVector3SingleList;
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
@@ -927,7 +927,7 @@ end;
 
 function TVRMLMaterialInfo.TransSpecular: TVector3Single;
 var
-  A: TDynVector3SingleArray;
+  A: TVector3SingleList;
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
@@ -937,7 +937,7 @@ end;
 
 function TVRMLMaterialInfo.TransDiffuse: TVector3Single;
 var
-  A: TDynVector3SingleArray;
+  A: TVector3SingleList;
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then

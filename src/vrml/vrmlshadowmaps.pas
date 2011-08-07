@@ -68,7 +68,7 @@ type
   end;
   PLight = ^TLight;
 
-  TDynLightArray = class(specialize TGenericStructList<TLight>)
+  TLightList = class(specialize TGenericStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
@@ -90,7 +90,7 @@ type
     procedure HandleLightCastingOnEverything(Node: TVRMLNode);
   end;
 
-function TDynLightArray.FindLight(Light: TNodeX3DLightNode): PLight;
+function TLightList.FindLight(Light: TNodeX3DLightNode): PLight;
 var
   I: Integer;
   LightUniqueName: string;
@@ -165,7 +165,7 @@ end;
 
 { If this shape was processed by some ShapeAdd previously,
   removed the ProjectedTextureCoordinate and GeneratedShadowMap nodes we added. }
-procedure TDynLightArray.ShapeRemove(Shape: TVRMLShape);
+procedure TLightList.ShapeRemove(Shape: TVRMLShape);
 
   { Remove old GeneratedShadowMap nodes that we added. }
   procedure RemoveOldShadowMap(Texture: TMFNode);
@@ -205,7 +205,7 @@ begin
   end;
 end;
 
-procedure TDynLightArray.ShapeAdd(Shape: TVRMLShape);
+procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
   { Add ShadowMap to the textures used by the shape.
     Always converts Texture to TNodeMultiTexture, to add the shadow map
@@ -478,7 +478,7 @@ begin
     HandleLight(TNodeX3DLightNode(LightsCastingOnEverything[I]));
 end;
 
-procedure TDynLightArray.HandleLightAutomaticProjection(const Light: TLight);
+procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
 var
   ProjectionNear, ProjectionFar: Single;
 begin
@@ -527,7 +527,7 @@ begin
     Light.Light.FdProjectionFar.Value := ProjectionFar;
 end;
 
-procedure TDynLightArray.HandleLightCastingOnEverything(Node: TVRMLNode);
+procedure TLightList.HandleLightCastingOnEverything(Node: TVRMLNode);
 begin
   if TNodeX3DLightNode(Node).FdShadows.Value then
     LightsCastingOnEverything.Add(Node);
@@ -537,7 +537,7 @@ procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal);
 var
-  Lights: TDynLightArray;
+  Lights: TLightList;
   L: PLight;
   I: Integer;
 begin
@@ -545,7 +545,7 @@ begin
     Nothing to do then. }
   if Model = nil then Exit;
 
-  Lights := TDynLightArray.Create;
+  Lights := TLightList.Create;
   try
     { Shapes.Traverse here enumerate all (active and not) shapes.
       In case a shape is not active, it may become active later

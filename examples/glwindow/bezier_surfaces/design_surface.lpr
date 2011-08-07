@@ -58,7 +58,7 @@ var
 
 { various utility funcs ------------------------------------------------------ }
 
-function ControlPoints(CurveNum: Integer): TDynVector3SingleArray;
+function ControlPoints(CurveNum: Integer): TVector3SingleList;
 begin
   Result := (Surface.Curves.Items[CurveNum] as TControlPointsCurve).
     ControlPoints;

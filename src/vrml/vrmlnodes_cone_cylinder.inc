@@ -114,9 +114,9 @@ end;
   @param(TopRadius Radius of the upper cap.
     May be = 0, then Top does not matter (we'll never make
     a top cap in this case.)) }
-procedure CylinderCone_Proxy(CoordIndex: TDynLongIntArray;
-  Coord: TDynVector3SingleArray; Normal: TDynVector3SingleArray;
-  TexCoord: TDynVector2SingleArray; MaterialIndex: TDynLongIntArray;
+procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
+  Coord: TVector3SingleList; Normal: TVector3SingleList;
+  TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
   OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
   KambiTriangulation: TNodeKambiTriangulation);
@@ -458,7 +458,7 @@ var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate;
-  TexCoords: TDynVector2SingleArray;
+  TexCoords: TVector2SingleList;
   IFS: TNodeIndexedFaceSet absolute Result;
 begin
   IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
@@ -501,7 +501,7 @@ var
   CoordNode: TNodeCoordinate;
   NormalNode: TNodeNormal;
   TexCoordNode: TNodeTextureCoordinate;
-  TexCoords: TDynVector2SingleArray;
+  TexCoords: TVector2SingleList;
   IFS: TNodeIndexedFaceSet absolute Result;
 begin
   IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
@@ -549,7 +549,7 @@ var
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
   MaterialBinding: TNodeMaterialBinding;
-  MaterialIndex: TDynLongIntArray;
+  MaterialIndex: TLongIntList;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
@@ -620,7 +620,7 @@ var
   TexCoordNode: TNodeTextureCoordinate2;
   ShapeHints: TNodeShapeHints;
   MaterialBinding: TNodeMaterialBinding;
-  MaterialIndex: TDynLongIntArray;
+  MaterialIndex: TLongIntList;
   IFS: TNodeIndexedFaceSet_1 absolute Result;
 begin
   IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);

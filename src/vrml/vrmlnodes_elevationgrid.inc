@@ -37,8 +37,8 @@ function TNodeElevationGrid.Proxy(var State: TVRMLGraphTraverseState;
   and also it's used for triangulating.
 }
 var
-  Coords: TDynVector3SingleArray;
-  CoordIndexes: TDynLongIntArray;
+  Coords: TVector3SingleList;
+  CoordIndexes: TLongIntList;
 
   { Add to CoordIndexes a quad from given indexes.
     Actually we add two triangles, looking at Coord to choose the best
@@ -75,7 +75,7 @@ var
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TNodeCoordinate;
-  TexCoords: TDynVector2SingleArray;
+  TexCoords: TVector2SingleList;
 begin
   IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
   try

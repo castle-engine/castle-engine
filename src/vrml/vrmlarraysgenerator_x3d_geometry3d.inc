@@ -268,7 +268,7 @@ begin
   end;
 
   { calculate IndexesFromCoordIndex contents: triangulate }
-  IndexesFromCoordIndex := TDynLongIntArray.Create;
+  IndexesFromCoordIndex := TLongIntList.Create;
   IndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange2);

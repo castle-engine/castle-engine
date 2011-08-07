@@ -1939,7 +1939,7 @@ var
 
     It's important in such cases that the we should restore at the end
     previously bound FBO --- not necessarily just FBO number 0. }
-  BoundFboStack: TDynLongWordArray;
+  BoundFboStack: TLongWordList;
 
 { Use instead of glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo),
   for non-zero Fbo. This will bind and add this Fbo to stack. }
@@ -1947,7 +1947,7 @@ procedure BindFramebuffer(const Fbo: TGLuint);
 begin
   Assert(Fbo <> 0);
   if BoundFboStack = nil then
-    BoundFboStack := TDynLongWordArray.Create;
+    BoundFboStack := TLongWordList.Create;
   BoundFboStack.Add(Fbo);
 
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, Fbo);

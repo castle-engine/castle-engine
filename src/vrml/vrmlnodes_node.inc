@@ -62,7 +62,7 @@
     FHasInterfaceDeclarations: TVRMLAccessTypes;
     FInterfaceDeclarations: TVRMLInterfaceDeclarationList;
     FCDataField: TMFString;
-    FDestructionNotifications: TDynNodeDestructionNotificationArray;
+    FDestructionNotifications: TNodeDestructionNotificationList;
     FScene: TVRMLEventsEngine;
     FShapeTrees: TObject;
 
@@ -926,7 +926,7 @@
 
     { Functions registered here will be called when this TVRMLNode descendant
       will be destroyed. }
-    property DestructionNotifications: TDynNodeDestructionNotificationArray
+    property DestructionNotifications: TNodeDestructionNotificationList
       read FDestructionNotifications;
 
     { Scene that will be notified about changes to this node.
@@ -1077,7 +1077,7 @@ begin
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
 
-  FDestructionNotifications := TDynNodeDestructionNotificationArray.Create;
+  FDestructionNotifications := TNodeDestructionNotificationList.Create;
 
   CreateNode;
 end;

@@ -117,7 +117,7 @@ type
   end;
   PCachedTexture = ^TCachedTexture;
 
-  TDynCachedTextureArray = specialize TGenericStructList<TCachedTexture>;
+  TCachedTextureList = specialize TGenericStructList<TCachedTexture>;
 
   { A cache of loaded images for textures.
 
@@ -133,7 +133,7 @@ type
     use the cache. }
   TTexturesImagesVideosCache = class(TImagesVideosCache)
   private
-    CachedTextures: TDynCachedTextureArray;
+    CachedTextures: TCachedTextureList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -187,7 +187,7 @@ end;
 constructor TTexturesImagesVideosCache.Create;
 begin
   inherited;
-  CachedTextures := TDynCachedTextureArray.Create;
+  CachedTextures := TCachedTextureList.Create;
 end;
 
 destructor TTexturesImagesVideosCache.Destroy;

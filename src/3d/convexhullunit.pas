@@ -28,18 +28,18 @@ uses VectorMath, KambiUtils, Math;
   you want to iterate over points (for each i) Points[Result[i]]).
 
   Points.Count must be >= 1. }
-function ConvexHull(Points: TDynVector3SingleArray): TDynIntegerArray;
+function ConvexHull(Points: TVector3SingleList): TIntegerList;
 
 implementation
 
-function ConvexHull(Points: TDynVector3SingleArray): TDynIntegerArray;
+function ConvexHull(Points: TVector3SingleList): TIntegerList;
 
 { this is the Jarvis algorithm, based on description in Cormen's
   "Introduction to alg." }
 
-var InResult:TDynBooleanArray;
+var InResult: TBooleanList;
 
-  function FindNext(Start:Integer; var NextI:Integer; RightSide:boolean):boolean;
+  function FindNext(Start: Integer; var NextI: Integer; RightSide: boolean): boolean;
   { Starting from Points[Start], knowing that InResult[Start],
     find next vertex on convex hull. If RightSide then we're moving from
     lowest vertex to highest, walking over the right edge of the convex hull.
@@ -51,20 +51,20 @@ var InResult:TDynBooleanArray;
     Else sets Next as appropriate and returns true.
 
     Returned Next for SURE has InResult[Next] = false. }
-  var MaxCotanAngle, ThisCotan:Single;
-      MaxCotanAngleI, i:Integer;
+  var MaxCotanAngle, ThisCotan: Single;
+      MaxCotanAngleI, i: Integer;
   begin
-   MaxCotanAngle:=-MaxSingle;
-   MaxCotanAngleI:=-1;
-   for i:=0 to Points.Count-1 do
+   MaxCotanAngle := -MaxSingle;
+   MaxCotanAngleI := -1;
+   for i := 0 to Points.Count-1 do
     if not InResult[i] then
     begin
      if FloatsEqual(Points.L[i][1], Points.L[Start][1]) then
      begin
       if RightSide = (Points.L[i][0] > Points.L[Start][0]) then
       begin
-       MaxCotanAngle:=MaxSingle;
-       MaxCotanAngleI:=i;
+       MaxCotanAngle := MaxSingle;
+       MaxCotanAngleI := i;
       end;
      end else
      if RightSide = (Points.L[i][1] > Points.L[Start][1]) then
@@ -73,47 +73,47 @@ var InResult:TDynBooleanArray;
                  (Points.L[i][1] - Points.L[Start][1]);
       if ThisCotan > MaxCotanAngle then
       begin
-       MaxCotanAngle:=ThisCotan;
-       MaxCotanAngleI:=i;
+       MaxCotanAngle := ThisCotan;
+       MaxCotanAngleI := i;
       end;
      end;
     end;
 
-   Result:=MaxCotanAngleI <> -1;
-   if Result then NextI:=MaxCotanAngleI;
+   Result := MaxCotanAngleI <> -1;
+   if Result then NextI := MaxCotanAngleI;
   end;
 
-  procedure MarkNext(i:Integer);
+  procedure MarkNext(i: Integer);
   begin
-   InResult[i]:=true;
+   InResult[i] := true;
    Result.Add(i);
   end;
 
-var MinY:Single;
-    i0, i, NextI:Integer;
+var MinY: Single;
+    i0, i, NextI: Integer;
 begin
  Assert(Points.Count >= 1);
 
  { find i0, index of lowest point in Points }
- MinY:=Points.L[0][1];
- i0:=0;
- for i:=1 to Points.Count-1 do
+ MinY := Points.L[0][1];
+ i0 := 0;
+ for i := 1 to Points.Count-1 do
   if Points.L[i][1] < MinY then
   begin
-   MinY:=Points.L[i][1];
-   i0:=i;
+   MinY := Points.L[i][1];
+   i0 := i;
   end;
 
- InResult := TDynBooleanArray.Create;
+ InResult := TBooleanList.Create;
  try
   InResult.Count := Points.Count; { TFPGList already initializes all to false }
-  Result:=TDynIntegerArray.Create;
+  Result := TIntegerList.Create;
   try
    MarkNext(i0);
 
-   i:=i0;
-   while FindNext(i, NextI, true ) do begin i:=NextI; MarkNext(i); end;
-   while FindNext(i, NextI, false) do begin i:=NextI; MarkNext(i); end;
+   i := i0;
+   while FindNext(i, NextI, true ) do begin i := NextI; MarkNext(i); end;
+   while FindNext(i, NextI, false) do begin i := NextI; MarkNext(i); end;
 
   except Result.Free; raise end;
  finally InResult.Free end;

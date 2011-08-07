@@ -254,7 +254,7 @@ type
     or normals or tex coords) or be interleaved with other data. }
   TColladaSource = class
     Name: string;
-    Floats: TDynFloatArray;
+    Floats: TFloatList;
     Params: TKamStringList;
     { Collada <accessor> description of vectors inside Floats.
       Note that Count here refers to count of whole vectors (so it's usually
@@ -283,19 +283,19 @@ type
       and this method will reorder this suitable for X3D.
 
       Returns if components were fully correct (no warnings). }
-    function AssignToVectorXYZ(const Value: TDynVector3SingleArray): boolean;
+    function AssignToVectorXYZ(const Value: TVector3SingleList): boolean;
 
     { Extract from source an array of TVector2Single, for texture coordinates.
       Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'
       (or 'U' and 'V'). }
-    function AssignToVectorST(const Value: TDynVector2SingleArray): boolean;
+    function AssignToVectorST(const Value: TVector2SingleList): boolean;
   end;
 
 constructor TColladaSource.Create;
 begin
   inherited;
   Params := TKamStringList.Create;
-  Floats := TDynFloatArray.Create;
+  Floats := TFloatList.Create;
 end;
 
 destructor TColladaSource.Destroy;
@@ -345,7 +345,7 @@ begin
   end;
 end;
 
-function TColladaSource.AssignToVectorXYZ(const Value: TDynVector3SingleArray): boolean;
+function TColladaSource.AssignToVectorXYZ(const Value: TVector3SingleList): boolean;
 var
   XIndex, YIndex, ZIndex, I: Integer;
 begin
@@ -399,7 +399,7 @@ begin
   end;
 end;
 
-function TColladaSource.AssignToVectorST(const Value: TDynVector2SingleArray): boolean;
+function TColladaSource.AssignToVectorST(const Value: TVector2SingleList): boolean;
 var
   SIndex, TIndex, I: Integer;
 begin

@@ -43,7 +43,7 @@ type
   end;
   PEnumeratedFileInfo = ^TEnumeratedFileInfo;
 
-  TDynEnumeratedFileInfoArray = specialize TGenericStructList<TEnumeratedFileInfo>;
+  TEnumeratedFileInfoList = specialize TGenericStructList<TEnumeratedFileInfo>;
 
 type
   TEnumFileProc =
@@ -343,7 +343,7 @@ end;
 procedure FileProc_AddToFileInfos(
   const FileInfo: TEnumeratedFileInfo; Data: Pointer);
 begin
- TDynEnumeratedFileInfoArray(Data).Add(FileInfo);
+ TEnumeratedFileInfoList(Data).Add(FileInfo);
 end;
 
 function EnumFiles(const Mask: string; attr: integer;
@@ -357,7 +357,7 @@ const
     FullFileName: '-');
   {$warnings on}
 var
-  FileInfos: TDynEnumeratedFileInfoArray;
+  FileInfos: TEnumeratedFileInfoList;
   i: Integer;
 begin
  if (Mask = '-') and (eoAllowStdIn in Options) then
@@ -367,7 +367,7 @@ begin
  end else
  if eoReadAllFirst in Options then
  begin
-  FileInfos := TDynEnumeratedFileInfoArray.Create;
+  FileInfos := TEnumeratedFileInfoList.Create;
   try
    Result := EnumFiles_NonReadAllFirst(Mask, Attr,
      {$ifdef FPC_OBJFPC} @ {$endif} FileProc_AddToFileInfos, FileInfos,

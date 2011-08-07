@@ -30,7 +30,7 @@ type
   { @exclude }
   PMessageStruct = ^TMessageStruct;
 
-  TDynMessageStructArray = class(specialize TGenericStructList<TMessageStruct>)
+  TMessageStructList = class(specialize TGenericStructList<TMessageStruct>)
     procedure DeleteRange(const Index: Integer; DelCount: Integer);
   end;
 
@@ -65,7 +65,7 @@ type
   TGLNotifications = class
   private
     { Messages, ordered from oldest (new mesages are added at the end).}
-    Messages: TDynMessageStructArray;
+    Messages: TMessageStructList;
     FHorizMessgPosition: THorizPosition;
     FVertMessgPosition: TVertPosition;
     FDisplayPixelWidth: integer;
@@ -150,7 +150,7 @@ implementation
 
 uses BFNT_BitstreamVeraSans_Unit, KambiLog;
 
-procedure TDynMessageStructArray.DeleteRange(const Index: Integer; DelCount: Integer);
+procedure TMessageStructList.DeleteRange(const Index: Integer; DelCount: Integer);
 var
   I: Integer;
 begin
@@ -175,7 +175,7 @@ constructor TGLNotifications.Create(AWindow: TGLwindow;
   ADisplayPixelWidth: integer);
 begin
  inherited Create;
- Messages := TDynMessageStructArray.Create;
+ Messages := TMessageStructList.Create;
  MaxMessages := 10;
  MessageTimeout := 5000;
  Window := AWindow;

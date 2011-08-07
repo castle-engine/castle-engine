@@ -799,7 +799,7 @@ procedure TGLWindow.OpenWinSystemDepend;
   var
     PixelFormat: LongInt;
     ReturnedFormats: UINT;
-    VisualAttr: TDynLongIntArray;
+    VisualAttr: TLongIntList;
     VisualAttrFloat: array [0..1] of Single;
     Success: WINBOOL;
   begin
@@ -827,7 +827,7 @@ procedure TGLWindow.OpenWinSystemDepend;
         begin
           { Ok, wglChoosePixelFormatARB is available }
 
-          VisualAttr := TDynLongIntArray.Create;
+          VisualAttr := TLongIntList.Create;
           try
             VisualAttr.AddArray([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,

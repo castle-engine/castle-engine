@@ -712,7 +712,7 @@ type
   TGLContextLoweredFunc = procedure(Window: TGLWindow; const FailureMessage: string);
 
   { List of @link(TGLWindowFunc) procedures. }
-  TDynGLWindowFuncArray = class(specialize TGenericStructList<TGLWindowFunc>)
+  TGLWindowFuncList = class(specialize TGenericStructList<TGLWindowFunc>)
   public
     { Call all (non-nil) Items. }
     procedure ExecuteAll(Window: TGLWindow);
@@ -764,11 +764,11 @@ type
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnOpen: TGLWindowFunc;
-    FOnOpenList: TDynGLWindowFuncArray;
+    FOnOpenList: TGLWindowFuncList;
     FOnBeforeDraw, FOnDraw: TDrawFunc;
     FOnResize: TGLWindowFunc;
     FOnClose: TGLWindowFunc;
-    FOnCloseList: TDynGLWindowFuncArray;
+    FOnCloseList: TGLWindowFuncList;
     FOnCloseQuery: TGLWindowFunc;
     FOnKeyDown, FOnKeyUp: TKeyCharFunc;
     FMouseMove: TMouseMoveFunc;
@@ -1354,9 +1354,9 @@ type
     { Callbacks called when OpenGL context is initialized.
       Called always after OnOpen. Useful when one callback is not enough.
 
-      The list instance (TDynGLWindowFuncArray) is created / destroyed
+      The list instance (TGLWindowFuncList) is created / destroyed
       in this class. You can add / remove freely your callbacks from this class. }
-    property OnOpenList: TDynGLWindowFuncArray read FOnOpenList;
+    property OnOpenList: TGLWindowFuncList read FOnOpenList;
 
     { Minimum and maximum window sizes. Always
 
@@ -1611,7 +1611,7 @@ end;
     { List of callbacks called when the window is closed,
       right before the OpenGL context is destroyed.
       Just like OnClose. Use when one callback is not enough. }
-    property OnCloseList: TDynGLWindowFuncArray read FOnCloseList;
+    property OnCloseList: TGLWindowFuncList read FOnCloseList;
 
     { Called when user presses a key.
       Only for keys that can be represented as TKey or Char types.
@@ -2890,9 +2890,9 @@ uses KambiParameters, KambiLog, GLImages, GLVersionUnit
 {$I glwindowmenu.inc}
 {$I glwindow_backend.inc}
 
-{ TDynGLWindowFuncArray ------------------------------------------------ }
+{ TGLWindowFuncList ------------------------------------------------ }
 
-procedure TDynGLWindowFuncArray.ExecuteAll(Window: TGLwindow);
+procedure TGLWindowFuncList.ExecuteAll(Window: TGLwindow);
 var i: integer;
 begin
  for i := 0 to Count-1 do
@@ -2908,8 +2908,8 @@ end;
 constructor TGLWindow.Create(AOwner: TComponent);
 begin
  inherited;
- FOnOpenList := TDynGLWindowFuncArray.Create;
- FOnCloseList := TDynGLWindowFuncArray.Create;
+ FOnOpenList := TGLWindowFuncList.Create;
+ FOnCloseList := TGLWindowFuncList.Create;
  FClosed := true;
  FWidth  := GLWindowDefaultSize;
  FHeight := GLWindowDefaultSize;

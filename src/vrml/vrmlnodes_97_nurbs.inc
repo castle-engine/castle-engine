@@ -421,7 +421,7 @@ end;
 function TNodeNurbsCurve_2.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
-  KnotDouble, WeightDouble: TDynDoubleArray;
+  KnotDouble, WeightDouble: TDoubleList;
 begin
   Result := TNodeLineSet.Create(NodeName, WWWBasePath);
   try
@@ -532,7 +532,7 @@ end;
 procedure TNodeNurbsPositionInterpolator_2.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
-  Knot, KeyWeight: TDynDoubleArray;
+  Knot, KeyWeight: TDoubleList;
   OutputValue: TVector3Single;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
@@ -550,7 +550,7 @@ begin
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
-  Knot := TDynDoubleArray.Create;
+  Knot := TDoubleList.Create;
   Knot.Assign(FdKnot.Items);
   NurbsKnotIfNeeded(Knot, FdKeyValue.Count, FdOrder.Value, nkEndpointUniform);
 
@@ -644,7 +644,7 @@ end;
 function TNodeNurbsSurface.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TVRMLGeometryNode;
 var
-  UKnotDouble, VKnotDouble, WeightDouble: TDynDoubleArray;
+  UKnotDouble, VKnotDouble, WeightDouble: TDoubleList;
 begin
   Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
   try

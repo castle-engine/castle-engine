@@ -94,7 +94,7 @@ const
   EqualityEpsilon = 0.001;
 var
   AnimRootNodes: TVRMLNodeList;
-  AnimTimes: TDynSingleArray;
+  AnimTimes: TSingleList;
   I: Integer;
 begin
   { parse parameters to AnimRootNodes and AnimTimes }
@@ -106,7 +106,7 @@ begin
   AnimTimes := nil;
   try
     AnimRootNodes := TVRMLNodeList.Create(false);
-    AnimTimes := TDynSingleArray.Create;
+    AnimTimes := TSingleList.Create;
 
     AnimRootNodes.Count := Parameters.High div 2;
     AnimTimes    .Count := Parameters.High div 2;

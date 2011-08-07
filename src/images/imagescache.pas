@@ -29,7 +29,7 @@ type
   end;
   PCachedImage = ^TCachedImage;
 
-  TDynCachedImageArray = specialize TGenericStructList<TCachedImage>;
+  TCachedImageList = specialize TGenericStructList<TCachedImage>;
 
   { A cache of loaded images.
 
@@ -75,7 +75,7 @@ type
     this class does the job of memory-leak detector. }
   TImagesCache = class
   private
-    CachedImages: TDynCachedImageArray;
+    CachedImages: TCachedImageList;
     FOnEmpty: TProcedure;
   protected
     { If cache is empty, calls OnEmpty. Note that OnEmpty may destroy current
@@ -105,7 +105,7 @@ uses SysUtils, KambiStringUtils;
 constructor TImagesCache.Create;
 begin
   inherited;
-  CachedImages := TDynCachedImageArray.Create;
+  CachedImages := TCachedImageList.Create;
 end;
 
 destructor TImagesCache.Destroy;

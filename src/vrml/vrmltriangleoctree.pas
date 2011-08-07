@@ -163,7 +163,7 @@ type
       (because every triangle has a unique index,
       and a pointer too, shared even if this triangle is placed in multiple
       leaves). }
-    Triangles: TDynVRMLTriangleArray;
+    Triangles: TVRMLTriangleList;
 
     { Direct collisions counter, to test octree efficiency.
 
@@ -469,7 +469,7 @@ constructor TVRMLTriangleOctree.Create(const ALimits: TOctreeLimits;
   const ARootBox: TBox3D);
 begin
  inherited Create (ALimits, ARootBox, TTriangleOctreeNode, false);
- Triangles := TDynVRMLTriangleArray.Create;
+ Triangles := TVRMLTriangleList.Create;
 end;
 
 destructor TVRMLTriangleOctree.Destroy;

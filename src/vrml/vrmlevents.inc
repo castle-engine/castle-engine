@@ -20,7 +20,7 @@
   TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
     const Time: TVRMLTime) of object;
 
-  TDynVRMLEventReceiveArray = class(specialize TGenericStructList<TVRMLEventReceive>)
+  TVRMLEventReceiveList = class(specialize TGenericStructList<TVRMLEventReceive>)
   public
     { Call all functions. }
     procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
@@ -32,13 +32,13 @@
   private
     FFieldClass: TVRMLFieldClass;
     FInEvent: boolean;
-    FOnReceive: TDynVRMLEventReceiveArray;
+    FOnReceive: TVRMLEventReceiveList;
     FParentExposedField: TVRMLField;
     Temp: TVRMLField;
     TempUsed: boolean;
 
     SendLevel: Cardinal;
-    HandlersToRemove: TDynVRMLEventReceiveArray;
+    HandlersToRemove: TVRMLEventReceiveList;
 
     function CreateTemp: TVRMLField;
     procedure FreeTemp(const Field: TVRMLField);
@@ -143,7 +143,7 @@
       to events occuring.
 
       All callbacks here are simply called by @link(Send) method. }
-    property OnReceive: TDynVRMLEventReceiveArray read FOnReceive;
+    property OnReceive: TVRMLEventReceiveList read FOnReceive;
 
     { Safely remove a callback from OnReceive list.
 
@@ -187,9 +187,9 @@
 
 {$ifdef read_implementation}
 
-{ TDynVRMLEventReceiveArray -------------------------------------------------- }
+{ TVRMLEventReceiveList -------------------------------------------------- }
 
-procedure TDynVRMLEventReceiveArray.ExecuteAll(
+procedure TVRMLEventReceiveList.ExecuteAll(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   I: Integer;
@@ -208,7 +208,7 @@ begin
 
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
-  FOnReceive := TDynVRMLEventReceiveArray.Create;
+  FOnReceive := TVRMLEventReceiveList.Create;
 end;
 
 destructor TVRMLEvent.Destroy;
@@ -601,7 +601,7 @@ begin
     OnReceive.Remove(Handler) else
   begin
     if HandlersToRemove = nil then
-      HandlersToRemove := TDynVRMLEventReceiveArray.Create;
+      HandlersToRemove := TVRMLEventReceiveList.Create;
     HandlersToRemove.Add(Handler);
   end;
 end;
