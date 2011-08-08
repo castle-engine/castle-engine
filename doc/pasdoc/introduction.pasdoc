@@ -185,7 +185,7 @@ units are allowed to be used by units in specific group.
     (see dynarray.inc, dim2array.inc, dim3array.inc, objectslist.inc,
     and their automatically duplicated versions in templates/ subdirectory).
 
-    There's unit @link(ParseParametersUnit)
+    There's unit @link(KambiParameters)
     for command-line parsing, VectorMath unit with a lot of primitive
     geometry types and functions. And some more.
 
@@ -212,8 +212,7 @@ units are allowed to be used by units in specific group.
     Also an image cache (@link(ImagesCache)) unit, to help avoiding the same
     images more than once (which is important e.g. when loading game textures).
     Also some things to handle PasJPEG.
-    Also my binding to libpng library (KambiPng)
-    and some helpers (@link(KambiPngUtils)).
+    Also my binding to libpng library (KambiPng).
 
     @italic(Uses:) @code(base).)
 

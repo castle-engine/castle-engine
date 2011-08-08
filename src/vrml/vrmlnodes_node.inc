@@ -1004,7 +1004,7 @@
       @seealso(IndexOfName Returns the node index. This is sometimes more
         flexible (you can always quickly get actual node knowing the index,
         by Items[Index], but not the other way around). It is also sometimes
-        less comfortable (often you're not interested in node index). }
+        less comfortable (often you're not interested in node index).) }
     function FindName(const Name: string): TVRMLNode;
 
     { Find index of a node with given name, -1 if not found. }
