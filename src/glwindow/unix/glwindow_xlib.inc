@@ -167,6 +167,14 @@ begin
     { end of VisualAttr array }
     VisualAttr.Add(None);
 
+    { Future note: instead of glXChooseVisual, we could use
+      glXChooseFBConfig (to get all configs matching VisualAttr), then
+      glXGetVisualFromFBConfig (to get PXVisualInfo for each config), then
+      glXGetFBConfigAttrib (to get information from PXVisualInfo).
+      In the end, we set viinfo := the best config (PXVisualInfo).
+      This requires GLX >= 1.3.
+      See http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
+
     viinfo := glXChooseVisual(Application.XDisplay, Application.XScreen, PInteger(VisualAttr.List));
   finally FreeAndNil(VisualAttr) end;
 
@@ -272,6 +280,18 @@ begin
     if Visible then
       XMapWindow(Application.XDisplay, windowXID);
   end;
+  { Future notes:
+    1. On GLX >= 1.3, we could use glXCreateNewContext instead.
+       glXCreateNewContext takes GLXFBConfig, and so requires also to use
+       glXChooseFBConfig.
+    2. If GLX_ARB_create_context extension (of glX) is present,
+       we could use glXCreateContextAttribsARB.
+       This would allow us to request specific OpenGL core version,
+       and eventually a forward-compatible context.
+       It also depends on having GLXFBConfig, so requires using
+       glXChooseFBConfig and on GLX >= 1.3.
+       See http://www.opengl.org/registry/specs/ARB/glx_create_context.txt
+    See http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
   glcontext := glXCreateContext(Application.XDisplay, viinfo, nil, true);
   check( glcontext <> nil, 'could not create rendering context');
 
