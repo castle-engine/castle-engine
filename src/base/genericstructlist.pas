@@ -43,7 +43,9 @@ type
       PTypeList = ^TTypeList;
       PT = ^T;
   {$ifdef HAS_ENUMERATOR} TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>; {$endif}
-  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+  {$ifndef OldSyntax}protected var{$else}
+      {$ifdef PASDOC}protected var{$else} { PasDoc can't handle "var protected", and I don't know how/if they should be handled? }
+                     var protected{$endif}{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
