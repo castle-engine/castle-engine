@@ -674,7 +674,7 @@ constructor TVRMLGLAnimationScene.CreateForAnimation(
   AParentAnimation: TVRMLGLAnimation);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
-    *may* called by ChangedAll, which *may* called by inherited constructor...
+    *may* be called by ChangedAll, which *may* called by inherited constructor.
     So ParentAnimation must be set even before inherited constructor. }
   FParentAnimation := AParentAnimation;
 
