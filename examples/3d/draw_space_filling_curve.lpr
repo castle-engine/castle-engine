@@ -114,25 +114,25 @@ begin
 end;
 
 var
-  { vars that may (or must) be taken from params }
-  DoPeano: boolean;
-  Level: Cardinal;
-  InitialOrient: boolean; { default value zalezy od DoPeano }
+  { vars that may be taken from params }
+  DoPeano: boolean = true;
+  Level: Cardinal = 4;
   InitialAngle: TSFCAngle = 0;
 
-  { helper vars }
+  InitialOrient: boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
   Window := TGLWindowDemo.Create(Application);
 
   { parse params }
-  Parameters.CheckHighAtLeast(2);
-  case ArrayPosStr(Parameters[1], ['peano', 'hilbert']) of
-    0: DoPeano := true;
-    1: DoPeano := false;
-    else raise EInvalidParams.Create('First param must be "peano" or "hilbert"');
-  end;
-  Level := StrToInt(Parameters[2]);
+  if Parameters.High >= 1 then
+    case ArrayPosStr(Parameters[1], ['peano', 'hilbert']) of
+      0: DoPeano := true;
+      1: DoPeano := false;
+      else raise EInvalidParams.Create('First param must be "peano" or "hilbert"');
+    end;
+  if Parameters.High >= 2 then
+    Level := StrToInt(Parameters[2]);
   if Parameters.High >= 3 then
     InitialAngle := StrToInt(Parameters[3]) ;
   { if Parameters.High >= 4 then
