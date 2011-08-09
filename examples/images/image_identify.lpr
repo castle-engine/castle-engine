@@ -13,12 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ Given a list of image filenames (as parameters), load and identify them.
-  "To identify" means that it outputs basic image information,
-  like width x height and to what memory format we load it.
-
-  This can be used to simply test our Images unit loading capabilities
-  on supplied images. }
+{ Given a list of image filenames (as parameters), load and write
+  some information about them. Image size, type, alpha channel
+  (detailed analysis of alpha: yes/no or full range).
+  Can be used as a test of our Images loading capabilities,
+  or as a command-line tool similar to ImageMagick "identify". }
 program image_identify;
 
 uses SysUtils, KambiUtils, Images, KambiParameters;
@@ -26,6 +25,7 @@ uses SysUtils, KambiUtils, Images, KambiParameters;
 var
   I: Integer;
   Img: TImage;
+  AlphaChannelType: string;
 begin
   if Parameters.High = 0 then
     raise EInvalidParams.Create('No parameters supplied, nothing to do');
@@ -46,7 +46,16 @@ begin
       end;
     end;
     try
-      Writeln(Parameters[I], ': ', Img.Width, ' x ', Img.Height, ' - ', Img.ClassName);
+      case Img.AlphaChannelType of
+        atNone       : AlphaChannelType := 'no';
+        atSimpleYesNo: AlphaChannelType := 'simple yes/no (only fully transparent / fully opaque parts)';
+        atFullRange  : AlphaChannelType := 'full range (partially transparent parts)';
+        else raise EInternalError.Create('AlphaChannelType?');
+      end;
+
+      Writeln(Parameters[I], ': ', Img.Width, ' x ', Img.Height,
+        ',  type: ', Img.ClassName,
+        ', alpha: ' + AlphaChannelType);
     finally FreeAndNil(Img) end;
   end;
 end.
