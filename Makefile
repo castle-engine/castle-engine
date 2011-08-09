@@ -71,8 +71,6 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/alplay \
   examples/audio/doppler_demo \
   examples/audio/efx_demo \
-  examples/base/demo_parseparameters \
-  examples/base/demo_textreader \
   examples/base/dircleaner \
   examples/base/test_platform_specific_utils \
   examples/kambiscript/kambi_calc \
@@ -93,7 +91,6 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/shading_langs/shading_langs_demo \
   examples/glwindow/demo_camera \
   examples/glwindow/simple_video_editor \
-  examples/glwindow/test_menu_change_from_keyup \
   examples/glwindow/bezier_surfaces/animate_surface \
   examples/glwindow/bezier_surfaces/design_surface \
   examples/glwindow/interpolated_curves \
