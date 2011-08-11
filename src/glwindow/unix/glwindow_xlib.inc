@@ -18,7 +18,7 @@ private
   glcontext: GLXContext;
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
-  viinfo: PXVisualInfo;
+  XVisual: PXVisualInfo;
   colormap: TColormap;
   procedure X_KeyPress(const event: TXKeyEvent);
   procedure X_KeyRelease(const event: TXKeyEvent);
@@ -115,19 +115,36 @@ var
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
-  VisualAttr: TLongIntList;
+  Attribs: TLongIntList;
+  UseFBConfig: boolean;
+  FBConfigs: PGLXFBConfig;
+  FBConfig: TGLXFBConfig;
+  FBConfigsCount: Integer;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
   Application.InitializeXDisplay;
 
-  VisualAttr := TLongIntList.Create;
+  { Use new glX 1.3 functions to create context, that take TGLXFBConfig?
+    About modern GLX context selection, see
+    http://www.opengl.org/wiki/Creating_an_OpenGL_Context and
+    http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
+  UseFBConfig := GLX_version_1_3(Application.XDisplay);
+
+  Attribs := TLongIntList.Create;
   try
+    { constant Attribs part }
+    if UseFBConfig then
+      Attribs.AddArray([GLX_X_RENDERABLE, 1 { true }]) else
+      Attribs.Add(GLX_RGBA);
+
     if DoubleBuffer then
-      VisualAttr.Add(GLX_DOUBLEBUFFER);
-    VisualAttr.AddArray([
-      GLX_RGBA,
+      if UseFBConfig then
+        Attribs.AddArray([GLX_DOUBLEBUFFER, 1]) else
+        Attribs.Add(GLX_DOUBLEBUFFER);
+
+    Attribs.AddArray([
       { Buffer sizes below are all in bits. }
       GLX_DEPTH_SIZE, DepthBufferBits,
       GLX_STENCIL_SIZE, StencilBufferBits,
@@ -141,7 +158,7 @@ begin
     begin
       if GLX_ARB_multisample(Application.XDisplay, Application.XScreen) then
       begin
-        VisualAttr.AddArray([
+        Attribs.AddArray([
           GLX_SAMPLE_BUFFERS_ARB, 1,
           GLX_SAMPLES_ARB, MultiSampling ]);
         if Log then
@@ -152,30 +169,34 @@ begin
           [MultiSampling]);
     end;
 
-    { end of VisualAttr array }
-    VisualAttr.Add(None);
+    { end of Attribs array }
+    Attribs.Add(None);
 
-    { Future note: instead of glXChooseVisual, we could use
-      glXChooseFBConfig (to get all configs matching VisualAttr), then
-      glXGetVisualFromFBConfig (to get PXVisualInfo for each config), then
-      glXGetFBConfigAttrib (to get information from PXVisualInfo).
-      In the end, we set viinfo := the best config (PXVisualInfo).
-      This requires GLX >= 1.3.
-      See http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
+    if UseFBConfig then
+    begin
+      FBConfigs := glXChooseFBConfig(Application.XDisplay, Application.XScreen,
+        PInteger(Attribs.List), FBConfigsCount);
+      if FBConfigsCount = 0 then
+        raise EGLContextNotPossible.CreateFmt('No frame buffer configurations that match the specified attributes (%s)',
+          [RequestedBufferAttributes]);
+      { just choose the first FB config from the FBConfigs list.
+        More involved selection possible. }
+      FBConfig := FBConfigs^;
+      XVisual := glXGetVisualFromFBConfig(Application.XDisplay, FBConfig);
+    end else
+      XVisual := glXChooseVisual(Application.XDisplay, Application.XScreen, PInteger(Attribs.List));
+  finally FreeAndNil(Attribs) end;
 
-    viinfo := glXChooseVisual(Application.XDisplay, Application.XScreen, PInteger(VisualAttr.List));
-  finally FreeAndNil(VisualAttr) end;
-
-  if viinfo = nil then
+  if XVisual = nil then
     raise EGLContextNotPossible.CreateFmt(
-      'glXChooseVisual: visual with requested attributes (%s) not found',
+      'X visual with requested attributes (%s) not found',
       [ RequestedBufferAttributes ]);
-  { Application.XScreen should always be viinfo.screen now }
+  { Application.XScreen should always be XVisual.screen now }
 
   parentwinXID := XRootWindow(Application.XDisplay, Application.XScreen);
 
   colormap := XCreateColormap(Application.XDisplay, parentwinXID,
-                              viinfo^.visual, AllocNone);
+                              XVisual^.visual, AllocNone);
   { see glxdino example for more involved way to get colormap }
   attr.colormap := colormap;
   attr.border_pixel := 0;
@@ -190,7 +211,7 @@ begin
 
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
     left, top, width, height,
-    0, viinfo^.depth, InputOutput, viinfo^.visual,
+    0, XVisual^.depth, InputOutput, XVisual^.visual,
     AttrValueMask, @attr);
 
   if FFullscreen and Visible then
@@ -268,20 +289,15 @@ begin
     if Visible then
       XMapWindow(Application.XDisplay, windowXID);
   end;
-  { Future notes:
-    1. On GLX >= 1.3, we could use glXCreateNewContext instead.
-       glXCreateNewContext takes GLXFBConfig, and so requires also to use
-       glXChooseFBConfig.
-    2. If GLX_ARB_create_context extension (of glX) is present,
-       we could use glXCreateContextAttribsARB.
-       This would allow us to request specific OpenGL core version,
-       and eventually a forward-compatible context.
-       It also depends on having GLXFBConfig, so requires using
-       glXChooseFBConfig and on GLX >= 1.3.
-       See http://www.opengl.org/registry/specs/ARB/glx_create_context.txt
-    See http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29 }
-  glcontext := glXCreateContext(Application.XDisplay, viinfo, nil, true);
-  check( glcontext <> nil, 'could not create rendering context');
+
+  if UseFBConfig then
+    { TODO: If GLX_ARB_create_context extension (of glX) is present,
+      we could use glXCreateContextAttribsARB.
+      This would allow us to request specific OpenGL core version,
+      and eventually a forward-compatible context. }
+    glcontext := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, nil, true) else
+    glcontext := glXCreateContext(Application.XDisplay, XVisual, nil, true);
+  check( glcontext <> nil, 'Could not create rendering context');
 
   UpdateCursor;
 
@@ -320,7 +336,7 @@ begin
 
   if windowXID <> None then begin XDestroyWindow(Application.XDisplay, windowXID); windowXID := None end;
   if colormap  <> None then begin XFreeColormap(Application.XDisplay, colormap);   colormap := None  end;
-  if viinfo    <> nil  then begin XFree(viinfo);                            viinfo := nil     end;
+  if XVisual   <> nil  then begin XFree(XVisual);                                  XVisual := nil    end;
 end;
 
 procedure TGLWindow.SetCursor(const Value: TMouseCursor);
