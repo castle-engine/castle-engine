@@ -63,7 +63,7 @@ type
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
 {$ifndef OldSyntax}
-    procedure Assign(Source: TFPGList);
+    procedure Assign(Source: TGenericStructList);
 {$endif OldSyntax}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
