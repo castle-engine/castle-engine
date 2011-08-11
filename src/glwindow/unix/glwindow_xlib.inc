@@ -116,7 +116,6 @@ var
   WMHints: TXWMHints;
   PWindTitle: PChar;
   VisualAttr: TLongIntList;
-  GlxExtensions: string;
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
@@ -140,27 +139,16 @@ begin
 
     if MultiSampling > 1 then
     begin
-      { Check is even querying glX extensions supported }
-      if glXQueryExtensionsString <> nil then
+      if GLX_ARB_multisample(Application.XDisplay, Application.XScreen) then
       begin
-        { Check GLX_ARB_multisample suported }
-        GlxExtensions := glXQueryExtensionsString(Application.XDisplay, Application.XScreen);
+        VisualAttr.AddArray([
+          GLX_SAMPLE_BUFFERS_ARB, 1,
+          GLX_SAMPLES_ARB, MultiSampling ]);
         if Log then
-          WritelnLog('glX', 'glX extensions: ' + GlxExtensions);
-        if glext_ExtensionSupported('GLX_ARB_multisample', GlxExtensions) then
-        begin
-          VisualAttr.AddArray([
-            GLX_SAMPLE_BUFFERS_ARB, 1,
-            GLX_SAMPLES_ARB, MultiSampling ]);
-          if Log then
-            WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
-        end else
-          raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
-            'requested, but GLX_ARB_multisample not supported on this screen',
-            [MultiSampling]);
+          WritelnLog('MultiSampling', 'GLX_ARB_multisample supported, using multisampling');
       end else
         raise EGLContextNotPossible.CreateFmt('Multisampling (%d samples) ' +
-          'requested, but glX too old: even glXQueryExtensionsString not available',
+          'requested, but GLX_ARB_multisample not supported on this screen',
           [MultiSampling]);
     end;
 
@@ -649,16 +637,13 @@ begin
    end;
 end;
 
-var
-  { different declaration of glXQueryExtension, just to be able to pass
-    nil as last 2 params }
-  glXQueryExtension: function(dpy: PDisplay; errorb, event: Pointer): Boolean; cdecl;
-
 procedure TGLApplication.InitializeXDisplay;
 {$ifdef DARWIN}
 const
   AltXDisplayName = ':0';
 {$endif}
+var
+  GlxExtensions: string;
 begin
   if XDisplay = nil then
   begin
@@ -676,10 +661,25 @@ begin
   begin
     FXScreen := XDefaultScreen(XDisplay);
 
-    Pointer(glXQueryExtension) := Glx.glXQueryExtension;
-
-    Check( glXQueryExtension(XDisplay, nil, nil),
-      'X server has no glX extension (needed to run OpenGL-based programs)');
+    if not GLX_version_1_0(XDisplay) then
+      raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else
+    if Log then
+    begin
+      GlxExtensions := glXQueryExtensionsString(XDisplay, FXScreen);
+      WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+
+        'Versions (determined by checking both glXQueryExtension, glXQueryVersion and assigned entry points):' +NL+
+        Format('  Version 1.1: %s', [KambiStringUtils.BoolToStr[GLX_version_1_1(XDisplay)]]) +NL+
+        Format('  Version 1.2: %s', [KambiStringUtils.BoolToStr[GLX_version_1_2(XDisplay)]]) +NL+
+        Format('  Version 1.3: %s', [KambiStringUtils.BoolToStr[GLX_version_1_3(XDisplay)]]) +NL+
+        Format('  Version 1.4: %s', [KambiStringUtils.BoolToStr[GLX_version_1_4(XDisplay)]]) +NL+
+        NL+
+        'Important extensions (determined by checking glXQueryExtensionsString and assigned entry points):' +NL+
+        Format('  GLX_ARB_multisample: %s'   , [KambiStringUtils.BoolToStr[GLX_ARB_multisample(XDisplay, FXScreen)]]) + NL+
+        Format('  GLX_ARB_create_context: %s', [KambiStringUtils.BoolToStr[GLX_ARB_create_context(XDisplay, FXScreen)]]) +NL+
+        NL+
+        'All extensions (according to glXQueryExtensionsString):' +NL+
+        GlxExtensions);
+    end;
 
     wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
 

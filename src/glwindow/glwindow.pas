@@ -574,7 +574,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
   {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, Glx, KambiGlx, {$endif}
+  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, KambiGlx, {$endif}
   {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
