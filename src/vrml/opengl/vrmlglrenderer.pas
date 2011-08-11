@@ -960,10 +960,8 @@ type
     { How many texture units are used.
 
       It's always clamped by the number of available texture units
-      (GLMaxTextureUnits).
-      Always <= 1 if OpenGL doesn't support multitexturing.
-      TODO: when ARB_multitexture, but not GLUseMultiTexturing,
-      this will be > 1. Is everything ready for this? }
+      (GLMaxTextureUnits). Always <= 1 if OpenGL doesn't support
+      multitexturing (not GLUseMultiTexturing). }
     BoundTextureUnits: Cardinal;
 
     { For how many texture units do we have to generate tex coords.
@@ -1062,12 +1060,12 @@ type
       const Face: TFaceIndex);
     {$endif}
 
-    { If ARB_multitexturing available, this sets currently active texture unit.
-      TextureUnit is newly active unit, this is added to GL_TEXTURE0_ARB.
+    { If multitexturing available, this sets currently active texture unit.
+      TextureUnit is newly active unit, this is added to GL_TEXTURE0.
 
       So the only thing that you have to care about is to specify TextureUnit <
       FreeGLTexturesCount.
-      Everything else (ARB_multitexturing, GL_TEXTURE0_ARB)
+      Everything else (multitexturing availability, GL_TEXTURE0)
       is taken care of inside here. }
     procedure ActiveTexture(const TextureUnit: Cardinal);
 
@@ -2659,28 +2657,7 @@ begin
   if (Attributes.BumpMapping <> bmNone) and
     Attributes.EnableTextures and
     (not Attributes.PureGeometry) and
-
-    { EXT_texture_env_combine (standard since 1.3) required }
-    (GL_EXT_texture_env_combine or GL_version_1_3) and
-
-    { Actually, other extensions also don't have to exist, they are built in
-      newer OpenGL version. But this requires getting their procedures under different
-      names (without extension suffix). For EXT_texture_env_combine, this is simpler
-      since it only defines new constants and these are the same, whether it's extension
-      or built-in GL 1.3. }
-
-    { ARB_multitexture required (TODO: standard since 1.3, see above comments) }
-    GL_ARB_multitexture and
-
-    { GL >= 1.3 required for GL_SUBTRACT.
-
-      As you see, actually this whole check could be substituted by GL >= 1.3,
-      as this allows GL_SUBTRACT and provides all extensions required here. }
-    GL_version_1_3 and
-
-    { ARB_texture_env_dot3 required (TODO: standard since 1.3, see above comments) }
-    GL_ARB_texture_env_dot3 and
-
+    GLUseMultiTexturing and
     (TGLSLProgram.ClassSupport <> gsNone) then
     Result := Attributes.BumpMapping else
     Result := bmNone;
@@ -2703,8 +2680,8 @@ end;
 
 procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
-  if GL_ARB_multitexture then
-    glActiveTextureARB(GL_TEXTURE0_ARB + TextureUnit);
+  if GLUseMultiTexturing then
+    glActiveTexture(GL_TEXTURE0 + TextureUnit);
 end;
 
 procedure TVRMLGLRenderer.DisableTexture(const TextureUnit: Cardinal);
@@ -2766,7 +2743,7 @@ begin
   if GLUseMultiTexturing then
   begin
     ActiveTexture(0);
-    glClientActiveTextureARB(GL_TEXTURE0_ARB);
+    glClientActiveTexture(GL_TEXTURE0);
   end;
 
   { init our OpenGL state }

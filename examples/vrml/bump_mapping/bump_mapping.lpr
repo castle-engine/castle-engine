@@ -80,8 +80,6 @@ var
 
   Method: TBumpMethod = bmVRML;
 
-  MaxTextureUnits: Cardinal;
-
   RotatingColumn: Single;
 
   Examiner: TExamineCamera;
@@ -194,7 +192,7 @@ type
 procedure TexCoordVertex_NoBump(const TexX, TexY: Single;
   const Vertex: TVector3Single; LightDirTangent: TVector3Single);
 begin
-  glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
+  glMultiTexCoord2f(GL_TEXTURE0, TexX, TexY);
   glVertexv(Vertex);
 end;
 
@@ -209,8 +207,8 @@ begin
     YShift := EmbossScale * LightDirTangent[1] / BumpImageHeight;
   end;
 
-  glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX         , TexY         );
-  glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX + XShift, TexY + YShift);
+  glMultiTexCoord2f(GL_TEXTURE0, TexX         , TexY         );
+  glMultiTexCoord2f(GL_TEXTURE1, TexX + XShift, TexY + YShift);
 
   glVertexv(Vertex);
 end;
@@ -225,8 +223,8 @@ begin
             (LightDirTangent[1] + 1) / 2,
             (LightDirTangent[2] + 1) / 2);
 
-  glMultiTexCoord2fARB(GL_TEXTURE0_ARB, TexX, TexY);
-  glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
+  glMultiTexCoord2f(GL_TEXTURE0, TexX, TexY);
+  glMultiTexCoord2f(GL_TEXTURE1, TexX, TexY);
 
   glVertexv(Vertex);
 end;
@@ -237,12 +235,12 @@ begin
   { no need to normalize LightDirTangent, it will be normalized at each
     fragment anyway by normalizing cube map }
 
-  glMultiTexCoord3fARB(GL_TEXTURE0_ARB,
+  glMultiTexCoord3f(GL_TEXTURE0,
     LightDirTangent[0],
     LightDirTangent[1],
     LightDirTangent[2]);
-  glMultiTexCoord2fARB(GL_TEXTURE1_ARB, TexX, TexY);
-  glMultiTexCoord2fARB(GL_TEXTURE2_ARB, TexX, TexY);
+  glMultiTexCoord2f(GL_TEXTURE1, TexX, TexY);
+  glMultiTexCoord2f(GL_TEXTURE2, TexX, TexY);
 
   glVertexv(Vertex);
 end;
@@ -251,20 +249,20 @@ end;
 
 procedure DisableTextures;
 begin
-  glActiveTextureARB(GL_TEXTURE0_ARB);
+  glActiveTexture(GL_TEXTURE0);
   glDisable(GL_TEXTURE_2D);
 
-  glActiveTextureARB(GL_TEXTURE1_ARB);
+  glActiveTexture(GL_TEXTURE1);
   glDisable(GL_TEXTURE_2D);
 
-  if MaxTextureUnits > 2 then
+  if GLMaxTextureUnits > 2 then
   begin
-    glActiveTextureARB(GL_TEXTURE2_ARB);
+    glActiveTexture(GL_TEXTURE2);
     glDisable(GL_TEXTURE_2D);
   end;
 
   { reset as active 0 texture unit, to be in default state }
-  glActiveTextureARB(GL_TEXTURE0_ARB);
+  glActiveTexture(GL_TEXTURE0);
 end;
 
 type
@@ -402,20 +400,20 @@ var
         Tex := LighterAndBumpTex[TextureNum] else
         Tex := NormalAndBumpTex[TextureNum];
 
-      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, Tex);
       glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
       { only alpha 0.5 is important below }
       glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(0, 0, 0, 0.5));
 
       { Texture unit 0 RGB calculates normal texturing (PRIMARY_COLOR
         modulate with TEXTURE in this unit). }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
       { Texture unit 0 alpha loads bump map (not shifted) value.
         *Loads*, i.e. it's not mixed with PRIMARY_COLOR in any way. }
@@ -423,35 +421,35 @@ var
         { I add 0.5 here, so that original bump is in 0.5...1.0
           range, and subtraction will give us result in 0.0..1.0,
           where 0.5 = no difference between shifted bumps. }
-        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_ADD) else
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_ADD) else
         { SOURCE1 and OPERAND1 will be ignored in this case. }
-        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_CONSTANT_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_CONSTANT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 
-      glActiveTextureARB(GL_TEXTURE1_ARB);
+      glActiveTexture(GL_TEXTURE1);
       { Load Tex again, as it has bump in the alpha
         channel. Don't care about RGB channels of texture loaded here,
         they will not be used. }
       glBindTexture(GL_TEXTURE_2D, Tex);
       glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
       { Texture unit 1 RGB simply passes the result forward, no modifications.
         This step is only to subtract bump maps. }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 
       { Texture unit 1 alpha does subtraction: from previous result
         (unshifted bump) subtract shifted bump. }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_SUBTRACT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PREVIOUS_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_SUBTRACT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, GL_SRC_ALPHA);
 
       { Now we have RGB and alpha color that should be multiplied for the final
         color. We want to keep 1-pass approach, so I see two ways to solve this:
@@ -487,36 +485,36 @@ var
 
       if not EmbossAlphaMultiplyByBlending then
       begin
-        glActiveTextureARB(GL_TEXTURE2_ARB);
+        glActiveTexture(GL_TEXTURE2);
         { Hm, funny, actually I have to bind *any* texture here
           (it's values will not be used by equation on this texture unit),
           otherwise this texture unit is always off. }
         glBindTexture(GL_TEXTURE_2D, Tex);
         glEnable(GL_TEXTURE_2D);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
         if ShowRealBump then
         begin
           if Modulate then
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE) else
-            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_ADD);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE) else
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
 
-          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PREVIOUS_EXT);
-          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_ALPHA);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PREVIOUS);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_ALPHA);
         end else
         begin
           { just for test: show the current alpha values
             (subtracted bumps) }
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_ALPHA);
+          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+          glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+          glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_ALPHA);
         end;
 
-        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT, GL_REPLACE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_PRIMARY_COLOR_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PRIMARY_COLOR);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
       end;
     end;
 
@@ -581,38 +579,38 @@ var
 
     procedure SetTexturesForDot3NotNormalized;
     begin
-      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, NormalMap[TextureNum]);
       glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
       { texture unit 0: make dot between PRIMARY_COLOR and
         current texture (normal map). IOW, calculate diffuse factor. }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PRIMARY_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-      glActiveTextureARB(GL_TEXTURE1_ARB);
+      glActiveTexture(GL_TEXTURE1);
       { We bind NormalAndBumpTex, although actually we don't use
         bump stored there as alpha channel (they are only for emboss
         method). }
       glBindTexture(GL_TEXTURE_2D, NormalAndBumpTex[TextureNum]);
       glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
       { texture unit 1: multiply diffuse factor by texture value. }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-      if MaxTextureUnits > 2 then
+      if GLMaxTextureUnits > 2 then
       begin
         { texture unit 2 not used. }
-        glActiveTextureARB(GL_TEXTURE2_ARB);
+        glActiveTexture(GL_TEXTURE2);
         glDisable(GL_TEXTURE_2D);
       end;
     end;
@@ -622,45 +620,45 @@ var
       { texture unit 0: just lookup your coordinates (which are
         3D lighting dir, not normalized) in cube map.
         This calculates normalized lighting dir. }
-      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, NormalizationCubeTex);
       glEnable(GL_TEXTURE_CUBE_MAP_ARB);
       { make sure GL_TEXTURE_2D is disabled here (other bump mapping
         methods could enable this) }
       glDisable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_REPLACE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_REPLACE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
 
-      glActiveTextureARB(GL_TEXTURE1_ARB);
+      glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, NormalMap[TextureNum]);
       glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
       { texture unit 1: make dot between previous (light dir normalized) and
         current texture (normal map). IOW, calculate diffuse factor. }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_DOT3_RGB_ARB);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
 
-      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glActiveTexture(GL_TEXTURE2);
       { We bind NormalAndBumpTex, although actually we don't use
         bump stored there as alpha channel (they are only for emboss
         method). }
       glBindTexture(GL_TEXTURE_2D, NormalAndBumpTex[TextureNum]);
       glEnable(GL_TEXTURE_2D);
-      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
       { texture unit 1: multiply diffuse factor by texture value. }
-      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_PREVIOUS_EXT);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_TEXTURE);
-      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+      glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
     end;
 
     procedure DrawDot3Cubes;
@@ -688,7 +686,7 @@ var
         DrawCube(@TexCoordVertex_Dot3_NotNormalized);
       PopMatrix(SavedMatrix);
 
-      if MaxTextureUnits > 2 then
+      if GLMaxTextureUnits > 2 then
       begin
         SetTexturesForDot3Normalized;
 
@@ -709,7 +707,7 @@ var
           enable GLTEXTURE_2D.
           Doing this by push/pop tex environments could be cleaner,
           but not needed now. }
-        glActiveTextureARB(GL_TEXTURE0_ARB);
+        glActiveTexture(GL_TEXTURE0);
         glDisable(GL_TEXTURE_CUBE_MAP_ARB);
       end;
 
@@ -720,19 +718,19 @@ var
     SavedMatrix: TMatrix4Single;
   begin
     { texture unit 0 contains normal texture value mixed with scene color }
-    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, NormalAndBumpTex[TextureNum]);
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     { texture unit 1 not used. }
-    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glActiveTexture(GL_TEXTURE1);
     glDisable(GL_TEXTURE_2D);
 
     { texture unit 2 not used. }
-    if MaxTextureUnits > 2 then
+    if GLMaxTextureUnits > 2 then
     begin
-      glActiveTextureARB(GL_TEXTURE2_ARB);
+      glActiveTexture(GL_TEXTURE2);
       glDisable(GL_TEXTURE_2D);
     end;
 
@@ -761,8 +759,7 @@ begin
 
   glLoadMatrix(RenderingCamera.Matrix);
 
-  if (Method = bmEmboss) and
-    (glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) < 3) then
+  if (Method = bmEmboss) and (GLMaxTextureUnits < 3) then
   begin
     { You can't have emboss with not EmbossAlphaMultiplyByBlending
       on this hardware. }
@@ -1082,22 +1079,9 @@ const
   end;
 
 begin
-  Check(GL_EXT_texture_env_combine or GLVersion.AtLeast(1, 3),
-    'EXT_texture_env_combine or GL >= 1.3 required');
-  { Actually, other extensions also don't have to exist, they are built in
-    newer OpenGL version. But this requires getting their procedures under different
-    names (without extension suffix). For EXT_texture_env_combine, this is simpler
-    since it only defines new constants and these are the same, whether it's extension
-    or built-in GL 1.3. }
+  Check(GLUseMultiTexturing, 'OpenGL with multitexture support required');
 
-  Check(GL_ARB_multitexture, 'ARB_multitexture required');
-  Check(GLVersion.AtLeast(1, 3), 'GL >= 1.3 required for GL_SUBTRACT');
-  Check(GL_ARB_texture_env_dot3, 'ARB_texture_env_dot3 required (for dot3 method)');
-  Check(GL_ARB_texture_cube_map, 'ARB_texture_cube_map required (for dot3 corrected method)');
-
-  MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB);
-
-  Check(MaxTextureUnits >= 2, 'At least 2 texture units required for dot3 (for emboss, 3 texture units)');
+  Check(GLMaxTextureUnits >= 2, 'At least 2 texture units required for dot3 (for emboss, 3 texture units)');
 
   glClearColor(0.3, 0.3, 0.3, 1);
 

@@ -531,11 +531,11 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
     begin
       GLSLProgram[Pass].Enable;
 
-      glActiveTextureARB(GL_TEXTURE0);
+      glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, GLElementsPositionAreaTex);
       GLSLProgram[Pass].SetUniform('tex_elements_position_area', 0);
 
-      glActiveTextureARB(GL_TEXTURE1);
+      glActiveTexture(GL_TEXTURE1);
       glBindTexture(GL_TEXTURE_2D, GLElementsNormalTex);
       GLSLProgram[Pass].SetUniform('tex_elements_normal', 1);
 
@@ -592,7 +592,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
             using glCopyTexSubImage2D. Also, this BTW binds GLElementsIntensityTex
             to GL_TEXTURE2 texture unit, used by DoRender(1). }
 
-          glActiveTextureARB(GL_TEXTURE2);
+          glActiveTexture(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLElementsIntensityTex);
           glReadBuffer(GL_BACK);
           glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,

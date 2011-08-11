@@ -1564,13 +1564,13 @@ var
   begin
     with Viewport do
     begin
-      glActiveTextureARB(GL_TEXTURE0_ARB); // GL_ARB_multitexture is already checked
+      glActiveTexture(GL_TEXTURE0); // GLUseMultiTexturing is already checked
       glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureSrc);
       BoundTextureUnits := 1;
 
       if CurrentScreenEffectsNeedDepth then
       begin
-        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureDepth);
         Inc(BoundTextureUnits);
       end;
@@ -1677,7 +1677,7 @@ begin
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
-  if GL_ARB_texture_rectangle and GL_ARB_multitexture and
+  if GL_ARB_texture_rectangle and GLUseMultiTexturing and
     (CurrentScreenEffectsCount <> 0) then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
@@ -1754,13 +1754,13 @@ begin
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
 
-      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
       glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
       if CurrentScreenEffectsNeedDepth then
       begin
-        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glActiveTexture(GL_TEXTURE1);
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_TEXTURE_RECTANGLE_ARB);
       end;
@@ -1769,14 +1769,14 @@ begin
 
       if CurrentScreenEffectsNeedDepth then
       begin
-        glActiveTextureARB(GL_TEXTURE1_ARB);
+        glActiveTexture(GL_TEXTURE1);
         glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
       end;
 
-      glActiveTextureARB(GL_TEXTURE0_ARB);
+      glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
 
-      { at the end, we left active texture as default GL_TEXTURE0_ARB }
+      { at the end, we left active texture as default GL_TEXTURE0 }
     glPopAttrib;
   end else
   begin

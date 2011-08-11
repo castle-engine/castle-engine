@@ -2014,7 +2014,7 @@ var
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
-    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit);
   case TextureType of
     tt2D, tt2DShadow:
       begin
@@ -2069,7 +2069,7 @@ procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
-    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit);
   { glEnable(GL_TEXTURE_GEN_*) below }
 
   { Enable for shader pipeline }
@@ -2123,7 +2123,7 @@ var
 begin
   { Enable for fixed-function pipeline }
   if GLUseMultiTexturing then
-    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit);
   case Component of
     0: glEnable(GL_TEXTURE_GEN_S);
     1: glEnable(GL_TEXTURE_GEN_T);
@@ -2152,7 +2152,7 @@ procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
   { Disable for fixed-function pipeline }
   if GLUseMultiTexturing then
-    glActiveTextureARB(GL_TEXTURE0 + TextureUnit);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit);
   glDisable(GL_TEXTURE_GEN_S);
   glDisable(GL_TEXTURE_GEN_T);
   glDisable(GL_TEXTURE_GEN_R);

@@ -52,8 +52,8 @@ procedure TMyGeometry.Render(const Frustum: TFrustum; const Params: TRenderParam
 
     procedure TexCoord(const X, Y: Single);
     begin
-      glMultiTexCoord2fARB(GL_TEXTURE0_ARB, X, Y);
-      glMultiTexCoord2fARB(GL_TEXTURE1_ARB, X, Y);
+      glMultiTexCoord2f(GL_TEXTURE0, X, Y);
+      glMultiTexCoord2f(GL_TEXTURE1, X, Y);
     end;
 
   begin
@@ -102,17 +102,17 @@ begin
   glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(1, 1, 0, 1));
   glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
 
-  glActiveTextureARB(GL_TEXTURE1_ARB);
+  glActiveTexture(GL_TEXTURE1);
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
 
   glPushMatrix;
     glTranslatef(-6, 0, 0);
 
-    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, Tex[0]);
     glEnable(GL_TEXTURE_2D);
 
-    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glActiveTexture(GL_TEXTURE1);
     glDisable(GL_TEXTURE_2D);
 
     DrawCube;
@@ -121,11 +121,11 @@ begin
   glPushMatrix;
     glTranslatef(-2, 0, 0);
 
-    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, Tex[1]);
     glEnable(GL_TEXTURE_2D);
 
-    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glActiveTexture(GL_TEXTURE1);
     glDisable(GL_TEXTURE_2D);
 
     DrawCube;
@@ -134,11 +134,11 @@ begin
   glPushMatrix;
     glTranslatef(+2, 0, 0);
 
-    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, Tex[0]);
     glEnable(GL_TEXTURE_2D);
 
-    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, Tex[1]);
     glEnable(GL_TEXTURE_2D);
 
@@ -148,11 +148,11 @@ begin
   glPushMatrix;
     glTranslatef(+6, 0, 0);
 
-    glActiveTextureARB(GL_TEXTURE0_ARB);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, Tex[1]);
     glEnable(GL_TEXTURE_2D);
 
-    glActiveTextureARB(GL_TEXTURE1_ARB);
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, Tex[0]);
     glEnable(GL_TEXTURE_2D);
 
@@ -179,7 +179,7 @@ procedure Open(Window: TGLWindow);
   end;
 
 begin
-  Check(GL_ARB_multitexture, 'GL_ARB_multitexture required for this demo');
+  Check(GLUseMultiTexturing, 'Multitexturing required for this demo');
 
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);

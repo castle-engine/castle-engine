@@ -93,7 +93,6 @@ var
   GL_version_2_0: boolean;
 
   GL_ARB_imaging: boolean;
-  GL_ARB_multitexture: boolean;
   GL_ARB_transpose_matrix: boolean;
   GL_ARB_multisample: boolean;
   GL_ARB_texture_env_add: boolean;
@@ -270,9 +269,10 @@ var
   { Are all OpenGL multi-texturing extensions for
     VRML/X3D MultiTexture support available.
 
-    This checks a couple of extensions, not only ARB_multitexture,
-    that are in practice supported by virtually all existing GPU.
-    So it's acceptable to just check them all, and write your code for them,
+    This used to check a couple of multitexturing extensions,
+    like ARB_multitexture. Right now, it simply checks for OpenGL 1.3 version.
+    It is supported by virtually all existing GPUs.
+    So it's acceptable to just check it, and write your code for 1.3,
     and eventual fallback code (when this is false) write only for really
     ancient GPUs. }
   GLUseMultiTexturing: boolean;
@@ -967,7 +967,6 @@ begin
   GL_version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
 
   GL_ARB_imaging := Load_GL_ARB_imaging;
-  GL_ARB_multitexture := Load_GL_ARB_multitexture;
   GL_ARB_transpose_matrix := Load_GL_ARB_transpose_matrix;
   GL_ARB_multisample := Load_GL_ARB_multisample;
   GL_ARB_texture_env_add := Load_GL_ARB_texture_env_add;
@@ -1107,8 +1106,8 @@ begin
   GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
   GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
 
-  if GL_ARB_multitexture then
-    GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS_ARB) else
+  if GL_version_1_3 then
+    GLMaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
     GLMaxTextureUnits := 1;
 
   if GL_ARB_texture_cube_map then
@@ -1153,33 +1152,13 @@ begin
 
   { calculate GLUseMultiTexturing: check extensions required for multitexturing.
 
-    We simply require all extensions, like
-    EXT_texture_env_combine and ARB_multitexture and
-    ARB_texture_env_dot3. If any of them is missing, I'll not use
-    multitexturing. This is acceptable, as all modern OpenGL versions
-    will have them all. }
-
-  GLUseMultiTexturing :=
-    { EXT_texture_env_combine (standard since 1.3) required }
-    (GL_EXT_texture_env_combine or GL_version_1_3) and
-
-    { Actually, other extensions also don't have to exist, they are built in
-      newer OpenGL version. But this requires getting their procedures under different
-      names (without extension suffix). For EXT_texture_env_combine, this is simpler
-      since it only defines new constants and these are the same, whether it's extension
-      or built-in GL 1.3. }
-
-    { ARB_multitexture required (also standard since 1.3, see above comments) }
-    GL_ARB_multitexture and
-
-    { GL >= 1.3 required for GL_SUBTRACT.
-
-      As you see, actually this whole check could be substituted by GL >= 1.3,
-      as this allows GL_SUBTRACT and provides all extensions required here. }
-    GL_version_1_3 and
-
-    { ARB_texture_env_dot3 required (also standard since 1.3, see above comments) }
-    GL_ARB_texture_env_dot3;
+    We used to require a couple of extensions for this:
+    - EXT_texture_env_combine
+    - ARB_multitexture
+    - ARB_texture_env_dot3
+    But GL version >= 1.3 is actually required for GL_subtract,
+    and includes all above extensions in core. }
+  GLUseMultiTexturing := GL_version_1_3;
 
   GLUseARBGLSL := Load_GL_ARB_shader_objects and
                   Load_GL_ARB_vertex_shader and

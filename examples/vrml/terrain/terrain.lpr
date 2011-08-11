@@ -244,15 +244,15 @@ begin
         begin
           GLSLProgram.Enable;
 
-          glActiveTextureARB(GL_TEXTURE0);
+          glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, GLTexSand);
           GLSLProgram.SetUniform('tex_sand', 0);
 
-          glActiveTextureARB(GL_TEXTURE1);
+          glActiveTexture(GL_TEXTURE1);
           glBindTexture(GL_TEXTURE_2D, GLTexBread);
           GLSLProgram.SetUniform('tex_bread', 1);
 
-          glActiveTextureARB(GL_TEXTURE2);
+          glActiveTexture(GL_TEXTURE2);
           glBindTexture(GL_TEXTURE_2D, GLTexRock);
           GLSLProgram.SetUniform('tex_rock', 2);
 

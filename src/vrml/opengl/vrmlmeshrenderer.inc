@@ -218,7 +218,7 @@ var
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
         begin
-          glClientActiveTextureARB(GL_TEXTURE0_ARB + I);
+          glClientActiveTexture(GL_TEXTURE0 + I);
           glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         end;
     end else
@@ -288,7 +288,7 @@ begin
           if (Arrays.TexCoords[I] <> nil) and
              (Arrays.TexCoords[I].Generation = tgExplicit) then
           begin
-            glClientActiveTextureARB(GL_TEXTURE0_ARB + I);
+            glClientActiveTexture(GL_TEXTURE0 + I);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
               Arrays.AttributeSize,
@@ -375,18 +375,18 @@ end;
 
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
-  { If ARB_multitexturing available, sets texture coordinate for texture
+  { If multitexturing available, sets texture coordinate for texture
     unit TextureUnit (by appropriate glMultiTexCoord).
     Otherwise (when no multitexturing), sets texture coordinate for
     the only texture unit (glTexCoord).
 
     The only thing that you have to care about is to specify TextureUnit <
-    FreeGLTexturesCount. Everything else (whether ARB_multitexturing
-    exists, and shifting TextureUnit by GL_TEXTURE0_ARB) is taken care of inside here. }
+    FreeGLTexturesCount. Everything else (whether multitexturing
+    available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
   procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
   begin
-    if GL_ARB_multitexture then
-      glMultiTexCoordv(GL_TEXTURE0_ARB + TextureUnit, TexCoord) else
+    if GLUseMultiTexturing then
+      glMultiTexCoordv(GL_TEXTURE0 + TextureUnit, TexCoord) else
       glTexCoordv(TexCoord);
   end;
 
