@@ -123,6 +123,14 @@ var
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
+
+  { Used with glXCreateContextAttribsARB to select 3.0 forward-compatible context }
+  Context30Forward: array [0..6] of Integer =
+  ( GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+    GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+    GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+    None
+  );
 begin
   Application.InitializeXDisplay;
 
@@ -291,13 +299,24 @@ begin
   end;
 
   if UseFBConfig then
-    { TODO: If GLX_ARB_create_context extension (of glX) is present,
-      we could use glXCreateContextAttribsARB.
-      This would allow us to request specific OpenGL core version,
-      and eventually a forward-compatible context. }
-    glcontext := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, nil, true) else
+  begin
+    { For now, we just use GLX_ARB_create_context for testing
+      "how much can we render with forward-compatible context".
+      TODO:
+      - The ability to change Context30Forward version is not available.
+        Or not request compatibility, or debug, etc.
+      - We also don't properly catch errors: we should catch X errors
+        (see XSync and XSetErrorHandler inside
+        http://www.opengl.org/wiki/Tutorial:_OpenGL_3.0_Context_Creation_%28GLX%29).
+        Right now, our XLibUtils catches X errors, but without XSync
+        it's not known where they occur anyway. }
+//    if GLX_ARB_create_context(Application.XDisplay, Application.XScreen) then
+//      glcontext := glXCreateContextAttribsARB(Application.XDisplay, FBConfig, nil, true, Context30Forward) else
+      glcontext := glXCreateNewContext(Application.XDisplay, FBConfig, GLX_RGBA_TYPE, nil, true);
+  end else
     glcontext := glXCreateContext(Application.XDisplay, XVisual, nil, true);
-  check( glcontext <> nil, 'Could not create rendering context');
+
+  Check(glcontext <> nil, 'Could not create rendering context');
 
   UpdateCursor;
 
