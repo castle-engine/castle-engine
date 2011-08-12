@@ -72,7 +72,6 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/doppler_demo \
   examples/audio/efx_demo \
   examples/base/dircleaner \
-  examples/base/test_platform_specific_utils \
   examples/kambiscript/kambi_calc \
   examples/kambiscript/image_make_by_script \
   examples/base/stringoper \
