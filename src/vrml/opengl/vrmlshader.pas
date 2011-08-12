@@ -2020,25 +2020,25 @@ begin
       begin
         glEnable(GL_TEXTURE_2D);
         if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+        if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
       end;
     ttCubeMap:
       begin
         glDisable(GL_TEXTURE_2D);
         if GL_ARB_texture_cube_map then glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+        if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
       end;
     tt3D:
       begin
         glDisable(GL_TEXTURE_2D);
         if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL_EXT_texture3D        then glEnable(GL_TEXTURE_3D_EXT);
+        if GL3DTextures <> gsNone  then glEnable(GL_TEXTURE_3D);
       end;
     ttShader:
       begin
         glDisable(GL_TEXTURE_2D);
         if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-        if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+        if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
       end;
     else raise EInternalError.Create('TextureEnableDisable?');
   end;

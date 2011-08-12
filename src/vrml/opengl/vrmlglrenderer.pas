@@ -1705,15 +1705,15 @@ begin
   end;
 
   glGenTextures(1, @Result);
-  glBindTexture(GL_TEXTURE_3D_EXT, Result);
+  glBindTexture(GL_TEXTURE_3D, Result);
 
   glTextureImage3d(Image, MinFilter, MagFilter, DDS);
 
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_T, TextureWrap[1]);
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_WRAP_R, TextureWrap[2]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap[2]);
 
-  TexParameterMaxAnisotropy(GL_TEXTURE_3D_EXT, Anisotropy);
+  TexParameterMaxAnisotropy(GL_TEXTURE_3D, Anisotropy);
 
   TextureCached := Texture3DCaches.Add;
   TextureCached^.InitialNode := Node;
@@ -2699,7 +2699,7 @@ procedure TVRMLGLRenderer.DisableCurrentTexture;
 begin
   glDisable(GL_TEXTURE_2D);
   if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-  if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+  if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 end;
 
 procedure TVRMLGLRenderer.GetFog(Node: INodeX3DFogObject;

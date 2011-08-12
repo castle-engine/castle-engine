@@ -1173,22 +1173,22 @@ end;
 function IsTexture3DSized(const Size: Cardinal): boolean;
 begin
   Result :=
-    (not GL_EXT_texture3D) or
+    (GL3DTextures = gsNone) or
     (
       IsPowerOf2(Size) and
       (Size > 0) and
-      (Size <= GLMax3DTextureSizeEXT)
+      (Size <= GLMax3DTextureSize)
     );
 end;
 
 function IsTexture3DSized(const R: TImage): boolean;
 begin
-  if GL_EXT_texture3D then
+  if GL3DTextures <> gsNone then
   begin
     Result :=
-      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLMax3DTextureSizeEXT) and
-      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLMax3DTextureSizeEXT) and
-      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLMax3DTextureSizeEXT);
+      IsPowerOf2(R.Width ) and (R.Width  > 0) and (R.Width  <= GLMax3DTextureSize) and
+      IsPowerOf2(R.Height) and (R.Height > 0) and (R.Height <= GLMax3DTextureSize) and
+      IsPowerOf2(R.Depth ) and (R.Depth  > 0) and (R.Depth  <= GLMax3DTextureSize);
   end else
     Result := true;
 end;
@@ -1770,17 +1770,23 @@ var
     begin
       BeforeUnpackImage(UnpackData, Image);
       try
-        glTexImage3DExt(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
-          Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
-          Image.RawPixels);
+        case GL3DTextures of
+          gsExtension:
+            glTexImage3DEXT(GL_TEXTURE_3D_EXT, Level, ImageInternalFormat,
+              Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
+              Image.RawPixels);
+          gsStandard:
+            glTexImage3D(GL_TEXTURE_3D, Level, ImageInternalFormat,
+              Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
+              Image.RawPixels);
+        end;
       finally AfterUnpackImage(UnpackData, Image) end;
     end;
 
   begin
     if not IsTexture3DSized(Image) then
-      raise ETextureLoadError.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE_EXT (%d). Sizes are: %d x %d x %d',
-        [ GLMax3DTextureSizeEXT,
-          Image.Width, Image.Height, Image.Depth ]);
+      raise ETextureLoadError.CreateFmt('Image is not properly sized for a 3D texture, sizes must be a power-of-two and <= GL_MAX_3D_TEXTURE_SIZE (%d). Sizes are: %d x %d x %d',
+        [ GLMax3DTextureSize, Image.Width, Image.Height, Image.Depth ]);
 
     Core(Image);
   end;
@@ -1805,7 +1811,7 @@ var
 
     if Result then
     begin
-      glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+      glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
       for I := 1 to DDS.MipmapsCount - 1 do
         if DDS.Images[I] is TImage then
           glTexImage3DImage(TImage(DDS.Images[I]), I) else
@@ -1828,7 +1834,7 @@ begin
   begin
     if not LoadMipmapsFromDDS(DDSForMipmaps) then
     try
-      GenerateMipmap(GL_TEXTURE_3D_EXT);
+      GenerateMipmap(GL_TEXTURE_3D);
     except
       on E: EGenerateMipmapNotAvailable do
       begin
@@ -1838,8 +1844,8 @@ begin
     end;
   end;
 
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MAG_FILTER, MagFilter);
-  glTexParameteri(GL_TEXTURE_3D_EXT, GL_TEXTURE_MIN_FILTER, MinFilter);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, MagFilter);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, MinFilter);
 end;
 
 { GenerateMipmap ------------------------------------------------------------- }

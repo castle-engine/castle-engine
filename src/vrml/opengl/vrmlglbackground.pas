@@ -390,7 +390,7 @@ begin
       glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
     if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-    if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+    if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 
     { wykonujemy najbardziej elementarna optymalizacje : jesli mamy 6 tekstur
       i zadna nie ma kanalu alpha (a w praktyce jest to chyba najczestsza sytuacja)

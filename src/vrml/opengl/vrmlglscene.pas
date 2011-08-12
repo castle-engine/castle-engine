@@ -1670,7 +1670,7 @@ var
       glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
       glDisable(GL_TEXTURE_2D); { saved by GL_ENABLE_BIT }
       if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-      if GL_EXT_texture3D        then glDisable(GL_TEXTURE_3D_EXT);
+      if GL3DTextures  <> gsNone then glDisable(GL_TEXTURE_3D);
 
       glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
 

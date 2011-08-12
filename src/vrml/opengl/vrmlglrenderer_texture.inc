@@ -101,7 +101,7 @@
       glTexEnvi(GL_TEXTURE_ENV, ...).
 
       It's also already enabled (by glEnable(GL_TEXTURE_2D /
-      GL_TEXTURE_CUBE_MAP_ARB / GL_TEXTURE_3D_EXT) ). }
+      GL_TEXTURE_CUBE_MAP_ARB / GL_TEXTURE_3D) ). }
     function Enable(const TextureUnit: Cardinal;
       Shader: TVRMLShader; const Env: TTextureEnv): boolean; virtual; abstract;
 
@@ -899,7 +899,7 @@ procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
   out TexCoordsNeeded: Cardinal; Shader: TVRMLShader);
 const
   ColorSourceGL: array [TColorSource] of TGLint =
-  ( GL_PRIMARY_COLOR_EXT, GL_TEXTURE, GL_CONSTANT_EXT, GL_PREVIOUS_EXT );
+  ( GL_PRIMARY_COLOR, GL_TEXTURE, GL_CONSTANT, GL_PREVIOUS );
   Argument: array [ta0..ta1] of Integer = ( 0, 1 );
 var
   ChildTex: TVRMLNode;
@@ -1851,9 +1851,9 @@ var
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap3D;
 begin
-  if not GL_EXT_texture3D then
+  if GL3DTextures = gsNone then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support EXT_texture3D, cannot use Texture3D nodes');
+    OnWarning(wtMajor, 'VRML/X3D', 'Your OpenGL doesn''t support 3D textures, cannot use Texture3D nodes');
     Exit;
   end;
 
@@ -1894,7 +1894,7 @@ begin
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  glBindTexture(GL_TEXTURE_3D_EXT, GLName);
+  glBindTexture(GL_TEXTURE_3D, GLName);
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;

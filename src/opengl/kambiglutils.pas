@@ -41,6 +41,14 @@ uses Math, GL, GLU, GLExt, SysUtils, KambiUtils, VectorMath, Boxes3D,
   Images, Matrix, Rectangles;
 
 {$define read_interface}
+
+type
+  TGLSupport = (gsNone, gsExtension, gsStandard);
+
+const
+  GLSupportNames: array [TGLSupport] of string =
+  ( 'None', 'Extension', 'Standard' );
+
 {$I glext_packed_depth_stencil.inc}
 
 { ------------------------------------------------------------ }
@@ -150,7 +158,6 @@ var
   GL_EXT_stencil_two_side: boolean;
   GL_EXT_stencil_wrap: boolean;
   GL_EXT_subtexture: boolean;
-  GL_EXT_texture3D: boolean;
   GL_EXT_texture_compression_s3tc: boolean;
   GL_EXT_texture_env_add: boolean;
   GL_EXT_texture_env_combine: boolean;
@@ -267,7 +274,7 @@ var
   GLMaxTextureSize: Cardinal;
   GLMaxLights: Cardinal;
   GLMaxCubeMapTextureSizeARB: Cardinal;
-  GLMax3DTextureSizeEXT: Cardinal;
+  GLMax3DTextureSize: Cardinal;
   GLMaxTextureMaxAnisotropyEXT: Single;
   GLQueryCounterBits: TGLint;
   GLMaxRenderbufferSize: TGLuint;
@@ -293,6 +300,12 @@ var
 
   { Are all OpenGL ARB extesions for GLSL available. }
   GLUseARBGLSL: boolean;
+
+  { Are 3D textures supported by OpenGL.
+    If they are, note that GL_TEXTURE_3D and GL_TEXTURE_3D_EXT are equal,
+    so often both GL3DTextures = gsStandard and GL3DTextures = gsExtension
+    cases may be handled by the same code. }
+  GL3DTextures: TGLSupport;
 
 { Initialize all extensions and OpenGL versions.
 
@@ -963,6 +976,8 @@ procedure LoadAllExtensions;
   end;
   {$endif}
 
+var
+  GL_EXT_texture3D: boolean;
 begin
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(glGetString(GL_VERSION),
@@ -1137,15 +1152,22 @@ begin
     GLMaxCubeMapTextureSizeARB := 0;
 
   if GL_EXT_texture3D then
+    GL3DTextures := gsExtension else
+  if GL_version_1_2 then
+    GL3DTextures := gsStandard else
+    GL3DTextures := gsNone;
+
+  { calculate GLMax3DTextureSize, eventually correct GL3DTextures if buggy }
+  case GL3DTextures of
+    gsExtension: GLMax3DTextureSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
+    gsStandard : GLMax3DTextureSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
+    gsNone     : GLMax3DTextureSize := 0;
+  end;
+  if (GLMax3DTextureSize = 0) and (GL3DTextures <> gsNone) then
   begin
-    GLMax3DTextureSizeEXT := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
-    if GLMax3DTextureSizeEXT = 0 then
-    begin
-      GL_EXT_texture3D := false;
-      if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_texture3D: reported as supported, but GL_MAX_3D_TEXTURE_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
-    end;
-  end else
-    GLMax3DTextureSizeEXT := 0;
+    GL3DTextures := gsNone;
+    if Log then WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
+  end;
 
   if GL_EXT_texture_filter_anisotropic then
     GLMaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
@@ -2165,9 +2187,9 @@ function GLInformationString: string;
 
   function GetMaxTexture3DSize: string;
   begin
-    if GL_EXT_texture3D then
-      Result := IntToStr(GLMax3DTextureSizeEXT) else
-      Result := 'EXT_texture3D not available';
+    if GL3DTextures <> gsNone then
+      Result := IntToStr(GLMax3DTextureSize) else
+      Result := '3D textures not available';
   end;
 
   function GetMaxTextureMaxAnisotropy: string;
@@ -2250,11 +2272,12 @@ begin
     '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
     '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
     '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
-    '  Multi-texturing (a couple of related extensions): ' + BoolToStr[GLUseMultiTexturing] +nl+
+    '  Multi-texturing: ' + BoolToStr[GLUseMultiTexturing] +nl+
     '  Framebuffer Object: ' + BoolToStr[GL_EXT_framebuffer_object] +nl+
     '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
     '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
     '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
+    '  3D textures: ' + GLSupportNames[GL3DTextures] +nl+
     nl+
     '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
     nl+

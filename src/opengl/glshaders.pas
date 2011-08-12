@@ -44,8 +44,6 @@ uses SysUtils, Classes, GL, GLU, GLExt, KambiGLUtils, KambiUtils, VectorMath,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  TGLSupport = (gsNone, gsExtension, gsStandard);
-
   { Abstract class for both ARB vertex and fragment programs. }
   TARBProgram = class
   private
@@ -392,10 +390,6 @@ type
   end;
 
   TGLSLProgramList = specialize TFPGObjectList<TGLSLProgram>;
-
-const
-  GLSupportNames: array [TGLSupport] of string =
-  ( 'None', 'ARB Extension', 'Standard' );
 
 var
   LogShaders: boolean;
