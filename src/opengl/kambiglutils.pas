@@ -1151,10 +1151,10 @@ begin
     GLMaxCubeMapTextureSizeARB := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB) else
     GLMaxCubeMapTextureSizeARB := 0;
 
-  if GL_EXT_texture3D then
-    GL3DTextures := gsExtension else
   if GL_version_1_2 then
     GL3DTextures := gsStandard else
+  if GL_EXT_texture3D then
+    GL3DTextures := gsExtension else
     GL3DTextures := gsNone;
 
   { calculate GLMax3DTextureSize, eventually correct GL3DTextures if buggy }
