@@ -388,8 +388,11 @@ procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boo
 
   Improvements over ChDir:
   @orderedList(
-    @item(It fixes a bug in Delphi 6, in Delphi 6 ChDir when fails (and program
+    @item(Fixes a bug in Delphi 6, in Delphi 6 ChDir when fails (and program
      is compiled in $I+) does not raise EInOutError (but it sets IOResult).)
+    @item(Fixes a bug in FPC 2.4.2-2.4.4:
+      http://bugs.freepascal.org/view.php?id=19977 ,
+      causing EInOutError to be deferred to later I/O call.)
     @item(Better error message (that will always contain NewDir).)
   ) }
 procedure ChangeDir(const NewDir: string);
@@ -923,42 +926,14 @@ end;
 { dir handling -------------------------------------------------------- }
 
 procedure ChangeDir(const NewDir: string);
-
-const
-  SChangeDirError = 'Error when changing directory to "%s": ';
-
-  function IOError(ErrorCode: integer): EInOutError;
-  begin
-   Result := EInOutError.Create( Format(SChangeDirError, [NewDir])
-     + SysErrorMessage(ErrorCode));
-   Result.ErrorCode := ErrorCode;
-  end;
-
-{$ifdef MSWINDOWS}
 begin
- if not SetCurrentDirectory(PChar(NewDir)) then raise IOError(GetLastError);
+{$ifdef MSWINDOWS}
+  if not SetCurrentDirectory(PChar(NewDir)) then
 {$endif}
-
 {$ifdef UNIX}
-  {$ifdef USE_LIBC}
-  begin
-   if Libc.__chdir(PChar(NewDir)) <> 0 then raise IOError(Libc.ErrNo);
-  {$else}
-  begin
-   { This a generic implementation of ChangeDir: just call ChDir
-     and improve eventual error message. }
-   try
-    ChDir(NewDir);
-   except
-    on E: EInOutError do
-    begin
-     E.Message := Format(SChangeDirError, [NewDir]) + E.Message;
-     raise;
-    end;
-   end;
-  {$endif}
+  if FpChDir(PChar(NewDir)) < 0 Then
 {$endif}
-
+    raise EInOutError.CreateFmt('Cannot change directory to "%s"', [NewDir]);
 end;
 
 function FileNameAutoInc(const FileNamePattern: string): string;

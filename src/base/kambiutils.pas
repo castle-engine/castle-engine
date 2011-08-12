@@ -65,8 +65,9 @@
   Some of the things from Pascal RTL / FCL get better replacemenets here:
 
   @unorderedList(
-    @item(ChDir with $I+ => better use ChangeDir from this unit
-      (because of Delphi bug --- ChDir with $I+ works like with $I-).)
+    @item(ChDir with $I+ => better use ChangeDir from KambiFilesUtils
+      (workarouds Delphi 6 bug, workarounds FPC 2.4.2-2.4.4 bug
+      http://bugs.freepascal.org/view.php?id=19977).)
 
     @item(ParamStr(0), Application.ExeName => better use
       ProgramName or ExeName from this unit. They are portable,
