@@ -44,7 +44,7 @@ uses SysUtils, Classes, GL, GLU, GLExt, KambiGLUtils, KambiUtils, VectorMath,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  TGLSupport = (gsNone, gsARBExtension, gsStandard);
+  TGLSupport = (gsNone, gsExtension, gsStandard);
 
   { Abstract class for both ARB vertex and fragment programs. }
   TARBProgram = class
@@ -141,7 +141,7 @@ type
   private
     FSupport: TGLSupport;
 
-    { Actually, this should be TGLhandleARB for gsARBExtension version.
+    { Actually, this should be TGLhandleARB for gsExtension version.
       But TGLhandleARB = TGLuint in practice, so this is not a problem. }
     ProgramId: TGLuint;
     ShaderIds: TGLuintList;
@@ -153,7 +153,7 @@ type
 
     procedure AttachShader(AType: TGLenum; const S: string);
 
-    { Wrapper over glGetAttribLocationARB (use only if gsARBExtension) }
+    { Wrapper over glGetAttribLocationARB (use only if gsExtension) }
     function GetAttribLocationARB(const Name: string): TGLint;
 
     { Wrapper over glGetAttribLocation (use only if gsStandard) }
@@ -487,13 +487,13 @@ begin
     if Value <> nil then
     begin
       case TGLSLProgram.ClassSupport of
-        gsARBExtension: glUseProgramObjectARB(Value.ProgramId);
-        gsStandard    : glUseProgram         (Value.ProgramId);
+        gsExtension: glUseProgramObjectARB(Value.ProgramId);
+        gsStandard : glUseProgram         (Value.ProgramId);
       end;
     end else
     begin
       case TGLSLProgram.ClassSupport of
-        gsARBExtension:
+        gsExtension:
           begin
             glUseProgramObjectARB(0);
             { Workaround for fglrx bug (Radeon X1600 (chantal)).
@@ -523,7 +523,7 @@ end;
 procedure TARBProgram.Load(const S: string);
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         glBindProgramARB(Target, ProgId);
         glProgramStringARB(Target,
@@ -538,7 +538,7 @@ begin
   Result := 'support: ' + GLSupportNames[Support];
 
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         Result += NL + Format(
           'Number of instructions: %d / %d' +NL+
@@ -562,7 +562,7 @@ end;
 procedure TARBProgram.Enable;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         glBindProgramARB(Target, ProgId);
         glEnable(Target);
@@ -574,7 +574,7 @@ end;
 procedure TARBProgram.Disable;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         glBindProgramARB(Target, ProgId);
         glDisable(Target);
@@ -594,7 +594,7 @@ begin
   FSupport := ClassSupport;
 
   case Support of
-    gsARBExtension: glGenProgramsARB(1, @ProgId);
+    gsExtension: glGenProgramsARB(1, @ProgId);
     gsStandard: { TODO };
   end;
 end;
@@ -611,7 +611,7 @@ begin
   { if GL_version_2_0 then
     Result := gsStandard else }
   if GL_ARB_vertex_program then
-    Result := gsARBExtension else
+    Result := gsExtension else
     Result := gsNone;
 end;
 
@@ -626,7 +626,7 @@ begin
   FSupport := ClassSupport;
 
   case Support of
-    gsARBExtension: glGenProgramsARB(1, @ProgId);
+    gsExtension: glGenProgramsARB(1, @ProgId);
     gsStandard: { TODO };
   end;
 end;
@@ -643,7 +643,7 @@ begin
   { if GL_version_2_0 then
     Result := gsStandard else }
   if GL_ARB_fragment_program then
-    Result := gsARBExtension else
+    Result := gsExtension else
     Result := gsNone;
 end;
 
@@ -656,13 +656,13 @@ begin
   FSupport := ClassSupport;
 
   case Support of
-    gsARBExtension: ProgramId := glCreateProgramObjectARB();
-    gsStandard    : ProgramId := glCreateProgram         ();
+    gsExtension: ProgramId := glCreateProgramObjectARB();
+    gsStandard : ProgramId := glCreateProgram         ();
   end;
 
   { ProgramId = 0 means that an error occurred. Citing GL documentation:
 
-    gsARBExtension: ARB_shader_objects spec says about
+    gsExtension: ARB_shader_objects spec says about
       CreateProgramObjectARB(void): "If the program object
       is created successfully, a handle that can be used to reference it is
       returned .... If the creation failed the handle returned will be 0."
@@ -694,8 +694,8 @@ begin
     DetachAllShaders;
 
   case Support of
-    gsARBExtension: glDeleteObjectARB(ProgramId);
-    gsStandard    : glDeleteProgram  (ProgramId);
+    gsExtension: glDeleteObjectARB(ProgramId);
+    gsStandard : glDeleteProgram  (ProgramId);
   end;
 
   FreeAndNil(ShaderIds);
@@ -708,15 +708,15 @@ begin
   if GL_version_2_0 then
     Result := gsStandard else
   if GLUseARBGLSL then
-    Result := gsARBExtension else
+    Result := gsExtension else
     Result := gsNone;
 end;
 
 function TGLSLProgram.ProgramInfoLog: string;
 begin
   case Support of
-    gsARBExtension: Result := GetInfoLogARB(ProgramId);
-    gsStandard    : Result := GetProgramInfoLog(ProgramId);
+    gsExtension: Result := GetInfoLogARB(ProgramId);
+    gsStandard : Result := GetProgramInfoLog(ProgramId);
     else Result := '';
   end;
 end;
@@ -805,7 +805,7 @@ function TGLSLProgram.DebugInfo: string;
     ErrorCode: TGLenum;
   begin
     case Support of
-      gsARBExtension:
+      gsExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORMS_ARB, @UniformsCount);
 
@@ -871,7 +871,7 @@ function TGLSLProgram.DebugInfo: string;
     ErrorCode: TGLenum;
   begin
     case Support of
-      gsARBExtension:
+      gsExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, @AttribsCount);
 
@@ -928,8 +928,8 @@ function TGLSLProgram.DebugInfo: string;
   function ShaderInfoLog(ShaderId: TGLuint): string;
   begin
     case Support of
-      gsARBExtension: Result := GetInfoLogARB(ShaderId);
-      gsStandard    : Result := GetShaderInfoLog(ShaderId);
+      gsExtension: Result := GetInfoLogARB(ShaderId);
+      gsStandard : Result := GetShaderInfoLog(ShaderId);
     end;
   end;
 
@@ -1009,7 +1009,7 @@ var
   ShaderId: TGLuint;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         ShaderId := CreateShaderARB(S);
         glAttachObjectARB(ProgramId, ShaderId);
@@ -1027,16 +1027,16 @@ end;
 procedure TGLSLProgram.AttachVertexShader(const S: string);
 begin
   case Support of
-    gsARBExtension: AttachShader(GL_VERTEX_SHADER_ARB, S);
-    gsStandard    : AttachShader(GL_VERTEX_SHADER    , S);
+    gsExtension: AttachShader(GL_VERTEX_SHADER_ARB, S);
+    gsStandard : AttachShader(GL_VERTEX_SHADER    , S);
   end;
 end;
 
 procedure TGLSLProgram.AttachFragmentShader(const S: string);
 begin
   case Support of
-    gsARBExtension: AttachShader(GL_FRAGMENT_SHADER_ARB, S);
-    gsStandard    : AttachShader(GL_FRAGMENT_SHADER    , S);
+    gsExtension: AttachShader(GL_FRAGMENT_SHADER_ARB, S);
+    gsStandard : AttachShader(GL_FRAGMENT_SHADER    , S);
   end;
 end;
 
@@ -1045,7 +1045,7 @@ var
   I: Integer;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       for I := 0 to ShaderIds.Count - 1 do
       begin
         glDetachObjectARB(ProgramId, ShaderIds[I]);
@@ -1066,7 +1066,7 @@ var
   Linked: TGLuint;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         glLinkProgramARB(ProgramId);
         glGetObjectParameterivARB(ProgramId, GL_OBJECT_LINK_STATUS_ARB, @Linked);
@@ -1133,7 +1133,7 @@ begin
   end;
 end;
 
-{ Wrapper over glGetUniformLocationARB (use only if gsARBExtension) }
+{ Wrapper over glGetUniformLocationARB (use only if gsExtension) }
 {$define GetLocationCheckARB :=
 
   Location := glGetUniformLocationARB(ProgramId, PCharOrNil(Name));
@@ -1207,8 +1207,8 @@ begin
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1217,8 +1217,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1227,8 +1227,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1237,8 +1237,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1247,8 +1247,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1257,8 +1257,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1267,8 +1267,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1277,8 +1277,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1287,8 +1287,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1297,8 +1297,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1307,8 +1307,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1317,8 +1317,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1338,8 +1338,8 @@ begin
   Ints := Value.ToLongInt;
   try
     case Support of
-      gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
-      gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
+      gsExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
+      gsStandard : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
     end;
   finally FreeAndNil(Ints) end;
 end;
@@ -1350,8 +1350,8 @@ var
 begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1360,8 +1360,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1370,8 +1370,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1380,8 +1380,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1390,8 +1390,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1400,8 +1400,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1410,8 +1410,8 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
-    gsStandard    : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
   end;
 end;
 
@@ -1432,80 +1432,80 @@ end;
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Integer);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib4ivARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib4iv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib4ivARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib4iv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Byte);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib4ubvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib4ubv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib4ubvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib4ubv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLfloat);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib1fARB(GetAttribLocationARB(Name), Value);
-    gsStandard    : glVertexAttrib1f   (GetAttribLocation   (Name), Value);
+    gsExtension: glVertexAttrib1fARB(GetAttribLocationARB(Name), Value);
+    gsStandard : glVertexAttrib1f   (GetAttribLocation   (Name), Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Single);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib2fvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib2fv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib2fvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib2fv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Single);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib3fvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib3fv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib3fvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib3fv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Single);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib4fvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib4fv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib4fvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib4fv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TGLdouble);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib1dARB(GetAttribLocationARB(Name), Value);
-    gsStandard    : glVertexAttrib1d   (GetAttribLocation   (Name), Value);
+    gsExtension: glVertexAttrib1dARB(GetAttribLocationARB(Name), Value);
+    gsStandard : glVertexAttrib1d   (GetAttribLocation   (Name), Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Double);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib2dvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib2dv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib2dvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib2dv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Double);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib3dvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib3dv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib3dvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib3dv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Double);
 begin
   case Support of
-    gsARBExtension: glVertexAttrib4dvARB(GetAttribLocationARB(Name), @Value);
-    gsStandard    : glVertexAttrib4dv   (GetAttribLocation   (Name), @Value);
+    gsExtension: glVertexAttrib4dvARB(GetAttribLocationARB(Name), @Value);
+    gsStandard : glVertexAttrib4dv   (GetAttribLocation   (Name), @Value);
   end;
 end;
 
@@ -1514,7 +1514,7 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         Location := GetAttribLocationARB(Name);
         glVertexAttrib3fvARB(Location    , @Value[0]);
@@ -1536,7 +1536,7 @@ var
   Location: TGLint;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         Location := GetAttribLocationARB(Name);
         glVertexAttrib4fvARB(Location    , @Value[0]);
@@ -1561,7 +1561,7 @@ function TGLSLProgram.VertexAttribPointer(const Name: string;
   Ptr: Pointer): TGLint;
 begin
   case Support of
-    gsARBExtension:
+    gsExtension:
       begin
         Result := GetAttribLocationARB(Name) + LocationOffset;
         glEnableVertexAttribArrayARB(Result);
@@ -1579,8 +1579,8 @@ end;
 class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
 begin
   case ClassSupport of
-    gsARBExtension: glDisableVertexAttribArrayARB(Location);
-    gsStandard    : glDisableVertexAttribArray   (Location);
+    gsExtension: glDisableVertexAttribArrayARB(Location);
+    gsStandard : glDisableVertexAttribArray   (Location);
   end;
 end;
 
