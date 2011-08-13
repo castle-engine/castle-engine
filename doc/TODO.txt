@@ -1158,3 +1158,13 @@ Various:
   http://developer.amd.com/media/gpu_assets/ATI_OpenGL_Programming_and_Optimization_Guide.pdf
   http://www.gpgpu.org/phpBB2/viewtopic.php?p=6100&sid=8da4dfe88523858a837e5f57a936b0b1 (about textures, but still)
   Defer for later.
+
+- Better controls for bezier_surraces/design example,
+  more intuitive (allow drag with mouse). Maybe just change it to use VRML/X3D NURBS surfaces?
+
+- NURBS sometimes go wild, on demo_models/surface interpolator?
+  Some numerical error in some case?
+  Not in 3.8.0 (fpc 2.4.2)
+  In 3.9.0 (fpc 2.4.0), 3.10.0 (fpc 2.4.4), and current 3.10.1 (fpc 2.4.4).
+  At least it doesn't seem like FPC bug.
+  This is seen on kocury. Not present on chantal? Check. Maybe some nvidia bug?
