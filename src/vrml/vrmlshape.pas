@@ -825,6 +825,13 @@ type
     procedure SortBackToFront(const Position: TVector3Single);
   end;
 
+var
+  { If nonzero, disables automatic TVRMLShape.DynamicGeometry detection
+    on every node modification. This is useful if you do some interactive
+    editing of the shape, but you don't want the shape octree to be replaced
+    by it's approximation. }
+  DisableAutoDynamicGeometry: Cardinal;
+
 implementation
 
 uses ProgressUnit, VRMLScene, NormalsCalculator, KambiLog, KambiWarnings,
@@ -1431,10 +1438,13 @@ procedure TVRMLShape.LocalGeometryChanged(
 begin
   if FOctreeTriangles <> nil then
   begin
-    if (not DynamicGeometry) and Log then
-      WritelnLog('Shape', Format('Shape with geometry %s detected as dynamic, will use  more crude collision detection and more suitable rendering',
-        [OriginalGeometry.NodeTypeName]));
-    DynamicGeometry := true;
+    if DisableAutoDynamicGeometry = 0 then
+    begin
+      if (not DynamicGeometry) and Log then
+        WritelnLog('Shape', Format('Shape with geometry %s detected as dynamic, will use more crude collision detection and more suitable rendering',
+          [OriginalGeometry.NodeTypeName]));
+      DynamicGeometry := true;
+    end;
     FreeOctreeTriangles;
   end;
 
