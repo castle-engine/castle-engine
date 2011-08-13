@@ -2024,7 +2024,6 @@ end;
   - GL_COLOR_ATTACHMENT0
 }
 
-
 { Wrapper around glFramebufferTexture2D }
 procedure FramebufferTexture2D(const Target, Attachment, TexTarget: TGLenum;
   const Texture: TGLuint; const Level: TGLint);
