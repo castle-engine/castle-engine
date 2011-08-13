@@ -613,7 +613,7 @@
         <UnitName Value="VRMLGLScene"/>
       </Item139>
       <Item140>
-        <Filename Value="../src/vrml/opengl/vrmlmeshrenderer.inc"/>
+        <Filename Value="../src/vrml/opengl/vrmlglrenderer_meshrenderer.inc"/>
         <Type Value="Include"/>
       </Item140>
       <Item141>

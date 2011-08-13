@@ -1240,9 +1240,8 @@ uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
 
 {$define read_implementation}
 
-{$I vrmlmeshrenderer.inc}
-{$I vrmlmeshrenderer_x3d_text.inc}
-
+{$I vrmlglrenderer_meshrenderer.inc}
+{$I vrmlglrenderer_textrenderer.inc}
 {$I vrmlglrenderer_resource.inc}
 {$I vrmlglrenderer_texture.inc}
 {$I vrmlglrenderer_bumpmapping.inc}
