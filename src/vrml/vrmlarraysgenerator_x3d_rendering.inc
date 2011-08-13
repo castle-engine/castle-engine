@@ -328,6 +328,8 @@ begin
 end;
 
 procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
+var
+  I: Integer;
 begin
   Arrays.Primitive := gpTriangles;
 
@@ -339,6 +341,17 @@ begin
     IndexesFromCoordIndex := TLongIntList.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
+
+    if FacesNeeded then
+    begin
+      Arrays.Faces := TFaceIndexesList.Create;
+      Arrays.Faces.Count := IndexesFromCoordIndex.Count;
+      for I := 0 to Arrays.Faces.Count - 1 do
+      begin
+        Arrays.Faces.L[I].IndexBegin := (I div 3) * 3;
+        Arrays.Faces.L[I].IndexEnd := ((I div 3) + 1) * 3 -1;
+      end;
+    end;
   end;
 end;
 
