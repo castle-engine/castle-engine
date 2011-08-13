@@ -8,7 +8,6 @@ Make news item around ~end of July about next engine progress and plans.
 
 3.11.0:
 - Blender exporter fixes.
-- Support for Ogre data files, notify on forum?
 - Make GLWinMessages buttons clickable, reported for castle many times.
   In fact, use there our buttons in GLControls, this would be best.
 
