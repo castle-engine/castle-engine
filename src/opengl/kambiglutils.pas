@@ -243,7 +243,6 @@ var
   GL_ATI_separate_stencil: boolean;
   GL_ARB_texture_non_power_of_two: boolean;
   GL_ARB_vertex_buffer_object: boolean;
-  GL_EXT_framebuffer_object: boolean;
   GL_ARB_occlusion_query: boolean;
   GL_EXT_packed_depth_stencil: boolean;
   GL_ATI_texture_float: boolean;
@@ -306,6 +305,11 @@ var
     so often both GL3DTextures = gsStandard and GL3DTextures = gsExtension
     cases may be handled by the same code. }
   GL3DTextures: TGLSupport;
+
+  { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
+    is used, gsStandard means that ARB_framebuffer_object (which is
+    a "core extesion", present the same way in OpenGL 3 core) is available. }
+  GLFramebuffer: TGLSupport;
 
 { Initialize all extensions and OpenGL versions.
 
@@ -978,6 +982,8 @@ procedure LoadAllExtensions;
 
 var
   GL_EXT_texture3D: boolean;
+  GL_EXT_framebuffer_object: boolean;
+  GL_ARB_framebuffer_object: boolean;
 begin
   FreeAndNil(GLVersion);
   GLVersion := TGLVersion.Create(glGetString(GL_VERSION),
@@ -1139,6 +1145,7 @@ begin
   GL_ATI_texture_float := Load_GL_ATI_texture_float;
   GL_ARB_texture_float := Load_GL_ARB_texture_float;
   GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
+  GL_ARB_framebuffer_object := Load_GL_ARB_framebuffer_object;
 
   GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
   GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
@@ -1177,13 +1184,20 @@ begin
     glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @GLQueryCounterBits) else
     GLQueryCounterBits := 0;
 
+  { calculate GLFramebuffer }
+  if GL_version_3_0 or GL_ARB_framebuffer_object then
+    GLFramebuffer := gsStandard else
   if GL_EXT_framebuffer_object then
+    GLFramebuffer := gsExtension else
+    GLFramebuffer := gsNone;
+
+  if GLFramebuffer <> gsNone then
   begin
-    GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE_EXT);
+    GLMaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE { equal to GL_MAX_RENDERBUFFER_SIZE_EXT });
     if GLMaxRenderbufferSize = 0 then
     begin
-      GL_EXT_framebuffer_object := false;
-      if Log then WritelnLog('OpenGL', 'Buggy OpenGL EXT_framebuffer_object: reported as supported, but GL_MAX_RENDERBUFFER_SIZE_EXT is zero. (Bug may be found on Mesa 7.0.4.)');
+      GLFramebuffer := gsNone;
+      if Log then WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
     end;
   end else
     GLMaxRenderbufferSize := 0;
@@ -2121,6 +2135,9 @@ begin
 end;
 
 function GLInformationString: string;
+const
+  GLSupportNamesFBO: array [TGLSupport] of string =
+  ( 'None', 'Extension', 'Standard (or ARB "core extension")' );
 
   function GetInteger(param: TGLenum): string;
   begin
@@ -2222,9 +2239,9 @@ function GLInformationString: string;
 
   function GetMaxRenderbufferSize: string;
   begin
-    if GL_EXT_framebuffer_object then
+    if GLFramebuffer <> gsNone then
       Result := IntToStr(GLMaxRenderbufferSize) else
-      Result := 'EXT_framebuffer_object not available';
+      Result := 'Framebuffer not available';
   end;
 
   function GetMaxRectangleTextureSize: string;
@@ -2273,7 +2290,7 @@ begin
     '  Assembly ARB vertex program support: ' + GLSupportNames[TARBVertexProgram.ClassSupport] +nl+
     '  Assembly ARB fragment program support: ' + GLSupportNames[TARBFragmentProgram.ClassSupport] +nl+
     '  Multi-texturing: ' + BoolToStr[GLUseMultiTexturing] +nl+
-    '  Framebuffer Object: ' + BoolToStr[GL_EXT_framebuffer_object] +nl+
+    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFramebuffer] +nl+
     '  Vertex Buffer Object: ' + BoolToStr[GL_ARB_vertex_buffer_object] +nl+
     '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
     '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
