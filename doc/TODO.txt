@@ -988,6 +988,10 @@ More shaders demos, for some day:
   This depends on bump mapping normalMap improvements:
   define special tex coords for bump mapping, don't reuse 0th texture unit.
 
+- moonlight in a train (metro):
+  - texture with night sky and large moon, casted by light (just like fancy_spot)
+  - cast if through windows of a metro
+  - make metro (or light source) move, thus making shadows move through.
 ------------------------------------------------------------------------------
 Various:
 - Make cameraXxx output events available from something like CameraSensor?
