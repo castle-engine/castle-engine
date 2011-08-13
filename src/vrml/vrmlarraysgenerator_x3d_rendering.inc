@@ -322,9 +322,12 @@ begin
       (since each face has separate GenerateVertex calls).
 
     So always smooth shading is actually Ok.
-    Only for the sake of optimization we can force flat shading
-    in allowed cases. }
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+    For the sake of optimization we could force flat shading in allowed cases,
+    however: flat shading may be bad for positional lights (even when normals
+    are constant across face, light direction, and so light result, may change
+    across face).
+
+  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TTriangleSetGenerator.PrepareIndexesPrimitives;
@@ -867,9 +870,12 @@ begin
       (since each face has separate GenerateVertex calls).
 
     So always smooth shading is actually Ok.
-    Only for the sake of optimization we can force flat shading
-    in allowed cases. }
-  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone);
+    For the sake of optimization we could force flat shading in allowed cases,
+    however: flat shading may be bad for positional lights (even when normals
+    are constant across face, light direction, and so light result, may change
+    across face).
+
+  Arrays.ForceFlatShading := (Color = nil) and (NorImplementation = niNone); }
 end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;
