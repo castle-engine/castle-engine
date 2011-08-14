@@ -357,19 +357,19 @@ begin
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
-  PositionScale := Box3DSizes(Scene.BoundingBox);
+  PositionScale := Scene.BoundingBox.Sizes;
   for I := 0 to 2 do
   begin
     if PositionScale[I] = 0 then
       PositionScale[I] := 1;
-    PositionShift[I] := Scene.BoundingBox[0][I] / PositionScale[I];
+    PositionShift[I] := Scene.BoundingBox.Data[0][I] / PositionScale[I];
   end;
 
   Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
   Writeln('To squeeze positions into texture we use scale = ',
     VectorToNiceStr(PositionScale), ' and shift ',
     VectorToNiceStr(PositionShift), ' (bbox is ',
-    Box3DToNiceStr(Scene.BoundingBox), ')');
+    Scene.BoundingBox.ToNiceStr, ')');
 
   { initialize textures }
   FreeAndNil(ElementsPositionAreaTex);
@@ -723,7 +723,7 @@ var
   ShaderString: string;
 begin
   if (Elements.Count = 0) or
-     IsEmptyBox3D(Scene.BoundingBox) then
+     Scene.BoundingBox.IsEmpty then
   begin
     Glw.Controls.Remove(SceneManager); { do not try to render }
     MessageOk(Glwin, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);

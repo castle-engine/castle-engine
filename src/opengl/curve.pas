@@ -1,4 +1,3 @@
-
 {
   Copyright 2004-2011 Michalis Kamburelis.
 
@@ -374,15 +373,15 @@ begin
 
  { calculate FBoundingBox }
  P := PointOfSegment(0, ASegmentsForBoundingBox); { = Point(TBegin) }
- FBoundingBox[0] := P;
- FBoundingBox[1] := P;
+ FBoundingBox.Data[0] := P;
+ FBoundingBox.Data[1] := P;
  for i := 1 to ASegmentsForBoundingBox do
  begin
   P := PointOfSegment(i, ASegmentsForBoundingBox);
   for k := 0 to 2 do
   begin
-   FBoundingBox[0, k] := Min(FBoundingBox[0, k], P[k]);
-   FBoundingBox[1, k] := Max(FBoundingBox[1, k], P[k]);
+   FBoundingBox.Data[0, k] := Min(FBoundingBox.Data[0, k], P[k]);
+   FBoundingBox.Data[1, k] := Max(FBoundingBox.Data[1, k], P[k]);
   end;
  end;
 end;

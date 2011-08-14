@@ -100,13 +100,13 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(RenderingCamera.Matrix);
 
-  if not IsEmptyBox3D(Scene.BoundingBox) then
+  if not Scene.BoundingBox.IsEmpty then
   begin
     { SHVectorGLCapture wil draw maps, get them,
       and calculate LightSHBasis describing the light contribution
       (this will be used then by Scene.Render, during DoRadianceTransfer). }
 
-    SHVectorGLCapture(LightSHBasis, Box3DMiddle(Scene.BoundingBox),
+    SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Middle,
       @DrawLight, 100, 100, LightIntensityScale);
     glViewport(0, 0, ContainerWidth, ContainerHeight);
   end;
@@ -185,7 +185,7 @@ procedure Idle(Glwin: TGLWindow);
   begin
     LightPos[Coord] += Change * Glwin.Fps.IdleSpeed *
       { scale by Box3DAvgSize, to get similar move on all models }
-      Box3DAvgSize(Scene.BoundingBox);
+      Scene.BoundingBox.AverageSize;
     Glwin.PostRedisplay;
   end;
 
@@ -270,15 +270,15 @@ begin
   OnWarning := @OnWarningWrite;
   Scene.Load(Parameters[1]);
 
-  if IsEmptyBox3D(Scene.BoundingBox) then
+  if Scene.BoundingBox.IsEmpty then
   begin
     LightRadius := 1;
     LightPos := Vector3Single(2, 0, 0);
   end else
   begin
-    LightRadius := Box3DAvgSize(Scene.BoundingBox);
-    LightPos := Box3DMiddle(Scene.BoundingBox);
-    LightPos[0] += Scene.BoundingBox[1][0] - Scene.BoundingBox[0][0] + LightRadius;
+    LightRadius := Scene.BoundingBox.AverageSize;
+    LightPos := Scene.BoundingBox.Middle;
+    LightPos[0] += Scene.BoundingBox.Data[1][0] - Scene.BoundingBox.Data[0][0] + LightRadius;
   end;
 
   SceneManager := TMySceneManager.Create(Application);

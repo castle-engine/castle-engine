@@ -72,17 +72,17 @@ end;
 
 function RandomBox: TBox3D;
 begin
-  Result[0][0] := Random * 20 - 10;
-  Result[0][1] := Random * 20 - 10;
-  Result[0][2] := Random * 20 - 10;
+  Result.Data[0][0] := Random * 20 - 10;
+  Result.Data[0][1] := Random * 20 - 10;
+  Result.Data[0][2] := Random * 20 - 10;
 
-  Result[1][0] := Random * 20 - 10;
-  Result[1][1] := Random * 20 - 10;
-  Result[1][2] := Random * 20 - 10;
+  Result.Data[1][0] := Random * 20 - 10;
+  Result.Data[1][1] := Random * 20 - 10;
+  Result.Data[1][2] := Random * 20 - 10;
 
-  OrderUp(Result[0][0], Result[1][0]);
-  OrderUp(Result[0][1], Result[1][1]);
-  OrderUp(Result[0][2], Result[1][2]);
+  OrderUp(Result.Data[0][0], Result.Data[1][0]);
+  OrderUp(Result.Data[0][1], Result.Data[1][1]);
+  OrderUp(Result.Data[0][2], Result.Data[1][2]);
 end;
 
 procedure TTestFrustum.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
@@ -196,9 +196,9 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
          Frustum[fp][1] * Box[YIndex][1] +
          Frustum[fp][2] * Box[ZIndex][2] +
          optimized version : }
-       FrustumMultiplyBox[XIndex][0] +
-       FrustumMultiplyBox[YIndex][1] +
-       FrustumMultiplyBox[ZIndex][2] +
+       FrustumMultiplyBox.Data[XIndex][0] +
+       FrustumMultiplyBox.Data[YIndex][1] +
+       FrustumMultiplyBox.Data[ZIndex][2] +
        Frustum.Planes[fp][3] < 0;
     end;
 
@@ -230,12 +230,12 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
       begin
        { This way I need 6 multiplications instead of 8*3=24
          (in case I would have to execute CheckOutsideCorner 8 times) }
-       FrustumMultiplyBox[0][0] := Planes[fp][0] * Box[0][0];
-       FrustumMultiplyBox[0][1] := Planes[fp][1] * Box[0][1];
-       FrustumMultiplyBox[0][2] := Planes[fp][2] * Box[0][2];
-       FrustumMultiplyBox[1][0] := Planes[fp][0] * Box[1][0];
-       FrustumMultiplyBox[1][1] := Planes[fp][1] * Box[1][1];
-       FrustumMultiplyBox[1][2] := Planes[fp][2] * Box[1][2];
+       FrustumMultiplyBox.Data[0][0] := Planes[fp][0] * Box.Data[0][0];
+       FrustumMultiplyBox.Data[0][1] := Planes[fp][1] * Box.Data[0][1];
+       FrustumMultiplyBox.Data[0][2] := Planes[fp][2] * Box.Data[0][2];
+       FrustumMultiplyBox.Data[1][0] := Planes[fp][0] * Box.Data[1][0];
+       FrustumMultiplyBox.Data[1][1] := Planes[fp][1] * Box.Data[1][1];
+       FrustumMultiplyBox.Data[1][2] := Planes[fp][2] * Box.Data[1][2];
 
        { I'm splitting code below to two possilibilities.
          This way I can calculate 7 remaining CheckOutsideCorner
@@ -298,9 +298,9 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
          Planes[fp][1] * Box[YIndex][1] +
          Planes[fp][2] * Box[ZIndex][2] +
          optimized version : }
-       FrustumMultiplyBox[XIndex][0] +
-       FrustumMultiplyBox[YIndex][1] +
-       FrustumMultiplyBox[ZIndex][2] +
+       FrustumMultiplyBox.Data[XIndex][0] +
+       FrustumMultiplyBox.Data[YIndex][1] +
+       FrustumMultiplyBox.Data[ZIndex][2] +
        Frustum.Planes[fp][3] < 0;
     end;
 
@@ -319,12 +319,12 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
       for fp := Low(fp) to LastPlane do
       begin
         { This way I need 6 multiplications instead of 8*3=24 }
-        FrustumMultiplyBox[0][0] := Planes[fp][0] * Box[0][0];
-        FrustumMultiplyBox[0][1] := Planes[fp][1] * Box[0][1];
-        FrustumMultiplyBox[0][2] := Planes[fp][2] * Box[0][2];
-        FrustumMultiplyBox[1][0] := Planes[fp][0] * Box[1][0];
-        FrustumMultiplyBox[1][1] := Planes[fp][1] * Box[1][1];
-        FrustumMultiplyBox[1][2] := Planes[fp][2] * Box[1][2];
+        FrustumMultiplyBox.Data[0][0] := Planes[fp][0] * Box.Data[0][0];
+        FrustumMultiplyBox.Data[0][1] := Planes[fp][1] * Box.Data[0][1];
+        FrustumMultiplyBox.Data[0][2] := Planes[fp][2] * Box.Data[0][2];
+        FrustumMultiplyBox.Data[1][0] := Planes[fp][0] * Box.Data[1][0];
+        FrustumMultiplyBox.Data[1][1] := Planes[fp][1] * Box.Data[1][1];
+        FrustumMultiplyBox.Data[1][2] := Planes[fp][2] * Box.Data[1][2];
 
         if CheckOutsideCorner(0, 0, 0) and
            CheckOutsideCorner(0, 0, 1) and

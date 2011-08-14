@@ -247,12 +247,12 @@ var
 
   procedure AssertBoxEqual(const B1, B2: TBox3D);
   begin
-    Assert(FloatsEqual(B1[0][0], B2[0][0], 0.1));
-    Assert(FloatsEqual(B1[0][1], B2[0][1], 0.1));
-    Assert(FloatsEqual(B1[0][2], B2[0][2], 0.1));
-    Assert(FloatsEqual(B1[1][0], B2[1][0], 0.1));
-    Assert(FloatsEqual(B1[1][1], B2[1][1], 0.1));
-    Assert(FloatsEqual(B1[1][2], B2[1][2], 0.1));
+    Assert(FloatsEqual(B1.Data[0][0], B2.Data[0][0], 0.1));
+    Assert(FloatsEqual(B1.Data[0][1], B2.Data[0][1], 0.1));
+    Assert(FloatsEqual(B1.Data[0][2], B2.Data[0][2], 0.1));
+    Assert(FloatsEqual(B1.Data[1][0], B2.Data[1][0], 0.1));
+    Assert(FloatsEqual(B1.Data[1][1], B2.Data[1][1], 0.1));
+    Assert(FloatsEqual(B1.Data[1][2], B2.Data[1][2], 0.1));
   end;
 
   { Check node has optimized (not using proxy) versions of

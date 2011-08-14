@@ -315,9 +315,9 @@ var
     glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.3));
     glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.3));
 
-    DrawGLPlane(Box[0, PlaneOtherCoord1] - BoxMaxSize, Box[0, PlaneOtherCoord2] - BoxMaxSize,
-                Box[1, PlaneOtherCoord1] + BoxMaxSize, Box[1, PlaneOtherCoord2] + BoxMaxSize,
-                Box[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
+    DrawGLPlane(Box.Data[0, PlaneOtherCoord1] - BoxMaxSize, Box.Data[0, PlaneOtherCoord2] - BoxMaxSize,
+                Box.Data[1, PlaneOtherCoord1] + BoxMaxSize, Box.Data[1, PlaneOtherCoord2] + BoxMaxSize,
+                Box.Data[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
                 PlaneConstCoord,
                 0, 0, true, false);
   end;
@@ -345,7 +345,7 @@ begin
   glPopAttrib;
 
   Box := Scene.BoundingBox;
-  if not IsEmptyBox3D(Box) then
+  if not Box.IsEmpty then
   begin
     { Render normal Scene }
     glPushMatrix();
@@ -353,7 +353,7 @@ begin
       Scene.Render(nil, RenderParams);
     glPopMatrix();
 
-    BoxMaxSize := Box3DMaxSize(Box);
+    BoxMaxSize := Box.MaxSize;
 
     { set stencil to 1 where plane is drawn }
     if UseStencil then
@@ -419,12 +419,12 @@ begin
 
     { Calculate Plane.
       Assumuing PlaneConstCoord = 2,Plane equation is
-        Z = Box[0, 2] - PlaneDistance * BoxMaxSize
+        Z = Box.Data[0, 2] - PlaneDistance * BoxMaxSize
       So it's
-        0 * x + 0 * y + 1 * z - (Box[0, 2] - PlaneDistance * BoxMaxSize) = 0
+        0 * x + 0 * y + 1 * z - (Box.Data[0, 2] - PlaneDistance * BoxMaxSize) = 0
     }
     Plane := Vector4Split(1, 0,
-      - (Box[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize));
+      - (Box.Data[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize));
 
     { everything else is drawn only on the floor }
     if UseStencil then
@@ -452,7 +452,7 @@ begin
   glViewport(0, 0, ContainerWidth, ContainerHeight);
 
   Box := Scene.BoundingBox;
-  BoxMaxSize := Box3DMaxSize(Box, false, { whatever, arbitrary number } 2);
+  BoxMaxSize := Box.MaxSize(false, { whatever, arbitrary number } 2);
 
   ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
     BoxMaxSize * 0.01, BoxMaxSize * 100.0);

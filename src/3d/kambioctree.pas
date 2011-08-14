@@ -471,8 +471,8 @@ begin
     SubBox := Box;
     for i := 0 to 2 do
      if b[i] then
-      SubBox[0, i] := MiddlePoint[i] else
-      SubBox[1, i] := MiddlePoint[i];
+      SubBox.Data[0, i] := MiddlePoint[i] else
+      SubBox.Data[1, i] := MiddlePoint[i];
 
     TreeSubNodes[b[0], b[1], b[2]] :=
       TOctreeNodeClass(Self.ClassType).Create(
@@ -546,13 +546,13 @@ constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
   ADepth: integer; AsLeaf: boolean);
 var AMiddlePoint: TVector3Single;
 begin
- if IsEmptyBox3D(ABox) then
+ if ABox.IsEmpty then
  begin
   Check(AsLeaf, 'TOctreeNode.Create error: attempt to create non-leaf'
     +' node with empty bounding box');
   AMiddlePoint := Vector3Single(0, 0, 0);
  end else
-  AMiddlePoint := Box3DMiddle(ABox);
+  AMiddlePoint := ABox.Middle;
 
  CreateBase(ABox, AParentTree, AParentNode, ADepth, AsLeaf, AMiddlePoint);
 end;
@@ -564,7 +564,7 @@ begin
  inherited Create;
 
  FBox := ABox;
- BoundingSphereFromBox3D(Box, FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+ Box.BoundingSphere(FBoundingSphereCenter, FBoundingSphereRadiusSqr);
  FMiddlePoint := AMiddlePoint;
 
  FParentTree := AParentTree;
@@ -605,9 +605,9 @@ begin
  begin
   SubnodeLow[i] := false;
   SubnodeHigh[i] := true;
-  if ABox[0, i] >= MiddlePoint[i] then
+  if ABox.Data[0, i] >= MiddlePoint[i] then
    SubnodeLow[i] := true else
-  if ABox[1, i] < MiddlePoint[i] then
+  if ABox.Data[1, i] < MiddlePoint[i] then
    SubnodeHigh[i] := false;
  end;
 end;

@@ -402,7 +402,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
     Shape.Node.TextureTransform := TextureTransform;
 
     Box := Shape.BoundingBox;
-    if not IsEmptyBox3D(Box) then
+    if not Box.IsEmpty then
     begin
       LightNode.Box3DDistances(Box, MinReceiverDistance, MaxReceiverDistance);
       MaxTo1st(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
@@ -412,7 +412,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
   procedure HandleShadowCaster;
   begin
-    Box3DSumTo1st(ShadowCastersBox, Shape.BoundingBox);
+    ShadowCastersBox.Add(Shape.BoundingBox);
   end;
 
 var
@@ -482,7 +482,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
 var
   ProjectionNear, ProjectionFar: Single;
 begin
-  if IsEmptyBox3D(ShadowCastersBox) then
+  if ShadowCastersBox.IsEmpty then
   begin
     { No shadow casters? So any sensible values are fine. }
     ProjectionNear := 0.1;

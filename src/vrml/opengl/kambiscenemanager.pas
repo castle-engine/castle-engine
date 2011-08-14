@@ -1250,8 +1250,8 @@ var
 
     glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
     ProjectionGLPerspective(PerspectiveViewAngles[1], CorrectWidth / CorrectHeight,
-      Box3DAvgSize(Box, false, 1.0) * 0.01,
-      Box3DMaxSize(Box, false, 1.0) * 10.0);
+      Box.AverageSize(false, 1.0) * 0.01,
+      Box.MaxSize(false, 1.0) * 10.0);
 
     { update Camera.ProjectionMatrix }
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
@@ -1960,7 +1960,7 @@ begin
   begin
     Result := TExamineCamera.Create(AOwner);
     (Result as TExamineCamera).Init(Box,
-      { CameraRadius = } Box3DAvgSize(Box, false, 1.0) * 0.005);
+      { CameraRadius = } Box.AverageSize(false, 1.0) * 0.005);
   end;
 end;
 
@@ -2238,13 +2238,13 @@ begin
 
   if Result then
   begin
-    if IsEmptyBox3D(FCameraBox) then
+    if FCameraBox.IsEmpty then
     begin
       { Don't let user to fall outside of the box because of gravity. }
       if BecauseOfGravity then
-        Result := Box3DPointInside(NewPos, Items.BoundingBox);
+        Result := Items.BoundingBox.PointInside(NewPos);
     end else
-      Result := Box3DPointInside(NewPos, FCameraBox);
+      Result := FCameraBox.PointInside(NewPos);
   end;
 end;
 

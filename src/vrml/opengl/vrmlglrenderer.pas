@@ -3758,7 +3758,7 @@ var
   begin
     { Shape.BoundingBox must be non-empty, otherwise we don't know from what
       3D point to capture environment. }
-    if IsEmptyBox3D(Shape.BoundingBox) then Exit;
+    if Shape.BoundingBox.IsEmpty then Exit;
 
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
@@ -3766,8 +3766,7 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport,
-          Box3DMiddle(Shape.BoundingBox));
+          NeedsRestoreViewport, Shape.BoundingBox.Middle);
 
         PostUpdate;
 

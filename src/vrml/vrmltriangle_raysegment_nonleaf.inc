@@ -43,10 +43,10 @@
     function Box3DPointInsideTolerant(
       const pt: TVector3Single; const box: TBox3D): boolean;
     begin
-      if IsEmptyBox3D(box) then exit(false);
-      result := Between(pt[0], box[0, 0] - 0.001, box[1, 0] + 0.001) and
-                Between(pt[1], box[0, 1] - 0.001, box[1, 1] + 0.001) and
-                Between(pt[2], box[0, 2] - 0.001, box[1, 2] + 0.001);
+      if box.IsEmpty then exit(false);
+      result := Between(pt[0], Box.Data[0, 0] - 0.001, Box.Data[1, 0] + 0.001) and
+                Between(pt[1], Box.Data[0, 1] - 0.001, Box.Data[1, 1] + 0.001) and
+                Between(pt[2], Box.Data[0, 2] - 0.001, Box.Data[1, 2] + 0.001);
     end;
 
   var
@@ -100,10 +100,10 @@
      for i := 0 to 2 do
       with PlaneIntersects[i] do
       begin
-       if (Box[1][I] - Box[0][I]) < SCALAR_EQUALITY_EPSILON then
+       if (Box.Data[1][I] - Box.Data[0][I]) < SCALAR_EQUALITY_EPSILON then
        begin
          { This means that the Box is practically flat, so all 3 planes
-           (Box[0][I], MiddlePoint[I], Box[1][I]) are practically
+           (Box.Data[0][I], MiddlePoint[I], Box.Data[1][I]) are practically
            coplanar.
 
            We want in this case to make sure that we actually
@@ -181,7 +181,7 @@
            TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
              i, MiddlePoint[i], FirstBoxIntr, RayVector)
            {$endif}
-             and Box3DPointInside(PlaneIntersect, Box);
+             and Box.PointInside(PlaneIntersect);
        end;
 
        if Exists then Inc(ExistingPlaneIntersectsCount);
@@ -256,7 +256,7 @@
    RayVector := VectorSubtract(Pos2, Pos1);
    {$endif}
 
-   if not TryBoxRayEntrance(FirstBoxIntr, Box, Ray0, RayVector) then
+   if not Box.TryRayEntrance(FirstBoxIntr, Ray0, RayVector) then
      Exit(nil);
    StartSubnode := SubnodeWithPoint(FirstBoxIntr);
 

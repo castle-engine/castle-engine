@@ -217,7 +217,7 @@ var
 
   procedure SecondTestAndAdd(SubNode: TOctreeNode);
   begin
-    if IsBox3DTriangleCollision(SubNode.Box, Triangle^) then
+    if SubNode.Box.IsTriangleCollision(Triangle^) then
     begin
       SubNode.AddItem(ItemIndex);
       AddedSomewhere := true;
@@ -349,7 +349,7 @@ begin
   begin
     Inc(ParentTree.DirectCollisionTestsCounter);
     Result := Items[i];
-    if IsBox3DTriangleCollision(ABox, Result^.Local.Triangle) and
+    if ABox.IsTriangleCollision(Result^.Local.Triangle) and
       (TriangleToIgnore <> Result) and
       ( (not Assigned(TrianglesToIgnoreFunc)) or
         (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then

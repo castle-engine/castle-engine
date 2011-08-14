@@ -2429,7 +2429,7 @@ begin
   SI := TVRMLShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
-      Box3DSumTo1st(Result, SI.Current.BoundingBox);
+      Result.Add(SI.Current.BoundingBox);
   finally FreeAndNil(SI) end;
 end;
 
@@ -2887,7 +2887,7 @@ procedure TVRMLScene.ChangedAll;
       SI := TVRMLShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if Box3DSphereCollision(SI.Current.BoundingBox, Location, Radius) then
+          if SI.Current.BoundingBox.SphereCollision(Location, Radius) then
             SI.Current.State.AddLight(L);
       finally FreeAndNil(SI) end;
     end;
@@ -4159,10 +4159,10 @@ var
   BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box : ' + Box3DToNiceStr(BBox);
-  if not IsEmptyBox3D(BBox) then
+  Result := 'Bounding box : ' + BBox.ToNiceStr;
+  if not BBox.IsEmpty then
   begin
-    Result += ', average size : ' + FloatToNiceStr(Box3DAvgSize(BBox));
+    Result += ', average size : ' + FloatToNiceStr(BBox.AverageSize);
   end;
   Result += NL;
 end;
@@ -4474,7 +4474,7 @@ begin
       Progress.Init(Result.ShapesList.Count, ProgressTitle, true);
       try
         for I := 0 to Result.ShapesList.Count - 1 do
-          if not IsEmptyBox3D(Result.ShapesList[I].BoundingBox) then
+          if not Result.ShapesList[I].BoundingBox.IsEmpty then
           begin
             Result.TreeRoot.AddItem(I);
             Progress.Step;
@@ -4483,7 +4483,7 @@ begin
     end else
     begin
       for I := 0 to Result.ShapesList.Count - 1 do
-        if not IsEmptyBox3D(Result.ShapesList[I].BoundingBox) then
+        if not Result.ShapesList[I].BoundingBox.IsEmpty then
           Result.TreeRoot.AddItem(I);
     end;
   except Result.Free; raise end;
@@ -5969,7 +5969,7 @@ begin
     { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
       calculate something suitable based on Box. }
     if CameraRadius <= 0 then
-      CameraRadius := Box3DAvgSize(Box, false, 1.0) * 0.005;
+      CameraRadius := Box.AverageSize(false, 1.0) * 0.005;
   end;
 
   Camera.CameraRadius := CameraRadius;

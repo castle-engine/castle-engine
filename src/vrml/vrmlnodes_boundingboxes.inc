@@ -149,7 +149,7 @@ begin
   begin
     if ProxyGeometry <> nil then
       Result := CallProxyBoundingBox(ProxyGeometry, ProxyState) else
-      Result := Box3DTransform(LocalBoundingBox(State, ProxyGeometry, ProxyState), State.Transform);
+      Result := LocalBoundingBox(State, ProxyGeometry, ProxyState).Transform(State.Transform);
   end;
 end;
 
@@ -220,12 +220,12 @@ begin
     else raise EInternalError.Create('Invalid FontStyle Justify value');
   end;
 
-  Result[0][0] := MinX;
-  Result[0][1] := MinY;
-  Result[0][2] := 0;
-  Result[1][0] := MaxX;
-  Result[1][1] := MaxY;
-  Result[1][2] := -Depth;
+  Result.Data[0][0] := MinX;
+  Result.Data[0][1] := MinY;
+  Result.Data[0][2] := 0;
+  Result.Data[1][0] := MaxX;
+  Result.Data[1][1] := MaxY;
+  Result.Data[1][2] := -Depth;
 end;
 
 function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -352,8 +352,8 @@ function Box_LocalBoundingBox(
   const SizeX, SizeY, SizeZ: Single;
   State: TVRMLGraphTraverseState): TBox3D;
 begin
-  result[0] := Vector3Single(-SizeX/2, -SizeY/2, -SizeZ/2);
-  result[1] := Vector3Single( SizeX/2,  SizeY/2,  SizeZ/2);
+  result.Data[0] := Vector3Single(-SizeX/2, -SizeY/2, -SizeZ/2);
+  result.Data[1] := Vector3Single( SizeX/2,  SizeY/2,  SizeZ/2);
 end;
 
 function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -374,14 +374,14 @@ function TNodeCube_1.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
 function TNodeBox.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
 function Cylinder_LocalBoundingBox(State: TVRMLGraphTraverseState;
@@ -427,14 +427,14 @@ function TNodeCylinder_1.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
 function TNodeCylinder.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
 function Sphere_LocalBoundingBox(const Radius: Single): TBox3D;
@@ -460,14 +460,14 @@ function TNodeSphere_1.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
 function TNodeSphere.BoundingBox(State: TVRMLGraphTraverseState;
   ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
-  Result := Box3DTransform(LocalBoundingBox(State, nil, nil), State.Transform);
+  Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
 { TNodeElevationGrid --------------------------------------------------------- }
@@ -481,20 +481,20 @@ begin
   Result := EmptyBox3D;
   if IsNotEmpty then
   begin
-    Result[0, 0] := 0;
-    Result[0, 2] := 0;
-    Result[1, 0] := FdXSpacing.Value * (FdXDimension.Value - 1);
-    Result[1, 2] := FdZSpacing.Value * (FdZDimension.Value - 1);
+    Result.Data[0, 0] := 0;
+    Result.Data[0, 2] := 0;
+    Result.Data[1, 0] := FdXSpacing.Value * (FdXDimension.Value - 1);
+    Result.Data[1, 2] := FdZSpacing.Value * (FdZDimension.Value - 1);
 
     { now calculate Result[0, 1] and Result[1, 1] }
     Y := FdHeight.Items.L[0];
-    Result[0, 1] := Y;
-    Result[1, 1] := Y;
+    Result.Data[0, 1] := Y;
+    Result.Data[1, 1] := Y;
     for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
     begin
       Y := FdHeight.Items.L[I];
-      MinTo1st(Result[0, 1], Y);
-      MaxTo1st(Result[1, 1], Y);
+      MinTo1st(Result.Data[0, 1], Y);
+      MaxTo1st(Result.Data[1, 1], Y);
     end;
   end;
 end;
@@ -521,7 +521,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := Addr(FdCrossSection.Items.L[J]);
-        Box3DSumTo1st(Result, MatrixMultPoint(Transform,
+        Result.Add(MatrixMultPoint(Transform,
           Vector3Single(Point2d^[0], 0, Point2d^[1])));
       end;
     end;
@@ -548,10 +548,9 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := Addr(FdCrossSection.Items.L[J]);
-        Box3DSumTo1st(Result,
-          MatrixMultPoint(State.Transform,
-            MatrixMultPoint(Transform,
-              Vector3Single(Point2d^[0], 0, Point2d^[1]))));
+        Result.Add(MatrixMultPoint(State.Transform,
+          MatrixMultPoint(Transform,
+            Vector3Single(Point2d^[0], 0, Point2d^[1]))));
       end;
     end;
   finally FreeAndNil(E) end;

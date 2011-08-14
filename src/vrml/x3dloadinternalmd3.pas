@@ -473,7 +473,7 @@ var
       Inc(V);
     end;
 
-    Box3DSumTo1st(SceneBox, CalculateBoundingBox(Result.FdPoint.Items));
+    SceneBox.Add(CalculateBoundingBox(Result.FdPoint.Items));
   end;
 
   function MakeTextureCoordinates(

@@ -881,8 +881,8 @@ begin
     { Visit every subnode containing this sphere, and look for collision there.
       TODO: we take box below, as simply bounding box of the sphere,
       so potentially we visit more nodes than necessary. }
-    SubnodesBox[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
-    SubnodesBox[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
+    SubnodesBox.Data[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
+    SubnodesBox.Data[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
 
     SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 
@@ -1494,7 +1494,7 @@ begin
     znaczy ze swiatlo oswietla Intersection. }
   LightPos := VectorSubtract(LightedPoint,
     VectorAdjustToLength(Light.Direction,
-      3 * Box3DMaxSize(InternalTreeRoot.Box) ) ) else
+      3 * InternalTreeRoot.Box.MaxSize ) ) else
   LightPos := Light.Location;
 
  Result := (VectorsSamePlaneDirections(

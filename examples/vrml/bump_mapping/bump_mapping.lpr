@@ -61,9 +61,9 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
   VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, GLControls;
 
 const
-  SceneBoundingBox: TBox3D =
-  ( (-6, -4, -3),
-    ( 14,  8,  3) );
+  SceneBoundingBox: TBox3D = ( Data: (
+    (-6, -4, -3),
+    ( 14,  8,  3) ));
 
 type
   TBumpMethod = (bmEmboss, bmMultiTexDot, bmVRML);
@@ -848,8 +848,8 @@ begin
     for this, as MainScene is not always assigned, we have our own geometry
     for Method <> bmVRML. }
 
-  FProjectionNear := Box3DAvgSize(SceneBoundingBox) * 0.05;
-  FProjectionFar  := Box3DAvgSize(SceneBoundingBox) * 20.0;
+  FProjectionNear := SceneBoundingBox.AverageSize * 0.05;
+  FProjectionFar  := SceneBoundingBox.AverageSize * 20.0;
 
   FPerspectiveView := true;
   FPerspectiveViewAngles[1] := 30.0;
@@ -884,7 +884,7 @@ begin
   Scene.GetPerspectiveViewpoint(CamPos, CamDir, CamUp, GravityUp);
   Walker.Init(CamPos, CamDir, CamUp, GravityUp,
     0, 0 { unused, we don't use Gravity here });
-  Walker.MoveSpeed := Box3DAvgSize(Scene.BoundingBox) * 0.2;
+  Walker.MoveSpeed := Scene.BoundingBox.AverageSize * 0.2;
 
   Examiner.Init(Scene.BoundingBox, 0.1);
 end;
@@ -1198,10 +1198,10 @@ begin
            if Glwin.ColorDialog(C) then
              SceneBrightestLight.FdColor.Send(C);
          end;
-    610: if (Method = bmVRML) and not IsEmptyBox3D(Scene.BoundingBox) then
+    610: if (Method = bmVRML) and not Scene.BoundingBox.IsEmpty then
          begin
-           LightPosition := Box3DMiddle(Scene.BoundingBox);
-           LightPosition[2] := Scene.BoundingBox[1][2];
+           LightPosition := Scene.BoundingBox.Middle;
+           LightPosition[2] := Scene.BoundingBox.Data[1][2];
            SceneBrightestLight.FdLocation.Send(LightPosition);
          end;
     1100..1199: Scene.Attributes.BumpMapping :=

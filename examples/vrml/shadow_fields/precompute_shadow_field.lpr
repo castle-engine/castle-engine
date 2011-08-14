@@ -108,8 +108,7 @@ begin
     SF := TShadowField.Create;
     try
       { calculate Scene bounding sphere, and set sphere properties of SF }
-      BoundingSphereFromBox3D(Scene.BoundingBox,
-        BoundingSphereCenter, BoundingSphereRadius);
+      Scene.BoundingBox.BoundingSphere(BoundingSphereCenter, BoundingSphereRadius);
       { BoundingSphereFromBox3D gives me sqr of radius }
       BoundingSphereRadius := Sqrt(BoundingSphereRadius);
       { Since our BoundingSphereRadius is too large (it's bounding sphere

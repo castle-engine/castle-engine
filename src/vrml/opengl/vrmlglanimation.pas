@@ -1563,7 +1563,7 @@ function TVRMLGLAnimation.BoundingBox: TBox3D;
   begin
     FBoundingBox := FScenes[0].BoundingBox;
     for I := 1 to FScenes.Count - 1 do
-      Box3DSumTo1st(FBoundingBox, FScenes[I].BoundingBox);
+      FBoundingBox.Add(FScenes[I].BoundingBox);
     ValidBoundingBox := true;
   end;
 
@@ -1599,10 +1599,10 @@ var
   BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box (of the whole animation) : ' + Box3DToNiceStr(BBox);
-  if not IsEmptyBox3D(BBox) then
+  Result := 'Bounding box (of the whole animation) : ' + BBox.ToNiceStr;
+  if not BBox.IsEmpty then
   begin
-    Result += ', average size : ' + FloatToNiceStr(Box3DAvgSize(BBox));
+    Result += ', average size : ' + FloatToNiceStr(BBox.AverageSize);
   end;
   Result += NL;
 end;

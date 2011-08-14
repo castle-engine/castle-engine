@@ -914,7 +914,7 @@ begin
   Result := EmptyBox3D;
   if Exists then
     for I := 0 to List.Count - 1 do
-      Box3DSumTo1st(Result, List[I].BoundingBox);
+      Result.Add(List[I].BoundingBox);
 end;
 
 procedure T3DList.Render(const Frustum: TFrustum; const Params: TRenderParams);

@@ -623,7 +623,7 @@ end;
 procedure TVRMLDirectionalLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
+  Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
 end;
 
 procedure TVRMLPositionalLightNode.CreateNode;
@@ -737,7 +737,7 @@ end;
 procedure TVRMLPointLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box3DPointDistances(Box, Location, MinDistance, MaxDistance);
+  Box.PointDistances(Location, MinDistance, MaxDistance);
 end;
 
 procedure TNodeDirectionalLight.CreateNode;
@@ -889,7 +889,7 @@ procedure TNodeSpotLight.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box3DDirectionDistances(Box, Location, Direction, MinDistance, MaxDistance);
+  Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
 end;
 
 procedure RegisterLightingNodes;

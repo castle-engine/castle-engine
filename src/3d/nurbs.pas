@@ -474,8 +474,8 @@ begin
       W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result[0] := Point.L[0] / W;
-      Result[1] := Result[0];
+      Result.Data[0] := Point.L[0] / W;
+      Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
       begin
@@ -483,13 +483,13 @@ begin
         W := Weight.L[I];
         if W = 0 then W := 1;
 
-        MinTo1st(Result[0][0], V^[0] / W);
-        MinTo1st(Result[0][1], V^[1] / W);
-        MinTo1st(Result[0][2], V^[2] / W);
+        MinTo1st(Result.Data[0][0], V^[0] / W);
+        MinTo1st(Result.Data[0][1], V^[1] / W);
+        MinTo1st(Result.Data[0][2], V^[2] / W);
 
-        MaxTo1st(Result[1][0], V^[0] / W);
-        MaxTo1st(Result[1][1], V^[1] / W);
-        MaxTo1st(Result[1][2], V^[2] / W);
+        MaxTo1st(Result.Data[1][0], V^[0] / W);
+        MaxTo1st(Result.Data[1][1], V^[1] / W);
+        MaxTo1st(Result.Data[1][2], V^[2] / W);
       end;
     end;
   end else
@@ -528,8 +528,8 @@ begin
       W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result[0] := MatrixMultPoint(Transform, Point.L[0] / W);
-      Result[1] := Result[0];
+      Result.Data[0] := MatrixMultPoint(Transform, Point.L[0] / W);
+      Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
       begin
@@ -538,13 +538,13 @@ begin
 
         V := MatrixMultPoint(Transform, Point.L[I] / W);
 
-        MinTo1st(Result[0][0], V[0]);
-        MinTo1st(Result[0][1], V[1]);
-        MinTo1st(Result[0][2], V[2]);
+        MinTo1st(Result.Data[0][0], V[0]);
+        MinTo1st(Result.Data[0][1], V[1]);
+        MinTo1st(Result.Data[0][2], V[2]);
 
-        MaxTo1st(Result[1][0], V[0]);
-        MaxTo1st(Result[1][1], V[1]);
-        MaxTo1st(Result[1][2], V[2]);
+        MaxTo1st(Result.Data[1][0], V[0]);
+        MaxTo1st(Result.Data[1][1], V[1]);
+        MaxTo1st(Result.Data[1][2], V[2]);
       end;
     end;
   end else

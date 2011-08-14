@@ -1832,14 +1832,14 @@ end;
 procedure DrawGLBox(const Box: TBox3D; DetailX, DetailY, DetailZ: integer;
   ccwOutside: boolean; MakeTextureCoords: boolean);
 begin
-  DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[0, 0], 0, DetailY, DetailZ, not ccwOutside, MakeTextureCoords);
-  DrawGLPlane(Box[0, 1], Box[0, 2], Box[1, 1], Box[1, 2], Box[1, 0], 0, DetailY, DetailZ, ccwOutside    , MakeTextureCoords);
+  DrawGLPlane(Box.Data[0, 1], Box.Data[0, 2], Box.Data[1, 1], Box.Data[1, 2], Box.Data[0, 0], 0, DetailY, DetailZ, not ccwOutside, MakeTextureCoords);
+  DrawGLPlane(Box.Data[0, 1], Box.Data[0, 2], Box.Data[1, 1], Box.Data[1, 2], Box.Data[1, 0], 0, DetailY, DetailZ, ccwOutside    , MakeTextureCoords);
 
-  DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[0, 1], 1, DetailX, DetailZ, not ccwOutside, MakeTextureCoords);
-  DrawGLPlane(Box[0, 0], Box[0, 2], Box[1, 0], Box[1, 2], Box[1, 1], 1, DetailX, DetailZ, ccwOutside    , MakeTextureCoords);
+  DrawGLPlane(Box.Data[0, 0], Box.Data[0, 2], Box.Data[1, 0], Box.Data[1, 2], Box.Data[0, 1], 1, DetailX, DetailZ, not ccwOutside, MakeTextureCoords);
+  DrawGLPlane(Box.Data[0, 0], Box.Data[0, 2], Box.Data[1, 0], Box.Data[1, 2], Box.Data[1, 1], 1, DetailX, DetailZ, ccwOutside    , MakeTextureCoords);
 
-  DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[0, 2], 2, DetailX, DetailY, not ccwOutside, MakeTextureCoords);
-  DrawGLPlane(Box[0, 0], Box[0, 1], Box[1, 0], Box[1, 1], Box[1, 2], 2, DetailX, DetailY, ccwOutside    , MakeTextureCoords);
+  DrawGLPlane(Box.Data[0, 0], Box.Data[0, 1], Box.Data[1, 0], Box.Data[1, 1], Box.Data[0, 2], 2, DetailX, DetailY, not ccwOutside, MakeTextureCoords);
+  DrawGLPlane(Box.Data[0, 0], Box.Data[0, 1], Box.Data[1, 0], Box.Data[1, 1], Box.Data[1, 2], 2, DetailX, DetailY, ccwOutside    , MakeTextureCoords);
 end;
 
 procedure DrawGLBox(const x1, y1, z1, x2, y2, z2: TGLfloat;
@@ -1860,7 +1860,7 @@ procedure glDrawBox3DWire(const Box: TBox3D);
     X: array [0..3] of Integer = (0, 1, 1, 0);
     Y: array [0..3] of Integer = (0, 0, 1, 1);
   begin
-    glVertex3f(Box[X[Index], 0], Box[Y[Index], 1], Box[Z, 2]);
+    glVertex3f(Box.Data[X[Index], 0], Box.Data[Y[Index], 1], Box.Data[Z, 2]);
   end;
 
 begin
@@ -1900,18 +1900,18 @@ const
     0, 4, 5, 1
   );
 begin
-  if IsEmptyBox3D(Box) then Exit;
+  if Box.IsEmpty then Exit;
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
-  Verts[0] := Box[0];
-  Verts[1] := Box[0]; Verts[1][0] := Box[1][0];
-  Verts[2] := Box[0]; Verts[2][1] := Box[1][1];
-  Verts[4] := Box[0]; Verts[4][2] := Box[1][2];
+  Verts[0] := Box.Data[0];
+  Verts[1] := Box.Data[0]; Verts[1][0] := Box.Data[1][0];
+  Verts[2] := Box.Data[0]; Verts[2][1] := Box.Data[1][1];
+  Verts[4] := Box.Data[0]; Verts[4][2] := Box.Data[1][2];
 
-  Verts[3] := Box[1]; Verts[3][2] := Box[0][2];
-  Verts[5] := Box[1]; Verts[5][1] := Box[0][1];
-  Verts[6] := Box[1]; Verts[6][0] := Box[0][0];
-  Verts[7] := Box[1];
+  Verts[3] := Box.Data[1]; Verts[3][2] := Box.Data[0][2];
+  Verts[5] := Box.Data[1]; Verts[5][1] := Box.Data[0][1];
+  Verts[6] := Box.Data[1]; Verts[6][0] := Box.Data[0][0];
+  Verts[7] := Box.Data[1];
 
   glVertexPointer(3, GL_FLOAT, 0, @Verts);
 

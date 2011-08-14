@@ -187,13 +187,13 @@ begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(NavigatorAll.Matrix);
 
-  if UseEnvLight and (not IsEmptyBox3D(SceneReceiver.BoundingBox)) then
+  if UseEnvLight and (not SceneReceiver.BoundingBox.IsEmpty) then
   begin
     { SHVectorGLCapture wil draw maps, get them,
       and calculate EnvLightSHVector describing the light contribution
       (this will be used then by SceneReceiver.Render, during VertexColor). }
 
-    SHVectorGLCapture(EnvLightSHVector, Box3DMiddle(SceneReceiver.BoundingBox),
+    SHVectorGLCapture(EnvLightSHVector, SceneReceiver.BoundingBox.Middle,
       @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
         we will apply light intensity at VertexColor });
     glViewport(0, 0, Window.Width, Window.Height);
@@ -603,17 +603,17 @@ begin
     NavigatorLocalLight := TExamineCamera.Create(Window);
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
-    BoxSum := Box3DSum(SceneCaster.BoundingBox, SceneReceiver.BoundingBox);
+    BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;
 
     { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }
-    if IsEmptyBox3D(BoxSum) then
+    if BoxSum.IsEmpty then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3DMiddle(BoxSum);
-      V[0] := BoxSum[0][0];
+      V := BoxSum.Middle;
+      V[0] := BoxSum.Data[0][0];
     end;
     NavigatorLocalLight.MoveAmount := V;
 
@@ -624,13 +624,13 @@ begin
 
     { calculate starting sf explorer position,
       and set this as NavigatorSFExplorer.MoveAmount }
-    if IsEmptyBox3D(BoxSum) then
+    if BoxSum.IsEmpty then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3DMiddle(BoxSum);
-      V[0] := BoxSum[1][0];
+      V := BoxSum.Middle;
+      V[0] := BoxSum.Data[1][0];
     end;
     NavigatorSFExplorer.MoveAmount := V;
 
@@ -641,13 +641,13 @@ begin
 
     { calculate starting env light position,
       and set this as NavigatorEnvLight.MoveAmount }
-    if IsEmptyBox3D(BoxSum) then
+    if BoxSum.IsEmpty then
     begin
       V := Vector3Single(0, 0, 1);
     end else
     begin
-      V := Box3DMiddle(BoxSum);
-      V[1] := BoxSum[0][1];
+      V := BoxSum.Middle;
+      V[1] := BoxSum.Data[0][1];
     end;
     NavigatorEnvLight.MoveAmount := V;
 

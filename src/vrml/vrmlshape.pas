@@ -1157,15 +1157,15 @@ var
       a cube, with 6 faces, not a flat face. }
 
     Result := TGeometryArrays.Create;
-    if not IsEmptyBox3D(Box) then
+    if not Box.IsEmpty then
     begin
       Result.Primitive := gpQuads;
       Result.Count := 4;
 
-      Result.Position(0)^ := Vector3Single(Box[0][0], Box[0][1], Box[0][2]);
-      Result.Position(1)^ := Vector3Single(Box[1][0], Box[0][1], Box[0][2]);
-      Result.Position(2)^ := Vector3Single(Box[1][0], Box[1][1], Box[0][2]);
-      Result.Position(3)^ := Vector3Single(Box[0][0], Box[1][1], Box[0][2]);
+      Result.Position(0)^ := Vector3Single(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
+      Result.Position(1)^ := Vector3Single(Box.Data[1][0], Box.Data[0][1], Box.Data[0][2]);
+      Result.Position(2)^ := Vector3Single(Box.Data[1][0], Box.Data[1][1], Box.Data[0][2]);
+      Result.Position(3)^ := Vector3Single(Box.Data[0][0], Box.Data[1][1], Box.Data[0][2]);
 
       Result.Normal(0)^ := UnitVector3Single[2];
       Result.Normal(1)^ := UnitVector3Single[2];
@@ -1280,8 +1280,7 @@ procedure TVRMLShape.ValidateBoundingSphere;
 begin
  if not (svBoundingSphere in Validities) then
  begin
-  BoundingSphereFromBox3D(BoundingBox, FBoundingSphereCenter,
-    FBoundingSphereRadiusSqr);
+  BoundingBox.BoundingSphere(FBoundingSphereCenter, FBoundingSphereRadiusSqr);
   Include(Validities, svBoundingSphere);
  end;
 end;
@@ -1383,8 +1382,8 @@ function TVRMLShape.CreateTriangleOctree(
     for I := 0 to 2 do
     begin
       RestOf3dCoords(I, XCoord, YCoord);
-      LocalTriangulateRect(I, Box[0][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord]);
-      LocalTriangulateRect(I, Box[1][I], Box[0][XCoord], Box[0][YCoord], Box[1][XCoord], Box[1][YCoord]);
+      LocalTriangulateRect(I, Box.Data[0][I], Box.Data[0][XCoord], Box.Data[0][YCoord], Box.Data[1][XCoord], Box.Data[1][YCoord]);
+      LocalTriangulateRect(I, Box.Data[1][I], Box.Data[0][XCoord], Box.Data[0][YCoord], Box.Data[1][XCoord], Box.Data[1][YCoord]);
     end;
   end;
 
@@ -2580,30 +2579,30 @@ begin
     - A empty, and B non-empty
     - both non-empty, and A closer }
 
-  if (not IsEmptyBox3D(B.BoundingBox)) and
-    ( IsEmptyBox3D(A.BoundingBox) or
-      ( PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition) <
-        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition))) then
+  if (not B.BoundingBox.IsEmpty) and
+    ( A.BoundingBox.IsEmpty or
+      ( PointsDistanceSqr(A.BoundingBox.Middle, SortPosition) <
+        PointsDistanceSqr(B.BoundingBox.Middle, SortPosition))) then
     Result := -1 else
-  if (not IsEmptyBox3D(A.BoundingBox)) and
-    ( IsEmptyBox3D(B.BoundingBox) or
-      ( PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition) <
-        PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition))) then
+  if (not A.BoundingBox.IsEmpty) and
+    ( B.BoundingBox.IsEmpty or
+      ( PointsDistanceSqr(B.BoundingBox.Middle, SortPosition) <
+        PointsDistanceSqr(A.BoundingBox.Middle, SortPosition))) then
     Result :=  1 else
     Result :=  0;
 end;
 
 function IsSmallerBackToFront(const A, B: TVRMLShape): Integer;
 begin
-  if (not IsEmptyBox3D(A.BoundingBox)) and
-    ( IsEmptyBox3D(B.BoundingBox) or
-      ( PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition) >
-        PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition))) then
+  if (not A.BoundingBox.IsEmpty) and
+    ( B.BoundingBox.IsEmpty or
+      ( PointsDistanceSqr(A.BoundingBox.Middle, SortPosition) >
+        PointsDistanceSqr(B.BoundingBox.Middle, SortPosition))) then
     Result := -1 else
-  if (not IsEmptyBox3D(B.BoundingBox)) and
-    ( IsEmptyBox3D(A.BoundingBox) or
-      ( PointsDistanceSqr(Box3DMiddle(B.BoundingBox), SortPosition) >
-        PointsDistanceSqr(Box3DMiddle(A.BoundingBox), SortPosition))) then
+  if (not B.BoundingBox.IsEmpty) and
+    ( A.BoundingBox.IsEmpty or
+      ( PointsDistanceSqr(B.BoundingBox.Middle, SortPosition) >
+        PointsDistanceSqr(A.BoundingBox.Middle, SortPosition))) then
     Result :=  1 else
     Result :=  0;
 end;

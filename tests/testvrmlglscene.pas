@@ -43,7 +43,7 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
    Assert(EmptyScene.TrianglesCount(false) = 0);
    Assert(EmptyScene.TrianglesCount(true) = 0);
 
-   Assert(IsEmptyBox3D(EmptyScene.BoundingBox));
+   Assert(EmptyScene.BoundingBox.IsEmpty);
 
    Assert(EmptyScene.ShapesActiveCount = 0);
 

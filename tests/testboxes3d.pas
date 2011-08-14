@@ -63,18 +63,18 @@ procedure TTestBoxes3D.TestBox3DPlaneCollision;
   procedure AssertBox3DPlaneCollision(const Box: TBox3D;
     const Plane: TVector4Single; CollisionResult: TPlaneCollision);
   begin
-    Assert(Box3DPlaneCollision(Box, Plane) = CollisionResult);
+    Assert(Box.PlaneCollision(Plane) = CollisionResult);
     { Check by the way Box3DPlaneCollisionInside, Box3DPlaneCollisionOutside }
-    Assert(Box3DPlaneCollisionInside(Box, Plane) = (CollisionResult = pcInside));
-    Assert(Box3DPlaneCollisionOutside(Box, Plane) = (CollisionResult = pcOutside));
+    Assert(Box.PlaneCollisionInside(Plane) = (CollisionResult = pcInside));
+    Assert(Box.PlaneCollisionOutside(Plane) = (CollisionResult = pcOutside));
   end;
 
 var
   Box: TBox3D;
   Plane: TVector4Single;
 begin
-  Box[0] := Vector3Single(-10, -1, -1);
-  Box[1] := Vector3Single( 10,  1,  1);
+  Box.Data[0] := Vector3Single(-10, -1, -1);
+  Box.Data[1] := Vector3Single( 10,  1,  1);
 
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
   AssertBox3DPlaneCollision(
@@ -107,7 +107,7 @@ begin
   AssertBox3DPlaneCollision(
     Box, Vector4Single(-1, 0, 0, 5), pcIntersecting);
 
-  Box := Box3DTranslate(Box, Vector3Single(0, 1000, 0));
+  Box := Box.Translate(Vector3Single(0, 1000, 0));
 
   AssertBox3DPlaneCollision(
     Box, Vector4Single(0, 0, 1, 0), pcIntersecting);
@@ -120,12 +120,12 @@ begin
   Plane[1] := 0;
   Plane[2] := 1;
   Plane[3] := 1.980401039E+00;
-  Box[0][0] :=  2.837333679E-01;
-  Box[0][1] := -9.844776917E+01;
-  Box[0][2] := -1.980401039E+00;
-  Box[1][0] :=  1.283623352E+02;
-  Box[1][1] :=  3.240192413E+00;
-  Box[1][2] :=  3.100979996E+01;
+  Box.Data[0][0] :=  2.837333679E-01;
+  Box.Data[0][1] := -9.844776917E+01;
+  Box.Data[0][2] := -1.980401039E+00;
+  Box.Data[1][0] :=  1.283623352E+02;
+  Box.Data[1][1] :=  3.240192413E+00;
+  Box.Data[1][2] :=  3.100979996E+01;
   AssertBox3DPlaneCollision(Box, Plane, pcIntersecting);
 end;
 
@@ -140,8 +140,8 @@ procedure TTestBoxes3D.TestIsBox3DTriangleCollision;
     I: Integer;
   begin
     { random triangle completely within the box }
-    Box[0] := Vector3Single(10, 10, 10);
-    Box[1] := Vector3Single(20, 20, 20);
+    Box.Data[0] := Vector3Single(10, 10, 10);
+    Box.Data[1] := Vector3Single(20, 20, 20);
     for I := 1 to 50 do
     begin
       repeat
@@ -149,12 +149,12 @@ procedure TTestBoxes3D.TestIsBox3DTriangleCollision;
         Triangle[1] := Vector3Single(12 + Random(8) * XRandomness, 12 + Random(8) * YRandomness, 12 + Random(8) * ZRandomness);
         Triangle[2] := Vector3Single(12 + Random(8) * XRandomness, 12 + Random(8) * YRandomness, 12 + Random(8) * ZRandomness);
       until IsValidTriangle(Triangle);
-      Assert(IsBox3DTriangleCollision(Box, Triangle));
+      Assert(Box.IsTriangleCollision(Triangle));
     end;
 
     { random triangle completely outside the box (but chosen to collide) }
-    Box[0] := Vector3Single(10, 10, 10);
-    Box[1] := Vector3Single(20, 20, 20);
+    Box.Data[0] := Vector3Single(10, 10, 10);
+    Box.Data[1] := Vector3Single(20, 20, 20);
     for I := 1 to 50 do
     begin
       repeat
@@ -166,17 +166,17 @@ procedure TTestBoxes3D.TestIsBox3DTriangleCollision;
         Triangle[2] := VectorAdd(Vector3Single(15, 15, 15), V2);
       until IsValidTriangle(Triangle);
 
-      Assert(IsBox3DTriangleCollision(Box, Triangle));
+      Assert(Box.IsTriangleCollision(Triangle));
 
       VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
-      Assert(not IsBox3DTriangleCollision(Box, Triangle));
+      Assert(not Box.IsTriangleCollision(Triangle));
     end;
 
     { random triangle with 1 point inside the box, other 2 outside }
-    Box[0] := Vector3Single(10, 10, 10);
-    Box[1] := Vector3Single(20, 20, 20);
+    Box.Data[0] := Vector3Single(10, 10, 10);
+    Box.Data[1] := Vector3Single(20, 20, 20);
     for I := 1 to 50 do
     begin
       repeat
@@ -187,12 +187,12 @@ procedure TTestBoxes3D.TestIsBox3DTriangleCollision;
         Triangle[2] := Vector3Single(15, 15, 15);
       until IsValidTriangle(Triangle);
 
-      Assert(IsBox3DTriangleCollision(Box, Triangle));
+      Assert(Box.IsTriangleCollision(Triangle));
 
       VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
-      Assert(not IsBox3DTriangleCollision(Box, Triangle));
+      Assert(not Box.IsTriangleCollision(Triangle));
     end;
   end;
 
@@ -203,16 +203,16 @@ begin
   Triangle[0] := Vector3Single(0, 0, 0);
   Triangle[1] := Vector3Single(10, 0, 0);
   Triangle[2] := Vector3Single(10, 10, 0);
-  Box[0] := Vector3Single(-10, -1, -1);
-  Box[1] := Vector3Single( 10,  1,  1);
+  Box.Data[0] := Vector3Single(-10, -1, -1);
+  Box.Data[1] := Vector3Single( 10,  1,  1);
 
-  Assert(IsBox3DTriangleCollision(Box, Triangle));
+  Assert(Box.IsTriangleCollision(Triangle));
 
-  Box := Box3DTranslate(Box, Vector3Single(0, 0, 0.5));
-  Assert(IsBox3DTriangleCollision(Box, Triangle));
+  Box := Box.Translate(Vector3Single(0, 0, 0.5));
+  Assert(Box.IsTriangleCollision(Triangle));
 
-  Box := Box3DTranslate(Box, Vector3Single(0, 0, 1.0));
-  Assert(not IsBox3DTriangleCollision(Box, Triangle));
+  Box := Box.Translate(Vector3Single(0, 0, 1.0));
+  Assert(not Box.IsTriangleCollision(Triangle));
 
   RandomTrianglesTest(1, 1, 1);
 
@@ -391,14 +391,14 @@ var
     Plane: TVector4Single;
     PlaneDir: TVector3Single absolute Plane;
   begin
-    if IsEmptyBox3D(Box) then
+    if Box.IsEmpty then
       Exit(false);
 
     { calculate BoxCenter and BoxHalfSize }
     for I := 0 to 2 do
     begin
-      BoxCenter[I] := (Box[0, I] + Box[1, I]) / 2;
-      BoxHalfSize[I] := (Box[1, I] - Box[0, I]) / 2;
+      BoxCenter[I] := (Box.Data[0, I] + Box.Data[1, I]) / 2;
+      BoxHalfSize[I] := (Box.Data[1, I] - Box.Data[0, I]) / 2;
     end;
 
     { calculate TriangleMoved (Triangle shifted by -BoxCenter,
@@ -477,13 +477,13 @@ var
       IsBox3DTriangleCollision implementation based on Single type. }
     {Write(TestName, ': ');
     EqualityEpsilon := 1e-3;
-    Write(IsBox3DTriangleCollision(Box, Triangle), ' ');
+    Write(Box.IsTriangleCollision(Triangle), ' ');
     EqualityEpsilon := 1e-6;
-    Write(IsBox3DTriangleCollision(Box, Triangle), ' ');
+    Write(Box.IsTriangleCollision(Triangle), ' ');
     Write(CorrectResult, ' ');
-    Write(Boxes3D.IsBox3DTriangleCollision(Box, Triangle), ' ');
+    Write(Box.IsTriangleCollision(Triangle), ' ');
     Writeln;}
-    Assert(Boxes3D.IsBox3DTriangleCollision(Box, Triangle) = CorrectResult);
+    Assert(Box.IsTriangleCollision(Triangle) = CorrectResult);
   end;
 
 const
@@ -495,12 +495,12 @@ var
 begin
   EqualityEpsilon := 1e-5;
 
-  Box[0][0] := -7.721179485321045;
-  Box[0][1] := -3.115305423736572;
-  Box[0][2] := 26.886024475097656;
-  Box[1][0] := 0.283733367919922;
-  Box[1][1] := 3.240192413330078;
-  Box[1][2] := 28.947912216186523;
+  Box.Data[0][0] := -7.721179485321045;
+  Box.Data[0][1] := -3.115305423736572;
+  Box.Data[0][2] := 26.886024475097656;
+  Box.Data[1][0] := 0.283733367919922;
+  Box.Data[1][1] := 3.240192413330078;
+  Box.Data[1][2] := 28.947912216186523;
   Triangle[0][0] := -7.759810924530029;
   Triangle[0][1] := 6.43093835606123E-006;
   Triangle[0][2] := 28.172618865966797;
@@ -515,12 +515,12 @@ begin
       IsBox3DTriangleCollision. Test on Double values shows that this should be false.
     }); *)
 
-  Box[0][0] := 0.283733367919922;
-  Box[0][1] := -98.447769165039062;
-  Box[0][2] := -A;
-  Box[1][0] :=  128.36233520507812;
-  Box[1][1] := 3.240192413330078;
-  Box[1][2] := 31.009799957275391;
+  Box.Data[0][0] := 0.283733367919922;
+  Box.Data[0][1] := -98.447769165039062;
+  Box.Data[0][2] := -A;
+  Box.Data[1][0] :=  128.36233520507812;
+  Box.Data[1][1] := 3.240192413330078;
+  Box.Data[1][2] := 31.009799957275391;
   Triangle[0][0] := 25.288267135620117;
   Triangle[0][1] := 8.671939849853516;
   Triangle[0][2] := -A;
@@ -544,30 +544,30 @@ begin
   Box3DPlaneCollisionEqualityEpsilon := OldBox3DPlaneCollisionEqualityEpsilon;
   {$endif}
 
-  Box[0][0] := 0.283733367919922;
-  Box[0][1] := -47.603790283203125;
-  Box[0][2] := -A;
-  Box[1][0] := 64.323036193847656;
-  Box[1][1] := 3.240192413330078;
-  Box[1][2] := 14.514699935913086;
+  Box.Data[0][0] := 0.283733367919922;
+  Box.Data[0][1] := -47.603790283203125;
+  Box.Data[0][2] := -A;
+  Box.Data[1][0] := 64.323036193847656;
+  Box.Data[1][1] := 3.240192413330078;
+  Box.Data[1][2] := 14.514699935913086;
   { Triangle as before }
   DoTest('3', true);
 
-  Box[0][0] := 0.283733367919922;
-  Box[0][1] := -47.603790283203125;
-  Box[0][2] := -A;
-  Box[1][0] := 32.303382873535156;
-  Box[1][1] := -22.181798934936523;
-  Box[1][2] := 6.267149448394775;
+  Box.Data[0][0] := 0.283733367919922;
+  Box.Data[0][1] := -47.603790283203125;
+  Box.Data[0][2] := -A;
+  Box.Data[1][0] := 32.303382873535156;
+  Box.Data[1][1] := -22.181798934936523;
+  Box.Data[1][2] := 6.267149448394775;
   { Triangle as before }
   DoTest('4', true);
 
-  Box[0][0] := 16.293558120727539;
-  Box[0][1] := 3.240192413330078;
-  Box[0][2] := -A;
-  Box[1][0] := 24.298469543457031;
-  Box[1][1] := 9.59568977355957;
-  Box[1][2] := 0.081486582756042;
+  Box.Data[0][0] := 16.293558120727539;
+  Box.Data[0][1] := 3.240192413330078;
+  Box.Data[0][2] := -A;
+  Box.Data[1][0] := 24.298469543457031;
+  Box.Data[1][1] := 9.59568977355957;
+  Box.Data[1][2] := 0.081486582756042;
   Triangle[0][0] := 25.288267135620117;
   Triangle[0][1] := 8.671939849853516;
   Triangle[0][2] := -A;
@@ -579,12 +579,12 @@ begin
   Triangle[2][2] := -A;
   DoTest('5', true);
 
-  Box[0][0] := -17.727319717407227;
-  Box[0][1] := 4.829066753387451;
-  Box[0][2] := 5.751677513122559;
-  Box[1][0] := -15.726092338562012;
-  Box[1][1] := 6.417941093444824;
-  Box[1][2] := 6.267149448394775;
+  Box.Data[0][0] := -17.727319717407227;
+  Box.Data[0][1] := 4.829066753387451;
+  Box.Data[0][2] := 5.751677513122559;
+  Box.Data[1][0] := -15.726092338562012;
+  Box.Data[1][1] := 6.417941093444824;
+  Box.Data[1][2] := 6.267149448394775;
   Triangle[0][0] := -6.18981409072876;
   Triangle[0][1] := 2.234785079956055;
   Triangle[0][2] := 29.618535995483398;
@@ -610,10 +610,10 @@ procedure TTestBoxes3D.TestBox3DTransform;
     BoxPoints: array [0..7] of TVector3Single;
     i: integer;
   begin
-    if IsEmptyBox3D(Box) then
+    if Box.IsEmpty then
       Exit(EmptyBox3D);
 
-    Box3DGetAllPoints(@boxpoints, Box);
+    Box.GetAllPoints(@boxpoints);
     for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
 
     { Non-optimized version:
@@ -626,16 +626,16 @@ procedure TTestBoxes3D.TestBox3DTransform;
       transformed bounding boxes.
     }
 
-    Result[0] := BoxPoints[0];
-    Result[1] := BoxPoints[0];
+    Result.Data[0] := BoxPoints[0];
+    Result.Data[1] := BoxPoints[0];
     for I := 1 to High(BoxPoints) do
     begin
-      if BoxPoints[I, 0] < Result[0, 0] then Result[0, 0] := BoxPoints[I, 0];
-      if BoxPoints[I, 1] < Result[0, 1] then Result[0, 1] := BoxPoints[I, 1];
-      if BoxPoints[I, 2] < Result[0, 2] then Result[0, 2] := BoxPoints[I, 2];
-      if BoxPoints[I, 0] > Result[1, 0] then Result[1, 0] := BoxPoints[I, 0];
-      if BoxPoints[I, 1] > Result[1, 1] then Result[1, 1] := BoxPoints[I, 1];
-      if BoxPoints[I, 2] > Result[1, 2] then Result[1, 2] := BoxPoints[I, 2];
+      if BoxPoints[I, 0] < Result.Data[0, 0] then Result.Data[0, 0] := BoxPoints[I, 0];
+      if BoxPoints[I, 1] < Result.Data[0, 1] then Result.Data[0, 1] := BoxPoints[I, 1];
+      if BoxPoints[I, 2] < Result.Data[0, 2] then Result.Data[0, 2] := BoxPoints[I, 2];
+      if BoxPoints[I, 0] > Result.Data[1, 0] then Result.Data[1, 0] := BoxPoints[I, 0];
+      if BoxPoints[I, 1] > Result.Data[1, 1] then Result.Data[1, 1] := BoxPoints[I, 1];
+      if BoxPoints[I, 2] > Result.Data[1, 2] then Result.Data[1, 2] := BoxPoints[I, 2];
     end;
   end;
 
@@ -645,9 +645,9 @@ procedure TTestBoxes3D.TestBox3DTransform;
   begin
     for I := 0 to 2 do
     begin
-      Result[0][I] := 50 - Random * 100;
-      Result[1][I] := 50 - Random * 100;
-      OrderUp(Result[0][I], Result[1][I]);
+      Result.Data[0][I] := 50 - Random * 100;
+      Result.Data[1][I] := 50 - Random * 100;
+      OrderUp(Result.Data[0][I], Result.Data[1][I]);
     end;
   end;
 
@@ -658,12 +658,12 @@ procedure TTestBoxes3D.TestBox3DTransform;
     try
       for I := 0 to 2 do
       begin
-        Assert(FloatsEqual(Box1[0][I], Box2[0][I], 0.01));
-        Assert(FloatsEqual(Box1[1][I], Box2[1][I], 0.01));
+        Assert(FloatsEqual(Box1.Data[0][I], Box2.Data[0][I], 0.01));
+        Assert(FloatsEqual(Box1.Data[1][I], Box2.Data[1][I], 0.01));
       end;
     except
       writeln('AssertBoxesEqual failed: ',
-        Box3DToNiceStr(Box1), ' ', Box3DToNiceStr(Box2));
+        Box1.ToNiceStr, ' ', Box2.ToNiceStr);
       raise;
     end;
   end;
@@ -677,14 +677,14 @@ begin
   begin
     Box := RandomBox;
     Matrix := RandomMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box3DTransform(Box, Matrix));
+    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix));
   end;
 
   for I := 0 to 1000 do
   begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box3DTransform(Box, Matrix));
+    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix));
   end;
 
   { $define BOX3D_TRANSFORM_SPEED_TEST}
@@ -720,26 +720,26 @@ end;
 procedure TTestBoxes3D.TestBox3DMaximumPlane;
 begin
   try
-    Box3DMaximumPlane(EmptyBox3D, Vector3Single(1, 1, 1));
+    EmptyBox3D.MaximumPlane(Vector3Single(1, 1, 1));
   except
     on E: EBox3DEmpty do { Ok };
   end;
 
-  Assert(VectorsEqual(Box3DMaximumPlane(Box3D(
+  Assert(VectorsEqual(Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)), Vector3Single(-1, 0, 0)),
+    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(-1, 0, 0)),
     Vector4Single(-1, 0, 0, 2)));
 
-  Assert(VectorsEqual(Box3DMaximumPlane(Box3D(
+  Assert(VectorsEqual(Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)), Vector3Single(0, 0, -1)),
+    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(0, 0, -1)),
     Vector4Single(0, 0, -1, 4)));
 
-  Assert(VectorsEqual(Box3DMaximumPlane(Box3D(
+  Assert(VectorsEqual(Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)), Vector3Single(1, 1, 1)),
+    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(1, 1, 1)),
     Vector4Single(1, 1, 1,
-      { 50 + 60 + 70 + Result[3] = 0 }
+      { 50 + 60 + 70 + Result.Data[3] = 0 }
       - 50 - 60 - 70
     )));
 end;
@@ -747,50 +747,50 @@ end;
 procedure TTestBoxes3D.TestBox3DMinimumPlane;
 begin
   try
-    Box3DMinimumPlane(EmptyBox3D, Vector3Single(1, 1, 1));
+    EmptyBox3D.MinimumPlane(Vector3Single(1, 1, 1));
   except
     on E: EBox3DEmpty do { Ok };
   end;
 
-  Assert(VectorsEqual(Box3DMinimumPlane(Box3D(
+  Assert(VectorsEqual(Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)), Vector3Single(1, 0, 0)),
+    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(1, 0, 0)),
     Vector4Single(1, 0, 0, -2)));
 
-  Assert(VectorsEqual(Box3DMinimumPlane(Box3D(
+  Assert(VectorsEqual(Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)), Vector3Single(0, 0, 1)),
+    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(0, 0, 1)),
     Vector4Single(0, 0, 1, -4)));
 
-  Assert(VectorsEqual(Box3DMinimumPlane(Box3D(
+  Assert(VectorsEqual(Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)), Vector3Single(1, 1, 1)),
+    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(1, 1, 1)),
     Vector4Single(1, 1, 1,
-      { 2 + 3 + 4 + Result[3] = 0 }
+      { 2 + 3 + 4 + Result.Data[3] = 0 }
       - 2 - 3 - 4
     )));
 end;
 
 procedure TTestBoxes3D.TestBox3DPointDistance;
 const
-  Box: TBox3D = ( (1, 2, 3), (4, 5, 6) );
+  Box: TBox3D = (Data: ((1, 2, 3), (4, 5, 6)) );
   Epsilon = 0.0001;
 begin
   { check point inside box case }
-  Assert(Box3DPointDistance(Box, Vector3Single(1, 2, 3)) = 0);
-  Assert(Box3DPointDistance(Box, Vector3Single(3, 4, 5)) = 0);
+  Assert(Box.PointDistance(Vector3Single(1, 2, 3)) = 0);
+  Assert(Box.PointDistance(Vector3Single(3, 4, 5)) = 0);
   { check point <-> box side case }
-  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 4, 10)), 4));
-  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 4, 0)), 3));
+  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 4, 10)), 4));
+  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 4, 0)), 3));
   { check point <-> box edge case }
-  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 10, 10)),
+  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 10, 10)),
     Sqrt( Sqr(10-6) + Sqr(10-5) ), Epsilon));
-  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(3, 0, 0)),
+  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 0, 0)),
     Sqrt( Sqr(0-2)  + Sqr(0-3)  ), Epsilon));
   { check point <-> box corner case }
-  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(10, 10, 10)),
+  Assert(FloatsEqual(Box.PointDistance(Vector3Single(10, 10, 10)),
     Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ), Epsilon));
-  Assert(FloatsEqual(Box3DPointDistance(Box, Vector3Single(0, 0, 0)),
+  Assert(FloatsEqual(Box.PointDistance(Vector3Single(0, 0, 0)),
     Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ), Epsilon));
 end;
 

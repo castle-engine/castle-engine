@@ -378,9 +378,9 @@ procedure TGLShadowVolumeRenderer.InitSceneDontSetupStencil(const SceneBox: TBox
     function CheckPoint(const X, Y, Z: Integer): boolean;
     begin
       Result :=
-        SceneBox[X][0] * FrustumAndLightPlanes[I][0] +
-        SceneBox[Y][1] * FrustumAndLightPlanes[I][1] +
-        SceneBox[Z][2] * FrustumAndLightPlanes[I][2] +
+        SceneBox.Data[X][0] * FrustumAndLightPlanes[I][0] +
+        SceneBox.Data[Y][1] * FrustumAndLightPlanes[I][1] +
+        SceneBox.Data[Z][2] * FrustumAndLightPlanes[I][2] +
         FrustumAndLightPlanes[I][3] < 0;
     end;
 
@@ -410,9 +410,9 @@ procedure TGLShadowVolumeRenderer.InitSceneDontSetupStencil(const SceneBox: TBox
 
       function CalculatePoint(const X, Y, Z: Integer): Single;
       begin
-        Result := Plane[0] * SceneBox[X][0] +
-                  Plane[1] * SceneBox[Y][1] +
-                  Plane[2] * SceneBox[Z][2] +
+        Result := Plane[0] * SceneBox.Data[X][0] +
+                  Plane[1] * SceneBox.Data[Y][1] +
+                  Plane[2] * SceneBox.Data[Z][2] +
                   Plane[3];
       end;
 

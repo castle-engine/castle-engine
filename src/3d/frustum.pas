@@ -537,7 +537,7 @@ begin
   begin
     { Don't be confused by names below: pcOutside means that box
       is where Planes[fp] normal points, which means *inside* the frustum... }
-    case Box3DPlaneCollision(Box, Planes[fp]) of
+    case Box.PlaneCollision(Planes[fp]) of
       pcInside: Exit(fcNoCollision);
       pcOutside: Inc(InsidePlanesCount);
     end;
@@ -569,7 +569,7 @@ begin
     { Again, don't be confused by name "Inside" below: pcInside
       means that box is where Planes[fp] inverted normal points,
       which means *outside* the frustum... }
-    if Box3DPlaneCollisionInside(Box, Planes[fp]) then
+    if Box.PlaneCollisionInside(Planes[fp]) then
       Exit(false);
 
   Result := true;

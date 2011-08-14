@@ -93,7 +93,7 @@ uses GL, KambiGLUtils;
 
 function T3DCustomTranslated.BoundingBox: TBox3D;
 begin
-  Result := Box3DTranslate(inherited BoundingBox, GetTranslation);
+  Result := (inherited BoundingBox).Translate(GetTranslation);
 end;
 
 procedure T3DCustomTranslated.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -209,8 +209,8 @@ begin
     And this way I can use "inherited MoveBoxAllowedSimple". }
 
   T := GetTranslation;
-  B[0] := ProposedNewBox[0] - T;
-  B[1] := ProposedNewBox[1] - T;
+  B.Data[0] := ProposedNewBox.Data[0] - T;
+  B.Data[1] := ProposedNewBox.Data[1] - T;
   Result := inherited MoveBoxAllowedSimple(
     OldPos - T, ProposedNewPos - T, B, TrianglesToIgnoreFunc);
 end;
@@ -248,7 +248,7 @@ begin
       use "inherited BoxCollsion" with Translation. }
 
     Result := inherited BoxCollision(
-      Box3DAntiTranslate(Box, GetTranslation), TrianglesToIgnoreFunc);
+      Box.AntiTranslate(GetTranslation), TrianglesToIgnoreFunc);
   end;
 end;
 

@@ -181,9 +181,9 @@ end;
 
 function TMyGeometry.BoundingBox: TBox3D;
 const
-  SceneBoundingBox: TBox3D =
-  ( (-8, -3, -3),
-    ( 8,  15,  3) );
+  SceneBoundingBox: TBox3D = ( Data: (
+    (-8, -3, -3),
+    ( 8,  15,  3) ));
 begin
   Result := SceneBoundingBox;
 end;

@@ -1946,7 +1946,7 @@ var
       begin
         Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
         if Shape.RenderedFrameId <> FrameId then
-          Box3DSumTo1st(Box, Shape.BoundingBox);
+          Box.Add(Shape.BoundingBox);
       end;
 
       glDrawBox3DSimple(Box);
@@ -3150,7 +3150,7 @@ begin
   { calculate Box }
   Box := BoundingBox;
   if not TransformIsIdentity then
-    Box := Box3DTransform(Box, Transform);
+    Box := Box.Transform(Transform);
 
   ShadowVolumeRenderer.InitScene(Box);
 
@@ -3609,7 +3609,7 @@ var
     FieldOfView: TSingleList;
     MaxSize: Single;
   begin
-    MaxSize := Box3DMaxSize(Box, false, { any dummy value } 1.0);
+    MaxSize := Box.MaxSize(false, { any dummy value } 1.0);
 
     PerspectiveView := false;
 
@@ -3691,7 +3691,7 @@ begin
   if VisibilityLimit <> 0.0 then
     ProjectionFar := VisibilityLimit else
   begin
-    ProjectionFar := Box3DAvgSize(Box, false,
+    ProjectionFar := Box.AverageSize(false,
       { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
         It must be appropriately larger than ProjectionNear
         to provide sufficient space for rendering Background node. }

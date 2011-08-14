@@ -228,7 +228,7 @@ begin
     3 orthogonal planes determined by MiddlePoint then
     this ItemIndex will be said to collide with both sides
     of this plane. }
-  BoxExpandTo1st(SubnodesBox, SingleEqualityEpsilon);
+  SubnodesBox.ExpandMe(SingleEqualityEpsilon);
 
   SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 
@@ -265,7 +265,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalBox := Box3DTransform(BoundingBox3DFromSphere(Pos, Radius),
+      LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
         Shape.State.InvertedTransform);
       Result := Shape.OctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
@@ -319,8 +319,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalBox := Box3DTransform(ABox,
-        Shape.State.InvertedTransform);
+      LocalBox := ABox.Transform(Shape.State.InvertedTransform);
       Result := Shape.OctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except

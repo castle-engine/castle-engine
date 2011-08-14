@@ -627,8 +627,7 @@ begin
       { Do not activate per-pixel checking of light radius,
         if we know (by bounding box test below)
         that the whole shape is completely within radius. }
-      (Box3DPointMaxDistance(Shader.ShapeBoundingBox,
-        Light^.Location, -1) > Light^.Radius) then
+      (Shader.ShapeBoundingBox.PointMaxDistance(Light^.Location, -1) > Light^.Radius) then
     begin
       Define(ldHasRadius);
       LightUniformName2 := 'kambi_light_%d_radius';

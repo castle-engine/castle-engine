@@ -958,7 +958,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       FillChar(Gen, SizeOf(Gen), 0);
       Gen[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
       Gen[3] :=
-        - LocalBBox[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+        - LocalBBox.Data[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
         + GenStart;
     end;
 
@@ -967,9 +967,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   begin
     LocalBBox := Shape.LocalBoundingBox;
 
-    if not IsEmptyBox3d(LocalBBox) then
+    if not LocalBBox.IsEmpty then
     begin
-      LocalBBoxSize := Box3DSizes(LocalBBox);
+      LocalBBoxSize := LocalBBox.Sizes;
 
       Geometry.GetTextureBounds2DST(LocalBBoxSize, SCoord, TCoord);
 
@@ -993,22 +993,22 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   begin
     Box := Shape.LocalBoundingBox;
 
-    if not IsEmptyBox3d(Box) then
+    if not Box.IsEmpty then
     begin
       { Texture S should range from 0..1 when X changes from X1 .. X2.
         So S = X / (X2 - X1) - X1 / (X2 - X1).
         Same for T.
         For R, X3D spec says that coords go backwards, so just SwapValues. }
 
-      SwapValues(Box[0][2], Box[1][2]);
+      SwapValues(Box.Data[0][2], Box.Data[1][2]);
 
-      XStart := Box[0][0];
-      YStart := Box[0][1];
-      ZStart := Box[0][2];
+      XStart := Box.Data[0][0];
+      YStart := Box.Data[0][1];
+      ZStart := Box.Data[0][2];
 
-      XSize := Box[1][0] - Box[0][0];
-      YSize := Box[1][1] - Box[0][1];
-      ZSize := Box[1][2] - Box[0][2];
+      XSize := Box.Data[1][0] - Box.Data[0][0];
+      YSize := Box.Data[1][1] - Box.Data[0][1];
+      ZSize := Box.Data[1][2] - Box.Data[0][2];
 
       Result[0] := Vector4Single(1 / XSize, 0, 0, - XStart / XSize);
       Result[1] := Vector4Single(0, 1 / YSize, 0, - YStart / YSize);

@@ -193,7 +193,7 @@ var
         WaypointIndex := StrToInt(WaypointNodeName) else
         WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
 
-      WaypointPosition := Box3DMiddle(Shape.BoundingBox);
+      WaypointPosition := Shape.BoundingBox.Middle;
 
       Count := Max(Count, WaypointIndex + 1);
       if Items[WaypointIndex] <> nil then
@@ -264,7 +264,7 @@ begin
   { This could be implemented as IsPointInsideMargin(Point, 0),
     but is not (for speed). }
   for I := 0 to BoundingBoxes.Count - 1 do
-    if Box3DPointInside(Point, BoundingBoxes.L[I]) then
+    if BoundingBoxes.L[I].PointInside(Point) then
       Exit(true);
   Result := false;
 end;
@@ -275,8 +275,7 @@ var
   I: Integer;
 begin
   for I := 0 to BoundingBoxes.Count - 1 do
-    if Box3DPointInside(Point,
-      BoxExpand(BoundingBoxes.L[I], SectorsBoxesMargin)) then
+    if BoundingBoxes.L[I].Expand(SectorsBoxesMargin).PointInside(Point) then
       Exit(true);
   Result := false;
 end;
@@ -310,7 +309,7 @@ var
 
       { Tests:
       Writeln('Sector ', SectorIndex, ': added box ',
-        Box3DToNiceStr(SectorBoundingBox)); }
+        SectorBoundingBox.ToNiceStr); }
     end;
 
   const

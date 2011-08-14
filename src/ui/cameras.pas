@@ -2291,9 +2291,9 @@ begin
 
   if HandleMouseAndKeys and (not IgnoreAllInputs) then
   begin
-    if IsEmptyOrZeroBox3D(ModelBox) then
+    if ModelBox.IsEmptyOrZero then
       MoveChange := CompSpeed else
-      MoveChange := Box3DAvgSize(ModelBox) * CompSpeed;
+      MoveChange := ModelBox.AverageSize * CompSpeed;
 
     { we will apply CompSpeed to ScaleChange later }
     ScaleChange := 1.5;
@@ -2401,9 +2401,9 @@ end;
 procedure TExamineCamera.SetModelBox(const Value: TBox3D);
 begin
   FModelBox := Value;
-  if IsEmptyBox3D(FModelBox) then
+  if FModelBox.IsEmpty then
     FCenterOfRotation := Vector3Single(0, 0, 0) { any dummy value } else
-    FCenterOfRotation := Box3DMiddle(FModelBox);
+    FCenterOfRotation := FModelBox.Middle;
   VisibleChange;
 end;
 
@@ -2449,10 +2449,10 @@ var
   Size: Single;
   OldMoveAmount, OldPosition: TVector3Single;
 begin
-  Result := not IsEmptyOrZeroBox3D(FModelBox);
+  Result := not FModelBox.IsEmptyOrZero;
   if Result then
   begin
-    Size := Box3DAvgSize(FModelBox);
+    Size := FModelBox.AverageSize;
 
     OldMoveAmount := FMoveAmount;
     OldPosition := GetPosition;
@@ -2464,8 +2464,8 @@ begin
       so zoomin in/out inside the box is still always allowed.
       See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
     if (Factor > 0) and
-       (Box3DPointDistance(FModelBox, GetPosition) >
-        Box3DPointDistance(FModelBox, OldPosition)) then
+       (FModelBox.PointDistance(GetPosition) >
+        FModelBox.PointDistance(OldPosition)) then
     begin
       FMoveAmount := OldMoveAmount;
       Exit(false);
@@ -2568,11 +2568,11 @@ begin
   end;
 
   { Moving left/right/down/up }
-  if (not IsEmptyBox3D(FModelBox)) and
+  if (not FModelBox.IsEmpty) and
      ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
        ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) ) then
   begin
-    Size := Box3DAvgSize(FModelBox);
+    Size := FModelBox.AverageSize;
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
     VisibleChange;
@@ -3935,17 +3935,17 @@ procedure TWalkCamera.Init(const Box: TBox3D; const ACameraRadius: Single);
 var Pos: TVector3Single;
     AvgSize: Single;
 begin
- if IsEmptyOrZeroBox3D(Box) then
+ if Box.IsEmptyOrZero then
   Init(Vector3Single(0, 0, 0),
        DefaultDirection,
        DefaultUp,
        Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
        0 { whatever }, ACameraRadius) else
  begin
-  AvgSize := Box3DAvgSize(Box);
-  Pos[0] := Box[0, 0]-AvgSize;
-  Pos[1] := (Box[0, 1]+Box[1, 1])/2;
-  Pos[2] := (Box[0, 2]+Box[1, 2])/2;
+  AvgSize := Box.AverageSize;
+  Pos[0] := Box.Data[0, 0]-AvgSize;
+  Pos[1] := (Box.Data[0, 1]+Box.Data[1, 1])/2;
+  Pos[2] := (Box.Data[0, 2]+Box.Data[1, 2])/2;
   Init(Pos, UnitVector3Single[0],
     UnitVector3Single[2],
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
@@ -4602,17 +4602,17 @@ begin
   Up := UnitVector3Single[WantedUp];
   if not WantedUpPositive then VectorNegateTo1st(Up);
 
-  if IsEmptyBox3D(Box) then
+  if Box.IsEmpty then
   begin
     Position  := ZeroVector3Single;
   end else
   begin
-    Position := Box3DMiddle(Box);
-    Offset := 2 * Box3DAvgSize(Box);
+    Position := Box.Middle;
+    Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then
-      Position[WantedDirection] := Box[0, WantedDirection] - Offset else
-      Position[WantedDirection] := Box[1, WantedDirection] + Offset;
+      Position[WantedDirection] := Box.Data[0, WantedDirection] - Offset else
+      Position[WantedDirection] := Box.Data[1, WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }
