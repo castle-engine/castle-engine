@@ -4,9 +4,9 @@
     <Name Value="kambi_components"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
-      <Version Value="8"/>
+      <Version Value="9"/>
       <SearchPaths>
-        <OtherUnitFiles Value="../src/components/"/>
+        <OtherUnitFiles Value="../src/components"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -22,8 +22,7 @@
           <ShowGenInfo Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
--dKAMBI_FROM_LAZARUS_PACKAGE
-"/>
+-dKAMBI_FROM_LAZARUS_PACKAGE"/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
@@ -32,7 +31,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="5">
+    <Files Count="6">
       <Item1>
         <Filename Value="../src/components/kambiglcontrol.pas"/>
         <HasRegisterProc Value="True"/>
@@ -57,6 +56,10 @@
         <HasRegisterProc Value="True"/>
         <UnitName Value="LCLRecentFiles"/>
       </Item5>
+      <Item6>
+        <Filename Value="../src/components/icons/kambiicons.lrs"/>
+        <Type Value="LRS"/>
+      </Item6>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="4">

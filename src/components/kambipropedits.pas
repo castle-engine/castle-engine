@@ -28,7 +28,7 @@ procedure Register;
 implementation
 
 uses VRMLScene, PropEdits, KambiLCLUtils, X3DLoad, UIControls,
-  KambiGLControl, GLControls, Images;
+  KambiGLControl, GLControls, Images, LResources;
 
 type
   TVRMLSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)
@@ -76,4 +76,8 @@ begin
   }
 end;
 
+initialization
+  { Add lrs with icons, following
+    http://wiki.lazarus.freepascal.org/Lazarus_Packages#Add_a_component_icon }
+  {$I icons/kambiicons.lrs}
 end.
