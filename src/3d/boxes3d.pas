@@ -47,22 +47,26 @@ type
 
   { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
     X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
-    box".
+    box". Many geometric operations are fast and easy on this type.
 
-    Many geometric operations are fast and easy on this.
-
-    First point always has all the smaller coords, second point has all
+    The actual box dimensions are stored inside the @link(Data) field, as two 3D points.
+    First point has always all the smaller coords, second point has all
     the larger coords. I.e. always
 
 @preformatted(
-  Box[0, 0] <= Box[1, 0] and
-  Box[0, 1] <= Box[1, 1] and
-  Box[0, 2] <= Box[1, 2]
+  Data[0, 0] <= Data[1, 0] and
+  Data[0, 1] <= Data[1, 1] and
+  Data[0, 2] <= Data[1, 2]
 )
     The only exception is the special value EmptyBox3D.
 
     Note that the box may still have all sizes equal 0. Consider a 3D model with
-    only a single 3D point --- it's not empty, but all the sizes must be 0. }
+    only a single 3D point --- it's not empty, but all the sizes must be 0.
+
+    This is an old-style object (withut any virtual
+    methods). This way there's no need for using constructors / destructors
+    to manage this, you can simply declare TBox3D type and copy / pass around
+    this box to other procedures. }
   TBox3D = object
     Data: array [0..1   ] of TVector3Single;
 
@@ -71,7 +75,7 @@ type
 
       But actually it works a little faster, by utilizing the assumption
       that EmptyBox3D is the only allowed value that breaks
-      @code(Box[0, 0] <= Box[1, 0]) rule. }
+      @code(Data[0, 0] <= Data[1, 0]) rule. }
     function IsEmpty: boolean;
 
     { Check is box empty or has all the sizes equal 0. }
@@ -112,8 +116,8 @@ type
     function Area(const AllowZero: boolean;
       const EmptyBoxArea: Single): Single;
 
-    { This decreases Box[0, 0], Box[0, 1], Box[0, 2] by AExpand
-       and increases Box[1, 0], Box[1, 1], Box[1, 2] by AExpand.
+    { This decreases Data[0, 0], Data[0, 1], Data[0, 2] by AExpand
+       and increases Data[1, 0], Data[1, 1], Data[1, 2] by AExpand.
       So you get Box with all sizes increased by 2 * AExpand.
 
       Box must not be empty.
@@ -121,7 +125,7 @@ type
       that it doesn't make Box empty. }
     procedure ExpandMe(const AExpand: Single); overload;
 
-    { This decreases Box[0] by AExpand, and increases Box[1] by AExpand.
+    { This decreases Data[0] by AExpand, and increases Data[1] by AExpand.
       So you get Box with all sizes increased by 2 * AExpand.
 
       Box must not be empty.
@@ -310,7 +314,7 @@ type
 
       For example, if Direction = -Z = (0, 0, -1), then this will return
       the bottom plane of this box. For Direction = (1, 1, 1), this will return
-      a plane intersecting the Box[1] (maximum) point, with slope = (1, 1, 1).
+      a plane intersecting the Data[1] (maximum) point, with slope = (1, 1, 1).
       The resulting plane always intersects at least one of the 8 corners of the box.
 
       @raises(EBox3DEmpty If the Box is empty.) }
@@ -321,7 +325,7 @@ type
 
       For example, if Direction = +Z = (0, 0, 1), then this will return
       the bottom plane of this box. For Direction = (1, 1, 1), this will return
-      a plane intersecting the Box[0] (minimum) point, with slope = (1, 1, 1).
+      a plane intersecting the Data[0] (minimum) point, with slope = (1, 1, 1).
       The resulting plane always intersects at least one of the 8 corners of the box.
 
       @raises(EBox3DEmpty If the Box is empty.) }
