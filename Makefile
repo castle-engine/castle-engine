@@ -86,7 +86,6 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/test_glwindow_gtk_mix \
   examples/glwindow/test_font_break \
   examples/glwindow/multi_glwindow \
-  examples/glwindow/shading_langs/shading_langs_demo \
   examples/glwindow/demo_camera \
   examples/glwindow/simple_video_editor \
   examples/glwindow/bezier_surfaces/animate_surface \

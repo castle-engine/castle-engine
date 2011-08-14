@@ -1,8 +1,0 @@
-float4 brighter(
-  float4 color         : COLOR,
-  float4 decalCoord    : TEXCOORD0,
-  uniform sampler2D decal) : COLOR
-{
-  float4 d = tex2Dproj(decal, decalCoord);
-  return 2.0 * color * d;
-}
