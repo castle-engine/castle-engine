@@ -24,7 +24,8 @@
 program fft_tests;
 
 uses SysUtils, KambiUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
-  KambiTimeUtils, KambiStringUtils, Fftw_s, KambiGLUtils, Math;
+  KambiTimeUtils, KambiStringUtils, Fftw_s, KambiGLUtils, Math,
+  KambiParameters;
 
 type
   TGLWindowImage = class(TGLWindowDemo)
