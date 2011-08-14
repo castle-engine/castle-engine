@@ -1,4 +1,5 @@
-Precomputed Shadow Fields for Dynamic Scenes
+This directory contains an example implementation of
+"Precomputed Shadow Fields for Dynamic Scenes".
 Video and paper from http://www.kunzhou.net/
 
 Video notes: note that morphing objects is problematic, since shadow fields

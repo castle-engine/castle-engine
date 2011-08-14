@@ -3,9 +3,9 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f show_sh.lpr ]; then
-  cd ../../../
+  cd ../../
 fi
 
-# Call this from ../../../ (or just use `make examples').
+# Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/vrml/radiance_transfer/show_sh.lpr
+fpc -dRELEASE @kambi.cfg examples/radiance_transfer/show_sh.lpr

@@ -1,4 +1,4 @@
-Precomputed Radiance Transfer.
+Implementation of Precomputed Radiance Transfer idea.
 
 http://www.mpi-inf.mpg.de/~jnkautz/projects/prt/prtSIG02.pdf (orig paper, 2002)
 http://www.tml.tkk.fi/~tmakipat/prtf_fixed.pdf (more tutorial-like into)

@@ -1,5 +1,9 @@
-Michalis' draft for http://www.ii.uni.wroc.pl/~anl/dyd/GKs/ 2010
+This directory contains an example terrain generation and visualization toy.
 
+The rest of this file contains a draft notes for Michalis' talk at seminar
+(http://www.ii.uni.wroc.pl/~anl/dyd/GKs/ at 2010).
+
+------------------------------------------------------------------------------
 Idea: make nice terrains. Randomness, but "looking terrain-like".
 
 ------------------------------------------------------------------------------

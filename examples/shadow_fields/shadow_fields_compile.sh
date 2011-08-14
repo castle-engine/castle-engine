@@ -3,9 +3,9 @@ set -eu
 
 # Hack to allow calling this script from it's dir.
 if [ -f shadow_fields.lpr ]; then
-  cd ../../../
+  cd ../../
 fi
 
-# Call this from ../../../ (or just use `make examples').
+# Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/vrml/shadow_fields/shadow_fields.lpr
+fpc -dRELEASE @kambi.cfg examples/shadow_fields/shadow_fields.lpr

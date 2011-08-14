@@ -1,3 +1,23 @@
+The bump_mapping demo, showing off various bump mapping techniques.
+
+- First of all, the modern bump mapping techniques using GLSL are shown.
+  These are implemented right now inside the engine itself,
+  this program metely loads a nice demo scene and allows you to choose
+  the exact method (parallax etc.).
+
+  You can use this bump mapping out-of-the-box in your own models,
+  just add to the model appropriate normalMap declarations,
+  see http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_bump_mapping.
+  No special ObjectPascal code needed at all.
+
+- Also, implementation of some older bump mapping techniques is shown:
+  dot by multitexturing (works in OpenGL fixed-function pipeline)
+  and emboss (a really, really old approach to bump mapping).
+
+The rest of this file contains various notes about bump mapping,
+mostly from my old talk at seminar at ii.uni.wroc.pl.
+
+------------------------------------------------------------------------------
 Bump mapping overview: brick wall.
 Texturing: because obviously too costly to model each brick.
 Bump mapping: increase the look, still without increasing geometric complexity.

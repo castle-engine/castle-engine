@@ -100,21 +100,21 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/multiple_viewports \
   examples/vrml/demo_animation \
   examples/vrml/fog_culling \
-  examples/vrml/bump_mapping/bump_mapping \
-  examples/vrml/radiance_transfer/radiance_transfer \
-  examples/vrml/radiance_transfer/precompute_radiance_transfer \
-  examples/vrml/radiance_transfer/show_sh \
+  examples/bump_mapping/bump_mapping \
+  examples/radiance_transfer/radiance_transfer \
+  examples/radiance_transfer/precompute_radiance_transfer \
+  examples/radiance_transfer/show_sh \
   examples/vrml/plane_mirror_and_shadow \
   examples/vrml/change_vrml_by_code \
   examples/vrml/change_vrml_by_code_2 \
   examples/vrml/vrml_browser_script_compiled \
   examples/vrml/simplest_vrml_browser \
   examples/vrml/simplest_vrml_browser_with_shadow_volumes \
-  examples/vrml/shadow_fields/precompute_shadow_field \
-  examples/vrml/shadow_fields/shadow_fields \
-  examples/vrml/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  examples/shadow_fields/precompute_shadow_field \
+  examples/shadow_fields/shadow_fields \
+  examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/vrml/gl_primitive_performance \
-  examples/vrml/terrain/terrain \
+  examples/terrain/terrain \
   examples/vrml/scene_manager_demos \
   examples/vrml/scene_manager_basic \
   examples/vrml/build_3d_object_by_code
