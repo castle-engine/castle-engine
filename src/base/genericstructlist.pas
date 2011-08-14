@@ -17,6 +17,15 @@ unit GenericStructList;
 {$define HAS_ENUMERATOR}
 {$ifdef VER2_2} {$undef HAS_ENUMERATOR} {$endif}
 {$ifdef VER2_4_0} {$undef HAS_ENUMERATOR} {$endif}
+{ Just undef enumerator always, in FPC 2.7.1 it's either broken
+  or I shouldn't overuse TFPGListEnumeratorSpec. }
+{$undef HAS_ENUMERATOR}
+
+{ FPC < 2.6.0 had buggy version of the Extract function,
+  also with different interface, see http://bugs.freepascal.org/view.php?id=19960. }
+{$define HAS_EXTRACT}
+{$ifdef VER2_2} {$undef HAS_EXTRACT} {$endif}
+{$ifdef VER2_4} {$undef HAS_EXTRACT} {$endif}
 
 interface
 
@@ -56,7 +65,7 @@ type
   public
     constructor Create;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    {$ifdef HAS_EXTRACT} function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif} {$endif}
     function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
     {$ifdef HAS_ENUMERATOR} function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif} {$endif}
     function IndexOf(const Item: T): Integer;
@@ -132,16 +141,12 @@ begin
   Result := inherited Add(@Item);
 end;
 
+{$ifdef HAS_EXTRACT}
 function TGenericStructList.Extract(const Item: T): T;
-var
-  ResPtr: Pointer;
 begin
-  ResPtr := inherited Extract(@Item);
-  if ResPtr <> nil then
-    Result := T(ResPtr^)
-  else
-    FillByte(Result, sizeof(T), 0);
+  inherited Extract(@Item, @Result);
 end;
+{$endif}
 
 function TGenericStructList.First: T;
 begin

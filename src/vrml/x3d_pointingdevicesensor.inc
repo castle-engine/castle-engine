@@ -265,7 +265,7 @@ end;
 
 procedure TPointingDeviceSensorList.Assign(Source: TPointingDeviceSensorList);
 begin
-  inherited;
+  inherited Assign(Source);
   Transform := Source.Transform;
   InvertedTransform := Source.InvertedTransform;
 end;
