@@ -30,7 +30,7 @@
 
 { $define GTK_1}
 
-program test_glwindow_gtk_mix;
+program glwindow_gtk_mix;
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils,
   VectorMath, KambiUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,

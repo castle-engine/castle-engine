@@ -81,10 +81,9 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_to_pas \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
-  examples/glwindow/gl_win_events \
-  examples/glwindow/menu_test_alternative \
-  examples/glwindow/menu_test \
-  examples/glwindow/test_glwindow_gtk_mix \
+  examples/glwindow/glwindow_events \
+  examples/glwindow/glwindow_menu \
+  examples/glwindow/glwindow_gtk_mix \
   examples/glwindow/test_font_break \
   examples/glwindow/multi_glwindow \
   examples/curves_surfaces/bezier_surfaces/animate_surface \
