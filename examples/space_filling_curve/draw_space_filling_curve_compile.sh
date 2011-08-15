@@ -7,4 +7,4 @@ if [ -f draw_space_filling_curve.lpr ]; then
 fi
 
 # Call this from ../../ (or just use `make examples').
-fpc -dRELEASE @kambi.cfg examples/3d/draw_space_filling_curve.lpr
+fpc -dRELEASE @kambi.cfg examples/space_filling_curve/draw_space_filling_curve.lpr

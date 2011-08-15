@@ -90,7 +90,7 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/bezier_surfaces/animate_surface \
   examples/glwindow/bezier_surfaces/design_surface \
   examples/glwindow/interpolated_curves \
-  examples/3d/draw_space_filling_curve \
+  examples/space_filling_curve/draw_space_filling_curve \
   examples/vrml/custom_3d_object \
   examples/vrml/triangulate_demo \
   examples/vrml/test_blender_exported_hierarchy \
