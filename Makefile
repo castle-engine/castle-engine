@@ -87,9 +87,9 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/test_glwindow_gtk_mix \
   examples/glwindow/test_font_break \
   examples/glwindow/multi_glwindow \
-  examples/glwindow/bezier_surfaces/animate_surface \
-  examples/glwindow/bezier_surfaces/design_surface \
-  examples/glwindow/interpolated_curves \
+  examples/curves_surfaces/bezier_surfaces/animate_surface \
+  examples/curves_surfaces/bezier_surfaces/design_surface \
+  examples/curves_surfaces/interpolated_curves \
   examples/space_filling_curve/draw_space_filling_curve \
   examples/bump_mapping/bump_mapping \
   examples/radiance_transfer/radiance_transfer \
