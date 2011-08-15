@@ -31,7 +31,7 @@ program interpolated_curves;
 uses GL, GLWindow, KambiGLUtils, SysUtils, VectorMath,
   Curve, KambiScript, GLWinMessages, UIControls,
   KambiUtils, KambiScriptParser, KambiScriptCoreFunctions,
-  BFNT_BitstreamVeraSansMono_m14_Unit, KambiSceneManager,
+  BFNT_BitstreamVeraSansMono_M18_Unit, KambiSceneManager,
   OpenGLBmpFonts, Classes, KambiStringUtils, Base3D;
 
 { global vars ------------------------------------------------------------ }
@@ -192,7 +192,7 @@ end;
 procedure Open(Window: TGLWindow);
 begin
   glPointSize(10);
-  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m14);
+  StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18);
 end;
 
 procedure Close(Window: TGLWindow);
