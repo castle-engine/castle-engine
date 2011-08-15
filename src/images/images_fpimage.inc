@@ -168,12 +168,12 @@ begin
       WriteRGBA else
     if Img is TRGBImage then
       WriteRGB else
-      raise EUnableToSaveImage.Create('Cannot save non-RGB image');
+      raise EImageSaveError.Create('Cannot save non-RGB image');
     try
       FPImage.SaveToStream(Stream, Writer);
       { FPImage.SaveToStream may raise any kind of Exception.
-        Catch it and convert to our EUnableToSaveImage. }
-    except on E: Exception do raise EUnableToSaveImage.Create(E.Message) end;
+        Catch it and convert to our EImageSaveError. }
+    except on E: Exception do raise EImageSaveError.Create(E.Message) end;
   finally
     FreeAndNil(FPImage);
     FreeAndNil(Writer);

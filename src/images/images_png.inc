@@ -794,7 +794,7 @@ begin
    ColorType := PNG_COLOR_TYPE_GRAY else
   if Img is TGrayscaleAlphaImage then
    ColorType := PNG_COLOR_TYPE_GRAY_ALPHA else
-   raise EUnableToSaveImage.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
+   raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
 
   png_set_IHDR(png_ptr, info_ptr, Img.Width, Img.Height, 8, ColorType,
     interlaceType, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);

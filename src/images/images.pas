@@ -1125,7 +1125,7 @@ function LoadDDS(Stream: TStream;
   compatible with @link(TImageSaveFunc).
 
   SaveXxx should
-    raise EUnableToSaveImage.CreateFmt('Saving to XXX image class %s not possible', [Img.ClassName]);
+    raise EImageSaveError.CreateFmt('Saving to XXX image class %s not possible', [Img.ClassName]);
   when Img doesn't have acceptable class.
   Also, list of handled image classes should be reflected in SavedClasses
   in ImageFormatsInfo[] for this format.
@@ -1564,7 +1564,7 @@ function LoadImage(const filename: string;
 
 type
   { }
-  EUnableToSaveImage = class(Exception);
+  EImageSaveError = class(Exception);
 
 { Save image to a file.
 
@@ -1591,7 +1591,7 @@ type
   are all perfectly possible in PNG file; and TRGBFloatImage will be just converted
   to 8-bit RGB before saving to PNG).
 
-  @raises(EUnableToSaveImage When it's not possible to save image,
+  @raises(EImageSaveError When it's not possible to save image,
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
@@ -3556,7 +3556,7 @@ begin
               SaveImage(ImgRGB, Format, Stream);
             finally ImgRGB.Free end;
           end else
-            raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
       scG_GA_RGB_RGBA:
         begin
@@ -3572,19 +3572,19 @@ begin
               SaveImage(ImgRGB, Format, Stream);
             finally ImgRGB.Free end;
           end else
-            raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
       scRGB_RGBFloat:
         begin
           if (Img is TRGBImage) or
              (Img is TRGBFloatImage) then
             Save(Img, Stream) else
-            raise EUnableToSaveImage.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
+            raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
       else raise EInternalError.Create('SaveImage: SavedClasses?');
     end;
   end else
-    raise EUnableToSaveImage.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
+    raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
 procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream);

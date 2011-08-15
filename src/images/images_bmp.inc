@@ -296,7 +296,7 @@ var fhead: TBitmapFileHeader;
     row, rowdata :PRGB_BMP24;
 begin
   if not (Img is TRGBImage) then
-    raise EUnableToSaveImage.CreateFmt('Saving to BMP image class %s not possible', [Img.ClassName]);
+    raise EImageSaveError.CreateFmt('Saving to BMP image class %s not possible', [Img.ClassName]);
 
  rowPaddedLength := img.Width*SizeOf(TRGB_BMP24);
  if rowPaddedLength mod 4 <> 0 then

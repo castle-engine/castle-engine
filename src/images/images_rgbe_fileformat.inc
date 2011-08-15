@@ -208,7 +208,7 @@ var
   RGBE: TVector4Byte;
 begin
   if not ((Img is TRGBImage) or (Img is TRGBFloatImage)) then
-    raise EUnableToSaveImage.CreateFmt('Saving to RGBE image class %s not possible', [Img.ClassName]);
+    raise EImageSaveError.CreateFmt('Saving to RGBE image class %s not possible', [Img.ClassName]);
 
   WriteStr(Stream,'#?RADIANCE'#10 +
                   'FORMAT=32-bit_rle_rgbe'#10 +

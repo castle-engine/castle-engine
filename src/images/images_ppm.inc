@@ -138,7 +138,7 @@ var line: PArray_Vector3Byte;
     x, y: cardinal;
 begin
   if not (Img is TRGBImage) then
-    raise EUnableToSaveImage.CreateFmt('Saving to PPM image class %s not possible', [Img.ClassName]);
+    raise EImageSaveError.CreateFmt('Saving to PPM image class %s not possible', [Img.ClassName]);
 
  {najbezpieczniej w ppm uzywac znakow konca linii #10.
   To dlatego ze po MaxColVal wymagany jest DOKLADNIE jeden bialy znak. }
