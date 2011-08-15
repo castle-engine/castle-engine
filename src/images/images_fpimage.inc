@@ -34,15 +34,26 @@ function LoadFpImage(Stream: TStream;
   const AllowPalette: boolean = false): TImage;
 var
   FPImage: TFPMemoryImage;
-  X, Y: Integer;
-  ResultPixels: PVector3Byte;
-  Color: TFPColor;
-begin
-  FPImage := TFPMemoryImage.Create(0, 0);
-  try
-    FPImage.UsePalette := AllowPalette;
-    FPImage.LoadFromStream(Stream, Reader);
 
+  { FPImage doesn't provide us any information does the image contain useful
+    alpha channel. So just iterate over pixels, and check it ourselves. }
+  function DetectAlpha: boolean;
+  var
+    X, Y: Integer;
+  begin
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+        if (FPImage.Colors[X, Y].Alpha shr 8) <> $FF then
+          Exit(true);
+    Result := false;
+  end;
+
+  procedure ReadRGB;
+  var
+    X, Y: Integer;
+    ResultPixels: PVector3Byte;
+    Color: TFPColor;
+  begin
     Result := TRGBImage.Create(FPImage.Width, FPImage.Height);
     try
       ResultPixels := TRGBImage(Result).RGBPixels;
@@ -56,6 +67,38 @@ begin
           Inc(ResultPixels);
         end;
     except FreeAndNil(Result) end;
+  end;
+
+  procedure ReadRGBA;
+  var
+    X, Y: Integer;
+    ResultPixels: PVector4Byte;
+    Color: TFPColor;
+  begin
+    Result := TRGBAlphaImage.Create(FPImage.Width, FPImage.Height);
+    try
+      ResultPixels := TRGBAlphaImage(Result).AlphaPixels;
+      for Y := FPImage.Height - 1 downto 0 do
+        for X := 0 to FPImage.Width - 1 do
+        begin
+          Color := FPImage.Colors[X, Y];
+          ResultPixels^[0] := Color.Red shr 8;
+          ResultPixels^[1] := Color.Green shr 8;
+          ResultPixels^[2] := Color.Blue shr 8;
+          ResultPixels^[3] := Color.Alpha shr 8;
+          Inc(ResultPixels);
+        end;
+    except FreeAndNil(Result) end;
+  end;
+
+begin
+  FPImage := TFPMemoryImage.Create(0, 0);
+  try
+    FPImage.UsePalette := AllowPalette;
+    FPImage.LoadFromStream(Stream, Reader);
+    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and DetectAlpha then
+      ReadRGBA else
+      ReadRGB;
   finally
     FreeAndNil(FPImage);
     FreeAndNil(Reader);
