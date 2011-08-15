@@ -1,3 +1,5 @@
+{ Add ARB_framebuffer_object, missing in older FPC GLExt unit. }
+
 {$ifdef VER2_0}   {$define ADD_ARB_framebuffer_object} {$endif}
 {$ifdef VER2_2}   {$define ADD_ARB_framebuffer_object} {$endif}
 {$ifdef VER2_4_0} {$define ADD_ARB_framebuffer_object} {$endif}
@@ -5,8 +7,6 @@
 {$ifdef ADD_ARB_framebuffer_object}
 
 {$ifdef read_interface}
-
-{ Missing from older FPC. }
 
 //**** GL_ARB_framebuffer_object *****//
 const
