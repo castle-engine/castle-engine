@@ -235,6 +235,13 @@ begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderJPEG.Create);
 end;
 
+function LoadPNM(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPNM.Create);
+end;
+
 procedure SaveJPEG(Img: TImage; Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);

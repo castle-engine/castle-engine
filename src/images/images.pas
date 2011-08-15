@@ -68,7 +68,7 @@ uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   FPImage, FPReadPCX, FPReadGIF, FPReadTGA, FPReadTiff, FPReadXPM, FPReadPSD,
-  FPReadJPEG, FPWriteJPEG;
+  FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
 type
   { See TImage.AlphaChannelType. }
@@ -1087,6 +1087,12 @@ function LoadPPM(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
+{ Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
+  Note that for PPM, for now it's more adviced to use our LoadPPM. }
+function LoadPNM(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
 function LoadIPL(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
@@ -1150,8 +1156,9 @@ type
     { We handle PNG file format fully, both reading and writing,
       through the libpng library.
 
-      Note that currently this is the only format supported natively
-      (wthout running any external program) that allows an alpha channel.
+      This format supports a full alpha channel.
+      Besides PSD, this is the only format that allows full-range
+      (partial transparency) alpha channel.
 
       Trying to read / write PNG file when libpng is not installed
       (through LoadImage, SaveImage, LoadPNG, SavePNG and others)
@@ -1199,7 +1206,7 @@ type
     ifTIFF, ifSGI, ifJP2, ifEXR,
 
     { Image formats below are supported by FPImage. }
-    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX,
+    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
 
     { We handle fully DDS (DirectDraw Surface) image format.
       See also TDDSImage class in DDS unit,
@@ -1370,6 +1377,10 @@ const
     ( FormatName: 'ZSoft PCX image';
       ExtsCount: 1; Exts: ('pcx', '', '');
       Load: @LoadPCX; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'PNM image';
+      ExtsCount: 3; Exts: ('pnm', 'pgm', 'pbm');
+      Load: @LoadPNM; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
 
     { Direct Draw Surface } { }
