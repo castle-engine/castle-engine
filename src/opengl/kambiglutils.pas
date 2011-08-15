@@ -50,6 +50,7 @@ const
   ( 'None', 'Extension', 'Standard' );
 
 {$I glext_packed_depth_stencil.inc}
+{$I glext_arb_framebuffer_object.inc}
 
 { ------------------------------------------------------------ }
 { @section(Utils needed only when using GL, GLU, GLExt bindings.
@@ -251,18 +252,10 @@ var
 
 {$ifdef NEEDS_FOG_COORD_FIX}
 var
-  glFogCoordfEXT: procedure(coord: GLfloat);
-    {$ifdef OPENGL_CDECL} cdecl; {$endif}
-    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-  glFogCoorddEXT: procedure(coord: GLdouble);
-    {$ifdef OPENGL_CDECL} cdecl; {$endif}
-    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-  glFogCoordfvEXT: procedure(coord: PGLfloat);
-    {$ifdef OPENGL_CDECL} cdecl; {$endif}
-    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-  glFogCoorddvEXT: procedure(coord: PGLdouble);
-    {$ifdef OPENGL_CDECL} cdecl; {$endif}
-    {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoordfEXT: procedure(coord: GLfloat); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoorddEXT: procedure(coord: GLdouble); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoordfvEXT: procedure(coord: PGLfloat); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+  glFogCoorddvEXT: procedure(coord: PGLdouble); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 {$endif}
 
 var
@@ -950,6 +943,7 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
   KambiLog, KambiWarnings;
 
 {$I glext_packed_depth_stencil.inc}
+{$I glext_arb_framebuffer_object.inc}
 
 procedure LoadAllExtensions;
 
