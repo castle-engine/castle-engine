@@ -72,25 +72,33 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/doppler_demo \
   examples/audio/efx_demo \
   examples/base/dircleaner \
+  examples/base/stringoper \
   examples/kambiscript/kambi_calc \
   examples/kambiscript/image_make_by_script \
-  examples/base/stringoper \
-  examples/images/image_convert \
-  examples/images/dds_decompose \
-  examples/images/image_identify \
-  examples/images/image_to_pas \
-  examples/images/image_compare \
+  examples/images_videos/image_convert \
+  examples/images_videos/dds_decompose \
+  examples/images_videos/image_identify \
+  examples/images_videos/image_to_pas \
+  examples/images_videos/image_compare \
+  examples/images_videos/simple_video_editor \
   examples/glwindow/gl_win_events \
   examples/glwindow/menu_test_alternative \
   examples/glwindow/menu_test \
   examples/glwindow/test_glwindow_gtk_mix \
   examples/glwindow/test_font_break \
   examples/glwindow/multi_glwindow \
-  examples/glwindow/simple_video_editor \
   examples/glwindow/bezier_surfaces/animate_surface \
   examples/glwindow/bezier_surfaces/design_surface \
   examples/glwindow/interpolated_curves \
   examples/space_filling_curve/draw_space_filling_curve \
+  examples/bump_mapping/bump_mapping \
+  examples/radiance_transfer/radiance_transfer \
+  examples/radiance_transfer/precompute_radiance_transfer \
+  examples/radiance_transfer/show_sh \
+  examples/shadow_fields/precompute_shadow_field \
+  examples/shadow_fields/shadow_fields \
+  examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  examples/terrain/terrain \
   examples/vrml/custom_3d_object \
   examples/vrml/triangulate_demo \
   examples/vrml/test_blender_exported_hierarchy \
@@ -99,21 +107,13 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/multiple_viewports \
   examples/vrml/demo_animation \
   examples/vrml/fog_culling \
-  examples/bump_mapping/bump_mapping \
-  examples/radiance_transfer/radiance_transfer \
-  examples/radiance_transfer/precompute_radiance_transfer \
-  examples/radiance_transfer/show_sh \
   examples/vrml/plane_mirror_and_shadow \
   examples/vrml/change_vrml_by_code \
   examples/vrml/change_vrml_by_code_2 \
   examples/vrml/vrml_browser_script_compiled \
   examples/vrml/simplest_vrml_browser \
   examples/vrml/simplest_vrml_browser_with_shadow_volumes \
-  examples/shadow_fields/precompute_shadow_field \
-  examples/shadow_fields/shadow_fields \
-  examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/vrml/gl_primitive_performance \
-  examples/terrain/terrain \
   examples/vrml/scene_manager_demos \
   examples/vrml/scene_manager_basic \
   examples/vrml/build_3d_object_by_code

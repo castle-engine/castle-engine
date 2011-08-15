@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/glwindow/simple_video_editor.lpr
+fpc -dRELEASE @kambi.cfg examples/images_videos/simple_video_editor.lpr

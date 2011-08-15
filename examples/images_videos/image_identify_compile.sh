@@ -2,10 +2,10 @@
 set -eu
 
 # Hack to allow calling this script from it's dir.
-if [ -f dds_decompose.lpr ]; then
+if [ -f image_identify.lpr ]; then
   cd ../../
 fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/images/dds_decompose.lpr
+fpc -dRELEASE @kambi.cfg examples/images_videos/image_identify.lpr

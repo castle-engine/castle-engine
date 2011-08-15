@@ -8,4 +8,4 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f image_compare.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @kambi.cfg examples/images/image_compare.lpr
+fpc -dRELEASE @kambi.cfg examples/images_videos/image_compare.lpr
