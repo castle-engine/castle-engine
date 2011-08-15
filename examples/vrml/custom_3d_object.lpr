@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2010 Michalis Kamburelis.
+  Copyright 2006-2011 Michalis Kamburelis.
 
   This file is part of "Kambi VRML game engine".
 
@@ -13,22 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple demo that can you can create SceneManager.Camera instance yourself.
+{ If you want to write your own rendering and collisions code,
+  you can define your own T3D descendant.
 
-  As you can see, in the simplest case you just
-  - use TGLUIWindow class, adding SceneManager to Window.Controls
-  - init SceneManager.Camera at the beginning of your program
-    (actually, we could left it not initialized,
-    it would be automatically initialized to a default camera by scene manager,
-    see TKamSceneManager.CreateDefaultCamera.)
+  Note that most programs should be happy just using the T3D descendants
+  already implemented inside our engine. First of all there's TVRMLGLScene,
+  that allows to express virtually everything through VRML/X3D nodes,
+  and has an optimized renderer, collision solver etc.
 
-  And that's it. User gets the ability to move and rotate the object
-  by arrow keys, mouse etc. (see view3dscene keys is "Examine" mode:
-  [http://vrmlengine.sourceforge.net/view3dscene.php]),
-  because SceneManager passes relevant window events to camera.
-  Also everything 3D is rendered with this camera,
-  because SceneManager loads Camera.Matrix to OpenGL modelview matrix.
-}
+  But if you really want, you can define your own T3D descendant. }
 
 program demo_camera;
 
@@ -78,7 +71,10 @@ begin
   Cube := TCube.Create(Application);
   SceneManager.Items.Add(Cube);
 
-  { init SceneManager.Camera }
+  { init SceneManager.Camera.
+    This is optional, if SceneManager.Camera is left unassigned, a suitable
+    default camera will be created by the scene manager during ApplyProjection
+    (before first rendering), see TKamSceneManager.CreateDefaultCamera docs. }
   SceneManager.Camera := TExamineCamera.Create(Application);
   (SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),

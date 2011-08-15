@@ -86,12 +86,12 @@ EXAMPLES_BASE_NAMES := \
   examples/glwindow/test_glwindow_gtk_mix \
   examples/glwindow/test_font_break \
   examples/glwindow/multi_glwindow \
-  examples/glwindow/demo_camera \
   examples/glwindow/simple_video_editor \
   examples/glwindow/bezier_surfaces/animate_surface \
   examples/glwindow/bezier_surfaces/design_surface \
   examples/glwindow/interpolated_curves \
   examples/3d/draw_space_filling_curve \
+  examples/vrml/custom_3d_object \
   examples/vrml/triangulate_demo \
   examples/vrml/test_blender_exported_hierarchy \
   examples/vrml/tools/gen_light_map \
@@ -122,7 +122,6 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
   examples/lazarus/vrml_browser/vrml_browser \
   examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls \
-  examples/lazarus/camera/camera \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   tests/test_kambi_units
 
