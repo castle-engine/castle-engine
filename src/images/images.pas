@@ -65,9 +65,10 @@ unit Images;
 interface
 
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
-  KambiPng, KambiPasJpeg, FileFilters, KambiClassUtils,
+  KambiPng, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  FPImage, FPReadPCX, FPReadGIF, FPReadTGA, FPReadTiff, FPReadXPM, FPReadPSD;
+  FPImage, FPReadPCX, FPReadGIF, FPReadTGA, FPReadTiff, FPReadXPM, FPReadPSD,
+  FPReadJPEG;
 
 type
   { See TImage.AlphaChannelType. }
@@ -1014,8 +1015,6 @@ type
   EInvalidImageFormat = class(EImageLoadError);
   EInvalidBMP = class(EInvalidImageFormat);
   EInvalidPNG = class(EInvalidImageFormat);
-  EInvalidJPEG = class(EInvalidImageFormat);
-  EInvalidPCX =  class(EInvalidImageFormat);
   EInvalidPPM = class(EInvalidImageFormat);
   EInvalidIPL = class(EInvalidImageFormat);
   EInvalidRGBE = class(EInvalidImageFormat);
@@ -1131,8 +1130,8 @@ procedure SaveBMP(Img: TImage; Stream: TStream);
 procedure SavePNG(Img: TImage; Stream: TStream; interlaced: boolean); overload;
 procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false } overload;
 { }
-procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer); overload;
-procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 } overload;
+//procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer); overload;
+//procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 } overload;
 { }
 procedure SavePPM(Img: TImage; Stream: TStream; binary: boolean); overload;
 procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
@@ -1162,11 +1161,6 @@ type
       You can perfectly compile and even run your programs without
       PNG installed, until you try to load/save PNG format. }
     ifPNG,
-
-    { We handle JPEG images. We use the PasJPEG code, which means
-      that jpeg support is compiled-in and doesn't require any external
-      library. }
-    ifJPEG,
 
     ifPPM,
     ifIPL,
@@ -1206,7 +1200,7 @@ type
     ifTIFF, ifSGI, ifJP2, ifEXR,
 
     { Image formats below are supported by FPImage. }
-    ifGIF, ifTGA, ifXPM, ifPSD, ifPCX,
+    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX,
 
     { We handle fully DDS (DirectDraw Surface) image format.
       See also TDDSImage class in DDS unit,
@@ -1317,11 +1311,6 @@ const
       ExtsCount: 1; Exts: ('png', '', '');
       Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
-    { JFIF, JPEG File Interchange Format } { }
-    ( FormatName: 'JPEG image';
-      ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
-      Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
-      Save: @SaveJPEG; SavedClasses: scRGB ),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       ExtsCount: 1; Exts: ('ppm', '', '');
@@ -1357,6 +1346,11 @@ const
 
     { Loaded using FPImage } { }
 
+    { JFIF, JPEG File Interchange Format } { }
+    ( FormatName: 'JPEG image';
+      ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
+      Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
+      Save: {@SaveJPEG}nil; SavedClasses: scRGB ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');
@@ -1712,7 +1706,6 @@ end;
 
 {$I images_bmp.inc}
 {$I images_png.inc}
-{$I images_jpeg.inc}
 {$I images_fpimage.inc}
 {$I images_ppm.inc}
 {$I images_ipl.inc}

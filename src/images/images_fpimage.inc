@@ -95,7 +95,12 @@ begin
   FPImage := TFPMemoryImage.Create(0, 0);
   try
     FPImage.UsePalette := AllowPalette;
-    FPImage.LoadFromStream(Stream, Reader);
+    try
+      FPImage.LoadFromStream(Stream, Reader);
+      { FPImage.LoadFromStream may raise any kind of Exception (for example,
+        in case of invalid JPEG header it just raises generic Exception class).
+        Catch it and convert to our EImageLoadError. }
+    except on E: Exception do raise EImageLoadError.Create(E.Message) end;
     if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and DetectAlpha then
       ReadRGBA else
       ReadRGB;
@@ -151,4 +156,11 @@ function LoadPCX(Stream: TStream;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPCX.Create);
+end;
+
+function LoadJPEG(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderJPEG.Create);
 end;
