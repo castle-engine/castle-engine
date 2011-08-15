@@ -68,7 +68,7 @@ uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   FPImage, FPReadPCX, FPReadGIF, FPReadTGA, FPReadTiff, FPReadXPM, FPReadPSD,
-  FPReadJPEG;
+  FPReadJPEG, FPWriteJPEG;
 
 type
   { See TImage.AlphaChannelType. }
@@ -1130,8 +1130,7 @@ procedure SaveBMP(Img: TImage; Stream: TStream);
 procedure SavePNG(Img: TImage; Stream: TStream; interlaced: boolean); overload;
 procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false } overload;
 { }
-//procedure SaveJPEG(Img: TImage; Stream: TStream; quality: integer); overload;
-//procedure SaveJPEG(Img: TImage; Stream: TStream); { quality = 90 } overload;
+procedure SaveJPEG(Img: TImage; Stream: TStream);
 { }
 procedure SavePPM(Img: TImage; Stream: TStream; binary: boolean); overload;
 procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
@@ -1350,7 +1349,7 @@ const
     ( FormatName: 'JPEG image';
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
       Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
-      Save: {@SaveJPEG}nil; SavedClasses: scRGB ),
+      Save: @SaveJPEG; SavedClasses: scRGB { actually scRGB_RGBA }),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       ExtsCount: 1; Exts: ('gif', '', '');

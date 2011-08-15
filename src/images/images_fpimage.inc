@@ -110,6 +110,76 @@ begin
   end;
 end;
 
+procedure SaveFpImage(Img: TImage; Stream: TStream;
+  Writer: TFPCustomImageWriter;
+  const AllowPalette: boolean = false);
+var
+  FPImage: TFPMemoryImage;
+
+  procedure WriteRGB;
+  var
+    X, Y: Integer;
+    ImgPixels: PVector3Byte;
+    Color: TFPColor;
+  begin
+    ImgPixels := TRGBImage(Img).RGBPixels;
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+      begin
+        { It doesn't matter what you put in least-significat
+          byte of color component, FPWriteJPEG will do "shr 8" on these values
+          anyway (JPEG can only save 8-bit RGB). }
+        Color.Red   := Word(ImgPixels^[0]) shl 8;
+        Color.Green := Word(ImgPixels^[1]) shl 8;
+        Color.Blue  := Word(ImgPixels^[2]) shl 8;
+        Color.Alpha := $FFFF;
+        FPImage.Colors[X, Y] := Color;
+        Inc(ImgPixels);
+      end;
+  end;
+
+  procedure WriteRGBA;
+  var
+    X, Y: Integer;
+    ImgPixels: PVector4Byte;
+    Color: TFPColor;
+  begin
+    ImgPixels := TRGBAlphaImage(Img).AlphaPixels;
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+      begin
+        { It doesn't matter what you put in least-significat
+          byte of color component, FPWriteJPEG will do "shr 8" on these values
+          anyway (JPEG can only save 8-bit RGB). }
+        Color.Red   := Word(ImgPixels^[0]) shl 8;
+        Color.Green := Word(ImgPixels^[1]) shl 8;
+        Color.Blue  := Word(ImgPixels^[2]) shl 8;
+        Color.Alpha := Word(ImgPixels^[3]) shl 8;
+        FPImage.Colors[X, Y] := Color;
+        Inc(ImgPixels);
+      end;
+  end;
+
+begin
+  FPImage := TFPMemoryImage.Create(Img.Width, Img.Height);
+  try
+    FPImage.UsePalette := AllowPalette;
+    if Img is TRGBAlphaImage then
+      WriteRGBA else
+    if Img is TRGBImage then
+      WriteRGB else
+      raise EUnableToSaveImage.Create('Cannot save non-RGB image');
+    try
+      FPImage.SaveToStream(Stream, Writer);
+      { FPImage.SaveToStream may raise any kind of Exception.
+        Catch it and convert to our EUnableToSaveImage. }
+    except on E: Exception do raise EUnableToSaveImage.Create(E.Message) end;
+  finally
+    FreeAndNil(FPImage);
+    FreeAndNil(Writer);
+  end;
+end;
+
 function LoadGIF(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
@@ -163,4 +233,9 @@ function LoadJPEG(Stream: TStream;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderJPEG.Create);
+end;
+
+procedure SaveJPEG(Img: TImage; Stream: TStream);
+begin
+  SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;
