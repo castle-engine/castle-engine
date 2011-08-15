@@ -13,13 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Example program using GLWindow.
-  Displays many OnXxx events as they happen, shows Pressed and Pressed.Characters.
-  So it allows you to "see" how TGLWindow events happen.
+{ Demo numerous TGLWindow events.
+  Displays many OnXxx events as they happen,
+  also shows Pressed and Pressed.Characters.
+  Also a demo of GLNotifications unit. }
 
-  Also a demo of Notifications unit. }
-
-program gl_win_events;
+program glwindow_events;
 
 {$apptype GUI}
 
