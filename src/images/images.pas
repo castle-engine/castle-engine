@@ -67,7 +67,8 @@ interface
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  FPImage, FPReadPCX, FPReadGIF, FPReadTGA, FPReadTiff, FPReadXPM, FPReadPSD,
+  FPImage, FPReadPCX, 
+  {$ifndef VER2_2} FPReadGIF, FPReadPSD, {$endif} FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
 type

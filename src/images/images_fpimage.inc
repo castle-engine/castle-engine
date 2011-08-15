@@ -184,7 +184,11 @@ function LoadGIF(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
+  {$ifndef VER2_2}
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderGIF.Create);
+  {$else}
+  raise EImageLoadError.Create('Cannot load GIF when compiled with old FPC <= 2.2.x');
+  {$endif}
 end;
 
 function LoadTGA(Stream: TStream;
@@ -218,7 +222,11 @@ function LoadPSD(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 begin
+  {$ifndef VER2_2}
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPSD.Create);
+  {$else}
+  raise EImageLoadError.Create('Cannot load PSD when compiled with old FPC <= 2.2.x');
+  {$endif}
 end;
 
 function LoadPCX(Stream: TStream;
