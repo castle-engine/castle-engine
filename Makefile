@@ -71,8 +71,8 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/alplay \
   examples/audio/doppler_demo \
   examples/audio/efx_demo \
-  examples/base/dircleaner \
-  examples/base/stringoper \
+  examples/tools/dircleaner \
+  examples/tools/stringoper \
   examples/kambiscript/kambi_calc \
   examples/kambiscript/image_make_by_script \
   examples/images_videos/image_convert \
@@ -81,10 +81,10 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_to_pas \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
+  examples/fonts/test_font_break \
   examples/glwindow/glwindow_events \
   examples/glwindow/glwindow_menu \
   examples/glwindow/glwindow_gtk_mix \
-  examples/glwindow/test_font_break \
   examples/glwindow/multi_glwindow \
   examples/curves_surfaces/bezier_surfaces/animate_surface \
   examples/curves_surfaces/bezier_surfaces/design_surface \
