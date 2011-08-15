@@ -34,7 +34,7 @@ begin
       on FPC packages --- so let's do this. }
     P.Dependencies.Add('opengl');
     P.Dependencies.Add('fcl-base');
-    P.Dependencies.Add('pasjpeg');
+    P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     if Defaults.OS in AllUnixOSes then
     begin
@@ -203,9 +203,6 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('images.pas');
     P.Targets.AddUnit('imagescache.pas');
-    P.Targets.AddUnit('kambipasjpeg.pas');
-    P.Targets.AddUnit('kambipasjpeg_error_mgrs.pas');
-    P.Targets.AddUnit('kambipasjpeg_stream_mgrs.pas');
     P.Targets.AddUnit('kambipng.pas');
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');
