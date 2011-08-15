@@ -65,8 +65,6 @@ Details during 2.6.0 release:
   ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
   ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
 
-  ./kambi_vrml_game_engine/examples/glwindow/shading_langs/shading_langs_demo.lpr:136:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(0, 0, 1));
-
 - Make lifetime of lights renderer longer. At least, for whole rendering
   from a scene manager (so 1 lights renderer for 1 TKamSceneManager.Draw call).
 
