@@ -22,8 +22,6 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
 - DRAFT.engine_tutorial.txt finish, make prominent links from
   http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php (on sidebar,
   near download links, mention in news etc.)
-- Use fpimage to read some image formats:
-  http://wiki.freepascal.org/fcl-image
 
 ------------------------------------------------------------------------------
 Details during 2.6.0 release:
