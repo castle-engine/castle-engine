@@ -1185,7 +1185,7 @@ begin
     GLQueryCounterBits := 0;
 
   { calculate GLFramebuffer }
-  if GL_version_3_0 or GL_ARB_framebuffer_object then
+  if {$ifdef HAS_GL_VERSION_ABOVE_2} GL_version_3_0 or {$endif} GL_ARB_framebuffer_object then
     GLFramebuffer := gsStandard else
   if GL_EXT_framebuffer_object then
     GLFramebuffer := gsExtension else
