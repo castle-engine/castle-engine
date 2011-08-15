@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ PCX loader using FPImage.
+{ Image loaders using FPImage.
 
   FPImage docs:
   http://lazarus-ccr.sourceforge.net/docs/fcl/fpimage/index.html
@@ -22,24 +22,20 @@
   is informative, explains UsePalette stuff.
 }
 
-function LoadPCX(Stream: TStream;
+function LoadFpImage(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const ForbiddenConvs: TImageLoadConversions;
+  Reader: TFPCustomImageReader): TImage;
 var
   FPImage: TFPMemoryImage;
   X, Y: Integer;
   ResultPixels: PVector3Byte;
-  Reader: TFPCustomImageReader;
   Color: TFPColor;
 begin
   FPImage := TFPMemoryImage.Create(0, 0);
   try
     FPImage.UsePalette := false;
-
-    Reader := TFPReaderPCX.Create;
-    try
-      FPImage.LoadFromStream(Stream, Reader);
-    finally FreeAndNil(Reader) end;
+    FPImage.LoadFromStream(Stream, Reader);
 
     Result := TRGBImage.Create(FPImage.Width, FPImage.Height);
     try
@@ -54,5 +50,15 @@ begin
           Inc(ResultPixels);
         end;
     except FreeAndNil(Result) end;
-  finally FreeAndNil(FPImage) end;
+  finally
+    FreeAndNil(FPImage);
+    FreeAndNil(Reader);
+  end;
+end;
+
+function LoadPCX(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPCX.Create);
 end;

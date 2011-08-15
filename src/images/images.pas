@@ -1689,7 +1689,7 @@ end;
 {$I images_bmp.inc}
 {$I images_png.inc}
 {$I images_jpeg.inc}
-{$I images_pcx.inc}
+{$I images_fpimage.inc}
 {$I images_ppm.inc}
 {$I images_ipl.inc}
 {$I images_rgbe_fileformat.inc}
