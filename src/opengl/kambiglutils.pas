@@ -29,12 +29,6 @@ unit KambiGLUtils;
 {$I kambiconf.inc}
 {$I openglmac.inc}
 
-{ See
-  http://www.freepascal.org/mantis/view.php?id=10460
-  for NEEDS_FOG_COORD_FIX explanation. }
-{$ifdef VER2_0} {$define NEEDS_FOG_COORD_FIX} {$endif}
-{$ifdef VER2_2} {$define NEEDS_FOG_COORD_FIX} {$endif}
-
 interface
 
 uses Math, GL, GLU, GLExt, SysUtils, KambiUtils, VectorMath, Boxes3D,
@@ -51,6 +45,7 @@ const
 
 {$I glext_packed_depth_stencil.inc}
 {$I glext_arb_framebuffer_object.inc}
+{$I glext_ext_fog_coord.inc}
 
 { ------------------------------------------------------------ }
 { @section(Utils needed only when using GL, GLU, GLExt bindings.
@@ -249,14 +244,6 @@ var
   GL_ATI_texture_float: boolean;
   GL_ARB_texture_float: boolean;
   GL_ARB_texture_rectangle: boolean;
-
-{$ifdef NEEDS_FOG_COORD_FIX}
-var
-  glFogCoordfEXT: procedure(coord: GLfloat); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-  glFogCoorddEXT: procedure(coord: GLdouble); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-  glFogCoordfvEXT: procedure(coord: PGLfloat); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-  glFogCoorddvEXT: procedure(coord: PGLdouble); {$ifdef OPENGL_CDECL} cdecl; {$endif} {$ifdef OPENGL_STDCALL} stdcall; {$endif}
-{$endif}
 
 var
   { Constant (for given context) OpenGL limits.
@@ -944,36 +931,9 @@ uses KambiFilesUtils, KambiStringUtils, GLVersionUnit, GLShaders, GLImages,
 
 {$I glext_packed_depth_stencil.inc}
 {$I glext_arb_framebuffer_object.inc}
+{$I glext_ext_fog_coord.inc}
 
 procedure LoadAllExtensions;
-
-  {$ifdef NEEDS_FOG_COORD_FIX}
-  function Load_GL_EXT_fog_coord: Boolean;
-  var
-    extstring: String;
-  begin
-
-    Result := FALSE;
-    extstring := String(PChar(glGetString(GL_EXTENSIONS)));
-
-    if glext_ExtensionSupported('GL_EXT_fog_coord', extstring) then
-    begin
-      Pointer(glFogCoordfEXT) := wglGetProcAddress('glFogCoordfEXT');
-      if not Assigned(glFogCoordfEXT) then Exit;
-      Pointer(glFogCoorddEXT) := wglGetProcAddress('glFogCoorddEXT');
-      if not Assigned(glFogCoorddEXT) then Exit;
-      Pointer(glFogCoordfvEXT) := wglGetProcAddress('glFogCoordfvEXT');
-      if not Assigned(glFogCoordfvEXT) then Exit;
-      Pointer(glFogCoorddvEXT) := wglGetProcAddress('glFogCoorddvEXT');
-      if not Assigned(glFogCoorddvEXT) then Exit;
-      Pointer(glFogCoordPointerEXT) := wglGetProcAddress('glFogCoordPointerEXT');
-      if not Assigned(glFogCoordPointerEXT) then Exit;
-      Result := TRUE;
-    end;
-
-  end;
-  {$endif}
-
 var
   GL_EXT_texture3D: boolean;
   GL_EXT_framebuffer_object: boolean;
