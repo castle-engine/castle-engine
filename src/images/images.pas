@@ -66,7 +66,8 @@ interface
 
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, KambiPasJpeg, FileFilters, KambiClassUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  FPImage, FPReadPCX;
 
 type
   { See TImage.AlphaChannelType. }
