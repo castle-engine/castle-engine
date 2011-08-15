@@ -1,6 +1,13 @@
-{$ifdef read_interface}
+{ Add EXT_packed_depth_stencil, missing from FPC <= 2.4.2,
+  submitted as http://bugs.freepascal.org/view.php?id=18054 }
 
-{ Missing from FPC, submitted as http://bugs.freepascal.org/view.php?id=18054 }
+{$ifdef VER2_2}   {$define ADD_EXT_packed_depth_stencil} {$endif}
+{$ifdef VER2_4_0} {$define ADD_EXT_packed_depth_stencil} {$endif}
+{$ifdef VER2_4_2} {$define ADD_EXT_packed_depth_stencil} {$endif}
+
+{$ifdef ADD_EXT_packed_depth_stencil}
+
+{$ifdef read_interface}
 
 //***** GL_EXT_packed_depth_stencil *****//
 { }
@@ -31,3 +38,5 @@ begin
 end;
 
 {$endif read_implementation}
+
+{$endif ADD_EXT_packed_depth_stencil}
