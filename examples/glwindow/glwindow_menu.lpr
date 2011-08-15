@@ -16,15 +16,22 @@
 { A simple program using GLWindow.
   Demonstrates the use of MainMenu in TGLWindow.
 
-  Shows menu, submenus, menus with keyboard shortcuts, checked menu items,
-  radio menu items, adding menus at runtime, using menu mnemonics. }
-
-program menu_test;
+  Shows
+  - menu,
+  - submenus,
+  - menus with keyboard shortcuts,
+  - checked menu items,
+  - radio menu items,
+  - adding menus at runtime,
+  - using menu mnemonics (underscore, for Alt+keypress),
+  - replacing whole main menu temporarily with other main menu.
+}
+program glwindow_menu;
 
 {$apptype CONSOLE}
 
-uses VectorMath, GL, GLU, GLExt, GLWindow, KambiGLUtils,
-  GLWinMessages;
+uses SysUtils, VectorMath, GL, GLU, GLExt,
+  GLWindow, KambiGLUtils, GLWinMessages;
 
 var
   Window: TGLWindowDemo;
@@ -35,7 +42,9 @@ var
   Filled: boolean = true;
   MoveX: Single = 0.0;
   MoveY: Single = 0.0;
+
   MenuHorizLeft, MenuHorizMiddle, MenuHorizRight: TMenuItemRadio;
+  MainMenu, AlternativeMainMenu: TMenu;
 
 const
   Colors: array[0..6]of TVector3Byte =
@@ -119,6 +128,10 @@ begin
        ChangeableMenu.Append(M);
       end;
   42: ChangeableMenu.Append(TMenuItem.Create('New item', -1));
+
+  100: Window.MainMenu := AlternativeMainMenu;
+  101: Window.MainMenu := MainMenu;
+
   else Exit;
  end;
  Window.PostRedisplay;
@@ -126,18 +139,18 @@ end;
 
 var
   M, M2: TMenu;
-
   { Helper variables for setting up radio items }
   Radio: TMenuItemRadio;
   RadioGroup: TMenuItemRadioGroup;
 begin
  Window := TGLWindowDemo.Create(Application);
-  
+
  { create menu }
- Window.MainMenu := TMenu.Create('Main menu');
+ MainMenu := TMenu.Create('Main menu');
  M := TMenu.Create('_File');
+   M.Append(TMenuItem.Create('Change to alternative main menu', 100));
    M.Append(TMenuItem.Create('_Exit', 20));
-   Window.MainMenu.Append(M);
+   MainMenu.Append(M);
  M := TMenu.Create('_Color');
    M.Append(TMenuItem.Create('_Red', 0));
    M.Append(TMenuItem.Create('_Green', 1));
@@ -147,12 +160,9 @@ begin
    M.Append(TMenuItem.Create('_White', 4));
    M.Append(TMenuItem.Create('Gr_ay', 5));
    M.Append(TMenuItem.Create('B_lack', 6));
-   Window.MainMenu.Append(M);
-
+   MainMenu.Append(M);
  M := TMenu.Create('_Placement');
-
    { Radio menu items test }
-
    { First radio test: simple use AutoCheckToggle := true }
    Radio := TMenuItemRadio.Create('_Top', 21, false, true);
    RadioGroup := Radio.Group; { First: get Group }
@@ -163,7 +173,6 @@ begin
    Radio := TMenuItemRadio.Create('_Bottom', 23, false, true);
    Radio.Group := RadioGroup;
    M.Append(Radio);
-
    { Second radio test: use without AutoCheckToggle := true,
      we will explicitly set Checked. }
    M.Append(TMenuSeparator.Create);
@@ -176,9 +185,7 @@ begin
    MenuHorizRight := TMenuItemRadio.Create('_Right', 27, true, false);
    MenuHorizRight.Group := RadioGroup;
    M.Append(MenuHorizRight);
-
-   Window.MainMenu.Append(M);
-
+   MainMenu.Append(M);
  M := TMenu.Create('_Shape');
    M.Append(TMenuItemChecked.Create('_Filled', 31, Filled, true));
    M2 := TMenu.Create('_More options');
@@ -187,14 +194,23 @@ begin
      M.Append(M2);
    M.Append(TMenuItem.Create('_Rectangle', 10, 'r'));
    M.Append(TMenuItem.Create('_Triangle',  11, 't'));
-   Window.MainMenu.Append(M);
+   MainMenu.Append(M);
  M := TMenu.Create('_Change menu');
  ChangeableMenu := M;
    M.Append(TMenuItem.Create('Create new _main menu item', 40));
    M.Append(TMenuItem.Create('Create new _submenu here',   41));
    M.Append(TMenuItem.Create('Create new menu _item here', 42));
    M.Append(TMenuSeparator.Create);
-   Window.MainMenu.Append(M);
+   MainMenu.Append(M);
+
+ AlternativeMainMenu := TMenu.Create('Alternative main menu');
+  M := TMenu.Create('Second menu');
+    M.Append(TMenuItem.Create('Change back to first menu', 101));
+    AlternativeMainMenu.Append(M);
+
+ Window.MainMenu := MainMenu;
+ { this allows to free MainMenu and AlternativeMainMenu easier at the end }
+ Window.OwnsMainMenu := false;
 
  Window.OnMenuCommand := @MenuCommand;
  Window.OnResize := @Resize;
@@ -202,5 +218,9 @@ begin
  Window.Width := 300;
  Window.Height := 300;
  Window.DepthBufferBits := 0;
- Window.OpenAndRun('Test Menu', @Draw);
+ Window.OpenAndRun('Demo GLWindow Menu', @Draw);
+
+ Window.MainMenu := nil;
+ FreeAndNil(MainMenu);
+ FreeAndNil(AlternativeMainMenu);
 end.
