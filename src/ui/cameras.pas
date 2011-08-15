@@ -2117,12 +2117,12 @@ begin
 
       { I want new Orientation :=
           (Orientation - OldInitialOrientation) + NewInitialOrientation. }
-      Orientation := QuatMultiply(QuatConjugate(OldInitialOrientation), Orientation);
-      Orientation := QuatMultiply(NewInitialOrientation, Orientation);
+      Orientation := OldInitialOrientation.Conjugate * Orientation;
+      Orientation := NewInitialOrientation * Orientation;
 
       { Now that we have Orientation, transform it into new Dir/Up. }
-      Dir := QuatRotate(Orientation, DefaultCameraDirection);
-      Up  := QuatRotate(Orientation, DefaultCameraUp);
+      Dir := Orientation.Rotate(DefaultCameraDirection);
+      Up  := Orientation.Rotate(DefaultCameraUp);
     end;
 
     { This will do ScheduleVisibleChange }
@@ -2211,7 +2211,7 @@ end;
 function TExamineCamera.Matrix: TMatrix4Single;
 begin
   Result := TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation));
-  Result := MatrixMult(Result, QuatToRotationMatrix(Rotations));
+  Result := MatrixMult(Result, Rotations.ToRotationMatrix);
   Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
   Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
 end;
@@ -2221,14 +2221,14 @@ begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
 
   Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation)));
-  Result := MatrixMult(QuatToRotationMatrix(QuatConjugate(Rotations)), Result);
+  Result := MatrixMult(Rotations.Conjugate.ToRotationMatrix, Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
   Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
 end;
 
 function TExamineCamera.RotationMatrix: TMatrix4Single;
 begin
-  Result := QuatToRotationMatrix(Rotations);
+  Result := Rotations.ToRotationMatrix;
 end;
 
 procedure TExamineCamera.Idle(const CompSpeed: Single;
@@ -2242,8 +2242,8 @@ procedure TExamineCamera.Idle(const CompSpeed: Single;
     if RotationAccelerate then
       FRotationsAnim[coord] +=
         RotationAccelerationSpeed * CompSpeed * Direction else
-      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[Coord],
-        RotationSpeed * CompSpeed * Direction), FRotations);
+      FRotations := QuatFromAxisAngle(UnitVector3Single[Coord],
+        RotationSpeed * CompSpeed * Direction) * FRotations;
     VisibleChange;
   end;
 
@@ -2273,18 +2273,18 @@ begin
     RotChange := CompSpeed;
 
     if FRotationsAnim[0] <> 0 then
-      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[0],
-        FRotationsAnim[0] * RotChange), FRotations);
+      FRotations := QuatFromAxisAngle(UnitVector3Single[0],
+        FRotationsAnim[0] * RotChange) * FRotations;
 
     if FRotationsAnim[1] <> 0 then
-      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[1],
-        FRotationsAnim[1] * RotChange), FRotations);
+      FRotations := QuatFromAxisAngle(UnitVector3Single[1],
+        FRotationsAnim[1] * RotChange) * FRotations;
 
     if FRotationsAnim[2] <> 0 then
-      FRotations := QuatMultiply(QuatFromAxisAngle(UnitVector3Single[2],
-        FRotationsAnim[2] * RotChange), FRotations);
+      FRotations := QuatFromAxisAngle(UnitVector3Single[2],
+        FRotationsAnim[2] * RotChange) * FRotations;
 
-    QuatLazyNormalizeTo1st(FRotations);
+    FRotations.LazyNormalize;
 
     VisibleChange;
   end;
@@ -2541,12 +2541,10 @@ begin
   { Rotating }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
   begin
-    FRotations := QuatMultiply(
-      QuatFromAxisAngle(Vector3Single(0, 1, 0), (NewX - OldX) / 100),
-      FRotations);
-    FRotations := QuatMultiply(
-      QuatFromAxisAngle(Vector3Single(1, 0, 0), (NewY - OldY) / 100),
-      FRotations);
+    FRotations := QuatFromAxisAngle(Vector3Single(0, 1, 0), (NewX - OldX) / 100)
+      * FRotations;
+    FRotations := QuatFromAxisAngle(Vector3Single(1, 0, 0), (NewY - OldY) / 100)
+      * FRotations;
     VisibleChange;
     Result := ExclusiveEvents;
   end else
@@ -2632,7 +2630,7 @@ begin
   Up := AUp;
   MakeVectorsOrthoOnTheirPlane(Up, ADir);
 
-  FRotations := QuatConjugate(CamDirUp2OrientQuat(ADir, Up));
+  FRotations := CamDirUp2OrientQuat(ADir, Up).Conjugate;
 
 { Testing of "hard case" in CamDirUp2OrientQuat.
   This should always succeed now, many cases tested automatically
@@ -2660,7 +2658,7 @@ begin
     We also note at this point that rotation is done around
     (FMoveAmount + FCenterOfRotation). But FCenterOfRotation is not
     included in MoveAmount. }
-  FMoveAmount := QuatRotate(FRotations, FMoveAmount + FCenterOfRotation)
+  FMoveAmount := FRotations.Rotate(FMoveAmount + FCenterOfRotation)
     - FCenterOfRotation;
 
   { Reset ScaleFactor to 1, this way the camera view corresponds
@@ -4554,7 +4552,7 @@ begin
  Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
  { calculate Rot2Quat }
- StdCamUpAfterRot1 := QuatRotate(Rot1Quat, DefaultCameraUp);
+ StdCamUpAfterRot1 := Rot1Quat.Rotate(DefaultCameraUp);
  { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
    which one? (To make the rotation around it in correct direction.)
    Calculating Rot2Axis below is a solution. }
@@ -4570,7 +4568,7 @@ begin
 
  { calculate Result = combine Rot1 and Rot2 (yes, the order
    for QuatMultiply is reversed) }
- Result := QuatMultiply(Rot2Quat, Rot1Quat);
+ Result := Rot2Quat * Rot1Quat;
 end;
 
 procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
@@ -4578,7 +4576,7 @@ procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
 begin
   { Call CamDirUp2OrientQuat,
     and extract the axis and angle from the quaternion. }
-  QuatToAxisAngle(CamDirUp2OrientQuat(CamDir, CamUp), OrientAxis, OrientRadAngle);
+  CamDirUp2OrientQuat(CamDir, CamUp).ToAxisAngle(OrientAxis, OrientRadAngle);
 end;
 
 function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;

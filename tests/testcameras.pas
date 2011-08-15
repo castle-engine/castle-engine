@@ -124,15 +124,15 @@ const
   var
     Orientation: TQuaternion;
   begin
-    Orientation := QuatConjugate(CamDirUp2OrientQuat(Dir, Up));
+    Orientation := CamDirUp2OrientQuat(Dir, Up).Conjugate;
     try
-      Assert(VectorsEqual(QuatRotate(Orientation, Normalized(Dir)), DefaultVRMLCameraDirection, 0.01));
-      Assert(VectorsEqual(QuatRotate(Orientation, Normalized(Up )), DefaultVRMLCameraUp       , 0.01));
+      Assert(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultVRMLCameraDirection, 0.01));
+      Assert(VectorsEqual(Orientation.Rotate(Normalized(Up )), DefaultVRMLCameraUp       , 0.01));
     except
       Writeln('Failed on ', TestName, '. Resulting dir is ',
-        VectorToNiceStr(QuatRotate(Orientation, Normalized(Dir))),
+        VectorToNiceStr(Orientation.Rotate(Normalized(Dir))),
         ', resulting up is ',
-        VectorToNiceStr(QuatRotate(Orientation, Normalized(Up))));
+        VectorToNiceStr(Orientation.Rotate(Normalized(Up))));
       raise;
     end;
   end;
