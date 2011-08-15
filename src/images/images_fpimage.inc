@@ -18,14 +18,20 @@
   FPImage docs:
   http://lazarus-ccr.sourceforge.net/docs/fcl/fpimage/index.html
   http://wiki.freepascal.org/fcl-image
+
   Also http://free-pascal-general.1045716.n5.nabble.com/Why-is-FPImage-dog-slow-in-reading-jpeg-s-td4439450.html
   is informative, explains UsePalette stuff.
+  However, for some formats palette is needed --- e.g. reading XPM
+  reader segfaults when UsePalette = false, tested on
+  /usr/share/pixmaps/EasyTAG_icon.xpm
+  /usr/share/pixmaps/flamerobin.xpm
 }
 
 function LoadFpImage(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions;
-  Reader: TFPCustomImageReader): TImage;
+  Reader: TFPCustomImageReader;
+  const AllowPalette: boolean = false): TImage;
 var
   FPImage: TFPMemoryImage;
   X, Y: Integer;
@@ -34,7 +40,7 @@ var
 begin
   FPImage := TFPMemoryImage.Create(0, 0);
   try
-    FPImage.UsePalette := false;
+    FPImage.UsePalette := AllowPalette;
     FPImage.LoadFromStream(Stream, Reader);
 
     Result := TRGBImage.Create(FPImage.Width, FPImage.Height);
@@ -54,6 +60,47 @@ begin
     FreeAndNil(FPImage);
     FreeAndNil(Reader);
   end;
+end;
+
+function LoadGIF(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderGIF.Create);
+end;
+
+function LoadTGA(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderTarga.Create);
+end;
+
+{
+TIFF reader from FPReadTiff fails on ~/images/test_images/lena.tif
+with "missing RowsPerStrip.."
+AllowPalette = true or false, doesn't matter.
+
+function LoadTIFF(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderTIFF.Create, true);
+end;
+}
+
+function LoadXPM(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderXPM.Create, true);
+end;
+
+function LoadPSD(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+begin
+  Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPSD.Create);
 end;
 
 function LoadPCX(Stream: TStream;

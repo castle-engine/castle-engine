@@ -67,7 +67,7 @@ interface
 uses SysUtils, Classes, Math, KambiUtils, VectorMath,
   KambiPng, KambiPasJpeg, FileFilters, KambiClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  FPImage, FPReadPCX;
+  FPImage, FPReadPCX, FPReadGIF, FPReadTGA, FPReadTiff, FPReadXPM, FPReadPSD;
 
 type
   { See TImage.AlphaChannelType. }
@@ -1064,6 +1064,14 @@ function LoadJPEG(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
+function LoadXPM(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
+function LoadPSD(Stream: TStream;
+  const AllowedImageClasses: array of TImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TImage;
+
 { Load PCX image.
 
   Only 256-color PCX can be handled.
@@ -1160,7 +1168,6 @@ type
       library. }
     ifJPEG,
 
-    ifPCX,
     ifPPM,
     ifIPL,
 
@@ -1191,13 +1198,15 @@ type
       if you're Ok with losing some of the precision. }
     ifRGBE,
 
-    { GIF, TGA, SGI, TIFF, Jpeg2000, OpenEXR image formats are supported
+    { Image formats below are supported
       by converting them  "under the hood" with ImageMagick.
-
       This is available only if this unit is compiled with FPC
       (i.e. not with Delphi) on platforms where ExecuteProcess is
       implemented. And ImageMagick must be installed and available on $PATH. }
-    ifGIF, ifTGA, ifSGI, ifTIFF, ifJP2, ifEXR,
+    ifTIFF, ifSGI, ifJP2, ifEXR,
+
+    { Image formats below are supported by FPImage. }
+    ifGIF, ifTGA, ifXPM, ifPSD, ifPCX,
 
     { We handle fully DDS (DirectDraw Surface) image format.
       See also TDDSImage class in DDS unit,
@@ -1313,10 +1322,6 @@ const
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
       Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
       Save: @SaveJPEG; SavedClasses: scRGB ),
-    ( FormatName: 'ZSoft PCX image';
-      ExtsCount: 1; Exts: ('pcx', '', '');
-      Load: @LoadPCX; LoadedClasses: lcRGB;
-      Save: nil; SavedClasses: scRGB; ),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       ExtsCount: 1; Exts: ('ppm', '', '');
@@ -1330,22 +1335,16 @@ const
       ExtsCount: 2; Exts: ('rgbe', 'pic', '');
       Load: @LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
       Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat; ),
-    { Graphics Interchange Format } { }
-    ( FormatName: 'GIF image';
-      ExtsCount: 1; Exts: ('gif', '', '');
-      Load: @LoadGIF; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'TarGA image';
-      ExtsCount: 1; Exts: ('tga', '', '');
-      Load: @LoadTGA; LoadedClasses: lcG_GA_RGB_RGBA;
+
+    { Loaded using ImageMagick } { }
+
+    ( FormatName: 'TIFF image';
+      ExtsCount: 1; Exts: ('tif', '', '');
+      Load: @LoadTIFF; LoadedClasses: lcRGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'SGI image';
       ExtsCount: 1; Exts: ('sgi', '', '');
       Load: @LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'TIFF image';
-      ExtsCount: 1; Exts: ('tif', '', '');
-      Load: @LoadTIFF; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
     ( FormatName: 'JP2 image';
       ExtsCount: 1; Exts: ('jp2', '', '');
@@ -1355,6 +1354,31 @@ const
       ExtsCount: 1; Exts: ('exr', '', '');
       Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: nil; SavedClasses: scRGB; ),
+
+    { Loaded using FPImage } { }
+
+    { Graphics Interchange Format } { }
+    ( FormatName: 'GIF image';
+      ExtsCount: 1; Exts: ('gif', '', '');
+      Load: @LoadGIF; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'TarGA image';
+      ExtsCount: 1; Exts: ('tga', '', '');
+      Load: @LoadTGA; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'XPM image';
+      ExtsCount: 1; Exts: ('xpm', '', '');
+      Load: @LoadXPM; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'PSD image';
+      ExtsCount: 1; Exts: ('psd', '', '');
+      Load: @LoadPSD; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'ZSoft PCX image';
+      ExtsCount: 1; Exts: ('pcx', '', '');
+      Load: @LoadPCX; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+
     { Direct Draw Surface } { }
     ( FormatName: 'DDS image';
       ExtsCount: 1; Exts: ('dds', '', '');

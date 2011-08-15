@@ -135,22 +135,6 @@ begin
 end;
 {$endif}
 
-function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
-begin
-  Result := LoadImageExternalTool(
-    Stream, AllowedImageClasses, ForbiddenConvs, 'gif');
-end;
-
-function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
-begin
-  Result := LoadImageExternalTool(
-    Stream, AllowedImageClasses, ForbiddenConvs, 'tga');
-end;
-
 function LoadSGI(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
