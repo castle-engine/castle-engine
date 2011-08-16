@@ -125,8 +125,8 @@ type
     procedure ALContextClose; override;
 
     { The XML file that contains description of your sounds.
-      See @code(examples/sample_sounds.xml) file for a heavily
-      commented example.
+      See engine examples, @code(examples/audio/sample_sounds.xml) file,
+      for a heavily commented example.
 
       It's crucial that you create such file, and eventually adjust
       this property before calling ReadSoundInfos (or ALContextOpen,

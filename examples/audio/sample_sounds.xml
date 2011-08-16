@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 
 <!--
-   This is a sample sounds.xml file, usable by GameSoundEngine unit.
+   This is a sample sounds.xml file, usable by XmlSoundEngine unit.
    Configuration of game sounds. Each sound has a <sound> element.
 
-   `name' is the unique sound name, as defined in TGameSoundEngine.SoundNames.
+   `name' is the unique sound name, as defined in TXmlSoundEngine.SoundNames.
    Currently you can have multiple <sound> elements for the same
    name, and they will be processed in order - - - but don't depend
    on it. For future safety each <sound> element should have different
    name. In the future this file will allow you to add new sounds,
    and name them any way you like - - - for now, you are constrained
-   to sounds defined and named in TGameSoundEngine.SoundNames property.
+   to sounds defined and named in TXmlSoundEngine.SoundNames property.
 
    `file_name' attribute defaults to element_name + '.wav', so in the most
    common situation, when sound named xxx has the filename xxx.wav,
@@ -28,12 +28,12 @@
    By default (if not specified) gain is 1, min/max are 0/1.
 
    `default_importance' is the sound importance, for AL sound manager.
-   You can place here a simple unsigned int value, but it's strongly adviced
+   You can place here a simple unsigned int value, but it's strongly advised
    to use one of predefined special values, like "max".
    For "The Castle" only: more predefined importances are
    "player" or "default_creature" or "level_event".
 
-   For more details see declaration of TSoundInfo record in GameSoundEngine unit.
+   For more details see declaration of TSoundInfo record in XmlSoundEngine unit.
 
    Comments for "The Castle" only:
    Note that you can change this file while the game is running,
@@ -65,10 +65,10 @@
   <!-- Example sound that has explicit empty file_name, to indicate
        that the sound doesn't exist actually.
        Such sound can be treated as usual by your program using
-       GameSoundEngine unit, you can pass it to Sound or Sound3d
+       XmlSoundEngine unit, you can pass it to Sound or Sound3d
        methods without errors etc., but the sound will actually not play.
 
-       This is useful is you plan to use the sound in the game,
+       This is useful if you plan to use the sound in the game,
        but you don't have actually the sound data (WAV file etc.)
        prepared yet. Then you can write such sound with empty
        file_name and use it everywhere like it would exist.
