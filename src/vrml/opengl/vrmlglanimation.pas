@@ -200,7 +200,7 @@ type
         passed to TVRMLField.Equals.
 
         You can pass here 0 to use exact comparison, but it's
-        adviced to use here something > 0. Otherwise we could waste
+        advised to use here something > 0. Otherwise we could waste
         display list memory (and loading time) for many frames of the
         same node that are in fact equal.)
     }

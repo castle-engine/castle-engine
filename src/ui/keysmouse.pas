@@ -304,7 +304,7 @@ type
 
       Although we do our best (have some mapping tables to track characters),
       and in practice this works Ok. But still checking for keys
-      on @link(Keys) array, when possible, is adviced. }
+      on @link(Keys) array, when possible, is advised. }
     Characters: TCharactersBooleans;
 
     { Check is a key (TKey) pressed.

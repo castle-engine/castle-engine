@@ -593,7 +593,7 @@ type
 
     For some of these features, you'll have to set the @link(MainScene) property.
 
-    This is a TUIControl descendant, which means it's adviced usage
+    This is a TUIControl descendant, which means it's advised usage
     is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
     This passes relevant TUIControl events to all the T3D objects inside.
     Note that even when you set DefaultViewport = @false

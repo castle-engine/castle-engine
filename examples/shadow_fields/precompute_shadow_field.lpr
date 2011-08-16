@@ -117,7 +117,7 @@ begin
         which should be slightly  better. }
       BoundingSphereRadius := 0.6 * BoundingSphereRadius;
       SF.SpheresMiddle := BoundingSphereCenter;
-      { 0.2, 8 are adviced in paper about shadow fields }
+      { 0.2, 8 are advised in paper about shadow fields }
       SF.FirstSphereRadius := 0.2 * BoundingSphereRadius;
       SF.LastSphereRadius := 8 * BoundingSphereRadius;
 

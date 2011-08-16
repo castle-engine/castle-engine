@@ -675,7 +675,7 @@ type
       are Ok, like Width and Height).
 
       It may even be changed between RenderBegin and RenderEnd.
-      In fact, this is adviced, if you have to call SetTexture often:
+      In fact, this is advised, if you have to call SetTexture often:
       SetTexture call outside of RenderBegin / RenderEnd causes two
       costly BindFramebuffer calls, that may be avoided when you're
       already between RenderBegin / RenderEnd. }
@@ -736,7 +736,7 @@ type
       And when your texture is GL_DEPTH_COMPONENT, this is a must.
       In the future, we could allow some flag to allow you to use texture
       with GL_DEPTH_STENCIL format, this would work with packed depth/stencil
-      (actually, even require it). For now, @italic(it's adviced to turn
+      (actually, even require it). For now, @italic(it's advised to turn
       off @name when you use @link(Buffer) = tbDepth or tbColorAndDepth). }
     property Stencil: boolean
       read FStencil write FStencil default true;

@@ -16,7 +16,7 @@
 { Storing configuration files in XML (TKamXMLConfig). }
 unit KambiXMLConfig;
 
-{ In new FPC versions, XMLConf unit is adviced and XMLCfg is deprecated.
+{ In new FPC versions, XMLConf unit is advised and XMLCfg is deprecated.
   See e.g. [http://www.mail-archive.com/lazarus@lists.lazarus.freepascal.org/msg09489.html].
   But XMLConf requires adding units to your uses clause that are otherwise
   not needed:

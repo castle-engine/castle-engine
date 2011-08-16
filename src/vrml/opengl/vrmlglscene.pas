@@ -710,7 +710,7 @@ type
           If you pass AllowSilhouetteOptimization = @false,
           you explicitly want to use the naive approach that just renders
           3 shadow quads for each triangle. This is much slower,
-          and is not adviced... read below for exceptions.
+          and is not advised... read below for exceptions.
 
           The only good reason to use this is that silhouette optimization
           for models that are not perfect 2-manifold (i.e., have some

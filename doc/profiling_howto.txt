@@ -9,7 +9,7 @@ Compile for valgrind:
 - compile as usual, with -dRELEASE (you want to profile released code)
 
 Run with valgrind:
-Generally, running program through callgrind adds an enormours slowdown, especially with instrumentation (this is when actual measurements take place). So it's adviced to start without instrumentation, and only turn it on for the interested code part.
+Generally, running program through callgrind adds an enormours slowdown, especially with instrumentation (this is when actual measurements take place). So it's advised to start without instrumentation, and only turn it on for the interested code part.
 
 valgrind --tool=callgrind --instr-atstart=no ~/bin/view3dscene
 

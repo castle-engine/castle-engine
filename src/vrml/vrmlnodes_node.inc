@@ -397,7 +397,7 @@
       Analogous to standard TObject.Free, this also works when called on
       a @nil value (does nothing in this case).
 
-      For safety, it's adviced to set reference to @nil after calling FreeIfUnused.
+      For safety, it's advised to set reference to @nil after calling FreeIfUnused.
       You can use FreeIfUnusedAndNil utility for this (that employs a trick
       to @nil the visible reference even before freeing, which is even safer).
       This is analogous to standard FreeAndNil. }

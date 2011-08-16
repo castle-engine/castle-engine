@@ -1089,7 +1089,7 @@ function LoadPPM(Stream: TStream;
   const ForbiddenConvs: TImageLoadConversions): TImage;
 
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
-  Note that for PPM, for now it's more adviced to use our LoadPPM. }
+  Note that for PPM, for now it's more advised to use our LoadPPM. }
 function LoadPNM(Stream: TStream;
   const AllowedImageClasses: array of TImageClass;
   const ForbiddenConvs: TImageLoadConversions): TImage;
