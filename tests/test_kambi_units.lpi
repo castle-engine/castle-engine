@@ -151,7 +151,7 @@
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="../examples/vrml/shadow_fields/testshadowfields.pas"/>
+        <Filename Value="../examples/shadow_fields/testshadowfields.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="TestShadowFields"/>
         <CursorPos X="1" Y="1"/>
@@ -170,7 +170,7 @@
     <Version Value="8"/>
     <SearchPaths>
       <IncludeFiles Value="../../kambi_vrml_game_engine/src/base"/>
-      <OtherUnitFiles Value="../examples/vrml/shadow_fields/"/>
+      <OtherUnitFiles Value="../examples/shadow_fields/"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
