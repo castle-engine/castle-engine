@@ -25,6 +25,10 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
 
 ------------------------------------------------------------------------------
 Details during 2.6.0 release:
+- Free T3DTranslated from GL dependency, and also from deprecated GL stuff:
+  pass transformation down (for now, scene GL renderer will apply it),
+  don't directly do glTranslatev.
+
 - 100% test castle, lets_take_a_walk work with and without shader pipeline forced.
   make sure castle results are all Ok now, like with last released version
   --- nothing broken, all lights look the same?
@@ -84,6 +88,9 @@ Details during 2.6.0 release:
 - Merge VRMLGLAnimationInfo functionality into VRMLGLAnimation class?
 - T3DTransformed, with fields like VRML/X3D Transform.
   Transform frustum (with far plane possibly in infinity) by arbitrary matrix?
+
+- Should we disallow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
+  See todo below. Maybe do it for 2.6.0.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
@@ -236,8 +243,8 @@ Scene manager / controls / better Lazarus integration:
 
   - TWalkCamera.AboveGround should be freed when triangle is destroyed.
 
-- Should we allow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
-  IOW, should TCamera remain TUIControl descendant?
+- Should we disallow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
+  IOW, should TCamera be changed to not descend from TUIControl?
 
   Yes: because in 99% you want to use TKamSceneManager.Camera.
   - The scene manager offers instant integration of view with camera
@@ -265,13 +272,7 @@ Scene manager / controls / better Lazarus integration:
   Below is extracted from
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
-  rift:
-    ../../rift/riftplay.pas:141:  glLoadMatrix(SceneCamera.Matrix);
   pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
-    For direct_vrmlglscene_xxx, it's even by design (this shows that without
-    scenemanager you can also work):
-    ../examples/vrml/direct_vrmlglscene_test_1.lpr:58:  glLoadMatrix(Camera.Matrix);
-    ../examples/vrml/direct_vrmlglscene_test_2.lpr:76:  glLoadMatrix(Camera.Matrix);
     ../examples/vrml/terrain/terrain.lpr:200:  glLoadMatrix(Camera.Matrix);
     ../examples/glwindow/bezier_surfaces/animate_surface.lpr:95:  glLoadMatrix(Camera.Matrix);
     ../examples/glwindow/bezier_surfaces/design_surface.lpr:202:  glLoadMatrix(Camera.Matrix);
@@ -280,6 +281,8 @@ Scene manager / controls / better Lazarus integration:
   like TInputListener, for TUIControl, TCamera, TBase3D.
   Or at least for TUIControl, TCamera.
   Maybe TInvisibleUIControl, or TCustomUIControl?
+
+  Maybe good idea? Rethink for engine 2.6.0.
 
 - castle: besides level (MainScene, and level objects as additional stuff),
   it would be most perfect if castle creatures / items would be part of
@@ -326,6 +329,10 @@ Scene manager / controls / better Lazarus integration:
   is also dependent on VRML (since it uses VRMLTriangle types, to filter
   out items for collision detection etc.). This would have to be resolved
   first.
+
+  Probably, resolution: no. This is an VRML/X3D engine, everything important
+  requires VRML/X3D, VRML/X3D is our scene graph. No point in denying it,
+  no point in complicating scene manager.
 
 * Let RenderingCamera use some Camera reference, maybe make TSimpleCamera to avoid
   overloading it with full camera props for temporary camera settings?
