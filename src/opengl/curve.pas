@@ -337,7 +337,7 @@ end;
 procedure TCurve.Render(const Frustum: TFrustum;
   const Params: TRenderParams);
 begin
-  if Params.TransparentGroup in [tgAll, tgOpaque] then
+  if not Params.Transparent then
     Render(DefaultSegments);
 end;
 

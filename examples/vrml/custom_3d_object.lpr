@@ -46,7 +46,7 @@ begin
     glMultMatrix(Params.RenderTransform);
   end;
 
-  if Params.TransparentGroup in [tgAll, tgOpaque] then
+  if not Params.Transparent then
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glEnable(GL_LIGHTING);

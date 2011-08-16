@@ -63,7 +63,7 @@ procedure TMySceneManager.Render3D(const Params: TRenderParams);
 var
   I: Integer;
 begin
-  if not (Params.TransparentGroup in [tgAll, tgOpaque]) then Exit;
+  if Params.Transparent then Exit;
 
   glMultMatrix(Shape.State.Transform);
 

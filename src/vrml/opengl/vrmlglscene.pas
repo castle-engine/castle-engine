@@ -342,16 +342,10 @@ type
   end;
 
 type
-  TTransparentGroup = Base3D.TTransparentGroup;
-  TTransparentGroups = Base3D.TTransparentGroups;
   TPrepareResourcesOption = Base3D.TPrepareResourcesOption;
   TPrepareResourcesOptions = Base3D.TPrepareResourcesOptions;
 
 const
-  tgTransparent = Base3D.tgTransparent;
-  tgOpaque = Base3D.tgOpaque;
-  tgAll = Base3D.tgAll;
-
   prRender = Base3D.prRender;
   prBackground = Base3D.prBackground;
   prBoundingBox = Base3D.prBoundingBox;
@@ -446,7 +440,7 @@ type
       Then on all potentially visible Shapes[] calls RenderShape.
       "Potentially visible" is decided by TestShapeVisibility
       (shape is visible if TestShapeVisibility is @nil or returns
-      @true for this shape) and TransparentGroup must include
+      @true for this shape) and Params.Transparent value must include
       given shape. At the end calls Renderer.RenderEnd.
 
       Additionally this implements blending, looking at Attributes.Blending*,
@@ -607,16 +601,13 @@ type
           render transparent shapes at the end (after all opaque),
           and with depth-buffer in read-only mode.)
 
-        @item(If Params.TransparentGroup is tgOpaque or tgTransparent,
-          then only a given subset of shapes is rendered. This is handy
-          if you want to mix in one 3D world many scenes (like TVRMLGLScene
-          instances), and each of them may have some opaque and some transparent
+        @item(Only a subset of shapes indicated by Params.Transparent is rendered.
+          This is necessary if you want to mix in one 3D world many scenes
+          (like TVRMLGLScene instances), and each of them may have some opaque
+          and some transparent
           parts. In such case, you want to render everything opaque
           (from every scene) first, and only then render everything transparent.
-
-          Using Params.TransparentGroup = tgAll is like a shortcut
-          for using tgOpaque first, and then tgTransparent on this scene.
-          Practically useful only if this is the only 3D scene.)
+          For shadow volumes, this is even more complicated.)
 
         @item(Note that when Attributes.Blending is @false then everything
           is always opaque, so tgOpaque renders everything and tgTransparent
@@ -680,8 +671,8 @@ type
       work e.g. done for this frame.
 
       Note that this is automatically done at the beginning of @link(Render)
-      with TransparentGroup = tgTransparent.
-      So rendering with tgTransparent always sums to the rendered shapes.
+      with Params.Transparent = true.
+      So rendering transparent always sums to the rendered shapes.
       This reflects typical usage. }
     procedure LastRender_SumNext;
 
@@ -1256,7 +1247,7 @@ begin
   inherited;
   FBaseLights := TLightInstancesList.Create;
   InShadow := false;
-  TransparentGroup := tgAll;
+  Transparent := false;
 end;
 
 destructor TBasicRenderParams.Destroy;
@@ -1636,9 +1627,6 @@ end;
 
 procedure TVRMLGLScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams);
-const
-  AllOrOpaque = [tgAll, tgOpaque];
-  AllOrTransparent = [tgAll, tgTransparent];
 var
   OcclusionBoxState: boolean;
 
@@ -1797,7 +1785,7 @@ var
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    if Params.TransparentGroup in AllOrOpaque then
+    if not Params.Transparent then
     begin
       SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
       try
@@ -2103,7 +2091,7 @@ var
   I: Integer;
   LightRenderEvent: TVRMLLightRenderEvent;
 begin
-  if Params.TransparentGroup = tgTransparent then
+  if Params.Transparent then
     LastRender_SumNext;
 
   if FLastRender_SumNext then
@@ -2170,7 +2158,7 @@ begin
               much less shapes to consider. }
 
             { draw fully opaque objects }
-            if Params.TransparentGroup in AllOrOpaque then
+            if not Params.Transparent then
             begin
               if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
                 OpaqueShapes.SortFrontToBack(CameraPosition);
@@ -2180,8 +2168,7 @@ begin
             end;
 
             { draw partially transparent objects }
-            if (TransparentShapes.Count <> 0) and
-               (Params.TransparentGroup in AllOrTransparent) then
+            if Params.Transparent and (TransparentShapes.Count <> 0) then
             begin
               glDepthMask(GL_FALSE);
               glEnable(GL_BLEND);

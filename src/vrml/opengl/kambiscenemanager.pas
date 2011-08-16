@@ -107,7 +107,7 @@ type
     procedure ApplyProjection; virtual;
 
     { Render one pass, from current (saved in RenderingCamera) camera view,
-      for specific lights setup, for given TransparentGroup.
+      for specific lights setup, for given Params.Transparent.
 
       If you want to add something 3D to your scene during rendering,
       this is the simplest method to override. (Or you can use OnRender3D
@@ -117,9 +117,8 @@ type
 
     { Render 3D items that are never in shadows (are not shadow receivers).
       This will always be called once with
-      Params.TransparentGroup = tgOpaque, and once with
-      Params.TransparentGroup = tgTransparent argument,
-      from RenderFromView.
+      Params.Transparent = @false, and once with
+      Params.Transparent = @true argument, from RenderFromView.
       Always Params.InShadow = false. }
     procedure RenderNeverShadowed(const Params: TRenderParams); virtual;
 
@@ -165,7 +164,7 @@ type
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world.
 
-      This will change Params.TransparentGroup and Params.InShadow,
+      This will change Params.Transparent and Params.InShadow,
       as needed. Their previous values do not matter. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
 
@@ -1432,7 +1431,7 @@ end;
 procedure TKamAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
 { Inside this method we control (always set correctly) Params.InShadow
-  and Params.TransparentGroup. }
+  and Params.Transparent. }
 
   procedure RenderNoShadows;
   begin
@@ -1444,11 +1443,11 @@ procedure TKamAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
     Params.InShadow := false;
 
-    Params.TransparentGroup := tgOpaque;
+    Params.Transparent := false;
     RenderNeverShadowed(Params);
     Render3D(Params);
 
-    Params.TransparentGroup := tgTransparent;
+    Params.Transparent := true;
     Render3D(Params);
     RenderNeverShadowed(Params);
   end;

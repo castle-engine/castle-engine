@@ -94,7 +94,7 @@ var
 
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
-  if not (Params.TransparentGroup in [tgAll, tgOpaque]) then Exit;
+  if Params.Transparent then Exit;
 
   { Do not call "inherited", i.e. do not let default PreciseCurve, ApproxCurve
     rendering, because we want to take into account our variables

@@ -186,7 +186,7 @@ end;}
 
 begin
   inherited;
-  if Params.TransparentGroup in [tgAll, tgOpaque] then
+  if not Params.Transparent then
   begin
     MinSHValue :=  MaxFloat;
     MaxSHValue := -MaxFloat;

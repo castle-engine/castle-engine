@@ -617,9 +617,9 @@ begin
   case DrawType of
     dtNormalGL:
       begin
-        Params.TransparentGroup := tgOpaque;
+        Params.Transparent := false;
         Scene.Render(RenderingCamera.Frustum, Params);
-        Params.TransparentGroup := tgTransparent;
+        Params.Transparent := true;
         Scene.Render(RenderingCamera.Frustum, Params);
       end;
     dtElements:
@@ -644,9 +644,9 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Params.TransparentGroup := tgOpaque;
+          Params.Transparent := false;
           Scene.Render(RenderingCamera.Frustum, Params);
-          Params.TransparentGroup := tgTransparent;
+          Params.Transparent := true;
           Scene.Render(RenderingCamera.Frustum, Params);
         finally FreeAndNil(FullRenderIntensityTex) end;
       end;

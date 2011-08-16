@@ -29,9 +29,6 @@ Details during 2.6.0 release:
   make sure castle results are all Ok now, like with last released version
   --- nothing broken, all lights look the same?
 
-- Maybe remove tgAll possibility? Not useful?
-  Just make Transparent: boolean; ?
-
 - castle: use everything as T3D inside scene manager,
   do not call special TVRMLGLScene.Render methods.
 - Test on castle using OcclusionQuery.

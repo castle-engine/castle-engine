@@ -205,16 +205,14 @@ type
       You have to provide the appropriate callbacks that render given
       scene parts.
 
-      Params.TransparentGroup and Params.InShadow are changed here
+      Params.Transparent and Params.InShadow are changed here
       (their previous values are ignored). They cannot be modified
       by our callbacks.
 
       RenderNeverShadowed should render scene parts
       that are never in the shadow (in other words, are not shadow receivers).
-      You probably want to turn all normal scene
-      lights for them. This will be called with Params.TransparentGroup = tgOpaque
-      or tgTransparent (for correct implementation, partially transparent
-      and opaque parts must be rendered separately).
+      You probably want to turn all normal scene lights for them.
+      Look at Params.Transparent to know which parts should be rendered.
       Params.InShadow will always be false.
 
       RenderShadowReceivers renders the parts
@@ -224,11 +222,10 @@ type
       OpenGL lights off) or the version that is currently lighted
       (so probably is ligher, with normal scene lights on).
 
-      RenderShadowReceivers will also be called with
-      Params.TransparentGroup = tgOpaque or tgTransparent.
-      For tgTransparent, always Params.InShadow = @false. In fact, transparent
-      parts are always rendered at the end such that they aren't really shadow
-      receivers. Shadow volumes simply don't allow transparent object
+      RenderShadowReceivers must also honour Params.Transparent,
+      rendering only opaque or only transparent parts.
+      For Transparent = @true, always Params.InShadow = @false.
+      Shadow volumes simply don't allow transparent object
       to function properly as shadow receivers.
       Reading [http://developer.nvidia.com/object/fast_shadow_volumes.html]
       notes: they also just do separate rendering pass to render the
@@ -676,12 +673,12 @@ begin
   if Assigned(RenderNeverShadowed) then
   begin
     Params.InShadow := false;
-    Params.TransparentGroup := tgOpaque;
+    Params.Transparent := false;
     RenderNeverShadowed(Params);
   end;
 
   Params.InShadow := true;
-  Params.TransparentGroup := tgOpaque;
+  Params.Transparent := false;
   RenderShadowReceivers(Params);
 
   glEnable(GL_STENCIL_TEST);
@@ -793,7 +790,7 @@ begin
     glEnable(GL_STENCIL_TEST);
       Inc(Params.StencilTest);
       Params.InShadow := false;
-      Params.TransparentGroup := tgOpaque;
+      Params.Transparent := false;
       RenderShadowReceivers(Params);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
@@ -816,13 +813,13 @@ begin
   end;
 
   Params.InShadow := false;
-  Params.TransparentGroup := tgTransparent;
+  Params.Transparent := true;
   RenderShadowReceivers(Params);
 
   if Assigned(RenderNeverShadowed) then
   begin
     Params.InShadow := false;
-    Params.TransparentGroup := tgTransparent;
+    Params.Transparent := true;
     RenderNeverShadowed(Params);
   end;
 end;

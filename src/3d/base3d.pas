@@ -128,9 +128,6 @@ type
     prScreenEffects);
   TPrepareResourcesOptions = set of TPrepareResourcesOption;
 
-  TTransparentGroup = (tgTransparent, tgOpaque, tgAll);
-  TTransparentGroups = set of TTransparentGroup;
-
   { Shadow volumes helper, not depending on OpenGL. }
   TBaseShadowVolumeRenderer = class
   end;
@@ -171,9 +168,8 @@ type
 
   { Information that 3D object needs to render, read-only for T3D.Render. }
   TRenderParams = class
-    { Indicate that only opaque or only transparent
-      parts should be rendered. }
-    TransparentGroup: TTransparentGroup;
+    { Which parts should be rendered: opaque (@false) or transparent (@true). }
+    Transparent: boolean;
 
     { If @true, means that we're using multi-pass
       shadowing technique (like shadow volumes),
