@@ -677,41 +677,45 @@ var
 begin
   inherited;
 
-  if (Shape.Node <> nil) and
-     (Shape.Node.Appearance <> nil) then
-    Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
-  if Shape.State.Effects <> nil then
-    Shader.EnableGroupEffects(Shape.State.Effects);
-
-  UseShaderRendering := (not Attributes.PureGeometry) and
-    ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
-       (Attributes.Shaders = srAlways) );
-
-  if UseShaderRendering then
+  if Attributes.CustomShader <> nil then
+    CurrentProgram := Attributes.CustomShader else
   begin
-    { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
-    if (Shape.ProgramCache[Renderer.Pass] = nil) or
-       (Shape.ProgramCache[Renderer.Pass].Hash <> Shader.CodeHash) then
+    if (Shape.Node <> nil) and
+       (Shape.Node.Appearance <> nil) then
+      Shader.EnableAppearanceEffects(Shape.Node.Appearance.FdEffects);
+    if Shape.State.Effects <> nil then
+      Shader.EnableGroupEffects(Shape.State.Effects);
+
+    UseShaderRendering := (not Attributes.PureGeometry) and
+      ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
+         (Attributes.Shaders = srAlways) );
+
+    if UseShaderRendering then
     begin
-      if Log then
-        WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
-          [Shape.NiceName,
-           BoolToStr[(Shape.ProgramCache[Renderer.Pass] = nil) or
-                     (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil)],
-           Renderer.BaseLights.Count,
-           Renderer.Pass]);
+      { calculate and use Shape.ProgramCache[Renderer.Pass].ShaderProgram }
+      if (Shape.ProgramCache[Renderer.Pass] = nil) or
+         (Shape.ProgramCache[Renderer.Pass].Hash <> Shader.CodeHash) then
+      begin
+        if Log then
+          WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
+            [Shape.NiceName,
+             BoolToStr[(Shape.ProgramCache[Renderer.Pass] = nil) or
+                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil)],
+             Renderer.BaseLights.Count,
+             Renderer.Pass]);
 
-      if Shape.ProgramCache[Renderer.Pass] <> nil then
-        Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
+        if Shape.ProgramCache[Renderer.Pass] <> nil then
+          Renderer.Cache.Program_DecReference(Shape.ProgramCache[Renderer.Pass]);
 
-      Shape.ProgramCache[Renderer.Pass] := Renderer.Cache.Program_IncReference(
-        Renderer, Shader, Shape.NiceName);
-    end;
+        Shape.ProgramCache[Renderer.Pass] := Renderer.Cache.Program_IncReference(
+          Renderer, Shader, Shape.NiceName);
+      end;
 
-    Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
-    CurrentProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
-  end else
-    CurrentProgram := nil;
+      Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
+      CurrentProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
+    end else
+      CurrentProgram := nil;
+  end;
 
   if CurrentProgram <> nil then
     CurrentProgram.SetupUniforms(BoundTextureUnits);

@@ -267,6 +267,7 @@ type
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
+    FCustomShader: TGLSLProgram;
     FPureGeometry: boolean;
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
@@ -451,6 +452,10 @@ type
       doesn't matter, it's always treated like srDisable. }
     property Shaders: TShadersRendering read FShaders write FShaders
       default DefaultShaders;
+
+    { Custom GLSL shader to use for the whole scene.
+      When this is assigned, @link(Shaders) value is ignored. }
+    property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
 
     { Use this to render pure geometry, without any colors, materials,
       lights, textures. If this is @true, only the geometry primitives
