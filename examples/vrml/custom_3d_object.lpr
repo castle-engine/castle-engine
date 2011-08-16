@@ -40,6 +40,12 @@ type
 
 procedure TCube.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
+  if not Params.RenderTransformIdentity then
+  begin
+    glPushMatrix;
+    glMultMatrix(Params.RenderTransform);
+  end;
+
   if Params.TransparentGroup in [tgAll, tgOpaque] then
   begin
     glPushAttrib(GL_ENABLE_BIT);
@@ -49,6 +55,9 @@ begin
       DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
     glPopAttrib;
   end;
+
+  if not Params.RenderTransformIdentity then
+    glPopMatrix;
 end;
 
 function TCube.BoundingBox: TBox3D;

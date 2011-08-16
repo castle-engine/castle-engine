@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="157">
+    <Files Count="156">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -106,10 +106,6 @@
         <Filename Value="../src/vrml/x3dloadinternal3ds.pas"/>
         <UnitName Value="X3DLoadInternal3DS"/>
       </Item14>
-      <Item15>
-        <Filename Value="../src/3d/opengl/gl3d.pas"/>
-        <UnitName Value="GL3D"/>
-      </Item15>
       <Item16>
         <Filename Value="../src/3d/quaternions.pas"/>
         <UnitName Value="Quaternions"/>
@@ -684,10 +680,10 @@
         <Filename Value="../src/vrml/vrmltriangle.pas"/>
         <UnitName Value="VRMLTriangle"/>
       </Item156>
-      <Item157>
+      <Item15>
         <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
-      </Item157>
+      </Item15>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

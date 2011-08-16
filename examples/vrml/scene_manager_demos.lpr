@@ -26,9 +26,8 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, VectorMath, KambiWarnings,
-  VRMLScene, VRMLGLScene, KambiSceneManager, VRMLGLAnimation,
-  VRMLNodes, GL3D;
+uses KambiUtils, GLWindow, VectorMath, KambiWarnings, Base3D,
+  VRMLScene, VRMLGLScene, KambiSceneManager, VRMLGLAnimation, VRMLNodes;
 
 var
   Window: TGLUIWindow;

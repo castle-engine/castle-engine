@@ -2120,6 +2120,12 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
+  if not Params.RenderTransformIdentity then
+  begin
+    glPushMatrix;
+    glMultMatrix(Params.RenderTransform);
+  end;
+
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
     LightRenderEvent, Params.Pass);
   try
@@ -2208,6 +2214,9 @@ begin
       finally glPopAttrib end;
     end;
   finally Renderer.RenderEnd end;
+
+  if not Params.RenderTransformIdentity then
+    glPopMatrix;
 end;
 
 procedure TVRMLGLScene.PrepareResources(
