@@ -117,15 +117,6 @@ type
     procedure AddArray(const A: array of Integer);
     function L: PInteger;
   end;
-
-  TGenericStringList = class(specialize TFPGList<string>)
-  public
-    procedure AddList(Source: TGenericStringList);
-    procedure AddArray(const A: array of string);
-    procedure AssignArray(const A: array of string);
-    function L: PString;
-  end;
-
 {$endif}
 
 {$ifdef read_implementation}
@@ -514,39 +505,6 @@ end;
 function TIntegerList.L: PInteger;
 begin
   Result := PInteger(FList);
-end;
-
-{ TGenericStringList ------------------------------------------------------------ }
-
-procedure TGenericStringList.AddList(Source: TGenericStringList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(string) * Source.Count);
-end;
-
-procedure TGenericStringList.AddArray(const A: array of string);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(string) * (High(A) + 1));
-end;
-
-procedure TGenericStringList.AssignArray(const A: array of string);
-begin
-  Clear;
-  AddArray(A);
-end;
-
-function TGenericStringList.L: PString;
-begin
-  Result := PString(FList);
 end;
 
 {$endif}

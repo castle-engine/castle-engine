@@ -63,41 +63,14 @@ begin
   finally FreeAndNil(iarr) end;
 end;
 
-procedure TTestBasicLists.TestPrimitiveLists;
+(*
+procedure TTestBasicLists.TestGenericStringList;
 
   function Equal(const S1: TGenericStringList; const S2: array of string): boolean;
   var
     I: Integer;
   begin
     Result := S1.Count = High(S2) + 1;
-    if Result then
-    begin
-      for I := 0 to S1.Count - 1 do
-        if S1[I] <> S2[I] then
-          Exit(false);
-      Result := true;
-    end;
-  end;
-
-  function Equal(const S1: TIntegerList; const S2: array of Integer): boolean;
-  var
-    I: Integer;
-  begin
-    Result := S1.Count = High(S2) + 1;
-    if Result then
-    begin
-      for I := 0 to S1.Count - 1 do
-        if S1[I] <> S2[I] then
-          Exit(false);
-      Result := true;
-    end;
-  end;
-
-  function Equal(const S1, S2: TIntegerList): boolean;
-  var
-    I: Integer;
-  begin
-    Result := S1.Count = S2.Count;
     if Result then
     begin
       for I := 0 to S1.Count - 1 do
@@ -118,10 +91,11 @@ procedure TTestBasicLists.TestPrimitiveLists;
       S.Exchange(I, S.Count - 1 - I);
   end;
 
-var sarr, sarr2: TGenericStringList;
-    iarr, iarr2: TIntegerList; { tablica int nie jest init_fini }
-    i, j: integer;
-const twoStrings: array[0..1]of string = ('raz','dwa');
+var
+  sarr, sarr2: TGenericStringList;
+  i, j: integer;
+const
+  twoStrings: array[0..1]of string = ('raz','dwa');
 begin
  for i := 1 to 100 do
  begin
@@ -172,7 +146,42 @@ begin
   Reverse(sarr);
   Assert(sarr.Count = 0);
  finally sarr.Free end;
+end;
+*)
 
+procedure TTestBasicLists.TestPrimitiveLists;
+
+  function Equal(const S1: TIntegerList; const S2: array of Integer): boolean;
+  var
+    I: Integer;
+  begin
+    Result := S1.Count = High(S2) + 1;
+    if Result then
+    begin
+      for I := 0 to S1.Count - 1 do
+        if S1[I] <> S2[I] then
+          Exit(false);
+      Result := true;
+    end;
+  end;
+
+  function Equal(const S1, S2: TIntegerList): boolean;
+  var
+    I: Integer;
+  begin
+    Result := S1.Count = S2.Count;
+    if Result then
+    begin
+      for I := 0 to S1.Count - 1 do
+        if S1[I] <> S2[I] then
+          Exit(false);
+      Result := true;
+    end;
+  end;
+
+var
+  iarr, iarr2: TIntegerList;
+begin
  iarr := nil;
  iarr2 := nil;
  try

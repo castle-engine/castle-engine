@@ -18,7 +18,7 @@ unit KambiScriptArrays;
 
 interface
 
-uses VectorMath, KambiScript, KambiScriptVectors, KambiUtils;
+uses VectorMath, KambiScript, KambiScriptVectors, KambiUtils, KambiStringUtils;
 
 type
   TKamScriptArray = class(TKamScriptValue)
@@ -121,15 +121,15 @@ type
     class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
     class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
   private
-    FValue: TGenericStringList;
-    procedure SetValue(const AValue: TGenericStringList);
+    FValue: TKamStringList;
+    procedure SetValue(const AValue: TKamStringList);
   public
-    constructor Create(const AWriteable: boolean; const AValue: TGenericStringList);
+    constructor Create(const AWriteable: boolean; const AValue: TKamStringList);
     constructor Create(const AWriteable: boolean); override;
     destructor Destroy; override;
 
     { Array value. Assigning here makes a @italic(copy) of the array. }
-    property Value: TGenericStringList read FValue write SetValue;
+    property Value: TKamStringList read FValue write SetValue;
 
     procedure AssignValue(Source: TKamScriptValue); override;
   end;
@@ -421,7 +421,7 @@ uses SysUtils, KambiScriptCoreFunctions;
 {$I kambiscriptarrays_implement.inc}
 
 {$define TKamScriptXxxArray := TKamScriptStringArray}
-{$define TXxxList := TGenericStringList}
+{$define TXxxList := TKamStringList}
 {$define TKamScriptXxxElement := TKamScriptString}
 {$define RegisterXxxFunctions := RegisterStringFunctions}
 {$define TKamScriptXxxArrayFun := TKamScriptArrayFun}

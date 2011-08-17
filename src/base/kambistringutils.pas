@@ -50,6 +50,8 @@ type
   TKamStringList = class(TStringList)
   private
     procedure SetCount(const Value: Integer);
+    function GetL(const Index: Integer): string;
+    procedure SetL(const Index: Integer; const S: string);
   public
     constructor Create;
     property Count: Integer read GetCount write SetCount;
@@ -61,8 +63,14 @@ type
     procedure AssignArray(const A: array of string);
     function Equal(List: TKamStringList): boolean; overload;
     function Equal(const A: array of string): boolean; overload;
+
     { Reverse the order of items on the array. }
     procedure Reverse;
+
+    { Access strings. This is exactly equivalent to just using standard
+      TStringList.Strings property, and is useful only for implementing macros
+      to work for both TGenericStructList and for TKamStringList. }
+    property L[Index: Integer]: string read GetL write SetL;
   end;
 
 type
@@ -978,6 +986,16 @@ begin
     if DoCompareText(A[I], Strings[I]) <> 0 then
       Exit(false);
   Result := true;
+end;
+
+function TKamStringList.GetL(const Index: Integer): string;
+begin
+  Result := Strings[Index];
+end;
+
+procedure TKamStringList.SetL(const Index: Integer; const S: string);
+begin
+  Strings[Index] := S;
 end;
 
 { routines ------------------------------------------------------------------- }

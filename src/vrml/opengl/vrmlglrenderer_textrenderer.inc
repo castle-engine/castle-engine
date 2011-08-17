@@ -28,7 +28,7 @@ type
     procedure RenderText(
       const Size, Spacing: Single;
       const Justify: TVRMLFontJustify;
-      const Strings: TGenericStringList;
+      const Strings: TKamStringList;
       CurrentFont: TGLOutlineFont;
       const Depth: Single;
       const CullBackFaces: boolean;
@@ -55,7 +55,7 @@ type
 procedure TAbstractTextRenderer.RenderText(
   const Size, Spacing: Single;
   const Justify: TVRMLFontJustify;
-  const Strings: TGenericStringList;
+  const Strings: TKamStringList;
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
   const CullBackFaces: boolean;

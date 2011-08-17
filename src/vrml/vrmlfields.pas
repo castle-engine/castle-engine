@@ -986,7 +986,7 @@ type
   { Multiple values VRML field. Remember that such field may always have
     any number of items, including zero.
 
-    Note that we keep MF fields contents in TFPSList instances
+    Note that we keep MF fields contents in TFPSList or TKamStringList instances
     (RawItems in this class, also accessible as Items (with more concrete
     class) in descendants). This means that they are in compact form,
     easy for reading, or even for feeding the list into OpenGL.
@@ -1061,13 +1061,15 @@ type
     function GetCount: Integer; override;
     procedure SetCount(const Value: Integer); override;
     { @groupEnd }
+
+    procedure Clear;
   public
-    { Items of this field.
+    { Items of this field. Either TFPSList or TKamStringList.
 
       @italic(Descendants implementors notes): You have to initialize this field
       in descendants' constructor, it will be always freed in our
       destructor. }
-    RawItems: TFPSList;
+    RawItems: TObject;
 
     { A corresponding SF field class. All items that will be passed
       to RawItemsAdd will be of this class. }
@@ -2480,15 +2482,15 @@ type
   private
     DefaultValuesCount: Integer;
     DefaultValue: string;
-    function GetItems: TGenericStringList;
-    procedure SetItems(const Value: TGenericStringList);
+    function GetItems: TKamStringList;
+    procedure SetItems(const Value: TKamStringList);
     function GetItemsSafe(Index: Integer): string;
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    property Items: TGenericStringList read GetItems write SetItems;
+    property Items: TKamStringList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TVRMLSingleField); override;
     constructor Create(AParentNode: TVRMLFileItem;
       const AName: string; const InitialContent: array of string);
@@ -3309,12 +3311,23 @@ end;
 
 function TVRMLSimpleMultField.GetCount: Integer;
 begin
-  Result := RawItems.Count;
+  if RawItems is TFPSList then
+    Result := TFPSList(RawItems).Count else
+    Result := TKamStringList(RawItems).Count;
 end;
 
 procedure TVRMLSimpleMultField.SetCount(const Value: Integer);
 begin
-  RawItems.Count := Value;
+  if RawItems is TFPSList then
+    TFPSList(RawItems).Count := Value else
+    TKamStringList(RawItems).Count := Value;
+end;
+
+procedure TVRMLSimpleMultField.Clear;
+begin
+  if RawItems is TFPSList then
+    TFPSList(RawItems).Clear else
+    TKamStringList(RawItems).Clear;
 end;
 
 function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
@@ -3326,9 +3339,8 @@ procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer; Names: TObject);
 var
   SingleItem: TVRMLSingleField;
 begin
-  RawItems.Clear;
+  Clear;
 
-  RawItems.Capacity := 100;
   SingleItem := nil;
   try
     SingleItem := CreateItemBeforeParse;
@@ -3379,9 +3391,8 @@ begin
     comma is ignored (it was only for VRML 1.0 anyway), we just read
     single values up to the end of stream. }
 
-  RawItems.Clear;
+  Clear;
 
-  RawItems.Capacity := 100;
   SingleItem := CreateItemBeforeParse;
   try
     while Lexer.Token <> vtEnd do
@@ -3403,7 +3414,7 @@ begin
       { The general "for I := ..." code below can handle correctly any RawItems.Count
         value. But for aesthetics, i.e. more clear output for humans,
         I handle the RawItems.Count = 0 and 1 cases separately. }
-      case RawItems.Count of
+      case Count of
         0: Writer.Write('[]');
         1: Writer.Write(RawItemToString(0, Writer.Encoding));
         else
@@ -3414,16 +3425,16 @@ begin
             { For really long fields, writing indentation before each item
               can cost a significant disk space. So do not indent when
               there are many items. }
-            IndentMultiValueFields := RawItems.Count <= 10;
+            IndentMultiValueFields := Count <= 10;
 
             WriteIndentNextTime := IndentMultiValueFields;
-            for i := 0 to RawItems.Count-1 do
+            for i := 0 to Count-1 do
             begin
               if WriteIndentNextTime then Writer.WriteIndent('');
               Writer.Write(RawItemToString(i, Writer.Encoding) +',');
               { After the last item we always write newline,
                 no matter what's SaveToStreamDoNewLineAfterRawItem }
-              if (i = RawItems.Count - 1) or
+              if (i = Count - 1) or
                  SaveToStreamDoNewLineAfterRawItem(i) then
                 begin Writer.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
                 begin Writer.Write(' '); WriteIndentNextTime := false; end;
@@ -3434,10 +3445,10 @@ begin
           end;
       end;
     xeXML:
-      for I := 0 to RawItems.Count - 1 do
+      for I := 0 to Count - 1 do
       begin
         Writer.Write(RawItemToString(I, Writer.Encoding));
-        if I <> RawItems.Count - 1 then
+        if I <> Count - 1 then
           Writer.Write(' ');
       end;
     else raise EInternalError.Create('TVRMLSimpleMultField.SaveToStreamValue Encoding?');
@@ -5179,7 +5190,11 @@ begin
   inherited;
 
   FItemClass := TMF_CLASS_ITEM;
+
   RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
+  if RawItems is TFPSList then
+    TFPSList(RawItems).Capacity := 100;
+
   DefaultValuesCount := -1;
 end;
 
@@ -5570,7 +5585,7 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_CLASS := TMFString}
 {$define TMF_STATIC_ITEM := string}
 {$define TMF_CLASS_ITEM := TSFString}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TGenericStringList}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TKamStringList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ''}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
