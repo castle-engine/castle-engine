@@ -28,23 +28,19 @@ uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLNotifications, GLWindow,
   Classes, GLWinMessages;
 
 var
-  Window: TGLWindowDemo;
+  Window: TGLUIWindow;
   Notifications: TGLNotifications;
   Font: TGLBitmapFont;
 
 procedure Open(Window: TGLWindow);
 begin
-  Notifications := TGLNotifications.Create(Window, hpMiddle, vpUp, 0);
-  Notifications.MaxMessages := 15;
-  Notifications.MessageTimeout := 20000;
-  Notifications.Show('Init message');
+  Notifications.Show('Open message');
 
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 end;
 
 procedure Close(Window: TGLWindow);
 begin
-  FreeAndNil(Notifications);
   FreeAndNil(Font);
 end;
 
@@ -71,8 +67,6 @@ var
 const
   Margin = 20;
 begin
-  Notifications.Draw2D(Window.Width, Window.Height, Window.Width, Window.Height);
-
   glColor3f(0.5, 0.5, 0.5);
 
   S := '';
@@ -98,7 +92,6 @@ end;
 
 procedure Idle(Window: TGLWindow);
 begin
-  Notifications.Idle;
   if Window.Pressed[K_F12] then MessageOk(Window, 'F12 key pressed. This is just a test that MessageOk works even from callbacks like OnIdle.', taLeft);
 end;
 
@@ -163,10 +156,8 @@ begin
   Notifications.Show(Format('Mouse Wheel: %f, vertical: %s', [Scroll, BoolToStr[Vertical]]));
 end;
 
-var
-  M: TMenu;
 begin
-  Window := TGLWindowDemo.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Window.ParseParameters;
 
@@ -188,21 +179,11 @@ begin
   Application.TimerMilisec := 5000;
   Window.OnTimer := @Timer;
 
-  {testing:
-  Writeln('I''m trying to get window size ', Window.Width, ',', Window.Height, '...');
-  }
-  Window.MainMenu := TMenu.Create('Test menu');
-  M := TMenu.Create('Menu 1');
-    M.Append(TMenuItem.Create('Menu Item 1', 0));
-    M.Append(TMenuItem.Create('Menu Item 2', 1));
-    Window.MainMenu.Append(M);
-  M := TMenu.Create('Menu 2');
-    M.Append(TMenuItem.Create('Menu Item 3', 3));
-    M.Append(TMenuItem.Create('Menu Item 4', 4));
-    Window.MainMenu.Append(M);
-  Window.MainMenu.Append(TMenuItem.Create('Menu Item 5', 5));
-
-  //Window.ResizeAllowed := raNotAllowed; // just for testing
+  Notifications := TGLNotifications.Create(Window);
+  Notifications.VerticalPosition := vpUp;
+  Notifications.MaxMessages := 15;
+  Notifications.Timeout := 20000;
+  Window.Controls.Add(Notifications);
 
   Window.OpenAndRun;
 end.

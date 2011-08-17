@@ -50,7 +50,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="17">
+    <Files Count="16">
       <Item1>
         <Filename Value="../src/glwindow/glwindowvrmlbrowser.pas"/>
         <UnitName Value="GLWindowVRMLBrowser"/>
@@ -83,10 +83,6 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/glwindow/glprogress.pas"/>
         <UnitName Value="GLProgress"/>
       </Item8>
-      <Item9>
-        <Filename Value="../src/glwindow/glnotifications.pas"/>
-        <UnitName Value="GLNotifications"/>
-      </Item9>
       <Item10>
         <Filename Value="../src/glwindow/windows/glwindow_winapi.inc"/>
         <Type Value="Include"/>
@@ -119,10 +115,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
       </Item16>
-      <Item17>
+      <Item9>
         <Filename Value="../src/base/kambiconf.inc"/>
         <Type Value="Include"/>
-      </Item17>
+      </Item9>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

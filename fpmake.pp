@@ -181,7 +181,6 @@ begin
     P.Targets.AddUnit('glwinmessages.pas');
     P.Targets.AddUnit('glwinmodes.pas');
     P.Targets.AddUnit('glprogress.pas');
-    P.Targets.AddUnit('glnotifications.pas');
     P.Targets.AddUnit('glwindowvrmlbrowser.pas');
     if Defaults.OS in AllUnixOSes then
     begin
@@ -245,8 +244,10 @@ begin
     P.Targets.AddUnit('cameras.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
+    P.Targets.AddUnit('glcontrols.pas');
     P.Targets.AddUnit('glmenu.pas');
     P.Targets.AddUnit('glmenuimages.pas');
+    P.Targets.AddUnit('glnotifications.pas');
 
     Run;
   end;
