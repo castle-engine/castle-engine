@@ -320,25 +320,25 @@ end;
 procedure TCurve.Render(Segments: Cardinal);
 var i: Integer;
 begin
+  glBegin(GL_LINE_STRIP);
+  for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
+  glEnd;
+end;
+
+procedure TCurve.Render(const Frustum: TFrustum;
+  const Params: TRenderParams);
+begin
   if not Params.RenderTransformIdentity then
   begin
     glPushMatrix;
     glMultMatrix(Params.RenderTransform);
   end;
 
-  glBegin(GL_LINE_STRIP);
-  for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
-  glEnd;
+  if not Params.Transparent then
+    Render(DefaultSegments);
 
   if not Params.RenderTransformIdentity then
     glPopMatrix;
-end;
-
-procedure TCurve.Render(const Frustum: TFrustum;
-  const Params: TRenderParams);
-begin
-  if not Params.Transparent then
-    Render(DefaultSegments);
 end;
 
 constructor TCurve.Create(const ATBegin, ATEnd: Float);
