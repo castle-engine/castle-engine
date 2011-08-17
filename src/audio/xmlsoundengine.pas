@@ -386,11 +386,13 @@ begin
     { Init all SoundInfos to default values }
     SoundInfos.Count := SoundNames.Count;
     { stNone has specific info: FileName is '', Buffer is 0, rest doesn't matter }
+    SoundInfos[stNone] := TSoundInfo.Create;
     SoundInfos[stNone].FileName := '';
     SoundInfos[stNone].Buffer := 0;
     { initialize other than stNone sounds }
     for ST := 1 to SoundInfos.Count - 1 do
     begin
+      SoundInfos[ST] := TSoundInfo.Create;
       SoundInfos[ST].FileName :=
         CombinePaths(SoundsXmlPath, SoundNames[ST] + '.wav');
       SoundInfos[ST].Gain := 1;
