@@ -1005,7 +1005,7 @@ begin
     FOctreeTriangles := CreateTriangleOctree(
       OverrideOctreeLimits(FTriangleOctreeLimits),
       TriangleOctreeProgressTitle);
-    if Log and TVRMLScene(ParentScene).LogChanges then
+    if Log and LogChanges then
       WritelnLog('VRML changes (octree)', Format(
         'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
   end;
@@ -1197,7 +1197,7 @@ end;
 
 procedure TVRMLShape.FreeProxy;
 begin
-  if Log and TVRMLScene(ParentScene).LogChanges and
+  if Log and LogChanges and
     { OriginalGeometry should always be <> nil, but just in case
       (e.g. running from destructor, or with bad state) check. }
     (OriginalGeometry <> nil) and

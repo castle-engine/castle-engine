@@ -630,8 +630,6 @@ type
     FPointingDeviceActiveSensors: TVRMLNodeList;
     procedure SetPointingDeviceActive(const Value: boolean);
   private
-    FLogChanges: boolean;
-
     { Call this when the ProximitySensor instance changed (either the box or
       it's transformation) or when camera position changed (by user actions
       or animating the Viewpoint).
@@ -1556,12 +1554,6 @@ type
     function GetBackgroundStack: TVRMLBindableStackBasic; override;
     function GetFogStack: TVRMLBindableStackBasic; override;
 
-    { If true, and also KambiLog.Log is true, then we will log
-      ChangedField and ChangedAll occurrences. Useful only for debugging
-      and optimizing VRML events engine. }
-    property LogChanges: boolean
-      read FLogChanges write FLogChanges default false;
-
     { Camera position/direction/up known for this scene.
 
       Set by CameraChanged. CameraViewKnown = @false means that
@@ -1917,6 +1909,13 @@ type
       read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
       default DefaultShadowMapsDefaultSize;
   end;
+
+var
+  { Log TVRMLScene.ChangedField and TVRMLScene.ChangedAll occurrences.
+    Relevant only if KambiLog.Log is also true, that is: you still have
+    to call KambiLog.InitializeLog to enable any logging.
+    Useful for debugging  and optimizing VRML/X3D events engine. }
+  LogChanges: boolean;
 
 implementation
 
