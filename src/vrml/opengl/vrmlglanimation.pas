@@ -93,6 +93,7 @@ type
     FTime: TKamTime;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
+    FTryFirstSceneDynamic: boolean;
 
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3D;
@@ -567,6 +568,26 @@ type
     function Dragging: boolean; override;
 
     property Cache: TVRMLGLRendererContextCache read FCache;
+
+    { Turn this on to treat specially the case when a single scene (Scenes.Count = 1)
+      is loaded: we will set this scene's Static = @false.
+      This allows you to enable VRML/X3D events and dynamically change the scene
+      in this very special case.
+      The normal behavior, when we load many scenes (or when this property is @false),
+      is to set all children scenes Static = @true.
+
+      Practically, this is useful only for tools like view3dscene, that want
+      to have full VRML/X3D events when possible, and at the same time they want
+      to load everything as TVRMLGLAnimation, for ease of coding.
+
+      To put it simply, just don't use this in normal programs -- it's a hack.
+
+      Although Static can be later changed, but changing it (after loading) to @false
+      is expensive (needs ChangedAll, that also recalculates shape tree, forces
+      shape octree and other recalculations). That's why this property is needed,
+      it sets Static correctly before loading the contents. }
+    property TryFirstSceneDynamic: boolean
+      read FTryFirstSceneDynamic write FTryFirstSceneDynamic default false;
   published
     { Is the animation time playing, and how fast.
 
@@ -660,7 +681,8 @@ type
     constructor CreateForAnimation(
       ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
       ACustomRenderer: TVRMLGLRenderer;
-      AParentAnimation: TVRMLGLAnimation);
+      AParentAnimation: TVRMLGLAnimation;
+      AStatic: boolean);
     property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
     procedure DoGeometryChanged(const Change: TGeometryChange;
       LocalGeometryShape: TVRMLShape); override;
@@ -671,7 +693,8 @@ type
 constructor TVRMLGLAnimationScene.CreateForAnimation(
   ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
   ACustomRenderer: TVRMLGLRenderer;
-  AParentAnimation: TVRMLGLAnimation);
+  AParentAnimation: TVRMLGLAnimation;
+  AStatic: boolean);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
     *may* be called by ChangedAll, which *may* called by inherited constructor.
@@ -683,7 +706,7 @@ begin
   ShadowMaps := FParentAnimation.ShadowMaps;
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
 
-  Static := true;
+  Static := AStatic;
 
   Load(ARootNode, AOwnsRootNode);
 end;
@@ -1123,11 +1146,14 @@ procedure TVRMLGLAnimation.LoadCore(
     end;
   end;
 
+var
+  SceneStatic: boolean;
+
   function CreateOneScene(Node: TVRMLRootNode;
     OwnsRootNode: boolean): TVRMLGLAnimationScene;
   begin
     Result := TVRMLGLAnimationScene.CreateForAnimation(
-      Node, OwnsRootNode, Renderer, Self);
+      Node, OwnsRootNode, Renderer, Self, SceneStatic);
   end;
 
 var
@@ -1141,6 +1167,12 @@ begin
   Close;
 
   FOwnsFirstRootNode := AOwnsFirstRootNode;
+
+  { We want all the scenes to be dynamic only when
+    (TryFirstSceneDynamic and (FScenes.Count = 1)).
+    We don't know yet FScenes.Count, but FScenes.Count = 1 is quite special:
+    it only (if and only if) occurs if RootNodesCount = 1. }
+  SceneStatic := not (TryFirstSceneDynamic and (RootNodesCount = 1));
 
   FScenes := TVRMLGLSceneList.Create(false);
 
