@@ -19,19 +19,18 @@ unit GLNotifications;
 interface
 
 uses GL, GLU, GLWindow, Classes, SysUtils, KambiUtils, KambiGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath, GenericStructList;
+  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  { Internal TMessageStruct type. @exclude }
-  TMessageStruct = record
+  { Internal type. @exclude }
+  TNotification = class
     Text: string;
     Time: TMilisecTime; {< appear time }
   end;
-  { @exclude }
-  PMessageStruct = ^TMessageStruct;
 
-  TMessageStructList = class(specialize TGenericStructList<TMessageStruct>)
-    procedure DeleteRange(const Index: Integer; DelCount: Integer);
+  TNotificationList = class(specialize TFPGObjectList<TNotification>)
+    procedure DeleteFirst(DelCount: Integer);
   end;
 
   THorizPosition = (hpLeft, hpMiddle, hpRight);
@@ -65,7 +64,7 @@ type
   TGLNotifications = class
   private
     { Messages, ordered from oldest (new mesages are added at the end).}
-    Messages: TMessageStructList;
+    Messages: TNotificationList;
     FHorizMessgPosition: THorizPosition;
     FVertMessgPosition: TVertPosition;
     FDisplayPixelWidth: integer;
@@ -150,19 +149,14 @@ implementation
 
 uses BFNT_BitstreamVeraSans_Unit, KambiLog;
 
-procedure TMessageStructList.DeleteRange(const Index: Integer; DelCount: Integer);
+procedure TNotificationList.DeleteFirst(DelCount: Integer);
 var
   I: Integer;
 begin
-  { Make sure Index and DelCount are sensible first }
-  if Index >= Count then
-    Exit;
-  MinTo1st(DelCount, Count - Index);
-
-  for I := Index to Count - 1 - DelCount do
-    L[I] := L[I + DelCount];
-
-  Count := Count - DelCount;
+  { Could be optimized better, but this is simple and works correctly
+    with TFPGObjectList.FreeObjects = true management.
+    This is called only for really small DelCount values, so no problem. }
+  for I := 1 to DelCount do Delete(0);
 end;
 
 { TGLNotifications ------------------------------------------------------- }
@@ -175,7 +169,7 @@ constructor TGLNotifications.Create(AWindow: TGLwindow;
   ADisplayPixelWidth: integer);
 begin
  inherited Create;
- Messages := TMessageStructList.Create;
+ Messages := TNotificationList.Create;
  MaxMessages := 10;
  MessageTimeout := 5000;
  Window := AWindow;
@@ -204,7 +198,7 @@ procedure TGLNotifications.Show(s: TStrings);
 
   procedure AddStrings(s: TStrings);
   var
-    ms: TMessageStruct;
+    N: TNotification;
     i: integer;
   begin
     { Below could be optimized. But we use this only for a small number
@@ -212,9 +206,10 @@ procedure TGLNotifications.Show(s: TStrings);
     for i := 0 to s.Count-1 do
     begin
       if Messages.Count = MaxMessages then Messages.Delete(0);
-      ms.Text := s[i];
-      ms.Time := GetTickCount;
-      Messages.Add(ms);
+      N := TNotification.Create;
+      N.Text := s[i];
+      N.Time := GetTickCount;
+      Messages.Add(N);
     end;
   end;
 
@@ -265,8 +260,8 @@ begin
     { calculate x relative to 0..PixelWidth, then convert to 0..GLMaxX }
     case HorizMessgPosition of
       hpLeft: x := HorizMargin;
-      hpRight: x := PixelWidth-messageFont.TextWidth(messages.L[i].Text)-HorizMargin;
-      hpMiddle: x:=(PixelWidth-messageFont.TextWidth(messages.L[i].Text)) div 2;
+      hpRight: x := PixelWidth-messageFont.TextWidth(messages[i].Text)-HorizMargin;
+      hpMiddle: x:=(PixelWidth-messageFont.TextWidth(messages[i].Text)) div 2;
     end;
     x := x * GLMaxX div PixelWidth;
 
@@ -280,7 +275,7 @@ begin
 
     { draw Text at position x, y }
     glRasterPos2i(x, y);
-    messageFont.print(messages.L[i].Text);
+    messageFont.print(messages[i].Text);
   end;
 end;
 
@@ -297,9 +292,9 @@ var
 begin
   gtc := GetTickCount;
   for i := Messages.Count-1 downto 0 do
-    if TimeTickSecondLater(messages.L[i].Time, gtc, MessageTimeout) then
+    if TimeTickSecondLater(messages[i].Time, gtc, MessageTimeout) then
     begin { delete messages 0..I }
-      Messages.DeleteRange(0, I + 1);
+      Messages.DeleteFirst(I + 1);
       PostRedisplayMessages;
       break;
     end;
