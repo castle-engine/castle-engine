@@ -207,7 +207,10 @@ begin
   if Log then
     WriteLog('Time message', S.Text);
 
-  if ContainerSizeKnown then
+  { TODO: It's a bummer that we need Font created to make BreakLines,
+    while BreakLines only really uses font metrics (doesn't need OpenGL
+    font resources). }
+  if ContainerSizeKnown and (Font <> nil) then
   begin
     Broken := TStringList.Create;
     try
