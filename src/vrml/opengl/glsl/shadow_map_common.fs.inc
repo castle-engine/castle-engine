@@ -85,7 +85,6 @@
 '' + LineEnding + 
 '/* Debug function, to display depth (distances) of the texture directly.' + LineEnding + 
 '' + LineEnding + 
-'   This way shadow_map_1_show_depth.fs may be used instead of shadow_map_1.fs.' + LineEnding + 
 '   Note that you have to use compareMode "NONE" inside GeneratedShadowMap' + LineEnding + 
 '   (otherwise getting it as sampler2D may not be sensible, depends on GPU;' + LineEnding + 
 '   Looks like Radeon tolerated any compareMode, but NVidia requires "NONE".).' + LineEnding + 

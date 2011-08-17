@@ -83,7 +83,6 @@ float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord,
 
 /* Debug function, to display depth (distances) of the texture directly.
 
-   This way shadow_map_1_show_depth.fs may be used instead of shadow_map_1.fs.
    Note that you have to use compareMode "NONE" inside GeneratedShadowMap
    (otherwise getting it as sampler2D may not be sensible, depends on GPU;
    Looks like Radeon tolerated any compareMode, but NVidia requires "NONE".).
