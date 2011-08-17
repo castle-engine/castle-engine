@@ -41,13 +41,6 @@ Details during 2.6.0 release:
   But it would also create a need to store and free references
   --- at TNodeX3DLightNode?
 
-- Remake TGLNotifications as TUIControl in ui/opengl/.
-
-  Use Notifications.DrawNeeded to avoid changing projection to 2D
-  when no 2D controls with DrawNeeded = true?
-  This is trivial, as DrawStyle = dsNone?
-  Or ignore this --- this optimization is really irrelevant?
-
 - Eliminate remaining glLight usage. Allow using TVRMLGLLightsRenderer
   for all objects, following vrml_engine_doc promises.
   Remaining only three cases:
