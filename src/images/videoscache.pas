@@ -18,18 +18,17 @@ unit VideosCache;
 
 interface
 
-uses KambiUtils, ImagesCache, Videos, GenericStructList;
+uses KambiUtils, ImagesCache, Videos,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  { Internal for TVideosCache }
-  TCachedVideo = record
+  { Internal for TVideosCache. @exclude }
+  TCachedVideo = class
     References: Cardinal;
     FileName: string;
     Video: TVideo;
   end;
-  PCachedVideo = ^TCachedVideo;
-
-  TCachedVideoList = specialize TGenericStructList<TCachedVideo>;
+  TCachedVideoList = specialize TFPGObjectList<TCachedVideo>;
 
   { A cache of loaded videos.
 
@@ -118,22 +117,21 @@ end;
 function TImagesVideosCache.Video_IncReference(const FileName: string): TVideo;
 var
   I: Integer;
-  C: PCachedVideo;
+  C: TCachedVideo;
 begin
-  C := PCachedVideo(CachedVideos.List);
   for I := 0 to CachedVideos.Count - 1 do
   begin
-    if C^.FileName = FileName then
+    C := CachedVideos[I];
+    if C.FileName = FileName then
     begin
-      Inc(C^.References);
+      Inc(C.References);
 
       {$ifdef DEBUG_CACHE}
-      Writeln('++ : video ', FileName, ' : ', C^.References);
+      Writeln('++ : video ', FileName, ' : ', C.References);
       {$endif}
 
-      Exit(C^.Video);
+      Exit(C.Video);
     end;
-    Inc(C);
   end;
 
   { Initialize Result first, before calling CachedVideos.Add.
@@ -150,10 +148,11 @@ begin
     raise;
   end;
 
-  C := CachedVideos.Add;
-  C^.References := 1;
-  C^.FileName := FileName;
-  C^.Video := Result;
+  C := TCachedVideo.Create;
+  CachedVideos.Add(C);
+  C.References := 1;
+  C.FileName := FileName;
+  C.Video := Result;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : video ', FileName, ' : ', 1);
@@ -163,30 +162,29 @@ end;
 procedure TImagesVideosCache.Video_DecReference(var Video: TVideo);
 var
   I: Integer;
-  C: PCachedVideo;
+  C: TCachedVideo;
 begin
-  C := PCachedVideo(CachedVideos.List);
   for I := 0 to CachedVideos.Count - 1 do
   begin
-    if C^.Video = Video then
+    C := CachedVideos[I];
+    if C.Video = Video then
     begin
       {$ifdef DEBUG_CACHE}
-      Writeln('-- : video ', C^.FileName, ' : ', C^.References - 1);
+      Writeln('-- : video ', C.FileName, ' : ', C.References - 1);
       {$endif}
 
       Video := nil;
 
-      if C^.References = 1 then
+      if C.References = 1 then
       begin
-        FreeAndNil(C^.Video);
+        FreeAndNil(C.Video);
         CachedVideos.Delete(I);
         CheckEmpty;
       end else
-        Dec(C^.References);
+        Dec(C.References);
 
       Exit;
     end;
-    Inc(C);
   end;
 
   raise EInternalError.CreateFmt(

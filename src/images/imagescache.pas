@@ -18,18 +18,16 @@ unit ImagesCache;
 
 interface
 
-uses KambiUtils, Images, GenericStructList;
+uses KambiUtils, Images, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  { Internal for TImagesCache }
-  TCachedImage = record
+  { Internal for TImagesCache. @exclude }
+  TCachedImage = class
     References: Cardinal;
     FileName: string;
     Image: TImage;
   end;
-  PCachedImage = ^TCachedImage;
-
-  TCachedImageList = specialize TGenericStructList<TCachedImage>;
+  TCachedImageList = specialize TFPGObjectList<TCachedImage>;
 
   { A cache of loaded images.
 
@@ -122,22 +120,21 @@ end;
 function TImagesCache.LoadImage_IncReference(const FileName: string): TImage;
 var
   I: Integer;
-  C: PCachedImage;
+  C: TCachedImage;
 begin
-  C := PCachedImage(CachedImages.List);
   for I := 0 to CachedImages.Count - 1 do
   begin
-    if C^.FileName = FileName then
+    C := CachedImages[I];
+    if C.FileName = FileName then
     begin
-      Inc(C^.References);
+      Inc(C.References);
 
       {$ifdef DEBUG_CACHE}
-      Writeln('++ : image ', FileName, ' : ', C^.References);
+      Writeln('++ : image ', FileName, ' : ', C.References);
       {$endif}
 
-      Exit(C^.Image);
+      Exit(C.Image);
     end;
-    Inc(C);
   end;
 
   { Initialize Result first, before calling CachedImages.Add.
@@ -148,10 +145,11 @@ begin
   Result := LoadImage(FileName, [TRGBImage, TRGBAlphaImage,
     TGrayscaleImage, TGrayscaleAlphaImage], []);
 
-  C := CachedImages.Add;
-  C^.References := 1;
-  C^.FileName := FileName;
-  C^.Image := Result;
+  C := TCachedImage.Create;
+  CachedImages.Add(C);
+  C.References := 1;
+  C.FileName := FileName;
+  C.Image := Result;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : image ', FileName, ' : ', 1);
@@ -161,30 +159,29 @@ end;
 procedure TImagesCache.LoadImage_DecReference(var Image: TImage);
 var
   I: Integer;
-  C: PCachedImage;
+  C: TCachedImage;
 begin
-  C := PCachedImage(CachedImages.List);
   for I := 0 to CachedImages.Count - 1 do
   begin
-    if C^.Image = Image then
+    C := CachedImages[I];
+    if C.Image = Image then
     begin
       {$ifdef DEBUG_CACHE}
-      Writeln('-- : image ', C^.FileName, ' : ', C^.References - 1);
+      Writeln('-- : image ', C.FileName, ' : ', C.References - 1);
       {$endif}
 
       Image := nil;
 
-      if C^.References = 1 then
+      if C.References = 1 then
       begin
-        FreeAndNil(C^.Image);
+        FreeAndNil(C.Image);
         CachedImages.Delete(I);
         CheckEmpty;
       end else
-        Dec(C^.References);
+        Dec(C.References);
 
       Exit;
     end;
-    Inc(C);
   end;
 
   raise EInternalError.CreateFmt(

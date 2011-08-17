@@ -65,7 +65,8 @@ unit TextureImages;
 
 interface
 
-uses Images, DDS, KambiUtils, VideosCache, GenericStructList;
+uses Images, DDS, KambiUtils, VideosCache,
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -108,16 +109,14 @@ function LoadTextureImage(const FileName: string): TEncodedImage; overload;
 { @groupEnd }
 
 type
-  { Internal for TTexturesImagesVideosCache }
-  TCachedTexture = record
+  { Internal for TTexturesImagesVideosCache. @exclude }
+  TCachedTexture = class
     References: Cardinal;
     FileName: string;
     Image: TEncodedImage;
     DDS: TDDSImage;
   end;
-  PCachedTexture = ^TCachedTexture;
-
-  TCachedTextureList = specialize TGenericStructList<TCachedTexture>;
+  TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
 
   { A cache of loaded images for textures.
 
@@ -205,23 +204,22 @@ function TTexturesImagesVideosCache.TextureImage_IncReference(
   const FileName: string; out DDS: TDDSImage): TEncodedImage;
 var
   I: Integer;
-  C: PCachedTexture;
+  C: TCachedTexture;
 begin
-  C := PCachedTexture(CachedTextures.List);
   for I := 0 to CachedTextures.Count - 1 do
   begin
-    if C^.FileName = FileName then
+    C := CachedTextures[I];
+    if C.FileName = FileName then
     begin
-      Inc(C^.References);
+      Inc(C.References);
 
       {$ifdef DEBUG_CACHE}
-      Writeln('++ : texture image ', FileName, ' : ', C^.References);
+      Writeln('++ : texture image ', FileName, ' : ', C.References);
       {$endif}
 
-      DDS := C^.DDS;
-      Exit(C^.Image);
+      DDS := C.DDS;
+      Exit(C.Image);
     end;
-    Inc(C);
   end;
 
   { Initialize Result first, before calling CachedTextures.Add.
@@ -231,11 +229,12 @@ begin
 
   Result := LoadTextureImage(FileName, DDS);
 
-  C := CachedTextures.Add;
-  C^.References := 1;
-  C^.FileName := FileName;
-  C^.Image := Result;
-  C^.DDS := DDS;
+  C := TCachedTexture.Create;
+  CachedTextures.Add(C);
+  C.References := 1;
+  C.FileName := FileName;
+  C.Image := Result;
+  C.DDS := DDS;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : texture image ', FileName, ' : ', 1);
@@ -246,20 +245,20 @@ procedure TTexturesImagesVideosCache.TextureImage_DecReference(
   var Image: TEncodedImage; var DDS: TDDSImage);
 var
   I: Integer;
-  C: PCachedTexture;
+  C: TCachedTexture;
 begin
-  C := PCachedTexture(CachedTextures.List);
   for I := 0 to CachedTextures.Count - 1 do
   begin
-    if C^.Image = Image then
+    C := CachedTextures[I];
+    if C.Image = Image then
     begin
       {$ifdef DEBUG_CACHE}
-      Writeln('-- : texture image ', C^.FileName, ' : ', C^.References - 1);
+      Writeln('-- : texture image ', C.FileName, ' : ', C.References - 1);
       {$endif}
 
       { We cannot simply assert
 
-          C^.DDS = DDS
+          C.DDS = DDS
 
         because when textures have many references,
         some references may be with and some without DDS information.
@@ -275,23 +274,22 @@ begin
         Only if passed DDS <> nil (we know caller keeps it) then we can
         check it for correctness. }
 
-      Assert((DDS = nil) or (C^.DDS = DDS), 'Image pointers match in TTexturesImagesVideosCache, DDS pointers should match too');
+      Assert((DDS = nil) or (C.DDS = DDS), 'Image pointers match in TTexturesImagesVideosCache, DDS pointers should match too');
 
       Image := nil;
       DDS := nil;
 
-      if C^.References = 1 then
+      if C.References = 1 then
       begin
-        FreeAndNil(C^.Image);
-        FreeAndNil(C^.DDS);
+        FreeAndNil(C.Image);
+        FreeAndNil(C.DDS);
         CachedTextures.Delete(I);
         CheckEmpty;
       end else
-        Dec(C^.References);
+        Dec(C.References);
 
       Exit;
     end;
-    Inc(C);
   end;
 
   raise EInternalError.CreateFmt(

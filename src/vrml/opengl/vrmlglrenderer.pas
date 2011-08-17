@@ -564,7 +564,7 @@ type
     Instance: TGLOutlineFont;
   end;
 
-  TTextureImageCache = record
+  TTextureImageCache = class
     { Full URL of used texture image. Empty ('') if not known
       (or maybe this texture didn't come from any URL, e.g. it's generated). }
     FullUrl: string;
@@ -594,11 +594,9 @@ type
       so it's done only once and kept in the cache, just like GLName. }
     AlphaChannelType: TAlphaChannelType;
   end;
-  PTextureImageCache = ^TTextureImageCache;
+  TTextureImageCacheList = specialize TFPGObjectList<TTextureImageCache>;
 
-  TTextureImageCacheList = specialize TGenericStructList<TTextureImageCache>;
-
-  TTextureVideoCache = record
+  TTextureVideoCache = class
     FullUrl: string;
 
     { The initial VRML/X3D node that created this cache record.
@@ -625,11 +623,9 @@ type
       so it's done only once and kept in the cache. }
     AlphaChannelType: TAlphaChannelType;
   end;
-  PTextureVideoCache = ^TTextureVideoCache;
+  TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
 
-  TTextureVideoCacheList = specialize TGenericStructList<TTextureVideoCache>;
-
-  TTextureCubeMapCache = record
+  TTextureCubeMapCache = class
     InitialNode: TNodeX3DEnvironmentTextureNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -644,11 +640,9 @@ type
       so it's done only once and kept in the cache, just like GLName. }
     AlphaChannelType: TAlphaChannelType;
   end;
-  PTextureCubeMapCache = ^TTextureCubeMapCache;
+  TTextureCubeMapCacheList = specialize TFPGObjectList<TTextureCubeMapCache>;
 
-  TTextureCubeMapCacheList = specialize TGenericStructList<TTextureCubeMapCache>;
-
-  TTexture3DCache = record
+  TTexture3DCache = class
     InitialNode: TNodeX3DTexture3DNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -664,14 +658,11 @@ type
       so it's done only once and kept in the cache, just like GLName. }
     AlphaChannelType: TAlphaChannelType;
   end;
-  PTexture3DCache = ^TTexture3DCache;
-
-  TTexture3DCacheList = specialize TGenericStructList<TTexture3DCache>;
+  TTexture3DCacheList = specialize TFPGObjectList<TTexture3DCache>;
 
   { Cached depth or float texture.
-    For now, depth and float textures require the same fields.
-    TODO: change this into an old-style "object" hierarchy. }
-  TTextureDepthOrFloatCache = record
+    For now, depth and float textures require the same fields. }
+  TTextureDepthOrFloatCache = class
     { The initial VRML/X3D node that created this cache record.
       For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
     InitialNode: TNodeX3DTextureNode;
@@ -679,9 +670,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  PTextureDepthOrFloatCache = ^TTextureDepthOrFloatCache;
-
-  TTextureDepthOrFloatCacheList = specialize TGenericStructList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = specialize TFPGObjectList<TTextureDepthOrFloatCache>;
 
   TVRMLRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -1384,11 +1373,11 @@ function TVRMLGLRendererContextCache.TextureImage_IncReference(
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
-  TextureCached: PTextureImageCache;
+  TextureCached: TTextureImageCache;
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
   begin
-    TextureCached := Addr(TextureImageCaches.L[I]);
+    TextureCached := TextureImageCaches[I];
 
     { Once I had an idea to make here comparison with
       TextureImage = TextureCached^.Image. Since we have ImagesCache,
@@ -1412,18 +1401,18 @@ begin
       For now, I don't use this idea, and rely on TextureFullUrl. }
 
     if ( ( (TextureFullUrl <> '') and
-           (TextureCached^.FullUrl = TextureFullUrl) ) or
-         (TextureCached^.InitialNode = TextureNode) ) and
-       (TextureCached^.MinFilter = TextureMinFilter) and
-       (TextureCached^.MagFilter = TextureMagFilter) and
-       (TextureCached^.Anisotropy = TextureAnisotropy) and
-       (TextureCached^.Wrap = TextureWrap) then
+           (TextureCached.FullUrl = TextureFullUrl) ) or
+         (TextureCached.InitialNode = TextureNode) ) and
+       (TextureCached.MinFilter = TextureMinFilter) and
+       (TextureCached.MagFilter = TextureMagFilter) and
+       (TextureCached.Anisotropy = TextureAnisotropy) and
+       (TextureCached.Wrap = TextureWrap) then
     begin
-      Inc(TextureCached^.References);
+      Inc(TextureCached.References);
       if LogRendererCache and Log then
-        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached^.References]);
-      AlphaChannelType := TextureCached^.AlphaChannelType;
-      Exit(TextureCached^.GLName);
+        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
+      AlphaChannelType := TextureCached.AlphaChannelType;
+      Exit(TextureCached.GLName);
     end;
   end;
 
@@ -1437,32 +1426,33 @@ begin
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 
-  TextureCached := TextureImageCaches.Add;
-  TextureCached^.FullUrl := TextureFullUrl;
-  TextureCached^.InitialNode := TextureNode;
-  TextureCached^.MinFilter := TextureMinFilter;
-  TextureCached^.MagFilter := TextureMagFilter;
-  TextureCached^.Anisotropy := TextureAnisotropy;
-  TextureCached^.Wrap := TextureWrap;
-  TextureCached^.References := 1;
-  TextureCached^.GLName := Result;
+  TextureCached := TTextureImageCache.Create;
+  TextureImageCaches.Add(TextureCached);
+  TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.InitialNode := TextureNode;
+  TextureCached.MinFilter := TextureMinFilter;
+  TextureCached.MagFilter := TextureMagFilter;
+  TextureCached.Anisotropy := TextureAnisotropy;
+  TextureCached.Wrap := TextureWrap;
+  TextureCached.References := 1;
+  TextureCached.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
   if TextureNode is TVRML2DTextureNode then
   begin
-    TextureCached^.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
+    TextureCached.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
       TVRML2DTextureNode(TextureNode).DetectAlphaChannel,
       AlphaTolerance, AlphaWrongPixelsTolerance);
-    if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+    if Log and (TextureCached.AlphaChannelType <> atNone)  then
       WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
         ' detected as simple yes/no alpha channel: ' +
-        BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+        BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
   end else
   begin
-    TextureCached^.AlphaChannelType := atNone; { TODO }
+    TextureCached.AlphaChannelType := atNone; { TODO }
   end;
 
-  AlphaChannelType := TextureCached^.AlphaChannelType;
+  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
@@ -1474,15 +1464,15 @@ var
   I: Integer;
 begin
   for I := 0 to TextureImageCaches.Count - 1 do
-    if TextureImageCaches.L[I].GLName = TextureGLName then
+    if TextureImageCaches[I].GLName = TextureGLName then
     begin
-      Dec(TextureImageCaches.L[I].References);
+      Dec(TextureImageCaches[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureImageCaches.L[I].FullUrl,
-                                    TextureImageCaches.L[I].References]);
-      if TextureImageCaches.L[I].References = 0 then
+        WritelnLog('--', '%s: %d', [TextureImageCaches[I].FullUrl,
+                                    TextureImageCaches[I].References]);
+      if TextureImageCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureImageCaches.L[I].GLName));
+        glDeleteTextures(1, Addr(TextureImageCaches[I].GLName));
         TextureImageCaches.Delete(I);
       end;
       Exit;
@@ -1503,25 +1493,25 @@ function TVRMLGLRendererContextCache.TextureVideo_IncReference(
   out AlphaChannelType: TAlphaChannelType): TGLVideo;
 var
   I: Integer;
-  TextureCached: PTextureVideoCache;
+  TextureCached: TTextureVideoCache;
 begin
   for I := 0 to TextureVideoCaches.Count - 1 do
   begin
-    TextureCached := Addr(TextureVideoCaches.L[I]);
+    TextureCached := TextureVideoCaches[I];
 
     if ( ( (TextureFullUrl <> '') and
-           (TextureCached^.FullUrl = TextureFullUrl) ) or
-         (TextureCached^.InitialNode = TextureNode) ) and
-       (TextureCached^.MinFilter = TextureMinFilter) and
-       (TextureCached^.MagFilter = TextureMagFilter) and
-       (TextureCached^.Anisotropy = TextureAnisotropy) and
-       (TextureCached^.Wrap = TextureWrap) then
+           (TextureCached.FullUrl = TextureFullUrl) ) or
+         (TextureCached.InitialNode = TextureNode) ) and
+       (TextureCached.MinFilter = TextureMinFilter) and
+       (TextureCached.MagFilter = TextureMagFilter) and
+       (TextureCached.Anisotropy = TextureAnisotropy) and
+       (TextureCached.Wrap = TextureWrap) then
     begin
-      Inc(TextureCached^.References);
+      Inc(TextureCached.References);
       if LogRendererCache and Log then
-        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached^.References]);
-      AlphaChannelType := TextureCached^.AlphaChannelType;
-      Exit(TextureCached^.GLVideo);
+        WritelnLog('++', '%s: %d', [TextureFullUrl, TextureCached.References]);
+      AlphaChannelType := TextureCached.AlphaChannelType;
+      Exit(TextureCached.GLVideo);
     end;
   end;
 
@@ -1533,26 +1523,27 @@ begin
     TextureVideo, TextureMinFilter, TextureMagFilter, TextureAnisotropy,
     TextureWrap);
 
-  TextureCached := TextureVideoCaches.Add;
-  TextureCached^.FullUrl := TextureFullUrl;
-  TextureCached^.InitialNode := TextureNode;
-  TextureCached^.MinFilter := TextureMinFilter;
-  TextureCached^.MagFilter := TextureMagFilter;
-  TextureCached^.Anisotropy := TextureAnisotropy;
-  TextureCached^.Wrap := TextureWrap;
-  TextureCached^.References := 1;
-  TextureCached^.GLVideo := Result;
+  TextureCached := TTextureVideoCache.Create;
+  TextureVideoCaches.Add(TextureCached);
+  TextureCached.FullUrl := TextureFullUrl;
+  TextureCached.InitialNode := TextureNode;
+  TextureCached.MinFilter := TextureMinFilter;
+  TextureCached.MagFilter := TextureMagFilter;
+  TextureCached.Anisotropy := TextureAnisotropy;
+  TextureCached.Wrap := TextureWrap;
+  TextureCached.References := 1;
+  TextureCached.GLVideo := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := TextureVideo.AlphaChannelTypeOverride(
+  TextureCached.AlphaChannelType := TextureVideo.AlphaChannelTypeOverride(
     TextureNode.DetectAlphaChannel,
     AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+  if Log and (TextureCached.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
       ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+      BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
 
-  AlphaChannelType := TextureCached^.AlphaChannelType;
+  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
@@ -1564,15 +1555,15 @@ var
   I: Integer;
 begin
   for I := 0 to TextureVideoCaches.Count - 1 do
-    if TextureVideoCaches.L[I].GLVideo = TextureVideo then
+    if TextureVideoCaches[I].GLVideo = TextureVideo then
     begin
-      Dec(TextureVideoCaches.L[I].References);
+      Dec(TextureVideoCaches[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '%s: %d', [TextureVideoCaches.L[I].FullUrl,
-                                    TextureVideoCaches.L[I].References]);
-      if TextureVideoCaches.L[I].References = 0 then
+        WritelnLog('--', '%s: %d', [TextureVideoCaches[I].FullUrl,
+                                    TextureVideoCaches[I].References]);
+      if TextureVideoCaches[I].References = 0 then
       begin
-        FreeAndNil(TextureVideoCaches.L[I].GLVideo);
+        FreeAndNil(TextureVideoCaches[I].GLVideo);
         TextureVideoCaches.Delete(I);
       end;
       Exit;
@@ -1594,22 +1585,22 @@ function TVRMLGLRendererContextCache.TextureCubeMap_IncReference(
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
-  TextureCached: PTextureCubeMapCache;
+  TextureCached: TTextureCubeMapCache;
 begin
   for I := 0 to TextureCubeMapCaches.Count - 1 do
   begin
-    TextureCached := Addr(TextureCubeMapCaches.L[I]);
+    TextureCached := TextureCubeMapCaches[I];
 
-    if (TextureCached^.InitialNode = Node) and
-       (TextureCached^.MinFilter = MinFilter) and
-       (TextureCached^.MagFilter = MagFilter) and
-       (TextureCached^.Anisotropy = Anisotropy) then
+    if (TextureCached.InitialNode = Node) and
+       (TextureCached.MinFilter = MinFilter) and
+       (TextureCached.MagFilter = MagFilter) and
+       (TextureCached.Anisotropy = Anisotropy) then
     begin
-      Inc(TextureCached^.References);
+      Inc(TextureCached.References);
       if LogRendererCache and Log then
-        WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached^.References]);
-      AlphaChannelType := TextureCached^.AlphaChannelType;
-      Exit(TextureCached^.GLName);
+        WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), TextureCached.References]);
+      AlphaChannelType := TextureCached.AlphaChannelType;
+      Exit(TextureCached.GLName);
     end;
   end;
 
@@ -1631,25 +1622,26 @@ begin
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP_ARB, Anisotropy);
 
-  TextureCached := TextureCubeMapCaches.Add;
-  TextureCached^.InitialNode := Node;
-  TextureCached^.MinFilter := MinFilter;
-  TextureCached^.MagFilter := MagFilter;
-  TextureCached^.Anisotropy := Anisotropy;
-  TextureCached^.References := 1;
-  TextureCached^.GLName := Result;
+  TextureCached := TTextureCubeMapCache.Create;
+  TextureCubeMapCaches.Add(TextureCached);
+  TextureCached.InitialNode := Node;
+  TextureCached.MinFilter := MinFilter;
+  TextureCached.MagFilter := MagFilter;
+  TextureCached.Anisotropy := Anisotropy;
+  TextureCached.References := 1;
+  TextureCached.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache.
     Use PositiveX image --- it doesn't matter, they all should have
     the same AlphaChannelType. }
-  TextureCached^.AlphaChannelType := PositiveX.AlphaChannelType(
+  TextureCached.AlphaChannelType := PositiveX.AlphaChannelType(
     AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+  if Log and (TextureCached.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha cube map texture ' + PointerToStr(Node) +
       ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+      BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
 
-  AlphaChannelType := TextureCached^.AlphaChannelType;
+  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
@@ -1661,14 +1653,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureCubeMapCaches.Count - 1 do
-    if TextureCubeMapCaches.L[I].GLName = TextureGLName then
+    if TextureCubeMapCaches[I].GLName = TextureGLName then
     begin
-      Dec(TextureCubeMapCaches.L[I].References);
+      Dec(TextureCubeMapCaches[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches.L[I].InitialNode), TextureCubeMapCaches.L[I].References]);
-      if TextureCubeMapCaches.L[I].References = 0 then
+        WritelnLog('--', 'cube map %s: %d', [PointerToStr(TextureCubeMapCaches[I].InitialNode), TextureCubeMapCaches[I].References]);
+      if TextureCubeMapCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureCubeMapCaches.L[I].GLName));
+        glDeleteTextures(1, Addr(TextureCubeMapCaches[I].GLName));
         TextureCubeMapCaches.Delete(I);
       end;
       Exit;
@@ -1688,23 +1680,23 @@ function TVRMLGLRendererContextCache.Texture3D_IncReference(
   out AlphaChannelType: TAlphaChannelType): TGLuint;
 var
   I: Integer;
-  TextureCached: PTexture3DCache;
+  TextureCached: TTexture3DCache;
 begin
   for I := 0 to Texture3DCaches.Count - 1 do
   begin
-    TextureCached := Addr(Texture3DCaches.L[I]);
+    TextureCached := Texture3DCaches[I];
 
-    if (TextureCached^.InitialNode = Node) and
-       (TextureCached^.MinFilter = MinFilter) and
-       (TextureCached^.MagFilter = MagFilter) and
-       (TextureCached^.Anisotropy = Anisotropy) and
-       (TextureCached^.Wrap = TextureWrap) then
+    if (TextureCached.InitialNode = Node) and
+       (TextureCached.MinFilter = MinFilter) and
+       (TextureCached.MagFilter = MagFilter) and
+       (TextureCached.Anisotropy = Anisotropy) and
+       (TextureCached.Wrap = TextureWrap) then
     begin
-      Inc(TextureCached^.References);
+      Inc(TextureCached.References);
       if LogRendererCache and Log then
-        WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached^.References]);
-      AlphaChannelType := TextureCached^.AlphaChannelType;
-      Exit(TextureCached^.GLName);
+        WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+      AlphaChannelType := TextureCached.AlphaChannelType;
+      Exit(TextureCached.GLName);
     end;
   end;
 
@@ -1719,24 +1711,25 @@ begin
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D, Anisotropy);
 
-  TextureCached := Texture3DCaches.Add;
-  TextureCached^.InitialNode := Node;
-  TextureCached^.MinFilter := MinFilter;
-  TextureCached^.MagFilter := MagFilter;
-  TextureCached^.Anisotropy := Anisotropy;
-  TextureCached^.Wrap := TextureWrap;
-  TextureCached^.References := 1;
-  TextureCached^.GLName := Result;
+  TextureCached := TTexture3DCache.Create;
+  Texture3DCaches.Add(TextureCached);
+  TextureCached.InitialNode := Node;
+  TextureCached.MinFilter := MinFilter;
+  TextureCached.MagFilter := MagFilter;
+  TextureCached.Anisotropy := Anisotropy;
+  TextureCached.Wrap := TextureWrap;
+  TextureCached.References := 1;
+  TextureCached.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  TextureCached^.AlphaChannelType := Image.AlphaChannelType(
+  TextureCached.AlphaChannelType := Image.AlphaChannelType(
     AlphaTolerance, AlphaWrongPixelsTolerance);
-  if Log and (TextureCached^.AlphaChannelType <> atNone)  then
+  if Log and (TextureCached.AlphaChannelType <> atNone)  then
     WritelnLog('Alpha Detection', 'Alpha 3D texture ' + PointerToStr(Node) +
       ' detected as simple yes/no alpha channel: ' +
-      BoolToStr[TextureCached^.AlphaChannelType = atSimpleYesNo]);
+      BoolToStr[TextureCached.AlphaChannelType = atSimpleYesNo]);
 
-  AlphaChannelType := TextureCached^.AlphaChannelType;
+  AlphaChannelType := TextureCached.AlphaChannelType;
 
   if LogRendererCache and Log then
     WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
@@ -1748,14 +1741,14 @@ var
   I: Integer;
 begin
   for I := 0 to Texture3DCaches.Count - 1 do
-    if Texture3DCaches.L[I].GLName = TextureGLName then
+    if Texture3DCaches[I].GLName = TextureGLName then
     begin
-      Dec(Texture3DCaches.L[I].References);
+      Dec(Texture3DCaches[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches.L[I].InitialNode), Texture3DCaches.L[I].References]);
-      if Texture3DCaches.L[I].References = 0 then
+        WritelnLog('--', '3d texture %s: %d', [PointerToStr(Texture3DCaches[I].InitialNode), Texture3DCaches[I].References]);
+      if Texture3DCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(Texture3DCaches.L[I].GLName));
+        glDeleteTextures(1, Addr(Texture3DCaches[I].GLName));
         Texture3DCaches.Delete(I);
       end;
       Exit;
@@ -1774,19 +1767,19 @@ function TVRMLGLRendererContextCache.TextureDepth_IncReference(
   const VisualizeDepthMap: boolean): TGLuint;
 var
   I: Integer;
-  TextureCached: PTextureDepthOrFloatCache;
+  TextureCached: TTextureDepthOrFloatCache;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
-    TextureCached := Addr(TextureDepthOrFloatCaches.L[I]);
+    TextureCached := TextureDepthOrFloatCaches[I];
 
-    if (TextureCached^.InitialNode = Node) and
-       (TextureCached^.Wrap = TextureWrap) then
+    if (TextureCached.InitialNode = Node) and
+       (TextureCached.Wrap = TextureWrap) then
     begin
-      Inc(TextureCached^.References);
+      Inc(TextureCached.References);
       if LogRendererCache and Log then
-        WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), TextureCached^.References]);
-      Exit(TextureCached^.GLName);
+        WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+      Exit(TextureCached.GLName);
     end;
   end;
 
@@ -1839,11 +1832,12 @@ begin
   end else
     OnWarning(wtMinor, 'VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
 
-  TextureCached := TextureDepthOrFloatCaches.Add;
-  TextureCached^.InitialNode := Node;
-  TextureCached^.References := 1;
-  TextureCached^.Wrap := TextureWrap;
-  TextureCached^.GLName := Result;
+  TextureCached := TTextureDepthOrFloatCache.Create;
+  TextureDepthOrFloatCaches.Add(TextureCached);
+  TextureCached.InitialNode := Node;
+  TextureCached.References := 1;
+  TextureCached.Wrap := TextureWrap;
+  TextureCached.GLName := Result;
 
   if LogRendererCache and Log then
     WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), 1]);
@@ -1855,14 +1849,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
-    if TextureDepthOrFloatCaches.L[I].GLName = TextureGLName then
+    if TextureDepthOrFloatCaches[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthOrFloatCaches.L[I].References);
+      Dec(TextureDepthOrFloatCaches[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.L[I].InitialNode), TextureDepthOrFloatCaches.L[I].References]);
-      if TextureDepthOrFloatCaches.L[I].References = 0 then
+        WritelnLog('--', 'Depth texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
+      if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches.L[I].GLName));
+        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches[I].GLName));
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
@@ -1881,20 +1875,20 @@ function TVRMLGLRendererContextCache.TextureFloat_IncReference(
   const Precision32: boolean): TGLuint;
 var
   I: Integer;
-  TextureCached: PTextureDepthOrFloatCache;
+  TextureCached: TTextureDepthOrFloatCache;
   InternalFormat: TGLenum;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
-    TextureCached := Addr(TextureDepthOrFloatCaches.L[I]);
+    TextureCached := TextureDepthOrFloatCaches[I];
 
-    if (TextureCached^.InitialNode = Node) and
-       (TextureCached^.Wrap = TextureWrap) then
+    if (TextureCached.InitialNode = Node) and
+       (TextureCached.Wrap = TextureWrap) then
     begin
-      Inc(TextureCached^.References);
+      Inc(TextureCached.References);
       if LogRendererCache and Log then
-        WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), TextureCached^.References]);
-      Exit(TextureCached^.GLName);
+        WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), TextureCached.References]);
+      Exit(TextureCached.GLName);
     end;
   end;
 
@@ -1915,11 +1909,12 @@ begin
   glTexImage2d(GL_TEXTURE_2D, 0, InternalFormat,
     Width, Height, 0, GL_RGB, GL_FLOAT, nil);
 
-  TextureCached := TextureDepthOrFloatCaches.Add;
-  TextureCached^.InitialNode := Node;
-  TextureCached^.References := 1;
-  TextureCached^.Wrap := TextureWrap;
-  TextureCached^.GLName := Result;
+  TextureCached := TTextureDepthOrFloatCache.Create;
+  TextureDepthOrFloatCaches.Add(TextureCached);
+  TextureCached.InitialNode := Node;
+  TextureCached.References := 1;
+  TextureCached.Wrap := TextureWrap;
+  TextureCached.GLName := Result;
   { Hm, we probably should store TextureMinFilter, TextureMagFilter, Precision32
     inside TextureCached as well... Ignore this, useless for now ---
     one Node will require only one float texture anyway. }
@@ -1934,14 +1929,14 @@ var
   I: Integer;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
-    if TextureDepthOrFloatCaches.L[I].GLName = TextureGLName then
+    if TextureDepthOrFloatCaches[I].GLName = TextureGLName then
     begin
-      Dec(TextureDepthOrFloatCaches.L[I].References);
+      Dec(TextureDepthOrFloatCaches[I].References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches.L[I].InitialNode), TextureDepthOrFloatCaches.L[I].References]);
-      if TextureDepthOrFloatCaches.L[I].References = 0 then
+        WritelnLog('--', 'Float texture %s: %d', [PointerToStr(TextureDepthOrFloatCaches[I].InitialNode), TextureDepthOrFloatCaches[I].References]);
+      if TextureDepthOrFloatCaches[I].References = 0 then
       begin
-        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches.L[I].GLName));
+        glDeleteTextures(1, Addr(TextureDepthOrFloatCaches[I].GLName));
         TextureDepthOrFloatCaches.Delete(I);
       end;
       Exit;
