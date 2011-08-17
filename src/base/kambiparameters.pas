@@ -139,7 +139,6 @@ type
   end;
   POption = ^TOption;
 
-  TOptionList = specialize TGenericStructList<TOption>;
   TOption_Array = array [0..MaxInt div SizeOf(TOption) - 1] of TOption;
   POption_Array = ^TOption_Array;
 
@@ -308,9 +307,6 @@ type
     procedure Parse(const Options: array of TOption;
       OptionProc: TOptionProc; OptionProcData: Pointer;
       ParseOnlyKnownLongOptions: boolean = false); overload;
-    procedure Parse(Options: TOptionList;
-      OptionProc: TOptionProc; OptionProcData: Pointer;
-      ParseOnlyKnownLongOptions: boolean = false); overload;
     { @groupEnd }
   end;
 
@@ -403,14 +399,6 @@ procedure TParameters.Parse(const Options: array of TOption; OptionProc: TOption
   OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
 begin
   Parse(@Options, System.High(Options)+1, OptionProc, OptionProcData,
-    ParseOnlyKnownLongOptions);
-end;
-
-procedure TParameters.Parse(Options: TOptionList; OptionProc: TOptionProc;
-  OptionProcData: Pointer; ParseOnlyKnownLongOptions: boolean);
-begin
-  Parse(POption_Array(Options.List), Options.Count,
-    OptionProc, OptionProcData,
     ParseOnlyKnownLongOptions);
 end;
 
