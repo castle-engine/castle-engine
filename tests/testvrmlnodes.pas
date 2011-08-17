@@ -90,7 +90,7 @@ type
 implementation
 
 uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields,
-  KambiTimeUtils, GenericStructList;
+  KambiTimeUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 { TNode* ------------------------------------------------------------ }
 
@@ -141,18 +141,15 @@ end;
 { TVRMLTokenInfo and TVRMLTokenInfoList ---------------------------------- }
 
 type
-  TVRMLTokenInfo = record
+  TVRMLTokenInfo = class
     Token: TVRMLToken;
-    Float: Float; // for both vtFloat and vtInteger
-    Name: string; // for vtName
-    AString: string; // for vtString
-    case TVRMLToken of
-      vtKeyword: (Keyword: TVRMLKeyword);
-      vtInteger: (Integer: Int64);
+    Float: Float; //< for both vtFloat and vtInteger
+    Name: string; //< for vtName
+    AString: string; //< for vtString
+    Keyword: TVRMLKeyword; //< for vtKeyword
+    Integer: Int64; //< for vtInteger
   end;
-  PVRMLTokenInfo = ^TVRMLTokenInfo;
-
-  TVRMLTokenInfoList = class(specialize TGenericStructList<TVRMLTokenInfo>)
+  TVRMLTokenInfoList = class(specialize TFPGObjectList<TVRMLTokenInfo>)
     procedure AssertEqual(SecondValue: TVRMLTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
@@ -206,7 +203,7 @@ begin
     'TVRMLTokenInfoList.Equal: different counts %d and %d',
     [Count, SecondValue.Count]));
   for I := 0 to Count - 1 do
-    AssertEqualTokens(L[I], SecondValue.L[I]);
+    AssertEqualTokens(Items[I], SecondValue[I]);
 end;
 
 { Note that this can be used to test correctly only files that can

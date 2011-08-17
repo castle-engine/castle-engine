@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses KambiParameters, KambiUtils, KambiStringUtils, GenericStructList;
+uses KambiParameters, KambiUtils, KambiStringUtils;
 
 type
   TParsedOption = record
@@ -36,47 +36,41 @@ type
     Argument: string;
     SeparateArgs: TSeparateArgs;
   end;
-  PParsedOption = ^TParsedOption;
+  TParsedOptionList = array of TParsedOption;
 
-  TParsedOptionList = specialize TGenericStructList<TParsedOption>;
+var
+  ParsedArray: TParsedOptionList;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var ParsedArray: TParsedOptionList absolute Data;
-    LastItem: PParsedOption;
+var
+  LastItem: TParsedOption;
 begin
- LastItem := ParsedArray.Add;
- LastItem^.OptionNum := OptionNum;
- LastItem^.HasArgument := HasArgument;
- LastItem^.Argument := Argument;
- LastItem^.SeparateArgs := SeparateArgs;
+  LastItem.OptionNum := OptionNum;
+  LastItem.HasArgument := HasArgument;
+  LastItem.Argument := Argument;
+  LastItem.SeparateArgs := SeparateArgs;
+  SetLength(ParsedArray, Length(ParsedArray) + 1);
+  ParsedArray[High(ParsedArray)] := LastItem;
 end;
 
-{ Parse command-line parameters returning a list of parsed options.
+{ Parse command-line parameters into a list of parsed options ParsedArray.
   Works exactly like previous TParameters.Parse procedure,
-  but instead of using a callback like OptionProc, this time
-  it returns a list.
+  but instead of using a callback like OptionProc, this sets a list ParsedArray.
   @groupBegin }
-function ParseParameters(
+procedure ParseParameters(
   Options: POption_Array; OptionsCount: Integer;
-  ParseOnlyKnownLongOptions: boolean = false)
-  : TParsedOptionList;
+  ParseOnlyKnownLongOptions: boolean = false);
 begin
- result := TParsedOptionList.Create;
- try
-  Parameters.Parse(Options, OptionsCount,
-    {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
-    ParseOnlyKnownLongOptions);
- except result.Free; raise end;
+  SetLength(ParsedArray, 0);
+  Parameters.Parse(Options, OptionsCount, @ParseNextParam, nil, ParseOnlyKnownLongOptions);
 end;
 
-function ParseParameters(
-  const Options: array of TOption; ParseOnlyKnownLongOptions: boolean = false)
-  : TParsedOptionList;
+procedure ParseParameters(const Options: array of TOption;
+  ParseOnlyKnownLongOptions: boolean = false);
 begin
- result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
+ ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
 end;
-{ @groupEnd }
 
 procedure AssertParsEqual(const ParsValues: array of string);
 var i: Integer;
@@ -89,14 +83,14 @@ procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
   const ParsedPars2: array of TParsedOption);
 var i, j: Integer;
 begin
- Assert(ParsedPars1.Count - 1 = High(ParsedPars2));
- for i := 0 to ParsedPars1.Count - 1 do
+ Assert(High(ParsedPars1) = High(ParsedPars2));
+ for i := 0 to High(ParsedPars1) do
  begin
-  Assert(ParsedPars1.L[i].OptionNum   = ParsedPars2[i].OptionNum);
-  Assert(ParsedPars1.L[i].HasArgument = ParsedPars2[i].HasArgument);
-  Assert(ParsedPars1.L[i].Argument    = ParsedPars2[i].Argument);
+  Assert(ParsedPars1[i].OptionNum   = ParsedPars2[i].OptionNum);
+  Assert(ParsedPars1[i].HasArgument = ParsedPars2[i].HasArgument);
+  Assert(ParsedPars1[i].Argument    = ParsedPars2[i].Argument);
   for j := Low(TSeparateArgs) to High(TSeparateArgs) do
-   Assert(ParsedPars1.L[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
+   Assert(ParsedPars1[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
  end;
 end;
 
@@ -105,12 +99,12 @@ function DynParsedOptionArrayToStr(const name: string;
 var i: Integer;
 begin
  result := name + nl;
- for i := 0 to v.Count - 1 do
+ for i := 0 to High(v) do
   result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
     [ i,
-      v.L[i].OptionNum,
-      BoolToStr[v.L[i].HasArgument],
-      v.L[i].Argument]) + nl;
+      v[i].OptionNum,
+      BoolToStr[v[i].HasArgument],
+      v[i].Argument]) + nl;
 end;
 
 function ParsToStr: string;
@@ -127,46 +121,40 @@ procedure TTestParsingParameters.TestParsingParameters;
     const Options: array of TOption;
     const GoodAnswer: array of TParsedOption; const GoodRest: array of string;
     ParseOnlyKnownLongOptions: boolean);
-  var Answer: TParsedOptionList;
   begin
-   Parameters.AssignArray(StartPars);
-   AssertParsEqual(StartPars);
+    Parameters.AssignArray(StartPars);
+    AssertParsEqual(StartPars);
 
-   try
-    Answer := ParseParameters(Options, ParseOnlyKnownLongOptions);
-   except
-    Writeln('failed na tescie ',TestName);
-    raise;
-   end;
-
-   try
     try
-     AssertParsedParsEqual(Answer, GoodAnswer);
+     ParseParameters(Options, ParseOnlyKnownLongOptions);
+    except
+     Writeln('failed na tescie ',TestName);
+     raise;
+    end;
+
+    try
+     AssertParsedParsEqual(ParsedArray, GoodAnswer);
      AssertParsEqual(GoodRest);
     except
      Writeln('failed na Assertach w tescie ',TestName);
-     Write(DynParsedOptionArrayToStr('Answer', Answer));
+     Write(DynParsedOptionArrayToStr('Answer', ParsedArray));
      Write(ParsToStr);
      raise;
     end;
-   finally Answer.Free end;
   end;
 
   procedure CheckParsFail(TestName: string; const StartPars: array of string;
     const Options: array of TOption; EClass: ExceptClass; const EMessage: string);
-  var Answer: TParsedOptionList;
   begin
    Parameters.AssignArray(StartPars);
    AssertParsEqual(StartPars);
 
    try
-    Answer := ParseParameters(Options);
-    try
-     Writeln('CheckParsFail '+ TestName + ' przeszedl mimo ze nie powinien');
-     Write(DynParsedOptionArrayToStr('Answer', Answer));
-     Write(ParsToStr);
-     raise Exception.Create('Test fail succeded... er, I mean, failed');
-    finally Answer.Free end;
+    ParseParameters(Options);
+    Writeln('CheckParsFail '+ TestName + ' przeszedl mimo ze nie powinien');
+    Write(DynParsedOptionArrayToStr('Answer', ParsedArray));
+    Write(ParsToStr);
+    raise Exception.Create('Test fail succeded... er, I mean, failed');
    except
     on E: Exception do
     begin
