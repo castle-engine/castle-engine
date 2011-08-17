@@ -19,7 +19,7 @@ unit GLNotifications;
 interface
 
 uses GL, GLU, UIControls, Classes, SysUtils, KambiUtils, KambiGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath,
+  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath, KambiStringUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -69,6 +69,8 @@ type
     FMaxMessages: integer;
     FTimeout: TMilisecTime;
     FHorizontalMargin, FVerticalMargin: Integer;
+    FHistory: TKamStringList;
+    FCollectHistory: boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -82,7 +84,7 @@ type
       given font.
       @groupBegin }
     procedure Show(const s: string); overload;
-    procedure Show(s: TStrings); overload;
+    procedure Show(s: TStringList); overload;
     { @groupEnd }
 
     { Clear all messages. }
@@ -101,6 +103,10 @@ type
     { Font used to draw messages. Read-only for now, in the future
       you should be allowed to change it. }
     property Font: TGLBitmapFont_Abstract read FFont;
+
+    { All the messages passed to @link(Show), collected only if CollectHistory.
+      May be @nil when not CollectHistory. }
+    property History: TKamStringList read FHistory;
   published
     { How many message lines should be visible on the screen, at maximum.  }
     property MaxMessages: integer
@@ -124,6 +130,18 @@ type
     property VerticalMargin: Integer read FVerticalMargin write FVerticalMargin
       default DefaultVerticalMargin;
     { @groupEnd }
+
+    { Turn this on to have all the messages you pass to @link(Show) be collected
+      inside @link(History) string list. @link(History) is expanded by @link(Show),
+      it is cleared by @link(Clear), just like the notifications on screen.
+      However, unlike the visible messages, it has unlimited size
+      (messages there are not removed when MaxMessages or @link(Timeout)
+      take action), and messages inside are not broken to honour screen width.
+
+      This is useful if you want to show the player a history of messages
+      (in case they missed the message in game). }
+    property CollectHistory: boolean read FCollectHistory write FCollectHistory
+      default false;
   end;
 
 procedure Register;
@@ -153,6 +171,7 @@ constructor TGLNotifications.Create(AOwner: TComponent);
 begin
   inherited;
   Messages := TNotificationList.Create;
+  FHistory := TKamStringList.Create;
 
   MaxMessages := DefaultMaxMessages;
   Timeout := DefaultMessagesTimeout;
@@ -166,6 +185,7 @@ end;
 destructor TGLNotifications.Destroy;
 begin
   FreeAndNil(Messages);
+  FreeAndNil(FHistory);
   inherited;
 end;
 
@@ -182,7 +202,7 @@ begin
   inherited;
 end;
 
-procedure TGLNotifications.Show(S: TStrings);
+procedure TGLNotifications.Show(S: TStringList);
 
   procedure AddStrings(S: TStrings);
   var
@@ -219,6 +239,10 @@ begin
     finally Broken.Free end;
   end else
     AddStrings(S);
+
+  if CollectHistory then
+    History.AddList(S);
+
   VisibleChange;
 end;
 
@@ -236,6 +260,8 @@ end;
 procedure TGLNotifications.Clear;
 begin
   Messages.Clear;
+  if CollectHistory then
+    History.Clear;
   VisibleChange;
 end;
 
