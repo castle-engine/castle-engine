@@ -626,6 +626,7 @@ type
     Framebuffer, RenderbufferColor, RenderbufferDepth, RenderbufferStencil: TGLuint;
 
     FramebufferBound: boolean;
+    FColorBufferAlpha: boolean;
   public
     { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
@@ -811,6 +812,15 @@ type
       glReadBuffer (or our SaveScreen_NoFlush), currently it's just
       GL_COLOR_ATTACHMENT0_EXT if we actually have FBO or GL_BACK if not. }
     function ColorBuffer: TGLuint;
+
+    { Do we require color buffer with alpha channel.
+      Relevant only when Buffer = tbNone (as in all other cases,
+      we do not have the color buffer --- colors either go into some texture
+      or are ignored).
+
+      This must be set before GLContextOpen, cannot be changed later. }
+    property ColorBufferAlpha: boolean read FColorBufferAlpha write FColorBufferAlpha
+      default false;
   end;
 
 implementation
@@ -2122,6 +2132,13 @@ procedure TGLRenderToTexture.GLContextOpen;
     GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, GL_STENCIL_ATTACHMENT);
   end;
 
+  function ColorBufferFormat: TGLenum;
+  begin
+    if ColorBufferAlpha then
+      Result := GL_RGBA else
+      Result := GL_RGB;
+  end;
+
 var
   Status: TGLenum;
   PackedDepthBufferFormat: TGLenum;
@@ -2181,7 +2198,7 @@ begin
         end;
       tbNone:
         begin
-          GenBindRenderbuffer(RenderbufferColor, GL_RGB, GL_COLOR_ATTACHMENT0);
+          GenBindRenderbuffer(RenderbufferColor, ColorBufferFormat, GL_COLOR_ATTACHMENT0);
           GenBindRenderbuffer(RenderbufferDepth, PackedDepthBufferFormat, GL_DEPTH_ATTACHMENT);
         end;
       else raise EInternalError.Create('Buffer 1?');
