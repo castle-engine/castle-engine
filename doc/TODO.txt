@@ -537,9 +537,6 @@ Victor Amat list (overlapping with mine, so let's go with it):
     Hm, bs contact has "eventOut SFVec2f windowSize", although I don't know on wha node.
     http://www.bitmanagement.com/documents/BS_Contact_VRML_june2006.pdf
 
-- Maybe you can solve this with an overloaded assignment operator between gboolean and boolean?
-  Good idea, try a patch ad submit.
-
 - Instead of ViewerChanged and IsLast..., it would be more natural and easier
   to keep Camera reference in TVRMLScene.
   This could ease some integration between TVRMLScene, TVRMLGLScene and viewer.
@@ -648,7 +645,10 @@ http://delphi.mozdev.org/ for recent fpc)
   http://www.xj3d.org/extensions/rigid_physics_examples.html
   file:///home/michalis/doc/web3d.org/X3DPublicSpecifications/ISO-IEC-FDIS-19775-1.2-x3d_spec_edition_2/Part01/components/rigid_physics.html
 
-- And then particle engine
+- Particle engine.
+  Following X3D spec.
+  Would be great to be able to export Blender particle engine to it.
+  Use ARB_point_sprite.
 ------------------------------------------------------------------------------
 Shadow volumes finish:
   - allow multiple lights. This requires
