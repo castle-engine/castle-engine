@@ -99,8 +99,6 @@ begin
 
   FSceneManager := TKamSceneManager.Create(Self);
   Controls.Add(SceneManager);
-
-  Load(nil, true);
 end;
 
 procedure TKamVRMLBrowser.Load(const SceneFileName: string);

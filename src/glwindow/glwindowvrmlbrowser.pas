@@ -84,8 +84,6 @@ begin
 
   FSceneManager := TKamSceneManager.Create(Self);
   Controls.Add(SceneManager);
-
-  Load(nil, true);
 end;
 
 procedure TGLWindowVRMLBrowser.Load(const SceneFileName: string);
