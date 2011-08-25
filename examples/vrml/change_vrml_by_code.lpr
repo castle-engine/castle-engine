@@ -23,7 +23,7 @@
   For programmers:
 
   Generally, you just change VRML graph (rooted in Scene.RootNode)
-  however you like, whenever you like. TVRMLNode class has a lot of methods
+  however you like, whenever you like. TX3DNode class has a lot of methods
   to find and change nodes within the graph, you can insert/delete/change
   any of their children nodes, fields, and generally do everything.
   The only thing to keep in ming is to call one of Scene.ChangedXxx
@@ -50,9 +50,9 @@ var
   Scene: TVRMLGLScene;
 
 var
-  TransformBox2: TNodeTransform;
-  TransformBox3: TNodeTransform;
-  TransformBox4: TNodeTransform;
+  TransformBox2: TTransformNode;
+  TransformBox3: TTransformNode;
+  TransformBox4: TTransformNode;
 
 procedure Idle(Window: TGLWindow);
 begin
@@ -89,12 +89,12 @@ begin
   Scene := TVRMLGLScene.Create(nil);
   try
     Scene.Load('models' + PathDelim + 'boxes.x3dv');
-    TransformBox2 := Scene.RootNode.FindNodeByName(TNodeTransform,
-      'Box2Transform', true) as TNodeTransform;
-    TransformBox3 := Scene.RootNode.FindNodeByName(TNodeTransform,
-      'Box3Transform', true) as TNodeTransform;
-    TransformBox4 := Scene.RootNode.FindNodeByName(TNodeTransform,
-      'Box4Transform', true) as TNodeTransform;
+    TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
+      'Box2Transform', true) as TTransformNode;
+    TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,
+      'Box3Transform', true) as TTransformNode;
+    TransformBox4 := Scene.RootNode.FindNodeByName(TTransformNode,
+      'Box4Transform', true) as TTransformNode;
 
     { init SceneManager with our Scene }
     SceneManager := TKamSceneManager.Create(Window);

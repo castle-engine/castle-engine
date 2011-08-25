@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DEnvironmentalSensorNode = class(TNodeX3DSensorNode)
+  TAbstractX3DEnvironmentalSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -34,7 +34,7 @@
     public property EventExitTime: TVRMLEvent read FEventExitTime;
   end;
 
-  TNodeProximitySensor = class(TNodeX3DEnvironmentalSensorNode)
+  TProximitySensorNode = class(TAbstractX3DEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -54,7 +54,7 @@
     public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
   end;
 
-  TNodeTransformSensor = class(TNodeX3DEnvironmentalSensorNode)
+  TTransformSensorNode = class(TAbstractX3DEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -72,7 +72,7 @@
     public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
   end;
 
-  TNodeVisibilitySensor = class(TNodeX3DEnvironmentalSensorNode)
+  TVisibilitySensorNode = class(TAbstractX3DEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -82,7 +82,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DEnvironmentalSensorNode.CreateNode;
+procedure TAbstractX3DEnvironmentalSensorNode.CreateNode;
 begin
   inherited;
 
@@ -105,7 +105,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeProximitySensor.CreateNode;
+procedure TProximitySensorNode.CreateNode;
 begin
   inherited;
 
@@ -121,28 +121,28 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeProximitySensor.ClassNodeTypeName: string;
+class function TProximitySensorNode.ClassNodeTypeName: string;
 begin
   Result := 'ProximitySensor';
 end;
 
-class function TNodeProximitySensor.URNMatching(const URN: string): boolean;
+class function TProximitySensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeProximitySensor.TransformationChange: TNodeTransformationChange;
+function TProximitySensorNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcProximitySensor;
 end;
 
-procedure TNodeTransformSensor.CreateNode;
+procedure TTransformSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TNodeX3DGroupingNode, TNodeX3DShapeNode]);
+  FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractX3DShapeNode]);
   Fields.Add(FFdTargetObject);
 
   FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
@@ -154,30 +154,30 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTransformSensor.ClassNodeTypeName: string;
+class function TTransformSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'TransformSensor';
 end;
 
-class function TNodeTransformSensor.URNMatching(const URN: string): boolean;
+class function TTransformSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeVisibilitySensor.CreateNode;
+procedure TVisibilitySensorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodeVisibilitySensor.ClassNodeTypeName: string;
+class function TVisibilitySensorNode.ClassNodeTypeName: string;
 begin
   Result := 'VisibilitySensor';
 end;
 
-class function TNodeVisibilitySensor.URNMatching(const URN: string): boolean;
+class function TVisibilitySensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
@@ -187,9 +187,9 @@ end;
 procedure RegisterEnvironmentalSensorNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeProximitySensor,
-    TNodeTransformSensor,
-    TNodeVisibilitySensor
+    TProximitySensorNode,
+    TTransformSensorNode,
+    TVisibilitySensorNode
   ]);
 end;
 

@@ -17,7 +17,7 @@
   See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php]. } { }
 
 {$ifdef read_interface}
-  TNodeKambiTriangulation = class(TNodeX3DChildNode)
+  TKambiTriangulationNode = class(TAbstractX3DChildNode)
   private
     function GetDetailValue(Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
   public
@@ -45,7 +45,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeKambiHeadLight = class(TNodeX3DChildNode)
+  TKambiHeadLightNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -74,7 +74,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeText3D = class(TNodeX3DGeometryNode)
+  TText3DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -103,15 +103,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
-      is nil or if it's not TNodeFontStyle. }
-    function FontStyle: TNodeFontStyle;
+      is nil or if it's not TFontStyleNode. }
+    function FontStyle: TFontStyleNode;
   end;
 
   { BlendMode node.
@@ -122,7 +122,7 @@
     and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
 
     Actually, our version is just a subset of their node. }
-  TNodeBlendMode = class(TNodeX3DAppearanceChildNode)
+  TBlendModeNode = class(TAbstractX3DAppearanceChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -141,7 +141,7 @@
     public property FdColorTransparency: TSFFloat read FFdColorTransparency;
   end;
 
-  TNodeKambiAppearance = class(TNodeAppearance)
+  TKambiAppearanceNode = class(TAppearanceNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -149,11 +149,11 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeKambiInline = class(TNodeInline)
+  TKambiInlineNode = class(TInlineNode)
   private
     { This is internal only for DoReplaceNodes, initialized in AfterLoadInlined. }
     ReplaceCount: Integer;
-    procedure DoReplaceNodes(ParentNode: TVRMLNode; var Node: TVRMLNode);
+    procedure DoReplaceNodes(ParentNode: TX3DNode; var Node: TX3DNode);
   protected
     procedure AfterLoadInlined; override;
   public
@@ -174,9 +174,9 @@
     opVisibleTriangles,
     opCollidableTriangles);
 
-  TNodeKambiOctreeProperties = class;
+  TKambiOctreePropertiesNode = class;
 
-  TNodeKambiNavigationInfo = class(TNodeNavigationInfo)
+  TKambiNavigationInfoNode = class(TNavigationInfoNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -207,12 +207,12 @@
     public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
 
     { Return value of appropriate FdOctreeXxx field.
-      Returns @nil if the field doesn't have allowed (TNodeKambiOctreeProperties)
+      Returns @nil if the field doesn't have allowed (TKambiOctreePropertiesNode)
       value (or if the field is actually @nil, naturally). }
-    function OctreeProperties(OP: TSceneOctreeProperties): TNodeKambiOctreeProperties;
+    function OctreeProperties(OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
   end;
 
-  TNodeKambiOctreeProperties = class(TNodeX3DNode)
+  TKambiOctreePropertiesNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -228,7 +228,7 @@
     procedure OverrideLimits(var Limits: TOctreeLimits);
   end;
 
-  TNodeGeneratedShadowMap = class(TNodeX3DTextureNode)
+  TGeneratedShadowMapNode = class(TAbstractX3DTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
@@ -259,10 +259,10 @@
     private FFdCompareMode: TSFstring;
     public property FdCompareMode: TSFString read FFdCompareMode;
 
-    function Light: TNodeX3DLightNode;
+    function Light: TAbstractX3DLightNode;
   end;
 
-  TNodeProjectedTextureCoordinate = class(TNodeX3DTextureCoordinateNode)
+  TProjectedTextureCoordinateNode = class(TAbstractX3DTextureCoordinateNode)
   public
     procedure CreateNode; override;
 
@@ -273,7 +273,7 @@
     public property FdProjector: TSFNode read FFdProjector;
   end;
 
-  TNodeScreenEffect = class(TNodeX3DChildNode)
+  TScreenEffectNode = class(TAbstractX3DChildNode)
   private
     FShader: TObject;
     FShaderLoaded: boolean;
@@ -325,13 +325,13 @@
 
   { X3D MultiGeneratedTextureCoordinate node.
     See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_tex_coord]. }
-  TNodeMultiGeneratedTextureCoordinate = class(TNodeMultiTextureCoordinate)
+  TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeEffect = class(TNodeX3DChildNode)
+  TEffectNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -347,7 +347,7 @@
     public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
-  TNodeEffectPart = class(TNodeX3DNode, INodeX3DUrlObject)
+  TEffectPartNode = class(TAbstractX3DNode, IAbstractX3DUrlObject)
   private
     FUsedFullUrl: string;
   public
@@ -368,11 +368,11 @@
     function LoadContents: string;
 
     { Once the LoadContents is called, this is set to the URL that was
-      used to load the shader contents. See also TNodeShaderPart.UsedFullUrl. }
+      used to load the shader contents. See also TShaderPartNode.UsedFullUrl. }
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
-  TNodeShaderTexture = class(TNodeX3DTextureNode)
+  TShaderTextureNode = class(TAbstractX3DTextureNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -388,7 +388,7 @@
 const
   TriangulationUseDef = -1;
 
-procedure TNodeKambiTriangulation.CreateNode;
+procedure TKambiTriangulationNode.CreateNode;
 begin
   inherited;
 
@@ -405,12 +405,12 @@ begin
   Fields.Add(FFdRectDivisions);
 end;
 
-class function TNodeKambiTriangulation.ClassNodeTypeName: string;
+class function TKambiTriangulationNode.ClassNodeTypeName: string;
 begin
   result := 'KambiTriangulation';
 end;
 
-function TNodeKambiTriangulation.GetDetailValue(
+function TKambiTriangulationNode.GetDetailValue(
   Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
 begin
   if Field.Value = TriangulationUseDef then
@@ -425,33 +425,33 @@ begin
     Result := Field.Value;
 end;
 
-function TNodeKambiTriangulation.QuadricSlices: Cardinal;
+function TKambiTriangulationNode.QuadricSlices: Cardinal;
 begin
   Result := GetDetailValue(FdQuadricSlices, Detail_QuadricSlices, MinQuadricSlices);
 end;
 
-function TNodeKambiTriangulation.QuadricStacks: Cardinal;
+function TKambiTriangulationNode.QuadricStacks: Cardinal;
 begin
   Result := GetDetailValue(FdQuadricStacks, Detail_QuadricStacks, MinQuadricStacks);
 end;
 
-function TNodeKambiTriangulation.RectDivisions: Cardinal;
+function TKambiTriangulationNode.RectDivisions: Cardinal;
 begin
   Result := GetDetailValue(FdRectDivisions, Detail_RectDivisions, MinRectDivisions);
 end;
 
-class function TNodeKambiTriangulation.URNMatching(const URN: string): boolean;
+class function TKambiTriangulationNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-class function TNodeKambiHeadLight.ClassNodeTypeName: string;
+class function TKambiHeadLightNode.ClassNodeTypeName: string;
 begin
   Result := 'KambiHeadLight';
 end;
 
-procedure TNodeKambiHeadLight.CreateNode;
+procedure TKambiHeadLightNode.CreateNode;
 const
   HeadLightDefaultAmbientIntensity = 0;
   HeadLightDefaultAttenuation: TVector3Single = (1, 0, 0);
@@ -485,24 +485,24 @@ begin
   Fields.Add(FFdSpotDropOffRate);
 end;
 
-class function TNodeKambiHeadLight.URNMatching(const URN: string): boolean;
+class function TKambiHeadLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-class function TNodeText3D.ClassNodeTypeName: string;
+class function TText3DNode.ClassNodeTypeName: string;
 begin
   Result := 'Text3D';
 end;
 
-class function TNodeText3D.URNMatching(const URN: string): boolean;
+class function TText3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeText3D.CreateNode;
+procedure TText3DNode.CreateNode;
 begin
   inherited;
 
@@ -510,7 +510,7 @@ begin
    FdString.ChangesAlways := [chGeometry];
   Fields.Add(FFdString);
 
-  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TNodeFontStyle]);
+  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TFontStyleNode]);
    FdFontStyle.ChangesAlways := [chGeometry];
   Fields.Add(FFdFontStyle);
 
@@ -531,26 +531,26 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-function TNodeText3D.FontStyle: TNodeFontStyle;
+function TText3DNode.FontStyle: TFontStyleNode;
 begin
   if (FdFontStyle.Value <> nil) and
-     (FdFontStyle.Value is TNodeFontStyle) then
-    Result := TNodeFontStyle(FdFontStyle.Value) else
+     (FdFontStyle.Value is TFontStyleNode) then
+    Result := TFontStyleNode(FdFontStyle.Value) else
     Result := nil;
 end;
 
-class function TNodeBlendMode.ClassNodeTypeName: string;
+class function TBlendModeNode.ClassNodeTypeName: string;
 begin
   Result := 'BlendMode';
 end;
 
-class function TNodeBlendMode.URNMatching(const URN: string): boolean;
+class function TBlendModeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBlendMode.CreateNode;
+procedure TBlendModeNode.CreateNode;
 begin
   inherited;
 
@@ -573,47 +573,47 @@ begin
   DefaultContainerField := 'blendMode';
 end;
 
-class function TNodeKambiAppearance.ClassNodeTypeName: string;
+class function TKambiAppearanceNode.ClassNodeTypeName: string;
 begin
   Result := 'KambiAppearance';
 end;
 
-class function TNodeKambiAppearance.URNMatching(const URN: string): boolean;
+class function TKambiAppearanceNode.URNMatching(const URN: string): boolean;
 begin
   { Don't call "inherited URNMatching(URN)", since we don't want to
     "intercept" URNs that should indicate standard Appearance node. }
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeKambiAppearance.CreateNode;
+procedure TKambiAppearanceNode.CreateNode;
 begin
   inherited;
 end;
 
-procedure TNodeKambiInline.CreateNode;
+procedure TKambiInlineNode.CreateNode;
 begin
   inherited;
 
   FFdReplaceNames := TMFString.Create(Self, 'replaceNames', []);
   Fields.Add(FFdReplaceNames);
 
-  FFdReplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TVRMLNode]);
+  FFdReplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TX3DNode]);
   Fields.Add(FFdReplaceNodes);
 end;
 
-class function TNodeKambiInline.ClassNodeTypeName: string;
+class function TKambiInlineNode.ClassNodeTypeName: string;
 begin
   Result := 'KambiInline';
 end;
 
-class function TNodeKambiInline.URNMatching(const URN: string): boolean;
+class function TKambiInlineNode.URNMatching(const URN: string): boolean;
 begin
   { Don't call "inherited URNMatching(URN)", since we don't want to
     "intercept" URNs that should indicate standard Inline node. }
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeKambiInline.AfterLoadInlined;
+procedure TKambiInlineNode.AfterLoadInlined;
 var
   I: Integer;
 begin
@@ -641,8 +641,8 @@ begin
   VRML1Children[0].EnumerateReplaceChildren(@DoReplaceNodes);
 end;
 
-procedure TNodeKambiInline.DoReplaceNodes(ParentNode: TVRMLNode;
-  var Node: TVRMLNode);
+procedure TKambiInlineNode.DoReplaceNodes(ParentNode: TX3DNode;
+  var Node: TX3DNode);
 var
   I: Integer;
 begin
@@ -655,7 +655,7 @@ begin
     end;
 end;
 
-procedure TNodeKambiNavigationInfo.CreateNode;
+procedure TKambiNavigationInfoNode.CreateNode;
 begin
   inherited;
 
@@ -663,19 +663,19 @@ begin
   FFdTimeOriginAtLoad.Exposed := false;
   Fields.Add(FFdTimeOriginAtLoad);
 
-  FFdOctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TNodeKambiOctreeProperties]);
+  FFdOctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TKambiOctreePropertiesNode]);
   FFdOctreeRendering.Exposed := false;
   Fields.Add(FFdOctreeRendering);
 
-  FFdOctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TNodeKambiOctreeProperties]);
+  FFdOctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
   FFdOctreeDynamicCollisions.Exposed := false;
   Fields.Add(FFdOctreeDynamicCollisions);
 
-  FFdOctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TNodeKambiOctreeProperties]);
+  FFdOctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
   FFdOctreeVisibleTriangles.Exposed := false;
   Fields.Add(FFdOctreeVisibleTriangles);
 
-  FFdOctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TNodeKambiOctreeProperties]);
+  FFdOctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TKambiOctreePropertiesNode]);
   FFdOctreeCollidableTriangles.Exposed := false;
   Fields.Add(FFdOctreeCollidableTriangles);
 
@@ -687,38 +687,38 @@ begin
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   Fields.Add(FdHeadBobbingTime);
 
-  FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TNodeX3DLightNode]);
+  FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TAbstractX3DLightNode]);
   Fields.Add(FFdHeadlightNode);
 end;
 
-class function TNodeKambiNavigationInfo.ClassNodeTypeName: string;
+class function TKambiNavigationInfoNode.ClassNodeTypeName: string;
 begin
   Result := 'KambiNavigationInfo';
 end;
 
-class function TNodeKambiNavigationInfo.URNMatching(const URN: string): boolean;
+class function TKambiNavigationInfoNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TNodeKambiNavigationInfo.OctreeProperties(
-  OP: TSceneOctreeProperties): TNodeKambiOctreeProperties;
+function TKambiNavigationInfoNode.OctreeProperties(
+  OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
 var
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   case OP of
     opRendering           : N := FdOctreeRendering          .Value;
     opDynamicCollisions   : N := FdOctreeDynamicCollisions  .Value;
     opVisibleTriangles    : N := FdOctreeVisibleTriangles   .Value;
     opCollidableTriangles : N := FdOctreeCollidableTriangles.Value;
-    else raise EInternalError.Create('TNodeKambiOctreeProperties.OctreeProperties');
+    else raise EInternalError.Create('TKambiOctreePropertiesNode.OctreeProperties');
   end;
-  if N is TNodeKambiOctreeProperties then
-    Result := TNodeKambiOctreeProperties(N) else
+  if N is TKambiOctreePropertiesNode then
+    Result := TKambiOctreePropertiesNode(N) else
     Result := nil;
 end;
 
-procedure TNodeKambiOctreeProperties.CreateNode;
+procedure TKambiOctreePropertiesNode.CreateNode;
 begin
   inherited;
 
@@ -731,17 +731,17 @@ begin
   Fields.Add(FFdLeafCapacity);
 end;
 
-class function TNodeKambiOctreeProperties.ClassNodeTypeName: string;
+class function TKambiOctreePropertiesNode.ClassNodeTypeName: string;
 begin
   Result := 'KambiOctreeProperties';
 end;
 
-class function TNodeKambiOctreeProperties.URNMatching(const URN: string): boolean;
+class function TKambiOctreePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeKambiOctreeProperties.OverrideLimits(var Limits: TOctreeLimits);
+procedure TKambiOctreePropertiesNode.OverrideLimits(var Limits: TOctreeLimits);
 begin
   if FdMaxDepth.Value >= 0 then
     Limits.MaxDepth := FdMaxDepth.Value else
@@ -754,7 +754,7 @@ begin
     OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
-procedure TNodeGeneratedShadowMap.CreateNode;
+procedure TGeneratedShadowMapNode.CreateNode;
 begin
   inherited;
 
@@ -773,7 +773,7 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     GeneratedShadowMap. }
-  FFdLight := TSFNode.Create(Self, 'light', [TNodeX3DLightNode]);
+  FFdLight := TSFNode.Create(Self, 'light', [TAbstractX3DLightNode]);
    FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdLight);
 
@@ -793,30 +793,30 @@ begin
   FGeneratedTextureHandler.FdUpdate := FdUpdate;
 end;
 
-destructor TNodeGeneratedShadowMap.Destroy;
+destructor TGeneratedShadowMapNode.Destroy;
 begin
   FreeAndNil(FGeneratedTextureHandler);
   inherited;
 end;
 
-class function TNodeGeneratedShadowMap.ClassNodeTypeName: string;
+class function TGeneratedShadowMapNode.ClassNodeTypeName: string;
 begin
   Result := 'GeneratedShadowMap';
 end;
 
-class function TNodeGeneratedShadowMap.URNMatching(const URN: string): boolean;
+class function TGeneratedShadowMapNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TNodeGeneratedShadowMap.Light: TNodeX3DLightNode;
+function TGeneratedShadowMapNode.Light: TAbstractX3DLightNode;
 begin
-  if FdLight.Value is TNodeX3DLightNode then
-    Result := TNodeX3DLightNode(FdLight.Value) else
+  if FdLight.Value is TAbstractX3DLightNode then
+    Result := TAbstractX3DLightNode(FdLight.Value) else
     Result := nil;
 end;
 
-procedure TNodeProjectedTextureCoordinate.CreateNode;
+procedure TProjectedTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -826,24 +826,24 @@ begin
     to override it's transform with transformation of this
     ProjectedTextureCoordinate. }
   FFdProjector := TSFNode.Create(Self, 'projector',
-    [TNodeSpotLight_1, TNodeDirectionalLight_1,
-     TNodeSpotLight  , TNodeDirectionalLight  ,
-     TNodeX3DViewpointNode]);
+    [TSpotLightNode_1, TDirectionalLightNode_1,
+     TSpotLightNode  , TDirectionalLightNode  ,
+     TAbstractX3DViewpointNode]);
    FFdprojector.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdProjector);
 end;
 
-class function TNodeProjectedTextureCoordinate.ClassNodeTypeName: string;
+class function TProjectedTextureCoordinateNode.ClassNodeTypeName: string;
 begin
   Result := 'ProjectedTextureCoordinate';
 end;
 
-class function TNodeProjectedTextureCoordinate.URNMatching(const URN: string): boolean;
+class function TProjectedTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScreenEffect.CreateNode;
+procedure TScreenEffectNode.CreateNode;
 begin
   inherited;
 
@@ -851,7 +851,7 @@ begin
    FdEnabled.ChangesAlways := [chScreenEffectEnabled];
   Fields.Add(FFdEnabled);
 
-  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TNodeX3DShaderNode]);
+  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractX3DShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
   Fields.Add(FFdShaders);
 
@@ -864,40 +864,40 @@ begin
   FStateForShaderPrepare := TVRMLGraphTraverseState.Create;
 end;
 
-destructor TNodeScreenEffect.Destroy;
+destructor TScreenEffectNode.Destroy;
 begin
   FreeAndNil(FStateForShaderPrepare);
   inherited;
 end;
 
-class function TNodeScreenEffect.ClassNodeTypeName: string;
+class function TScreenEffectNode.ClassNodeTypeName: string;
 begin
   Result := 'ScreenEffect';
 end;
 
-class function TNodeScreenEffect.URNMatching(const URN: string): boolean;
+class function TScreenEffectNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScreenEffect.DirectEnumerateActive(
+procedure TScreenEffectNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FFdShaders.EnumerateValid(Func);
 end;
 
-class function TNodeMultiGeneratedTextureCoordinate.ClassNodeTypeName: string;
+class function TMultiGeneratedTextureCoordinateNode.ClassNodeTypeName: string;
 begin
   Result := 'MultiGeneratedTextureCoordinate';
 end;
 
-class function TNodeMultiGeneratedTextureCoordinate.URNMatching(const URN: string): boolean;
+class function TMultiGeneratedTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeEffect.CreateNode;
+procedure TEffectNode.CreateNode;
 begin
   inherited;
 
@@ -906,7 +906,7 @@ begin
    FdLanguage.ChangesAlways := [chEverything];
   Fields.Add(FFdLanguage);
 
-  FFdParts := TMFNode.Create(Self, 'parts', [TNodeEffectPart]);
+  FFdParts := TMFNode.Create(Self, 'parts', [TEffectPartNode]);
    FdParts.Exposed := false;
    FdParts.ChangesAlways := [chEverything];
   Fields.Add(FFdParts);
@@ -918,17 +918,17 @@ begin
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
-class function TNodeEffect.ClassNodeTypeName: string;
+class function TEffectNode.ClassNodeTypeName: string;
 begin
   Result := 'Effect';
 end;
 
-class function TNodeEffect.URNMatching(const URN: string): boolean;
+class function TEffectNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeEffectPart.CreateNode;
+procedure TEffectPartNode.CreateNode;
 begin
   inherited;
 
@@ -945,22 +945,22 @@ begin
   DefaultContainerField := 'parts';
 end;
 
-class function TNodeEffectPart.ClassNodeTypeName: string;
+class function TEffectPartNode.ClassNodeTypeName: string;
 begin
   Result := 'EffectPart';
 end;
 
-class function TNodeEffectPart.URNMatching(const URN: string): boolean;
+class function TEffectPartNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TNodeEffectPart.LoadContents: string;
+function TEffectPartNode.LoadContents: string;
 begin
   Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
 end;
 
-procedure TNodeShaderTexture.CreateNode;
+procedure TShaderTextureNode.CreateNode;
 begin
   inherited;
 
@@ -970,12 +970,12 @@ begin
   Fields.Add(FFdDefaultTexCoord);
 end;
 
-class function TNodeShaderTexture.ClassNodeTypeName: string;
+class function TShaderTextureNode.ClassNodeTypeName: string;
 begin
   Result := 'ShaderTexture';
 end;
 
-class function TNodeShaderTexture.URNMatching(const URN: string): boolean;
+class function TShaderTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
@@ -983,21 +983,21 @@ end;
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeKambiTriangulation,
-    TNodeKambiHeadLight,
-    TNodeText3D,
-    TNodeBlendMode,
-    TNodeKambiAppearance,
-    TNodeKambiInline,
-    TNodeKambiNavigationInfo,
-    TNodeKambiOctreeProperties,
-    TNodeGeneratedShadowMap,
-    TNodeProjectedTextureCoordinate,
-    TNodeScreenEffect,
-    TNodeMultiGeneratedTextureCoordinate,
-    TNodeEffect,
-    TNodeEffectPart,
-    TNodeShaderTexture
+    TKambiTriangulationNode,
+    TKambiHeadLightNode,
+    TText3DNode,
+    TBlendModeNode,
+    TKambiAppearanceNode,
+    TKambiInlineNode,
+    TKambiNavigationInfoNode,
+    TKambiOctreePropertiesNode,
+    TGeneratedShadowMapNode,
+    TProjectedTextureCoordinateNode,
+    TScreenEffectNode,
+    TMultiGeneratedTextureCoordinateNode,
+    TEffectNode,
+    TEffectPartNode,
+    TShaderTextureNode
   ]);
 end;
 

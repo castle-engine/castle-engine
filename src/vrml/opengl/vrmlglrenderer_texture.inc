@@ -12,25 +12,25 @@
       If TextureProperties = @nil, they are taken from defaults
       (possibly in Attributes). }
     procedure HandleTexturePropertiesCore(
-      TextureProperties: TNodeTextureProperties;
+      TextureProperties: TTexturePropertiesNode;
       out MinFilter, MagFilter: TGLint;
       out Anisotropy: TGLfloat);
 
     { Calculate things from TextureProperties node.
-      If TextureProperties = @nil or not of TNodeTextureProperties class,
+      If TextureProperties = @nil or not of TTexturePropertiesNode class,
       they are taken from defaults (possibly in Attributes).
 
       This is useful when interpreting VRML/X3D files,
       as you have no guarantee user didn't place there some disallowed node
       in "textureProperties" field. }
     procedure HandleTextureProperties(
-      TextureProperties: TVRMLNode;
+      TextureProperties: TX3DNode;
       out MinFilter, MagFilter: TGLint;
       out Anisotropy: TGLfloat);
 
     { Decide if this class can handle given texture Node. }
     class function IsClassForTextureNode(
-      ANode: TNodeX3DTextureNode): boolean; virtual; abstract;
+      ANode: TAbstractX3DTextureNode): boolean; virtual; abstract;
 
     { Do the time-consuming preparations before rendering this texture.
       Called from TVRMLGLRenderer.Prepare, always through our
@@ -41,13 +41,13 @@
       having to be prepared to finilizing incomplete instance. }
     procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
   public
-    { ANode must be TNodeX3DTextureNode }
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
+    { ANode must be TAbstractX3DTextureNode }
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); override;
 
     { Reference to handled texture node.
       Never @nil.
       It's guaranteed to satisfy IsClassForTextureNode method of this class. }
-    function TextureNode: TNodeX3DTextureNode;
+    function TextureNode: TAbstractX3DTextureNode;
 
     { Find suitable TGLTextureNode class that can best handle given Node.
       Returns @nil if not found.
@@ -55,7 +55,7 @@
       @italic(Descedants implementors): override IsClassForTextureNode
       to be correctly recognized by this. }
     class function ClassForTextureNode(
-      ANode: TNodeX3DTextureNode): TGLTextureNodeClass;
+      ANode: TAbstractX3DTextureNode): TGLTextureNodeClass;
 
     { Do the time-consuming preparations before rendering this texture.
       Calls PrepareCore. }
@@ -150,11 +150,11 @@
   public
     { Looks for item with given ANode.
       Returns -1 if not found. }
-    function TextureNodeIndex(ANode: TNodeX3DTextureNode): Integer;
+    function TextureNodeIndex(ANode: TAbstractX3DTextureNode): Integer;
 
     { Looks for item with given ANode.
       Returns @nil if not found. }
-    function TextureNode(ANode: TNodeX3DTextureNode): TGLTextureNode;
+    function TextureNode(ANode: TAbstractX3DTextureNode): TGLTextureNode;
 
     property Items[Index: Integer]: TGLTextureNode read GetItems; default;
 
@@ -169,28 +169,28 @@
       Returns @nil if Node not suitable for TGLTextureNode (not handled,
       or not really a texture node at all). }
     function Prepare(State: TVRMLGraphTraverseState;
-      ANode: TNodeX3DTextureNode;
+      ANode: TAbstractX3DTextureNode;
       ARenderer: TVRMLGLRenderer): TGLTextureNode;
 
     { Only bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
       returns @false. }
-    function Bind(ANode: TNodeX3DTextureNode;
+    function Bind(ANode: TAbstractX3DTextureNode;
       const TextureUnit: Cardinal): boolean;
 
     { Enable and bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
       returns @false. }
-    function Enable(ANode: TNodeX3DTextureNode;
+    function Enable(ANode: TAbstractX3DTextureNode;
       const TextureUnit: Cardinal;
       Shader: TVRMLShader; const Env: TTextureEnv): boolean;
 
     { Prepare / unprepare all textures inside Node.InterfaceDeclarations
       SFNode / MFNode fields. }
-    procedure PrepareInterfaceDeclarationsTextures(const ANode: TVRMLNode;
+    procedure PrepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
       const State: TVRMLGraphTraverseState;
       const Renderer: TVRMLGLRenderer);
-    procedure UnprepareInterfaceDeclarationsTextures(const ANode: TVRMLNode;
+    procedure UnprepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
       const Renderer: TVRMLGLRenderer);
   end;
 
@@ -212,23 +212,23 @@
       out TexCoordsNeeded: Cardinal; Shader: TVRMLShader); override;
   end;
 
-  { Handler for TNodeMultiTexture.
+  { Handler for TMultiTextureNode.
 
     This is somewhat special, in that it will use other TGLTextureNode
     handlers to handle single textures inside --- but this is completely
     hidden from the interface. }
   TGLMultiTextureNode = class(TGLTextureNode)
   private
-    PreparedTextureChildren: TVRMLNodeList;
+    PreparedTextureChildren: TX3DNodeList;
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
-    { ANode must be TNodeMultiTexture }
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
+    { ANode must be TMultiTextureNode }
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); override;
     destructor Destroy; override;
 
-    function TextureNode: TNodeMultiTexture;
+    function TextureNode: TMultiTextureNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -238,17 +238,17 @@
       out TexCoordsNeeded: Cardinal; Shader: TVRMLShader); override;
   end;
 
-  { Handler for TVRML2DTextureNode with image (not a video). }
+  { Handler for TAbstractTexture2DNode with image (not a video). }
   TGLImageTextureNode = class(TGLSingleTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
     NormalMap, HeightMap: TGLuint;
     HeightMapScale: Single;
 
-    function TextureNode: TVRML2DTextureNode;
+    function TextureNode: TAbstractTexture2DNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -258,12 +258,12 @@
 
   TGLMovieTextureNode = class(TGLSingleTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLVideo: TGLVideo;
 
-    function TextureNode: TNodeMovieTexture;
+    function TextureNode: TMovieTextureNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -275,7 +275,7 @@
   private
     RenderToTexture: TGLRenderToTexture;
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -285,7 +285,7 @@
     NeedsMipmaps: boolean;
     DepthMap: boolean;
 
-    function TextureNode: TNodeRenderedTexture;
+    function TextureNode: TRenderedTextureNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -296,17 +296,17 @@
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
-      CurrentViewpoint: TVRMLViewpointNode;
+      CurrentViewpoint: TAbstractViewpointNode;
       CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3Single);
   end;
 
-  { Common handling for texture nodes of TNodeX3DEnvironmentTextureNode. }
+  { Common handling for texture nodes of TAbstractX3DEnvironmentTextureNode. }
   TGLCubeMapTextureNode = class(TGLSingleTextureNode)
   public
     GLName: TGLuint;
 
-    function TextureNode: TNodeX3DEnvironmentTextureNode;
+    function TextureNode: TAbstractX3DEnvironmentTextureNode;
 
     { Releases GLName by TextureCubeMap_DecReference.
       Suitable for descendants tht initialize GLName by
@@ -320,25 +320,25 @@
 
   TGLComposedCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
-    function TextureNode: TNodeComposedCubeMapTexture;
+    function TextureNode: TComposedCubeMapTextureNode;
   end;
 
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
-    function TextureNode: TNodeImageCubeMapTexture;
+    function TextureNode: TImageCubeMapTextureNode;
   end;
 
   TGLGeneratedCubeMapTextureNode = class(TGLCubeMapTextureNode)
   private
     RenderToTexture: TGLRenderToTexture;
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     { The right size of the texture,
@@ -349,7 +349,7 @@
     { This says if MinFilter needs mipmaps. }
     NeedsMipmaps: boolean;
 
-    function TextureNode: TNodeGeneratedCubeMapTexture;
+    function TextureNode: TGeneratedCubeMapTextureNode;
 
     procedure Unprepare; override;
 
@@ -362,12 +362,12 @@
 
   TGL3DTextureNode = class(TGLSingleTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
 
-    function TextureNode: TNodeX3DTexture3DNode;
+    function TextureNode: TAbstractX3DTexture3DNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -383,7 +383,7 @@
     VarianceShadowMapsProgram: TGLSLProgram;
     NeedsMipmaps: boolean;
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     GLName: TGLuint;
@@ -396,7 +396,7 @@
       or compareMode = NONE. }
     VisualizeDepthMap: boolean;
 
-    function TextureNode: TNodeGeneratedShadowMap;
+    function TextureNode: TGeneratedShadowMapNode;
 
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -407,7 +407,7 @@
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
-      Light: TNodeX3DLightNode);
+      Light: TAbstractX3DLightNode);
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
@@ -416,7 +416,7 @@
 
   TGLShaderTexture = class(TGLSingleTextureNode)
   protected
-    class function IsClassForTextureNode(ANode: TNodeX3DTextureNode): boolean; override;
+    class function IsClassForTextureNode(ANode: TAbstractX3DTextureNode): boolean; override;
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     procedure Unprepare; override;
@@ -444,14 +444,14 @@ end;
 
 { TGLTextureNode ------------------------------------------------------------- }
 
-constructor TGLTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
+constructor TGLTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode);
 begin
-  Assert(ANode is TNodeX3DTextureNode, 'TGLTextureNode.Create acceps as Node only TNodeX3DTextureNode');
+  Assert(ANode is TAbstractX3DTextureNode, 'TGLTextureNode.Create acceps as Node only TAbstractX3DTextureNode');
   inherited;
 end;
 
 procedure TGLTextureNode.HandleTexturePropertiesCore(
-  TextureProperties: TNodeTextureProperties;
+  TextureProperties: TTexturePropertiesNode;
   out MinFilter, MagFilter: TGLint;
   out Anisotropy: TGLfloat);
 
@@ -534,19 +534,19 @@ begin { HandleTextureProperties }
 end { HandleTextureProperties };
 
 procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TVRMLNode;
+  TextureProperties: TX3DNode;
   out MinFilter, MagFilter: TGLint;
   out Anisotropy: TGLfloat);
 begin
   if (TextureProperties = nil) or
-     not (TextureProperties is TNodeTextureProperties) then
+     not (TextureProperties is TTexturePropertiesNode) then
     HandleTexturePropertiesCore(nil, MinFilter, MagFilter, Anisotropy) else
-    HandleTexturePropertiesCore(TNodeTextureProperties(TextureProperties),
+    HandleTexturePropertiesCore(TTexturePropertiesNode(TextureProperties),
       MinFilter, MagFilter, Anisotropy);
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
-  ANode: TNodeX3DTextureNode): TGLTextureNodeClass;
+  ANode: TAbstractX3DTextureNode): TGLTextureNodeClass;
 
   function TryResult(C: TGLTextureNodeClass): boolean;
   begin
@@ -591,19 +591,19 @@ begin
   end;
 end;
 
-function TGLTextureNode.TextureNode: TNodeX3DTextureNode;
+function TGLTextureNode.TextureNode: TAbstractX3DTextureNode;
 begin
-  Result := TNodeX3DTextureNode(inherited Node);
+  Result := TAbstractX3DTextureNode(inherited Node);
 end;
 
 { TGLTextureNodes ------------------------------------------------------------ }
 
-function TGLTextureNodes.TextureNodeIndex(ANode: TNodeX3DTextureNode): Integer;
+function TGLTextureNodes.TextureNodeIndex(ANode: TAbstractX3DTextureNode): Integer;
 begin
   Result := inherited NodeIndex(ANode);
 end;
 
-function TGLTextureNodes.TextureNode(ANode: TNodeX3DTextureNode): TGLTextureNode;
+function TGLTextureNodes.TextureNode(ANode: TAbstractX3DTextureNode): TGLTextureNode;
 begin
   Result := TGLTextureNode(inherited Node(ANode));
 end;
@@ -614,7 +614,7 @@ begin
 end;
 
 function TGLTextureNodes.Prepare(State: TVRMLGraphTraverseState;
-  ANode: TNodeX3DTextureNode;
+  ANode: TAbstractX3DTextureNode;
   ARenderer: TVRMLGLRenderer): TGLTextureNode;
 var
   GLTextureNodeClass: TGLTextureNodeClass;
@@ -640,7 +640,7 @@ begin
   end;
 end;
 
-function TGLTextureNodes.Bind(ANode: TNodeX3DTextureNode;
+function TGLTextureNodes.Bind(ANode: TAbstractX3DTextureNode;
   const TextureUnit: Cardinal): boolean;
 var
   GLTextureNode: TGLTextureNode;
@@ -651,7 +651,7 @@ begin
     Result := GLTextureNode.Bind(TextureUnit);
 end;
 
-function TGLTextureNodes.Enable(ANode: TNodeX3DTextureNode;
+function TGLTextureNodes.Enable(ANode: TAbstractX3DTextureNode;
   const TextureUnit: Cardinal; Shader: TVRMLShader; const Env: TTextureEnv): boolean;
 var
   GLTextureNode: TGLTextureNode;
@@ -663,15 +663,15 @@ begin
 end;
 
 procedure TGLTextureNodes.PrepareInterfaceDeclarationsTextures(
-  const ANode: TVRMLNode;
+  const ANode: TX3DNode;
   const State: TVRMLGraphTraverseState; const Renderer: TVRMLGLRenderer);
 
   { If TextureNode <> @nil and is a texture node, prepare it. }
-  procedure PrepareTexture(TextureNode: TVRMLNode);
+  procedure PrepareTexture(TextureNode: TX3DNode);
   begin
     if (TextureNode <> nil) and
-       (TextureNode is TNodeX3DTextureNode) then
-      Prepare(State, TNodeX3DTextureNode(TextureNode), Renderer);
+       (TextureNode is TAbstractX3DTextureNode) then
+      Prepare(State, TAbstractX3DTextureNode(TextureNode), Renderer);
   end;
 
 var
@@ -702,14 +702,14 @@ begin
 end;
 
 procedure TGLTextureNodes.UnprepareInterfaceDeclarationsTextures(
-  const ANode: TVRMLNode; const Renderer: TVRMLGLRenderer);
+  const ANode: TX3DNode; const Renderer: TVRMLGLRenderer);
 
   { If TextureNode <> @nil and is a texture node, prepare it. }
-  procedure UnprepareTexture(TextureNode: TVRMLNode);
+  procedure UnprepareTexture(TextureNode: TX3DNode);
   begin
     if (TextureNode <> nil) and
-       (TextureNode is TNodeX3DTextureNode) then
-      Renderer.GLTextureNodes.Unprepare(TNodeX3DTextureNode(TextureNode));
+       (TextureNode is TAbstractX3DTextureNode) then
+      Renderer.GLTextureNodes.Unprepare(TAbstractX3DTextureNode(TextureNode));
   end;
 
 var
@@ -776,11 +776,11 @@ end;
 
 { TGLMultiTextureNode -------------------------------------------------------- }
 
-constructor TGLMultiTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
+constructor TGLMultiTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode);
 begin
-  Assert(ANode is TNodeMultiTexture, 'TGLMultiTextureNode.Create acceps as Node only TNodeMultiTexture');
+  Assert(ANode is TMultiTextureNode, 'TGLMultiTextureNode.Create acceps as Node only TMultiTextureNode');
   inherited;
-  PreparedTextureChildren := TVRMLNodeList.Create(false);
+  PreparedTextureChildren := TX3DNodeList.Create(false);
 end;
 
 destructor TGLMultiTextureNode.Destroy;
@@ -790,14 +790,14 @@ begin
 end;
 
 class function TGLMultiTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeMultiTexture;
+  Result := ANode is TMultiTextureNode;
 end;
 
-function TGLMultiTextureNode.TextureNode: TNodeMultiTexture;
+function TGLMultiTextureNode.TextureNode: TMultiTextureNode;
 begin
-  Result := TNodeMultiTexture(inherited TextureNode);
+  Result := TMultiTextureNode(inherited TextureNode);
 end;
 
 procedure TGLMultiTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -808,7 +808,7 @@ procedure TGLMultiTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
   end;
 
 var
-  ChildTex: TVRMLNode;
+  ChildTex: TX3DNode;
   ChildPrepared: TGLTextureNode;
   I: Integer;
 begin
@@ -834,13 +834,13 @@ begin
   begin
     ChildTex := TextureNode.FdTexture[I];
     if (ChildTex <> nil) and
-       (ChildTex is TNodeX3DTextureNode) then
+       (ChildTex is TAbstractX3DTextureNode) then
     begin
-      if ChildTex is TNodeMultiTexture then
+      if ChildTex is TMultiTextureNode then
         OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
       begin
         PreparedTextureChildren.Add(ChildTex);
-        ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TNodeX3DTextureNode(ChildTex), Renderer);
+        ChildPrepared := Renderer.GLTextureNodes.Prepare(State, TAbstractX3DTextureNode(ChildTex), Renderer);
         if ChildPrepared <> nil then
           MaxTo1st(AlphaChannelType, ChildPrepared.AlphaChannelType);
       end;
@@ -902,7 +902,7 @@ const
   ( GL_PRIMARY_COLOR, GL_TEXTURE, GL_CONSTANT, GL_PREVIOUS );
   Argument: array [ta0..ta1] of Integer = ( 0, 1 );
 var
-  ChildTex: TVRMLNode;
+  ChildTex: TX3DNode;
   I: Integer;
   Success: boolean;
   Env: TTextureEnv;
@@ -919,7 +919,7 @@ begin
     Success := false;
 
     if (ChildTex <> nil) and
-       (ChildTex is TNodeX3DTextureNode) then
+       (ChildTex is TAbstractX3DTextureNode) then
     begin
       if I < TextureNode.FdMode.Count then
         ModeStr := TextureNode.FdMode.Items[I] else
@@ -929,10 +929,10 @@ begin
         SourceStr := '';
       Env.Init(ModeStr, SourceStr);
 
-      if ChildTex is TNodeMultiTexture then
+      if ChildTex is TMultiTextureNode then
         OnWarning(wtMajor, 'VRML/X3D', 'Child of MultiTexture node cannot be another MultiTexture node') else
         Success := Renderer.GLTextureNodes.Enable(
-          TNodeX3DTextureNode(ChildTex), I, Shader, Env);
+          TAbstractX3DTextureNode(ChildTex), I, Shader, Env);
 
       { Apply Env for fixed-function pipeline. }
       if Success and GLUseMultiTexturing { needed OpenGL exts available } then
@@ -1009,15 +1009,15 @@ end;
 { TGLImageTextureNode -------------------------------------------------------- }
 
 class function TGLImageTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := (ANode is TVRML2DTextureNode) and
-    TVRML2DTextureNode(ANode).IsTextureImage;
+  Result := (ANode is TAbstractTexture2DNode) and
+    TAbstractTexture2DNode(ANode).IsTextureImage;
 end;
 
-function TGLImageTextureNode.TextureNode: TVRML2DTextureNode;
+function TGLImageTextureNode.TextureNode: TAbstractTexture2DNode;
 begin
-  Result := TVRML2DTextureNode(inherited TextureNode);
+  Result := TAbstractTexture2DNode(inherited TextureNode);
 end;
 
 procedure TGLImageTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1080,23 +1080,23 @@ end;
 { TGLMovieTextureNode -------------------------------------------------------- }
 
 class function TGLMovieTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
   { Although for most code TGLMovieTextureNode, it would be enought
-    to have any TVRML2DTextureNode with IsTextureVideo = @true.
-    For when rendering, we'll need some TNodeMovieTexture properties
+    to have any TAbstractTexture2DNode with IsTextureVideo = @true.
+    For when rendering, we'll need some TMovieTextureNode properties
     to choose video frame.
 
-    Anyway, TNodeMovieTexture is for now the only texture node possible
+    Anyway, TMovieTextureNode is for now the only texture node possible
     that may have IsTextureVideo = @true, so it's not a real problem for now. }
 
-  Result := (ANode is TNodeMovieTexture) and
-    TNodeMovieTexture(ANode).IsTextureVideo;
+  Result := (ANode is TMovieTextureNode) and
+    TMovieTextureNode(ANode).IsTextureVideo;
 end;
 
-function TGLMovieTextureNode.TextureNode: TNodeMovieTexture;
+function TGLMovieTextureNode.TextureNode: TMovieTextureNode;
 begin
-  Result := TNodeMovieTexture(inherited TextureNode);
+  Result := TMovieTextureNode(inherited TextureNode);
 end;
 
 procedure TGLMovieTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1171,14 +1171,14 @@ end;
 { TGLRenderedTextureNode ----------------------------------------------------- }
 
 class function TGLRenderedTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeRenderedTexture;
+  Result := ANode is TRenderedTextureNode;
 end;
 
-function TGLRenderedTextureNode.TextureNode: TNodeRenderedTexture;
+function TGLRenderedTextureNode.TextureNode: TRenderedTextureNode;
 begin
-  Result := TNodeRenderedTexture(inherited TextureNode);
+  Result := TRenderedTextureNode(inherited TextureNode);
 end;
 
 procedure TGLRenderedTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1320,12 +1320,12 @@ procedure TGLRenderedTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
-  CurrentViewpoint: TVRMLViewpointNode;
+  CurrentViewpoint: TAbstractViewpointNode;
   CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
 var
-  Viewpoint: TVRMLViewpointNode;
+  Viewpoint: TAbstractViewpointNode;
 
   function GetProjectionMatrix: TMatrix4Single;
   { This somewhat follows the logic similar to TVRMLGLScene.GLProjectionCore:
@@ -1345,14 +1345,14 @@ var
       AngleOfViewX, AngleOfViewY: Single;
     begin
       if (Viewpoint <> nil) and
-         (Viewpoint is TNodeViewpoint) then
-        FieldOfView := TNodeViewpoint(Viewpoint).FdFieldOfView.Value else
+         (Viewpoint is TViewpointNode) then
+        FieldOfView := TViewpointNode(Viewpoint).FdFieldOfView.Value else
       if (Viewpoint <> nil) and
-         (Viewpoint is TNodePerspectiveCamera) then
-        FieldOfView := TNodePerspectiveCamera(Viewpoint).FdHeightAngle.Value else
+         (Viewpoint is TPerspectiveCameraNode) then
+        FieldOfView := TPerspectiveCameraNode(Viewpoint).FdHeightAngle.Value else
         FieldOfView := DefaultViewpointFieldOfView;
 
-      AngleOfViewX := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
+      AngleOfViewX := RadToDeg(TViewpointNode.ViewpointAngleOfView(
         FieldOfView, Width / Height));
 
       AngleOfViewY := AdjustViewAngleDegToAspectRatio(
@@ -1375,24 +1375,24 @@ var
 
       { update left / right / bottom / top using OrthoViewpoint.fieldOfView }
       if (Viewpoint <> nil) and
-         (Viewpoint is TNodeOrthoViewpoint) then
+         (Viewpoint is TOrthoViewpointNode) then
       begin
-        FieldOfView := TNodeOrthoViewpoint(Viewpoint).FdFieldOfView.Items;
+        FieldOfView := TOrthoViewpointNode(Viewpoint).FdFieldOfView.Items;
         if FieldOfView.Count > 0 then FinalFieldOfView[0] := FieldOfView.Items[0];
         if FieldOfView.Count > 1 then FinalFieldOfView[1] := FieldOfView.Items[1];
         if FieldOfView.Count > 2 then FinalFieldOfView[2] := FieldOfView.Items[2];
         if FieldOfView.Count > 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
       end else
       if (Viewpoint <> nil) and
-         (Viewpoint is TNodeOrthographicCamera) then
+         (Viewpoint is TOrthographicCameraNode) then
       begin
-        FinalFieldOfView[0] := -TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[1] := -TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[2] :=  TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[3] :=  TNodeOrthographicCamera(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[0] := -TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[1] := -TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[2] :=  TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[3] :=  TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
       end;
 
-      TNodeOrthoViewpoint.AspectFieldOfView(FinalFieldOfView, Width / Height);
+      TOrthoViewpointNode.AspectFieldOfView(FinalFieldOfView, Width / Height);
 
       Result := OrthoProjMatrix(
         { Beware: order of OrthoViewpoint.fieldOfView (and FinalFieldOfView)
@@ -1462,8 +1462,8 @@ begin
 
   { calculate Viewpoint }
   if (TextureNode.FdViewpoint.Value <> nil) and
-     (TextureNode.FdViewpoint.Value is TVRMLViewpointNode) then
-    Viewpoint := TVRMLViewpointNode(TextureNode.FdViewpoint.Value) else
+     (TextureNode.FdViewpoint.Value is TAbstractViewpointNode) then
+    Viewpoint := TAbstractViewpointNode(TextureNode.FdViewpoint.Value) else
     Viewpoint := CurrentViewpoint;
 
   ProjectionMatrix := GetProjectionMatrix;
@@ -1517,9 +1517,9 @@ end;
 
 { TGLCubeMapTextureNode ------------------------------------------------------ }
 
-function TGLCubeMapTextureNode.TextureNode: TNodeX3DEnvironmentTextureNode;
+function TGLCubeMapTextureNode.TextureNode: TAbstractX3DEnvironmentTextureNode;
 begin
-  Result := TNodeX3DEnvironmentTextureNode(inherited TextureNode);
+  Result := TAbstractX3DEnvironmentTextureNode(inherited TextureNode);
 end;
 
 procedure TGLCubeMapTextureNode.Unprepare;
@@ -1552,14 +1552,14 @@ end;
 { TGLComposedCubeMapTextureNode ---------------------------------------------- }
 
 class function TGLComposedCubeMapTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeComposedCubeMapTexture;
+  Result := ANode is TComposedCubeMapTextureNode;
 end;
 
-function TGLComposedCubeMapTextureNode.TextureNode: TNodeComposedCubeMapTexture;
+function TGLComposedCubeMapTextureNode.TextureNode: TComposedCubeMapTextureNode;
 begin
-  Result := TNodeComposedCubeMapTexture(inherited TextureNode);
+  Result := TComposedCubeMapTextureNode(inherited TextureNode);
 end;
 
 procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1568,14 +1568,14 @@ procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseSta
     and then if image there can be loaded. }
   function SideLoaded(SideField: TSFNode): boolean;
   var
-    SideTex: TVRML2DTextureNode;
+    SideTex: TAbstractTexture2DNode;
   begin
     Result :=
       (SideField.Value <> nil) and
-      (SideField.Value is TVRML2DTextureNode);
+      (SideField.Value is TAbstractTexture2DNode);
     if Result then
     begin
-      SideTex := TVRML2DTextureNode(SideField.Value);
+      SideTex := TAbstractTexture2DNode(SideField.Value);
       Result := SideTex.IsTextureImage;
 
       if Result and not (SideTex.TextureImage is TImage) then
@@ -1616,10 +1616,10 @@ begin
       (source images are oriented as for VRML Background.)
       We safely cast them to TImage below, SideLoaded above checked
       that they are indeed of TImage class. }
-    BackRot  := (TVRML2DTextureNode(TextureNode.FdBack .Value).TextureImage as TImage).MakeRotated(2);
-    FrontRot := (TVRML2DTextureNode(TextureNode.FdFront.Value).TextureImage as TImage).MakeRotated(2);
-    LeftRot  := (TVRML2DTextureNode(TextureNode.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
-    RightRot := (TVRML2DTextureNode(TextureNode.FdRight.Value).TextureImage as TImage).MakeRotated(2);
+    BackRot  := (TAbstractTexture2DNode(TextureNode.FdBack .Value).TextureImage as TImage).MakeRotated(2);
+    FrontRot := (TAbstractTexture2DNode(TextureNode.FdFront.Value).TextureImage as TImage).MakeRotated(2);
+    LeftRot  := (TAbstractTexture2DNode(TextureNode.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
+    RightRot := (TAbstractTexture2DNode(TextureNode.FdRight.Value).TextureImage as TImage).MakeRotated(2);
 
     SetTextureRGBFromImage(RightRot);
 
@@ -1628,8 +1628,8 @@ begin
       MinFilter, MagFilter, Anisotropy,
       { positive x } RightRot,
       { negative x } LeftRot,
-      { positive y } TVRML2DTextureNode(TextureNode.FdTop   .Value).TextureImage as TImage,
-      { negative y } TVRML2DTextureNode(TextureNode.FdBottom.Value).TextureImage as TImage,
+      { positive y } TAbstractTexture2DNode(TextureNode.FdTop   .Value).TextureImage as TImage,
+      { negative y } TAbstractTexture2DNode(TextureNode.FdBottom.Value).TextureImage as TImage,
       { positive z } BackRot,
       { negative z } FrontRot,
       nil,
@@ -1645,14 +1645,14 @@ end;
 { TGLImageCubeMapTextureNode ------------------------------------------------- }
 
 class function TGLImageCubeMapTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeImageCubeMapTexture;
+  Result := ANode is TImageCubeMapTextureNode;
 end;
 
-function TGLImageCubeMapTextureNode.TextureNode: TNodeImageCubeMapTexture;
+function TGLImageCubeMapTextureNode.TextureNode: TImageCubeMapTextureNode;
 begin
-  Result := TNodeImageCubeMapTexture(inherited TextureNode);
+  Result := TImageCubeMapTextureNode(inherited TextureNode);
 end;
 
 procedure TGLImageCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1706,14 +1706,14 @@ end;
 { TGLGeneratedCubeMapTextureNode --------------------------------------------- }
 
 class function TGLGeneratedCubeMapTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeGeneratedCubeMapTexture;
+  Result := ANode is TGeneratedCubeMapTextureNode;
 end;
 
-function TGLGeneratedCubeMapTextureNode.TextureNode: TNodeGeneratedCubeMapTexture;
+function TGLGeneratedCubeMapTextureNode.TextureNode: TGeneratedCubeMapTextureNode;
 begin
-  Result := TNodeGeneratedCubeMapTexture(inherited TextureNode);
+  Result := TGeneratedCubeMapTextureNode(inherited TextureNode);
 end;
 
 procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1835,14 +1835,14 @@ end;
 { TGL3DTextureNode ----------------------------------------------------------- }
 
 class function TGL3DTextureNode.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeX3DTexture3DNode;
+  Result := ANode is TAbstractX3DTexture3DNode;
 end;
 
-function TGL3DTextureNode.TextureNode: TNodeX3DTexture3DNode;
+function TGL3DTextureNode.TextureNode: TAbstractX3DTexture3DNode;
 begin
-  Result := TNodeX3DTexture3DNode(inherited TextureNode);
+  Result := TAbstractX3DTexture3DNode(inherited TextureNode);
 end;
 
 procedure TGL3DTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
@@ -1909,14 +1909,14 @@ end;
 { TGLGeneratedShadowMap ------------------------------------------------------ }
 
 class function TGLGeneratedShadowMap.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeGeneratedShadowMap;
+  Result := ANode is TGeneratedShadowMapNode;
 end;
 
-function TGLGeneratedShadowMap.TextureNode: TNodeGeneratedShadowMap;
+function TGLGeneratedShadowMap.TextureNode: TGeneratedShadowMapNode;
 begin
-  Result := TNodeGeneratedShadowMap(inherited TextureNode);
+  Result := TGeneratedShadowMapNode(inherited TextureNode);
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
@@ -2039,7 +2039,7 @@ procedure TGLGeneratedShadowMap.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
-  Light: TNodeX3DLightNode);
+  Light: TAbstractX3DLightNode);
 var
   ProjectionMatrix: TMatrix4Single;
 begin
@@ -2094,9 +2094,9 @@ end;
 { TGLShaderTexture ------------------------------------------------------ }
 
 class function TGLShaderTexture.IsClassForTextureNode(
-  ANode: TNodeX3DTextureNode): boolean;
+  ANode: TAbstractX3DTextureNode): boolean;
 begin
-  Result := ANode is TNodeShaderTexture;
+  Result := ANode is TShaderTextureNode;
 end;
 
 procedure TGLShaderTexture.PrepareCore(State: TVRMLGraphTraverseState);

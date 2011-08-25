@@ -178,7 +178,7 @@ end;
 
 procedure TSceneWaypointList.ExtractPositions(Scene: TVRMLScene);
 var
-  NodesToRemove: TVRMLNodeList;
+  NodesToRemove: TX3DNodeList;
 
   procedure TraverseForWaypoints(Shape: TVRMLShape);
 
@@ -224,7 +224,7 @@ var
   I: Integer;
   SI: TVRMLShapeTreeIterator;
 begin
-  NodesToRemove := TVRMLNodeList.Create(false);
+  NodesToRemove := TX3DNodeList.Create(false);
   try
     SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
@@ -284,7 +284,7 @@ end;
 
 procedure TSceneSectorList.ExtractBoundingBoxes(Scene: TVRMLScene);
 var
-  NodesToRemove: TVRMLNodeList;
+  NodesToRemove: TX3DNodeList;
 
   procedure TraverseForSectors(Shape: TVRMLShape);
 
@@ -328,7 +328,7 @@ var
   I: Integer;
   SI: TVRMLShapeTreeIterator;
 begin
-  NodesToRemove := TVRMLNodeList.Create(false);
+  NodesToRemove := TX3DNodeList.Create(false);
   try
     SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try

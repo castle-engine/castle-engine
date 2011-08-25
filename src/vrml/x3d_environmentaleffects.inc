@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DBackgroundNode = class(TNodeX3DBindableNode)
+  TAbstractX3DBackgroundNode = class(TAbstractX3DBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -41,7 +41,7 @@
     function TransformRotation: TMatrix4Single;
   end;
 
-  INodeX3DFogObject = interface(IVRMLNode)
+  IAbstractX3DFogObject = interface(IX3DNode)
   ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
@@ -77,7 +77,7 @@
     procedure FreeAll(Cache: TTexturesImagesVideosCache);
   end;
 
-  TNodeBackground = class(TNodeX3DBackgroundNode)
+  TBackgroundNode = class(TAbstractX3DBackgroundNode)
   private
     FBgImagesLoaded: boolean; { = false }
 
@@ -145,7 +145,7 @@
       write SetBgImagesLoaded;
   end;
 
-  TNodeFog = class(TNodeX3DBindableNode, INodeX3DFogObject)
+  TFogNode = class(TAbstractX3DBindableNode, IAbstractX3DFogObject)
   private
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
@@ -189,7 +189,7 @@
     { @groupEnd }
   end;
 
-  TNodeFogCoordinate = class(TNodeX3DGeometricPropertyNode)
+  TFogCoordinateNode = class(TAbstractX3DGeometricPropertyNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -199,7 +199,7 @@
     public property FdDepth: TMFFloat read FFdDepth;
   end;
 
-  TNodeLocalFog = class(TNodeX3DChildNode, INodeX3DFogObject)
+  TLocalFogNode = class(TAbstractX3DChildNode, IAbstractX3DFogObject)
   private
     FTransformScale: Single;
     function GetFdcolor: TSFColor;
@@ -243,7 +243,7 @@
     { @groupEnd }
   end;
 
-  TNodeTextureBackground = class(TNodeX3DBackgroundNode)
+  TTextureBackgroundNode = class(TAbstractX3DBackgroundNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -271,7 +271,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DBackgroundNode.CreateNode;
+procedure TAbstractX3DBackgroundNode.CreateNode;
 begin
   inherited;
 
@@ -305,7 +305,7 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-procedure TNodeX3DBackgroundNode.EventSet_BindReceive(
+procedure TAbstractX3DBackgroundNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if Scene <> nil then
@@ -318,12 +318,12 @@ begin
   end;
 end;
 
-function TNodeX3DBackgroundNode.TransformationChange: TNodeTransformationChange;
+function TAbstractX3DBackgroundNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcBackground;
 end;
 
-function TNodeX3DBackgroundNode.TransformRotation: TMatrix4Single;
+function TAbstractX3DBackgroundNode.TransformRotation: TMatrix4Single;
 begin
   Result := Transform;
 
@@ -363,7 +363,7 @@ begin
   end;
 end;
 
-procedure TNodeBackground.CreateNode;
+procedure TBackgroundNode.CreateNode;
 begin
   inherited;
 
@@ -403,25 +403,25 @@ begin
   FBgImages.InitClear;
 end;
 
-destructor TNodeBackground.Destroy;
+destructor TBackgroundNode.Destroy;
 begin
   BgImagesLoaded := false;
   inherited;
 end;
 
-class function TNodeBackground.ClassNodeTypeName: string;
+class function TBackgroundNode.ClassNodeTypeName: string;
 begin
   Result := 'Background';
 end;
 
-class function TNodeBackground.URNMatching(const URN: string): boolean;
+class function TBackgroundNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBackground.SetBgImagesLoaded(const Value: boolean);
+procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
 
   procedure LoadImg(bs: TBackgroundSide; Urls: TMFString);
   var
@@ -474,20 +474,20 @@ begin
   end;
 end;
 
-procedure TNodeBackground.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TBackgroundNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
 begin
   inherited;
   { Force reload on next BgImages use, since our fields are different now }
   BgImagesLoaded := false;
 end;
 
-function TNodeBackground.GetBgImages: TBackgroundImages;
+function TBackgroundNode.GetBgImages: TBackgroundImages;
 begin
   BgImagesLoaded := true;
   Result := FBgImages;
 end;
 
-procedure TNodeFog.CreateNode;
+procedure TFogNode.CreateNode;
 begin
   inherited;
 
@@ -519,7 +519,7 @@ begin
   Fields.Add(FFdVolumetricVisibilityStart);
 
   { Only for backward compatibility. Not used anymore. }
-  FFdAlternative := TSFNode.Create(Self, 'alternative', [TNodeFog]);
+  FFdAlternative := TSFNode.Create(Self, 'alternative', [TFogNode]);
    FdAlternative.ChangesAlways := [chEverything];
   Fields.Add(FFdAlternative);
 
@@ -528,19 +528,19 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-class function TNodeFog.ClassNodeTypeName: string;
+class function TFogNode.ClassNodeTypeName: string;
 begin
   Result := 'Fog';
 end;
 
-class function TNodeFog.URNMatching(const URN: string): boolean;
+class function TFogNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeFog.EventSet_BindReceive(
+procedure TFogNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if Scene <> nil then
@@ -553,47 +553,47 @@ begin
   end;
 end;
 
-function TNodeFog.TransformationChange: TNodeTransformationChange;
+function TFogNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcFog;
 end;
 
-function TNodeFog.GetFdcolor: TSFColor;
+function TFogNode.GetFdcolor: TSFColor;
 begin
   Result := FFdColor;
 end;
 
-function TNodeFog.GetFdfogType: TSFString;
+function TFogNode.GetFdfogType: TSFString;
 begin
   Result := FdFogType;
 end;
 
-function TNodeFog.GetFdvisibilityRange: TSFFloat;
+function TFogNode.GetFdvisibilityRange: TSFFloat;
 begin
   Result := FdVisibilityRange;
 end;
 
-function TNodeFog.GetFdvolumetric: TSFBool;
+function TFogNode.GetFdvolumetric: TSFBool;
 begin
   Result := FFdVolumetric;
 end;
 
-function TNodeFog.GetFdvolumetricDirection: TSFVec3f;
+function TFogNode.GetFdvolumetricDirection: TSFVec3f;
 begin
   Result := FFdVolumetricDirection;
 end;
 
-function TNodeFog.GetFdvolumetricVisibilityStart: TSFFloat;
+function TFogNode.GetFdvolumetricVisibilityStart: TSFFloat;
 begin
   Result := FFdVolumetricVisibilityStart;
 end;
 
-function TNodeFog.GetTransformScale: Single;
+function TFogNode.GetTransformScale: Single;
 begin
   Result := TransformScale;
 end;
 
-procedure TNodeFogCoordinate.CreateNode;
+procedure TFogCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -604,18 +604,18 @@ begin
   DefaultContainerField := 'fogCoord';
 end;
 
-class function TNodeFogCoordinate.ClassNodeTypeName: string;
+class function TFogCoordinateNode.ClassNodeTypeName: string;
 begin
   Result := 'FogCoordinate';
 end;
 
-class function TNodeFogCoordinate.URNMatching(const URN: string): boolean;
+class function TFogCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeLocalFog.CreateNode;
+procedure TLocalFogNode.CreateNode;
 begin
   inherited;
 
@@ -651,54 +651,54 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TNodeLocalFog.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TLocalFogNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   FTransformScale := StateStack.Top.TransformScale;
 end;
 
-class function TNodeLocalFog.ClassNodeTypeName: string;
+class function TLocalFogNode.ClassNodeTypeName: string;
 begin
   Result := 'LocalFog';
 end;
 
-class function TNodeLocalFog.URNMatching(const URN: string): boolean;
+class function TLocalFogNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeLocalFog.GetFdcolor: TSFColor;
+function TLocalFogNode.GetFdcolor: TSFColor;
 begin
   Result := FFdColor;
 end;
 
-function TNodeLocalFog.GetFdfogType: TSFString;
+function TLocalFogNode.GetFdfogType: TSFString;
 begin
   Result := FdFogType;
 end;
 
-function TNodeLocalFog.GetFdvisibilityRange: TSFFloat;
+function TLocalFogNode.GetFdvisibilityRange: TSFFloat;
 begin
   Result := FdVisibilityRange;
 end;
 
-function TNodeLocalFog.GetFdvolumetric: TSFBool;
+function TLocalFogNode.GetFdvolumetric: TSFBool;
 begin
   Result := FFdVolumetric;
 end;
 
-function TNodeLocalFog.GetFdvolumetricDirection: TSFVec3f;
+function TLocalFogNode.GetFdvolumetricDirection: TSFVec3f;
 begin
   Result := FFdVolumetricDirection;
 end;
 
-function TNodeLocalFog.GetFdvolumetricVisibilityStart: TSFFloat;
+function TLocalFogNode.GetFdvolumetricVisibilityStart: TSFFloat;
 begin
   Result := FFdVolumetricVisibilityStart;
 end;
 
-function TNodeLocalFog.GetTransformScale: Single;
+function TLocalFogNode.GetTransformScale: Single;
 begin
   { TODO: this is actually bad, each LocalFog occurence may have
     different scale, depending on parent transform node.
@@ -707,37 +707,37 @@ begin
   Result := FTransformScale;
 end;
 
-procedure TNodeTextureBackground.CreateNode;
+procedure TTextureBackgroundNode.CreateNode;
 begin
   inherited;
 
-  FFdBackTexture := TSFNode.Create(Self, 'backTexture', [TNodeX3DTextureNode]);
+  FFdBackTexture := TSFNode.Create(Self, 'backTexture', [TAbstractX3DTextureNode]);
   Fields.Add(FFdBackTexture);
 
-  FFdBottomTexture := TSFNode.Create(Self, 'bottomTexture', [TNodeX3DTextureNode]);
+  FFdBottomTexture := TSFNode.Create(Self, 'bottomTexture', [TAbstractX3DTextureNode]);
   Fields.Add(FFdBottomTexture);
 
-  FFdFrontTexture := TSFNode.Create(Self, 'frontTexture', [TNodeX3DTextureNode]);
+  FFdFrontTexture := TSFNode.Create(Self, 'frontTexture', [TAbstractX3DTextureNode]);
   Fields.Add(FFdFrontTexture);
 
-  FFdLeftTexture := TSFNode.Create(Self, 'leftTexture', [TNodeX3DTextureNode]);
+  FFdLeftTexture := TSFNode.Create(Self, 'leftTexture', [TAbstractX3DTextureNode]);
   Fields.Add(FFdLeftTexture);
 
-  FFdRightTexture := TSFNode.Create(Self, 'rightTexture', [TNodeX3DTextureNode]);
+  FFdRightTexture := TSFNode.Create(Self, 'rightTexture', [TAbstractX3DTextureNode]);
   Fields.Add(FFdRightTexture);
 
-  FFdTopTexture := TSFNode.Create(Self, 'topTexture', [TNodeX3DTextureNode]);
+  FFdTopTexture := TSFNode.Create(Self, 'topTexture', [TAbstractX3DTextureNode]);
   Fields.Add(FFdTopTexture);
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTextureBackground.ClassNodeTypeName: string;
+class function TTextureBackgroundNode.ClassNodeTypeName: string;
 begin
   Result := 'TextureBackground';
 end;
 
-class function TNodeTextureBackground.URNMatching(const URN: string): boolean;
+class function TTextureBackgroundNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -746,11 +746,11 @@ end;
 procedure RegisterEnvironmentalEffectsNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeBackground,
-    TNodeFog,
-    TNodeFogCoordinate,
-    TNodeLocalFog,
-    TNodeTextureBackground
+    TBackgroundNode,
+    TFogNode,
+    TFogCoordinateNode,
+    TLocalFogNode,
+    TTextureBackgroundNode
   ]);
 end;
 

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeArc2D = class(TNodeX3DGeometryNode)
+  TArc2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -32,14 +32,14 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeArcClose2D = class(TNodeX3DGeometryNode)
+  TArcClose2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -62,14 +62,14 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeCircle2D = class(TNodeX3DGeometryNode)
+  TCircle2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -79,11 +79,11 @@
     public property FdRadius: TSFFloat read FFdRadius;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
   end;
 
-  TNodeDisk2D = class(TNodeX3DGeometryNode)
+  TDisk2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -100,11 +100,11 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
   { Polyline2D node.
@@ -113,7 +113,7 @@
     and when reading/saving VRML 97 file it will be named "point"
     (as it was in VRML 97 amendment 1 specification).
     In X3D normal name, "lineSegments", will be used. }
-  TNodePolyline2D = class(TNodeX3DGeometryNode)
+  TPolyline2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -124,14 +124,14 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodePolypoint2D = class(TNodeX3DGeometryNode)
+  TPolypoint2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -142,14 +142,14 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeRectangle2D = class(TNodeX3DGeometryNode)
+  TRectangle2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -162,11 +162,11 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
   end;
 
-  TNodeTriangleSet2D = class(TNodeX3DGeometryNode)
+  TTriangleSet2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -180,17 +180,17 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeArc2D.CreateNode;
+procedure TArc2DNode.CreateNode;
 begin
   inherited;
 
@@ -213,21 +213,21 @@ begin
   { X3D specification comment: [-2Pi,2Pi] }
 end;
 
-class function TNodeArc2D.ClassNodeTypeName: string;
+class function TArc2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Arc2D';
 end;
 
-class function TNodeArc2D.URNMatching(const URN: string): boolean;
+class function TArc2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeArc2D}
+{$define TGeometryNotImplemented := TArc2DNode}
 GeometryNotImplemented
 
-procedure TNodeArcClose2D.CreateNode;
+procedure TArcClose2DNode.CreateNode;
 begin
   inherited;
 
@@ -261,21 +261,21 @@ begin
   { X3D specification comment: [-2Pi,2Pi] }
 end;
 
-class function TNodeArcClose2D.ClassNodeTypeName: string;
+class function TArcClose2DNode.ClassNodeTypeName: string;
 begin
   Result := 'ArcClose2D';
 end;
 
-class function TNodeArcClose2D.URNMatching(const URN: string): boolean;
+class function TArcClose2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeArcClose2D}
+{$define TGeometryNotImplemented := TArcClose2DNode}
 GeometryNotImplemented
 
-procedure TNodeCircle2D.CreateNode;
+procedure TCircle2DNode.CreateNode;
 begin
   inherited;
 
@@ -286,31 +286,31 @@ begin
   { X3D specification comment: (0,Inf) }
 end;
 
-class function TNodeCircle2D.ClassNodeTypeName: string;
+class function TCircle2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Circle2D';
 end;
 
-class function TNodeCircle2D.URNMatching(const URN: string): boolean;
+class function TCircle2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeCircle2D.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TCircle2DNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   Slices: Integer;
-  C: TNodeCoordinate;
-  LineSet: TNodeLineSet absolute Result;
+  C: TCoordinateNode;
+  LineSet: TLineSetNode absolute Result;
   I: Integer;
   AngleSin, AngleCos: Float;
 begin
-  LineSet := TNodeLineSet.Create(NodeName, WWWBasePath);
+  LineSet := TLineSetNode.Create(NodeName, WWWBasePath);
   try
     Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
 
-    C := TNodeCoordinate.Create('', WWWBasePath);
+    C := TCoordinateNode.Create('', WWWBasePath);
     C.FdPoint.Items.Count := Slices + 1;
     LineSet.FdCoord.Value := C;
 
@@ -330,12 +330,12 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeCircle2D.ProxyUsesOverTriangulate: boolean;
+function TCircle2DNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeDisk2D.CreateNode;
+procedure TDisk2DNode.CreateNode;
 begin
   inherited;
 
@@ -357,21 +357,21 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-class function TNodeDisk2D.ClassNodeTypeName: string;
+class function TDisk2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Disk2D';
 end;
 
-class function TNodeDisk2D.URNMatching(const URN: string): boolean;
+class function TDisk2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeDisk2D}
+{$define TGeometryNotImplemented := TDisk2DNode}
 GeometryNotImplemented
 
-procedure TNodePolyline2D.CreateNode;
+procedure TPolyline2DNode.CreateNode;
 begin
   inherited;
 
@@ -384,22 +384,22 @@ begin
   FFdLineSegments.AddAlternativeName('point', 2);
 end;
 
-class function TNodePolyline2D.ClassNodeTypeName: string;
+class function TPolyline2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Polyline2D';
 end;
 
-class function TNodePolyline2D.URNMatching(const URN: string): boolean;
+class function TPolyline2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodePolyline2D}
+{$define TGeometryNotImplemented := TPolyline2DNode}
 GeometryNotImplemented
 
-procedure TNodePolypoint2D.CreateNode;
+procedure TPolypoint2DNode.CreateNode;
 begin
   inherited;
 
@@ -409,21 +409,21 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodePolypoint2D.ClassNodeTypeName: string;
+class function TPolypoint2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Polypoint2D';
 end;
 
-class function TNodePolypoint2D.URNMatching(const URN: string): boolean;
+class function TPolypoint2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodePolypoint2D}
+{$define TGeometryNotImplemented := TPolypoint2DNode}
 GeometryNotImplemented
 
-procedure TNodeRectangle2D.CreateNode;
+procedure TRectangle2DNode.CreateNode;
 begin
   inherited;
 
@@ -439,31 +439,31 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-class function TNodeRectangle2D.ClassNodeTypeName: string;
+class function TRectangle2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Rectangle2D';
 end;
 
-class function TNodeRectangle2D.URNMatching(const URN: string): boolean;
+class function TRectangle2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function Rectangle2DProxy(Original: TVRMLGeometryNode;
-  const Size: TVector2Single; const Solid: boolean): TVRMLGeometryNode;
+function Rectangle2DProxy(Original: TAbstractGeometryNode;
+  const Size: TVector2Single; const Solid: boolean): TAbstractGeometryNode;
 var
-  Coord: TNodeCoordinate;
-  TexCoord: TNodeTextureCoordinate;
-  QuadSet: TNodeQuadSet absolute Result;
+  Coord: TCoordinateNode;
+  TexCoord: TTextureCoordinateNode;
+  QuadSet: TQuadSetNode absolute Result;
 begin
-  QuadSet := TNodeQuadSet.Create(Original.NodeName, Original.WWWBasePath);
+  QuadSet := TQuadSetNode.Create(Original.NodeName, Original.WWWBasePath);
   try
-    Coord := TNodeCoordinate.Create('', Original.WWWBasePath);
+    Coord := TCoordinateNode.Create('', Original.WWWBasePath);
     Coord.FdPoint.Items.Count := 4;
     QuadSet.FdCoord.Value := Coord;
 
-    TexCoord := TNodeTextureCoordinate.Create('', Original.WWWBasePath);
+    TexCoord := TTextureCoordinateNode.Create('', Original.WWWBasePath);
     TexCoord.FdPoint.Items.Count := 4;
     QuadSet.FdTexCoord.Value := TexCoord;
 
@@ -485,18 +485,18 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeRectangle2D.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TRectangle2DNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
 end;
 
-function TNodeRectangle2D.ProxyUsesOverTriangulate: boolean;
+function TRectangle2DNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeTriangleSet2D.CreateNode;
+procedure TTriangleSet2DNode.CreateNode;
 begin
   inherited;
 
@@ -511,31 +511,31 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-class function TNodeTriangleSet2D.ClassNodeTypeName: string;
+class function TTriangleSet2DNode.ClassNodeTypeName: string;
 begin
   Result := 'TriangleSet2D';
 end;
 
-class function TNodeTriangleSet2D.URNMatching(const URN: string): boolean;
+class function TTriangleSet2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeTriangleSet2D}
+{$define TGeometryNotImplemented := TTriangleSet2DNode}
 GeometryNotImplemented
 
 procedure RegisterGeometry2DNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeArc2D,
-    TNodeArcClose2D,
-    TNodeCircle2D,
-    TNodeDisk2D,
-    TNodePolyline2D,
-    TNodePolypoint2D,
-    TNodeRectangle2D,
-    TNodeTriangleSet2D
+    TArc2DNode,
+    TArcClose2DNode,
+    TCircle2DNode,
+    TDisk2DNode,
+    TPolyline2DNode,
+    TPolypoint2DNode,
+    TRectangle2DNode,
+    TTriangleSet2DNode
   ]);
 end;
 

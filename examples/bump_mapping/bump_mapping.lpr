@@ -86,7 +86,7 @@ var
   Walker: TWalkCamera;
 
   Scene: TVRMLGLScene;
-  SceneBrightestLight: TVRMLPositionalLightNode;
+  SceneBrightestLight: TAbstractPositionalLightNode;
   RenderParams: TBasicRenderParams;
 
   { Vars below for bmEmboss only }
@@ -891,16 +891,16 @@ end;
 
 type
   TSeekBrightestLight = class
-    BrightestLight: TVRMLPositionalLightNode;
-    procedure Enum(Node: TVRMLNode);
+    BrightestLight: TAbstractPositionalLightNode;
+    procedure Enum(Node: TX3DNode);
   end;
 
-procedure TSeekBrightestLight.Enum(Node: TVRMLNode);
+procedure TSeekBrightestLight.Enum(Node: TX3DNode);
 begin
   if (BrightestLight = nil) or
      (BrightestLight.FdIntensity.Value <
-      TVRMLPositionalLightNode(Node).FdIntensity.Value) then
-    BrightestLight := TVRMLPositionalLightNode(Node);
+      TAbstractPositionalLightNode(Node).FdIntensity.Value) then
+    BrightestLight := TAbstractPositionalLightNode(Node);
 end;
 
 procedure LoadSceneCore(const FileName: string);
@@ -912,7 +912,7 @@ begin
   { find SceneBrightestLight }
   SeekBrightestLight := TSeekBrightestLight.Create;
   try
-    Scene.RootNode.EnumerateNodes(TVRMLPositionalLightNode,
+    Scene.RootNode.EnumerateNodes(TAbstractPositionalLightNode,
       @SeekBrightestLight.Enum, true);
     SceneBrightestLight := SeekBrightestLight.BrightestLight;
   finally
@@ -922,7 +922,7 @@ begin
   { create SceneBrightestLight, if none }
   if SceneBrightestLight = nil then
   begin
-    SceneBrightestLight := TNodePointLight.Create('', '');
+    SceneBrightestLight := TPointLightNode.Create('', '');
     Scene.RootNode.FdChildren.Add(SceneBrightestLight);
     Scene.ChangedAll;
   end;

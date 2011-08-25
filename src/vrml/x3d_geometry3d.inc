@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeBox = class(TNodeX3DGeometryNode)
+  TBoxNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -32,18 +32,18 @@
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TNodeCone = class(TNodeX3DGeometryNode)
+  TConeNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
@@ -74,19 +74,19 @@
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
-  TNodeCone_2 = TNodeCone;
+  TConeNode_2 = TConeNode;
 
-  TNodeCylinder = class(TNodeX3DGeometryNode)
+  TCylinderNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
   public
@@ -116,23 +116,23 @@
       override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
-  TNodeCylinder_2 = TNodeCylinder;
+  TCylinderNode_2 = TCylinderNode;
 
-  TNodeElevationGrid = class(TNodeX3DGeometryNode)
+  TElevationGridNode = class(TAbstractX3DGeometryNode)
   private
     procedure EventSet_HeightReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -203,18 +203,18 @@
     function Attrib: TMFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeExtrusion = class(TNodeX3DGeometryNode)
+  TExtrusionNode = class(TAbstractX3DGeometryNode)
   private
     procedure Eventset_crossSectionReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -290,18 +290,18 @@
     function CrossSectionClosed: boolean;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeIndexedFaceSet = class(TNodeX3DComposedGeometryNode)
+  TIndexedFaceSetNode = class(TAbstractX3DComposedGeometryNode)
   private
     procedure Eventset_colorIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -361,11 +361,11 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
-  TNodeIndexedFaceSet_2 = TNodeIndexedFaceSet;
+  TIndexedFaceSetNode_2 = TIndexedFaceSetNode;
 
-  TNodeSphere = class(TNodeX3DGeometryNode)
+  TSphereNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -385,22 +385,22 @@
     function TexCoordField: TSFNode; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
-  TNodeSphere_2 = TNodeSphere;
+  TSphereNode_2 = TSphereNode;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeBox.CreateNode;
+procedure TBoxNode.CreateNode;
 begin
   inherited;
 
@@ -415,34 +415,34 @@ begin
    FdSolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdSolid);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 end;
 
-class function TNodeBox.ClassNodeTypeName: string;
+class function TBoxNode.ClassNodeTypeName: string;
 begin
   Result := 'Box';
 end;
 
-class function TNodeBox.URNMatching(const URN: string): boolean;
+class function TBoxNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeBox.TexCoordField: TSFNode;
+function TBoxNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeBox.AutoGenerate3DTexCoords: boolean;
+function TBoxNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-procedure TNodeCone.CreateNode;
+procedure TConeNode.CreateNode;
 begin
   inherited;
 
@@ -473,45 +473,45 @@ begin
    FdSolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdSolid);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 end;
 
-class function TNodeCone.ClassNodeTypeName: string;
+class function TConeNode.ClassNodeTypeName: string;
 begin
   Result := 'Cone';
 end;
 
-class function TNodeCone.URNMatching(const URN: string): boolean;
+class function TConeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeCone.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TConeNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeCone.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TConeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FdtexCoord.EnumerateValid(Func);
 end;
 
-function TNodeCone.TexCoordField: TSFNode;
+function TConeNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeCone.AutoGenerate3DTexCoords: boolean;
+function TConeNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-procedure TNodeCylinder.CreateNode;
+procedure TCylinderNode.CreateNode;
 begin
   inherited;
 
@@ -547,45 +547,45 @@ begin
    FdTop.ChangesAlways := [chGeometry];
   Fields.Add(FFdTop);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 end;
 
-class function TNodeCylinder.ClassNodeTypeName: string;
+class function TCylinderNode.ClassNodeTypeName: string;
 begin
   Result := 'Cylinder';
 end;
 
-class function TNodeCylinder.URNMatching(const URN: string): boolean;
+class function TCylinderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeCylinder.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TCylinderNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeCylinder.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TCylinderNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FdtexCoord.EnumerateValid(Func);
 end;
 
-function TNodeCylinder.TexCoordField: TSFNode;
+function TCylinderNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeCylinder.AutoGenerate3DTexCoords: boolean;
+function TCylinderNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
-procedure TNodeElevationGrid.CreateNode;
+procedure TElevationGridNode.CreateNode;
 begin
   inherited;
 
@@ -593,23 +593,23 @@ begin
   Events.Add(FEventSet_height);
   Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractX3DNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   Fields.Add(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 
@@ -670,19 +670,19 @@ begin
   { X3D specification comment: (0,Inf) }
 end;
 
-class function TNodeElevationGrid.ClassNodeTypeName: string;
+class function TElevationGridNode.ClassNodeTypeName: string;
 begin
   Result := 'ElevationGrid';
 end;
 
-class function TNodeElevationGrid.URNMatching(const URN: string): boolean;
+class function TElevationGridNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeElevationGrid.IsNotEmpty: boolean;
+function TElevationGridNode.IsNotEmpty: boolean;
 begin
   Result :=
     (FdXDimension.Value >= 2) and
@@ -695,43 +695,43 @@ begin
     (FdHeight.Count >= FdXDimension.Value * FdZDimension.Value);
 end;
 
-function TNodeElevationGrid.Color: TMFVec3f;
+function TElevationGridNode.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColor) then
-    Result := TNodeColor(FdColor.Value).FdColor else
+     (FdColor.Value is TColorNode) then
+    Result := TColorNode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeElevationGrid.ColorRGBA: TMFColorRGBA;
+function TElevationGridNode.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColorRGBA) then
-    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+     (FdColor.Value is TColorRGBANode) then
+    Result := TColorRGBANode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeElevationGrid.FogCoord: TMFFloat;
+function TElevationGridNode.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
-     (FdFogCoord.Value is TNodeFogCoordinate) then
-    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+     (FdFogCoord.Value is TFogCoordinateNode) then
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
-function TNodeElevationGrid.Attrib: TMFNode;
+function TElevationGridNode.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-procedure TNodeElevationGrid.EventSet_HeightReceive(
+procedure TElevationGridNode.EventSet_HeightReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdHeight.Assign(Value);
   FdHeight.Changed;
 end;
 
-procedure TNodeExtrusion.CreateNode;
+procedure TExtrusionNode.CreateNode;
 begin
   inherited;
 
@@ -807,26 +807,26 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeExtrusion.ClassNodeTypeName: string;
+class function TExtrusionNode.ClassNodeTypeName: string;
 begin
   Result := 'Extrusion';
 end;
 
-class function TNodeExtrusion.URNMatching(const URN: string): boolean;
+class function TExtrusionNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeExtrusion.CrossSection3D(Index: integer): TVector3Single;
+function TExtrusionNode.CrossSection3D(Index: integer): TVector3Single;
 begin
   Result[0] := FdCrossSection.Items.L[Index][0];
   Result[1] := 0;
   Result[2] := FdCrossSection.Items.L[Index][1];
 end;
 
-function TNodeExtrusion.SpineClosed: boolean;
+function TExtrusionNode.SpineClosed: boolean;
 var
   SpinePoints: TVector3SingleList;
 begin
@@ -836,7 +836,7 @@ begin
                           SpinePoints.First);
 end;
 
-function TNodeExtrusion.CrossSectionClosed: boolean;
+function TExtrusionNode.CrossSectionClosed: boolean;
 var
   CrossSectionPoints: TVector2SingleList;
 begin
@@ -846,8 +846,8 @@ begin
                           CrossSectionPoints.First);
 end;
 
-function TNodeExtrusion.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TExtrusionNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 
 { Some of the things that are non-optimal when you will render
   Extrusion using this Proxy instead of directly rendering node:
@@ -889,7 +889,7 @@ function TNodeExtrusion.Proxy(var State: TVRMLGraphTraverseState;
 }
 
 var
-  IFS: TNodeIndexedFaceSet absolute Result;
+  IFS: TIndexedFaceSetNode absolute Result;
   Index: Integer;
   E: TVRMLExtrusion;
 
@@ -941,15 +941,15 @@ var
   end;
 
 var
-  CoordNode: TNodeCoordinate;
-  TexCoordNode: TNodeTextureCoordinate;
+  CoordNode: TCoordinateNode;
+  TexCoordNode: TTextureCoordinateNode;
   Transform: TMatrix4Single;
   I, J, Len, SidesCount: Integer;
   LastY, LastZ: TVector3Single;
   TexCapsMin, TexCapsMax: TVector2Single;
   TexCapsTranslation, TexCapsScale: Single;
 begin
-  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
   try
     E := TVRMLExtrusion.Create;
     try
@@ -960,7 +960,7 @@ begin
 
       { Fill CoordNode }
 
-      CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+      CoordNode := TCoordinateNode.Create('', WWWBasePath);
       IFS.FdCoord.Value := CoordNode;
 
       CoordNode.FdPoint.Items.Count := SidesCount;
@@ -977,7 +977,7 @@ begin
 
       { Fill TexCoordNode }
 
-      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoordNode := TTextureCoordinateNode.Create('', WWWBasePath);
       IFS.FdTexCoord.Value := TexCoordNode;
 
       Len := SidesCount;
@@ -1092,45 +1092,45 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeExtrusion.ProxyUsesOverTriangulate: boolean;
+function TExtrusionNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeExtrusion.EventSet_crossSectionReceive(
+procedure TExtrusionNode.EventSet_crossSectionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcrossSection.Assign(Value);
   FdcrossSection.Changed;
 end;
 
-procedure TNodeExtrusion.EventSet_orientationReceive(
+procedure TExtrusionNode.EventSet_orientationReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdorientation.Assign(Value);
   Fdorientation.Changed;
 end;
 
-procedure TNodeExtrusion.EventSet_scaleReceive(
+procedure TExtrusionNode.EventSet_scaleReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdscale.Assign(Value);
   Fdscale.Changed;
 end;
 
-procedure TNodeExtrusion.EventSet_spineReceive(
+procedure TExtrusionNode.EventSet_spineReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   Fdspine.Assign(Value);
   Fdspine.Changed;
 end;
 
-function TNodeExtrusion.Convex: boolean;
+function TExtrusionNode.Convex: boolean;
 begin
   Result := FdConvex.Value;
 end;
 
-procedure TNodeIndexedFaceSet.CreateNode;
+procedure TIndexedFaceSetNode.CreateNode;
 begin
   inherited;
 
@@ -1190,62 +1190,62 @@ begin
   { X3D specification comment: [-1,Inf) }
 end;
 
-class function TNodeIndexedFaceSet.ClassNodeTypeName: string;
+class function TIndexedFaceSetNode.ClassNodeTypeName: string;
 begin
   Result := 'IndexedFaceSet';
 end;
 
-class function TNodeIndexedFaceSet.URNMatching(const URN: string): boolean;
+class function TIndexedFaceSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeIndexedFaceSet.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeIndexedFaceSet.CoordIndex: TMFLong;
+function TIndexedFaceSetNode.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
 end;
 
-procedure TNodeIndexedFaceSet.EventSet_colorIndexReceive(
+procedure TIndexedFaceSetNode.EventSet_colorIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcolorIndex.Assign(Value);
   FdcolorIndex.Changed;
 end;
 
-procedure TNodeIndexedFaceSet.EventSet_coordIndexReceive(
+procedure TIndexedFaceSetNode.EventSet_coordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdcoordIndex.Assign(Value);
   FdcoordIndex.Changed;
 end;
 
-procedure TNodeIndexedFaceSet.EventSet_normalIndexReceive(
+procedure TIndexedFaceSetNode.EventSet_normalIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdnormalIndex.Assign(Value);
   FdnormalIndex.Changed;
 end;
 
-procedure TNodeIndexedFaceSet.EventSet_texCoordIndexReceive(
+procedure TIndexedFaceSetNode.EventSet_texCoordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdtexCoordIndex.Assign(Value);
   FdtexCoordIndex.Changed;
 end;
 
-function TNodeIndexedFaceSet.Convex: boolean;
+function TIndexedFaceSetNode.Convex: boolean;
 begin
   Result := FdConvex.Value;
 end;
 
-procedure TNodeSphere.CreateNode;
+procedure TSphereNode.CreateNode;
 begin
   inherited;
 
@@ -1260,34 +1260,34 @@ begin
    FdSolid.ChangesAlways := [chGeometry];
   Fields.Add(FFdSolid);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 end;
 
-class function TNodeSphere.ClassNodeTypeName: string;
+class function TSphereNode.ClassNodeTypeName: string;
 begin
   Result := 'Sphere';
 end;
 
-class function TNodeSphere.URNMatching(const URN: string): boolean;
+class function TSphereNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSphere.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSphereNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeSphere.TexCoordField: TSFNode;
+function TSphereNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeSphere.AutoGenerate3DTexCoords: boolean;
+function TSphereNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
@@ -1295,13 +1295,13 @@ end;
 procedure RegisterGeometry3DNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeBox,
-    TNodeCone,
-    TNodeCylinder,
-    TNodeElevationGrid,
-    TNodeExtrusion,
-    TNodeIndexedFaceSet,
-    TNodeSphere
+    TBoxNode,
+    TConeNode,
+    TCylinderNode,
+    TElevationGridNode,
+    TExtrusionNode,
+    TIndexedFaceSetNode,
+    TSphereNode
   ]);
 end;
 

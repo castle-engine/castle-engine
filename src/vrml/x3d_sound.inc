@@ -15,19 +15,19 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DSoundNode = class(TNodeX3DChildNode)
+  TAbstractX3DSoundNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  INodeX3DSoundSourceNode = interface(INodeX3DTimeDependentNode)
+  IAbstractX3DSoundSourceNode = interface(IAbstractX3DTimeDependentNode)
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
     property FdDescription: TSFString { read FFdDescription } { };
     property FdPitch: TSFFloat { read FFdPitch } { };
     property EventDuration_changed: TVRMLEvent { read FEventDuration_changed } { };
   end;
 
-  TNodeX3DSoundSourceNode = class(TNodeX3DTimeDependentNode, INodeX3DSoundSourceNode)
+  TAbstractX3DSoundSourceNode = class(TAbstractX3DTimeDependentNode, IAbstractX3DSoundSourceNode)
   public
     procedure CreateNode; override;
 
@@ -45,7 +45,7 @@
     function Pitch: Single;
   end;
 
-  TNodeAudioClip = class(TNodeX3DSoundSourceNode, INodeX3DUrlObject)
+  TAudioClipNode = class(TAbstractX3DSoundSourceNode, IAbstractX3DUrlObject)
   private
     FBufferLoaded: boolean;
     Buffer: TALBuffer;
@@ -74,7 +74,7 @@
     public property FdUrl: TMFString read FFdUrl;
   end;
 
-  TNodeSound = class(TNodeX3DSoundNode)
+  TSoundNode = class(TAbstractX3DSoundNode)
   private
     FTransform: TMatrix4Single;
     FTransformScale: Single;
@@ -122,14 +122,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DSoundNode.CreateNode;
+procedure TAbstractX3DSoundNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DSoundSourceNode.CreateNode;
+procedure TAbstractX3DSoundSourceNode.CreateNode;
 begin
   inherited;
 
@@ -146,14 +146,14 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DSoundSourceNode.Pitch: Single;
+function TAbstractX3DSoundSourceNode.Pitch: Single;
 begin
   Result := FdPitch.Value;
   if Result <= 0 then
     Result := 1; { assign default pitch in case of trouble }
 end;
 
-procedure TNodeAudioClip.CreateNode;
+procedure TAudioClipNode.CreateNode;
 begin
   inherited;
 
@@ -175,7 +175,7 @@ begin
   SoundEngine.OnOpenClose.Add(@ALOpenClose);
 end;
 
-destructor TNodeAudioClip.Destroy;
+destructor TAudioClipNode.Destroy;
 begin
   if Sound <> nil then
   begin
@@ -187,19 +187,19 @@ begin
   inherited;
 end;
 
-class function TNodeAudioClip.ClassNodeTypeName: string;
+class function TAudioClipNode.ClassNodeTypeName: string;
 begin
   Result := 'AudioClip';
 end;
 
-class function TNodeAudioClip.URNMatching(const URN: string): boolean;
+class function TAudioClipNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeAudioClip.CycleInterval: TKamTime;
+function TAudioClipNode.CycleInterval: TKamTime;
 begin
   { Secure from invalid FDuration (when sound file is not loaded, or duration
     is just unknown). }
@@ -208,29 +208,29 @@ begin
     Result := 0;
 end;
 
-procedure TNodeAudioClip.SoundUsingEnd(ASound: TALSound);
+procedure TAudioClipNode.SoundUsingEnd(ASound: TALSound);
 begin
   Sound := nil;
 end;
 
-procedure TNodeAudioClip.UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAudioClipNode.UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 begin
   UpdatePlaying;
 end;
 
-procedure TNodeAudioClip.UpdatePlaying;
+procedure TAudioClipNode.UpdatePlaying;
 
-  function GetSoundNode: TNodeSound;
+  function GetSoundNode: TSoundNode;
   begin
     if (ParentFieldsCount <> 0) and
        (ParentFields[0].ParentNode <> nil) and
-       (ParentFields[0].ParentNode is TNodeSound) then
-      Result := TNodeSound(ParentFields[0].ParentNode);
+       (ParentFields[0].ParentNode is TSoundNode) then
+      Result := TSoundNode(ParentFields[0].ParentNode);
   end;
 
 var
-  SoundNode: TNodeSound;
+  SoundNode: TSoundNode;
 begin
   if TimeDependentNodeHandler.IsActive and not TimeDependentNodeHandler.IsPaused then
   begin
@@ -264,7 +264,7 @@ begin
   end;
 end;
 
-procedure TNodeAudioClip.SetBufferLoaded(const Value: boolean);
+procedure TAudioClipNode.SetBufferLoaded(const Value: boolean);
 var
   I: Integer;
   FullUrl: string;
@@ -325,7 +325,7 @@ begin
   end;
 end;
 
-procedure TNodeAudioClip.ALOpenClose(Sender: TObject);
+procedure TAudioClipNode.ALOpenClose(Sender: TObject);
 begin
   if InsideLoadBuffer <> 0 then Exit;
 
@@ -342,7 +342,7 @@ begin
   end;
 end;
 
-procedure TNodeSound.CreateNode;
+procedure TSoundNode.CreateNode;
 begin
   inherited;
 
@@ -379,7 +379,7 @@ begin
   Fields.Add(FFdPriority);
   { X3D specification comment: [0,1] }
 
-  FFdSource := TSFNode.Create(Self, 'source', INodeX3DSoundSourceNode);
+  FFdSource := TSFNode.Create(Self, 'source', IAbstractX3DSoundSourceNode);
   Fields.Add(FFdSource);
 
   FFdSpatialize := TSFBool.Create(Self, 'spatialize', true);
@@ -392,20 +392,20 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TNodeSound.UpdateSourcePosition;
+procedure TSoundNode.UpdateSourcePosition;
 var
-  AudioClip: TNodeAudioClip;
+  AudioClip: TAudioClipNode;
 begin
   if (FdSource.Value <> nil) and
-     (FdSource.Value is TNodeAudioClip) then
+     (FdSource.Value is TAudioClipNode) then
   begin
-    AudioClip := TNodeAudioClip(FdSource.Value);
+    AudioClip := TAudioClipNode(FdSource.Value);
     if AudioClip.Sound <> nil then
       AudioClip.Sound.Position := MatrixMultPoint(FTransform, FdLocation.Value);
   end;
 end;
 
-procedure TNodeSound.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TSoundNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   FTransform := StateStack.Top.Transform;
@@ -413,18 +413,18 @@ begin
   UpdateSourcePosition;
 end;
 
-procedure TNodeSound.EventLocationReceive(
+procedure TSoundNode.EventLocationReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   UpdateSourcePosition;
 end;
 
-class function TNodeSound.ClassNodeTypeName: string;
+class function TSoundNode.ClassNodeTypeName: string;
 begin
   Result := 'Sound';
 end;
 
-class function TNodeSound.URNMatching(const URN: string): boolean;
+class function TSoundNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
@@ -434,8 +434,8 @@ end;
 procedure RegisterSoundNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeAudioClip,
-    TNodeSound
+    TAudioClipNode,
+    TSoundNode
   ]);
 end;
 

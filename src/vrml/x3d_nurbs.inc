@@ -19,7 +19,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DNurbsControlCurveNode = class(TNodeX3DNode)
+  TAbstractX3DNurbsControlCurveNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -27,10 +27,10 @@
     public property FdControlPoint: TMFVec2d read FFdControlPoint;
   end;
 
-  TNodeX3DParametricGeometryNode = class(TNodeX3DGeometryNode)
+  TAbstractX3DParametricGeometryNode = class(TAbstractX3DGeometryNode)
   end;
 
-  TNodeX3DNurbsSurfaceGeometryNode = class(TNodeX3DParametricGeometryNode)
+  TAbstractX3DNurbsSurfaceGeometryNode = class(TAbstractX3DParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -82,12 +82,12 @@
 
   { Contour2D node.
 
-    For VRML 2.0, this is TNodeX3DGeometryNode, since VRML 2.0 specification
+    For VRML 2.0, this is TAbstractX3DGeometryNode, since VRML 2.0 specification
     explicitly says it's valid geometry node. For X3D specification, this was only
-    TNodeX3DNode. When actually implementing this, I will have to either handle
+    TAbstractX3DNode. When actually implementing this, I will have to either handle
     both VRML 2.0 and X3D cases at once, or just split this class into
-    two separate TNodeContour2D_2 and TNodeContour2D. }
-  TNodeContour2D = class(TNodeX3DGeometryNode)
+    two separate TContour2DNode_2 and TContour2DNode. }
+  TContour2DNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -109,21 +109,21 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeContourPolyline2D = class(TNodeX3DNurbsControlCurveNode)
+  TContourPolyline2DNode = class(TAbstractX3DNurbsControlCurveNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeCoordinateDouble = class(TNodeX3DCoordinateNode)
+  TCoordinateDoubleNode = class(TAbstractX3DCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -135,7 +135,7 @@
     function CoordCount: Cardinal; override;
   end;
 
-  TNodeNurbsCurve = class(TNodeX3DParametricGeometryNode)
+  TNurbsCurveNode = class(TAbstractX3DParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -165,18 +165,18 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
-  TNodeNurbsCurve_3 = TNodeNurbsCurve;
+  TNurbsCurveNode_3 = TNurbsCurveNode;
 
-  TNodeNurbsCurve2D = class(TNodeX3DNurbsControlCurveNode)
+  TNurbsCurve2DNode = class(TAbstractX3DNurbsControlCurveNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -198,7 +198,7 @@
     public property FdOrder: TSFInt32 read FFdOrder;
   end;
 
-  TNodeNurbsOrientationInterpolator = class(TNodeX3DChildNode)
+  TNurbsOrientationInterpolatorNode = class(TAbstractX3DChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -231,24 +231,24 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeNurbsPatchSurface = class(TNodeX3DNurbsSurfaceGeometryNode)
+  TNurbsPatchSurfaceNode = class(TAbstractX3DNurbsSurfaceGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeNurbsPositionInterpolator = class(TNodeX3DChildNode)
+  TNurbsPositionInterpolatorNode = class(TAbstractX3DChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -282,9 +282,9 @@
 
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
   end;
-  TNodeNurbsPositionInterpolator_3 = TNodeNurbsPositionInterpolator;
+  TNurbsPositionInterpolatorNode_3 = TNurbsPositionInterpolatorNode;
 
-  TNodeNurbsSet = class(TNodeX3DChildNode, INodeX3DBoundedObject)
+  TNurbsSetNode = class(TAbstractX3DChildNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -316,7 +316,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TNodeNurbsSurfaceInterpolator = class(TNodeX3DChildNode)
+  TNurbsSurfaceInterpolatorNode = class(TAbstractX3DChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -365,7 +365,7 @@
     public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
-  TNodeNurbsSweptSurface = class(TNodeX3DParametricGeometryNode)
+  TNurbsSweptSurfaceNode = class(TAbstractX3DParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -388,14 +388,14 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeNurbsSwungSurface = class(TNodeX3DParametricGeometryNode)
+  TNurbsSwungSurfaceNode = class(TAbstractX3DParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -418,14 +418,14 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeNurbsTextureCoordinate = class(TNodeX3DNode)
+  TNurbsTextureCoordinateNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -456,7 +456,7 @@
     public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
-  TNodeNurbsTrimmedSurface = class(TNodeX3DNurbsSurfaceGeometryNode)
+  TNurbsTrimmedSurfaceNode = class(TAbstractX3DNurbsSurfaceGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -478,17 +478,17 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DNurbsControlCurveNode.CreateNode;
+procedure TAbstractX3DNurbsControlCurveNode.CreateNode;
 begin
   inherited;
 
@@ -499,15 +499,15 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DNurbsSurfaceGeometryNode.CreateNode;
+procedure TAbstractX3DNurbsSurfaceGeometryNode.CreateNode;
 begin
   inherited;
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
    FdControlPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdControlPoint);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode, TNodeNurbsTextureCoordinate]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode, TNurbsTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 
@@ -578,14 +578,14 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-procedure TNodeX3DNurbsSurfaceGeometryNode.DirectEnumerateActive(
+procedure TAbstractX3DNurbsSurfaceGeometryNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
   FdtexCoord.EnumerateValid(Func);
 end;
 
-procedure TNodeContour2D.CreateNode;
+procedure TContour2DNode.CreateNode;
 begin
   inherited;
 
@@ -595,55 +595,55 @@ begin
   FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TNodeNurbsCurve2D, TNodeContourPolyline2D,
+  FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
     { In VRML 97 these are allowed children too: }
-    TNodePolyline2D, TNodeContour2D ]);
+    TPolyline2DNode, TContour2DNode ]);
    FdChildren.ChangesAlways := [chGeometry];
   Fields.Add(FFdChildren);
 
   DefaultContainerField := 'trimmingContour';
 end;
 
-class function TNodeContour2D.ClassNodeTypeName: string;
+class function TContour2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Contour2D';
 end;
 
-class function TNodeContour2D.URNMatching(const URN: string): boolean;
+class function TContour2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeContour2D.DirectEnumerateActive(
+procedure TContour2DNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdchildren.EnumerateValid(Func);
 end;
 
-{$define TGeometryNotImplemented := TNodeContour2D}
+{$define TGeometryNotImplemented := TContour2DNode}
 GeometryNotImplemented
 
-procedure TNodeContourPolyline2D.CreateNode;
+procedure TContourPolyline2DNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'geometry';
 end;
 
-class function TNodeContourPolyline2D.ClassNodeTypeName: string;
+class function TContourPolyline2DNode.ClassNodeTypeName: string;
 begin
   Result := 'ContourPolyline2D';
 end;
 
-class function TNodeContourPolyline2D.URNMatching(const URN: string): boolean;
+class function TContourPolyline2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCoordinateDouble.CreateNode;
+procedure TCoordinateDoubleNode.CreateNode;
 begin
   inherited;
 
@@ -654,27 +654,27 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeCoordinateDouble.ClassNodeTypeName: string;
+class function TCoordinateDoubleNode.ClassNodeTypeName: string;
 begin
   Result := 'CoordinateDouble';
 end;
 
-class function TNodeCoordinateDouble.URNMatching(const URN: string): boolean;
+class function TCoordinateDoubleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeCoordinateDouble.CoordCount: Cardinal;
+function TCoordinateDoubleNode.CoordCount: Cardinal;
 begin
   Result := FdPoint.Items.Count;
 end;
 
-procedure TNodeNurbsCurve.CreateNode;
+procedure TNurbsCurveNode.CreateNode;
 begin
   inherited;
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
    FdControlPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdControlPoint);
 
@@ -706,23 +706,23 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-class function TNodeNurbsCurve.ClassNodeTypeName: string;
+class function TNurbsCurveNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsCurve';
 end;
 
-class function TNodeNurbsCurve.URNMatching(const URN: string): boolean;
+class function TNurbsCurveNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeNurbsCurve.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsCurveNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNodeNurbsCurve.DirectEnumerateActive(
+procedure TNurbsCurveNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
@@ -730,12 +730,12 @@ end;
 
 { Convert X3D or VRML 97 NurbsCurve to LineSet. }
 procedure NurbsCurveProxy(
-  const LS: TNodeLineSet;
+  const LS: TLineSetNode;
   const ControlPoint: TVector3SingleList;
   const Tessellation, Order: LongInt;
   const FieldKnot, Weight: TDoubleList);
 var
-  ResultCoord: TNodeCoordinate;
+  ResultCoord: TCoordinateNode;
   Tess: Cardinal;
   I: Integer;
   Increase: Double;
@@ -763,7 +763,7 @@ begin
   Increase := (Knot.Last - Knot.First) / (Tess - 1);
 
   { make resulting Coordinate node }
-  ResultCoord := TNodeCoordinate.Create('', LS.WWWBasePath);
+  ResultCoord := TCoordinateNode.Create('', LS.WWWBasePath);
   LS.FdCoord.Value := ResultCoord;
 
   { calculate result Coordinate.point field }
@@ -780,58 +780,58 @@ begin
   FreeAndNil(Knot);
 end;
 
-function TNodeNurbsCurve.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TNurbsCurveNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   ControlPoint: TVector3SingleList;
 begin
-  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
+  Result := TLineSetNode.Create(NodeName, WWWBasePath);
   try
-    { TODO: we should handle here all TNodeX3DCoordinateNode }
+    { TODO: we should handle here all TAbstractX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
-       (FdControlPoint.Value is TNodeCoordinate) then
-      ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+       (FdControlPoint.Value is TCoordinateNode) then
+      ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
       Exit;
 
-    NurbsCurveProxy(TNodeLineSet(Result), ControlPoint, FdTessellation.Value,
+    NurbsCurveProxy(TLineSetNode(Result), ControlPoint, FdTessellation.Value,
       FdOrder.Value, FdKnot.Items, FdWeight.Items);
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeNurbsCurve.ProxyUsesOverTriangulate: boolean;
+function TNurbsCurveNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsCurve.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsCurveNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items) else
+     (FdControlPoint.Value is TCoordinateNode) then
+    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items) else
     Result := EmptyBox3D;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsCurve.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsCurveNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform) else
+     (FdControlPoint.Value is TCoordinateNode) then
+    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform) else
     Result := EmptyBox3D;
 end;
 
-function TNodeNurbsCurve.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+function TNurbsCurveNode.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := 0;
 end;
 
-procedure TNodeNurbsCurve2D.CreateNode;
+procedure TNurbsCurve2DNode.CreateNode;
 begin
   inherited;
 
@@ -860,26 +860,26 @@ begin
   DefaultContainerField := 'geometry';
 end;
 
-class function TNodeNurbsCurve2D.ClassNodeTypeName: string;
+class function TNurbsCurve2DNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsCurve2D';
 end;
 
-class function TNodeNurbsCurve2D.URNMatching(const URN: string): boolean;
+class function TNurbsCurve2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsOrientationInterpolator.CreateNode;
+procedure TNurbsOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
   FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdControlPoint);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
@@ -902,24 +902,24 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeNurbsOrientationInterpolator.ClassNodeTypeName: string;
+class function TNurbsOrientationInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsOrientationInterpolator';
 end;
 
-class function TNodeNurbsOrientationInterpolator.URNMatching(const URN: string): boolean;
+class function TNurbsOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsOrientationInterpolator.DirectEnumerateActive(
+procedure TNurbsOrientationInterpolatorNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
 end;
 
-procedure TNodeNurbsOrientationInterpolator.EventSet_FractionReceive(
+procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   ControlPoint: TVector3SingleList;
@@ -929,10 +929,10 @@ var
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
-  { TODO: we should handle here all TNodeX3DCoordinateNode }
+  { TODO: we should handle here all TAbstractX3DCoordinateNode }
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+     (FdControlPoint.Value is TCoordinateNode) then
+    ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
     Exit;
 
   if ControlPoint.Count = 0 then Exit;
@@ -966,17 +966,17 @@ begin
   EventValue_Changed.Send(Orientation, Time);
 end;
 
-procedure TNodeNurbsPatchSurface.CreateNode;
+procedure TNurbsPatchSurfaceNode.CreateNode;
 begin
   inherited;
 end;
 
-class function TNodeNurbsPatchSurface.ClassNodeTypeName: string;
+class function TNurbsPatchSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsPatchSurface';
 end;
 
-class function TNodeNurbsPatchSurface.URNMatching(const URN: string): boolean;
+class function TNurbsPatchSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -985,12 +985,12 @@ end;
 { Converting X3D NurbsPatchSurface and VRML 97 NurbsSurface to
   IndexedQuadSet. This is for Proxy methods implementation. }
 procedure NurbsPatchSurfaceProxy(
-  const QS: TNodeIndexedQuadSet;
+  const QS: TIndexedQuadSetNode;
   const ControlPoint: TVector3SingleList;
   const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
   const FieldUKnot, FieldVKnot, Weight: TDoubleList;
   const PossiblyUClosed, PossiblyVClosed, Solid, Ccw: boolean;
-  const TexCoord: TVRMLNode);
+  const TexCoord: TX3DNode);
 
 const
   { This has to be slightly larger than normal epsilon
@@ -1141,12 +1141,12 @@ begin
   VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
 
   { make resulting Coordinate and Normal nodes }
-  QS.FdCoord.Value := TNodeCoordinate.Create('', QS.WWWBasePath);
-  ResultCoord := (QS.FdCoord.Value as TNodeCoordinate).FdPoint.Items;
+  QS.FdCoord.Value := TCoordinateNode.Create('', QS.WWWBasePath);
+  ResultCoord := (QS.FdCoord.Value as TCoordinateNode).FdPoint.Items;
   ResultCoord.Count := UTess * VTess;
 
-  QS.FdNormal.Value := TNodeNormal.Create('', QS.WWWBasePath);
-  ResultNormal := (QS.FdNormal.Value as TNodeNormal).FdVector.Items;
+  QS.FdNormal.Value := TNormalNode.Create('', QS.WWWBasePath);
+  ResultNormal := (QS.FdNormal.Value as TNormalNode).FdVector.Items;
   ResultNormal.Count := UTess * VTess;
 
   { calculate result Coordinate.point and Normal.vector field }
@@ -1201,8 +1201,8 @@ begin
       (or cube for 3D coordinates) are generated automatically
       from the parametric subdivision.". I think this means that tex coords
       S/T = 0..1 range from starting to ending knot. }
-    QS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', QS.WWWBasePath);
-    ResultTexCoord := (QS.FdTexCoord.Value as TNodeTextureCoordinate).FdPoint.Items;
+    QS.FdTexCoord.Value := TTextureCoordinateNode.Create('', QS.WWWBasePath);
+    ResultTexCoord := (QS.FdTexCoord.Value as TTextureCoordinateNode).FdPoint.Items;
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
       for J := 0 to VTess - 1 do
@@ -1215,19 +1215,19 @@ begin
   FreeAndNil(VKnot);
 end;
 
-function TNodeNurbsPatchSurface.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TNurbsPatchSurfaceNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   ControlPoint: TVector3SingleList;
 begin
-  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
+  Result := TIndexedQuadSetNode.Create(NodeName, WWWBasePath);
   try
-    { TODO: we should handle here all TNodeX3DCoordinateNode }
+    { TODO: we should handle here all TAbstractX3DCoordinateNode }
     if (FdControlPoint.Value <> nil) and
-       (FdControlPoint.Value is TNodeCoordinate) then
+       (FdControlPoint.Value is TCoordinateNode) then
     begin
-      ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items;
-      NurbsPatchSurfaceProxy(TNodeIndexedQuadSet(Result),
+      ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items;
+      NurbsPatchSurfaceProxy(TIndexedQuadSetNode(Result),
         ControlPoint,
         FdUTessellation.Value,
         FdVTessellation.Value,
@@ -1250,35 +1250,35 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeNurbsPatchSurface.ProxyUsesOverTriangulate: boolean;
+function TNurbsPatchSurfaceNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsPatchSurface.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsPatchSurfaceNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items) else
+     (FdControlPoint.Value is TCoordinateNode) then
+    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items) else
     Result := EmptyBox3D;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsPatchSurface.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsPatchSurfaceNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    Result := NurbsBoundingBox(TNodeCoordinate(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform) else
+     (FdControlPoint.Value is TCoordinateNode) then
+    Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform) else
     Result := EmptyBox3D;
 end;
 
-function TNodeNurbsPatchSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+function TNurbsPatchSurfaceNode.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
 begin
@@ -1292,14 +1292,14 @@ begin
     Result := 0;
 end;
 
-procedure TNodeNurbsPositionInterpolator.CreateNode;
+procedure TNurbsPositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
   FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdControlPoint);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
@@ -1322,29 +1322,29 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeNurbsPositionInterpolator.ClassNodeTypeName: string;
+class function TNurbsPositionInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
 
-class function TNodeNurbsPositionInterpolator.URNMatching(const URN: string): boolean;
+class function TNurbsPositionInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeNurbsPositionInterpolator.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsPositionInterpolatorNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNodeNurbsPositionInterpolator.DirectEnumerateActive(
+procedure TNurbsPositionInterpolatorNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
 end;
 
-procedure TNodeNurbsPositionInterpolator.EventSet_FractionReceive(
+procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   ControlPoint: TVector3SingleList;
@@ -1354,8 +1354,8 @@ begin
   if not EventValue_Changed.SendNeeded then Exit;
 
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+     (FdControlPoint.Value is TCoordinateNode) then
+    ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
     Exit;
 
   if ControlPoint.Count = 0 then Exit;
@@ -1383,7 +1383,7 @@ begin
   EventValue_Changed.Send(OutputValue, Time);
 end;
 
-procedure TNodeNurbsSet.CreateNode;
+procedure TNurbsSetNode.CreateNode;
 begin
   inherited;
 
@@ -1393,7 +1393,7 @@ begin
   FEventRemoveGeometry := TVRMLEvent.Create(Self, 'removeGeometry', TMFNode, true);
   Events.Add(FEventRemoveGeometry);
 
-  FFdGeometry := TMFNode.Create(Self, 'geometry', [TNodeX3DParametricGeometryNode]);
+  FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractX3DParametricGeometryNode]);
   Fields.Add(FFdGeometry);
 
   FFdTessellationScale := TSFFloat.Create(Self, 'tessellationScale', 1.0);
@@ -1413,25 +1413,25 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeNurbsSet.ClassNodeTypeName: string;
+class function TNurbsSetNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsSet';
 end;
 
-class function TNodeNurbsSet.URNMatching(const URN: string): boolean;
+class function TNurbsSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsSurfaceInterpolator.CreateNode;
+procedure TNurbsSurfaceInterpolatorNode.CreateNode;
 begin
   inherited;
 
   FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFVec2f, true);
   Events.Add(FEventSet_fraction);
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TNodeX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdControlPoint);
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
@@ -1479,24 +1479,24 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeNurbsSurfaceInterpolator.ClassNodeTypeName: string;
+class function TNurbsSurfaceInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsSurfaceInterpolator';
 end;
 
-class function TNodeNurbsSurfaceInterpolator.URNMatching(const URN: string): boolean;
+class function TNurbsSurfaceInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsSurfaceInterpolator.DirectEnumerateActive(
+procedure TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
 end;
 
-procedure TNodeNurbsSurfaceInterpolator.EventSet_FractionReceive(
+procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   ControlPoint: TVector3SingleList;
@@ -1507,10 +1507,10 @@ begin
   if not (EventPosition_Changed.SendNeeded or
           EventNormal_Changed.SendNeeded) then Exit;
 
-  { TODO: we should handle here all TNodeX3DCoordinateNode }
+  { TODO: we should handle here all TAbstractX3DCoordinateNode }
   if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TNodeCoordinate) then
-    ControlPoint := TNodeCoordinate(FdControlPoint.Value).FdPoint.Items else
+     (FdControlPoint.Value is TCoordinateNode) then
+    ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
     Exit;
 
   if ControlPoint.Count = 0 then Exit;
@@ -1573,15 +1573,15 @@ begin
   EventNormal_Changed.Send(OutputNormal, Time);
 end;
 
-procedure TNodeNurbsSweptSurface.CreateNode;
+procedure TNurbsSweptSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FFdCrossSectionCurve := TSFNode.Create(Self, 'crossSectionCurve', [TNodeX3DNurbsControlCurveNode]);
+  FFdCrossSectionCurve := TSFNode.Create(Self, 'crossSectionCurve', [TAbstractX3DNurbsControlCurveNode]);
    FdCrossSectionCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdCrossSectionCurve);
 
-  FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNodeNurbsCurve]);
+  FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNurbsCurveNode]);
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdTrajectoryCurve);
 
@@ -1596,36 +1596,36 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-class function TNodeNurbsSweptSurface.ClassNodeTypeName: string;
+class function TNurbsSweptSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsSweptSurface';
 end;
 
-class function TNodeNurbsSweptSurface.URNMatching(const URN: string): boolean;
+class function TNurbsSweptSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsSweptSurface.DirectEnumerateActive(
+procedure TNurbsSweptSurfaceNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcrossSectionCurve.EnumerateValid(Func);
   FdtrajectoryCurve.EnumerateValid(Func);
 end;
 
-{$define TGeometryNotImplemented := TNodeNurbsSweptSurface}
+{$define TGeometryNotImplemented := TNurbsSweptSurfaceNode}
 GeometryNotImplemented
 
-procedure TNodeNurbsSwungSurface.CreateNode;
+procedure TNurbsSwungSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FFdProfileCurve := TSFNode.Create(Self, 'profileCurve', [TNodeX3DNurbsControlCurveNode]);
+  FFdProfileCurve := TSFNode.Create(Self, 'profileCurve', [TAbstractX3DNurbsControlCurveNode]);
    FdProfileCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdProfileCurve);
 
-  FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNodeX3DNurbsControlCurveNode]);
+  FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TAbstractX3DNurbsControlCurveNode]);
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdTrajectoryCurve);
 
@@ -1640,28 +1640,28 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-class function TNodeNurbsSwungSurface.ClassNodeTypeName: string;
+class function TNurbsSwungSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsSwungSurface';
 end;
 
-class function TNodeNurbsSwungSurface.URNMatching(const URN: string): boolean;
+class function TNurbsSwungSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsSwungSurface.DirectEnumerateActive(
+procedure TNurbsSwungSurfaceNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdprofileCurve.EnumerateValid(Func);
   FdtrajectoryCurve.EnumerateValid(Func);
 end;
 
-{$define TGeometryNotImplemented := TNodeNurbsSwungSurface}
+{$define TGeometryNotImplemented := TNurbsSwungSurfaceNode}
 GeometryNotImplemented
 
-procedure TNodeNurbsTextureCoordinate.CreateNode;
+procedure TNurbsTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -1706,18 +1706,18 @@ begin
   DefaultContainerField := 'texCoord';
 end;
 
-class function TNodeNurbsTextureCoordinate.ClassNodeTypeName: string;
+class function TNurbsTextureCoordinateNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsTextureCoordinate';
 end;
 
-class function TNodeNurbsTextureCoordinate.URNMatching(const URN: string): boolean;
+class function TNurbsTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsTrimmedSurface.CreateNode;
+procedure TNurbsTrimmedSurfaceNode.CreateNode;
 begin
   inherited;
 
@@ -1727,48 +1727,48 @@ begin
   FEventRemoveTrimmingContour := TVRMLEvent.Create(Self, 'removeTrimmingContour', TMFNode, true);
   Events.Add(FEventRemoveTrimmingContour);
 
-  FFdTrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]);
+  FFdTrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode]);
    FdTrimmingContour.ChangesAlways := [chGeometry];
   Fields.Add(FFdTrimmingContour);
 end;
 
-class function TNodeNurbsTrimmedSurface.ClassNodeTypeName: string;
+class function TNurbsTrimmedSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsTrimmedSurface';
 end;
 
-class function TNodeNurbsTrimmedSurface.URNMatching(const URN: string): boolean;
+class function TNurbsTrimmedSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsTrimmedSurface.DirectEnumerateActive(
+procedure TNurbsTrimmedSurfaceNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdtrimmingContour.EnumerateValid(Func);
 end;
 
-{$define TGeometryNotImplemented := TNodeNurbsTrimmedSurface}
+{$define TGeometryNotImplemented := TNurbsTrimmedSurfaceNode}
 GeometryNotImplemented
 
 procedure RegisterNURBSNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeContour2D,
-    TNodeContourPolyline2D,
-    TNodeCoordinateDouble,
-    TNodeNurbsCurve,
-    TNodeNurbsCurve2D,
-    TNodeNurbsOrientationInterpolator,
-    TNodeNurbsPatchSurface,
-    TNodeNurbsPositionInterpolator,
-    TNodeNurbsSet,
-    TNodeNurbsSurfaceInterpolator,
-    TNodeNurbsSweptSurface,
-    TNodeNurbsSwungSurface,
-    TNodeNurbsTextureCoordinate,
-    TNodeNurbsTrimmedSurface
+    TContour2DNode,
+    TContourPolyline2DNode,
+    TCoordinateDoubleNode,
+    TNurbsCurveNode,
+    TNurbsCurve2DNode,
+    TNurbsOrientationInterpolatorNode,
+    TNurbsPatchSurfaceNode,
+    TNurbsPositionInterpolatorNode,
+    TNurbsSetNode,
+    TNurbsSurfaceInterpolatorNode,
+    TNurbsSweptSurfaceNode,
+    TNurbsSwungSurfaceNode,
+    TNurbsTextureCoordinateNode,
+    TNurbsTrimmedSurfaceNode
   ]);
 end;
 

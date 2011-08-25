@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DKeyDeviceSensorNode = class(TNodeX3DSensorNode)
+  TAbstractX3DKeyDeviceSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -38,7 +38,7 @@
     { @groupEnd }
   end;
 
-  TNodeKeySensor = class(TNodeX3DKeyDeviceSensorNode)
+  TKeySensorNode = class(TAbstractX3DKeyDeviceSensorNode)
   private
     AltKey, ControlKey, ShiftKey: boolean;
   public
@@ -78,7 +78,7 @@
     procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime); override;
   end;
 
-  TNodeStringSensor = class(TNodeX3DKeyDeviceSensorNode)
+  TStringSensorNode = class(TAbstractX3DKeyDeviceSensorNode)
   private
     EnteredText: string;
     Active: boolean;
@@ -104,19 +104,19 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DKeyDeviceSensorNode.CreateNode;
+procedure TAbstractX3DKeyDeviceSensorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TAbstractX3DKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TNodeX3DKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TAbstractX3DKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
 begin
   { Nothing to do in this class. }
 end;
@@ -140,7 +140,7 @@ begin
   end;
 end;
 
-procedure TNodeKeySensor.CreateNode;
+procedure TKeySensorNode.CreateNode;
 begin
   inherited;
 
@@ -168,18 +168,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeKeySensor.ClassNodeTypeName: string;
+class function TKeySensorNode.ClassNodeTypeName: string;
 begin
   Result := 'KeySensor';
 end;
 
-class function TNodeKeySensor.URNMatching(const URN: string): boolean;
+class function TKeySensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeKeySensor.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
   begin
@@ -224,7 +224,7 @@ begin
   end;
 end;
 
-procedure TNodeKeySensor.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
   begin
@@ -260,7 +260,7 @@ begin
   inherited;
 end;
 
-procedure TNodeStringSensor.CreateNode;
+procedure TStringSensorNode.CreateNode;
 begin
   inherited;
 
@@ -276,18 +276,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeStringSensor.ClassNodeTypeName: string;
+class function TStringSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'StringSensor';
 end;
 
-class function TNodeStringSensor.URNMatching(const URN: string): boolean;
+class function TStringSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeStringSensor.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TStringSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
 begin
   inherited;
 
@@ -331,8 +331,8 @@ end;
 procedure RegisterKeyDeviceSensorNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeKeySensor,
-    TNodeStringSensor
+    TKeySensorNode,
+    TStringSensorNode
   ]);
 end;
 

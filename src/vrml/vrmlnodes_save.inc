@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
 { Which VRML/X3D version should be used to save this 3D model. }
-function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
+function SaveVRMLVersion(Node: TX3DNode): TVRMLVersion;
 
 { Write VRML/X3D model to a file.
   Generates a complete file, with header lines (XML headers,
@@ -66,19 +66,19 @@ function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
     In this case, Version will be automatically changed to X3D anyway.)
 
   @groupBegin }
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   Version: TVRMLVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   const Filename, Generator, Source: string;
   const Version: TVRMLVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   const Filename, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
@@ -97,7 +97,7 @@ type
   TX3DWriterNames = class(TX3DWriter)
     { Record known node names.
       This allows to write correct DEF / USE when saving. }
-    NodeNames: TVRMLNodeNames;
+    NodeNames: TX3DNodeNames;
 
     constructor Create(AStream: TStream;
       const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
@@ -108,7 +108,7 @@ constructor TX3DWriterNames.Create(AStream: TStream;
   const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
 begin
   inherited;
-  NodeNames := TVRMLNodeNames.Create(false);
+  NodeNames := TX3DNodeNames.Create(false);
 end;
 
 destructor TX3DWriterNames.Destroy;
@@ -121,11 +121,11 @@ const
   { Used when we have to save as X3D, but profile information is missing. }
   DefaultX3DSaveProfile = 'Interchange';
 
-function SaveVRMLVersion(Node: TVRMLNode): TVRMLVersion;
+function SaveVRMLVersion(Node: TX3DNode): TVRMLVersion;
 begin
-  if (Node is TVRMLRootNode) and
-     TVRMLRootNode(Node).HasForceVersion then
-    Result := TVRMLRootNode(Node).ForceVersion else
+  if (Node is TX3DRootNode) and
+     TX3DRootNode(Node).HasForceVersion then
+    Result := TX3DRootNode(Node).ForceVersion else
     { Use latest X3D. We should promote latest, best version of VRML/X3D.
       Also, this avoids convertion to X3D when saving it to XML encoding. }
     Result := X3DVersion;
@@ -133,20 +133,20 @@ end;
 
 type
   TVRMLToX3DConverter = class
-    procedure Convert(ParentNode: TVRMLNode; var Node: TVRMLNode);
+    procedure Convert(ParentNode: TX3DNode; var Node: TX3DNode);
   end;
 
-procedure TVRMLToX3DConverter.Convert(ParentNode: TVRMLNode; var Node: TVRMLNode);
+procedure TVRMLToX3DConverter.Convert(ParentNode: TX3DNode; var Node: TX3DNode);
 
-  function CoordinateNode(Coords: TMFVec3f): TNodeCoordinate;
+  function CoordinateNode(Coords: TMFVec3f): TCoordinateNode;
   begin
-    Result := TNodeCoordinate.Create('', Node.WWWBasePath);
+    Result := TCoordinateNode.Create('', Node.WWWBasePath);
     Result.FdPoint.AssignValue(Coords);
   end;
 
-  function ConvertNurbsCurve(Node: TNodeNurbsCurve_2): TNodeNurbsCurve;
+  function ConvertNurbsCurve(Node: TNurbsCurveNode_2): TNurbsCurveNode;
   begin
-    Result := TNodeNurbsCurve.Create(Node.NodeName, Node.WWWBasePath);
+    Result := TNurbsCurveNode.Create(Node.NodeName, Node.WWWBasePath);
     Result.PositionInParent := Node.PositionInParent;
 
     Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
@@ -157,9 +157,9 @@ procedure TVRMLToX3DConverter.Convert(ParentNode: TVRMLNode; var Node: TVRMLNode
     Result.FdClosed.Value := true; { true means "possibly closed" }
   end;
 
-  function ConvertNurbsSurface(Node: TNodeNurbsSurface): TNodeNurbsPatchSurface;
+  function ConvertNurbsSurface(Node: TNurbsSurfaceNode): TNurbsPatchSurfaceNode;
   begin
-    Result := TNodeNurbsPatchSurface.Create(Node.NodeName, Node.WWWBasePath);
+    Result := TNurbsPatchSurfaceNode.Create(Node.NodeName, Node.WWWBasePath);
     Result.PositionInParent := Node.PositionInParent;
 
     Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
@@ -180,9 +180,9 @@ procedure TVRMLToX3DConverter.Convert(ParentNode: TVRMLNode; var Node: TVRMLNode
     Result.FdVOrder.AssignValue(Node.FdVOrder);
   end;
 
-  function ConvertNurbsPositionInterpolator(Node: TNodeNurbsPositionInterpolator_2): TNodeNurbsPositionInterpolator;
+  function ConvertNurbsPositionInterpolator(Node: TNurbsPositionInterpolatorNode_2): TNurbsPositionInterpolatorNode;
   begin
-    Result := TNodeNurbsPositionInterpolator.Create(Node.NodeName, Node.WWWBasePath);
+    Result := TNurbsPositionInterpolatorNode.Create(Node.NodeName, Node.WWWBasePath);
     Result.PositionInParent := Node.PositionInParent;
 
     Result.FdcontrolPoint.Value := CoordinateNode(Node.FdKeyValue);
@@ -196,11 +196,11 @@ begin
     - Some can be found by grepping for "Version.Major = 2".
       This will find which nodes have ForVRMLVersion method requiring
       only VRML 2.0. These are only:
-      TNodeLOD_2, TNodeNurbsCurve_2, TNodeNurbsPositionInterpolator_2.
-    - TNodeLOD_2 doesn't actually need convertion. Only a field name
+      TLODNode_2, TNurbsCurveNode_2, TNurbsPositionInterpolatorNode_2.
+    - TLODNode_2 doesn't actually need convertion. Only a field name
       changes, which should be taken care of NameForVersion mechanism.
-    - TNodeNurbsSurface needs additionally to be changed in
-      TNodeNurbsPatchSurface.
+    - TNurbsSurfaceNode needs additionally to be changed in
+      TNurbsPatchSurfaceNode.
 
     NURBS differences are summarized in
     http://vrmlengine.sourceforge.net/vrml_implementation_nurbs.php#section_vrml2_support
@@ -221,12 +221,12 @@ begin
       <NurbsCurve> instead of <ProtoInstance name="NurbsCurve">,
       and the invalid externproto is not relevant.
   }
-  if Node is TNodeNurbsCurve_2 then
-    Node := ConvertNurbsCurve(TNodeNurbsCurve_2(Node)) else
-  if Node is TNodeNurbsSurface then
-    Node := ConvertNurbsSurface(TNodeNurbsSurface(Node)) else
-  if Node is TNodeNurbsPositionInterpolator_2 then
-    Node := ConvertNurbsPositionInterpolator(TNodeNurbsPositionInterpolator_2(Node));
+  if Node is TNurbsCurveNode_2 then
+    Node := ConvertNurbsCurve(TNurbsCurveNode_2(Node)) else
+  if Node is TNurbsSurfaceNode then
+    Node := ConvertNurbsSurface(TNurbsSurfaceNode(Node)) else
+  if Node is TNurbsPositionInterpolatorNode_2 then
+    Node := ConvertNurbsPositionInterpolator(TNurbsPositionInterpolatorNode_2(Node));
 end;
 
 function SaveVRMLWillConvertToX3D(Version: TVRMLVersion;
@@ -237,7 +237,7 @@ begin
     (ForceConvertingToX3D or (Encoding <> xeClassic));
 end;
 
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   Version: TVRMLVersion;
   const Encoding: TX3DEncoding;
@@ -257,27 +257,27 @@ var
     Version.Minor := 0;
 
     { Since we convert in-place (replacing nodes inside),
-      then Node must be a TVRMLRootNode to replace in it the version.
+      then Node must be a TX3DRootNode to replace in it the version.
       Fortunately, our SaveVRMLVersion already guarantees it:
-      if a node isn't TVRMLRootNode, it's always treated as X3D already,
+      if a node isn't TX3DRootNode, it's always treated as X3D already,
       so a convertion will not happen. }
-    Assert(Node is TVRMLRootNode, 'Nodes must be TVRMLRootNode to convert to X3D, to mark new version.');
-    (Node as TVRMLRootNode).HasForceVersion := true;
-    (Node as TVRMLRootNode).ForceVersion := Version;
+    Assert(Node is TX3DRootNode, 'Nodes must be TX3DRootNode to convert to X3D, to mark new version.');
+    (Node as TX3DRootNode).HasForceVersion := true;
+    (Node as TX3DRootNode).ForceVersion := Version;
 
     Node.EnumerateReplaceChildren(@TVRMLToX3DConverter(nil).Convert);
   end;
 
   procedure Classic;
 
-    procedure SaveProfile(Root: TVRMLRootNode);
+    procedure SaveProfile(Root: TX3DRootNode);
     begin
       if Root.Profile <> '' then
         Writer.Writeln('PROFILE ' + Root.Profile + NL) else
         Writer.Writeln('PROFILE ' + DefaultX3DSaveProfile + NL);
     end;
 
-    procedure SaveComponents(Root: TVRMLRootNode);
+    procedure SaveComponents(Root: TX3DRootNode);
     var
       I: Integer;
     begin
@@ -289,7 +289,7 @@ var
         Writer.Write(NL);
     end;
 
-    procedure SaveMetas(Root: TVRMLRootNode);
+    procedure SaveMetas(Root: TX3DRootNode);
     var
       I: Integer;
     begin
@@ -317,19 +317,19 @@ var
 
     Writer.Writeln(VRMLHeader + NL { yes, one more NL, to look good });
 
-    if (Version.Major >= 3) and (Node is TVRMLRootNode) then
+    if (Version.Major >= 3) and (Node is TX3DRootNode) then
     begin
       if Generator <> '' then
-        TVRMLRootNode(Node).Meta.PutPreserve('generator', Generator);
+        TX3DRootNode(Node).Meta.PutPreserve('generator', Generator);
       if Source <> '' then
-        TVRMLRootNode(Node).Meta.PutPreserve('source', Source);
-      SaveProfile(TVRMLRootNode(Node));
-      SaveComponents(TVRMLRootNode(Node));
-      SaveMetas(TVRMLRootNode(Node));
+        TX3DRootNode(Node).Meta.PutPreserve('source', Source);
+      SaveProfile(TX3DRootNode(Node));
+      SaveComponents(TX3DRootNode(Node));
+      SaveMetas(TX3DRootNode(Node));
     end else
     if Version.Major >= 3 then
     begin
-      { X3D, but no TVRMLRootNode. Use default X3D profile. }
+      { X3D, but no TX3DRootNode. Use default X3D profile. }
       Writer.Writeln('PROFILE ' + DefaultX3DSaveProfile);
       if Generator <> '' then
         Writer.Writeln(Format('META %s %s',
@@ -352,8 +352,8 @@ var
       Writer.Writeln(PrecedingComment);
     end;
 
-    { Node may be TVRMLRootNode here, that's OK,
-      TVRMLRootNode.SaveToStream will magically handle this right. }
+    { Node may be TX3DRootNode here, that's OK,
+      TX3DRootNode.SaveToStream will magically handle this right. }
     Node.SaveToStream(Writer);
   end;
 
@@ -361,13 +361,13 @@ var
 
     function Profile: string;
     begin
-      if (Node is TVRMLRootNode) and
-         (TVRMLRootNode(Node).Profile <> '') then
-        Result := TVRMLRootNode(Node).Profile else
+      if (Node is TX3DRootNode) and
+         (TX3DRootNode(Node).Profile <> '') then
+        Result := TX3DRootNode(Node).Profile else
         Result := DefaultX3DSaveProfile;
     end;
 
-    procedure SaveComponents(Root: TVRMLRootNode);
+    procedure SaveComponents(Root: TX3DRootNode);
     var
       I: Integer;
     begin
@@ -377,7 +377,7 @@ var
             Root.Components.Data[I] ]));
     end;
 
-    procedure SaveMetas(Root: TVRMLRootNode);
+    procedure SaveMetas(Root: TX3DRootNode);
     var
       I: Integer;
     begin
@@ -398,17 +398,17 @@ var
       [Version.Major, Version.Minor, StringToX3DXml(Profile)]));
     Writer.IncIndent;
 
-    if Node is TVRMLRootNode then
+    if Node is TX3DRootNode then
     begin
       if Generator <> '' then
-        TVRMLRootNode(Node).Meta.PutPreserve('generator', Generator);
+        TX3DRootNode(Node).Meta.PutPreserve('generator', Generator);
       if Source <> '' then
-        TVRMLRootNode(Node).Meta.PutPreserve('source', Source);
-      SaveComponents(TVRMLRootNode(Node));
-      SaveMetas(TVRMLRootNode(Node));
+        TX3DRootNode(Node).Meta.PutPreserve('source', Source);
+      SaveComponents(TX3DRootNode(Node));
+      SaveMetas(TX3DRootNode(Node));
     end else
     begin
-      { write Generator etc. directly, as we don't have TVRMLRootNode.Meta available }
+      { write Generator etc. directly, as we don't have TX3DRootNode.Meta available }
       if Generator <> '' then
         Writer.WritelnIndent(Format('<meta name="generator" content=%s />',
           [StringToX3DXml(Generator)]));
@@ -420,8 +420,8 @@ var
     Writer.DecIndent;
     Writer.Writeln('</head>' + NL + '<Scene>');
 
-    { Node may be TVRMLRootNode here, that's OK,
-      TVRMLRootNode.SaveToStream will magically handle this right. }
+    { Node may be TX3DRootNode here, that's OK,
+      TX3DRootNode.SaveToStream will magically handle this right. }
     Writer.IncIndent;
     Node.SaveToStream(Writer);
     Writer.DecIndent;
@@ -443,7 +443,7 @@ begin
   finally FreeAndNil(Writer) end;
 end;
 
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   const Filename, Generator, Source: string; const Version: TVRMLVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
@@ -457,7 +457,7 @@ begin
   finally Stream.Free end;
 end;
 
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
@@ -466,7 +466,7 @@ begin
     Encoding, ForceConvertingToX3D);
 end;
 
-procedure SaveVRML(Node: TVRMLNode;
+procedure SaveVRML(Node: TX3DNode;
   const FileName, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);

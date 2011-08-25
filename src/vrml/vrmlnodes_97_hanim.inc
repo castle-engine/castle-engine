@@ -19,36 +19,36 @@
   prefixed with "HAnim" before their name.
 
   VRML 97 nodes actually inherit from X3D nodes, so you should write
-  your code to use X3D nodes (like TNodeHAnimDisplacer) and then VRML 97
+  your code to use X3D nodes (like THAnimDisplacerNode) and then VRML 97
   versions will also be handled automatically. }
 { }
 
 {$ifdef read_interface}
-  TNodeDisplacer = class(TNodeHAnimDisplacer)
+  TDisplacerNode = class(THAnimDisplacerNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeHumanoid = class(TNodeHAnimHumanoid)
+  THumanoidNode = class(THAnimHumanoidNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeJoint = class(TNodeHAnimJoint)
+  TJointNode = class(THAnimJointNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeSegment = class(TNodeHAnimSegment)
+  TSegmentNode = class(THAnimSegmentNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeSite = class(TNodeHAnimSite)
+  TSiteNode = class(THAnimSiteNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -56,56 +56,56 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TNodeDisplacer.ClassNodeTypeName: string;
+class function TDisplacerNode.ClassNodeTypeName: string;
 begin
   Result := 'Displacer';
 end;
 
-class function TNodeDisplacer.URNMatching(const URN: string): boolean;
+class function TDisplacerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeHumanoid.ClassNodeTypeName: string;
+class function THumanoidNode.ClassNodeTypeName: string;
 begin
   Result := 'Humanoid';
 end;
 
-class function TNodeHumanoid.URNMatching(const URN: string): boolean;
+class function THumanoidNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeJoint.ClassNodeTypeName: string;
+class function TJointNode.ClassNodeTypeName: string;
 begin
   Result := 'Joint';
 end;
 
-class function TNodeJoint.URNMatching(const URN: string): boolean;
+class function TJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeSegment.ClassNodeTypeName: string;
+class function TSegmentNode.ClassNodeTypeName: string;
 begin
   Result := 'Segment';
 end;
 
-class function TNodeSegment.URNMatching(const URN: string): boolean;
+class function TSegmentNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeSite.ClassNodeTypeName: string;
+class function TSiteNode.ClassNodeTypeName: string;
 begin
   Result := 'Site';
 end;
 
-class function TNodeSite.URNMatching(const URN: string): boolean;
+class function TSiteNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
@@ -114,11 +114,11 @@ end;
 procedure RegisterVRML97HAnimNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeDisplacer,
-    TNodeHumanoid,
-    TNodeJoint,
-    TNodeSegment,
-    TNodeSite
+    TDisplacerNode,
+    THumanoidNode,
+    TJointNode,
+    TSegmentNode,
+    TSiteNode
   ]);
 end;
 {$endif read_implementation}

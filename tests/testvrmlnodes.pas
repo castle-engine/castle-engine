@@ -76,11 +76,11 @@ type
     procedure TestEmptyChanges;
 
     { Try calling GetTimeDependentNodeHandler
-      on every INodeX3DTimeDependentNode, and use the handler.
+      on every IAbstractX3DTimeDependentNode, and use the handler.
       Catches e.g. not overriden CycleInterval. }
     procedure TestTimeDependentNodeHandlerAvailable;
 
-    procedure TestINodeTransform;
+    procedure TestITransformNode;
     procedure TestSortPositionInParent;
     procedure TestRootNodeMeta;
     procedure TestConvertToX3D;
@@ -95,21 +95,21 @@ uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields,
 { TNode* ------------------------------------------------------------ }
 
 type
-  TNodeSpecial = class(TVRMLNode)
+  TSpecialNode = class(TX3DNode)
     function NodeTypeName: string; override;
   end;
 
-function TNodeSpecial.NodeTypeName: string;
+function TSpecialNode.NodeTypeName: string;
 begin
  result := 'OohImSoSpecial';
 end;
 
 type
-  TNodeSomething = class(TVRMLNode)
+  TSomethingNode = class(TX3DNode)
     class function ClassNodeTypeName: string; override;
   end;
 
-class function TNodeSomething.ClassNodeTypeName: string;
+class function TSomethingNode.ClassNodeTypeName: string;
 begin
  result := 'WellImNothingSpecial';
 end;
@@ -119,22 +119,22 @@ end;
 procedure TTestVRMLNodes.TestNodesManager;
 begin
  try
-  { throw exception because TNodeSpecial.ClassNodeTypeName = '' }
-  NodesManager.RegisterNodeClass(TNodeSpecial);
-  raise Exception.Create('NodesManager.RegisterNodeClass(TNodeSpecial); SHOULD throw exception');
+  { throw exception because TSpecialNode.ClassNodeTypeName = '' }
+  NodesManager.RegisterNodeClass(TSpecialNode);
+  raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
  except on ENodesManagerError do ; end;
 
  try
-  { throw exception because TNodeFog is already registered }
-  NodesManager.RegisterNodeClass(TNodeFog);
-  raise Exception.Create('NodesManager.RegisterNodeClass(TNodeFog); SHOULD throw exception');
+  { throw exception because TFogNode is already registered }
+  NodesManager.RegisterNodeClass(TFogNode);
+  raise Exception.Create('NodesManager.RegisterNodeClass(TFogNode); SHOULD throw exception');
  except on ENodesManagerError do ; end;
 
  try
   { this should succeed }
-  NodesManager.RegisterNodeClass(TNodeSomething);
+  NodesManager.RegisterNodeClass(TSomethingNode);
  finally
-  NodesManager.UnRegisterNodeClass(TNodeSomething);
+  NodesManager.UnRegisterNodeClass(TSomethingNode);
  end;
 end;
 
@@ -246,7 +246,7 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
   procedure TestReadWrite(const FileName: string);
   var
     First, Second: TVRMLTokenInfoList;
-    Node: TVRMLNode;
+    Node: TX3DNode;
     S: TMemoryStream;
     SPeek: TPeekCharStream;
     NewFile: string;
@@ -282,11 +282,11 @@ end;
 
 procedure TTestVRMLNodes.TestInterfaceSupports;
 var
-  L: TVRMLNodeClassesList;
+  L: TX3DNodeClassesList;
 
-  function IndexOfAnyAncestorByClass(C: TVRMLNodeClass): boolean;
+  function IndexOfAnyAncestorByClass(C: TX3DNodeClass): boolean;
   var
-    N: TVRMLNode;
+    N: TX3DNode;
   begin
     N := C.Create('', '');
     try
@@ -297,32 +297,32 @@ var
 begin
   { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
 
-  Assert(Supports(TNodeGroup_2, INodeX3DChildNode));
-  Assert(Supports(TNodeSwitch_2, INodeX3DChildNode));
-  Assert(not Supports(TNodeCone_2, INodeX3DChildNode));
-  Assert(not Supports(TNodeAppearance, INodeX3DChildNode));
-  Assert(not Supports(TVRMLNode, INodeX3DChildNode));
-  Assert(not Supports(TObject, INodeX3DChildNode));
+  Assert(Supports(TGroupNode_2, IAbstractX3DChildNode));
+  Assert(Supports(TSwitchNode_2, IAbstractX3DChildNode));
+  Assert(not Supports(TConeNode_2, IAbstractX3DChildNode));
+  Assert(not Supports(TAppearanceNode, IAbstractX3DChildNode));
+  Assert(not Supports(TX3DNode, IAbstractX3DChildNode));
+  Assert(not Supports(TObject, IAbstractX3DChildNode));
 
-  L := TVRMLNodeClassesList.Create;
+  L := TX3DNodeClassesList.Create;
   try
-    L.AddRegisteredImplementing(INodeX3DChildNode);
+    L.AddRegisteredImplementing(IAbstractX3DChildNode);
     { similar to above tests, but now using L.IndexOfAnyAncestor.
       So we test IndexOfAnyAncestor and AddRegisteredImplementing,
       AddRegisteredImplementing also uses "Supports" under the hood
       and results should be the same. }
-    Assert(IndexOfAnyAncestorByClass(TNodeGroup_2));
-    Assert(IndexOfAnyAncestorByClass(TNodeSwitch_2));
-    Assert(not IndexOfAnyAncestorByClass(TNodeCone_2));
-    Assert(not IndexOfAnyAncestorByClass(TNodeAppearance));
-    Assert(not IndexOfAnyAncestorByClass(TVRMLNode));
+    Assert(IndexOfAnyAncestorByClass(TGroupNode_2));
+    Assert(IndexOfAnyAncestorByClass(TSwitchNode_2));
+    Assert(not IndexOfAnyAncestorByClass(TConeNode_2));
+    Assert(not IndexOfAnyAncestorByClass(TAppearanceNode));
+    Assert(not IndexOfAnyAncestorByClass(TX3DNode));
   finally FreeAndNil(L) end;
 end;
 
 procedure TTestVRMLNodes.TestUniqueFields;
 var
   I, J, K: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
   CurrentName: string;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
@@ -330,7 +330,7 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
 
-      { Writeln(N.NodeTypeName, ' ', Supports(N, INodeX3DChildNode)); }
+      { Writeln(N.NodeTypeName, ' ', Supports(N, IAbstractX3DChildNode)); }
 
       { Test that all fields, events names are different.
 
@@ -363,10 +363,10 @@ end;
 
 procedure TTestVRMLNodes.TestAllowedChildren;
 var
-  AllowedChildrenNodes: TVRMLNodeClassesList;
-  AllowedGeometryNodes: TVRMLNodeClassesList;
+  AllowedChildrenNodes: TX3DNodeClassesList;
+  AllowedGeometryNodes: TX3DNodeClassesList;
   I: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   { AllowedChildrenNodes and AllowedGeometryNodes were written before X3D
     transition. I didn't then check AllowedChildren using some general
@@ -375,9 +375,9 @@ begin
 
     They were removed from VRMLNodes, since using X3D inheritance
     is obiously much simpler and long-term solution. For example,
-    all children nodes simply inherit from TNodeX3DChildNode
-    (actually, INodeX3DChildNode, and since FPC "Supports" doesn't work
-    we simply have INodeX3DChildNode_Descendants lists... still, it's much
+    all children nodes simply inherit from TAbstractX3DChildNode
+    (actually, IAbstractX3DChildNode, and since FPC "Supports" doesn't work
+    we simply have IAbstractX3DChildNode_Descendants lists... still, it's much
     shorter list than AllowedChildrenNodes).
     This avoids the need to maintain long lists like these below, that would be
     nightmare considering large number of X3D nodes.
@@ -385,203 +385,203 @@ begin
     Still, since I already wrote these lists, they are used below
     for testing. To make sure X3D inheritance didn't break any
     previous behavior, all classes on AllowedChildrenNodes must inherit
-    from TNodeX3DChildNode, and similat for geometry nodes. }
+    from TAbstractX3DChildNode, and similat for geometry nodes. }
 
-  AllowedChildrenNodes := TVRMLNodeClassesList.Create;
+  AllowedChildrenNodes := TX3DNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
     { We add all nodes for VRML < 2.0, because we allow
       to mix VRML 1.0 inside VRML 2.0. }
 
     { Inventor spec nodes }
-    TNodeIndexedTriangleMesh_1, TNodeRotationXYZ,
+    TIndexedTriangleMeshNode_1, TRotationXYZNode,
 
     { VRML 1.0 spec nodes }
-    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
-    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
-    TNodePointSet_1, TNodeSphere_1,
-    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
+    TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
+    TIndexedFaceSetNode_1, TIndexedLineSetNode_1,
+    TPointSetNode_1, TSphereNode_1,
+    TCoordinate3Node, TFontStyleNode_1, TInfoNode, TLODNode_1, TMaterialNode_1,
 
-    { TNodeNormal used to also be allowed here, but it's also used by X3D,
-      and I don't want to mess X3D inheritance by making TNodeNormal descendant
-      of INodeX3DChildNode --- which is required only when you mix VRML 1.0
+    { TNormalNode used to also be allowed here, but it's also used by X3D,
+      and I don't want to mess X3D inheritance by making TNormalNode descendant
+      of IAbstractX3DChildNode --- which is required only when you mix VRML 1.0
       and X3D... When mixing VRML 1.0 and VRML >= 2.0 in a singe file,
       you will have to live with warnings about Normal not allowed as
       children in VRML >= 2.0 nodes.
 
-      Also TNodeTexture2 was here, but is removed: I don't want to mess
+      Also TTexture2Node was here, but is removed: I don't want to mess
       X3D inheritance just for VRML 1.0 + 2.0 mixing feature. }
 
-    TNodeMaterialBinding, TNodeNormalBinding,
-    TNodeTexture2Transform,
-    TNodeTextureCoordinate2, TNodeShapeHints,
-    TNodeMatrixTransform_1, TNodeRotation,
-    TNodeScale, TNodeTransform_1,
-    TNodeTranslation,
-    TNodeOrthographicCamera, TNodePerspectiveCamera,
-    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
-    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
-    TNodeWWWAnchor,
-    TNodeWWWInline,
+    TMaterialBindingNode, TNormalBindingNode,
+    TTexture2TransformNode,
+    TTextureCoordinate2Node, TShapeHintsNode,
+    TMatrixTransformNode_1, TRotationNode,
+    TScaleNode, TTransformNode_1,
+    TTranslationNode,
+    TOrthographicCameraNode, TPerspectiveCameraNode,
+    TDirectionalLightNode_1, TPointLightNode_1, TSpotLightNode_1,
+    TGroupNode_1, TSeparatorNode, TSwitchNode_1, TTransformSeparatorNode,
+    TWWWAnchorNode,
+    TWWWInlineNode,
 
     { Kambi non-standard nodes }
-    TNodeKambiTriangulation,
-    TNodeKambiHeadLight,
-    //TNodeText3D,
-    //TNodeBlendMode,
-    //TNodeKambiAppearance,
+    TKambiTriangulationNode,
+    TKambiHeadLightNode,
+    //TText3DNode,
+    //TBlendModeNode,
+    //TKambiAppearanceNode,
 
     { VRML 2.0 spec nodes }
-    TNodeAnchor,
-    //TNodeAppearance,
-    //TNodeAudioClip,
-    TNodeBackground,
-    TNodeBillboard,
-    //TNodeBox,
-    TNodeCollision,
-    //TNodeColor,
-    TNodeColorInterpolator,
-    //TNodeCone,
-    //TNodeContour2D,
-    //TNodeCoordinate,
+    TAnchorNode,
+    //TAppearanceNode,
+    //TAudioClipNode,
+    TBackgroundNode,
+    TBillboardNode,
+    //TBoxNode,
+    TCollisionNode,
+    //TColorNode,
+    TColorInterpolatorNode,
+    //TConeNode,
+    //TContour2DNode,
+    //TCoordinateNode,
     { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
       doesn't say is CoordinateDeformer allowed or not as children node.
       To be fixed when I'll implement CoordinateDeformer handling. }
-    TNodeCoordinateDeformer,
-    TNodeCoordinateInterpolator,
-    //TNodeCylinder,
-    TNodeCylinderSensor,
-    TNodeDirectionalLight,
-    //TNodeElevationGrid,
-    //TNodeExtrusion,
-    TNodeFog,
+    TCoordinateDeformerNode,
+    TCoordinateInterpolatorNode,
+    //TCylinderNode,
+    TCylinderSensorNode,
+    TDirectionalLightNode,
+    //TElevationGridNode,
+    //TExtrusionNode,
+    TFogNode,
     { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
-      doesn't say is TNodeFontStyle allowed as children node,
+      doesn't say is TFontStyleNode allowed as children node,
       but FontStyle docs say that it's only for Text.fontStyle. }
-    //TNodeFontStyle,
-    //TNodeGeoCoordinate,
-    //TNodeGeoElevationGrid,
-    TNodeGeoLocation,
-    TNodeGeoLOD,
-    TNodeGeoMetadata,
-    //TNodeGeoOrigin,
-    TNodeGeoPositionInterpolator,
-    TNodeGeoTouchSensor,
-    TNodeGeoViewpoint,
-    TNodeGroup,
-    //TNodeImageTexture,
-    //TNodeIndexedFaceSet,
-    //TNodeIndexedLineSet,
-    TNodeInline,
+    //TFontStyleNode,
+    //TGeoCoordinateNode,
+    //TGeoElevationGridNode,
+    TGeoLocationNode,
+    TGeoLODNode,
+    TGeoMetadataNode,
+    //TGeoOriginNode,
+    TGeoPositionInterpolatorNode,
+    TGeoTouchSensorNode,
+    TGeoViewpointNode,
+    TGroupNode,
+    //TImageTextureNode,
+    //TIndexedFaceSetNode,
+    //TIndexedLineSetNode,
+    TInlineNode,
     { VRML 2.0 spec doesn't say InlineLoadControl is valid children
       node, it also doesn't say it's not valid. Common sense says
       it's valid. }
-    TNodeInlineLoadControl,
-    TNodeLOD_2,
-    //TNodeMaterial,
-    //TNodeMovieTexture,
-    TNodeNavigationInfo,
+    TInlineLoadControlNode,
+    TLODNode_2,
+    //TMaterialNode,
+    //TMovieTextureNode,
+    TNavigationInfoNode,
     { Normal node is not a valid children node for VRML 2.0.
-      But we don't have separate TNodeNormal_1 and TNodeNormal classes,
+      But we don't have separate TNormalNode_1 and TNormalNode classes,
       so node normal was already added here as all other VRML 1.0 nodes.
       So it's allowed children node for us --- in the spirit thst
       we allow to mix VRML 1.0 and 2.0. }
-    //{ TNodeNormal, - registered already as VRML 1.0 node }
-    TNodeNormalInterpolator,
-    //TNodeNurbsCurve,
-    //TNodeNurbsCurve2D,
+    //{ TNormalNode, - registered already as VRML 1.0 node }
+    TNormalInterpolatorNode,
+    //TNurbsCurveNode,
+    //TNurbsCurve2DNode,
     { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
       doesn't say is NurbsGroup allowed or not as children node.
       To be fixed when I'll implement NurbsGroup handling. }
-    TNodeNurbsGroup,
-    TNodeNurbsPositionInterpolator_2,
-    //TNodeNurbsSurface,
-    //TNodeNurbsTextureSurface,
-    TNodeOrientationInterpolator,
+    TNurbsGroupNode,
+    TNurbsPositionInterpolatorNode_2,
+    //TNurbsSurfaceNode,
+    //TNurbsTextureSurfaceNode,
+    TOrientationInterpolatorNode,
     { VRML 2.0 spec section "4.6.5 Grouping and children nodes"
       doesn't say is PixelTexture allowed or not as children node.
       But common sense says it's only for Appearance.texture field. }
-    //TNodePixelTexture,
-    TNodePlaneSensor,
-    TNodePointLight,
-    //TNodePointSet,
-    //TNodePolyline2D,
-    TNodePositionInterpolator,
-    TNodeProximitySensor,
-    TNodeScalarInterpolator,
-    TNodeScript,
-    TNodeShape,
-    TNodeSound,
-    //TNodeSphere,
-    TNodeSphereSensor,
-    TNodeSpotLight,
-    TNodeSwitch,
-    //TNodeText,
-    //TNodeTextureCoordinate,
-    //TNodeTextureTransform,
-    TNodeTimeSensor,
-    TNodeTouchSensor,
-    TNodeTransform,
-    //TNodeTrimmedSurface,
-    TNodeViewpoint,
-    TNodeVisibilitySensor,
-    TNodeWorldInfo,
+    //TPixelTextureNode,
+    TPlaneSensorNode,
+    TPointLightNode,
+    //TPointSetNode,
+    //TPolyline2DNode,
+    TPositionInterpolatorNode,
+    TProximitySensorNode,
+    TScalarInterpolatorNode,
+    TScriptNode,
+    TShapeNode,
+    TSoundNode,
+    //TSphereNode,
+    TSphereSensorNode,
+    TSpotLightNode,
+    TSwitchNode,
+    //TTextNode,
+    //TTextureCoordinateNode,
+    //TTextureTransformNode,
+    TTimeSensorNode,
+    TTouchSensorNode,
+    TTransformNode,
+    //TTrimmedSurfaceNode,
+    TViewpointNode,
+    TVisibilitySensorNode,
+    TWorldInfoNode,
 
     { X3D nodes }
-    //TNodeComposedShader,
-    //TNodePackagedShader,
-    //TNodeProgramShader,
-    //TNodeShaderPart,
-    //TNodeShaderProgram
-    TNodeSwitch,
-    TNodeLOD
+    //TComposedShaderNode,
+    //TPackagedShaderNode,
+    //TProgramShaderNode,
+    //TShaderPartNode,
+    //TShaderProgramNode
+    TSwitchNode,
+    TLODNode
   ]);
 
-  AllowedGeometryNodes := TVRMLNodeClassesList.Create;
+  AllowedGeometryNodes := TX3DNodeClassesList.Create;
   AllowedGeometryNodes.AssignArray([
-    TNodeBox,
-    TNodeCone,
-    TNodeContour2D,
-    TNodeCylinder,
-    TNodeElevationGrid,
-    TNodeExtrusion,
-    TNodeGeoElevationGrid,
-    TNodeIndexedFaceSet,
-    TNodeIndexedLineSet,
-    TNodeNurbsCurve,
-    TNodeNurbsSurface,
-    TNodePointSet,
-    TNodeSphere,
-    TNodeText,
-    TNodeText3D,
-    TNodeTrimmedSurface
+    TBoxNode,
+    TConeNode,
+    TContour2DNode,
+    TCylinderNode,
+    TElevationGridNode,
+    TExtrusionNode,
+    TGeoElevationGridNode,
+    TIndexedFaceSetNode,
+    TIndexedLineSetNode,
+    TNurbsCurveNode,
+    TNurbsSurfaceNode,
+    TPointSetNode,
+    TSphereNode,
+    TTextNode,
+    TText3DNode,
+    TTrimmedSurfaceNode
   ]);
 
   try
     for I := 0 to AllowedChildrenNodes.Count - 1 do
     try
-      Assert(Supports(AllowedChildrenNodes[I], INodeX3DChildNode));
+      Assert(Supports(AllowedChildrenNodes[I], IAbstractX3DChildNode));
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
       N := AllowedChildrenNodes[I].Create('', '');
       try
-        Assert(Supports(N, INodeX3DChildNode));
+        Assert(Supports(N, IAbstractX3DChildNode));
       finally FreeAndNil(N) end;
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is INodeX3DChildNode');
+        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractX3DChildNode');
         raise;
       end;
     end;
 
     for I := 0 to AllowedGeometryNodes.Count - 1 do
     try
-      Assert(AllowedGeometryNodes[I].InheritsFrom(TNodeX3DGeometryNode));
+      Assert(AllowedGeometryNodes[I].InheritsFrom(TAbstractX3DGeometryNode));
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TNodeX3DGeometryNode');
+        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TAbstractX3DGeometryNode');
         raise;
       end;
     end;
@@ -827,7 +827,7 @@ const
 var
   ContainerFieldList: TStringList;
   I, Index: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   ContainerFieldList := TStringList.Create;
   try
@@ -844,8 +844,8 @@ begin
       try
         Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
         if (Index <> -1) and
-           (not (N is TNodeFontStyle_1)) and
-           (not (N is TNodeMaterial_1)) then
+           (not (N is TFontStyleNode_1)) and
+           (not (N is TMaterialNode_1)) then
         try
           Assert(ContainerFieldList.ValueFromIndex[Index] = N.DefaultContainerField);
         except
@@ -865,17 +865,17 @@ end;
 procedure TTestVRMLNodes.TestContainerFieldGeometry;
 var
   I: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      if (N is TVRMLGeometryNode) and
-         { TNodeContour2D is an exception, see TNodeContour2D comments.
+      if (N is TAbstractGeometryNode) and
+         { TContour2DNode is an exception, see TContour2DNode comments.
            It should be treated as non-geometry node for X3D.
            Fortunately, containerField is used only for X3D. }
-         (not (N is TNodeContour2D)) then
+         (not (N is TContour2DNode)) then
       try
         Assert(N.DefaultContainerField = 'geometry');
       except
@@ -891,10 +891,10 @@ end;
 
 type
   TMyObject = class
-    procedure Foo(Node: TVRMLNode);
+    procedure Foo(Node: TX3DNode);
   end;
 
-procedure TMyObject.Foo(Node: TVRMLNode);
+procedure TMyObject.Foo(Node: TX3DNode);
 begin
 end;
 
@@ -929,8 +929,8 @@ end;
 procedure TTestVRMLNodes.TestGeometryNodesImplemented;
 var
   I: Integer;
-  N: TVRMLNode;
-  G, ProxyGeometry: TVRMLGeometryNode;
+  N: TX3DNode;
+  G, ProxyGeometry: TAbstractGeometryNode;
   State, ProxyState: TVRMLGraphTraverseState;
 begin
   State := TVRMLGraphTraverseState.Create;
@@ -939,9 +939,9 @@ begin
     begin
       N := NodesManager.Registered[I].Create('', '');
       try
-        if N is TVRMLGeometryNode then
+        if N is TAbstractGeometryNode then
         try
-          G := TVRMLGeometryNode(N);
+          G := TAbstractGeometryNode(N);
 
           { test proxy may be created }
           ProxyState := State;
@@ -973,13 +973,13 @@ end;
 procedure TTestVRMLNodes.TestGeometryNodesChanges;
 var
   I, J: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      if N is TVRMLGeometryNode then
+      if N is TAbstractGeometryNode then
       begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
@@ -1007,7 +1007,7 @@ end;
 procedure TTestVRMLNodes.TestVisibleVRML1StateChanges;
 var
   I, J: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
   VRML1StateNode: TVRML1StateNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
@@ -1048,13 +1048,13 @@ end;
 procedure TTestVRMLNodes.TestColorNodeChanges;
 var
   I, J: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      if N is TNodeX3DColorNode then
+      if N is TAbstractX3DColorNode then
       begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
@@ -1082,13 +1082,13 @@ end;
 procedure TTestVRMLNodes.TestTextureCoordinate;
 var
   I, J: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      if N is TNodeX3DTextureCoordinateNode then
+      if N is TAbstractX3DTextureCoordinateNode then
       begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
@@ -1119,7 +1119,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
   function ConfirmedEmptyChanges(Field: TVRMLField): boolean;
 
     function FieldIs(Field: TVRMLField;
-      const NodeClass: TVRMLNodeClass; const FieldName: string): boolean;
+      const NodeClass: TX3DNodeClass; const FieldName: string): boolean;
     begin
       Result := (Field.ParentNode is NodeClass) and (Field.Name = FieldName);
     end;
@@ -1127,159 +1127,159 @@ procedure TTestVRMLNodes.TestEmptyChanges;
   begin
     Result :=
       { Sensors don't affect actual content directly. }
-      (Field.ParentNode is TNodeX3DSensorNode) or
-      FieldIs(Field, TNodeTimeSensor, 'cycleInterval') or
-      FieldIs(Field, TNodeTimeSensor, 'enabled') or
-      (Field.ParentNode is TNodeWWWAnchor) or
+      (Field.ParentNode is TAbstractX3DSensorNode) or
+      FieldIs(Field, TTimeSensorNode, 'cycleInterval') or
+      FieldIs(Field, TTimeSensorNode, 'enabled') or
+      (Field.ParentNode is TWWWAnchorNode) or
       { metadata, info nodes }
-      FieldIs(Field, TNodeX3DNode, 'metadata') or
-      (Field.ParentNode is TNodeMetadataDouble) or
-      (Field.ParentNode is TNodeMetadataFloat) or
-      (Field.ParentNode is TNodeMetadataInteger) or
-      (Field.ParentNode is TNodeMetadataSet) or
-      (Field.ParentNode is TNodeMetadataString) or
-      (Field.ParentNode is TNodeWorldInfo) or
-      (Field.ParentNode is TNodeInfo) or
+      FieldIs(Field, TAbstractX3DNode, 'metadata') or
+      (Field.ParentNode is TMetadataDoubleNode) or
+      (Field.ParentNode is TMetadataFloatNode) or
+      (Field.ParentNode is TMetadataIntegerNode) or
+      (Field.ParentNode is TMetadataSetNode) or
+      (Field.ParentNode is TMetadataStringNode) or
+      (Field.ParentNode is TWorldInfoNode) or
+      (Field.ParentNode is TInfoNode) or
       { interpolators }
-      (Field.ParentNode is TNodeX3DInterpolatorNode) or
-      (Field.ParentNode is TNodeNurbsOrientationInterpolator) or
-      (Field.ParentNode is TNodeNurbsPositionInterpolator_3) or
-      (Field.ParentNode is TNodeNurbsSurfaceInterpolator) or
-      (Field.ParentNode is TNodeNurbsPositionInterpolator_2) or
+      (Field.ParentNode is TAbstractX3DInterpolatorNode) or
+      (Field.ParentNode is TNurbsOrientationInterpolatorNode) or
+      (Field.ParentNode is TNurbsPositionInterpolatorNode_3) or
+      (Field.ParentNode is TNurbsSurfaceInterpolatorNode) or
+      (Field.ParentNode is TNurbsPositionInterpolatorNode_2) or
       { Just like sensors, scripts don't affect actual content directly.
         Script nodes take care themselves to react to events send to them. }
-      (Field.ParentNode is TNodeX3DScriptNode) or
+      (Field.ParentNode is TAbstractX3DScriptNode) or
       { event utils }
-      (Field.ParentNode is TNodeX3DSequencerNode) or
-      (Field.ParentNode is TNodeX3DTriggerNode) or
-      (Field.ParentNode is TNodeBooleanFilter) or
-      (Field.ParentNode is TNodeBooleanToggle) or
-      (Field.ParentNode is TNodeToggler) or
-      (Field.ParentNode is TNodeLogger) or
+      (Field.ParentNode is TAbstractX3DSequencerNode) or
+      (Field.ParentNode is TAbstractX3DTriggerNode) or
+      (Field.ParentNode is TBooleanFilterNode) or
+      (Field.ParentNode is TBooleanToggleNode) or
+      (Field.ParentNode is TTogglerNode) or
+      (Field.ParentNode is TLoggerNode) or
       { A change to a prototype field has no real effect,
-        TVRMLPrototypeNode will only pass it forward to the actual node }
-      (Field.ParentNode is TVRMLPrototypeNode) or
+        TX3DPrototypeNode will only pass it forward to the actual node }
+      (Field.ParentNode is TX3DPrototypeNode) or
       { no need to do anything }
-      FieldIs(Field, TNodeX3DTimeDependentNode, 'loop') or
-      FieldIs(Field, TNodeMovieTexture, 'loop') or
-      FieldIs(Field, TNodeX3DViewpointNode, 'description') or
-      FieldIs(Field, TNodeRenderedTexture, 'description') or
-      FieldIs(Field, TNodeMovieTexture, 'description') or
-      FieldIs(Field, TNodeX3DViewpointNode, 'jump') or { also not implemented }
-      FieldIs(Field, TNodeX3DViewpointNode, 'retainUserOffsets') or { also not implemented }
-      FieldIs(Field, TNodeX3DViewpointNode, 'centerOfRotation') or { also not implemented }
-      FieldIs(Field, TVRMLViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
-      FieldIs(Field, TVRMLCameraNode_1, 'focalDistance') or
-      FieldIs(Field, TNodePerspectiveCamera, 'heightAngle') or
-      FieldIs(Field, TNodeOrthographicCamera, 'height') or
-      FieldIs(Field, TNodeMovieTexture, 'speed') or
-      FieldIs(Field, TNodeSeparator, 'renderCulling') or { ignored }
-      FieldIs(Field, TNodeInline, 'load') or { handled by eventout callback }
-      FieldIs(Field, TNodeInline, 'url') or { handled by eventout callback }
-      FieldIs(Field, TNodeAnchor, 'parameter') or
-      FieldIs(Field, TNodeAnchor, 'url') or
-      FieldIs(Field, TNodeAnchor, 'description') or
+      FieldIs(Field, TAbstractX3DTimeDependentNode, 'loop') or
+      FieldIs(Field, TMovieTextureNode, 'loop') or
+      FieldIs(Field, TAbstractX3DViewpointNode, 'description') or
+      FieldIs(Field, TRenderedTextureNode, 'description') or
+      FieldIs(Field, TMovieTextureNode, 'description') or
+      FieldIs(Field, TAbstractX3DViewpointNode, 'jump') or { also not implemented }
+      FieldIs(Field, TAbstractX3DViewpointNode, 'retainUserOffsets') or { also not implemented }
+      FieldIs(Field, TAbstractX3DViewpointNode, 'centerOfRotation') or { also not implemented }
+      FieldIs(Field, TAbstractViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
+      FieldIs(Field, TAbstractCameraNode_1, 'focalDistance') or
+      FieldIs(Field, TPerspectiveCameraNode, 'heightAngle') or
+      FieldIs(Field, TOrthographicCameraNode, 'height') or
+      FieldIs(Field, TMovieTextureNode, 'speed') or
+      FieldIs(Field, TSeparatorNode, 'renderCulling') or { ignored }
+      FieldIs(Field, TInlineNode, 'load') or { handled by eventout callback }
+      FieldIs(Field, TInlineNode, 'url') or { handled by eventout callback }
+      FieldIs(Field, TAnchorNode, 'parameter') or
+      FieldIs(Field, TAnchorNode, 'url') or
+      FieldIs(Field, TAnchorNode, 'description') or
       { H-Anim nodes. There are a lot of fields we ignore,
         because we're only interested in animating H-Anim models,
         not editing them (or using with physics). }
-      (Field.ParentNode is TNodeHAnimDisplacer) or
-      (Field.ParentNode is TNodeHAnimHumanoid) or
-      (Field.ParentNode is TNodeHAnimJoint) or
-      (Field.ParentNode is TNodeHAnimSegment) or
-      (Field.ParentNode is TNodeHAnimSite) or
-      (Field.ParentNode is TNodeDisplacer) or
-      (Field.ParentNode is TNodeHumanoid) or
-      (Field.ParentNode is TNodeJoint) or
-      (Field.ParentNode is TNodeSegment) or
-      (Field.ParentNode is TNodeSite) or
+      (Field.ParentNode is THAnimDisplacerNode) or
+      (Field.ParentNode is THAnimHumanoidNode) or
+      (Field.ParentNode is THAnimJointNode) or
+      (Field.ParentNode is THAnimSegmentNode) or
+      (Field.ParentNode is THAnimSiteNode) or
+      (Field.ParentNode is TDisplacerNode) or
+      (Field.ParentNode is THumanoidNode) or
+      (Field.ParentNode is TJointNode) or
+      (Field.ParentNode is TSegmentNode) or
+      (Field.ParentNode is TSiteNode) or
       { "update" field of generated textures --- this actually has
         Changes <> [] when needed }
-      FieldIs(Field, TNodeGeneratedShadowMap, 'update') or
-      FieldIs(Field, TNodeRenderedTexture, 'update') or
-      FieldIs(Field, TNodeGeneratedCubeMapTexture, 'update') or
+      FieldIs(Field, TGeneratedShadowMapNode, 'update') or
+      FieldIs(Field, TRenderedTextureNode, 'update') or
+      FieldIs(Field, TGeneratedCubeMapTextureNode, 'update') or
       { My own spec doesn't specify what happens when these change.
         We can just ignore it? }
-      FieldIs(Field, TNodeKambiInline, 'replaceNames') or
-      FieldIs(Field, TNodeKambiInline, 'replaceNodes') or
+      FieldIs(Field, TKambiInlineNode, 'replaceNames') or
+      FieldIs(Field, TKambiInlineNode, 'replaceNodes') or
       { TODO: stuff implemented, but changes not implemented
         (not even chEverything would help) }
-      (Field.ParentNode is TNodeNavigationInfo) or
+      (Field.ParentNode is TNavigationInfoNode) or
       { TODO: stuff not implemented / things we don't look at all }
-      FieldIs(Field, TNodeX3DLightNode, 'showProxyGeometry') or
-      FieldIs(Field, TNodeRenderedTexture, 'triggerName') or
-      (Field.ParentNode is TNodeLOD_1) or
+      FieldIs(Field, TAbstractX3DLightNode, 'showProxyGeometry') or
+      FieldIs(Field, TRenderedTextureNode, 'triggerName') or
+      (Field.ParentNode is TLODNode_1) or
       (Field.Name = 'bboxSize') or
       (Field.Name = 'bboxCenter') or
-      (Field.ParentNode is TNodeTextureBackground) or
-      (Field.ParentNode is TNodeGeoCoordinate) or
-      (Field.ParentNode is TNodeGeoLocation) or
-      (Field.ParentNode is TNodeGeoLOD) or
-      (Field.ParentNode is TNodeGeoMetadata) or
-      (Field.ParentNode is TNodeGeoOrigin) or
-      (Field.ParentNode is TNodeGeoTransform) or
-      (Field.ParentNode is TNodeGeoViewpoint) or
-      (Field.ParentNode is TNodeX3DNBodyCollidableNode) or
-      (Field.ParentNode is TNodeX3DNBodyCollisionSpaceNode) or
-      (Field.ParentNode is TNodeX3DRigidJointNode) or
-      (Field.ParentNode is TNodeX3DPickSensorNode) or
-      (Field.ParentNode is TNodeX3DFollowerNode) or
-      (Field.ParentNode is TNodeX3DParticleEmitterNode) or
-      (Field.ParentNode is TNodeX3DParticlePhysicsModelNode) or
-      (Field.ParentNode is TNodeDisplacer) or
-      (Field.ParentNode is TNodeCoordinateDeformer) or
-      (Field.ParentNode is TNodeNurbsGroup) or
-      (Field.ParentNode is TNodeAudioClip) or
-      (Field.ParentNode is TNodeSound) or
-      (Field.ParentNode is TNodeEaseInEaseOut) or
-      (Field.ParentNode is TNodeFogCoordinate) or
-      (Field.ParentNode is TNodeLocalFog) or
-      (Field.ParentNode is TNodeEspduTransform) or
-      (Field.ParentNode is TNodePackagedShader) or
-      (Field.ParentNode is TNodeProgramShader) or
-      (Field.ParentNode is TNodeLayer) or
-      (Field.ParentNode is TNodeLayerSet) or
-      (Field.ParentNode is TNodeLayout) or
-      (Field.ParentNode is TNodeLayoutLayer) or
-      (Field.ParentNode is TNodeLayoutGroup) or
-      (Field.ParentNode is TNodeDISEntityTypeMapping) or
-      (Field.ParentNode is TNodeDISEntityManager) or
-      (Field.ParentNode is TNodeFillProperties) or
-      (Field.ParentNode is TNodeLineProperties) or
-      (Field.ParentNode is TNodeConverter) or
-      (Field.ParentNode is TNodeScreenFontStyle) or
-      (Field.ParentNode is TNodeScreenGroup) or
-      (Field.ParentNode is TNodeCollisionCollection) or
-      (Field.ParentNode is TNodeContact) or
-      (Field.ParentNode is TNodeRigidBody) or
-      (Field.ParentNode is TNodeRigidBodyCollection) or
-      (Field.ParentNode is TNodePickableGroup) or
-      (Field.ParentNode is TNodeParticleSystem) or
-      (Field.ParentNode is TNodeViewpointGroup) or
-      (Field.ParentNode is TNodeViewport) or
-      (Field.ParentNode is TNodeShaderProgram) or
-      (Field.ParentNode is TNodeX3DVertexAttributeNode) or
-      FieldIs(Field, TNodeX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
-      FieldIs(Field, TNodeBillboard, 'axisOfRotation') or
-      FieldIs(Field, TVRMLLODNode, 'forceTransitions') or
-      (Field.ParentNode is TNodeCADAssembly) or
-      (Field.ParentNode is TNodeCADFace) or
-      (Field.ParentNode is TNodeCADLayer) or
-      (Field.ParentNode is TNodeCADPart) or
-      (Field.ParentNode is TNodeNurbsTextureCoordinate) or
-      (Field.ParentNode is TNodeNurbsSet) or
-      (Field.ParentNode is TNodeNurbsCurve2D) or
-      (Field.ParentNode is TNodeContourPolyline2D) or
-      (Field.ParentNode is TNodeNurbsTextureSurface) or
-      FieldIs(Field, TNodeScreenEffect, 'needsDepth') or
-      (Field.ParentNode is TNodeLayer2D) or
-      (Field.ParentNode is TNodeLayer3D) or
-      (Field.ParentNode is TNodeKambiHeadLight) or
+      (Field.ParentNode is TTextureBackgroundNode) or
+      (Field.ParentNode is TGeoCoordinateNode) or
+      (Field.ParentNode is TGeoLocationNode) or
+      (Field.ParentNode is TGeoLODNode) or
+      (Field.ParentNode is TGeoMetadataNode) or
+      (Field.ParentNode is TGeoOriginNode) or
+      (Field.ParentNode is TGeoTransformNode) or
+      (Field.ParentNode is TGeoViewpointNode) or
+      (Field.ParentNode is TAbstractX3DNBodyCollidableNode) or
+      (Field.ParentNode is TAbstractX3DNBodyCollisionSpaceNode) or
+      (Field.ParentNode is TAbstractX3DRigidJointNode) or
+      (Field.ParentNode is TAbstractX3DPickSensorNode) or
+      (Field.ParentNode is TAbstractX3DFollowerNode) or
+      (Field.ParentNode is TAbstractX3DParticleEmitterNode) or
+      (Field.ParentNode is TAbstractX3DParticlePhysicsModelNode) or
+      (Field.ParentNode is TDisplacerNode) or
+      (Field.ParentNode is TCoordinateDeformerNode) or
+      (Field.ParentNode is TNurbsGroupNode) or
+      (Field.ParentNode is TAudioClipNode) or
+      (Field.ParentNode is TSoundNode) or
+      (Field.ParentNode is TEaseInEaseOutNode) or
+      (Field.ParentNode is TFogCoordinateNode) or
+      (Field.ParentNode is TLocalFogNode) or
+      (Field.ParentNode is TEspduTransformNode) or
+      (Field.ParentNode is TPackagedShaderNode) or
+      (Field.ParentNode is TProgramShaderNode) or
+      (Field.ParentNode is TLayerNode) or
+      (Field.ParentNode is TLayerSetNode) or
+      (Field.ParentNode is TLayoutNode) or
+      (Field.ParentNode is TLayoutLayerNode) or
+      (Field.ParentNode is TLayoutGroupNode) or
+      (Field.ParentNode is TDISEntityTypeMappingNode) or
+      (Field.ParentNode is TDISEntityManagerNode) or
+      (Field.ParentNode is TFillPropertiesNode) or
+      (Field.ParentNode is TLinePropertiesNode) or
+      (Field.ParentNode is TConverterNode) or
+      (Field.ParentNode is TScreenFontStyleNode) or
+      (Field.ParentNode is TScreenGroupNode) or
+      (Field.ParentNode is TCollisionCollectionNode) or
+      (Field.ParentNode is TContactNode) or
+      (Field.ParentNode is TRigidBodyNode) or
+      (Field.ParentNode is TRigidBodyCollectionNode) or
+      (Field.ParentNode is TPickableGroupNode) or
+      (Field.ParentNode is TParticleSystemNode) or
+      (Field.ParentNode is TViewpointGroupNode) or
+      (Field.ParentNode is TViewportNode) or
+      (Field.ParentNode is TShaderProgramNode) or
+      (Field.ParentNode is TAbstractX3DVertexAttributeNode) or
+      FieldIs(Field, TAbstractX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
+      FieldIs(Field, TBillboardNode, 'axisOfRotation') or
+      FieldIs(Field, TAbstractLODNode, 'forceTransitions') or
+      (Field.ParentNode is TCADAssemblyNode) or
+      (Field.ParentNode is TCADFaceNode) or
+      (Field.ParentNode is TCADLayerNode) or
+      (Field.ParentNode is TCADPartNode) or
+      (Field.ParentNode is TNurbsTextureCoordinateNode) or
+      (Field.ParentNode is TNurbsSetNode) or
+      (Field.ParentNode is TNurbsCurve2DNode) or
+      (Field.ParentNode is TContourPolyline2DNode) or
+      (Field.ParentNode is TNurbsTextureSurfaceNode) or
+      FieldIs(Field, TScreenEffectNode, 'needsDepth') or
+      (Field.ParentNode is TLayer2DNode) or
+      (Field.ParentNode is TLayer3DNode) or
+      (Field.ParentNode is TKambiHeadLightNode) or
       false { just to have nice newlines };
   end;
 
 var
   I, J: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
   Changes: TVRMLChanges;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
@@ -1300,29 +1300,29 @@ end;
 
 procedure TTestVRMLNodes.TestTimeDependentNodeHandlerAvailable;
 
-  procedure CheckTimeDependentNodeHandler(N: TVRMLNode);
+  procedure CheckTimeDependentNodeHandler(N: TX3DNode);
   var
     B: boolean;
     C: TKamTime;
   begin
     { CheckTimeDependentNodeHandler is a separate procedure,
-      to limit lifetime of temporary INodeX3DTimeDependentNode,
+      to limit lifetime of temporary IAbstractX3DTimeDependentNode,
       see "Reference counting" notes on
       http://freepascal.org/docs-html/ref/refse40.html }
-    if Supports(N, INodeX3DTimeDependentNode) then
+    if Supports(N, IAbstractX3DTimeDependentNode) then
     begin
-      B := (N as INodeX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
-      C := (N as INodeX3DTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
+      B := (N as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
+      C := (N as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
     end else
-    if (N is TNodeMovieTexture) or
-       (N is TNodeAudioClip) or
-       (N is TNodeTimeSensor) then
-      Assert(false, 'Node ' + N.ClassName + ' should support INodeX3DTimeDependentNode');
+    if (N is TMovieTextureNode) or
+       (N is TAudioClipNode) or
+       (N is TTimeSensorNode) then
+      Assert(false, 'Node ' + N.ClassName + ' should support IAbstractX3DTimeDependentNode');
   end;
 
 var
   I: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
@@ -1337,9 +1337,9 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestINodeTransform;
+procedure TTestVRMLNodes.TestITransformNode;
 
-  function ContainsCHTransformField(const N: TVRMLNode): boolean;
+  function ContainsCHTransformField(const N: TX3DNode): boolean;
   var
     I: Integer;
   begin
@@ -1351,24 +1351,24 @@ procedure TTestVRMLNodes.TestINodeTransform;
 
 var
   I: Integer;
-  N: TVRMLNode;
+  N: TX3DNode;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      { if a node has field with chTransform, it must support INodeTransform.
+      { if a node has field with chTransform, it must support ITransformNode.
         TVRMLScene.HandleChangeTransform assumes this. }
       if ContainsCHTransformField(N) then
-        Assert(Supports(N, INodeTransform));
+        Assert(Supports(N, ITransformNode));
 
-      { if, and only if, a node supports INodeTransform, it must have
+      { if, and only if, a node supports ITransformNode, it must have
         TransformationChange = ntcTransform }
       Assert(
-        Supports(N, INodeTransform) =
+        Supports(N, ITransformNode) =
         (N.TransformationChange = ntcTransform));
     except
-      Writeln('TestINodeTransform failed for ', N.ClassName);
+      Writeln('TestITransformNode failed for ', N.ClassName);
       raise;
     end;
     FreeAndNil(N);
@@ -1378,7 +1378,7 @@ end;
 procedure TTestVRMLNodes.TestSortPositionInParent;
 var
   List: TVRMLFileItemList;
-  I0, I1, I2, I3, I4, I5: TNodeTimeSensor;
+  I0, I1, I2, I3, I4, I5: TTimeSensorNode;
 begin
   I0 := nil;
   I1 := nil;
@@ -1388,13 +1388,13 @@ begin
   I5 := nil;
   List := nil;
   try
-    I0 := TNodeTimeSensor.Create('', '');
-    I1 := TNodeTimeSensor.Create('', '');
-    I2 := TNodeTimeSensor.Create('', '');
-    I3 := TNodeTimeSensor.Create('', '');
-    I4 := TNodeTimeSensor.Create('', '');
+    I0 := TTimeSensorNode.Create('', '');
+    I1 := TTimeSensorNode.Create('', '');
+    I2 := TTimeSensorNode.Create('', '');
+    I3 := TTimeSensorNode.Create('', '');
+    I4 := TTimeSensorNode.Create('', '');
     I4.PositionInParent := -10;
-    I5 := TNodeTimeSensor.Create('', '');
+    I5 := TTimeSensorNode.Create('', '');
     I5.PositionInParent := 10;
     List := TVRMLFileItemList.Create(false);
 
@@ -1445,7 +1445,7 @@ begin
   end;
 end;
 
-function LoadVRMLClassicStream(Stream: TStream): TVRMLRootNode;
+function LoadVRMLClassicStream(Stream: TStream): TX3DRootNode;
 var
   BS: TBufferedReadStream;
 begin
@@ -1456,10 +1456,10 @@ begin
 end;
 
 procedure TTestVRMLNodes.TestRootNodeMeta;
-{ Test reading, writing, copying of TVRMLRootNode profile, component, metas.
+{ Test reading, writing, copying of TX3DRootNode profile, component, metas.
   Also, test updating metas when saving, with generator and source. }
 var
-  Node, NewNode: TVRMLRootNode;
+  Node, NewNode: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
   TempStream := nil;
@@ -1510,7 +1510,7 @@ begin
     Node.Meta['testkey2'] := 'newvalue2';
 
     { replace Node with DeepCopy of itself (should preserve everything) }
-    NewNode := Node.DeepCopy as TVRMLRootNode;
+    NewNode := Node.DeepCopy as TX3DRootNode;
     FreeAndNil(Node);
     Node := NewNode;
     NewNode := nil;
@@ -1573,7 +1573,7 @@ end;
 
 procedure TTestVRMLNodes.TestConvertToX3D;
 var
-  Node: TVRMLRootNode;
+  Node: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
   TempStream := nil;
@@ -1689,40 +1689,40 @@ const
   ValidString = 'test string with " and '' and \ and / inside';
   ValidString2 = '" another '''' test string  with some weirdness \\ inside';
 
-  function CreateTestScene: TVRMLRootNode;
+  function CreateTestScene: TX3DRootNode;
   var
-    Text: TNodeText;
-    Shape: TNodeShape;
-    Touch: TNodeTouchSensor;
+    Text: TTextNode;
+    Shape: TShapeNode;
+    Touch: TTouchSensorNode;
   begin
-    Text := TNodeText.Create('', '');
+    Text := TTextNode.Create('', '');
     Text.FdString.Items.Add(ValidString);
     Text.FdString.Items.Add(ValidString2);
 
-    Shape := TNodeShape.Create('', '');
+    Shape := TShapeNode.Create('', '');
     Shape.FdGeometry.Value := Text;
 
-    Touch := TNodeTouchSensor.Create('', '');
+    Touch := TTouchSensorNode.Create('', '');
     Touch.FdDescription.Value := ValidString;
 
-    Result := TVRMLRootNode.Create('', '');
+    Result := TX3DRootNode.Create('', '');
     Result.FdChildren.Add(Shape);
     Result.FdChildren.Add(Touch);
   end;
 
-  procedure Assertions(Node: TVRMLRootNode);
+  procedure Assertions(Node: TX3DRootNode);
   var
     StringField: TMFString;
   begin
-    StringField := ((Node.FdChildren[0] as TNodeShape).FdGeometry.Value as TNodeText).FdString;
+    StringField := ((Node.FdChildren[0] as TShapeNode).FdGeometry.Value as TTextNode).FdString;
     Assert(StringField.Count = 2);
     Assert(StringField.Items[0] = ValidString);
     Assert(StringField.Items[1] = ValidString2);
-    Assert((Node.FdChildren[1] as TNodeTouchSensor).FdDescription.Value = ValidString);
+    Assert((Node.FdChildren[1] as TTouchSensorNode).FdDescription.Value = ValidString);
   end;
 
 var
-  Node: TVRMLRootNode;
+  Node: TX3DRootNode;
   TempStream: TMemoryStream;
 begin
   TempStream := nil;

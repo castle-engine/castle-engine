@@ -69,7 +69,7 @@ type
   TShapeTraverseFunc = procedure (Shape: TVRMLShape) of object;
 
   TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
-    Texture: TNodeX3DTextureNode) of object;
+    Texture: TAbstractX3DTextureNode) of object;
 
   TFaceIndex = FaceIndex.TFaceIndex;
 
@@ -111,7 +111,7 @@ type
     some work must be done when traversing (like accumulating transformations).
 
     So we process VRML tree to this tree, which is much simpler tree with
-    all the geometry nodes (TVRMLGeometryNode) along with their state
+    all the geometry nodes (TAbstractGeometryNode) along with their state
     (TVRMLGraphTraverseState) as leafs (TVRMLShape). }
   TVRMLShapeTree = class
   private
@@ -198,23 +198,23 @@ type
     Validities: TVRMLShapeValidities;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
-    FOriginalGeometry: TVRMLGeometryNode;
+    FOriginalGeometry: TAbstractGeometryNode;
     FOriginalState: TVRMLGraphTraverseState;
     { FGeometry[false] should be nil exactly when FState[false] is nil.
       Same for FGeometry[true] and FState[true]. }
-    FGeometry: array [boolean] of TVRMLGeometryNode;
+    FGeometry: array [boolean] of TAbstractGeometryNode;
     FState: array [boolean] of TVRMLGraphTraverseState;
 
-    FBlenderObjectNode: TVRMLNode;
+    FBlenderObjectNode: TX3DNode;
     FBlenderObjectName: string;
-    FBlenderMeshNode: TVRMLNode;
+    FBlenderMeshNode: TX3DNode;
     FBlenderMeshName: string;
     FDynamicGeometry: boolean;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
       @groupBegin }
-    function ProxyGeometry(const OverTriangulate: boolean): TVRMLGeometryNode;
+    function ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
     function ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
     { @groupEnd }
 
@@ -273,32 +273,32 @@ type
     procedure FreeOctreeTriangles;
   public
     constructor Create(AParentScene: TObject;
-      AOriginalGeometry: TVRMLGeometryNode; AOriginalState: TVRMLGraphTraverseState;
+      AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TVRMLGraphTraverseState;
       ParentInfo: PTraversingInfo);
     destructor Destroy; override;
 
     { Original geometry node, that you get from a VRML/X3D graph. }
-    property OriginalGeometry: TVRMLGeometryNode read FOriginalGeometry;
+    property OriginalGeometry: TAbstractGeometryNode read FOriginalGeometry;
 
     { Original state, that you get from a VRML/X3D graph. }
     property OriginalState: TVRMLGraphTraverseState read FOriginalState;
 
     { Geometry of this shape.
       This may come from initial VRML/X3D node graph (see OriginalGeometry),
-      or it may be processed by @link(TVRMLGeometryNode.Proxy)
+      or it may be processed by @link(TAbstractGeometryNode.Proxy)
       for easier handling. }
-    function Geometry(const OverTriangulate: boolean = true): TVRMLGeometryNode;
+    function Geometry(const OverTriangulate: boolean = true): TAbstractGeometryNode;
 
     { State of this shape.
       This may come from initial VRML/X3D node graph (see OriginalState),
-      or it may be processed by @link(TVRMLGeometryNode.Proxy)
+      or it may be processed by @link(TAbstractGeometryNode.Proxy)
       for easier handling.
 
       Owned by this TVRMLShape class. }
     function State(const OverTriangulate: boolean = true): TVRMLGraphTraverseState;
 
     { Calculate bounding box and vertices/triangles count,
-      see TVRMLGeometryNode methods.
+      see TAbstractGeometryNode methods.
       @groupBegin }
     function LocalBoundingBox: TBox3D;
     function BoundingBox: TBox3D;
@@ -311,7 +311,7 @@ type
 
     { Calculates bounding sphere based on BoundingBox.
       In the future this may be changed to use BoundingSphere method
-      of @link(TVRMLGeometryNode), when I will implement it.
+      of @link(TAbstractGeometryNode), when I will implement it.
       For now, BoundingSphere is always worse approximation of bounding
       volume than @link(BoundingBox) (i.e. BoundingSphere is always
       larger) but it may be useful in some cases when
@@ -530,7 +530,7 @@ type
 
     { Is the texture node Node possibly used by this shape.
       This is equivalent to checking does EnumerateShapeTextures return this shape. }
-    function UsesTexture(Node: TNodeX3DTextureNode): boolean;
+    function UsesTexture(Node: TAbstractX3DTextureNode): boolean;
 
     { Check is shape a shadow caster. Looks at Shape's
       Appearance.shadowCaster field (see
@@ -580,9 +580,9 @@ type
       follow the same convention of naming).
 
       @groupBegin }
-    property BlenderObjectNode: TVRMLNode read FBlenderObjectNode;
+    property BlenderObjectNode: TX3DNode read FBlenderObjectNode;
     property BlenderObjectName: string read FBlenderObjectName;
-    property BlenderMeshNode: TVRMLNode read FBlenderMeshNode;
+    property BlenderMeshNode: TX3DNode read FBlenderMeshNode;
     property BlenderMeshName: string read FBlenderMeshName;
     { @groupEnd }
 
@@ -604,7 +604,7 @@ type
     { Shape node in VRML/X3D graph.
       This is always present for VRML >= 2 (including X3D).
       For VRML 1.0 and Inventor this is @nil. }
-    function Node: TNodeX3DShapeNode;
+    function Node: TAbstractX3DShapeNode;
   end;
 
   TVRMLShapeTreeList = specialize TFPGObjectList<TVRMLShapeTree>;
@@ -663,9 +663,9 @@ type
     used to decide which child to choose (using SwitchNode.FdWhichChoice).  }
   TVRMLShapeTreeSwitch = class(TVRMLShapeTreeGroup)
   private
-    FSwitchNode: TNodeSwitch;
+    FSwitchNode: TSwitchNode;
   public
-    property SwitchNode: TNodeSwitch read FSwitchNode write FSwitchNode;
+    property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
     function ShapesCount(const OnlyActive: boolean;
@@ -685,18 +685,18 @@ type
     as a transformation node and also may be handled by this). }
   TVRMLShapeTreeTransform = class(TVRMLShapeTreeGroup)
   private
-    FTransformNode: TVRMLNode;
+    FTransformNode: TX3DNode;
     FTransformState: TVRMLGraphTraverseState;
   public
     constructor Create(AParentScene: TObject);
     destructor Destroy; override;
 
-    { Internal note: We don't declare TransformNode as INodeTransform interface,
+    { Internal note: We don't declare TransformNode as ITransformNode interface,
       because we don't want to keep reference to it too long,
       as it's manually freed. That's safer. }
     { Transforming VRML/X3D node. Always assigned, always may be casted
-      to INodeTransform interface. }
-    property TransformNode: TVRMLNode read FTransformNode write FTransformNode;
+      to ITransformNode interface. }
+    property TransformNode: TX3DNode read FTransformNode write FTransformNode;
 
     { State right before traversing the TransformNode.
       Owned by this TVRMLShapeTreeTransform instance. You should assign
@@ -723,12 +723,12 @@ type
     knows whether to initiate level_changes event sending.) }
   TVRMLShapeTreeLOD = class(TVRMLShapeTreeGroup)
   private
-    FLODNode: TVRMLLODNode;
+    FLODNode: TAbstractLODNode;
     FLODInvertedTransform: TMatrix4Single;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   public
-    property LODNode: TVRMLLODNode read FLODNode write FLODNode;
+    property LODNode: TAbstractLODNode read FLODNode write FLODNode;
     function LODInvertedTransform: PMatrix4Single;
 
     { Calculate @link(Level). This only calculates level, doesn't
@@ -762,12 +762,12 @@ type
 
   TProximitySensorInstance = class(TVRMLShapeTree)
   private
-    FNode: TNodeProximitySensor;
+    FNode: TProximitySensorNode;
   public
     InvertedTransform: TMatrix4Single;
     IsActive: boolean;
 
-    property Node: TNodeProximitySensor read FNode write FNode;
+    property Node: TProximitySensorNode read FNode write FNode;
 
     procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
     function ShapesCount(const OnlyActive: boolean;
@@ -900,12 +900,12 @@ end;
 { TVRMLShape -------------------------------------------------------------- }
 
 constructor TVRMLShape.Create(AParentScene: TObject;
-  AOriginalGeometry: TVRMLGeometryNode; AOriginalState: TVRMLGraphTraverseState;
+  AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TVRMLGraphTraverseState;
   ParentInfo: PTraversingInfo);
 
   procedure CalculateBlender;
   begin
-    if OriginalGeometry is TVRMLGeometryNode_1 then
+    if OriginalGeometry is TAbstractGeometryNode_1 then
     begin
       { Shape node generated by Blender VRML 1.0 exporter should have
         one parent, and this is his mesh. This mesh may have may
@@ -1100,12 +1100,12 @@ end;
 
 function TVRMLShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
 var
-  G: TVRMLGeometryNode;
+  G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
 
   function MaterialOpacity: Single;
   begin
-    if G is TVRMLGeometryNode_1 then
+    if G is TAbstractGeometryNode_1 then
       Result := S.LastNodes.Material.Opacity(0) else
     if (S.ShapeNode <> nil) and
        (S.ShapeNode.Material <> nil) then
@@ -1115,7 +1115,7 @@ var
 
   function TexCoordsNeeded: Cardinal;
   begin
-    if G is TVRMLGeometryNode_1 then
+    if G is TAbstractGeometryNode_1 then
     begin
       { We don't want to actually load the texture here,
         so only check is filename/image set. }
@@ -1127,8 +1127,8 @@ var
     if (S.ShapeNode <> nil) and { for correct VRML >= 2, Shape should be assigned, but secure from buggy models }
        (S.ShapeNode.Texture <> nil) then
     begin
-      if S.ShapeNode.Texture is TNodeMultiTexture then
-        Result := TNodeMultiTexture(S.ShapeNode.Texture).FdTexture.Count else
+      if S.ShapeNode.Texture is TMultiTextureNode then
+        Result := TMultiTextureNode(S.ShapeNode.Texture).FdTexture.Count else
         Result := 1;
     end else
       Result := 0;
@@ -1316,14 +1316,14 @@ end;
 function TVRMLShape.OverrideOctreeLimits(
   const BaseLimits: TOctreeLimits): TOctreeLimits;
 var
-  Props: TNodeKambiOctreeProperties;
+  Props: TKambiOctreePropertiesNode;
 begin
   Result := BaseLimits;
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.FdOctreeTriangles.Value <> nil) and
-     (State.ShapeNode.FdOctreeTriangles.Value is TNodeKambiOctreeProperties) then
+     (State.ShapeNode.FdOctreeTriangles.Value is TKambiOctreePropertiesNode) then
   begin
-    Props := TNodeKambiOctreeProperties(State.ShapeNode.FdOctreeTriangles.Value);
+    Props := TKambiOctreePropertiesNode(State.ShapeNode.FdOctreeTriangles.Value);
     Props.OverrideLimits(Result);
   end;
 end;
@@ -1469,7 +1469,7 @@ end;
 
 function TVRMLShape.Transparent: boolean;
 var
-  M: TNodeMaterial;
+  M: TMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -1607,7 +1607,7 @@ end;
 
 function TVRMLShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
 var
-  G: TVRMLGeometryNode;
+  G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
@@ -1635,7 +1635,7 @@ end;
 
 function TVRMLShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
 var
-  G: TVRMLGeometryNode;
+  G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
@@ -1665,7 +1665,7 @@ end;
 function TVRMLShape.NormalsCreaseAngle(OverTriangulate: boolean;
   const CreaseAngle: Single): TVector3SingleList;
 var
-  G: TVRMLGeometryNode;
+  G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
@@ -1696,23 +1696,23 @@ end;
 
 procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
 
-  procedure HandleSingleTextureNode(Tex: TVRMLNode);
+  procedure HandleSingleTextureNode(Tex: TX3DNode);
   begin
     if (Tex <> nil) and
-       (Tex is TNodeX3DTextureNode) then
-      Enumerate(Self, TNodeX3DTextureNode(Tex));
+       (Tex is TAbstractX3DTextureNode) then
+      Enumerate(Self, TAbstractX3DTextureNode(Tex));
   end;
 
-  procedure HandleTextureNode(Tex: TVRMLNode);
+  procedure HandleTextureNode(Tex: TX3DNode);
   var
     I: Integer;
   begin
     if (Tex <> nil) and
-       (Tex is TNodeMultiTexture) then
+       (Tex is TMultiTextureNode) then
     begin
-      Enumerate(Self, TNodeMultiTexture(Tex));
-      for I := 0 to TNodeMultiTexture(Tex).FdTexture.Items.Count - 1 do
-        HandleSingleTextureNode(TNodeMultiTexture(Tex).FdTexture.Items.Items[I]);
+      Enumerate(Self, TMultiTextureNode(Tex));
+      for I := 0 to TMultiTextureNode(Tex).FdTexture.Items.Count - 1 do
+        HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture.Items.Items[I]);
     end else
       HandleSingleTextureNode(Tex);
   end;
@@ -1743,9 +1743,9 @@ procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunctio
   end;
 
 var
-  ComposedShader: TNodeComposedShader;
+  ComposedShader: TComposedShaderNode;
   I: Integer;
-  App: TNodeAppearance;
+  App: TAppearanceNode;
 begin
   HandleTextureNode(State.LastNodes.Texture2);
 
@@ -1763,27 +1763,27 @@ begin
     end;
 
     for I := 0 to App.FdEffects.Count - 1 do
-      if App.FdEffects[I] is TNodeEffect then
-        HandleShaderFields(TNodeEffect(App.FdEffects[I]).InterfaceDeclarations);
+      if App.FdEffects[I] is TEffectNode then
+        HandleShaderFields(TEffectNode(App.FdEffects[I]).InterfaceDeclarations);
   end;
 end;
 
 type
   TUsesTextureHelper = class
-    Node: TNodeX3DTextureNode;
-    procedure HandleTexture(Shape: TVRMLShape; Texture: TNodeX3DTextureNode);
+    Node: TAbstractX3DTextureNode;
+    procedure HandleTexture(Shape: TVRMLShape; Texture: TAbstractX3DTextureNode);
   end;
 
   BreakUsesTexture = class(TCodeBreaker);
 
 procedure TUsesTextureHelper.HandleTexture(Shape: TVRMLShape;
-  Texture: TNodeX3DTextureNode);
+  Texture: TAbstractX3DTextureNode);
 begin
   if Texture = Node then
     raise BreakUsesTexture.Create;
 end;
 
-function TVRMLShape.UsesTexture(Node: TNodeX3DTextureNode): boolean;
+function TVRMLShape.UsesTexture(Node: TAbstractX3DTextureNode): boolean;
 var
   Helper: TUsesTextureHelper;
 begin
@@ -1801,8 +1801,8 @@ end;
 
 function TVRMLShape.ShadowCaster: boolean;
 var
-  S: TNodeX3DShapeNode;
-  A: TVRMLNode;
+  S: TAbstractX3DShapeNode;
+  A: TX3DNode;
 begin
   Result := true;
 
@@ -1811,8 +1811,8 @@ begin
   begin
     A := S.FdAppearance.Value;
     if (A <> nil) and
-       (A is TNodeAppearance) then
-      Result := TNodeAppearance(A).FdShadowCaster.Value;
+       (A is TAppearanceNode) then
+      Result := TAppearanceNode(A).FdShadowCaster.Value;
   end;
 end;
 
@@ -1848,7 +1848,7 @@ begin
   end;
 end;
 
-function TVRMLShape.Geometry(const OverTriangulate: boolean): TVRMLGeometryNode;
+function TVRMLShape.Geometry(const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   ValidateGeometryState(OverTriangulate);
   Result := FGeometry[OverTriangulate];
@@ -1860,7 +1860,7 @@ begin
   Result := FState[OverTriangulate];
 end;
 
-function TVRMLShape.ProxyGeometry(const OverTriangulate: boolean): TVRMLGeometryNode;
+function TVRMLShape.ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := Geometry(OverTriangulate);
   if Result = OriginalGeometry then Result := nil;
@@ -2053,7 +2053,7 @@ begin
   Result := NiceName;
 end;
 
-function TVRMLShape.Node: TNodeX3DShapeNode;
+function TVRMLShape.Node: TAbstractX3DShapeNode;
 begin
   Result := State.ShapeNode;
 end;

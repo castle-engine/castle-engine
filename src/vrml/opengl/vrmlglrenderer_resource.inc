@@ -6,15 +6,15 @@
   TResourceRenderer = class
   private
     FRenderer: TVRMLGLRenderer;
-    FNode: TVRMLNode;
+    FNode: TX3DNode;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); virtual;
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); virtual;
 
     property Renderer: TVRMLGLRenderer read FRenderer;
 
     { Reference to handled VRML node.
       Never @nil. }
-    property Node: TVRMLNode read FNode;
+    property Node: TX3DNode read FNode;
 
     { Release all resources allocated by Prepare method. }
     procedure Unprepare; virtual; abstract;
@@ -26,11 +26,11 @@
   public
     { Looks for item with given Node.
       Returns -1 if not found. }
-    function NodeIndex(ANode: TVRMLNode): Integer;
+    function NodeIndex(ANode: TX3DNode): Integer;
 
     { Looks for item with given Node.
       Returns @nil if not found. }
-    function Node(ANode: TVRMLNode): TResourceRenderer;
+    function Node(ANode: TX3DNode): TResourceRenderer;
 
     { If resources for this Node were created (and possibly prepared),
       unprepare and remove them.
@@ -42,7 +42,7 @@
       in this case, you still can be sure ANode will be unprepared (as UnprepareAll
       will eventually unprepare, well, all). Just be aware that effect may
       be delayed in this case. }
-    procedure Unprepare(ANode: TVRMLNode);
+    procedure Unprepare(ANode: TX3DNode);
 
     { Unprepare and free and nodes. Clears the list. }
     procedure UnprepareAll;
@@ -55,7 +55,7 @@
 { TResourceRenderer ---------------------------------------------------------- }
 
 constructor TResourceRenderer.Create(ARenderer: TVRMLGLRenderer;
-  ANode: TVRMLNode);
+  ANode: TX3DNode);
 begin
   inherited Create;
   FRenderer := ARenderer;
@@ -64,14 +64,14 @@ end;
 
 { TResourceRendererList ----------------------------------------------------- }
 
-function TResourceRendererList.NodeIndex(ANode: TVRMLNode): Integer;
+function TResourceRendererList.NodeIndex(ANode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Node = ANode then Exit;
   Result := -1;
 end;
 
-function TResourceRendererList.Node(ANode: TVRMLNode): TResourceRenderer;
+function TResourceRendererList.Node(ANode: TX3DNode): TResourceRenderer;
 var
   I: Integer;
 begin
@@ -83,7 +83,7 @@ begin
   Result := nil;
 end;
 
-procedure TResourceRendererList.Unprepare(ANode: TVRMLNode);
+procedure TResourceRendererList.Unprepare(ANode: TX3DNode);
 var
   I: integer;
 begin

@@ -270,9 +270,9 @@ end;
 
 procedure TAsciiTextRenderer.Render;
 var
-  Node: TNodeAsciiText_1;
+  Node: TAsciiTextNode_1;
 begin
-  Node := Geometry as TNodeAsciiText_1;
+  Node := Geometry as TAsciiTextNode_1;
 
   RenderText(
     State.LastNodes.FontStyle.FdSize.Value,
@@ -288,22 +288,22 @@ end;
 
 procedure TTextRenderer.Render;
 var
-  Node: TNodeText;
+  Node: TTextNode;
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
   CurrentFont: TGLOutlineFont;
 begin
-  Node := Geometry as TNodeText;
+  Node := Geometry as TTextNode;
 
   if Node.FontStyle = nil then
   begin
-    Size := TNodeFontStyle.DefaultSize;
-    Spacing := TNodeFontStyle.DefaultSpacing;
-    Justify := TNodeFontStyle.DefaultJustify;
+    Size := TFontStyleNode.DefaultSize;
+    Spacing := TFontStyleNode.DefaultSpacing;
+    Justify := TFontStyleNode.DefaultJustify;
     CurrentFont := Renderer.Cache.Fonts[
-      TNodeFontStyle.DefaultFamily,
-      TNodeFontStyle.DefaultBold,
-      TNodeFontStyle.DefaultItalic].Instance;
+      TFontStyleNode.DefaultFamily,
+      TFontStyleNode.DefaultBold,
+      TFontStyleNode.DefaultItalic].Instance;
   end else
   begin
     Size := Node.FontStyle.FdSize.Value;
@@ -327,19 +327,19 @@ var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
   CurrentFont: TGLOutlineFont;
-  Node: TNodeText3D;
+  Node: TText3DNode;
 begin
-  Node := Geometry as TNodeText3D;
+  Node := Geometry as TText3DNode;
 
   if Node.FontStyle = nil then
   begin
-    Size := TNodeFontStyle.DefaultSize;
-    Spacing := TNodeFontStyle.DefaultSpacing;
-    Justify := TNodeFontStyle.DefaultJustify;
+    Size := TFontStyleNode.DefaultSize;
+    Spacing := TFontStyleNode.DefaultSpacing;
+    Justify := TFontStyleNode.DefaultJustify;
     CurrentFont := Renderer.Cache.Fonts[
-      TNodeFontStyle.DefaultFamily,
-      TNodeFontStyle.DefaultBold,
-      TNodeFontStyle.DefaultItalic].Instance;
+      TFontStyleNode.DefaultFamily,
+      TFontStyleNode.DefaultBold,
+      TFontStyleNode.DefaultItalic].Instance;
   end else
   begin
     Size := Node.FontStyle.FdSize.Value;

@@ -88,7 +88,7 @@ type
     FOutputProc: TKamScriptOutputProc;
   public
     { Base URL to use for relative filenames.
-      Similar to TVRMLNode.WWWBasePath. }
+      Similar to TX3DNode.WWWBasePath. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
     { If assigned, it will be used to realize writeln()
       function. If not assigned, we will use OnWarning. }

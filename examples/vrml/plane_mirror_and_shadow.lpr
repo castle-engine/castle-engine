@@ -61,7 +61,7 @@ var
   Scene: TVRMLGLScene;
   SceneForShadow: TVRMLGLScene;
   RenderParams: TBasicRenderParams;
-  LightNode: TNodePointLight;
+  LightNode: TPointLightNode;
   LightInstance: TLightInstance;
 
   { FileName of currently loaded Scene.
@@ -589,7 +589,7 @@ end;
 { main program --------------------------------------------------------------- }
 
 var
-  RootNode: TVRMLRootNode;
+  RootNode: TX3DRootNode;
 begin
   Window := TGLUIWindow.Create(Application);
 
@@ -624,7 +624,7 @@ begin
     SceneForShadow.Attributes.PreserveOpenGLState := true;
 
     { init light that we'll control }
-    LightNode := TNodePointLight.Create('', '');
+    LightNode := TPointLightNode.Create('', '');
     LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
 
     LightInstance.Node := LightNode;

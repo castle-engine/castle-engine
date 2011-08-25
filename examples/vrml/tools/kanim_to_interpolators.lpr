@@ -40,7 +40,7 @@ uses SysUtils, Classes, KambiUtils, KambiClassUtils, VRMLNodes, VRMLGLAnimation,
 var
   CoordinateNodeName: string;
 
-procedure SaveFile(Node: TVRMLNode; const Filename: string);
+procedure SaveFile(Node: TX3DNode; const Filename: string);
 const
   SceneSuffix = {$I kanim_to_interpolators_suffix.inc};
 var
@@ -57,9 +57,9 @@ end;
 var
   InputFileName, OutputFileName: string;
   Anim: TVRMLGLAnimation;
-  Vrml: TVRMLRootNode;
-  Interp: TNodeCoordinateInterpolator;
-  Coord: TNodeCoordinate;
+  Vrml: TX3DRootNode;
+  Interp: TCoordinateInterpolatorNode;
+  Coord: TCoordinateNode;
   I: Integer;
   CoordCount: Cardinal;
 begin
@@ -73,15 +73,15 @@ begin
   try
     Writeln('Reading ', InputFileName, ' ...');
     Anim.LoadFromFile(InputFileName, false, false);
-    Vrml := Anim.Scenes[0].RootNode.DeepCopy as TVRMLRootNode;
+    Vrml := Anim.Scenes[0].RootNode.DeepCopy as TX3DRootNode;
     try
       { find Coordinate node for the 1st time, to calculate CoordCount }
       Coord := Anim.Scenes[0].RootNode.FindNodeByName(
-        TNodeCoordinate, CoordinateNodeName, false) as TNodeCoordinate;
+        TCoordinateNode, CoordinateNodeName, false) as TCoordinateNode;
       CoordCount := Coord.FdPoint.Count;
       Writeln('Coordinate node ', CoordinateNodeName, ' found OK (', CoordCount, ' vertexes).');
 
-      Interp := TNodeCoordinateInterpolator.Create('Interp', '');
+      Interp := TCoordinateInterpolatorNode.Create('Interp', '');
       Vrml.FdChildren.Add(Interp);
 
       Interp.FdKeyValue.Items.Count := 0;
@@ -94,7 +94,7 @@ begin
         for I := 0 to Anim.ScenesCount - 1 do
         begin
           Coord := Anim.Scenes[I].RootNode.FindNodeByName(
-            TNodeCoordinate, CoordinateNodeName, false) as TNodeCoordinate;
+            TCoordinateNode, CoordinateNodeName, false) as TCoordinateNode;
           Interp.FdKeyValue.Items.AddList(Coord.FdPoint.Items);
           Interp.FdKey.Items.Add(I / (Anim.ScenesCount - 1));
           Progress.Step;

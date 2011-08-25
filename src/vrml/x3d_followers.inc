@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DFollowerNode = class(TNodeX3DChildNode)
+  TAbstractX3DFollowerNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
 
@@ -24,7 +24,7 @@
     public property EventIsActive: TVRMLEvent read FEventIsActive;
   end;
 
-  TNodeX3DDamperNode = class(TNodeX3DFollowerNode)
+  TAbstractX3DDamperNode = class(TAbstractX3DFollowerNode)
   public
     procedure CreateNode; override;
 
@@ -38,7 +38,7 @@
     public property FdOrder: TSFInt32 read FFdOrder;
   end;
 
-  TNodeX3DChaserNode = class(TNodeX3DFollowerNode)
+  TAbstractX3DChaserNode = class(TAbstractX3DFollowerNode)
   public
     procedure CreateNode; override;
 
@@ -46,7 +46,7 @@
     public property FdDuration: TSFTime read FFdDuration;
   end;
 
-  TNodeColorDamper = class(TNodeX3DDamperNode)
+  TColorDamperNode = class(TAbstractX3DDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -71,7 +71,7 @@
     public property FdInitialValue: TSFColor read FFdInitialValue;
   end;
 
-  TNodeCoordinateDamper = class(TNodeX3DDamperNode)
+  TCoordinateDamperNode = class(TAbstractX3DDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -96,7 +96,7 @@
     public property FdInitialValue: TMFVec3f read FFdInitialValue;
   end;
 
-  TNodeOrientationChaser = class(TNodeX3DChaserNode)
+  TOrientationChaserNode = class(TAbstractX3DChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -121,7 +121,7 @@
     public property FdInitialValue: TSFRotation read FFdInitialValue;
   end;
 
-  TNodeOrientationDamper = class(TNodeX3DDamperNode)
+  TOrientationDamperNode = class(TAbstractX3DDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -146,7 +146,7 @@
     public property FdInitialValue: TSFRotation read FFdInitialValue;
   end;
 
-  TNodePositionChaser = class(TNodeX3DChaserNode)
+  TPositionChaserNode = class(TAbstractX3DChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -171,7 +171,7 @@
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
   end;
 
-  TNodePositionChaser2D = class(TNodeX3DChaserNode)
+  TPositionChaser2DNode = class(TAbstractX3DChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -196,7 +196,7 @@
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
   end;
 
-  TNodePositionDamper = class(TNodeX3DDamperNode)
+  TPositionDamperNode = class(TAbstractX3DDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -221,7 +221,7 @@
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
   end;
 
-  TNodePositionDamper2D = class(TNodeX3DDamperNode)
+  TPositionDamper2DNode = class(TAbstractX3DDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -246,7 +246,7 @@
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
   end;
 
-  TNodeScalarChaser = class(TNodeX3DChaserNode)
+  TScalarChaserNode = class(TAbstractX3DChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -271,7 +271,7 @@
     public property FdInitialValue: TSFFloat read FFdInitialValue;
   end;
 
-  TNodeTexCoordDamper2D = class(TNodeX3DDamperNode)
+  TTexCoordDamper2DNode = class(TAbstractX3DDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -299,7 +299,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DFollowerNode.CreateNode;
+procedure TAbstractX3DFollowerNode.CreateNode;
 begin
   inherited;
 
@@ -309,7 +309,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DDamperNode.CreateNode;
+procedure TAbstractX3DDamperNode.CreateNode;
 begin
   inherited;
 
@@ -329,7 +329,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DChaserNode.CreateNode;
+procedure TAbstractX3DChaserNode.CreateNode;
 begin
   inherited;
 
@@ -341,7 +341,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeColorDamper.CreateNode;
+procedure TColorDamperNode.CreateNode;
 begin
   inherited;
 
@@ -365,18 +365,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeColorDamper.ClassNodeTypeName: string;
+class function TColorDamperNode.ClassNodeTypeName: string;
 begin
   Result := 'ColorDamper';
 end;
 
-class function TNodeColorDamper.URNMatching(const URN: string): boolean;
+class function TColorDamperNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCoordinateDamper.CreateNode;
+procedure TCoordinateDamperNode.CreateNode;
 begin
   inherited;
 
@@ -400,18 +400,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCoordinateDamper.ClassNodeTypeName: string;
+class function TCoordinateDamperNode.ClassNodeTypeName: string;
 begin
   Result := 'CoordinateDamper';
 end;
 
-class function TNodeCoordinateDamper.URNMatching(const URN: string): boolean;
+class function TCoordinateDamperNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeOrientationChaser.CreateNode;
+procedure TOrientationChaserNode.CreateNode;
 begin
   inherited;
 
@@ -435,18 +435,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeOrientationChaser.ClassNodeTypeName: string;
+class function TOrientationChaserNode.ClassNodeTypeName: string;
 begin
   Result := 'OrientationChaser';
 end;
 
-class function TNodeOrientationChaser.URNMatching(const URN: string): boolean;
+class function TOrientationChaserNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeOrientationDamper.CreateNode;
+procedure TOrientationDamperNode.CreateNode;
 begin
   inherited;
 
@@ -470,18 +470,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeOrientationDamper.ClassNodeTypeName: string;
+class function TOrientationDamperNode.ClassNodeTypeName: string;
 begin
   Result := 'OrientationDamper';
 end;
 
-class function TNodeOrientationDamper.URNMatching(const URN: string): boolean;
+class function TOrientationDamperNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePositionChaser.CreateNode;
+procedure TPositionChaserNode.CreateNode;
 begin
   inherited;
 
@@ -505,18 +505,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodePositionChaser.ClassNodeTypeName: string;
+class function TPositionChaserNode.ClassNodeTypeName: string;
 begin
   Result := 'PositionChaser';
 end;
 
-class function TNodePositionChaser.URNMatching(const URN: string): boolean;
+class function TPositionChaserNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePositionChaser2D.CreateNode;
+procedure TPositionChaser2DNode.CreateNode;
 begin
   inherited;
 
@@ -542,18 +542,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodePositionChaser2D.ClassNodeTypeName: string;
+class function TPositionChaser2DNode.ClassNodeTypeName: string;
 begin
   Result := 'PositionChaser2D';
 end;
 
-class function TNodePositionChaser2D.URNMatching(const URN: string): boolean;
+class function TPositionChaser2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePositionDamper.CreateNode;
+procedure TPositionDamperNode.CreateNode;
 begin
   inherited;
 
@@ -577,18 +577,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodePositionDamper.ClassNodeTypeName: string;
+class function TPositionDamperNode.ClassNodeTypeName: string;
 begin
   Result := 'PositionDamper';
 end;
 
-class function TNodePositionDamper.URNMatching(const URN: string): boolean;
+class function TPositionDamperNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePositionDamper2D.CreateNode;
+procedure TPositionDamper2DNode.CreateNode;
 begin
   inherited;
 
@@ -612,18 +612,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodePositionDamper2D.ClassNodeTypeName: string;
+class function TPositionDamper2DNode.ClassNodeTypeName: string;
 begin
   Result := 'PositionDamper2D';
 end;
 
-class function TNodePositionDamper2D.URNMatching(const URN: string): boolean;
+class function TPositionDamper2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScalarChaser.CreateNode;
+procedure TScalarChaserNode.CreateNode;
 begin
   inherited;
 
@@ -647,18 +647,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeScalarChaser.ClassNodeTypeName: string;
+class function TScalarChaserNode.ClassNodeTypeName: string;
 begin
   Result := 'ScalarChaser';
 end;
 
-class function TNodeScalarChaser.URNMatching(const URN: string): boolean;
+class function TScalarChaserNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTexCoordDamper2D.CreateNode;
+procedure TTexCoordDamper2DNode.CreateNode;
 begin
   inherited;
 
@@ -682,12 +682,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTexCoordDamper2D.ClassNodeTypeName: string;
+class function TTexCoordDamper2DNode.ClassNodeTypeName: string;
 begin
   Result := 'TexCoordDamper2D';
 end;
 
-class function TNodeTexCoordDamper2D.URNMatching(const URN: string): boolean;
+class function TTexCoordDamper2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -696,16 +696,16 @@ end;
 procedure RegisterFollowersNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeColorDamper,
-    TNodeCoordinateDamper,
-    TNodeOrientationChaser,
-    TNodeOrientationDamper,
-    TNodePositionChaser,
-    TNodePositionChaser2D,
-    TNodePositionDamper,
-    TNodePositionDamper2D,
-    TNodeScalarChaser,
-    TNodeTexCoordDamper2D
+    TColorDamperNode,
+    TCoordinateDamperNode,
+    TOrientationChaserNode,
+    TOrientationDamperNode,
+    TPositionChaserNode,
+    TPositionChaser2DNode,
+    TPositionDamperNode,
+    TPositionDamper2DNode,
+    TScalarChaserNode,
+    TTexCoordDamper2DNode
   ]);
 end;
 

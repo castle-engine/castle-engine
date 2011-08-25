@@ -61,7 +61,7 @@ procedure RenderMaterialsBegin;
 
   { Sets current OpenGL material and color properties for VRML 1.0 material
     (index 0). }
-  procedure Material_1(M: TNodeMaterial_1);
+  procedure Material_1(M: TMaterialNode_1);
   var
     UnlitColor: TVector3Single;
   begin
@@ -73,7 +73,7 @@ procedure RenderMaterialsBegin;
       well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
       for the moment).
 
-      If it's determined to be unlit by TNodeIndexedLineSet_1.Lit
+      If it's determined to be unlit by TIndexedLineSetNode_1.Lit
       (that is, it has not enough normals), but OnlyEmissiveMaterial is @false
       (we have usable material diffuse), we want the unlit color to be the same
       as when it was lit but we were watching with GL_LIGHTING off.
@@ -82,7 +82,7 @@ procedure RenderMaterialsBegin;
       Admittedly, I'm doing it all by just guessing what user may want...
       VRML 1.0 spec doesn't specify here what should really be done, i.e. what
       unlit color should be used. }
-    if (Shape.Geometry is TNodeIndexedLineSet_1) and (not M.OnlyEmissiveMaterial) then
+    if (Shape.Geometry is TIndexedLineSetNode_1) and (not M.OnlyEmissiveMaterial) then
       UnlitColor := M.DiffuseColor3Single(0) else
       UnlitColor := M.EmissiveColor3Single(0);
 
@@ -98,7 +98,7 @@ procedure RenderMaterialsBegin;
 
   { Sets current OpenGL material and color properties for VRML >= 2.0 material.
     Material may be nil. }
-  procedure Material_2(Material: TNodeMaterial);
+  procedure Material_2(Material: TMaterialNode);
   begin
     if Material <> nil then
     begin
@@ -124,14 +124,14 @@ procedure RenderMaterialsBegin;
   end;
 
 var
-  M1: TNodeMaterial_1;
-  M2: TNodeMaterial;
+  M1: TMaterialNode_1;
+  M2: TMaterialNode;
   MaterialLit: boolean;
 begin
   { calculate material parameters: M1, M2, MaterialLit }
   M1 := nil;
   M2 := nil;
-  if Shape.Geometry is TVRMLGeometryNode_1 then
+  if Shape.Geometry is TAbstractGeometryNode_1 then
   begin
     { VRML 1.0 }
     M1 := Shape.State.LastNodes.Material;

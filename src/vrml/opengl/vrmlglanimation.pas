@@ -25,7 +25,7 @@ uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
 
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
-    out RootNode: TVRMLRootNode; out Time: Single) of object;
+    out RootNode: TX3DRootNode; out Time: Single) of object;
 
   { A "precalculated" animation of VRML model done by
     interpolating between any number of model states.
@@ -105,20 +105,20 @@ type
     function InfoBoundingBox: string;
   private
     { Helpers for Load implementation. }
-    Load_RootNodes: TVRMLNodeList;
+    Load_RootNodes: TX3DNodeList;
     Load_Times: TSingleList;
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
-      out RootNode: TVRMLRootNode; out Time: Single);
+      out RootNode: TX3DRootNode; out Time: Single);
   private
     { Helpers for LoadFromVRMLEvents implementation. }
     LoadFromVRMLEvents_TimeBegin: Single;
     LoadFromVRMLEvents_Scene: TVRMLScene;
     LoadFromVRMLEvents_ScenesPerTime: Cardinal;
     procedure LoadFromVRMLEvents_GetRootNodeWithTime(const Index: Cardinal;
-      out RootNode: TVRMLRootNode; out Time: Single);
+      out RootNode: TX3DRootNode; out Time: Single);
     procedure LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
       const Index: Cardinal;
-      out RootNode: TVRMLRootNode; out Time: Single);
+      out RootNode: TX3DRootNode; out Time: Single);
 
     procedure SetOwnsFirstRootNode(const Value: boolean);
   protected
@@ -159,7 +159,7 @@ type
 
       @param(RootNodes
         Models describing the "predefined" frames of animation.
-        They must descend from TVRMLRootNode.
+        They must descend from TX3DRootNode.
 
         For all nodes except the first: They are @italic(always)
         owned by this class --- that's needed,
@@ -206,7 +206,7 @@ type
         same node that are in fact equal.)
     }
     procedure Load(
-      RootNodes: TVRMLNodeList;
+      RootNodes: TX3DNodeList;
       AOwnsFirstRootNode: boolean;
       ATimes: TSingleList;
       ScenesPerTime: Cardinal;
@@ -229,7 +229,7 @@ type
       @param(ProgressTitle When <> '' we will use Progress.Init, Step, Fini
         to display nice progress of operation.) }
     procedure LoadFromVRMLEvents(
-      RootNode: TVRMLRootNode;
+      RootNode: TX3DRootNode;
       AOwnsRootNode: boolean;
       const ATimeBegin, ATimeEnd: Single;
       ScenesPerTime: Cardinal;
@@ -250,7 +250,7 @@ type
       This is usefull when you know that you have a static scene,
       but still you want to treat it as TVRMLGLAnimation. }
     procedure LoadStatic(
-      RootNode: TVRMLNode;
+      RootNode: TX3DNode;
       AOwnsRootNode: boolean);
 
     { This loads TVRMLGLAnimation by loading it's parameters
@@ -679,7 +679,7 @@ type
     FParentAnimation: TVRMLGLAnimation;
   public
     constructor CreateForAnimation(
-      ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
+      ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       ACustomRenderer: TVRMLGLRenderer;
       AParentAnimation: TVRMLGLAnimation;
       AStatic: boolean);
@@ -691,7 +691,7 @@ type
   end;
 
 constructor TVRMLGLAnimationScene.CreateForAnimation(
-  ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
+  ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   ACustomRenderer: TVRMLGLRenderer;
   AParentAnimation: TVRMLGLAnimation;
   AStatic: boolean);
@@ -812,7 +812,7 @@ procedure TVRMLGLAnimation.LoadCore(
     If models are structurally different (which means that even
     interpolating between Model1 and Model2 is not possible),
     it will raise EModelsStructureDifferent. }
-  procedure CheckVRMLModelsStructurallyEqual(Model1, Model2: TVRMLNode);
+  procedure CheckVRMLModelsStructurallyEqual(Model1, Model2: TX3DNode);
 
     procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
     begin
@@ -848,10 +848,10 @@ procedure TVRMLGLAnimation.LoadCore(
         [Model1.ClassName, Model2.ClassName]);
 
     { Make sure that *Inline content is loaded now. }
-    if Model1 is TNodeInline then
+    if Model1 is TInlineNode then
     begin
-      TNodeInline(Model1).LoadInlined(false);
-      TNodeInline(Model2).LoadInlined(false);
+      TInlineNode(Model1).LoadInlined(false);
+      TInlineNode(Model2).LoadInlined(false);
     end;
 
     if Model1.NodeName <> Model2.NodeName then
@@ -875,8 +875,8 @@ procedure TVRMLGLAnimation.LoadCore(
     { Yes, the situation below can happen. *Usually* when we know
       that Model1 and Model2 are equal classes then we know that
       they have the same number of fields of the same type.
-      However, for TVRMLUnknownNode, it's not that easy. Two different instances
-      of TVRMLUnknownNode class may have completely different fields,
+      However, for TX3DUnknownNode, it's not that easy. Two different instances
+      of TX3DUnknownNode class may have completely different fields,
       so we must safeguard against this. }
     if Model1.Fields.Count <> Model2.Fields.Count then
       raise EModelsStructureDifferent.CreateFmt(
@@ -918,16 +918,16 @@ procedure TVRMLGLAnimation.LoadCore(
       begin
         { Check fields for equality.
 
-          Some special fields like TNodeInline.FdUrl do not
+          Some special fields like TInlineNode.FdUrl do not
           have to be equal, as they don't have any role for the
-          "real" meaning of the model. I mean, if TNodeInline.Inlined
+          "real" meaning of the model. I mean, if TInlineNode.Inlined
           contents (loaded from pointed file) have the same structure,
           then we're happy. And it's handy to allow this --- see e.g.
           examples/models/gus_1_final.wrl and
           examples/models/gus_2_final.wrl trick. }
 
         if not (
-           ( (Model1 is TNodeInline)            and (Model1.Fields[I].Name = 'url') ) or
+           ( (Model1 is TInlineNode)            and (Model1.Fields[I].Name = 'url') ) or
            Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
            ) then
           raise EModelsStructureDifferent.CreateFmt(
@@ -962,7 +962,7 @@ procedure TVRMLGLAnimation.LoadCore(
        is loaded from the file only once. This means that memory is saved,
        once again. This also means that in case when texture file doesn't
        exist, user gets only 1 warning/error message (instead of getting
-       warning/error message for each duplicated TNodeTexture2 instance).
+       warning/error message for each duplicated TTexture2Node instance).
 
     3. Also for nodes like Texture2, this means that if we use the same
        VRMLGLRenderer to render every model of the animation,
@@ -975,7 +975,7 @@ procedure TVRMLGLAnimation.LoadCore(
     4. And later the Shape cache of TVRMLGLRenderer can speed
        up loading time and conserve memory use, if it sees the same
        reference to given GeometryNode twice. }
-  function VRMLModelsMerge(Model1, Model2: TVRMLNode): boolean;
+  function VRMLModelsMerge(Model1, Model2: TX3DNode): boolean;
 
     function SFNodesMerge(Field1, Field2: TSFNode): boolean;
     begin
@@ -1069,7 +1069,7 @@ procedure TVRMLGLAnimation.LoadCore(
     then this will return just Model1. This way it keeps memory optimization
     described by VRMLModelsMerge. This is also true if both Model1 and Model2
     are nil: then you can safely call this and it will return also nil. }
-  function VRMLModelLerp(const A: Single; Model1, Model2: TVRMLNode): TVRMLNode;
+  function VRMLModelLerp(const A: Single; Model1, Model2: TX3DNode): TX3DNode;
 
     procedure SFNodeLerp(Target, Field1, Field2: TSFNode);
     begin
@@ -1090,7 +1090,7 @@ procedure TVRMLGLAnimation.LoadCore(
     if Model1 = Model2 then
       Exit(Model1);
 
-    Result := TVRMLNodeClass(Model1.ClassType).Create(Model1.NodeName,
+    Result := TX3DNodeClass(Model1.ClassType).Create(Model1.NodeName,
       Model1.WWWBasePath);
     try
       { We already loaded all inlines (in CheckVRMLModelsStructurallyEqual).
@@ -1098,21 +1098,21 @@ procedure TVRMLGLAnimation.LoadCore(
         inside inline nodes --- otherwise, they could be loaded again
         (adding content to already existing nodes, making content loaded
         more than once). }
-      if Result is TNodeInline then
+      if Result is TInlineNode then
       begin
-        TNodeInline(Result).LoadedInlineDirectly;
+        TInlineNode(Result).LoadedInlineDirectly;
       end;
 
       { TODO: the code below doesn't deal efficiently with the situation when single
-        TVRMLNode is used as a child many times in one of the nodes.
+        TX3DNode is used as a child many times in one of the nodes.
         (through VRML "USE" keyword). Code below will then unnecessarily
         create copies of such things (wasting construction time and memory),
         instead of reusing the same object reference. }
       for I := 0 to Model1.VRML1ChildrenCount - 1 do
         Result.VRML1ChildAdd(VRMLModelLerp(A, Model1.VRML1Children[I], Model2.VRML1Children[I]));
 
-      { TODO: for TVRMLUnknownNode, we should fill here Result.Fields.
-        Also for TVRMLPrototypeNode. }
+      { TODO: for TX3DUnknownNode, we should fill here Result.Fields.
+        Also for TX3DPrototypeNode. }
 
       for I := 0 to Model1.Fields.Count - 1 do
       begin
@@ -1149,7 +1149,7 @@ procedure TVRMLGLAnimation.LoadCore(
 var
   SceneStatic: boolean;
 
-  function CreateOneScene(Node: TVRMLRootNode;
+  function CreateOneScene(Node: TX3DRootNode;
     OwnsRootNode: boolean): TVRMLGLAnimationScene;
   begin
     Result := TVRMLGLAnimationScene.CreateForAnimation(
@@ -1160,7 +1160,7 @@ var
   I: Integer;
   StructurallyEqual, RootNodesEqual: boolean;
   LastSceneIndex: Integer;
-  LastSceneRootNode, NewRootNode: TVRMLRootNode;
+  LastSceneRootNode, NewRootNode: TX3DRootNode;
   LastTime, NewTime: Single;
   SceneIndex: Integer;
 begin
@@ -1233,7 +1233,7 @@ begin
         for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 2 do
           FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
             MapRange(SceneIndex, LastSceneIndex, FScenes.Count - 1, 0.0, 1.0),
-            LastSceneRootNode, NewRootNode) as TVRMLRootNode, true);
+            LastSceneRootNode, NewRootNode) as TX3DRootNode, true);
         FScenes[FScenes.Count - 1] := CreateOneScene(NewRootNode, true);
         LastSceneRootNode := NewRootNode;
       end;
@@ -1259,14 +1259,14 @@ begin
 end;
 
 procedure TVRMLGLAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
-  out RootNode: TVRMLRootNode; out Time: Single);
+  out RootNode: TX3DRootNode; out Time: Single);
 begin
-  RootNode := Load_RootNodes[Index] as TVRMLRootNode;
+  RootNode := Load_RootNodes[Index] as TX3DRootNode;
   Time := Load_Times[Index];
 end;
 
 procedure TVRMLGLAnimation.Load(
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   AOwnsFirstRootNode: boolean;
   ATimes: TSingleList;
   ScenesPerTime: Cardinal;
@@ -1282,7 +1282,7 @@ end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime(
   const Index: Cardinal;
-  out RootNode: TVRMLRootNode; out Time: Single);
+  out RootNode: TX3DRootNode; out Time: Single);
 begin
   Time := LoadFromVRMLEvents_TimeBegin;
   if LoadFromVRMLEvents_ScenesPerTime <> 0 then
@@ -1292,19 +1292,19 @@ begin
     LoadFromVRMLEvents_Scene.ResetTime(Time) else
     LoadFromVRMLEvents_Scene.SetTime(Time);
 
-  RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy as TVRMLRootNode;
+  RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
 end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
   const Index: Cardinal;
-  out RootNode: TVRMLRootNode; out Time: Single);
+  out RootNode: TX3DRootNode; out Time: Single);
 begin
   LoadFromVRMLEvents_GetRootNodeWithTime(Index, RootNode, Time);
   Progress.Step;
 end;
 
 procedure TVRMLGLAnimation.LoadFromVRMLEvents(
-  RootNode: TVRMLRootNode;
+  RootNode: TX3DRootNode;
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
   ScenesPerTime: Cardinal;
@@ -1353,13 +1353,13 @@ begin
 end;
 
 procedure TVRMLGLAnimation.LoadStatic(
-  RootNode: TVRMLNode;
+  RootNode: TX3DNode;
   AOwnsRootNode: boolean);
 var
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   ATimes: TSingleList;
 begin
-  RootNodes := TVRMLNodeList.Create(false);
+  RootNodes := TX3DNodeList.Create(false);
   try
     ATimes := TSingleList.Create;
     try
@@ -1374,13 +1374,13 @@ procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
   const AllowStdIn, LoadTime: boolean);
 var
   Times: TSingleList;
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
   Times := TSingleList.Create;
-  RootNodes := TVRMLNodeList.Create(false);
+  RootNodes := TX3DNodeList.Create(false);
   try
     LoadVRMLSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
@@ -1737,16 +1737,16 @@ procedure TVRMLGLAnimation.ResetTimeAtLoad(const ForceTimeOrigin: boolean = fals
 
   function TimeOriginAtLoad: boolean;
   var
-    N: TNodeNavigationInfo;
+    N: TNavigationInfoNode;
   begin
     Result := false;
 
     if Loaded then
     begin
-      N := Scenes[0].NavigationInfoStack.Top as TNodeNavigationInfo;
+      N := Scenes[0].NavigationInfoStack.Top as TNavigationInfoNode;
       if (N <> nil) and
-         (N is TNodeKambiNavigationInfo) then
-        Result := TNodeKambiNavigationInfo(N).FdTimeOriginAtLoad.Value;
+         (N is TKambiNavigationInfoNode) then
+        Result := TKambiNavigationInfoNode(N).FdTimeOriginAtLoad.Value;
     end;
   end;
 

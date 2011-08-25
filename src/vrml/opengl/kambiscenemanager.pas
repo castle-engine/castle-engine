@@ -63,7 +63,7 @@ type
     FHeadlightFromViewport: boolean;
     FAlwaysApplyProjection: boolean;
     FUseGlobalLights: boolean;
-    DefaultHeadlightNode: TNodeDirectionalLight;
+    DefaultHeadlightNode: TDirectionalLightNode;
 
     { If a texture rectangle for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth are non-zero and ScreenEffectRTT is non-nil.
@@ -158,7 +158,7 @@ type
       is obtained from TVRMLScene.CustomHeadlight.
 
       You can override this method to determine the headlight in any other way. }
-    function Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean; virtual;
+    function Headlight(out CustomHeadlight: TAbstractX3DLightNode): boolean; virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
@@ -1318,7 +1318,7 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-function TKamAbstractViewport.Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean;
+function TKamAbstractViewport.Headlight(out CustomHeadlight: TAbstractX3DLightNode): boolean;
 begin
   Result := (GetMainScene <> nil) and GetMainScene.HeadlightOn;
   if Result then
@@ -1328,12 +1328,12 @@ end;
 
 function TKamAbstractViewport.HeadlightInstance(var Instance: TLightInstance): boolean;
 var
-  CustomHeadlight: TNodeX3DLightNode;
+  CustomHeadlight: TAbstractX3DLightNode;
   HC: TCamera;
 
   procedure PrepareInstance;
   var
-    Node: TNodeX3DLightNode;
+    Node: TAbstractX3DLightNode;
     Position, Direction, Up: TVector3Single;
   begin
     { calculate Node, for Instance.Node }
@@ -1344,7 +1344,7 @@ var
       if DefaultHeadlightNode = nil then
         { Nothing more needed, all DirectionalLight default properties
           are suitable for default headlight. }
-        DefaultHeadlightNode := TNodeDirectionalLight.Create('', '');;
+        DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
       Node := DefaultHeadlightNode;
     end;
 
@@ -1353,16 +1353,16 @@ var
     HC.GetView(Position, Direction, Up);
 
     { set location/direction of Node }
-    if Node is TVRMLPositionalLightNode then
+    if Node is TAbstractPositionalLightNode then
     begin
-      TVRMLPositionalLightNode(Node).FdLocation.Send(Position);
-      if Node is TNodeSpotLight then
-        TNodeSpotLight(Node).FdDirection.Send(Direction) else
-      if Node is TNodeSpotLight_1 then
-        TNodeSpotLight_1(Node).FdDirection.Send(Direction);
+      TAbstractPositionalLightNode(Node).FdLocation.Send(Position);
+      if Node is TSpotLightNode then
+        TSpotLightNode(Node).FdDirection.Send(Direction) else
+      if Node is TSpotLightNode_1 then
+        TSpotLightNode_1(Node).FdDirection.Send(Direction);
     end else
-    if Node is TVRMLDirectionalLightNode then
-      TVRMLDirectionalLightNode(Node).FdDirection.Send(Direction);
+    if Node is TAbstractDirectionalLightNode then
+      TAbstractDirectionalLightNode(Node).FdDirection.Send(Direction);
 
     Instance.Node := Node;
     Instance.Location := Position;

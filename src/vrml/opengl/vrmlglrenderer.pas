@@ -159,18 +159,18 @@
   @bold(Rendered TrianglesCount and VerticesCount:)
 
   This renderer uses the same triangles and vertices counts as
-  calculated by TVRMLGeometryNode.Triangulate,
-  TVRMLGeometryNode.LocalTriangulate,
-  TVRMLGeometryNode.TrianglesCount,
-  TVRMLGeometryNode.VerticesCount, with OverTriangulate = @true.
+  calculated by TAbstractGeometryNode.Triangulate,
+  TAbstractGeometryNode.LocalTriangulate,
+  TAbstractGeometryNode.TrianglesCount,
+  TAbstractGeometryNode.VerticesCount, with OverTriangulate = @true.
 
-  Note that it doesn't mean that we actually call TVRMLGeometryNode.Triangulate
+  Note that it doesn't mean that we actually call TAbstractGeometryNode.Triangulate
   for VRML rendering. In fact, currently we don't, and it allows us to be
   much faster (for starters, rendering by indexes, or quad strips,
   that would not be possible by generic implementation calling
-  TVRMLGeometryNode.Triangulate).
+  TAbstractGeometryNode.Triangulate).
   But our rendering methods generate the same triangles
-  as TVRMLGeometryNode.Triangulate.
+  as TAbstractGeometryNode.Triangulate.
 
   Although for debug purposes, we have a renderer using
   TVRMLShape.LocalTriangulate, see notes about
@@ -230,7 +230,7 @@ uses
 {$define read_interface}
 
 type
-  TBeforeGLVertexProc = procedure (Node: TVRMLGeometryNode;
+  TBeforeGLVertexProc = procedure (Node: TAbstractGeometryNode;
     const Vert: TVector3Single) of object;
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
   { Faces to cull (make invisible) during VRML/X3D rendering. }
@@ -571,14 +571,14 @@ type
 
     { The initial VRML/X3D node that created this cache record.
       This is only the first node, that initiated this
-      TTextureImageCache item. Note that many TVRML2DTextureNode nodes
+      TTextureImageCache item. Note that many TAbstractTexture2DNode nodes
       may correspond to a single TTextureImageCache (since TTextureImageCache
       only tries to share GLName between them). So this may help during
       _IncReference, but nothing more --- it's *not* an exhaustive list
       of texture nodes related to this video texture!
 
-      It may be currently TVRML2DTextureNode, or TNodeRenderedTexture. }
-    InitialNode: TNodeX3DTextureNode;
+      It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
+    InitialNode: TAbstractX3DTextureNode;
 
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -600,14 +600,14 @@ type
     FullUrl: string;
 
     { The initial VRML/X3D node that created this cache record.
-      This is only the first TNodeMovieTexture node, that initiated this
-      TTextureVideoCache item. Note that many TNodeMovieTexture nodes
+      This is only the first TMovieTextureNode node, that initiated this
+      TTextureVideoCache item. Note that many TMovieTextureNode nodes
       may correspond to a single TTextureVideoCache (since TTextureVideoCache
       only tries to share TGLVideo between them, they don't have to share
       other fields like current time etc.). So this may help during
       _IncReference, but nothing more --- it's *not* an exhaustive list
       of MovieTexture nodes related to this video texture! }
-    InitialNode: TNodeMovieTexture;
+    InitialNode: TMovieTextureNode;
 
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -626,7 +626,7 @@ type
   TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
-    InitialNode: TNodeX3DEnvironmentTextureNode;
+    InitialNode: TAbstractX3DEnvironmentTextureNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
     Anisotropy: TGLfloat;
@@ -643,7 +643,7 @@ type
   TTextureCubeMapCacheList = specialize TFPGObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
-    InitialNode: TNodeX3DTexture3DNode;
+    InitialNode: TAbstractX3DTexture3DNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
     Anisotropy: TGLfloat;
@@ -664,8 +664,8 @@ type
     For now, depth and float textures require the same fields. }
   TTextureDepthOrFloatCache = class
     { The initial VRML/X3D node that created this cache record.
-      For now, this may be TNodeGeneratedShadowMap or TNodeRenderedTexture. }
-    InitialNode: TNodeX3DTextureNode;
+      For now, this may be TGeneratedShadowMapNode or TRenderedTextureNode. }
+    InitialNode: TAbstractX3DTextureNode;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
@@ -681,9 +681,9 @@ type
   TShapeCache = class
   private
     Attributes: TVRMLRenderingAttributes;
-    Geometry: TVRMLGeometryNode;
+    Geometry: TAbstractGeometryNode;
     State: TVRMLGraphTraverseState;
-    Fog: INodeX3DFogObject;
+    Fog: IAbstractX3DFogObject;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
@@ -766,7 +766,7 @@ type
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
-      const TextureNode: TNodeX3DTextureNode;
+      const TextureNode: TAbstractX3DTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -779,7 +779,7 @@ type
     function TextureVideo_IncReference(
       const TextureVideo: TVideo;
       const TextureFullUrl: string;
-      const TextureNode: TNodeMovieTexture;
+      const TextureNode: TMovieTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -793,7 +793,7 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureCubeMap_IncReference(
-      Node: TNodeX3DEnvironmentTextureNode;
+      Node: TAbstractX3DEnvironmentTextureNode;
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       PositiveX, NegativeX,
@@ -811,7 +811,7 @@ type
       (but we'll make nice warning if it's not available).
       DepthCompareField may be @nil, then it's equivalent to "NONE". }
     function TextureDepth_IncReference(
-      Node: TNodeX3DTextureNode;
+      Node: TAbstractX3DTextureNode;
       const TextureWrap: TTextureWrap2D;
       DepthCompareField: TSFString;
       const Width, Height: Cardinal;
@@ -824,7 +824,7 @@ type
       Required ARB_texture_float or ATI_texture_float before calling this.
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
-    function TextureFloat_IncReference(Node: TNodeX3DTextureNode;
+    function TextureFloat_IncReference(Node: TAbstractX3DTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
@@ -837,7 +837,7 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function Texture3D_IncReference(
-      Node: TNodeX3DTexture3DNode;
+      Node: TAbstractX3DTexture3DNode;
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
@@ -862,7 +862,7 @@ type
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
-      Fog: INodeX3DFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
+      Fog: IAbstractX3DFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
 
@@ -1024,7 +1024,7 @@ type
     LightsRenderer: TVRMLGLLightsRenderer;
 
     { Currently set fog parameters, during render. }
-    FogNode: INodeX3DFogObject;
+    FogNode: IAbstractX3DFogObject;
     FogEnabled: boolean;
     FogType: TFogType;
     FogVolumetric: boolean;
@@ -1042,7 +1042,7 @@ type
     Pass: TRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
-    procedure GetFog(Node: INodeX3DFogObject;
+    procedure GetFog(Node: IAbstractX3DFogObject;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3Single;
       out VolumetricVisibilityStart: Single);
@@ -1069,36 +1069,36 @@ type
     procedure DisableCurrentTexture;
 
     procedure RenderShapeLineProperties(Shape: TVRMLRendererShape;
-      Fog: INodeX3DFogObject; Shader: TVRMLShader);
-    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+      Fog: IAbstractX3DFogObject; Shader: TVRMLShader);
+    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader);
-    procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
-    procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+    procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TVRMLArraysGeneratorClass;
@@ -1110,7 +1110,7 @@ type
     procedure RenderCleanState(const Beginning: boolean);
 
     procedure PrepareIDecls(Nodes: TMFNode; State: TVRMLGraphTraverseState);
-    procedure PrepareIDecls(Nodes: TVRMLNodeList; State: TVRMLGraphTraverseState);
+    procedure PrepareIDecls(Nodes: TX3DNodeList; State: TVRMLGraphTraverseState);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -1136,7 +1136,7 @@ type
     procedure Prepare(State: TVRMLGraphTraverseState);
 
     { Release resources for this texture. }
-    procedure UnprepareTexture(Node: TNodeX3DTextureNode);
+    procedure UnprepareTexture(Node: TAbstractX3DTextureNode);
 
     { Release every OpenGL and VRML resource. That is release any knowledge
       connecting us to the current OpenGL context and any knowledge
@@ -1154,7 +1154,7 @@ type
       LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(Shape: TVRMLRendererShape; Fog: INodeX3DFogObject);
+    procedure RenderShape(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject);
 
     { Get calculated TImage.AlphaChannelType for a prepared texture.
 
@@ -1174,11 +1174,11 @@ type
         )
         @item(Attributes.PureGeometry = @false,)
         @item(and node must have some texture data
-          (for TVRML2DTextureNode, check TextureNode.IsTextureImage or
+          (for TAbstractTexture2DNode, check TextureNode.IsTextureImage or
           TextureNode.IsTextureVideo))
       ) }
     function PreparedTextureAlphaChannelType(
-      TextureNode: TNodeX3DTextureNode;
+      TextureNode: TAbstractX3DTextureNode;
       out AlphaChannelType: TAlphaChannelType): boolean;
 
     { Update generated texture for this shape.
@@ -1187,11 +1187,11 @@ type
       (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
       will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
-      TextureNode: TNodeX3DTextureNode;
+      TextureNode: TAbstractX3DTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
-      CurrentViewpoint: TVRMLViewpointNode;
+      CurrentViewpoint: TAbstractViewpointNode;
       CameraViewKnown: boolean;
       const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
@@ -1203,7 +1203,7 @@ type
 
       The GLSL program (TGLSLProgram) will be stored here,
       and will be automatically freed during UnprepareAll call. }
-    procedure PrepareScreenEffect(Node: TNodeScreenEffect);
+    procedure PrepareScreenEffect(Node: TScreenEffectNode);
   end;
 
   EVRMLGLRendererror = class(EVRMLError);
@@ -1365,7 +1365,7 @@ const
 function TVRMLGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
-  const TextureNode: TNodeX3DTextureNode;
+  const TextureNode: TAbstractX3DTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1438,10 +1438,10 @@ begin
   TextureCached.GLName := Result;
 
   { calculate and save AlphaChannelType in the cache }
-  if TextureNode is TVRML2DTextureNode then
+  if TextureNode is TAbstractTexture2DNode then
   begin
     TextureCached.AlphaChannelType := TextureImage.AlphaChannelTypeOverride(
-      TVRML2DTextureNode(TextureNode).DetectAlphaChannel,
+      TAbstractTexture2DNode(TextureNode).DetectAlphaChannel,
       AlphaTolerance, AlphaWrongPixelsTolerance);
     if Log and (TextureCached.AlphaChannelType <> atNone)  then
       WritelnLog('Alpha Detection', 'Alpha texture ' + TextureFullUrl +
@@ -1486,7 +1486,7 @@ end;
 function TVRMLGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
   const TextureFullUrl: string;
-  const TextureNode: TNodeMovieTexture;
+  const TextureNode: TMovieTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1575,7 +1575,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.TextureCubeMap_IncReference(
-  Node: TNodeX3DEnvironmentTextureNode;
+  Node: TAbstractX3DEnvironmentTextureNode;
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
   PositiveX, NegativeX,
@@ -1672,7 +1672,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Texture3D_IncReference(
-  Node: TNodeX3DTexture3DNode;
+  Node: TAbstractX3DTexture3DNode;
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
@@ -1760,7 +1760,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.TextureDepth_IncReference(
-  Node: TNodeX3DTextureNode;
+  Node: TAbstractX3DTextureNode;
   const TextureWrap: TTextureWrap2D;
   DepthCompareField: TSFString;
   const Width, Height: Cardinal;
@@ -1868,7 +1868,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.TextureFloat_IncReference(
-  Node: TNodeX3DTextureNode;
+  Node: TAbstractX3DTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
@@ -1948,7 +1948,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Shape_IncReference(
-  Shape: TVRMLRendererShape; Fog: INodeX3DFogObject;
+  Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
   ARenderer: TVRMLGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
@@ -2473,7 +2473,7 @@ begin
   PrepareIDecls(Nodes.Items, State);
 end;
 
-procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TVRMLNodeList;
+procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TX3DNodeList;
   State: TVRMLGraphTraverseState);
 var
   I: Integer;
@@ -2497,10 +2497,10 @@ procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
   end;
 
 var
-  FontStyle: TNodeFontStyle;
+  FontStyle: TFontStyleNode;
   I: Integer;
   Lights: TLightInstancesList;
-  Texture: TNodeX3DTextureNode;
+  Texture: TAbstractX3DTextureNode;
 begin
   { przygotuj font }
   if State.ShapeNode = nil then
@@ -2510,20 +2510,20 @@ begin
       State.LastNodes.FontStyle.Italic,
       State.LastNodes.FontStyle.TTF_Font) else
   if (State.ShapeNode.FdGeometry.Value <> nil) and
-     (State.ShapeNode.FdGeometry.Value is TNodeText) then
+     (State.ShapeNode.FdGeometry.Value is TTextNode) then
   begin
-    { We know that TNodeText(State.ShapeNode.FdGeometry.Value)
+    { We know that TTextNode(State.ShapeNode.FdGeometry.Value)
       will be the shape node rendered along with this State.
       That's how it works in VRML 2.0: State actually contains
       reference to Shape that contains reference to geometry node,
       which means that actually State contains rendered node too. }
-    FontStyle := TNodeText(State.ShapeNode.FdGeometry.Value).FontStyle;
+    FontStyle := TTextNode(State.ShapeNode.FdGeometry.Value).FontStyle;
     if FontStyle = nil then
       PrepareFont(
-        TNodeFontStyle.DefaultFamily,
-        TNodeFontStyle.DefaultBold,
-        TNodeFontStyle.DefaultItalic,
-        TNodeFontStyle.DefaultTTF_Font) else
+        TFontStyleNode.DefaultFamily,
+        TFontStyleNode.DefaultBold,
+        TFontStyleNode.DefaultItalic,
+        TFontStyleNode.DefaultTTF_Font) else
       PrepareFont(
         FontStyle.Family,
         FontStyle.Bold,
@@ -2531,20 +2531,20 @@ begin
         FontStyle.TTF_Font);
   end else
   if (State.ShapeNode.FdGeometry.Value <> nil) and
-     (State.ShapeNode.FdGeometry.Value is TNodeText3D) then
+     (State.ShapeNode.FdGeometry.Value is TText3DNode) then
   begin
-    { We know that TNodeText3D(State.ShapeNode.FdGeometry.Value)
+    { We know that TText3DNode(State.ShapeNode.FdGeometry.Value)
       will be the shape node rendered along with this State.
       That's how it works in VRML 2.0: State actually contains
       reference to Shape that contains reference to geometry node,
       which means that actually State contains rendered node too. }
-    FontStyle := TNodeText3D(State.ShapeNode.FdGeometry.Value).FontStyle;
+    FontStyle := TText3DNode(State.ShapeNode.FdGeometry.Value).FontStyle;
     if FontStyle = nil then
       PrepareFont(
-        TNodeFontStyle.DefaultFamily,
-        TNodeFontStyle.DefaultBold,
-        TNodeFontStyle.DefaultItalic,
-        TNodeFontStyle.DefaultTTF_Font) else
+        TFontStyleNode.DefaultFamily,
+        TFontStyleNode.DefaultBold,
+        TFontStyleNode.DefaultItalic,
+        TFontStyleNode.DefaultTTF_Font) else
       PrepareFont(
         FontStyle.Family,
         FontStyle.Bold,
@@ -2575,19 +2575,19 @@ begin
   if Texture <> nil then
   begin
     PrepareIDecls(Texture.FdEffects, State);
-    if Texture is TNodeMultiTexture then
-      for I := 0 to TNodeMultiTexture(Texture).FdTexture.Count - 1 do
-        if TNodeMultiTexture(Texture).FdTexture[I] is TNodeX3DTextureNode then
-          PrepareIDecls(TNodeX3DTextureNode(TNodeMultiTexture(Texture).
+    if Texture is TMultiTextureNode then
+      for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
+        if TMultiTextureNode(Texture).FdTexture[I] is TAbstractX3DTextureNode then
+          PrepareIDecls(TAbstractX3DTextureNode(TMultiTextureNode(Texture).
             FdTexture[I]).FdEffects, State);
   end;
 end;
 
-procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TNodeScreenEffect);
+procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
 var
   Shader: TVRMLShader;
   ShaderProgram: TVRMLGLSLProgram;
-  ShaderNode: TNodeComposedShader;
+  ShaderNode: TComposedShaderNode;
 begin
   if not Node.ShaderLoaded then
   begin
@@ -2626,7 +2626,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.UnprepareTexture(Node: TNodeX3DTextureNode);
+procedure TVRMLGLRenderer.UnprepareTexture(Node: TAbstractX3DTextureNode);
 begin
   GLTextureNodes.Unprepare(Node);
 end;
@@ -2663,7 +2663,7 @@ begin
 end;
 
 function TVRMLGLRenderer.PreparedTextureAlphaChannelType(
-  TextureNode: TNodeX3DTextureNode;
+  TextureNode: TAbstractX3DTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
 var
   Index: Integer;
@@ -2701,7 +2701,7 @@ begin
   if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 end;
 
-procedure TVRMLGLRenderer.GetFog(Node: INodeX3DFogObject;
+procedure TVRMLGLRenderer.GetFog(Node: IAbstractX3DFogObject;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3Single;
   out VolumetricVisibilityStart: Single);
@@ -2917,7 +2917,7 @@ end;
 {$endif USE_VRML_TRIANGULATION}
 
 procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject);
+  Fog: IAbstractX3DFogObject);
 var
   Shader: TVRMLShader;
 begin
@@ -2932,9 +2932,9 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader);
 var
-  LP: TNodeLineProperties;
+  LP: TLinePropertiesNode;
 begin
   if Shape.Node <> nil then { Shape.Node is nil for VRML <= 1.0 }
     LP := Shape.Node.LineProperties else
@@ -2954,7 +2954,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader);
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader);
 
   {$I vrmlglrenderer_materials.inc}
 
@@ -2964,7 +2964,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   SceneLights: TLightInstancesList;
@@ -2992,7 +2992,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
 const
@@ -3001,7 +3001,7 @@ const
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
-  procedure RenderFog(Node: INodeX3DFogObject;
+  procedure RenderFog(Node: IAbstractX3DFogObject;
     out Volumetric: boolean;
     out VolumetricDirection: TVector3Single;
     out VolumetricVisibilityStart: Single);
@@ -3085,23 +3085,23 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
     transformations encoded in this TextureTransform node. }
-  procedure TextureMultMatrix(TextureTransform: TNodeX3DTextureTransformNode);
+  procedure TextureMultMatrix(TextureTransform: TAbstractX3DTextureTransformNode);
   begin
-    if TextureTransform is TNodeTextureTransform then
+    if TextureTransform is TTextureTransformNode then
     begin
       { Optimized version of
           glMultMatrix(TextureTransform.TransformMatrix);
-        specially for TNodeTextureTransform. Possibly using OpenGL
+        specially for TTextureTransformNode. Possibly using OpenGL
         translate etc. commands instead of loading directly 4x4 matrix will
         result in some performance/precision gain (but, not confirmed in
         practice). }
-      with TNodeTextureTransform(TextureTransform) do
+      with TTextureTransformNode(TextureTransform) do
       begin
         glTranslatef(-FdCenter.Value[0], -FdCenter.Value[1], 0);
         glScalef(FdScale.Value[0], FdScale.Value[1], 1);
@@ -3115,8 +3115,8 @@ procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
   end;
 
 var
-  TextureTransform: TNodeX3DTextureTransformNode;
-  Child: TVRMLNode;
+  TextureTransform: TAbstractX3DTextureTransformNode;
+  Child: TX3DNode;
   Transforms: TMFNode;
   I: Integer;
   State: TVRMLGraphTraverseState;
@@ -3166,9 +3166,9 @@ begin
       TextureTransform := State.ShapeNode.TextureTransform;
       if TextureTransform <> nil then
       begin
-        if TextureTransform is TNodeMultiTextureTransform then
+        if TextureTransform is TMultiTextureTransformNode then
         begin
-          Transforms := TNodeMultiTextureTransform(TextureTransform).FdTextureTransform;
+          Transforms := TMultiTextureTransformNode(TextureTransform).FdTextureTransform;
 
           { Multitexturing, so use as many texture units as there are children in
             MultiTextureTransform.textureTransform.
@@ -3181,11 +3181,11 @@ begin
             glPushMatrix;
             Child := Transforms[I];
             if (Child <> nil) and
-               (Child is TNodeX3DTextureTransformNode) then
+               (Child is TAbstractX3DTextureTransformNode) then
             begin
-              if Child is TNodeMultiTextureTransform then
+              if Child is TMultiTextureTransformNode then
                 OnWarning(wtMajor, 'VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
-                TextureMultMatrix(TNodeX3DTextureTransformNode(Child));
+                TextureMultMatrix(TAbstractX3DTextureTransformNode(Child));
             end;
           end;
         end else
@@ -3197,7 +3197,7 @@ begin
           By the way, we don't do any texture transform if Texture = nil,
           since then no texture is used anyway. }
         if (State.Texture <> nil) and
-           (not (State.Texture is TNodeMultiTexture)) then
+           (not (State.Texture is TMultiTextureNode)) then
         begin
           TextureTransformUnitsUsed := 1;
           ActiveTexture(0);
@@ -3239,7 +3239,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
@@ -3319,7 +3319,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
@@ -3339,11 +3339,11 @@ var
 
     if GeneratorClass = nil then
     begin
-      if Shape.Geometry is TNodeAsciiText_1 then
+      if Shape.Geometry is TAsciiTextNode_1 then
         MeshRenderer := TAsciiTextRenderer.Create(Self, Shape) else
-      if Shape.Geometry is TNodeText then
+      if Shape.Geometry is TTextNode then
         MeshRenderer := TTextRenderer.Create(Self, Shape) else
-      if Shape.Geometry is TNodeText3D then
+      if Shape.Geometry is TText3DNode then
         MeshRenderer := TText3DRenderer.Create(Self, Shape) else
         Result := false;
     end else
@@ -3385,7 +3385,7 @@ end;
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
@@ -3396,25 +3396,25 @@ var
 
   function TextureCoordsDefined: Cardinal;
   var
-    TexCoord: TVRMLNode;
+    TexCoord: TX3DNode;
   begin
     if Shape.Geometry.TexCoord(Shape.State, TexCoord) and
        (TexCoord <> nil) then
     begin
-      if TexCoord is TNodeMultiTextureCoordinate then
-        Result := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Count else
+      if TexCoord is TMultiTextureCoordinateNode then
+        Result := TMultiTextureCoordinateNode(TexCoord).FdTexCoord.Count else
         Result := 1;
     end else
       Result := 0;
   end;
 
-  function TextureUnitsDefined(Node: TNodeComposedShader): Cardinal;
+  function TextureUnitsDefined(Node: TComposedShaderNode): Cardinal;
 
-    function TextureUnits(Node: TVRMLNode): Cardinal;
+    function TextureUnits(Node: TX3DNode): Cardinal;
     begin
-      if Node is TNodeMultiTexture then
-        Result := TNodeMultiTexture(Node).FdTexture.Count else
-      if Node is TNodeX3DTextureNode then
+      if Node is TMultiTextureNode then
+        Result := TMultiTextureNode(Node).FdTexture.Count else
+      if Node is TAbstractX3DTextureNode then
         Result := 1 else
         Result := 0;
     end;
@@ -3444,7 +3444,7 @@ var
 
 var
   TCD: Cardinal;
-  UsedShaderNode: TNodeComposedShader;
+  UsedShaderNode: TComposedShaderNode;
 begin
   { Use custom shader code (ComposedShader) if available. }
 
@@ -3480,22 +3480,22 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   UsedGLSLTexCoordsNeeded: Cardinal);
 
-  function NodeTextured(Node: TVRMLGeometryNode): boolean;
+  function NodeTextured(Node: TAbstractGeometryNode): boolean;
   begin
     Result := not (
-      (Node is TNodePointSet) or
-      (Node is TNodeIndexedLineSet));
+      (Node is TPointSetNode) or
+      (Node is TIndexedLineSetNode));
   end;
 
   procedure RenderTexturesBegin;
   var
-    TextureNode: TNodeX3DTextureNode;
+    TextureNode: TAbstractX3DTextureNode;
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
   begin
@@ -3522,7 +3522,7 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
        NodeTextured(Shape.Geometry) and
        (GLTextureNode <> nil) then
     begin
-      { This works also for TextureNode being TNodeMultiTexture,
+      { This works also for TextureNode being TMultiTextureNode,
         since it has smartly calculated AlphaChannelType. }
       AlphaTest := GLTextureNode.AlphaChannelType = atSimpleYesNo;
 
@@ -3587,7 +3587,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  Fog: INodeX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
@@ -3707,11 +3707,11 @@ begin
 end;
 
 procedure TVRMLGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
-  TextureNode: TNodeX3DTextureNode;
+  TextureNode: TAbstractX3DTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
-  CurrentViewpoint: TVRMLViewpointNode;
+  CurrentViewpoint: TAbstractViewpointNode;
   CameraViewKnown: boolean;
   const CameraPosition, CameraDirection, CameraUp: TVector3Single);
 
@@ -3752,7 +3752,7 @@ var
     SavedHandler.UpdateNeeded := false;
   end;
 
-  procedure UpdateGeneratedCubeMap(TexNode: TNodeGeneratedCubeMapTexture);
+  procedure UpdateGeneratedCubeMap(TexNode: TGeneratedCubeMapTextureNode);
   var
     GLNode: TGLGeneratedCubeMapTextureNode;
   begin
@@ -3776,21 +3776,21 @@ var
     end;
   end;
 
-  procedure UpdateGeneratedShadowMap(TexNode: TNodeGeneratedShadowMap);
+  procedure UpdateGeneratedShadowMap(TexNode: TGeneratedShadowMapNode);
   var
     GLNode: TGLGeneratedShadowMap;
   begin
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       if (TexNode.FdLight.Value <> nil) and
-         (TexNode.FdLight.Value is TNodeX3DLightNode) then
+         (TexNode.FdLight.Value is TAbstractX3DLightNode) then
       begin
         GLNode := TGLGeneratedShadowMap(GLTextureNodes.TextureNode(TexNode));
         if GLNode <> nil then
         begin
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
             NeedsRestoreViewport,
-            TNodeX3DLightNode(TexNode.FdLight.Value));
+            TAbstractX3DLightNode(TexNode.FdLight.Value));
 
           PostUpdate;
 
@@ -3802,7 +3802,7 @@ var
     end;
   end;
 
-  procedure UpdateRenderedTexture(TexNode: TNodeRenderedTexture);
+  procedure UpdateRenderedTexture(TexNode: TRenderedTextureNode);
   var
     GLNode: TGLRenderedTextureNode;
   begin
@@ -3825,12 +3825,12 @@ var
   end;
 
 begin
-  if TextureNode is TNodeGeneratedCubeMapTexture then
-    UpdateGeneratedCubeMap(TNodeGeneratedCubeMapTexture(TextureNode)) else
-  if TextureNode is TNodeGeneratedShadowMap then
-    UpdateGeneratedShadowMap(TNodeGeneratedShadowMap(TextureNode)) else
-  if TextureNode is TNodeRenderedTexture then
-    UpdateRenderedTexture(TNodeRenderedTexture(TextureNode));
+  if TextureNode is TGeneratedCubeMapTextureNode then
+    UpdateGeneratedCubeMap(TGeneratedCubeMapTextureNode(TextureNode)) else
+  if TextureNode is TGeneratedShadowMapNode then
+    UpdateGeneratedShadowMap(TGeneratedShadowMapNode(TextureNode)) else
+  if TextureNode is TRenderedTextureNode then
+    UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
 end;
 
 procedure TVRMLGLRenderer.SetCullFace(const Value: TCullFace);

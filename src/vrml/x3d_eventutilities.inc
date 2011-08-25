@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DSequencerNode = class(TNodeX3DChildNode)
+  TAbstractX3DSequencerNode = class(TAbstractX3DChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -26,7 +26,7 @@
   private
     FCurrentKeyRange: Integer;
   protected
-    { Analogous to TNodeX3DInterpolatorNode.KeyRange. }
+    { Analogous to TAbstractX3DInterpolatorNode.KeyRange. }
     function KeyRange(const Fraction: Single): Integer;
 
     { In what key range we currently are. In other words, which
@@ -71,12 +71,12 @@
     public property FdKey: TMFFloat read FFdKey;
   end;
 
-  TNodeX3DTriggerNode = class(TNodeX3DChildNode)
+  TAbstractX3DTriggerNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  TNodeBooleanFilter = class(TNodeX3DChildNode)
+  TBooleanFilterNode = class(TAbstractX3DChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -102,7 +102,7 @@
     public property EventInputTrue: TVRMLEvent read FEventInputTrue;
   end;
 
-  TNodeBooleanSequencer = class(TNodeX3DSequencerNode)
+  TBooleanSequencerNode = class(TAbstractX3DSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); override;
@@ -119,7 +119,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeBooleanToggle = class(TNodeX3DChildNode)
+  TBooleanToggleNode = class(TAbstractX3DChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -136,7 +136,7 @@
     public property FdToggle: TSFBool read FFdToggle;
   end;
 
-  TNodeBooleanTrigger = class(TNodeX3DTriggerNode)
+  TBooleanTriggerNode = class(TAbstractX3DTriggerNode)
   private
     procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -154,7 +154,7 @@
     public property EventTriggerTrue: TVRMLEvent read FEventTriggerTrue;
   end;
 
-  TNodeIntegerSequencer = class(TNodeX3DSequencerNode)
+  TIntegerSequencerNode = class(TAbstractX3DSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); override;
@@ -171,7 +171,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeIntegerTrigger = class(TNodeX3DTriggerNode)
+  TIntegerTriggerNode = class(TAbstractX3DTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -192,7 +192,7 @@
     public property EventTriggerValue: TVRMLEvent read FEventTriggerValue;
   end;
 
-  TNodeTimeTrigger = class(TNodeX3DTriggerNode)
+  TTimeTriggerNode = class(TAbstractX3DTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -213,7 +213,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DSequencerNode.CreateNode;
+procedure TAbstractX3DSequencerNode.CreateNode;
 begin
   inherited;
 
@@ -238,7 +238,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DSequencerNode.KeyRange(
+function TAbstractX3DSequencerNode.KeyRange(
   const Fraction: Single): Integer;
 var
   T: Single;
@@ -250,7 +250,7 @@ begin
   Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
-procedure TNodeX3DSequencerNode.SetCurrentKeyRange(const Value: Integer;
+procedure TAbstractX3DSequencerNode.SetCurrentKeyRange(const Value: Integer;
   const Time: TVRMLTime);
 begin
   if FCurrentKeyRange <> Value then
@@ -262,7 +262,7 @@ begin
   end;
 end;
 
-procedure TNodeX3DSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractX3DSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
   KeyCount: Integer;
@@ -287,7 +287,7 @@ begin
   end;
 end;
 
-procedure TNodeX3DSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractX3DSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -309,7 +309,7 @@ begin
   end;
 end;
 
-procedure TNodeX3DSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractX3DSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -331,14 +331,14 @@ begin
   end;
 end;
 
-procedure TNodeX3DTriggerNode.CreateNode;
+procedure TAbstractX3DTriggerNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeBooleanFilter.CreateNode;
+procedure TBooleanFilterNode.CreateNode;
 begin
   inherited;
 
@@ -358,7 +358,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeBooleanFilter.EventSet_BooleanReceive(
+procedure TBooleanFilterNode.EventSet_BooleanReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   B: boolean;
@@ -370,18 +370,18 @@ begin
   EventInputNegate.Send(not B, Time);
 end;
 
-class function TNodeBooleanFilter.ClassNodeTypeName: string;
+class function TBooleanFilterNode.ClassNodeTypeName: string;
 begin
   Result := 'BooleanFilter';
 end;
 
-class function TNodeBooleanFilter.URNMatching(const URN: string): boolean;
+class function TBooleanFilterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBooleanSequencer.CreateNode;
+procedure TBooleanSequencerNode.CreateNode;
 begin
   inherited;
 
@@ -394,18 +394,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeBooleanSequencer.ClassNodeTypeName: string;
+class function TBooleanSequencerNode.ClassNodeTypeName: string;
 begin
   Result := 'BooleanSequencer';
 end;
 
-class function TNodeBooleanSequencer.URNMatching(const URN: string): boolean;
+class function TBooleanSequencerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBooleanSequencer.SendValueChanged(const ValueIndex: Integer;
+procedure TBooleanSequencerNode.SendValueChanged(const ValueIndex: Integer;
   const Time: TVRMLTime);
 begin
   if FdKeyValue.Count <> FdKey.Count then
@@ -414,7 +414,7 @@ begin
     EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
 
-procedure TNodeBooleanToggle.CreateNode;
+procedure TBooleanToggleNode.CreateNode;
 begin
   inherited;
 
@@ -428,7 +428,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeBooleanToggle.EventSet_BooleanReceive(
+procedure TBooleanToggleNode.EventSet_BooleanReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   B: boolean;
@@ -438,18 +438,18 @@ begin
     FdToggle.ExposedEvents[true].Send(not FdToggle.Value, Time);
 end;
 
-class function TNodeBooleanToggle.ClassNodeTypeName: string;
+class function TBooleanToggleNode.ClassNodeTypeName: string;
 begin
   Result := 'BooleanToggle';
 end;
 
-class function TNodeBooleanToggle.URNMatching(const URN: string): boolean;
+class function TBooleanToggleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBooleanTrigger.CreateNode;
+procedure TBooleanTriggerNode.CreateNode;
 begin
   inherited;
 
@@ -463,24 +463,24 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeBooleanTrigger.EventSet_triggerTimeReceive(
+procedure TBooleanTriggerNode.EventSet_triggerTimeReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   EventTriggerTrue.Send(true, Time);
 end;
 
-class function TNodeBooleanTrigger.ClassNodeTypeName: string;
+class function TBooleanTriggerNode.ClassNodeTypeName: string;
 begin
   Result := 'BooleanTrigger';
 end;
 
-class function TNodeBooleanTrigger.URNMatching(const URN: string): boolean;
+class function TBooleanTriggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeIntegerSequencer.CreateNode;
+procedure TIntegerSequencerNode.CreateNode;
 begin
   inherited;
 
@@ -494,18 +494,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeIntegerSequencer.ClassNodeTypeName: string;
+class function TIntegerSequencerNode.ClassNodeTypeName: string;
 begin
   Result := 'IntegerSequencer';
 end;
 
-class function TNodeIntegerSequencer.URNMatching(const URN: string): boolean;
+class function TIntegerSequencerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeIntegerSequencer.SendValueChanged(const ValueIndex: Integer;
+procedure TIntegerSequencerNode.SendValueChanged(const ValueIndex: Integer;
   const Time: TVRMLTime);
 begin
   if FdKeyValue.Count <> FdKey.Count then
@@ -514,7 +514,7 @@ begin
     EventValue_Changed.Send(FdKeyValue.Items.Items[ValueIndex], Time);
 end;
 
-procedure TNodeIntegerTrigger.CreateNode;
+procedure TIntegerTriggerNode.CreateNode;
 begin
   inherited;
 
@@ -534,24 +534,24 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeIntegerTrigger.EventSet_BooleanReceive(
+procedure TIntegerTriggerNode.EventSet_BooleanReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   EventtriggerValue.Send(FdintegerKey.Value, Time);
 end;
 
-class function TNodeIntegerTrigger.ClassNodeTypeName: string;
+class function TIntegerTriggerNode.ClassNodeTypeName: string;
 begin
   Result := 'IntegerTrigger';
 end;
 
-class function TNodeIntegerTrigger.URNMatching(const URN: string): boolean;
+class function TIntegerTriggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTimeTrigger.CreateNode;
+procedure TTimeTriggerNode.CreateNode;
 begin
   inherited;
 
@@ -565,18 +565,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTimeTrigger.ClassNodeTypeName: string;
+class function TTimeTriggerNode.ClassNodeTypeName: string;
 begin
   Result := 'TimeTrigger';
 end;
 
-class function TNodeTimeTrigger.URNMatching(const URN: string): boolean;
+class function TTimeTriggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTimeTrigger.EventSet_BooleanReceive(
+procedure TTimeTriggerNode.EventSet_BooleanReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   EventTriggerTime.Send(Time.Seconds, Time);
@@ -585,13 +585,13 @@ end;
 procedure RegisterEventUtilitiesNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeBooleanFilter,
-    TNodeBooleanSequencer,
-    TNodeBooleanToggle,
-    TNodeBooleanTrigger,
-    TNodeIntegerSequencer,
-    TNodeIntegerTrigger,
-    TNodeTimeTrigger
+    TBooleanFilterNode,
+    TBooleanSequencerNode,
+    TBooleanToggleNode,
+    TBooleanTriggerNode,
+    TIntegerSequencerNode,
+    TIntegerTriggerNode,
+    TTimeTriggerNode
   ]);
 end;
 

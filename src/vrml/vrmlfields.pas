@@ -117,7 +117,7 @@ type
 
       This is allowed, and ignored, on nodes that are not part of VRML 1.0
       state. (This is useful for alphaChannel field, that is declared
-      in TVRMLGeometryNode, and so is part of some VRML 1.0 state nodes
+      in TAbstractGeometryNode, and so is part of some VRML 1.0 state nodes
       but is also part of VRML >= 2.0 nodes.)
 
       Caller will analyze the scene to know what this implicates,
@@ -150,7 +150,7 @@ type
     chUseBlending,
 
     { Light property that is also reflected in TLightInstance structure.
-      Only allowed on node's descending from TNodeX3DLightNode.
+      Only allowed on node's descending from TAbstractX3DLightNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
@@ -226,7 +226,7 @@ type
     chViewpointProjection,
 
     { Texture image (data) needs reloading (url or source SFImage
-      data changed). This is for TVRML2DTextureNode, or TNodeX3DTexture3DNode.
+      data changed). This is for TAbstractTexture2DNode, or TAbstractX3DTexture3DNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
@@ -275,7 +275,7 @@ type
     chClipPlane,
 
     { Enabled field of the pointing-device drag sensor changed.
-      Use only for TSFBool fields within TNodeX3DDragSensorNode. }
+      Use only for TSFBool fields within TAbstractX3DDragSensorNode. }
     chDragSensorEnabled,
 
     { NavigationInfo field value used in TVRMLScene.CameraFromNavigationInfo
@@ -309,7 +309,7 @@ type
     to store PositionInParent.
 
     About ancestry: TVRMLFieldOrEvent make use of Assign mechanism
-    and so need to descend from TPersistent. TVRMLNode make use
+    and so need to descend from TPersistent. TX3DNode make use
     of interfaces and so must descend from something like
     TNonRefCountedInterfacedXxx. These are the only reasons, for now,
     why this descends from TNonRefCountedInterfacedPersistent. }
@@ -412,7 +412,7 @@ type
 
     { VRML node containing this field/event.
       This must always contain an instance
-      of TVRMLNode class (although it cannot be declared such, since VRMLFields
+      of TX3DNode class (although it cannot be declared such, since VRMLFields
       unit cannot depend on VRMLNodes interface).
 
       It may be @nil for special fields/events when parent node is unknown. }
@@ -2797,7 +2797,7 @@ begin
   Result := '';
 
   if ParentNode <> nil then
-    Result += TVRMLNode(ParentNode).NiceName + '.';
+    Result += TX3DNode(ParentNode).NiceName + '.';
 
   if Name <> '' then
     Result += Name else
@@ -2902,11 +2902,11 @@ end;
 
 procedure TVRMLField.Changed;
 var
-  Parent: TVRMLNode;
+  Parent: TX3DNode;
 begin
   if ParentNode <> nil then
   begin
-    Parent := ParentNode as TVRMLNode;
+    Parent := ParentNode as TX3DNode;
     if Parent.Scene <> nil then
       Parent.Scene.ChangedField(Self);
   end;
@@ -2922,9 +2922,9 @@ var
   ValuePossiblyChanged: boolean;
 begin
   if Exposed and (ParentNode <> nil) and
-    ( (ParentNode as TVRMLNode).Scene <> nil ) then
+    ( (ParentNode as TX3DNode).Scene <> nil ) then
   begin
-    EventIn.Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+    EventIn.Send(Value, TX3DNode(ParentNode).Scene.GetTime);
   end else
   begin
     ValuePossiblyChanged := not FastEqualsValue(Value);

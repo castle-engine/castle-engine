@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DLayoutNode = class(TNodeX3DChildNode)
+  TAbstractX3DLayoutNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  TNodeLayout = class(TNodeX3DLayoutNode)
+  TLayoutNode = class(TAbstractX3DLayoutNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -45,7 +45,7 @@
     public property FdSizeUnits: TMFString read FFdSizeUnits;
   end;
 
-  TNodeLayoutGroup = class(TNodeX3DGroupingNode)
+  TLayoutGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -58,7 +58,7 @@
     public property FdViewport: TSFNode read FFdViewport;
   end;
 
-  TNodeLayoutLayer = class(TNodeX3DLayerNode)
+  TLayoutLayerNode = class(TAbstractX3DLayerNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -79,7 +79,7 @@
     public property FdLayout: TSFNode read FFdLayout;
   end;
 
-  TNodeScreenFontStyle = class(TNodeX3DFontStyleNode)
+  TScreenFontStyleNode = class(TAbstractX3DFontStyleNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -113,7 +113,7 @@
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
   end;
 
-  TNodeScreenGroup = class(TNodeX3DGroupingNode)
+  TScreenGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -123,14 +123,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DLayoutNode.CreateNode;
+procedure TAbstractX3DLayoutNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeLayout.CreateNode;
+procedure TLayoutNode.CreateNode;
 begin
   inherited;
 
@@ -161,42 +161,42 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeLayout.ClassNodeTypeName: string;
+class function TLayoutNode.ClassNodeTypeName: string;
 begin
   Result := 'Layout';
 end;
 
-class function TNodeLayout.URNMatching(const URN: string): boolean;
+class function TLayoutNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeLayoutGroup.CreateNode;
+procedure TLayoutGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdLayout := TSFNode.Create(Self, 'layout', [TNodeX3DLayoutNode]);
+  FFdLayout := TSFNode.Create(Self, 'layout', [TAbstractX3DLayoutNode]);
   Fields.Add(FFdLayout);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractX3DViewportNode]);
   Fields.Add(FFdViewport);
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodeLayoutGroup.ClassNodeTypeName: string;
+class function TLayoutGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'LayoutGroup';
 end;
 
-class function TNodeLayoutGroup.URNMatching(const URN: string): boolean;
+class function TLayoutGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeLayoutLayer.CreateNode;
+procedure TLayoutLayerNode.CreateNode;
 begin
   inherited;
 
@@ -206,25 +206,25 @@ begin
   FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
+  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractX3DChildNode]);
   Fields.Add(FFdChildren);
 
-  FFdLayout := TSFNode.Create(Self, 'layout', [TNodeX3DLayoutNode]);
+  FFdLayout := TSFNode.Create(Self, 'layout', [TAbstractX3DLayoutNode]);
   Fields.Add(FFdLayout);
 end;
 
-class function TNodeLayoutLayer.ClassNodeTypeName: string;
+class function TLayoutLayerNode.ClassNodeTypeName: string;
 begin
   Result := 'LayoutLayer';
 end;
 
-class function TNodeLayoutLayer.URNMatching(const URN: string): boolean;
+class function TLayoutLayerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScreenFontStyle.CreateNode;
+procedure TScreenFontStyleNode.CreateNode;
 begin
   inherited;
 
@@ -269,30 +269,30 @@ begin
   Fields.Add(FFdTopToBottom);
 end;
 
-class function TNodeScreenFontStyle.ClassNodeTypeName: string;
+class function TScreenFontStyleNode.ClassNodeTypeName: string;
 begin
   Result := 'ScreenFontStyle';
 end;
 
-class function TNodeScreenFontStyle.URNMatching(const URN: string): boolean;
+class function TScreenFontStyleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScreenGroup.CreateNode;
+procedure TScreenGroupNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodeScreenGroup.ClassNodeTypeName: string;
+class function TScreenGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'ScreenGroup';
 end;
 
-class function TNodeScreenGroup.URNMatching(const URN: string): boolean;
+class function TScreenGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -301,11 +301,11 @@ end;
 procedure RegisterLayoutNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeLayout,
-    TNodeLayoutGroup,
-    TNodeLayoutLayer,
-    TNodeScreenFontStyle,
-    TNodeScreenGroup
+    TLayoutNode,
+    TLayoutGroupNode,
+    TLayoutLayerNode,
+    TScreenFontStyleNode,
+    TScreenGroupNode
   ]);
 end;
 

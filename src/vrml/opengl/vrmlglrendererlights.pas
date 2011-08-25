@@ -98,19 +98,19 @@ uses SysUtils, KambiUtils, Math, RenderingCameraUnit;
 procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance);
 
   { SetupXxx light : setup glLight properties GL_POSITION, GL_SPOT_* }
-  procedure SetupDirectionalLight(LightNode: TVRMLDirectionalLightNode);
+  procedure SetupDirectionalLight(LightNode: TAbstractDirectionalLightNode);
   begin
     glLightv(glLightNum, GL_POSITION, Vector4Single(VectorNegate(LightNode.FdDirection.Value), 0));
     glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
   end;
 
-  procedure SetupPointLight(LightNode: TVRMLPointLightNode);
+  procedure SetupPointLight(LightNode: TAbstractPointLightNode);
   begin
     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
     glLighti(glLightNum, GL_SPOT_CUTOFF, 180);
   end;
 
-  procedure SetupSpotLight_1(LightNode: TNodeSpotLight_1);
+  procedure SetupSpotLight_1(LightNode: TSpotLightNode_1);
   begin
     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
 
@@ -121,7 +121,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
       Min(90, RadToDeg(LightNode.FdCutOffAngle.Value)));
   end;
 
-  procedure SetupSpotLight(LightNode: TNodeSpotLight);
+  procedure SetupSpotLight(LightNode: TSpotLightNode);
   begin
     glLightv(glLightNum, GL_POSITION, Vector4Single(LightNode.FdLocation.Value, 1));
 
@@ -163,22 +163,22 @@ begin
 
     glMultMatrix(Light.Transform);
 
-    if Light.Node is TVRMLDirectionalLightNode then
-      SetupDirectionalLight(TVRMLDirectionalLightNode(Light.Node)) else
-    if Light.Node is TVRMLPointLightNode then
-      SetupPointLight(TVRMLPointLightNode(Light.Node)) else
-    if Light.Node is TNodeSpotLight_1 then
-      SetupSpotLight_1(TNodeSpotLight_1(Light.Node)) else
-    if Light.Node is TNodeSpotLight then
-      SetupSpotLight(TNodeSpotLight(Light.Node)) else
+    if Light.Node is TAbstractDirectionalLightNode then
+      SetupDirectionalLight(TAbstractDirectionalLightNode(Light.Node)) else
+    if Light.Node is TAbstractPointLightNode then
+      SetupPointLight(TAbstractPointLightNode(Light.Node)) else
+    if Light.Node is TSpotLightNode_1 then
+      SetupSpotLight_1(TSpotLightNode_1(Light.Node)) else
+    if Light.Node is TSpotLightNode then
+      SetupSpotLight(TSpotLightNode(Light.Node)) else
       raise EInternalError.Create('Unknown light node class');
 
     { setup attenuation for OpenGL light }
     SetNoAttenuation := true;
 
-    if (Light.Node is TVRMLPositionalLightNode) then
+    if (Light.Node is TAbstractPositionalLightNode) then
     begin
-      Attenuat := TVRMLPositionalLightNode(Light.Node).FdAttenuation.Value;
+      Attenuat := TAbstractPositionalLightNode(Light.Node).FdAttenuation.Value;
       if not ZeroVector(Attenuat) then
       begin
         SetNoAttenuation := false;

@@ -444,120 +444,120 @@ end;
 procedure TVRMLEvent.Send(Field: TVRMLField);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Field, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Field, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: LongInt);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: boolean);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: string);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector2Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector3Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TVector4Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: Double);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix3Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix4Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix3Double);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.Send(const Value: TMatrix4Double);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    Send(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of string);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector2Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector3Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 procedure TVRMLEvent.SendArray(const Value: array of TVector4Single);
 begin
   if (ParentNode <> nil) and
-     (TVRMLNode(ParentNode).Scene <> nil) then
-    SendArray(Value, TVRMLNode(ParentNode).Scene.GetTime);
+     (TX3DNode(ParentNode).Scene <> nil) then
+    SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
 function TVRMLEvent.SendNeeded: boolean;

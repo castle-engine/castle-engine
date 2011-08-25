@@ -16,7 +16,7 @@
 {$ifdef read_interface}
   { List of pointing device sensors. Only nodes descending from
     X3DPointingDeviceSensorNode, and additionally an Anchor node. }
-  TPointingDeviceSensorList = class(TVRMLNodeList)
+  TPointingDeviceSensorList = class(TX3DNodeList)
   public
     { Transformation (and inverse) of all the sensors on this list.
       VRML/X3D specification guarantees that all sensors within a single state
@@ -30,7 +30,7 @@
   end;
 
   { }
-  TNodeX3DPointingDeviceSensorNode = class(TNodeX3DSensorNode)
+  TAbstractX3DPointingDeviceSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -47,7 +47,7 @@
       OverPoint indicates 3D point (in global, that is TVRMLScene, coordinates)
       pointed by the mouse.
 
-      In TNodeX3DPointingDeviceSensorNode class,
+      In TAbstractX3DPointingDeviceSensorNode class,
       this simply sends isActive := TRUE event. }
     procedure Activate(const Time: TVRMLTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -56,12 +56,12 @@
     { Deactivate pointing device sensor. Used by the events engine
       (like TVRMLScene) to notify this sensor.
 
-      In TNodeX3DPointingDeviceSensorNode class,
+      In TAbstractX3DPointingDeviceSensorNode class,
       this simply sends isActive := FALSE event. }
     procedure Deactivate(const Time: TVRMLTime); virtual;
   end;
 
-  TNodeX3DDragSensorNode = class(TNodeX3DPointingDeviceSensorNode)
+  TAbstractX3DDragSensorNode = class(TAbstractX3DPointingDeviceSensorNode)
   public
     procedure CreateNode; override;
 
@@ -77,7 +77,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); virtual;
   end;
 
-  TNodeX3DTouchSensorNode = class(TNodeX3DPointingDeviceSensorNode)
+  TAbstractX3DTouchSensorNode = class(TAbstractX3DPointingDeviceSensorNode)
   public
     procedure CreateNode; override;
 
@@ -86,7 +86,7 @@
     public property EventTouchTime: TVRMLEvent read FEventTouchTime;
   end;
 
-  TNodeCylinderSensor = class(TNodeX3DDragSensorNode)
+  TCylinderSensorNode = class(TAbstractX3DDragSensorNode)
   private
     { Are we in caps mode or cylinder mode (determined at activation) }
     Caps: boolean;
@@ -141,7 +141,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TNodePlaneSensor = class(TNodeX3DDragSensorNode)
+  TPlaneSensorNode = class(TAbstractX3DDragSensorNode)
   private
     { Plane* stuff is in global (VRML scene) coordinates. }
     { Plane of the activated sensor. }
@@ -188,7 +188,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TNodeSphereSensor = class(TNodeX3DDragSensorNode)
+  TSphereSensorNode = class(TAbstractX3DDragSensorNode)
   private
     { Sphere center and radius, in world coordinates. }
     SphereCenter: TVector3Single;
@@ -222,7 +222,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TNodeTouchSensor = class(TNodeX3DTouchSensorNode)
+  TTouchSensorNode = class(TAbstractX3DTouchSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -259,8 +259,8 @@ end;
 
 function TPointingDeviceSensorList.Enabled(Index: Integer): boolean;
 begin
-  Result := (not (Items[Index] is TNodeX3DPointingDeviceSensorNode)) or
-    TNodeX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
+  Result := (not (Items[Index] is TAbstractX3DPointingDeviceSensorNode)) or
+    TAbstractX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
 end;
 
 procedure TPointingDeviceSensorList.Assign(Source: TPointingDeviceSensorList);
@@ -272,7 +272,7 @@ end;
 
 { Rest of nodes -------------------------------------------------------------- }
 
-procedure TNodeX3DPointingDeviceSensorNode.CreateNode;
+procedure TAbstractX3DPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
 
@@ -283,19 +283,19 @@ begin
   Events.Add(FEventIsOver);
 end;
 
-procedure TNodeX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
+procedure TAbstractX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
   EventIsActive.Send(true, Time);
 end;
 
-procedure TNodeX3DPointingDeviceSensorNode.Deactivate(const Time: TVRMLTime);
+procedure TAbstractX3DPointingDeviceSensorNode.Deactivate(const Time: TVRMLTime);
 begin
   EventIsActive.Send(false, Time);
 end;
 
-procedure TNodeX3DDragSensorNode.CreateNode;
+procedure TAbstractX3DDragSensorNode.CreateNode;
 begin
   inherited;
 
@@ -308,12 +308,12 @@ begin
   Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
 end;
 
-procedure TNodeX3DDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TAbstractX3DDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
 begin
   { Nothing to do in this class }
 end;
 
-procedure TNodeX3DTouchSensorNode.CreateNode;
+procedure TAbstractX3DTouchSensorNode.CreateNode;
 begin
   inherited;
 
@@ -321,7 +321,7 @@ begin
   Events.Add(FEventTouchTime);
 end;
 
-procedure TNodeCylinderSensor.CreateNode;
+procedure TCylinderSensorNode.CreateNode;
 begin
   inherited;
 
@@ -350,19 +350,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCylinderSensor.ClassNodeTypeName: string;
+class function TCylinderSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'CylinderSensor';
 end;
 
-class function TNodeCylinderSensor.URNMatching(const URN: string): boolean;
+class function TCylinderSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCylinderSensor.Activate(const Time: TVRMLTime;
+procedure TCylinderSensorNode.Activate(const Time: TVRMLTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 var
@@ -407,7 +407,7 @@ begin
   WasRotation := false;
 end;
 
-procedure TNodeCylinderSensor.Deactivate(const Time: TVRMLTime);
+procedure TCylinderSensorNode.Deactivate(const Time: TVRMLTime);
 begin
   if FdAutoOffset.Value and WasRotation then
     FdOffset.Send(RotationAngle);
@@ -415,7 +415,7 @@ begin
   inherited;
 end;
 
-procedure TNodeCylinderSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TCylinderSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
 var
   Intersection, LocalIntersection: TVector3Single;
   WasIntersection: boolean;
@@ -460,7 +460,7 @@ begin
   end;
 end;
 
-procedure TNodePlaneSensor.CreateNode;
+procedure TPlaneSensorNode.CreateNode;
 begin
   inherited;
 
@@ -485,19 +485,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodePlaneSensor.ClassNodeTypeName: string;
+class function TPlaneSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'PlaneSensor';
 end;
 
-class function TNodePlaneSensor.URNMatching(const URN: string): boolean;
+class function TPlaneSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePlaneSensor.Activate(const Time: TVRMLTime;
+procedure TPlaneSensorNode.Activate(const Time: TVRMLTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 var
@@ -549,7 +549,7 @@ begin
   WasTranslation := false;
 end;
 
-procedure TNodePlaneSensor.Deactivate(const Time: TVRMLTime);
+procedure TPlaneSensorNode.Deactivate(const Time: TVRMLTime);
 begin
   if FdAutoOffset.Value and WasTranslation then
     FdOffset.Send(Translation);
@@ -557,7 +557,7 @@ begin
   inherited;
 end;
 
-procedure TNodePlaneSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TPlaneSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
 var
   Intersection, TranslationGlobal: TVector3Single;
 begin
@@ -624,7 +624,7 @@ begin
   end;
 end;
 
-procedure TNodeSphereSensor.CreateNode;
+procedure TSphereSensorNode.CreateNode;
 begin
   inherited;
 
@@ -638,19 +638,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSphereSensor.ClassNodeTypeName: string;
+class function TSphereSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'SphereSensor';
 end;
 
-class function TNodeSphereSensor.URNMatching(const URN: string): boolean;
+class function TSphereSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeSphereSensor.Activate(const Time: TVRMLTime;
+procedure TSphereSensorNode.Activate(const Time: TVRMLTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
@@ -666,7 +666,7 @@ begin
   WasRotation := false;
 end;
 
-procedure TNodeSphereSensor.Deactivate(const Time: TVRMLTime);
+procedure TSphereSensorNode.Deactivate(const Time: TVRMLTime);
 begin
   if FdAutoOffset.Value and WasRotation then
     FdOffset.Send(Rotation);
@@ -674,7 +674,7 @@ begin
   inherited;
 end;
 
-procedure TNodeSphereSensor.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TSphereSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
 var
   Intersection, LocalIntersection, RotationAxis: TVector3Single;
   RotationAngle: Single;
@@ -719,7 +719,7 @@ begin
   end;
 end;
 
-procedure TNodeTouchSensor.CreateNode;
+procedure TTouchSensorNode.CreateNode;
 begin
   inherited;
 
@@ -735,12 +735,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTouchSensor.ClassNodeTypeName: string;
+class function TTouchSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'TouchSensor';
 end;
 
-class function TNodeTouchSensor.URNMatching(const URN: string): boolean;
+class function TTouchSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
@@ -750,10 +750,10 @@ end;
 procedure RegisterPointingDeviceSensorNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeCylinderSensor,
-    TNodePlaneSensor,
-    TNodeSphereSensor,
-    TNodeTouchSensor
+    TCylinderSensorNode,
+    TPlaneSensorNode,
+    TSphereSensorNode,
+    TTouchSensorNode
   ]);
 end;
 

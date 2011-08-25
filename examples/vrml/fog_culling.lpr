@@ -89,7 +89,7 @@ end;
 
 procedure KeyDown(Window: TGLWindow; Key: TKey; c: char);
 var
-  FogNode: TNodeFog;
+  FogNode: TFogNode;
 begin
   case Key of
     K_F:
@@ -98,7 +98,7 @@ begin
 
         { Also, turn on/off actual fog on the model (if any).
           We do it by changing Fog.VisibilityRange (0 means no fog). }
-        FogNode := Scene.FogStack.Top as TNodeFog;
+        FogNode := Scene.FogStack.Top as TFogNode;
         if FogNode <> nil then
           if FogCulling then
             FogNode.FdVisibilityRange.Send(30) else

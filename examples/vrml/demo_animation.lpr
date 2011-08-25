@@ -93,7 +93,7 @@ const
     Larger values may speed up animation loading time and save memory use. }
   EqualityEpsilon = 0.001;
 var
-  AnimRootNodes: TVRMLNodeList;
+  AnimRootNodes: TX3DNodeList;
   AnimTimes: TSingleList;
   I: Integer;
 begin
@@ -105,7 +105,7 @@ begin
   AnimRootNodes := nil;
   AnimTimes := nil;
   try
-    AnimRootNodes := TVRMLNodeList.Create(false);
+    AnimRootNodes := TX3DNodeList.Create(false);
     AnimTimes := TSingleList.Create;
 
     AnimRootNodes.Count := Parameters.High div 2;

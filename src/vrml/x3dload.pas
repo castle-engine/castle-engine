@@ -70,11 +70,11 @@ uses VectorMath, SysUtils, VRMLNodes, X3DLoadInternalMD3,
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
     a VRML file from StdInStream (using GetCurrentDir as WWWBasePath).) }
 function LoadVRML(const filename: string;
-  AllowStdIn: boolean = false): TVRMLRootNode;
+  AllowStdIn: boolean = false): TX3DRootNode;
 
 { Deprecated name for LoadVRML. @deprecated }
 function LoadAsVRML(const filename: string;
-  AllowStdIn: boolean = false): TVRMLRootNode;
+  AllowStdIn: boolean = false): TX3DRootNode;
 
 const
   { File filters for files loaded by LoadVRML, suitable
@@ -112,7 +112,7 @@ const
   This handles animations in kanim and MD3 formats.
 
   @param(RootNodes Sequence of root nodes will be stored there.
-    Pass here some created and empty instance of TVRMLNodeList.)
+    Pass here some created and empty instance of TX3DNodeList.)
 
   @param(ATimes Sequence of time values.
     Pass here some created and empty instance of TSingleList.)
@@ -120,7 +120,7 @@ const
 procedure LoadVRMLSequence(
   const FileName: string;
   AllowStdIn: boolean;
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -154,7 +154,7 @@ uses VRMLAnimation, KambiClassUtils,
   X3DLoadInternalCollada;
 
 function LoadVRML(const filename: string;
-  AllowStdIn: boolean): TVRMLRootNode;
+  AllowStdIn: boolean): TX3DRootNode;
 const
   GzExt = '.gz';
   Extensions: array [0..14] of string =
@@ -190,14 +190,14 @@ begin
 end;
 
 function LoadAsVRML(const filename: string;
-  AllowStdIn: boolean): TVRMLRootNode;
+  AllowStdIn: boolean): TX3DRootNode;
 begin
   Result := LoadVRML(FileName, AllowStdIn);
 end;
 
 procedure LoadVRMLSequence(const FileName: string;
   AllowStdIn: boolean;
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -229,7 +229,7 @@ procedure LoadVRMLSequence(const FileName: string;
     finally FreeAndNil(ModelFileNames) end;
   end;
 
-  procedure LoadSingle(Node: TVRMLNode);
+  procedure LoadSingle(Node: TX3DNode);
   begin
     RootNodes.Add(Node);
     Times.Add(0); { One time value }

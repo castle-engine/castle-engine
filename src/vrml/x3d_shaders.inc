@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DShaderNode = class(TNodeX3DAppearanceChildNode)
+  TAbstractX3DShaderNode = class(TAbstractX3DAppearanceChildNode)
   public
     procedure CreateNode; override;
 
@@ -35,7 +35,7 @@
     public property FdLanguage: TSFString read FFdLanguage;
   end;
 
-  TNodeX3DVertexAttributeNode = class(TNodeX3DGeometricPropertyNode)
+  TAbstractX3DVertexAttributeNode = class(TAbstractX3DGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
@@ -43,11 +43,11 @@
     public property FdName: TSFString read FFdName;
   end;
 
-  INodeX3DProgrammableShaderObject = interface
+  IAbstractX3DProgrammableShaderObject = interface
   ['{B027FD9B-2A68-4653-8A26-91DB51BE47ED}']
   end;
 
-  TNodeComposedShader = class(TNodeX3DShaderNode, INodeX3DProgrammableShaderObject)
+  TComposedShaderNode = class(TAbstractX3DShaderNode, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -63,7 +63,7 @@
     function DescribeUsedUrls: string;
   end;
 
-  TNodeFloatVertexAttribute = class(TNodeX3DVertexAttributeNode)
+  TFloatVertexAttributeNode = class(TAbstractX3DVertexAttributeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -76,7 +76,7 @@
     public property FdNumComponents: TSFInt32 read FFdNumComponents;
   end;
 
-  TNodeMatrix3VertexAttribute = class(TNodeX3DVertexAttributeNode)
+  TMatrix3VertexAttributeNode = class(TAbstractX3DVertexAttributeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -86,7 +86,7 @@
     public property FdValue: TMFMatrix3f read FFdValue;
   end;
 
-  TNodeMatrix4VertexAttribute = class(TNodeX3DVertexAttributeNode)
+  TMatrix4VertexAttributeNode = class(TAbstractX3DVertexAttributeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -96,7 +96,7 @@
     public property FdValue: TMFMatrix4f read FFdValue;
   end;
 
-  TNodePackagedShader = class(TNodeX3DShaderNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
+  TPackagedShaderNode = class(TAbstractX3DShaderNode, IAbstractX3DUrlObject, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -106,7 +106,7 @@
     public property FdUrl: TMFString read FFdUrl;
   end;
 
-  TNodeProgramShader = class(TNodeX3DShaderNode)
+  TProgramShaderNode = class(TAbstractX3DShaderNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -127,7 +127,7 @@
     function GetValue(out AValue: TShaderType): boolean;
   end;
 
-  TNodeShaderPart = class(TNodeX3DNode, INodeX3DUrlObject)
+  TShaderPartNode = class(TAbstractX3DNode, IAbstractX3DUrlObject)
   private
     FUsedFullUrl: string;
   public
@@ -158,7 +158,7 @@
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
-  TNodeShaderProgram = class(TNodeX3DNode, INodeX3DUrlObject, INodeX3DProgrammableShaderObject)
+  TShaderProgramNode = class(TAbstractX3DNode, IAbstractX3DUrlObject, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -173,7 +173,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DShaderNode.CreateNode;
+procedure TAbstractX3DShaderNode.CreateNode;
 begin
   inherited;
 
@@ -195,7 +195,7 @@ begin
   DefaultContainerField := 'shaders';
 end;
 
-procedure TNodeX3DVertexAttributeNode.CreateNode;
+procedure TAbstractX3DVertexAttributeNode.CreateNode;
 begin
   inherited;
 
@@ -206,11 +206,11 @@ begin
   DefaultContainerField := 'attrib';
 end;
 
-procedure TNodeComposedShader.CreateNode;
+procedure TComposedShaderNode.CreateNode;
 begin
   inherited;
 
-  FFdParts := TMFNode.Create(Self, 'parts', [TNodeShaderPart]);
+  FFdParts := TMFNode.Create(Self, 'parts', [TShaderPartNode]);
    FdParts.ChangesAlways := [chEverything];
   Fields.Add(FFdParts);
 
@@ -228,29 +228,29 @@ begin
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
-class function TNodeComposedShader.ClassNodeTypeName: string;
+class function TComposedShaderNode.ClassNodeTypeName: string;
 begin
   Result := 'ComposedShader';
 end;
 
-function TNodeComposedShader.DescribeUsedUrls: string;
+function TComposedShaderNode.DescribeUsedUrls: string;
 var
   I: Integer;
 begin
   Result := '(urls:';
   for I := 0 to FdParts.Count - 1 do
-    if FdParts[I] is TNodeShaderPart then
-      Result += ' ' + TNodeShaderPart(FdParts[I]).UsedFullUrl;
+    if FdParts[I] is TShaderPartNode then
+      Result += ' ' + TShaderPartNode(FdParts[I]).UsedFullUrl;
   Result += ')';
 end;
 
-class function TNodeComposedShader.URNMatching(const URN: string): boolean;
+class function TComposedShaderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeFloatVertexAttribute.CreateNode;
+procedure TFloatVertexAttributeNode.CreateNode;
 begin
   inherited;
 
@@ -264,18 +264,18 @@ begin
   { X3D specification comment: [1..4] }
 end;
 
-class function TNodeFloatVertexAttribute.ClassNodeTypeName: string;
+class function TFloatVertexAttributeNode.ClassNodeTypeName: string;
 begin
   Result := 'FloatVertexAttribute';
 end;
 
-class function TNodeFloatVertexAttribute.URNMatching(const URN: string): boolean;
+class function TFloatVertexAttributeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMatrix3VertexAttribute.CreateNode;
+procedure TMatrix3VertexAttributeNode.CreateNode;
 begin
   inherited;
 
@@ -284,18 +284,18 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeMatrix3VertexAttribute.ClassNodeTypeName: string;
+class function TMatrix3VertexAttributeNode.ClassNodeTypeName: string;
 begin
   Result := 'Matrix3VertexAttribute';
 end;
 
-class function TNodeMatrix3VertexAttribute.URNMatching(const URN: string): boolean;
+class function TMatrix3VertexAttributeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMatrix4VertexAttribute.CreateNode;
+procedure TMatrix4VertexAttributeNode.CreateNode;
 begin
   inherited;
 
@@ -304,18 +304,18 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeMatrix4VertexAttribute.ClassNodeTypeName: string;
+class function TMatrix4VertexAttributeNode.ClassNodeTypeName: string;
 begin
   Result := 'Matrix4VertexAttribute';
 end;
 
-class function TNodeMatrix4VertexAttribute.URNMatching(const URN: string): boolean;
+class function TMatrix4VertexAttributeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePackagedShader.CreateNode;
+procedure TPackagedShaderNode.CreateNode;
 begin
   inherited;
 
@@ -327,31 +327,31 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TNodePackagedShader.ClassNodeTypeName: string;
+class function TPackagedShaderNode.ClassNodeTypeName: string;
 begin
   Result := 'PackagedShader';
 end;
 
-class function TNodePackagedShader.URNMatching(const URN: string): boolean;
+class function TPackagedShaderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeProgramShader.CreateNode;
+procedure TProgramShaderNode.CreateNode;
 begin
   inherited;
 
-  FFdPrograms := TMFNode.Create(Self, 'programs', [TNodeShaderProgram]);
+  FFdPrograms := TMFNode.Create(Self, 'programs', [TShaderProgramNode]);
   Fields.Add(FFdPrograms);
 end;
 
-class function TNodeProgramShader.ClassNodeTypeName: string;
+class function TProgramShaderNode.ClassNodeTypeName: string;
 begin
   Result := 'ProgramShader';
 end;
 
-class function TNodeProgramShader.URNMatching(const URN: string): boolean;
+class function TProgramShaderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -395,7 +395,7 @@ begin
   end;
 end;
 
-procedure TNodeShaderPart.CreateNode;
+procedure TShaderPartNode.CreateNode;
 begin
   inherited;
 
@@ -414,13 +414,13 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TNodeShaderPart.ClassNodeTypeName: string;
+class function TShaderPartNode.ClassNodeTypeName: string;
 begin
   Result := 'ShaderPart';
 end;
 
 function ShaderLoadContents(var UsedFullUrl: string;
-  const Node: TVRMLNode; const FdUrl: TMFString): string;
+  const Node: TX3DNode; const FdUrl: TMFString): string;
 
   function IsDirectShaderSource(const S: string): boolean;
   { URL is recognized as direct shader source if it
@@ -504,18 +504,18 @@ begin
   end;
 end;
 
-function TNodeShaderPart.LoadContents: string;
+function TShaderPartNode.LoadContents: string;
 begin
   Result := ShaderLoadContents(FUsedFullUrl, Self, FdUrl);
 end;
 
-class function TNodeShaderPart.URNMatching(const URN: string): boolean;
+class function TShaderPartNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeShaderProgram.CreateNode;
+procedure TShaderProgramNode.CreateNode;
 begin
   inherited;
 
@@ -534,12 +534,12 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TNodeShaderProgram.ClassNodeTypeName: string;
+class function TShaderProgramNode.ClassNodeTypeName: string;
 begin
   Result := 'ShaderProgram';
 end;
 
-class function TNodeShaderProgram.URNMatching(const URN: string): boolean;
+class function TShaderProgramNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -548,14 +548,14 @@ end;
 procedure RegisterShadersNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeComposedShader,
-    TNodeFloatVertexAttribute,
-    TNodeMatrix3VertexAttribute,
-    TNodeMatrix4VertexAttribute,
-    TNodePackagedShader,
-    TNodeProgramShader,
-    TNodeShaderPart,
-    TNodeShaderProgram
+    TComposedShaderNode,
+    TFloatVertexAttributeNode,
+    TMatrix3VertexAttributeNode,
+    TMatrix4VertexAttributeNode,
+    TPackagedShaderNode,
+    TProgramShaderNode,
+    TShaderPartNode,
+    TShaderProgramNode
   ]);
 end;
 {$endif read_implementation}

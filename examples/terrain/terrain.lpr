@@ -477,16 +477,16 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
   var
     CountSteps, X, Z: Cardinal;
     Size, MinX, MinZ, MaxX, MaxZ: Extended;
-    Grid: TNodeElevationGrid;
-    Root: TVRMLRootNode;
-    Shape: TNodeShape;
-    Shader: TNodeComposedShader;
-    TexSand: TNodeImageTexture;
-    TexBread: TNodeImageTexture;
-    TexRock: TNodeImageTexture;
-    Part: TNodeShaderPart;
-    Appearance: TNodeAppearance;
-    Color: TNodeColor;
+    Grid: TElevationGridNode;
+    Root: TX3DRootNode;
+    Shape: TShapeNode;
+    Shader: TComposedShaderNode;
+    TexSand: TImageTextureNode;
+    TexBread: TImageTextureNode;
+    TexRock: TImageTextureNode;
+    Part: TShaderPartNode;
+    Appearance: TAppearanceNode;
+    Color: TColorNode;
   begin
     CountSteps := 1 shl Subdivision + 1;
     Size := BaseSize * 2;
@@ -498,12 +498,12 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
     MaxX := WalkCamera.Position[0] + Size/2;
     MaxZ := WalkCamera.Position[1] - Size/2; // Z direction is inverted
 
-    Root := TVRMLRootNode.Create('', '');
+    Root := TX3DRootNode.Create('', '');
     try
-      Shape := TNodeShape.Create('', '');
+      Shape := TShapeNode.Create('', '');
       Root.FdChildren.Add(Shape);
 
-      Grid := TNodeElevationGrid.Create('', '');
+      Grid := TElevationGridNode.Create('', '');
       Shape.FdGeometry.Value := Grid;
       Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
       Grid.FdXDimension.Value := CountSteps;
@@ -512,7 +512,7 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
       Grid.FdZSpacing.Value := Size / (CountSteps - 1);
       Grid.FdHeight.Items.Count := CountSteps * CountSteps;
 
-      Color := TNodeColor.Create('', '');
+      Color := TColorNode.Create('', '');
       Grid.FdColor.Value := Color;
       Color.FdColor.Items.Count := CountSteps * CountSteps;
 
@@ -527,24 +527,24 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
             ColorFromHeight(Elevation, Grid.FdHeight.Items.L[X + Z * CountSteps]);
         end;
 
-      Appearance := TNodeAppearance.Create('', '');
+      Appearance := TAppearanceNode.Create('', '');
       Shape.FdAppearance.Value := Appearance;
 
       { add any material, to be lit (even without shaders) }
-      Appearance.FdMaterial.Value := TNodeMaterial.Create('', '');
+      Appearance.FdMaterial.Value := TMaterialNode.Create('', '');
 
       if AddShadersTextures then
       begin
-        Shader := TNodeComposedShader.Create('', '');
+        Shader := TComposedShaderNode.Create('', '');
         Appearance.FdShaders.Add(Shader);
         Shader.FdLanguage.Value := 'GLSL';
 
         { Add shader. Setup everything, like for rendering (without fog). }
-        TexSand := TNodeImageTexture.Create('', '');
+        TexSand := TImageTextureNode.Create('', '');
         TexSand.FdUrl.Items.Add('textures/sand.png');
-        TexBread := TNodeImageTexture.Create('', '');
+        TexBread := TImageTextureNode.Create('', '');
         TexBread.FdUrl.Items.Add('textures/bread.png');
-        TexRock := TNodeImageTexture.Create('', '');
+        TexRock := TImageTextureNode.Create('', '');
         TexRock.FdUrl.Items.Add('textures/rock_d01.png');
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_sand', [], TexSand));
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_bread', [], TexBread));
@@ -556,12 +556,12 @@ procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
         Shader.AddCustomField(TSFFloat.Create(Shader, 'color_scale', 0.2));
         Shader.AddCustomField(TSFFloat.Create(Shader, 'tex_scale', 0.8));
 
-        Part := TNodeShaderPart.Create('', '');
+        Part := TShaderPartNode.Create('', '');
         Shader.FdParts.Add(Part);
         Part.FdType.Value := 'FRAGMENT';
         Part.FdUrl.Items.Add('elevation.fs');
 
-        Part := TNodeShaderPart.Create('', '');
+        Part := TShaderPartNode.Create('', '');
         Shader.FdParts.Add(Part);
         Part.FdType.Value := 'VERTEX';
         Part.FdUrl.Items.Add('elevation.vs');

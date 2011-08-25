@@ -474,7 +474,7 @@ type
     FOwnsRenderer: boolean;
 
     { Fog for this shape. @nil if none. }
-    function ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
+    function ShapeFog(Shape: TVRMLShape): IAbstractX3DFogObject;
   private
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
       for which reflection texture is generated. (This wouldn't cause
@@ -538,7 +538,7 @@ type
     { For Hierarchical Occlusion Culling }
     FrameId: Cardinal;
   protected
-    function CreateShape(AGeometry: TVRMLGeometryNode;
+    function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
     procedure InvalidateBackground; override;
   public
@@ -828,7 +828,7 @@ type
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
-    FBackgroundNode: TNodeX3DBindableNode;
+    FBackgroundNode: TAbstractX3DBindableNode;
     { Cached Background value }
     FBackground: TVRMLGLBackground;
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
@@ -1054,7 +1054,7 @@ var
 
   procedure CalculateUseBlending;
   var
-    Tex: TNodeX3DTextureNode;
+    Tex: TAbstractX3DTextureNode;
     AlphaChannelType: TAlphaChannelType;
   begin
     { Note that we either render the whole geometry node with or without
@@ -1080,7 +1080,7 @@ var
     begin
       { If texture exists with full range alpha channel then use blending.
 
-        Note that State.Texture may be TNodeMultiTexture --- that's Ok,
+        Note that State.Texture may be TMultiTextureNode --- that's Ok,
         it's also prepared by Renderer, and has AlphaChannelType = atFullRange
         if any child has atFullRange. So it automatically works Ok too. }
 
@@ -1373,7 +1373,7 @@ begin
   inherited;
 end;
 
-function TVRMLGLScene.CreateShape(AGeometry: TVRMLGeometryNode;
+function TVRMLGLScene.CreateShape(AGeometry: TAbstractGeometryNode;
   AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape;
 begin
   Result := TVRMLGLShape.Create(Self, AGeometry, AState, ParentInfo);
@@ -1387,7 +1387,7 @@ procedure TVRMLGLScene.CloseGLRenderer;
     constructor terminated with exception.
   This explains that we have to check Renderer <> nil, Shapes <> nil. }
 
-  procedure CloseGLScreenEffect(Node: TNodeScreenEffect);
+  procedure CloseGLScreenEffect(Node: TScreenEffectNode);
   begin
     { The TGLSLProgram instance here will be released by Rendered.UnprepareAll,
       that eventually calls GLSLRenderers.UnprepareAll,
@@ -1429,7 +1429,7 @@ begin
 
   if ScreenEffectNodes <> nil then
     for I := 0 to ScreenEffectNodes.Count - 1 do
-      CloseGLScreenEffect(TNodeScreenEffect(ScreenEffectNodes[I]));
+      CloseGLScreenEffect(TScreenEffectNode(ScreenEffectNodes[I]));
 
   { TODO: if FOwnsRenderer then we should do something more detailed
     then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
@@ -1464,7 +1464,7 @@ begin
   InvalidateBackground;
 end;
 
-function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): INodeX3DFogObject;
+function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): IAbstractX3DFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then
@@ -1803,7 +1803,7 @@ var
   procedure AdjustBlendFunc(Shape: TVRMLShape;
     var BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum);
   var
-    B: TNodeBlendMode;
+    B: TBlendModeNode;
     NewSrc, NewDest: TGLEnum;
     NeedsConstColor, NeedsConstAlpha: boolean;
   begin
@@ -2274,7 +2274,7 @@ begin
   if prScreenEffects in Options then
   begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
-      Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TNodeScreenEffect);
+      Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
   end;
 end;
 
@@ -3447,7 +3447,7 @@ end;
 procedure TVRMLGLScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
-  BgNode: TNodeBackground;
+  BgNode: TBackgroundNode;
   SkyAngleCount: Integer;
   SkyColorCount: Integer;
   GroundAngleCount: Integer;
@@ -3462,13 +3462,13 @@ begin
     InvalidateBackground;
 
   if (BackgroundStack.Top <> nil) and
-     (BackgroundStack.Top is TNodeBackground) then
+     (BackgroundStack.Top is TBackgroundNode) then
   begin
     if Log then
       WritelnLog('Background', Format('OpenGL background recreated, with radius %f',
         [BackgroundSkySphereRadius]));
 
-    BgNode := TNodeBackground(BackgroundStack.Top);
+    BgNode := TBackgroundNode(BackgroundStack.Top);
 
     SkyAngleCount := BgNode.FdSkyAngle.Count;
     SkyColorCount := BgNode.FdSkyColor.Count;
@@ -3525,14 +3525,14 @@ end;
 
 function TVRMLGLScene.Background: TVRMLGLBackground;
 var
-  BackgroundNode: TNodeX3DBackgroundNode;
+  BackgroundNode: TAbstractX3DBackgroundNode;
 begin
   PrepareBackground;
   Result := FBackground;
 
-  BackgroundNode := BackgroundStack.Top as TNodeX3DBackgroundNode;
+  BackgroundNode := BackgroundStack.Top as TAbstractX3DBackgroundNode;
   if (BackgroundNode <> nil) and
-     { We have to still check Result, since not every TNodeX3DBackgroundNode
+     { We have to still check Result, since not every TAbstractX3DBackgroundNode
        is supported now, so for some background nodes we still have
        Result = nil. }
      (Result <> nil) then
@@ -3580,7 +3580,7 @@ procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
   end;
 
 var
-  ViewpointNode: TVRMLViewpointNode;
+  ViewpointNode: TAbstractViewpointNode;
   PerspectiveFieldOfView: Single;
   VisibilityLimit: Single;
 
@@ -3617,7 +3617,7 @@ var
 
     { update OrthoViewDimensions using OrthoViewpoint.fieldOfView }
     if (ViewpointNode <> nil) and
-       (ViewpointNode is TNodeOrthoViewpoint) then
+       (ViewpointNode is TOrthoViewpointNode) then
     begin
       { default OrthoViewDimensions, for OrthoViewpoint }
       OrthoViewDimensions[0] := -1;
@@ -3625,22 +3625,22 @@ var
       OrthoViewDimensions[2] :=  1;
       OrthoViewDimensions[3] :=  1;
 
-      FieldOfView := TNodeOrthoViewpoint(ViewpointNode).FdFieldOfView.Items;
+      FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
       if FieldOfView.Count > 0 then OrthoViewDimensions[0] := FieldOfView.Items[0];
       if FieldOfView.Count > 1 then OrthoViewDimensions[1] := FieldOfView.Items[1];
       if FieldOfView.Count > 2 then OrthoViewDimensions[2] := FieldOfView.Items[2];
       if FieldOfView.Count > 3 then OrthoViewDimensions[3] := FieldOfView.Items[3];
     end else
     if (ViewpointNode <> nil) and
-       (ViewpointNode is TNodeOrthographicCamera) then
+       (ViewpointNode is TOrthographicCameraNode) then
     begin
-      OrthoViewDimensions[0] := -TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
-      OrthoViewDimensions[1] := -TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
-      OrthoViewDimensions[2] :=  TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
-      OrthoViewDimensions[3] :=  TNodeOrthographicCamera(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[0] := -TOrthographicCameraNode(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[1] := -TOrthographicCameraNode(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[2] :=  TOrthographicCameraNode(ViewpointNode).FdHeight.Value / 2;
+      OrthoViewDimensions[3] :=  TOrthographicCameraNode(ViewpointNode).FdHeight.Value / 2;
     end;
 
-    TNodeOrthoViewpoint.AspectFieldOfView(OrthoViewDimensions,
+    TOrthoViewpointNode.AspectFieldOfView(OrthoViewDimensions,
       ViewportWidth / ViewportHeight);
 
     ProjectionGLOrtho(
@@ -3658,17 +3658,17 @@ var
 begin
   glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
 
-  ViewpointNode := ViewpointStack.Top as TVRMLViewpointNode;
+  ViewpointNode := ViewpointStack.Top as TAbstractViewpointNode;
 
   if (ViewpointNode <> nil) and
-     (ViewpointNode is TNodeViewpoint) then
-    PerspectiveFieldOfView := TNodeViewpoint(ViewpointNode).FdFieldOfView.Value else
+     (ViewpointNode is TViewpointNode) then
+    PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FdFieldOfView.Value else
   if (ViewpointNode <> nil) and
-     (ViewpointNode is TNodePerspectiveCamera) then
-    PerspectiveFieldOfView := TNodePerspectiveCamera(ViewpointNode).FdHeightAngle.Value else
+     (ViewpointNode is TPerspectiveCameraNode) then
+    PerspectiveFieldOfView := TPerspectiveCameraNode(ViewpointNode).FdHeightAngle.Value else
     PerspectiveFieldOfView := DefaultViewpointFieldOfView;
 
-  PerspectiveViewAngles[0] := RadToDeg(TNodeViewpoint.ViewpointAngleOfView(
+  PerspectiveViewAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
     PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
 
   PerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
@@ -3678,7 +3678,7 @@ begin
     Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
 
   if NavigationInfoStack.Top <> nil then
-    VisibilityLimit := (NavigationInfoStack.Top as TNodeNavigationInfo).
+    VisibilityLimit := (NavigationInfoStack.Top as TNavigationInfoNode).
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
@@ -3734,7 +3734,7 @@ var
   I: Integer;
   NeedsRestoreViewport: boolean;
   Shape: TVRMLGLShape;
-  TextureNode: TNodeX3DTextureNode;
+  TextureNode: TAbstractX3DTextureNode;
 begin
   NeedsRestoreViewport := false;
 
@@ -3743,15 +3743,15 @@ begin
     Shape := TVRMLGLShape(GeneratedTextures.L[I].Shape);
     TextureNode := GeneratedTextures.L[I].TextureNode;
 
-    if TextureNode is TNodeGeneratedCubeMapTexture then
+    if TextureNode is TGeneratedCubeMapTextureNode then
       AvoidShapeRendering := Shape else
-    if TextureNode is TNodeGeneratedShadowMap then
+    if TextureNode is TGeneratedShadowMapNode then
       AvoidNonShadowCasterRendering := true;
 
     Renderer.UpdateGeneratedTextures(Shape,
       TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
-      ViewpointStack.Top as TVRMLViewpointNode,
+      ViewpointStack.Top as TAbstractViewpointNode,
       CameraViewKnown, CameraPosition, CameraDirection, CameraUp);
 
     AvoidShapeRendering := nil;
@@ -3793,12 +3793,12 @@ begin
   begin
     for I := 0 to GeneratedTextures.Count - 1 do
     begin
-      if GeneratedTextures.L[I].TextureNode is TNodeGeneratedCubeMapTexture then
+      if GeneratedTextures.L[I].TextureNode is TGeneratedCubeMapTextureNode then
       begin
         if [vcVisibleGeometry, vcVisibleNonGeometry] * Changes <> [] then
           GeneratedTextures.L[I].Handler.UpdateNeeded := true;
       end else
-      if GeneratedTextures.L[I].TextureNode is TNodeGeneratedShadowMap then
+      if GeneratedTextures.L[I].TextureNode is TGeneratedShadowMapNode then
       begin
         if vcVisibleGeometry in Changes then
           GeneratedTextures.L[I].Handler.UpdateNeeded := true;
@@ -3816,13 +3816,13 @@ end;
 function TVRMLGLScene.ScreenEffectsCount: Integer;
 var
   I: Integer;
-  SE: TNodeScreenEffect;
+  SE: TScreenEffectNode;
 begin
   Result := 0;
   if Attributes.Shaders <> srDisable then
     for I := 0 to ScreenEffectNodes.Count - 1 do
     begin
-      SE := TNodeScreenEffect(ScreenEffectNodes[I]);
+      SE := TScreenEffectNode(ScreenEffectNodes[I]);
       Renderer.PrepareScreenEffect(SE);
       if SE.Shader <> nil then
         Inc(Result);
@@ -3832,7 +3832,7 @@ end;
 function TVRMLGLScene.ScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
-  SE: TNodeScreenEffect;
+  SE: TScreenEffectNode;
 begin
   { No need for PrepareScreenEffect here, ScreenEffectsCount (that does
     PrepareScreenEffect) is always called first, otherwise the caller
@@ -3840,7 +3840,7 @@ begin
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
   begin
-    SE := TNodeScreenEffect(ScreenEffectNodes[I]);
+    SE := TScreenEffectNode(ScreenEffectNodes[I]);
     if SE.Shader <> nil then
       if Index = 0 then
         Exit(TGLSLProgram(SE.Shader)) else
@@ -3859,8 +3859,8 @@ begin
     here PrepareScreenEffect? }
 
   for I := 0 to ScreenEffectNodes.Count - 1 do
-    if (TNodeScreenEffect(ScreenEffectNodes[I]).Shader <> nil) and
-        TNodeScreenEffect(ScreenEffectNodes[I]).FdNeedsDepth.Value then
+    if (TScreenEffectNode(ScreenEffectNodes[I]).Shader <> nil) and
+        TScreenEffectNode(ScreenEffectNodes[I]).FdNeedsDepth.Value then
       Exit(true);
   Exit(false);
 end;

@@ -15,19 +15,19 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DNetworkSensorNode = class(TNodeX3DSensorNode)
+  TAbstractX3DNetworkSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
   end;
 
-  INodeX3DUrlObject = interface(IVRMLNode)
+  IAbstractX3DUrlObject = interface(IX3DNode)
   ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
     property FdUrl: TMFString { read GetFdurl }; { }
   end;
 
-  TVRMLViewpointNode = class;
+  TAbstractViewpointNode = class;
 
-  TNodeAnchor = class(TNodeX3DGroupingNode)
+  TAnchorNode = class(TAbstractX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -92,9 +92,9 @@
       loaded (at least, you don't have it's VRML graph). It means that
       any "#Viewpoint" within current model is considered invalid. }
     function LoadAnchor(
-      out NewRootNode: TVRMLRootNode;
-      out NewViewpoint: TVRMLViewpointNode;
-      CurrentRootNode: TVRMLRootNode): boolean;
+      out NewRootNode: TX3DRootNode;
+      out NewViewpoint: TAbstractViewpointNode;
+      CurrentRootNode: TX3DRootNode): boolean;
   end;
 
   { Inline node.
@@ -105,9 +105,9 @@
     but for inline node this is just used for inlined content (regardless
     of VRML/X3D version).
 
-    This means that most methods, like TVRMLNode.EnumerateNodes,
+    This means that most methods, like TX3DNode.EnumerateNodes,
     descend into inlined content normally. }
-  TNodeInline = class(TVRMLGroupingNode, INodeX3DBoundedObject, INodeX3DUrlObject)
+  TInlineNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject, IAbstractX3DUrlObject)
   private
     procedure EventLoadReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -120,7 +120,7 @@
       If "url" didn't contain anything useful, Loaded is still set to @true,
       to avoid constantly trying to reload. }
     Loaded: boolean;
-    FInlined: TVRMLNode;
+    FInlined: TX3DNode;
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -129,7 +129,7 @@
       called when LoadInlined was called on the already-loaded node with
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
-    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
+    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
     procedure ParseAfter(Names: TVRMLNames); override;
   public
     procedure CreateNode; override;
@@ -173,7 +173,7 @@
 
       @param(Exported If non-nil, we will assign here node names
         exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
-    procedure LoadInlined(CanReload: boolean; Exported: TVRMLNodeNames = nil);
+    procedure LoadInlined(CanReload: boolean; Exported: TX3DNodeNames = nil);
 
     procedure UnLoadInlined;
 
@@ -186,7 +186,7 @@
 
       This is also kept in VRML 1.0 children as Children[0],
       but for future it's better to not depend on that. }
-    property Inlined: TVRMLNode read FInlined;
+    property Inlined: TX3DNode read FInlined;
   end;
 
   { InlineLoadControl (VRML 97 node).
@@ -195,7 +195,7 @@
     has a "load" field. So InlineLoadControl doesn't really have much use...
     InlineLoadControl is implemented mostly for compatibility with VRML 97.
     It has additional "children" output field. }
-  TNodeInlineLoadControl = class(TNodeInline)
+  TInlineLoadControlNode = class(TInlineNode)
   protected
     procedure AfterLoadInlined; override;
   public
@@ -208,7 +208,7 @@
     public property EventChildren: TVRMLEvent read FEventChildren;
   end;
 
-  TNodeLoadSensor = class(TNodeX3DNetworkSensorNode)
+  TLoadSensorNode = class(TAbstractX3DNetworkSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -236,14 +236,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DNetworkSensorNode.CreateNode;
+procedure TAbstractX3DNetworkSensorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeAnchor.CreateNode;
+procedure TAnchorNode.CreateNode;
 begin
   inherited;
 
@@ -260,19 +260,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeAnchor.ClassNodeTypeName: string;
+class function TAnchorNode.ClassNodeTypeName: string;
 begin
   Result := 'Anchor';
 end;
 
-class function TNodeAnchor.URNMatching(const URN: string): boolean;
+class function TAnchorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeAnchor.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -280,10 +280,10 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-function TNodeAnchor.LoadAnchor(
-  out NewRootNode: TVRMLRootNode;
-  out NewViewpoint: TVRMLViewpointNode;
-  CurrentRootNode: TVRMLRootNode): boolean;
+function TAnchorNode.LoadAnchor(
+  out NewRootNode: TX3DRootNode;
+  out NewViewpoint: TAbstractViewpointNode;
+  CurrentRootNode: TX3DRootNode): boolean;
 
   procedure ViewpointNameInvalid(const NewViewpointName: string);
   begin
@@ -317,8 +317,8 @@ begin
       begin
         if CurrentRootNode <> nil then
         begin
-          NewViewpoint := CurrentRootNode.TryFindNodeByName(TVRMLViewpointNode,
-            NewViewpointName, true) as TVRMLViewpointNode;
+          NewViewpoint := CurrentRootNode.TryFindNodeByName(TAbstractViewpointNode,
+            NewViewpointName, true) as TAbstractViewpointNode;
           if NewViewpoint <> nil then
             Exit(true) else
             ViewpointNameInvalid(NewViewpointName);
@@ -351,8 +351,8 @@ begin
         NewViewpoint := nil;
       end else
       begin
-        NewViewpoint := NewRootNode.TryFindNodeByName(TVRMLViewpointNode,
-          NewViewpointName, true) as TVRMLViewpointNode;
+        NewViewpoint := NewRootNode.TryFindNodeByName(TAbstractViewpointNode,
+          NewViewpointName, true) as TAbstractViewpointNode;
         if NewViewpoint = nil then
           ViewpointNameInvalid(NewViewpointName);
 
@@ -368,7 +368,7 @@ begin
   Result := false;
 end;
 
-procedure TNodeInline.CreateNode;
+procedure TInlineNode.CreateNode;
 begin
   inherited;
 
@@ -400,26 +400,26 @@ begin
   FInlined := nil;
 end;
 
-class function TNodeInline.ClassNodeTypeName: string;
+class function TInlineNode.ClassNodeTypeName: string;
 begin
   Result := 'Inline';
 end;
 
-class function TNodeInline.URNMatching(const URN: string): boolean;
+class function TInlineNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeInline.ParseAfter(Names: TVRMLNames);
+procedure TInlineNode.ParseAfter(Names: TVRMLNames);
 var
-  Exported: TVRMLNodeNames;
+  Exported: TX3DNodeNames;
 begin
   inherited;
 
   if NodeName <> '' then
-    Exported := TVRMLNodeNames.Create(false) else
+    Exported := TX3DNodeNames.Create(false) else
     Exported := nil;
 
   LoadInlined(false, Exported);
@@ -437,24 +437,24 @@ begin
   end;
 end;
 
-procedure TNodeInline.UnLoadInlined;
+procedure TInlineNode.UnLoadInlined;
 begin
   VRML1ChildrenClear;
   FInlined := nil;
   Loaded := false;
 end;
 
-procedure TNodeInline.LoadInlined(CanReload: boolean; Exported: TVRMLNodeNames = nil);
+procedure TInlineNode.LoadInlined(CanReload: boolean; Exported: TX3DNodeNames = nil);
 
-  { The Inlined contents are usually TVRMLRootNode,
+  { The Inlined contents are usually TX3DRootNode,
     but they should not be saved as such. Although usually this doesn't
     get saved (since we do not save inline contents), but it may happen
     if you copy VRML nodes around, e.g. "expanding" inlines like
     castle-process-3d-model. }
   procedure InlinedIsNotRootNode;
   begin
-    if FInlined is TVRMLRootNode then
-      (FInlined as TVRMLRootNode).SaveAsRootNode := false;
+    if FInlined is TX3DRootNode then
+      (FInlined as TX3DRootNode).SaveAsRootNode := false;
   end;
 
 var
@@ -487,8 +487,8 @@ begin
       try
         FInlined := LoadVRML(FullUrl, false);
         if (Exported <> nil) and
-           (TVRMLRootNode(FInlined).ExportedNames <> nil) then
-          Exported.Assign(TVRMLRootNode(FInlined).ExportedNames);
+           (TX3DRootNode(FInlined).ExportedNames <> nil) then
+          Exported.Assign(TX3DRootNode(FInlined).ExportedNames);
         Break;
       except
         on E: Exception do
@@ -512,7 +512,7 @@ begin
   Loaded := true;
 end;
 
-procedure TNodeInline.LoadedInlineDirectly;
+procedure TInlineNode.LoadedInlineDirectly;
 begin
   Loaded := true;
   if VRML1ChildrenCount <> 0 then
@@ -520,12 +520,12 @@ begin
     FInlined := nil;
 end;
 
-function TNodeInline.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+function TInlineNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 var
-  ResultI: TNodeInline;
+  ResultI: TInlineNode;
 begin
   Result := inherited DeepCopyCore(CopyState);
-  ResultI := Result as TNodeInline;
+  ResultI := Result as TInlineNode;
 
   { Since inherited copied our Children, we should also set "Loaded"
     and "Inlined" field to the same value. }
@@ -535,12 +535,12 @@ begin
     ResultI.FInlined := nil;
 end;
 
-procedure TNodeInline.AfterLoadInlined;
+procedure TInlineNode.AfterLoadInlined;
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TNodeInline.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TInlineNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
 
@@ -557,18 +557,18 @@ begin
   Inc(StateStack.Top.InsideInline);
 end;
 
-procedure TNodeInline.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TInlineNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   Dec(StateStack.Top.InsideInline);
   inherited;
 end;
 
-class function TNodeInline.VRML1ChildrenSaveToStream: boolean;
+class function TInlineNode.VRML1ChildrenSaveToStream: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeInline.EventLoadReceive(
+procedure TInlineNode.EventLoadReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined,
@@ -597,7 +597,7 @@ begin
   if Scene <> nil then Scene.ChangedAll;
 end;
 
-procedure TNodeInline.EventUrlReceive(
+procedure TInlineNode.EventUrlReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdLoad.Value then
@@ -609,7 +609,7 @@ begin
   end;
 end;
 
-procedure TNodeInlineLoadControl.CreateNode;
+procedure TInlineLoadControlNode.CreateNode;
 begin
   inherited;
 
@@ -619,24 +619,24 @@ begin
   FInlined := nil;
 end;
 
-class function TNodeInlineLoadControl.ClassNodeTypeName: string;
+class function TInlineLoadControlNode.ClassNodeTypeName: string;
 begin
   Result := 'InlineLoadControl';
 end;
 
-class function TNodeInlineLoadControl.URNMatching(const URN: string): boolean;
+class function TInlineLoadControlNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-procedure TNodeInlineLoadControl.AfterLoadInlined;
+procedure TInlineLoadControlNode.AfterLoadInlined;
 var
   ChildrenToSend: TMFNode;
 begin
   { TODO: InlineLoadControl should load it's contents to
     children MFNode, and we should make a way (analogous
-    to TNodeInlineLoadControl.VRML1ChildrenSaveToStream)
+    to TInlineLoadControlNode.VRML1ChildrenSaveToStream)
     to say that "we don't want to save to stream "children" field".
     For now it's not really important (user doesn't see
     where it's loaded), but it will be later for scripts. }
@@ -651,14 +651,14 @@ begin
   end;
 end;
 
-procedure TNodeLoadSensor.CreateNode;
+procedure TLoadSensorNode.CreateNode;
 begin
   inherited;
 
   FFdTimeOut := TSFTime.Create(Self, 'timeOut', 0);
   Fields.Add(FFdTimeOut);
 
-  FFdWatchList := TMFNode.Create(Self, 'watchList', INodeX3DUrlObject);
+  FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractX3DUrlObject);
   Fields.Add(FFdWatchList);
 
   FEventIsLoaded := TVRMLEvent.Create(Self, 'isLoaded', TSFBool, false);
@@ -673,12 +673,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeLoadSensor.ClassNodeTypeName: string;
+class function TLoadSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'LoadSensor';
 end;
 
-class function TNodeLoadSensor.URNMatching(const URN: string): boolean;
+class function TLoadSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -687,10 +687,10 @@ end;
 procedure RegisterNetworkingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeAnchor,
-    TNodeInline,
-    TNodeInlineLoadControl,
-    TNodeLoadSensor
+    TAnchorNode,
+    TInlineNode,
+    TInlineLoadControlNode,
+    TLoadSensorNode
   ]);
 end;
 

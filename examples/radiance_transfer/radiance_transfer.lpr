@@ -129,12 +129,12 @@ end;
 
 type
   THelper = class
-    function DoRadianceTransfer(Node: TVRMLGeometryNode;
+    function DoRadianceTransfer(Node: TAbstractGeometryNode;
       RadianceTransfer: PVector3Single;
       const RadianceTransferCount: Cardinal): TVector3Single;
   end;
 
-function THelper.DoRadianceTransfer(Node: TVRMLGeometryNode;
+function THelper.DoRadianceTransfer(Node: TAbstractGeometryNode;
   RadianceTransfer: PVector3Single;
   const RadianceTransferCount: Cardinal): TVector3Single;
 var

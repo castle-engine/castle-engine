@@ -6,8 +6,8 @@
 var Spot: Single;
     Attenuat: Single;
 
-    LightNode: TNodeX3DLightNode;
-    PosLightNode: TVRMLPositionalLightNode absolute LightNode;
+    LightNode: TAbstractX3DLightNode;
+    PosLightNode: TAbstractPositionalLightNode absolute LightNode;
 
     Factors: TVector3Single;
     { kierunek od Intersection do zrodla swiatla, normalized }
@@ -16,8 +16,8 @@ var Spot: Single;
     Normal: TVector3Single;
 
     {$ifndef CAMERA_INDEP}
-    M1: TNodeMaterial_1;
-    M2: TNodeMaterial;
+    M1: TMaterialNode_1;
+    M2: TMaterialNode;
 
     { srednia z wektora do cameraa i LightDirNorm, potrzebna do liczenia
       odbicia Specular }
@@ -33,7 +33,7 @@ var Spot: Single;
     {$define PointPlaneNormal := IntersectNode.World.Plane}
     {$endif}
 
-  function CalculateSpot_1(SpotLight: TNodeSpotLight_1): Single;
+  function CalculateSpot_1(SpotLight: TSpotLightNode_1): Single;
   var
     CosSpotAngle, SpotAngle: Single;
   begin
@@ -49,7 +49,7 @@ var Spot: Single;
       Result := 0;
   end;
 
-  function CalculateSpot(SpotLight: TNodeSpotLight): Single;
+  function CalculateSpot(SpotLight: TSpotLightNode): Single;
   var
     CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
   begin
@@ -98,7 +98,7 @@ begin
    MaterialShininessExp := M1.ShininessExp(0);
  end;
  {$endif}
- LightNode := TNodeX3DLightNode(Light.Node);
+ LightNode := TAbstractX3DLightNode(Light.Node);
 
  if (not LightNode.FdOn.Value) then
  begin
@@ -110,7 +110,7 @@ begin
    For now lights with non-trivial attenuation put under some transformation
    that does distance scaling will not render as required by VRML 2.0 spec.
    Czyli musze implementowac InvertTransformation ? }
- if LightNode is TVRMLPositionalLightNode then
+ if LightNode is TAbstractPositionalLightNode then
  begin
   if PosLightNode.DistanceNeededForAttenuation then
    Attenuat := PosLightNode.Attenuation( PointsDistance(Point, Light.Location) ) else
@@ -119,7 +119,7 @@ begin
   Attenuat := 1;
 
  { LightDirNorm is called "L" in the equation in VRML spec }
- if LightNode is TVRMLPositionalLightNode then
+ if LightNode is TAbstractPositionalLightNode then
   LightDirNorm := Normalized(Light.Location - Point) else
   LightDirNorm := -Light.Direction;
  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
@@ -143,10 +143,10 @@ begin
 
  { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
    dla innych swiatel jest zawsze = 1. }
- if LightNode is TNodeSpotLight_1 then
-   Spot := CalculateSpot_1(TNodeSpotLight_1(LightNode)) else
- if LightNode is TNodeSpotLight then
-   Spot := CalculateSpot(TNodeSpotLight(LightNode)) else
+ if LightNode is TSpotLightNode_1 then
+   Spot := CalculateSpot_1(TSpotLightNode_1(LightNode)) else
+ if LightNode is TSpotLightNode then
+   Spot := CalculateSpot(TSpotLightNode(LightNode)) else
    Spot := 1;
 
  Result := LightNode.FdColor.Value * (Attenuat * Spot);

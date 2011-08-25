@@ -17,7 +17,7 @@
 
 type
   { }
-  INodeX3DNode = interface(IVRMLNode)
+  IAbstractX3DNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
     property FdMetadata: TSFNode;
   end;
@@ -26,7 +26,7 @@ type
 
     Almost all X3D nodes inherit from this. (Exception:
     X3DMetadataObject. So you cannot have metadata of metadata of...) }
-  TNodeX3DNode = class(TVRMLNode, INodeX3DNode)
+  TAbstractX3DNode = class(TX3DNode, IAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -34,16 +34,16 @@ type
     public property FdMetadata: TSFNode read FFdMetadata;
   end;
 
-  INodeX3DChildNode = interface(INodeX3DNode)
+  IAbstractX3DChildNode = interface(IAbstractX3DNode)
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
-  TNodeX3DChildNode = class(TNodeX3DNode, INodeX3DChildNode)
+  TAbstractX3DChildNode = class(TAbstractX3DNode, IAbstractX3DChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  TNodeX3DBindableNode = class(TNodeX3DChildNode)
+  TAbstractX3DBindableNode = class(TAbstractX3DChildNode)
   private
     FTransform: TMatrix4Single;
     FTransformScale: Single;
@@ -93,21 +93,21 @@ type
     { @groupEnd }
   end;
 
-  TNodeX3DInfoNode = class(TNodeX3DChildNode)
+  TAbstractX3DInfoNode = class(TAbstractX3DChildNode)
   end;
 
-  INodeX3DMetadataObject = interface(IVRMLNode)
+  IAbstractX3DMetadataObject = interface(IX3DNode)
   ['{2D631FBF-683B-4259-A98D-74589893447C}']
     property FdName: TSFString { read GetFdname }; { }
     property FdReference: TSFString { read GetFdreference }; { }
   end;
 
-  TNodeX3DPrototypeInstance = class(TNodeX3DNode)
+  TAbstractX3DPrototypeInstance = class(TAbstractX3DNode)
   end;
 
   { X3DSensorNode when it's a secondary ancestor.
-    (When it's a primary ancestor, I use class TNodeX3DSensorNode.) }
-  INodeX3DSensorNode = interface(INodeX3DChildNode)
+    (When it's a primary ancestor, I use class TAbstractX3DSensorNode.) }
+  IAbstractX3DSensorNode = interface(IAbstractX3DChildNode)
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
     property FdEnabled: TSFBool;
 
@@ -115,7 +115,7 @@ type
     property EventIsActive: TVRMLEvent;
   end;
 
-  TNodeX3DSensorNode = class(TNodeX3DChildNode, INodeX3DSensorNode)
+  TAbstractX3DSensorNode = class(TAbstractX3DChildNode, IAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -127,7 +127,7 @@ type
     public property EventIsActive: TVRMLEvent read FEventIsActive;
   end;
 
-  TNodeMetadataDouble = class(TNodeX3DNode, INodeX3DMetadataObject)
+  TMetadataDoubleNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -143,7 +143,7 @@ type
     public property FdValue: TMFDouble read FFdValue;
   end;
 
-  TNodeMetadataFloat = class(TNodeX3DNode, INodeX3DMetadataObject)
+  TMetadataFloatNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -159,7 +159,7 @@ type
     public property FdValue: TMFFloat read FFdValue;
   end;
 
-  TNodeMetadataInteger = class(TNodeX3DNode, INodeX3DMetadataObject)
+  TMetadataIntegerNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -175,7 +175,7 @@ type
     public property FdValue: TMFInt32 read FFdValue;
   end;
 
-  TNodeMetadataSet = class(TNodeX3DNode, INodeX3DMetadataObject)
+  TMetadataSetNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -191,7 +191,7 @@ type
     public property FdValue: TMFNode read FFdValue;
   end;
 
-  TNodeMetadataString = class(TNodeX3DNode, INodeX3DMetadataObject)
+  TMetadataStringNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -207,7 +207,7 @@ type
     public property FdValue: TMFString read FFdValue;
   end;
 
-  TNodeWorldInfo = class(TNodeX3DInfoNode)
+  TWorldInfoNode = class(TAbstractX3DInfoNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -224,15 +224,15 @@ type
 
 {$ifdef read_implementation}
 
-procedure TNodeX3DNode.CreateNode;
+procedure TAbstractX3DNode.CreateNode;
 begin
   inherited;
 
-  FFdMetadata := TSFNode.Create(Self, 'metadata', INodeX3DMetadataObject);
+  FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractX3DMetadataObject);
   Fields.Add(FFdMetadata);
 end;
 
-procedure TNodeX3DChildNode.CreateNode;
+procedure TAbstractX3DChildNode.CreateNode;
 begin
   inherited;
 
@@ -243,7 +243,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DBindableNode.CreateNode;
+procedure TAbstractX3DBindableNode.CreateNode;
 begin
   inherited;
 
@@ -260,7 +260,7 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TNodeX3DBindableNode.BeforeTraverse(
+procedure TAbstractX3DBindableNode.BeforeTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
@@ -269,7 +269,7 @@ begin
   FTransformScale := StateStack.Top.TransformScale;
 end;
 
-procedure TNodeX3DSensorNode.CreateNode;
+procedure TAbstractX3DSensorNode.CreateNode;
 begin
   inherited;
 
@@ -280,7 +280,7 @@ begin
   Events.Add(FEventIsActive);
 end;
 
-procedure TNodeMetadataDouble.CreateNode;
+procedure TMetadataDoubleNode.CreateNode;
 begin
   inherited;
 
@@ -296,18 +296,18 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TNodeMetadataDouble.ClassNodeTypeName: string;
+class function TMetadataDoubleNode.ClassNodeTypeName: string;
 begin
   Result := 'MetadataDouble';
 end;
 
-class function TNodeMetadataDouble.URNMatching(const URN: string): boolean;
+class function TMetadataDoubleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMetadataFloat.CreateNode;
+procedure TMetadataFloatNode.CreateNode;
 begin
   inherited;
 
@@ -323,18 +323,18 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TNodeMetadataFloat.ClassNodeTypeName: string;
+class function TMetadataFloatNode.ClassNodeTypeName: string;
 begin
   Result := 'MetadataFloat';
 end;
 
-class function TNodeMetadataFloat.URNMatching(const URN: string): boolean;
+class function TMetadataFloatNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMetadataInteger.CreateNode;
+procedure TMetadataIntegerNode.CreateNode;
 begin
   inherited;
 
@@ -350,18 +350,18 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TNodeMetadataInteger.ClassNodeTypeName: string;
+class function TMetadataIntegerNode.ClassNodeTypeName: string;
 begin
   Result := 'MetadataInteger';
 end;
 
-class function TNodeMetadataInteger.URNMatching(const URN: string): boolean;
+class function TMetadataIntegerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMetadataSet.CreateNode;
+procedure TMetadataSetNode.CreateNode;
 begin
   inherited;
 
@@ -371,24 +371,24 @@ begin
   FFdReference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdReference);
 
-  FFdValue := TMFNode.Create(Self, 'value', INodeX3DMetadataObject);
+  FFdValue := TMFNode.Create(Self, 'value', IAbstractX3DMetadataObject);
   Fields.Add(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
 
-class function TNodeMetadataSet.ClassNodeTypeName: string;
+class function TMetadataSetNode.ClassNodeTypeName: string;
 begin
   Result := 'MetadataSet';
 end;
 
-class function TNodeMetadataSet.URNMatching(const URN: string): boolean;
+class function TMetadataSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMetadataString.CreateNode;
+procedure TMetadataStringNode.CreateNode;
 begin
   inherited;
 
@@ -404,18 +404,18 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TNodeMetadataString.ClassNodeTypeName: string;
+class function TMetadataStringNode.ClassNodeTypeName: string;
 begin
   Result := 'MetadataString';
 end;
 
-class function TNodeMetadataString.URNMatching(const URN: string): boolean;
+class function TMetadataStringNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeWorldInfo.CreateNode;
+procedure TWorldInfoNode.CreateNode;
 begin
   inherited;
 
@@ -428,12 +428,12 @@ begin
   Fields.Add(FFdTitle);
 end;
 
-class function TNodeWorldInfo.ClassNodeTypeName: string;
+class function TWorldInfoNode.ClassNodeTypeName: string;
 begin
   Result := 'WorldInfo';
 end;
 
-class function TNodeWorldInfo.URNMatching(const URN: string): boolean;
+class function TWorldInfoNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
@@ -443,12 +443,12 @@ end;
 procedure RegisterCoreNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeMetadataDouble,
-    TNodeMetadataFloat,
-    TNodeMetadataInteger,
-    TNodeMetadataSet,
-    TNodeMetadataString,
-    TNodeWorldInfo
+    TMetadataDoubleNode,
+    TMetadataFloatNode,
+    TMetadataIntegerNode,
+    TMetadataSetNode,
+    TMetadataStringNode,
+    TWorldInfoNode
   ]);
 end;
 

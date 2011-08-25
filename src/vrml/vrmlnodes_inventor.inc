@@ -17,7 +17,7 @@
 
 {$ifdef read_interface}
   { IndexedTriangleMesh (from Inventor 1.0). }
-  TNodeIndexedTriangleMesh_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
+  TIndexedTriangleMeshNode_1 = class(TIndexedFacesOrTrianglesNode_1)
     class function ClassNodeTypeName: string; override;
 
     procedure CoordPolygons(
@@ -25,13 +25,13 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TexCoord(State: TVRMLGraphTraverseState;
-      out ATexCoord: TVRMLNode): boolean; override;
+      out ATexCoord: TX3DNode): boolean; override;
   end;
 
   { RotationXYZ node (from Inventor). It's not in VRML 1.0 spec.
     But some invalid VRML 1.0 models use it,
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
-  TNodeRotationXYZ = class(TVRMLTransformationNode)
+  TRotationXYZNode = class(TAbstractTransformationNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -47,19 +47,19 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TNodeIndexedTriangleMesh_1.ClassNodeTypeName: string;
+class function TIndexedTriangleMeshNode_1.ClassNodeTypeName: string;
 begin
   result := 'IndexedTriangleMesh';
 end;
 
-function TNodeIndexedTriangleMesh_1.TexCoord(State: TVRMLGraphTraverseState;
-  out ATexCoord: TVRMLNode): boolean;
+function TIndexedTriangleMeshNode_1.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
   ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
-procedure TNodeRotationXYZ.CreateNode;
+procedure TRotationXYZNode.CreateNode;
 begin
   inherited;
 
@@ -72,12 +72,12 @@ begin
   Fields.Add(FFdAngle);
 end;
 
-class function TNodeRotationXYZ.ClassNodeTypeName: string;
+class function TRotationXYZNode.ClassNodeTypeName: string;
 begin
   Result := 'RotationXYZ';
 end;
 
-procedure TNodeRotationXYZ.Transformation(
+procedure TRotationXYZNode.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 const
   AxisVectors: array[0..2]of TVector3Single =
@@ -87,7 +87,7 @@ begin
     Matrix, InvertedMatrix);
 end;
 
-function TNodeRotationXYZ.TransformScale: Single;
+function TRotationXYZNode.TransformScale: Single;
 begin
   Result := 1;
 end;
@@ -95,8 +95,8 @@ end;
 procedure RegistedInventorNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeIndexedTriangleMesh_1,
-    TNodeRotationXYZ
+    TIndexedTriangleMeshNode_1,
+    TRotationXYZNode
   ]);
 end;
 {$endif read_implementation}

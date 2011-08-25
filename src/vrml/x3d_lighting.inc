@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  TNodeGeneratedShadowMap = class;
+  TGeneratedShadowMapNode = class;
 
   TLightScope = (
     { Light shines everywhere. VRML/X3D >= 2 calls these lights global. }
@@ -34,7 +34,7 @@
     ("ambientIntensity" < 0 has special meaning).
     But most of the fields behave identically, they only have different
     default values. }
-  TNodeX3DLightNode = class(TNodeX3DChildNode)
+  TAbstractX3DLightNode = class(TAbstractX3DChildNode)
   private
     FTransform: TMatrix4Single;
     SavedDefaultShadowMap: boolean;
@@ -172,19 +172,19 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     { Internal, to workaround small VRMLShadowMaps problem. @exclude }
-    procedure DefaultShadowMapSave(Node: TNodeGeneratedShadowMap);
+    procedure DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
     { Internal, to workaround small VRMLShadowMaps problem. @exclude }
-    function DefaultShadowMapLoad(Node: TNodeGeneratedShadowMap): boolean;
+    function DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
 
     { Light scope. Default implementation returns lsGlobal or lsLocal,
       depending on "global" field value (this follows VRML/X3D >= 2.0 rules). }
     function Scope: TLightScope; virtual;
   end;
 
-  { Deprecated name for TNodeX3DLightNode. @deprecated }
-  TVRMLLightNode = TNodeX3DLightNode;
+  { Deprecated name for TAbstractX3DLightNode. @deprecated }
+  TVRMLLightNode = TAbstractX3DLightNode;
 
-  TVRMLDirectionalLightNode = class(TNodeX3DLightNode)
+  TAbstractDirectionalLightNode = class(TAbstractX3DLightNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -209,7 +209,7 @@
       out MinDistance, MaxDistance: Single); override;
   end;
 
-  TVRMLPositionalLightNode = class(TNodeX3DLightNode)
+  TAbstractPositionalLightNode = class(TAbstractX3DLightNode)
   public
     procedure CreateNode; override;
 
@@ -255,7 +255,7 @@
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
   end;
 
-  TVRMLPointLightNode = class(TVRMLPositionalLightNode)
+  TAbstractPointLightNode = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -265,7 +265,7 @@
       out MinDistance, MaxDistance: Single); override;
   end;
 
-  TNodeDirectionalLight = class(TVRMLDirectionalLightNode)
+  TDirectionalLightNode = class(TAbstractDirectionalLightNode)
   public
     procedure CreateNode; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -273,9 +273,9 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
-  TNodeDirectionalLight_2 = TNodeDirectionalLight;
+  TDirectionalLightNode_2 = TDirectionalLightNode;
 
-  TNodePointLight = class(TVRMLPointLightNode)
+  TPointLightNode = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -283,9 +283,9 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
-  TNodePointLight_2 = TNodePointLight;
+  TPointLightNode_2 = TPointLightNode;
 
-  TNodeSpotLight = class(TVRMLPositionalLightNode)
+  TSpotLightNode = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -316,7 +316,7 @@
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
   end;
-  TNodeSpotLight_2 = TNodeSpotLight;
+  TSpotLightNode_2 = TSpotLightNode;
 
 {$endif read_interface}
 
@@ -326,7 +326,7 @@ const
   FallbackProjectionFar = 100;
   FallbackProjectionRectangle: TVector4Single = (-10, -10, 10, 10);
 
-procedure TNodeX3DLightNode.CreateNode;
+procedure TAbstractX3DLightNode.CreateNode;
 begin
   inherited;
 
@@ -382,7 +382,7 @@ begin
    FdUp.ChangesAlways := [chVisibleGeometry];
   Fields.Add(FFdUp);
 
-  FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TNodeGeneratedShadowMap]);
+  FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TGeneratedShadowMapNode]);
    FdDefaultShadowMap.Exposed := false;
    FdDefaultShadowMap.ChangesAlways := [chEverything];
   Fields.Add(FFdDefaultShadowMap);
@@ -392,7 +392,7 @@ begin
    FdShadows.ChangesAlways := [chEverything];
   Fields.Add(FFdShadows);
 
-  FFdEffects := TMFNode.Create(Self, 'effects', [TNodeEffect]);
+  FFdEffects := TMFNode.Create(Self, 'effects', [TEffectNode]);
    FdEffects.Exposed := false;
    FdEffects.ChangesAlways := [chEverything];
   Fields.Add(FFdEffects);
@@ -402,7 +402,7 @@ begin
   FTransform := IdentityMatrix4Single;
 end;
 
-procedure TNodeX3DLightNode.BeforeTraverse(
+procedure TAbstractX3DLightNode.BeforeTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
@@ -410,47 +410,47 @@ begin
   FTransform := StateStack.Top.Transform;
 end;
 
-function TNodeX3DLightNode.ProjectionMatrix: TMatrix4Single;
+function TAbstractX3DLightNode.ProjectionMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.ModelviewMatrix: TMatrix4Single;
+function TAbstractX3DLightNode.ModelviewMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.ModelviewRotationMatrix: TMatrix4Single;
+function TAbstractX3DLightNode.ModelviewRotationMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DLightNode.GetProjectorMatrix: TMatrix4Single;
+function TAbstractX3DLightNode.GetProjectorMatrix: TMatrix4Single;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-function TNodeX3DLightNode.LocationLocal: TVector3Single;
+function TAbstractX3DLightNode.LocationLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function TNodeX3DLightNode.Location: TVector3Single;
+function TAbstractX3DLightNode.Location: TVector3Single;
 begin
   Result := MatrixMultPoint(Transform, LocationLocal);
 end;
 
-function TNodeX3DLightNode.Direction: TVector3Single;
+function TAbstractX3DLightNode.Direction: TVector3Single;
 begin
   Result := MatrixMultDirection(Transform, DirectionLocal);
 end;
 
-function TNodeX3DLightNode.DirectionLocal: TVector3Single;
+function TAbstractX3DLightNode.DirectionLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-procedure TNodeX3DLightNode.GetView(out Pos, Dir, Up: TVector3Single);
+procedure TAbstractX3DLightNode.GetView(out Pos, Dir, Up: TVector3Single);
 begin
   Pos := MatrixMultPoint    (Transform, LocationLocal);
   Dir := MatrixMultDirection(Transform, DirectionLocal);
@@ -470,7 +470,7 @@ begin
     Up := AnyOrthogonalVector(Dir);
 end;
 
-function TNodeX3DLightNode.CreateLightInstance(
+function TAbstractX3DLightNode.CreateLightInstance(
   State: TVRMLGraphTraverseState): TLightInstance;
 begin
   Result.Node := Self;
@@ -478,7 +478,7 @@ begin
   UpdateLightInstanceState(Result, State);
 end;
 
-procedure TNodeX3DLightNode.UpdateLightInstanceState(
+procedure TAbstractX3DLightNode.UpdateLightInstanceState(
   var LightInstance: TLightInstance;
   State: TVRMLGraphTraverseState);
 begin
@@ -487,26 +487,26 @@ begin
   UpdateLightInstance(LightInstance);
 end;
 
-procedure TNodeX3DLightNode.UpdateLightInstance(
+procedure TAbstractX3DLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   { Nothing to do in this class. }
   Assert(LightInstance.Node = Self);
 end;
 
-procedure TNodeX3DLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractX3DLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   if Scope = lsLocalVRML1 then
     StateStack.Top.AddLight(CreateLightInstance(StateStack.Top));
 end;
 
-function TNodeX3DLightNode.TransformationChange: TNodeTransformationChange;
+function TAbstractX3DLightNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLight;
 end;
 
-procedure TNodeX3DLightNode.DefaultShadowMapSave(Node: TNodeGeneratedShadowMap);
+procedure TAbstractX3DLightNode.DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
 begin
   SavedDefaultShadowMap := true;
   SavedDefaultShadowMapUpdate      := Node.FdUpdate      .Value;
@@ -516,7 +516,7 @@ begin
   SavedDefaultShadowMapCompareMode := Node.FdCompareMode .Value;
 end;
 
-function TNodeX3DLightNode.DefaultShadowMapLoad(Node: TNodeGeneratedShadowMap): boolean;
+function TAbstractX3DLightNode.DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
 begin
   Result := SavedDefaultShadowMap;
   if Result then
@@ -529,14 +529,14 @@ begin
   end;
 end;
 
-function TNodeX3DLightNode.Scope: TLightScope;
+function TAbstractX3DLightNode.Scope: TLightScope;
 begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocal;
 end;
 
-procedure TVRMLDirectionalLightNode.CreateNode;
+procedure TAbstractDirectionalLightNode.CreateNode;
 begin
   inherited;
 
@@ -559,12 +559,12 @@ begin
   Fields.Add(FFdProjectionLocation);
 end;
 
-class function TVRMLDirectionalLightNode.ClassNodeTypeName: string;
+class function TAbstractDirectionalLightNode.ClassNodeTypeName: string;
 begin
   Result := 'DirectionalLight';
 end;
 
-procedure TVRMLDirectionalLightNode.UpdateLightInstance(
+procedure TAbstractDirectionalLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   inherited;
@@ -572,7 +572,7 @@ begin
     LightInstance.Transform, FdDirection.Value));
 end;
 
-function TVRMLDirectionalLightNode.ProjectionMatrix: TMatrix4Single;
+function TAbstractDirectionalLightNode.ProjectionMatrix: TMatrix4Single;
 var
   N, F: Single;
   R: TVector4Single;
@@ -594,7 +594,7 @@ begin
   Result := OrthoProjMatrix(R[0], R[2], R[1], R[3], N, F);
 end;
 
-function TVRMLDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
+function TAbstractDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -602,7 +602,7 @@ begin
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
-function TVRMLDirectionalLightNode.ModelviewRotationMatrix: TMatrix4Single;
+function TAbstractDirectionalLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -610,23 +610,23 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TVRMLDirectionalLightNode.LocationLocal: TVector3Single;
+function TAbstractDirectionalLightNode.LocationLocal: TVector3Single;
 begin
   Result := FdProjectionLocation.Value;
 end;
 
-function TVRMLDirectionalLightNode.DirectionLocal: TVector3Single;
+function TAbstractDirectionalLightNode.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TVRMLDirectionalLightNode.Box3DDistances(const Box: TBox3D;
+procedure TAbstractDirectionalLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
   Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
 end;
 
-procedure TVRMLPositionalLightNode.CreateNode;
+procedure TAbstractPositionalLightNode.CreateNode;
 begin
   inherited;
 
@@ -646,13 +646,13 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-function TVRMLPositionalLightNode.DistanceNeededForAttenuation: boolean;
+function TAbstractPositionalLightNode.DistanceNeededForAttenuation: boolean;
 begin
   Result := (FdAttenuation.Value[1] <> 0) or
             (FdAttenuation.Value[2] <> 0);
 end;
 
-function TVRMLPositionalLightNode.HasAttenuation: boolean;
+function TAbstractPositionalLightNode.HasAttenuation: boolean;
 begin
   Result := ((FdAttenuation.Value[0] <> 1) and
              (FdAttenuation.Value[0] <> 0)) or
@@ -660,12 +660,12 @@ begin
             (FdAttenuation.Value[2] <> 0);
 end;
 
-function TVRMLPositionalLightNode.HasRadius: boolean;
+function TAbstractPositionalLightNode.HasRadius: boolean;
 begin
   Result := true;
 end;
 
-procedure TVRMLPositionalLightNode.UpdateLightInstance(
+procedure TAbstractPositionalLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   inherited;
@@ -712,35 +712,35 @@ begin
   result := 1/ KambiUtils.max(FdAttenuation.Value[0], Single(1.0));
 end;}
 
-function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Single): Single;
+function TAbstractPositionalLightNode.Attenuation(const DistanceToLight: Single): Single;
 ATTENUATION_IMPLEMENTATION
 
-function TVRMLPositionalLightNode.Attenuation(const DistanceToLight: Double): Double;
+function TAbstractPositionalLightNode.Attenuation(const DistanceToLight: Double): Double;
 ATTENUATION_IMPLEMENTATION
 
-procedure TVRMLPointLightNode.CreateNode;
+procedure TAbstractPointLightNode.CreateNode;
 begin
   inherited;
-  { no new fields - this is just TVRMLPositionalLightNode }
+  { no new fields - this is just TAbstractPositionalLightNode }
 end;
 
-class function TVRMLPointLightNode.ClassNodeTypeName: string;
+class function TAbstractPointLightNode.ClassNodeTypeName: string;
 begin
   Result := 'PointLight';
 end;
 
-function TVRMLPointLightNode.LocationLocal: TVector3Single;
+function TAbstractPointLightNode.LocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-procedure TVRMLPointLightNode.Box3DDistances(const Box: TBox3D;
+procedure TAbstractPointLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
   Box.PointDistances(Location, MinDistance, MaxDistance);
 end;
 
-procedure TNodeDirectionalLight.CreateNode;
+procedure TDirectionalLightNode.CreateNode;
 begin
   inherited;
 
@@ -749,19 +749,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeDirectionalLight.URNMatching(const URN: string): boolean;
+class function TDirectionalLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeDirectionalLight.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TDirectionalLightNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodePointLight.CreateNode;
+procedure TPointLightNode.CreateNode;
 begin
   inherited;
 
@@ -770,19 +770,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodePointLight.URNMatching(const URN: string): boolean;
+class function TPointLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodePointLight.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TPointLightNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeSpotLight.CreateNode;
+procedure TSpotLightNode.CreateNode;
 begin
   inherited;
 
@@ -813,24 +813,24 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSpotLight.ClassNodeTypeName: string;
+class function TSpotLightNode.ClassNodeTypeName: string;
 begin
   Result := 'SpotLight';
 end;
 
-class function TNodeSpotLight.URNMatching(const URN: string): boolean;
+class function TSpotLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSpotLight.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSpotLightNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeSpotLight.UpdateLightInstance(
+procedure TSpotLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   inherited;
@@ -838,7 +838,7 @@ begin
     LightInstance.Transform, FdDirection.Value));
 end;
 
-function TNodeSpotLight.ProjectionMatrix: TMatrix4Single;
+function TSpotLightNode.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
@@ -858,7 +858,7 @@ begin
   Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
 end;
 
-function TNodeSpotLight.ModelviewMatrix: TMatrix4Single;
+function TSpotLightNode.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -866,7 +866,7 @@ begin
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
-function TNodeSpotLight.ModelviewRotationMatrix: TMatrix4Single;
+function TSpotLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -874,17 +874,17 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TNodeSpotLight.LocationLocal: TVector3Single;
+function TSpotLightNode.LocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TNodeSpotLight.DirectionLocal: TVector3Single;
+function TSpotLightNode.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TNodeSpotLight.Box3DDistances(const Box: TBox3D;
+procedure TSpotLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
@@ -895,9 +895,9 @@ end;
 procedure RegisterLightingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeDirectionalLight,
-    TNodePointLight,
-    TNodeSpotLight
+    TDirectionalLightNode,
+    TPointLightNode,
+    TSpotLightNode
   ]);
 end;
 

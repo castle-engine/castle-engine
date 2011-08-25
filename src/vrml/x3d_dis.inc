@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeDISEntityManager = class(TNodeX3DChildNode)
+  TDISEntityManagerNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -45,7 +45,7 @@
     public property EventRemovedEntities: TVRMLEvent read FEventRemovedEntities;
   end;
 
-  TNodeDISEntityTypeMapping = class(TNodeX3DInfoNode)
+  TDISEntityTypeMappingNode = class(TAbstractX3DInfoNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -76,7 +76,7 @@
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
   end;
 
-  TNodeEspduTransform = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
+  TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -359,7 +359,7 @@
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
   end;
 
-  TNodeReceiverPdu = class(TNodeX3DSensorNode, INodeX3DBoundedObject)
+  TReceiverPduNode = class(TAbstractX3DSensorNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -449,7 +449,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TNodeSignalPdu = class(TNodeX3DSensorNode, INodeX3DBoundedObject)
+  TSignalPduNode = class(TAbstractX3DSensorNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -539,7 +539,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TNodeTransmitterPdu = class(TNodeX3DSensorNode, INodeX3DBoundedObject)
+  TTransmitterPduNode = class(TAbstractX3DSensorNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -680,7 +680,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeDISEntityManager.CreateNode;
+procedure TDISEntityManagerNode.CreateNode;
 begin
   inherited;
 
@@ -691,7 +691,7 @@ begin
   Fields.Add(FFdApplicationID);
   { X3D specification comment: [0,65535] }
 
-  FFdMapping := TMFNode.Create(Self, 'mapping', [TNodeDISEntityTypeMapping]);
+  FFdMapping := TMFNode.Create(Self, 'mapping', [TDISEntityTypeMappingNode]);
   Fields.Add(FFdMapping);
 
   FFdPort := TSFInt32.Create(Self, 'port', 0);
@@ -711,18 +711,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeDISEntityManager.ClassNodeTypeName: string;
+class function TDISEntityManagerNode.ClassNodeTypeName: string;
 begin
   Result := 'DISEntityManager';
 end;
 
-class function TNodeDISEntityManager.URNMatching(const URN: string): boolean;
+class function TDISEntityManagerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeDISEntityTypeMapping.CreateNode;
+procedure TDISEntityTypeMappingNode.CreateNode;
 begin
   inherited;
 
@@ -768,18 +768,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeDISEntityTypeMapping.ClassNodeTypeName: string;
+class function TDISEntityTypeMappingNode.ClassNodeTypeName: string;
 begin
   Result := 'DISEntityTypeMapping';
 end;
 
-class function TNodeDISEntityTypeMapping.URNMatching(const URN: string): boolean;
+class function TDISEntityTypeMappingNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeEspduTransform.CreateNode;
+procedure TEspduTransformNode.CreateNode;
 begin
   inherited;
 
@@ -1083,18 +1083,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeEspduTransform.ClassNodeTypeName: string;
+class function TEspduTransformNode.ClassNodeTypeName: string;
 begin
   Result := 'EspduTransform';
 end;
 
-class function TNodeEspduTransform.URNMatching(const URN: string): boolean;
+class function TEspduTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeReceiverPdu.CreateNode;
+procedure TReceiverPduNode.CreateNode;
 begin
   inherited;
 
@@ -1198,18 +1198,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeReceiverPdu.ClassNodeTypeName: string;
+class function TReceiverPduNode.ClassNodeTypeName: string;
 begin
   Result := 'ReceiverPdu';
 end;
 
-class function TNodeReceiverPdu.URNMatching(const URN: string): boolean;
+class function TReceiverPduNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeSignalPdu.CreateNode;
+procedure TSignalPduNode.CreateNode;
 begin
   inherited;
 
@@ -1313,18 +1313,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSignalPdu.ClassNodeTypeName: string;
+class function TSignalPduNode.ClassNodeTypeName: string;
 begin
   Result := 'SignalPdu';
 end;
 
-class function TNodeSignalPdu.URNMatching(const URN: string): boolean;
+class function TSignalPduNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTransmitterPdu.CreateNode;
+procedure TTransmitterPduNode.CreateNode;
 begin
   inherited;
 
@@ -1491,12 +1491,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTransmitterPdu.ClassNodeTypeName: string;
+class function TTransmitterPduNode.ClassNodeTypeName: string;
 begin
   Result := 'TransmitterPdu';
 end;
 
-class function TNodeTransmitterPdu.URNMatching(const URN: string): boolean;
+class function TTransmitterPduNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -1505,12 +1505,12 @@ end;
 procedure RegisterDISNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeDISEntityManager,
-    TNodeDISEntityTypeMapping,
-    TNodeEspduTransform,
-    TNodeReceiverPdu,
-    TNodeSignalPdu,
-    TNodeTransmitterPdu
+    TDISEntityManagerNode,
+    TDISEntityTypeMappingNode,
+    TEspduTransformNode,
+    TReceiverPduNode,
+    TSignalPduNode,
+    TTransmitterPduNode
   ]);
 end;
 

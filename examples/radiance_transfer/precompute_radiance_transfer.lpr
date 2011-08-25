@@ -163,8 +163,8 @@ end;
 
 function DiffuseColor(State: TVRMLGraphTraverseState): TVector3Single;
 var
-  M1: TNodeMaterial_1;
-  M2: TNodeMaterial;
+  M1: TMaterialNode_1;
+  M2: TMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -197,7 +197,7 @@ const
 
 var
   SI: TVRMLShapeTreeIterator;
-  Geometry: TVRMLGeometryNode;
+  Geometry: TAbstractGeometryNode;
   State: TVRMLGraphTraverseState;
   RadianceTransfer: TVector3SingleList;
   S: string;
@@ -222,10 +222,10 @@ begin
         Geometry := SI.Current.Geometry;
         State := SI.Current.State;
 
-        if Geometry is TNodeX3DComposedGeometryNode then
-          RadianceTransfer := TNodeX3DComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
-        if Geometry is TNodeIndexedFaceSet_1 then
-          RadianceTransfer := TNodeIndexedFaceSet_1(Geometry).FdRadianceTransfer.Items else
+        if Geometry is TAbstractX3DComposedGeometryNode then
+          RadianceTransfer := TAbstractX3DComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
+        if Geometry is TIndexedFaceSetNode_1 then
+          RadianceTransfer := TIndexedFaceSetNode_1(Geometry).FdRadianceTransfer.Items else
           RadianceTransfer := nil;
 
         { If we used Proxy to get Geometry, then don't calculate PRT.

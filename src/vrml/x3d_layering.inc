@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DLayerNode = class(TNodeX3DNode)
+  TAbstractX3DLayerNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -26,12 +26,12 @@
     public property FdViewport: TSFNode read FFdViewport;
   end;
 
-  TNodeX3DViewportNode = class(TNodeX3DGroupingNode)
+  TAbstractX3DViewportNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
   end;
 
-  TNodeLayer = class(TNodeX3DLayerNode)
+  TLayerNode = class(TAbstractX3DLayerNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -49,7 +49,7 @@
     public property FdChildren: TMFNode read FFdChildren;
   end;
 
-  TNodeLayerSet = class(TNodeX3DNode)
+  TLayerSetNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -65,7 +65,7 @@
     public property FdOrder: TMFInt32 read FFdOrder;
   end;
 
-  TNodeViewport = class(TNodeX3DGroupingNode, INodeX3DBoundedObject)
+  TViewportNode = class(TAbstractX3DGroupingNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -78,25 +78,25 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DLayerNode.CreateNode;
+procedure TAbstractX3DLayerNode.CreateNode;
 begin
   inherited;
 
   FFdIsPickable := TSFBool.Create(Self, 'isPickable', true);
   Fields.Add(FFdIsPickable);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractX3DViewportNode]);
   Fields.Add(FFdViewport);
 
   DefaultContainerField := 'layers';
 end;
 
-procedure TNodeX3DViewportNode.CreateNode;
+procedure TAbstractX3DViewportNode.CreateNode;
 begin
   inherited;
 end;
 
-procedure TNodeLayer.CreateNode;
+procedure TLayerNode.CreateNode;
 begin
   inherited;
 
@@ -106,22 +106,22 @@ begin
   FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TNodeX3DChildNode]);
+  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractX3DChildNode]);
   Fields.Add(FFdChildren);
 end;
 
-class function TNodeLayer.ClassNodeTypeName: string;
+class function TLayerNode.ClassNodeTypeName: string;
 begin
   Result := 'Layer';
 end;
 
-class function TNodeLayer.URNMatching(const URN: string): boolean;
+class function TLayerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeLayerSet.CreateNode;
+procedure TLayerSetNode.CreateNode;
 begin
   inherited;
 
@@ -129,7 +129,7 @@ begin
   Fields.Add(FFdActiveLayer);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdLayers := TMFNode.Create(Self, 'layers', [TNodeX3DLayerNode]);
+  FFdLayers := TMFNode.Create(Self, 'layers', [TAbstractX3DLayerNode]);
   Fields.Add(FFdLayers);
 
   FFdOrder := TMFInt32.Create(Self, 'order', [0]);
@@ -139,18 +139,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeLayerSet.ClassNodeTypeName: string;
+class function TLayerSetNode.ClassNodeTypeName: string;
 begin
   Result := 'LayerSet';
 end;
 
-class function TNodeLayerSet.URNMatching(const URN: string): boolean;
+class function TLayerSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeViewport.CreateNode;
+procedure TViewportNode.CreateNode;
 begin
   inherited;
 
@@ -159,12 +159,12 @@ begin
   { X3D specification comment: 1 0 1  [0,1] }
 end;
 
-class function TNodeViewport.ClassNodeTypeName: string;
+class function TViewportNode.ClassNodeTypeName: string;
 begin
   Result := 'Viewport';
 end;
 
-class function TNodeViewport.URNMatching(const URN: string): boolean;
+class function TViewportNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -173,9 +173,9 @@ end;
 procedure RegisterLayeringNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeLayer,
-    TNodeLayerSet,
-    TNodeViewport
+    TLayerNode,
+    TLayerSetNode,
+    TViewportNode
   ]);
 end;
 

@@ -21,7 +21,7 @@ interface
 uses VRMLShape, VRMLNodes, VRMLFields, KambiUtils, GeometryArrays, VectorMath;
 
 type
-  TRadianceTransferFunction = function (Node: TVRMLGeometryNode;
+  TRadianceTransferFunction = function (Node: TAbstractGeometryNode;
     RadianceTransfer: PVector3Single;
     const RadianceTransferCount: Cardinal): TVector3Single of object;
 
@@ -38,12 +38,12 @@ type
     then TVRMLGLRenderer will pass TGeometryArrays to OpenGL.
 
     Geometry must be based on coordinates when using this,
-    that is TVRMLGeometryNode.Coord must return @true. }
+    that is TAbstractGeometryNode.Coord must return @true. }
   TVRMLArraysGenerator = class
   private
     FShape: TVRMLShape;
     FState: TVRMLGraphTraverseState;
-    FGeometry: TVRMLGeometryNode;
+    FGeometry: TAbstractGeometryNode;
 
     FCurrentRangeNumber: Cardinal;
     FCoord: TMFVec3f;
@@ -97,7 +97,7 @@ type
       @groupBegin }
     property Shape: TVRMLShape read FShape;
     property State: TVRMLGraphTraverseState read FState;
-    property Geometry: TVRMLGeometryNode read FGeometry;
+    property Geometry: TAbstractGeometryNode read FGeometry;
     { @groupEnd }
 
     procedure WarningShadingProblems(
@@ -108,8 +108,8 @@ type
       If @nil then nothing will be rendered.
 
       In our constructor we initialize Coord and CoordIndex
-      from Geometry, using TVRMLGeometryNode.Coord and
-      TVRMLGeometryNode.CoordIndex values. }
+      from Geometry, using TAbstractGeometryNode.Coord and
+      TAbstractGeometryNode.CoordIndex values. }
     property Coord: TMFVec3f read FCoord;
 
     { Coordinate index, taken from Geometry.CoordIndex.
@@ -219,7 +219,7 @@ type
 { TVRMLArraysGenerator class suitable for given geometry.
   Returns @nil if not suitable generator for this node,
   which means that this node cannot be rendered through TGeometryArrays. }
-function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClass;
+function ArraysGenerator(AGeometry: TAbstractGeometryNode): TVRMLArraysGeneratorClass;
 
 implementation
 
@@ -339,7 +339,7 @@ type
 
     Usage:
 
-    - TexCoord is already set from TVRMLGeometryNode.TexCoord,
+    - TexCoord is already set from TAbstractGeometryNode.TexCoord,
       so just be sure it's overriden for your Geometry node class.
 
       Don't worry, we will automatically check TexCoord class,
@@ -394,7 +394,7 @@ type
     TexCoordArray3d: array of TMFVec3f;
     TexCoordArray4d: array of TMFVec4f;
 
-    TexCoord: TVRMLNode;
+    TexCoord: TX3DNode;
   protected
     TexCoordIndex: TMFLong;
 
@@ -650,7 +650,7 @@ type
 
   { Handle fog coordinate.
     Descendants don't have to do anything, this just works
-    (using TVRMLGeometryNode.FogCoord). }
+    (using TAbstractGeometryNode.FogCoord). }
   TAbstractFogGenerator = class(TAbstractNormalGenerator)
   private
     FogCoord: TSingleList;
@@ -661,11 +661,11 @@ type
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-  TX3DVertexAttributeNodes = specialize TFPGObjectList<TNodeX3DVertexAttributeNode>;
+  TX3DVertexAttributeNodes = specialize TFPGObjectList<TAbstractX3DVertexAttributeNode>;
 
   { Handle GLSL attributes from VRML/X3D "attrib" field.
     Descendants don't have to do anything, this just works
-    (using TVRMLGeometryNode.Attrib). }
+    (using TAbstractGeometryNode.Attrib). }
   TAbstractShaderAttribGenerator = class(TAbstractFogGenerator)
   private
     Attrib: TX3DVertexAttributeNodes;
@@ -815,10 +815,10 @@ end;
 
 procedure TVRMLArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
-  if Geometry is TNodeX3DComposedGeometryNode then
+  if Geometry is TAbstractX3DComposedGeometryNode then
   begin
-    Arrays.CullBackFaces := (Geometry as TNodeX3DComposedGeometryNode).FdSolid.Value;
-    Arrays.FrontFaceCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+    Arrays.CullBackFaces := (Geometry as TAbstractX3DComposedGeometryNode).FdSolid.Value;
+    Arrays.FrontFaceCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
   end;
 end;
 
@@ -889,25 +889,25 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
     { Knowing that Tex is not nil,
       check is it a single (not MultiTexture) 3D texture. }
-    function IsSingleTexture3D(Tex: TVRMLNode): boolean;
+    function IsSingleTexture3D(Tex: TX3DNode): boolean;
     begin
       Result :=
-         (Tex is TNodeX3DTexture3DNode) or
-        ((Tex is TNodeShaderTexture) and
-         (TNodeShaderTexture(Tex).FdDefaultTexCoord.Value = 'BOUNDS3D'));
+         (Tex is TAbstractX3DTexture3DNode) or
+        ((Tex is TShaderTextureNode) and
+         (TShaderTextureNode(Tex).FdDefaultTexCoord.Value = 'BOUNDS3D'));
     end;
 
   var
-    Tex: TNodeX3DTextureNode;
+    Tex: TAbstractX3DTextureNode;
   begin
     Tex := State.Texture;
     Result := (
       (Tex <> nil) and
       ( ( (TexUnit = 0) and IsSingleTexture3D(Tex) )
         or
-        ( (Tex is TNodeMultiTexture) and
-          (TNodeMultiTexture(Tex).FdTexture.Count > TexUnit) and
-          IsSingleTexture3D(TNodeMultiTexture(Tex).FdTexture[TexUnit])
+        ( (Tex is TMultiTextureNode) and
+          (TMultiTextureNode(Tex).FdTexture.Count > TexUnit) and
+          IsSingleTexture3D(TMultiTextureNode(Tex).FdTexture[TexUnit])
         )));
   end;
 
@@ -1032,8 +1032,8 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     { Add single texture coord configuration
       to Arrays.TexCoord and TexCoordArray2/3/4d.
       Assume that TexCoordArray2/3/4d already have required length.
-      Pass any TexCoord node except TNodeMultiTextureCoordinate. }
-    procedure AddSingleTexCoord(const TextureUnit: Cardinal; TexCoord: TVRMLNode);
+      Pass any TexCoord node except TMultiTextureCoordinateNode. }
+    procedure AddSingleTexCoord(const TextureUnit: Cardinal; TexCoord: TX3DNode);
 
       function TexCoordGenFromString(const S: string; const IsTexture3D: boolean): TTextureCoordinateGeneration;
       begin
@@ -1079,34 +1079,34 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         then get it's projection and modelview matrix and return @true.
         Returns @false (and does correct OnWarning)
         if it's empty or incorrect. }
-      function GetProjectorMatrixFunction(GeneratorNode: TVRMLNode): TProjectorMatrixFunction;
+      function GetProjectorMatrixFunction(GeneratorNode: TX3DNode): TProjectorMatrixFunction;
       var
-        ProjectorValue: TVRMLNode; { possible ProjectorLight or ProjectorViewpoint }
+        ProjectorValue: TX3DNode; { possible ProjectorLight or ProjectorViewpoint }
       begin
         Result := nil;
 
-        if GeneratorNode is TNodeTextureCoordinateGenerator then
+        if GeneratorNode is TTextureCoordinateGeneratorNode then
         begin
-          ProjectorValue := TNodeTextureCoordinateGenerator(GeneratorNode).FdProjectedLight.Value;
+          ProjectorValue := TTextureCoordinateGeneratorNode(GeneratorNode).FdProjectedLight.Value;
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TNodeX3DLightNode) then
+             (ProjectorValue is TAbstractX3DLightNode) then
           begin
-            Result := @TNodeX3DLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractX3DLightNode(ProjectorValue).GetProjectorMatrix;
           end else
             OnWarning(wtMajor, 'VRML/X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
-        if GeneratorNode is TNodeProjectedTextureCoordinate then
+        if GeneratorNode is TProjectedTextureCoordinateNode then
         begin
-          ProjectorValue := TNodeProjectedTextureCoordinate(GeneratorNode).FdProjector.Value;
+          ProjectorValue := TProjectedTextureCoordinateNode(GeneratorNode).FdProjector.Value;
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TNodeX3DLightNode) then
+             (ProjectorValue is TAbstractX3DLightNode) then
           begin
-            Result := @TNodeX3DLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractX3DLightNode(ProjectorValue).GetProjectorMatrix;
           end else
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TNodeX3DViewpointNode) then
+             (ProjectorValue is TAbstractX3DViewpointNode) then
           begin
-            Result := @TNodeX3DViewpointNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractX3DViewpointNode(ProjectorValue).GetProjectorMatrix;
           end else
             OnWarning(wtMajor, 'VRML/X3D', 'ProjectedTextureCoordinate.projector is NULL or incorrect');
         end else
@@ -1115,33 +1115,33 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       end;
 
     begin
-      if TexCoord is TNodeTextureCoordinate then
+      if TexCoord is TTextureCoordinateNode then
       begin
         Arrays.AddTexCoord2D(TextureUnit);
-        TexCoordArray2d[TextureUnit] := TNodeTextureCoordinate(TexCoord).FdPoint;
+        TexCoordArray2d[TextureUnit] := TTextureCoordinateNode(TexCoord).FdPoint;
       end else
-      if TexCoord is TNodeTextureCoordinate2 then
+      if TexCoord is TTextureCoordinate2Node then
       begin
         Arrays.AddTexCoord2D(TextureUnit);
-        TexCoordArray2d[TextureUnit] := TNodeTextureCoordinate2(TexCoord).FdPoint;
+        TexCoordArray2d[TextureUnit] := TTextureCoordinate2Node(TexCoord).FdPoint;
       end else
-      if TexCoord is TNodeTextureCoordinate3D then
+      if TexCoord is TTextureCoordinate3DNode then
       begin
         Arrays.AddTexCoord3D(TextureUnit);
-        TexCoordArray3d[TextureUnit] := TNodeTextureCoordinate3D(TexCoord).FdPoint;
+        TexCoordArray3d[TextureUnit] := TTextureCoordinate3DNode(TexCoord).FdPoint;
       end else
-      if TexCoord is TNodeTextureCoordinate4D then
+      if TexCoord is TTextureCoordinate4DNode then
       begin
         Arrays.AddTexCoord4D(TextureUnit);
-        TexCoordArray4d[TextureUnit] := TNodeTextureCoordinate4D(TexCoord).FdPoint;
+        TexCoordArray4d[TextureUnit] := TTextureCoordinate4DNode(TexCoord).FdPoint;
       end else
-      if TexCoord is TNodeTextureCoordinateGenerator then
+      if TexCoord is TTextureCoordinateGeneratorNode then
       begin
         Arrays.AddTexCoordGenerated(
-          TexCoordGenFromString(TNodeTextureCoordinateGenerator(TexCoord).FdMode.Value,
+          TexCoordGenFromString(TTextureCoordinateGeneratorNode(TexCoord).FdMode.Value,
             IsTexture3D(TextureUnit)), TextureUnit);
       end else
-      if TexCoord is TNodeProjectedTextureCoordinate then
+      if TexCoord is TProjectedTextureCoordinateNode then
       begin
         Arrays.AddTexCoordGenerated(tgProjection, TextureUnit);
       end else
@@ -1162,7 +1162,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end;
 
   var
-    MultiTexCoord: TVRMLNodeList;
+    MultiTexCoord: TX3DNodeList;
     I, LastCoord: Integer;
   begin
     if TexCoord = nil then
@@ -1170,9 +1170,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       { Leave TexCoords.Count = 0, no OnWarning }
       Exit;
     end else
-    if TexCoord is TNodeMultiTextureCoordinate then
+    if TexCoord is TMultiTextureCoordinateNode then
     begin
-      MultiTexCoord := TNodeMultiTextureCoordinate(TexCoord).FdTexCoord.Items;
+      MultiTexCoord := TMultiTextureCoordinateNode(TexCoord).FdTexCoord.Items;
       SetTexLengths(MultiTexCoord.Count);
       for I := 0 to MultiTexCoord.Count - 1 do
         AddSingleTexCoord(I, MultiTexCoord[I]);
@@ -1559,7 +1559,7 @@ end;
 function TAbstractMaterial1Generator.GetMaterial1Color(
   const MaterialIndex: Integer): TVector4Single;
 var
-  M: TNodeMaterial_1;
+  M: TMaterialNode_1;
 begin
   M := State.LastNodes.Material;
   if M.OnlyEmissiveMaterial then
@@ -1599,8 +1599,8 @@ procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  if Geometry is TNodeX3DComposedGeometryNode then
-    RadianceTransfer := (Geometry as TNodeX3DComposedGeometryNode).FdRadianceTransfer.Items;
+  if Geometry is TAbstractX3DComposedGeometryNode then
+    RadianceTransfer := (Geometry as TAbstractX3DComposedGeometryNode).FdRadianceTransfer.Items;
 
   { calculate final RadianceTransfer:
     Leave it non-nil, and calculate RadianceTransferVertexSize,
@@ -2046,12 +2046,12 @@ begin
   A := Geometry.Attrib;
   if A <> nil then
     for I := 0 to A.Count - 1 do
-      if A[I] is TNodeX3DVertexAttributeNode then
+      if A[I] is TAbstractX3DVertexAttributeNode then
       begin
         { To conserve time and memory, create Attrib instance only when needed }
         if Attrib = nil then
           Attrib := TX3DVertexAttributeNodes.Create(false);
-        Attrib.Add(TNodeX3DVertexAttributeNode(A[I]));
+        Attrib.Add(TAbstractX3DVertexAttributeNode(A[I]));
       end;
 end;
 
@@ -2070,20 +2070,20 @@ begin
     for I := 0 to Attrib.Count - 1 do
     begin
       { call Arrays.AddGLSLAttribute* }
-      if Attrib[I] is TNodeFloatVertexAttribute then
+      if Attrib[I] is TFloatVertexAttributeNode then
       begin
-        case TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value of
+        case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
           1: Arrays.AddGLSLAttributeFloat(Attrib[I].FdName.Value, false);
           2: Arrays.AddGLSLAttributeVector2(Attrib[I].FdName.Value, false);
           3: Arrays.AddGLSLAttributeVector3(Attrib[I].FdName.Value, false);
           4: Arrays.AddGLSLAttributeVector4(Attrib[I].FdName.Value, false);
           else OnWarning(wtMajor, 'VRML/X3D', Format('Invalid FloatVertexAttribute.numComponents: %d (should be between 1..4)',
-            [TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value]));
+            [TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value]));
         end;
       end else
-      if Attrib[I] is TNodeMatrix3VertexAttribute then
+      if Attrib[I] is TMatrix3VertexAttributeNode then
         Arrays.AddGLSLAttributeMatrix3(Attrib[I].FdName.Value, false) else
-      if Attrib[I] is TNodeMatrix4VertexAttribute then
+      if Attrib[I] is TMatrix4VertexAttributeNode then
         Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false) else
         OnWarning(wtMajor, 'VRML/X3D', Format('Not handled vertex attribute class %s',
           [Attrib[I].NodeTypeName]));
@@ -2107,31 +2107,31 @@ begin
       { set Arrays.GLSLAttribute*(ArrayIndexNum).
         Note we don't do some warnings here, that were already done
         in PrepareAttributes. }
-      if Attrib[I] is TNodeFloatVertexAttribute then
+      if Attrib[I] is TFloatVertexAttributeNode then
       begin
-        case TNodeFloatVertexAttribute(Attrib[I]).FdNumComponents.Value of
+        case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
           1: Arrays.GLSLAttributeFloat(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
           2: Arrays.GLSLAttributeVector2(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector2Single(
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2],
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2 + 1]);
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2],
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2 + 1]);
           3: Arrays.GLSLAttributeVector3(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector3Single(
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3],
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 1],
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 2]);
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3],
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 1],
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 2]);
           4: Arrays.GLSLAttributeVector4(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector4Single(
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4],
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 1],
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 2],
-               TNodeFloatVertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 3]);
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4],
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 1],
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 2],
+               TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 3]);
         end;
       end else
-      if Attrib[I] is TNodeMatrix3VertexAttribute then
+      if Attrib[I] is TMatrix3VertexAttributeNode then
         Arrays.GLSLAttributeMatrix3(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
-          TNodeMatrix3VertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex] else
-      if Attrib[I] is TNodeMatrix4VertexAttribute then
+          TMatrix3VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex] else
+      if Attrib[I] is TMatrix4VertexAttributeNode then
         Arrays.GLSLAttributeMatrix4(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
-          TNodeMatrix4VertexAttribute(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
+          TMatrix4VertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
     end;
   end;
 end;
@@ -2344,34 +2344,34 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function ArraysGenerator(AGeometry: TVRMLGeometryNode): TVRMLArraysGeneratorClass;
+function ArraysGenerator(AGeometry: TAbstractGeometryNode): TVRMLArraysGeneratorClass;
 begin
-  if AGeometry is TNodeIndexedTriangleMesh_1 then
+  if AGeometry is TIndexedTriangleMeshNode_1 then
     Result := TTriangleStripSetGenerator else
-  if AGeometry is TNodeIndexedFaceSet_1 then
+  if AGeometry is TIndexedFaceSetNode_1 then
     Result := TIndexedFaceSet_1Generator else
-  if AGeometry is TNodeIndexedFaceSet then
+  if AGeometry is TIndexedFaceSetNode then
     Result := TIndexedFaceSetGenerator else
-  if AGeometry is TNodeIndexedLineSet_1 then
+  if AGeometry is TIndexedLineSetNode_1 then
     Result := TIndexedLineSet_1Generator else
-  if (AGeometry is TNodeIndexedLineSet) or
-     (AGeometry is TNodeLineSet) then
+  if (AGeometry is TIndexedLineSetNode) or
+     (AGeometry is TLineSetNode) then
     Result := TLineSetGenerator else
-  if AGeometry is TNodePointSet_1 then
+  if AGeometry is TPointSetNode_1 then
     Result := TPointSet_1Generator else
-  if AGeometry is TNodePointSet then
+  if AGeometry is TPointSetNode then
     Result := TPointSetGenerator else
-  if (AGeometry is TNodeTriangleSet) or
-     (AGeometry is TNodeIndexedTriangleSet) then
+  if (AGeometry is TTriangleSetNode) or
+     (AGeometry is TIndexedTriangleSetNode) then
     Result := TTriangleSetGenerator else
-  if (AGeometry is TNodeTriangleFanSet) or
-     (AGeometry is TNodeIndexedTriangleFanSet) then
+  if (AGeometry is TTriangleFanSetNode) or
+     (AGeometry is TIndexedTriangleFanSetNode) then
     Result := TTriangleFanSetGenerator else
-  if (AGeometry is TNodeTriangleStripSet) or
-     (AGeometry is TNodeIndexedTriangleStripSet) then
+  if (AGeometry is TTriangleStripSetNode) or
+     (AGeometry is TIndexedTriangleStripSetNode) then
     Result := TTriangleStripSetGenerator else
-  if (AGeometry is TNodeQuadSet) or
-     (AGeometry is TNodeIndexedQuadSet) then
+  if (AGeometry is TQuadSetNode) or
+     (AGeometry is TIndexedQuadSetNode) then
     Result := TQuadSetGenerator else
     Result := nil;
 end;

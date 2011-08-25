@@ -33,16 +33,16 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
     { If TextureNode <> @nil and is a texture node, prepare it.
       Returns bound texture number (or -1 if failed).
       You should set shader uniform value to this number. }
-    function BindSingleTexture(TextureNode: TVRMLNode): LongInt;
+    function BindSingleTexture(TextureNode: TX3DNode): LongInt;
     begin
       Result := -1;
       if (TextureNode <> nil) and
-         (TextureNode is TNodeX3DTextureNode) then
+         (TextureNode is TAbstractX3DTextureNode) then
       begin
         if BoundTextureUnits < GLMaxTextureUnits then
         begin
           if Renderer.GLTextureNodes.Bind(
-            TNodeX3DTextureNode(TextureNode), BoundTextureUnits) then
+            TAbstractX3DTextureNode(TextureNode), BoundTextureUnits) then
           begin
             Result := BoundTextureUnits;
             Inc(BoundTextureUnits);

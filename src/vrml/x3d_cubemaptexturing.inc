@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DEnvironmentTextureNode = class(TNodeX3DTextureNode)
+  TAbstractX3DEnvironmentTextureNode = class(TAbstractX3DTextureNode)
   public
     procedure CreateNode; override;
   end;
 
-  TNodeComposedCubeMapTexture = class(TNodeX3DEnvironmentTextureNode)
+  TComposedCubeMapTextureNode = class(TAbstractX3DEnvironmentTextureNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -70,7 +70,7 @@
     FdUpdate: TSFString;
   end;
 
-  TNodeGeneratedCubeMapTexture = class(TNodeX3DEnvironmentTextureNode)
+  TGeneratedCubeMapTextureNode = class(TAbstractX3DEnvironmentTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
@@ -93,7 +93,7 @@
       read FGeneratedTextureHandler;
   end;
 
-  TNodeImageCubeMapTexture = class(TNodeX3DEnvironmentTextureNode, INodeX3DUrlObject)
+  TImageCubeMapTextureNode = class(TAbstractX3DEnvironmentTextureNode, IAbstractX3DUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -119,56 +119,56 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DEnvironmentTextureNode.CreateNode;
+procedure TAbstractX3DEnvironmentTextureNode.CreateNode;
 begin
   inherited;
 end;
 
-procedure TNodeComposedCubeMapTexture.CreateNode;
+procedure TComposedCubeMapTextureNode.CreateNode;
 begin
   inherited;
 
   { TODO: changes to nodes inside will not be properly caught,
     they should result in chTextureRendererProperties on us. }
 
-  FFdBack := TSFNode.Create(Self, 'back', [TNodeX3DTexture2DNode]);
+  FFdBack := TSFNode.Create(Self, 'back', [TAbstractX3DTexture2DNode]);
    FdBack.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdBack);
 
-  FFdBottom := TSFNode.Create(Self, 'bottom', [TNodeX3DTexture2DNode]);
+  FFdBottom := TSFNode.Create(Self, 'bottom', [TAbstractX3DTexture2DNode]);
    FdBottom.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdBottom);
 
-  FFdFront := TSFNode.Create(Self, 'front', [TNodeX3DTexture2DNode]);
+  FFdFront := TSFNode.Create(Self, 'front', [TAbstractX3DTexture2DNode]);
    FdFront.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdFront);
 
-  FFdLeft := TSFNode.Create(Self, 'left', [TNodeX3DTexture2DNode]);
+  FFdLeft := TSFNode.Create(Self, 'left', [TAbstractX3DTexture2DNode]);
    FdLeft.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdLeft);
 
-  FFdRight := TSFNode.Create(Self, 'right', [TNodeX3DTexture2DNode]);
+  FFdRight := TSFNode.Create(Self, 'right', [TAbstractX3DTexture2DNode]);
    FdRight.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdRight);
 
-  FFdTop := TSFNode.Create(Self, 'top', [TNodeX3DTexture2DNode]);
+  FFdTop := TSFNode.Create(Self, 'top', [TAbstractX3DTexture2DNode]);
    FdTop.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTop);
 
   { X3D spec 3.2 doesn't specify this, but it's natural,
     instantreality also uses this. }
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTextureProperties);
 end;
 
-class function TNodeComposedCubeMapTexture.ClassNodeTypeName: string;
+class function TComposedCubeMapTextureNode.ClassNodeTypeName: string;
 begin
   Result := 'ComposedCubeMapTexture';
 end;
 
-class function TNodeComposedCubeMapTexture.URNMatching(const URN: string): boolean;
+class function TComposedCubeMapTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -217,7 +217,7 @@ begin
     Result := [];
 end;
 
-procedure TNodeGeneratedCubeMapTexture.CreateNode;
+procedure TGeneratedCubeMapTextureNode.CreateNode;
 begin
   inherited;
 
@@ -231,7 +231,7 @@ begin
   Fields.Add(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTextureProperties);
@@ -240,24 +240,24 @@ begin
   FGeneratedTextureHandler.FdUpdate := FdUpdate;
 end;
 
-destructor TNodeGeneratedCubeMapTexture.Destroy;
+destructor TGeneratedCubeMapTextureNode.Destroy;
 begin
   FreeAndNil(FGeneratedTextureHandler);
   inherited;
 end;
 
-class function TNodeGeneratedCubeMapTexture.ClassNodeTypeName: string;
+class function TGeneratedCubeMapTextureNode.ClassNodeTypeName: string;
 begin
   Result := 'GeneratedCubeMapTexture';
 end;
 
-class function TNodeGeneratedCubeMapTexture.URNMatching(const URN: string): boolean;
+class function TGeneratedCubeMapTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeImageCubeMapTexture.CreateNode;
+procedure TImageCubeMapTextureNode.CreateNode;
 begin
   inherited;
 
@@ -269,24 +269,24 @@ begin
   Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTextureProperties);
 end;
 
-class function TNodeImageCubeMapTexture.ClassNodeTypeName: string;
+class function TImageCubeMapTextureNode.ClassNodeTypeName: string;
 begin
   Result := 'ImageCubeMapTexture';
 end;
 
-class function TNodeImageCubeMapTexture.URNMatching(const URN: string): boolean;
+class function TImageCubeMapTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeImageCubeMapTexture.LoadImage: TDDSImage;
+function TImageCubeMapTextureNode.LoadImage: TDDSImage;
 var
   I: Integer;
   FullUrl: string;
@@ -340,9 +340,9 @@ end;
 procedure RegisterCubeMapTexturingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeComposedCubeMapTexture,
-    TNodeGeneratedCubeMapTexture,
-    TNodeImageCubeMapTexture
+    TComposedCubeMapTextureNode,
+    TGeneratedCubeMapTextureNode,
+    TImageCubeMapTextureNode
   ]);
 end;
 

@@ -19,7 +19,7 @@
 
   { A common class for both VRML 1.0 camera nodes and VRML >= 2.0 viewpoints
     nodes. }
-  TVRMLViewpointNode = class(TNodeX3DBindableNode)
+  TAbstractViewpointNode = class(TAbstractX3DBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -57,7 +57,7 @@
     { Position of the viewpoint.
 
       This is an abstract function, not a simple FdPosition, because one of
-      the descendants (TNodeX3DViewpointNode) doesn't have FdPosition field.
+      the descendants (TAbstractX3DViewpointNode) doesn't have FdPosition field.
       For now, all non-abstract descendants (for both VRML 1.0 and VRML >= 2.0)
       override this and expose their position field correctly. }
     function Position: TSFVec3f; virtual; abstract;
@@ -75,7 +75,7 @@
   GravityUp = (0, 1, 0) (not rotated by FdOrientation!),
 
   and everything is transformed by current camera transform
-  (that is stored inside TVRMLViewpointNode.Transform automatically).
+  (that is stored inside TAbstractViewpointNode.Transform automatically).
 )
       (you should give here the actual VRML transformation at the point in file
       where camera is defined).
@@ -109,9 +109,9 @@
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
-  TVRMLViewpointClassNode = class of TVRMLViewpointNode;
+  TVRMLViewpointClassNode = class of TAbstractViewpointNode;
 
-  TNodeX3DViewpointNode = class(TVRMLViewpointNode)
+  TAbstractX3DViewpointNode = class(TAbstractViewpointNode)
   public
     procedure CreateNode; override;
 
@@ -138,7 +138,7 @@
     { @groupEnd }
   end;
 
-  TNodeBillboard = class(TNodeX3DGroupingNode, INodeTransform)
+  TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
     FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
     FCameraViewKnown: boolean;
@@ -163,7 +163,7 @@
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
   end;
 
-  TNodeCollision = class(TNodeX3DGroupingNode, INodeX3DSensorNode)
+  TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractX3DSensorNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -192,7 +192,7 @@
 
   { LOD node for VRML >= 2.0. This is not for VRML <= 1.0 LOD node.
 
-    It's a common ancestor for VRML 2.0 LOD (TNodeLOD_2) and X3D LOD (TNodeLOD).
+    It's a common ancestor for VRML 2.0 LOD (TLODNode_2) and X3D LOD (TLODNode).
     Unfortunately, we cannot have a simple common class for both VRML 97
     and X3D because there would be a name clash for "level_changed" event:
 
@@ -213,7 +213,7 @@
     (programmer should use X3D event/fields names for Pascal property names),
     but for parser they will use different names.
   }
-  TVRMLLODNode = class(TNodeX3DGroupingNode)
+  TAbstractLODNode = class(TAbstractX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -237,7 +237,7 @@
     function TransformationChange: TNodeTransformationChange; override;
   end;
 
-  TNodeLOD_2 = class(TVRMLLODNode)
+  TLODNode_2 = class(TAbstractLODNode)
   public
     procedure CreateNode; override;
 
@@ -246,15 +246,15 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeLOD = class(TVRMLLODNode)
+  TLODNode = class(TAbstractLODNode)
   public
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
     class function URNMatching(const URN: string): boolean; override;
   end;
-  TNodeLOD_3 = TNodeLOD;
+  TLODNode_3 = TLODNode;
 
-  TNodeNavigationInfo = class(TNodeX3DBindableNode)
+  TNavigationInfoNode = class(TAbstractX3DBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -289,7 +289,7 @@
     public property EventTransitionComplete: TVRMLEvent read FEventTransitionComplete;
   end;
 
-  TNodeOrthoViewpoint = class(TNodeX3DViewpointNode)
+  TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -314,7 +314,7 @@
       const WindowWidthToHeight: Single);
   end;
 
-  TNodeViewpoint = class(TNodeX3DViewpointNode)
+  TViewpointNode = class(TAbstractX3DViewpointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -356,7 +356,7 @@
     function ProjectionMatrix: TMatrix4Single; override;
   end;
 
-  TNodeViewpointGroup = class(TNodeX3DChildNode)
+  TViewpointGroupNode = class(TAbstractX3DChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -386,12 +386,12 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TVRMLViewpointNode.CreateNode;
+procedure TAbstractViewpointNode.CreateNode;
 begin
   inherited;
 
   { In X3D, this is part of X3DViewpointNode.
-    In our engine, X3DViewpointNode descends from TVRMLViewpointNode
+    In our engine, X3DViewpointNode descends from TAbstractViewpointNode
     inheriting "orientation" field this way. }
   FFdOrientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
    FdOrientation.ChangesAlways := [chViewpointVectors];
@@ -428,7 +428,7 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-procedure TVRMLViewpointNode.GetView(
+procedure TAbstractViewpointNode.GetView(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
   CamPos := Position.Value;
@@ -472,19 +472,19 @@ begin
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
 end;
 
-procedure TVRMLViewpointNode.EventSet_BindReceive(
+procedure TAbstractViewpointNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if Scene <> nil then
     Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
-function TVRMLViewpointNode.TransformationChange: TNodeTransformationChange;
+function TAbstractViewpointNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcViewpoint;
 end;
 
-procedure TNodeX3DViewpointNode.CreateNode;
+procedure TAbstractX3DViewpointNode.CreateNode;
 begin
   inherited;
 
@@ -504,12 +504,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DViewpointNode.ProjectionMatrix: TMatrix4Single;
+function TAbstractX3DViewpointNode.ProjectionMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TNodeX3DViewpointNode.ModelviewMatrix: TMatrix4Single;
+function TAbstractX3DViewpointNode.ModelviewMatrix: TMatrix4Single;
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
@@ -517,12 +517,12 @@ begin
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 
-function TNodeX3DViewpointNode.GetProjectorMatrix: TMatrix4Single;
+function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4Single;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-procedure TNodeBillboard.CreateNode;
+procedure TBillboardNode.CreateNode;
 begin
   inherited;
 
@@ -533,19 +533,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeBillboard.ClassNodeTypeName: string;
+class function TBillboardNode.ClassNodeTypeName: string;
 begin
   Result := 'Billboard';
 end;
 
-class function TNodeBillboard.URNMatching(const URN: string): boolean;
+class function TBillboardNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeBillboard.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -553,7 +553,7 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-procedure TNodeBillboard.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TBillboardNode.ApplyTransform(State: TVRMLGraphTraverseState);
 var
   NewX, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3Single;
   Angle: Single;
@@ -613,7 +613,7 @@ begin
   end;
 end;
 
-procedure TNodeBillboard.CameraChanged(
+procedure TBillboardNode.CameraChanged(
   const APosition, ADirection, AUp: TVector3Single);
 begin
   FCameraViewKnown := true;
@@ -622,12 +622,12 @@ begin
   FCameraUp := AUp;
 end;
 
-function TNodeBillboard.TransformationChange: TNodeTransformationChange;
+function TBillboardNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
 
-procedure TNodeCollision.CreateNode;
+procedure TCollisionNode.CreateNode;
 begin
   inherited;
 
@@ -645,7 +645,7 @@ begin
   FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FFdProxy := TSFNode.Create(Self, 'proxy', INodeX3DChildNode);
+  FFdProxy := TSFNode.Create(Self, 'proxy', IAbstractX3DChildNode);
    FdProxy.Exposed := false;
    FdProxy.ChangesAlways := [chEverything];
   Fields.Add(FFdProxy);
@@ -653,19 +653,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCollision.ClassNodeTypeName: string;
+class function TCollisionNode.ClassNodeTypeName: string;
 begin
   Result := 'Collision';
 end;
 
-class function TNodeCollision.URNMatching(const URN: string): boolean;
+class function TCollisionNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCollision.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -674,7 +674,7 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-procedure TNodeCollision.DirectEnumerateActiveForTraverse(
+procedure TCollisionNode.DirectEnumerateActiveForTraverse(
   Func: TEnumerateChildrenFunction;
   StateStack: TVRMLGraphTraverseStateStack);
 
@@ -720,7 +720,7 @@ begin
   end;
 end;
 
-procedure TVRMLLODNode.CreateNode;
+procedure TAbstractLODNode.CreateNode;
 begin
   inherited;
 
@@ -747,12 +747,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TVRMLLODNode.ClassNodeTypeName: string;
+class function TAbstractLODNode.ClassNodeTypeName: string;
 begin
   Result := 'LOD';
 end;
 
-procedure TVRMLLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TAbstractLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   { For now we simply always use the best LOD version,
     avoiding whole issue of choosing proper LOD child. }
@@ -760,41 +760,41 @@ begin
     Func(Self, FdChildren[0]);
 end;
 
-function TVRMLLODNode.TransformationChange: TNodeTransformationChange;
+function TAbstractLODNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLOD;
 end;
 
-procedure TNodeLOD_2.CreateNode;
+procedure TLODNode_2.CreateNode;
 begin
   inherited;
   FdChildren.AddAlternativeName('level', 2);
   Eventlevel_changed.AddAlternativeName('levelIndex_changed', 2);
 end;
 
-class function TNodeLOD_2.URNMatching(const URN: string): boolean;
+class function TLODNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeLOD_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TLODNode_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
 
-class function TNodeLOD.URNMatching(const URN: string): boolean;
+class function TLODNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeLOD.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TLODNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNodeNavigationInfo.CreateNode;
+procedure TNavigationInfoNode.CreateNode;
 begin
   inherited;
 
@@ -839,26 +839,26 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-class function TNodeNavigationInfo.ClassNodeTypeName: string;
+class function TNavigationInfoNode.ClassNodeTypeName: string;
 begin
   Result := 'NavigationInfo';
 end;
 
-class function TNodeNavigationInfo.URNMatching(const URN: string): boolean;
+class function TNavigationInfoNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNavigationInfo.EventSet_BindReceive(
+procedure TNavigationInfoNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if Scene <> nil then
     Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);
 end;
 
-procedure TNodeOrthoViewpoint.CreateNode;
+procedure TOrthoViewpointNode.CreateNode;
 begin
   inherited;
 
@@ -875,28 +875,28 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeOrthoViewpoint.ClassNodeTypeName: string;
+class function TOrthoViewpointNode.ClassNodeTypeName: string;
 begin
   Result := 'OrthoViewpoint';
 end;
 
-class function TNodeOrthoViewpoint.URNMatching(const URN: string): boolean;
+class function TOrthoViewpointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeOrthoViewpoint.Position: TSFVec3f;
+function TOrthoViewpointNode.Position: TSFVec3f;
 begin
   Result := FdPosition;
 end;
 
-class function TNodeOrthoViewpoint.ProjectionType: TProjectionType;
+class function TOrthoViewpointNode.ProjectionType: TProjectionType;
 begin
   Result := ptOrthographic;
 end;
 
-function TNodeOrthoViewpoint.ProjectionMatrix: TMatrix4Single;
+function TOrthoViewpointNode.ProjectionMatrix: TMatrix4Single;
 var
   OrthoViewDimensions: TVector4Single;
 begin
@@ -925,7 +925,7 @@ begin
     1, 100); { TODO: near, far projection testing values }
 end;
 
-class procedure TNodeOrthoViewpoint.AspectFieldOfView(
+class procedure TOrthoViewpointNode.AspectFieldOfView(
   var FieldOfView: TVector4Single; const WindowWidthToHeight: Single);
 
   { Scale the extent. Since AspectFieldOfView should only make FieldOfView
@@ -981,7 +981,7 @@ begin
   end;
 end;
 
-procedure TNodeViewpoint.CreateNode;
+procedure TViewpointNode.CreateNode;
 begin
   inherited;
 
@@ -998,35 +998,35 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeViewpoint.ClassNodeTypeName: string;
+class function TViewpointNode.ClassNodeTypeName: string;
 begin
   Result := 'Viewpoint';
 end;
 
-class function TNodeViewpoint.URNMatching(const URN: string): boolean;
+class function TViewpointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeViewpoint.Position: TSFVec3f;
+function TViewpointNode.Position: TSFVec3f;
 begin
   Result := FdPosition;
 end;
 
-class function TNodeViewpoint.ProjectionType: TProjectionType;
+class function TViewpointNode.ProjectionType: TProjectionType;
 begin
   Result := ptPerspective;
 end;
 
-function TNodeViewpoint.AngleOfView(
+function TViewpointNode.AngleOfView(
   const ThisToOtherSizeRatio: Single): Single;
 begin
   Result := ViewpointAngleOfView(FdFieldOfView.Value, ThisToOtherSizeRatio);
 end;
 
-class function TNodeViewpoint.ViewpointAngleOfView(
+class function TViewpointNode.ViewpointAngleOfView(
   FieldOfView: Single;
   const ThisToOtherSizeRatio: Single): Single;
 var
@@ -1053,7 +1053,7 @@ begin
   end;
 end;
 
-function TNodeViewpoint.ProjectionMatrix: TMatrix4Single;
+function TViewpointNode.ProjectionMatrix: TMatrix4Single;
 begin
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window? }
@@ -1062,7 +1062,7 @@ begin
     1, 100); { TODO: near, far projection testing values }
 end;
 
-procedure TNodeViewpointGroup.CreateNode;
+procedure TViewpointGroupNode.CreateNode;
 begin
   inherited;
 
@@ -1070,7 +1070,7 @@ begin
   Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TNodeX3DViewpointNode, TNodeViewpointGroup]);
+  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractX3DViewpointNode, TViewpointGroupNode]);
   Fields.Add(FFdChildren);
 
   FFdDescription := TSFString.Create(Self, 'description', '');
@@ -1089,18 +1089,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeViewpointGroup.ClassNodeTypeName: string;
+class function TViewpointGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'ViewpointGroup';
 end;
 
-class function TNodeViewpointGroup.URNMatching(const URN: string): boolean;
+class function TViewpointGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeViewpointGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FdChildren.EnumerateValid(Func);
@@ -1109,14 +1109,14 @@ end;
 procedure RegisterNavigationNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeBillboard,
-    TNodeCollision,
-    TNodeLOD_2,
-    TNodeLOD,
-    TNodeNavigationInfo,
-    TNodeOrthoViewpoint,
-    TNodeViewpoint,
-    TNodeViewpointGroup
+    TBillboardNode,
+    TCollisionNode,
+    TLODNode_2,
+    TLODNode,
+    TNavigationInfoNode,
+    TOrthoViewpointNode,
+    TViewpointNode,
+    TViewpointGroupNode
   ]);
 end;
 {$endif read_implementation}

@@ -21,13 +21,13 @@
 }
 
 {$ifdef read_interface}
-  TNodeCircle = class(TNodeCircle2D)
+  TCircleNode = class(TCircle2DNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeLayer2D = class(TNodeGroup)
+  TLayer2DNode = class(TGroupNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -46,7 +46,7 @@
     public property FdViewport: TSFNode read FFdViewport;
   end;
 
-  TNodeLayer3D = class(TNodeGroup)
+  TLayer3DNode = class(TGroupNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -85,7 +85,7 @@
     public property FdViewpoint: TSFNode read FFdViewpoint;
   end;
 
-  TNodeMouseSensor = class(TNodeX3DSensorNode)
+  TMouseSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -119,7 +119,7 @@
     public property EventMouseWheel: TVRMLEvent read FEventMouseWheel;
   end;
 
-  TNodeOrderedGroup = class(TNodeGroup)
+  TOrderedGroupNode = class(TGroupNode)
   public
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -127,18 +127,18 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TNodeCircle.ClassNodeTypeName: string;
+class function TCircleNode.ClassNodeTypeName: string;
 begin
   Result := 'Circle';
 end;
 
-class function TNodeCircle.URNMatching(const URN: string): boolean;
+class function TCircleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeLayer2D.CreateNode;
+procedure TLayer2DNode.CreateNode;
 begin
   inherited;
 
@@ -148,25 +148,25 @@ begin
   FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
   Fields.Add(FFdSize);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractX3DBackgroundNode]);
   Fields.Add(FFdBackground);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TNodeX3DViewportNode]);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractX3DViewportNode]);
   Fields.Add(FFdViewport);
 end;
 
-class function TNodeLayer2D.ClassNodeTypeName: string;
+class function TLayer2DNode.ClassNodeTypeName: string;
 begin
   Result := 'Layer2D';
 end;
 
-class function TNodeLayer2D.URNMatching(const URN: string): boolean;
+class function TLayer2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeLayer3D.CreateNode;
+procedure TLayer3DNode.CreateNode;
 begin
   inherited;
 
@@ -176,7 +176,7 @@ begin
   FEventRemoveChildrenLayer := TVRMLEvent.Create(Self, 'removeChildrenLayer', TMFNode, true);
   Events.Add(FEventRemoveChildrenLayer);
 
-  FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TNodeLayer3D]);
+  FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TLayer3DNode]);
   Fields.Add(FFdChildrenLayer);
 
   FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
@@ -188,31 +188,31 @@ begin
   FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
   Fields.Add(FFdSize);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractX3DBackgroundNode]);
   Fields.Add(FFdBackground);
 
-  FFdFog := TSFNode.Create(Self, 'fog', [TNodeFog]);
+  FFdFog := TSFNode.Create(Self, 'fog', [TFogNode]);
   Fields.Add(FFdFog);
 
-  FFdNavigationInfo := TSFNode.Create(Self, 'navigationInfo', [TNodeNavigationInfo]);
+  FFdNavigationInfo := TSFNode.Create(Self, 'navigationInfo', [TNavigationInfoNode]);
   Fields.Add(FFdNavigationInfo);
 
-  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
+  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TAbstractViewpointNode]);
   Fields.Add(FFdViewpoint);
 end;
 
-class function TNodeLayer3D.ClassNodeTypeName: string;
+class function TLayer3DNode.ClassNodeTypeName: string;
 begin
   Result := 'Layer3D';
 end;
 
-class function TNodeLayer3D.URNMatching(const URN: string): boolean;
+class function TLayer3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeMouseSensor.CreateNode;
+procedure TMouseSensorNode.CreateNode;
 begin
   inherited;
 
@@ -238,23 +238,23 @@ begin
   Events.Add(FEventMouseWheel);
 end;
 
-class function TNodeMouseSensor.ClassNodeTypeName: string;
+class function TMouseSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'MouseSensor';
 end;
 
-class function TNodeMouseSensor.URNMatching(const URN: string): boolean;
+class function TMouseSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNBitManagementNodes + ClassNodeTypeName);
 end;
 
-class function TNodeOrderedGroup.ClassNodeTypeName: string;
+class function TOrderedGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'OrderedGroup';
 end;
 
-class function TNodeOrderedGroup.URNMatching(const URN: string): boolean;
+class function TOrderedGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNBitManagementNodes + ClassNodeTypeName);
@@ -263,11 +263,11 @@ end;
 procedure RegisterBitManagementNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeCircle,
-    TNodeLayer2D,
-    TNodeLayer3D,
-    TNodeMouseSensor,
-    TNodeOrderedGroup
+    TCircleNode,
+    TLayer2DNode,
+    TLayer3DNode,
+    TMouseSensorNode,
+    TOrderedGroupNode
   ]);
 end;
 {$endif read_implementation}

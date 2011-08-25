@@ -18,7 +18,7 @@ procedure Sphere_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3SingleList; Normal: TVector3SingleList;
   TexCoord: TVector2SingleList;
   OverTriangulate: boolean; const Radius: Single;
-  KambiTriangulation: TNodeKambiTriangulation);
+  KambiTriangulation: TKambiTriangulationNode);
 var
   QuadricSlices, QuadricStacks: Cardinal;
 
@@ -174,21 +174,21 @@ begin
   end;
 end;
 
-function TNodeSphere.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TSphereNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  CoordNode: TNodeCoordinate;
-  NormalNode: TNodeNormal;
-  TexCoordNode: TNodeTextureCoordinate;
+  CoordNode: TCoordinateNode;
+  NormalNode: TNormalNode;
+  TexCoordNode: TTextureCoordinateNode;
   TexCoords: TVector2SingleList;
-  IFS: TNodeIndexedFaceSet absolute Result;
+  IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
   try
-    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    CoordNode := TCoordinateNode.Create('', WWWBasePath);
     IFS.FdCoord.Value := CoordNode;
 
-    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    NormalNode := TNormalNode.Create('', WWWBasePath);
     IFS.FdNormal.Value := NormalNode;
     IFS.FdNormalPerVertex.Value := true;
 
@@ -199,7 +199,7 @@ begin
       TexCoords := nil;
     end else
     begin
-      TexCoordNode := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoordNode := TTextureCoordinateNode.Create('', WWWBasePath);
       IFS.FdTexCoord.Value := TexCoordNode;
       TexCoords := TexCoordNode.FdPoint.Items;
     end;
@@ -216,38 +216,38 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeSphere_1.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TSphereNode_1.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  CoordNode: TNodeCoordinate3;
-  NormalNode: TNodeNormal;
-  NormalBinding: TNodeNormalBinding;
-  TexCoordNode: TNodeTextureCoordinate2;
-  ShapeHints: TNodeShapeHints;
-  MaterialBinding: TNodeMaterialBinding;
-  IFS: TNodeIndexedFaceSet_1 absolute Result;
+  CoordNode: TCoordinate3Node;
+  NormalNode: TNormalNode;
+  NormalBinding: TNormalBindingNode;
+  TexCoordNode: TTextureCoordinate2Node;
+  ShapeHints: TShapeHintsNode;
+  MaterialBinding: TMaterialBindingNode;
+  IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet_1.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
   try
     { we have to modify State, so make a copy of it }
     State := TVRMLGraphTraverseState.CreateCopy(State);
 
-    CoordNode := TNodeCoordinate3.Create('', WWWBasePath);
+    CoordNode := TCoordinate3Node.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
-    NormalNode := TNodeNormal.Create('', WWWBasePath);
+    NormalNode := TNormalNode.Create('', WWWBasePath);
     State.SetLastNodes(vsNormal, NormalNode, true);
 
-    NormalBinding := TNodeNormalBinding.Create('', WWWBasePath);
+    NormalBinding := TNormalBindingNode.Create('', WWWBasePath);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
-    TexCoordNode := TNodeTextureCoordinate2.Create('', WWWBasePath);
+    TexCoordNode := TTextureCoordinate2Node.Create('', WWWBasePath);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
-    ShapeHints := TNodeShapeHints.Create('', WWWBasePath);
+    ShapeHints := TShapeHintsNode.Create('', WWWBasePath);
     { For VRML 1.0, Sphere is never solid. }
     ShapeHints.FdshapeType.Value := SHTYPE_UNKNOWN;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
@@ -256,7 +256,7 @@ begin
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
     { calculate MaterialBinding. Sphere has always only 1 material. }
-    MaterialBinding := TNodeMaterialBinding.Create('', WWWBasePath);
+    MaterialBinding := TMaterialBindingNode.Create('', WWWBasePath);
     MaterialBinding.FdValue.Value := BIND_OVERALL;
     State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
 

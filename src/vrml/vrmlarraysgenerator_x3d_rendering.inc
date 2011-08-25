@@ -126,13 +126,13 @@ type
       BeginIndex, EndIndex: Integer); override;
   end;
 
-  { Generator for VRML <= 1.0 TNodeIndexedLineSet_1 }
+  { Generator for VRML <= 1.0 TIndexedLineSetNode_1 }
   TIndexedLineSet_1Generator = class(TAbstractLineSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-  { Generator for VRML >= 2.0 TNodeIndexedLineSet and X3D TNodeLineSet. }
+  { Generator for VRML >= 2.0 TIndexedLineSetNode and X3D TLineSetNode. }
   TLineSetGenerator = class(TAbstractLineSetGenerator)
   public
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
@@ -176,11 +176,11 @@ end;
 
 constructor TPointSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  Node: TNodePointSet;
+  Node: TPointSetNode;
 begin
   inherited;
 
-  Node := Geometry as TNodePointSet;
+  Node := Geometry as TPointSetNode;
 
   { In VRML 2.0 PointSet is always unlit and not textured.
     Light is already disabled by Render_Material. }
@@ -198,9 +198,9 @@ begin
   ColorRGBA := nil;
 
   if (Node.FdColor.Value <> nil) and
-     (Node.FdColor.Value is TNodeColor) then
+     (Node.FdColor.Value is TColorNode) then
   begin
-    Color := TNodeColor(Node.FdColor.Value).FdColor;
+    Color := TColorNode(Node.FdColor.Value).FdColor;
     if (Coord <> nil) and (Color.Count < Coord.Count) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Not enough colors specified for PointSet');
@@ -209,9 +209,9 @@ begin
   end;
 
   if (Node.FdColor.Value <> nil) and
-     (Node.FdColor.Value is TNodeColorRGBA) then
+     (Node.FdColor.Value is TColorRGBANode) then
   begin
-    ColorRGBA := TNodeColorRGBA(Node.FdColor.Value).FdColor;
+    ColorRGBA := TColorRGBANode(Node.FdColor.Value).FdColor;
     if (Coord <> nil) and (ColorRGBA.Count < Coord.Count) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Not enough colors specified for PointSet');
@@ -222,7 +222,7 @@ end;
 
 procedure TPointSetGenerator.GenerateCoordinateBegin;
 var
-  Material: TNodeMaterial;
+  Material: TMaterialNode;
 begin
   inherited;
 
@@ -265,32 +265,32 @@ constructor TTriangleSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: b
 begin
   inherited;
 
-  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
 
-  if Geometry is TNodeIndexedTriangleSet then
+  if Geometry is TIndexedTriangleSetNode then
   begin
-    TexCoordIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
-    ColorIndex := TNodeIndexedTriangleSet(Geometry).FdIndex;
+    TexCoordIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
+    ColorIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleSet and IndexedTriangleSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
-    if Geometry is TNodeIndexedTriangleSet then
+    if Geometry is TIndexedTriangleSetNode then
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
-  if (Geometry is TNodeIndexedTriangleSet) and
-     TNodeIndexedTriangleSet(Geometry).FdNormalPerVertex.Value then
+  if (Geometry is TIndexedTriangleSetNode) and
+     TIndexedTriangleSetNode(Geometry).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
@@ -409,31 +409,31 @@ constructor TTriangleFanSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate
 begin
   inherited;
 
-  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
 
-  if Geometry is TNodeIndexedTriangleFanSet then
+  if Geometry is TIndexedTriangleFanSetNode then
   begin
-    TexCoordIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
-    ColorIndex := TNodeIndexedTriangleFanSet(Geometry).FdIndex;
+    TexCoordIndex := TIndexedTriangleFanSetNode(Geometry).FdIndex;
+    ColorIndex := TIndexedTriangleFanSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleFanSet and IndexedTriangleFanSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
-    if Geometry is TNodeIndexedTriangleFanSet then
+    if Geometry is TIndexedTriangleFanSetNode then
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
-  if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
+  if (Geometry as TAbstractX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
@@ -581,10 +581,10 @@ constructor TTriangleStripSetGenerator.Create(AShape: TVRMLShape; AOverTriangula
 
   procedure CreateForIndexedTriangleMesh_1;
   var
-    SH: TNodeShapeHints;
-    ANode: TNodeIndexedTriangleMesh_1;
+    SH: TShapeHintsNode;
+    ANode: TIndexedTriangleMeshNode_1;
   begin
-    ANode := Geometry as TNodeIndexedTriangleMesh_1;
+    ANode := Geometry as TIndexedTriangleMeshNode_1;
 
     TexCoordIndex := ANode.FdTextureCoordIndex;
 
@@ -613,7 +613,7 @@ constructor TTriangleStripSetGenerator.Create(AShape: TVRMLShape; AOverTriangula
 begin
   inherited;
 
-  if Geometry is TNodeIndexedTriangleMesh_1 then
+  if Geometry is TIndexedTriangleMeshNode_1 then
   begin
     CreateForIndexedTriangleMesh_1;
     Exit;
@@ -621,31 +621,31 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
-  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
 
-  if Geometry is TNodeIndexedTriangleStripSet then
+  if Geometry is TIndexedTriangleStripSetNode then
   begin
-    TexCoordIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
-    ColorIndex := TNodeIndexedTriangleStripSet(Geometry).FdIndex;
+    TexCoordIndex := TIndexedTriangleStripSetNode(Geometry).FdIndex;
+    ColorIndex := TIndexedTriangleStripSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleStripSet and IndexedTriangleStripSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
-    if Geometry is TNodeIndexedTriangleStripSet then
+    if Geometry is TIndexedTriangleStripSetNode then
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
-  if (Geometry as TNodeX3DComposedGeometryNode).FdNormalPerVertex.Value then
+  if (Geometry as TAbstractX3DComposedGeometryNode).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
@@ -669,7 +669,7 @@ procedure TTriangleStripSetGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
-  if Geometry is TNodeIndexedTriangleMesh_1 then
+  if Geometry is TIndexedTriangleMeshNode_1 then
   begin
     { Already calculated in constructor, pass to Arrays now }
     Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
@@ -810,35 +810,35 @@ constructor TQuadSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boole
 begin
   inherited;
 
-  Color := (Geometry as TNodeX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TNodeX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
 
-  if Geometry is TNodeIndexedQuadSet then
+  if Geometry is TIndexedQuadSetNode then
   begin
-    TexCoordIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
-    ColorIndex := TNodeIndexedQuadSet(Geometry).FdIndex;
+    TexCoordIndex := TIndexedQuadSetNode(Geometry).FdIndex;
+    ColorIndex := TIndexedQuadSetNode(Geometry).FdIndex;
   end;
 
   { Normals are done exactly like for [Indexed]TriangleSet, except
     we have quads now. }
 
-  Normals := (Geometry as TNodeX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TNodeX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
 
     { For both QuadSet and IndexedQuadSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex),
       as far as I understand X3D spec. }
-    if Geometry is TNodeIndexedQuadSet then
+    if Geometry is TIndexedQuadSetNode then
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
-  if (Geometry is TNodeIndexedQuadSet) and
-     TNodeIndexedQuadSet(Geometry).FdNormalPerVertex.Value then
+  if (Geometry is TIndexedQuadSetNode) and
+     TIndexedQuadSetNode(Geometry).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
@@ -979,11 +979,11 @@ end;
 
 constructor TIndexedLineSet_1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  Node: TNodeIndexedLineSet_1;
+  Node: TIndexedLineSetNode_1;
 begin
   inherited;
 
-  Node := Geometry as TNodeIndexedLineSet_1;
+  Node := Geometry as TIndexedLineSetNode_1;
 
   TexCoordIndex := Node.FdTextureCoordIndex;
 
@@ -1003,14 +1003,14 @@ end;
 
 constructor TLineSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  NodeLS: TNodeLineSet;
-  NodeILS: TNodeIndexedLineSet;
+  NodeLS: TLineSetNode;
+  NodeILS: TIndexedLineSetNode;
 begin
   inherited;
 
-  if Geometry is TNodeIndexedLineSet then
+  if Geometry is TIndexedLineSetNode then
   begin
-    NodeILS := Geometry as TNodeIndexedLineSet;
+    NodeILS := Geometry as TIndexedLineSetNode;
 
     Color := NodeILS.Color;
     ColorRGBA := NodeILS.ColorRGBA;
@@ -1018,8 +1018,8 @@ begin
     ColorIndex := NodeILS.FdColorIndex;
   end else
   begin
-    Assert(Geometry is TNodeLineSet);
-    NodeLS := Geometry as TNodeLineSet;
+    Assert(Geometry is TLineSetNode);
+    NodeLS := Geometry as TLineSetNode;
 
     Color := NodeLS.Color;
     ColorRGBA := NodeLS.ColorRGBA;
@@ -1029,7 +1029,7 @@ end;
 
 procedure TLineSetGenerator.GenerateCoordinateBegin;
 var
-  Material: TNodeMaterial;
+  Material: TMaterialNode;
 begin
   inherited;
 

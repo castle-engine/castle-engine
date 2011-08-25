@@ -15,13 +15,13 @@
 
 {$ifdef read_interface}
   { }
-  INodeX3DProductStructureChildNode = interface(INodeX3DChildNode)
+  IAbstractX3DProductStructureChildNode = interface(IAbstractX3DChildNode)
   ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
     property FdName: TSFString { read FFdName} { };
   end;
 
-  TNodeX3DProductStructureChildNode = class(TNodeX3DChildNode,
-    INodeX3DProductStructureChildNode)
+  TAbstractX3DProductStructureChildNode = class(TAbstractX3DChildNode,
+    IAbstractX3DProductStructureChildNode)
   public
     procedure CreateNode; override;
 
@@ -29,7 +29,7 @@
     public property FdName: TSFString read FFdName;
   end;
 
-  TNodeCADAssembly = class(TNodeX3DGroupingNode, INodeX3DProductStructureChildNode)
+  TCADAssemblyNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -39,7 +39,7 @@
     public property FdName: TSFString read FFdName;
   end;
 
-  TNodeCADFace = class(TNodeX3DProductStructureChildNode, INodeX3DBoundedObject)
+  TCADFaceNode = class(TAbstractX3DProductStructureChildNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -55,7 +55,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TNodeCADLayer = class(TNodeX3DGroupingNode)
+  TCADLayerNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -68,7 +68,7 @@
     public property FdVisible: TMFBool read FFdVisible;
   end;
 
-  TNodeCADPart = class(TNodeX3DGroupingNode, INodeX3DProductStructureChildNode)
+  TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -93,7 +93,7 @@
     public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
 
-  TNodeIndexedQuadSet = class(TNodeX3DComposedGeometryNode)
+  TIndexedQuadSetNode = class(TAbstractX3DComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -113,10 +113,10 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeQuadSet = class(TNodeX3DComposedGeometryNode)
+  TQuadSetNode = class(TAbstractX3DComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -127,13 +127,13 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DProductStructureChildNode.CreateNode;
+procedure TAbstractX3DProductStructureChildNode.CreateNode;
 begin
   inherited;
 
@@ -143,7 +143,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeCADAssembly.CreateNode;
+procedure TCADAssemblyNode.CreateNode;
 begin
   inherited;
 
@@ -153,22 +153,22 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCADAssembly.ClassNodeTypeName: string;
+class function TCADAssemblyNode.ClassNodeTypeName: string;
 begin
   Result := 'CADAssembly';
 end;
 
-class function TNodeCADAssembly.URNMatching(const URN: string): boolean;
+class function TCADAssemblyNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCADFace.CreateNode;
+procedure TCADFaceNode.CreateNode;
 begin
   inherited;
 
-  FFdShape := TSFNode.Create(Self, 'shape', [TNodeX3DShapeNode, TVRMLLODNode]);
+  FFdShape := TSFNode.Create(Self, 'shape', [TAbstractX3DShapeNode, TAbstractLODNode]);
   Fields.Add(FFdShape);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -184,18 +184,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCADFace.ClassNodeTypeName: string;
+class function TCADFaceNode.ClassNodeTypeName: string;
 begin
   Result := 'CADFace';
 end;
 
-class function TNodeCADFace.URNMatching(const URN: string): boolean;
+class function TCADFaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCADLayer.CreateNode;
+procedure TCADLayerNode.CreateNode;
 begin
   inherited;
 
@@ -208,18 +208,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCADLayer.ClassNodeTypeName: string;
+class function TCADLayerNode.ClassNodeTypeName: string;
 begin
   Result := 'CADLayer';
 end;
 
-class function TNodeCADLayer.URNMatching(const URN: string): boolean;
+class function TCADLayerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCADPart.CreateNode;
+procedure TCADPartNode.CreateNode;
 begin
   inherited;
 
@@ -249,18 +249,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCADPart.ClassNodeTypeName: string;
+class function TCADPartNode.ClassNodeTypeName: string;
 begin
   Result := 'CADPart';
 end;
 
-class function TNodeCADPart.URNMatching(const URN: string): boolean;
+class function TCADPartNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeIndexedQuadSet.CreateNode;
+procedure TIndexedQuadSetNode.CreateNode;
 begin
   inherited;
 
@@ -274,33 +274,33 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TNodeIndexedQuadSet.ClassNodeTypeName: string;
+class function TIndexedQuadSetNode.ClassNodeTypeName: string;
 begin
   Result := 'IndexedQuadSet';
 end;
 
-class function TNodeIndexedQuadSet.URNMatching(const URN: string): boolean;
+class function TIndexedQuadSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeIndexedQuadSet.CoordIndex: TMFLong;
+function TIndexedQuadSetNode.CoordIndex: TMFLong;
 begin
   Result := FdIndex;
 end;
 
-procedure TNodeQuadSet.CreateNode;
+procedure TQuadSetNode.CreateNode;
 begin
   inherited;
 end;
 
-class function TNodeQuadSet.ClassNodeTypeName: string;
+class function TQuadSetNode.ClassNodeTypeName: string;
 begin
   Result := 'QuadSet';
 end;
 
-class function TNodeQuadSet.URNMatching(const URN: string): boolean;
+class function TQuadSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -309,12 +309,12 @@ end;
 procedure RegisterCADGeometryNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeCADAssembly,
-    TNodeCADFace,
-    TNodeCADLayer,
-    TNodeCADPart,
-    TNodeIndexedQuadSet,
-    TNodeQuadSet
+    TCADAssemblyNode,
+    TCADFaceNode,
+    TCADLayerNode,
+    TCADPartNode,
+    TIndexedQuadSetNode,
+    TQuadSetNode
   ]);
 end;
 

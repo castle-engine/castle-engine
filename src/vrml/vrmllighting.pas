@@ -92,7 +92,7 @@ function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
 type
   TVRMLFogType = type Integer;
 
-function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
+function VRML97FogType(FogNode: TFogNode): TVRMLFogType;
 
 { Apply fog to the color of the vertex.
 
@@ -120,7 +120,7 @@ function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
 procedure VRML97FogTo1st(
   var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
-  FogNode: TNodeFog; FogType: Integer);
+  FogNode: TFogNode; FogType: Integer);
 
 implementation
 
@@ -129,8 +129,8 @@ uses KambiWarnings;
 function VRML97Emission(const IntersectNode: TVRMLTriangle;
   LightingCalculationOn: boolean): TVector3Single;
 var
-  M1: TNodeMaterial_1;
-  M2: TNodeMaterial;
+  M1: TMaterialNode_1;
+  M2: TMaterialNode;
 begin
   if IntersectNode.State.ShapeNode <> nil then
   begin
@@ -169,7 +169,7 @@ function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
 {$I vrmllighting_97_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
-function VRML97FogType(FogNode: TNodeFog): TVRMLFogType;
+function VRML97FogType(FogNode: TFogNode): TVRMLFogType;
 begin
   if (FogNode = nil) or
      (FogNode.FdVisibilityRange.Value = 0.0) then
@@ -182,7 +182,7 @@ end;
 
 procedure VRML97FogTo1st(var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
-  FogNode: TNodeFog; FogType: Integer);
+  FogNode: TFogNode; FogType: Integer);
 var
   FogVisibilityRangeScaled: Single;
 

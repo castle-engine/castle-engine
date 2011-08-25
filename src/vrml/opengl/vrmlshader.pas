@@ -44,7 +44,7 @@ type
     procedure AddInteger(const I: Integer);
     procedure AddFloat(const F: Single);
     procedure AddPointer(Ptr: Pointer);
-    procedure AddEffects(Nodes: TVRMLNodeList);
+    procedure AddEffects(Nodes: TX3DNodeList);
   public
     function ToString: string;
     procedure Clear;
@@ -108,8 +108,8 @@ type
       Texture fields have to be updated by descendant (like TVRMLGLSLProgram),
       using the UniformsTextures list. These methods add fields to this list.
       @groupBegin }
-    procedure BindUniforms(const Node: TVRMLNode; const EnableDisable: boolean);
-    procedure BindUniforms(const Nodes: TVRMLNodeList; const EnableDisable: boolean);
+    procedure BindUniforms(const Node: TX3DNode; const EnableDisable: boolean);
+    procedure BindUniforms(const Nodes: TX3DNodeList; const EnableDisable: boolean);
     { @groupEnd }
   end;
 
@@ -152,7 +152,7 @@ type
   TLightShader = class
   private
     Number: Cardinal;
-    Node: TNodeX3DLightNode;
+    Node: TAbstractX3DLightNode;
     Light: PLightInstance;
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
@@ -175,17 +175,17 @@ type
 
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
   private
-    function Find(const Node: TNodeX3DLightNode; out Shader: TLightShader): boolean;
+    function Find(const Node: TAbstractX3DLightNode; out Shader: TLightShader): boolean;
   end;
 
   TTextureShader = class
   private
     TextureUnit: Cardinal;
     TextureType: TTextureType;
-    Node: TNodeX3DTextureNode;
+    Node: TAbstractX3DTextureNode;
     Env: TTextureEnv;
     ShadowMapSize: Cardinal;
-    ShadowLight: TNodeX3DLightNode;
+    ShadowLight: TAbstractX3DLightNode;
     ShadowVisualizeDepth: boolean;
     Shader: TVRMLShader;
 
@@ -219,7 +219,7 @@ type
   private
     { When adding new field, remember to clear it in Clear method. }
     { List of effect nodes that determine uniforms of our program. }
-    UniformsNodes: TVRMLNodeList;
+    UniformsNodes: TX3DNodeList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
     FPercentageCloserFiltering: TPercentageCloserFiltering;
     FVarianceShadowMaps: boolean;
@@ -229,7 +229,7 @@ type
     TextureShaders: TTextureShaders;
     FCodeHash: TShaderCodeHash;
     CodeHashFinalized: boolean;
-    SelectedNode: TNodeComposedShader;
+    SelectedNode: TComposedShaderNode;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
     FBumpMapping: TBumpMapping;
@@ -257,13 +257,13 @@ type
       - Actually adding this feature to shader source may be done at LinkProgram.
     }
     AppearanceEffects: TMFNode;
-    GroupEffects: TVRMLNodeList;
+    GroupEffects: TX3DNodeList;
     Lighting, MaterialFromColor: boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
-    procedure EnableEffects(Effects: TVRMLNodeList;
+    procedure EnableEffects(Effects: TX3DNodeList;
       const Code: TShaderSource = nil;
       const ForwardDeclareInFinalShader: boolean = false);
 
@@ -335,10 +335,10 @@ type
     function CodeHash: TShaderCodeHash;
 
     procedure EnableTexture(const TextureUnit: Cardinal;
-      const TextureType: TTextureType; const Node: TNodeX3DTextureNode;
+      const TextureType: TTextureType; const Node: TAbstractX3DTextureNode;
       const Env: TTextureEnv;
       const ShadowMapSize: Cardinal = 0;
-      const ShadowLight: TNodeX3DLightNode = nil;
+      const ShadowLight: TAbstractX3DLightNode = nil;
       const ShadowVisualizeDepth: boolean = false);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent);
@@ -360,9 +360,9 @@ type
     procedure EnableFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource);
     function EnableCustomShaderCode(Shaders: TMFNodeShaders;
-      out Node: TNodeComposedShader): boolean;
+      out Node: TComposedShaderNode): boolean;
     procedure EnableAppearanceEffects(Effects: TMFNode);
-    procedure EnableGroupEffects(Effects: TVRMLNodeList);
+    procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
     procedure EnableMaterialFromColor;
 
@@ -493,7 +493,7 @@ end;
 
 {$include norqcheckend.inc}
 
-procedure TShaderCodeHash.AddEffects(Nodes: TVRMLNodeList);
+procedure TShaderCodeHash.AddEffects(Nodes: TX3DNodeList);
 var
   I: Integer;
 begin
@@ -504,8 +504,8 @@ begin
     would not be handled correctly here --- we set uniform values on change,
     not every time before rendering shape). }
   for I := 0 to Nodes.Count - 1 do
-    if (Nodes[I] is TNodeEffect) and
-       TNodeEffect(Nodes[I]).FdEnabled.Value then
+    if (Nodes[I] is TEffectNode) and
+       TEffectNode(Nodes[I]).FdEnabled.Value then
       AddPointer(Nodes[I]);
 end;
 
@@ -598,32 +598,32 @@ begin
   DefinesCount := 0;
   Hash.AddInteger(101);
 
-  if Node is TVRMLPositionalLightNode then
+  if Node is TAbstractPositionalLightNode then
   begin
     Define(ldTypePosiional);
-    if Node is TNodeSpotLight_1 then
+    if Node is TSpotLightNode_1 then
     begin
       Define(ldTypeSpot);
-      if TNodeSpotLight_1(Node).SpotExp <> 0 then
+      if TSpotLightNode_1(Node).SpotExp <> 0 then
         Define(ldHasSpotExponent);
     end else
-    if Node is TNodeSpotLight then
+    if Node is TSpotLightNode then
     begin
       Define(ldTypeSpot);
-      if TNodeSpotLight(Node).FdBeamWidth.Value <
-         TNodeSpotLight(Node).FdCutOffAngle.Value then
+      if TSpotLightNode(Node).FdBeamWidth.Value <
+         TSpotLightNode(Node).FdCutOffAngle.Value then
       begin
         Define(ldHasBeamWidth);
         LightUniformName1 := 'kambi_light_%d_beam_width';
-        LightUniformValue1 := TNodeSpotLight(Node).FdBeamWidth.Value;
+        LightUniformValue1 := TSpotLightNode(Node).FdBeamWidth.Value;
         Hash.AddFloat(LightUniformValue1);
       end;
     end;
 
-    if TVRMLPositionalLightNode(Node).HasAttenuation then
+    if TAbstractPositionalLightNode(Node).HasAttenuation then
       Define(ldHasAttenuation);
 
-    if TVRMLPositionalLightNode(Node).HasRadius and
+    if TAbstractPositionalLightNode(Node).HasRadius and
       { Do not activate per-pixel checking of light radius,
         if we know (by bounding box test below)
         that the whole shape is completely within radius. }
@@ -680,7 +680,7 @@ end;
 
 { TLightShaders -------------------------------------------------------------- }
 
-function TLightShaders.Find(const Node: TNodeX3DLightNode; out Shader: TLightShader): boolean;
+function TLightShaders.Find(const Node: TAbstractX3DLightNode; out Shader: TLightShader): boolean;
 var
   I: Integer;
 begin
@@ -949,13 +949,13 @@ begin
     it gets called when uniform changed. }
   if Event.ParentNode <> nil then
   begin
-    Scene := (Event.ParentNode as TVRMLNode).Scene;
+    Scene := (Event.ParentNode as TX3DNode).Scene;
     if Scene <> nil then
       Scene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 end;
 
-procedure TVRMLShaderProgram.BindUniforms(const Node: TVRMLNode;
+procedure TVRMLShaderProgram.BindUniforms(const Node: TX3DNode;
   const EnableDisable: boolean);
 var
   I: Integer;
@@ -974,7 +974,7 @@ begin
   end;
 end;
 
-procedure TVRMLShaderProgram.BindUniforms(const Nodes: TVRMLNodeList;
+procedure TVRMLShaderProgram.BindUniforms(const Nodes: TX3DNodeList;
   const EnableDisable: boolean);
 var
   I: Integer;
@@ -1185,7 +1185,7 @@ begin
 
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
-  UniformsNodes := TVRMLNodeList.Create(false);
+  UniformsNodes := TX3DNodeList.Create(false);
 
   WarnMissingPlugs := true;
 end;
@@ -1420,13 +1420,13 @@ begin
   EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
 end;
 
-procedure TVRMLShader.EnableEffects(Effects: TVRMLNodeList;
+procedure TVRMLShader.EnableEffects(Effects: TX3DNodeList;
   const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 
-  procedure EnableEffect(Effect: TNodeEffect);
+  procedure EnableEffect(Effect: TEffectNode);
 
-    procedure EnableEffectPart(Part: TNodeEffectPart);
+    procedure EnableEffectPart(Part: TEffectPartNode);
     var
       Contents: string;
       PartType: TShaderType;
@@ -1455,8 +1455,8 @@ procedure TVRMLShader.EnableEffects(Effects: TVRMLNodeList;
     end;
 
     for I := 0 to Effect.FdParts.Count - 1 do
-      if Effect.FdParts[I] is TNodeEffectPart then
-        EnableEffectPart(TNodeEffectPart(Effect.FdParts[I]));
+      if Effect.FdParts[I] is TEffectPartNode then
+        EnableEffectPart(TEffectPartNode(Effect.FdParts[I]));
 
     UniformsNodes.Add(Effect);
   end;
@@ -1465,8 +1465,8 @@ var
   I: Integer;
 begin
   for I := 0 to Effects.Count - 1 do
-    if Effects[I] is TNodeEffect then
-      EnableEffect(TNodeEffect(Effects[I]));
+    if Effects[I] is TEffectNode then
+      EnableEffect(TEffectNode(Effects[I]));
 end;
 
 procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
@@ -2003,10 +2003,10 @@ end;
 
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
-  const Node: TNodeX3DTextureNode;
+  const Node: TAbstractX3DTextureNode;
   const Env: TTextureEnv;
   const ShadowMapSize: Cardinal;
-  const ShadowLight: TNodeX3DLightNode;
+  const ShadowLight: TAbstractX3DLightNode;
   const ShadowVisualizeDepth: boolean);
 var
   TextureShader: TTextureShader;
@@ -2237,10 +2237,10 @@ begin
 end;
 
 function TVRMLShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
-  out Node: TNodeComposedShader): boolean;
+  out Node: TComposedShaderNode): boolean;
 var
   I, J: Integer;
-  Part: TNodeShaderPart;
+  Part: TShaderPartNode;
   PartSource: String;
   PartType, SourceType: TShaderType;
 begin
@@ -2259,9 +2259,9 @@ begin
       { Iterate over Node.FdParts, looking for vertex shaders
         and fragment shaders. }
       for J := 0 to Node.FdParts.Count - 1 do
-        if Node.FdParts[J] is TNodeShaderPart then
+        if Node.FdParts[J] is TShaderPartNode then
         begin
-          Part := TNodeShaderPart(Node.FdParts[J]);
+          Part := TShaderPartNode(Node.FdParts[J]);
           PartSource := Part.LoadContents;
           if (PartSource <> '') and Part.FdType.GetValue(PartType) then
             Source[PartType].Add(PartSource);
@@ -2293,8 +2293,8 @@ begin
 
       Break;
     end else
-    if Shaders[I] is TNodeX3DShaderNode then
-      TNodeX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
+    if Shaders[I] is TAbstractX3DShaderNode then
+      TAbstractX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
   end;
 end;
 
@@ -2308,7 +2308,7 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableGroupEffects(Effects: TVRMLNodeList);
+procedure TVRMLShader.EnableGroupEffects(Effects: TX3DNodeList);
 begin
   GroupEffects := Effects;
   if GroupEffects.Count <> 0 then

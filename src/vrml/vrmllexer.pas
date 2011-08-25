@@ -300,7 +300,7 @@ type
       (unfortunately I'm not doing this now when parsing MFString,
       this would just require too "unclean" code; I'm using this
       function only before calling parse on SFString field from
-      TVRMLNode.Parse.) }
+      TX3DNode.Parse.) }
     procedure NextTokenForceVTString;
 
     { Returns if Token is vtKeyword and TokenKeyword is given Keyword. }

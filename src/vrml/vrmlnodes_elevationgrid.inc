@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-function TNodeElevationGrid.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TElevationGridNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 
 { I initially rendered ElevationGrid directly, by GL_QUAD_STRIP
   for each row. Fast, but has troubles:
@@ -70,35 +70,35 @@ var
   end;
 
 var
-  IFS: TNodeIndexedFaceSet absolute Result;
+  IFS: TIndexedFaceSetNode absolute Result;
   XDimension, ZDimension: Integer; {< shortcuts for appropriate fields values }
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
-  CoordNode: TNodeCoordinate;
+  CoordNode: TCoordinateNode;
   TexCoords: TVector2SingleList;
 begin
-  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
   try
     XDimension := FdXDimension.Value;
     ZDimension := FdZDimension.Value;
 
     if IsNotEmpty then
     begin
-      CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+      CoordNode := TCoordinateNode.Create('', WWWBasePath);
       IFS.FdCoord.Value := CoordNode;
       Coords := CoordNode.FdPoint.Items;
 
       { calculate TexCoordProvided, set IFS.FdTexCoord, maybe set TexCoords }
       TexCoordProvided :=
         (FdTexCoord.Value <> nil) and
-        (FdTexCoord.Value is TNodeTextureCoordinate) and
-        (TNodeTextureCoordinate(FdTexCoord.Value).FdPoint.Count >=
+        (FdTexCoord.Value is TTextureCoordinateNode) and
+        (TTextureCoordinateNode(FdTexCoord.Value).FdPoint.Count >=
           XDimension * ZDimension);
       if TexCoordProvided then
         IFS.FdTexCoord.Value := FdTexCoord.Value else
       begin
-        IFS.FdTexCoord.Value := TNodeTextureCoordinate.Create('', WWWBasePath);
-        TexCoords := TNodeTextureCoordinate(IFS.FdTexCoord.Value).FdPoint.Items;
+        IFS.FdTexCoord.Value := TTextureCoordinateNode.Create('', WWWBasePath);
+        TexCoords := TTextureCoordinateNode(IFS.FdTexCoord.Value).FdPoint.Items;
       end;
 
       { generate coords (and other per-vertex stuff: tex coords) }
@@ -151,7 +151,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeElevationGrid.ProxyUsesOverTriangulate: boolean;
+function TElevationGridNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;

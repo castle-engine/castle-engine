@@ -19,7 +19,7 @@
   backward compatible) as X3D NURBS nodes, these are defined and handled
   only in x3d_nurbs.inc. } { }
 {$ifdef read_interface}
-  TNodeCoordinateDeformer = class(TVRMLGroupingNode)
+  TCoordinateDeformerNode = class(TAbstractGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -86,7 +86,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNurbsCurve_2 = class(TNodeX3DGeometryNode)
+  TNurbsCurveNode_2 = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -111,17 +111,17 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeNurbsGroup = class(TNodeX3DGroupingNode)
+  TNurbsGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -132,7 +132,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeNurbsPositionInterpolator_2 = class(TNodeX3DChildNode)
+  TNurbsPositionInterpolatorNode_2 = class(TAbstractX3DChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -168,7 +168,7 @@
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
   end;
 
-  TNodeNurbsSurface = class(TNodeX3DGeometryNode)
+  TNurbsSurfaceNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -215,17 +215,17 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeNurbsTextureSurface = class(TVRMLNode)
+  TNurbsTextureSurfaceNode = class(TX3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -257,7 +257,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNodeTrimmedSurface = class(TNodeX3DGeometryNode)
+  TTrimmedSurfaceNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -280,16 +280,16 @@
 
     { Geometry node not implemented } { }
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeCoordinateDeformer.CreateNode;
+procedure TCoordinateDeformerNode.CreateNode;
 begin
   inherited;
 
@@ -299,19 +299,19 @@ begin
   FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+  FFdchildren := TMFNode.Create(Self, 'children', IAbstractX3DChildNode);
   Fields.Add(FFdchildren);
 
   FFdcontrolPoint := TMFVec3f.Create(Self, 'controlPoint', []);
   Fields.Add(FFdcontrolPoint);
 
-  FFdinputCoord := TMFNode.Create(Self, 'inputCoord', [TNodeCoordinate]);
+  FFdinputCoord := TMFNode.Create(Self, 'inputCoord', [TCoordinateNode]);
   Fields.Add(FFdinputCoord);
 
-  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TNodeTransform]);
+  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TTransformNode]);
   Fields.Add(FFdinputTransform);
 
-  FFdoutputCoord := TMFNode.Create(Self, 'outputCoord', [TNodeCoordinate]);
+  FFdoutputCoord := TMFNode.Create(Self, 'outputCoord', [TCoordinateNode]);
   Fields.Add(FFdoutputCoord);
 
   FFdweight := TMFFloat.Create(Self, 'weight', []);
@@ -364,18 +364,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeCoordinateDeformer.ClassNodeTypeName: string;
+class function TCoordinateDeformerNode.ClassNodeTypeName: string;
 begin
   Result := 'CoordinateDeformer';
 end;
 
-class function TNodeCoordinateDeformer.URNMatching(const URN: string): boolean;
+class function TCoordinateDeformerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsCurve_2.CreateNode;
+procedure TNurbsCurveNode_2.CreateNode;
 begin
   inherited;
 
@@ -402,33 +402,33 @@ begin
   Fields.Add(FFdorder);
 end;
 
-class function TNodeNurbsCurve_2.ClassNodeTypeName: string;
+class function TNurbsCurveNode_2.ClassNodeTypeName: string;
 begin
   Result := 'NurbsCurve';
 end;
 
-class function TNodeNurbsCurve_2.URNMatching(const URN: string): boolean;
+class function TNurbsCurveNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeNurbsCurve_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
 
-function TNodeNurbsCurve_2.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TNurbsCurveNode_2.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   KnotDouble, WeightDouble: TDoubleList;
 begin
-  Result := TNodeLineSet.Create(NodeName, WWWBasePath);
+  Result := TLineSetNode.Create(NodeName, WWWBasePath);
   try
     KnotDouble := FdKnot.Items.ToDouble;
     WeightDouble := FdWeight.Items.ToDouble;
     try
-      NurbsCurveProxy(TNodeLineSet(Result), FdControlPoint.Items,
+      NurbsCurveProxy(TLineSetNode(Result), FdControlPoint.Items,
         FdTessellation.Value, FdOrder.Value, KnotDouble, WeightDouble);
     finally
       FreeAndNil(KnotDouble);
@@ -437,34 +437,34 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeNurbsCurve_2.ProxyUsesOverTriangulate: boolean;
+function TNurbsCurveNode_2.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsCurve_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsCurveNode_2.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items);
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsCurve_2.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsCurveNode_2.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transform);
 end;
 
-function TNodeNurbsCurve_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+function TNurbsCurveNode_2.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 begin
   Result := 0;
 end;
 
-procedure TNodeNurbsGroup.CreateNode;
+procedure TNurbsGroupNode.CreateNode;
 begin
   inherited;
 
@@ -472,18 +472,18 @@ begin
   Fields.Add(FFdtessellationScale);
 end;
 
-class function TNodeNurbsGroup.ClassNodeTypeName: string;
+class function TNurbsGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsGroup';
 end;
 
-class function TNodeNurbsGroup.URNMatching(const URN: string): boolean;
+class function TNurbsGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNurbsPositionInterpolator_2.CreateNode;
+procedure TNurbsPositionInterpolatorNode_2.CreateNode;
 begin
   inherited;
 
@@ -513,23 +513,23 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeNurbsPositionInterpolator_2.ClassNodeTypeName: string;
+class function TNurbsPositionInterpolatorNode_2.ClassNodeTypeName: string;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
 
-class function TNodeNurbsPositionInterpolator_2.URNMatching(const URN: string): boolean;
+class function TNurbsPositionInterpolatorNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNodeNurbsPositionInterpolator_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
 
-procedure TNodeNurbsPositionInterpolator_2.EventSet_FractionReceive(
+procedure TNurbsPositionInterpolatorNode_2.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   Knot, KeyWeight: TDoubleList;
@@ -565,7 +565,7 @@ begin
   EventValue_Changed.Send(OutputValue, Time);
 end;
 
-procedure TNodeNurbsSurface.CreateNode;
+procedure TNurbsSurfaceNode.CreateNode;
 begin
   inherited;
 
@@ -573,7 +573,7 @@ begin
    FdcontrolPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdcontrolPoint);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinate, TNodeNurbsTextureSurface]);
+  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateNode, TNurbsTextureSurfaceNode]);
    FdtexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdtexCoord);
 
@@ -630,23 +630,23 @@ begin
   Fields.Add(FFdvOrder);
 end;
 
-class function TNodeNurbsSurface.ClassNodeTypeName: string;
+class function TNurbsSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsSurface';
 end;
 
-class function TNodeNurbsSurface.URNMatching(const URN: string): boolean;
+class function TNurbsSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-function TNodeNurbsSurface.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TNurbsSurfaceNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   UKnotDouble, VKnotDouble, WeightDouble: TDoubleList;
 begin
-  Result := TNodeIndexedQuadSet.Create(NodeName, WWWBasePath);
+  Result := TIndexedQuadSetNode.Create(NodeName, WWWBasePath);
   try
     { For NurbsPatchSurfaceProxy (and underlying NurbsSurfacePoint)
       we want knots and weights to be double-precision.
@@ -659,7 +659,7 @@ begin
     VKnotDouble := FdVKnot.Items.ToDouble;
     WeightDouble := FdWeight.Items.ToDouble;
     try
-      NurbsPatchSurfaceProxy(TNodeIndexedQuadSet(Result),
+      NurbsPatchSurfaceProxy(TIndexedQuadSetNode(Result),
         FdControlPoint.Items,
         FdUTessellation.Value,
         FdVTessellation.Value,
@@ -685,29 +685,29 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeNurbsSurface.ProxyUsesOverTriangulate: boolean;
+function TNurbsSurfaceNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsSurface.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsSurfaceNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items);
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNodeNurbsSurface.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsSurfaceNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items, State.Transform);
 end;
 
-function TNodeNurbsSurface.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+function TNurbsSurfaceNode.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
 begin
@@ -721,7 +721,7 @@ begin
     Result := 0;
 end;
 
-procedure TNodeNurbsTextureSurface.CreateNode;
+procedure TNurbsTextureSurfaceNode.CreateNode;
 begin
   inherited;
 
@@ -756,18 +756,18 @@ begin
   Fields.Add(FFdvOrder);
 end;
 
-class function TNodeNurbsTextureSurface.ClassNodeTypeName: string;
+class function TNurbsTextureSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'NurbsTextureSurface';
 end;
 
-class function TNodeNurbsTextureSurface.URNMatching(const URN: string): boolean;
+class function TNurbsTextureSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTrimmedSurface.CreateNode;
+procedure TTrimmedSurfaceNode.CreateNode;
 begin
   inherited;
 
@@ -777,39 +777,39 @@ begin
   FEventremoveTrimmingContour := TVRMLEvent.Create(Self, 'removeTrimmingContour', TMFNode, true);
   Events.Add(FEventremoveTrimmingContour);
 
-  FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TNodeContour2D]);
+  FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode]);
    FdtrimmingContour.ChangesAlways := [chGeometry];
   Fields.Add(FFdtrimmingContour);
 
-  FFdsurface := TSFNode.Create(Self, 'surface', [TNodeNurbsSurface]);
+  FFdsurface := TSFNode.Create(Self, 'surface', [TNurbsSurfaceNode]);
    Fdsurface.ChangesAlways := [chGeometry];
   Fields.Add(FFdsurface);
 end;
 
-class function TNodeTrimmedSurface.ClassNodeTypeName: string;
+class function TTrimmedSurfaceNode.ClassNodeTypeName: string;
 begin
   Result := 'TrimmedSurface';
 end;
 
-class function TNodeTrimmedSurface.URNMatching(const URN: string): boolean;
+class function TTrimmedSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-{$define TGeometryNotImplemented := TNodeTrimmedSurface}
+{$define TGeometryNotImplemented := TTrimmedSurfaceNode}
 GeometryNotImplemented
 
 procedure RegisterVRML97NodesNurbs;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeCoordinateDeformer,
-    TNodeNurbsCurve_2,
-    TNodeNurbsGroup,
-    TNodeNurbsPositionInterpolator_2,
-    TNodeNurbsSurface,
-    TNodeNurbsTextureSurface,
-    TNodeTrimmedSurface
+    TCoordinateDeformerNode,
+    TNurbsCurveNode_2,
+    TNurbsGroupNode,
+    TNurbsPositionInterpolatorNode_2,
+    TNurbsSurfaceNode,
+    TNurbsTextureSurfaceNode,
+    TTrimmedSurfaceNode
   ]);
 end;
 {$endif read_implementation}

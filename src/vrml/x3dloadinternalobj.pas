@@ -23,7 +23,7 @@ interface
 
 uses VRMLNodes;
 
-function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
+function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
 
 implementation
 
@@ -456,7 +456,7 @@ end;
 
 { LoadWavefrontOBJ ----------------------------------------------------------- }
 
-function LoadWavefrontOBJ(const filename: string): TVRMLRootNode;
+function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
 const
   { When constructing large index arrays, we use larger Capacity
     to make them faster.
@@ -470,15 +470,15 @@ var
     Result := 'Material_' + ToVRMLName(MatOBJName);
   end;
 
-  function MaterialToVRML(const Material: TWavefrontMaterial): TNodeAppearance;
+  function MaterialToVRML(const Material: TWavefrontMaterial): TAppearanceNode;
   var
-    Mat: TNodeMaterial;
-    Texture: TNodeImageTexture;
+    Mat: TMaterialNode;
+    Texture: TImageTextureNode;
   begin
-    Result := TNodeAppearance.Create(
+    Result := TAppearanceNode.Create(
       MatOBJNameToVRMLName(Material.Name), WWWBasePath);
 
-    Mat := TNodeMaterial.Create('', WWWBasePath);
+    Mat := TMaterialNode.Create('', WWWBasePath);
     Result.FdMaterial.Value := Mat;
     Mat.FdAmbientIntensity.Value := AmbientIntensity(
       Material.AmbientColor, Material.DiffuseColor);
@@ -489,13 +489,13 @@ var
 
     if Material.DiffuseTextureFileName <> '' then
     begin
-      Texture := TNodeImageTexture.Create('', WWWBasePath);
+      Texture := TImageTextureNode.Create('', WWWBasePath);
       Result.FdTexture.Value := Texture;
       Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.DiffuseTextureFileName));
 
       if Material.BumpTextureFileName <> '' then
       begin
-        Texture := TNodeImageTexture.Create('', WWWBasePath);
+        Texture := TImageTextureNode.Create('', WWWBasePath);
         Result.FdNormalMap.Value := Texture;
         Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.BumpTextureFileName));
       end;
@@ -504,37 +504,37 @@ var
 
 var
   Obj: TObject3DOBJ;
-  Coord: TNodeCoordinate;
-  Faces: TNodeIndexedFaceSet;
-  TexCoord: TNodeTextureCoordinate;
+  Coord: TCoordinateNode;
+  Faces: TIndexedFaceSetNode;
+  TexCoord: TTextureCoordinateNode;
   i: integer;
   FacesWithTexCoord, FacesWithNormal: boolean;
-  Normal: TNodeNormal;
+  Normal: TNormalNode;
   FacesWithMaterial: TWavefrontMaterial;
-  Appearances: TVRMLNodeList;
-  Shape: TNodeShape;
+  Appearances: TX3DNodeList;
+  Shape: TShapeNode;
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(filename));
   Appearances := nil;
   Obj := TObject3DOBJ.Create(filename);
   try
-    result := TVRMLRootNode.Create('', WWWBasePath);
+    result := TX3DRootNode.Create('', WWWBasePath);
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Appearances := TVRMLNodeList.Create(false);
+      Appearances := TX3DNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;
       for I := 0 to Obj.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(Obj.Materials[I]);
 
-      Coord := TNodeCoordinate.Create('',WWWBasePath);
+      Coord := TCoordinateNode.Create('',WWWBasePath);
       Coord.FdPoint.Items.Assign(obj.Verts);
 
-      TexCoord := TNodeTextureCoordinate.Create('', WWWBasePath);
+      TexCoord := TTextureCoordinateNode.Create('', WWWBasePath);
       TexCoord.FdPoint.Items.Assign(obj.TexCoords);
 
-      Normal := TNodeNormal.Create('', WWWBasePath);
+      Normal := TNormalNode.Create('', WWWBasePath);
       Normal.FdVector.Items.Assign(Obj.Normals);
 
       i := 0;
@@ -544,7 +544,7 @@ begin
         FacesWithNormal := Obj.Faces.L[i].HasNormals;
         FacesWithMaterial := Obj.Faces.L[i].Material;
 
-        Shape := TNodeShape.Create('', WWWBasePath);
+        Shape := TShapeNode.Create('', WWWBasePath);
         Result.FdChildren.Add(Shape);
 
         if FacesWithMaterial <> nil then
@@ -552,9 +552,9 @@ begin
           { We find appearance by name, using FindNodeByName. We're sure
             that we will find it --- because we added them all to Appearances. }
           Shape.Appearance := Appearances[Appearances.FindNodeName(
-            MatOBJNameToVRMLName(FacesWithMaterial.Name))] as TNodeAppearance;
+            MatOBJNameToVRMLName(FacesWithMaterial.Name))] as TAppearanceNode;
         end else
-          Shape.Material := TNodeMaterial.Create('', WWWBasePath);
+          Shape.Material := TMaterialNode.Create('', WWWBasePath);
 
         { We don't do anything special for the case when FacesWithMaterial = nil
           and FacesWithTexCoord = true. This may be generated e.g. by Blender
@@ -564,7 +564,7 @@ begin
           field, but without texture it will not have any effect.
           This is natural, and there's no reason for now to do anything else. }
 
-        Faces := TNodeIndexedFaceSet.Create('', WWWBasePath);
+        Faces := TIndexedFaceSetNode.Create('', WWWBasePath);
         Shape.FdGeometry.Value := Faces;
         Faces.FdCreaseAngle.Value := NiceCreaseAngle;
         Faces.FdSolid.Value := false;

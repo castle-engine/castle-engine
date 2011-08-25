@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DParticleEmitterNode = class(TNodeX3DNode)
+  TAbstractX3DParticleEmitterNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -32,7 +32,7 @@
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
   end;
 
-  TNodeX3DParticlePhysicsModelNode = class(TNodeX3DNode)
+  TAbstractX3DParticlePhysicsModelNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -40,7 +40,7 @@
     public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
-  TNodeBoundedPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
+  TBoundedPhysicsModelNode = class(TAbstractX3DParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -50,7 +50,7 @@
     public property FdGeometry: TSFNode read FFdGeometry;
   end;
 
-  TNodeConeEmitter = class(TNodeX3DParticleEmitterNode)
+  TConeEmitterNode = class(TAbstractX3DParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -66,7 +66,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TNodeExplosionEmitter = class(TNodeX3DParticleEmitterNode)
+  TExplosionEmitterNode = class(TAbstractX3DParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -76,7 +76,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TNodeGravityPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
+  TGravityPhysicsModelNode = class(TAbstractX3DParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -86,7 +86,7 @@
     public property FdForce: TSFVec3f read FFdForce;
   end;
 
-  TNodeParticleSystem = class(TNodeX3DShapeNode)
+  TParticleSystemNode = class(TAbstractX3DShapeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -136,7 +136,7 @@
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
   end;
 
-  TNodePointEmitter = class(TNodeX3DParticleEmitterNode)
+  TPointEmitterNode = class(TAbstractX3DParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -149,7 +149,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TNodePolylineEmitter = class(TNodeX3DParticleEmitterNode)
+  TPolylineEmitterNode = class(TAbstractX3DParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -169,7 +169,7 @@
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
   end;
 
-  TNodeSurfaceEmitter = class(TNodeX3DParticleEmitterNode)
+  TSurfaceEmitterNode = class(TAbstractX3DParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -186,7 +186,7 @@
     public property FdSurface: TSFNode read FFdSurface;
   end;
 
-  TNodeVolumeEmitter = class(TNodeX3DParticleEmitterNode)
+  TVolumeEmitterNode = class(TAbstractX3DParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -209,7 +209,7 @@
     public property FdInternal: TSFBool read FFdInternal;
   end;
 
-  TNodeWindPhysicsModel = class(TNodeX3DParticlePhysicsModelNode)
+  TWindPhysicsModelNode = class(TAbstractX3DParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -231,7 +231,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DParticleEmitterNode.CreateNode;
+procedure TAbstractX3DParticleEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -256,7 +256,7 @@ begin
   DefaultContainerField := 'emitter';
 end;
 
-procedure TNodeX3DParticlePhysicsModelNode.CreateNode;
+procedure TAbstractX3DParticlePhysicsModelNode.CreateNode;
 begin
   inherited;
 
@@ -266,26 +266,26 @@ begin
   DefaultContainerField := 'physics';
 end;
 
-procedure TNodeBoundedPhysicsModel.CreateNode;
+procedure TBoundedPhysicsModelNode.CreateNode;
 begin
   inherited;
 
-  FFdGeometry := TSFNode.Create(Self, 'geometry', [TNodeX3DGeometryNode]);
+  FFdGeometry := TSFNode.Create(Self, 'geometry', [TAbstractX3DGeometryNode]);
   Fields.Add(FFdGeometry);
 end;
 
-class function TNodeBoundedPhysicsModel.ClassNodeTypeName: string;
+class function TBoundedPhysicsModelNode.ClassNodeTypeName: string;
 begin
   Result := 'BoundedPhysicsModel';
 end;
 
-class function TNodeBoundedPhysicsModel.URNMatching(const URN: string): boolean;
+class function TBoundedPhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeConeEmitter.CreateNode;
+procedure TConeEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -300,18 +300,18 @@ begin
   Fields.Add(FFdPosition);
 end;
 
-class function TNodeConeEmitter.ClassNodeTypeName: string;
+class function TConeEmitterNode.ClassNodeTypeName: string;
 begin
   Result := 'ConeEmitter';
 end;
 
-class function TNodeConeEmitter.URNMatching(const URN: string): boolean;
+class function TConeEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeExplosionEmitter.CreateNode;
+procedure TExplosionEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -319,18 +319,18 @@ begin
   Fields.Add(FFdPosition);
 end;
 
-class function TNodeExplosionEmitter.ClassNodeTypeName: string;
+class function TExplosionEmitterNode.ClassNodeTypeName: string;
 begin
   Result := 'ExplosionEmitter';
 end;
 
-class function TNodeExplosionEmitter.URNMatching(const URN: string): boolean;
+class function TExplosionEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeGravityPhysicsModel.CreateNode;
+procedure TGravityPhysicsModelNode.CreateNode;
 begin
   inherited;
 
@@ -339,18 +339,18 @@ begin
   { X3D specification comment: (Inf,Inf) }
 end;
 
-class function TNodeGravityPhysicsModel.ClassNodeTypeName: string;
+class function TGravityPhysicsModelNode.ClassNodeTypeName: string;
 begin
   Result := 'GravityPhysicsModel';
 end;
 
-class function TNodeGravityPhysicsModel.URNMatching(const URN: string): boolean;
+class function TGravityPhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeParticleSystem.CreateNode;
+procedure TParticleSystemNode.CreateNode;
 begin
   inherited;
 
@@ -379,7 +379,7 @@ begin
   FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FFdColorRamp := TSFNode.Create(Self, 'colorRamp', [TNodeX3DColorNode]);
+  FFdColorRamp := TSFNode.Create(Self, 'colorRamp', [TAbstractX3DColorNode]);
   FFdColorRamp.Exposed := false;
   Fields.Add(FFdColorRamp);
 
@@ -388,7 +388,7 @@ begin
   Fields.Add(FFdColorKey);
   { X3D specification comment: [0,Inf) }
 
-  FFdEmitter := TSFNode.Create(Self, 'emitter', [TNodeX3DParticleEmitterNode]);
+  FFdEmitter := TSFNode.Create(Self, 'emitter', [TAbstractX3DParticleEmitterNode]);
   FFdEmitter.Exposed := false;
   Fields.Add(FFdEmitter);
 
@@ -397,11 +397,11 @@ begin
   Fields.Add(FFdGeometryType);
   { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
 
-  FFdPhysics := TMFNode.Create(Self, 'physics', [TNodeX3DParticlePhysicsModelNode]);
+  FFdPhysics := TMFNode.Create(Self, 'physics', [TAbstractX3DParticlePhysicsModelNode]);
   FFdPhysics.Exposed := false;
   Fields.Add(FFdPhysics);
 
-  FFdTexCoordRamp := TSFNode.Create(Self, 'texCoordRamp', [TNodeTextureCoordinate]);
+  FFdTexCoordRamp := TSFNode.Create(Self, 'texCoordRamp', [TTextureCoordinateNode]);
   FFdTexCoordRamp.Exposed := false;
   Fields.Add(FFdTexCoordRamp);
 
@@ -411,18 +411,18 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TNodeParticleSystem.ClassNodeTypeName: string;
+class function TParticleSystemNode.ClassNodeTypeName: string;
 begin
   Result := 'ParticleSystem';
 end;
 
-class function TNodeParticleSystem.URNMatching(const URN: string): boolean;
+class function TParticleSystemNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePointEmitter.CreateNode;
+procedure TPointEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -433,25 +433,25 @@ begin
   Fields.Add(FFdPosition);
 end;
 
-class function TNodePointEmitter.ClassNodeTypeName: string;
+class function TPointEmitterNode.ClassNodeTypeName: string;
 begin
   Result := 'PointEmitter';
 end;
 
-class function TNodePointEmitter.URNMatching(const URN: string): boolean;
+class function TPointEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePolylineEmitter.CreateNode;
+procedure TPolylineEmitterNode.CreateNode;
 begin
   inherited;
 
   FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdCoord);
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
@@ -464,18 +464,18 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TNodePolylineEmitter.ClassNodeTypeName: string;
+class function TPolylineEmitterNode.ClassNodeTypeName: string;
 begin
   Result := 'PolylineEmitter';
 end;
 
-class function TNodePolylineEmitter.URNMatching(const URN: string): boolean;
+class function TPolylineEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeSurfaceEmitter.CreateNode;
+procedure TSurfaceEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -487,30 +487,30 @@ begin
   Fields.Add(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdSurface := TSFNode.Create(Self, 'surface', [TNodeX3DGeometryNode]);
+  FFdSurface := TSFNode.Create(Self, 'surface', [TAbstractX3DGeometryNode]);
   FFdSurface.Exposed := false;
   Fields.Add(FFdSurface);
 end;
 
-class function TNodeSurfaceEmitter.ClassNodeTypeName: string;
+class function TSurfaceEmitterNode.ClassNodeTypeName: string;
 begin
   Result := 'SurfaceEmitter';
 end;
 
-class function TNodeSurfaceEmitter.URNMatching(const URN: string): boolean;
+class function TSurfaceEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeVolumeEmitter.CreateNode;
+procedure TVolumeEmitterNode.CreateNode;
 begin
   inherited;
 
   FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdCoord);
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
@@ -527,18 +527,18 @@ begin
   Fields.Add(FFdInternal);
 end;
 
-class function TNodeVolumeEmitter.ClassNodeTypeName: string;
+class function TVolumeEmitterNode.ClassNodeTypeName: string;
 begin
   Result := 'VolumeEmitter';
 end;
 
-class function TNodeVolumeEmitter.URNMatching(const URN: string): boolean;
+class function TVolumeEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeWindPhysicsModel.CreateNode;
+procedure TWindPhysicsModelNode.CreateNode;
 begin
   inherited;
 
@@ -559,12 +559,12 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TNodeWindPhysicsModel.ClassNodeTypeName: string;
+class function TWindPhysicsModelNode.ClassNodeTypeName: string;
 begin
   Result := 'WindPhysicsModel';
 end;
 
-class function TNodeWindPhysicsModel.URNMatching(const URN: string): boolean;
+class function TWindPhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -573,16 +573,16 @@ end;
 procedure RegisterParticleSystemsNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeBoundedPhysicsModel,
-    TNodeConeEmitter,
-    TNodeExplosionEmitter,
-    TNodeGravityPhysicsModel,
-    TNodeParticleSystem,
-    TNodePointEmitter,
-    TNodePolylineEmitter,
-    TNodeSurfaceEmitter,
-    TNodeVolumeEmitter,
-    TNodeWindPhysicsModel
+    TBoundedPhysicsModelNode,
+    TConeEmitterNode,
+    TExplosionEmitterNode,
+    TGravityPhysicsModelNode,
+    TParticleSystemNode,
+    TPointEmitterNode,
+    TPolylineEmitterNode,
+    TSurfaceEmitterNode,
+    TVolumeEmitterNode,
+    TWindPhysicsModelNode
   ]);
 end;
 

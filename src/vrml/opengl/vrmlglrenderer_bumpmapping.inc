@@ -4,13 +4,13 @@
     defining heightMap, normalMap and other bump mapping properties. }
   TBumpMappingRenderer = class(TResourceRenderer)
   private
-    class function IsImageTexture(ANode: TVRMLNode): boolean;
+    class function IsImageTexture(ANode: TX3DNode): boolean;
     class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
-    { ANode must be TNodeAppearance }
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode); override;
+    { ANode must be TAppearanceNode }
+    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); override;
 
-    function Node: TNodeAppearance;
+    function Node: TAppearanceNode;
 
     { Prepare normalMap, heightMap (if exist) for rendering. }
     procedure Prepare(State: TVRMLGraphTraverseState);
@@ -29,21 +29,21 @@
   public
     { Looks for item with given Node.
       Returns -1 if not found. }
-    function NodeIndex(ANode: TNodeAppearance): Integer;
+    function NodeIndex(ANode: TAppearanceNode): Integer;
 
     { Looks for item with given Node.
       Returns @nil if not found. }
-    function Node(ANode: TNodeAppearance): TBumpMappingRenderer;
+    function Node(ANode: TAppearanceNode): TBumpMappingRenderer;
 
     property Items[Index: Integer]: TBumpMappingRenderer read GetItems; default;
 
-    { If this State contains appropriate TNodeAppearance,
+    { If this State contains appropriate TAppearanceNode,
       this will create and prepare TBumpMappingRenderer instance for it
       (if one doesn't exist already). }
     procedure Prepare(State: TVRMLGraphTraverseState;
       ARenderer: TVRMLGLRenderer);
 
-    { If this State contains appropriate TNodeAppearance,
+    { If this State contains appropriate TAppearanceNode,
       and TBumpMappingRenderer instance is prepared for this Node,
       we will call it's Enable method here.
 
@@ -58,23 +58,23 @@
 
 {$ifdef read_implementation}
 
-constructor TBumpMappingRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TVRMLNode);
+constructor TBumpMappingRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode);
 begin
-  Assert(ANode is TNodeAppearance, 'TBumpMappingRenderer.Create acceps as Node only TNodeAppearance');
+  Assert(ANode is TAppearanceNode, 'TBumpMappingRenderer.Create acceps as Node only TAppearanceNode');
   inherited;
 end;
 
-function TBumpMappingRenderer.Node: TNodeAppearance;
+function TBumpMappingRenderer.Node: TAppearanceNode;
 begin
-  Result := TNodeAppearance(inherited Node);
+  Result := TAppearanceNode(inherited Node);
 end;
 
-class function TBumpMappingRenderer.IsImageTexture(ANode: TVRMLNode): boolean;
+class function TBumpMappingRenderer.IsImageTexture(ANode: TX3DNode): boolean;
 begin
   Result :=
     (ANode <> nil) and
-    (ANode is TVRML2DTextureNode) and
-    (not (ANode is TNodeMovieTexture));
+    (ANode is TAbstractTexture2DNode) and
+    (not (ANode is TMovieTextureNode));
 end;
 
 class function TBumpMappingRenderer.IsGLImageTexture(GLNode: TGLTextureNode): boolean;
@@ -97,21 +97,21 @@ begin
     by anything in the scene). Our references would then be invalid. }
 
   if IsImageTexture(Node.FdNormalMap.Value) then
-    Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdNormalMap.Value), Renderer);
+    Renderer.GLTextureNodes.Prepare(State, TAbstractTexture2DNode(Node.FdNormalMap.Value), Renderer);
 
 { FdHeightMap not used now }
 { if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Prepare(State, TVRML2DTextureNode(Node.FdHeightMap.Value), Renderer); }
+    Renderer.GLTextureNodes.Prepare(State, TAbstractTexture2DNode(Node.FdHeightMap.Value), Renderer); }
 end;
 
 procedure TBumpMappingRenderer.Unprepare;
 begin
   if IsImageTexture(Node.FdNormalMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdNormalMap.Value));
+    Renderer.GLTextureNodes.Unprepare(TAbstractTexture2DNode(Node.FdNormalMap.Value));
 
 { FdHeightMap not used now }
 { if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TVRML2DTextureNode(Node.FdHeightMap.Value)); }
+    Renderer.GLTextureNodes.Unprepare(TAbstractTexture2DNode(Node.FdHeightMap.Value)); }
 end;
 
 function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
@@ -122,7 +122,7 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
     or it's corresponding GLNode (TGLTextureNode) is not initialized or
     invalid type, or OpenGL texture was not prepared for whatever reason
     --- returns 0. }
-  function GLTexture(Node: TVRMLNode; out HeightMapInAlpha: boolean): TGLuint;
+  function GLTexture(Node: TX3DNode; out HeightMapInAlpha: boolean): TGLuint;
   var
     GLNode: TGLTextureNode;
     ImageGLNode: TGLImageTextureNode absolute GLNode;
@@ -130,7 +130,7 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
     Result := 0;
     if IsImageTexture(Node) then
     begin
-      GLNode := Renderer.GLTextureNodes.TextureNode(TVRML2DTextureNode(Node));
+      GLNode := Renderer.GLTextureNodes.TextureNode(TAbstractTexture2DNode(Node));
       if IsGLImageTexture(GLNode) then
       begin
         Result := ImageGLNode.GLName;
@@ -166,12 +166,12 @@ end;
 
 { TBumpMappingRendererList -------------------------------------------------- }
 
-function TBumpMappingRendererList.NodeIndex(ANode: TNodeAppearance): Integer;
+function TBumpMappingRendererList.NodeIndex(ANode: TAppearanceNode): Integer;
 begin
   Result := inherited NodeIndex(ANode);
 end;
 
-function TBumpMappingRendererList.Node(ANode: TNodeAppearance): TBumpMappingRenderer;
+function TBumpMappingRendererList.Node(ANode: TAppearanceNode): TBumpMappingRenderer;
 begin
   Result := TBumpMappingRenderer(inherited Node(ANode));
 end;
@@ -184,7 +184,7 @@ end;
 procedure TBumpMappingRendererList.Prepare(State: TVRMLGraphTraverseState;
   ARenderer: TVRMLGLRenderer);
 var
-  ANode: TNodeAppearance;
+  ANode: TAppearanceNode;
   BumpMappingRenderer: TBumpMappingRenderer;
 begin
   if (State.ShapeNode <> nil) and
@@ -204,7 +204,7 @@ function TBumpMappingRendererList.Enable(State: TVRMLGraphTraverseState;
   var BoundTextureUnits: Cardinal;
   Shader: TVRMLShader): TBumpMappingRenderer;
 var
-  ANode: TNodeAppearance;
+  ANode: TAppearanceNode;
 begin
   Result := nil;
 

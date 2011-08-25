@@ -20,7 +20,7 @@
 {$ifdef read_interface}
   { MatrixTransform node for VRML >= 2.0. From Avalon extension,
     see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
-  TNodeMatrixTransform = class(TNodeX3DGroupingNode, INodeTransform)
+  TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -36,9 +36,9 @@
     private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
   end;
-  TNodeMatrixTransform_2 = TNodeMatrixTransform;
+  TMatrixTransformNode_2 = TMatrixTransformNode;
 
-  TNodeTeapot = class(TNodeX3DGeometryNode)
+  TTeapotNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -60,13 +60,13 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
     function TexCoordField: TSFNode; override;
   end;
 
-  TNodeLogger = class(TNodeX3DChildNode)
+  TLoggerNode = class(TAbstractX3DChildNode)
   private
     WriteStream: TStream;
     OwnsWriteStream: boolean;
@@ -93,7 +93,7 @@
     public property EventWrite: TVRMLEvent read FEventWrite;
   end;
 
-  TNodeConverter = class(TNodeX3DChildNode)
+  TConverterNode = class(TAbstractX3DChildNode)
   private
     procedure EventInReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -114,7 +114,7 @@
     public property EventOut: TVRMLEvent read FEventOut;
   end;
 
-  TNodeRenderedTexture = class(TNodeX3DTextureNode)
+  TRenderedTextureNode = class(TAbstractX3DTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
@@ -205,7 +205,7 @@
     public property EventRendering: TVRMLEvent read FEventRendering;
   end;
 
-  TNodePlane = class(TNodeX3DGeometryNode)
+  TPlaneNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -218,11 +218,11 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
   end;
 
-  TNodeToggler = class(TNodeX3DChildNode)
+  TTogglerNode = class(TAbstractX3DChildNode)
   private
     procedure EventStatusReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -275,7 +275,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeMatrixTransform.CreateNode;
+procedure TMatrixTransformNode.CreateNode;
 begin
   inherited;
 
@@ -286,23 +286,23 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeMatrixTransform.ClassNodeTypeName: string;
+class function TMatrixTransformNode.ClassNodeTypeName: string;
 begin
   Result := 'MatrixTransform';
 end;
 
-class function TNodeMatrixTransform.URNMatching(const URN: string): boolean;
+class function TMatrixTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-class function TNodeMatrixTransform.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMatrixTransformNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeMatrixTransform.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TMatrixTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -310,13 +310,13 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-procedure TNodeMatrixTransform.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TMatrixTransformNode.ApplyTransform(State: TVRMLGraphTraverseState);
 var
   InvertedMatrix: TMatrix4Single;
 begin
   inherited;
 
-  { Inherited TVRMLGroupingNode already saved State.Transform and such. }
+  { Inherited TAbstractGroupingNode already saved State.Transform and such. }
 
   State.Transform := MatrixMult(State.Transform, FdMatrix.Value);
 
@@ -331,19 +331,19 @@ begin
         'Cannot invert matrix:' + NL + MatrixToRawStr(FdMatrix.Value, '  '));
 
     { When determinant is zero, we treat inverted matrix
-      like identity (like in TNodeMatrixTransform_1.Transformation).
+      like identity (like in TMatrixTransformNode_1.Transformation).
       So no need to multiply State.InvertedTransform by anything. }
   end;
 
   State.TransformScale *= FdMatrix.TransformScale;
 end;
 
-function TNodeMatrixTransform.TransformationChange: TNodeTransformationChange;
+function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
 
-procedure TNodeTeapot.CreateNode;
+procedure TTeapotNode.CreateNode;
 begin
   inherited;
 
@@ -362,24 +362,24 @@ begin
    FdManifold.ChangesAlways := [chGeometry];
   Fields.Add(FFdManifold);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeTextureCoordinateGenerator, TNodeProjectedTextureCoordinate, TNodeMultiTextureCoordinate]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 end;
 
-class function TNodeTeapot.ClassNodeTypeName: string;
+class function TTeapotNode.ClassNodeTypeName: string;
 begin
   Result := 'Teapot';
 end;
 
-class function TNodeTeapot.URNMatching(const URN: string): boolean;
+class function TTeapotNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TNodeTeapot.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TTeapotNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 const
 { TeapotCoord: array [0..0] of TVector3Single = ((0, 0, 0));
   TeapotCoordIndex: array [0..0] of LongInt = (0);
@@ -388,12 +388,12 @@ const
 }
   {$I teapot/teapot.inc}
 var
-  CoordNode: TNodeCoordinate;
-  IFS: TNodeIndexedFaceSet absolute Result;
+  CoordNode: TCoordinateNode;
+  IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TNodeIndexedFaceSet.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
   try
-    CoordNode := TNodeCoordinate.Create('', WWWBasePath);
+    CoordNode := TCoordinateNode.Create('', WWWBasePath);
     IFS.FdCoord.Value := CoordNode;
     if FdManifold.Value then
       CoordNode.FdPoint.Items.AssignArray(TeapotManifoldCoord) else
@@ -422,24 +422,24 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TNodeTeapot.ProxyUsesOverTriangulate: boolean;
+function TTeapotNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeTeapot.DirectEnumerateActive(
+procedure TTeapotNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   inherited;
   FdtexCoord.EnumerateValid(Func);
 end;
 
-function TNodeTeapot.TexCoordField: TSFNode;
+function TTeapotNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-procedure TNodeLogger.CreateNode;
+procedure TLoggerNode.CreateNode;
 begin
   inherited;
 
@@ -458,7 +458,7 @@ begin
   FEventWrite.OnReceive.Add(@EventWriteReceive);
 end;
 
-destructor TNodeLogger.Destroy;
+destructor TLoggerNode.Destroy;
 begin
   if WriteStreamInitialized then
   begin
@@ -469,7 +469,7 @@ begin
   inherited;
 end;
 
-procedure TNodeLogger.EventWriteReceive(
+procedure TLoggerNode.EventWriteReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 
   procedure StdOutNotAvail;
@@ -499,8 +499,8 @@ procedure TNodeLogger.EventWriteReceive(
       if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
       begin
         S += Format(' Sending node: "%s" (%s).',
-          [(Value.ParentNode as TVRMLNode).NodeName,
-           (Value.ParentNode as TVRMLNode).NodeTypeName]);
+          [(Value.ParentNode as TX3DNode).NodeName,
+           (Value.ParentNode as TX3DNode).NodeTypeName]);
       end;
 
       WriteStr(WriteStream, S + ' Value: ');
@@ -573,18 +573,18 @@ begin
   end;
 end;
 
-class function TNodeLogger.ClassNodeTypeName: string;
+class function TLoggerNode.ClassNodeTypeName: string;
 begin
   Result := 'Logger';
 end;
 
-class function TNodeLogger.URNMatching(const URN: string): boolean;
+class function TLoggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeConverter.CreateNode;
+procedure TConverterNode.CreateNode;
 begin
   inherited;
 
@@ -599,7 +599,7 @@ begin
   Events.Add(FEventOut);
 end;
 
-procedure TNodeConverter.EventInReceive(
+procedure TConverterNode.EventInReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdEnabled.Value then
@@ -609,38 +609,38 @@ begin
     EventOut.Send(Value, Time);
 end;
 
-class function TNodeConverter.ClassNodeTypeName: string;
+class function TConverterNode.ClassNodeTypeName: string;
 begin
   Result := 'Converter';
 end;
 
-class function TNodeConverter.URNMatching(const URN: string): boolean;
+class function TConverterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeRenderedTexture.CreateNode;
+procedure TRenderedTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TVRMLViewpointNode]);
+  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TAbstractViewpointNode]);
    FdViewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdViewpoint);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TNodeX3DBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractX3DBackgroundNode]);
    FdBackground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdBackground);
 
-  FFdFog := TSFNode.Create(Self, 'fog', [TNodeFog]);
+  FFdFog := TSFNode.Create(Self, 'fog', [TFogNode]);
    FdFog.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdFog);
 
-  FFdEnvironment := TSFNode.Create(Self, 'environment', [TVRMLNode] { nothing sensible in core X3D for this });
+  FFdEnvironment := TSFNode.Create(Self, 'environment', [TX3DNode] { nothing sensible in core X3D for this });
    FdEnvironment.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdEnvironment);
 
-  FFdScene := TSFNode.Create(Self, 'scene', [TVRMLNode]);
+  FFdScene := TSFNode.Create(Self, 'scene', [TX3DNode]);
    FdScene.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdScene);
 
@@ -654,7 +654,7 @@ begin
    FdDepthMap.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdDepthMap);
 
-  FFdForeground := TSFNode.Create(Self, 'foreground', [TVRMLNode] { nothing sensible in core X3D for this });
+  FFdForeground := TSFNode.Create(Self, 'foreground', [TX3DNode] { nothing sensible in core X3D for this });
    FdForeground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdForeground);
 
@@ -662,7 +662,7 @@ begin
    FdZOffset.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdZOffset);
 
-  FFdTargets := TMFNode.Create(Self, 'targets', [TNodeX3DTextureNode]);
+  FFdTargets := TMFNode.Create(Self, 'targets', [TAbstractX3DTextureNode]);
    FdTargets.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTargets);
 
@@ -682,7 +682,7 @@ begin
    FdFrameBufferMode.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdFrameBufferMode);
 
-  FFdExcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TVRMLNode]);
+  FFdExcludeNodes := TMFNode.Create(Self, 'excludeNodes', [TX3DNode]);
    FdExcludeNodes.Exposed := false;
    FdExcludeNodes.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdExcludeNodes);
@@ -697,7 +697,7 @@ begin
   FEventImage_changed := TVRMLEvent.Create(Self, 'image_changed', TSFImage, false);
   Events.Add(FEventImage_changed);
 
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTextureProperties);
@@ -724,24 +724,24 @@ begin
   FGeneratedTextureHandler.FdUpdate := FdUpdate;
 end;
 
-destructor TNodeRenderedTexture.Destroy;
+destructor TRenderedTextureNode.Destroy;
 begin
   FreeAndNil(FGeneratedTextureHandler);
   inherited;
 end;
 
-class function TNodeRenderedTexture.ClassNodeTypeName: string;
+class function TRenderedTextureNode.ClassNodeTypeName: string;
 begin
   Result := 'RenderedTexture';
 end;
 
-class function TNodeRenderedTexture.URNMatching(const URN: string): boolean;
+class function TRenderedTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePlane.CreateNode;
+procedure TPlaneNode.CreateNode;
 begin
   inherited;
 
@@ -757,24 +757,24 @@ begin
   Fields.Add(FFdSolid);
 end;
 
-class function TNodePlane.ClassNodeTypeName: string;
+class function TPlaneNode.ClassNodeTypeName: string;
 begin
   Result := 'Plane';
 end;
 
-class function TNodePlane.URNMatching(const URN: string): boolean;
+class function TPlaneNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TNodePlane.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TPlaneNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
 end;
 
-function TNodePlane.ProxyUsesOverTriangulate: boolean;
+function TPlaneNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := false;
 end;
@@ -798,12 +798,12 @@ begin
   { This makes status and notStatus input events ignored,
     and output events not generated when enabled = FALSE. }
   if (ParentNode <> nil) and
-     (not (ParentNode as TNodeToggler).FdEnabled.Value) then Exit;
+     (not (ParentNode as TTogglerNode).FdEnabled.Value) then Exit;
 
   inherited;
 end;
 
-procedure TNodeToggler.CreateNode;
+procedure TTogglerNode.CreateNode;
 begin
   inherited;
 
@@ -840,18 +840,18 @@ begin
   Fields.Add(FFdEnabled);
 end;
 
-class function TNodeToggler.ClassNodeTypeName: string;
+class function TTogglerNode.ClassNodeTypeName: string;
 begin
   Result := 'Toggler';
 end;
 
-class function TNodeToggler.URNMatching(const URN: string): boolean;
+class function TTogglerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeToggler.EventStatusReceive(
+procedure TTogglerNode.EventStatusReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   { Do not send event to notStatus, if it already has correct value
@@ -868,7 +868,7 @@ begin
   end;
 end;
 
-procedure TNodeToggler.EventNotStatusReceive(
+procedure TTogglerNode.EventNotStatusReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   { Do not send event to status, if it already has correct value
@@ -885,21 +885,21 @@ begin
   end;
 end;
 
-procedure TNodeToggler.EventToggleReceive(
+procedure TTogglerNode.EventToggleReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(not FdStatus.Value, Time);
 end;
 
-procedure TNodeToggler.EventSetReceive(
+procedure TTogglerNode.EventSetReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(true, Time);
 end;
 
-procedure TNodeToggler.EventResetReceive(
+procedure TTogglerNode.EventResetReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if FdEnabled.Value then
@@ -909,13 +909,13 @@ end;
 procedure RegisterAvalonNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeMatrixTransform,
-    TNodeTeapot,
-    TNodeLogger,
-    TNodeConverter,
-    TNodeRenderedTexture,
-    TNodePlane,
-    TNodeToggler
+    TMatrixTransformNode,
+    TTeapotNode,
+    TLoggerNode,
+    TConverterNode,
+    TRenderedTextureNode,
+    TPlaneNode,
+    TTogglerNode
   ]);
 end;
 {$endif read_implementation}

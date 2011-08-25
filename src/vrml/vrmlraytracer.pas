@@ -131,7 +131,7 @@ type
     { Fog to render. Set FogNode <> @nil to render a fog,
       following VRML 2.0/X3D lighting equations.
       FogNode.TransformScale is used. }
-    FogNode: TNodeFog;
+    FogNode: TFogNode;
 
     { Lights shining on everything, like a headlight. }
     BaseLights: TLightInstancesList;
@@ -370,8 +370,8 @@ var
 
   var
     i: integer;
-    M1: TNodeMaterial_1;
-    M2: TNodeMaterial;
+    M1: TMaterialNode_1;
+    M2: TMaterialNode;
     Lights: TLightInstancesList;
   begin
     IntersectNode := Octree.RayCollision(Intersection,
@@ -540,7 +540,7 @@ end;
 
   function EmissiveColor(const Item: TVRMLTriangle): TVector3Single;
   var
-    M: TNodeMaterial;
+    M: TMaterialNode;
   begin
     if Item.State.ShapeNode <> nil then
     begin

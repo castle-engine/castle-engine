@@ -51,30 +51,30 @@
         "graph traverse state" is not that important.))
     )
 
-    For X3D, this descends from TNodeX3DNode, and TNodeX3DGeometryNode
-    descends from us. This way in X3D TNodeX3DGeometryNode descends
+    For X3D, this descends from TAbstractX3DNode, and TAbstractX3DGeometryNode
+    descends from us. This way in X3D TAbstractX3DGeometryNode descends
     from this, and also X3D hierarchy is preserved (X3DGeometryNode
     must descend from X3DNode). }
-  TVRMLGeometryNode = class(TNodeX3DNode)
+  TAbstractGeometryNode = class(TAbstractX3DNode)
   private
     HasBounds2DST: boolean;
     Bounds2DS, Bounds2DT: Integer;
     { Workaround http://bugs.freepascal.org/view.php?id=17402
       by these methods. }
     function CallProxyLocalBoundingBox(
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
     function CallProxyBoundingBox(
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
     function CallProxyTrianglesCount(
       OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
     function CallProxyVerticesCount(
       OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
   public
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
-      for all X3D nodes descending from TVRMLGeometryNode. }
+      for all X3D nodes descending from TAbstractGeometryNode. }
     procedure CreateNode; override;
 
     { Calculate bounding box of this geometry node.
@@ -88,7 +88,7 @@
 
       @italic(Notes for descendants implementors:)
 
-      The default implementations of these methods in TVRMLGeometryNode
+      The default implementations of these methods in TAbstractGeometryNode
       try to be smart and cover all common bases, so that you have to do
       as little work as possible to implement working descendant.
 
@@ -144,10 +144,10 @@
 
       @groupBegin }
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode;
+      ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TVRMLGraphTraverseState): TBox3D; virtual;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode;
+      ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TVRMLGraphTraverseState): TBox3D; virtual;
     { @groupEnd }
 
@@ -177,7 +177,7 @@
       Using Coord method, no other information is needed.
 
       For other nodes, the default implementation of
-      both VerticesCount and TrianglesCount in this TVRMLGeometryNode
+      both VerticesCount and TrianglesCount in this TAbstractGeometryNode
       class will use ProxyGeometry and ProxyState to do the work.
       You should override these methods if @link(Proxy) is not available
       (so caller will always pass ProxyGeometry = @nil)
@@ -185,10 +185,10 @@
 
       @groupBegin }
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode;
+      ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TVRMLGraphTraverseState): Cardinal; virtual;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode;
+      ProxyGeometry: TAbstractGeometryNode;
       ProxyState: TVRMLGraphTraverseState): Cardinal; virtual;
     { @groupEnd }
 
@@ -199,7 +199,7 @@
       coordinates but they are empty right now (so for example
       bounding box may be considered empty).
 
-      In base TVRMLGeometryNode class this always returns @false.
+      In base TAbstractGeometryNode class this always returns @false.
 
       Override this for descendants that have some kind of "coord" field,
       then this should return @true and set ACoord to coord.point field,
@@ -226,7 +226,7 @@
 
     { Node's list of coordinate indexes.
 
-      In base TVRMLGeometryNode class this always returns @nil.
+      In base TAbstractGeometryNode class this always returns @nil.
 
       Override this for descendants that have some kind of "coordIndex"
       or "index" field used to index @link(Coord) array. }
@@ -282,15 +282,15 @@
       cannot have texture coordinates.
 
       Returns @true and sets ATexCoord to a node defining texture coords.
-      ATexCoord may be set to TNodeX3DTextureCoordinateNode descendant or
-      to TNodeTextureCoordinate2 (latter one only for VRML <= 1.0).
+      ATexCoord may be set to TAbstractX3DTextureCoordinateNode descendant or
+      to TTextureCoordinate2Node (latter one only for VRML <= 1.0).
       ATexCoord can also be set to @nil in this case, which means that
       this node has a field for texCoord, but it's empty right now.
 
-      In base TVRMLGeometryNode class this looks at TexCoordField,
+      In base TAbstractGeometryNode class this looks at TexCoordField,
       eventually returns @false. }
     function TexCoord(State: TVRMLGraphTraverseState;
-      out ATexCoord: TVRMLNode): boolean; virtual;
+      out ATexCoord: TX3DNode): boolean; virtual;
 
     { Node's texCoord field, or @nil if not available.
       Various nodes may have different exact rules about what is
@@ -312,7 +312,7 @@
       simply automatically convert geometry nodes to their proxy versions
       if needed.
 
-      In the base TVRMLGeometryNode class, returns @nil indicating
+      In the base TAbstractGeometryNode class, returns @nil indicating
       that no conversion is known.
 
       When returns non-nil, result's NodeName must be equal
@@ -337,10 +337,10 @@
 
       You can modify State variable only when returning non-nil geometry. }
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; virtual;
+      const OverTriangulate: boolean): TAbstractGeometryNode; virtual;
 
     { Does the @link(Proxy) method look at the OverTriangulate parameter
-      at all. Default implementation in TVRMLGeometryNode returns safer @true.
+      at all. Default implementation in TAbstractGeometryNode returns safer @true.
       Descendants may override and return @false, to allow
       e.g. more caching in TVRMLShape. }
     function ProxyUsesOverTriangulate: boolean; virtual;
@@ -367,7 +367,7 @@
       for primitive objects". The 3D texture space will be mapped nicely
       to the shape bounding box.
 
-      Implementation in this class (TVRMLGeometryNode) returns always
+      Implementation in this class (TAbstractGeometryNode) returns always
       @false. Override it for primitives that have no texture coordinates
       to return @true. }
     function AutoGenerate3DTexCoords: boolean; virtual;
@@ -382,7 +382,7 @@
       out S, T: Integer);
 
     { Is this object lit, disregarding the material.
-      Default implementation in TVRMLGeometryNode says @true. }
+      Default implementation in TAbstractGeometryNode says @true. }
     function Lit(State: TVRMLGraphTraverseState): boolean; virtual;
 
     { Are faces convex. This knowledge is used when calculating normal vectors,
@@ -392,18 +392,18 @@
   end;
 
   { }
-  TNodeX3DGeometricPropertyNode = class(TNodeX3DNode)
+  TAbstractX3DGeometricPropertyNode = class(TAbstractX3DNode)
   end;
 
-  TNodeX3DGeometryNode = class(TVRMLGeometryNode)
+  TAbstractX3DGeometryNode = class(TAbstractGeometryNode)
   end;
 
-  TNodeX3DColorNode = class(TNodeX3DGeometricPropertyNode)
+  TAbstractX3DColorNode = class(TAbstractX3DGeometricPropertyNode)
   public
     procedure CreateNode; override;
   end;
 
-  TNodeX3DComposedGeometryNode = class(TNodeX3DGeometryNode)
+  TAbstractX3DComposedGeometryNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -465,7 +465,7 @@
     function NormalItems: TVector3SingleList;
   end;
 
-  TNodeX3DCoordinateNode = class(TNodeX3DGeometricPropertyNode)
+  TAbstractX3DCoordinateNode = class(TAbstractX3DGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
@@ -473,10 +473,10 @@
     function CoordCount: Cardinal; virtual; abstract;
   end;
 
-  TNodeX3DNormalNode = class(TNodeX3DGeometricPropertyNode)
+  TAbstractX3DNormalNode = class(TAbstractX3DGeometricPropertyNode)
   end;
 
-  TNodeClipPlane = class(TNodeX3DChildNode)
+  TClipPlaneNode = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -489,7 +489,7 @@
     public property FdPlane: TSFVec4f read FFdPlane;
   end;
 
-  TNodeColor = class(TNodeX3DColorNode)
+  TColorNode = class(TAbstractX3DColorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -499,7 +499,7 @@
     public property FdColor: TMFColor read FFdColor;
   end;
 
-  TNodeColorRGBA = class(TNodeX3DColorNode)
+  TColorRGBANode = class(TAbstractX3DColorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -509,7 +509,7 @@
     public property FdColor: TMFColorRGBA read FFdColor;
   end;
 
-  TNodeCoordinate = class(TNodeX3DCoordinateNode)
+  TCoordinateNode = class(TAbstractX3DCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -521,7 +521,7 @@
     function CoordCount: Cardinal; override;
   end;
 
-  TNodeIndexedLineSet = class(TNodeX3DGeometryNode)
+  TIndexedLineSetNode = class(TAbstractX3DGeometryNode)
   private
     procedure EventSet_ColorIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -565,7 +565,7 @@
       override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function Lit(State: TVRMLGraphTraverseState): boolean; override;
 
     function Coord(State: TVRMLGraphTraverseState;
@@ -577,9 +577,9 @@
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
   end;
-  TNodeIndexedLineSet_2 = TNodeIndexedLineSet;
+  TIndexedLineSetNode_2 = TIndexedLineSetNode;
 
-  TNodeIndexedTriangleFanSet = class(TNodeX3DComposedGeometryNode)
+  TIndexedTriangleFanSetNode = class(TAbstractX3DComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -602,10 +602,10 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeIndexedTriangleSet = class(TNodeX3DComposedGeometryNode)
+  TIndexedTriangleSetNode = class(TAbstractX3DComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -628,10 +628,10 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeIndexedTriangleStripSet = class(TNodeX3DComposedGeometryNode)
+  TIndexedTriangleStripSetNode = class(TAbstractX3DComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -654,10 +654,10 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeLineSet = class(TNodeX3DGeometryNode)
+  TLineSetNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -694,13 +694,13 @@
     function Attrib: TMFNode; override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function Lit(State: TVRMLGraphTraverseState): boolean; override;
   end;
 
   { Normal node. So simple, it's identical for all VRML and X3D versions
     (including ancient VRML 1.0). }
-  TNodeNormal = class(TNodeX3DNormalNode)
+  TNormalNode = class(TAbstractX3DNormalNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -711,7 +711,7 @@
     public property FdVector: TMFVec3f read FFdVector;
   end;
 
-  TNodePointSet = class(TNodeX3DGeometryNode)
+  TPointSetNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -736,7 +736,7 @@
       override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function Lit(State: TVRMLGraphTraverseState): boolean; override;
 
     function Coord(State: TVRMLGraphTraverseState;
@@ -747,9 +747,9 @@
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
   end;
-  TNodePointSet_2 = TNodePointSet;
+  TPointSetNode_2 = TPointSetNode;
 
-  TNodeTriangleFanSet = class(TNodeX3DComposedGeometryNode)
+  TTriangleFanSetNode = class(TAbstractX3DComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -767,10 +767,10 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeTriangleSet = class(TNodeX3DComposedGeometryNode)
+  TTriangleSetNode = class(TAbstractX3DComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -781,10 +781,10 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeTriangleStripSet = class(TNodeX3DComposedGeometryNode)
+  TTriangleStripSetNode = class(TAbstractX3DComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -802,40 +802,40 @@
       PolygonHandler: TIndexedPolygonHandler); override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TVRMLGeometryNode ---------------------------------------------------------- }
+{ TAbstractGeometryNode ---------------------------------------------------------- }
 
-procedure TVRMLGeometryNode.CreateNode;
+procedure TAbstractGeometryNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'geometry';
 end;
 
-function TVRMLGeometryNode.Coord(State: TVRMLGraphTraverseState;
+function TAbstractGeometryNode.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := false;
 end;
 
-function TVRMLGeometryNode.Coordinates(State: TVRMLGraphTraverseState): TMFVec3f;
+function TAbstractGeometryNode.Coordinates(State: TVRMLGraphTraverseState): TMFVec3f;
 begin
   if not Coord(State, Result) then
     raise ENotCoordinateBasedNode.CreateFmt('Node %s is not a coordinate-based node',
       [NodeTypeName]);
 end;
 
-function TVRMLGeometryNode.CoordIndex: TMFLong;
+function TAbstractGeometryNode.CoordIndex: TMFLong;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.CoordRangesCounts(
+function TAbstractGeometryNode.CoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -843,7 +843,7 @@ begin
   Result := false;
 end;
 
-procedure TVRMLGeometryNode.MakeCoordRanges(
+procedure TAbstractGeometryNode.MakeCoordRanges(
   State: TVRMLGraphTraverseState;
   CoordRangeHandler: TCoordRangeHandler);
 var
@@ -900,15 +900,15 @@ begin
   end;
 end;
 
-procedure TVRMLGeometryNode.CoordPolygons(
+procedure TAbstractGeometryNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
   { Nothing to do in this class. }
 end;
 
-function TVRMLGeometryNode.TexCoord(State: TVRMLGraphTraverseState;
-  out ATexCoord: TVRMLNode): boolean;
+function TAbstractGeometryNode.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TX3DNode): boolean;
 begin
   Result := TexCoordField <> nil;
   if Result and
@@ -918,53 +918,53 @@ begin
     ATexCoord := nil;
 end;
 
-function TVRMLGeometryNode.TexCoordField: TSFNode;
+function TAbstractGeometryNode.TexCoordField: TSFNode;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.Proxy(var State: TVRMLGraphTraverseState;
-  const OverTriangulate: boolean): TVRMLGeometryNode;
+function TAbstractGeometryNode.Proxy(var State: TVRMLGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.ProxyUsesOverTriangulate: boolean;
+function TAbstractGeometryNode.ProxyUsesOverTriangulate: boolean;
 begin
   Result := true;
 end;
 
-function TVRMLGeometryNode.Color: TMFVec3f;
+function TAbstractGeometryNode.Color: TMFVec3f;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.ColorRGBA: TMFColorRGBA;
+function TAbstractGeometryNode.ColorRGBA: TMFColorRGBA;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.FogCoord: TMFFloat;
+function TAbstractGeometryNode.FogCoord: TMFFloat;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.Attrib: TMFNode;
+function TAbstractGeometryNode.Attrib: TMFNode;
 begin
   Result := nil;
 end;
 
-function TVRMLGeometryNode.AutoGenerate3DTexCoords: boolean;
+function TAbstractGeometryNode.AutoGenerate3DTexCoords: boolean;
 begin
   Result := false;
 end;
 
-function TVRMLGeometryNode.TransformationChange: TNodeTransformationChange;
+function TAbstractGeometryNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcGeometry;
 end;
 
-procedure TVRMLGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
+procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
   out S, T: Integer);
 var
   C1, C2: Integer;
@@ -991,50 +991,50 @@ begin
   T := Bounds2DT;
 end;
 
-function TVRMLGeometryNode.Lit(State: TVRMLGraphTraverseState): boolean;
+function TAbstractGeometryNode.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   Result := true;
 end;
 
-function TVRMLGeometryNode.Convex: boolean;
+function TAbstractGeometryNode.Convex: boolean;
 begin
   Result := true;
 end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
 
-procedure TNodeX3DColorNode.CreateNode;
+procedure TAbstractX3DColorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'color';
 end;
 
-procedure TNodeX3DComposedGeometryNode.CreateNode;
+procedure TAbstractX3DComposedGeometryNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TNodeX3DNormalNode]);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractX3DNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   Fields.Add(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TNodeX3DTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 
@@ -1063,67 +1063,67 @@ begin
   Fields.Add(FFdRadianceTransfer);
 end;
 
-function TNodeX3DComposedGeometryNode.Coord(State: TVRMLGraphTraverseState;
+function TAbstractX3DComposedGeometryNode.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
   if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TNodeCoordinate) then
-    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+     (FdCoord.Value is TCoordinateNode) then
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
     ACoord := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.TexCoordField: TSFNode;
+function TAbstractX3DComposedGeometryNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TNodeX3DComposedGeometryNode.Color: TMFVec3f;
+function TAbstractX3DComposedGeometryNode.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColor) then
-    Result := TNodeColor(FdColor.Value).FdColor else
+     (FdColor.Value is TColorNode) then
+    Result := TColorNode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.ColorRGBA: TMFColorRGBA;
+function TAbstractX3DComposedGeometryNode.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColorRGBA) then
-    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+     (FdColor.Value is TColorRGBANode) then
+    Result := TColorRGBANode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.FogCoord: TMFFloat;
+function TAbstractX3DComposedGeometryNode.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
-     (FdFogCoord.Value is TNodeFogCoordinate) then
-    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+     (FdFogCoord.Value is TFogCoordinateNode) then
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.Attrib: TMFNode;
+function TAbstractX3DComposedGeometryNode.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-function TNodeX3DComposedGeometryNode.Normal: TMFVec3f;
+function TAbstractX3DComposedGeometryNode.Normal: TMFVec3f;
 begin
   if (FdNormal.Value <> nil) and
-     (FdNormal.Value is TNodeNormal) then
-    Result := TNodeNormal(FdNormal.Value).FdVector else
+     (FdNormal.Value is TNormalNode) then
+    Result := TNormalNode(FdNormal.Value).FdVector else
     Result := nil;
 end;
 
-function TNodeX3DComposedGeometryNode.NormalItems: TVector3SingleList;
+function TAbstractX3DComposedGeometryNode.NormalItems: TVector3SingleList;
 begin
   if (FdNormal.Value <> nil) and
-     (FdNormal.Value is TNodeNormal) then
-    Result := TNodeNormal(FdNormal.Value).FdVector.Items else
+     (FdNormal.Value is TNormalNode) then
+    Result := TNormalNode(FdNormal.Value).FdVector.Items else
     Result := nil;
 end;
 
-procedure TNodeX3DComposedGeometryNode.DirectEnumerateActive(
+procedure TAbstractX3DComposedGeometryNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdattrib.EnumerateValid(Func);
@@ -1134,14 +1134,14 @@ begin
   FdtexCoord.EnumerateValid(Func);
 end;
 
-procedure TNodeX3DCoordinateNode.CreateNode;
+procedure TAbstractX3DCoordinateNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'coord';
 end;
 
-procedure TNodeClipPlane.CreateNode;
+procedure TClipPlaneNode.CreateNode;
 begin
   inherited;
 
@@ -1160,18 +1160,18 @@ begin
     (inherited from X3DChilNode. }
 end;
 
-class function TNodeClipPlane.ClassNodeTypeName: string;
+class function TClipPlaneNode.ClassNodeTypeName: string;
 begin
   Result := 'ClipPlane';
 end;
 
-class function TNodeClipPlane.URNMatching(const URN: string): boolean;
+class function TClipPlaneNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeColor.CreateNode;
+procedure TColorNode.CreateNode;
 begin
   inherited;
 
@@ -1181,19 +1181,19 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TNodeColor.ClassNodeTypeName: string;
+class function TColorNode.ClassNodeTypeName: string;
 begin
   Result := 'Color';
 end;
 
-class function TNodeColor.URNMatching(const URN: string): boolean;
+class function TColorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeColorRGBA.CreateNode;
+procedure TColorRGBANode.CreateNode;
 begin
   inherited;
 
@@ -1203,18 +1203,18 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TNodeColorRGBA.ClassNodeTypeName: string;
+class function TColorRGBANode.ClassNodeTypeName: string;
 begin
   Result := 'ColorRGBA';
 end;
 
-class function TNodeColorRGBA.URNMatching(const URN: string): boolean;
+class function TColorRGBANode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCoordinate.CreateNode;
+procedure TCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -1224,24 +1224,24 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeCoordinate.ClassNodeTypeName: string;
+class function TCoordinateNode.ClassNodeTypeName: string;
 begin
   Result := 'Coordinate';
 end;
 
-class function TNodeCoordinate.URNMatching(const URN: string): boolean;
+class function TCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeCoordinate.CoordCount: Cardinal;
+function TCoordinateNode.CoordCount: Cardinal;
 begin
   Result := FdPoint.Items.Count;
 end;
 
-procedure TNodeIndexedLineSet.CreateNode;
+procedure TIndexedLineSetNode.CreateNode;
 begin
   inherited;
 
@@ -1253,19 +1253,19 @@ begin
   Events.Add(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 
@@ -1289,88 +1289,88 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TNodeIndexedLineSet.ClassNodeTypeName: string;
+class function TIndexedLineSetNode.ClassNodeTypeName: string;
 begin
   Result := 'IndexedLineSet';
 end;
 
-class function TNodeIndexedLineSet.URNMatching(const URN: string): boolean;
+class function TIndexedLineSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeIndexedLineSet.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TIndexedLineSetNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodeIndexedLineSet.Coord(State: TVRMLGraphTraverseState;
+function TIndexedLineSetNode.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
   if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TNodeCoordinate) then
-    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+     (FdCoord.Value is TCoordinateNode) then
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
     ACoord := nil;
 end;
 
-function TNodeIndexedLineSet.Color: TMFVec3f;
+function TIndexedLineSetNode.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColor) then
-    Result := TNodeColor(FdColor.Value).FdColor else
+     (FdColor.Value is TColorNode) then
+    Result := TColorNode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeIndexedLineSet.ColorRGBA: TMFColorRGBA;
+function TIndexedLineSetNode.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColorRGBA) then
-    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+     (FdColor.Value is TColorRGBANode) then
+    Result := TColorRGBANode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeIndexedLineSet.FogCoord: TMFFloat;
+function TIndexedLineSetNode.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
-     (FdFogCoord.Value is TNodeFogCoordinate) then
-    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+     (FdFogCoord.Value is TFogCoordinateNode) then
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
-function TNodeIndexedLineSet.Attrib: TMFNode;
+function TIndexedLineSetNode.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-function TNodeIndexedLineSet.CoordIndex: TMFLong;
+function TIndexedLineSetNode.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
 end;
 
-procedure TNodeIndexedLineSet.EventSet_ColorIndexReceive(
+procedure TIndexedLineSetNode.EventSet_ColorIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdColorIndex.Assign(Value);
   FdColorIndex.Changed;
 end;
 
-procedure TNodeIndexedLineSet.EventSet_CoordIndexReceive(
+procedure TIndexedLineSetNode.EventSet_CoordIndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdCoordIndex.Assign(Value);
   FdCoordIndex.Changed;
 end;
 
-function TNodeIndexedLineSet.Lit(State: TVRMLGraphTraverseState): boolean;
+function TIndexedLineSetNode.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   { VRML 2.0 specification says that IndexedLineSet should always be unlit }
   Result := false;
 end;
 
-procedure TNodeIndexedTriangleFanSet.CreateNode;
+procedure TIndexedTriangleFanSetNode.CreateNode;
 begin
   inherited;
 
@@ -1385,30 +1385,30 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TNodeIndexedTriangleFanSet.ClassNodeTypeName: string;
+class function TIndexedTriangleFanSetNode.ClassNodeTypeName: string;
 begin
   Result := 'IndexedTriangleFanSet';
 end;
 
-class function TNodeIndexedTriangleFanSet.URNMatching(const URN: string): boolean;
+class function TIndexedTriangleFanSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeIndexedTriangleFanSet.CoordIndex: TMFLong;
+function TIndexedTriangleFanSetNode.CoordIndex: TMFLong;
 begin
   Result := FdIndex;
 end;
 
-procedure TNodeIndexedTriangleFanSet.EventSet_IndexReceive(
+procedure TIndexedTriangleFanSetNode.EventSet_IndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
   FdIndex.Changed;
 end;
 
-procedure TNodeIndexedTriangleSet.CreateNode;
+procedure TIndexedTriangleSetNode.CreateNode;
 begin
   inherited;
 
@@ -1423,30 +1423,30 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TNodeIndexedTriangleSet.ClassNodeTypeName: string;
+class function TIndexedTriangleSetNode.ClassNodeTypeName: string;
 begin
   Result := 'IndexedTriangleSet';
 end;
 
-class function TNodeIndexedTriangleSet.URNMatching(const URN: string): boolean;
+class function TIndexedTriangleSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeIndexedTriangleSet.CoordIndex: TMFLong;
+function TIndexedTriangleSetNode.CoordIndex: TMFLong;
 begin
   Result := FdIndex;
 end;
 
-procedure TNodeIndexedTriangleSet.EventSet_IndexReceive(
+procedure TIndexedTriangleSetNode.EventSet_IndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
   FdIndex.Changed;
 end;
 
-procedure TNodeIndexedTriangleStripSet.CreateNode;
+procedure TIndexedTriangleStripSetNode.CreateNode;
 begin
   inherited;
 
@@ -1461,46 +1461,46 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TNodeIndexedTriangleStripSet.ClassNodeTypeName: string;
+class function TIndexedTriangleStripSetNode.ClassNodeTypeName: string;
 begin
   Result := 'IndexedTriangleStripSet';
 end;
 
-class function TNodeIndexedTriangleStripSet.URNMatching(const URN: string): boolean;
+class function TIndexedTriangleStripSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeIndexedTriangleStripSet.CoordIndex: TMFLong;
+function TIndexedTriangleStripSetNode.CoordIndex: TMFLong;
 begin
   Result := FdIndex;
 end;
 
-procedure TNodeIndexedTriangleStripSet.EventSet_IndexReceive(
+procedure TIndexedTriangleStripSetNode.EventSet_IndexReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   FdIndex.Assign(Value);
   FdIndex.Changed;
 end;
 
-procedure TNodeLineSet.CreateNode;
+procedure TLineSetNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 
@@ -1510,57 +1510,57 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-class function TNodeLineSet.ClassNodeTypeName: string;
+class function TLineSetNode.ClassNodeTypeName: string;
 begin
   Result := 'LineSet';
 end;
 
-class function TNodeLineSet.URNMatching(const URN: string): boolean;
+class function TLineSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeLineSet.Coord(State: TVRMLGraphTraverseState;
+function TLineSetNode.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
   if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TNodeCoordinate) then
-    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+     (FdCoord.Value is TCoordinateNode) then
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
     ACoord := nil;
 end;
 
-function TNodeLineSet.Color: TMFVec3f;
+function TLineSetNode.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColor) then
-    Result := TNodeColor(FdColor.Value).FdColor else
+     (FdColor.Value is TColorNode) then
+    Result := TColorNode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeLineSet.ColorRGBA: TMFColorRGBA;
+function TLineSetNode.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColorRGBA) then
-    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+     (FdColor.Value is TColorRGBANode) then
+    Result := TColorRGBANode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodeLineSet.FogCoord: TMFFloat;
+function TLineSetNode.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
-     (FdFogCoord.Value is TNodeFogCoordinate) then
-    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+     (FdFogCoord.Value is TFogCoordinateNode) then
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
-function TNodeLineSet.Attrib: TMFNode;
+function TLineSetNode.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-function TNodeLineSet.CoordRangesCounts(
+function TLineSetNode.CoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -1572,7 +1572,7 @@ begin
   Result := true;
 end;
 
-procedure TNodeLineSet.DirectEnumerateActive(
+procedure TLineSetNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdattrib.EnumerateValid(Func);
@@ -1581,13 +1581,13 @@ begin
   FdfogCoord.EnumerateValid(Func);
 end;
 
-function TNodeLineSet.Lit(State: TVRMLGraphTraverseState): boolean;
+function TLineSetNode.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   { X3D specification says that LineSet should always be unlit }
   Result := false;
 end;
 
-procedure TNodeNormal.CreateNode;
+procedure TNormalNode.CreateNode;
 begin
   inherited;
 
@@ -1599,96 +1599,96 @@ begin
   DefaultContainerField := 'normal';
 end;
 
-class function TNodeNormal.ClassNodeTypeName: string;
+class function TNormalNode.ClassNodeTypeName: string;
 begin
   Result := 'Normal';
 end;
 
-class function TNodeNormal.URNMatching(const URN: string): boolean;
+class function TNormalNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePointSet.CreateNode;
+procedure TPointSetNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TNodeX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TNodeX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TNodeFogCoordinate]);
+  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 end;
 
-class function TNodePointSet.ClassNodeTypeName: string;
+class function TPointSetNode.ClassNodeTypeName: string;
 begin
   Result := 'PointSet';
 end;
 
-class function TNodePointSet.URNMatching(const URN: string): boolean;
+class function TPointSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodePointSet.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TPointSetNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-function TNodePointSet.Coord(State: TVRMLGraphTraverseState;
+function TPointSetNode.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
   if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TNodeCoordinate) then
-    ACoord := TNodeCoordinate(FdCoord.Value).FdPoint else
+     (FdCoord.Value is TCoordinateNode) then
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
     ACoord := nil;
 end;
 
-function TNodePointSet.Color: TMFVec3f;
+function TPointSetNode.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColor) then
-    Result := TNodeColor(FdColor.Value).FdColor else
+     (FdColor.Value is TColorNode) then
+    Result := TColorNode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodePointSet.ColorRGBA: TMFColorRGBA;
+function TPointSetNode.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
-     (FdColor.Value is TNodeColorRGBA) then
-    Result := TNodeColorRGBA(FdColor.Value).FdColor else
+     (FdColor.Value is TColorRGBANode) then
+    Result := TColorRGBANode(FdColor.Value).FdColor else
     Result := nil;
 end;
 
-function TNodePointSet.FogCoord: TMFFloat;
+function TPointSetNode.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
-     (FdFogCoord.Value is TNodeFogCoordinate) then
-    Result := TNodeFogCoordinate(FdFogCoord.Value).FdDepth else
+     (FdFogCoord.Value is TFogCoordinateNode) then
+    Result := TFogCoordinateNode(FdFogCoord.Value).FdDepth else
     Result := nil;
 end;
 
-function TNodePointSet.Attrib: TMFNode;
+function TPointSetNode.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-procedure TNodePointSet.DirectEnumerateActive(
+procedure TPointSetNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdattrib.EnumerateValid(Func);
@@ -1697,12 +1697,12 @@ begin
   FdfogCoord.EnumerateValid(Func);
 end;
 
-function TNodePointSet.Lit(State: TVRMLGraphTraverseState): boolean;
+function TPointSetNode.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeTriangleFanSet.CreateNode;
+procedure TTriangleFanSetNode.CreateNode;
 begin
   inherited;
 
@@ -1712,18 +1712,18 @@ begin
   { X3D specification comment: [3,Inf) }
 end;
 
-class function TNodeTriangleFanSet.ClassNodeTypeName: string;
+class function TTriangleFanSetNode.ClassNodeTypeName: string;
 begin
   Result := 'TriangleFanSet';
 end;
 
-class function TNodeTriangleFanSet.URNMatching(const URN: string): boolean;
+class function TTriangleFanSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeTriangleFanSet.CoordRangesCounts(
+function TTriangleFanSetNode.CoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -1735,23 +1735,23 @@ begin
   Result := true;
 end;
 
-procedure TNodeTriangleSet.CreateNode;
+procedure TTriangleSetNode.CreateNode;
 begin
   inherited;
 end;
 
-class function TNodeTriangleSet.ClassNodeTypeName: string;
+class function TTriangleSetNode.ClassNodeTypeName: string;
 begin
   Result := 'TriangleSet';
 end;
 
-class function TNodeTriangleSet.URNMatching(const URN: string): boolean;
+class function TTriangleSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTriangleStripSet.CreateNode;
+procedure TTriangleStripSetNode.CreateNode;
 begin
   inherited;
 
@@ -1761,18 +1761,18 @@ begin
   { X3D specification comment: [3,Inf) }
 end;
 
-class function TNodeTriangleStripSet.ClassNodeTypeName: string;
+class function TTriangleStripSetNode.ClassNodeTypeName: string;
 begin
   Result := 'TriangleStripSet';
 end;
 
-class function TNodeTriangleStripSet.URNMatching(const URN: string): boolean;
+class function TTriangleStripSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeTriangleStripSet.CoordRangesCounts(
+function TTriangleStripSetNode.CoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -1787,20 +1787,20 @@ end;
 procedure RegisterRenderingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeClipPlane,
-    TNodeColor,
-    TNodeColorRGBA,
-    TNodeCoordinate,
-    TNodeIndexedLineSet,
-    TNodeIndexedTriangleFanSet,
-    TNodeIndexedTriangleSet,
-    TNodeIndexedTriangleStripSet,
-    TNodeLineSet,
-    TNodeNormal,
-    TNodePointSet,
-    TNodeTriangleFanSet,
-    TNodeTriangleSet,
-    TNodeTriangleStripSet
+    TClipPlaneNode,
+    TColorNode,
+    TColorRGBANode,
+    TCoordinateNode,
+    TIndexedLineSetNode,
+    TIndexedTriangleFanSetNode,
+    TIndexedTriangleSetNode,
+    TIndexedTriangleStripSetNode,
+    TLineSetNode,
+    TNormalNode,
+    TPointSetNode,
+    TTriangleFanSetNode,
+    TTriangleSetNode,
+    TTriangleStripSetNode
   ]);
 end;
 

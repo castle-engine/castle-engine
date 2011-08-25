@@ -33,7 +33,7 @@ begin
   end;
 end;
 
-procedure TNodeIndexedTriangleFanSet.CoordPolygons(
+procedure TIndexedTriangleFanSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -46,7 +46,7 @@ begin
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TNodeTriangleFanSet.CoordPolygons(
+procedure TTriangleFanSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -85,7 +85,7 @@ begin
   end;
 end;
 
-procedure TNodeIndexedTriangleStripSet.CoordPolygons(
+procedure TIndexedTriangleStripSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -98,7 +98,7 @@ begin
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TNodeTriangleStripSet.CoordPolygons(
+procedure TTriangleStripSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -111,7 +111,7 @@ begin
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TNodeIndexedTriangleMesh_1.CoordPolygons(
+procedure TIndexedTriangleMeshNode_1.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -140,7 +140,7 @@ begin
   end;
 end;
 
-procedure TNodeIndexedTriangleSet.CoordPolygons(
+procedure TIndexedTriangleSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
@@ -148,7 +148,7 @@ begin
     TriangleSetPolygonizer(CoordIndex.Count, PolygonHandler);
 end;
 
-procedure TNodeTriangleSet.CoordPolygons(
+procedure TTriangleSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -175,7 +175,7 @@ begin
   end;
 end;
 
-procedure TNodeIndexedQuadSet.CoordPolygons(
+procedure TIndexedQuadSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
@@ -183,7 +183,7 @@ begin
     QuadSetPolygonizer(CoordIndex.Count, PolygonHandler);
 end;
 
-procedure TNodeQuadSet.CoordPolygons(
+procedure TQuadSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -215,7 +215,7 @@ begin
   Polygon(Indexes);
 end;
 
-procedure TNodeIndexedFaceSet_1.CoordPolygons(
+procedure TIndexedFaceSetNode_1.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -228,7 +228,7 @@ begin
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TNodeIndexedFaceSet.CoordPolygons(
+procedure TIndexedFaceSetNode.CoordPolygons(
   State: TVRMLGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var

@@ -40,10 +40,10 @@ const
 
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
 function LoadVRMLClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string): TVRMLRootNode; overload;
+  const WWWBasePath: string): TX3DRootNode; overload;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string): TVRMLRootNode; overload;
+  const WWWBasePath: string): TX3DRootNode; overload;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -54,14 +54,14 @@ function LoadVRMLClassicFromString(const VRMLContents: string;
   If AllowStdIn then FileName = '-' is understood as "standard input"
   (StdInStream). Base path for resolving URLs in this case is GetCurrentDir. }
 function LoadVRMLClassic(const FileName: string;
-  AllowStdIn: boolean): TVRMLRootNode; overload;
+  AllowStdIn: boolean): TX3DRootNode; overload;
 
 { Deprecated name for LoadVRMLClassic. @deprecated }
 function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean): TVRMLRootNode;
+  AllowStdIn: boolean): TX3DRootNode;
 
 { @deprecated Deprecated save routine, use SaveVRML instead. }
-procedure SaveVRMLClassic(Node: TVRMLNode;
+procedure SaveVRMLClassic(Node: TX3DNode;
   const FileName, PrecedingComment: string); overload;
 
 {$endif read_interface}
@@ -121,11 +121,11 @@ end;
   @raises(EVRMLParserError On various parsing errors.)
 *)
 function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
-  NilIfUnresolvedUSE: boolean): TVRMLNode;
+  NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const nodename: string);
   var
-    NodeClass: TVRMLNodeClass;
+    NodeClass: TX3DNodeClass;
     NodeTypeName: string;
     Proto: TVRMLPrototypeBase;
   begin
@@ -155,7 +155,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
         Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
-        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
+        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
     end else
     begin
       NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Lexer.Version);
@@ -164,7 +164,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
         Result := NodeClass.Create(nodename, Names.WWWBasePath);
       end else
       begin
-        Result := TVRMLUnknownNode.CreateUnknown(nodename, Names.WWWBasePath, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(nodename, Names.WWWBasePath, NodeTypeName);
       end;
     end;
 
@@ -172,13 +172,13 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
 
     Result.Parse(Lexer, Names);
 
-    if Result is TVRMLPrototypeNode then
+    if Result is TX3DPrototypeNode then
     try
-      Result := TVRMLPrototypeNode(Result).Instantiate;
+      Result := TX3DPrototypeNode(Result).Instantiate;
     except
       on E: EVRMLPrototypeInstantiateError do
         { Just write E.Message and silence the exception.
-          Result will simply remain as TVRMLPrototypeNode instance in this case. }
+          Result will simply remain as TX3DPrototypeNode instance in this case. }
         OnWarning(wtMajor, 'VRML/X3D', E.Message);
     end;
 
@@ -193,7 +193,7 @@ function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
       by simply doing Result.Bind *after* the node is parsed.
       This is trivially simple and works 100% to avoid cycles.
       Moreover, this is needed in the light of possible
-        "Result := TVRMLPrototypeNode(Result).Instantiate"
+        "Result := TX3DPrototypeNode(Result).Instantiate"
       which means that before parsing, our Result is possibly not something
       that we wanted to insert to NodeNames.
 
@@ -293,14 +293,14 @@ end;
 function ParseVRMLStatements(
   Lexer: TVRMLLexer; Names: TVRMLNames;
   const EndToken: TVRMLToken;
-  ParseX3DHeader: boolean): TVRMLRootNode;
+  ParseX3DHeader: boolean): TX3DRootNode;
 var
   PositionInParent: Integer;
 
   { Create root group node, appropriate for current VRML version in Lexer. }
-  function CreateRootNode: TVRMLRootNode;
+  function CreateRootNode: TX3DRootNode;
   begin
-    Result := TVRMLRootNode.Create('', Names.WWWBasePath);
+    Result := TX3DRootNode.Create('', Names.WWWBasePath);
     Result.HasForceVersion := true;
     Result.ForceVersion := Lexer.Version;
   end;
@@ -429,7 +429,7 @@ var
 
     procedure ParseNodeStatement;
     var
-      NewNode: TVRMLNode;
+      NewNode: TX3DNode;
     begin
       NewNode := ParseNode(Lexer, Names, false);
       NewNode.PositionInParent := PositionInParent;
@@ -467,7 +467,7 @@ begin
       to be stored in a root group
     - Finally, ForceVersion mechanism is available for RootGroup to force
       writing of specific VRML version.
-    - And for X3D, TVRMLRootNode has to be enhanced
+    - And for X3D, TX3DRootNode has to be enhanced
       to keep other top-level X3D data: profile, components, meta statements.
 
     So now, we simply always create root node by ParseVRMLStatements. }
@@ -514,7 +514,7 @@ begin
 end;
 
 function LoadVRMLClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string): TVRMLRootNode;
+  const WWWBasePath: string): TX3DRootNode;
 var
   Lexer: TVRMLLexer;
   Names: TVRMLNames;
@@ -530,10 +530,10 @@ begin
 end;
 
 function LoadVRMLClassic(const FileName: string;
-  AllowStdIn: boolean): TVRMLRootNode;
+  AllowStdIn: boolean): TX3DRootNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
-    const WWWBasePath: string): TVRMLRootNode;
+    const WWWBasePath: string): TX3DRootNode;
   var
     Stream: TPeekCharStream;
   begin
@@ -600,7 +600,7 @@ begin
 end;
 
 function LoadVRMLClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string): TVRMLRootNode; overload;
+  const WWWBasePath: string): TX3DRootNode; overload;
 var
   Stream: TPeekCharStream;
 begin
@@ -612,14 +612,14 @@ begin
 end;
 
 function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean): TVRMLRootNode;
+  AllowStdIn: boolean): TX3DRootNode;
 begin
   Result := LoadVRMLClassic(FileName, AllowStdIn);
 end;
 
 { saving --------------------------------------------------------------------- }
 
-procedure SaveVRMLClassic(Node: TVRMLNode;
+procedure SaveVRMLClassic(Node: TX3DNode;
   const FileName, PrecedingComment: string);
 begin
   SaveVRML(Node, FileName, PrecedingComment, '', xeClassic, false);

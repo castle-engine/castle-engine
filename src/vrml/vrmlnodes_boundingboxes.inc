@@ -14,18 +14,18 @@
 }
 
 { VRMLNodes_BoundingBoxes, czyli implementacja metod BoundingBox
-  dla node'ow wywodzacych sie od TVRMLGeometryNode. }
+  dla node'ow wywodzacych sie od TAbstractGeometryNode. }
 
 { ----------------------------------------------------------------------------
   Bounding box utilities for nodes with explicit Coordinates (indexed and not).
 
   Note that we have two separate implementations for local and non-local
-  bounding box, that is we do not depend on TVRMLGeometryNode methods
+  bounding box, that is we do not depend on TAbstractGeometryNode methods
   to automatically calculate one using the other:
 
   - Calculating LocalBoundingBox explicitly is faster than
     calculating non-local bbox with dummy identity matrix
-    (like TVRMLGeometryNode.LocalBoundingBox does).
+    (like TAbstractGeometryNode.LocalBoundingBox does).
 
   - Calculating BoundingBox explicitly results in better (more tighter)
     bbox than using LocalBoundingBox and transforming it.
@@ -36,7 +36,7 @@ type
   private
     Coord: TMFVec3f;
     CoordIndex: TMFLong;
-    Geometry: TVRMLGeometryNode;
+    Geometry: TAbstractGeometryNode;
     WasSomeValidIndex: boolean;
     function GetVertexFromIndex(index: integer): TVector3Single;
     function GetIndex(indexNum: integer): integer;
@@ -66,7 +66,7 @@ begin
   Result := CoordIndex.Items.L[IndexNum];
 end;
 
-function IndexedCoords_BoundingBox(Geometry: TVRMLGeometryNode;
+function IndexedCoords_BoundingBox(Geometry: TAbstractGeometryNode;
   State: TVRMLGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
 var
@@ -88,7 +88,7 @@ begin
   finally Calculator.Free end;
 end;
 
-function IndexedCoords_LocalBoundingBox(Geometry: TVRMLGeometryNode;
+function IndexedCoords_LocalBoundingBox(Geometry: TAbstractGeometryNode;
   State: TVRMLGraphTraverseState;
   Coord: TMFVec3f; CoordIndex: TMFLong): TBox3D;
 var
@@ -123,16 +123,16 @@ begin
     Coord.Items.Count, 0);
 end;
 
-{ TVRMLGeometryNode --------------------------------------------------------- }
+{ TAbstractGeometryNode --------------------------------------------------------- }
 
-function TVRMLGeometryNode.CallProxyBoundingBox(
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TAbstractGeometryNode.CallProxyBoundingBox(
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := ProxyGeometry.BoundingBox(ProxyState, nil, nil);
 end;
 
-function TVRMLGeometryNode.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TAbstractGeometryNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   C: TMFVec3f;
 begin
@@ -153,14 +153,14 @@ begin
   end;
 end;
 
-function TVRMLGeometryNode.CallProxyLocalBoundingBox(
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TAbstractGeometryNode.CallProxyLocalBoundingBox(
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := ProxyGeometry.LocalBoundingBox(ProxyState, nil, nil);
 end;
 
-function TVRMLGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TAbstractGeometryNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   NewState: TVRMLGraphTraverseState;
   C: TMFVec3f;
@@ -228,8 +228,8 @@ begin
   Result.Data[1][2] := -Depth;
 end;
 
-function TNodeAsciiText_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TAsciiTextNode_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Text_LocalBoundingBox(State,
     State.LastNodes.FontStyle.FdSize.Value,
@@ -240,8 +240,8 @@ begin
     0);
 end;
 
-function TNodeText.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TTextNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -249,10 +249,10 @@ var
 begin
   if FontStyle = nil then
   begin
-    Size := TNodeFontStyle.DefaultSize;
-    Spacing := TNodeFontStyle.DefaultSpacing;
-    Justify := TNodeFontStyle.DefaultJustify;
-    TTFont := TNodeFontStyle.DefaultTTF_Font;
+    Size := TFontStyleNode.DefaultSize;
+    Spacing := TFontStyleNode.DefaultSpacing;
+    Justify := TFontStyleNode.DefaultJustify;
+    TTFont := TFontStyleNode.DefaultTTF_Font;
   end else
   begin
     Size := FontStyle.FdSize.Value;
@@ -265,8 +265,8 @@ begin
     Size, Spacing, Justify, TTFont, FdString.Items, 0);
 end;
 
-function TNodeText3D.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TText3DNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
   Justify: TVRMLFontJustify;
@@ -274,10 +274,10 @@ var
 begin
   if FontStyle = nil then
   begin
-    Size := TNodeFontStyle.DefaultSize;
-    Spacing := TNodeFontStyle.DefaultSpacing;
-    Justify := TNodeFontStyle.DefaultJustify;
-    TTFont := TNodeFontStyle.DefaultTTF_Font;
+    Size := TFontStyleNode.DefaultSize;
+    Spacing := TFontStyleNode.DefaultSpacing;
+    Justify := TFontStyleNode.DefaultJustify;
+    TTFont := TFontStyleNode.DefaultTTF_Font;
   end else
   begin
     Size := FontStyle.FdSize.Value;
@@ -316,32 +316,32 @@ begin
    Result := CalculateBoundingBox(@points[firstPoint], High(points)+1-firstPoint, 0, State.Transform);
 end;
 
-function TNodeCone_1.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TConeNode_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], false);
 end;
 
-function TNodeCone.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TConeNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
     FdSide.Value, FdBottom.Value, false);
 end;
 
-function TNodeCone_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TConeNode_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
     FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM], true);
 end;
 
-function TNodeCone.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TConeNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cone_BoundingBox(State,
     FdBottomRadius.Value, FdHeight.Value,
@@ -356,29 +356,29 @@ begin
   result.Data[1] := Vector3Single( SizeX/2,  SizeY/2,  SizeZ/2);
 end;
 
-function TNodeCube_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TCubeNode_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Box_LocalBoundingBox(
     FdWidth.Value, FdHeight.Value, FdDepth.Value, State);
 end;
 
-function TNodeBox.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TBoxNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Box_LocalBoundingBox(
     FdSize.Value[0], FdSize.Value[1], FdSize.Value[2], State);
 end;
 
-function TNodeCube_1.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TCubeNode_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
   Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
-function TNodeBox.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TBoxNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
   Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
@@ -405,8 +405,8 @@ begin
   result := EmptyBox3D;
 end;
 
-function TNodeCylinder_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TCylinderNode_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
     FdHeight.Value, FdRadius.Value,
@@ -415,23 +415,23 @@ begin
     FdParts.Flags[CYLINDER_PARTS_TOP]);
 end;
 
-function TNodeCylinder.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TCylinderNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Cylinder_LocalBoundingBox(State,
     FdHeight.Value, FdRadius.Value,
     FdBottom.Value, FdSide.Value, FdTop.Value);
 end;
 
-function TNodeCylinder_1.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TCylinderNode_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
   Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
-function TNodeCylinder.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TCylinderNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
   Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
@@ -444,36 +444,36 @@ begin
     Vector3Single(+Radius, +Radius, +Radius) );
 end;
 
-function TNodeSphere_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TSphereNode_1.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
-function TNodeSphere.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TSphereNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   Result := Sphere_LocalBoundingBox(FdRadius.Value);
 end;
 
-function TNodeSphere_1.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TSphereNode_1.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
   Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
-function TNodeSphere.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TSphereNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 begin
   { Override this, to avoid inherited using slower Proxy method. }
   Result := LocalBoundingBox(State, nil, nil).Transform(State.Transform);
 end;
 
-{ TNodeElevationGrid --------------------------------------------------------- }
+{ TElevationGridNode --------------------------------------------------------- }
 
-function TNodeElevationGrid.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TElevationGridNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   Y: Single;
   I: Integer;
@@ -499,10 +499,10 @@ begin
   end;
 end;
 
-{ TNodeExtrusion --------------------------------------------------------- }
+{ TExtrusionNode --------------------------------------------------------- }
 
-function TNodeExtrusion.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TExtrusionNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   I, J: Integer;
   E: TVRMLExtrusion;
@@ -528,8 +528,8 @@ begin
   finally FreeAndNil(E) end;
 end;
 
-function TNodeExtrusion.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TExtrusionNode.BoundingBox(State: TVRMLGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
 var
   I, J: Integer;
   E: TVRMLExtrusion;

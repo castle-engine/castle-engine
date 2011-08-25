@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DTexture3DNode = class(TNodeX3DTextureNode)
+  TAbstractX3DTexture3DNode = class(TAbstractX3DTextureNode)
   private
     UsedCache: TTexturesImagesVideosCache;
 
@@ -70,7 +70,7 @@
     property TextureDDS: TDDSImage read FTextureDDS;
   end;
 
-  TNodeComposedTexture3D = class(TNodeX3DTexture3DNode)
+  TComposedTexture3DNode = class(TAbstractX3DTexture3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -82,7 +82,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TNodeImageTexture3D = class(TNodeX3DTexture3DNode, INodeX3DUrlObject)
+  TImageTexture3DNode = class(TAbstractX3DTexture3DNode, IAbstractX3DUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -94,7 +94,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TNodePixelTexture3D = class(TNodeX3DTexture3DNode)
+  TPixelTexture3DNode = class(TAbstractX3DTexture3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -106,7 +106,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TNodeTextureCoordinate3D = class(TNodeX3DTextureCoordinateNode)
+  TTextureCoordinate3DNode = class(TAbstractX3DTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -116,7 +116,7 @@
     public property FdPoint: TMFVec3f read FFdPoint;
   end;
 
-  TNodeTextureCoordinate4D = class(TNodeX3DTextureCoordinateNode)
+  TTextureCoordinate4DNode = class(TAbstractX3DTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -126,7 +126,7 @@
     public property FdPoint: TMFVec4f read FFdPoint;
   end;
 
-  TNodeTextureTransformMatrix3D = class(TNodeX3DTextureTransformNode)
+  TTextureTransformMatrix3DNode = class(TAbstractX3DTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -138,7 +138,7 @@
     function TransformMatrix: TMatrix4Single; override;
   end;
 
-  TNodeTextureTransform3D = class(TNodeX3DTextureTransformNode)
+  TTextureTransform3DNode = class(TAbstractX3DTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -162,7 +162,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DTexture3DNode.CreateNode;
+procedure TAbstractX3DTexture3DNode.CreateNode;
 begin
   inherited;
 
@@ -181,19 +181,19 @@ begin
    FdRepeatR.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdRepeatR);
 
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TNodeTextureProperties]);
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTextureProperties);
 end;
 
-destructor TNodeX3DTexture3DNode.Destroy;
+destructor TAbstractX3DTexture3DNode.Destroy;
 begin
   TextureLoaded := false;
   inherited;
 end;
 
-procedure TNodeX3DTexture3DNode.SetTextureLoaded(const Value: boolean);
+procedure TAbstractX3DTexture3DNode.SetTextureLoaded(const Value: boolean);
 begin
   if Value <> TextureLoaded then
   begin
@@ -213,45 +213,45 @@ begin
   end;
 end;
 
-procedure TNodeComposedTexture3D.CreateNode;
+procedure TComposedTexture3DNode.CreateNode;
 begin
   inherited;
 
   { TODO: just like ComposedCubeMapTexture, we will not correctly
     detect changes inside nodes in "texture". }
 
-  FFdTexture := TMFNode.Create(Self, 'texture', [TNodeX3DTexture2DNode]);
+  FFdTexture := TMFNode.Create(Self, 'texture', [TAbstractX3DTexture2DNode]);
    FdTexture.ChangesAlways := [chTextureImage];
   Fields.Add(FFdTexture);
 end;
 
-class function TNodeComposedTexture3D.ClassNodeTypeName: string;
+class function TComposedTexture3DNode.ClassNodeTypeName: string;
 begin
   Result := 'ComposedTexture3D';
 end;
 
-class function TNodeComposedTexture3D.URNMatching(const URN: string): boolean;
+class function TComposedTexture3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeComposedTexture3D.LoadTextureData;
+procedure TComposedTexture3DNode.LoadTextureData;
 
   { Load one slice (child texture). Returns @nil and makes OnWarning if failed. }
   function LoadOneSlice(const Index: Integer): TImage;
   var
-    Tex: TVRML2DTextureNode;
+    Tex: TAbstractTexture2DNode;
   begin
     if not ((FdTexture[Index] <> nil) and
-            (FdTexture[Index] is TVRML2DTextureNode)) then
+            (FdTexture[Index] is TAbstractTexture2DNode)) then
     begin
       OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
 
-    Tex := TVRML2DTextureNode(FdTexture[Index]);
+    Tex := TAbstractTexture2DNode(FdTexture[Index]);
     if not Tex.IsTextureImage then
     begin
       Exit(nil);{ Tex.IsTextureImage already did proper OnWarning }
@@ -319,7 +319,7 @@ begin
   end;
 end;
 
-procedure TNodeImageTexture3D.CreateNode;
+procedure TImageTexture3DNode.CreateNode;
 begin
   inherited;
 
@@ -329,18 +329,18 @@ begin
   { X3D specification comment: [URI] }
 end;
 
-class function TNodeImageTexture3D.ClassNodeTypeName: string;
+class function TImageTexture3DNode.ClassNodeTypeName: string;
 begin
   Result := 'ImageTexture3D';
 end;
 
-class function TNodeImageTexture3D.URNMatching(const URN: string): boolean;
+class function TImageTexture3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeImageTexture3D.LoadTextureData;
+procedure TImageTexture3DNode.LoadTextureData;
 var
   I: Integer;
   FullUrl: string;
@@ -380,7 +380,7 @@ begin
   end;
 end;
 
-procedure TNodePixelTexture3D.CreateNode;
+procedure TPixelTexture3DNode.CreateNode;
 begin
   inherited;
 
@@ -389,18 +389,18 @@ begin
   Fields.Add(FFdImage);
 end;
 
-class function TNodePixelTexture3D.ClassNodeTypeName: string;
+class function TPixelTexture3DNode.ClassNodeTypeName: string;
 begin
   Result := 'PixelTexture3D';
 end;
 
-class function TNodePixelTexture3D.URNMatching(const URN: string): boolean;
+class function TPixelTexture3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePixelTexture3D.LoadTextureData;
+procedure TPixelTexture3DNode.LoadTextureData;
 var
   Components, Width, Height, Depth: Cardinal;
   G: PByte;
@@ -473,7 +473,7 @@ begin
   end;
 end;
 
-procedure TNodeTextureCoordinate3D.CreateNode;
+procedure TTextureCoordinate3DNode.CreateNode;
 begin
   inherited;
 
@@ -483,18 +483,18 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeTextureCoordinate3D.ClassNodeTypeName: string;
+class function TTextureCoordinate3DNode.ClassNodeTypeName: string;
 begin
   Result := 'TextureCoordinate3D';
 end;
 
-class function TNodeTextureCoordinate3D.URNMatching(const URN: string): boolean;
+class function TTextureCoordinate3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTextureCoordinate4D.CreateNode;
+procedure TTextureCoordinate4DNode.CreateNode;
 begin
   inherited;
 
@@ -504,18 +504,18 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeTextureCoordinate4D.ClassNodeTypeName: string;
+class function TTextureCoordinate4DNode.ClassNodeTypeName: string;
 begin
   Result := 'TextureCoordinate4D';
 end;
 
-class function TNodeTextureCoordinate4D.URNMatching(const URN: string): boolean;
+class function TTextureCoordinate4DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTextureTransformMatrix3D.CreateNode;
+procedure TTextureTransformMatrix3DNode.CreateNode;
 begin
   inherited;
 
@@ -525,23 +525,23 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeTextureTransformMatrix3D.ClassNodeTypeName: string;
+class function TTextureTransformMatrix3DNode.ClassNodeTypeName: string;
 begin
   Result := 'TextureTransformMatrix3D';
 end;
 
-class function TNodeTextureTransformMatrix3D.URNMatching(const URN: string): boolean;
+class function TTextureTransformMatrix3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeTextureTransformMatrix3D.TransformMatrix: TMatrix4Single;
+function TTextureTransformMatrix3DNode.TransformMatrix: TMatrix4Single;
 begin
   Result := FdMatrix.Value;
 end;
 
-procedure TNodeTextureTransform3D.CreateNode;
+procedure TTextureTransform3DNode.CreateNode;
 begin
   inherited;
 
@@ -566,18 +566,18 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TNodeTextureTransform3D.ClassNodeTypeName: string;
+class function TTextureTransform3DNode.ClassNodeTypeName: string;
 begin
   Result := 'TextureTransform3D';
 end;
 
-class function TNodeTextureTransform3D.URNMatching(const URN: string): boolean;
+class function TTextureTransform3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TNodeTextureTransform3D.TransformMatrix: TMatrix4Single;
+function TTextureTransform3DNode.TransformMatrix: TMatrix4Single;
 begin
   Result := TranslationMatrix(VectorAdd(FdTranslation.Value, FdCenter.Value));
   Result := MatrixMult(Result,
@@ -591,13 +591,13 @@ end;
 procedure RegisterTexturing3DNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeComposedTexture3D,
-    TNodeImageTexture3D,
-    TNodePixelTexture3D,
-    TNodeTextureCoordinate3D,
-    TNodeTextureCoordinate4D,
-    TNodeTextureTransformMatrix3D,
-    TNodeTextureTransform3D
+    TComposedTexture3DNode,
+    TImageTexture3DNode,
+    TPixelTexture3DNode,
+    TTextureCoordinate3DNode,
+    TTextureCoordinate4DNode,
+    TTextureTransformMatrix3DNode,
+    TTextureTransform3DNode
   ]);
 end;
 

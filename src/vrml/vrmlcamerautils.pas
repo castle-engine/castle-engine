@@ -52,10 +52,10 @@ function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
   const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 
-{ Constructs TVRMLNode defining camera with given properties. }
+{ Constructs TX3DNode defining camera with given properties. }
 function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
-  const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
+  const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 
 { Make camera node (like MakeVRMLCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
@@ -63,7 +63,7 @@ function CameraNodeForWholeScene(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
-  const WantedDirectionPositive, WantedUpPositive: boolean): TVRMLNode;
+  const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
 
 implementation
 
@@ -198,14 +198,14 @@ end;
 
 function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
-  const Position, Direction, Up, GravityUp: TVector3Single): TVRMLNode;
+  const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
-  ViewpointNode: TVRMLViewpointNode;
-  Separator: TNodeSeparator;
-  Transform_1: TNodeTransform_1;
-  Transform_2: TNodeTransform;
+  ViewpointNode: TAbstractViewpointNode;
+  Separator: TSeparatorNode;
+  Transform_1: TTransformNode_1;
+  Transform_2: TTransformNode;
   Rotation, Orientation: TVector4Single;
 begin
   RotationVectorForGravity := VectorProduct(DefaultVRMLGravityUp, GravityUp);
@@ -214,8 +214,8 @@ begin
     { Then GravityUp is parallel to DefaultVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
-      1: ViewpointNode := TNodePerspectiveCamera.Create('', WWWBasePath);
-      2: ViewpointNode := TNodeViewpoint.Create('', WWWBasePath);
+      1: ViewpointNode := TPerspectiveCameraNode.Create('', WWWBasePath);
+      2: ViewpointNode := TViewpointNode.Create('', WWWBasePath);
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
     ViewpointNode.Position.Value := Position;
@@ -242,15 +242,15 @@ begin
       RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity));
     case Version of
       1: begin
-           Transform_1 := TNodeTransform_1.Create('', WWWBasePath);
+           Transform_1 := TTransformNode_1.Create('', WWWBasePath);
            Transform_1.FdTranslation.Value := Position;
            Transform_1.FdRotation.Value := Rotation;
 
-           ViewpointNode := TNodePerspectiveCamera.Create('', WWWBasePath);
+           ViewpointNode := TPerspectiveCameraNode.Create('', WWWBasePath);
            ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
-           Separator := TNodeSeparator.Create('', WWWBasePath);
+           Separator := TSeparatorNode.Create('', WWWBasePath);
            Separator.VRML1ChildAdd(Transform_1);
            Separator.VRML1ChildAdd(ViewpointNode);
 
@@ -258,11 +258,11 @@ begin
          end;
 
       2: begin
-           Transform_2 := TNodeTransform.Create('', WWWBasePath);
+           Transform_2 := TTransformNode.Create('', WWWBasePath);
            Transform_2.FdTranslation.Value := Position;
            Transform_2.FdRotation.Value := Rotation;
 
-           ViewpointNode := TNodeViewpoint.Create('', WWWBasePath);
+           ViewpointNode := TViewpointNode.Create('', WWWBasePath);
            ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
@@ -279,7 +279,7 @@ function CameraNodeForWholeScene(const Version: TVRMLCameraVersion;
   const WWWBasePath: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
-  const WantedDirectionPositive, WantedUpPositive: boolean): TVRMLNode;
+  const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
 var
   Position, Direction, Up, GravityUp: TVector3Single;
 begin

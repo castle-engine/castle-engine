@@ -17,7 +17,7 @@
   { }
   TScriptType = (stCompiled, stKambiScript);
 
-  TNodeX3DScriptNode = class(TNodeX3DChildNode, INodeX3DURLObject)
+  TAbstractX3DScriptNode = class(TAbstractX3DChildNode, IAbstractX3DURLObject)
   private
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);
@@ -49,7 +49,7 @@
       Reason: there's no comfortable moment to do this: 1. in constructor
       some routes and such are not initialized yet, and we should initialize
       script after whole VRML graph is loaded. 2. tricks with BeforeTraverse,
-      like used for TNodeInline, are not Ok, since scripts must work
+      like used for TInlineNode, are not Ok, since scripts must work
       even when they are in the inactive part of VRML graph.
 
       If you want scripts to work, you have to initialize them yourself.
@@ -66,7 +66,7 @@
     procedure ResetLastEventTimes;
   end;
 
-  TNodeScript = class(TNodeX3DScriptNode)
+  TScriptNode = class(TAbstractX3DScriptNode)
   private
     procedure IDeclEventReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -87,7 +87,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TNodeX3DScriptNode.CreateNode;
+procedure TAbstractX3DScriptNode.CreateNode;
 begin
   inherited;
 
@@ -108,7 +108,7 @@ begin
   CDataField := FdUrl;
 end;
 
-destructor TNodeX3DScriptNode.Destroy;
+destructor TAbstractX3DScriptNode.Destroy;
 begin
   { shutdown by directly setting FInitialized to false,
     we don't want to call ExecuteScript at this point (as VRML graph
@@ -123,7 +123,7 @@ begin
   inherited;
 end;
 
-procedure TNodeX3DScriptNode.EventUrlReceive(
+procedure TAbstractX3DScriptNode.EventUrlReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   { Simply shutdown + initialize from new URL }
@@ -131,7 +131,7 @@ begin
   Initialized := true;
 end;
 
-procedure TNodeX3DScriptNode.ExecuteScript(const FunctionName: string;
+procedure TAbstractX3DScriptNode.ExecuteScript(const FunctionName: string;
   ReceivedValue: TVRMLField);
 var
   I: Integer;
@@ -202,7 +202,7 @@ begin
   end;
 end;
 
-procedure TNodeX3DScriptNode.SetInitialized(const Value: boolean);
+procedure TAbstractX3DScriptNode.SetInitialized(const Value: boolean);
 
   { @raises(EKamScriptSyntaxError in case of program parsing error
       (we just let through EKamScriptSyntaxError from ParseProgram).) }
@@ -351,13 +351,13 @@ begin
   end;
 end;
 
-procedure TNodeX3DScriptNode.ResetLastEventTimes;
+procedure TAbstractX3DScriptNode.ResetLastEventTimes;
 begin
   if Initialized and (FInitializedScriptType = stKambiScript) then
     KambiScriptVariables.ResetLastEventTimes;
 end;
 
-procedure TNodeScript.CreateNode;
+procedure TScriptNode.CreateNode;
 begin
   inherited;
 
@@ -372,19 +372,19 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeScript.ClassNodeTypeName: string;
+class function TScriptNode.ClassNodeTypeName: string;
 begin
   Result := 'Script';
 end;
 
-class function TNodeScript.URNMatching(const URN: string): boolean;
+class function TScriptNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScript.PostAddInterfaceDeclaration(
+procedure TScriptNode.PostAddInterfaceDeclaration(
   IDecl: TVRMLInterfaceDeclaration);
 begin
   inherited;
@@ -395,7 +395,7 @@ begin
     IDecl.Field.OnReceive.Add(@IDeclEventReceive);
 end;
 
-procedure TNodeScript.IDeclEventReceive(
+procedure TScriptNode.IDeclEventReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   FunctionName: string;
@@ -409,7 +409,7 @@ end;
 procedure RegisterScriptingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeScript
+    TScriptNode
   ]);
 end;
 

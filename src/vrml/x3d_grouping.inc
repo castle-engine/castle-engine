@@ -20,9 +20,9 @@
     in VRML2ActiceLights.
 
     To keep X3D hierarchy, this descends from X3DChildNode.
-    This way TNodeX3DGroupingNode and TNodeStaticGroup inherit
+    This way TAbstractX3DGroupingNode and TStaticGroupNode inherit
     also from X3DChildNode. }
-  TVRMLGroupingNode = class(TNodeX3DChildNode)
+  TAbstractGroupingNode = class(TAbstractX3DChildNode)
   private
     BeforeTraversePushedState: boolean;
   protected
@@ -40,20 +40,20 @@
 
       This should be done here, not in overriden BeforeTraverse.
       Reason: for storing ClipPlanes transformations, we need to know
-      transformed matrix inside TVRMLGroupingNode.BeforeTraverse implementation.
-      And we also do StateStack.Push inside TVRMLGroupingNode.BeforeTraverse
+      transformed matrix inside TAbstractGroupingNode.BeforeTraverse implementation.
+      And we also do StateStack.Push inside TAbstractGroupingNode.BeforeTraverse
       implementation... So ApplyTransform must happen in the middle of
-      TVRMLGroupingNode.BeforeTraverse call. }
+      TAbstractGroupingNode.BeforeTraverse call. }
     procedure ApplyTransform(State: TVRMLGraphTraverseState); virtual;
   end;
 
-  INodeX3DBoundedObject = interface(IVRMLNode)
+  IAbstractX3DBoundedObject = interface(IX3DNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
     property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
   end;
 
-  TNodeX3DGroupingNode = class(TVRMLGroupingNode, INodeX3DBoundedObject)
+  TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject)
   private
     procedure EventAddChildrenReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -86,7 +86,7 @@
     public property FdRender: TSFBool read FFdRender;
   end;
 
-  TNodeGroup = class(TNodeX3DGroupingNode)
+  TGroupNode = class(TAbstractX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -99,7 +99,7 @@
 
     class function URNMatching(const URN: string): boolean; override;
   end;
-  TNodeGroup_2 = TNodeGroup;
+  TGroupNode_2 = TGroupNode;
 
   TStringLongIntMap = specialize TFPGMap<string, LongInt>;
   TStringStringMap = class(specialize TFPGMap<string, string>)
@@ -120,8 +120,8 @@
 
     It is declared as a descendant of VRML >= 2.0 Group node,
     but it's used with all VRML versions (including VRML 1.0 and Inventor).
-    This makes things simple (previously we had two separate TVRMLRootNode_1
-    and TVRMLRootNode, which was complicating stuff).
+    This makes things simple (previously we had two separate TX3DRootNode_1
+    and TX3DRootNode, which was complicating stuff).
     Children (for all VRML/X3D versions) are inside FdChildren field.
 
     This way VRML/X3D files may have many nodes at the top level
@@ -132,7 +132,7 @@
     This also allows us to record in one place some information that
     is returned by the parser. Like parsed VRML/X3D version, X3D profile,
     some namespace information (exported names and such). }
-  TVRMLRootNode = class(TNodeGroup)
+  TX3DRootNode = class(TGroupNode)
   private
     FHasForceVersion: boolean;
     FSaveAsRootNode: boolean;
@@ -140,9 +140,9 @@
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
     FPrototypeNames: TVRMLPrototypeNames;
-    FExportedNames: TVRMLNodeNames;
+    FExportedNames: TX3DNodeNames;
   protected
-    function DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode; override;
+    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
 
     { Root node never saves/restores the traversing state.
       This means that all state changes "leak out" from a root node.
@@ -161,7 +161,7 @@
 
       If this node isn't a root node, you should set this to @false
       (or saving this node may generate dumb contents).
-      Although, generally, you should avoid using the TVRMLRootNode
+      Although, generally, you should avoid using the TX3DRootNode
       class at all for non-root nodes. }
     property SaveAsRootNode: boolean read FSaveAsRootNode write FSaveAsRootNode
       default true;
@@ -172,7 +172,7 @@
       such that only the contents are written, without surrounding
       braces (for classic encoding) or XML element (for xml encoding).
       This way, when saving, we hide the fact that everything was wrapped
-      in an artificial TVRMLRootNode. }
+      in an artificial TX3DRootNode. }
     procedure SaveToStream(Writer: TX3DWriter); override;
 
     { Set HasForceVersion to @true to force saving this model with
@@ -210,10 +210,10 @@
 
     { Node names exported from the file by EXPORT keyword.
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
-    property ExportedNames: TVRMLNodeNames read FExportedNames;
+    property ExportedNames: TX3DNodeNames read FExportedNames;
   end;
 
-  TNodeStaticGroup = class(TVRMLGroupingNode, INodeX3DBoundedObject)
+  TStaticGroupNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -241,7 +241,7 @@
     programmer simply works with FdChildren field, and when reading/writing
     VRML file we take care to actually use either "children" or "choice" name,
     depending on used VRML version. }
-  TNodeSwitch = class(TNodeX3DGroupingNode)
+  TSwitchNode = class(TAbstractX3DGroupingNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -259,7 +259,7 @@
 
     function TransformationChange: TNodeTransformationChange; override;
   end;
-  TNodeSwitch_2 = TNodeSwitch;
+  TSwitchNode_2 = TSwitchNode;
 
   { Interface for all VRML 2.0 / X3D transformation nodes.
     These nodes transform all their children (the ones enumerated
@@ -268,11 +268,11 @@
     The transformation change may be signalled by TVRMLField.Changes
     including chTransform flag. For some special nodes, like Billboard,
     the transformation changes are automatically managed. }
-  INodeTransform = interface(IVRMLNode)
+  ITransformNode = interface(IX3DNode)
   ['{6991EC7D-0821-4393-B5B3-08DD967CFE05}']
   end;
 
-  TNodeTransform = class(TNodeX3DGroupingNode, INodeTransform)
+  TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -300,7 +300,7 @@
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
-  TNodeTransform_2 = TNodeTransform;
+  TTransformNode_2 = TTransformNode;
 
 {$endif read_interface}
 
@@ -309,28 +309,28 @@ type
   TGeneralGroupingEnumerator = class
     State: TVRMLGraphTraverseState;
     WasPointingDeviceSensor: boolean;
-    procedure EnumerateChildrenFunction(Node, Child: TVRMLNode);
+    procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
   end;
 
   procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
-    Node, Child: TVRMLNode);
+    Node, Child: TX3DNode);
   var
     CP: PClipPlane;
   begin
-    if (Child is TNodeX3DLightNode) and
-       (TNodeX3DLightNode(Child).Scope = lsLocal) then
-      { We do CreateLightInstance with State from TVRMLGroupingNode node,
-        while precisely we should rather use State from TNodeX3DLightNode
-        traverse. But, fortunately, State of TNodeX3DLightNode doesn't
-        change inside (TNodeX3DLightNode doesn't do anything inside
+    if (Child is TAbstractX3DLightNode) and
+       (TAbstractX3DLightNode(Child).Scope = lsLocal) then
+      { We do CreateLightInstance with State from TAbstractGroupingNode node,
+        while precisely we should rather use State from TAbstractX3DLightNode
+        traverse. But, fortunately, State of TAbstractX3DLightNode doesn't
+        change inside (TAbstractX3DLightNode doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
       { TODO: we ignore here light radius, which may be relevant
-        for TVRMLPositionalLightNode with HasRadius = true.
+        for TAbstractPositionalLightNode with HasRadius = true.
         E.g. PointLight with global = false should be limited by *both*
         scope (in graph hierarchy) and radius, as far as I understand. }
       State.AddLight(
-        TNodeX3DLightNode(Child).CreateLightInstance(State)) else
-    if Child is TNodeX3DPointingDeviceSensorNode then
+        TAbstractX3DLightNode(Child).CreateLightInstance(State)) else
+    if Child is TAbstractX3DPointingDeviceSensorNode then
     begin
       { Testing for WasPointingDeviceSensor guarantees that multiple
         pointing devices within the same grouping node will all work. }
@@ -344,28 +344,28 @@ type
 
       State.PointingDeviceSensors.Add(Child);
     end else
-    if Child is TNodeClipPlane then
+    if Child is TClipPlaneNode then
     begin
       CP := State.AddClipPlane;
-      CP^.Node := TNodeClipPlane(Child);
+      CP^.Node := TClipPlaneNode(Child);
       CP^.Transform := State.Transform;
     end else
-    if Child is TNodeLocalFog then
-      State.LocalFog := TNodeLocalFog(Child) else
-    if Child is TNodeEffect then
+    if Child is TLocalFogNode then
+      State.LocalFog := TLocalFogNode(Child) else
+    if Child is TEffectNode then
     begin
       if State.Effects = nil then
-        State.Effects := TVRMLNodeList.Create(false);
+        State.Effects := TX3DNodeList.Create(false);
       State.Effects.Add(Child);
     end;
   end;
 
-function TVRMLGroupingNode.SeparateGroup: boolean;
+function TAbstractGroupingNode.SeparateGroup: boolean;
 begin
   Result := true;
 end;
 
-procedure TVRMLGroupingNode.BeforeTraverse(
+procedure TAbstractGroupingNode.BeforeTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 var
   Enumerator: TGeneralGroupingEnumerator;
@@ -440,7 +440,7 @@ begin
     is what VRML specificaion expects? (if not, we should just set
     Enumerator.WasPointingDeviceSensor := true when inside Anchor,
     so the solution will be trivial). }
-  if Self is TNodeAnchor then
+  if Self is TAnchorNode then
   begin
     StateStack.Top.PointingDeviceSensors.Clear;
     StateStack.Top.PointingDeviceSensors.Transform := StateStack.Top.Transform;
@@ -456,11 +456,11 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TVRMLGroupingNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TAbstractGroupingNode.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
 end;
 
-procedure TVRMLGroupingNode.AfterTraverse(
+procedure TAbstractGroupingNode.AfterTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 begin
   if BeforeTraversePushedState then
@@ -469,7 +469,7 @@ begin
   inherited;
 end;
 
-procedure TNodeX3DGroupingNode.CreateNode;
+procedure TAbstractX3DGroupingNode.CreateNode;
 begin
   inherited;
 
@@ -481,7 +481,7 @@ begin
   Events.Add(FEventRemoveChildren);
   EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
-  FFdChildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+  FFdChildren := TMFNode.Create(Self, 'children', IAbstractX3DChildNode);
    FdChildren.ChangesAlways := [chEverything];
   Fields.Add(FFdChildren);
 
@@ -501,7 +501,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TNodeX3DGroupingNode.EventAddChildrenReceive(
+procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   MF: TMFNode;
@@ -518,7 +518,7 @@ begin
     so correct X3D file cannot produce cycles. Cycles would be very bad,
     since
     - they will make memory leaks (reference count will be > 0 for grouping node)
-    - and, worse, TVRMLNode.Traverse will hang infinitely
+    - and, worse, TX3DNode.Traverse will hang infinitely
 
     TODO: So invalid VRML file can produce mem leaks and hang the engine...
 
@@ -527,7 +527,7 @@ begin
     about them. }
 end;
 
-procedure TNodeX3DGroupingNode.EventRemoveChildrenReceive(
+procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   MF: TMFNode;
@@ -548,31 +548,31 @@ begin
     FdChildren.Items.Remove(MF[I]);
 end;
 
-procedure TNodeGroup.CreateNode;
+procedure TGroupNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-class function TNodeGroup.ClassNodeTypeName: string;
+class function TGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'Group';
 end;
 
-class function TNodeGroup.URNMatching(const URN: string): boolean;
+class function TGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeGroup.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TGroupNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -601,7 +601,7 @@ begin
     KeyData[Name] := Content;
 end;
 
-procedure TVRMLRootNode.CreateNode;
+procedure TX3DRootNode.CreateNode;
 begin
   inherited;
   FComponents := TStringLongIntMap.Create;
@@ -609,7 +609,7 @@ begin
   FSaveAsRootNode := true;
 end;
 
-destructor TVRMLRootNode.Destroy;
+destructor TX3DRootNode.Destroy;
 begin
   FreeAndNil(FComponents);
   FreeAndNil(FMeta);
@@ -618,7 +618,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRootNode.SaveToStream(Writer: TX3DWriter);
+procedure TX3DRootNode.SaveToStream(Writer: TX3DWriter);
 var
   I: integer;
   FileItems: TVRMLFileItemList;
@@ -657,13 +657,13 @@ begin
     inherited;
 end;
 
-function TVRMLRootNode.DeepCopyCore(CopyState: TVRMLNodeDeepCopyState): TVRMLNode;
+function TX3DRootNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 var
-  Res: TVRMLRootNode;
+  Res: TX3DRootNode;
 begin
   Result := inherited;
 
-  Res := Result as TVRMLRootNode;
+  Res := Result as TX3DRootNode;
 
   Res.HasForceVersion := HasForceVersion;
   Res.ForceVersion := ForceVersion;
@@ -673,7 +673,7 @@ begin
   Res.Meta.Assign(Meta);
 end;
 
-procedure TVRMLRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
+procedure TX3DRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
   const AMinor: Integer = 2;
   const AProfile: string = 'Interchange');
 begin
@@ -687,16 +687,16 @@ begin
   end;
 end;
 
-function TVRMLRootNode.SeparateGroup: boolean;
+function TX3DRootNode.SeparateGroup: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeStaticGroup.CreateNode;
+procedure TStaticGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdChildren := TMFNode.Create(Self, 'children', INodeX3DChildNode);
+  FFdChildren := TMFNode.Create(Self, 'children', IAbstractX3DChildNode);
    FdChildren.Exposed := false;
    FdChildren.ChangesAlways := [chEverything];
   Fields.Add(FFdChildren);
@@ -714,18 +714,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeStaticGroup.ClassNodeTypeName: string;
+class function TStaticGroupNode.ClassNodeTypeName: string;
 begin
   Result := 'StaticGroup';
 end;
 
-class function TNodeStaticGroup.URNMatching(const URN: string): boolean;
+class function TStaticGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeStaticGroup.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -733,7 +733,7 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-procedure TNodeSwitch.CreateNode;
+procedure TSwitchNode.CreateNode;
 begin
   inherited;
 
@@ -747,35 +747,35 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSwitch.ClassNodeTypeName: string;
+class function TSwitchNode.ClassNodeTypeName: string;
 begin
   Result := 'Switch';
 end;
 
-class function TNodeSwitch.URNMatching(const URN: string): boolean;
+class function TSwitchNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeSwitch.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSwitchNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeSwitch.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TSwitchNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   if Between(FdWhichChoice.Value, 0, FdChildren.Count - 1) then
     Func(Self, FdChildren[FdWhichChoice.Value]);
 end;
 
-function TNodeSwitch.TransformationChange: TNodeTransformationChange;
+function TSwitchNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcSwitch;
 end;
 
-procedure TNodeTransform.CreateNode;
+procedure TTransformNode.CreateNode;
 begin
   inherited;
 
@@ -807,24 +807,24 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeTransform.ClassNodeTypeName: string;
+class function TTransformNode.ClassNodeTypeName: string;
 begin
   Result := 'Transform';
 end;
 
-class function TNodeTransform.URNMatching(const URN: string): boolean;
+class function TTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNodeTransform.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TTransformNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
 
-procedure TNodeTransform.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 var
   I: Integer;
 begin
@@ -832,7 +832,7 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-function TNodeTransform.TransformationChange: TNodeTransformationChange;
+function TTransformNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
@@ -850,7 +850,7 @@ var
   M, IM: TMatrix4Single;
   MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
 begin
-  { Inherited TVRMLGroupingNode already saved Transform and such.
+  { Inherited TAbstractGroupingNode already saved Transform and such.
 
     To make InvertedTransform, we multiply inverted matrices in inverted order
     below. }
@@ -918,7 +918,7 @@ begin
     center, rotation, scale, scaleOrientation, translation);
 end;
 
-procedure TNodeTransform.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TTransformNode.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
@@ -928,10 +928,10 @@ end;
 procedure RegisterGroupingNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeGroup,
-    TNodeStaticGroup,
-    TNodeSwitch,
-    TNodeTransform
+    TGroupNode,
+    TStaticGroupNode,
+    TSwitchNode,
+    TTransformNode
   ]);
 end;
 {$endif read_implementation}

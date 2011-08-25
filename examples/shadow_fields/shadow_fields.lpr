@@ -134,7 +134,7 @@ type
   TMySceneManager = class(TKamSceneManager)
     procedure RenderFromViewEverything; override;
     procedure ApplyProjection; override;
-    function Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean; override;
+    function Headlight(out CustomHeadlight: TAbstractX3DLightNode): boolean; override;
   end;
 
 procedure TMySceneManager.RenderFromViewEverything;
@@ -250,7 +250,7 @@ begin
     0, 0, Window.Width, Window.Height);
 end;
 
-function TMySceneManager.Headlight(out CustomHeadlight: TNodeX3DLightNode): boolean;
+function TMySceneManager.Headlight(out CustomHeadlight: TAbstractX3DLightNode): boolean;
 begin
   Result := true;
   CustomHeadlight := nil;

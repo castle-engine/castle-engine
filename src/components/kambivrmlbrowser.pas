@@ -50,7 +50,7 @@ type
 
     { Creates new @link(Scene), with new camera and such. }
     procedure Load(const SceneFileName: string);
-    procedure Load(ARootNode: TVRMLRootNode; const OwnsRootNode: boolean);
+    procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
     function Scene: TVRMLGLScene;
     function Camera: TCamera;
@@ -107,7 +107,7 @@ begin
   Load(LoadVRML(SceneFileName, false), true);
 end;
 
-procedure TKamVRMLBrowser.Load(ARootNode: TVRMLRootNode; const OwnsRootNode: boolean);
+procedure TKamVRMLBrowser.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
   { destroy MainScene and Camera, we will recreate them }
   SceneManager.MainScene.Free;

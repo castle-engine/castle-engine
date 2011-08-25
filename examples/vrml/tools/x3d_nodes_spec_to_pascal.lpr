@@ -28,7 +28,7 @@
 program x3d_nodes_spec_to_pascal;
 
 uses SysUtils, Classes, KambiClassUtils, VRMLFields,
-  KambiStringUtils, VRMLNodes, KambiUtils;
+  KambiStringUtils, VRMLNodes, KambiUtils, KambiParameters;
 
 var
   InterfaceLines: TMemoryStream;
@@ -57,8 +57,8 @@ begin
   IsAbstract := IsPrefix('X3D', NodeType, false);
 
   if IsInterface then
-    WriteStr(InterfaceLines, '  INode' + NodeType + ' = interface(') else
-    WriteStr(InterfaceLines, '  TNode' + NodeType + ' = class(');
+    WriteStr(InterfaceLines, '  I' + NodeType + 'Node = interface(') else
+    WriteStr(InterfaceLines, '  T' + NodeType + 'Node = class(');
 
   SomeAncestorFound := false;
 
@@ -71,12 +71,12 @@ begin
 
       if SomeAncestorFound then
       begin
-        WriteStr(InterfaceLines, ', INode' + Token);
+        WriteStr(InterfaceLines, ', I' + Token + 'Node');
       end else
       begin
         if IsInterface then
-          WriteStr(InterfaceLines, 'INode' + Token) else
-          WriteStr(InterfaceLines, 'TNode' + Token);
+          WriteStr(InterfaceLines, 'I' + Token + 'Node') else
+          WriteStr(InterfaceLines, 'T' + Token + 'Node');
         SomeAncestorFound := true;
       end;
     until false;
@@ -84,8 +84,8 @@ begin
 
   if not SomeAncestorFound then
     if IsInterface then
-      WriteStr(InterfaceLines, 'IVRMLNode') else
-      WriteStr(InterfaceLines, 'TVRMLNode');
+      WriteStr(InterfaceLines, 'IX3DNode') else
+      WriteStr(InterfaceLines, 'TX3DNode');
 
   Assert(Token = '{');
 

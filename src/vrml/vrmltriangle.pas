@@ -783,7 +783,7 @@ end;
 
 function TVRMLTriangle.MaterialInfo: TVRMLMaterialInfoAbstract;
 var
-  M2: TNodeMaterial;
+  M2: TMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -797,7 +797,7 @@ end;
 
 function TVRMLTriangle.Transparency: Single;
 var
-  M2: TNodeMaterial;
+  M2: TMaterialNode;
 begin
   if State.ShapeNode <> nil then
   begin
@@ -818,14 +818,14 @@ function TVRMLTriangle.IgnoreForShadowRays: boolean;
 
   function NonShadowCaster(State: TVRMLGraphTraverseState): boolean;
   var
-    Shape: TNodeX3DShapeNode;
+    Shape: TAbstractX3DShapeNode;
   begin
     Shape := State.ShapeNode;
     Result :=
       (Shape <> nil) and
       (Shape.FdAppearance.Value <> nil) and
-      (Shape.FdAppearance.Value is TNodeAppearance) and
-      (not TNodeAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value);
+      (Shape.FdAppearance.Value is TAppearanceNode) and
+      (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value);
   end;
 
 begin
@@ -1478,7 +1478,7 @@ var LightPos: TVector3Single;
 begin
  if not Light.Node.FdOn.Value then result := false;
 
- if Light.Node is TVRMLDirectionalLightNode then
+ if Light.Node is TAbstractDirectionalLightNode then
   { Swiatlo directional oznacza ze swiatlo polozone jest tak bardzo
     daleko ze wszystkie promienie od swiatla sa rownolegle.
 

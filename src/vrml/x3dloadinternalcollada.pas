@@ -34,7 +34,7 @@ uses VRMLNodes;
     extensions. For example, Material.mirror may be <> 0,
     see [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror].) }
 function LoadCollada(const FileName: string;
-  const AllowKambiExtensions: boolean = false): TVRMLRootNode;
+  const AllowKambiExtensions: boolean = false): TX3DRootNode;
 
 implementation
 
@@ -115,7 +115,7 @@ end;
 
 type
   TColladaEffect = class
-    Appearance: TNodeAppearance;
+    Appearance: TAppearanceNode;
     { If this effect contains a texture for diffuse, this is the name
       of texture coordinates in Collada.
       For now not used (we always take first input with TEXCOORD semantic
@@ -158,7 +158,7 @@ type
       name (inside geometry) corresponds to which material name on Materials
       list. }
     Material: string;
-    X3DGeometry: TVRMLGeometryNode;
+    X3DGeometry: TAbstractGeometryNode;
     destructor Destroy; override;
   end;
 
@@ -209,14 +209,14 @@ begin
 end;
 
 type
-  TStringTextureNodeMap = class(specialize TFPGMap<string, TNodeX3DTextureNode>)
+  TStringTextureNodeMap = class(specialize TFPGMap<string, TAbstractX3DTextureNode>)
     { For given Key return it's data, or @nil if not found.
       In our usage, we never insert @nil node as data, so this is
       not ambiguous. }
-    function Find(const Key: string): TNodeX3DTextureNode;
+    function Find(const Key: string): TAbstractX3DTextureNode;
   end;
 
-function TStringTextureNodeMap.Find(const Key: string): TNodeX3DTextureNode;
+function TStringTextureNodeMap.Find(const Key: string): TAbstractX3DTextureNode;
 var
   Index: Integer;
 begin
@@ -483,15 +483,15 @@ type
   TIndex = record Coord, TexCoord, Normal: Integer end;
 
   { Handling Collada <p> (indexes inside primitives) to fill X3D geometry indexes.
-    Accepted geometry types are TNodeIndexedFaceSet and TNodeIndexedLineSet,
+    Accepted geometry types are TIndexedFaceSetNode and TIndexedLineSetNode,
     as only such may be created for Collada primitives. }
   TColladaIndexes = class
   private
     Ints: TIntegersParser;
-    FGeometry: TVRMLGeometryNode;
+    FGeometry: TAbstractGeometryNode;
     FInputsCount, FCoordIndexOffset, FTexCoordIndexOffset, FNormalIndexOffset: Integer;
   public
-    constructor Create(const Geometry: TVRMLGeometryNode;
+    constructor Create(const Geometry: TAbstractGeometryNode;
       const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
     destructor Destroy; override;
     procedure BeginElement(const PElement: TDOMElement);
@@ -503,7 +503,7 @@ type
   end;
 
 constructor TColladaIndexes.Create(
-  const Geometry: TVRMLGeometryNode;
+  const Geometry: TAbstractGeometryNode;
   const InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer);
 begin
   inherited Create;
@@ -571,17 +571,17 @@ end;
 
 procedure TColladaIndexes.AddVertex(const Index: TIndex);
 begin
-  if FGeometry is TNodeIndexedFaceSet then
+  if FGeometry is TIndexedFaceSetNode then
   begin
-    TNodeIndexedFaceSet(FGeometry).FdCoordIndex.Items.Add(Index.Coord);
+    TIndexedFaceSetNode(FGeometry).FdCoordIndex.Items.Add(Index.Coord);
     if FTexCoordIndexOffset <> -1 then
-      TNodeIndexedFaceSet(FGeometry).FdTexCoordIndex.Items.Add(Index.TexCoord);
+      TIndexedFaceSetNode(FGeometry).FdTexCoordIndex.Items.Add(Index.TexCoord);
     if FNormalIndexOffset <> -1 then
-      TNodeIndexedFaceSet(FGeometry).FdNormalIndex.Items.Add(Index.Normal);
+      TIndexedFaceSetNode(FGeometry).FdNormalIndex.Items.Add(Index.Normal);
   end else
   begin
-    Assert(FGeometry is TNodeIndexedLineSet);
-    TNodeIndexedLineSet(FGeometry).FdCoordIndex.Items.Add(Index.Coord);
+    Assert(FGeometry is TIndexedLineSetNode);
+    TIndexedLineSetNode(FGeometry).FdCoordIndex.Items.Add(Index.Coord);
   end;
 end;
 
@@ -593,7 +593,7 @@ end;
 { LoadCollada ---------------------------------------------------------------- }
 
 function LoadCollada(const FileName: string;
-  const AllowKambiExtensions: boolean): TVRMLRootNode;
+  const AllowKambiExtensions: boolean): TX3DRootNode;
 var
   WWWBasePath: string;
 
@@ -611,24 +611,24 @@ var
   Geometries: TColladaGeometryList;
 
   { List of Collada visual scenes, for <visual_scene> Collada elements.
-    Every visual scene is X3D TNodeX3DGroupingNode instance.
+    Every visual scene is X3D TAbstractX3DGroupingNode instance.
     This is for Collada >= 1.4.x (for Collada < 1.4.x,
     the <scene> element is directly placed as a rendered scene). }
-  VisualScenes: TVRMLNodeList;
+  VisualScenes: TX3DNodeList;
 
   { List of Collada controllers. Read from library_controllers, used by
     instance_controller. }
   Controllers: TColladaControllerList;
 
-  { List of Collada images (TNodeX3DTextureNode). NodeName of every instance
+  { List of Collada images (TAbstractX3DTextureNode). NodeName of every instance
     comes from Collada "id" of <image> element (these are referred to
     by <init_from> contents from <surface>). }
-  Images: TVRMLNodeList;
+  Images: TX3DNodeList;
 
-  Cameras: TVRMLNodeList;
-  Lights: TVRMLNodeList;
+  Cameras: TX3DNodeList;
+  Lights: TX3DNodeList;
 
-  ResultModel: TNodeGroup absolute Result;
+  ResultModel: TGroupNode absolute Result;
 
   Version14: boolean; //< Collada version >= 1.4.x
 
@@ -755,8 +755,8 @@ var
   var
     { Effect instance and nodes, available to local procedures inside ReadEffect. }
     Effect: TColladaEffect;
-    Appearance: TNodeAppearance;
-    Mat: TNodeMaterial;
+    Appearance: TAppearanceNode;
+    Mat: TMaterialNode;
 
     { Map of <surface> names to images (references from Images list) }
     Surfaces: TStringTextureNodeMap;
@@ -765,7 +765,7 @@ var
 
     procedure ReadTechnique(TechniqueElement: TDOMElement);
     var
-      Image: TNodeX3DTextureNode;
+      Image: TAbstractX3DTextureNode;
       TechniqueChild: TDOMElement;
       I: TXMLElementIterator;
       DiffuseTextureName, DiffuseTexCoordName: string;
@@ -816,7 +816,7 @@ var
                   Appearance.FdTexture.Value := Image;
                 end else
                 begin
-                  Image := Images.FindName(DiffuseTextureName) as TNodeX3DTextureNode;
+                  Image := Images.FindName(DiffuseTextureName) as TAbstractX3DTextureNode;
                   if Image <> nil then
                   begin
                     Effect.DiffuseTexCoordName := DiffuseTexCoordName;
@@ -868,7 +868,7 @@ var
     var
       Child: TDOMElement;
       Name, RefersTo: string;
-      Image: TNodeX3DTextureNode;
+      Image: TAbstractX3DTextureNode;
     begin
       if DOMGetAttribute(Element, 'sid', Name) then
       begin
@@ -877,7 +877,7 @@ var
         begin
           { Read <surface>. It has <init_from>, referring to name on Images. }
           RefersTo := ReadChildText(Child, 'init_from');
-          Image := Images.FindName(RefersTo) as TNodeX3DTextureNode;
+          Image := Images.FindName(RefersTo) as TAbstractX3DTextureNode;
           if Image <> nil then
             Surfaces[Name] := Image else
             OnWarning(wtMajor, 'Collada', Format('<surface> refers to missing image name "%s"',
@@ -910,10 +910,10 @@ var
     Effect := TColladaEffect.Create;
     Effects.Add(Effect);
 
-    Appearance := TNodeAppearance.Create(Id, WWWBasePath);
+    Appearance := TAppearanceNode.Create(Id, WWWBasePath);
     Effect.Appearance := Appearance;
 
-    Mat := TNodeMaterial.Create('', WWWBasePath);
+    Mat := TMaterialNode.Create('', WWWBasePath);
     Appearance.FdMaterial.Value := Mat;
 
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
@@ -1000,16 +1000,16 @@ var
       ParamName: string;
       I: TXMLElementFilteringIterator;
       Effect: TColladaEffect;
-      Appearance: TNodeAppearance;
-      Mat: TNodeMaterial;
+      Appearance: TAppearanceNode;
+      Mat: TMaterialNode;
     begin
       Effect := TColladaEffect.Create;
       Effects.Add(Effect);
 
-      Appearance := TNodeAppearance.Create(MatId, WWWBasePath);
+      Appearance := TAppearanceNode.Create(MatId, WWWBasePath);
       Effect.Appearance := Appearance;
 
-      Mat := TNodeMaterial.Create('', WWWBasePath);
+      Mat := TMaterialNode.Create('', WWWBasePath);
       Appearance.FdMaterial.Value := Mat;
 
       { Collada 1.3 doesn't really have a concept of effects used by materials.
@@ -1282,19 +1282,19 @@ var
 
     { Collada coordinates.
       Based on <source> indicated by last <vertices> element. }
-    Coord: TNodeCoordinate;
+    Coord: TCoordinateNode;
     { Assigning to Coord using AssignToVectorXYZ went without trouble. }
     CoordCorrect: boolean;
 
     { Collada texture coords used by last primitive.
       Based on <source> indicated by <input semantic="TEXCOORD"> element within
       primitive. NodeName corresponds to <source> id. }
-    LastTexCoord: TNodeTextureCoordinate;
+    LastTexCoord: TTextureCoordinateNode;
 
     { Collada normal used by last primitive.
       Based on <source> indicated by <input semantic="NORMAL"> element within
       primitive. NodeName corresponds to <source> id. }
-    LastNormal: TNodeNormal;
+    LastNormal: TNormalNode;
 
     { DoubleSided, should be used by ReadPrimitiveCommon to set X3D solid field. }
     DoubleSided: boolean;
@@ -1315,7 +1315,7 @@ var
       if not DOMGetAttribute(VerticesElement, 'id', Id) then
         Id := '';
 
-      Coord := TNodeCoordinate.Create(Id, WWWBasePath);
+      Coord := TCoordinateNode.Create(Id, WWWBasePath);
       CoordCorrect := true;
 
       I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
@@ -1356,8 +1356,8 @@ var
       InputSemantic, InputSourceId, X3DGeometryName: string;
       Primitive: TColladaPrimitive;
       InputSource: TColladaSource;
-      IndexedFaceSet: TNodeIndexedFaceSet;
-      IndexedLineSet: TNodeIndexedLineSet;
+      IndexedFaceSet: TIndexedFaceSetNode;
+      IndexedLineSet: TIndexedLineSetNode;
       InputsCount, CoordIndexOffset, TexCoordIndexOffset, NormalIndexOffset: Integer;
     begin
       CoordIndexOffset := 0;
@@ -1378,12 +1378,12 @@ var
       if (PrimitiveE.TagName = 'lines') or
          (PrimitiveE.TagName = 'linestrips') then
       begin
-        IndexedLineSet := TNodeIndexedLineSet.Create(X3DGeometryName, WWWBasePath);
+        IndexedLineSet := TIndexedLineSetNode.Create(X3DGeometryName, WWWBasePath);
         IndexedLineSet.FdCoord.Value := Coord;
         Primitive.X3DGeometry := IndexedLineSet;
       end else
       begin
-        IndexedFaceSet := TNodeIndexedFaceSet.Create(X3DGeometryName, WWWBasePath);
+        IndexedFaceSet := TIndexedFaceSetNode.Create(X3DGeometryName, WWWBasePath);
         IndexedFaceSet.FdSolid.Value := not DoubleSided;
         { For VRML >= 2.0, creaseAngle is 0 by default.
           TODO: what is the default normal generation for Collada? }
@@ -1445,7 +1445,7 @@ var
                   begin
                     { create and use new X3D tex coord node }
                     FreeIfUnusedAndNil(LastTexCoord);
-                    LastTexCoord := TNodeTextureCoordinate.Create(InputSourceId, WWWBasePath);
+                    LastTexCoord := TTextureCoordinateNode.Create(InputSourceId, WWWBasePath);
                     InputSource.AssignToVectorST(LastTexCoord.FdPoint.Items);
                     IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
                   end else
@@ -1478,7 +1478,7 @@ var
                   begin
                     { create and use new X3D normal node }
                     FreeIfUnusedAndNil(LastNormal);
-                    LastNormal := TNodeNormal.Create(InputSourceId, WWWBasePath);
+                    LastNormal := TNormalNode.Create(InputSourceId, WWWBasePath);
                     InputSource.AssignToVectorXYZ(LastNormal.FdVector.Items);
                     IndexedFaceSet.FdNormal.Value := LastNormal;
                   end else
@@ -1841,12 +1841,12 @@ var
   end;
 
   { Read <node> element, add it to ParentGroup. }
-  procedure ReadNodeElement(ParentGroup: TNodeX3DGroupingNode;
+  procedure ReadNodeElement(ParentGroup: TAbstractX3DGroupingNode;
     NodeElement: TDOMElement);
 
     { For Collada material id, return the X3D Appearance (or @nil if not found). }
     function MaterialToX3D(MaterialId: string;
-      InstantiatingElement: TDOMElement): TNodeAppearance;
+      InstantiatingElement: TDOMElement): TAppearanceNode;
     var
       BindMaterial, Technique: TDOMElement;
       InstanceMaterialSymbol, InstanceMaterialTarget: string;
@@ -1902,17 +1902,17 @@ var
     end;
 
     { Add Collada geometry instance (many X3D Shape nodes) to given X3D Group. }
-    procedure AddGeometryInstance(Group: TNodeX3DGroupingNode;
+    procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
       Geometry: TColladaGeometry; InstantiatingElement: TDOMElement);
     var
-      Shape: TNodeShape;
+      Shape: TShapeNode;
       I: Integer;
       Primitive: TColladaPrimitive;
     begin
       for I := 0 to Geometry.Primitives.Count - 1 do
       begin
         Primitive := Geometry.Primitives[I];
-        Shape := TNodeShape.Create('', WWWBasePath);
+        Shape := TShapeNode.Create('', WWWBasePath);
         Group.FdChildren.Add(Shape);
         Shape.FdGeometry.Value := Primitive.X3DGeometry;
         Shape.Appearance := MaterialToX3D(Primitive.Material, InstantiatingElement);
@@ -1921,7 +1921,7 @@ var
 
     { Read <instance_geometry>, adding resulting X3D nodes into
       ParentGroup. Actually, this is also for reading <instance> in Collada 1.3.1. }
-    procedure ReadInstanceGeometry(ParentGroup: TNodeX3DGroupingNode;
+    procedure ReadInstanceGeometry(ParentGroup: TAbstractX3DGroupingNode;
       InstantiatingElement: TDOMElement);
     var
       GeometryId: string;
@@ -1942,11 +1942,11 @@ var
     end;
 
     { Read <instance_*>, adding resulting X3D nodes into ParentGroup. }
-    procedure ReadInstance(ParentGroup: TNodeX3DGroupingNode;
-      InstantiatingElement: TDOMElement; List: TVRMLNodeList);
+    procedure ReadInstance(ParentGroup: TAbstractX3DGroupingNode;
+      InstantiatingElement: TDOMElement; List: TX3DNodeList);
     var
       Id: string;
-      Node: TVRMLNode;
+      Node: TX3DNode;
     begin
       if DOMGetAttribute(InstantiatingElement, 'url', Id) and
          SCharIs(Id, 1, '#') then
@@ -1964,12 +1964,12 @@ var
 
     { Read <instance_controller>, adding resulting X3D node into
       ParentGroup. }
-    procedure ReadInstanceController(ParentGroup: TNodeX3DGroupingNode;
+    procedure ReadInstanceController(ParentGroup: TAbstractX3DGroupingNode;
       InstantiatingElement: TDOMElement);
     var
       ControllerId: string;
       Controller: TColladaController;
-      Group: TNodeX3DGroupingNode;
+      Group: TAbstractX3DGroupingNode;
       Geometry: TColladaGeometry;
     begin
       if DOMGetAttribute(InstantiatingElement, 'url', ControllerId) and
@@ -1992,11 +1992,11 @@ var
           begin
             if Controller.BoundShapeMatrixIdentity then
             begin
-              Group := TNodeGroup.Create('', WWWBasePath);
+              Group := TGroupNode.Create('', WWWBasePath);
             end else
             begin
-              Group := TNodeMatrixTransform.Create('', WWWBasePath);
-              TNodeMatrixTransform(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
+              Group := TMatrixTransformNode.Create('', WWWBasePath);
+              TMatrixTransformNode(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
             ParentGroup.FdChildren.Add(Group);
             AddGeometryInstance(Group, Geometry, InstantiatingElement);
@@ -2008,8 +2008,8 @@ var
     end;
 
   var
-    { This is either TNodeTransform or TNodeMatrixTransform. }
-    NodeTransform: TNodeX3DGroupingNode;
+    { This is either TTransformNode or TMatrixTransformNode. }
+    NodeTransform: TAbstractX3DGroupingNode;
 
     { Create new Transform node, place it as a child of current Transform node
       and switch current Transform node to the new one.
@@ -2019,23 +2019,23 @@ var
       (since Collada transformations may represent any transformation,
       not necessarily representable by a single VRML Transform node).
 
-      Returns NodeTransform, typecasted to TNodeTransform, for your comfort. }
-    function NestedTransform: TNodeTransform;
+      Returns NodeTransform, typecasted to TTransformNode, for your comfort. }
+    function NestedTransform: TTransformNode;
     var
-      NewNodeTransform: TNodeTransform;
+      NewNodeTransform: TTransformNode;
     begin
-      NewNodeTransform := TNodeTransform.Create('', WWWBasePath);
+      NewNodeTransform := TTransformNode.Create('', WWWBasePath);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
       Result := NewNodeTransform;
     end;
 
-    function NestedMatrixTransform: TNodeMatrixTransform;
+    function NestedMatrixTransform: TMatrixTransformNode;
     var
-      NewNodeTransform: TNodeMatrixTransform;
+      NewNodeTransform: TMatrixTransformNode;
     begin
-      NewNodeTransform := TNodeMatrixTransform.Create('', WWWBasePath);
+      NewNodeTransform := TMatrixTransformNode.Create('', WWWBasePath);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
@@ -2051,7 +2051,7 @@ var
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
 
-    NodeTransform := TNodeTransform.Create(NodeId, WWWBasePath);
+    NodeTransform := TTransformNode.Create(NodeId, WWWBasePath);
     ParentGroup.FdChildren.Add(NodeTransform);
 
     { First iterate to gather all transformations.
@@ -2132,7 +2132,7 @@ var
   { Read <node> sequence within given SceneElement, adding nodes to Group.
     This is used to handle <visual_scene> for Collada 1.4.x
     and <scene> for Collada 1.3.x. }
-  procedure ReadNodesSequence(Group: TNodeX3DGroupingNode;
+  procedure ReadNodesSequence(Group: TAbstractX3DGroupingNode;
     SceneElement: TDOMElement);
   var
     I: TXMLElementFilteringIterator;
@@ -2178,9 +2178,9 @@ var
 
     procedure Collada13;
     var
-      Group: TNodeGroup;
+      Group: TGroupNode;
     begin
-      Group := TNodeGroup.Create(SceneId, WWWBasePath);
+      Group := TGroupNode.Create(SceneId, WWWBasePath);
       ResultModel.FdChildren.Add(Group);
 
       ReadNodesSequence(Group, SceneElement);
@@ -2200,16 +2200,16 @@ var
 
   { Read <visual_scene>. Obtained scene X3D node is added both
     to VisualScenes list and VisualScenesSwitch.choice. }
-  procedure ReadVisualScene(VisualScenesSwitch: TNodeSwitch;
+  procedure ReadVisualScene(VisualScenesSwitch: TSwitchNode;
     VisualSceneElement: TDOMElement);
   var
     VisualSceneId: string;
-    Group: TNodeGroup;
+    Group: TGroupNode;
   begin
     if not DOMGetAttribute(VisualSceneElement, 'id', VisualSceneId) then
       VisualSceneId := '';
 
-    Group := TNodeGroup.Create(VisualSceneId, WWWBasePath);
+    Group := TGroupNode.Create(VisualSceneId, WWWBasePath);
     VisualScenes.Add(Group);
     VisualScenesSwitch.FdChildren.Add(Group);
 
@@ -2221,7 +2221,7 @@ var
   var
     I: TXMLElementFilteringIterator;
     LibraryId: string;
-    VisualScenesSwitch: TNodeSwitch;
+    VisualScenesSwitch: TSwitchNode;
   begin
     if not DOMGetAttribute(LibraryElement, 'id', LibraryId) then
       LibraryId := '';
@@ -2232,7 +2232,7 @@ var
       That's good --- it's always nice to keep some data when
       converting. }
 
-    VisualScenesSwitch := TNodeSwitch.Create(LibraryId, WWWBasePath);
+    VisualScenesSwitch := TSwitchNode.Create(LibraryId, WWWBasePath);
     ResultModel.FdChildren.Add(VisualScenesSwitch);
 
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'visual_scene');
@@ -2279,7 +2279,7 @@ var
   procedure ReadLibraryImages(LibraryElement: TDOMElement);
   var
     I: TXMLElementFilteringIterator;
-    Image: TNodeImageTexture;
+    Image: TImageTextureNode;
     ImageId, ImageUrl: string;
   begin
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'image');
@@ -2287,7 +2287,7 @@ var
       while I.GetNext do
         if DOMGetAttribute(I.Current, 'id', ImageId) then
         begin
-          Image := TNodeImageTexture.Create(ImageId, WWWBasePath);
+          Image := TImageTextureNode.Create(ImageId, WWWBasePath);
           Images.Add(Image);
           ImageUrl := ReadChildText(I.Current, 'init_from');
           if ImageUrl <> '' then
@@ -2313,14 +2313,14 @@ var
   procedure ReadLibraryCameras(LibraryE: TDOMElement);
   var
     Id: string;
-    CameraGroup: TNodeGroup;
+    CameraGroup: TGroupNode;
 
     procedure InitializeNavigationInfo(E: TDOMElement);
     var
-      Navigation: TNodeNavigationInfo;
+      Navigation: TNavigationInfoNode;
       ZNear, ZFar: Float;
     begin
-      Navigation := TNodeNavigationInfo.Create(Id + '_navigation_info', WWWBasePath);
+      Navigation := TNavigationInfoNode.Create(Id + '_navigation_info', WWWBasePath);
       CameraGroup.FdChildren.Add(Navigation);
 
       if ReadChildFloat(E, 'znear', ZNear) then
@@ -2332,8 +2332,8 @@ var
 
   var
     I: TXMLElementFilteringIterator;
-    Viewpoint: TNodeViewpoint;
-    OrthoViewpoint: TNodeOrthoViewpoint;
+    Viewpoint: TViewpointNode;
+    OrthoViewpoint: TOrthoViewpointNode;
     OpticsE, TechniqueE, PerspectiveE, OrthographicE: TDOMElement;
     XFov, YFov, XMag, YMag, AspectRatio: Float;
   begin
@@ -2342,7 +2342,7 @@ var
       while I.GetNext do
         if DOMGetAttribute(I.Current, 'id', Id) then
         begin
-          CameraGroup := TNodeGroup.Create(Id, WWWBasePath);
+          CameraGroup := TGroupNode.Create(Id, WWWBasePath);
           Cameras.Add(CameraGroup);
 
           OpticsE := DOMGetChildElement(I.Current, 'optics', false);
@@ -2354,7 +2354,7 @@ var
               PerspectiveE := DOMGetChildElement(TechniqueE, 'perspective', false);
               if PerspectiveE <> nil then
               begin
-                Viewpoint := TNodeViewpoint.Create(Id + '_viewpoint', WWWBasePath);
+                Viewpoint := TViewpointNode.Create(Id + '_viewpoint', WWWBasePath);
                 Viewpoint.FdPosition.Value := ZeroVector3Single;
                 CameraGroup.FdChildren.Add(Viewpoint);
 
@@ -2375,7 +2375,7 @@ var
                 OrthographicE := DOMGetChildElement(TechniqueE, 'orthographic', false);
                 if OrthographicE <> nil then
                 begin
-                  OrthoViewpoint := TNodeOrthoViewpoint.Create(Id + '_viewpoint', WWWBasePath);
+                  OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', WWWBasePath);
                   OrthoViewpoint.FdPosition.Value := ZeroVector3Single;
                   CameraGroup.FdChildren.Add(OrthoViewpoint);
 
@@ -2430,10 +2430,10 @@ var
 
   var
     I: TXMLElementFilteringIterator;
-    Light: TNodeX3DLightNode;
-    Point: TNodePointLight;
-    Directional: TNodeDirectionalLight;
-    Spot: TNodeSpotLight;
+    Light: TAbstractX3DLightNode;
+    Point: TPointLightNode;
+    Directional: TDirectionalLightNode;
+    Spot: TSpotLightNode;
     Id, Profile: string;
     TechniqueE, LightE, ExtraE: TDOMElement;
     FalloffAngle, Radius: Float;
@@ -2452,7 +2452,7 @@ var
             LightE := DOMGetChildElement(TechniqueE, 'point', false);
             if LightE <> nil then
             begin
-              Point := TNodePointLight.Create(Id, WWWBasePath);
+              Point := TPointLightNode.Create(Id, WWWBasePath);
               Point.FdAttenuation.Value := ReadAttenuation(LightE);
               Light := Point;
             end else
@@ -2460,7 +2460,7 @@ var
               LightE := DOMGetChildElement(TechniqueE, 'directional', false);
               if LightE <> nil then
               begin
-                Directional := TNodeDirectionalLight.Create(Id, WWWBasePath);
+                Directional := TDirectionalLightNode.Create(Id, WWWBasePath);
                 { default X3D light direction is -Z, matches Collada }
                 Light := Directional;
               end else
@@ -2468,7 +2468,7 @@ var
                 LightE := DOMGetChildElement(TechniqueE, 'spot', false);
                 if LightE <> nil then
                 begin
-                  Spot := TNodeSpotLight.Create(Id, WWWBasePath);
+                  Spot := TSpotLightNode.Create(Id, WWWBasePath);
                   Spot.FdAttenuation.Value := ReadAttenuation(LightE);
                   { default X3D spot direction is -Z, matches Collada }
                   if not ReadChildFloat(LightE, 'falloff_angle', FalloffAngle) then
@@ -2482,7 +2482,7 @@ var
                   LightE := DOMGetChildElement(TechniqueE, 'ambient', false);
                   if LightE <> nil then
                   begin
-                    Point := TNodePointLight.Create(Id, WWWBasePath);
+                    Point := TPointLightNode.Create(Id, WWWBasePath);
                     { ambient light can be translated to normal PointLight with
                       intensity = 0 (this scales diffuse and specular to zero). }
                     Point.FdIntensity.Value := 0;
@@ -2501,7 +2501,7 @@ var
             Light.FdGlobal.Value := true;
             if ReadChildVector(LightE, 'color', LightColor) then
               Light.FdColor.Value := LightColor;
-            if Light is TVRMLPositionalLightNode then
+            if Light is TAbstractPositionalLightNode then
             begin
               { calculate light radius }
               Radius := MaxSingle;
@@ -2514,7 +2514,7 @@ var
                    (Profile = 'blender') then
                   ReadChildFloat(TechniqueE, 'dist', Radius);
               end;
-              TVRMLPositionalLightNode(Light).FdRadius.Value := Radius;
+              TAbstractPositionalLightNode(Light).FdRadius.Value := Radius;
             end;
             Lights.Add(Light);
           end;
@@ -2570,13 +2570,13 @@ begin
       Effects := TColladaEffectList.Create;
       Materials := TColladaMaterialsMap.Create;
       Geometries := TColladaGeometryList.Create;
-      VisualScenes := TVRMLNodeList.Create(false);
+      VisualScenes := TX3DNodeList.Create(false);
       Controllers := TColladaControllerList.Create;
-      Images := TVRMLNodeList.Create(false);
-      Cameras := TVRMLNodeList.Create(false);
-      Lights := TVRMLNodeList.Create(false);
+      Images := TX3DNodeList.Create(false);
+      Cameras := TX3DNodeList.Create(false);
+      Lights := TX3DNodeList.Create(false);
 
-      Result := TVRMLRootNode.Create('', WWWBasePath);
+      Result := TX3DRootNode.Create('', WWWBasePath);
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 

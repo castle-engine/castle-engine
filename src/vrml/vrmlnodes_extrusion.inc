@@ -19,21 +19,21 @@ type
 
    Calculating vertices (and other properties) of Extrusion
    is non-trivial enough to be separated into this file. We want to reuse
-   this by TNodeExtrusion.BoundingBox calculation,
-   TNodeExtrusion.Triangulate etc. }
+   this by TExtrusionNode.BoundingBox calculation,
+   TExtrusionNode.Triangulate etc. }
   TVRMLExtrusion = class
   private
     FHigh: Integer;
-    FNode: TNodeExtrusion;
+    FNode: TExtrusionNode;
     FSpineClosed, FCrossSectionClosed: boolean;
     FBeginEndCapsMatching: boolean;
-    procedure SetNode(Value: TNodeExtrusion);
+    procedure SetNode(Value: TExtrusionNode);
   public
     constructor Create;
 
     { Node used. Always assign something non-nil, and generally
       use rest of this class only when this is assigned. }
-    property Node: TNodeExtrusion read FNode write SetNode;
+    property Node: TExtrusionNode read FNode write SetNode;
 
     { You have spines from 0 to High.
       Remember that this can be -1, if no spine points are defined.
@@ -42,8 +42,8 @@ type
       0..High. }
     property High: Integer read FHigh;
 
-    { Same thing as @link(TNodeExtrusion.SpineClosed Node.SpineClosed) and
-      @link(TNodeExtrusion.CrossSectionClosed Node.CrossSectionClosed),
+    { Same thing as @link(TExtrusionNode.SpineClosed Node.SpineClosed) and
+      @link(TExtrusionNode.CrossSectionClosed Node.CrossSectionClosed),
       just calculated once (when setting Node) for speed.
 
       @groupBegin }
@@ -81,7 +81,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLExtrusion.SetNode(Value: TNodeExtrusion);
+procedure TVRMLExtrusion.SetNode(Value: TExtrusionNode);
 var
   BeginOrientation, EndOrientation: TVector4Single;
   BeginScale, EndScale: TVector2Single;

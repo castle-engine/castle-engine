@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeX3DInterpolatorNode = class(TNodeX3DChildNode)
+  TAbstractX3DInterpolatorNode = class(TAbstractX3DChildNode)
   protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
   public
@@ -29,7 +29,7 @@
     public property FdKey: TMFFloat read FFdKey;
   end;
 
-  TNodeColorInterpolator = class(TNodeX3DInterpolatorNode)
+  TColorInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -46,7 +46,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeColorSetInterpolator = class(TNodeX3DInterpolatorNode)
+  TColorSetInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -63,7 +63,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeCoordinateInterpolator = class(TNodeX3DInterpolatorNode)
+  TCoordinateInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -80,7 +80,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeCoordinateInterpolator2D = class(TNodeX3DInterpolatorNode)
+  TCoordinateInterpolator2DNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -97,7 +97,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeEaseInEaseOut = class(TNodeX3DNode)
+  TEaseInEaseOutNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -118,7 +118,7 @@
     public property EventModifiedFraction_changed: TVRMLEvent read FEventModifiedFraction_changed;
   end;
 
-  TNodeNormalInterpolator = class(TNodeX3DInterpolatorNode)
+  TNormalInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -135,7 +135,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeOrientationInterpolator = class(TNodeX3DInterpolatorNode)
+  TOrientationInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -152,7 +152,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodePositionInterpolator = class(TNodeX3DInterpolatorNode)
+  TPositionInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -169,7 +169,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
+  TPositionInterpolator2DNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -186,7 +186,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeScalarInterpolator = class(TNodeX3DInterpolatorNode)
+  TScalarInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -203,7 +203,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeSplinePositionInterpolator = class(TNodeX3DInterpolatorNode)
+  TSplinePositionInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -226,7 +226,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeSplinePositionInterpolator2D = class(TNodeX3DInterpolatorNode)
+  TSplinePositionInterpolator2DNode = class(TAbstractX3DInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -249,7 +249,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeSplineScalarInterpolator = class(TNodeX3DInterpolatorNode)
+  TSplineScalarInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -272,7 +272,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeSquadOrientationInterpolator = class(TNodeX3DInterpolatorNode)
+  TSquadOrientationInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -289,7 +289,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNodeVectorInterpolator = class(TNodeX3DInterpolatorNode)
+  TVectorInterpolatorNode = class(TAbstractX3DInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -422,7 +422,7 @@ begin
   end;
 end;}
 
-procedure TNodeX3DInterpolatorNode.CreateNode;
+procedure TAbstractX3DInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -436,13 +436,13 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TNodeX3DInterpolatorNode.KeyRange(
+function TAbstractX3DInterpolatorNode.KeyRange(
   const Fraction: Single; out T: Single): Integer;
 begin
   Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
-procedure TNodeColorInterpolator.CreateNode;
+procedure TColorInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -458,26 +458,26 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeColorInterpolator.ClassNodeTypeName: string;
+class function TColorInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'ColorInterpolator';
 end;
 
-class function TNodeColorInterpolator.URNMatching(const URN: string): boolean;
+class function TColorInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeColorInterpolator.EventSet_FractionReceive(
+procedure TColorInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-procedure TNodeColorSetInterpolator.CreateNode;
+procedure TColorSetInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -493,12 +493,12 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeColorSetInterpolator.ClassNodeTypeName: string;
+class function TColorSetInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'ColorSetInterpolator';
 end;
 
-class function TNodeColorSetInterpolator.URNMatching(const URN: string): boolean;
+class function TColorSetInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
@@ -506,13 +506,13 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeColorSetInterpolator.EventSet_FractionReceive(
+procedure TColorSetInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define MultipleInterpolatorFieldType := TMFColor}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
 
-procedure TNodeCoordinateInterpolator.CreateNode;
+procedure TCoordinateInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -528,25 +528,25 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeCoordinateInterpolator.ClassNodeTypeName: string;
+class function TCoordinateInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'CoordinateInterpolator';
 end;
 
-class function TNodeCoordinateInterpolator.URNMatching(const URN: string): boolean;
+class function TCoordinateInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCoordinateInterpolator.EventSet_FractionReceive(
+procedure TCoordinateInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
 
-procedure TNodeCoordinateInterpolator2D.CreateNode;
+procedure TCoordinateInterpolator2DNode.CreateNode;
 begin
   inherited;
 
@@ -562,24 +562,24 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeCoordinateInterpolator2D.ClassNodeTypeName: string;
+class function TCoordinateInterpolator2DNode.ClassNodeTypeName: string;
 begin
   Result := 'CoordinateInterpolator2D';
 end;
 
-class function TNodeCoordinateInterpolator2D.URNMatching(const URN: string): boolean;
+class function TCoordinateInterpolator2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeCoordinateInterpolator2D.EventSet_FractionReceive(
+procedure TCoordinateInterpolator2DNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define MultipleInterpolatorFieldType := TMFVec2f}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
 
-procedure TNodeEaseInEaseOut.CreateNode;
+procedure TEaseInEaseOutNode.CreateNode;
 begin
   inherited;
 
@@ -600,18 +600,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeEaseInEaseOut.ClassNodeTypeName: string;
+class function TEaseInEaseOutNode.ClassNodeTypeName: string;
 begin
   Result := 'EaseInEaseOut';
 end;
 
-class function TNodeEaseInEaseOut.URNMatching(const URN: string): boolean;
+class function TEaseInEaseOutNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNormalInterpolator.CreateNode;
+procedure TNormalInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -627,25 +627,25 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeNormalInterpolator.ClassNodeTypeName: string;
+class function TNormalInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'NormalInterpolator';
 end;
 
-class function TNodeNormalInterpolator.URNMatching(const URN: string): boolean;
+class function TNormalInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeNormalInterpolator.EventSet_FractionReceive(
+procedure TNormalInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
 {$define MultipleInterpolatorFieldTypePostprocess := OutputValue.Items.Normalize;}
 MultipleInterpolator
 
-procedure TNodeOrientationInterpolator.CreateNode;
+procedure TOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -661,19 +661,19 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeOrientationInterpolator.ClassNodeTypeName: string;
+class function TOrientationInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'OrientationInterpolator';
 end;
 
-class function TNodeOrientationInterpolator.URNMatching(const URN: string): boolean;
+class function TOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
+procedure TOrientationInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector4Single}
 {$define SingleInterpolatorDefault := ZeroVector4Single}
@@ -686,7 +686,7 @@ procedure TNodeOrientationInterpolator.EventSet_FractionReceive(
 {$define SingleInterpolatorLerp := SLerp}
 SingleInterpolator
 
-procedure TNodePositionInterpolator.CreateNode;
+procedure TPositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -702,26 +702,26 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodePositionInterpolator.ClassNodeTypeName: string;
+class function TPositionInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'PositionInterpolator';
 end;
 
-class function TNodePositionInterpolator.URNMatching(const URN: string): boolean;
+class function TPositionInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePositionInterpolator.EventSet_FractionReceive(
+procedure TPositionInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-procedure TNodePositionInterpolator2D.CreateNode;
+procedure TPositionInterpolator2DNode.CreateNode;
 begin
   inherited;
 
@@ -737,25 +737,25 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodePositionInterpolator2D.ClassNodeTypeName: string;
+class function TPositionInterpolator2DNode.ClassNodeTypeName: string;
 begin
   Result := 'PositionInterpolator2D';
 end;
 
-class function TNodePositionInterpolator2D.URNMatching(const URN: string): boolean;
+class function TPositionInterpolator2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodePositionInterpolator2D.EventSet_FractionReceive(
+procedure TPositionInterpolator2DNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := TVector2Single}
 {$define SingleInterpolatorDefault := ZeroVector2Single}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-procedure TNodeScalarInterpolator.CreateNode;
+procedure TScalarInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -771,26 +771,26 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeScalarInterpolator.ClassNodeTypeName: string;
+class function TScalarInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'ScalarInterpolator';
 end;
 
-class function TNodeScalarInterpolator.URNMatching(const URN: string): boolean;
+class function TScalarInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeScalarInterpolator.EventSet_FractionReceive(
+procedure TScalarInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define SingleInterpolatorType := Single}
 {$define SingleInterpolatorDefault := 0}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
-procedure TNodeSplinePositionInterpolator.CreateNode;
+procedure TSplinePositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -814,18 +814,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSplinePositionInterpolator.ClassNodeTypeName: string;
+class function TSplinePositionInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'SplinePositionInterpolator';
 end;
 
-class function TNodeSplinePositionInterpolator.URNMatching(const URN: string): boolean;
+class function TSplinePositionInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeSplinePositionInterpolator2D.CreateNode;
+procedure TSplinePositionInterpolator2DNode.CreateNode;
 begin
   inherited;
 
@@ -849,18 +849,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSplinePositionInterpolator2D.ClassNodeTypeName: string;
+class function TSplinePositionInterpolator2DNode.ClassNodeTypeName: string;
 begin
   Result := 'SplinePositionInterpolator2D';
 end;
 
-class function TNodeSplinePositionInterpolator2D.URNMatching(const URN: string): boolean;
+class function TSplinePositionInterpolator2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeSplineScalarInterpolator.CreateNode;
+procedure TSplineScalarInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -884,18 +884,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSplineScalarInterpolator.ClassNodeTypeName: string;
+class function TSplineScalarInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'SplineScalarInterpolator';
 end;
 
-class function TNodeSplineScalarInterpolator.URNMatching(const URN: string): boolean;
+class function TSplineScalarInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeSquadOrientationInterpolator.CreateNode;
+procedure TSquadOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -912,18 +912,18 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeSquadOrientationInterpolator.ClassNodeTypeName: string;
+class function TSquadOrientationInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'SquadOrientationInterpolator';
 end;
 
-class function TNodeSquadOrientationInterpolator.URNMatching(const URN: string): boolean;
+class function TSquadOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeVectorInterpolator.CreateNode;
+procedure TVectorInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -939,12 +939,12 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNodeVectorInterpolator.ClassNodeTypeName: string;
+class function TVectorInterpolatorNode.ClassNodeTypeName: string;
 begin
   Result := 'VectorInterpolator';
 end;
 
-class function TNodeVectorInterpolator.URNMatching(const URN: string): boolean;
+class function TVectorInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
@@ -952,7 +952,7 @@ begin
     (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeVectorInterpolator.EventSet_FractionReceive(
+procedure TVectorInterpolatorNode.EventSet_FractionReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 {$define MultipleInterpolatorFieldType := TMFFloat}
 {$define MultipleInterpolatorFieldTypePostprocess := }
@@ -961,21 +961,21 @@ MultipleInterpolator
 procedure RegisterInterpolationNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeColorInterpolator,
-    TNodeColorSetInterpolator,
-    TNodeCoordinateInterpolator,
-    TNodeCoordinateInterpolator2D,
-    TNodeEaseInEaseOut,
-    TNodeNormalInterpolator,
-    TNodeOrientationInterpolator,
-    TNodePositionInterpolator,
-    TNodePositionInterpolator2D,
-    TNodeScalarInterpolator,
-    TNodeSplinePositionInterpolator,
-    TNodeSplinePositionInterpolator2D,
-    TNodeSplineScalarInterpolator,
-    TNodeSquadOrientationInterpolator,
-    TNodeVectorInterpolator
+    TColorInterpolatorNode,
+    TColorSetInterpolatorNode,
+    TCoordinateInterpolatorNode,
+    TCoordinateInterpolator2DNode,
+    TEaseInEaseOutNode,
+    TNormalInterpolatorNode,
+    TOrientationInterpolatorNode,
+    TPositionInterpolatorNode,
+    TPositionInterpolator2DNode,
+    TScalarInterpolatorNode,
+    TSplinePositionInterpolatorNode,
+    TSplinePositionInterpolator2DNode,
+    TSplineScalarInterpolatorNode,
+    TSquadOrientationInterpolatorNode,
+    TVectorInterpolatorNode
   ]);
 end;
 

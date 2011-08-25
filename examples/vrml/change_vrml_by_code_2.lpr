@@ -35,7 +35,7 @@ const
   YCount = 15;
 
 var
-  Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TNodeTransform;
+  Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TTransformNode;
 
 procedure Idle(Window: TGLWindow);
 var
@@ -65,26 +65,26 @@ begin
   { Scene.ChangedAll; }
 end;
 
-function CreateVrmlGraph: TVRMLRootNode;
+function CreateVrmlGraph: TX3DRootNode;
 var
-  Shape: TNodeShape;
-  Mat: TNodeMaterial;
+  Shape: TShapeNode;
+  Mat: TMaterialNode;
   I, J: Integer;
 begin
-  Result := TVRMLRootNode.Create('', '');
+  Result := TX3DRootNode.Create('', '');
 
-  Mat := TNodeMaterial.Create('', '');
+  Mat := TMaterialNode.Create('', '');
   Mat.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
 
-  Shape := TNodeShape.Create('', '');
-  Shape.FdAppearance.Value := TNodeAppearance.Create('', '');
+  Shape := TShapeNode.Create('', '');
+  Shape.FdAppearance.Value := TAppearanceNode.Create('', '');
   Shape.Appearance.FdMaterial.Value := Mat;
-  Shape.FdGeometry.Value := TNodeBox.Create('', '');
+  Shape.FdGeometry.Value := TBoxNode.Create('', '');
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
-      Transform[I, J] := TNodeTransform.Create('', '');
+      Transform[I, J] := TTransformNode.Create('', '');
       Transform[I, J].FdTranslation.Value := Vector3Single(I * 2, J * 2, 0);
       Transform[I, J].FdChildren.Add(Shape);
 

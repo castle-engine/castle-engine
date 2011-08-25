@@ -27,9 +27,9 @@ const
   Overloaded version that takes Stream as a parameter expects that
   stream (as read) is no longer compressed.
   @groupBegin }
-function LoadX3DXml(const FileName: string; Gzipped: boolean): TVRMLRootNode;
+function LoadX3DXml(const FileName: string; Gzipped: boolean): TX3DRootNode;
 function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
-  const BaseName: string = ''): TVRMLRootNode;
+  const BaseName: string = ''): TX3DRootNode;
 { @groupEnd }
 
 {$endif read_interface}
@@ -47,10 +47,10 @@ const
 
 function ParseXMLNode(Element: TDOMElement;
   out ContainerField: string; Names: TVRMLNames;
-  NilIfUnresolvedUSE: boolean): TVRMLNode; forward;
+  NilIfUnresolvedUSE: boolean): TX3DNode; forward;
 function ParseVRMLStatements(Element: TDOMElement;
   ParseX3DHeader: boolean;
-  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLRootNode; forward;
+  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TX3DRootNode; forward;
 
 { Checks is Element a correct <connect> element, extracting
   nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -81,7 +81,7 @@ begin
   Result := true;
 end;
 
-procedure ParseISStatement(Node: TVRMLNode; ISElement: TDOMElement;
+procedure ParseISStatement(Node: TX3DNode; ISElement: TDOMElement;
   var PositionInParent: Integer);
 var
   I: TXMLElementIterator;
@@ -133,11 +133,11 @@ end;
 *)
 function ParseXMLNode(Element: TDOMElement;
   out ContainerField: string; Names: TVRMLNames;
-  NilIfUnresolvedUSE: boolean): TVRMLNode;
+  NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const NodeName: string);
   var
-    NodeClass: TVRMLNodeClass;
+    NodeClass: TX3DNodeClass;
     NodeTypeName: string;
     ProtoName: string;
     Proto: TVRMLPrototypeBase;
@@ -160,7 +160,7 @@ function ParseXMLNode(Element: TDOMElement;
       if (Proto is TVRMLExternalPrototype) and
          (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
         Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
-        Result := TVRMLPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
+        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
 
       Names.Nodes.Bind(Result, false);
 
@@ -206,13 +206,13 @@ function ParseXMLNode(Element: TDOMElement;
 
       { If it was normal (non-external) prototype, then instantiate
         it now (this sort-of expands prototype "macro" in place). }
-      if Result is TVRMLPrototypeNode then
+      if Result is TX3DPrototypeNode then
       try
-        Result := TVRMLPrototypeNode(Result).Instantiate;
+        Result := TX3DPrototypeNode(Result).Instantiate;
       except
         on E: EVRMLPrototypeInstantiateError do
           { Just write E.Message and silence the exception.
-            Result will simply remain as TVRMLPrototypeNode instance in this case. }
+            Result will simply remain as TX3DPrototypeNode instance in this case. }
           OnWarning(wtMajor, 'VRML/X3D', E.Message);
       end;
     end else
@@ -225,9 +225,9 @@ function ParseXMLNode(Element: TDOMElement;
         Result.ParseXML(Element, Names);
       end else
       begin
-        Result := TVRMLUnknownNode.CreateUnknown(NodeName, Names.WWWBasePath, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(NodeName, Names.WWWBasePath, NodeTypeName);
 
-        { In classic VRML parser, we had special TVRMLUnknownNode.Parse
+        { In classic VRML parser, we had special TX3DUnknownNode.Parse
           that performed the "magic" trick of
           ParseIgnoreToMatchingCurlyBracket. This is not needed for
           X3D XML, we can simply omit the node by not looking
@@ -298,14 +298,14 @@ end;
   classic ParseVRMLStatements :) ). }
 function ParseVRMLStatements(Element: TDOMElement;
   ParseX3DHeader: boolean;
-  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TVRMLRootNode;
+  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TX3DRootNode;
 var
   PositionInParent: Integer;
 
   { Create root group node. }
-  function CreateRootNode: TVRMLRootNode;
+  function CreateRootNode: TX3DRootNode;
   begin
-    Result := TVRMLRootNode.Create('', Names.WWWBasePath);
+    Result := TX3DRootNode.Create('', Names.WWWBasePath);
     Result.HasForceVersion := true;
     Result.ForceVersion := Names.Version;
   end;
@@ -415,7 +415,7 @@ var
 
     procedure ParseNodeStatement;
     var
-      NewNode: TVRMLNode;
+      NewNode: TX3DNode;
       ContainerFieldDummy: string;
     begin
       NewNode := ParseXMLNode(Element, ContainerFieldDummy, Names, false);
@@ -460,7 +460,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DXml(const FileName: string; Gzipped: boolean): TVRMLRootNode;
+function LoadX3DXml(const FileName: string; Gzipped: boolean): TX3DRootNode;
 var
   Stream: TStream;
 begin
@@ -478,7 +478,7 @@ begin
 end;
 
 function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
-  const BaseName: string): TVRMLRootNode;
+  const BaseName: string): TX3DRootNode;
 var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;

@@ -78,7 +78,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
   const FromCCW, Convex: boolean): TVector3SingleList;
 
 { Calculate always smooth normals per-vertex, for VRML coordinate-based
-  node. We use TVRMLGeometryNode.CoordPolygons for this, so the node class
+  node. We use TAbstractGeometryNode.CoordPolygons for this, so the node class
   must implement it.
 
   Note that the result is not a compatible replacement for CreateNormals,
@@ -89,7 +89,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
   If Node.Coordinates is @nil (which means that node is coordinate-based,
   but "coord" field is not present), we return @nil. }
 function CreateSmoothNormalsCoordinateNode(
-  Node: TVRMLGeometryNode;
+  Node: TAbstractGeometryNode;
   State: TVRMLGraphTraverseState;
   const FromCCW: boolean): TVector3SingleList;
 
@@ -371,7 +371,7 @@ begin
 end;
 
 function CreateSmoothNormalsCoordinateNode(
-  Node: TVRMLGeometryNode;
+  Node: TAbstractGeometryNode;
   State: TVRMLGraphTraverseState;
   const FromCCW: boolean): TVector3SingleList;
 var

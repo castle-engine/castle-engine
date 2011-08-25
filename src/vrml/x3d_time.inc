@@ -17,7 +17,7 @@
   TTimeDependentNodeHandler = class;
 
   { }
-  INodeX3DTimeDependentNode = interface(INodeX3DChildNode)
+  IAbstractX3DTimeDependentNode = interface(IAbstractX3DChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
   (*
     property FdLoop: TSFBool { read FFdLoop } { };
@@ -39,14 +39,14 @@
   TTimeFunction = function: TKamTime of object;
 
   { Common helper for all X3DTimeDependentNode descendants.
-    This includes things descending from interface INodeX3DTimeDependentNode,
+    This includes things descending from interface IAbstractX3DTimeDependentNode,
     in particular (but not only) descending from class
-    TNodeX3DTimeDependentNode.
+    TAbstractX3DTimeDependentNode.
 
-    It would be cleaner to have Node declared as INodeX3DTimeDependentNode,
-    and have INodeX3DTimeDependentNode contain common fields.
+    It would be cleaner to have Node declared as IAbstractX3DTimeDependentNode,
+    and have IAbstractX3DTimeDependentNode contain common fields.
     Then a lot of fields of this class would not be needed, as they
-    would be accessible as INodeX3DTimeDependentNode fields.
+    would be accessible as IAbstractX3DTimeDependentNode fields.
     TODO: maybe in the future. }
   TTimeDependentNodeHandler = class
   private
@@ -58,7 +58,7 @@
     procedure SetIsPaused(const Value: boolean);
     procedure SetElapsedTime(const Value: TKamTime);
   public
-    Node: TVRMLNode;
+    Node: TX3DNode;
 
     CurrentTime: TVRMLTime;
 
@@ -123,10 +123,10 @@
       const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
   end;
 
-  TNodeX3DTimeDependentNode = class(TNodeX3DChildNode, INodeX3DTimeDependentNode)
+  TAbstractX3DTimeDependentNode = class(TAbstractX3DChildNode, IAbstractX3DTimeDependentNode)
   private
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
-    { To satify INodeX3DTimeDependentNode }
+    { To satify IAbstractX3DTimeDependentNode }
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
   protected
     function CycleInterval: TKamTime; virtual; abstract;
@@ -165,7 +165,7 @@
       read FTimeDependentNodeHandler;
   end;
 
-  TNodeTimeSensor = class(TNodeX3DTimeDependentNode, INodeX3DSensorNode)
+  TTimeSensorNode = class(TAbstractX3DTimeDependentNode, IAbstractX3DSensorNode)
   private
     procedure EventElapsedTimeReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -229,13 +229,13 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
 
   { Is parent node an active X3DTimeDependentNode.
 
-    Doing this inside local procedure to limit lifetime of INodeX3DTimeDependentNode,
+    Doing this inside local procedure to limit lifetime of IAbstractX3DTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
   function Active: boolean;
   begin
     Result := (ParentNode <> nil) and
-      Supports(ParentNode, INodeX3DTimeDependentNode) and
-      (ParentNode as INodeX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
+      Supports(ParentNode, IAbstractX3DTimeDependentNode) and
+      (ParentNode as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
   end;
 
 begin
@@ -253,17 +253,17 @@ procedure TSFStopTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
 
   { Is parent node an active X3DTimeDependentNode, and AValue <= startTime.
 
-    Doing this inside local procedure to limit lifetime of INodeX3DTimeDependentNode,
+    Doing this inside local procedure to limit lifetime of IAbstractX3DTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
   function Active: boolean;
   var
     H: TTimeDependentNodeHandler;
   begin
     Result := (ParentNode <> nil) and
-      Supports(ParentNode, INodeX3DTimeDependentNode);
+      Supports(ParentNode, IAbstractX3DTimeDependentNode);
     if Result then
     begin
-      H := (ParentNode as INodeX3DTimeDependentNode).TimeDependentNodeHandler;
+      H := (ParentNode as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler;
       Result := H.IsActive and
         ( (AValue as TSFTime).Value <= H.FdStartTime.Value );
     end;
@@ -397,7 +397,7 @@ begin
     causing events (if their values changed). }
 
   { For ResetTime, set time-dependent node properties to default
-    (like after TNodeTimeHandler creation) at the beginning. }
+    (like after TTimeDependentNodeHandler creation) at the beginning. }
   if ResetTime then
   begin
     NewIsActive := false;
@@ -564,7 +564,7 @@ end;
 
 { VRML/X3D nodes ------------------------------------------------------------- }
 
-procedure TNodeX3DTimeDependentNode.CreateNode;
+procedure TAbstractX3DTimeDependentNode.CreateNode;
 begin
   inherited;
 
@@ -618,18 +618,18 @@ begin
   FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
 end;
 
-destructor TNodeX3DTimeDependentNode.Destroy;
+destructor TAbstractX3DTimeDependentNode.Destroy;
 begin
   FreeAndNil(FTimeDependentNodeHandler);
   inherited;
 end;
 
-function TNodeX3DTimeDependentNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+function TAbstractX3DTimeDependentNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
 begin
   Result := FTimeDependentNodeHandler;
 end;
 
-procedure TNodeTimeSensor.CreateNode;
+procedure TTimeSensorNode.CreateNode;
 begin
   inherited;
 
@@ -662,24 +662,24 @@ begin
   EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
 end;
 
-function TNodeTimeSensor.CycleInterval: TKamTime;
+function TTimeSensorNode.CycleInterval: TKamTime;
 begin
   Result := FdCycleInterval.Value;
 end;
 
-class function TNodeTimeSensor.ClassNodeTypeName: string;
+class function TTimeSensorNode.ClassNodeTypeName: string;
 begin
   Result := 'TimeSensor';
 end;
 
-class function TNodeTimeSensor.URNMatching(const URN: string): boolean;
+class function TTimeSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeTimeSensor.EventElapsedTimeReceive(
+procedure TTimeSensorNode.EventElapsedTimeReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 var
   Fraction: Single;
@@ -697,7 +697,7 @@ end;
 procedure RegisterTimeNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeTimeSensor
+    TTimeSensorNode
   ]);
 end;
 

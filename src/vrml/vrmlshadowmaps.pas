@@ -44,7 +44,7 @@ const
     @item(extend it's "texCoord" field with appropriate
       ProjectedTextureCoordinate,)
   ) }
-procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
+procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal);
 
@@ -61,9 +61,9 @@ const
 type
   { Information about light source relevant for shadow maps. }
   TLight = record
-    Light: TNodeX3DLightNode;
-    ShadowMap: TNodeGeneratedShadowMap;
-    TexGen: TNodeProjectedTextureCoordinate;
+    Light: TAbstractX3DLightNode;
+    ShadowMap: TGeneratedShadowMapNode;
+    TexGen: TProjectedTextureCoordinateNode;
     MaxShadowReceiverDistance: Single;
   end;
   PLight = ^TLight;
@@ -71,13 +71,13 @@ type
   TLightList = class(specialize TGenericStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
-    ShadowMapShaders: array [boolean, 0..1] of TNodeComposedShader;
+    ShadowMapShaders: array [boolean, 0..1] of TComposedShaderNode;
     ShadowCastersBox: TBox3D;
-    LightsCastingOnEverything: TVRMLNodeList;
+    LightsCastingOnEverything: TX3DNodeList;
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
-    function FindLight(Light: TNodeX3DLightNode): PLight;
+    function FindLight(Light: TAbstractX3DLightNode): PLight;
 
     procedure ShapeRemove(Shape: TVRMLShape);
     procedure ShapeAdd(Shape: TVRMLShape);
@@ -87,10 +87,10 @@ type
     procedure HandleLightAutomaticProjection(const Light: TLight);
 
     { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
-    procedure HandleLightCastingOnEverything(Node: TVRMLNode);
+    procedure HandleLightCastingOnEverything(Node: TX3DNode);
   end;
 
-function TLightList.FindLight(Light: TNodeX3DLightNode): PLight;
+function TLightList.FindLight(Light: TAbstractX3DLightNode): PLight;
 var
   I: Integer;
   LightUniqueName: string;
@@ -113,9 +113,9 @@ begin
   { create new (or use existing) GeneratedShadowMap node }
 
   if (Light.FdDefaultShadowMap.Value <> nil) and
-     (Light.FdDefaultShadowMap.Value is TNodeGeneratedShadowMap) then
+     (Light.FdDefaultShadowMap.Value is TGeneratedShadowMapNode) then
   begin
-    Result^.ShadowMap := TNodeGeneratedShadowMap(Light.FdDefaultShadowMap.Value);
+    Result^.ShadowMap := TGeneratedShadowMapNode(Light.FdDefaultShadowMap.Value);
 
     { TODO: for now, we remove the shadow map from defaultShadowMap,
       otherwise we would have a loop in our VRML nodes graph
@@ -124,7 +124,7 @@ begin
       And we currently cannot handle nicely such loops (our parser
       never creates them, our enumeration routines assume they don't exist
       etc.) This will be eventually fixed (something like PTraversingInfo
-      will be used all around TVRMLNode.DirectEnumerate*, and checked to avoid
+      will be used all around TX3DNode.DirectEnumerate*, and checked to avoid
       visiting nodes we're already inside), VRML/X3D actually require
       us to handle it in some Script cases anyway. }
     Result^.ShadowMap.KeepExistingBegin;
@@ -138,7 +138,7 @@ begin
     Light.DefaultShadowMapSave(Result^.ShadowMap);
   end else
   begin
-    Result^.ShadowMap := TNodeGeneratedShadowMap.Create('', '');
+    Result^.ShadowMap := TGeneratedShadowMapNode.Create('', '');
     if not Light.DefaultShadowMapLoad(Result^.ShadowMap) then
     begin
       Result^.ShadowMap.FdUpdate.Value := 'ALWAYS';
@@ -158,7 +158,7 @@ begin
 
   { create new ProjectedTextureCoordinate node }
 
-  Result^.TexGen := TNodeProjectedTextureCoordinate.Create('', '');
+  Result^.TexGen := TProjectedTextureCoordinateNode.Create('', '');
   Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
@@ -175,7 +175,7 @@ procedure TLightList.ShapeRemove(Shape: TVRMLShape);
     I := 0;
     while I < Texture.Count do
       if IsSuffix(NodeNameSuffix, Texture[I].NodeName) and
-         (Texture[I] is TNodeGeneratedShadowMap) then
+         (Texture[I] is TGeneratedShadowMapNode) then
         Texture.Delete(I) else
         Inc(I);
   end;
@@ -188,7 +188,7 @@ procedure TLightList.ShapeRemove(Shape: TVRMLShape);
     I := 0;
     while I < TexCoord.Count do
       if IsSuffix(NodeNameSuffix, TexCoord[I].NodeName) and
-         (TexCoord[I] is TNodeProjectedTextureCoordinate) then
+         (TexCoord[I] is TProjectedTextureCoordinateNode) then
         TexCoord.Delete(I) else
         Inc(I);
   end;
@@ -196,37 +196,37 @@ procedure TLightList.ShapeRemove(Shape: TVRMLShape);
 begin
   if Shape.Node <> nil then
   begin
-    if Shape.Node.Texture is TNodeMultiTexture then
-      RemoveOldShadowMap(TNodeMultiTexture(Shape.Node.Texture).FdTexture);
+    if Shape.Node.Texture is TMultiTextureNode then
+      RemoveOldShadowMap(TMultiTextureNode(Shape.Node.Texture).FdTexture);
     if (Shape.Geometry.TexCoordField <> nil) and
        (Shape.Geometry.TexCoordField.Value <> nil) and
-       (Shape.Geometry.TexCoordField.Value is TNodeMultiTextureCoordinate) then
-      RemoveOldTexGen(TNodeMultiTextureCoordinate(Shape.Geometry.TexCoordField.Value).FdTexCoord);
+       (Shape.Geometry.TexCoordField.Value is TMultiTextureCoordinateNode) then
+      RemoveOldTexGen(TMultiTextureCoordinateNode(Shape.Geometry.TexCoordField.Value).FdTexCoord);
   end;
 end;
 
 procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
   { Add ShadowMap to the textures used by the shape.
-    Always converts Texture to TNodeMultiTexture, to add the shadow map
+    Always converts Texture to TMultiTextureNode, to add the shadow map
     preserving old texture.
 
     Returns the count of textures in TexturesCount, not counting the last
     ShadowMap texture. }
-  procedure HandleShadowMap(var Texture: TNodeX3DTextureNode;
-    const ShadowMap: TNodeGeneratedShadowMap; out TexturesCount: Cardinal);
+  procedure HandleShadowMap(var Texture: TAbstractX3DTextureNode;
+    const ShadowMap: TGeneratedShadowMapNode; out TexturesCount: Cardinal);
   var
-    MTexture: TNodeMultiTexture;
+    MTexture: TMultiTextureNode;
   begin
     { calculate MTexture }
     if (Texture <> nil) and
-       (Texture is TNodeMultiTexture) then
+       (Texture is TMultiTextureNode) then
     begin
       { if Texture already is MultiTexture, then we're already Ok }
-      MTexture := TNodeMultiTexture(Texture);
+      MTexture := TMultiTextureNode(Texture);
     end else
     begin
-      MTexture := TNodeMultiTexture.Create('', '');
+      MTexture := TMultiTextureNode.Create('', '');
       if Texture <> nil then
       begin
         { set position in parent only for more deterministic output
@@ -253,7 +253,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
   end;
 
   { Add to the texCoord field.
-    Converts texCoord to TNodeMultiTextureCoordinate,
+    Converts texCoord to TMultiTextureCoordinateNode,
     to preserve previous tex coord.
 
     May remove some texCoord nodes, knowing that only the 1st
@@ -263,8 +263,8 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
     Makes sure that the count of texCoords is exactly RelevantTexCoordsCount,
     not counting the last (newly added) TexGen node. }
-  procedure HandleTexGen(var TexCoord: TVRMLNode;
-    const TexGen: TNodeProjectedTextureCoordinate;
+  procedure HandleTexGen(var TexCoord: TX3DNode;
+    const TexGen: TProjectedTextureCoordinateNode;
     const RelevantTexCoordsCount: Cardinal);
 
     { Resize Coords. If you increase Coords, then new ones
@@ -272,7 +272,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
     procedure ResizeTexCoord(const Coords: TMFNode; const NewCount: Cardinal);
     var
       OldCount: Cardinal;
-      NewTexCoordGen: TNodeTextureCoordinateGenerator;
+      NewTexCoordGen: TTextureCoordinateGeneratorNode;
       I: Integer;
     begin
       OldCount := Coords.Count;
@@ -280,24 +280,24 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
       for I := OldCount to NewCount - 1 do
       begin
-        NewTexCoordGen := TNodeTextureCoordinateGenerator.Create('', '');
+        NewTexCoordGen := TTextureCoordinateGeneratorNode.Create('', '');
         NewTexCoordGen.FdMode.Value := 'BOUNDS';
         Coords.Replace(I, NewTexCoordGen);
       end;
     end;
 
   var
-    MTexCoord: TNodeMultiTextureCoordinate;
+    MTexCoord: TMultiTextureCoordinateNode;
   begin
     { calculate MTexCoord }
     if (TexCoord <> nil) and
-       (TexCoord is TNodeMultiTextureCoordinate) then
+       (TexCoord is TMultiTextureCoordinateNode) then
     begin
       { if TexCoord already is MultiTextureCoordinate, then we're already Ok }
-      MTexCoord := TNodeMultiTextureCoordinate(TexCoord);
+      MTexCoord := TMultiTextureCoordinateNode(TexCoord);
     end else
     begin
-      MTexCoord := TNodeMultiTextureCoordinate.Create('', '');
+      MTexCoord := TMultiTextureCoordinateNode.Create('', '');
       if TexCoord <> nil then
       begin
         { set position in parent only for more deterministic output
@@ -337,14 +337,14 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
     We do not add/remove from there anything (we do not need any
     texture transforms there, X3D will assume identity for texture units
     without corresponding TextureTransform node, this is Ok). }
-  procedure HandleTextureTransform(var TextureTransform: TNodeX3DTextureTransformNode);
+  procedure HandleTextureTransform(var TextureTransform: TAbstractX3DTextureTransformNode);
   var
-    MultiTT: TNodeMultiTextureTransform;
+    MultiTT: TMultiTextureTransformNode;
   begin
     if (TextureTransform <> nil) and
-       (TextureTransform is TNodeTextureTransform) then
+       (TextureTransform is TTextureTransformNode) then
     begin
-      MultiTT := TNodeMultiTextureTransform.Create('', '');
+      MultiTT := TMultiTextureTransformNode.Create('', '');
       { set position in parent only for more deterministic output
 	(new "texture" field on the same position) }
       MultiTT.PositionInParent := TextureTransform.PositionInParent;
@@ -356,12 +356,12 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
   { 1. Add necessary ShadowMap
     2. Add necessary TexGen
     3. Convert texture, texCoord, textureTransform to multi-texture if needed }
-  procedure HandleLight(LightNode: TNodeX3DLightNode);
+  procedure HandleLight(LightNode: TAbstractX3DLightNode);
   var
     Light: PLight;
-    Texture: TNodeX3DTextureNode;
-    TextureTransform: TNodeX3DTextureTransformNode;
-    TexCoord: TVRMLNode;
+    Texture: TAbstractX3DTextureNode;
+    TextureTransform: TAbstractX3DTextureTransformNode;
+    TexCoord: TX3DNode;
     TexturesCount: Cardinal;
     Box: TBox3D;
     MinReceiverDistance, MaxReceiverDistance: Single;
@@ -417,7 +417,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
 var
   I: Integer;
-  App: TNodeAppearance;
+  App: TAppearanceNode;
 begin
   if Shape.Node = nil then
   begin
@@ -433,7 +433,7 @@ begin
   if (App = nil) and
      (LightsCastingOnEverything.Count <> 0) then
   begin
-    App := TNodeAppearance.Create('', Shape.Node.WWWBasePath); { recalculate App }
+    App := TAppearanceNode.Create('', Shape.Node.WWWBasePath); { recalculate App }
     Shape.Node.Appearance := App;
   end;
 
@@ -471,11 +471,11 @@ begin
     of both lists. }
 
   for I := 0 to App.FdReceiveShadows.Count - 1 do
-    if App.FdReceiveShadows[I] is TNodeX3DLightNode then
-      HandleLight(TNodeX3DLightNode(App.FdReceiveShadows[I]));
+    if App.FdReceiveShadows[I] is TAbstractX3DLightNode then
+      HandleLight(TAbstractX3DLightNode(App.FdReceiveShadows[I]));
 
   for I := 0 to LightsCastingOnEverything.Count - 1 do
-    HandleLight(TNodeX3DLightNode(LightsCastingOnEverything[I]));
+    HandleLight(TAbstractX3DLightNode(LightsCastingOnEverything[I]));
 end;
 
 procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
@@ -527,13 +527,13 @@ begin
     Light.Light.FdProjectionFar.Value := ProjectionFar;
 end;
 
-procedure TLightList.HandleLightCastingOnEverything(Node: TVRMLNode);
+procedure TLightList.HandleLightCastingOnEverything(Node: TX3DNode);
 begin
-  if TNodeX3DLightNode(Node).FdShadows.Value then
+  if TAbstractX3DLightNode(Node).FdShadows.Value then
     LightsCastingOnEverything.Add(Node);
 end;
 
-procedure ProcessShadowMapsReceivers(Model: TVRMLNode; Shapes: TVRMLShapeTree;
+procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TVRMLShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal);
 var
@@ -570,8 +570,8 @@ begin
       Lights.ShadowCastersBox := EmptyBox3D;
 
       { calculate Lights.LightsCastingOnEverything first }
-      Lights.LightsCastingOnEverything := TVRMLNodeList.Create(false);
-      Model.EnumerateNodes(TNodeX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
+      Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);
+      Model.EnumerateNodes(TAbstractX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
 
       Shapes.Traverse(@Lights.ShapeAdd, false);
 

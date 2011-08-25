@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TNodeHAnimDisplacer = class(TNodeX3DGeometricPropertyNode)
+  THAnimDisplacerNode = class(TAbstractX3DGeometricPropertyNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -34,19 +34,19 @@
     public property FdWeight: TSFFloat read FFdWeight;
   end;
 
-  TNodeHAnimJoint = class;
+  THAnimJointNode = class;
 
   TVertexJoints = object
     RestPosition: TVector3Single;
     Count: Cardinal;
-    Joints: array of TNodeHAnimJoint;
+    Joints: array of THAnimJointNode;
     Weights: array of Single;
-    procedure Add(Joint: TNodeHAnimJoint; const Weight: Single);
+    procedure Add(Joint: THAnimJointNode; const Weight: Single);
   end;
   PVertexJoints = ^TVertexJoints;
   TVertexJointsList = specialize TGenericStructList<TVertexJoints>;
 
-  TNodeHAnimHumanoid = class(TNodeX3DChildNode, INodeX3DBoundedObject, INodeTransform)
+  THAnimHumanoidNode = class(TAbstractX3DChildNode, IAbstractX3DBoundedObject, ITransformNode)
   private
     VertexJoints: TVertexJointsList;
   protected
@@ -117,7 +117,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     { Change the skin (in skinCoord), to follow the animation of joints.
-      Joints that changed are assumed to be already traversed by TVRMLNode.Traverse
+      Joints that changed are assumed to be already traversed by TX3DNode.Traverse
       (this prepares field values for AnimateSkinPoint call).
 
       This method is used by TVRMLScene. Don't call this yourself.
@@ -128,7 +128,7 @@
     function AnimateSkin: TMFVec3f;
   end;
 
-  TNodeHAnimJoint = class(TNodeX3DGroupingNode, INodeTransform)
+  THAnimJointNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
     AnimateSkinTransform: TMatrix4Single;
     RestCenter: TVector3Single;
@@ -198,7 +198,7 @@
     public property FdUlimit: TMFFloat read FFdUlimit;
   end;
 
-  TNodeHAnimSegment = class(TNodeX3DGroupingNode, INodeTransform)
+  THAnimSegmentNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -243,7 +243,7 @@
     public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
 
-  TNodeHAnimSite = class(TNodeX3DGroupingNode, INodeTransform)
+  THAnimSiteNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -277,7 +277,7 @@
 
 {$ifdef read_implementation}
 
-procedure TNodeHAnimDisplacer.CreateNode;
+procedure THAnimDisplacerNode.CreateNode;
 begin
   inherited;
 
@@ -298,18 +298,18 @@ begin
   DefaultContainerField := 'displacers';
 end;
 
-class function TNodeHAnimDisplacer.ClassNodeTypeName: string;
+class function THAnimDisplacerNode.ClassNodeTypeName: string;
 begin
   Result := 'HAnimDisplacer';
 end;
 
-class function TNodeHAnimDisplacer.URNMatching(const URN: string): boolean;
+class function THAnimDisplacerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TVertexJoints.Add(Joint: TNodeHAnimJoint; const Weight: Single);
+procedure TVertexJoints.Add(Joint: THAnimJointNode; const Weight: Single);
 begin
   Inc(Count);
   SetLength(Joints , Count);
@@ -318,7 +318,7 @@ begin
   Weights[Count - 1] := Weight;
 end;
 
-procedure TNodeHAnimHumanoid.CreateNode;
+procedure THAnimHumanoidNode.CreateNode;
 begin
   inherited;
 
@@ -330,7 +330,7 @@ begin
   FFdInfo := TMFString.Create(Self, 'info', []);
   Fields.Add(FFdInfo);
 
-  FFdJoints := TMFNode.Create(Self, 'joints', [TNodeHAnimJoint]);
+  FFdJoints := TMFNode.Create(Self, 'joints', [THAnimJointNode]);
   Fields.Add(FFdJoints);
 
   FFdName := TSFString.Create(Self, 'name', '');
@@ -351,13 +351,13 @@ begin
   Fields.Add(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdSegments := TMFNode.Create(Self, 'segments', [TNodeHAnimSegment]);
+  FFdSegments := TMFNode.Create(Self, 'segments', [THAnimSegmentNode]);
   Fields.Add(FFdSegments);
 
-  FFdSites := TMFNode.Create(Self, 'sites', [TNodeHAnimSite]);
+  FFdSites := TMFNode.Create(Self, 'sites', [THAnimSiteNode]);
   Fields.Add(FFdSites);
 
-  FFdSkeleton := TMFNode.Create(Self, 'skeleton', [TNodeHAnimJoint, TNodeHAnimSite]);
+  FFdSkeleton := TMFNode.Create(Self, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
   Fields.Add(FFdSkeleton);
 
   { HAnim 1.1 specificaion uses "humanoidBody" instead of "skeleton",
@@ -365,13 +365,13 @@ begin
     HAnim 200x specs talks only about "skeleton"). }
   Fdskeleton.AddAlternativeName('humanoidBody', 0);
 
-  FFdSkin := TMFNode.Create(Self, 'skin', [TNodeX3DChildNode]);
+  FFdSkin := TMFNode.Create(Self, 'skin', [TAbstractX3DChildNode]);
   Fields.Add(FFdSkin);
 
-  FFdSkinCoord := TSFNode.Create(Self, 'skinCoord', [TNodeX3DCoordinateNode]);
+  FFdSkinCoord := TSFNode.Create(Self, 'skinCoord', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdSkinCoord);
 
-  FFdSkinNormal := TSFNode.Create(Self, 'skinNormal', [TNodeX3DNormalNode]);
+  FFdSkinNormal := TSFNode.Create(Self, 'skinNormal', [TAbstractX3DNormalNode]);
   Fields.Add(FFdSkinNormal);
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
@@ -383,16 +383,16 @@ begin
   Fields.Add(FFdVersion);
 
   FFdViewpoints := TMFNode.Create(Self, 'viewpoints', [
-    { X3D specificaion indicates that TNodeHAnimSite is allowed here,
+    { X3D specificaion indicates that THAnimSiteNode is allowed here,
       but textual description in HAnim specification indicates that
       it's an error: viewpoints should be allowed here.
       Confirmed by testing models from
       http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
 
-      To be on the safest side, I allow both TNodeHAnimSite and viewpoint
+      To be on the safest side, I allow both THAnimSiteNode and viewpoint
       classes.  }
-    TNodeHAnimSite,
-    TNodeX3DViewpointNode, TNodeViewpointGroup ]);
+    THAnimSiteNode,
+    TAbstractX3DViewpointNode, TViewpointGroupNode ]);
   Fields.Add(FFdViewpoints);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -408,24 +408,24 @@ begin
   DefaultContainerField := 'children';
 end;
 
-destructor TNodeHAnimHumanoid.Destroy;
+destructor THAnimHumanoidNode.Destroy;
 begin
   FreeAndNil(VertexJoints);
   inherited;
 end;
 
-class function TNodeHAnimHumanoid.ClassNodeTypeName: string;
+class function THAnimHumanoidNode.ClassNodeTypeName: string;
 begin
   Result := 'HAnimHumanoid';
 end;
 
-class function TNodeHAnimHumanoid.URNMatching(const URN: string): boolean;
+class function THAnimHumanoidNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeHAnimHumanoid.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   { Between HAnim 1.0 and 200x hierarchy changed, in 1.0 there's no "skeleton"
     field but root Joint is just simply placed directly in VRML file.
@@ -452,7 +452,7 @@ begin
     only one using this approach. }
 end;
 
-procedure TNodeHAnimHumanoid.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure THAnimHumanoidNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Push;
@@ -465,7 +465,7 @@ begin
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
-function TNodeHAnimHumanoid.AnimateSkin: TMFVec3f;
+function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
 
   function UpdateVertex(const VJ: TVertexJoints): TVector3Single;
   var
@@ -493,10 +493,10 @@ var
 begin
   if not (
     (FdSkinCoord.Value <> nil) and
-    (FdSkinCoord.Value is TNodeCoordinate) and
+    (FdSkinCoord.Value is TCoordinateNode) and
     (VertexJoints <> nil)) then Exit(nil);
 
-  Result := TNodeCoordinate(FdSkinCoord.Value).FdPoint;
+  Result := TCoordinateNode(FdSkinCoord.Value).FdPoint;
   SkinCoord := Result.Items;
   if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
 
@@ -504,14 +504,14 @@ begin
     SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
 end;
 
-procedure TNodeHAnimHumanoid.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure THAnimHumanoidNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   AnimateSkin;
   StateStack.Pop;
   inherited;
 end;
 
-procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
+procedure THAnimHumanoidNode.ParseAfter(Names: TVRMLNames);
 
   procedure CalculateVertexJoints;
   var
@@ -520,13 +520,13 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
     SkinCoordIndex: TLongIntList;
     CoordIndex: Integer;
     Weight: Single;
-    Joint: TNodeHAnimJoint;
+    Joint: THAnimJointNode;
   begin
     FreeAndNil(VertexJoints);
     if (FdSkinCoord.Value <> nil) and
-       (FdSkinCoord.Value is TNodeCoordinate) then
+       (FdSkinCoord.Value is TCoordinateNode) then
     begin
-      SkinCoord := TNodeCoordinate(FdSkinCoord.Value).FdPoint.Items;
+      SkinCoord := TCoordinateNode(FdSkinCoord.Value).FdPoint.Items;
       VertexJoints := TVertexJointsList.Create;
       VertexJoints.Count := SkinCoord.Count;
 
@@ -537,9 +537,9 @@ procedure TNodeHAnimHumanoid.ParseAfter(Names: TVRMLNames);
       end;
 
       for I := 0 to FdJoints.Count - 1 do
-        if FdJoints[I] is TNodeHAnimJoint then
+        if FdJoints[I] is THAnimJointNode then
         begin
-          Joint := TNodeHAnimJoint(FdJoints[I]);
+          Joint := THAnimJointNode(FdJoints[I]);
           SkinCoordIndex := Joint.FdSkinCoordIndex.Items;
           for J := 0 to SkinCoordIndex.Count - 1 do
           begin
@@ -567,12 +567,12 @@ begin
   CalculateVertexJoints;
 end;
 
-function TNodeHAnimHumanoid.TransformationChange: TNodeTransformationChange;
+function THAnimHumanoidNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
 
-procedure TNodeHAnimJoint.CreateNode;
+procedure THAnimJointNode.CreateNode;
 begin
   inherited;
 
@@ -581,7 +581,7 @@ begin
   Fields.Add(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdDisplacers := TMFNode.Create(Self, 'displacers', [TNodeHAnimDisplacer]);
+  FFdDisplacers := TMFNode.Create(Self, 'displacers', [THAnimDisplacerNode]);
   Fields.Add(FFdDisplacers);
 
   FFdLimitOrientation := TSFRotation.Create(Self, 'limitOrientation', Vector3Single(0, 0, 1), 0);
@@ -634,38 +634,38 @@ begin
   AnimateSkinTransform := IdentityMatrix4Single;
 end;
 
-class function TNodeHAnimJoint.ClassNodeTypeName: string;
+class function THAnimJointNode.ClassNodeTypeName: string;
 begin
   Result := 'HAnimJoint';
 end;
 
-class function TNodeHAnimJoint.URNMatching(const URN: string): boolean;
+class function THAnimJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeHAnimJoint.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   FdChildren.EnumerateValid(Func);
 end;
 
-function TNodeHAnimJoint.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
+function THAnimJointNode.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
 begin
   Result := MatrixMultPoint(AnimateSkinTransform, Point);
 end;
 
-procedure TNodeHAnimJoint.ParseAfter(Names: TVRMLNames);
+procedure THAnimJointNode.ParseAfter(Names: TVRMLNames);
 begin
   inherited;
   RestCenter := FdCenter.Value;
 end;
 
-procedure TNodeHAnimJoint.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure THAnimJointNode.ApplyTransform(State: TVRMLGraphTraverseState);
 var
   IgnoreHumanoidTransformScale: Single;
   I: Integer;
-  ChildJoint: TNodeHAnimJoint;
+  ChildJoint: THAnimJointNode;
   LocalCenter, NewChildCenter: TVector3Single;
 begin
   inherited;
@@ -695,9 +695,9 @@ begin
 
   { animate centers of children joints }
   for I := 0 to FdChildren.Count - 1 do
-    if FdChildren[I] is TNodeHAnimJoint then
+    if FdChildren[I] is THAnimJointNode then
     begin
-      ChildJoint := TNodeHAnimJoint(FdChildren[I]);
+      ChildJoint := THAnimJointNode(FdChildren[I]);
 
       { TODO: it's a little hack to update ChildJoint.FdCenter this way.
         The cleaner way would be to just
@@ -726,12 +726,12 @@ begin
     end;
 end;
 
-function TNodeHAnimJoint.TransformationChange: TNodeTransformationChange;
+function THAnimJointNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
 
-procedure TNodeHAnimSegment.CreateNode;
+procedure THAnimSegmentNode.CreateNode;
 begin
   inherited;
 
@@ -739,10 +739,10 @@ begin
   Fields.Add(FFdCenterOfMass);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TNodeX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
   Fields.Add(FFdCoord);
 
-  FFdDisplacers := TMFNode.Create(Self, 'displacers', [TNodeHAnimDisplacer]);
+  FFdDisplacers := TMFNode.Create(Self, 'displacers', [THAnimDisplacerNode]);
   Fields.Add(FFdDisplacers);
 
   FFdMass := TSFFloat.Create(Self, 'mass', 0);
@@ -774,35 +774,35 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeHAnimSegment.ClassNodeTypeName: string;
+class function THAnimSegmentNode.ClassNodeTypeName: string;
 begin
   Result := 'HAnimSegment';
 end;
 
-class function TNodeHAnimSegment.URNMatching(const URN: string): boolean;
+class function THAnimSegmentNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeHAnimSegment.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure TNodeHAnimSegment.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure THAnimSegmentNode.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
   TransformState(State, ZeroVector3Single, Fdrotation.Value,
     Fdscale.Value, ZeroVector4Single, Fdtranslation.Value);
 end;
 
-function TNodeHAnimSegment.TransformationChange: TNodeTransformationChange;
+function THAnimSegmentNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
 
-procedure TNodeHAnimSite.CreateNode;
+procedure THAnimSiteNode.CreateNode;
 begin
   inherited;
 
@@ -837,30 +837,30 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TNodeHAnimSite.ClassNodeTypeName: string;
+class function THAnimSiteNode.ClassNodeTypeName: string;
 begin
   Result := 'HAnimSite';
 end;
 
-class function TNodeHAnimSite.URNMatching(const URN: string): boolean;
+class function THAnimSiteNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNodeHAnimSite.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure TNodeHAnimSite.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure THAnimSiteNode.ApplyTransform(State: TVRMLGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 end;
 
-function TNodeHAnimSite.TransformationChange: TNodeTransformationChange;
+function THAnimSiteNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
@@ -868,11 +868,11 @@ end;
 procedure RegisterHAnimNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeHAnimDisplacer,
-    TNodeHAnimHumanoid,
-    TNodeHAnimJoint,
-    TNodeHAnimSegment,
-    TNodeHAnimSite
+    THAnimDisplacerNode,
+    THAnimHumanoidNode,
+    THAnimJointNode,
+    THAnimSegmentNode,
+    THAnimSiteNode
   ]);
 end;
 

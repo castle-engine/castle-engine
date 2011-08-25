@@ -308,15 +308,15 @@ procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
     Vertexes: TVector3SingleList;
     CoordIndex: TLongIntList;
   begin
-    if Shape.Geometry is TNodeIndexedFaceSet_1 then
+    if Shape.Geometry is TIndexedFaceSetNode_1 then
     begin
-      Vertexes := TNodeIndexedFaceSet_1(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TNodeIndexedFaceSet_1(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TIndexedFaceSetNode_1(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TIndexedFaceSetNode_1(Shape.Geometry).CoordIndex.Items;
     end else
-    if Shape.Geometry is TNodeIndexedFaceSet then
+    if Shape.Geometry is TIndexedFaceSetNode then
     begin
-      Vertexes := TNodeIndexedFaceSet(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TNodeIndexedFaceSet(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TIndexedFaceSetNode(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TIndexedFaceSetNode(Shape.Geometry).CoordIndex.Items;
     end else
     begin
       Writeln('Geometry: ', Shape.Geometry.NodeTypeName);
@@ -384,15 +384,15 @@ begin
       Don't even think about using it in production code, the simple
       code below omits a lot of X3D/VRML complexity just to get to
       the raw (and extremely dumbed down) vertex data. }
-    if Shape.Geometry is TNodeIndexedFaceSet_1 then
+    if Shape.Geometry is TIndexedFaceSetNode_1 then
     begin
-      Vertexes := TNodeIndexedFaceSet_1(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TNodeIndexedFaceSet_1(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TIndexedFaceSetNode_1(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TIndexedFaceSetNode_1(Shape.Geometry).CoordIndex.Items;
     end else
-    if Shape.Geometry is TNodeIndexedFaceSet then
+    if Shape.Geometry is TIndexedFaceSetNode then
     begin
-      Vertexes := TNodeIndexedFaceSet(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TNodeIndexedFaceSet(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TIndexedFaceSetNode(Shape.Geometry).Coordinates(Shape.State).Items;
+      CoordIndex := TIndexedFaceSetNode(Shape.Geometry).CoordIndex.Items;
     end else
       raise Exception.Create('Specified shape is not IndexedFaceSet');
 

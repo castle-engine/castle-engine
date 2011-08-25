@@ -34,7 +34,7 @@
     and documented cleanly.
 
   - In the future, this may be abstracted from OpenGL and used as a basis
-    also for TVRMLGeometryNode.Triangulate methods implementation.
+    also for TAbstractGeometryNode.Triangulate methods implementation.
 }
 
 type
@@ -42,7 +42,7 @@ type
   private
     FRenderer: TVRMLGLRenderer;
     FShape: TVRMLRendererShape;
-    FGeometry: TVRMLGeometryNode;
+    FGeometry: TAbstractGeometryNode;
     FState: TVRMLGraphTraverseState;
     FAttributes: TVRMLRenderingAttributes;
   protected
@@ -50,7 +50,7 @@ type
       lifetime of the renderer, set in constructor. }
     property Renderer: TVRMLGLRenderer read FRenderer;
     property Shape: TVRMLRendererShape read FShape;
-    property Geometry: TVRMLGeometryNode read FGeometry;
+    property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TVRMLGraphTraverseState read FState;
     property Attributes: TVRMLRenderingAttributes read FAttributes;
   public

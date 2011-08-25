@@ -279,12 +279,12 @@ end;
 
 constructor TIndexedFaceSet_1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  SH: TNodeShapeHints;
-  ANode: TNodeIndexedFaceSet_1;
+  SH: TShapeHintsNode;
+  ANode: TIndexedFaceSetNode_1;
 begin
   inherited;
 
-  ANode := Geometry as TNodeIndexedFaceSet_1;
+  ANode := Geometry as TIndexedFaceSetNode_1;
 
   TexCoordIndex := ANode.FdTextureCoordIndex;
 
@@ -328,11 +328,11 @@ end;
 
 constructor TIndexedFaceSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  ANode: TNodeIndexedFaceSet;
+  ANode: TIndexedFaceSetNode;
 begin
   inherited;
 
-  ANode := Geometry as TNodeIndexedFaceSet;
+  ANode := Geometry as TIndexedFaceSetNode;
 
   TexCoordIndex := ANode.FdTexCoordIndex;
 

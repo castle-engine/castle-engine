@@ -23,9 +23,9 @@
   (The above doesn't concern much nodes. Most nodes in VRML 1.0 and 97
   specifications are different enough that even when they have the same
   name (like Group) we implement them using different classes (like
-  TNodeGroup_1 and TNodeGroup).)
+  TGroupNode_1 and TGroupNode).)
 
-  Note that most VRML 1 nodes descend from TNodeX3DChildNode,
+  Note that most VRML 1 nodes descend from TAbstractX3DChildNode,
   this way we can use them inside VRML >= 2.0 group nodes and
   mix VRML 1.0 and greater versions.
 } { }
@@ -37,13 +37,13 @@
     while VRML 2.0 has different idea of how shapes are handled
     (they must be inside Shape node), so no shape node
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
-  TVRMLGeometryNode_1 = class(TVRMLGeometryNode, INodeX3DChildNode)
+  TAbstractGeometryNode_1 = class(TAbstractGeometryNode, IAbstractX3DChildNode)
   public
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;
   end;
 
-  TNodeAsciiText_1 = class(TVRMLGeometryNode_1)
+  TAsciiTextNode_1 = class(TAbstractGeometryNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -62,16 +62,16 @@
     public property FdWidth: TMFFloat read FFdWidth;
 
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     function Justify: TVRMLFontJustify;
   end;
 
-  TNodeCone_1 = class(TVRMLGeometryNode_1)
+  TConeNode_1 = class(TAbstractGeometryNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -85,19 +85,19 @@
     public property FdHeight: TSFFloat read FFdHeight;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TNodeCube_1 = class(TVRMLGeometryNode_1)
+  TCubeNode_1 = class(TAbstractGeometryNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -111,19 +111,19 @@
     public property FdDepth: TSFFloat read FFdDepth;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TNodeCylinder_1 = class(TVRMLGeometryNode_1)
+  TCylinderNode_1 = class(TAbstractGeometryNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -137,21 +137,21 @@
     public property FdHeight: TSFFloat read FFdHeight;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   { Common base class for VRML 1.0 indexed nodes
     (IndexedFaceSet, IndexedTriangleMesh, IndexedLineSet). }
-  TVRMLIndexedNode_1 = class(TVRMLGeometryNode_1)
+  TAbstractIndexedNode_1 = class(TAbstractGeometryNode_1)
   public
     procedure CreateNode; override;
 
@@ -174,12 +174,12 @@
 
   { Common base class for VRML 1.0 indexed polygon nodes
     (IndexedFaceSet and IndexedTriangleMesh). }
-  TNodeIndexed_Faces_Or_Triangles_1 = class(TVRMLIndexedNode_1)
+  TIndexedFacesOrTrianglesNode_1 = class(TAbstractIndexedNode_1)
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNodeIndexedFaceSet_1 = class(TNodeIndexed_Faces_Or_Triangles_1)
+  TIndexedFaceSetNode_1 = class(TIndexedFacesOrTrianglesNode_1)
   public
     procedure CreateNode; override;
 
@@ -193,16 +193,16 @@
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
     function TexCoord(State: TVRMLGraphTraverseState;
-      out ATexCoord: TVRMLNode): boolean; override;
+      out ATexCoord: TX3DNode): boolean; override;
   end;
 
-  TNodeIndexedLineSet_1 = class(TVRMLIndexedNode_1)
+  TIndexedLineSetNode_1 = class(TAbstractIndexedNode_1)
     class function ClassNodeTypeName: string; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     function TexCoord(State: TVRMLGraphTraverseState;
-      out ATexCoord: TVRMLNode): boolean; override;
+      out ATexCoord: TX3DNode): boolean; override;
 
     { Do we have enough normals information to render this node lit.
       VRML 1.0 specification explicitly mentions that IndexedLineSet is treated
@@ -210,7 +210,7 @@
     function Lit(State: TVRMLGraphTraverseState): boolean; override;
   end;
 
-  TNodePointSet_1 = class(TVRMLGeometryNode_1)
+  TPointSetNode_1 = class(TAbstractGeometryNode_1)
   private
     CoordSubrange: TMFVec3f;
   public
@@ -228,11 +228,11 @@
       out ACoord: TMFVec3f): boolean; override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
     function Lit(State: TVRMLGraphTraverseState): boolean; override;
   end;
 
-  TNodeSphere_1 = class(TVRMLGeometryNode_1)
+  TSphereNode_1 = class(TAbstractGeometryNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -240,19 +240,19 @@
     public property FdRadius: TSFFloat read FFdRadius;
 
     function Proxy(var State: TVRMLGraphTraverseState;
-      const OverTriangulate: boolean): TVRMLGeometryNode; override;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TVRMLGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TNodeCoordinate3 = class(TNodeX3DChildNode)
+  TCoordinate3Node = class(TAbstractX3DChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -260,7 +260,7 @@
     public property FdPoint: TMFVec3f read FFdPoint;
   end;
 
-  TNodeFontStyle_1 = class(TNodeX3DChildNode)
+  TFontStyleNode_1 = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -283,7 +283,7 @@
     function TTF_Font: PTrueTypeFont;
   end;
 
-  TNodeInfo = class(TNodeX3DChildNode)
+  TInfoNode = class(TAbstractX3DChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -291,7 +291,7 @@
     public property FdString: TSFString read FFdString;
   end;
 
-  TNodeLOD_1 = class(TNodeX3DChildNode)
+  TLODNode_1 = class(TAbstractX3DChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -311,7 +311,7 @@
 
   TVRMLMaterialInfo_1 = class;
 
-  TNodeMaterial_1 = class(TNodeX3DChildNode)
+  TMaterialNode_1 = class(TAbstractX3DChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -416,10 +416,10 @@
 
   TVRMLMaterialInfo_1 = class(TVRMLMaterialInfoAbstract)
   private
-    FNode: TNodeMaterial_1;
+    FNode: TMaterialNode_1;
     FIndex: Integer;
   public
-    constructor Create(Node: TNodeMaterial_1; const Index: Integer);
+    constructor Create(Node: TMaterialNode_1; const Index: Integer);
 
     function DiffuseColor: TVector3Single; override;
     function Mirror: Single; override;
@@ -434,7 +434,7 @@
     function TransSpecularExp: Single; override;
   end;
 
-  TNodeMaterialBinding = class(TNodeX3DChildNode)
+  TMaterialBindingNode = class(TAbstractX3DChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -442,7 +442,7 @@
     public property FdValue: TSFEnum read FFdValue;
   end;
 
-  TNodeNormalBinding = class(TNodeX3DChildNode)
+  TNormalBindingNode = class(TAbstractX3DChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -450,7 +450,7 @@
     public property FdValue: TSFEnum read FFdValue;
   end;
 
-  TNodeTexture2 = class(TVRML2DTextureNode)
+  TTexture2Node = class(TAbstractTexture2DNode)
   protected
     { Texture is loaded from file or inlined.
       The priority has the filename, only if it's empty (or an exception
@@ -492,7 +492,7 @@
     function RepeatT: boolean; override;
   end;
 
-  TNodeTexture2Transform = class(TNodeX3DChildNode)
+  TTexture2TransformNode = class(TAbstractX3DChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -514,7 +514,7 @@
     function TextureMatrixTransformation: TMatrix4Single;
   end;
 
-  TNodeTextureCoordinate2 = class(TNodeX3DChildNode)
+  TTextureCoordinate2Node = class(TAbstractX3DChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -522,7 +522,7 @@
     public property FdPoint: TMFVec2f read FFdPoint;
   end;
 
-  TNodeShapeHints = class(TNodeX3DChildNode)
+  TShapeHintsNode = class(TAbstractX3DChildNode)
   protected
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; override;
@@ -545,7 +545,7 @@
 
   { Common base class for all nodes that modify the modelview matrix.
     In descendants you only have to override the MatrixTransform method. }
-  TVRMLTransformationNode = class(TNodeX3DChildNode)
+  TAbstractTransformationNode = class(TAbstractX3DChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -554,7 +554,7 @@
   end;
 
   { VRML 1.0 MatrixTransform node. }
-  TNodeMatrixTransform_1 = class(TVRMLTransformationNode)
+  TMatrixTransformNode_1 = class(TAbstractTransformationNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -582,7 +582,7 @@
       override;
   end;
 
-  TNodeRotation = class(TVRMLTransformationNode)
+  TRotationNode = class(TAbstractTransformationNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -593,7 +593,7 @@
     function TransformScale: Single; override;
   end;
 
-  TNodeScale = class(TVRMLTransformationNode)
+  TScaleNode = class(TAbstractTransformationNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -604,7 +604,7 @@
     function TransformScale: Single; override;
   end;
 
-  TNodeTransform_1 = class(TVRMLTransformationNode)
+  TTransformNode_1 = class(TAbstractTransformationNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -631,7 +631,7 @@
       override;
   end;
 
-  TNodeTranslation = class(TVRMLTransformationNode)
+  TTranslationNode = class(TAbstractTransformationNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -643,7 +643,7 @@
   end;
 
   { Common base class for all cameras in VRML 1.0. }
-  TVRMLCameraNode_1 = class(TVRMLViewpointNode)
+  TAbstractCameraNode_1 = class(TAbstractViewpointNode)
   public
     procedure CreateNode; override;
 
@@ -666,7 +666,7 @@
     function Position: TSFVec3f; override;
   end;
 
-  TNodeOrthographicCamera = class(TVRMLCameraNode_1)
+  TOrthographicCameraNode = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
 
@@ -677,7 +677,7 @@
     public property FdHeight: TSFFloat read FFdHeight;
   end;
 
-  TNodePerspectiveCamera = class(TVRMLCameraNode_1)
+  TPerspectiveCameraNode = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
 
@@ -688,7 +688,7 @@
     public property FdHeightAngle: TSFFloat read FFdHeightAngle;
   end;
 
-  TNodeDirectionalLight_1 = class(TVRMLDirectionalLightNode)
+  TDirectionalLightNode_1 = class(TAbstractDirectionalLightNode)
   public
     procedure CreateNode; override;
 
@@ -698,7 +698,7 @@
     function Scope: TLightScope; override;
   end;
 
-  TNodePointLight_1 = class(TVRMLPointLightNode)
+  TPointLightNode_1 = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
@@ -707,7 +707,7 @@
     function Scope: TLightScope; override;
   end;
 
-  TNodeSpotLight_1 = class(TVRMLPositionalLightNode)
+  TSpotLightNode_1 = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -740,7 +740,7 @@
     function Scope: TLightScope; override;
   end;
 
-  TNodeGroup_1 = class(TNodeX3DChildNode)
+  TGroupNode_1 = class(TAbstractX3DChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -752,7 +752,7 @@
   { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
     It is used in implementation of VRML 1.0 Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
-  TVRMLSeparatorNode = class(TNodeX3DChildNode)
+  TAbstractSeparatorNode = class(TAbstractX3DChildNode)
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -760,7 +760,7 @@
     procedure CreateNode; override;
   end;
 
-  TNodeSeparator = class(TVRMLSeparatorNode)
+  TSeparatorNode = class(TAbstractSeparatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -769,7 +769,7 @@
     public property FdRenderCulling: TSFEnum read FFdRenderCulling;
   end;
 
-  TNodeSwitch_1 = class(TNodeX3DChildNode)
+  TSwitchNode_1 = class(TAbstractX3DChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -784,7 +784,7 @@
       override;
   end;
 
-  TNodeTransformSeparator = class(TNodeX3DChildNode)
+  TTransformSeparatorNode = class(TAbstractX3DChildNode)
   private
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalTransformScale: Single;
@@ -796,7 +796,7 @@
     class function ClassNodeTypeName: string; override;
   end;
 
-  TNodeWWWAnchor = class(TVRMLSeparatorNode)
+  TWWWAnchorNode = class(TAbstractSeparatorNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -817,7 +817,7 @@
     The VRML 2.0/X3D field "url" is renamed here to VRML 1.0 field "name".
     (Note that this means that WWWInline.name is actually MFString,
     not just SFString like VRML 1.0 spec says.) }
-  TNodeWWWInline = class(TNodeInline)
+  TWWWInlineNode = class(TInlineNode)
   protected
     function SeparateGroup: boolean; override;
   public
@@ -830,12 +830,12 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TVRMLGeometryNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeAsciiText_1.CreateNode;
+procedure TAsciiTextNode_1.CreateNode;
 begin
   inherited;
 
@@ -856,17 +856,17 @@ begin
   Fields.Add(FFdWidth);
 end;
 
-class function TNodeAsciiText_1.ClassNodeTypeName: string;
+class function TAsciiTextNode_1.ClassNodeTypeName: string;
 begin
   result := 'AsciiText';
 end;
 
-function TNodeAsciiText_1.Justify: TVRMLFontJustify;
+function TAsciiTextNode_1.Justify: TVRMLFontJustify;
 begin
   Result := TVRMLFontJustify(FdJustification.Value);
 end;
 
-procedure TNodeCone_1.CreateNode;
+procedure TConeNode_1.CreateNode;
 begin
   inherited;
 
@@ -883,17 +883,17 @@ begin
   Fields.Add(FFdHeight);
 end;
 
-class function TNodeCone_1.ClassNodeTypeName: string;
+class function TConeNode_1.ClassNodeTypeName: string;
 begin
   result := 'Cone';
 end;
 
-function TNodeCone_1.AutoGenerate3DTexCoords: boolean;
+function TConeNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
 end;
 
-procedure TNodeCube_1.CreateNode;
+procedure TCubeNode_1.CreateNode;
 begin
   inherited;
 
@@ -910,17 +910,17 @@ begin
   Fields.Add(FFdDepth);
 end;
 
-class function TNodeCube_1.ClassNodeTypeName: string;
+class function TCubeNode_1.ClassNodeTypeName: string;
 begin
   result := 'Cube';
 end;
 
-function TNodeCube_1.AutoGenerate3DTexCoords: boolean;
+function TCubeNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
 end;
 
-procedure TNodeCylinder_1.CreateNode;
+procedure TCylinderNode_1.CreateNode;
 begin
   inherited;
 
@@ -937,17 +937,17 @@ begin
   Fields.Add(FFdHeight);
 end;
 
-class function TNodeCylinder_1.ClassNodeTypeName: string;
+class function TCylinderNode_1.ClassNodeTypeName: string;
 begin
   result := 'Cylinder';
 end;
 
-function TNodeCylinder_1.AutoGenerate3DTexCoords: boolean;
+function TCylinderNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
 end;
 
-procedure TVRMLIndexedNode_1.CreateNode;
+procedure TAbstractIndexedNode_1.CreateNode;
 begin
   inherited;
 
@@ -970,19 +970,19 @@ begin
   Fields.Add(FFdTextureCoordIndex);
 end;
 
-function TVRMLIndexedNode_1.Coord(State: TVRMLGraphTraverseState;
+function TAbstractIndexedNode_1.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
   ACoord := State.LastNodes.Coordinate3.FdPoint;
 end;
 
-function TVRMLIndexedNode_1.CoordIndex: TMFLong;
+function TAbstractIndexedNode_1.CoordIndex: TMFLong;
 begin
   Result := FdCoordIndex;
 end;
 
-procedure TNodeIndexedFaceSet_1.CreateNode;
+procedure TIndexedFaceSetNode_1.CreateNode;
 begin
   inherited;
 
@@ -991,31 +991,31 @@ begin
   Fields.Add(FFdRadianceTransfer);
 end;
 
-class function TNodeIndexedFaceSet_1.ClassNodeTypeName: string;
+class function TIndexedFaceSetNode_1.ClassNodeTypeName: string;
 begin
   result := 'IndexedFaceSet';
 end;
 
-function TNodeIndexedFaceSet_1.TexCoord(State: TVRMLGraphTraverseState;
-  out ATexCoord: TVRMLNode): boolean;
+function TIndexedFaceSetNode_1.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
   ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
-class function TNodeIndexedLineSet_1.ClassNodeTypeName: string;
+class function TIndexedLineSetNode_1.ClassNodeTypeName: string;
 begin
   result := 'IndexedLineSet';
 end;
 
-function TNodeIndexedLineSet_1.TexCoord(State: TVRMLGraphTraverseState;
-  out ATexCoord: TVRMLNode): boolean;
+function TIndexedLineSetNode_1.TexCoord(State: TVRMLGraphTraverseState;
+  out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
   ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
-function TNodeIndexedLineSet_1.Lit(State: TVRMLGraphTraverseState): boolean;
+function TIndexedLineSetNode_1.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   { This somewhat follows the logic of
     TAbstractNormalGenerator.NorImplementationFromVRML1Binding,
@@ -1038,7 +1038,7 @@ begin
     Result := false;
 end;
 
-procedure TNodePointSet_1.CreateNode;
+procedure TPointSetNode_1.CreateNode;
 begin
   inherited;
 
@@ -1053,18 +1053,18 @@ begin
   CoordSubrange := TMFVec3f.Create(Self, '', []);
 end;
 
-destructor TNodePointSet_1.Destroy;
+destructor TPointSetNode_1.Destroy;
 begin
   FreeAndNil(CoordSubrange);
   inherited;
 end;
 
-class function TNodePointSet_1.ClassNodeTypeName: string;
+class function TPointSetNode_1.ClassNodeTypeName: string;
 begin
   result := 'PointSet';
 end;
 
-function TNodePointSet_1.Coord(State: TVRMLGraphTraverseState;
+function TPointSetNode_1.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 
   procedure CalculateRange(CoordsCount: Cardinal;
@@ -1119,12 +1119,12 @@ begin
   end;
 end;
 
-function TNodePointSet_1.Lit(State: TVRMLGraphTraverseState): boolean;
+function TPointSetNode_1.Lit(State: TVRMLGraphTraverseState): boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeSphere_1.CreateNode;
+procedure TSphereNode_1.CreateNode;
 begin
   inherited;
 
@@ -1133,17 +1133,17 @@ begin
   Fields.Add(FFdRadius);
 end;
 
-class function TNodeSphere_1.ClassNodeTypeName: string;
+class function TSphereNode_1.ClassNodeTypeName: string;
 begin
   result := 'Sphere';
 end;
 
-function TNodeSphere_1.AutoGenerate3DTexCoords: boolean;
+function TSphereNode_1.AutoGenerate3DTexCoords: boolean;
 begin
   Result := true;
 end;
 
-procedure TNodeCoordinate3.CreateNode;
+procedure TCoordinate3Node.CreateNode;
 begin
   inherited;
 
@@ -1152,12 +1152,12 @@ begin
   Fields.Add(FFdPoint);
 end;
 
-class function TNodeCoordinate3.ClassNodeTypeName: string;
+class function TCoordinate3Node.ClassNodeTypeName: string;
 begin
   result := 'Coordinate3';
 end;
 
-procedure TNodeFontStyle_1.CreateNode;
+procedure TFontStyleNode_1.CreateNode;
 begin
   inherited;
 
@@ -1174,37 +1174,37 @@ begin
   Fields.Add(FFdStyle);
 end;
 
-class function TNodeFontStyle_1.ClassNodeTypeName: string;
+class function TFontStyleNode_1.ClassNodeTypeName: string;
 begin
   result := 'FontStyle';
 end;
 
-function TNodeFontStyle_1.TTF_Font: PTrueTypeFont;
+function TFontStyleNode_1.TTF_Font: PTrueTypeFont;
 begin
   Result := TTF_Font_Results[Family, Bold, Italic];
 end;
 
-function TNodeFontStyle_1.Family: TVRMLFontFamily;
+function TFontStyleNode_1.Family: TVRMLFontFamily;
 begin
   Result := TVRMLFontFamily(FdFamily.Value);
 end;
 
-function TNodeFontStyle_1.Bold: boolean;
+function TFontStyleNode_1.Bold: boolean;
 begin
   Result := FdStyle.Flags[FSSTYLE_BOLD];
 end;
 
-function TNodeFontStyle_1.Italic: boolean;
+function TFontStyleNode_1.Italic: boolean;
 begin
   Result := FdStyle.Flags[FSSTYLE_ITALIC];
 end;
 
-class function TNodeFontStyle_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TFontStyleNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeInfo.CreateNode;
+procedure TInfoNode.CreateNode;
 begin
   inherited;
 
@@ -1212,12 +1212,12 @@ begin
   Fields.Add(FFdString);
 end;
 
-class function TNodeInfo.ClassNodeTypeName: string;
+class function TInfoNode.ClassNodeTypeName: string;
 begin
   result := 'Info';
 end;
 
-procedure TNodeLOD_1.CreateNode;
+procedure TLODNode_1.CreateNode;
 begin
   inherited;
 
@@ -1231,12 +1231,12 @@ begin
   VRML1ChildrenParsingAllowed := true;
 end;
 
-class function TNodeLOD_1.ClassNodeTypeName: string;
+class function TLODNode_1.ClassNodeTypeName: string;
 begin
   result := 'LOD';
 end;
 
-procedure TNodeLOD_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   { TODO: powinnismy tu uzywac odleglosci od camery ? Problem.
     dla renderowania jest problem z wrzucaniem tego na display liste.
@@ -1252,12 +1252,12 @@ begin
   Func(Self, VRML1Children[0]);
 end;
 
-class function TNodeLOD_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TLODNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeMaterial_1.CreateNode;
+procedure TMaterialNode_1.CreateNode;
 begin
   inherited;
 
@@ -1318,7 +1318,7 @@ begin
   Fields.Add(FFdFogImmune);
 end;
 
-class function TNodeMaterial_1.ClassNodeTypeName: string;
+class function TMaterialNode_1.ClassNodeTypeName: string;
 begin
   result := 'Material';
 end;
@@ -1335,7 +1335,7 @@ end;
   property number. }
 
 {$define MATERIAL_FUNCTION_3_SINGLE:=
-function TNodeMaterial_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3Single;
+function TMaterialNode_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3Single;
 begin
   if MATERIAL_FUNCTION_FIELD.Count = 0 then
     result := MATERIAL_FUNCTION_DEFAULT else
@@ -1343,7 +1343,7 @@ begin
       min(MatNum, MATERIAL_FUNCTION_FIELD.Count - 1)];
 end;
 
-function TNodeMaterial_1.MATERIAL_FUNCTION_NAME_4(MatNum: integer): TVector4Single;
+function TMaterialNode_1.MATERIAL_FUNCTION_NAME_4(MatNum: integer): TVector4Single;
 var result3: TVector3Single absolute result;
 begin
   result3 := MATERIAL_FUNCTION_NAME_3(MatNum);
@@ -1382,7 +1382,7 @@ end;
 {$undef MATERIAL_FUNCTION_NAME_4}
 
 {$define MATERIAL_FUNCTION_SINGLE:=
-function TNodeMaterial_1.MATERIAL_FUNCTION_NAME(MatNum: integer): Single;
+function TMaterialNode_1.MATERIAL_FUNCTION_NAME(MatNum: integer): Single;
 begin
  if MATERIAL_FUNCTION_FIELD.Count = 0 then
   result := MATERIAL_FUNCTION_DEFAULT else
@@ -1415,19 +1415,19 @@ end;}
 {$undef MATERIAL_FUNCTION_DEFAULT}
 {$undef MATERIAL_FUNCTION_SINGLE}
 
-function TNodeMaterial_1.Opacity(MatNum: integer): Single;
+function TMaterialNode_1.Opacity(MatNum: integer): Single;
 begin
   result := 1 - Transparency(MatNum);
 end;
 
-function TNodeMaterial_1.Shininess(MatNum: integer): Single;
+function TMaterialNode_1.Shininess(MatNum: integer): Single;
 begin
   if FdShininess.Count = 0 then
     result := DefaultMaterialShininess else
     result := FdShininess.Items.L[min(MatNum, FdShininess.Count-1)];
 end;
 
-function TNodeMaterial_1.ShininessExp(MatNum: integer): Single;
+function TMaterialNode_1.ShininessExp(MatNum: integer): Single;
 begin
   Result := Shininess(MatNum);
 
@@ -1447,14 +1447,14 @@ begin
     result := Clamped(result * 128.0, 0.0, 128.0);
 end;
 
-function TNodeMaterial_1.OnlyEmissiveMaterial: boolean;
+function TMaterialNode_1.OnlyEmissiveMaterial: boolean;
 begin
   result:=(FdAmbientColor.Count = 0) and
           (FdDiffuseColor.Count = 0) and
           (FdSpecularColor.Count = 0);
 end;
 
-function TNodeMaterial_1.AllMaterialsTransparent: boolean;
+function TMaterialNode_1.AllMaterialsTransparent: boolean;
 var i: Integer;
 begin
   if FdTransparency.Items.Count = 0 then
@@ -1466,17 +1466,17 @@ begin
   end;
 end;
 
-class function TNodeMaterial_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMaterialNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-function TNodeMaterial_1.MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
+function TMaterialNode_1.MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
 begin
   Result := TVRMLMaterialInfo_1.Create(Self, Index);
 end;
 
-constructor TVRMLMaterialInfo_1.Create(Node: TNodeMaterial_1; const Index: Integer);
+constructor TVRMLMaterialInfo_1.Create(Node: TMaterialNode_1; const Index: Integer);
 begin
   inherited Create;
   FNode := Node;
@@ -1548,7 +1548,7 @@ begin
   Result := FNode.TransSpecularExp(FIndex);
 end;
 
-procedure TNodeMaterialBinding.CreateNode;
+procedure TMaterialBindingNode.CreateNode;
 begin
   inherited;
 
@@ -1557,12 +1557,12 @@ begin
   Fields.Add(FFdValue);
 end;
 
-class function TNodeMaterialBinding.ClassNodeTypeName: string;
+class function TMaterialBindingNode.ClassNodeTypeName: string;
 begin
   result := 'MaterialBinding';
 end;
 
-procedure TNodeNormalBinding.CreateNode;
+procedure TNormalBindingNode.CreateNode;
 begin
   inherited;
 
@@ -1571,12 +1571,12 @@ begin
   Fields.Add(FFdValue);
 end;
 
-class function TNodeNormalBinding.ClassNodeTypeName: string;
+class function TNormalBindingNode.ClassNodeTypeName: string;
 begin
   result := 'NormalBinding';
 end;
 
-procedure TNodeTexture2.CreateNode;
+procedure TTexture2Node.CreateNode;
 begin
   inherited;
 
@@ -1605,12 +1605,12 @@ begin
   Fields.Add(FFdBlendColor);
 end;
 
-class function TNodeTexture2.ClassNodeTypeName: string;
+class function TTexture2Node.ClassNodeTypeName: string;
 begin
   result := 'Texture2';
 end;
 
-procedure TNodeTexture2.LoadTextureData(out CacheUsed: boolean);
+procedure TTexture2Node.LoadTextureData(out CacheUsed: boolean);
 var
   FullUrl: string;
 begin
@@ -1638,7 +1638,7 @@ begin
     FTextureImage := FdImage.Value.MakeCopy;
 end;
 
-function TNodeTexture2.TextureDescription: string;
+function TTexture2Node.TextureDescription: string;
 
   function InlinedDescr: string;
   begin
@@ -1658,17 +1658,17 @@ begin
     result := 'none';
 end;
 
-function TNodeTexture2.RepeatS: boolean;
+function TTexture2Node.RepeatS: boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
 end;
 
-function TNodeTexture2.RepeatT: boolean;
+function TTexture2Node.RepeatT: boolean;
 begin
   Result := FdWrapT.Value = TEXWRAP_REPEAT;
 end;
 
-procedure TNodeTexture2Transform.CreateNode;
+procedure TTexture2TransformNode.CreateNode;
 begin
   inherited;
 
@@ -1689,12 +1689,12 @@ begin
   Fields.Add(FFdCenter);
 end;
 
-class function TNodeTexture2Transform.ClassNodeTypeName: string;
+class function TTexture2TransformNode.ClassNodeTypeName: string;
 begin
   result := 'Texture2Transform';
 end;
 
-function TNodeTexture2Transform.TextureMatrixTransformation: TMatrix4Single;
+function TTexture2TransformNode.TextureMatrixTransformation: TMatrix4Single;
 begin
   result := TranslationMatrix( Vector3Single(
     VectorAdd(FdTranslation.Value, FdCenter.Value) ));
@@ -1705,14 +1705,14 @@ begin
     Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
-procedure TNodeTexture2Transform.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTexture2TransformNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.TextureTransform := MatrixMult(StateStack.Top.TextureTransform,
     TextureMatrixTransformation);
 end;
 
-procedure TNodeTextureCoordinate2.CreateNode;
+procedure TTextureCoordinate2Node.CreateNode;
 begin
   inherited;
 
@@ -1721,12 +1721,12 @@ begin
   Fields.Add(FFdPoint);
 end;
 
-class function TNodeTextureCoordinate2.ClassNodeTypeName: string;
+class function TTextureCoordinate2Node.ClassNodeTypeName: string;
 begin
   result := 'TextureCoordinate2';
 end;
 
-procedure TNodeShapeHints.CreateNode;
+procedure TShapeHintsNode.CreateNode;
 begin
   inherited;
 
@@ -1747,12 +1747,12 @@ begin
   Fields.Add(FFdCreaseAngle);
 end;
 
-class function TNodeShapeHints.ClassNodeTypeName: string;
+class function TShapeHintsNode.ClassNodeTypeName: string;
 begin
   result := 'ShapeHints';
 end;
 
-function TNodeShapeHints.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
+function TShapeHintsNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
   const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
@@ -1786,7 +1786,7 @@ begin
   end;
 end;
 
-procedure TVRMLTransformationNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractTransformationNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 var
   M, IM: TMatrix4Single;
 begin
@@ -1799,7 +1799,7 @@ begin
   StateStack.Top.TransformScale *= TransformScale;
 end;
 
-procedure TNodeMatrixTransform_1.CreateNode;
+procedure TMatrixTransformNode_1.CreateNode;
 begin
   inherited;
 
@@ -1808,12 +1808,12 @@ begin
   Fields.Add(FFdMatrix);
 end;
 
-class function TNodeMatrixTransform_1.ClassNodeTypeName: string;
+class function TMatrixTransformNode_1.ClassNodeTypeName: string;
 begin
  result := 'MatrixTransform';
 end;
 
-procedure TNodeMatrixTransform_1.Transformation(
+procedure TMatrixTransformNode_1.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   Matrix := FdMatrix.Value;
@@ -1827,17 +1827,17 @@ begin
   end;
 end;
 
-function TNodeMatrixTransform_1.TransformScale: Single;
+function TMatrixTransformNode_1.TransformScale: Single;
 begin
   Result := FdMatrix.TransformScale;
 end;
 
-class function TNodeMatrixTransform_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeRotation.CreateNode;
+procedure TRotationNode.CreateNode;
 begin
   inherited;
 
@@ -1846,12 +1846,12 @@ begin
   Fields.Add(FFdRotation);
 end;
 
-class function TNodeRotation.ClassNodeTypeName: string;
+class function TRotationNode.ClassNodeTypeName: string;
 begin
   result := 'Rotation';
 end;
 
-procedure TNodeRotation.Transformation(
+procedure TRotationNode.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   { We don't check here for FdRotation.Axis = zero, RotationMatricesRad
@@ -1860,12 +1860,12 @@ begin
     Matrix, InvertedMatrix);
 end;
 
-function TNodeRotation.TransformScale: Single;
+function TRotationNode.TransformScale: Single;
 begin
   Result := 1;
 end;
 
-procedure TNodeScale.CreateNode;
+procedure TScaleNode.CreateNode;
 begin
   inherited;
 
@@ -1874,24 +1874,24 @@ begin
   Fields.Add(FFdScaleFactor);
 end;
 
-class function TNodeScale.ClassNodeTypeName: string;
+class function TScaleNode.ClassNodeTypeName: string;
 begin
  result := 'Scale';
 end;
 
-procedure TNodeScale.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
+procedure TScaleNode.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   ScalingMatrices(FdScaleFactor.Value, true, Matrix, InvertedMatrix);
 end;
 
-function TNodeScale.TransformScale: Single;
+function TScaleNode.TransformScale: Single;
 begin
   Result := ( FdScaleFactor.Value[0] +
               FdScaleFactor.Value[1] +
               FdScaleFactor.Value[2] ) / 3;
 end;
 
-procedure TNodeTransform_1.CreateNode;
+procedure TTransformNode_1.CreateNode;
 begin
   inherited;
 
@@ -1916,12 +1916,12 @@ begin
   Fields.Add(FFdCenter);
 end;
 
-class function TNodeTransform_1.ClassNodeTypeName: string;
+class function TTransformNode_1.ClassNodeTypeName: string;
 begin
   result := 'Transform';
 end;
 
-procedure TNodeTransform_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
+procedure TTransformNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
 var
   M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
 begin
@@ -1962,19 +1962,19 @@ begin
   InvertedMatrix := MatrixMult(IM, InvertedMatrix);
 end;
 
-function TNodeTransform_1.TransformScale: Single;
+function TTransformNode_1.TransformScale: Single;
 begin
   Result := ( FdScaleFactor.Value[0] +
               FdScaleFactor.Value[1] +
               FdScaleFactor.Value[2] ) / 3;
 end;
 
-class function TNodeTransform_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TTransformNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeTranslation.CreateNode;
+procedure TTranslationNode.CreateNode;
 begin
   inherited;
 
@@ -1983,23 +1983,23 @@ begin
   Fields.Add(FFdTranslation);
 end;
 
-class function TNodeTranslation.ClassNodeTypeName: string;
+class function TTranslationNode.ClassNodeTypeName: string;
 begin
   result := 'Translation';
 end;
 
-procedure TNodeTranslation.Transformation(
+procedure TTranslationNode.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   TranslationMatrices(FdTranslation.Value, Matrix, InvertedMatrix);
 end;
 
-function TNodeTranslation.TransformScale: Single;
+function TTranslationNode.TransformScale: Single;
 begin
   Result := 1;
 end;
 
-procedure TVRMLCameraNode_1.CreateNode;
+procedure TAbstractCameraNode_1.CreateNode;
 begin
   inherited;
 
@@ -2021,12 +2021,12 @@ begin
   Fields.Add(FFdFarDistance);
 end;
 
-function TVRMLCameraNode_1.Position: TSFVec3f;
+function TAbstractCameraNode_1.Position: TSFVec3f;
 begin
   Result := FdPosition;
 end;
 
-procedure TNodeOrthographicCamera.CreateNode;
+procedure TOrthographicCameraNode.CreateNode;
 begin
   inherited;
 
@@ -2034,17 +2034,17 @@ begin
   Fields.Add(FFdHeight);
 end;
 
-class function TNodeOrthographicCamera.ClassNodeTypeName: string;
+class function TOrthographicCameraNode.ClassNodeTypeName: string;
 begin
   result := 'OrthographicCamera';
 end;
 
-class function TNodeOrthographicCamera.ProjectionType: TProjectionType;
+class function TOrthographicCameraNode.ProjectionType: TProjectionType;
 begin
   result := ptOrthographic;
 end;
 
-procedure TNodePerspectiveCamera.CreateNode;
+procedure TPerspectiveCameraNode.CreateNode;
 begin
   inherited;
 
@@ -2052,17 +2052,17 @@ begin
   Fields.Add(FFdHeightAngle);
 end;
 
-class function TNodePerspectiveCamera.ClassNodeTypeName: string;
+class function TPerspectiveCameraNode.ClassNodeTypeName: string;
 begin
   result := 'PerspectiveCamera';
 end;
 
-class function TNodePerspectiveCamera.ProjectionType: TProjectionType;
+class function TPerspectiveCameraNode.ProjectionType: TProjectionType;
 begin
   result := ptPerspective;
 end;
 
-procedure TNodeDirectionalLight_1.CreateNode;
+procedure TDirectionalLightNode_1.CreateNode;
 begin
   inherited;
 
@@ -2072,19 +2072,19 @@ begin
   FdAmbientIntensity.DefaultValue := -1;
 end;
 
-class function TNodeDirectionalLight_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-function TNodeDirectionalLight_1.Scope: TLightScope;
+function TDirectionalLightNode_1.Scope: TLightScope;
 begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocalVRML1;
 end;
 
-procedure TNodePointLight_1.CreateNode;
+procedure TPointLightNode_1.CreateNode;
 begin
   inherited;
 
@@ -2098,24 +2098,24 @@ begin
   FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 end;
 
-class function TNodePointLight_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TPointLightNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-function TNodePointLight_1.HasRadius: boolean;
+function TPointLightNode_1.HasRadius: boolean;
 begin
   Result := false;
 end;
 
-function TNodePointLight_1.Scope: TLightScope;
+function TPointLightNode_1.Scope: TLightScope;
 begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocalVRML1;
 end;
 
-procedure TNodeSpotLight_1.CreateNode;
+procedure TSpotLightNode_1.CreateNode;
 begin
   inherited;
 
@@ -2141,36 +2141,36 @@ begin
   Fields.Add(FFdCutOffAngle);
 end;
 
-class function TNodeSpotLight_1.ClassNodeTypeName: string;
+class function TSpotLightNode_1.ClassNodeTypeName: string;
 begin
   result := 'SpotLight';
 end;
 
-function TNodeSpotLight_1.SpotExp: Single;
+function TSpotLightNode_1.SpotExp: Single;
 begin
   result := FdDropOffRate.Value * 128.0;
 end;
 
-class function TNodeSpotLight_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSpotLightNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeSpotLight_1.UpdateLightInstance(var LightInstance: TLightInstance);
+procedure TSpotLightNode_1.UpdateLightInstance(var LightInstance: TLightInstance);
 begin
   inherited;
   LightInstance.Direction := Normalized(MatrixMultDirection(
     LightInstance.Transform, FdDirection.Value));
 end;
 
-function TNodeSpotLight_1.ProjectionMatrix: TMatrix4Single;
+function TSpotLightNode_1.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
   { If author didn't provide and VRMLShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
-  { Implementation just like for TNodeSpotLight,
+  { Implementation just like for TSpotLightNode,
     except I was too lazy to add here projectionAngle. }
   Angle := 2 * FdCutOffAngle.Value;
 
@@ -2183,7 +2183,7 @@ begin
   Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
 end;
 
-function TNodeSpotLight_1.ModelviewMatrix: TMatrix4Single;
+function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -2191,7 +2191,7 @@ begin
   Result := LookDirMatrix(Pos, Dir, Up);
 end;
 
-function TNodeSpotLight_1.ModelviewRotationMatrix: TMatrix4Single;
+function TSpotLightNode_1.ModelviewRotationMatrix: TMatrix4Single;
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -2199,22 +2199,22 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TNodeSpotLight_1.LocationLocal: TVector3Single;
+function TSpotLightNode_1.LocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TNodeSpotLight_1.DirectionLocal: TVector3Single;
+function TSpotLightNode_1.DirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
 
-function TNodeSpotLight_1.HasRadius: boolean;
+function TSpotLightNode_1.HasRadius: boolean;
 begin
   Result := false;
 end;
 
-procedure TNodeSpotLight_1.Box3DDistances(const Box: TBox3D;
+procedure TSpotLightNode_1.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
@@ -2222,31 +2222,31 @@ begin
   Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
 end;
 
-function TNodeSpotLight_1.Scope: TLightScope;
+function TSpotLightNode_1.Scope: TLightScope;
 begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocalVRML1;
 end;
 
-procedure TNodeGroup_1.CreateNode;
+procedure TGroupNode_1.CreateNode;
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
 
-class function TNodeGroup_1.ClassNodeTypeName: string;
+class function TGroupNode_1.ClassNodeTypeName: string;
 begin
   result := 'Group';
 end;
 
-class function TNodeGroup_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TGroupNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TVRMLSeparatorNode.CreateNode;
+procedure TAbstractSeparatorNode.CreateNode;
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -2256,16 +2256,16 @@ end;
 type
   TVRML1SeparatorEnumerator = class
     State: TVRMLGraphTraverseState;
-    procedure Enumerate(Node, Child: TVRMLNode);
+    procedure Enumerate(Node, Child: TX3DNode);
   end;
 
-procedure TVRML1SeparatorEnumerator.Enumerate(Node, Child: TVRMLNode);
+procedure TVRML1SeparatorEnumerator.Enumerate(Node, Child: TX3DNode);
 begin
-  if Child is TNodeLocalFog then
-    State.LocalFog := TNodeLocalFog(Child);
+  if Child is TLocalFogNode then
+    State.LocalFog := TLocalFogNode(Child);
 end;
 
-procedure TVRMLSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 var
   Enumerator: TVRML1SeparatorEnumerator;
 begin
@@ -2282,13 +2282,13 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TVRMLSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   StateStack.Pop;
   inherited;
 end;
 
-procedure TNodeSeparator.CreateNode;
+procedure TSeparatorNode.CreateNode;
 begin
   inherited;
 
@@ -2296,12 +2296,12 @@ begin
   Fields.Add(FFdRenderCulling);
 end;
 
-class function TNodeSeparator.ClassNodeTypeName: string;
+class function TSeparatorNode.ClassNodeTypeName: string;
 begin
   result := 'Separator';
 end;
 
-procedure TNodeSwitch_1.CreateNode;
+procedure TSwitchNode_1.CreateNode;
 begin
   inherited;
 
@@ -2313,12 +2313,12 @@ begin
   VRML1ChildrenParsingAllowed := true;
 end;
 
-class function TNodeSwitch_1.ClassNodeTypeName: string;
+class function TSwitchNode_1.ClassNodeTypeName: string;
 begin
   result := 'Switch';
 end;
 
-procedure TNodeSwitch_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+procedure TSwitchNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
 begin
   if FdWhichChild.Value = -3 then
   begin
@@ -2338,24 +2338,24 @@ begin
   end;
 end;
 
-class function TNodeSwitch_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSwitchNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
 
-procedure TNodeTransformSeparator.CreateNode;
+procedure TTransformSeparatorNode.CreateNode;
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
 
-class function TNodeTransformSeparator.ClassNodeTypeName: string;
+class function TTransformSeparatorNode.ClassNodeTypeName: string;
 begin
   result := 'TransformSeparator';
 end;
 
-procedure TNodeTransformSeparator.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTransformSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
 
@@ -2366,7 +2366,7 @@ begin
   OriginalTransformScale := StateStack.Top.TransformScale;
 end;
 
-procedure TNodeTransformSeparator.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTransformSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   StateStack.Top.Transform := OriginalTransform;
   StateStack.Top.InvertedTransform := OriginalInvertedTransform;
@@ -2374,7 +2374,7 @@ begin
   inherited;
 end;
 
-procedure TNodeWWWAnchor.CreateNode;
+procedure TWWWAnchorNode.CreateNode;
 begin
   inherited;
 
@@ -2388,12 +2388,12 @@ begin
   Fields.Add(FFdMap);
 end;
 
-class function TNodeWWWAnchor.ClassNodeTypeName: string;
+class function TWWWAnchorNode.ClassNodeTypeName: string;
 begin
   result := 'WWWAnchor';
 end;
 
-procedure TNodeWWWInline.CreateNode;
+procedure TWWWInlineNode.CreateNode;
 begin
   inherited;
 
@@ -2411,12 +2411,12 @@ begin
   Fields.Add(FFdSeparate);
 end;
 
-class function TNodeWWWInline.ClassNodeTypeName: string;
+class function TWWWInlineNode.ClassNodeTypeName: string;
 begin
   result := 'WWWInline';
 end;
 
-function TNodeWWWInline.SeparateGroup: boolean;
+function TWWWInlineNode.SeparateGroup: boolean;
 begin
   Result := FdSeparate.Value;
 end;
@@ -2424,21 +2424,21 @@ end;
 procedure RegisterVRML1Nodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TNodeAsciiText_1, TNodeCone_1, TNodeCube_1, TNodeCylinder_1,
-    TNodeIndexedFaceSet_1, TNodeIndexedLineSet_1,
-    TNodePointSet_1, TNodeSphere_1,
-    TNodeCoordinate3, TNodeFontStyle_1, TNodeInfo, TNodeLOD_1, TNodeMaterial_1,
-    TNodeMaterialBinding, TNodeNormalBinding, TNodeTexture2,
-    TNodeTexture2Transform,
-    TNodeTextureCoordinate2, TNodeShapeHints,
-    TNodeMatrixTransform_1, TNodeRotation,
-    TNodeScale, TNodeTransform_1,
-    TNodeTranslation,
-    TNodeOrthographicCamera, TNodePerspectiveCamera,
-    TNodeDirectionalLight_1, TNodePointLight_1, TNodeSpotLight_1,
-    TNodeGroup_1, TNodeSeparator, TNodeSwitch_1, TNodeTransformSeparator,
-    TNodeWWWAnchor,
-    TNodeWWWInline
+    TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
+    TIndexedFaceSetNode_1, TIndexedLineSetNode_1,
+    TPointSetNode_1, TSphereNode_1,
+    TCoordinate3Node, TFontStyleNode_1, TInfoNode, TLODNode_1, TMaterialNode_1,
+    TMaterialBindingNode, TNormalBindingNode, TTexture2Node,
+    TTexture2TransformNode,
+    TTextureCoordinate2Node, TShapeHintsNode,
+    TMatrixTransformNode_1, TRotationNode,
+    TScaleNode, TTransformNode_1,
+    TTranslationNode,
+    TOrthographicCameraNode, TPerspectiveCameraNode,
+    TDirectionalLightNode_1, TPointLightNode_1, TSpotLightNode_1,
+    TGroupNode_1, TSeparatorNode, TSwitchNode_1, TTransformSeparatorNode,
+    TWWWAnchorNode,
+    TWWWInlineNode
   ]);
 end;
 

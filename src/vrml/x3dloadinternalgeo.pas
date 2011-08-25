@@ -22,7 +22,7 @@ interface
 
 uses VRMLNodes;
 
-function LoadGEO(const filename: string): TVRMLRootNode;
+function LoadGEO(const filename: string): TX3DRootNode;
 
 implementation
 
@@ -165,28 +165,28 @@ end;
 
 { LoadGEO -------------------------------------------------------------------- }
 
-function LoadGEO(const filename: string): TVRMLRootNode;
+function LoadGEO(const filename: string): TX3DRootNode;
 var
   geo: TObject3DGEO;
-  verts: TNodeCoordinate;
-  faces: TNodeIndexedFaceSet;
-  Shape: TNodeShape;
+  verts: TCoordinateNode;
+  faces: TIndexedFaceSetNode;
+  Shape: TShapeNode;
   i: integer;
   WWWBasePath: string;
 begin
   WWWBasePath := ExtractFilePath(ExpandFilename(filename));
   geo := TObject3DGEO.Create(filename);
   try
-    result := TVRMLRootNode.Create('', WWWBasePath);
+    result := TX3DRootNode.Create('', WWWBasePath);
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Shape := TNodeShape.Create('', WWWBasePath);
+      Shape := TShapeNode.Create('', WWWBasePath);
       result.FdChildren.Add(Shape);
-      Shape.Material := TNodeMaterial.Create('', WWWBasePath);
+      Shape.Material := TMaterialNode.Create('', WWWBasePath);
 
-      faces := TNodeIndexedFaceSet.Create('', WWWBasePath);
+      faces := TIndexedFaceSetNode.Create('', WWWBasePath);
       Shape.FdGeometry.Value := faces;
       faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
@@ -199,7 +199,7 @@ begin
         faces.FdCoordIndex.Items.L[i * 4 + 3] := -1;
       end;
 
-      verts := TNodeCoordinate.Create('', WWWBasePath);
+      verts := TCoordinateNode.Create('', WWWBasePath);
       faces.FdCoord.Value := verts;
       verts.FdPoint.Items.Assign(geo.Verts);
     except result.Free; raise end;

@@ -23,12 +23,12 @@ uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath, VRMLNodes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 { Load MD3 animation into a single animated X3D model. }
-function LoadMD3(const FileName: string): TVRMLRootNode;
+function LoadMD3(const FileName: string): TX3DRootNode;
 
 { Load MD3 animation as a sequence of static X3D models. }
 procedure LoadMD3Sequence(
   const FileName: string;
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -136,9 +136,9 @@ type
 { Load a specific animation frame from a given MD3 model.
   @param Md3 is the MD3 file to use.
   @param FrameNumber is the frame number to load, must be < Md3.Count.
-  @param WWWBasePath is the base URL, set for TVRMLNode.WWWBasePath. }
+  @param WWWBasePath is the base URL, set for TX3DNode.WWWBasePath. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TVRMLRootNode; forward;
+  const WWWBasePath: string): TX3DRootNode; forward;
 
 type
   EInvalidMD3 = class(Exception);
@@ -450,18 +450,18 @@ end;
 { Converting to X3D ---------------------------------------------------------- }
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TVRMLRootNode;
+  const WWWBasePath: string): TX3DRootNode;
 var
-  Texture: TNodeImageTexture;
+  Texture: TImageTextureNode;
   SceneBox: TBox3D;
 
   function MakeCoordinates(Vertexes: TMd3VertexList;
-    VertexesInFrameCount: Cardinal): TNodeCoordinate;
+    VertexesInFrameCount: Cardinal): TCoordinateNode;
   var
     I: Integer;
     V: PMd3Vertex;
   begin
-    Result := TNodeCoordinate.Create('', WWWBasePath);
+    Result := TCoordinateNode.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
     V := Addr(Vertexes.L[VertexesInFrameCount * FrameNumber]);
     for I := 0 to VertexesInFrameCount - 1 do
@@ -477,12 +477,12 @@ var
   end;
 
   function MakeTextureCoordinates(
-    TextureCoords: TMd3TexCoordList): TNodeTextureCoordinate;
+    TextureCoords: TMd3TexCoordList): TTextureCoordinateNode;
   var
     I: Integer;
     V: PVector2Single;
   begin
-    Result := TNodeTextureCoordinate.Create('', WWWBasePath);
+    Result := TTextureCoordinateNode.Create('', WWWBasePath);
     Result.FdPoint.Items.Count := TextureCoords.Count;
     V := PVector2Single(TextureCoords.List);
     for I := 0 to TextureCoords.Count - 1 do
@@ -492,11 +492,11 @@ var
     end;
   end;
 
-  function MakeIndexes(Triangles: TMd3TriangleList): TNodeIndexedFaceSet;
+  function MakeIndexes(Triangles: TMd3TriangleList): TIndexedFaceSetNode;
   var
     I: Integer;
   begin
-    Result := TNodeIndexedFaceSet.Create('', WWWBasePath);
+    Result := TIndexedFaceSetNode.Create('', WWWBasePath);
     Result.FdCreaseAngle.Value := NiceCreaseAngle;
     Result.FdSolid.Value := false;
     Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
@@ -515,24 +515,24 @@ var
     end;
   end;
 
-  function MakeShape(Surface: TMd3Surface): TNodeShape;
+  function MakeShape(Surface: TMd3Surface): TShapeNode;
   var
-    IFS: TNodeIndexedFaceSet;
+    IFS: TIndexedFaceSetNode;
   begin
     IFS := MakeIndexes(Surface.Triangles);
     IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
     IFS.FdTexCoord.Value := MakeTextureCoordinates(Surface.TextureCoords);
 
-    Result := TNodeShape.Create(ToVRMLName(Surface.Name), WWWBasePath);
+    Result := TShapeNode.Create(ToVRMLName(Surface.Name), WWWBasePath);
     Result.FdGeometry.Value := IFS;
-    Result.Material := TNodeMaterial.Create('', WWWBasePath);
+    Result.Material := TMaterialNode.Create('', WWWBasePath);
     Result.Texture := Texture;
   end;
 
 var
   I: Integer;
 begin
-  Result := TVRMLRootNode.Create(
+  Result := TX3DRootNode.Create(
     ToVRMLName(Md3.Name
       { Although adding here FrameNumber is not a bad idea, but VRMLGLAnimation
         requires for now that sequence of VRML models have the same node names }
@@ -545,7 +545,7 @@ begin
 
   if Md3.TextureFileName <> '' then
   begin
-    Texture := TNodeImageTexture.Create('', WWWBasePath);
+    Texture := TImageTextureNode.Create('', WWWBasePath);
     Texture.FdUrl.Items.Add(Md3.TextureFileName);
   end else
     Texture := nil;
@@ -566,7 +566,7 @@ begin
   end;
 end;
 
-function LoadMD3(const FileName: string): TVRMLRootNode;
+function LoadMD3(const FileName: string): TX3DRootNode;
 var
   Md3: TObject3DMD3;
   WWWBasePath: string;
@@ -580,7 +580,7 @@ end;
 
 procedure LoadMD3Sequence(
   const FileName: string;
-  RootNodes: TVRMLNodeList;
+  RootNodes: TX3DNodeList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;

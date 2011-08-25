@@ -216,7 +216,7 @@ type
     OnlyShapeChanged: TVRMLShape) of object;
 
   { VRML bindable nodes stack.
-    This keeps a stack of TNodeX3DBindableNode, with comfortable routines
+    This keeps a stack of TAbstractX3DBindableNode, with comfortable routines
     to examine top and push/pop from top. The stack is actually stored
     as a list, with the last item being the top one. }
   TVRMLBindableStack = class(TVRMLBindableStackBasic)
@@ -228,20 +228,20 @@ type
 
     { A useful utility: if the Node is not @nil, send isBound = Value and
       bindTime events to it. }
-    procedure SendIsBound(Node: TNodeX3DBindableNode; const Value: boolean);
+    procedure SendIsBound(Node: TAbstractX3DBindableNode; const Value: boolean);
 
     { Add new node to the top.
 
       This is internal, note that it doesn't send any events
       and doesn't produce DoBoundChanged / DoScheduleBoundChanged. }
-    procedure Push(Node: TNodeX3DBindableNode);
+    procedure Push(Node: TAbstractX3DBindableNode);
 
     { Remove current top node. Returns removed node, or @nil if no current
       node was present (that is, stack was empty).
 
       This is internal, note that it doesn't send any events
       and doesn't produce DoBoundChanged / DoScheduleBoundChanged. }
-    function Pop: TNodeX3DBindableNode;
+    function Pop: TAbstractX3DBindableNode;
 
     { When we're inside BeginChangesSchedule / EndChangesSchedule,
       then DoScheduleBoundChanged will not immediately call DoBoundChanged.
@@ -266,12 +266,12 @@ type
     property ParentScene: TVRMLScene read FParentScene;
 
     { Returns top item on this stack, or @nil if not present. }
-    function Top: TNodeX3DBindableNode;
+    function Top: TAbstractX3DBindableNode;
 
     { Add new node to the top, but only if stack is currently empty.
       If SendEvents, then isBound = true and bindTime events will be
       send to newly bound node. }
-    procedure PushIfEmpty(Node: TNodeX3DBindableNode; SendEvents: boolean);
+    procedure PushIfEmpty(Node: TAbstractX3DBindableNode; SendEvents: boolean);
 
     { This should be used when you suspect that some nodes on the stack
       are no longer present in current VRML graph (they were deleted).
@@ -284,11 +284,11 @@ type
       node will receive isBound = true and bindTime events (the old node
       will not  receive any set_bind = false or isBound = false events, since it
       may be destroyed by now). }
-    procedure CheckForDeletedNodes(RootNode: TVRMLNode; SendEvents: boolean);
+    procedure CheckForDeletedNodes(RootNode: TX3DNode; SendEvents: boolean);
 
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
-    procedure Set_Bind(Node: TNodeX3DBindableNode; const Value: boolean); override;
+    procedure Set_Bind(Node: TAbstractX3DBindableNode; const Value: boolean); override;
 
     { Notification when the currently bound node, that is
       @link(Top), changed. This also includes notification
@@ -302,21 +302,21 @@ type
   protected
     procedure DoBoundChanged; override;
   public
-    function Top: TVRMLViewpointNode;
+    function Top: TAbstractViewpointNode;
   end;
 
   TNavigationInfoStack = class(TVRMLBindableStack)
   protected
     procedure DoBoundChanged; override;
   public
-    function Top: TNodeNavigationInfo;
+    function Top: TNavigationInfoNode;
   end;
 
   { @exclude }
   TGeneratedTexture = record
-    { May be only TNodeGeneratedCubeMapTexture or TNodeRenderedTexture
-      or TNodeGeneratedShadowMap. }
-    TextureNode: TNodeX3DTextureNode;
+    { May be only TGeneratedCubeMapTextureNode or TRenderedTextureNode
+      or TGeneratedShadowMapNode. }
+    TextureNode: TAbstractX3DTextureNode;
     Handler: TGeneratedTextureHandler;
     Shape: TVRMLShape;
   end;
@@ -328,20 +328,20 @@ type
     along with their shape. }
   TGeneratedTextureList = class(specialize TGenericStructList<TGeneratedTexture>)
   public
-    function IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
-    function FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
-    procedure AddShapeTexture(Shape: TVRMLShape; Tex: TNodeX3DTextureNode);
-    procedure UpdateShadowMaps(LightNode: TNodeX3DLightNode);
+    function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
+    function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
+    procedure AddShapeTexture(Shape: TVRMLShape; Tex: TAbstractX3DTextureNode);
+    procedure UpdateShadowMaps(LightNode: TAbstractX3DLightNode);
   end;
 
-  { List of transform nodes (INodeTransform),
+  { List of transform nodes (ITransformNode),
     used to extract TVRMLShapeTreeList for this node. }
-  TTransformInstancesList = class(TVRMLNodeList)
+  TTransformInstancesList = class(TX3DNodeList)
   public
     { Returns existing TVRMLShapeTreeList corresponding to given Node.
       If not found, and AutoCreate, then creates new.
       If not found, and not AutoCreate, then return @nil. }
-    function Instances(Node: TVRMLNode;
+    function Instances(Node: TX3DNode;
       const AutoCreate: boolean): TVRMLShapeTreeList;
     procedure FreeShapeTrees;
   end;
@@ -488,7 +488,7 @@ type
   private
     FOwnsRootNode: boolean;
     FShapes: TVRMLShapeTree;
-    FRootNode: TVRMLRootNode;
+    FRootNode: TX3DRootNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
@@ -512,7 +512,7 @@ type
       We don't do AnimateSkin immediately, as it would force slowdown
       when many joints are changed at once (e.g. many joints, and each one
       animated with it's own OrientationInterpolator). }
-    ScheduledHumanoidAnimateSkin: TVRMLNodeList;
+    ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
       tree. }
@@ -527,14 +527,14 @@ type
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
 
-    { Handle change of transformation of INodeTransform node.
+    { Handle change of transformation of ITransformNode node.
       TransformNode and TransformNode must not be @nil here.
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
-    procedure TransformationChanged(TransformNode: TVRMLNode;
+    procedure TransformationChanged(TransformNode: TX3DNode;
       Instances: TVRMLShapeTreeList; const Changes: TVRMLChanges);
   private
-    { For all INodeTransform, except Billboard nodes }
+    { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
     { For all Billboard nodes }
     BillboardInstancesList: TTransformInstancesList;
@@ -561,7 +561,7 @@ type
       out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string):
-      TVRMLViewpointNode;
+      TAbstractViewpointNode;
   private
     FManifoldEdges: TManifoldEdgeList;
     FBorderEdges: TBorderEdgeList;
@@ -573,9 +573,9 @@ type
 
     procedure CalculateIfNeededManifoldAndBorderEdges;
 
-    procedure FreeResources_UnloadTextureData(Node: TVRMLNode);
-    procedure FreeResources_UnloadTexture3DData(Node: TVRMLNode);
-    procedure FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
+    procedure FreeResources_UnloadTextureData(Node: TX3DNode);
+    procedure FreeResources_UnloadTexture3DData(Node: TX3DNode);
+    procedure FreeResources_UnloadBackgroundImage(Node: TX3DNode);
   private
     FOnGeometryChanged: TVRMLSceneGeometryChanged;
     FOnViewpointsChanged: TVRMLSceneNotification;
@@ -585,14 +585,14 @@ type
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
   private
-    KeyDeviceSensorNodes: TVRMLNodeList;
+    KeyDeviceSensorNodes: TX3DNodeList;
     TimeDependentHandlers: TTimeDependentHandlerList;
     ProximitySensors: TProximitySensorInstanceList;
 
-    procedure ChangedAllEnumerateCallback(Node: TVRMLNode);
-    procedure ScriptsInitializeCallback(Node: TVRMLNode);
-    procedure ScriptsFinalizeCallback(Node: TVRMLNode);
-    procedure UnregisterSceneCallback(Node: TVRMLNode);
+    procedure ChangedAllEnumerateCallback(Node: TX3DNode);
+    procedure ScriptsInitializeCallback(Node: TX3DNode);
+    procedure ScriptsFinalizeCallback(Node: TX3DNode);
+    procedure UnregisterSceneCallback(Node: TX3DNode);
 
     procedure ScriptsInitialize;
     procedure ScriptsFinalize;
@@ -603,7 +603,7 @@ type
     procedure InternalSetTime(
       const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
 
-    procedure ResetLastEventTime(Node: TVRMLNode);
+    procedure ResetLastEventTime(Node: TX3DNode);
   private
     { Bindable nodes helpers }
     FBackgroundStack: TVRMLBindableStack;
@@ -627,7 +627,7 @@ type
     FPointingDeviceOverItem: PVRMLTriangle;
     FPointingDeviceOverPoint: TVector3Single;
     FPointingDeviceActive: boolean;
-    FPointingDeviceActiveSensors: TVRMLNodeList;
+    FPointingDeviceActiveSensors: TX3DNodeList;
     procedure SetPointingDeviceActive(const Value: boolean);
   private
     { Call this when the ProximitySensor instance changed (either the box or
@@ -723,10 +723,10 @@ type
   private
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4Single;
-    FMainLightForShadowsNode: TNodeX3DLightNode;
+    FMainLightForShadowsNode: TAbstractX3DLightNode;
     FMainLightForShadowsTransform: TMatrix4Single;
     procedure SearchMainLightForShadows(
-      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
@@ -750,8 +750,8 @@ type
       when Dirty <> 0). }
     Dirty: Cardinal;
 
-    { List of TNodeScreenEffect nodes, collected by ChangedAll. }
-    ScreenEffectNodes: TVRMLNodeList;
+    { List of TScreenEffectNode nodes, collected by ChangedAll. }
+    ScreenEffectNodes: TX3DNodeList;
 
     { Create TVRMLShape (or descendant) instance suitable for this
       TVRMLScene descendant. In this class, this simply creates new
@@ -763,7 +763,7 @@ type
       this.
 
       Example: TVRMLGLScene uses this to create TVRMLGLShape. }
-    function CreateShape(AGeometry: TVRMLGeometryNode;
+    function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
@@ -789,7 +789,7 @@ type
       If AResetTime, we will also do ResetTimeAtLoad,
       changing @link(Time) --- this is usually what you want when you
       really load a new world. }
-    procedure Load(ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
+    procedure Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       const AResetTime: boolean = true);
 
     { Load the 3D model from given AFileName.
@@ -833,8 +833,8 @@ type
     { Calculate bounding box, number of triangls and vertexes of all
       shapa states. For detailed specification of what these functions
       do (and what does OverTriangulate mean) see appropriate
-      VRMLNodes.TNodeGenaralShape methods. Here, we just sum results
-      of TNodeGenaralShape methods for all shapes.
+      TAbstractGeometryNode methods. Here, we just sum their results
+      for all shapes.
       @groupBegin }
     function BoundingBox: TBox3D; override;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
@@ -868,10 +868,10 @@ type
       This avoids a common pitfall with relying on TVRMLShape or such
       existence between BeforeNodesFree and ChangedAll.
       BeforeNodesFree may free all our TVRMLShape instances, so if you
-      want to free TVRMLNode from our graph --- you typically want to
-      get this TVRMLNode instance *before* calling BeforeNodesFree.
+      want to free TX3DNode from our graph --- you typically want to
+      get this TX3DNode instance *before* calling BeforeNodesFree.
       Using this method to free the node ensures this. }
-    procedure NodeFreeRemovingFromAllParents(Node: TVRMLNode);
+    procedure NodeFreeRemovingFromAllParents(Node: TX3DNode);
 
     { Remove the geometry of this shape from the scene. }
     procedure RemoveShapeGeometry(Shape: TVRMLShape);
@@ -903,7 +903,7 @@ type
       Field must not be @nil.
 
       @deprecated }
-    procedure ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+    procedure ChangedFields(Node: TX3DNode; Field: TVRMLField);
 
     { Notify scene that you changed the value of given field.
 
@@ -912,7 +912,7 @@ type
       internal information where needed.
 
       Every change you do directly to the VRML/X3D nodes inside RootNode
-      (using directly the methods of TVRMLNode or TVRMLField) must be
+      (using directly the methods of TX3DNode or TVRMLField) must be
       reported to scene by calling this method. This includes changes
       to the inactive graph part (e.g. in inactive Switch child),
       because our shapes have to track it also.
@@ -987,7 +987,7 @@ type
 
       Since these calls may be costly (traversing the hierarchy),
       and their results are often
-      not immediately needed by TVRMLScene or TVRMLNode hierarchy,
+      not immediately needed by TVRMLScene or TX3DNode hierarchy,
       it's sometimes not desirable to call them immediately
       when geometry changed / all changed.
 
@@ -1061,7 +1061,7 @@ type
       to save some memory. This is actually useful when using TVRMLGLAnimation,
       as it creates a lot of intermediate node structures and TVRMLScene
       instances. }
-    property RootNode: TVRMLRootNode read FRootNode write FRootNode;
+    property RootNode: TX3DRootNode read FRootNode write FRootNode;
 
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
@@ -1230,25 +1230,25 @@ type
       dealing with camera node.
 
       Returned CamDir and CamUp and GravityUp are always normalized ---
-      reasons the same as for TVRMLViewpointNode.GetView.
+      reasons the same as for TAbstractViewpointNode.GetView.
 
       @groupBegin }
     function GetViewpoint(
       out ProjectionType: TProjectionType;
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string = ''):
-      TVRMLViewpointNode;
+      TAbstractViewpointNode;
 
     function GetPerspectiveViewpoint(
       out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
       const ViewpointDescription: string = ''):
-      TVRMLViewpointNode;
+      TAbstractViewpointNode;
     { @groupEnd }
 
     { Currently bound fog for this scene.
       A trivial shortcut for FogStack.Top.
       It returns currently bound Fog node, or @nil if none. }
-    function FogNode: TNodeFog;
+    function FogNode: TFogNode;
 
     { Returns an array of triangles that should be shadow casters
       for this scene.
@@ -1331,7 +1331,7 @@ type
       See TVRMLSceneFreeResources documentation. }
     procedure FreeResources(Resources: TVRMLSceneFreeResources);
 
-    { Recursively unset node's TVRMLNode.Scene. Useful if you want to remove
+    { Recursively unset node's TX3DNode.Scene. Useful if you want to remove
       part of a node graph and put it in some other scene.
 
       @italic(You almost never need to call this method) --- this
@@ -1341,7 +1341,7 @@ type
       RootNode graph, but instead of freeing it you insert it
       into some other VRML graph) you must call it to manually
       "untie" this node (and all it's children) from this TVRMLScene instance. }
-    procedure UnregisterScene(Node: TVRMLNode);
+    procedure UnregisterScene(Node: TX3DNode);
 
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
@@ -1379,7 +1379,7 @@ type
     function PointingDeviceSensors: TPointingDeviceSensorList;
 
     { Currently active pointing-device sensors.
-      Only TNodeX3DPointingDeviceSensorNode instances.
+      Only TAbstractX3DPointingDeviceSensorNode instances.
       Always empty when PointingDeviceActive = @false.
       Read-only from outside of this class.
 
@@ -1390,7 +1390,7 @@ type
       button). This means that when user moves the mouse while given
       sensors are active, he can move mouse over other items, even the ones
       where the active sensors aren't listed --- but the sensors remain active. }
-    property PointingDeviceActiveSensors: TVRMLNodeList
+    property PointingDeviceActiveSensors: TX3DNodeList
       read FPointingDeviceActiveSensors;
 
     { Clear any references to OverItem passed previously to PointingDeviceMove.
@@ -1532,20 +1532,20 @@ type
     function WorldTime: TVRMLTime;
 
     { Binding stack of X3DBackgroundNode nodes.
-      All descend from TNodeX3DBackgroundNode class. }
+      All descend from TAbstractX3DBackgroundNode class. }
     property BackgroundStack: TVRMLBindableStack read FBackgroundStack;
 
     { Binding stack of Fog nodes.
-      All descend from TNodeFog class. }
+      All descend from TFogNode class. }
     property FogStack: TVRMLBindableStack read FFogStack;
 
     { Binding stack of NavigatinInfo nodes.
-      All descend from TNodeNavigationInfo class. }
+      All descend from TNavigationInfoNode class. }
     property NavigationInfoStack: TNavigationInfoStack read FNavigationInfoStack;
 
     { Binding stack of Viewpoint nodes.
-      All descend from TVRMLViewpointNode (not necessarily from
-      TNodeX3DViewpointNode, so VRML 1.0 camera nodes are also included in
+      All descend from TAbstractViewpointNode (not necessarily from
+      TAbstractX3DViewpointNode, so VRML 1.0 camera nodes are also included in
       this stack.) }
     property ViewpointStack: TViewpointStack read FViewpointStack;
 
@@ -1718,7 +1718,7 @@ type
 
       This never returns @nil. It's not concerned whether the headlight
       should actually be used --- for this, see HeadlightOn. }
-    function CustomHeadlight: TNodeX3DLightNode;
+    function CustomHeadlight: TAbstractX3DLightNode;
 
     { Should we use headlight for this scene. Controls if containing TKamSceneManager
       will use a headlight, if this is the main scene.
@@ -1930,7 +1930,7 @@ begin
   FParentScene := AParentScene;
 end;
 
-procedure TVRMLBindableStack.SendIsBound(Node: TNodeX3DBindableNode;
+procedure TVRMLBindableStack.SendIsBound(Node: TAbstractX3DBindableNode;
   const Value: boolean);
 begin
   if Node <> nil then
@@ -1940,19 +1940,19 @@ begin
   end;
 end;
 
-function TVRMLBindableStack.Top: TNodeX3DBindableNode;
+function TVRMLBindableStack.Top: TAbstractX3DBindableNode;
 begin
   if Count <> 0 then
-    Result := Last as TNodeX3DBindableNode else
+    Result := Last as TAbstractX3DBindableNode else
     Result := nil;
 end;
 
-procedure TVRMLBindableStack.Push(Node: TNodeX3DBindableNode);
+procedure TVRMLBindableStack.Push(Node: TAbstractX3DBindableNode);
 begin
   Add(Node);
 end;
 
-procedure TVRMLBindableStack.PushIfEmpty(Node: TNodeX3DBindableNode;
+procedure TVRMLBindableStack.PushIfEmpty(Node: TAbstractX3DBindableNode;
   SendEvents: boolean);
 begin
   if Count = 0 then
@@ -1964,17 +1964,17 @@ begin
   end;
 end;
 
-function TVRMLBindableStack.Pop: TNodeX3DBindableNode;
+function TVRMLBindableStack.Pop: TAbstractX3DBindableNode;
 begin
   if Count <> 0 then
   begin
-    Result := Last as TNodeX3DBindableNode;
+    Result := Last as TAbstractX3DBindableNode;
     Count := Count - 1;
   end else
     Result := nil;
 end;
 
-procedure TVRMLBindableStack.CheckForDeletedNodes(RootNode: TVRMLNode;
+procedure TVRMLBindableStack.CheckForDeletedNodes(RootNode: TX3DNode;
   SendEvents: boolean);
 var
   I: Integer;
@@ -1986,7 +1986,7 @@ begin
   begin
     { Remember that pointers on Items may be wrong now.
       So don't call things like Top function now
-      (it typecasts to TNodeX3DBindableNode). }
+      (it typecasts to TAbstractX3DBindableNode). }
 
     TopChanged := false;
 
@@ -2013,7 +2013,7 @@ begin
   end;
 end;
 
-procedure TVRMLBindableStack.Set_Bind(Node: TNodeX3DBindableNode;
+procedure TVRMLBindableStack.Set_Bind(Node: TAbstractX3DBindableNode;
   const Value: boolean);
 var
   NodeIndex: Integer;
@@ -2104,9 +2104,9 @@ begin
   inherited;
 end;
 
-function TViewpointStack.Top: TVRMLViewpointNode;
+function TViewpointStack.Top: TAbstractViewpointNode;
 begin
-  Result := (inherited Top) as TVRMLViewpointNode;
+  Result := (inherited Top) as TAbstractViewpointNode;
 end;
 
 { TViewpointStack -------------------------------------------------------- }
@@ -2117,14 +2117,14 @@ begin
   inherited;
 end;
 
-function TNavigationInfoStack.Top: TNodeNavigationInfo;
+function TNavigationInfoStack.Top: TNavigationInfoNode;
 begin
-  Result := (inherited Top) as TNodeNavigationInfo;
+  Result := (inherited Top) as TNavigationInfoNode;
 end;
 
 { TGeneratedTextureList -------------------------------------------------- }
 
-function TGeneratedTextureList.IndexOfTextureNode(TextureNode: TVRMLNode): Integer;
+function TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].TextureNode = TextureNode then
@@ -2132,7 +2132,7 @@ begin
   Result := -1;
 end;
 
-function TGeneratedTextureList.FindTextureNode(TextureNode: TVRMLNode): PGeneratedTexture;
+function TGeneratedTextureList.FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
 var
   Index: Integer;
 begin
@@ -2143,13 +2143,13 @@ begin
 end;
 
 procedure TGeneratedTextureList.AddShapeTexture(Shape: TVRMLShape;
-  Tex: TNodeX3DTextureNode);
+  Tex: TAbstractX3DTextureNode);
 var
   GenTex: PGeneratedTexture;
 begin
-  if (Tex is TNodeGeneratedCubeMapTexture) or
-     (Tex is TNodeGeneratedShadowMap) or
-     (Tex is TNodeRenderedTexture) then
+  if (Tex is TGeneratedCubeMapTextureNode) or
+     (Tex is TGeneratedShadowMapNode) or
+     (Tex is TRenderedTextureNode) then
   begin
     GenTex := FindTextureNode(Tex);
     if GenTex <> nil then
@@ -2174,7 +2174,7 @@ begin
           When GeneratedCubeMapTexture is instanced within different shapes,
           make a warning, and reject duplicate. }
 
-      if (Tex is TNodeGeneratedCubeMapTexture) and
+      if (Tex is TGeneratedCubeMapTextureNode) and
          (Shape <> GenTex^.Shape) then
         OnWarning(wtMajor, 'VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
@@ -2182,12 +2182,12 @@ begin
       GenTex := Add;
       GenTex^.TextureNode := Tex;
 
-      if Tex is TNodeGeneratedCubeMapTexture then
-        GenTex^.Handler := TNodeGeneratedCubeMapTexture(Tex).GeneratedTextureHandler else
-      if Tex is TNodeGeneratedShadowMap then
-        GenTex^.Handler := TNodeGeneratedShadowMap(Tex).GeneratedTextureHandler else
-      if Tex is TNodeRenderedTexture then
-        GenTex^.Handler := TNodeRenderedTexture(Tex).GeneratedTextureHandler else
+      if Tex is TGeneratedCubeMapTextureNode then
+        GenTex^.Handler := TGeneratedCubeMapTextureNode(Tex).GeneratedTextureHandler else
+      if Tex is TGeneratedShadowMapNode then
+        GenTex^.Handler := TGeneratedShadowMapNode(Tex).GeneratedTextureHandler else
+      if Tex is TRenderedTextureNode then
+        GenTex^.Handler := TRenderedTextureNode(Tex).GeneratedTextureHandler else
         raise EInternalError.Create('sf34234');
 
       { Make sure to reset UpdateNeeded to true, in case it was false because
@@ -2199,19 +2199,19 @@ begin
   end;
 end;
 
-procedure TGeneratedTextureList.UpdateShadowMaps(LightNode: TNodeX3DLightNode);
+procedure TGeneratedTextureList.UpdateShadowMaps(LightNode: TAbstractX3DLightNode);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if (L[I].TextureNode is TNodeGeneratedShadowMap) and
-       (TNodeGeneratedShadowMap(L[I].TextureNode).FdLight.Value = LightNode) then
+    if (L[I].TextureNode is TGeneratedShadowMapNode) and
+       (TGeneratedShadowMapNode(L[I].TextureNode).FdLight.Value = LightNode) then
       L[I].Handler.UpdateNeeded := true;
 end;
 
 { TTransformInstancesList ------------------------------------------------- }
 
-function TTransformInstancesList.Instances(Node: TVRMLNode;
+function TTransformInstancesList.Instances(Node: TX3DNode;
   const AutoCreate: boolean): TVRMLShapeTreeList;
 begin
   Result := Node.ShapeTrees as TVRMLShapeTreeList;
@@ -2265,16 +2265,16 @@ begin
   FNavigationInfoStack := TNavigationInfoStack.Create(Self);
   FViewpointStack := TViewpointStack.Create(Self);
 
-  FPointingDeviceActiveSensors := TVRMLNodeList.Create(false);
+  FPointingDeviceActiveSensors := TX3DNodeList.Create(false);
 
   FCompiledScriptHandlers := TCompiledScriptHandlerInfoList.Create;
   TransformInstancesList := TTransformInstancesList.Create(false);
   BillboardInstancesList := TTransformInstancesList.Create(false);
   GeneratedTextures := TGeneratedTextureList.Create;
   ProximitySensors := TProximitySensorInstanceList.Create(false);
-  ScreenEffectNodes := TVRMLNodeList.Create(false);
-  ScheduledHumanoidAnimateSkin := TVRMLNodeList.Create(false);
-  KeyDeviceSensorNodes := TVRMLNodeList.Create(false);
+  ScreenEffectNodes := TX3DNodeList.Create(false);
+  ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
+  KeyDeviceSensorNodes := TX3DNodeList.Create(false);
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
 
   FTimePlaying := true;
@@ -2354,7 +2354,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLScene.Load(ARootNode: TVRMLRootNode; AOwnsRootNode: boolean;
+procedure TVRMLScene.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
 begin
   BeforeNodesFree;
@@ -2510,7 +2510,7 @@ begin
   Result := FTrianglesCount[OverTriangulate];
 end;
 
-function TVRMLScene.CreateShape(AGeometry: TVRMLGeometryNode;
+function TVRMLScene.CreateShape(AGeometry: TAbstractGeometryNode;
   AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape;
 begin
   Result := TVRMLShape.Create(Self, AGeometry, AState, ParentInfo);
@@ -2526,16 +2526,16 @@ type
     ShapesGroup: TVRMLShapeTreeGroup;
     Active: boolean;
     procedure Traverse(
-      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
 procedure TChangedAllTraverser.Traverse(
-  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+  Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
-  { Handle INodeTransform node }
-  procedure HandleTransform(TransformNode: TVRMLNode);
+  { Handle ITransformNode node }
+  procedure HandleTransform(TransformNode: TX3DNode);
   var
     TransformTree: TVRMLShapeTreeTransform;
     Traverser: TChangedAllTraverser;
@@ -2552,17 +2552,17 @@ procedure TChangedAllTraverser.Traverse(
       it's transformation. Clearly, TransformState must not depend on
       current TransformNode transformation.
 
-      So we cheat a little, knowing that internally every INodeTransform
+      So we cheat a little, knowing that internally every ITransformNode
       does StateStack.Push inside BeforeTraverse exactly once and then
-      modifies transformation.(This happens for both TVRMLGroupingNode
-      and TNodeHAnimHumanoid. Right now, INodeTransform is always one of those.)
+      modifies transformation.(This happens for both TAbstractGroupingNode
+      and THAnimHumanoidNode. Right now, ITransformNode is always one of those.)
       So we know that previous state lies safely at PreviousTop. }
     TransformTree.TransformState.Assign(StateStack.PreviousTop);
 
     ShapesGroup.Children.Add(TransformTree);
 
     { update ParentScene.TransformInstancesList }
-    if TransformNode is TNodeBillboard then
+    if TransformNode is TBillboardNode then
       ParentScene.BillboardInstancesList.Instances(TransformNode, true).Add(TransformTree) else
       ParentScene.TransformInstancesList.Instances(TransformNode, true).Add(TransformTree);
 
@@ -2576,18 +2576,18 @@ procedure TChangedAllTraverser.Traverse(
       Traverser.ShapesGroup := TransformTree;
       Traverser.Active := Active;
 
-      TransformNode.TraverseIntoChildren(StateStack, TVRMLNode,
+      TransformNode.TraverseIntoChildren(StateStack, TX3DNode,
         @Traverser.Traverse, ParentInfo);
     finally FreeAndNil(Traverser) end;
 
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleSwitch(SwitchNode: TNodeSwitch);
+  procedure HandleSwitch(SwitchNode: TSwitchNode);
   var
     SwitchTree: TVRMLShapeTreeSwitch;
     Traverser: TChangedAllTraverser;
-    ChildNode: TVRMLNode;
+    ChildNode: TX3DNode;
     ChildGroup: TVRMLShapeTreeGroup;
     I: Integer;
   begin
@@ -2606,7 +2606,7 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Active and (I = SwitchNode.FdWhichChoice.Value);
-        ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
+        ChildNode.TraverseInternal(StateStack, TX3DNode, @Traverser.Traverse,
           ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
@@ -2614,11 +2614,11 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TVRMLLODNode);
+  procedure HandleLOD(LODNode: TAbstractLODNode);
   var
     LODTree: TVRMLShapeTreeLOD;
     Traverser: TChangedAllTraverser;
-    ChildNode: TVRMLNode;
+    ChildNode: TX3DNode;
     ChildGroup: TVRMLShapeTreeGroup;
     I: Integer;
   begin
@@ -2647,7 +2647,7 @@ procedure TChangedAllTraverser.Traverse(
         Traverser.ParentScene := ParentScene;
         Traverser.ShapesGroup := ChildGroup;
         Traverser.Active := Active and (Cardinal(I) = LODTree.Level);
-        ChildNode.TraverseInternal(StateStack, TVRMLNode, @Traverser.Traverse,
+        ChildNode.TraverseInternal(StateStack, TX3DNode, @Traverser.Traverse,
           ParentInfo);
       finally FreeAndNil(Traverser) end;
     end;
@@ -2655,7 +2655,7 @@ procedure TChangedAllTraverser.Traverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleProximitySensor(const Node: TNodeProximitySensor);
+  procedure HandleProximitySensor(const Node: TProximitySensorNode);
   var
     PSI: TProximitySensorInstance;
   begin
@@ -2671,10 +2671,10 @@ procedure TChangedAllTraverser.Traverse(
 var
   Shape: TVRMLShape;
 begin
-  if Node is TVRMLGeometryNode then
+  if Node is TAbstractGeometryNode then
   begin
     { Add shape to Shapes }
-    Shape := ParentScene.CreateShape(Node as TVRMLGeometryNode,
+    Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
       TVRMLGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
     ShapesGroup.Children.Add(Shape);
 
@@ -2690,7 +2690,7 @@ begin
     end;
   end else
 
-  if Node is TNodeX3DLightNode then
+  if Node is TAbstractX3DLightNode then
   begin
     (*Global lights within inactive Switch child are not active.
       Although I didn't find where specification explicitly says this,
@@ -2710,25 +2710,25 @@ begin
       global lights set. *)
 
     { Add lights to GlobalLights }
-    if Active and (TNodeX3DLightNode(Node).Scope = lsGlobal) then
+    if Active and (TAbstractX3DLightNode(Node).Scope = lsGlobal) then
       ParentScene.GlobalLights.Add(
-        TNodeX3DLightNode(Node).CreateLightInstance(StateStack.Top));
+        TAbstractX3DLightNode(Node).CreateLightInstance(StateStack.Top));
   end else
 
-  if Node is TNodeSwitch then
+  if Node is TSwitchNode then
   begin
-    HandleSwitch(TNodeSwitch(Node));
+    HandleSwitch(TSwitchNode(Node));
   end else
-  if Node is TVRMLLODNode then
+  if Node is TAbstractLODNode then
   begin
-    HandleLOD(TVRMLLODNode(Node));
+    HandleLOD(TAbstractLODNode(Node));
   end else
-  if Supports(Node, INodeTransform) then
+  if Supports(Node, ITransformNode) then
   begin
     HandleTransform(Node);
   end else
 
-  if (Node is TNodeX3DBindableNode) and
+  if (Node is TAbstractX3DBindableNode) and
      { Do not look for first bindable node within inlined content,
        this is following VRML spec. }
      (StateStack.Top.InsideInline = 0) and
@@ -2740,20 +2740,20 @@ begin
     { If some bindable stack is empty, push the node to it.
       This way, upon reading VRML file, we will bind the first found
       node for each stack. }
-    if Node is TNodeX3DBackgroundNode then
-      ParentScene.BackgroundStack.PushIfEmpty( TNodeX3DBackgroundNode(Node), true) else
-    if Node is TNodeFog then
-      ParentScene.FogStack.PushIfEmpty( TNodeFog(Node), true) else
-    if Node is TNodeNavigationInfo then
-      ParentScene.NavigationInfoStack.PushIfEmpty( TNodeNavigationInfo(Node), true) else
-    if Node is TVRMLViewpointNode then
-      ParentScene.ViewpointStack.PushIfEmpty( TVRMLViewpointNode(Node), true);
+    if Node is TAbstractX3DBackgroundNode then
+      ParentScene.BackgroundStack.PushIfEmpty( TAbstractX3DBackgroundNode(Node), true) else
+    if Node is TFogNode then
+      ParentScene.FogStack.PushIfEmpty( TFogNode(Node), true) else
+    if Node is TNavigationInfoNode then
+      ParentScene.NavigationInfoStack.PushIfEmpty( TNavigationInfoNode(Node), true) else
+    if Node is TAbstractViewpointNode then
+      ParentScene.ViewpointStack.PushIfEmpty( TAbstractViewpointNode(Node), true);
   end else
-  if Node is TNodeProximitySensor then
-    HandleProximitySensor(Node as TNodeProximitySensor) else
-  if Node is TNodeScreenEffect then
+  if Node is TProximitySensorNode then
+    HandleProximitySensor(Node as TProximitySensorNode) else
+  if Node is TScreenEffectNode then
   begin
-    TNodeScreenEffect(Node).StateForShaderPrepare.Assign(StateStack.Top);
+    TScreenEffectNode(Node).StateForShaderPrepare.Assign(StateStack.Top);
     ParentScene.ScreenEffectNodes.Add(Node);
   end;
 end;
@@ -2817,7 +2817,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.NodeFreeRemovingFromAllParents(Node: TVRMLNode);
+procedure TVRMLScene.NodeFreeRemovingFromAllParents(Node: TX3DNode);
 begin
   BeforeNodesFree;
   Node.FreeRemovingFromAllParents;
@@ -2837,7 +2837,7 @@ begin
   NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
 end;
 
-procedure TVRMLScene.ChangedAllEnumerateCallback(Node: TVRMLNode);
+procedure TVRMLScene.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if not Static then
     Node.Scene := Self;
@@ -2851,11 +2851,11 @@ begin
     - for other sensors, events would be passed twice.
   }
 
-  if Node is TNodeX3DKeyDeviceSensorNode then
+  if Node is TAbstractX3DKeyDeviceSensorNode then
     KeyDeviceSensorNodes.AddIfNotExists(Node) else
-  if Supports(Node, INodeX3DTimeDependentNode) then
+  if Supports(Node, IAbstractX3DTimeDependentNode) then
     TimeDependentHandlers.AddIfNotExists(
-      (Node as INodeX3DTimeDependentNode).TimeDependentNodeHandler);
+      (Node as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler);
 end;
 
 procedure TVRMLScene.ChangedAll;
@@ -2894,7 +2894,7 @@ procedure TVRMLScene.ChangedAll;
   var
     I: Integer;
     L: PLightInstance;
-    LNode: TNodeX3DLightNode;
+    LNode: TAbstractX3DLightNode;
   begin
     { Here we only deal with light scope = lsGlobal case.
       Other scopes are handled during traversing. }
@@ -2907,19 +2907,19 @@ procedure TVRMLScene.ChangedAll;
       { TODO: for spot lights, it would be an optimization to also limit
         LightInstances by spot cone size. }
 
-      if (LNode is TVRMLPositionalLightNode) and
-         TVRMLPositionalLightNode(LNode).HasRadius then
+      if (LNode is TAbstractPositionalLightNode) and
+         TAbstractPositionalLightNode(LNode).HasRadius then
         AddLightRadius(L^, L^.Location, L^.Radius) else
         AddLightEverywhere(L^);
     end;
   end;
 
-  { Assigns nodes TVRMLNode.Scene, and adds nodes to KeyDeviceSensorNodes
+  { Assigns nodes TX3DNode.Scene, and adds nodes to KeyDeviceSensorNodes
     and TimeDependentHandlers lists. }
   procedure ChangedAllEnumerate;
   begin
     if RootNode <> nil then
-      RootNode.EnumerateNodes(TVRMLNode, @ChangedAllEnumerateCallback, false);
+      RootNode.EnumerateNodes(TX3DNode, @ChangedAllEnumerateCallback, false);
   end;
 
 var
@@ -2992,7 +2992,7 @@ begin
           is safe }
         Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
         Traverser.Active := true;
-        RootNode.Traverse(TVRMLNode, @Traverser.Traverse);
+        RootNode.Traverse(TX3DNode, @Traverser.Traverse);
       finally FreeAndNil(Traverser) end;
 
       AddGlobalLights;
@@ -3090,7 +3090,7 @@ type
   TTransformChangeHelper = class
     ParentScene: TVRMLScene;
     Shapes: PShapesParentInfo;
-    ChangingNode: TVRMLNode; {< must be also INodeTransform }
+    ChangingNode: TX3DNode; {< must be also ITransformNode }
     AnythingChanged: boolean;
     Inside: boolean;
     { If = 0, we're in active or inactive graph part (we don't know).
@@ -3101,16 +3101,16 @@ type
     Inactive: Cardinal;
     Changes: TVRMLChanges;
     procedure TransformChangeTraverse(
-      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
 procedure TTransformChangeHelper.TransformChangeTraverse(
-  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+  Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
-  { Handle INodeTransform }
-  procedure HandleTransform(TransformNode: TVRMLNode);
+  { Handle ITransformNode }
+  procedure HandleTransform(TransformNode: TX3DNode);
   var
     ShapeTransform: TVRMLShapeTreeTransform;
     OldShapes: PShapesParentInfo;
@@ -3144,13 +3144,13 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       Shapes := @NewShapes;
 
       TransformNode.TraverseIntoChildren(
-        StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
+        StateStack, TX3DNode, @TransformChangeTraverse, ParentInfo);
     finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleSwitch(SwitchNode: TNodeSwitch);
+  procedure HandleSwitch(SwitchNode: TSwitchNode);
   var
     I: Integer;
     ChildInactive: boolean;
@@ -3178,7 +3178,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if ChildInactive then Inc(Inactive);
 
         SwitchNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
+          StateStack, TX3DNode, @TransformChangeTraverse, ParentInfo);
 
         if ChildInactive then Dec(Inactive);
       end;
@@ -3188,7 +3188,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLOD(LODNode: TVRMLLODNode);
+  procedure HandleLOD(LODNode: TAbstractLODNode);
   var
     I: Integer;
     ShapeLOD: TVRMLShapeTreeLOD;
@@ -3221,7 +3221,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
         LODNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TVRMLNode, @TransformChangeTraverse, ParentInfo);
+          StateStack, TX3DNode, @TransformChangeTraverse, ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
       end;
@@ -3231,7 +3231,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     TraverseIntoChildren := false;
   end;
 
-  procedure HandleLight(LightNode: TNodeX3DLightNode);
+  procedure HandleLight(LightNode: TAbstractX3DLightNode);
   { When the transformation of light node changes, we should update every
     TLightInstance record of this light in every shape.
 
@@ -3279,8 +3279,8 @@ var
 begin
   case Node.TransformationChange of
     ntcNone: ;
-    ntcSwitch: HandleSwitch(TNodeSwitch(Node));
-    ntcLOD: HandleLOD(TVRMLLODNode(Node));
+    ntcSwitch: HandleSwitch(TSwitchNode(Node));
+    ntcLOD: HandleLOD(TAbstractLODNode(Node));
     ntcTransform: HandleTransform(Node);
     ntcGeometry:
       begin
@@ -3316,7 +3316,7 @@ begin
       begin
         { There's no need to do anything more here.
           Fog node TransformScale was already updated by
-          TNodeX3DBindableNode.BeforeTraverse.
+          TAbstractX3DBindableNode.BeforeTraverse.
           Renderer in TVRMLGLScene will detect that TransformScale changed,
           and eventually destroy display lists and such when rendering next time. }
         if Inactive = 0 then
@@ -3334,7 +3334,7 @@ begin
           When this will be implemented, then also when transformation
           of viewpoint changes here we'll have to do something. }
       end;
-    ntcLight: HandleLight(TNodeX3DLightNode(Node));
+    ntcLight: HandleLight(TAbstractX3DLightNode(Node));
     ntcProximitySensor:
       begin
         Check(Shapes^.Index < Shapes^.Group.Children.Count,
@@ -3366,7 +3366,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.TransformationChanged(TransformNode: TVRMLNode;
+procedure TVRMLScene.TransformationChanged(TransformNode: TX3DNode;
   Instances: TVRMLShapeTreeList; const Changes: TVRMLChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
@@ -3432,7 +3432,7 @@ begin
         TransformChangeHelper.Inactive := 0;
 
         try
-          TransformNode.TraverseInternal(TraverseStack, TVRMLNode,
+          TransformNode.TraverseInternal(TraverseStack, TX3DNode,
             @TransformChangeHelper.TransformChangeTraverse, nil);
         except
           on BreakTransformChangeSuccess do
@@ -3443,8 +3443,8 @@ begin
         if TransformChangeHelper.AnythingChanged then
           DoVisibleChanged := true;
 
-        { take care of calling TNodeHAnimHumanoid.AnimateSkin when joint is animated }
-        if TransformNode is TNodeHAnimJoint then
+        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is animated }
+        if TransformNode is THAnimJointNode then
           ScheduledHumanoidAnimateSkin.AddIfNotExists(
             TransformShapeTree.TransformState.Humanoid);
       end;
@@ -3466,7 +3466,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ChangedFields(Node: TVRMLNode; Field: TVRMLField);
+procedure TVRMLScene.ChangedFields(Node: TX3DNode; Field: TVRMLField);
 begin
   Assert(Field <> nil);
   Assert(Field.ParentNode = Node);
@@ -3475,7 +3475,7 @@ end;
 
 procedure TVRMLScene.ChangedField(Field: TVRMLField);
 var
-  Node: TVRMLNode;
+  Node: TX3DNode;
   Changes: TVRMLChanges;
 
   procedure DoLogChanges(const Additional: string = '');
@@ -3497,8 +3497,8 @@ var
   var
     Instances: TVRMLShapeTreeList;
   begin
-    Check(Supports(Node, INodeTransform),
-      'chTransform flag may be set only for INodeTransform');
+    Check(Supports(Node, ITransformNode),
+      'chTransform flag may be set only for ITransformNode');
 
     Instances := TransformInstancesList.Instances(Node, false);
     if Instances = nil then
@@ -3517,7 +3517,7 @@ var
     Coord: TMFVec3f;
     SI: TVRMLShapeTreeIterator;
   begin
-    { TNodeCoordinate is special, although it's part of VRML 1.0 state,
+    { TCoordinateNode is special, although it's part of VRML 1.0 state,
       it can also occur within coordinate-based nodes of VRML >= 2.0.
       So it affects coordinate-based nodes with this node.
 
@@ -3577,9 +3577,9 @@ var
     J: integer;
     SI: TVRMLShapeTreeIterator;
     LightInstance: PLightInstance;
-    LightNode: TNodeX3DLightNode;
+    LightNode: TAbstractX3DLightNode;
   begin
-    LightNode := Node as TNodeX3DLightNode;
+    LightNode := Node as TAbstractX3DLightNode;
 
     { Update all TLightInstance records with LightNode = this Node.
 
@@ -3673,18 +3673,18 @@ var
   begin
     { Affects all geometry nodes with "color" field referencing this node.
 
-      Note: also TNodeParticleSystem may have color in FdcolorRamp field.
+      Note: also TParticleSystemNode may have color in FdcolorRamp field.
       This is not detected for now, and doesn't matter (we do not handle
       particle systems at all now). }
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if ((SI.Current.Geometry is TNodeX3DComposedGeometryNode) and (TNodeX3DComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TNodeIndexedLineSet         ) and (TNodeIndexedLineSet         (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TNodeLineSet                ) and (TNodeLineSet                (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TNodePointSet               ) and (TNodePointSet               (SI.Current.Geometry).FdColor.Value = Node)) or
-           ((SI.Current.Geometry is TNodeElevationGrid          ) and (TNodeElevationGrid          (SI.Current.Geometry).FdColor.Value = Node)) then
+        if ((SI.Current.Geometry is TAbstractX3DComposedGeometryNode) and (TAbstractX3DComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TIndexedLineSetNode             ) and (TIndexedLineSetNode             (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TLineSetNode                    ) and (TLineSetNode                    (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TPointSetNode                   ) and (TPointSetNode                   (SI.Current.Geometry).FdColor.Value = Node)) or
+           ((SI.Current.Geometry is TElevationGridNode              ) and (TElevationGridNode              (SI.Current.Geometry).FdColor.Value = Node)) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
@@ -3692,7 +3692,7 @@ var
   procedure HandleChangeTextureCoordinate;
   var
     SI: TVRMLShapeTreeIterator;
-    TexCoord: TVRMLNode;
+    TexCoord: TX3DNode;
   begin
     { VRML 2.0 TextureCoordinate affects only shapes where it's
       placed inside texCoord field. }
@@ -3709,9 +3709,9 @@ var
 
     { If Appearance.TextureTransform contains TextureTransform
       (which should be some TextureTransform* VRML/X3D node,
-      but not nil and not TNodeMultiTextureTransform). }
-    function AppearanceUsesTextureTransform(Appearance: TNodeAppearance;
-      TextureTransform: TVRMLNode): boolean;
+      but not nil and not TMultiTextureTransformNode). }
+    function AppearanceUsesTextureTransform(Appearance: TAppearanceNode;
+      TextureTransform: TX3DNode): boolean;
     var
       MultiTrans: TMFNode;
       I: Integer;
@@ -3719,9 +3719,9 @@ var
       Result := Appearance.FdTextureTransform.Value = TextureTransform;
       if (not Result) and
          (Appearance.FdTextureTransform.Value <> nil) and
-         (Appearance.FdTextureTransform.Value is TNodeMultiTextureTransform) then
+         (Appearance.FdTextureTransform.Value is TMultiTextureTransformNode) then
       begin
-        MultiTrans := TNodeMultiTextureTransform(
+        MultiTrans := TMultiTextureTransformNode(
           Appearance.FdTextureTransform.Value).FdTextureTransform;
         for I := 0 to MultiTrans.Count - 1 do
           if MultiTrans[I] = TextureTransform then
@@ -3739,9 +3739,9 @@ var
       while SI.GetNext do
         if (SI.Current.State.ShapeNode <> nil) and
            (SI.Current.State.ShapeNode.FdAppearance.Value <> nil) and
-           (SI.Current.State.ShapeNode.FdAppearance.Value is TNodeAppearance) and
+           (SI.Current.State.ShapeNode.FdAppearance.Value is TAppearanceNode) and
            AppearanceUsesTextureTransform(
-             TNodeAppearance(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
+             TAppearanceNode(SI.Current.State.ShapeNode.FdAppearance.Value), Node) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;
   end;
@@ -3767,7 +3767,7 @@ var
     { For now, we're only interested here in ProximitySensor changes.
       In the future, we may need to do something for other
       X3DEnvironmentalSensorNode too. }
-    if not (Node is TNodeProximitySensor) then Exit;
+    if not (Node is TProximitySensorNode) then Exit;
 
     { Update state for this ProximitySensor node. }
     if CameraViewKnown then
@@ -3780,10 +3780,10 @@ var
 
   procedure HandleChangeTimeStopStart;
 
-    function GetTimeDependentNodeHandler(Node: TVRMLNode): TTimeDependentNodeHandler;
+    function GetTimeDependentNodeHandler(Node: TX3DNode): TTimeDependentNodeHandler;
     begin
-      if Supports(Node, INodeX3DTimeDependentNode) then
-        Result := (Node as INodeX3DTimeDependentNode).TimeDependentNodeHandler else
+      if Supports(Node, IAbstractX3DTimeDependentNode) then
+        Result := (Node as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler else
         Result := nil;
     end;
 
@@ -3832,21 +3832,21 @@ var
   begin
     if chTextureImage in Changes then
     begin
-      { On change of TVRML2DTextureNode field that changes the result of
-        TVRML2DTextureNode.LoadTextureData, we have to explicitly release
+      { On change of TAbstractTexture2DNode field that changes the result of
+        TAbstractTexture2DNode.LoadTextureData, we have to explicitly release
         old texture (otherwise, LoadTextureData will not be called
         to reload the texture). }
-      if Node is TVRML2DTextureNode then
-        TVRML2DTextureNode(Node).IsTextureLoaded := false;
-      if Node is TNodeX3DTexture3DNode then
-        TNodeX3DTexture3DNode(Node).TextureLoaded := false;
+      if Node is TAbstractTexture2DNode then
+        TAbstractTexture2DNode(Node).IsTextureLoaded := false;
+      if Node is TAbstractX3DTexture3DNode then
+        TAbstractX3DTexture3DNode(Node).TextureLoaded := false;
     end;
 
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
-        if SI.Current.UsesTexture(TNodeX3DTextureNode(Node)) then
+        if SI.Current.UsesTexture(TAbstractX3DTextureNode(Node)) then
           SI.Current.Changed(false, Changes);
       end;
     finally FreeAndNil(SI) end;
@@ -3865,12 +3865,12 @@ var
   var
     Handler: TGeneratedTextureHandler;
   begin
-    if Node is TNodeGeneratedCubeMapTexture then
-      Handler := TNodeGeneratedCubeMapTexture(Node).GeneratedTextureHandler else
-    if Node is TNodeGeneratedShadowMap then
-      Handler := TNodeGeneratedShadowMap(Node).GeneratedTextureHandler else
-    if Node is TNodeRenderedTexture then
-      Handler := TNodeRenderedTexture(Node).GeneratedTextureHandler else
+    if Node is TGeneratedCubeMapTextureNode then
+      Handler := TGeneratedCubeMapTextureNode(Node).GeneratedTextureHandler else
+    if Node is TGeneratedShadowMapNode then
+      Handler := TGeneratedShadowMapNode(Node).GeneratedTextureHandler else
+    if Node is TRenderedTextureNode then
+      Handler := TRenderedTextureNode(Node).GeneratedTextureHandler else
       Exit;
 
     Handler.UpdateNeeded := true;
@@ -3888,7 +3888,7 @@ var
   var
     SI: TVRMLShapeTreeIterator;
   begin
-    Assert(Node is TNodeClipPlane);
+    Assert(Node is TClipPlaneNode);
 
     { Call TVRMLShape.Changed for all shapes using this ClipPlane node. }
     SI := TVRMLShapeTreeIterator.Create(Shapes, false);
@@ -3896,7 +3896,7 @@ var
       while SI.GetNext do
       begin
         if (SI.Current.State.ClipPlanes <> nil) and
-           (SI.Current.State.ClipPlanes.IndexOfNode(TNodeClipPlane(Node)) <> -1) then
+           (SI.Current.State.ClipPlanes.IndexOfNode(TClipPlaneNode(Node)) <> -1) then
           SI.Current.Changed(false, Changes);
       end;
     finally FreeAndNil(SI) end;
@@ -3925,13 +3925,13 @@ var
   procedure HandleChangeDragSensorEnabled;
   var
     Enabled: boolean;
-    DragSensor: TNodeX3DDragSensorNode;
+    DragSensor: TAbstractX3DDragSensorNode;
   begin
     Enabled := (Field as TSFBool).Value;
-    DragSensor := Node as TNodeX3DDragSensorNode;
+    DragSensor := Node as TAbstractX3DDragSensorNode;
 
     { When we disable an active drag sensor, specification says to
-      deactivate it. This cannot be handled fully by TNodeX3DDragSensorNode
+      deactivate it. This cannot be handled fully by TAbstractX3DDragSensorNode
       implementation, because we have to remove it from our property
       PointingDeviceActiveSensors. }
 
@@ -3951,9 +3951,9 @@ var
 
   procedure HandleChangeScreenEffectEnabled;
   var
-    SE: TNodeScreenEffect;
+    SE: TScreenEffectNode;
   begin
-    SE := Node as TNodeScreenEffect;
+    SE := Node as TScreenEffectNode;
     { Just like TVRMLGLScene.CloseGLScreenEffect: no need to even
       communicate with renderer, just reset ShaderLoaded and Shader.
       At the nearest time, it will be recalculated. }
@@ -3969,7 +3969,7 @@ var
   end;
 
 begin
-  Node := TVRMLNode(Field.ParentNode);
+  Node := TX3DNode(Field.ParentNode);
   Assert(Node <> nil);
 
   { We used to check here RootNode.IsNodePresent, to eliminate
@@ -4201,12 +4201,12 @@ end;
 type
   TInfoNodeWriter = class
     Count: Cardinal;
-    procedure WriteNode(node: TVRMLNode);
+    procedure WriteNode(node: TX3DNode);
   end;
-  procedure TInfoNodeWriter.WriteNode(node: TVRMLNode);
+  procedure TInfoNodeWriter.WriteNode(node: TX3DNode);
   begin
    Inc(Count);
-   Writeln('Info node : "',(Node as TNodeInfo).FdString.Value, '"')
+   Writeln('Info node : "',(Node as TInfoNode).FdString.Value, '"')
   end;
 
 procedure TVRMLScene.WritelnInfoNodes;
@@ -4216,7 +4216,7 @@ begin
 
  W := TInfoNodeWriter.Create;
  try
-  RootNode.EnumerateNodes(TNodeInfo,
+  RootNode.EnumerateNodes(TInfoNode,
     {$ifdef FPC_OBJFPC} @ {$endif} W.WriteNode, false);
   Writeln(W.Count, ' Info nodes in the scene.');
  finally W.Free end;
@@ -4228,13 +4228,13 @@ function TVRMLScene.OverrideOctreeLimits(
   const BaseLimits: TOctreeLimits;
   const OP: TSceneOctreeProperties): TOctreeLimits;
 var
-  Props: TNodeKambiOctreeProperties;
+  Props: TKambiOctreePropertiesNode;
 begin
   Result := BaseLimits;
   if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top is TNodeKambiNavigationInfo) then
+     (NavigationInfoStack.Top is TKambiNavigationInfoNode) then
   begin
-    Props := TNodeKambiNavigationInfo(NavigationInfoStack.Top).OctreeProperties(OP);
+    Props := TKambiNavigationInfoNode(NavigationInfoStack.Top).OctreeProperties(OP);
     if Props <> nil then
       Props.OverrideLimits(Result);
   end;
@@ -4498,24 +4498,24 @@ type
   TFirstViewpointSeeker = class
     OnlyPerspective: boolean;
     ViewpointDescription: string;
-    FoundNode: TVRMLViewpointNode;
+    FoundNode: TAbstractViewpointNode;
     procedure Seek(
-      Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
   procedure TFirstViewpointSeeker.Seek(
-    Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+    Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
     ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   var
-    V: TVRMLViewpointNode;
+    V: TAbstractViewpointNode;
   begin
-    V := Node as TVRMLViewpointNode;
+    V := Node as TAbstractViewpointNode;
     if ( (not OnlyPerspective) or
          (V.ProjectionType = ptPerspective) ) and
        ( (ViewpointDescription = '') or
-         ( (Node is TNodeX3DViewpointNode) and
-           (TNodeX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
+         ( (Node is TAbstractX3DViewpointNode) and
+           (TAbstractX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
     begin
       FoundNode := V;
       raise BreakFirstViewpointFound.Create;
@@ -4526,7 +4526,7 @@ function TVRMLScene.GetViewpointCore(
   const OnlyPerspective: boolean;
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  const ViewpointDescription: string): TVRMLViewpointNode;
+  const ViewpointDescription: string): TAbstractViewpointNode;
 var
   Seeker: TFirstViewpointSeeker;
 begin
@@ -4540,7 +4540,7 @@ begin
       Seeker.ViewpointDescription := ViewpointDescription;
 
       try
-        RootNode.Traverse(TVRMLViewpointNode, @Seeker.Seek);
+        RootNode.Traverse(TAbstractViewpointNode, @Seeker.Seek);
       except
         on BreakFirstViewpointFound do
         begin
@@ -4568,7 +4568,7 @@ end;
 function TVRMLScene.GetViewpoint(
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  const ViewpointDescription: string): TVRMLViewpointNode;
+  const ViewpointDescription: string): TAbstractViewpointNode;
 begin
   Result := GetViewpointCore(false, ProjectionType, CamPos, CamDir, CamUp, GravityUp,
     ViewpointDescription);
@@ -4576,7 +4576,7 @@ end;
 
 function TVRMLScene.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
-  const ViewpointDescription: string): TVRMLViewpointNode;
+  const ViewpointDescription: string): TAbstractViewpointNode;
 var
   ProjectionType: TProjectionType;
 begin
@@ -4587,9 +4587,9 @@ end;
 
 { fog ---------------------------------------------------------------------- }
 
-function TVRMLScene.FogNode: TNodeFog;
+function TVRMLScene.FogNode: TFogNode;
 begin
-  Result := FogStack.Top as TNodeFog;
+  Result := FogStack.Top as TFogNode;
 end;
 
 { triangles list ------------------------------------------------------------- }
@@ -4618,14 +4618,14 @@ function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
 
     function ShadowCaster(AShape: TVRMLShape): boolean;
     var
-      Shape: TNodeX3DShapeNode;
+      Shape: TAbstractX3DShapeNode;
     begin
       Shape := AShape.State.ShapeNode;
       Result := not (
         (Shape <> nil) and
         (Shape.FdAppearance.Value <> nil) and
-        (Shape.FdAppearance.Value is TNodeAppearance) and
-        (not TNodeAppearance(Shape.FdAppearance.Value).FdShadowCaster.Value));
+        (Shape.FdAppearance.Value is TAppearanceNode) and
+        (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value));
     end;
 
   var
@@ -4916,19 +4916,19 @@ end;
 
 { freeing resources ---------------------------------------------------------- }
 
-procedure TVRMLScene.FreeResources_UnloadTextureData(Node: TVRMLNode);
+procedure TVRMLScene.FreeResources_UnloadTextureData(Node: TX3DNode);
 begin
-  (Node as TVRML2DTextureNode).IsTextureLoaded := false;
+  (Node as TAbstractTexture2DNode).IsTextureLoaded := false;
 end;
 
-procedure TVRMLScene.FreeResources_UnloadTexture3DData(Node: TVRMLNode);
+procedure TVRMLScene.FreeResources_UnloadTexture3DData(Node: TX3DNode);
 begin
-  (Node as TNodeX3DTexture3DNode).TextureLoaded := false;
+  (Node as TAbstractX3DTexture3DNode).TextureLoaded := false;
 end;
 
-procedure TVRMLScene.FreeResources_UnloadBackgroundImage(Node: TVRMLNode);
+procedure TVRMLScene.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
 begin
-  (Node as TNodeBackground).BgImagesLoaded := false;
+  (Node as TBackgroundNode).BgImagesLoaded := false;
 end;
 
 procedure TVRMLScene.FreeResources(Resources: TVRMLSceneFreeResources);
@@ -4941,14 +4941,14 @@ begin
 
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
-    RootNode.EnumerateNodes(TVRML2DTextureNode,
+    RootNode.EnumerateNodes(TAbstractTexture2DNode,
       @FreeResources_UnloadTextureData, false);
-    RootNode.EnumerateNodes(TNodeX3DTexture3DNode,
+    RootNode.EnumerateNodes(TAbstractX3DTexture3DNode,
       @FreeResources_UnloadTexture3DData, false);
   end;
 
   if (frBackgroundImageInNodes in Resources) and (RootNode <> nil) then
-    RootNode.EnumerateNodes(TNodeBackground,
+    RootNode.EnumerateNodes(TBackgroundNode,
       @FreeResources_UnloadBackgroundImage, false);
 
   if frTrianglesListShadowCasters in Resources then
@@ -4960,9 +4960,9 @@ end;
 
 { events --------------------------------------------------------------------- }
 
-procedure TVRMLScene.ScriptsInitializeCallback(Node: TVRMLNode);
+procedure TVRMLScene.ScriptsInitializeCallback(Node: TX3DNode);
 begin
-  TNodeScript(Node).Initialized := true;
+  TScriptNode(Node).Initialized := true;
 end;
 
 procedure TVRMLScene.ScriptsInitialize;
@@ -4976,14 +4976,14 @@ begin
         Reason: scripts initialize() methods may already cause some events,
         that should notify us appropriately.
         This is also why Begin/EndChangesSchedule around is useful. }
-      RootNode.EnumerateNodes(TNodeScript, @ScriptsInitializeCallback, false);
+      RootNode.EnumerateNodes(TScriptNode, @ScriptsInitializeCallback, false);
     finally EndChangesSchedule end;
   end;
 end;
 
-procedure TVRMLScene.ScriptsFinalizeCallback(Node: TVRMLNode);
+procedure TVRMLScene.ScriptsFinalizeCallback(Node: TX3DNode);
 begin
-  TNodeScript(Node).Initialized := false;
+  TScriptNode(Node).Initialized := false;
 end;
 
 procedure TVRMLScene.ScriptsFinalize;
@@ -4994,7 +4994,7 @@ begin
     try
       { We have to deinitialize scripts before any other deinitialization
         is done. Just like for ScriptsInitialize. }
-      RootNode.EnumerateNodes(TNodeScript, @ScriptsFinalizeCallback, false);
+      RootNode.EnumerateNodes(TScriptNode, @ScriptsFinalizeCallback, false);
     finally EndChangesSchedule end;
   end;
 end;
@@ -5054,11 +5054,11 @@ begin
     FStatic := Value;
     if Static then
     begin
-      { Clear TVRMLNode.Scene for all nodes }
+      { Clear TX3DNode.Scene for all nodes }
       if RootNode <> nil then
         UnregisterScene(RootNode);
     end else
-      { Set TVRMLNode.Scene for all nodes.
+      { Set TX3DNode.Scene for all nodes.
         This is done as part of ChangedAll when Static = true. }
       ScheduleChangedAll;
   end;
@@ -5079,7 +5079,7 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
-        (KeyDeviceSensorNodes.Items[I] as TNodeX3DKeyDeviceSensorNode).KeyDown(Key, C, FTime);
+        (KeyDeviceSensorNodes.Items[I] as TAbstractX3DKeyDeviceSensorNode).KeyDown(Key, C, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),
@@ -5105,7 +5105,7 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
-        (KeyDeviceSensorNodes.Items[I] as TNodeX3DKeyDeviceSensorNode).KeyUp(Key, C, FTime);
+        (KeyDeviceSensorNodes.Items[I] as TAbstractX3DKeyDeviceSensorNode).KeyUp(Key, C, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),
@@ -5124,11 +5124,11 @@ procedure TVRMLScene.PointingDeviceMove(
   const RayOrigin, RayDirection: TVector3Single;
   const OverPoint: TVector3Single; const OverItem: PVRMLTriangle);
 var
-  TouchSensor: TNodeTouchSensor;
-  ActiveSensor: TNodeX3DPointingDeviceSensorNode;
+  TouchSensor: TTouchSensorNode;
+  ActiveSensor: TAbstractX3DPointingDeviceSensorNode;
   OldIsOver, NewIsOver: boolean;
-  OldSensors: TVRMLNodeList;
-  NewSensors: TVRMLNodeList;
+  OldSensors: TX3DNodeList;
+  NewSensors: TX3DNodeList;
   I: Integer;
 begin
   if ProcessEvents then
@@ -5158,7 +5158,7 @@ begin
           for I := 0 to PointingDeviceActiveSensors.Count - 1 do
           begin
             ActiveSensor := PointingDeviceActiveSensors.Items[I] as
-              TNodeX3DPointingDeviceSensorNode;
+              TAbstractX3DPointingDeviceSensorNode;
 
             if ActiveSensor.FdEnabled.Value then
             begin
@@ -5207,17 +5207,17 @@ begin
           for I := 0 to OldSensors.Count - 1 do
             if NewSensors.IndexOf(OldSensors[I]) = -1 then
             begin
-              if (OldSensors[I] is TNodeX3DPointingDeviceSensorNode) and
-                TNodeX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-                TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
+              if (OldSensors[I] is TAbstractX3DPointingDeviceSensorNode) and
+                TAbstractX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
+                TAbstractX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
             end;
 
           for I := 0 to NewSensors.Count - 1 do
             if OldSensors.IndexOf(NewSensors[I]) = -1 then
             begin
-              if (NewSensors[I] is TNodeX3DPointingDeviceSensorNode) and
-                TNodeX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-                TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
+              if (NewSensors[I] is TAbstractX3DPointingDeviceSensorNode) and
+                TAbstractX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
+                TAbstractX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
             end;
         end else
         if PointingDeviceOverItem <> nil then
@@ -5228,9 +5228,9 @@ begin
           OldSensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
 
           for I := 0 to OldSensors.Count - 1 do
-            if (OldSensors[I] is TNodeX3DPointingDeviceSensorNode) and
-              TNodeX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-              TNodeX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
+            if (OldSensors[I] is TAbstractX3DPointingDeviceSensorNode) and
+              TAbstractX3DPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
+              TAbstractX3DPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
         end else
         begin
           Assert(OverItem <> nil);
@@ -5241,9 +5241,9 @@ begin
           NewSensors := OverItem^.State.PointingDeviceSensors;
 
           for I := 0 to NewSensors.Count - 1 do
-            if (NewSensors[I] is TNodeX3DPointingDeviceSensorNode) and
-              TNodeX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-              TNodeX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
+            if (NewSensors[I] is TAbstractX3DPointingDeviceSensorNode) and
+              TAbstractX3DPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
+              TAbstractX3DPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
         end;
 
         FPointingDeviceOverItem := OverItem;
@@ -5263,9 +5263,9 @@ begin
         NewSensors := OverItem^.State.PointingDeviceSensors;
 
         for I := 0 to NewSensors.Count - 1 do
-          if NewSensors[I] is TNodeTouchSensor then
+          if NewSensors[I] is TTouchSensorNode then
           begin
-            TouchSensor := TNodeTouchSensor(NewSensors[I]);
+            TouchSensor := TTouchSensorNode(NewSensors[I]);
             if TouchSensor.FdEnabled.Value then
             begin
               TouchSensor.EventHitPoint_Changed.Send(
@@ -5288,9 +5288,9 @@ begin
       for I := 0 to PointingDeviceActiveSensors.Count - 1 do
       begin
         ActiveSensor := PointingDeviceActiveSensors.Items[I] as
-          TNodeX3DPointingDeviceSensorNode;
-        if ActiveSensor is TNodeX3DDragSensorNode then
-          TNodeX3DDragSensorNode(ActiveSensor).Drag(
+          TAbstractX3DPointingDeviceSensorNode;
+        if ActiveSensor is TAbstractX3DDragSensorNode then
+          TAbstractX3DDragSensorNode(ActiveSensor).Drag(
             Time, RayOrigin, RayDirection);
       end;
     finally
@@ -5339,10 +5339,10 @@ end;
 
 procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
 
-  procedure AnchorActivate(Anchor: TNodeAnchor);
+  procedure AnchorActivate(Anchor: TAnchorNode);
   var
-    NewRootNode: TVRMLRootNode;
-    NewViewpoint: TVRMLViewpointNode;
+    NewRootNode: TX3DRootNode;
+    NewViewpoint: TAbstractViewpointNode;
   begin
     if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then
     begin
@@ -5364,10 +5364,10 @@ procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
 
 var
   I: Integer;
-  ToActivate: TVRMLNode;
+  ToActivate: TX3DNode;
   Sensors: TPointingDeviceSensorList;
   ActiveChanged: boolean;
-  ActiveSensor: TNodeX3DPointingDeviceSensorNode;
+  ActiveSensor: TAbstractX3DPointingDeviceSensorNode;
 begin
   if ProcessEvents and (FPointingDeviceActive <> Value) then
   begin
@@ -5386,8 +5386,8 @@ begin
             { Activate all the enabled sensors. Spec says to activate
               simultaneouly all Sensors (tied for this mouse down). }
             ToActivate := Sensors[I];
-            if (ToActivate is TNodeX3DPointingDeviceSensorNode) and
-               (TNodeX3DPointingDeviceSensorNode(ToActivate).FdEnabled.Value) then
+            if (ToActivate is TAbstractX3DPointingDeviceSensorNode) and
+               (TAbstractX3DPointingDeviceSensorNode(ToActivate).FdEnabled.Value) then
             begin
               { Send isActive = true and make DoPointingDeviceSensorsChange
                 only if FPointingDeviceActiveSensor changes. }
@@ -5396,17 +5396,17 @@ begin
                 PointingDeviceActiveSensors.Add(ToActivate);
                 { We do this only when PointingDeviceOverItem <> nil,
                   so we know that PointingDeviceOverPoint is meaningful. }
-                TNodeX3DPointingDeviceSensorNode(ToActivate).Activate(Time,
+                TAbstractX3DPointingDeviceSensorNode(ToActivate).Activate(Time,
                   Sensors.Transform, Sensors.InvertedTransform, PointingDeviceOverPoint);
                 ActiveChanged := true;
               end;
             end else
-            if ToActivate is TNodeAnchor then
+            if ToActivate is TAnchorNode then
             begin
               { activating Anchor clears other sensors, since Anchor
                 loads completely different scene. }
               FPointingDeviceActiveSensors.Count := 0;
-              AnchorActivate(TNodeAnchor(ToActivate));
+              AnchorActivate(TAnchorNode(ToActivate));
               ActiveChanged := true;
               Break;
             end;
@@ -5421,15 +5421,15 @@ begin
           for I := 0 to PointingDeviceActiveSensors.Count -1 do
           begin
             ActiveSensor := PointingDeviceActiveSensors.Items[I]
-              as TNodeX3DPointingDeviceSensorNode;
+              as TAbstractX3DPointingDeviceSensorNode;
             ActiveSensor.Deactivate(Time);
             { If we're still over the sensor, generate touchTime for TouchSensor }
             if (PointingDeviceOverItem <> nil) and
                (PointingDeviceOverItem^.State.PointingDeviceSensors.
                  IndexOf(ActiveSensor) <> -1) and
-               (ActiveSensor is TNodeTouchSensor) then
+               (ActiveSensor is TTouchSensorNode) then
             begin
-              TNodeTouchSensor(ActiveSensor).
+              TTouchSensorNode(ActiveSensor).
                 EventTouchTime.Send(Time.Seconds, Time);
             end;
           end;
@@ -5516,7 +5516,7 @@ function TVRMLScene.Dragging: boolean;
   begin
     Result := false;
     for I := 0 to PointingDeviceActiveSensors.Count - 1 do
-      if PointingDeviceActiveSensors.Items[I] is TNodeX3DDragSensorNode then
+      if PointingDeviceActiveSensors.Items[I] is TAbstractX3DDragSensorNode then
         Exit(true);
    end;
 
@@ -5552,7 +5552,7 @@ begin
       for I := 0 to TimeDependentHandlers.Count - 1 do
       begin
         if TimeDependentHandlers[I].SetTime(Time, NewValue, TimeIncrease, ResetTime) and
-          (TimeDependentHandlers[I].Node is TNodeMovieTexture) then
+          (TimeDependentHandlers[I].Node is TMovieTextureNode) then
           SomethingVisibleChanged := true;
       end;
 
@@ -5567,7 +5567,7 @@ begin
       for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
       begin
         ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
-          as TNodeHAnimHumanoid).AnimateSkin;
+          as THAnimHumanoidNode).AnimateSkin;
         if ChangedSkin <> nil then
           ChangedSkin.Changed;
       end;
@@ -5602,14 +5602,14 @@ begin
     InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
-procedure TVRMLScene.ResetLastEventTime(Node: TVRMLNode);
+procedure TVRMLScene.ResetLastEventTime(Node: TX3DNode);
 var
   I: Integer;
 begin
   for I := 0 to Node.Routes.Count - 1 do
     Node.Routes[I].ResetLastEventTime;
-  if Node is TNodeX3DScriptNode then
-    TNodeX3DScriptNode(Node).ResetLastEventTimes;
+  if Node is TAbstractX3DScriptNode then
+    TAbstractX3DScriptNode(Node).ResetLastEventTimes;
 end;
 
 procedure TVRMLScene.ResetTime(const NewValue: TKamTime);
@@ -5629,8 +5629,8 @@ var
   TimeAtLoad: TKamTime;
 begin
   if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top is TNodeKambiNavigationInfo) and
-     TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdTimeOriginAtLoad.Value
+     (NavigationInfoStack.Top is TKambiNavigationInfoNode) and
+     TKambiNavigationInfoNode(NavigationInfoStack.Top).FdTimeOriginAtLoad.Value
     then
     TimeAtLoad := 0.0 else
     TimeAtLoad := DateTimeToUnix(Now);
@@ -5702,7 +5702,7 @@ end;
 procedure TVRMLScene.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
   Position, Direction, Up: TVector3Single;
-  Node: TNodeProximitySensor;
+  Node: TProximitySensorNode;
   NewIsActive: boolean;
 begin
   Assert(CameraViewKnown);
@@ -5811,7 +5811,7 @@ begin
         any parent Billboard nodes. }
       for I := 0 to BillboardInstancesList.Count - 1 do
       begin
-        (BillboardInstancesList[I] as TNodeBillboard).CameraChanged(
+        (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
           FCameraPosition, FCameraDirection, FCameraUp);
         TransformationChanged(BillboardInstancesList[I],
           BillboardInstancesList[I].ShapeTrees as TVRMLShapeTreeList,
@@ -5907,7 +5907,7 @@ var
   end;
 
 var
-  NavigationNode: TNodeNavigationInfo;
+  NavigationNode: TNavigationInfoNode;
   I: Integer;
   CameraRadius: Single;
 begin
@@ -5989,10 +5989,10 @@ begin
 
     { calculate Walk.HeadBobbing* }
     if (NavigationNode <> nil) and
-       (NavigationNode is TNodeKambiNavigationInfo) then
+       (NavigationNode is TKambiNavigationInfoNode) then
     begin
-      Walk.HeadBobbing := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbing.Value;
-      Walk.HeadBobbingTime := TNodeKambiNavigationInfo(NavigationNode).FdHeadBobbingTime.Value;
+      Walk.HeadBobbing := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbing.Value;
+      Walk.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
     end else
     begin
       Walk.HeadBobbing := DefaultHeadBobbing;
@@ -6029,7 +6029,7 @@ var
 begin
   if ViewpointStack.Top <> nil then
   begin
-    (ViewpointStack.Top as TVRMLViewpointNode).GetView(
+    (ViewpointStack.Top as TAbstractViewpointNode).GetView(
       Position, Direction, Up, GravityUp);
   end else
   begin
@@ -6077,7 +6077,7 @@ end;
 procedure TVRMLScene.CameraTransition(Camera: TCamera;
   const Position, Direction, Up: TVector3Single);
 var
-  NavigationNode: TNodeNavigationInfo;
+  NavigationNode: TNavigationInfoNode;
   TransitionAnimate: boolean;
   TransitionTime: TKamTime;
   TransitionType: string;
@@ -6158,26 +6158,26 @@ type
 
 procedure TVRMLScene.CalculateMainLightForShadowsPosition;
 begin
-  if FMainLightForShadowsNode is TVRMLPositionalLightNode then
+  if FMainLightForShadowsNode is TAbstractPositionalLightNode then
     FMainLightForShadows := Vector4Single(
       MatrixMultPoint(
         FMainLightForShadowsTransform,
-        TVRMLPositionalLightNode(FMainLightForShadowsNode).FdLocation.Value), 1) else
-  if FMainLightForShadowsNode is TVRMLDirectionalLightNode then
+        TAbstractPositionalLightNode(FMainLightForShadowsNode).FdLocation.Value), 1) else
+  if FMainLightForShadowsNode is TAbstractDirectionalLightNode then
     FMainLightForShadows := Vector4Single( Normalized(
       MatrixMultDirection(
         FMainLightForShadowsTransform,
-        TVRMLDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
+        TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
     raise Exception.CreateFmt('TVRMLScene.MainLightForShadows: ' +
       'light node "%s" cannot be used to cast shadows, it has no position ' +
       'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
 end;
 
 procedure TVRMLScene.SearchMainLightForShadows(
-  Node: TVRMLNode; StateStack: TVRMLGraphTraverseStateStack;
+  Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
-  L: TNodeX3DLightNode absolute Node;
+  L: TAbstractX3DLightNode absolute Node;
 begin
   if L.FdKambiShadows.Value and
      L.FdKambiShadowsMain.Value then
@@ -6197,7 +6197,7 @@ procedure TVRMLScene.ValidateMainLightForShadows;
     FMainLightForShadowsExists := false;
     if RootNode <> nil then
     try
-      RootNode.Traverse(TNodeX3DLightNode, @SearchMainLightForShadows);
+      RootNode.Traverse(TAbstractX3DLightNode, @SearchMainLightForShadows);
     except on BreakMainLightForShadows do ; end;
   end;
 
@@ -6229,17 +6229,17 @@ begin
   end;
 end;
 
-function TVRMLScene.CustomHeadlight: TNodeX3DLightNode;
+function TVRMLScene.CustomHeadlight: TAbstractX3DLightNode;
 var
-  MaybeResult: TVRMLNode;
+  MaybeResult: TX3DNode;
 begin
   Result := nil;
   if (NavigationInfoStack.Top <> nil) and
-     (NavigationInfoStack.Top is TNodeKambiNavigationInfo) then
+     (NavigationInfoStack.Top is TKambiNavigationInfoNode) then
   begin
-    MaybeResult := TNodeKambiNavigationInfo(NavigationInfoStack.Top).FdheadlightNode.Value;
-    if MaybeResult is TNodeX3DLightNode then
-      Result := TNodeX3DLightNode(MaybeResult);
+    MaybeResult := TKambiNavigationInfoNode(NavigationInfoStack.Top).FdheadlightNode.Value;
+    if MaybeResult is TAbstractX3DLightNode then
+      Result := TAbstractX3DLightNode(MaybeResult);
   end;
 end;
 
@@ -6260,7 +6260,7 @@ end;
 
 procedure TVRMLScene.CameraChanged(RenderingCamera: TRenderingCamera);
 var
-  V: TVRMLViewpointNode;
+  V: TAbstractViewpointNode;
 begin
   { Although we register this callback only when ProcessEvents,
     so we could assume here that ProcessEvents is already true...
@@ -6269,11 +6269,11 @@ begin
 
   if ProcessEvents and
      (ViewpointStack.Top <> nil) and
-     (ViewpointStack.Top is TVRMLViewpointNode) and
+     (ViewpointStack.Top is TAbstractViewpointNode) and
      ( (RenderingCamera.Target = rtScreen) or
-       TVRMLViewpointNode(ViewpointStack.Top).FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
+       TAbstractViewpointNode(ViewpointStack.Top).FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
   begin
-    V := TVRMLViewpointNode(ViewpointStack.Top);
+    V := TAbstractViewpointNode(ViewpointStack.Top);
 
     BeginChangesSchedule;
     try
@@ -6468,9 +6468,9 @@ end;
 
 function TVRMLScene.Caption: string;
 var
-  WorldInfoNode: TNodeWorldInfo;
+  WorldInfoNode: TWorldInfoNode;
 begin
-  WorldInfoNode := RootNode.TryFindNode(TNodeWorldInfo, true) as TNodeWorldInfo;
+  WorldInfoNode := RootNode.TryFindNode(TWorldInfoNode, true) as TWorldInfoNode;
   if (WorldInfoNode <> nil) and
      (WorldInfoNode.FdTitle.Value <> '') then
     Result := WorldInfoNode.FdTitle.Value else
@@ -6481,14 +6481,14 @@ procedure TVRMLScene.InvalidateBackground;
 begin
 end;
 
-procedure TVRMLScene.UnregisterSceneCallback(Node: TVRMLNode);
+procedure TVRMLScene.UnregisterSceneCallback(Node: TX3DNode);
 begin
   Node.Scene := nil;
 end;
 
-procedure TVRMLScene.UnregisterScene(Node: TVRMLNode);
+procedure TVRMLScene.UnregisterScene(Node: TX3DNode);
 begin
-  Node.EnumerateNodes(TVRMLNode, @UnregisterSceneCallback, false);
+  Node.EnumerateNodes(TX3DNode, @UnregisterSceneCallback, false);
 end;
 
 end.
