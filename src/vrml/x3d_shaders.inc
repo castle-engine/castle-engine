@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DShaderNode = class(TAbstractX3DAppearanceChildNode)
+  TAbstractShaderNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
 
@@ -35,7 +35,7 @@
     public property FdLanguage: TSFString read FFdLanguage;
   end;
 
-  TAbstractX3DVertexAttributeNode = class(TAbstractX3DGeometricPropertyNode)
+  TAbstractVertexAttributeNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
@@ -47,7 +47,7 @@
   ['{B027FD9B-2A68-4653-8A26-91DB51BE47ED}']
   end;
 
-  TComposedShaderNode = class(TAbstractX3DShaderNode, IAbstractX3DProgrammableShaderObject)
+  TComposedShaderNode = class(TAbstractShaderNode, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -63,7 +63,7 @@
     function DescribeUsedUrls: string;
   end;
 
-  TFloatVertexAttributeNode = class(TAbstractX3DVertexAttributeNode)
+  TFloatVertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -76,7 +76,7 @@
     public property FdNumComponents: TSFInt32 read FFdNumComponents;
   end;
 
-  TMatrix3VertexAttributeNode = class(TAbstractX3DVertexAttributeNode)
+  TMatrix3VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -86,7 +86,7 @@
     public property FdValue: TMFMatrix3f read FFdValue;
   end;
 
-  TMatrix4VertexAttributeNode = class(TAbstractX3DVertexAttributeNode)
+  TMatrix4VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -96,7 +96,7 @@
     public property FdValue: TMFMatrix4f read FFdValue;
   end;
 
-  TPackagedShaderNode = class(TAbstractX3DShaderNode, IAbstractX3DUrlObject, IAbstractX3DProgrammableShaderObject)
+  TPackagedShaderNode = class(TAbstractShaderNode, IAbstractX3DUrlObject, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -106,7 +106,7 @@
     public property FdUrl: TMFString read FFdUrl;
   end;
 
-  TProgramShaderNode = class(TAbstractX3DShaderNode)
+  TProgramShaderNode = class(TAbstractShaderNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -173,7 +173,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DShaderNode.CreateNode;
+procedure TAbstractShaderNode.CreateNode;
 begin
   inherited;
 
@@ -195,7 +195,7 @@ begin
   DefaultContainerField := 'shaders';
 end;
 
-procedure TAbstractX3DVertexAttributeNode.CreateNode;
+procedure TAbstractVertexAttributeNode.CreateNode;
 begin
   inherited;
 

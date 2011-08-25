@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DInterpolatorNode = class(TAbstractX3DChildNode)
+  TAbstractInterpolatorNode = class(TAbstractChildNode)
   protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
   public
@@ -29,7 +29,7 @@
     public property FdKey: TMFFloat read FFdKey;
   end;
 
-  TColorInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TColorInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -46,7 +46,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TColorSetInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TColorSetInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -63,7 +63,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TCoordinateInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TCoordinateInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -80,7 +80,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TCoordinateInterpolator2DNode = class(TAbstractX3DInterpolatorNode)
+  TCoordinateInterpolator2DNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -118,7 +118,7 @@
     public property EventModifiedFraction_changed: TVRMLEvent read FEventModifiedFraction_changed;
   end;
 
-  TNormalInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TNormalInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -135,7 +135,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TOrientationInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -152,7 +152,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TPositionInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TPositionInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -169,7 +169,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TPositionInterpolator2DNode = class(TAbstractX3DInterpolatorNode)
+  TPositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -186,7 +186,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TScalarInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -203,7 +203,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TSplinePositionInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -226,7 +226,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TSplinePositionInterpolator2DNode = class(TAbstractX3DInterpolatorNode)
+  TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -249,7 +249,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TSplineScalarInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -272,7 +272,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TSquadOrientationInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -289,7 +289,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TVectorInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TVectorInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -422,7 +422,7 @@ begin
   end;
 end;}
 
-procedure TAbstractX3DInterpolatorNode.CreateNode;
+procedure TAbstractInterpolatorNode.CreateNode;
 begin
   inherited;
 
@@ -436,7 +436,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TAbstractX3DInterpolatorNode.KeyRange(
+function TAbstractInterpolatorNode.KeyRange(
   const Fraction: Single; out T: Single): Integer;
 begin
   Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);

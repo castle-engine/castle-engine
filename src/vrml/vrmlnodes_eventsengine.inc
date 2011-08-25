@@ -23,7 +23,7 @@
   public
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
-    procedure Set_Bind(Node: TAbstractX3DBindableNode; const Value: boolean); virtual; abstract;
+    procedure Set_Bind(Node: TAbstractBindableNode; const Value: boolean); virtual; abstract;
   end;
 
   { Abstract 3D object handling VRML/X3D events.

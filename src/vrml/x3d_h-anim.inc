@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  THAnimDisplacerNode = class(TAbstractX3DGeometricPropertyNode)
+  THAnimDisplacerNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -46,7 +46,7 @@
   PVertexJoints = ^TVertexJoints;
   TVertexJointsList = specialize TGenericStructList<TVertexJoints>;
 
-  THAnimHumanoidNode = class(TAbstractX3DChildNode, IAbstractX3DBoundedObject, ITransformNode)
+  THAnimHumanoidNode = class(TAbstractChildNode, IAbstractX3DBoundedObject, ITransformNode)
   private
     VertexJoints: TVertexJointsList;
   protected
@@ -365,13 +365,13 @@ begin
     HAnim 200x specs talks only about "skeleton"). }
   Fdskeleton.AddAlternativeName('humanoidBody', 0);
 
-  FFdSkin := TMFNode.Create(Self, 'skin', [TAbstractX3DChildNode]);
+  FFdSkin := TMFNode.Create(Self, 'skin', [TAbstractChildNode]);
   Fields.Add(FFdSkin);
 
-  FFdSkinCoord := TSFNode.Create(Self, 'skinCoord', [TAbstractX3DCoordinateNode]);
+  FFdSkinCoord := TSFNode.Create(Self, 'skinCoord', [TAbstractCoordinateNode]);
   Fields.Add(FFdSkinCoord);
 
-  FFdSkinNormal := TSFNode.Create(Self, 'skinNormal', [TAbstractX3DNormalNode]);
+  FFdSkinNormal := TSFNode.Create(Self, 'skinNormal', [TAbstractNormalNode]);
   Fields.Add(FFdSkinNormal);
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
@@ -739,7 +739,7 @@ begin
   Fields.Add(FFdCenterOfMass);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
   Fields.Add(FFdCoord);
 
   FFdDisplacers := TMFNode.Create(Self, 'displacers', [THAnimDisplacerNode]);

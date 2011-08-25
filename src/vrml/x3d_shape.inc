@@ -15,33 +15,33 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DAppearanceChildNode = class(TAbstractX3DNode)
+  TAbstractAppearanceChildNode = class(TAbstractX3DNode)
   end;
 
-  TAbstractX3DAppearanceNode = class(TAbstractX3DNode)
+  TAbstractAppearanceNode = class(TAbstractX3DNode)
   end;
 
-  TAbstractX3DMaterialNode = class(TAbstractX3DAppearanceChildNode)
+  TAbstractMaterialNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
   end;
 
   TAppearanceNode = class;
-  TAbstractX3DTextureTransformNode = class;
+  TAbstractTextureTransformNode = class;
   TMaterialNode = class;
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
 
-  TAbstractX3DShapeNode = class(TAbstractX3DChildNode, IAbstractX3DBoundedObject)
+  TAbstractX3DShapeNode = class(TAbstractChildNode, IAbstractX3DBoundedObject)
   private
     function GetAppearance: TAppearanceNode;
     procedure SetAppearance(const Value: TAppearanceNode);
     function GetMaterial: TMaterialNode;
     procedure SetMaterial(const Value: TMaterialNode);
-    function GetTexture: TAbstractX3DTextureNode;
-    procedure SetTexture(const Value: TAbstractX3DTextureNode);
-    function GetTextureTransform: TAbstractX3DTextureTransformNode;
-    procedure SetTextureTransform(const Value: TAbstractX3DTextureTransformNode);
+    function GetTexture: TAbstractTextureNode;
+    procedure SetTexture(const Value: TAbstractTextureNode);
+    function GetTextureTransform: TAbstractTextureTransformNode;
+    procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
   protected
@@ -78,13 +78,13 @@
 
       When setting this to something non-nil, we make sure
       to also set Appearance to something non-nil. }
-    property Texture: TAbstractX3DTextureNode read GetTexture write SetTexture;
+    property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
     { Texture transformation of this shape.
       Similar to @link(Texture), this is just a comfortable property
       for getting and setting the appropriate Appearance field,
       checking class types along the way. }
-    property TextureTransform: TAbstractX3DTextureTransformNode
+    property TextureTransform: TAbstractTextureTransformNode
       read GetTextureTransform write SetTextureTransform;
 
     { Get / set the (simple, one-sided) material of this shape.
@@ -115,7 +115,7 @@
     function GLSLShader(Index: Integer): TComposedShaderNode;
   end;
 
-  TAppearanceNode = class(TAbstractX3DAppearanceNode)
+  TAppearanceNode = class(TAbstractAppearanceNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -170,7 +170,7 @@
     public property FdBlendMode: TSFNode read FFdBlendMode;
   end;
 
-  TFillPropertiesNode = class(TAbstractX3DAppearanceChildNode)
+  TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -189,7 +189,7 @@
     public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
   end;
 
-  TLinePropertiesNode = class(TAbstractX3DAppearanceChildNode)
+  TLinePropertiesNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -207,7 +207,7 @@
 
   TVRMLMaterialInfo = class;
 
-  TMaterialNode = class(TAbstractX3DMaterialNode)
+  TMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -347,7 +347,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TTwoSidedMaterialNode = class(TAbstractX3DMaterialNode)
+  TTwoSidedMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -396,7 +396,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DMaterialNode.CreateNode;
+procedure TAbstractMaterialNode.CreateNode;
 begin
   inherited;
 
@@ -411,7 +411,7 @@ procedure TAbstractX3DShapeNode.CreateNode;
 begin
   inherited;
 
-  FFdAppearance := TSFNode.Create(Self, 'appearance', [TAbstractX3DAppearanceNode]);
+  FFdAppearance := TSFNode.Create(Self, 'appearance', [TAbstractAppearanceNode]);
    FdAppearance.ChangesAlways := [chEverything];
   Fields.Add(FFdAppearance);
 
@@ -507,19 +507,19 @@ begin
   end;
 end;
 
-function TAbstractX3DShapeNode.GetTexture: TAbstractX3DTextureNode;
+function TAbstractX3DShapeNode.GetTexture: TAbstractTextureNode;
 var
   App: TAppearanceNode;
 begin
   App := Appearance;
   if (App <> nil) and
      (App.FdTexture.Value <> nil) and
-     (App.FdTexture.Value is TAbstractX3DTextureNode) then
-    Result := TAbstractX3DTextureNode(App.FdTexture.Value) else
+     (App.FdTexture.Value is TAbstractTextureNode) then
+    Result := TAbstractTextureNode(App.FdTexture.Value) else
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetTexture(const Value: TAbstractX3DTextureNode);
+procedure TAbstractX3DShapeNode.SetTexture(const Value: TAbstractTextureNode);
 var
   App: TAppearanceNode;
 begin
@@ -535,19 +535,19 @@ begin
   end;
 end;
 
-function TAbstractX3DShapeNode.GetTextureTransform: TAbstractX3DTextureTransformNode;
+function TAbstractX3DShapeNode.GetTextureTransform: TAbstractTextureTransformNode;
 var
   App: TAppearanceNode;
 begin
   App := Appearance;
   if (App <> nil) and
      (App.FdTextureTransform.Value <> nil) and
-     (App.FdTextureTransform.Value is TAbstractX3DTextureTransformNode) then
-    Result := TAbstractX3DTextureTransformNode(App.FdTextureTransform.Value) else
+     (App.FdTextureTransform.Value is TAbstractTextureTransformNode) then
+    Result := TAbstractTextureTransformNode(App.FdTextureTransform.Value) else
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetTextureTransform(const Value: TAbstractX3DTextureTransformNode);
+procedure TAbstractX3DShapeNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
 var
   App: TAppearanceNode;
 begin
@@ -603,23 +603,23 @@ begin
    FdLineProperties.ChangesAlways := [chEverything];
   Fields.Add(FFdLineProperties);
 
-  FFdMaterial := TSFNode.Create(Self, 'material', [TAbstractX3DMaterialNode]);
+  FFdMaterial := TSFNode.Create(Self, 'material', [TAbstractMaterialNode]);
    FdMaterial.ChangesAlways := [chEverything];
   Fields.Add(FFdMaterial);
 
-  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractX3DShaderNode]);
+  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
   Fields.Add(FFdShaders);
 
-  FFdTexture := TSFNode.Create(Self, 'texture', [TAbstractX3DTextureNode]);
+  FFdTexture := TSFNode.Create(Self, 'texture', [TAbstractTextureNode]);
    FdTexture.ChangesAlways := [chEverything];
   Fields.Add(FFdTexture);
 
-  FFdTextureTransform := TSFNode.Create(Self, 'textureTransform', [TAbstractX3DTextureTransformNode]);
+  FFdTextureTransform := TSFNode.Create(Self, 'textureTransform', [TAbstractTextureTransformNode]);
    FdTextureTransform.ChangesAlways := [chEverything];
   Fields.Add(FFdTextureTransform);
 
-  FFdReceiveShadows := TMFNode.Create(Self, 'receiveShadows', [TAbstractX3DLightNode]);
+  FFdReceiveShadows := TMFNode.Create(Self, 'receiveShadows', [TAbstractLightNode]);
    FdReceiveShadows.Exposed := false;
    FdReceiveShadows.ChangesAlways := [chEverything];
   Fields.Add(FFdReceiveShadows);
@@ -628,11 +628,11 @@ begin
    FdShadowCaster.ChangesAlways := [chShadowCasters];
   Fields.Add(FFdShadowCaster);
 
-  FFdNormalMap := TSFNode.Create(Self, 'normalMap', [TAbstractX3DTextureNode]);
+  FFdNormalMap := TSFNode.Create(Self, 'normalMap', [TAbstractTextureNode]);
    FdNormalMap.ChangesAlways := [chEverything];
   Fields.Add(FFdNormalMap);
 
-  FFdHeightMap := TSFNode.Create(Self, 'heightMap', [TAbstractX3DTextureNode]);
+  FFdHeightMap := TSFNode.Create(Self, 'heightMap', [TAbstractTextureNode]);
    FdHeightMap.ChangesAlways := [chEverything];
   Fields.Add(FFdHeightMap);
 

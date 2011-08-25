@@ -708,7 +708,7 @@
     function IsNodePresent(Node: TX3DNode; OnlyActive: boolean): boolean;
 
     { Count the occurrences of given node class in our children.
-      For example, you can pass NodeClass = TAbstractX3DLightNode to count
+      For example, you can pass NodeClass = TAbstractLightNode to count
       the light sources in the scene.
 
       If CountOnlyActiveNodes, then only active parts are searched

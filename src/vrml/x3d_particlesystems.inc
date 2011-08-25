@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DParticleEmitterNode = class(TAbstractX3DNode)
+  TAbstractParticleEmitterNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -32,7 +32,7 @@
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
   end;
 
-  TAbstractX3DParticlePhysicsModelNode = class(TAbstractX3DNode)
+  TAbstractParticlePhysicsModelNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -40,7 +40,7 @@
     public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
-  TBoundedPhysicsModelNode = class(TAbstractX3DParticlePhysicsModelNode)
+  TBoundedPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -50,7 +50,7 @@
     public property FdGeometry: TSFNode read FFdGeometry;
   end;
 
-  TConeEmitterNode = class(TAbstractX3DParticleEmitterNode)
+  TConeEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -66,7 +66,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TExplosionEmitterNode = class(TAbstractX3DParticleEmitterNode)
+  TExplosionEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -76,7 +76,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TGravityPhysicsModelNode = class(TAbstractX3DParticlePhysicsModelNode)
+  TGravityPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -136,7 +136,7 @@
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
   end;
 
-  TPointEmitterNode = class(TAbstractX3DParticleEmitterNode)
+  TPointEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -149,7 +149,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TPolylineEmitterNode = class(TAbstractX3DParticleEmitterNode)
+  TPolylineEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -169,7 +169,7 @@
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
   end;
 
-  TSurfaceEmitterNode = class(TAbstractX3DParticleEmitterNode)
+  TSurfaceEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -186,7 +186,7 @@
     public property FdSurface: TSFNode read FFdSurface;
   end;
 
-  TVolumeEmitterNode = class(TAbstractX3DParticleEmitterNode)
+  TVolumeEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -209,7 +209,7 @@
     public property FdInternal: TSFBool read FFdInternal;
   end;
 
-  TWindPhysicsModelNode = class(TAbstractX3DParticlePhysicsModelNode)
+  TWindPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -231,7 +231,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DParticleEmitterNode.CreateNode;
+procedure TAbstractParticleEmitterNode.CreateNode;
 begin
   inherited;
 
@@ -256,7 +256,7 @@ begin
   DefaultContainerField := 'emitter';
 end;
 
-procedure TAbstractX3DParticlePhysicsModelNode.CreateNode;
+procedure TAbstractParticlePhysicsModelNode.CreateNode;
 begin
   inherited;
 
@@ -379,7 +379,7 @@ begin
   FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FFdColorRamp := TSFNode.Create(Self, 'colorRamp', [TAbstractX3DColorNode]);
+  FFdColorRamp := TSFNode.Create(Self, 'colorRamp', [TAbstractColorNode]);
   FFdColorRamp.Exposed := false;
   Fields.Add(FFdColorRamp);
 
@@ -388,7 +388,7 @@ begin
   Fields.Add(FFdColorKey);
   { X3D specification comment: [0,Inf) }
 
-  FFdEmitter := TSFNode.Create(Self, 'emitter', [TAbstractX3DParticleEmitterNode]);
+  FFdEmitter := TSFNode.Create(Self, 'emitter', [TAbstractParticleEmitterNode]);
   FFdEmitter.Exposed := false;
   Fields.Add(FFdEmitter);
 
@@ -397,7 +397,7 @@ begin
   Fields.Add(FFdGeometryType);
   { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
 
-  FFdPhysics := TMFNode.Create(Self, 'physics', [TAbstractX3DParticlePhysicsModelNode]);
+  FFdPhysics := TMFNode.Create(Self, 'physics', [TAbstractParticlePhysicsModelNode]);
   FFdPhysics.Exposed := false;
   Fields.Add(FFdPhysics);
 
@@ -451,7 +451,7 @@ begin
   FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
   Fields.Add(FFdCoord);
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
@@ -510,7 +510,7 @@ begin
   FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
   Fields.Add(FFdCoord);
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));

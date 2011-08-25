@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DNetworkSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractNetworkSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
   end;
@@ -208,7 +208,7 @@
     public property EventChildren: TVRMLEvent read FEventChildren;
   end;
 
-  TLoadSensorNode = class(TAbstractX3DNetworkSensorNode)
+  TLoadSensorNode = class(TAbstractNetworkSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -236,7 +236,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DNetworkSensorNode.CreateNode;
+procedure TAbstractNetworkSensorNode.CreateNode;
 begin
   inherited;
 

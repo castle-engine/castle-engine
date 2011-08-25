@@ -661,7 +661,7 @@ type
     constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
   end;
 
-  TX3DVertexAttributeNodes = specialize TFPGObjectList<TAbstractX3DVertexAttributeNode>;
+  TX3DVertexAttributeNodes = specialize TFPGObjectList<TAbstractVertexAttributeNode>;
 
   { Handle GLSL attributes from VRML/X3D "attrib" field.
     Descendants don't have to do anything, this just works
@@ -815,10 +815,10 @@ end;
 
 procedure TVRMLArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
-  if Geometry is TAbstractX3DComposedGeometryNode then
+  if Geometry is TAbstractComposedGeometryNode then
   begin
-    Arrays.CullBackFaces := (Geometry as TAbstractX3DComposedGeometryNode).FdSolid.Value;
-    Arrays.FrontFaceCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
+    Arrays.CullBackFaces := (Geometry as TAbstractComposedGeometryNode).FdSolid.Value;
+    Arrays.FrontFaceCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   end;
 end;
 
@@ -892,13 +892,13 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     function IsSingleTexture3D(Tex: TX3DNode): boolean;
     begin
       Result :=
-         (Tex is TAbstractX3DTexture3DNode) or
+         (Tex is TAbstractTexture3DNode) or
         ((Tex is TShaderTextureNode) and
          (TShaderTextureNode(Tex).FdDefaultTexCoord.Value = 'BOUNDS3D'));
     end;
 
   var
-    Tex: TAbstractX3DTextureNode;
+    Tex: TAbstractTextureNode;
   begin
     Tex := State.Texture;
     Result := (
@@ -1089,9 +1089,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         begin
           ProjectorValue := TTextureCoordinateGeneratorNode(GeneratorNode).FdProjectedLight.Value;
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TAbstractX3DLightNode) then
+             (ProjectorValue is TAbstractLightNode) then
           begin
-            Result := @TAbstractX3DLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractLightNode(ProjectorValue).GetProjectorMatrix;
           end else
             OnWarning(wtMajor, 'VRML/X3D', 'Using TextureCoordinateGenerator.mode = "PROJECTION", but TextureCoordinateGenerator.projectedLight is NULL or incorrect');
         end else
@@ -1099,9 +1099,9 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         begin
           ProjectorValue := TProjectedTextureCoordinateNode(GeneratorNode).FdProjector.Value;
           if (ProjectorValue <> nil) and
-             (ProjectorValue is TAbstractX3DLightNode) then
+             (ProjectorValue is TAbstractLightNode) then
           begin
-            Result := @TAbstractX3DLightNode(ProjectorValue).GetProjectorMatrix;
+            Result := @TAbstractLightNode(ProjectorValue).GetProjectorMatrix;
           end else
           if (ProjectorValue <> nil) and
              (ProjectorValue is TAbstractX3DViewpointNode) then
@@ -1599,8 +1599,8 @@ procedure TAbstractColorGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   inherited;
 
-  if Geometry is TAbstractX3DComposedGeometryNode then
-    RadianceTransfer := (Geometry as TAbstractX3DComposedGeometryNode).FdRadianceTransfer.Items;
+  if Geometry is TAbstractComposedGeometryNode then
+    RadianceTransfer := (Geometry as TAbstractComposedGeometryNode).FdRadianceTransfer.Items;
 
   { calculate final RadianceTransfer:
     Leave it non-nil, and calculate RadianceTransferVertexSize,
@@ -2046,12 +2046,12 @@ begin
   A := Geometry.Attrib;
   if A <> nil then
     for I := 0 to A.Count - 1 do
-      if A[I] is TAbstractX3DVertexAttributeNode then
+      if A[I] is TAbstractVertexAttributeNode then
       begin
         { To conserve time and memory, create Attrib instance only when needed }
         if Attrib = nil then
           Attrib := TX3DVertexAttributeNodes.Create(false);
-        Attrib.Add(TAbstractX3DVertexAttributeNode(A[I]));
+        Attrib.Add(TAbstractVertexAttributeNode(A[I]));
       end;
 end;
 

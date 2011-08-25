@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DBackgroundNode = class(TAbstractX3DBindableNode)
+  TAbstractBackgroundNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -77,7 +77,7 @@
     procedure FreeAll(Cache: TTexturesImagesVideosCache);
   end;
 
-  TBackgroundNode = class(TAbstractX3DBackgroundNode)
+  TBackgroundNode = class(TAbstractBackgroundNode)
   private
     FBgImagesLoaded: boolean; { = false }
 
@@ -145,7 +145,7 @@
       write SetBgImagesLoaded;
   end;
 
-  TFogNode = class(TAbstractX3DBindableNode, IAbstractX3DFogObject)
+  TFogNode = class(TAbstractBindableNode, IAbstractX3DFogObject)
   private
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
@@ -189,7 +189,7 @@
     { @groupEnd }
   end;
 
-  TFogCoordinateNode = class(TAbstractX3DGeometricPropertyNode)
+  TFogCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -199,7 +199,7 @@
     public property FdDepth: TMFFloat read FFdDepth;
   end;
 
-  TLocalFogNode = class(TAbstractX3DChildNode, IAbstractX3DFogObject)
+  TLocalFogNode = class(TAbstractChildNode, IAbstractX3DFogObject)
   private
     FTransformScale: Single;
     function GetFdcolor: TSFColor;
@@ -243,7 +243,7 @@
     { @groupEnd }
   end;
 
-  TTextureBackgroundNode = class(TAbstractX3DBackgroundNode)
+  TTextureBackgroundNode = class(TAbstractBackgroundNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -271,7 +271,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DBackgroundNode.CreateNode;
+procedure TAbstractBackgroundNode.CreateNode;
 begin
   inherited;
 
@@ -305,7 +305,7 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-procedure TAbstractX3DBackgroundNode.EventSet_BindReceive(
+procedure TAbstractBackgroundNode.EventSet_BindReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   if Scene <> nil then
@@ -318,12 +318,12 @@ begin
   end;
 end;
 
-function TAbstractX3DBackgroundNode.TransformationChange: TNodeTransformationChange;
+function TAbstractBackgroundNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcBackground;
 end;
 
-function TAbstractX3DBackgroundNode.TransformRotation: TMatrix4Single;
+function TAbstractBackgroundNode.TransformRotation: TMatrix4Single;
 begin
   Result := Transform;
 
@@ -711,22 +711,22 @@ procedure TTextureBackgroundNode.CreateNode;
 begin
   inherited;
 
-  FFdBackTexture := TSFNode.Create(Self, 'backTexture', [TAbstractX3DTextureNode]);
+  FFdBackTexture := TSFNode.Create(Self, 'backTexture', [TAbstractTextureNode]);
   Fields.Add(FFdBackTexture);
 
-  FFdBottomTexture := TSFNode.Create(Self, 'bottomTexture', [TAbstractX3DTextureNode]);
+  FFdBottomTexture := TSFNode.Create(Self, 'bottomTexture', [TAbstractTextureNode]);
   Fields.Add(FFdBottomTexture);
 
-  FFdFrontTexture := TSFNode.Create(Self, 'frontTexture', [TAbstractX3DTextureNode]);
+  FFdFrontTexture := TSFNode.Create(Self, 'frontTexture', [TAbstractTextureNode]);
   Fields.Add(FFdFrontTexture);
 
-  FFdLeftTexture := TSFNode.Create(Self, 'leftTexture', [TAbstractX3DTextureNode]);
+  FFdLeftTexture := TSFNode.Create(Self, 'leftTexture', [TAbstractTextureNode]);
   Fields.Add(FFdLeftTexture);
 
-  FFdRightTexture := TSFNode.Create(Self, 'rightTexture', [TAbstractX3DTextureNode]);
+  FFdRightTexture := TSFNode.Create(Self, 'rightTexture', [TAbstractTextureNode]);
   Fields.Add(FFdRightTexture);
 
-  FFdTopTexture := TSFNode.Create(Self, 'topTexture', [TAbstractX3DTextureNode]);
+  FFdTopTexture := TSFNode.Create(Self, 'topTexture', [TAbstractTextureNode]);
   Fields.Add(FFdTopTexture);
 
   DefaultContainerField := 'children';

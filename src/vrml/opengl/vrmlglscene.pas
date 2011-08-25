@@ -828,7 +828,7 @@ type
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
-    FBackgroundNode: TAbstractX3DBindableNode;
+    FBackgroundNode: TAbstractBindableNode;
     { Cached Background value }
     FBackground: TVRMLGLBackground;
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
@@ -1054,7 +1054,7 @@ var
 
   procedure CalculateUseBlending;
   var
-    Tex: TAbstractX3DTextureNode;
+    Tex: TAbstractTextureNode;
     AlphaChannelType: TAlphaChannelType;
   begin
     { Note that we either render the whole geometry node with or without
@@ -3525,14 +3525,14 @@ end;
 
 function TVRMLGLScene.Background: TVRMLGLBackground;
 var
-  BackgroundNode: TAbstractX3DBackgroundNode;
+  BackgroundNode: TAbstractBackgroundNode;
 begin
   PrepareBackground;
   Result := FBackground;
 
-  BackgroundNode := BackgroundStack.Top as TAbstractX3DBackgroundNode;
+  BackgroundNode := BackgroundStack.Top as TAbstractBackgroundNode;
   if (BackgroundNode <> nil) and
-     { We have to still check Result, since not every TAbstractX3DBackgroundNode
+     { We have to still check Result, since not every TAbstractBackgroundNode
        is supported now, so for some background nodes we still have
        Result = nil. }
      (Result <> nil) then
@@ -3734,7 +3734,7 @@ var
   I: Integer;
   NeedsRestoreViewport: boolean;
   Shape: TVRMLGLShape;
-  TextureNode: TAbstractX3DTextureNode;
+  TextureNode: TAbstractTextureNode;
 begin
   NeedsRestoreViewport := false;
 

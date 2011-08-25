@@ -209,14 +209,14 @@ begin
 end;
 
 type
-  TStringTextureNodeMap = class(specialize TFPGMap<string, TAbstractX3DTextureNode>)
+  TStringTextureNodeMap = class(specialize TFPGMap<string, TAbstractTextureNode>)
     { For given Key return it's data, or @nil if not found.
       In our usage, we never insert @nil node as data, so this is
       not ambiguous. }
-    function Find(const Key: string): TAbstractX3DTextureNode;
+    function Find(const Key: string): TAbstractTextureNode;
   end;
 
-function TStringTextureNodeMap.Find(const Key: string): TAbstractX3DTextureNode;
+function TStringTextureNodeMap.Find(const Key: string): TAbstractTextureNode;
 var
   Index: Integer;
 begin
@@ -620,7 +620,7 @@ var
     instance_controller. }
   Controllers: TColladaControllerList;
 
-  { List of Collada images (TAbstractX3DTextureNode). NodeName of every instance
+  { List of Collada images (TAbstractTextureNode). NodeName of every instance
     comes from Collada "id" of <image> element (these are referred to
     by <init_from> contents from <surface>). }
   Images: TX3DNodeList;
@@ -765,7 +765,7 @@ var
 
     procedure ReadTechnique(TechniqueElement: TDOMElement);
     var
-      Image: TAbstractX3DTextureNode;
+      Image: TAbstractTextureNode;
       TechniqueChild: TDOMElement;
       I: TXMLElementIterator;
       DiffuseTextureName, DiffuseTexCoordName: string;
@@ -816,7 +816,7 @@ var
                   Appearance.FdTexture.Value := Image;
                 end else
                 begin
-                  Image := Images.FindName(DiffuseTextureName) as TAbstractX3DTextureNode;
+                  Image := Images.FindName(DiffuseTextureName) as TAbstractTextureNode;
                   if Image <> nil then
                   begin
                     Effect.DiffuseTexCoordName := DiffuseTexCoordName;
@@ -868,7 +868,7 @@ var
     var
       Child: TDOMElement;
       Name, RefersTo: string;
-      Image: TAbstractX3DTextureNode;
+      Image: TAbstractTextureNode;
     begin
       if DOMGetAttribute(Element, 'sid', Name) then
       begin
@@ -877,7 +877,7 @@ var
         begin
           { Read <surface>. It has <init_from>, referring to name on Images. }
           RefersTo := ReadChildText(Child, 'init_from');
-          Image := Images.FindName(RefersTo) as TAbstractX3DTextureNode;
+          Image := Images.FindName(RefersTo) as TAbstractTextureNode;
           if Image <> nil then
             Surfaces[Name] := Image else
             OnWarning(wtMajor, 'Collada', Format('<surface> refers to missing image name "%s"',
@@ -2430,7 +2430,7 @@ var
 
   var
     I: TXMLElementFilteringIterator;
-    Light: TAbstractX3DLightNode;
+    Light: TAbstractLightNode;
     Point: TPointLightNode;
     Directional: TDirectionalLightNode;
     Spot: TSpotLightNode;

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DTexture3DNode = class(TAbstractX3DTextureNode)
+  TAbstractTexture3DNode = class(TAbstractTextureNode)
   private
     UsedCache: TTexturesImagesVideosCache;
 
@@ -70,7 +70,7 @@
     property TextureDDS: TDDSImage read FTextureDDS;
   end;
 
-  TComposedTexture3DNode = class(TAbstractX3DTexture3DNode)
+  TComposedTexture3DNode = class(TAbstractTexture3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -82,7 +82,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TImageTexture3DNode = class(TAbstractX3DTexture3DNode, IAbstractX3DUrlObject)
+  TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractX3DUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -94,7 +94,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TPixelTexture3DNode = class(TAbstractX3DTexture3DNode)
+  TPixelTexture3DNode = class(TAbstractTexture3DNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -106,7 +106,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TTextureCoordinate3DNode = class(TAbstractX3DTextureCoordinateNode)
+  TTextureCoordinate3DNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -116,7 +116,7 @@
     public property FdPoint: TMFVec3f read FFdPoint;
   end;
 
-  TTextureCoordinate4DNode = class(TAbstractX3DTextureCoordinateNode)
+  TTextureCoordinate4DNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -126,7 +126,7 @@
     public property FdPoint: TMFVec4f read FFdPoint;
   end;
 
-  TTextureTransformMatrix3DNode = class(TAbstractX3DTextureTransformNode)
+  TTextureTransformMatrix3DNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -138,7 +138,7 @@
     function TransformMatrix: TMatrix4Single; override;
   end;
 
-  TTextureTransform3DNode = class(TAbstractX3DTextureTransformNode)
+  TTextureTransform3DNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -162,7 +162,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DTexture3DNode.CreateNode;
+procedure TAbstractTexture3DNode.CreateNode;
 begin
   inherited;
 
@@ -187,13 +187,13 @@ begin
   Fields.Add(FFdTextureProperties);
 end;
 
-destructor TAbstractX3DTexture3DNode.Destroy;
+destructor TAbstractTexture3DNode.Destroy;
 begin
   TextureLoaded := false;
   inherited;
 end;
 
-procedure TAbstractX3DTexture3DNode.SetTextureLoaded(const Value: boolean);
+procedure TAbstractTexture3DNode.SetTextureLoaded(const Value: boolean);
 begin
   if Value <> TextureLoaded then
   begin

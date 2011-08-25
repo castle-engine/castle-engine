@@ -22,7 +22,7 @@
     To keep X3D hierarchy, this descends from X3DChildNode.
     This way TAbstractX3DGroupingNode and TStaticGroupNode inherit
     also from X3DChildNode. }
-  TAbstractGroupingNode = class(TAbstractX3DChildNode)
+  TAbstractGroupingNode = class(TAbstractChildNode)
   private
     BeforeTraversePushedState: boolean;
   protected
@@ -317,20 +317,20 @@ type
   var
     CP: PClipPlane;
   begin
-    if (Child is TAbstractX3DLightNode) and
-       (TAbstractX3DLightNode(Child).Scope = lsLocal) then
+    if (Child is TAbstractLightNode) and
+       (TAbstractLightNode(Child).Scope = lsLocal) then
       { We do CreateLightInstance with State from TAbstractGroupingNode node,
-        while precisely we should rather use State from TAbstractX3DLightNode
-        traverse. But, fortunately, State of TAbstractX3DLightNode doesn't
-        change inside (TAbstractX3DLightNode doesn't do anything inside
+        while precisely we should rather use State from TAbstractLightNode
+        traverse. But, fortunately, State of TAbstractLightNode doesn't
+        change inside (TAbstractLightNode doesn't do anything inside
         BeforeTraverse), so this is the same thing. }
       { TODO: we ignore here light radius, which may be relevant
         for TAbstractPositionalLightNode with HasRadius = true.
         E.g. PointLight with global = false should be limited by *both*
         scope (in graph hierarchy) and radius, as far as I understand. }
       State.AddLight(
-        TAbstractX3DLightNode(Child).CreateLightInstance(State)) else
-    if Child is TAbstractX3DPointingDeviceSensorNode then
+        TAbstractLightNode(Child).CreateLightInstance(State)) else
+    if Child is TAbstractPointingDeviceSensorNode then
     begin
       { Testing for WasPointingDeviceSensor guarantees that multiple
         pointing devices within the same grouping node will all work. }

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DFollowerNode = class(TAbstractX3DChildNode)
+  TAbstractFollowerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
 
@@ -24,7 +24,7 @@
     public property EventIsActive: TVRMLEvent read FEventIsActive;
   end;
 
-  TAbstractX3DDamperNode = class(TAbstractX3DFollowerNode)
+  TAbstractDamperNode = class(TAbstractFollowerNode)
   public
     procedure CreateNode; override;
 
@@ -38,7 +38,7 @@
     public property FdOrder: TSFInt32 read FFdOrder;
   end;
 
-  TAbstractX3DChaserNode = class(TAbstractX3DFollowerNode)
+  TAbstractChaserNode = class(TAbstractFollowerNode)
   public
     procedure CreateNode; override;
 
@@ -46,7 +46,7 @@
     public property FdDuration: TSFTime read FFdDuration;
   end;
 
-  TColorDamperNode = class(TAbstractX3DDamperNode)
+  TColorDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -71,7 +71,7 @@
     public property FdInitialValue: TSFColor read FFdInitialValue;
   end;
 
-  TCoordinateDamperNode = class(TAbstractX3DDamperNode)
+  TCoordinateDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -96,7 +96,7 @@
     public property FdInitialValue: TMFVec3f read FFdInitialValue;
   end;
 
-  TOrientationChaserNode = class(TAbstractX3DChaserNode)
+  TOrientationChaserNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -121,7 +121,7 @@
     public property FdInitialValue: TSFRotation read FFdInitialValue;
   end;
 
-  TOrientationDamperNode = class(TAbstractX3DDamperNode)
+  TOrientationDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -146,7 +146,7 @@
     public property FdInitialValue: TSFRotation read FFdInitialValue;
   end;
 
-  TPositionChaserNode = class(TAbstractX3DChaserNode)
+  TPositionChaserNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -171,7 +171,7 @@
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
   end;
 
-  TPositionChaser2DNode = class(TAbstractX3DChaserNode)
+  TPositionChaser2DNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -196,7 +196,7 @@
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
   end;
 
-  TPositionDamperNode = class(TAbstractX3DDamperNode)
+  TPositionDamperNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -221,7 +221,7 @@
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
   end;
 
-  TPositionDamper2DNode = class(TAbstractX3DDamperNode)
+  TPositionDamper2DNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -246,7 +246,7 @@
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
   end;
 
-  TScalarChaserNode = class(TAbstractX3DChaserNode)
+  TScalarChaserNode = class(TAbstractChaserNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -271,7 +271,7 @@
     public property FdInitialValue: TSFFloat read FFdInitialValue;
   end;
 
-  TTexCoordDamper2DNode = class(TAbstractX3DDamperNode)
+  TTexCoordDamper2DNode = class(TAbstractDamperNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -299,7 +299,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DFollowerNode.CreateNode;
+procedure TAbstractFollowerNode.CreateNode;
 begin
   inherited;
 
@@ -309,7 +309,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DDamperNode.CreateNode;
+procedure TAbstractDamperNode.CreateNode;
 begin
   inherited;
 
@@ -329,7 +329,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DChaserNode.CreateNode;
+procedure TAbstractChaserNode.CreateNode;
 begin
   inherited;
 

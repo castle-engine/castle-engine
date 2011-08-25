@@ -61,7 +61,7 @@ const
 type
   { Information about light source relevant for shadow maps. }
   TLight = record
-    Light: TAbstractX3DLightNode;
+    Light: TAbstractLightNode;
     ShadowMap: TGeneratedShadowMapNode;
     TexGen: TProjectedTextureCoordinateNode;
     MaxShadowReceiverDistance: Single;
@@ -77,7 +77,7 @@ type
 
     { Find existing or add new TLight record for this light node.
       This also creates shadow map and texture generator nodes for this light. }
-    function FindLight(Light: TAbstractX3DLightNode): PLight;
+    function FindLight(Light: TAbstractLightNode): PLight;
 
     procedure ShapeRemove(Shape: TVRMLShape);
     procedure ShapeAdd(Shape: TVRMLShape);
@@ -90,7 +90,7 @@ type
     procedure HandleLightCastingOnEverything(Node: TX3DNode);
   end;
 
-function TLightList.FindLight(Light: TAbstractX3DLightNode): PLight;
+function TLightList.FindLight(Light: TAbstractLightNode): PLight;
 var
   I: Integer;
   LightUniqueName: string;
@@ -213,7 +213,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
 
     Returns the count of textures in TexturesCount, not counting the last
     ShadowMap texture. }
-  procedure HandleShadowMap(var Texture: TAbstractX3DTextureNode;
+  procedure HandleShadowMap(var Texture: TAbstractTextureNode;
     const ShadowMap: TGeneratedShadowMapNode; out TexturesCount: Cardinal);
   var
     MTexture: TMultiTextureNode;
@@ -337,7 +337,7 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
     We do not add/remove from there anything (we do not need any
     texture transforms there, X3D will assume identity for texture units
     without corresponding TextureTransform node, this is Ok). }
-  procedure HandleTextureTransform(var TextureTransform: TAbstractX3DTextureTransformNode);
+  procedure HandleTextureTransform(var TextureTransform: TAbstractTextureTransformNode);
   var
     MultiTT: TMultiTextureTransformNode;
   begin
@@ -356,11 +356,11 @@ procedure TLightList.ShapeAdd(Shape: TVRMLShape);
   { 1. Add necessary ShadowMap
     2. Add necessary TexGen
     3. Convert texture, texCoord, textureTransform to multi-texture if needed }
-  procedure HandleLight(LightNode: TAbstractX3DLightNode);
+  procedure HandleLight(LightNode: TAbstractLightNode);
   var
     Light: PLight;
-    Texture: TAbstractX3DTextureNode;
-    TextureTransform: TAbstractX3DTextureTransformNode;
+    Texture: TAbstractTextureNode;
+    TextureTransform: TAbstractTextureTransformNode;
     TexCoord: TX3DNode;
     TexturesCount: Cardinal;
     Box: TBox3D;
@@ -471,11 +471,11 @@ begin
     of both lists. }
 
   for I := 0 to App.FdReceiveShadows.Count - 1 do
-    if App.FdReceiveShadows[I] is TAbstractX3DLightNode then
-      HandleLight(TAbstractX3DLightNode(App.FdReceiveShadows[I]));
+    if App.FdReceiveShadows[I] is TAbstractLightNode then
+      HandleLight(TAbstractLightNode(App.FdReceiveShadows[I]));
 
   for I := 0 to LightsCastingOnEverything.Count - 1 do
-    HandleLight(TAbstractX3DLightNode(LightsCastingOnEverything[I]));
+    HandleLight(TAbstractLightNode(LightsCastingOnEverything[I]));
 end;
 
 procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
@@ -529,7 +529,7 @@ end;
 
 procedure TLightList.HandleLightCastingOnEverything(Node: TX3DNode);
 begin
-  if TAbstractX3DLightNode(Node).FdShadows.Value then
+  if TAbstractLightNode(Node).FdShadows.Value then
     LightsCastingOnEverything.Add(Node);
 end;
 
@@ -571,7 +571,7 @@ begin
 
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);
-      Model.EnumerateNodes(TAbstractX3DLightNode, @Lights.HandleLightCastingOnEverything, false);
+      Model.EnumerateNodes(TAbstractLightNode, @Lights.HandleLightCastingOnEverything, false);
 
       Shapes.Traverse(@Lights.ShapeAdd, false);
 

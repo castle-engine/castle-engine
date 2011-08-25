@@ -152,7 +152,7 @@ type
   TLightShader = class
   private
     Number: Cardinal;
-    Node: TAbstractX3DLightNode;
+    Node: TAbstractLightNode;
     Light: PLightInstance;
     Shader: TVRMLShader;
     { Code calculated (on demand, when method called) using above vars. }
@@ -175,17 +175,17 @@ type
 
   TLightShaders = class(specialize TFPGObjectList<TLightShader>)
   private
-    function Find(const Node: TAbstractX3DLightNode; out Shader: TLightShader): boolean;
+    function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
   end;
 
   TTextureShader = class
   private
     TextureUnit: Cardinal;
     TextureType: TTextureType;
-    Node: TAbstractX3DTextureNode;
+    Node: TAbstractTextureNode;
     Env: TTextureEnv;
     ShadowMapSize: Cardinal;
-    ShadowLight: TAbstractX3DLightNode;
+    ShadowLight: TAbstractLightNode;
     ShadowVisualizeDepth: boolean;
     Shader: TVRMLShader;
 
@@ -335,10 +335,10 @@ type
     function CodeHash: TShaderCodeHash;
 
     procedure EnableTexture(const TextureUnit: Cardinal;
-      const TextureType: TTextureType; const Node: TAbstractX3DTextureNode;
+      const TextureType: TTextureType; const Node: TAbstractTextureNode;
       const Env: TTextureEnv;
       const ShadowMapSize: Cardinal = 0;
-      const ShadowLight: TAbstractX3DLightNode = nil;
+      const ShadowLight: TAbstractLightNode = nil;
       const ShadowVisualizeDepth: boolean = false);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent);
@@ -680,7 +680,7 @@ end;
 
 { TLightShaders -------------------------------------------------------------- }
 
-function TLightShaders.Find(const Node: TAbstractX3DLightNode; out Shader: TLightShader): boolean;
+function TLightShaders.Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
 var
   I: Integer;
 begin
@@ -2003,10 +2003,10 @@ end;
 
 procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
-  const Node: TAbstractX3DTextureNode;
+  const Node: TAbstractTextureNode;
   const Env: TTextureEnv;
   const ShadowMapSize: Cardinal;
-  const ShadowLight: TAbstractX3DLightNode;
+  const ShadowLight: TAbstractLightNode;
   const ShadowVisualizeDepth: boolean);
 var
   TextureShader: TTextureShader;
@@ -2293,8 +2293,8 @@ begin
 
       Break;
     end else
-    if Shaders[I] is TAbstractX3DShaderNode then
-      TAbstractX3DShaderNode(Shaders[I]).EventIsSelected.Send(false);
+    if Shaders[I] is TAbstractShaderNode then
+      TAbstractShaderNode(Shaders[I]).EventIsSelected.Send(false);
   end;
 end;
 

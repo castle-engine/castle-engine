@@ -25,7 +25,7 @@
   name (like Group) we implement them using different classes (like
   TGroupNode_1 and TGroupNode).)
 
-  Note that most VRML 1 nodes descend from TAbstractX3DChildNode,
+  Note that most VRML 1 nodes descend from TAbstractChildNode,
   this way we can use them inside VRML >= 2.0 group nodes and
   mix VRML 1.0 and greater versions.
 } { }
@@ -252,7 +252,7 @@
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TCoordinate3Node = class(TAbstractX3DChildNode)
+  TCoordinate3Node = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -260,7 +260,7 @@
     public property FdPoint: TMFVec3f read FFdPoint;
   end;
 
-  TFontStyleNode_1 = class(TAbstractX3DChildNode)
+  TFontStyleNode_1 = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -283,7 +283,7 @@
     function TTF_Font: PTrueTypeFont;
   end;
 
-  TInfoNode = class(TAbstractX3DChildNode)
+  TInfoNode = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -291,7 +291,7 @@
     public property FdString: TSFString read FFdString;
   end;
 
-  TLODNode_1 = class(TAbstractX3DChildNode)
+  TLODNode_1 = class(TAbstractChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -311,7 +311,7 @@
 
   TVRMLMaterialInfo_1 = class;
 
-  TMaterialNode_1 = class(TAbstractX3DChildNode)
+  TMaterialNode_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -434,7 +434,7 @@
     function TransSpecularExp: Single; override;
   end;
 
-  TMaterialBindingNode = class(TAbstractX3DChildNode)
+  TMaterialBindingNode = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -442,7 +442,7 @@
     public property FdValue: TSFEnum read FFdValue;
   end;
 
-  TNormalBindingNode = class(TAbstractX3DChildNode)
+  TNormalBindingNode = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -492,7 +492,7 @@
     function RepeatT: boolean; override;
   end;
 
-  TTexture2TransformNode = class(TAbstractX3DChildNode)
+  TTexture2TransformNode = class(TAbstractChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -514,7 +514,7 @@
     function TextureMatrixTransformation: TMatrix4Single;
   end;
 
-  TTextureCoordinate2Node = class(TAbstractX3DChildNode)
+  TTextureCoordinate2Node = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -522,7 +522,7 @@
     public property FdPoint: TMFVec2f read FFdPoint;
   end;
 
-  TShapeHintsNode = class(TAbstractX3DChildNode)
+  TShapeHintsNode = class(TAbstractChildNode)
   protected
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; override;
@@ -545,7 +545,7 @@
 
   { Common base class for all nodes that modify the modelview matrix.
     In descendants you only have to override the MatrixTransform method. }
-  TAbstractTransformationNode = class(TAbstractX3DChildNode)
+  TAbstractTransformationNode = class(TAbstractChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -740,7 +740,7 @@
     function Scope: TLightScope; override;
   end;
 
-  TGroupNode_1 = class(TAbstractX3DChildNode)
+  TGroupNode_1 = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -752,7 +752,7 @@
   { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
     It is used in implementation of VRML 1.0 Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
-  TAbstractSeparatorNode = class(TAbstractX3DChildNode)
+  TAbstractSeparatorNode = class(TAbstractChildNode)
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -769,7 +769,7 @@
     public property FdRenderCulling: TSFEnum read FFdRenderCulling;
   end;
 
-  TSwitchNode_1 = class(TAbstractX3DChildNode)
+  TSwitchNode_1 = class(TAbstractChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -784,7 +784,7 @@
       override;
   end;
 
-  TTransformSeparatorNode = class(TAbstractX3DChildNode)
+  TTransformSeparatorNode = class(TAbstractChildNode)
   private
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalTransformScale: Single;

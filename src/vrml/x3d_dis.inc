@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TDISEntityManagerNode = class(TAbstractX3DChildNode)
+  TDISEntityManagerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -45,7 +45,7 @@
     public property EventRemovedEntities: TVRMLEvent read FEventRemovedEntities;
   end;
 
-  TDISEntityTypeMappingNode = class(TAbstractX3DInfoNode)
+  TDISEntityTypeMappingNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

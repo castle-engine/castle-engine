@@ -19,7 +19,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DNurbsControlCurveNode = class(TAbstractX3DNode)
+  TAbstractNurbsControlCurveNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -27,10 +27,10 @@
     public property FdControlPoint: TMFVec2d read FFdControlPoint;
   end;
 
-  TAbstractX3DParametricGeometryNode = class(TAbstractX3DGeometryNode)
+  TAbstractParametricGeometryNode = class(TAbstractX3DGeometryNode)
   end;
 
-  TAbstractX3DNurbsSurfaceGeometryNode = class(TAbstractX3DParametricGeometryNode)
+  TAbstractNurbsSurfaceGeometryNode = class(TAbstractParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -116,14 +116,14 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TContourPolyline2DNode = class(TAbstractX3DNurbsControlCurveNode)
+  TContourPolyline2DNode = class(TAbstractNurbsControlCurveNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TCoordinateDoubleNode = class(TAbstractX3DCoordinateNode)
+  TCoordinateDoubleNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -135,7 +135,7 @@
     function CoordCount: Cardinal; override;
   end;
 
-  TNurbsCurveNode = class(TAbstractX3DParametricGeometryNode)
+  TNurbsCurveNode = class(TAbstractParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -176,7 +176,7 @@
   end;
   TNurbsCurveNode_3 = TNurbsCurveNode;
 
-  TNurbsCurve2DNode = class(TAbstractX3DNurbsControlCurveNode)
+  TNurbsCurve2DNode = class(TAbstractNurbsControlCurveNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -198,7 +198,7 @@
     public property FdOrder: TSFInt32 read FFdOrder;
   end;
 
-  TNurbsOrientationInterpolatorNode = class(TAbstractX3DChildNode)
+  TNurbsOrientationInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -231,7 +231,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TNurbsPatchSurfaceNode = class(TAbstractX3DNurbsSurfaceGeometryNode)
+  TNurbsPatchSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -248,7 +248,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNurbsPositionInterpolatorNode = class(TAbstractX3DChildNode)
+  TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -284,7 +284,7 @@
   end;
   TNurbsPositionInterpolatorNode_3 = TNurbsPositionInterpolatorNode;
 
-  TNurbsSetNode = class(TAbstractX3DChildNode, IAbstractX3DBoundedObject)
+  TNurbsSetNode = class(TAbstractChildNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -316,7 +316,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TNurbsSurfaceInterpolatorNode = class(TAbstractX3DChildNode)
+  TNurbsSurfaceInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -365,7 +365,7 @@
     public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
-  TNurbsSweptSurfaceNode = class(TAbstractX3DParametricGeometryNode)
+  TNurbsSweptSurfaceNode = class(TAbstractParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -395,7 +395,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNurbsSwungSurfaceNode = class(TAbstractX3DParametricGeometryNode)
+  TNurbsSwungSurfaceNode = class(TAbstractParametricGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -456,7 +456,7 @@
     public property FdVOrder: TSFInt32 read FFdVOrder;
   end;
 
-  TNurbsTrimmedSurfaceNode = class(TAbstractX3DNurbsSurfaceGeometryNode)
+  TNurbsTrimmedSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -488,7 +488,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DNurbsControlCurveNode.CreateNode;
+procedure TAbstractNurbsControlCurveNode.CreateNode;
 begin
   inherited;
 
@@ -499,15 +499,15 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DNurbsSurfaceGeometryNode.CreateNode;
+procedure TAbstractNurbsSurfaceGeometryNode.CreateNode;
 begin
   inherited;
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
    FdControlPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdControlPoint);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode, TNurbsTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode, TNurbsTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 
@@ -578,7 +578,7 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-procedure TAbstractX3DNurbsSurfaceGeometryNode.DirectEnumerateActive(
+procedure TAbstractNurbsSurfaceGeometryNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   FdcontrolPoint.EnumerateValid(Func);
@@ -674,7 +674,7 @@ procedure TNurbsCurveNode.CreateNode;
 begin
   inherited;
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
    FdControlPoint.ChangesAlways := [chGeometry];
   Fields.Add(FFdControlPoint);
 
@@ -787,7 +787,7 @@ var
 begin
   Result := TLineSetNode.Create(NodeName, WWWBasePath);
   try
-    { TODO: we should handle here all TAbstractX3DCoordinateNode }
+    { TODO: we should handle here all TAbstractCoordinateNode }
     if (FdControlPoint.Value <> nil) and
        (FdControlPoint.Value is TCoordinateNode) then
       ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
@@ -879,7 +879,7 @@ begin
   FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
   Fields.Add(FFdControlPoint);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
@@ -929,7 +929,7 @@ var
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
-  { TODO: we should handle here all TAbstractX3DCoordinateNode }
+  { TODO: we should handle here all TAbstractCoordinateNode }
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TCoordinateNode) then
     ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
@@ -1222,7 +1222,7 @@ var
 begin
   Result := TIndexedQuadSetNode.Create(NodeName, WWWBasePath);
   try
-    { TODO: we should handle here all TAbstractX3DCoordinateNode }
+    { TODO: we should handle here all TAbstractCoordinateNode }
     if (FdControlPoint.Value <> nil) and
        (FdControlPoint.Value is TCoordinateNode) then
     begin
@@ -1299,7 +1299,7 @@ begin
   FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
   Fields.Add(FFdControlPoint);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
@@ -1393,7 +1393,7 @@ begin
   FEventRemoveGeometry := TVRMLEvent.Create(Self, 'removeGeometry', TMFNode, true);
   Events.Add(FEventRemoveGeometry);
 
-  FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractX3DParametricGeometryNode]);
+  FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractParametricGeometryNode]);
   Fields.Add(FFdGeometry);
 
   FFdTessellationScale := TSFFloat.Create(Self, 'tessellationScale', 1.0);
@@ -1431,7 +1431,7 @@ begin
   FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFVec2f, true);
   Events.Add(FEventSet_fraction);
 
-  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractX3DCoordinateNode]);
+  FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
   Fields.Add(FFdControlPoint);
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
@@ -1507,7 +1507,7 @@ begin
   if not (EventPosition_Changed.SendNeeded or
           EventNormal_Changed.SendNeeded) then Exit;
 
-  { TODO: we should handle here all TAbstractX3DCoordinateNode }
+  { TODO: we should handle here all TAbstractCoordinateNode }
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TCoordinateNode) then
     ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
@@ -1577,7 +1577,7 @@ procedure TNurbsSweptSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FFdCrossSectionCurve := TSFNode.Create(Self, 'crossSectionCurve', [TAbstractX3DNurbsControlCurveNode]);
+  FFdCrossSectionCurve := TSFNode.Create(Self, 'crossSectionCurve', [TAbstractNurbsControlCurveNode]);
    FdCrossSectionCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdCrossSectionCurve);
 
@@ -1621,11 +1621,11 @@ procedure TNurbsSwungSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FFdProfileCurve := TSFNode.Create(Self, 'profileCurve', [TAbstractX3DNurbsControlCurveNode]);
+  FFdProfileCurve := TSFNode.Create(Self, 'profileCurve', [TAbstractNurbsControlCurveNode]);
    FdProfileCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdProfileCurve);
 
-  FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TAbstractX3DNurbsControlCurveNode]);
+  FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TAbstractNurbsControlCurveNode]);
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
   Fields.Add(FFdTrajectoryCurve);
 

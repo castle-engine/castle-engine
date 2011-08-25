@@ -30,7 +30,7 @@
   end;
 
   { }
-  TAbstractX3DPointingDeviceSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractPointingDeviceSensorNode = class(TAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -47,7 +47,7 @@
       OverPoint indicates 3D point (in global, that is TVRMLScene, coordinates)
       pointed by the mouse.
 
-      In TAbstractX3DPointingDeviceSensorNode class,
+      In TAbstractPointingDeviceSensorNode class,
       this simply sends isActive := TRUE event. }
     procedure Activate(const Time: TVRMLTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -56,12 +56,12 @@
     { Deactivate pointing device sensor. Used by the events engine
       (like TVRMLScene) to notify this sensor.
 
-      In TAbstractX3DPointingDeviceSensorNode class,
+      In TAbstractPointingDeviceSensorNode class,
       this simply sends isActive := FALSE event. }
     procedure Deactivate(const Time: TVRMLTime); virtual;
   end;
 
-  TAbstractX3DDragSensorNode = class(TAbstractX3DPointingDeviceSensorNode)
+  TAbstractDragSensorNode = class(TAbstractPointingDeviceSensorNode)
   public
     procedure CreateNode; override;
 
@@ -77,7 +77,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); virtual;
   end;
 
-  TAbstractX3DTouchSensorNode = class(TAbstractX3DPointingDeviceSensorNode)
+  TAbstractTouchSensorNode = class(TAbstractPointingDeviceSensorNode)
   public
     procedure CreateNode; override;
 
@@ -86,7 +86,7 @@
     public property EventTouchTime: TVRMLEvent read FEventTouchTime;
   end;
 
-  TCylinderSensorNode = class(TAbstractX3DDragSensorNode)
+  TCylinderSensorNode = class(TAbstractDragSensorNode)
   private
     { Are we in caps mode or cylinder mode (determined at activation) }
     Caps: boolean;
@@ -141,7 +141,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TPlaneSensorNode = class(TAbstractX3DDragSensorNode)
+  TPlaneSensorNode = class(TAbstractDragSensorNode)
   private
     { Plane* stuff is in global (VRML scene) coordinates. }
     { Plane of the activated sensor. }
@@ -188,7 +188,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TSphereSensorNode = class(TAbstractX3DDragSensorNode)
+  TSphereSensorNode = class(TAbstractDragSensorNode)
   private
     { Sphere center and radius, in world coordinates. }
     SphereCenter: TVector3Single;
@@ -222,7 +222,7 @@
     procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TTouchSensorNode = class(TAbstractX3DTouchSensorNode)
+  TTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -259,8 +259,8 @@ end;
 
 function TPointingDeviceSensorList.Enabled(Index: Integer): boolean;
 begin
-  Result := (not (Items[Index] is TAbstractX3DPointingDeviceSensorNode)) or
-    TAbstractX3DPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
+  Result := (not (Items[Index] is TAbstractPointingDeviceSensorNode)) or
+    TAbstractPointingDeviceSensorNode(Items[Index]).FdEnabled.Value;
 end;
 
 procedure TPointingDeviceSensorList.Assign(Source: TPointingDeviceSensorList);
@@ -272,7 +272,7 @@ end;
 
 { Rest of nodes -------------------------------------------------------------- }
 
-procedure TAbstractX3DPointingDeviceSensorNode.CreateNode;
+procedure TAbstractPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
 
@@ -283,19 +283,19 @@ begin
   Events.Add(FEventIsOver);
 end;
 
-procedure TAbstractX3DPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
+procedure TAbstractPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
   EventIsActive.Send(true, Time);
 end;
 
-procedure TAbstractX3DPointingDeviceSensorNode.Deactivate(const Time: TVRMLTime);
+procedure TAbstractPointingDeviceSensorNode.Deactivate(const Time: TVRMLTime);
 begin
   EventIsActive.Send(false, Time);
 end;
 
-procedure TAbstractX3DDragSensorNode.CreateNode;
+procedure TAbstractDragSensorNode.CreateNode;
 begin
   inherited;
 
@@ -308,12 +308,12 @@ begin
   Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
 end;
 
-procedure TAbstractX3DDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TAbstractDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
 begin
   { Nothing to do in this class }
 end;
 
-procedure TAbstractX3DTouchSensorNode.CreateNode;
+procedure TAbstractTouchSensorNode.CreateNode;
 begin
   inherited;
 

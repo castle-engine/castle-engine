@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DSoundNode = class(TAbstractX3DChildNode)
+  TAbstractSoundNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
   end;
@@ -27,7 +27,7 @@
     property EventDuration_changed: TVRMLEvent { read FEventDuration_changed } { };
   end;
 
-  TAbstractX3DSoundSourceNode = class(TAbstractX3DTimeDependentNode, IAbstractX3DSoundSourceNode)
+  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractX3DSoundSourceNode)
   public
     procedure CreateNode; override;
 
@@ -45,7 +45,7 @@
     function Pitch: Single;
   end;
 
-  TAudioClipNode = class(TAbstractX3DSoundSourceNode, IAbstractX3DUrlObject)
+  TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractX3DUrlObject)
   private
     FBufferLoaded: boolean;
     Buffer: TALBuffer;
@@ -74,7 +74,7 @@
     public property FdUrl: TMFString read FFdUrl;
   end;
 
-  TSoundNode = class(TAbstractX3DSoundNode)
+  TSoundNode = class(TAbstractSoundNode)
   private
     FTransform: TMatrix4Single;
     FTransformScale: Single;
@@ -122,14 +122,14 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DSoundNode.CreateNode;
+procedure TAbstractSoundNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DSoundSourceNode.CreateNode;
+procedure TAbstractSoundSourceNode.CreateNode;
 begin
   inherited;
 
@@ -146,7 +146,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TAbstractX3DSoundSourceNode.Pitch: Single;
+function TAbstractSoundSourceNode.Pitch: Single;
 begin
   Result := FdPitch.Value;
   if Result <= 0 then

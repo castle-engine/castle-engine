@@ -17,7 +17,7 @@
   See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php]. } { }
 
 {$ifdef read_interface}
-  TKambiTriangulationNode = class(TAbstractX3DChildNode)
+  TKambiTriangulationNode = class(TAbstractChildNode)
   private
     function GetDetailValue(Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
   public
@@ -45,7 +45,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TKambiHeadLightNode = class(TAbstractX3DChildNode)
+  TKambiHeadLightNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -122,7 +122,7 @@
     and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
 
     Actually, our version is just a subset of their node. }
-  TBlendModeNode = class(TAbstractX3DAppearanceChildNode)
+  TBlendModeNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -228,7 +228,7 @@
     procedure OverrideLimits(var Limits: TOctreeLimits);
   end;
 
-  TGeneratedShadowMapNode = class(TAbstractX3DTextureNode)
+  TGeneratedShadowMapNode = class(TAbstractTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
@@ -259,10 +259,10 @@
     private FFdCompareMode: TSFstring;
     public property FdCompareMode: TSFString read FFdCompareMode;
 
-    function Light: TAbstractX3DLightNode;
+    function Light: TAbstractLightNode;
   end;
 
-  TProjectedTextureCoordinateNode = class(TAbstractX3DTextureCoordinateNode)
+  TProjectedTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
 
@@ -273,7 +273,7 @@
     public property FdProjector: TSFNode read FFdProjector;
   end;
 
-  TScreenEffectNode = class(TAbstractX3DChildNode)
+  TScreenEffectNode = class(TAbstractChildNode)
   private
     FShader: TObject;
     FShaderLoaded: boolean;
@@ -331,7 +331,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TEffectNode = class(TAbstractX3DChildNode)
+  TEffectNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -372,7 +372,7 @@
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
-  TShaderTextureNode = class(TAbstractX3DTextureNode)
+  TShaderTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -687,7 +687,7 @@ begin
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   Fields.Add(FdHeadBobbingTime);
 
-  FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TAbstractX3DLightNode]);
+  FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TAbstractLightNode]);
   Fields.Add(FFdHeadlightNode);
 end;
 
@@ -773,7 +773,7 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     GeneratedShadowMap. }
-  FFdLight := TSFNode.Create(Self, 'light', [TAbstractX3DLightNode]);
+  FFdLight := TSFNode.Create(Self, 'light', [TAbstractLightNode]);
    FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdLight);
 
@@ -809,10 +809,10 @@ begin
   Result := (URN = URNKambiNodes + ClassNodeTypeName);
 end;
 
-function TGeneratedShadowMapNode.Light: TAbstractX3DLightNode;
+function TGeneratedShadowMapNode.Light: TAbstractLightNode;
 begin
-  if FdLight.Value is TAbstractX3DLightNode then
-    Result := TAbstractX3DLightNode(FdLight.Value) else
+  if FdLight.Value is TAbstractLightNode then
+    Result := TAbstractLightNode(FdLight.Value) else
     Result := nil;
 end;
 
@@ -851,7 +851,7 @@ begin
    FdEnabled.ChangesAlways := [chScreenEffectEnabled];
   Fields.Add(FFdEnabled);
 
-  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractX3DShaderNode]);
+  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
   Fields.Add(FFdShaders);
 

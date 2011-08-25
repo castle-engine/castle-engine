@@ -38,12 +38,12 @@ type
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
-  TAbstractX3DChildNode = class(TAbstractX3DNode, IAbstractX3DChildNode)
+  TAbstractChildNode = class(TAbstractX3DNode, IAbstractX3DChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  TAbstractX3DBindableNode = class(TAbstractX3DChildNode)
+  TAbstractBindableNode = class(TAbstractChildNode)
   private
     FTransform: TMatrix4Single;
     FTransformScale: Single;
@@ -93,7 +93,7 @@ type
     { @groupEnd }
   end;
 
-  TAbstractX3DInfoNode = class(TAbstractX3DChildNode)
+  TAbstractInfoNode = class(TAbstractChildNode)
   end;
 
   IAbstractX3DMetadataObject = interface(IX3DNode)
@@ -115,7 +115,7 @@ type
     property EventIsActive: TVRMLEvent;
   end;
 
-  TAbstractX3DSensorNode = class(TAbstractX3DChildNode, IAbstractX3DSensorNode)
+  TAbstractX3DSensorNode = class(TAbstractChildNode, IAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -207,7 +207,7 @@ type
     public property FdValue: TMFString read FFdValue;
   end;
 
-  TWorldInfoNode = class(TAbstractX3DInfoNode)
+  TWorldInfoNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -232,7 +232,7 @@ begin
   Fields.Add(FFdMetadata);
 end;
 
-procedure TAbstractX3DChildNode.CreateNode;
+procedure TAbstractChildNode.CreateNode;
 begin
   inherited;
 
@@ -243,7 +243,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DBindableNode.CreateNode;
+procedure TAbstractBindableNode.CreateNode;
 begin
   inherited;
 
@@ -260,7 +260,7 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TAbstractX3DBindableNode.BeforeTraverse(
+procedure TAbstractBindableNode.BeforeTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;

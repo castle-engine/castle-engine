@@ -206,12 +206,12 @@ type
   TTexture2Node = class;
   TTextureCoordinate2Node = class;
   TAbstractGeometryNode = class;
-  TAbstractX3DLightNode = class;
+  TAbstractLightNode = class;
   TKambiTriangulationNode = class;
   TAbstractX3DShapeNode = class;
   TAbstractTexture2DNode = class;
   TBlendModeNode = class;
-  TAbstractX3DTextureNode = class;
+  TAbstractTextureNode = class;
   TVRMLEventsEngine = class;
   TClipPlaneNode = class;
   THAnimHumanoidNode = class;
@@ -264,10 +264,10 @@ type
     also stores a couple of light's properties already multiplied
     by the transformation.
 
-    This record may be initialized only by TAbstractX3DLightNode.CreateLightInstance.
-    Update it (when transform changes) by TAbstractX3DLightNode.UpdateLightInstance. }
+    This record may be initialized only by TAbstractLightNode.CreateLightInstance.
+    Update it (when transform changes) by TAbstractLightNode.UpdateLightInstance. }
   TLightInstance = object
-    Node: TAbstractX3DLightNode;
+    Node: TAbstractLightNode;
 
     Transform: TMatrix4Single;
     TransformScale: Single;
@@ -301,14 +301,14 @@ type
     WorldCoordinates: boolean;
 
     { Deprecated name for Node. @exclude @deprecated }
-    function LightNode: TAbstractX3DLightNode;
+    function LightNode: TAbstractLightNode;
   end;
   PLightInstance = ^TLightInstance;
 
   TLightInstancesList = class(specialize TGenericStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
-    function IndexOfNode(Node: TAbstractX3DLightNode): integer;
+    function IndexOfNode(Node: TAbstractLightNode): integer;
     { Find light with given node name. Return @nil if not found. }
     function FindName(NodeName: string): PLightInstance;
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
@@ -471,14 +471,14 @@ type
     { Returns texture node that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
       (TMultiTextureNode), or normal 2D texture (TAbstractTexture2DNode),
-      or some other TAbstractX3DTextureNode descendant (cube map, 3d texture).
+      or some other TAbstractTextureNode descendant (cube map, 3d texture).
 
       Details:
       If ShapeNode <> nil, this returns texture node taken from
       ShapeNode.Texture (note that it may be nil, if Apperance
       of Appearance.Texture node is NULL in VRML).
       Otherwise it returns texture from LastNodes.Texture2. }
-    function Texture: TAbstractX3DTextureNode;
+    function Texture: TAbstractTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -685,10 +685,10 @@ type
     ntcLOD, //< TAbstractLODNode
     ntcTransform, //< ITransformNode
     ntcGeometry, //< TAbstractGeometryNode
-    ntcBackground, //< TAbstractX3DBackgroundNode
+    ntcBackground, //< TAbstractBackgroundNode
     ntcFog, //< TFogNode
     ntcViewpoint, //< TAbstractViewpointNode
-    ntcLight, //< TAbstractX3DLightNode
+    ntcLight, //< TAbstractLightNode
     ntcProximitySensor //< TProximitySensorNode
   );
 
@@ -2158,7 +2158,7 @@ var
 
   Call this only when FdKey.Count > 0.
 
-  This is useful to interpreting TAbstractX3DInterpolatorNode.KeyRange
+  This is useful to interpreting TAbstractInterpolatorNode.KeyRange
   and such fields. }
 function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
@@ -2299,14 +2299,14 @@ end;
 
 { TLightInstance ------------------------------------------------------------- }
 
-function TLightInstance.LightNode: TAbstractX3DLightNode;
+function TLightInstance.LightNode: TAbstractLightNode;
 begin
   Result := Node;
 end;
 
 { TLightInstancesList ----------------------------------------------------- }
 
-function TLightInstancesList.IndexOfNode(Node: TAbstractX3DLightNode): integer;
+function TLightInstancesList.IndexOfNode(Node: TAbstractLightNode): integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].Node = Node then
@@ -2554,7 +2554,7 @@ begin
   end;
 end;
 
-function TVRMLGraphTraverseState.Texture: TAbstractX3DTextureNode;
+function TVRMLGraphTraverseState.Texture: TAbstractTextureNode;
 begin
   if ShapeNode = nil then
     Result := LastNodes.Texture2 else

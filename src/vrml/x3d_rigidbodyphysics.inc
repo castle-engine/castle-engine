@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DNBodyCollidableNode = class(TAbstractX3DChildNode, IAbstractX3DBoundedObject)
+  TAbstractNBodyCollidableNode = class(TAbstractChildNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
 
@@ -35,7 +35,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TAbstractX3DNBodyCollisionSpaceNode = class(TAbstractX3DNode, IAbstractX3DBoundedObject)
+  TAbstractNBodyCollisionSpaceNode = class(TAbstractX3DNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
 
@@ -49,7 +49,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TAbstractX3DRigidJointNode = class(TAbstractX3DNode)
+  TAbstractRigidJointNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -63,7 +63,7 @@
     public property FdForceOutput: TMFString read FFdForceOutput;
   end;
 
-  TBallJointNode = class(TAbstractX3DRigidJointNode)
+  TBallJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -81,7 +81,7 @@
     public property EventBody2AnchorPoint: TVRMLEvent read FEventBody2AnchorPoint;
   end;
 
-  TCollidableOffsetNode = class(TAbstractX3DNBodyCollidableNode)
+  TCollidableOffsetNode = class(TAbstractNBodyCollidableNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -91,7 +91,7 @@
     public property FdCollidable: TSFNode read FFdCollidable;
   end;
 
-  TCollidableShapeNode = class(TAbstractX3DNBodyCollidableNode)
+  TCollidableShapeNode = class(TAbstractNBodyCollidableNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -101,7 +101,7 @@
     public property FdShape: TSFNode read FFdShape;
   end;
 
-  TCollisionCollectionNode = class(TAbstractX3DChildNode)
+  TCollisionCollectionNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -156,7 +156,7 @@
     public property EventContacts: TVRMLEvent read FEventContacts;
   end;
 
-  TCollisionSpaceNode = class(TAbstractX3DNBodyCollisionSpaceNode)
+  TCollisionSpaceNode = class(TAbstractNBodyCollisionSpaceNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -224,7 +224,7 @@
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
   end;
 
-  TDoubleAxisHingeJointNode = class(TAbstractX3DRigidJointNode)
+  TDoubleAxisHingeJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -305,7 +305,7 @@
     public property EventHinge2AngleRate: TVRMLEvent read FEventHinge2AngleRate;
   end;
 
-  TMotorJointNode = class(TAbstractX3DRigidJointNode)
+  TMotorJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -463,7 +463,7 @@
     public property FdUseGlobalGravity: TSFBool read FFdUseGlobalGravity;
   end;
 
-  TRigidBodyCollectionNode = class(TAbstractX3DChildNode)
+  TRigidBodyCollectionNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -519,7 +519,7 @@
     public property FdCollider: TSFNode read FFdCollider;
   end;
 
-  TSingleAxisHingeJointNode = class(TAbstractX3DRigidJointNode)
+  TSingleAxisHingeJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -560,7 +560,7 @@
     public property EventBody2AnchorPoint: TVRMLEvent read FEventBody2AnchorPoint;
   end;
 
-  TSliderJointNode = class(TAbstractX3DRigidJointNode)
+  TSliderJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -590,7 +590,7 @@
     public property EventSeparationRate: TVRMLEvent read FEventSeparationRate;
   end;
 
-  TUniversalJointNode = class(TAbstractX3DRigidJointNode)
+  TUniversalJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -637,7 +637,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DNBodyCollidableNode.CreateNode;
+procedure TAbstractNBodyCollidableNode.CreateNode;
 begin
   inherited;
 
@@ -663,7 +663,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
-procedure TAbstractX3DNBodyCollisionSpaceNode.CreateNode;
+procedure TAbstractNBodyCollisionSpaceNode.CreateNode;
 begin
   inherited;
 
@@ -681,7 +681,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
 
-procedure TAbstractX3DRigidJointNode.CreateNode;
+procedure TAbstractRigidJointNode.CreateNode;
 begin
   inherited;
 
@@ -727,7 +727,7 @@ procedure TCollidableOffsetNode.CreateNode;
 begin
   inherited;
 
-  FFdCollidable := TSFNode.Create(Self, 'collidable', [TAbstractX3DNBodyCollidableNode]);
+  FFdCollidable := TSFNode.Create(Self, 'collidable', [TAbstractNBodyCollidableNode]);
   FFdCollidable.Exposed := false;
   Fields.Add(FFdCollidable);
 end;
@@ -775,7 +775,7 @@ begin
   Fields.Add(FFdBounce);
   { X3D specification comment: [0,1] }
 
-  FFdCollidables := TMFNode.Create(Self, 'collidables', [TAbstractX3DNBodyCollisionSpaceNode, TAbstractX3DNBodyCollidableNode]);
+  FFdCollidables := TMFNode.Create(Self, 'collidables', [TAbstractNBodyCollisionSpaceNode, TAbstractNBodyCollidableNode]);
   Fields.Add(FFdCollidables);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
@@ -846,7 +846,7 @@ procedure TCollisionSpaceNode.CreateNode;
 begin
   inherited;
 
-  FFdCollidables := TMFNode.Create(Self, 'collidables', [TAbstractX3DNBodyCollisionSpaceNode, TAbstractX3DNBodyCollidableNode]);
+  FFdCollidables := TMFNode.Create(Self, 'collidables', [TAbstractNBodyCollisionSpaceNode, TAbstractNBodyCollidableNode]);
   Fields.Add(FFdCollidables);
 
   FFdUseGeometry := TSFBool.Create(Self, 'useGeometry', false);
@@ -900,10 +900,10 @@ begin
   Fields.Add(FFdFrictionDirection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdGeometry1 := TSFNode.Create(Self, 'geometry1', [TAbstractX3DNBodyCollidableNode]);
+  FFdGeometry1 := TSFNode.Create(Self, 'geometry1', [TAbstractNBodyCollidableNode]);
   Fields.Add(FFdGeometry1);
 
-  FFdGeometry2 := TSFNode.Create(Self, 'geometry2', [TAbstractX3DNBodyCollidableNode]);
+  FFdGeometry2 := TSFNode.Create(Self, 'geometry2', [TAbstractNBodyCollidableNode]);
   Fields.Add(FFdGeometry2);
 
   FFdMinbounceSpeed := TSFFloat.Create(Self, 'minbounceSpeed', 0);
@@ -1183,7 +1183,7 @@ begin
   FFdForces := TMFVec3f.Create(Self, 'forces', []);
   Fields.Add(FFdForces);
 
-  FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractX3DNBodyCollidableNode]);
+  FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractNBodyCollidableNode]);
   Fields.Add(FFdGeometry);
 
   FFdInertia := TSFMatrix3f.Create(Self, 'inertia', IdentityMatrix3Single);
@@ -1282,7 +1282,7 @@ begin
   Fields.Add(FFdIterations);
   { X3D specification comment: [0,Inf) }
 
-  FFdJoints := TMFNode.Create(Self, 'joints', [TAbstractX3DRigidJointNode]);
+  FFdJoints := TMFNode.Create(Self, 'joints', [TAbstractRigidJointNode]);
   Fields.Add(FFdJoints);
 
   FFdMaxCorrectionSpeed := TSFFloat.Create(Self, 'maxCorrectionSpeed', -1);

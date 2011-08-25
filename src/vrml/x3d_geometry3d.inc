@@ -301,7 +301,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TIndexedFaceSetNode = class(TAbstractX3DComposedGeometryNode)
+  TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure Eventset_colorIndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -593,11 +593,11 @@ begin
   Events.Add(FEventSet_height);
   Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
@@ -605,11 +605,11 @@ begin
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractX3DNormalNode]);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   Fields.Add(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 

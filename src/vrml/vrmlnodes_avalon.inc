@@ -66,7 +66,7 @@
     function TexCoordField: TSFNode; override;
   end;
 
-  TLoggerNode = class(TAbstractX3DChildNode)
+  TLoggerNode = class(TAbstractChildNode)
   private
     WriteStream: TStream;
     OwnsWriteStream: boolean;
@@ -93,7 +93,7 @@
     public property EventWrite: TVRMLEvent read FEventWrite;
   end;
 
-  TConverterNode = class(TAbstractX3DChildNode)
+  TConverterNode = class(TAbstractChildNode)
   private
     procedure EventInReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -114,7 +114,7 @@
     public property EventOut: TVRMLEvent read FEventOut;
   end;
 
-  TRenderedTextureNode = class(TAbstractX3DTextureNode)
+  TRenderedTextureNode = class(TAbstractTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
@@ -222,7 +222,7 @@
     function ProxyUsesOverTriangulate: boolean; override;
   end;
 
-  TTogglerNode = class(TAbstractX3DChildNode)
+  TTogglerNode = class(TAbstractChildNode)
   private
     procedure EventStatusReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -628,7 +628,7 @@ begin
    FdViewpoint.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdViewpoint);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractX3DBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
    FdBackground.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   Fields.Add(FFdBackground);
 
@@ -662,7 +662,7 @@ begin
    FdZOffset.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdZOffset);
 
-  FFdTargets := TMFNode.Create(Self, 'targets', [TAbstractX3DTextureNode]);
+  FFdTargets := TMFNode.Create(Self, 'targets', [TAbstractTextureNode]);
    FdTargets.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTargets);
 

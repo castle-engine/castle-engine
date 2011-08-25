@@ -150,7 +150,7 @@ type
     chUseBlending,
 
     { Light property that is also reflected in TLightInstance structure.
-      Only allowed on node's descending from TAbstractX3DLightNode.
+      Only allowed on node's descending from TAbstractLightNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
@@ -226,7 +226,7 @@ type
     chViewpointProjection,
 
     { Texture image (data) needs reloading (url or source SFImage
-      data changed). This is for TAbstractTexture2DNode, or TAbstractX3DTexture3DNode.
+      data changed). This is for TAbstractTexture2DNode, or TAbstractTexture3DNode.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this.
@@ -275,7 +275,7 @@ type
     chClipPlane,
 
     { Enabled field of the pointing-device drag sensor changed.
-      Use only for TSFBool fields within TAbstractX3DDragSensorNode. }
+      Use only for TSFBool fields within TAbstractDragSensorNode. }
     chDragSensorEnabled,
 
     { NavigationInfo field value used in TVRMLScene.CameraFromNavigationInfo

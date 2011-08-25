@@ -20,7 +20,7 @@
     property FdName: TSFString { read FFdName} { };
   end;
 
-  TAbstractX3DProductStructureChildNode = class(TAbstractX3DChildNode,
+  TAbstractProductStructureChildNode = class(TAbstractChildNode,
     IAbstractX3DProductStructureChildNode)
   public
     procedure CreateNode; override;
@@ -39,7 +39,7 @@
     public property FdName: TSFString read FFdName;
   end;
 
-  TCADFaceNode = class(TAbstractX3DProductStructureChildNode, IAbstractX3DBoundedObject)
+  TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractX3DBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -93,7 +93,7 @@
     public property FdTranslation: TSFVec3f read FFdTranslation;
   end;
 
-  TIndexedQuadSetNode = class(TAbstractX3DComposedGeometryNode)
+  TIndexedQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -116,7 +116,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TQuadSetNode = class(TAbstractX3DComposedGeometryNode)
+  TQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -133,7 +133,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DProductStructureChildNode.CreateNode;
+procedure TAbstractProductStructureChildNode.CreateNode;
 begin
   inherited;
 

@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DTextureCoordinateNode = class(TAbstractX3DGeometricPropertyNode)
+  TAbstractTextureCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
   end;
 
-  TAbstractX3DTextureNode = class(TAbstractX3DAppearanceChildNode)
+  TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
 
@@ -46,7 +46,7 @@
 
     For X3D, this descends from X3DTextureNode and is an ancestor
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
-  TAbstractTexture2DNode = class(TAbstractX3DTextureNode)
+  TAbstractTexture2DNode = class(TAbstractTextureNode)
   private
     { Together we call FTextureImage, FTextureDDS,
       FTextureVideo as "texture data". }
@@ -222,7 +222,7 @@
     function TextureProperties: TTexturePropertiesNode; override;
   end;
 
-  TAbstractX3DTextureTransformNode = class(TAbstractX3DAppearanceChildNode)
+  TAbstractTextureTransformNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
 
@@ -321,7 +321,7 @@
     property Duration: TKamTime read FDuration;
   end;
 
-  TMultiTextureNode = class(TAbstractX3DTextureNode)
+  TMultiTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -346,7 +346,7 @@
     public property FdTexture: TMFNode read FFdTexture;
   end;
 
-  TMultiTextureCoordinateNode = class(TAbstractX3DTextureCoordinateNode)
+  TMultiTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -356,7 +356,7 @@
     public property FdTexCoord: TMFNode read FFdTexCoord;
   end;
 
-  TMultiTextureTransformNode = class(TAbstractX3DTextureTransformNode)
+  TMultiTextureTransformNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -388,7 +388,7 @@
     function TextureDescription: string; override;
   end;
 
-  TTextureCoordinateNode = class(TAbstractX3DTextureCoordinateNode)
+  TTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -398,7 +398,7 @@
     public property FdPoint: TMFVec2f read FFdPoint;
   end;
 
-  TTextureCoordinateGeneratorNode = class(TAbstractX3DTextureCoordinateNode)
+  TTextureCoordinateGeneratorNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -461,7 +461,7 @@
     public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
   end;
 
-  TTextureTransformNode = class(TAbstractX3DTextureTransformNode)
+  TTextureTransformNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -486,9 +486,9 @@
 
 {$ifdef read_implementation}
 
-{ TAbstractX3DTextureCoordinateNode ---------------------------------------------- }
+{ TAbstractTextureCoordinateNode ---------------------------------------------- }
 
-procedure TAbstractX3DTextureCoordinateNode.CreateNode;
+procedure TAbstractTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -497,9 +497,9 @@ begin
   DefaultContainerField := 'texCoord';
 end;
 
-{ TAbstractX3DTextureNode -------------------------------------------------------- }
+{ TAbstractTextureNode -------------------------------------------------------- }
 
-procedure TAbstractX3DTextureNode.CreateNode;
+procedure TAbstractTextureNode.CreateNode;
 begin
   inherited;
 
@@ -511,7 +511,7 @@ begin
   DefaultContainerField := 'texture';
 end;
 
-function TAbstractX3DTextureNode.TextureDescription: string;
+function TAbstractTextureNode.TextureDescription: string;
 begin
   Result := NodeTypeName;
 end;
@@ -704,7 +704,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DTextureTransformNode.CreateNode;
+procedure TAbstractTextureTransformNode.CreateNode;
 begin
   inherited;
 
@@ -991,7 +991,7 @@ begin
    FdSource.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdSource);
 
-  FFdTexture := TMFNode.Create(Self, 'texture', [TAbstractX3DTextureNode]);
+  FFdTexture := TMFNode.Create(Self, 'texture', [TAbstractTextureNode]);
    FdTexture.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdTexture);
 end;
@@ -1011,7 +1011,7 @@ procedure TMultiTextureCoordinateNode.CreateNode;
 begin
   inherited;
 
-  FFdTexCoord := TMFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode]);
+  FFdTexCoord := TMFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chTextureCoordinate];
   Fields.Add(FFdTexCoord);
 end;
@@ -1031,7 +1031,7 @@ procedure TMultiTextureTransformNode.CreateNode;
 begin
   inherited;
 
-  FFdTextureTransform := TMFNode.Create(Self, 'textureTransform', [TAbstractX3DTextureTransformNode]);
+  FFdTextureTransform := TMFNode.Create(Self, 'textureTransform', [TAbstractTextureTransformNode]);
    FdTextureTransform.ChangesAlways := [chEverything];
   Fields.Add(FFdTextureTransform);
 end;

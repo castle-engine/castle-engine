@@ -132,7 +132,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TNurbsPositionInterpolatorNode_2 = class(TAbstractX3DChildNode)
+  TNurbsPositionInterpolatorNode_2 = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);

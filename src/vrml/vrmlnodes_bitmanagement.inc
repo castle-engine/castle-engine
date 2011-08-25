@@ -148,10 +148,10 @@ begin
   FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
   Fields.Add(FFdSize);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractX3DBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
   Fields.Add(FFdBackground);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractX3DViewportNode]);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractViewportNode]);
   Fields.Add(FFdViewport);
 end;
 
@@ -188,7 +188,7 @@ begin
   FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
   Fields.Add(FFdSize);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractX3DBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
   Fields.Add(FFdBackground);
 
   FFdFog := TSFNode.Create(Self, 'fog', [TFogNode]);

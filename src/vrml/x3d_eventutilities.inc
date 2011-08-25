@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DSequencerNode = class(TAbstractX3DChildNode)
+  TAbstractX3DSequencerNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -26,7 +26,7 @@
   private
     FCurrentKeyRange: Integer;
   protected
-    { Analogous to TAbstractX3DInterpolatorNode.KeyRange. }
+    { Analogous to TAbstractInterpolatorNode.KeyRange. }
     function KeyRange(const Fraction: Single): Integer;
 
     { In what key range we currently are. In other words, which
@@ -71,12 +71,12 @@
     public property FdKey: TMFFloat read FFdKey;
   end;
 
-  TAbstractX3DTriggerNode = class(TAbstractX3DChildNode)
+  TAbstractX3DTriggerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  TBooleanFilterNode = class(TAbstractX3DChildNode)
+  TBooleanFilterNode = class(TAbstractChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -119,7 +119,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TBooleanToggleNode = class(TAbstractX3DChildNode)
+  TBooleanToggleNode = class(TAbstractChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);

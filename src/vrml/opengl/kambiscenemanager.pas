@@ -158,7 +158,7 @@ type
       is obtained from TVRMLScene.CustomHeadlight.
 
       You can override this method to determine the headlight in any other way. }
-    function Headlight(out CustomHeadlight: TAbstractX3DLightNode): boolean; virtual;
+    function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; virtual;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
@@ -1318,7 +1318,7 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-function TKamAbstractViewport.Headlight(out CustomHeadlight: TAbstractX3DLightNode): boolean;
+function TKamAbstractViewport.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
 begin
   Result := (GetMainScene <> nil) and GetMainScene.HeadlightOn;
   if Result then
@@ -1328,12 +1328,12 @@ end;
 
 function TKamAbstractViewport.HeadlightInstance(var Instance: TLightInstance): boolean;
 var
-  CustomHeadlight: TAbstractX3DLightNode;
+  CustomHeadlight: TAbstractLightNode;
   HC: TCamera;
 
   procedure PrepareInstance;
   var
-    Node: TAbstractX3DLightNode;
+    Node: TAbstractLightNode;
     Position, Direction, Up: TVector3Single;
   begin
     { calculate Node, for Instance.Node }

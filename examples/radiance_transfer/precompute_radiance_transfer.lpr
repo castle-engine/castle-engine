@@ -222,8 +222,8 @@ begin
         Geometry := SI.Current.Geometry;
         State := SI.Current.State;
 
-        if Geometry is TAbstractX3DComposedGeometryNode then
-          RadianceTransfer := TAbstractX3DComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
+        if Geometry is TAbstractComposedGeometryNode then
+          RadianceTransfer := TAbstractComposedGeometryNode(Geometry).FdRadianceTransfer.Items else
         if Geometry is TIndexedFaceSetNode_1 then
           RadianceTransfer := TIndexedFaceSetNode_1(Geometry).FdRadianceTransfer.Items else
           RadianceTransfer := nil;

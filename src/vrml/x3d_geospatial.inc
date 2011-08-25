@@ -34,7 +34,7 @@
 
 {$ifdef read_interface}
   { }
-  TGeoCoordinateNode = class(TAbstractX3DCoordinateNode)
+  TGeoCoordinateNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -189,7 +189,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TGeoMetadataNode = class(TAbstractX3DInfoNode)
+  TGeoMetadataNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -221,7 +221,7 @@
     public property FdRotateYUp: TSFBool read FFdRotateYUp;
   end;
 
-  TGeoPositionInterpolatorNode = class(TAbstractX3DInterpolatorNode)
+  TGeoPositionInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -277,7 +277,7 @@
     public property FdGeoSystem: TMFString read FFdGeoSystem;
   end;
 
-  TGeoTouchSensorNode = class(TAbstractX3DTouchSensorNode)
+  TGeoTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -415,15 +415,15 @@ begin
   FEventSet_height := TVRMLEvent.Create(Self, 'set_height', TMFDouble, true);
   Events.Add(FEventSet_height);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractX3DNormalNode]);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   Fields.Add(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 
@@ -605,7 +605,7 @@ begin
   Fields.Add(FFdRootUrl);
   { X3D specification comment: [URI] }
 
-  FFdRootNode := TMFNode.Create(Self, 'rootNode', [TAbstractX3DChildNode]);
+  FFdRootNode := TMFNode.Create(Self, 'rootNode', [TAbstractChildNode]);
   FFdRootNode.Exposed := false;
   Fields.Add(FFdRootNode);
 

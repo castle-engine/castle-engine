@@ -578,7 +578,7 @@ type
       of texture nodes related to this video texture!
 
       It may be currently TAbstractTexture2DNode, or TRenderedTextureNode. }
-    InitialNode: TAbstractX3DTextureNode;
+    InitialNode: TAbstractTextureNode;
 
     MinFilter: TGLint;
     MagFilter: TGLint;
@@ -626,7 +626,7 @@ type
   TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
-    InitialNode: TAbstractX3DEnvironmentTextureNode;
+    InitialNode: TAbstractEnvironmentTextureNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
     Anisotropy: TGLfloat;
@@ -643,7 +643,7 @@ type
   TTextureCubeMapCacheList = specialize TFPGObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
-    InitialNode: TAbstractX3DTexture3DNode;
+    InitialNode: TAbstractTexture3DNode;
     MinFilter: TGLint;
     MagFilter: TGLint;
     Anisotropy: TGLfloat;
@@ -665,7 +665,7 @@ type
   TTextureDepthOrFloatCache = class
     { The initial VRML/X3D node that created this cache record.
       For now, this may be TGeneratedShadowMapNode or TRenderedTextureNode. }
-    InitialNode: TAbstractX3DTextureNode;
+    InitialNode: TAbstractTextureNode;
     Wrap: TTextureWrap2D;
     References: Cardinal;
     GLName: TGLuint;
@@ -766,7 +766,7 @@ type
     function TextureImage_IncReference(
       const TextureImage: TEncodedImage;
       const TextureFullUrl: string;
-      const TextureNode: TAbstractX3DTextureNode;
+      const TextureNode: TAbstractTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
@@ -793,7 +793,7 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function TextureCubeMap_IncReference(
-      Node: TAbstractX3DEnvironmentTextureNode;
+      Node: TAbstractEnvironmentTextureNode;
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       PositiveX, NegativeX,
@@ -811,7 +811,7 @@ type
       (but we'll make nice warning if it's not available).
       DepthCompareField may be @nil, then it's equivalent to "NONE". }
     function TextureDepth_IncReference(
-      Node: TAbstractX3DTextureNode;
+      Node: TAbstractTextureNode;
       const TextureWrap: TTextureWrap2D;
       DepthCompareField: TSFString;
       const Width, Height: Cardinal;
@@ -824,7 +824,7 @@ type
       Required ARB_texture_float or ATI_texture_float before calling this.
       Precision32 = @true requires 32-bit full Single floats,
       Precision32 = @false requires 16-bit (half) floats. }
-    function TextureFloat_IncReference(Node: TAbstractX3DTextureNode;
+    function TextureFloat_IncReference(Node: TAbstractTextureNode;
       const TextureMinFilter, TextureMagFilter: TGLint;
       const TextureWrap: TTextureWrap2D;
       const Width, Height: Cardinal;
@@ -837,7 +837,7 @@ type
       @raises(ETextureLoadError If texture cannot be loaded for whatever
       reason.) }
     function Texture3D_IncReference(
-      Node: TAbstractX3DTexture3DNode;
+      Node: TAbstractTexture3DNode;
       const MinFilter, MagFilter: TGLint;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
@@ -1136,7 +1136,7 @@ type
     procedure Prepare(State: TVRMLGraphTraverseState);
 
     { Release resources for this texture. }
-    procedure UnprepareTexture(Node: TAbstractX3DTextureNode);
+    procedure UnprepareTexture(Node: TAbstractTextureNode);
 
     { Release every OpenGL and VRML resource. That is release any knowledge
       connecting us to the current OpenGL context and any knowledge
@@ -1178,7 +1178,7 @@ type
           TextureNode.IsTextureVideo))
       ) }
     function PreparedTextureAlphaChannelType(
-      TextureNode: TAbstractX3DTextureNode;
+      TextureNode: TAbstractTextureNode;
       out AlphaChannelType: TAlphaChannelType): boolean;
 
     { Update generated texture for this shape.
@@ -1187,7 +1187,7 @@ type
       (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
       will not be modified). }
     procedure UpdateGeneratedTextures(Shape: TVRMLShape;
-      TextureNode: TAbstractX3DTextureNode;
+      TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
@@ -1365,7 +1365,7 @@ const
 function TVRMLGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
-  const TextureNode: TAbstractX3DTextureNode;
+  const TextureNode: TAbstractTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
@@ -1575,7 +1575,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.TextureCubeMap_IncReference(
-  Node: TAbstractX3DEnvironmentTextureNode;
+  Node: TAbstractEnvironmentTextureNode;
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
   PositiveX, NegativeX,
@@ -1672,7 +1672,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Texture3D_IncReference(
-  Node: TAbstractX3DTexture3DNode;
+  Node: TAbstractTexture3DNode;
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
@@ -1760,7 +1760,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.TextureDepth_IncReference(
-  Node: TAbstractX3DTextureNode;
+  Node: TAbstractTextureNode;
   const TextureWrap: TTextureWrap2D;
   DepthCompareField: TSFString;
   const Width, Height: Cardinal;
@@ -1868,7 +1868,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.TextureFloat_IncReference(
-  Node: TAbstractX3DTextureNode;
+  Node: TAbstractTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrap: TTextureWrap2D;
   const Width, Height: Cardinal;
@@ -2500,7 +2500,7 @@ var
   FontStyle: TFontStyleNode;
   I: Integer;
   Lights: TLightInstancesList;
-  Texture: TAbstractX3DTextureNode;
+  Texture: TAbstractTextureNode;
 begin
   { przygotuj font }
   if State.ShapeNode = nil then
@@ -2577,8 +2577,8 @@ begin
     PrepareIDecls(Texture.FdEffects, State);
     if Texture is TMultiTextureNode then
       for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
-        if TMultiTextureNode(Texture).FdTexture[I] is TAbstractX3DTextureNode then
-          PrepareIDecls(TAbstractX3DTextureNode(TMultiTextureNode(Texture).
+        if TMultiTextureNode(Texture).FdTexture[I] is TAbstractTextureNode then
+          PrepareIDecls(TAbstractTextureNode(TMultiTextureNode(Texture).
             FdTexture[I]).FdEffects, State);
   end;
 end;
@@ -2626,7 +2626,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.UnprepareTexture(Node: TAbstractX3DTextureNode);
+procedure TVRMLGLRenderer.UnprepareTexture(Node: TAbstractTextureNode);
 begin
   GLTextureNodes.Unprepare(Node);
 end;
@@ -2663,7 +2663,7 @@ begin
 end;
 
 function TVRMLGLRenderer.PreparedTextureAlphaChannelType(
-  TextureNode: TAbstractX3DTextureNode;
+  TextureNode: TAbstractTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
 var
   Index: Integer;
@@ -3091,7 +3091,7 @@ procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
     Then this will simply do glMultMatrix (or equivalent) applying
     transformations encoded in this TextureTransform node. }
-  procedure TextureMultMatrix(TextureTransform: TAbstractX3DTextureTransformNode);
+  procedure TextureMultMatrix(TextureTransform: TAbstractTextureTransformNode);
   begin
     if TextureTransform is TTextureTransformNode then
     begin
@@ -3115,7 +3115,7 @@ procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
   end;
 
 var
-  TextureTransform: TAbstractX3DTextureTransformNode;
+  TextureTransform: TAbstractTextureTransformNode;
   Child: TX3DNode;
   Transforms: TMFNode;
   I: Integer;
@@ -3181,11 +3181,11 @@ begin
             glPushMatrix;
             Child := Transforms[I];
             if (Child <> nil) and
-               (Child is TAbstractX3DTextureTransformNode) then
+               (Child is TAbstractTextureTransformNode) then
             begin
               if Child is TMultiTextureTransformNode then
                 OnWarning(wtMajor, 'VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
-                TextureMultMatrix(TAbstractX3DTextureTransformNode(Child));
+                TextureMultMatrix(TAbstractTextureTransformNode(Child));
             end;
           end;
         end else
@@ -3414,7 +3414,7 @@ var
     begin
       if Node is TMultiTextureNode then
         Result := TMultiTextureNode(Node).FdTexture.Count else
-      if Node is TAbstractX3DTextureNode then
+      if Node is TAbstractTextureNode then
         Result := 1 else
         Result := 0;
     end;
@@ -3495,7 +3495,7 @@ procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
 
   procedure RenderTexturesBegin;
   var
-    TextureNode: TAbstractX3DTextureNode;
+    TextureNode: TAbstractTextureNode;
     GLTextureNode: TGLTextureNode;
     AlphaTest: boolean;
   begin
@@ -3707,7 +3707,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
-  TextureNode: TAbstractX3DTextureNode;
+  TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
@@ -3783,14 +3783,14 @@ var
     if CheckUpdate(TexNode.GeneratedTextureHandler) then
     begin
       if (TexNode.FdLight.Value <> nil) and
-         (TexNode.FdLight.Value is TAbstractX3DLightNode) then
+         (TexNode.FdLight.Value is TAbstractLightNode) then
       begin
         GLNode := TGLGeneratedShadowMap(GLTextureNodes.TextureNode(TexNode));
         if GLNode <> nil then
         begin
           GLNode.Update(Render, ProjectionNear, ProjectionFar,
             NeedsRestoreViewport,
-            TAbstractX3DLightNode(TexNode.FdLight.Value));
+            TAbstractLightNode(TexNode.FdLight.Value));
 
           PostUpdate;
 

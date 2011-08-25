@@ -6,7 +6,7 @@
 var Spot: Single;
     Attenuat: Single;
 
-    LightNode: TAbstractX3DLightNode;
+    LightNode: TAbstractLightNode;
     PosLightNode: TAbstractPositionalLightNode absolute LightNode;
 
     Factors: TVector3Single;
@@ -98,7 +98,7 @@ begin
    MaterialShininessExp := M1.ShininessExp(0);
  end;
  {$endif}
- LightNode := TAbstractX3DLightNode(Light.Node);
+ LightNode := TAbstractLightNode(Light.Node);
 
  if (not LightNode.FdOn.Value) then
  begin

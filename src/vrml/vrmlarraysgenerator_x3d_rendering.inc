@@ -265,8 +265,8 @@ constructor TTriangleSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: b
 begin
   inherited;
 
-  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -277,10 +277,10 @@ begin
     ColorIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleSet and IndexedTriangleSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
@@ -409,8 +409,8 @@ constructor TTriangleFanSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate
 begin
   inherited;
 
-  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -421,10 +421,10 @@ begin
     ColorIndex := TIndexedTriangleFanSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleFanSet and IndexedTriangleFanSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
@@ -433,7 +433,7 @@ begin
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
-  if (Geometry as TAbstractX3DComposedGeometryNode).FdNormalPerVertex.Value then
+  if (Geometry as TAbstractComposedGeometryNode).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
@@ -621,8 +621,8 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
-  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -633,10 +633,10 @@ begin
     ColorIndex := TIndexedTriangleStripSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
 
     { For both TriangleStripSet and IndexedTriangleStripSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
@@ -645,7 +645,7 @@ begin
       NorImplementation := niPerVertexCoordIndexed else
       NorImplementation := niPerVertexNonIndexed;
   end else
-  if (Geometry as TAbstractX3DComposedGeometryNode).FdNormalPerVertex.Value then
+  if (Geometry as TAbstractComposedGeometryNode).FdNormalPerVertex.Value then
   begin
     Normals := Shape.NormalsSmooth(OverTriangulate);
     NormalsCcw := true;
@@ -810,8 +810,8 @@ constructor TQuadSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boole
 begin
   inherited;
 
-  Color := (Geometry as TAbstractX3DComposedGeometryNode).Color;
-  ColorRGBA := (Geometry as TAbstractX3DComposedGeometryNode).ColorRGBA;
+  Color := (Geometry as TAbstractComposedGeometryNode).Color;
+  ColorRGBA := (Geometry as TAbstractComposedGeometryNode).ColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -825,10 +825,10 @@ begin
   { Normals are done exactly like for [Indexed]TriangleSet, except
     we have quads now. }
 
-  Normals := (Geometry as TAbstractX3DComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractX3DComposedGeometryNode).FdCcw.Value;
+    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
 
     { For both QuadSet and IndexedQuadSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex),

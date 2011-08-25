@@ -19,7 +19,7 @@
 
   { A common class for both VRML 1.0 camera nodes and VRML >= 2.0 viewpoints
     nodes. }
-  TAbstractViewpointNode = class(TAbstractX3DBindableNode)
+  TAbstractViewpointNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -254,7 +254,7 @@
   end;
   TLODNode_3 = TLODNode;
 
-  TNavigationInfoNode = class(TAbstractX3DBindableNode)
+  TNavigationInfoNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -356,7 +356,7 @@
     function ProjectionMatrix: TMatrix4Single; override;
   end;
 
-  TViewpointGroupNode = class(TAbstractX3DChildNode)
+  TViewpointGroupNode = class(TAbstractChildNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;

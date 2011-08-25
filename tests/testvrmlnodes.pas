@@ -375,7 +375,7 @@ begin
 
     They were removed from VRMLNodes, since using X3D inheritance
     is obiously much simpler and long-term solution. For example,
-    all children nodes simply inherit from TAbstractX3DChildNode
+    all children nodes simply inherit from TAbstractChildNode
     (actually, IAbstractX3DChildNode, and since FPC "Supports" doesn't work
     we simply have IAbstractX3DChildNode_Descendants lists... still, it's much
     shorter list than AllowedChildrenNodes).
@@ -385,7 +385,7 @@ begin
     Still, since I already wrote these lists, they are used below
     for testing. To make sure X3D inheritance didn't break any
     previous behavior, all classes on AllowedChildrenNodes must inherit
-    from TAbstractX3DChildNode, and similat for geometry nodes. }
+    from TAbstractChildNode, and similat for geometry nodes. }
 
   AllowedChildrenNodes := TX3DNodeClassesList.Create;
   AllowedChildrenNodes.AssignArray([
@@ -1054,7 +1054,7 @@ begin
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      if N is TAbstractX3DColorNode then
+      if N is TAbstractColorNode then
       begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
@@ -1088,7 +1088,7 @@ begin
   begin
     N := NodesManager.Registered[I].Create('', '');
     try
-      if N is TAbstractX3DTextureCoordinateNode then
+      if N is TAbstractTextureCoordinateNode then
       begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
@@ -1141,7 +1141,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TWorldInfoNode) or
       (Field.ParentNode is TInfoNode) or
       { interpolators }
-      (Field.ParentNode is TAbstractX3DInterpolatorNode) or
+      (Field.ParentNode is TAbstractInterpolatorNode) or
       (Field.ParentNode is TNurbsOrientationInterpolatorNode) or
       (Field.ParentNode is TNurbsPositionInterpolatorNode_3) or
       (Field.ParentNode is TNurbsSurfaceInterpolatorNode) or
@@ -1160,7 +1160,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
         TX3DPrototypeNode will only pass it forward to the actual node }
       (Field.ParentNode is TX3DPrototypeNode) or
       { no need to do anything }
-      FieldIs(Field, TAbstractX3DTimeDependentNode, 'loop') or
+      FieldIs(Field, TAbstractTimeDependentNode, 'loop') or
       FieldIs(Field, TMovieTextureNode, 'loop') or
       FieldIs(Field, TAbstractX3DViewpointNode, 'description') or
       FieldIs(Field, TRenderedTextureNode, 'description') or
@@ -1205,7 +1205,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
         (not even chEverything would help) }
       (Field.ParentNode is TNavigationInfoNode) or
       { TODO: stuff not implemented / things we don't look at all }
-      FieldIs(Field, TAbstractX3DLightNode, 'showProxyGeometry') or
+      FieldIs(Field, TAbstractLightNode, 'showProxyGeometry') or
       FieldIs(Field, TRenderedTextureNode, 'triggerName') or
       (Field.ParentNode is TLODNode_1) or
       (Field.Name = 'bboxSize') or
@@ -1218,13 +1218,13 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TGeoOriginNode) or
       (Field.ParentNode is TGeoTransformNode) or
       (Field.ParentNode is TGeoViewpointNode) or
-      (Field.ParentNode is TAbstractX3DNBodyCollidableNode) or
-      (Field.ParentNode is TAbstractX3DNBodyCollisionSpaceNode) or
-      (Field.ParentNode is TAbstractX3DRigidJointNode) or
+      (Field.ParentNode is TAbstractNBodyCollidableNode) or
+      (Field.ParentNode is TAbstractNBodyCollisionSpaceNode) or
+      (Field.ParentNode is TAbstractRigidJointNode) or
       (Field.ParentNode is TAbstractX3DPickSensorNode) or
-      (Field.ParentNode is TAbstractX3DFollowerNode) or
-      (Field.ParentNode is TAbstractX3DParticleEmitterNode) or
-      (Field.ParentNode is TAbstractX3DParticlePhysicsModelNode) or
+      (Field.ParentNode is TAbstractFollowerNode) or
+      (Field.ParentNode is TAbstractParticleEmitterNode) or
+      (Field.ParentNode is TAbstractParticlePhysicsModelNode) or
       (Field.ParentNode is TDisplacerNode) or
       (Field.ParentNode is TCoordinateDeformerNode) or
       (Field.ParentNode is TNurbsGroupNode) or
@@ -1257,7 +1257,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TViewpointGroupNode) or
       (Field.ParentNode is TViewportNode) or
       (Field.ParentNode is TShaderProgramNode) or
-      (Field.ParentNode is TAbstractX3DVertexAttributeNode) or
+      (Field.ParentNode is TAbstractVertexAttributeNode) or
       FieldIs(Field, TAbstractX3DGroupingNode, 'render') or { "render" fields, extensions from InstantReality }
       FieldIs(Field, TBillboardNode, 'axisOfRotation') or
       FieldIs(Field, TAbstractLODNode, 'forceTransitions') or

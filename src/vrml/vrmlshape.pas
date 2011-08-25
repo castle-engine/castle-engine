@@ -69,7 +69,7 @@ type
   TShapeTraverseFunc = procedure (Shape: TVRMLShape) of object;
 
   TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
-    Texture: TAbstractX3DTextureNode) of object;
+    Texture: TAbstractTextureNode) of object;
 
   TFaceIndex = FaceIndex.TFaceIndex;
 
@@ -530,7 +530,7 @@ type
 
     { Is the texture node Node possibly used by this shape.
       This is equivalent to checking does EnumerateShapeTextures return this shape. }
-    function UsesTexture(Node: TAbstractX3DTextureNode): boolean;
+    function UsesTexture(Node: TAbstractTextureNode): boolean;
 
     { Check is shape a shadow caster. Looks at Shape's
       Appearance.shadowCaster field (see
@@ -1699,8 +1699,8 @@ procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunctio
   procedure HandleSingleTextureNode(Tex: TX3DNode);
   begin
     if (Tex <> nil) and
-       (Tex is TAbstractX3DTextureNode) then
-      Enumerate(Self, TAbstractX3DTextureNode(Tex));
+       (Tex is TAbstractTextureNode) then
+      Enumerate(Self, TAbstractTextureNode(Tex));
   end;
 
   procedure HandleTextureNode(Tex: TX3DNode);
@@ -1770,20 +1770,20 @@ end;
 
 type
   TUsesTextureHelper = class
-    Node: TAbstractX3DTextureNode;
-    procedure HandleTexture(Shape: TVRMLShape; Texture: TAbstractX3DTextureNode);
+    Node: TAbstractTextureNode;
+    procedure HandleTexture(Shape: TVRMLShape; Texture: TAbstractTextureNode);
   end;
 
   BreakUsesTexture = class(TCodeBreaker);
 
 procedure TUsesTextureHelper.HandleTexture(Shape: TVRMLShape;
-  Texture: TAbstractX3DTextureNode);
+  Texture: TAbstractTextureNode);
 begin
   if Texture = Node then
     raise BreakUsesTexture.Create;
 end;
 
-function TVRMLShape.UsesTexture(Node: TAbstractX3DTextureNode): boolean;
+function TVRMLShape.UsesTexture(Node: TAbstractTextureNode): boolean;
 var
   Helper: TUsesTextureHelper;
 begin

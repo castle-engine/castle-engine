@@ -41,7 +41,7 @@
   { Common helper for all X3DTimeDependentNode descendants.
     This includes things descending from interface IAbstractX3DTimeDependentNode,
     in particular (but not only) descending from class
-    TAbstractX3DTimeDependentNode.
+    TAbstractTimeDependentNode.
 
     It would be cleaner to have Node declared as IAbstractX3DTimeDependentNode,
     and have IAbstractX3DTimeDependentNode contain common fields.
@@ -123,7 +123,7 @@
       const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
   end;
 
-  TAbstractX3DTimeDependentNode = class(TAbstractX3DChildNode, IAbstractX3DTimeDependentNode)
+  TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractX3DTimeDependentNode)
   private
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     { To satify IAbstractX3DTimeDependentNode }
@@ -165,7 +165,7 @@
       read FTimeDependentNodeHandler;
   end;
 
-  TTimeSensorNode = class(TAbstractX3DTimeDependentNode, IAbstractX3DSensorNode)
+  TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractX3DSensorNode)
   private
     procedure EventElapsedTimeReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -564,7 +564,7 @@ end;
 
 { VRML/X3D nodes ------------------------------------------------------------- }
 
-procedure TAbstractX3DTimeDependentNode.CreateNode;
+procedure TAbstractTimeDependentNode.CreateNode;
 begin
   inherited;
 
@@ -618,13 +618,13 @@ begin
   FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
 end;
 
-destructor TAbstractX3DTimeDependentNode.Destroy;
+destructor TAbstractTimeDependentNode.Destroy;
 begin
   FreeAndNil(FTimeDependentNodeHandler);
   inherited;
 end;
 
-function TAbstractX3DTimeDependentNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+function TAbstractTimeDependentNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
 begin
   Result := FTimeDependentNodeHandler;
 end;

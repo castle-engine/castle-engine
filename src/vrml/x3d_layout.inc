@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DLayoutNode = class(TAbstractX3DChildNode)
+  TAbstractLayoutNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
   end;
 
-  TLayoutNode = class(TAbstractX3DLayoutNode)
+  TLayoutNode = class(TAbstractLayoutNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -58,7 +58,7 @@
     public property FdViewport: TSFNode read FFdViewport;
   end;
 
-  TLayoutLayerNode = class(TAbstractX3DLayerNode)
+  TLayoutLayerNode = class(TAbstractLayerNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -123,7 +123,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DLayoutNode.CreateNode;
+procedure TAbstractLayoutNode.CreateNode;
 begin
   inherited;
 
@@ -176,10 +176,10 @@ procedure TLayoutGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdLayout := TSFNode.Create(Self, 'layout', [TAbstractX3DLayoutNode]);
+  FFdLayout := TSFNode.Create(Self, 'layout', [TAbstractLayoutNode]);
   Fields.Add(FFdLayout);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractX3DViewportNode]);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractViewportNode]);
   Fields.Add(FFdViewport);
 
   DefaultContainerField := 'children';
@@ -206,10 +206,10 @@ begin
   FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractX3DChildNode]);
+  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractChildNode]);
   Fields.Add(FFdChildren);
 
-  FFdLayout := TSFNode.Create(Self, 'layout', [TAbstractX3DLayoutNode]);
+  FFdLayout := TSFNode.Create(Self, 'layout', [TAbstractLayoutNode]);
   Fields.Add(FFdLayout);
 end;
 

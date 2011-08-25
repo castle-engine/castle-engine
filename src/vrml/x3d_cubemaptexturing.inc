@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DEnvironmentTextureNode = class(TAbstractX3DTextureNode)
+  TAbstractEnvironmentTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;
   end;
 
-  TComposedCubeMapTextureNode = class(TAbstractX3DEnvironmentTextureNode)
+  TComposedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -70,7 +70,7 @@
     FdUpdate: TSFString;
   end;
 
-  TGeneratedCubeMapTextureNode = class(TAbstractX3DEnvironmentTextureNode)
+  TGeneratedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
   public
@@ -93,7 +93,7 @@
       read FGeneratedTextureHandler;
   end;
 
-  TImageCubeMapTextureNode = class(TAbstractX3DEnvironmentTextureNode, IAbstractX3DUrlObject)
+  TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractX3DUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -119,7 +119,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DEnvironmentTextureNode.CreateNode;
+procedure TAbstractEnvironmentTextureNode.CreateNode;
 begin
   inherited;
 end;

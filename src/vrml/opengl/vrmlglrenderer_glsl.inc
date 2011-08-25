@@ -37,12 +37,12 @@ function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolea
     begin
       Result := -1;
       if (TextureNode <> nil) and
-         (TextureNode is TAbstractX3DTextureNode) then
+         (TextureNode is TAbstractTextureNode) then
       begin
         if BoundTextureUnits < GLMaxTextureUnits then
         begin
           if Renderer.GLTextureNodes.Bind(
-            TAbstractX3DTextureNode(TextureNode), BoundTextureUnits) then
+            TAbstractTextureNode(TextureNode), BoundTextureUnits) then
           begin
             Result := BoundTextureUnits;
             Inc(BoundTextureUnits);

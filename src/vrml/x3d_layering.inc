@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DLayerNode = class(TAbstractX3DNode)
+  TAbstractLayerNode = class(TAbstractX3DNode)
   public
     procedure CreateNode; override;
 
@@ -26,12 +26,12 @@
     public property FdViewport: TSFNode read FFdViewport;
   end;
 
-  TAbstractX3DViewportNode = class(TAbstractX3DGroupingNode)
+  TAbstractViewportNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
   end;
 
-  TLayerNode = class(TAbstractX3DLayerNode)
+  TLayerNode = class(TAbstractLayerNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -78,20 +78,20 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DLayerNode.CreateNode;
+procedure TAbstractLayerNode.CreateNode;
 begin
   inherited;
 
   FFdIsPickable := TSFBool.Create(Self, 'isPickable', true);
   Fields.Add(FFdIsPickable);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractX3DViewportNode]);
+  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractViewportNode]);
   Fields.Add(FFdViewport);
 
   DefaultContainerField := 'layers';
 end;
 
-procedure TAbstractX3DViewportNode.CreateNode;
+procedure TAbstractViewportNode.CreateNode;
 begin
   inherited;
 end;
@@ -106,7 +106,7 @@ begin
   FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractX3DChildNode]);
+  FFdChildren := TMFNode.Create(Self, 'children', [TAbstractChildNode]);
   Fields.Add(FFdChildren);
 end;
 
@@ -129,7 +129,7 @@ begin
   Fields.Add(FFdActiveLayer);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdLayers := TMFNode.Create(Self, 'layers', [TAbstractX3DLayerNode]);
+  FFdLayers := TMFNode.Create(Self, 'layers', [TAbstractLayerNode]);
   Fields.Add(FFdLayers);
 
   FFdOrder := TMFInt32.Create(Self, 'order', [0]);

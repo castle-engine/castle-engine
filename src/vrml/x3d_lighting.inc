@@ -34,7 +34,7 @@
     ("ambientIntensity" < 0 has special meaning).
     But most of the fields behave identically, they only have different
     default values. }
-  TAbstractX3DLightNode = class(TAbstractX3DChildNode)
+  TAbstractLightNode = class(TAbstractChildNode)
   private
     FTransform: TMatrix4Single;
     SavedDefaultShadowMap: boolean;
@@ -181,10 +181,7 @@
     function Scope: TLightScope; virtual;
   end;
 
-  { Deprecated name for TAbstractX3DLightNode. @deprecated }
-  TVRMLLightNode = TAbstractX3DLightNode;
-
-  TAbstractDirectionalLightNode = class(TAbstractX3DLightNode)
+  TAbstractDirectionalLightNode = class(TAbstractLightNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -209,7 +206,7 @@
       out MinDistance, MaxDistance: Single); override;
   end;
 
-  TAbstractPositionalLightNode = class(TAbstractX3DLightNode)
+  TAbstractPositionalLightNode = class(TAbstractLightNode)
   public
     procedure CreateNode; override;
 
@@ -326,7 +323,7 @@ const
   FallbackProjectionFar = 100;
   FallbackProjectionRectangle: TVector4Single = (-10, -10, 10, 10);
 
-procedure TAbstractX3DLightNode.CreateNode;
+procedure TAbstractLightNode.CreateNode;
 begin
   inherited;
 
@@ -402,7 +399,7 @@ begin
   FTransform := IdentityMatrix4Single;
 end;
 
-procedure TAbstractX3DLightNode.BeforeTraverse(
+procedure TAbstractLightNode.BeforeTraverse(
   StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
@@ -410,47 +407,47 @@ begin
   FTransform := StateStack.Top.Transform;
 end;
 
-function TAbstractX3DLightNode.ProjectionMatrix: TMatrix4Single;
+function TAbstractLightNode.ProjectionMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TAbstractX3DLightNode.ModelviewMatrix: TMatrix4Single;
+function TAbstractLightNode.ModelviewMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TAbstractX3DLightNode.ModelviewRotationMatrix: TMatrix4Single;
+function TAbstractLightNode.ModelviewRotationMatrix: TMatrix4Single;
 begin
   Result := IdentityMatrix4Single;
 end;
 
-function TAbstractX3DLightNode.GetProjectorMatrix: TMatrix4Single;
+function TAbstractLightNode.GetProjectorMatrix: TMatrix4Single;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-function TAbstractX3DLightNode.LocationLocal: TVector3Single;
+function TAbstractLightNode.LocationLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function TAbstractX3DLightNode.Location: TVector3Single;
+function TAbstractLightNode.Location: TVector3Single;
 begin
   Result := MatrixMultPoint(Transform, LocationLocal);
 end;
 
-function TAbstractX3DLightNode.Direction: TVector3Single;
+function TAbstractLightNode.Direction: TVector3Single;
 begin
   Result := MatrixMultDirection(Transform, DirectionLocal);
 end;
 
-function TAbstractX3DLightNode.DirectionLocal: TVector3Single;
+function TAbstractLightNode.DirectionLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-procedure TAbstractX3DLightNode.GetView(out Pos, Dir, Up: TVector3Single);
+procedure TAbstractLightNode.GetView(out Pos, Dir, Up: TVector3Single);
 begin
   Pos := MatrixMultPoint    (Transform, LocationLocal);
   Dir := MatrixMultDirection(Transform, DirectionLocal);
@@ -470,7 +467,7 @@ begin
     Up := AnyOrthogonalVector(Dir);
 end;
 
-function TAbstractX3DLightNode.CreateLightInstance(
+function TAbstractLightNode.CreateLightInstance(
   State: TVRMLGraphTraverseState): TLightInstance;
 begin
   Result.Node := Self;
@@ -478,7 +475,7 @@ begin
   UpdateLightInstanceState(Result, State);
 end;
 
-procedure TAbstractX3DLightNode.UpdateLightInstanceState(
+procedure TAbstractLightNode.UpdateLightInstanceState(
   var LightInstance: TLightInstance;
   State: TVRMLGraphTraverseState);
 begin
@@ -487,26 +484,26 @@ begin
   UpdateLightInstance(LightInstance);
 end;
 
-procedure TAbstractX3DLightNode.UpdateLightInstance(
+procedure TAbstractLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   { Nothing to do in this class. }
   Assert(LightInstance.Node = Self);
 end;
 
-procedure TAbstractX3DLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   if Scope = lsLocalVRML1 then
     StateStack.Top.AddLight(CreateLightInstance(StateStack.Top));
 end;
 
-function TAbstractX3DLightNode.TransformationChange: TNodeTransformationChange;
+function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLight;
 end;
 
-procedure TAbstractX3DLightNode.DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
+procedure TAbstractLightNode.DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
 begin
   SavedDefaultShadowMap := true;
   SavedDefaultShadowMapUpdate      := Node.FdUpdate      .Value;
@@ -516,7 +513,7 @@ begin
   SavedDefaultShadowMapCompareMode := Node.FdCompareMode .Value;
 end;
 
-function TAbstractX3DLightNode.DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
+function TAbstractLightNode.DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
 begin
   Result := SavedDefaultShadowMap;
   if Result then
@@ -529,7 +526,7 @@ begin
   end;
 end;
 
-function TAbstractX3DLightNode.Scope: TLightScope;
+function TAbstractLightNode.Scope: TLightScope;
 begin
   if FdGlobal.Value then
     Result := lsGlobal else

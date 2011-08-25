@@ -282,7 +282,7 @@
       cannot have texture coordinates.
 
       Returns @true and sets ATexCoord to a node defining texture coords.
-      ATexCoord may be set to TAbstractX3DTextureCoordinateNode descendant or
+      ATexCoord may be set to TAbstractTextureCoordinateNode descendant or
       to TTextureCoordinate2Node (latter one only for VRML <= 1.0).
       ATexCoord can also be set to @nil in this case, which means that
       this node has a field for texCoord, but it's empty right now.
@@ -392,18 +392,18 @@
   end;
 
   { }
-  TAbstractX3DGeometricPropertyNode = class(TAbstractX3DNode)
+  TAbstractGeometricPropertyNode = class(TAbstractX3DNode)
   end;
 
   TAbstractX3DGeometryNode = class(TAbstractGeometryNode)
   end;
 
-  TAbstractX3DColorNode = class(TAbstractX3DGeometricPropertyNode)
+  TAbstractColorNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
   end;
 
-  TAbstractX3DComposedGeometryNode = class(TAbstractX3DGeometryNode)
+  TAbstractComposedGeometryNode = class(TAbstractX3DGeometryNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -465,7 +465,7 @@
     function NormalItems: TVector3SingleList;
   end;
 
-  TAbstractX3DCoordinateNode = class(TAbstractX3DGeometricPropertyNode)
+  TAbstractCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
@@ -473,10 +473,10 @@
     function CoordCount: Cardinal; virtual; abstract;
   end;
 
-  TAbstractX3DNormalNode = class(TAbstractX3DGeometricPropertyNode)
+  TAbstractNormalNode = class(TAbstractGeometricPropertyNode)
   end;
 
-  TClipPlaneNode = class(TAbstractX3DChildNode)
+  TClipPlaneNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -489,7 +489,7 @@
     public property FdPlane: TSFVec4f read FFdPlane;
   end;
 
-  TColorNode = class(TAbstractX3DColorNode)
+  TColorNode = class(TAbstractColorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -499,7 +499,7 @@
     public property FdColor: TMFColor read FFdColor;
   end;
 
-  TColorRGBANode = class(TAbstractX3DColorNode)
+  TColorRGBANode = class(TAbstractColorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -509,7 +509,7 @@
     public property FdColor: TMFColorRGBA read FFdColor;
   end;
 
-  TCoordinateNode = class(TAbstractX3DCoordinateNode)
+  TCoordinateNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -579,7 +579,7 @@
   end;
   TIndexedLineSetNode_2 = TIndexedLineSetNode;
 
-  TIndexedTriangleFanSetNode = class(TAbstractX3DComposedGeometryNode)
+  TIndexedTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -605,7 +605,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TIndexedTriangleSetNode = class(TAbstractX3DComposedGeometryNode)
+  TIndexedTriangleSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -631,7 +631,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TIndexedTriangleStripSetNode = class(TAbstractX3DComposedGeometryNode)
+  TIndexedTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -700,7 +700,7 @@
 
   { Normal node. So simple, it's identical for all VRML and X3D versions
     (including ancient VRML 1.0). }
-  TNormalNode = class(TAbstractX3DNormalNode)
+  TNormalNode = class(TAbstractNormalNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -749,7 +749,7 @@
   end;
   TPointSetNode_2 = TPointSetNode;
 
-  TTriangleFanSetNode = class(TAbstractX3DComposedGeometryNode)
+  TTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -770,7 +770,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TTriangleSetNode = class(TAbstractX3DComposedGeometryNode)
+  TTriangleSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -784,7 +784,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TTriangleStripSetNode = class(TAbstractX3DComposedGeometryNode)
+  TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -1003,26 +1003,26 @@ end;
 
 { Normal X3D spec nodes ------------------------------------------------------ }
 
-procedure TAbstractX3DColorNode.CreateNode;
+procedure TAbstractColorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'color';
 end;
 
-procedure TAbstractX3DComposedGeometryNode.CreateNode;
+procedure TAbstractComposedGeometryNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
@@ -1030,11 +1030,11 @@ begin
    FdFogCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdFogCoord);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractX3DNormalNode]);
+  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   Fields.Add(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractX3DTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdTexCoord);
 
@@ -1063,7 +1063,7 @@ begin
   Fields.Add(FFdRadianceTransfer);
 end;
 
-function TAbstractX3DComposedGeometryNode.Coord(State: TVRMLGraphTraverseState;
+function TAbstractComposedGeometryNode.Coord(State: TVRMLGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1073,12 +1073,12 @@ begin
     ACoord := nil;
 end;
 
-function TAbstractX3DComposedGeometryNode.TexCoordField: TSFNode;
+function TAbstractComposedGeometryNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
 end;
 
-function TAbstractX3DComposedGeometryNode.Color: TMFVec3f;
+function TAbstractComposedGeometryNode.Color: TMFVec3f;
 begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TColorNode) then
@@ -1086,7 +1086,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractX3DComposedGeometryNode.ColorRGBA: TMFColorRGBA;
+function TAbstractComposedGeometryNode.ColorRGBA: TMFColorRGBA;
 begin
   if (FdColor.Value <> nil) and
      (FdColor.Value is TColorRGBANode) then
@@ -1094,7 +1094,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractX3DComposedGeometryNode.FogCoord: TMFFloat;
+function TAbstractComposedGeometryNode.FogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
@@ -1102,12 +1102,12 @@ begin
     Result := nil;
 end;
 
-function TAbstractX3DComposedGeometryNode.Attrib: TMFNode;
+function TAbstractComposedGeometryNode.Attrib: TMFNode;
 begin
   Result := FdAttrib;
 end;
 
-function TAbstractX3DComposedGeometryNode.Normal: TMFVec3f;
+function TAbstractComposedGeometryNode.Normal: TMFVec3f;
 begin
   if (FdNormal.Value <> nil) and
      (FdNormal.Value is TNormalNode) then
@@ -1115,7 +1115,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractX3DComposedGeometryNode.NormalItems: TVector3SingleList;
+function TAbstractComposedGeometryNode.NormalItems: TVector3SingleList;
 begin
   if (FdNormal.Value <> nil) and
      (FdNormal.Value is TNormalNode) then
@@ -1123,7 +1123,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DComposedGeometryNode.DirectEnumerateActive(
+procedure TAbstractComposedGeometryNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   Fdattrib.EnumerateValid(Func);
@@ -1134,7 +1134,7 @@ begin
   FdtexCoord.EnumerateValid(Func);
 end;
 
-procedure TAbstractX3DCoordinateNode.CreateNode;
+procedure TAbstractCoordinateNode.CreateNode;
 begin
   inherited;
 
@@ -1253,15 +1253,15 @@ begin
   Events.Add(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
@@ -1488,15 +1488,15 @@ procedure TLineSetNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
@@ -1615,15 +1615,15 @@ procedure TPointSetNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractX3DVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   Fields.Add(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractX3DColorNode]);
+  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   Fields.Add(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractX3DCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   Fields.Add(FFdCoord);
 
