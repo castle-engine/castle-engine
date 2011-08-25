@@ -102,9 +102,6 @@ type
     property FdReference: TSFString { read GetFdreference }; { }
   end;
 
-  TAbstractX3DPrototypeInstance = class(TAbstractNode)
-  end;
-
   { X3DSensorNode when it's a secondary ancestor.
     (When it's a primary ancestor, I use class TAbstractSensorNode.) }
   IAbstractX3DSensorNode = interface(IAbstractChildNode)
