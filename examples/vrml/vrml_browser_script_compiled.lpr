@@ -14,11 +14,7 @@
 }
 
 { A simple extension of simplest_vrml_browser.lpr,
-  registers handles for compiled: Script protocol.
-
-  Run with one command-line parameter: 3D model to load. Try for example
-    ./vrml_browser_script_compiled models/compiled_script_tests.x3dv
-}
+  registers handles for compiled: Script protocol. }
 
 program vrml_browser_script_compiled;
 
@@ -49,17 +45,20 @@ begin
   Writeln(Format('Touch! (timestamp: %f)', [Time.Seconds]));
 end;
 
+var
+  { May also be given on command-line. }
+  FileName: string = 'models' + PathDelim + 'compiled_script_tests.x3dv';
 begin
-  Parameters.CheckHigh(1);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    FileName := Parameters[1];
 
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
   BrowserWindow := TGLWindowVRMLBrowser.Create(nil);
   try
-    BrowserWindow.Load(Parameters[1]);
-
-    Writeln(BrowserWindow.Scene.Info(true, true, false));
+    BrowserWindow.Load(FileName);
 
     { initialize events procesing }
     BrowserWindow.Scene.RegisterCompiledScript('touch_initialize',
