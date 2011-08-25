@@ -54,8 +54,9 @@ type
 
     function Scene: TVRMLGLScene;
     function Camera: TCamera;
-    property SceneManager: TKamSceneManager read FSceneManager;
   published
+    property SceneManager: TKamSceneManager read FSceneManager;
+
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
 
