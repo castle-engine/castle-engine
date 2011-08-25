@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractLayerNode = class(TAbstractX3DNode)
+  TAbstractLayerNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
 
@@ -49,7 +49,7 @@
     public property FdChildren: TMFNode read FFdChildren;
   end;
 
-  TLayerSetNode = class(TAbstractX3DNode)
+  TLayerSetNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -65,7 +65,7 @@
     public property FdOrder: TMFInt32 read FFdOrder;
   end;
 
-  TViewportNode = class(TAbstractX3DGroupingNode, IAbstractX3DBoundedObject)
+  TViewportNode = class(TAbstractX3DGroupingNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

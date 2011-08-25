@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractNBodyCollidableNode = class(TAbstractChildNode, IAbstractX3DBoundedObject)
+  TAbstractNBodyCollidableNode = class(TAbstractChildNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
 
@@ -35,7 +35,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TAbstractNBodyCollisionSpaceNode = class(TAbstractX3DNode, IAbstractX3DBoundedObject)
+  TAbstractNBodyCollisionSpaceNode = class(TAbstractNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
 
@@ -49,7 +49,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TAbstractRigidJointNode = class(TAbstractX3DNode)
+  TAbstractRigidJointNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
 
@@ -138,7 +138,7 @@
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
   end;
 
-  TCollisionSensorNode = class(TAbstractX3DSensorNode)
+  TCollisionSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -169,7 +169,7 @@
     public property FdUseGeometry: TSFBool read FFdUseGeometry;
   end;
 
-  TContactNode = class(TAbstractX3DNode)
+  TContactNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -387,7 +387,7 @@
     public property FdAutoCalc: TSFBool read FFdAutoCalc;
   end;
 
-  TRigidBodyNode = class(TAbstractX3DNode)
+  TRigidBodyNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

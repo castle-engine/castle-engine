@@ -2851,11 +2851,11 @@ begin
     - for other sensors, events would be passed twice.
   }
 
-  if Node is TAbstractX3DKeyDeviceSensorNode then
+  if Node is TAbstractKeyDeviceSensorNode then
     KeyDeviceSensorNodes.AddIfNotExists(Node) else
-  if Supports(Node, IAbstractX3DTimeDependentNode) then
+  if Supports(Node, IAbstractTimeDependentNode) then
     TimeDependentHandlers.AddIfNotExists(
-      (Node as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler);
+      (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler);
 end;
 
 procedure TVRMLScene.ChangedAll;
@@ -3782,8 +3782,8 @@ var
 
     function GetTimeDependentNodeHandler(Node: TX3DNode): TTimeDependentNodeHandler;
     begin
-      if Supports(Node, IAbstractX3DTimeDependentNode) then
-        Result := (Node as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler else
+      if Supports(Node, IAbstractTimeDependentNode) then
+        Result := (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler else
         Result := nil;
     end;
 
@@ -4618,7 +4618,7 @@ function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
 
     function ShadowCaster(AShape: TVRMLShape): boolean;
     var
-      Shape: TAbstractX3DShapeNode;
+      Shape: TAbstractShapeNode;
     begin
       Shape := AShape.State.ShapeNode;
       Result := not (
@@ -5079,7 +5079,7 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
-        (KeyDeviceSensorNodes.Items[I] as TAbstractX3DKeyDeviceSensorNode).KeyDown(Key, C, FTime);
+        (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).KeyDown(Key, C, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),
@@ -5105,7 +5105,7 @@ begin
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
-        (KeyDeviceSensorNodes.Items[I] as TAbstractX3DKeyDeviceSensorNode).KeyUp(Key, C, FTime);
+        (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).KeyUp(Key, C, FTime);
     finally EndChangesSchedule; end;
 
     { Do not treat it as handled (returning ExclusiveEvents),

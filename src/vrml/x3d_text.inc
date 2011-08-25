@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DFontStyleNode = class(TAbstractX3DNode)
+  TAbstractX3DFontStyleNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
   end;

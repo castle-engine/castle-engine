@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  IAbstractX3DProductStructureChildNode = interface(IAbstractX3DChildNode)
+  IAbstractX3DProductStructureChildNode = interface(IAbstractChildNode)
   ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
     property FdName: TSFString { read FFdName} { };
   end;
@@ -39,7 +39,7 @@
     public property FdName: TSFString read FFdName;
   end;
 
-  TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractX3DBoundedObject)
+  TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -168,7 +168,7 @@ procedure TCADFaceNode.CreateNode;
 begin
   inherited;
 
-  FFdShape := TSFNode.Create(Self, 'shape', [TAbstractX3DShapeNode, TAbstractLODNode]);
+  FFdShape := TSFNode.Create(Self, 'shape', [TAbstractShapeNode, TAbstractLODNode]);
   Fields.Add(FFdShape);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));

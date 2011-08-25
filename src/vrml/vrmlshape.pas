@@ -604,7 +604,7 @@ type
     { Shape node in VRML/X3D graph.
       This is always present for VRML >= 2 (including X3D).
       For VRML 1.0 and Inventor this is @nil. }
-    function Node: TAbstractX3DShapeNode;
+    function Node: TAbstractShapeNode;
   end;
 
   TVRMLShapeTreeList = specialize TFPGObjectList<TVRMLShapeTree>;
@@ -1801,7 +1801,7 @@ end;
 
 function TVRMLShape.ShadowCaster: boolean;
 var
-  S: TAbstractX3DShapeNode;
+  S: TAbstractShapeNode;
   A: TX3DNode;
 begin
   Result := true;
@@ -2053,7 +2053,7 @@ begin
   Result := NiceName;
 end;
 
-function TVRMLShape.Node: TAbstractX3DShapeNode;
+function TVRMLShape.Node: TAbstractShapeNode;
 begin
   Result := State.ShapeNode;
 end;

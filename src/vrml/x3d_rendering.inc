@@ -51,11 +51,11 @@
         "graph traverse state" is not that important.))
     )
 
-    For X3D, this descends from TAbstractX3DNode, and TAbstractX3DGeometryNode
+    For X3D, this descends from TAbstractNode, and TAbstractX3DGeometryNode
     descends from us. This way in X3D TAbstractX3DGeometryNode descends
     from this, and also X3D hierarchy is preserved (X3DGeometryNode
     must descend from X3DNode). }
-  TAbstractGeometryNode = class(TAbstractX3DNode)
+  TAbstractGeometryNode = class(TAbstractNode)
   private
     HasBounds2DST: boolean;
     Bounds2DS, Bounds2DT: Integer;
@@ -392,7 +392,7 @@
   end;
 
   { }
-  TAbstractGeometricPropertyNode = class(TAbstractX3DNode)
+  TAbstractGeometricPropertyNode = class(TAbstractNode)
   end;
 
   TAbstractX3DGeometryNode = class(TAbstractGeometryNode)

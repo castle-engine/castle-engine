@@ -683,7 +683,7 @@ type
     Attributes: TVRMLRenderingAttributes;
     Geometry: TAbstractGeometryNode;
     State: TVRMLGraphTraverseState;
-    Fog: IAbstractX3DFogObject;
+    Fog: IAbstractFogObject;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
@@ -862,7 +862,7 @@ type
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
-      Fog: IAbstractX3DFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
+      Fog: IAbstractFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
 
@@ -1024,7 +1024,7 @@ type
     LightsRenderer: TVRMLGLLightsRenderer;
 
     { Currently set fog parameters, during render. }
-    FogNode: IAbstractX3DFogObject;
+    FogNode: IAbstractFogObject;
     FogEnabled: boolean;
     FogType: TFogType;
     FogVolumetric: boolean;
@@ -1042,7 +1042,7 @@ type
     Pass: TRenderingPass;
 
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
-    procedure GetFog(Node: IAbstractX3DFogObject;
+    procedure GetFog(Node: IAbstractFogObject;
       out Enabled, Volumetric: boolean;
       out VolumetricDirection: TVector3Single;
       out VolumetricVisibilityStart: Single);
@@ -1069,36 +1069,36 @@ type
     procedure DisableCurrentTexture;
 
     procedure RenderShapeLineProperties(Shape: TVRMLRendererShape;
-      Fog: IAbstractX3DFogObject; Shader: TVRMLShader);
-    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+      Fog: IAbstractFogObject; Shader: TVRMLShader);
+    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader);
-    procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
-    procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TVRMLArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+    procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
       Shader: TVRMLShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TVRMLArraysGeneratorClass;
@@ -1154,7 +1154,7 @@ type
       LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject);
+    procedure RenderShape(Shape: TVRMLRendererShape; Fog: IAbstractFogObject);
 
     { Get calculated TImage.AlphaChannelType for a prepared texture.
 
@@ -1948,7 +1948,7 @@ begin
 end;
 
 function TVRMLGLRendererContextCache.Shape_IncReference(
-  Shape: TVRMLRendererShape; Fog: IAbstractX3DFogObject;
+  Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
   ARenderer: TVRMLGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
@@ -2701,7 +2701,7 @@ begin
   if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 end;
 
-procedure TVRMLGLRenderer.GetFog(Node: IAbstractX3DFogObject;
+procedure TVRMLGLRenderer.GetFog(Node: IAbstractFogObject;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3Single;
   out VolumetricVisibilityStart: Single);
@@ -2917,7 +2917,7 @@ end;
 {$endif USE_VRML_TRIANGULATION}
 
 procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject);
+  Fog: IAbstractFogObject);
 var
   Shader: TVRMLShader;
 begin
@@ -2932,7 +2932,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader);
+  Fog: IAbstractFogObject; Shader: TVRMLShader);
 var
   LP: TLinePropertiesNode;
 begin
@@ -2954,7 +2954,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader);
+  Fog: IAbstractFogObject; Shader: TVRMLShader);
 
   {$I vrmlglrenderer_materials.inc}
 
@@ -2964,7 +2964,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   SceneLights: TLightInstancesList;
@@ -2992,7 +2992,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
 const
@@ -3001,7 +3001,7 @@ const
 
   { Set OpenGL fog based on given fog node. Returns also fog parameters,
     like GetFog. }
-  procedure RenderFog(Node: IAbstractX3DFogObject;
+  procedure RenderFog(Node: IAbstractFogObject;
     out Volumetric: boolean;
     out VolumetricDirection: TVector3Single;
     out VolumetricVisibilityStart: Single);
@@ -3085,7 +3085,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
@@ -3239,7 +3239,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
@@ -3319,7 +3319,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   GeneratorClass: TVRMLArraysGeneratorClass;
@@ -3385,7 +3385,7 @@ end;
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
 procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
@@ -3480,7 +3480,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
@@ -3587,7 +3587,7 @@ begin
 end;
 
 procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  Fog: IAbstractX3DFogObject; Shader: TVRMLShader;
+  Fog: IAbstractFogObject; Shader: TVRMLShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TVRMLArraysGeneratorClass;
   ExposedMeshRenderer: TObject);

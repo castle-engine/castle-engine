@@ -19,7 +19,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractNurbsControlCurveNode = class(TAbstractX3DNode)
+  TAbstractNurbsControlCurveNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
 
@@ -84,7 +84,7 @@
 
     For VRML 2.0, this is TAbstractX3DGeometryNode, since VRML 2.0 specification
     explicitly says it's valid geometry node. For X3D specification, this was only
-    TAbstractX3DNode. When actually implementing this, I will have to either handle
+    TAbstractNode. When actually implementing this, I will have to either handle
     both VRML 2.0 and X3D cases at once, or just split this class into
     two separate TContour2DNode_2 and TContour2DNode. }
   TContour2DNode = class(TAbstractX3DGeometryNode)
@@ -284,7 +284,7 @@
   end;
   TNurbsPositionInterpolatorNode_3 = TNurbsPositionInterpolatorNode;
 
-  TNurbsSetNode = class(TAbstractChildNode, IAbstractX3DBoundedObject)
+  TNurbsSetNode = class(TAbstractChildNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -425,7 +425,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
   end;
 
-  TNurbsTextureCoordinateNode = class(TAbstractX3DNode)
+  TNurbsTextureCoordinateNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

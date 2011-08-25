@@ -46,7 +46,7 @@
   PVertexJoints = ^TVertexJoints;
   TVertexJointsList = specialize TGenericStructList<TVertexJoints>;
 
-  THAnimHumanoidNode = class(TAbstractChildNode, IAbstractX3DBoundedObject, ITransformNode)
+  THAnimHumanoidNode = class(TAbstractChildNode, IAbstractBoundedObject, ITransformNode)
   private
     VertexJoints: TVertexJointsList;
   protected

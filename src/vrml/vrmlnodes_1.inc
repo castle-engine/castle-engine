@@ -37,7 +37,7 @@
     while VRML 2.0 has different idea of how shapes are handled
     (they must be inside Shape node), so no shape node
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
-  TAbstractGeometryNode_1 = class(TAbstractGeometryNode, IAbstractX3DChildNode)
+  TAbstractGeometryNode_1 = class(TAbstractGeometryNode, IAbstractChildNode)
   public
     class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
       override;

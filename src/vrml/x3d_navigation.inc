@@ -645,7 +645,7 @@ begin
   FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FFdProxy := TSFNode.Create(Self, 'proxy', IAbstractX3DChildNode);
+  FFdProxy := TSFNode.Create(Self, 'proxy', IAbstractChildNode);
    FdProxy.Exposed := false;
    FdProxy.ChangesAlways := [chEverything];
   Fields.Add(FFdProxy);

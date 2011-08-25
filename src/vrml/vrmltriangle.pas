@@ -818,7 +818,7 @@ function TVRMLTriangle.IgnoreForShadowRays: boolean;
 
   function NonShadowCaster(State: TVRMLGraphTraverseState): boolean;
   var
-    Shape: TAbstractX3DShapeNode;
+    Shape: TAbstractShapeNode;
   begin
     Shape := State.ShapeNode;
     Result :=

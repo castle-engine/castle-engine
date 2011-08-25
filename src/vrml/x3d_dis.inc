@@ -359,7 +359,7 @@
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
   end;
 
-  TReceiverPduNode = class(TAbstractX3DSensorNode, IAbstractX3DBoundedObject)
+  TReceiverPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -449,7 +449,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TSignalPduNode = class(TAbstractX3DSensorNode, IAbstractX3DBoundedObject)
+  TSignalPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -539,7 +539,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
   end;
 
-  TTransmitterPduNode = class(TAbstractX3DSensorNode, IAbstractX3DBoundedObject)
+  TTransmitterPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

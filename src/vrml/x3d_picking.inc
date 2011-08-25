@@ -15,13 +15,13 @@
 
 {$ifdef read_interface}
   { }
-  IAbstractX3DPickableObject = interface(IX3DNode)
+  IAbstractPickableObject = interface(IX3DNode)
   ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
     property FdObjectType: TMFString { read GetFdobjectType }; { }
     property FdPickable: TSFBool { read GetFdpickable }; { }
   end;
 
-  TAbstractX3DPickSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractPickSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
 
@@ -45,7 +45,7 @@
     public property FdSortOrder: TSFString read FFdSortOrder;
   end;
 
-  TLinePickSensorNode = class(TAbstractX3DPickSensorNode)
+  TLinePickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -64,7 +64,7 @@
     public property EventPickedTextureCoordinate: TVRMLEvent read FEventPickedTextureCoordinate;
   end;
 
-  TPickableGroupNode = class(TAbstractX3DGroupingNode, IAbstractX3DPickableObject)
+  TPickableGroupNode = class(TAbstractX3DGroupingNode, IAbstractPickableObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -77,7 +77,7 @@
     public property FdPickable: TSFBool read FFdPickable;
   end;
 
-  TPointPickSensorNode = class(TAbstractX3DPickSensorNode)
+  TPointPickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -88,14 +88,14 @@
     public property EventPickedPoint: TVRMLEvent read FEventPickedPoint;
   end;
 
-  TPrimitivePickSensorNode = class(TAbstractX3DPickSensorNode)
+  TPrimitivePickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
-  TVolumePickSensorNode = class(TAbstractX3DPickSensorNode)
+  TVolumePickSensorNode = class(TAbstractPickSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -105,7 +105,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DPickSensorNode.CreateNode;
+procedure TAbstractPickSensorNode.CreateNode;
 begin
   inherited;
 
@@ -121,7 +121,7 @@ begin
     in the specification... So I just added TInlineNode there (it's the only
     Inline node for X3D anyway. }
 
-  FFdPickTarget := TMFNode.Create(Self, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractX3DShapeNode, TInlineNode]);
+  FFdPickTarget := TMFNode.Create(Self, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
   Fields.Add(FFdPickTarget);
 
   FEventPickedGeometry := TVRMLEvent.Create(Self, 'pickedGeometry', TMFNode, false);

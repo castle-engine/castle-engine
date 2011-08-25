@@ -93,7 +93,7 @@
       read FGeneratedTextureHandler;
   end;
 
-  TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractX3DUrlObject)
+  TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

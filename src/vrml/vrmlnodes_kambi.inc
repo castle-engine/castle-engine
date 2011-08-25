@@ -212,7 +212,7 @@
     function OctreeProperties(OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
   end;
 
-  TKambiOctreePropertiesNode = class(TAbstractX3DNode)
+  TKambiOctreePropertiesNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -347,7 +347,7 @@
     public property FdEnabled: TSFBool read FFdEnabled;
   end;
 
-  TEffectPartNode = class(TAbstractX3DNode, IAbstractX3DUrlObject)
+  TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
   private
     FUsedFullUrl: string;
   public

@@ -15,10 +15,10 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractAppearanceChildNode = class(TAbstractX3DNode)
+  TAbstractAppearanceChildNode = class(TAbstractNode)
   end;
 
-  TAbstractAppearanceNode = class(TAbstractX3DNode)
+  TAbstractAppearanceNode = class(TAbstractNode)
   end;
 
   TAbstractMaterialNode = class(TAbstractAppearanceChildNode)
@@ -32,7 +32,7 @@
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
 
-  TAbstractX3DShapeNode = class(TAbstractChildNode, IAbstractX3DBoundedObject)
+  TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   private
     function GetAppearance: TAppearanceNode;
     procedure SetAppearance(const Value: TAppearanceNode);
@@ -340,7 +340,7 @@
     function TransSpecularExp: Single; override;
   end;
 
-  TShapeNode = class(TAbstractX3DShapeNode)
+  TShapeNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -407,7 +407,7 @@ begin
   DefaultContainerField := 'material';
 end;
 
-procedure TAbstractX3DShapeNode.CreateNode;
+procedure TAbstractShapeNode.CreateNode;
 begin
   inherited;
 
@@ -435,7 +435,7 @@ begin
   Fields.Add(FFdOctreeTriangles);
 end;
 
-procedure TAbstractX3DShapeNode.DirectEnumerateActive(
+procedure TAbstractShapeNode.DirectEnumerateActive(
   Func: TEnumerateChildrenFunction);
 begin
   { According to VRML spec, when geometry is NULL then object is not
@@ -454,19 +454,19 @@ begin
   end;
 end;
 
-procedure TAbstractX3DShapeNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractShapeNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.ShapeNode := Self;
 end;
 
-procedure TAbstractX3DShapeNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractShapeNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   StateStack.Top.ShapeNode := nil;
   inherited;
 end;
 
-function TAbstractX3DShapeNode.GetAppearance: TAppearanceNode;
+function TAbstractShapeNode.GetAppearance: TAppearanceNode;
 begin
   if (FdAppearance.Value <> nil) and
      (FdAppearance.Value is TAppearanceNode) then
@@ -474,12 +474,12 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetAppearance(const Value: TAppearanceNode);
+procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
   FdAppearance.Value := Value;
 end;
 
-function TAbstractX3DShapeNode.GetMaterial: TMaterialNode;
+function TAbstractShapeNode.GetMaterial: TMaterialNode;
 var
   App: TAppearanceNode;
 begin
@@ -491,7 +491,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetMaterial(const Value: TMaterialNode);
+procedure TAbstractShapeNode.SetMaterial(const Value: TMaterialNode);
 var
   App: TAppearanceNode;
 begin
@@ -507,7 +507,7 @@ begin
   end;
 end;
 
-function TAbstractX3DShapeNode.GetTexture: TAbstractTextureNode;
+function TAbstractShapeNode.GetTexture: TAbstractTextureNode;
 var
   App: TAppearanceNode;
 begin
@@ -519,7 +519,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetTexture(const Value: TAbstractTextureNode);
+procedure TAbstractShapeNode.SetTexture(const Value: TAbstractTextureNode);
 var
   App: TAppearanceNode;
 begin
@@ -535,7 +535,7 @@ begin
   end;
 end;
 
-function TAbstractX3DShapeNode.GetTextureTransform: TAbstractTextureTransformNode;
+function TAbstractShapeNode.GetTextureTransform: TAbstractTextureTransformNode;
 var
   App: TAppearanceNode;
 begin
@@ -547,7 +547,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
+procedure TAbstractShapeNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
 var
   App: TAppearanceNode;
 begin
@@ -563,7 +563,7 @@ begin
   end;
 end;
 
-function TAbstractX3DShapeNode.GetLineProperties: TLinePropertiesNode;
+function TAbstractShapeNode.GetLineProperties: TLinePropertiesNode;
 var
   App: TAppearanceNode;
 begin
@@ -575,7 +575,7 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractX3DShapeNode.SetLineProperties(const Value: TLinePropertiesNode);
+procedure TAbstractShapeNode.SetLineProperties(const Value: TLinePropertiesNode);
 var
   App: TAppearanceNode;
 begin

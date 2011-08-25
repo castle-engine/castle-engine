@@ -82,7 +82,7 @@
     procedure LoadTextureData; override;
   end;
 
-  TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractX3DUrlObject)
+  TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

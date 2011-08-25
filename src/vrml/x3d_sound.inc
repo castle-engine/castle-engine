@@ -20,7 +20,7 @@
     procedure CreateNode; override;
   end;
 
-  IAbstractX3DSoundSourceNode = interface(IAbstractX3DTimeDependentNode)
+  IAbstractX3DSoundSourceNode = interface(IAbstractTimeDependentNode)
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
     property FdDescription: TSFString { read FFdDescription } { };
     property FdPitch: TSFFloat { read FFdPitch } { };
@@ -45,7 +45,7 @@
     function Pitch: Single;
   end;
 
-  TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractX3DUrlObject)
+  TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
   private
     FBufferLoaded: boolean;
     Buffer: TALBuffer;

@@ -17,7 +17,7 @@
 
 type
   { }
-  IAbstractX3DNode = interface(IX3DNode)
+  IAbstractNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
     property FdMetadata: TSFNode;
   end;
@@ -26,7 +26,7 @@ type
 
     Almost all X3D nodes inherit from this. (Exception:
     X3DMetadataObject. So you cannot have metadata of metadata of...) }
-  TAbstractX3DNode = class(TX3DNode, IAbstractX3DNode)
+  TAbstractNode = class(TX3DNode, IAbstractNode)
   public
     procedure CreateNode; override;
 
@@ -34,11 +34,11 @@ type
     public property FdMetadata: TSFNode read FFdMetadata;
   end;
 
-  IAbstractX3DChildNode = interface(IAbstractX3DNode)
+  IAbstractChildNode = interface(IAbstractNode)
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
-  TAbstractChildNode = class(TAbstractX3DNode, IAbstractX3DChildNode)
+  TAbstractChildNode = class(TAbstractNode, IAbstractChildNode)
   public
     procedure CreateNode; override;
   end;
@@ -96,18 +96,18 @@ type
   TAbstractInfoNode = class(TAbstractChildNode)
   end;
 
-  IAbstractX3DMetadataObject = interface(IX3DNode)
+  IAbstractMetadataObject = interface(IX3DNode)
   ['{2D631FBF-683B-4259-A98D-74589893447C}']
     property FdName: TSFString { read GetFdname }; { }
     property FdReference: TSFString { read GetFdreference }; { }
   end;
 
-  TAbstractX3DPrototypeInstance = class(TAbstractX3DNode)
+  TAbstractX3DPrototypeInstance = class(TAbstractNode)
   end;
 
   { X3DSensorNode when it's a secondary ancestor.
-    (When it's a primary ancestor, I use class TAbstractX3DSensorNode.) }
-  IAbstractX3DSensorNode = interface(IAbstractX3DChildNode)
+    (When it's a primary ancestor, I use class TAbstractSensorNode.) }
+  IAbstractX3DSensorNode = interface(IAbstractChildNode)
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
     property FdEnabled: TSFBool;
 
@@ -115,7 +115,7 @@ type
     property EventIsActive: TVRMLEvent;
   end;
 
-  TAbstractX3DSensorNode = class(TAbstractChildNode, IAbstractX3DSensorNode)
+  TAbstractSensorNode = class(TAbstractChildNode, IAbstractX3DSensorNode)
   public
     procedure CreateNode; override;
 
@@ -127,7 +127,7 @@ type
     public property EventIsActive: TVRMLEvent read FEventIsActive;
   end;
 
-  TMetadataDoubleNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
+  TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -143,7 +143,7 @@ type
     public property FdValue: TMFDouble read FFdValue;
   end;
 
-  TMetadataFloatNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
+  TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -159,7 +159,7 @@ type
     public property FdValue: TMFFloat read FFdValue;
   end;
 
-  TMetadataIntegerNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
+  TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -175,7 +175,7 @@ type
     public property FdValue: TMFInt32 read FFdValue;
   end;
 
-  TMetadataSetNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
+  TMetadataSetNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -191,7 +191,7 @@ type
     public property FdValue: TMFNode read FFdValue;
   end;
 
-  TMetadataStringNode = class(TAbstractX3DNode, IAbstractX3DMetadataObject)
+  TMetadataStringNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -224,11 +224,11 @@ type
 
 {$ifdef read_implementation}
 
-procedure TAbstractX3DNode.CreateNode;
+procedure TAbstractNode.CreateNode;
 begin
   inherited;
 
-  FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractX3DMetadataObject);
+  FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractMetadataObject);
   Fields.Add(FFdMetadata);
 end;
 
@@ -269,7 +269,7 @@ begin
   FTransformScale := StateStack.Top.TransformScale;
 end;
 
-procedure TAbstractX3DSensorNode.CreateNode;
+procedure TAbstractSensorNode.CreateNode;
 begin
   inherited;
 
@@ -371,7 +371,7 @@ begin
   FFdReference := TSFString.Create(Self, 'reference', '');
   Fields.Add(FFdReference);
 
-  FFdValue := TMFNode.Create(Self, 'value', IAbstractX3DMetadataObject);
+  FFdValue := TMFNode.Create(Self, 'value', IAbstractMetadataObject);
   Fields.Add(FFdValue);
 
   DefaultContainerField := 'metadata';

@@ -15,12 +15,12 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractNetworkSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractNetworkSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
   end;
 
-  IAbstractX3DUrlObject = interface(IX3DNode)
+  IAbstractUrlObject = interface(IX3DNode)
   ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
     property FdUrl: TMFString { read GetFdurl }; { }
   end;
@@ -107,7 +107,7 @@
 
     This means that most methods, like TX3DNode.EnumerateNodes,
     descend into inlined content normally. }
-  TInlineNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject, IAbstractX3DUrlObject)
+  TInlineNode = class(TAbstractGroupingNode, IAbstractBoundedObject, IAbstractUrlObject)
   private
     procedure EventLoadReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -658,7 +658,7 @@ begin
   FFdTimeOut := TSFTime.Create(Self, 'timeOut', 0);
   Fields.Add(FFdTimeOut);
 
-  FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractX3DUrlObject);
+  FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractUrlObject);
   Fields.Add(FFdWatchList);
 
   FEventIsLoaded := TVRMLEvent.Create(Self, 'isLoaded', TSFBool, false);

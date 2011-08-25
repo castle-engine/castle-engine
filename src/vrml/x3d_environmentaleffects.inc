@@ -41,7 +41,7 @@
     function TransformRotation: TMatrix4Single;
   end;
 
-  IAbstractX3DFogObject = interface(IX3DNode)
+  IAbstractFogObject = interface(IX3DNode)
   ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
@@ -145,7 +145,7 @@
       write SetBgImagesLoaded;
   end;
 
-  TFogNode = class(TAbstractBindableNode, IAbstractX3DFogObject)
+  TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
   private
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
@@ -199,7 +199,7 @@
     public property FdDepth: TMFFloat read FFdDepth;
   end;
 
-  TLocalFogNode = class(TAbstractChildNode, IAbstractX3DFogObject)
+  TLocalFogNode = class(TAbstractChildNode, IAbstractFogObject)
   private
     FTransformScale: Single;
     function GetFdcolor: TSFColor;

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractParticleEmitterNode = class(TAbstractX3DNode)
+  TAbstractParticleEmitterNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
 
@@ -32,7 +32,7 @@
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
   end;
 
-  TAbstractParticlePhysicsModelNode = class(TAbstractX3DNode)
+  TAbstractParticlePhysicsModelNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
 
@@ -86,7 +86,7 @@
     public property FdForce: TSFVec3f read FFdForce;
   end;
 
-  TParticleSystemNode = class(TAbstractX3DShapeNode)
+  TParticleSystemNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

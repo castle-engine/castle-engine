@@ -17,7 +17,7 @@
   { }
   TScriptType = (stCompiled, stKambiScript);
 
-  TAbstractX3DScriptNode = class(TAbstractChildNode, IAbstractX3DURLObject)
+  TAbstractX3DScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
   private
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);

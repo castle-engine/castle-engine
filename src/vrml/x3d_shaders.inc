@@ -96,7 +96,7 @@
     public property FdValue: TMFMatrix4f read FFdValue;
   end;
 
-  TPackagedShaderNode = class(TAbstractShaderNode, IAbstractX3DUrlObject, IAbstractX3DProgrammableShaderObject)
+  TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -127,7 +127,7 @@
     function GetValue(out AValue: TShaderType): boolean;
   end;
 
-  TShaderPartNode = class(TAbstractX3DNode, IAbstractX3DUrlObject)
+  TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
   private
     FUsedFullUrl: string;
   public
@@ -158,7 +158,7 @@
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
-  TShaderProgramNode = class(TAbstractX3DNode, IAbstractX3DUrlObject, IAbstractX3DProgrammableShaderObject)
+  TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractX3DProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

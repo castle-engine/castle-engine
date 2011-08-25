@@ -299,7 +299,7 @@ begin
   FEventremoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', IAbstractX3DChildNode);
+  FFdchildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
   Fields.Add(FFdchildren);
 
   FFdcontrolPoint := TMFVec3f.Create(Self, 'controlPoint', []);

@@ -85,7 +85,7 @@
     public property FdViewpoint: TSFNode read FFdViewpoint;
   end;
 
-  TMouseSensorNode = class(TAbstractX3DSensorNode)
+  TMouseSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

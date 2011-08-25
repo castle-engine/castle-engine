@@ -17,7 +17,7 @@
   TTimeDependentNodeHandler = class;
 
   { }
-  IAbstractX3DTimeDependentNode = interface(IAbstractX3DChildNode)
+  IAbstractTimeDependentNode = interface(IAbstractChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
   (*
     property FdLoop: TSFBool { read FFdLoop } { };
@@ -39,14 +39,14 @@
   TTimeFunction = function: TKamTime of object;
 
   { Common helper for all X3DTimeDependentNode descendants.
-    This includes things descending from interface IAbstractX3DTimeDependentNode,
+    This includes things descending from interface IAbstractTimeDependentNode,
     in particular (but not only) descending from class
     TAbstractTimeDependentNode.
 
-    It would be cleaner to have Node declared as IAbstractX3DTimeDependentNode,
-    and have IAbstractX3DTimeDependentNode contain common fields.
+    It would be cleaner to have Node declared as IAbstractTimeDependentNode,
+    and have IAbstractTimeDependentNode contain common fields.
     Then a lot of fields of this class would not be needed, as they
-    would be accessible as IAbstractX3DTimeDependentNode fields.
+    would be accessible as IAbstractTimeDependentNode fields.
     TODO: maybe in the future. }
   TTimeDependentNodeHandler = class
   private
@@ -123,10 +123,10 @@
       const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
   end;
 
-  TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractX3DTimeDependentNode)
+  TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   private
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
-    { To satify IAbstractX3DTimeDependentNode }
+    { To satify IAbstractTimeDependentNode }
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
   protected
     function CycleInterval: TKamTime; virtual; abstract;
@@ -229,13 +229,13 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
 
   { Is parent node an active X3DTimeDependentNode.
 
-    Doing this inside local procedure to limit lifetime of IAbstractX3DTimeDependentNode,
+    Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
   function Active: boolean;
   begin
     Result := (ParentNode <> nil) and
-      Supports(ParentNode, IAbstractX3DTimeDependentNode) and
-      (ParentNode as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
+      Supports(ParentNode, IAbstractTimeDependentNode) and
+      (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
   end;
 
 begin
@@ -253,17 +253,17 @@ procedure TSFStopTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
 
   { Is parent node an active X3DTimeDependentNode, and AValue <= startTime.
 
-    Doing this inside local procedure to limit lifetime of IAbstractX3DTimeDependentNode,
+    Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
   function Active: boolean;
   var
     H: TTimeDependentNodeHandler;
   begin
     Result := (ParentNode <> nil) and
-      Supports(ParentNode, IAbstractX3DTimeDependentNode);
+      Supports(ParentNode, IAbstractTimeDependentNode);
     if Result then
     begin
-      H := (ParentNode as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler;
+      H := (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler;
       Result := H.IsActive and
         ( (AValue as TSFTime).Value <= H.FdStartTime.Value );
     end;

@@ -30,7 +30,7 @@
   end;
 
   { }
-  TAbstractPointingDeviceSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractPointingDeviceSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
 

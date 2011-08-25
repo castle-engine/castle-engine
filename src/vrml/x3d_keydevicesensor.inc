@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DKeyDeviceSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractKeyDeviceSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
 
@@ -38,7 +38,7 @@
     { @groupEnd }
   end;
 
-  TKeySensorNode = class(TAbstractX3DKeyDeviceSensorNode)
+  TKeySensorNode = class(TAbstractKeyDeviceSensorNode)
   private
     AltKey, ControlKey, ShiftKey: boolean;
   public
@@ -78,7 +78,7 @@
     procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime); override;
   end;
 
-  TStringSensorNode = class(TAbstractX3DKeyDeviceSensorNode)
+  TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
   private
     EnteredText: string;
     Active: boolean;
@@ -104,19 +104,19 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DKeyDeviceSensorNode.CreateNode;
+procedure TAbstractKeyDeviceSensorNode.CreateNode;
 begin
   inherited;
 
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TAbstractX3DKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
 begin
   { Nothing to do in this class. }
 end;

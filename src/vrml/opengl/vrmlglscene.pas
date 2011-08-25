@@ -474,7 +474,7 @@ type
     FOwnsRenderer: boolean;
 
     { Fog for this shape. @nil if none. }
-    function ShapeFog(Shape: TVRMLShape): IAbstractX3DFogObject;
+    function ShapeFog(Shape: TVRMLShape): IAbstractFogObject;
   private
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
       for which reflection texture is generated. (This wouldn't cause
@@ -1464,7 +1464,7 @@ begin
   InvalidateBackground;
 end;
 
-function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): IAbstractX3DFogObject;
+function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): IAbstractFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then

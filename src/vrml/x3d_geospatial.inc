@@ -138,7 +138,7 @@
     public property FdGeoSystem: TMFString read FFdGeoSystem;
   end;
 
-  TGeoLODNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject)
+  TGeoLODNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -205,7 +205,7 @@
     public property FdUrl: TMFString read FFdUrl;
   end;
 
-  TGeoOriginNode = class(TAbstractX3DNode)
+  TGeoOriginNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

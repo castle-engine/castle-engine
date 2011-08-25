@@ -47,13 +47,13 @@
     procedure ApplyTransform(State: TVRMLGraphTraverseState); virtual;
   end;
 
-  IAbstractX3DBoundedObject = interface(IX3DNode)
+  IAbstractBoundedObject = interface(IX3DNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
     property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
   end;
 
-  TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject)
+  TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   private
     procedure EventAddChildrenReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -213,7 +213,7 @@
     property ExportedNames: TX3DNodeNames read FExportedNames;
   end;
 
-  TStaticGroupNode = class(TAbstractGroupingNode, IAbstractX3DBoundedObject)
+  TStaticGroupNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -481,7 +481,7 @@ begin
   Events.Add(FEventRemoveChildren);
   EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
-  FFdChildren := TMFNode.Create(Self, 'children', IAbstractX3DChildNode);
+  FFdChildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
    FdChildren.ChangesAlways := [chEverything];
   Fields.Add(FFdChildren);
 
@@ -696,7 +696,7 @@ procedure TStaticGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdChildren := TMFNode.Create(Self, 'children', IAbstractX3DChildNode);
+  FFdChildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
    FdChildren.Exposed := false;
    FdChildren.ChangesAlways := [chEverything];
   Fields.Add(FFdChildren);

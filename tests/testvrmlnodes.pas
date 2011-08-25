@@ -76,7 +76,7 @@ type
     procedure TestEmptyChanges;
 
     { Try calling GetTimeDependentNodeHandler
-      on every IAbstractX3DTimeDependentNode, and use the handler.
+      on every IAbstractTimeDependentNode, and use the handler.
       Catches e.g. not overriden CycleInterval. }
     procedure TestTimeDependentNodeHandlerAvailable;
 
@@ -297,16 +297,16 @@ var
 begin
   { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
 
-  Assert(Supports(TGroupNode_2, IAbstractX3DChildNode));
-  Assert(Supports(TSwitchNode_2, IAbstractX3DChildNode));
-  Assert(not Supports(TConeNode_2, IAbstractX3DChildNode));
-  Assert(not Supports(TAppearanceNode, IAbstractX3DChildNode));
-  Assert(not Supports(TX3DNode, IAbstractX3DChildNode));
-  Assert(not Supports(TObject, IAbstractX3DChildNode));
+  Assert(Supports(TGroupNode_2, IAbstractChildNode));
+  Assert(Supports(TSwitchNode_2, IAbstractChildNode));
+  Assert(not Supports(TConeNode_2, IAbstractChildNode));
+  Assert(not Supports(TAppearanceNode, IAbstractChildNode));
+  Assert(not Supports(TX3DNode, IAbstractChildNode));
+  Assert(not Supports(TObject, IAbstractChildNode));
 
   L := TX3DNodeClassesList.Create;
   try
-    L.AddRegisteredImplementing(IAbstractX3DChildNode);
+    L.AddRegisteredImplementing(IAbstractChildNode);
     { similar to above tests, but now using L.IndexOfAnyAncestor.
       So we test IndexOfAnyAncestor and AddRegisteredImplementing,
       AddRegisteredImplementing also uses "Supports" under the hood
@@ -330,7 +330,7 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
 
-      { Writeln(N.NodeTypeName, ' ', Supports(N, IAbstractX3DChildNode)); }
+      { Writeln(N.NodeTypeName, ' ', Supports(N, IAbstractChildNode)); }
 
       { Test that all fields, events names are different.
 
@@ -376,8 +376,8 @@ begin
     They were removed from VRMLNodes, since using X3D inheritance
     is obiously much simpler and long-term solution. For example,
     all children nodes simply inherit from TAbstractChildNode
-    (actually, IAbstractX3DChildNode, and since FPC "Supports" doesn't work
-    we simply have IAbstractX3DChildNode_Descendants lists... still, it's much
+    (actually, IAbstractChildNode, and since FPC "Supports" doesn't work
+    we simply have IAbstractChildNode_Descendants lists... still, it's much
     shorter list than AllowedChildrenNodes).
     This avoids the need to maintain long lists like these below, that would be
     nightmare considering large number of X3D nodes.
@@ -403,7 +403,7 @@ begin
 
     { TNormalNode used to also be allowed here, but it's also used by X3D,
       and I don't want to mess X3D inheritance by making TNormalNode descendant
-      of IAbstractX3DChildNode --- which is required only when you mix VRML 1.0
+      of IAbstractChildNode --- which is required only when you mix VRML 1.0
       and X3D... When mixing VRML 1.0 and VRML >= 2.0 in a singe file,
       you will have to live with warnings about Normal not allowed as
       children in VRML >= 2.0 nodes.
@@ -559,18 +559,18 @@ begin
   try
     for I := 0 to AllowedChildrenNodes.Count - 1 do
     try
-      Assert(Supports(AllowedChildrenNodes[I], IAbstractX3DChildNode));
+      Assert(Supports(AllowedChildrenNodes[I], IAbstractChildNode));
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
       N := AllowedChildrenNodes[I].Create('', '');
       try
-        Assert(Supports(N, IAbstractX3DChildNode));
+        Assert(Supports(N, IAbstractChildNode));
       finally FreeAndNil(N) end;
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractX3DChildNode');
+        Writeln('Failed on ', AllowedChildrenNodes[I].ClassName, ' is IAbstractChildNode');
         raise;
       end;
     end;
@@ -1127,12 +1127,12 @@ procedure TTestVRMLNodes.TestEmptyChanges;
   begin
     Result :=
       { Sensors don't affect actual content directly. }
-      (Field.ParentNode is TAbstractX3DSensorNode) or
+      (Field.ParentNode is TAbstractSensorNode) or
       FieldIs(Field, TTimeSensorNode, 'cycleInterval') or
       FieldIs(Field, TTimeSensorNode, 'enabled') or
       (Field.ParentNode is TWWWAnchorNode) or
       { metadata, info nodes }
-      FieldIs(Field, TAbstractX3DNode, 'metadata') or
+      FieldIs(Field, TAbstractNode, 'metadata') or
       (Field.ParentNode is TMetadataDoubleNode) or
       (Field.ParentNode is TMetadataFloatNode) or
       (Field.ParentNode is TMetadataIntegerNode) or
@@ -1221,7 +1221,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TAbstractNBodyCollidableNode) or
       (Field.ParentNode is TAbstractNBodyCollisionSpaceNode) or
       (Field.ParentNode is TAbstractRigidJointNode) or
-      (Field.ParentNode is TAbstractX3DPickSensorNode) or
+      (Field.ParentNode is TAbstractPickSensorNode) or
       (Field.ParentNode is TAbstractFollowerNode) or
       (Field.ParentNode is TAbstractParticleEmitterNode) or
       (Field.ParentNode is TAbstractParticlePhysicsModelNode) or
@@ -1306,18 +1306,18 @@ procedure TTestVRMLNodes.TestTimeDependentNodeHandlerAvailable;
     C: TKamTime;
   begin
     { CheckTimeDependentNodeHandler is a separate procedure,
-      to limit lifetime of temporary IAbstractX3DTimeDependentNode,
+      to limit lifetime of temporary IAbstractTimeDependentNode,
       see "Reference counting" notes on
       http://freepascal.org/docs-html/ref/refse40.html }
-    if Supports(N, IAbstractX3DTimeDependentNode) then
+    if Supports(N, IAbstractTimeDependentNode) then
     begin
-      B := (N as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler.IsActive;
-      C := (N as IAbstractX3DTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
+      B := (N as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
+      C := (N as IAbstractTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
     end else
     if (N is TMovieTextureNode) or
        (N is TAudioClipNode) or
        (N is TTimeSensorNode) then
-      Assert(false, 'Node ' + N.ClassName + ' should support IAbstractX3DTimeDependentNode');
+      Assert(false, 'Node ' + N.ClassName + ' should support IAbstractTimeDependentNode');
   end;
 
 var

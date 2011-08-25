@@ -208,7 +208,7 @@ type
   TAbstractGeometryNode = class;
   TAbstractLightNode = class;
   TKambiTriangulationNode = class;
-  TAbstractX3DShapeNode = class;
+  TAbstractShapeNode = class;
   TAbstractTexture2DNode = class;
   TBlendModeNode = class;
   TAbstractTextureNode = class;
@@ -442,7 +442,7 @@ type
       texture transformations don't accumulate like modelview transformations. }
     TextureTransform: TMatrix4Single;
 
-    ShapeNode: TAbstractX3DShapeNode;
+    ShapeNode: TAbstractShapeNode;
 
     constructor CreateCopy(Source: TVRMLGraphTraverseState);
 

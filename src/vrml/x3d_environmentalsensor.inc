@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DEnvironmentalSensorNode = class(TAbstractX3DSensorNode)
+  TAbstractX3DEnvironmentalSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
 
@@ -142,7 +142,7 @@ procedure TTransformSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractX3DShapeNode]);
+  FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
   Fields.Add(FFdTargetObject);
 
   FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);

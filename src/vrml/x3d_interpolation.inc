@@ -97,7 +97,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TEaseInEaseOutNode = class(TAbstractX3DNode)
+  TEaseInEaseOutNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

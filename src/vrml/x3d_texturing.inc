@@ -229,7 +229,7 @@
     function TransformMatrix: TMatrix4Single; virtual; abstract;
   end;
 
-  TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractX3DUrlObject)
+  TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
@@ -244,7 +244,7 @@
   end;
 
   TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractX3DSoundSourceNode,
-    IAbstractX3DUrlObject, IAbstractX3DTimeDependentNode)
+    IAbstractUrlObject, IAbstractTimeDependentNode)
   private
     FDuration: TKamTime;
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
@@ -421,7 +421,7 @@
     class function ClassNodeTypeName: string; override;
   end;
 
-  TTexturePropertiesNode = class(TAbstractX3DNode)
+  TTexturePropertiesNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
