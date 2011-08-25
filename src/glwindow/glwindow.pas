@@ -2302,7 +2302,7 @@ end;
     (when you may prefer to ask user for confirmation, maybe save some game
     and such).
 
-    Call SetDemoOptions method to be forces to configure all "demo" options.
+    Call SetDemoOptions method to be forced to configure all "demo" options.
 
     It also always turns on FPS calculation (Fps.Active), regardless
     of "demo" options. FPS calculation is used for various, also non-debugging,
