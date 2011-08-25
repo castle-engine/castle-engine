@@ -76,7 +76,7 @@
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
   end;
 
-  TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractX3DSensorNode)
+  TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

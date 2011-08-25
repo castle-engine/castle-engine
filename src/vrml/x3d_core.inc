@@ -104,7 +104,7 @@ type
 
   { X3DSensorNode when it's a secondary ancestor.
     (When it's a primary ancestor, I use class TAbstractSensorNode.) }
-  IAbstractX3DSensorNode = interface(IAbstractChildNode)
+  IAbstractSensorNode = interface(IAbstractChildNode)
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
     property FdEnabled: TSFBool;
 
@@ -112,7 +112,7 @@ type
     property EventIsActive: TVRMLEvent;
   end;
 
-  TAbstractSensorNode = class(TAbstractChildNode, IAbstractX3DSensorNode)
+  TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
   public
     procedure CreateNode; override;
 

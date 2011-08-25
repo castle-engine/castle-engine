@@ -1148,10 +1148,10 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TNurbsPositionInterpolatorNode_2) or
       { Just like sensors, scripts don't affect actual content directly.
         Script nodes take care themselves to react to events send to them. }
-      (Field.ParentNode is TAbstractX3DScriptNode) or
+      (Field.ParentNode is TAbstractScriptNode) or
       { event utils }
-      (Field.ParentNode is TAbstractX3DSequencerNode) or
-      (Field.ParentNode is TAbstractX3DTriggerNode) or
+      (Field.ParentNode is TAbstractSequencerNode) or
+      (Field.ParentNode is TAbstractTriggerNode) or
       (Field.ParentNode is TBooleanFilterNode) or
       (Field.ParentNode is TBooleanToggleNode) or
       (Field.ParentNode is TTogglerNode) or

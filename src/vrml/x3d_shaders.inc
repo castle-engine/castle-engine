@@ -43,11 +43,11 @@
     public property FdName: TSFString read FFdName;
   end;
 
-  IAbstractX3DProgrammableShaderObject = interface
+  IAbstractProgrammableShaderObject = interface
   ['{B027FD9B-2A68-4653-8A26-91DB51BE47ED}']
   end;
 
-  TComposedShaderNode = class(TAbstractShaderNode, IAbstractX3DProgrammableShaderObject)
+  TComposedShaderNode = class(TAbstractShaderNode, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -96,7 +96,7 @@
     public property FdValue: TMFMatrix4f read FFdValue;
   end;
 
-  TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractX3DProgrammableShaderObject)
+  TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -158,7 +158,7 @@
     property UsedFullUrl: string read FUsedFullUrl;
   end;
 
-  TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractX3DProgrammableShaderObject)
+  TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

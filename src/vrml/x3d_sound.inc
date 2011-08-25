@@ -20,14 +20,14 @@
     procedure CreateNode; override;
   end;
 
-  IAbstractX3DSoundSourceNode = interface(IAbstractTimeDependentNode)
+  IAbstractSoundSourceNode = interface(IAbstractTimeDependentNode)
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
     property FdDescription: TSFString { read FFdDescription } { };
     property FdPitch: TSFFloat { read FFdPitch } { };
     property EventDuration_changed: TVRMLEvent { read FEventDuration_changed } { };
   end;
 
-  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractX3DSoundSourceNode)
+  TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractSoundSourceNode)
   public
     procedure CreateNode; override;
 
@@ -379,7 +379,7 @@ begin
   Fields.Add(FFdPriority);
   { X3D specification comment: [0,1] }
 
-  FFdSource := TSFNode.Create(Self, 'source', IAbstractX3DSoundSourceNode);
+  FFdSource := TSFNode.Create(Self, 'source', IAbstractSoundSourceNode);
   Fields.Add(FFdSource);
 
   FFdSpatialize := TSFBool.Create(Self, 'spatialize', true);

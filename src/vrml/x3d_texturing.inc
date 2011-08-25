@@ -243,7 +243,7 @@
     function TextureDescription: string; override;
   end;
 
-  TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractX3DSoundSourceNode,
+  TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractSoundSourceNode,
     IAbstractUrlObject, IAbstractTimeDependentNode)
   private
     FDuration: TKamTime;

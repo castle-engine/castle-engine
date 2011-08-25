@@ -79,7 +79,7 @@
     public property FdLayout: TSFNode read FFdLayout;
   end;
 
-  TScreenFontStyleNode = class(TAbstractX3DFontStyleNode)
+  TScreenFontStyleNode = class(TAbstractFontStyleNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

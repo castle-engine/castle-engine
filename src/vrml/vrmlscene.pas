@@ -5608,8 +5608,8 @@ var
 begin
   for I := 0 to Node.Routes.Count - 1 do
     Node.Routes[I].ResetLastEventTime;
-  if Node is TAbstractX3DScriptNode then
-    TAbstractX3DScriptNode(Node).ResetLastEventTimes;
+  if Node is TAbstractScriptNode then
+    TAbstractScriptNode(Node).ResetLastEventTimes;
 end;
 
 procedure TVRMLScene.ResetTime(const NewValue: TKamTime);

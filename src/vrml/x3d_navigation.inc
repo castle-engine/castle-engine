@@ -163,7 +163,7 @@
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
   end;
 
-  TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractX3DSensorNode)
+  TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;

@@ -165,7 +165,7 @@
       read FTimeDependentNodeHandler;
   end;
 
-  TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractX3DSensorNode)
+  TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
   private
     procedure EventElapsedTimeReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);

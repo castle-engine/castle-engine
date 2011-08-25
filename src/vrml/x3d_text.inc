@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DFontStyleNode = class(TAbstractNode)
+  TAbstractFontStyleNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
   end;
@@ -30,7 +30,7 @@
     (after casting by Ord) to JUSTIFICATION_* constants. }
   TVRMLFontJustify = (fjBegin, fjMiddle, fjEnd);
 
-  TFontStyleNode = class(TAbstractX3DFontStyleNode)
+  TFontStyleNode = class(TAbstractFontStyleNode)
   private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
       JustifyWarningNotSupportedDone: boolean;
@@ -136,7 +136,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DFontStyleNode.CreateNode;
+procedure TAbstractFontStyleNode.CreateNode;
 begin
   inherited;
 
@@ -402,7 +402,7 @@ procedure TTextNode.CreateNode;
 begin
   inherited;
 
-  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TAbstractX3DFontStyleNode]);
+  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TAbstractFontStyleNode]);
    FdFontStyle.ChangesAlways := [chGeometry];
   Fields.Add(FFdFontStyle);
 

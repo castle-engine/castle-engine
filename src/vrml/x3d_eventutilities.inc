@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DSequencerNode = class(TAbstractChildNode)
+  TAbstractSequencerNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -71,7 +71,7 @@
     public property FdKey: TMFFloat read FFdKey;
   end;
 
-  TAbstractX3DTriggerNode = class(TAbstractChildNode)
+  TAbstractTriggerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
   end;
@@ -102,7 +102,7 @@
     public property EventInputTrue: TVRMLEvent read FEventInputTrue;
   end;
 
-  TBooleanSequencerNode = class(TAbstractX3DSequencerNode)
+  TBooleanSequencerNode = class(TAbstractSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); override;
@@ -136,7 +136,7 @@
     public property FdToggle: TSFBool read FFdToggle;
   end;
 
-  TBooleanTriggerNode = class(TAbstractX3DTriggerNode)
+  TBooleanTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -154,7 +154,7 @@
     public property EventTriggerTrue: TVRMLEvent read FEventTriggerTrue;
   end;
 
-  TIntegerSequencerNode = class(TAbstractX3DSequencerNode)
+  TIntegerSequencerNode = class(TAbstractSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TVRMLTime); override;
@@ -171,7 +171,7 @@
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
   end;
 
-  TIntegerTriggerNode = class(TAbstractX3DTriggerNode)
+  TIntegerTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -192,7 +192,7 @@
     public property EventTriggerValue: TVRMLEvent read FEventTriggerValue;
   end;
 
-  TTimeTriggerNode = class(TAbstractX3DTriggerNode)
+  TTimeTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
       const Time: TVRMLTime);
@@ -213,7 +213,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DSequencerNode.CreateNode;
+procedure TAbstractSequencerNode.CreateNode;
 begin
   inherited;
 
@@ -238,7 +238,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TAbstractX3DSequencerNode.KeyRange(
+function TAbstractSequencerNode.KeyRange(
   const Fraction: Single): Integer;
 var
   T: Single;
@@ -250,7 +250,7 @@ begin
   Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
-procedure TAbstractX3DSequencerNode.SetCurrentKeyRange(const Value: Integer;
+procedure TAbstractSequencerNode.SetCurrentKeyRange(const Value: Integer;
   const Time: TVRMLTime);
 begin
   if FCurrentKeyRange <> Value then
@@ -262,7 +262,7 @@ begin
   end;
 end;
 
-procedure TAbstractX3DSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
   KeyCount: Integer;
@@ -287,7 +287,7 @@ begin
   end;
 end;
 
-procedure TAbstractX3DSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -309,7 +309,7 @@ begin
   end;
 end;
 
-procedure TAbstractX3DSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
   const Time: TVRMLTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -331,7 +331,7 @@ begin
   end;
 end;
 
-procedure TAbstractX3DTriggerNode.CreateNode;
+procedure TAbstractTriggerNode.CreateNode;
 begin
   inherited;
 

@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TAbstractX3DEnvironmentalSensorNode = class(TAbstractSensorNode)
+  TAbstractEnvironmentalSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
 
@@ -34,7 +34,7 @@
     public property EventExitTime: TVRMLEvent read FEventExitTime;
   end;
 
-  TProximitySensorNode = class(TAbstractX3DEnvironmentalSensorNode)
+  TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -54,7 +54,7 @@
     public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
   end;
 
-  TTransformSensorNode = class(TAbstractX3DEnvironmentalSensorNode)
+  TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -72,7 +72,7 @@
     public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
   end;
 
-  TVisibilitySensorNode = class(TAbstractX3DEnvironmentalSensorNode)
+  TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -82,7 +82,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DEnvironmentalSensorNode.CreateNode;
+procedure TAbstractEnvironmentalSensorNode.CreateNode;
 begin
   inherited;
 

@@ -245,7 +245,7 @@
     public property FdGeoSystem: TMFString read FFdGeoSystem;
   end;
 
-  TGeoProximitySensorNode = class(TAbstractX3DEnvironmentalSensorNode)
+  TGeoProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

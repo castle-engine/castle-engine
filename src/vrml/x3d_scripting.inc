@@ -17,7 +17,7 @@
   { }
   TScriptType = (stCompiled, stKambiScript);
 
-  TAbstractX3DScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
+  TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
   private
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);
@@ -66,7 +66,7 @@
     procedure ResetLastEventTimes;
   end;
 
-  TScriptNode = class(TAbstractX3DScriptNode)
+  TScriptNode = class(TAbstractScriptNode)
   private
     procedure IDeclEventReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
@@ -87,7 +87,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-procedure TAbstractX3DScriptNode.CreateNode;
+procedure TAbstractScriptNode.CreateNode;
 begin
   inherited;
 
@@ -108,7 +108,7 @@ begin
   CDataField := FdUrl;
 end;
 
-destructor TAbstractX3DScriptNode.Destroy;
+destructor TAbstractScriptNode.Destroy;
 begin
   { shutdown by directly setting FInitialized to false,
     we don't want to call ExecuteScript at this point (as VRML graph
@@ -123,7 +123,7 @@ begin
   inherited;
 end;
 
-procedure TAbstractX3DScriptNode.EventUrlReceive(
+procedure TAbstractScriptNode.EventUrlReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
 begin
   { Simply shutdown + initialize from new URL }
@@ -131,7 +131,7 @@ begin
   Initialized := true;
 end;
 
-procedure TAbstractX3DScriptNode.ExecuteScript(const FunctionName: string;
+procedure TAbstractScriptNode.ExecuteScript(const FunctionName: string;
   ReceivedValue: TVRMLField);
 var
   I: Integer;
@@ -202,7 +202,7 @@ begin
   end;
 end;
 
-procedure TAbstractX3DScriptNode.SetInitialized(const Value: boolean);
+procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
 
   { @raises(EKamScriptSyntaxError in case of program parsing error
       (we just let through EKamScriptSyntaxError from ParseProgram).) }
@@ -351,7 +351,7 @@ begin
   end;
 end;
 
-procedure TAbstractX3DScriptNode.ResetLastEventTimes;
+procedure TAbstractScriptNode.ResetLastEventTimes;
 begin
   if Initialized and (FInitializedScriptType = stKambiScript) then
     KambiScriptVariables.ResetLastEventTimes;
