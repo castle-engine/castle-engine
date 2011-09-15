@@ -39,9 +39,8 @@ type
       of RootNodes and Times, you should pass here references to
       @italic(already created and currently empty) lists.
 
-      ModelFileNames returned will always be absolute paths.
-      We will expand them as necessary (actually, we will also expand
-      passed here FileName to be absolute).
+      ModelFileNames returned will always contain only absolute paths.
+      We will expand every path (like FileName parameter) if necessary for this.
 
       If you seek for most comfortable way to load TVRMLGLAnimation from a file,
       you probably want to use TVRMLGLAnimation.LoadFromFile.
