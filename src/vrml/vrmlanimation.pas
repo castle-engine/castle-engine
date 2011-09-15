@@ -62,10 +62,10 @@ type
       an Element. This way you can use it to load <animation> element
       that is a part of some larger XML file.
 
-      It requires BasePath --- this is the path from which relative
-      filenames inside Element will be resolved. (this path doesn't
-      need to be an absolute path, we will expand it to make it absolute
-      if necessary). }
+      @param(BasePath The path from which relative
+        filenames inside Element will be resolved. It doesn't
+        have to be an absolute path, we will expand it to make it absolute
+        if necessary.) }
     class procedure LoadFromDOMElementToVars(Element: TDOMElement;
       const BasePath: string;
       ModelFileNames: TStringList;
