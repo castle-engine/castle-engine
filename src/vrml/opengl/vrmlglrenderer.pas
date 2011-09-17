@@ -145,7 +145,7 @@
       @code(Scale(1, 1, -1)) trick. See
       [http://www.opengl.org/resources/code/samples/mjktips/Reflect.html]
       and example program
-      @code(kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.lpr).
+      @code(castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr).
       With such strange scale, CCW and CW invert places. Sides that were
       CCW normally are now CW. This means that you want to call @code(glFrontFace(GL_CW))
       temporarily when rendering scene in the mirror. This way scene in the mirror
@@ -477,7 +477,7 @@ type
       This is useful for special tricks, in particular to draw the geometry
       into stencil buffer.
       Another example of use is to render plane-projected shadows,
-      see kambi_vrml_game_engine/examples/vrml/plane_projected_shadow_demo.lpr,
+      see castle_game_engine/examples/vrml/plane_projected_shadow_demo.lpr,
       where you have to draw the model with pure black color. }
     property PureGeometry: boolean
       read FPureGeometry write SetPureGeometry default false;

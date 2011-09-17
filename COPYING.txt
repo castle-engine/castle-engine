@@ -1,8 +1,8 @@
 (See also
-http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_license)
+http://castle-engine.sourceforge.net/engine.php#section_license)
 
-The core of "Kambi VRML game engine" (almost everything that can be found
-in this directory, kambi_vrml_game_engine) may be used on the terms of:
+The core of "Castle Game Engine" (almost everything that can be found
+in this directory, castle_game_engine) may be used on the terms of:
 
 1. GNU General Public License (version 2 or above, whichever you like),
    see COPYING.GPL2.txt for GPL 2 text,

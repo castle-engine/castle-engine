@@ -306,7 +306,7 @@ function CubeMapSolidAngle(const Side: TCubeMapSide;
 
 { A note on accuracy: I tried to return here Float, and use Float values
   in the middle, but testing with
-  kambi_vrml_game_engine/tests/testcubemap.pas
+  castle_game_engine/tests/testcubemap.pas
   shows that it doesn't matter. Single is enough, Double or Extended
   doesn't improve it. }
 

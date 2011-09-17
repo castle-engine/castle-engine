@@ -208,8 +208,8 @@ clean-glwindow:
 
 svntag:
 	source ../www/scripts/update_archives/generated_versions.sh && \
-	  svn copy https://vrmlengine.svn.sourceforge.net/svnroot/vrmlengine/trunk/kambi_vrml_game_engine \
-	           https://vrmlengine.svn.sourceforge.net/svnroot/vrmlengine/tags/kambi_vrml_game_engine/"$$GENERATED_VERSION_KAMBI_VRML_GAME_ENGINE" \
-	  -m "Tagging the $$GENERATED_VERSION_KAMBI_VRML_GAME_ENGINE version of 'Kambi VRML game engine'."
+	  svn copy https://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine \
+	           https://svn.code.sf.net/p/castle-engine/code/tags/castle_game_engine/"$$GENERATED_VERSION_CASTLE_GAME_ENGINE" \
+	  -m "Tagging the $$GENERATED_VERSION_CASTLE_GAME_ENGINE version of 'Kambi VRML game engine'."
 
 # eof ------------------------------------------------------------

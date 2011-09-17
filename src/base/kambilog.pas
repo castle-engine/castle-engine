@@ -14,7 +14,7 @@
 }
 
 { Logging. Log has to be activated in your program (nothing in the
-  kambi_vrml_game_engine units activates it automatically !) by InitializeLog.
+  castle_game_engine units activates it automatically !) by InitializeLog.
   Various units of my engine print some logging info when @link(Log) is true.
 
   Prints log messages to StdOut, not to some external file.

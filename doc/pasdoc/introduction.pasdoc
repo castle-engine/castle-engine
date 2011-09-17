@@ -66,11 +66,11 @@ Here it is:
     If you use Lazarus, the most comfortable way to use my units
     in your programs is probably by using Lazarus kambi_base and
     kambi_components packages. Just install them in Lazarus.
-    See @code(kambi_vrml_game_engine/packages/README) in sources for more information.)
+    See @code(castle_game_engine/packages/README) in sources for more information.)
 
   @item(
     If you don't use Lazarus, you should compile my units using
-    @code(kambi_vrml_game_engine/Makefile) file. GNU make is required
+    @code(castle_game_engine/Makefile) file. GNU make is required
     (under Linux this is the default `make',
     under Windows you have this already bundled with FPC
     (you can also get this from Cygwin or MinGW),
@@ -79,7 +79,7 @@ Here it is:
   @item(
     If you need more control over compilation process then
     you can also directly use kambi.cfg file. This is my configuration
-    file for FPC. It's used by @code(kambi_vrml_game_engine/Makefile) and by all @code(compile.sh)
+    file for FPC. It's used by @code(castle_game_engine/Makefile) and by all @code(compile.sh)
     scripts of all programs. All my programs and units must be compiled with
     FPC using exactly this configuration.
 

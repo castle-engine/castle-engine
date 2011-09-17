@@ -240,10 +240,7 @@ type
     In fact, if you do not assign anything to TKamSceneManager.Camera property,
     then the default camera will be created for you. So @italic(when
     using TKamSceneManager, you do not have to do anything to use a camera)
-    --- default camera will be created and automatically used for you.
-
-    See @code(kambi_vrml_game_engine/examples/glwindow/demo_camera.lpr)
-    example program in engine sources for simple demo how to use this class. }
+    --- default camera will be created and automatically used for you. }
   TCamera = class(TUIControl)
   private
     VisibleChangeSchedule: Cardinal;

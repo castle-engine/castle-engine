@@ -2330,7 +2330,7 @@ end;
   In practice however, it turned out that the sophisticated version
   was useless. Time measures shown that "naive" and simple
   version is even very very slightly faster in some cases.
-  Time measure is in kambi_vrml_game_engine/tests/testvrmlscene.pas,
+  Time measure is in castle_game_engine/tests/testvrmlscene.pas,
   define ITERATOR_SPEED_TEST and test for yourself.
 
   So in practice good memory allocator in FPC

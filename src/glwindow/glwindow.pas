@@ -164,7 +164,7 @@
       TGLWindow.EventMenuCommand (TGLWindow.OnMenuCommand) when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
-      See @code(kambi_vrml_game_engine/examples/glwindow/menu_test.lpr)
+      See @code(castle_game_engine/examples/glwindow/glwindow_menu.lpr)
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
@@ -1828,7 +1828,7 @@ end;
       can assign other MainMenu values while not Closed, but only values
       <>nil. I.e. you can't set MainMenu to nil if you called Open
       with MainMenu <> nil.
-      See @code(kambi_vrml_game_engine/examples/glwindow/menu_test_alternative.lpr)
+      See @code(castle_game_engine/examples/glwindow/glwindow_menu.lpr)
       for demo of changing value of MainMenu while window is not Closed.
 
       Note that MainMenu.Enabled is honoured (as well as Enabled
@@ -2199,7 +2199,7 @@ end;
       the trailing newline (newline char after the last line).
 
       Returned help text conforms to rules in
-      @code(kambi_vrml_game_engine/doc/various/kambi_command_line_params.txt).
+      @code(castle_game_engine/doc/various/kambi_command_line_params.txt).
 
       If AddHeader then it adds text @code('Window options:' +nl).
       at the beginning. This is just a small thing that allows you

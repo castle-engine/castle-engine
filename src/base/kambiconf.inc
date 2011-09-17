@@ -36,7 +36,7 @@
 
 { Configurable: define KAMBI_VRMLENGINE_LGPL to compile only
   components available on permissive LGPL (see
-  http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_license) }
+  http://castle-engine.sourceforge.net/engine.php#section_license) }
 { $define KAMBI_VRMLENGINE_LGPL}
 
 { According to Borland starting from Delphi 6 MSWINDOWS
@@ -123,9 +123,9 @@
     {$define SUPPORTS_INLINE}
   {$endif}
 
-  {$ifdef VER2_0}   {$fatal FPC 2.0.x is not supported anymore, see http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_fpc_ver} {$endif}
-  {$ifdef VER2_2_0} {$fatal FPC 2.2.0 is not supported anymore, see http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_fpc_ver} {$endif}
-  {$ifdef VER2_2_2} {$fatal FPC 2.2.2 is not supported anymore, see http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php#section_fpc_ver} {$endif}
+  {$ifdef VER2_0}   {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+  {$ifdef VER2_2_0} {$fatal FPC 2.2.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+  {$ifdef VER2_2_2} {$fatal FPC 2.2.2 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 
   {$define TOBJECT_HAS_EQUALS}
   {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}

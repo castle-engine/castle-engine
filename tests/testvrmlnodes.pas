@@ -259,7 +259,7 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
       First.ReadFromFile(FileName);
 
       Node := LoadVRMLClassic(FileName, false);
-      NewFile := GetTempPath + 'test_kambi_vrml_game_engine.wrl';
+      NewFile := GetTempPath + 'test_castle_game_engine.wrl';
       SaveVRML(Node, NewFile, ProgramName, '', xeClassic, false);
 
       Second := TVRMLTokenInfoList.Create;

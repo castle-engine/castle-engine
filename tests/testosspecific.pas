@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test some OS-specific utilities in kambi_vrml_game_engine,
+{ Test some OS-specific utilities in castle_game_engine,
   mostly in KambiUtils unit.
   Usually the mere purpose of these utilities is to hide some OS-specific
   (UNIX-specific, Windows-specific) things from program. }

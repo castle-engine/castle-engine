@@ -2,7 +2,7 @@ This is the "Kambi VRML game engine",
 webpage http://vrmlengine.sourceforge.net/. It's focus is on 3D games
 and applications, in particular using VRML/X3D scene format
 (although other 3D formats are supported as well).
-http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php
+http://castle-engine.sourceforge.net/engine.php
 contains a list of features and useful notes for developers.
 
 The API documentation is available online on

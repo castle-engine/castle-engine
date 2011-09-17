@@ -20,7 +20,7 @@ engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
   BTW: maybe allow configuring shadow maps params,
   checkbox to switch "Shadows" and to change shadow map size would be very cool!
 - DRAFT.engine_tutorial.txt finish, make prominent links from
-  http://vrmlengine.sourceforge.net/kambi_vrml_game_engine.php (on sidebar,
+  http://castle-engine.sourceforge.net/engine.php (on sidebar,
   near download links, mention in news etc.)
 
 ------------------------------------------------------------------------------
@@ -45,13 +45,13 @@ Details during 2.6.0 release:
   for all objects, following vrml_engine_doc promises.
   Remaining only three cases:
 
-  ./kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:325:    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
-  ./kambi_vrml_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:329:  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+  ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:325:    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
+  ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:329:  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
 
-  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:148:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
-  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:788:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
-  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
-  ./kambi_vrml_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:148:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:788:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
 
 - Make lifetime of lights renderer longer. At least, for whole rendering
   from a scene manager (so 1 lights renderer for 1 TKamSceneManager.Draw call).
@@ -634,7 +634,7 @@ large TODOs:
 
 - Plane mirror support in OpenGL for Material.mirror field (porting to
 general renderer the code from
-kambi_vrml_game_engine/examples/plane_mirror_and_shadow)
+castle_game_engine/examples/plane_mirror_and_shadow)
 
 - Simple networking (support for http:// and such in view3dscene)
 

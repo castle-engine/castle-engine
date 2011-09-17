@@ -13,7 +13,7 @@ Throughout this tutorial you will see a links to our <a>engine reference</a>, an
 
 If you haven't done it yet, download the engine source code with examples from ....
 
-Run Lazarus, and open packages in the kambi_vrml_game_engine/packages/ subdirectory. Open and compile all three packages (kambi_base.lpk, kambi_components.lpk, kambi_glwindow.lpk), to test that things compile OK. Then install the package <i>kambi_components</i>. (Do not install kambi_glwindow --- you don't want to have this installed in Lazarus. You can install kambi_base explicitly, but there's no need to: installing kambi_components will also install kambi_base automatically.)
+Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (kambi_base.lpk, kambi_components.lpk, kambi_glwindow.lpk), to test that things compile OK. Then install the package <i>kambi_components</i>. (Do not install kambi_glwindow --- you don't want to have this installed in Lazarus. You can install kambi_base explicitly, but there's no need to: installing kambi_components will also install kambi_base automatically.)
 
 Once packages are successfully installed, Lazarus restarts, and you should see "Kambi" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
 
@@ -89,7 +89,7 @@ We will load a game level from a 3D file. If you use a VRML/X3D file, this game 
 
 - If you just want to try a ready level, download this 3D file (link to *standalone* vrml file, in a single x3d file, with no textures etc.). You can open it first with view3dscene to see how it looks like.
 
-Or copy more interesting level model from kambi_vrml_game_engine/examples/vrml/models/: copy bridge_final.x3dv, bridge.wrl, and textures/ subdirectory to your project.
+Or copy more interesting level model from castle_game_engine/examples/vrml/models/: copy bridge_final.x3dv, bridge.wrl, and textures/ subdirectory to your project.
 
 - If you want, you can of course make your own new level. You can generally use any 3D modeler and export to any 3D format we can handle. Our other tutorial "how to make new level for CASTLE-2-NAME-HERE" (right now: DRAFT.modeling_tutorial.txt) describes from the basics how to use open-source Blender to create a level and export it to VRML/X3D. Highly advised reading! :)
 

@@ -15,7 +15,7 @@
 
 { Test of ShadowFields unit.
 
-  See kambi_vrml_game_engine/tests/ for a program that will
+  See castle_game_engine/tests/ for a program that will
   actually pick up and execute this test. }
 unit TestShadowFields;
 

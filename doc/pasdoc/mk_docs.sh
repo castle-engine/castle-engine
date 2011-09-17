@@ -1,13 +1,13 @@
 #!/bin/bash
 set -eu
 
-# Generates docs for all units in kambi_vrml_game_engine/src.
+# Generates docs for all units in castle_game_engine/src.
 # $1 is format (allowed values as for pasdoc's --format option),
 # docs will be placed in subdirectory $1 of current dir
 # so $1 means also subdirectory name.
 #
 # If you will not supply argument $2,
-# then documentation for almost every unit in kambi_vrml_game_engine/src
+# then documentation for almost every unit in castle_game_engine/src
 # (without automatically generated fonts units
 # and without units that pasdoc can't correctly parse)
 # will be generated.

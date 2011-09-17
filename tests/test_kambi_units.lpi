@@ -169,7 +169,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <SearchPaths>
-      <IncludeFiles Value="../../kambi_vrml_game_engine/src/base"/>
+      <IncludeFiles Value="../../castle_game_engine/src/base"/>
       <OtherUnitFiles Value="../examples/shadow_fields/"/>
     </SearchPaths>
     <Parsing>

@@ -54,15 +54,15 @@ Mini-FAQ about these packages:
 - Do I need Lazarus to compile Kambi VRML game engine ?
 
   No. Packages here are provided to easily compile and use the engine
-  with Lazarus. But actually units in kambi_vrml_game_engine don't use
+  with Lazarus. But actually units in castle_game_engine don't use
   any Lazarus units (LCL) (besides Lazarus-specific components in
   ../src/components/ subdirectory, corresponding to kambi_components package).
 
   So all you actually need is bare FPC installation.
-  Use kambi_vrml_game_engine/Makefile to compile all units and use compile.sh
+  Use castle_game_engine/Makefile to compile all units and use compile.sh
   scripts to compile each particular program. If you need more flexibility,
-  take a look at kambi_vrml_game_engine/kambi.cfg, this specifies actual options
-  used by kambi_vrml_game_engine/Makefile and all compile.sh scripts.
+  take a look at castle_game_engine/kambi.cfg, this specifies actual options
+  used by castle_game_engine/Makefile and all compile.sh scripts.
 
 - What is the difference between kambi_base and kambi_components:
 
