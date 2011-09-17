@@ -154,6 +154,13 @@ Tvector3_single=TObject
 Tvector4_double=TObject
 Tvector4_extended=TObject
 Tvector4_single=TObject
+TFPSList=TObject
+TFPGList=TFPSList
+TFPGObjectList=TFPSList
+TFPGInterfacedObjectList=TFPSList
+TFPSMap=TFPSList
+TFPGMap=TFPSMap
+TFPGMapInterfacedObjectData=TFPSMap
 
 TIniFile=TCustomIniFile
 TCustomIniFile=TObject
