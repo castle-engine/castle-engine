@@ -47,7 +47,7 @@
     <Description Value="Kambi VRML game engine - base package. Units not dependent on GLWindow, and no components. You can install this package, it's required by all other programs and packages that are part of Kambi VRML game engine.
 "/>
     <License Value="GNU GPL >= 2
-(or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
+(or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
     <Files Count="157">
       <Item1>

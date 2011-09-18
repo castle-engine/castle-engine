@@ -17,7 +17,7 @@ in this directory, castle_game_engine) may be used on the terms of:
    Please note that if you want to use LGPL:
 
    - You *have* to modify src/base/kambiconf.inc
-     to make symbol KAMBI_VRMLENGINE_LGPL defined. This will avoid pulling
+     to make symbol CASTLE_ENGINE_LGPL defined. This will avoid pulling
      any GPL-only (strict) dependencies into the engine --- currently
      this concerns NURBS implementatiopn.
 

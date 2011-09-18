@@ -15,7 +15,7 @@
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  If the engine is compiled with KAMBI_VRMLENGINE_LGPL symbol
+  If the engine is compiled with CASTLE_ENGINE_LGPL symbol
   (see ../base/kambiconf.inc), an alternative "dummy" implementation of
   this unit will be used, that doesn't depend on any GPL code.
 
@@ -158,7 +158,7 @@ begin
     U, Order, Knot, Weight, Tangent);
 end;
 
-{$ifdef KAMBI_VRMLENGINE_LGPL}
+{$ifdef CASTLE_ENGINE_LGPL}
 
 { Dummy implementations }
 
@@ -181,7 +181,7 @@ begin
   Result := ZeroVector3Single;
 end;
 
-{$else KAMBI_VRMLENGINE_LGPL}
+{$else CASTLE_ENGINE_LGPL}
 
 { findSpan and basisFuns is rewritten from white dune's C source code
   (almost identical methods of NodeNurbsCurve and NodeNurbsSurface).
@@ -425,7 +425,7 @@ begin
   FreeAndNil(vDeriv);
 end;
 
-{$endif KAMBI_VRMLENGINE_LGPL}
+{$endif CASTLE_ENGINE_LGPL}
 
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);

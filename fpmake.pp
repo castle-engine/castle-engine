@@ -18,7 +18,7 @@ var
 begin
   with Installer do
   begin
-    P := AddPackage('kambi-vrml-game-engine');
+    P := AddPackage('castle-game-engine');
 
     { Actually, may work on at least
         P.OSes := AllUnixOSes + [win32, win64];
@@ -49,12 +49,12 @@ begin
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
     P.Author := 'Michalis Kamburelis';
-    P.License := 'GNU GPL >= 2 (or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)';
+    P.License := 'GNU GPL >= 2 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)';
     {$ifdef VER2_2_2}
     P.ExternalURL
     {$else}
     P.HomepageURL
-    {$endif} := 'http://vrmlengine.sourceforge.net/';
+    {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := '2.5.1';
 

@@ -29,7 +29,7 @@
     <Description Value="Kambi VRML game engine - Lazarus components.
 "/>
     <License Value="GNU GPL >= 2
-(or LGPL >= 2, if compiled with KAMBI_VRMLENGINE_LGPL)"/>
+(or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
     <Files Count="6">
       <Item1>

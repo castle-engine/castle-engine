@@ -34,10 +34,10 @@
 {$ifndef KambiConf_ALREADY_INCLUDED}
 {$define KambiConf_ALREADY_INCLUDED}
 
-{ Configurable: define KAMBI_VRMLENGINE_LGPL to compile only
+{ Configurable: define CASTLE_ENGINE_LGPL to compile only
   components available on permissive LGPL (see
   http://castle-engine.sourceforge.net/engine.php#section_license) }
-{ $define KAMBI_VRMLENGINE_LGPL}
+{ $define CASTLE_ENGINE_LGPL}
 
 { According to Borland starting from Delphi 6 MSWINDOWS
   is the preferred symbol to mark Windows-only code
