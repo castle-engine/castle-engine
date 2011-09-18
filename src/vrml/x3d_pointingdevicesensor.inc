@@ -585,7 +585,7 @@ begin
 
         About using local coordinates with axisRotation:
         That's more difficult, see
-        http://vrmlengine.sourceforge.net/vrml_implementation_pointingdevicesensor.php }
+        http://castle-engine.sourceforge.net/vrml_implementation_pointingdevicesensor.php }
       EventTrackPoint_changed.Send(
         MatrixMultPoint(InvertedTransform, Intersection), Time);
     except

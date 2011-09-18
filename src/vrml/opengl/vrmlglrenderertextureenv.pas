@@ -190,7 +190,7 @@ procedure ModeFromString(const S: string;
         "REPLACE" takes the Arg2, that's an error, it takes
         from Arg1 to be consistent with other spec words.
         I wrote some remarks about this on
-        http://vrmlengine.sourceforge.net/vrml_implementation_status.php }
+        http://castle-engine.sourceforge.net/vrml_implementation_status.php }
 
       Combine := GL_REPLACE;
       CurrentTextureArgument := ta0;

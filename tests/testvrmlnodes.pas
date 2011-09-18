@@ -274,10 +274,10 @@ procedure TTestVRMLNodes.TestParseSaveToFile;
   end;
 
 begin
-  {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
+  {$ifdef CASTLE_ENGINE_TRUNK_AVAILABLE}
   TestReadWrite('../../demo_models/x3d/proto_sfnode_default.x3dv');
   TestReadWrite('../../demo_models/x3d/tricky_def_use.x3dv');
-  {$endif VRMLENGINE_TRUNK_AVAILABLE}
+  {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
 end;
 
 procedure TTestVRMLNodes.TestInterfaceSupports;

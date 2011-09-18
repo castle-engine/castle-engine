@@ -32,7 +32,7 @@
     pP to change plane distance to the object
 
     Navigation: like view3dscene in Examine mode,
-    see http://vrmlengine.sourceforge.net/view3dscene.php.
+    see http://castle-engine.sourceforge.net/view3dscene.php.
 
     See menu shortcuts for other keys.
 
@@ -42,9 +42,9 @@
 
     You can later change it using "Open" menu item anyway.
     You can load any model in VRML (or any other supported
-    format, see [http://vrmlengine.sourceforge.net/view3dscene.php]).
+    format, see [http://castle-engine.sourceforge.net/view3dscene.php]).
     See inside models/ subdirectory here,
-    or [http://vrmlengine.sourceforge.net/demo_models.php]
+    or [http://castle-engine.sourceforge.net/demo_models.php]
     for some interesting models. See e.g. there for
     vrml_2/teapot.wrl if you want your familiar teapot :)
 }

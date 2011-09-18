@@ -115,7 +115,7 @@ type
   end;
 
   { Classic Whitted-style ray-tracer.
-    See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.classic_ray_tracer.html]
+    See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.classic_ray_tracer.html]
     for documentation.
 
     Make sure that VRML2Lights in states are properly initialized if you
@@ -140,7 +140,7 @@ type
   end;
 
   { Path tracer. See
-    [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.path_tracer.html]
+    [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.path_tracer.html]
     for documentation. }
   TPathTracer = class(TRayTracer)
   private
@@ -155,10 +155,10 @@ type
       The path has at least MinDepth length, and then Russian roulette
       is used.
 
-      See [http://vrmlengine.sourceforge.net/rayhunter.php]
+      See [http://castle-engine.sourceforge.net/rayhunter.php]
       documentation about "<recursion-depth>" and @--r-roul-continue
       for suggestions about how to use these parameters.
-      See also [http://vrmlengine.sourceforge.net/raytr_gallery.php]
+      See also [http://castle-engine.sourceforge.net/raytr_gallery.php]
       for some experiments with these values.
 
       RRoulContinue must be in 0..1 range.

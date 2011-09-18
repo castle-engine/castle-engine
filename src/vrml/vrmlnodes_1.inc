@@ -2067,7 +2067,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
+    See http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 end;
@@ -2089,7 +2089,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
+    See http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 
@@ -2120,7 +2120,7 @@ begin
   inherited;
 
   { Default ambientIntensity value for VRML 1.0.
-    See http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
+    See http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation }
   FdAmbientIntensity.Value := -1;
   FdAmbientIntensity.DefaultValue := -1;
 

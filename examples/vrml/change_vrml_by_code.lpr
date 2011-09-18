@@ -28,7 +28,7 @@
   any of their children nodes, fields, and generally do everything.
   The only thing to keep in ming is to call one of Scene.ChangedXxx
   methods after changes. More info about this is on
-  [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene.html#section.scene_caching].
+  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene.html#section.scene_caching].
 
   Of course, in case of trivial animation in this program, we could
   also express it directly in VRML/X3D and just load the scene,

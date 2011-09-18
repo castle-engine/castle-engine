@@ -36,7 +36,7 @@ type
     TVRMLGLScene.Render and TVRMLGLScene.RenderShadowVolume).
 
     For general usage tutorial of this class,
-    see [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
+    see [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
   TGLShadowVolumeRenderer = class(TBaseShadowVolumeRenderer)
   private
     FrustumAndLightPlanes: array [0..5] of TVector4Single;

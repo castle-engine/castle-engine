@@ -7,7 +7,7 @@ Keys and mouse commands not available from the menu:
 
 - First of all, all the keys from view3dscene Examine mode
   are available here to rotate and move the surface view.
-  See [http://vrmlengine.sourceforge.net/view3dscene.php].
+  See [http://castle-engine.sourceforge.net/view3dscene.php].
   Summary:
   - Arrows / PageUp / PageDown         rotate scene
   - Space                              stop rotating scene
@@ -28,7 +28,7 @@ Keys and mouse commands not available from the menu:
 - Drag while holding right mouse button to move the currently
   selected point. (*right* mouse button; this is to be consistent with
   my other program, for Bezier curves,
-  [http://vrmlengine.sourceforge.net/bezier_curves.php]).
+  [http://castle-engine.sourceforge.net/bezier_curves.php]).
 
 TODO:
 - Internally, the code is very flexible and actually most of the code

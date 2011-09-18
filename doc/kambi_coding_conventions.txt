@@ -2,7 +2,7 @@ This file describes some of Michalis Kamburelis'
 (aka Kambi) Pascal coding conventions.
 More overall overview of my units is in "Introduction" section
 of documentation, see
-[http://vrmlengine.sourceforge.net/apidoc/html/].
+[http://castle-engine.sourceforge.net/apidoc/html/].
 
 - *.pas files are units, *.inc are files to be included in other Pascal
   source files using $Include.
@@ -137,4 +137,4 @@ of documentation, see
 
 Michalis Kamburelis (aka Kambi)
 <michalis.kambi@gmail.com>
-http://vrmlengine.sourceforge.net/
+http://castle-engine.sourceforge.net/

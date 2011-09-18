@@ -19,7 +19,7 @@ Once packages are successfully installed, Lazarus restarts, and you should see "
 
 Let's quickly open and run some demos, to make sure that everything works. I suggest running ... (some LCL demo) and ... (some glwindow demo).
 
-Make sure you have installed the necessary libraries first, or some of the demos will not work. The required libraries (.so under Unix, .dll under Windows) are mentioned in the <a href="http://vrmlengine.sourceforge.net/apidoc/html/introduction.html#SectionLibraries">Requirements -&gt; Libraries</a> section of our reference introduction. Under Windows, you will usually want to grab http://vrmlengine.sourceforge.net/miscella/win32_dlls.zip and place them somewhere on your $PATH, or just place them in every directory with .exe files that you compile with our engine.
+Make sure you have installed the necessary libraries first, or some of the demos will not work. The required libraries (.so under Unix, .dll under Windows) are mentioned in the <a href="http://castle-engine.sourceforge.net/apidoc/html/introduction.html#SectionLibraries">Requirements -&gt; Libraries</a> section of our reference introduction. Under Windows, you will usually want to grab http://castle-engine.sourceforge.net/miscella/win32_dlls.zip and place them somewhere on your $PATH, or just place them in every directory with .exe files that you compile with our engine.
 
 Now we'll start creating our own game from scratch.
 
@@ -62,7 +62,7 @@ In case of using Lazarus forms, you will usually want to place the initializatio
 
 Scene manager is a single TKamSceneManager class instance that knows literally everything about your 3D world. It is essential to create it, and add all your 3D stuff to it.
 
-In the simple scenario, by default TKamSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window, but we'll not dive there in this tutorial (see <a href="http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">Custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources, if you're interested in this).
+In the simple scenario, by default TKamSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window, but we'll not dive there in this tutorial (see <a href="http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">Custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources, if you're interested in this).
 
 Change your code to initialize scene manager:
 

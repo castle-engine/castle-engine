@@ -70,10 +70,10 @@ type
     a wrapper around single TVRMLGLScene instance.
 
     For more information see the "VRML engine documentation",
-    [http://vrmlengine.sourceforge.net/vrml_engine_doc/].
+    [http://castle-engine.sourceforge.net/vrml_engine_doc/].
     Specifically the section
     "Non-interactive precalculated animation: TVRMLGLAnimation",
-    [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
+    [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
   TVRMLGLAnimation = class(TVRMLAnimation)
   private
     FScenes: TVRMLGLSceneList;
@@ -259,7 +259,7 @@ type
       Various file formats are possible, everything that can be handled by
       LoadVRMLSequence, in particular simple 3D model files, MD3,
       kanim (described on
-      [http://vrmlengine.sourceforge.net/kanim_format.php]).
+      [http://castle-engine.sourceforge.net/kanim_format.php]).
 
       If you need more control over loading, for example you want to
       change some parameters at loading (for example, ScenesPerTime
@@ -506,7 +506,7 @@ type
 
       Other value means that we used current real time as time origin,
       following VRML/X3D specification.
-      See also [http://vrmlengine.sourceforge.net/vrml_time_origin_considered_uncomfortable.php] }
+      See also [http://castle-engine.sourceforge.net/vrml_time_origin_considered_uncomfortable.php] }
     property TimeAtLoad: TKamTime read FTimeAtLoad;
 
     { Current time of the animation. Although you do not have to use it:

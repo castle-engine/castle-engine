@@ -17,7 +17,7 @@
   and smooth curves (TSmoothInterpolatedCurve, each segment is a Bezier curve).
 
   Implemented first for bezier_curves program
-  [http://vrmlengine.sourceforge.net/bezier_curves.php],
+  [http://castle-engine.sourceforge.net/bezier_curves.php],
   may be generally useful. }
 unit BezierCurve;
 

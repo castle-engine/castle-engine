@@ -135,9 +135,9 @@ type
 procedure Strings_AddSplittedString(Strings: TStrings;
   const S, Splitter: string);
 
-{ Something like @link(SVrmlEngineProgramHelpSuffix), but appends
+{ Something like @link(SCastleEngineProgramHelpSuffix), but appends
   contents as a couple of lines to Strings. }
-procedure Strings_AddVrmlEngineProgramHelpSuffix(
+procedure Strings_AddCastleEngineProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 
@@ -804,12 +804,12 @@ begin
   Strings.Append(SEnding(S, Done + 1));
 end;
 
-procedure Strings_AddVrmlEngineProgramHelpSuffix(
+procedure Strings_AddCastleEngineProgramHelpSuffix(
   Strings: TStrings; const DisplayProgramName: string;
   const Version: string; WrapLines: boolean);
 begin
   Strings_AddSplittedString(Strings,
-    SVrmlEngineProgramHelpSuffix(DisplayProgramName, Version, WrapLines), nl);
+    SCastleEngineProgramHelpSuffix(DisplayProgramName, Version, WrapLines), nl);
 end;
 
 procedure Strings_SetText(SList: TStrings; const S: string);

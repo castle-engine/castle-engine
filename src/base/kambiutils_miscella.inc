@@ -137,7 +137,7 @@ function SFPCVersion: string;
 function SCompilerDescription: string;
 
 { Print some common info for programs released on
-  [http://vrmlengine.sourceforge.net/].
+  [http://castle-engine.sourceforge.net/].
   This is useful only for programs released on this WWW page by Michalis.
   Resulting string is multiline.
 
@@ -145,12 +145,12 @@ function SCompilerDescription: string;
     here something else if you want.)
 
   @param(Version For my programs this usually looks like '%d.%d.%d'
-    and conforms to [http://vrmlengine.sourceforge.net/versioning.php])
+    and conforms to [http://castle-engine.sourceforge.net/versioning.php])
 
   @param(WrapLines If true then resulting string will not have lines
     longer than 80 characters. Suitable for printing program
     help message on stdout, e.g. in response to @--help option.) }
-function SVrmlEngineProgramHelpSuffix(const DisplayProgramName: string;
+function SCastleEngineProgramHelpSuffix(const DisplayProgramName: string;
   const Version: string; WrapLines: boolean): string;
 
 {$endif read_interface}
@@ -281,13 +281,13 @@ begin
    {$endif} {$endif} {$endif} ;
 end;
 
-function SVrmlEngineProgramHelpSuffix(const DisplayProgramName: string;
+function SCastleEngineProgramHelpSuffix(const DisplayProgramName: string;
   const Version: string; WrapLines: boolean): string;
 begin
   Result :=
     DisplayProgramName + ' version ' + Version + '.' +nl+
     'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
-    'See http://vrmlengine.sourceforge.net/ for latest versions' +
+    'See http://castle-engine.sourceforge.net/ for latest versions' +
     Iff(WrapLines, nl + ' ', '') +
     ' of this program, sources, documentation etc.' +nl+
     'Compiled with ' + SCompilerDescription +'.';

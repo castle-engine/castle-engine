@@ -203,7 +203,7 @@ begin
       TNurbsPatchSurfaceNode.
 
     NURBS differences are summarized in
-    http://vrmlengine.sourceforge.net/vrml_implementation_nurbs.php#section_vrml2_support
+    http://castle-engine.sourceforge.net/vrml_implementation_nurbs.php#section_vrml2_support
 
     TODO: this simple replacement will not work for cases when:
     - you have ROUTEs leading to old nodes (ROUTEs will become disconnected

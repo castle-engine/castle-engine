@@ -13,7 +13,7 @@ set -eu
 # will be generated.
 #
 # Else documentation for units $2...${$#} (all these arguments
-# should be filenames of units relative to $VRMLENGINE_UNITS_PATH
+# should be filenames of units relative to $CASTLE_ENGINE_UNITS_PATH
 # directory) will be generated.
 # E.g.: ./mk_docs.sh html audio/alutils.pas
 # This is useful for quickly checking generated documentation
@@ -29,7 +29,7 @@ set -eu
 # Moreover pasdoc will be run with --define $TARGET_OS.
 TARGET_OS=unix
 
-VRMLENGINE_UNITS_PATH=../../src/
+CASTLE_ENGINE_UNITS_PATH=../../src/
 
 # Autodetect if we're under Cygwin
 if uname | grep --quiet -i cygwin; then
@@ -63,7 +63,7 @@ mkdir -p "$PASDOC_CACHE"
 OUTPUT_PATH="$OUTPUT_PATH""$PASDOC_FORMAT"/
 mkdir -p "$OUTPUT_PATH"
 
-cd "$VRMLENGINE_UNITS_PATH"
+cd "$CASTLE_ENGINE_UNITS_PATH"
 
 # calculate TMP_PAS_LIST (os-native path)
 TMP_PAS_LIST=/tmp/mk_docs_list

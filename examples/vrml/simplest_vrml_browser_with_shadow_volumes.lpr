@@ -16,7 +16,7 @@
 { simplest_vrml_browser extended to render shadow volumes.
 
   See
-  http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows
+  http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows
   for documentation how to prepare your model to have shadow volumes.
 
   Besides setting ShadowVolumesPossible and ShadowVolumes to @true,

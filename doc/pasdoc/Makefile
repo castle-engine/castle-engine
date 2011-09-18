@@ -3,7 +3,7 @@
 .PHONY: default html htmlhelp pdf ps rtf latex
 
 # html and pdf are two most useful versions of documentation,
-# shown on [http://vrmlengine.sourceforge.net/reference.php]
+# shown on [http://castle-engine.sourceforge.net/reference.php]
 default: html pdf
 
 html:
@@ -65,13 +65,13 @@ clean: clean-cache
 
 SF_USERNAME=kambi
 SF_HOST=web.sourceforge.net
-SF_PATH=/home/project-web/vrmlengine/htdocs/apidoc/
+SF_PATH=/home/project-web/castle-engine/htdocs/apidoc/
 
-SF_CONNECT=$(SF_USERNAME),vrmlengine@$(SF_HOST):$(SF_PATH)
+SF_CONNECT=$(SF_USERNAME),castle-engine@$(SF_HOST):$(SF_PATH)
 SCP_OPTIONS=
 
 # Prepare and upload all the stuff referenced under
-# [http://vrmlengine.sourceforge.net/reference.php].
+# [http://castle-engine.sourceforge.net/reference.php].
 # Uploads as tar.gz and unpacks on server, this is *much* faster than
 # uploading separate HTML files.
 .PHONY: upload

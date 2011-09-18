@@ -7,8 +7,8 @@ In this tutorial, we show how to use Blender to model 3D stuff. If you're a fan 
 TODO. Shortcut for now:
 
 1. Get Blender.
-2. Get our Blender X3D exporter from http://vrmlengine.sourceforge.net/blender_stuff.php
-3. Model as usual. Be aware of what is / is not currently exported (see "exporter notes" on http://vrmlengine.sourceforge.net/blender_stuff.php).
+2. Get our Blender X3D exporter from http://castle-engine.sourceforge.net/blender_stuff.php
+3. Model as usual. Be aware of what is / is not currently exported (see "exporter notes" on http://castle-engine.sourceforge.net/blender_stuff.php).
 4. Export to X3D, and you're done.
 
 It's usually comfortable to open the exported file first with view3dscene. Once this looks nicely, use this within your game.

@@ -16,7 +16,7 @@
 { Generates light map.
 
   See lets_take_a_walk game
-  ([http://vrmlengine.sourceforge.net/lets_take_a_walk.php])
+  ([http://castle-engine.sourceforge.net/lets_take_a_walk.php])
   for example how to use this program.
   lets_take_a_walk sources contain an example model and script
   used with this program.

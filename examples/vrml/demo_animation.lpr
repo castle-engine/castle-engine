@@ -3,10 +3,10 @@
 
   If you're looking for example animation models,
   see inside kanim/ subdirectory of
-  [http://vrmlengine.sourceforge.net/kanim_format.php].
+  [http://castle-engine.sourceforge.net/kanim_format.php].
   If you're looking for a real, full-featured program to read
   kanim animations, see
-  [http://vrmlengine.sourceforge.net/view3dscene.php].
+  [http://castle-engine.sourceforge.net/view3dscene.php].
   This program is only a demo for a programmer to see how easy
   it's to load animations in your own programs using our engine.
 
@@ -51,7 +51,7 @@
 
   You can navigate in the scene using the standard arrow keys, escape exits.
   (for full list of supported keys --- see view3dscene documentation,
-  [http://vrmlengine.sourceforge.net/view3dscene.php],
+  [http://castle-engine.sourceforge.net/view3dscene.php],
   at Examine / Walk navigation method).
   Space key restarts the animation (definitely useful if you passed
   --no-loop option).

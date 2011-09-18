@@ -172,7 +172,7 @@
     public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
 
     { Fields below are Kambi's fog extensions, see
-      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
+      http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
 
       @groupBegin }
     private FFdVolumetric: TSFBool;
@@ -229,7 +229,7 @@
     public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
 
     { Fields below are Kambi's fog extensions, see
-      http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
+      http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_fog_volumetric
 
       @groupBegin }
     private FFdVolumetric: TSFBool;

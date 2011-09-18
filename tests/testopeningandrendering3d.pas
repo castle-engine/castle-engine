@@ -160,13 +160,13 @@ begin
     TestScene('');
     TestScenesInDir('data');
 
-    {$ifdef VRMLENGINE_TRUNK_AVAILABLE}
+    {$ifdef CASTLE_ENGINE_TRUNK_AVAILABLE}
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'demo_models');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'castle' + PathDelim + 'data');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'vrml_engine_doc');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'rift' + PathDelim + 'data');
     TestScenesInDir('..' + PathDelim + '..' + PathDelim + 'www' + PathDelim + 'htdocs');
-    {$endif VRMLENGINE_TRUNK_AVAILABLE}
+    {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
 
     Window.Close;
   finally FreeAndNil(Window) end;

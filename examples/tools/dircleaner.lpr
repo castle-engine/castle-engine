@@ -246,7 +246,7 @@ const
 
            Writeln(nl+
              nl+
-             SVrmlEngineProgramHelpSuffix('dircleaner', '1.0.0', true));
+             SCastleEngineProgramHelpSuffix('dircleaner', '1.0.0', true));
            ProgramBreak;
          end;
       1: FilesToClean.Add(Argument);

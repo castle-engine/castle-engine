@@ -30,7 +30,7 @@ type
   public
     { Load animation data from a given FileName to a set of variables.
 
-      See [http://vrmlengine.sourceforge.net/kanim_format.php]
+      See [http://castle-engine.sourceforge.net/kanim_format.php]
       for specification of the file format.
 
       This is a @italic(class procedure) --- it doesn't load the animation

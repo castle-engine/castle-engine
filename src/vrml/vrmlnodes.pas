@@ -23,7 +23,7 @@
 
   The chapter "Reading, writing, processing VRML scene graph"
   in the documentation on
-  [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
+  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.scene_graph.html]
   is almost completely devoted to documenting the design of this single unit.
 
   @bold(Various uses of this unit:)
@@ -39,7 +39,7 @@
       When reading VRML/X3D files, we generally do not change the VRML/X3D graph.
       So we're able to save exactly the same VRML/X3D graph
       back to another file. See also
-      [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
+      [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.writing_vrml.html#section.vrml_preserving].
       This allows writing various VRML
       processing tools, that can simply read the file, change whatever
       they want, and write the file back --- knowing that the "untouched"
@@ -85,7 +85,7 @@
     @item(Normal VRML/X3D nodes are defined by classses
       named like @code(TXxxNode). These nodes can be specified inside the VRML/X3D
       files. See VRML/X3D specifications, and also our extensions specification,
-      on [http://vrmlengine.sourceforge.net/vrml_x3d.php].
+      on [http://castle-engine.sourceforge.net/vrml_x3d.php].
 
       There are also abstract node classes. Their definitions are helpful
       for handling some functionality common to many descendants,
@@ -130,14 +130,14 @@
 
       Every correct VRML / X3D file in classic and XML encoding should be parsed
       by this unit.
-      See [http://vrmlengine.sourceforge.net/vrml_implementation_status.php]
+      See [http://castle-engine.sourceforge.net/vrml_implementation_status.php]
       for much more detailed information about supported features.)
 
     @item(
       Also many Inventor 1.0 files are correctly parsed.
       We handle Inventor 1.0 mostly like VRML 1.0, also some small
       things and nodes specific for Inventor 1.0 are implemented here, see
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#ext_iv_in_vrml].)
+      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_iv_in_vrml].)
 
     @item(
       Note that structures in this unit are @italic(not) focused
@@ -148,7 +148,7 @@
 
       Internally, we do not convert VRML 1.0-specific constructs
       to VRML 2.0 constructs (or the other way around).
-      See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
+      See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.vrml_1_2_sum.html]
       for more in-depth explanation of how, and why, we handle both
       old-style (Inventor, VRML 1.0) and new-style (VRML 2.0, X3D) VRML
       syntax.)
@@ -2076,7 +2076,7 @@ var
     from this module. If you want to change them inside VRML/X3D
     file (for example, to affect only part of the scene), use the
     KambiTriangulation node, see
-    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_kambi_triangulation].
+    [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_kambi_triangulation].
 
     These variables @italic(must) always honour MinQuadricSlices,
     MinQuadricStacks, MinRectDivisions limit.
@@ -2122,9 +2122,10 @@ const
   URNX3DNodes = 'urn:web3d:x3d:node:';
   { @groupEnd }
 
-  { URN used to indicate VRML / X3D nodes that are Kambi VRML game engine
+  { URN used to indicate VRML / X3D nodes that are Castle Game Engine
     extensions. }
-  URNKambiNodes = 'urn:vrmlengine.sourceforge.net:node:';
+  URNKambiNodes = 'urn:castle-engine.sourceforge.net:node:';
+  URNKambiNodes2 = 'urn:vrmlengine.sourceforge.net:node:';
 
   { URN to indicate BitManagement nodes. This should work, according to
     http://www.bitmanagement.com/developer/contact/examples/layer/index.html

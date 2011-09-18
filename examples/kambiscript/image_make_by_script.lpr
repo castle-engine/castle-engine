@@ -1,5 +1,5 @@
 { Simple program that uses KambiScript to create an image
-  [http://vrmlengine.sourceforge.net/kambi_script.php].
+  [http://castle-engine.sourceforge.net/kambi_script.php].
   KambiScript allows you to load an existing image, or start from scratch,
   and perform basic image processing. After the script executed,
   we will save image to file.

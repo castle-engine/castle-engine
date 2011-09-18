@@ -14,7 +14,7 @@
 }
 
 { Nodes that are defined specifically by Kambi VRML game engine.
-  See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php]. } { }
+  See [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php]. } { }
 
 {$ifdef read_interface}
   TKambiTriangulationNode = class(TAbstractChildNode)
@@ -324,7 +324,7 @@
     (regardless if we're on primitives or not). }
 
   { X3D MultiGeneratedTextureCoordinate node.
-    See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_tex_coord]. }
+    See [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_tex_coord]. }
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
     class function ClassNodeTypeName: string; override;

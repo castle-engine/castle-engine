@@ -22,7 +22,7 @@ unit VRMLTriangleOctree;
     the VRML scene is practically frozen while this octree lives.
 
     Eventually, I would like to fix this, and make octree more dynamic.
-    See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.octrees_dynamic.html].
+    See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.octrees_dynamic.html].
 }
 
 {$I vrmloctreeconf.inc}

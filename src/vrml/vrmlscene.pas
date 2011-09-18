@@ -1166,7 +1166,7 @@ type
       to something else.
 
       Note that particular models may override this by
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
+      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
 
       @groupBegin }
     function TriangleOctreeLimits: POctreeLimits;
@@ -1191,7 +1191,7 @@ type
       to something else.
 
       Note that particular models may override this by
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
+      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
 
       @groupBegin }
     function ShapeOctreeLimits: POctreeLimits;
@@ -1523,7 +1523,7 @@ type
 
       This honours VRML specification about VRML time origin,
       and our extension
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_time_origin_at_load]. }
+      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
 
     { @deprecated Deprecated name for ResetTime. }
@@ -1593,7 +1593,7 @@ type
 
     { Register compiled script handler, for VRML Script node with
       "compiled:" protocol.
-      See [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
+      See [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
@@ -1700,7 +1700,7 @@ type
 
       The main light is simply one with both @code(kambiShadows) and
       @code(kambiShadowsMain) fields set to @true. See
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
+      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]
       for more info.
       If no light with kambiShadows = kambiShadowsMain = TRUE
       is present then this function returns @false,
@@ -1889,7 +1889,7 @@ type
 
       Note that this is not the only way to make shadow maps.
       VRML author can always make shadow maps by using lower-level nodes, see
-      [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_maps].
+      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_maps].
       When using these lower-level nodes, this property does not matter
       This property (and related ones
       like ShadowMapsDefaultSize)
@@ -4282,7 +4282,7 @@ procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
 
             Just let programmer change per-shape properties if he wants,
             or user to change this per-shape by
-            [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
+            [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties].
           }
 
           SI.Current.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;

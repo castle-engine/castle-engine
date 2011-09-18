@@ -34,7 +34,7 @@ type
 
 { THelperObj.Script* methods below are only to demonstrate using
   "compiled:" Script protocol, see
-  [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
+  [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
 class procedure THelperObj.ScriptTouchInitialize(Value: TVRMLField; const Time: TVRMLTime);
 begin
   Writeln(Format('Script is initialized (timestamp: %f)', [Time.Seconds]));

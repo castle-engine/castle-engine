@@ -118,8 +118,7 @@ end;
     geometry) seem to randomly disappear.
 
   This is a shortcut of even longer old comments... For the full story,
-  see revision 6432,
-  http://vrmlengine.svn.sourceforge.net/viewvc/vrmlengine/trunk/kambi_vrml_game_engine/src/vrml/opengl/vrmlmeshrenderer_x3d_geometry3d.inc?revision=6432&view=markup
+  see revision 6432 in SVN repo,
   and search for TryRenderingFaceAsFan comments.
 }
 

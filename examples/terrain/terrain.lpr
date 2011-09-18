@@ -31,7 +31,7 @@
      of such .hgt file to load on start.
 
   2. You can also define terrain as an explicit function using KambiScript
-     expression syntax, [http://vrmlengine.sourceforge.net/kambi_script.php].
+     expression syntax, [http://castle-engine.sourceforge.net/kambi_script.php].
      Try e.g. function like
      - sin(x) + sin(y)
      - (sin(x) + sin(x*2) / 2 + sin(x*4) / 4)  *

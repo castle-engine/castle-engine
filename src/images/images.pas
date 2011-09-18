@@ -196,7 +196,7 @@ type
       yes/no alpha channel. This means that nice algorithm of AlphaChannelType
       will not be used. This allows you to give user control over alpha
       channel detection,
-      like for [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
+      like for [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
     function AlphaChannelTypeOverride(
       const DetectAlphaChannel: TDetectAlphaChannel;
       const AlphaTolerance: Byte = 0;

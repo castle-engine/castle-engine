@@ -290,7 +290,7 @@ type
 
   { Helper structure to keep octree limits. Useful to implement
     VRML extension
-    [http://vrmlengine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties]. }
+    [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_octree_properties]. }
   TOctreeLimits = record
     MaxDepth: integer;
     LeafCapacity: Integer;

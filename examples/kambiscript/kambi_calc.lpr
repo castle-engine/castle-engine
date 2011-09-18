@@ -1,7 +1,7 @@
 { Simple command-line calculator.
 
   Calculates value of 1st param, e.g. '1 + 2' or 'sin(5)' etc.
-  See [http://vrmlengine.sourceforge.net/kambi_script.php]
+  See [http://castle-engine.sourceforge.net/kambi_script.php]
   for expression syntax. }
 
 {$apptype CONSOLE}

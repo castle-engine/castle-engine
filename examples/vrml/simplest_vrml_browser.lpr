@@ -16,7 +16,7 @@
 { This opens VRML/X3D file, renders it, allows to move in the scene
   (with navigation adjusted to NavigationInfo.type, see view3dscene docs
   for keys/mouse to control Walk/Examine navigation
-  [http://vrmlengine.sourceforge.net/view3dscene.php]) and makes
+  [http://castle-engine.sourceforge.net/view3dscene.php]) and makes
   events working.
 
   Run with a command-line option to give 3D model filename. For example,

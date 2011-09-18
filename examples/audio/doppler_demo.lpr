@@ -20,7 +20,7 @@
   in the center of the window.
 
   Accepts command-line options from
-  http://vrmlengine.sourceforge.net/openal_notes.php }
+  http://castle-engine.sourceforge.net/openal_notes.php }
 program doppler_demo;
 
 uses SysUtils, VectorMath, GLWindow, GL, GLU, KambiGLUtils,

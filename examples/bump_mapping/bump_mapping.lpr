@@ -34,7 +34,7 @@
   See menu shortcuts for other keys.
 
   For navigation:
-  Keys the same as [http://vrmlengine.sf.net/view3dscene.php] for examiner mode:
+  Keys the same as [http://castle-engine.sf.net/view3dscene.php] for examiner mode:
     page up, page down, arrows: rotate the scene
     space: stop rotating
     ctrl + page up, page down, arrows: move the scene

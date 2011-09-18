@@ -25,7 +25,7 @@
   the default models from models/ subdir will be picked up.
 
   Navigate with mouse or keyboard (like view3dscene in Examine mode,
-  see http://vrmlengine.sourceforge.net/view3dscene.php docs).
+  see http://castle-engine.sourceforge.net/view3dscene.php docs).
   (For shadow receiver you can define Navigation node in VRML and navigate
   there in Walk mode.)
 

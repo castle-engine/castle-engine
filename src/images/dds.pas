@@ -39,7 +39,7 @@ type
     in a way natural for DirectX, and DirectX has left-handed coordinate system,
     which means that one axis seems reverted when you want OpenGL right-handed
     coord system.
-    See [http://vrmlengine.sourceforge.net/vrml_implementation_status.php#section_dds]
+    See [http://castle-engine.sourceforge.net/vrml_implementation_status.php#section_dds]
     for more. }
   TDDSCubeMapSide = (
     dcsPositiveX,

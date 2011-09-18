@@ -217,7 +217,7 @@ type
         and such.)
     )
 
-    See [http://vrmlengine.sourceforge.net/common_options.php]
+    See [http://castle-engine.sourceforge.net/common_options.php]
     for a user description how short and long options are expected to be given
     on the command-line. }
   TParameters = class(TKamStringList)

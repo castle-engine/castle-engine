@@ -14,7 +14,7 @@
 }
 
 { @abstract(Lexer for KambiScript language, see
-  [http://vrmlengine.sourceforge.net/kambi_script.php].)
+  [http://castle-engine.sourceforge.net/kambi_script.php].)
 
   For specification of tokens that this lexer understands,
   see documentation of KambiScriptParser unit. }

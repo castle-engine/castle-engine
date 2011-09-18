@@ -294,7 +294,7 @@
   TVRMLMaterialInfoAbstract = class
   protected
     { Calculate physical material properties using standard VRML material
-      fields. See [http://127.0.0.1/~michalis/vrmlengine/kambi_vrml_extensions.php#section_ext_material_phong_brdf_fields].
+      fields. See [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_phong_brdf_fields].
 
       These should be used by descendants implementation,
       for example CalculateReflSpecular should be used by descendant

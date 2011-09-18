@@ -15,7 +15,7 @@
 
 (*
   @abstract(Parser for KambiScript language, see
-  [http://vrmlengine.sourceforge.net/kambi_script.php].)
+  [http://castle-engine.sourceforge.net/kambi_script.php].)
 
   Can parse whole program in KambiScript language, is also prepared
   to parse only a single expression (usefull for cases when I need
@@ -45,7 +45,7 @@ type
 
   The end result is that this is perfect for describing things
   like function expressions, ideal e.g. for
-  [http://vrmlengine.sourceforge.net/glplotter_and_gen_function.php].
+  [http://castle-engine.sourceforge.net/glplotter_and_gen_function.php].
 
   @param(Variables contains a list of named values you want
     to allow in this expression.

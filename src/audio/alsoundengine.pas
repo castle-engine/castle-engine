@@ -223,7 +223,7 @@ type
       )
 
       More user-oriented documentation for the above options is here:
-      [http://vrmlengine.sourceforge.net/openal_notes.php#section_options] }
+      [http://castle-engine.sourceforge.net/openal_notes.php#section_options] }
     procedure ParseParameters;
 
     { Help string for options parsed by ParseParameters.
@@ -490,7 +490,7 @@ function TALSoundEngine.Devices: TALDeviceDescriptionList;
 
         This is so unstable, that I think that I do a service
         for users by *not* listing aRts in available OpenAL
-        devices. It's listed on [http://vrmlengine.sourceforge.net/openal_notes.php]
+        devices. It's listed on [http://castle-engine.sourceforge.net/openal_notes.php]
         and that's enough.
 
       Add(SampleImpALCDeviceName('arts'), 'aRts (analog Real time synthesizer)');

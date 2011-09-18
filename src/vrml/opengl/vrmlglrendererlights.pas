@@ -132,7 +132,7 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
       beamWidth says to use constant intensity within beamWidth angle,
       and linear drop off to cutOffAngle.
 
-      See [http://vrmlengine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
+      See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.opengl_rendering.html#section.vrml_lights]
       for more discussion. }
 
     if LightNode.FdBeamWidth.Value >= LightNode.FdCutOffAngle.Value then
