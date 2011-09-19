@@ -8,8 +8,8 @@ uses
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
   Forms
-  { add your units here }, mainf, LazOpenGLContext, kambi_base,
-  kambi_components, OpenGLInformation, vrmlconsolef;
+  { add your units here }, mainf, LazOpenGLContext, castle_base,
+  castle_components, OpenGLInformation, vrmlconsolef;
 
 begin
   Application.Initialize;

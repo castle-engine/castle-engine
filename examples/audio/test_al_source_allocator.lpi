@@ -25,7 +25,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="castle_base"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>
@@ -87,8 +87,8 @@
         <UsageCount Value="10"/>
       </Unit6>
       <Unit7>
-        <Filename Value="../../packages/kambi_base.pas"/>
-        <UnitName Value="kambi_base"/>
+        <Filename Value="../../packages/castle_base.pas"/>
+        <UnitName Value="castle_base"/>
         <CursorPos X="3" Y="10"/>
         <TopLine Value="1"/>
         <UsageCount Value="10"/>

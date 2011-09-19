@@ -13,7 +13,7 @@ Throughout this tutorial you will see a links to our <a>engine reference</a>, an
 
 If you haven't done it yet, download the engine source code with examples from ....
 
-Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (kambi_base.lpk, kambi_components.lpk, kambi_glwindow.lpk), to test that things compile OK. Then install the package <i>kambi_components</i>. (Do not install kambi_glwindow --- you don't want to have this installed in Lazarus. You can install kambi_base explicitly, but there's no need to: installing kambi_components will also install kambi_base automatically.)
+Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (castle_base.lpk, castle_components.lpk, castle_glwindow.lpk), to test that things compile OK. Then install the package <i>castle_components</i>. (Do not install castle_glwindow --- you don't want to have this installed in Lazarus. You can install castle_base explicitly, but there's no need to: installing castle_components will also install castle_base automatically.)
 
 Once packages are successfully installed, Lazarus restarts, and you should see "Kambi" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
 

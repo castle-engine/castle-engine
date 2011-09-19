@@ -30,7 +30,7 @@
         <PackageName Value="LCL"/>
       </Item1>
       <Item2>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="castle_base"/>
       </Item2>
       <Item3>
         <PackageName Value="FPCUnitTestRunner"/>

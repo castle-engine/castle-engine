@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <CONFIG>
   <Package Version="3">
-    <Name Value="kambi_glwindow"/>
+    <Name Value="castle_glwindow"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
       <Version Value="8"/>
@@ -122,7 +122,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="castle_base"/>
       </Item1>
       <Item2>
         <PackageName Value="FCL"/>

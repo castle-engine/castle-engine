@@ -11,7 +11,7 @@ uses
   {$ifdef TEXT_RUNNER}
   ConsoleTestRunner,
   {$else}
-  Interfaces, Forms, GuiTestRunner, kambi_base,
+  Interfaces, Forms, GuiTestRunner, castle_base,
   {$endif}
 
   KambiWarnings,

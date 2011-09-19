@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <CONFIG>
   <Package Version="3">
-    <Name Value="kambi_components"/>
+    <Name Value="castle_components"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
       <Version Value="9"/>
@@ -70,7 +70,7 @@
         <PackageName Value="LazOpenGLContext"/>
       </Item2>
       <Item3>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="castle_base"/>
       </Item3>
       <Item4>
         <PackageName Value="FCL"/>

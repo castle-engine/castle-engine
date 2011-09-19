@@ -34,7 +34,7 @@ behind internal organization of the engine. See
 As a programmer, you probably want to jump straight into the action,
 so take a look at the examples in @code(examples/) subdirectory
 of the engine. You can compile them from Lazarus (install
-kambi_base and kambi_components packages first, and then just open examples
+castle_base and castle_components packages first, and then just open examples
 .lpi files), or by @code(make examples).
 
 There are a lot of examples, for 3D game examples look e.g. at
@@ -64,8 +64,8 @@ Here it is:
 @orderedList(
   @item(
     If you use Lazarus, the most comfortable way to use my units
-    in your programs is probably by using Lazarus kambi_base and
-    kambi_components packages. Just install them in Lazarus.
+    in your programs is probably by using Lazarus castle_base and
+    castle_components packages. Just install them in Lazarus.
     See @code(castle_game_engine/packages/README) in sources for more information.)
 
   @item(

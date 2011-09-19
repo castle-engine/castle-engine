@@ -29,7 +29,7 @@
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
     <Units Count="1">

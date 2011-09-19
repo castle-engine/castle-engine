@@ -32,11 +32,11 @@
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="kambi_base"/>
+        <PackageName Value="castle_base"/>
         <MinVersion Major="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="kambi_components"/>
+        <PackageName Value="castle_components"/>
         <MinVersion Valid="True"/>
       </Item2>
       <Item3>

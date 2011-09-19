@@ -1,17 +1,17 @@
 In this directory you can find Lazarus packages that allow you
 to easily use Castle Game Engine in Lazarus programs.
 
-Short instructions: just compile and install kambi_base and kambi_components.
-*Do not* install kambi_glwindow in Lazarus (only compile it).
-kambi_components depends on standard Lazarus package LazOpenGLContext.
+Short instructions: just compile and install castle_base and castle_components.
+*Do not* install castle_glwindow in Lazarus (only compile it).
+castle_components depends on standard Lazarus package LazOpenGLContext.
 
 ----------------------------------------
 Usage:
 
-  1. Open wanted kambi_xxx.lpk file in Lazarus and compile the package.
+  1. Open wanted castle_xxx.lpk file in Lazarus and compile the package.
 
-  2. When you want to use the units included in kambi_xxx.lpk
-     in your program, just add this kambi_xxx package
+  2. When you want to use the units included in castle_xxx.lpk
+     in your program, just add this castle_xxx package
      as a "Required Package" for your project
      (using "Project" -> "Project Inspector" dialog).
 
@@ -21,7 +21,7 @@ Usage:
      appropriate -Fu command-line options for FPC so that FPC
      "sees" units in the package when compiling your program.
 
-  3. For kambi_base and kambi_components: you usually want to install
+  3. For castle_base and castle_components: you usually want to install
      these packages in Lazarus. This way you get Kambi components
      in the Lazarus palette (tab "Kambi"), you can drop them on the form,
      operate with the object inspector etc.
@@ -31,21 +31,21 @@ Usage:
      of your project) but usually it's much more comfortable to have them
      installed.
 
-     Note that "kambi_components" package depends on standard Lazarus
+     Note that "castle_components" package depends on standard Lazarus
      package "LazOpenGLContext". So compile LazOpenGLContext first.
      Just open components/opengl/lazopenglcontext.lpk from Lazarus sources,
      and compile + install it under Lazarus.
      You can then try examples/openglcontrol/openglcontrol_demo.lpk,
      also in Lazarus sources, to check that "LazOpenGLContext" works Ok.
 
-     For kambi_glwindow: *do not* install this in Lazarus.
+     For castle_glwindow: *do not* install this in Lazarus.
      This package uses GLWindow unit, and merely using this unit
      will cause the program to initialize TGLApplication instance,
      which in turn initiates some talk with WindowManager, GTK toolkit, etc.
      This would conflict with what Lazarus IDE (and LCL) does,
      causing unpredictable results.
 
-     So kambi_glwindow package is supposed only to be "used" (by adding
+     So castle_glwindow package is supposed only to be "used" (by adding
      it to "Required Packages" in project inspector),
      never installed in Lazarus IDE.
 
@@ -56,7 +56,7 @@ Mini-FAQ about these packages:
   No. Packages here are provided to easily compile and use the engine
   with Lazarus. But actually units in castle_game_engine don't use
   any Lazarus units (LCL) (besides Lazarus-specific components in
-  ../src/components/ subdirectory, corresponding to kambi_components package).
+  ../src/components/ subdirectory, corresponding to castle_components package).
 
   So all you actually need is bare FPC installation.
   Use castle_game_engine/Makefile to compile all units and use compile.sh
@@ -64,15 +64,15 @@ Mini-FAQ about these packages:
   take a look at castle_game_engine/kambi.cfg, this specifies actual options
   used by castle_game_engine/Makefile and all compile.sh scripts.
 
-- What is the difference between kambi_base and kambi_components:
+- What is the difference between castle_base and castle_components:
 
-  kambi_components has classes (components) depending on Lazarus LCL.
+  castle_components has classes (components) depending on Lazarus LCL.
   You really cannot use them without Lazarus.
 
-  kambi_base doesn't depend on Lazarus LCL. This is the stuff available
+  castle_base doesn't depend on Lazarus LCL. This is the stuff available
   to you also when you don't use Lazarus (or even LCL) at all.
 
-  kambi_components requires (that is, automatically installs) also kambi_base
+  castle_components requires (that is, automatically installs) also castle_base
   package --- that's OK.
 
 See ../examples/lazarus/ for demo Lazarus programs using these packages.

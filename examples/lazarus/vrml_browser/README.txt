@@ -11,7 +11,7 @@ Compiling:
 
 - Install standard Lazarus package with TOpenGLControl
 
-- Compile and install packages kambi_base and kambi_components,
+- Compile and install packages castle_base and castle_components,
   see ../../../packages/
 
 - Then just open and compile this program as usual from Lazarus.

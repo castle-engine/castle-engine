@@ -144,9 +144,9 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
-	lazbuild packages/kambi_base.lpk
-	lazbuild packages/kambi_glwindow.lpk
-	lazbuild packages/kambi_components.lpk
+	lazbuild packages/castle_base.lpk
+	lazbuild packages/castle_glwindow.lpk
+	lazbuild packages/castle_components.lpk
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
 # cleaning ------------------------------------------------------------
@@ -163,9 +163,9 @@ clean: cleanexamples
 	     -print \
 	     | xargs rm -f
 	rm -Rf packages/lib/ \
-	  packages/kambi_base.pas \
-	  packages/kambi_glwindow.pas \
-	  packages/kambi_components.pas \
+	  packages/castle_base.pas \
+	  packages/castle_glwindow.pas \
+	  packages/castle_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/

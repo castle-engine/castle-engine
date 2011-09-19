@@ -5,7 +5,7 @@ program test_al_source_allocator;
 uses
   Interfaces, // this includes the LCL widgetset
   Forms
-  { add your units here }, mainf, kambi_base;
+  { add your units here }, mainf, castle_base;
 
 begin
   Application.Initialize;
