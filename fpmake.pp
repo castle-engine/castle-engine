@@ -1,4 +1,4 @@
-{ Compile Kambi VRML game engine by fpmake.
+{ Compile Castle Game Engine by fpmake.
 
   This is an alternative (to Makefile) way to compile (and install if you want)
   all engine units. Simple instructions:

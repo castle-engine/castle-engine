@@ -21,8 +21,7 @@ packages/kambi_base.lpk and packages/kambi_components.lpk
 Then you can compile all the examples by opening their .lpi files
 and running them as usual from Lazarus.
 
-In case of any questions, ask on our
-- mailing list: https://lists.sourceforge.net/lists/listinfo/vrmlengine-main
-- or forum: https://sourceforge.net/apps/phpbb/vrmlengine/
+In case of any questions, ask on our forum or mailing list,
+see http://castle-engine.sourceforge.net/forum.php .
 
 Michalis Kamburelis, aka Kambi.
