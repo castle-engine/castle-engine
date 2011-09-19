@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Utilities for cooperation between LCL and "Kambi VRML game engine". }
+{ Utilities for cooperation between LCL and "Castle Game Engine". }
 unit KambiLCLUtils;
 
 interface

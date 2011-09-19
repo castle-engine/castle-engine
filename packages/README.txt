@@ -1,5 +1,5 @@
 In this directory you can find Lazarus packages that allow you
-to easily use Kambi VRML game engine in Lazarus programs.
+to easily use Castle Game Engine in Lazarus programs.
 
 Short instructions: just compile and install kambi_base and kambi_components.
 *Do not* install kambi_glwindow in Lazarus (only compile it).
@@ -51,7 +51,7 @@ Usage:
 
 Mini-FAQ about these packages:
 
-- Do I need Lazarus to compile Kambi VRML game engine ?
+- Do I need Lazarus to compile Castle Game Engine?
 
   No. Packages here are provided to easily compile and use the engine
   with Lazarus. But actually units in castle_game_engine don't use

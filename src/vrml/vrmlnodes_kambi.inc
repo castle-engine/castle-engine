@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Nodes that are defined specifically by Kambi VRML game engine.
+{ Nodes that are defined specifically by Castle Game Engine.
   See [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php]. } { }
 
 {$ifdef read_interface}

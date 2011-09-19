@@ -26,7 +26,7 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Kambi VRML game engine - Lazarus components.
+    <Description Value="Castle Game Engine - Lazarus components.
 "/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>

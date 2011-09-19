@@ -10,7 +10,7 @@ PROFILE Interchange
 # vertical arrow --- only vertically.
 #
 # (Transforms of both left arrows are deliberately the different nodes,
-# to test the harder case --- see Kambi VRML engine vrmlscene.pas
+# to test the harder case --- see Castle Game Engine vrmlscene.pas
 # Transform optimization for details.)
 
 PROTO ArrowVertical [ ] {

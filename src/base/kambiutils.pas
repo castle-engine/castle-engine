@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Various basic utilities. Developed for "Kambi VRML game engine",
+{ Various basic utilities. Developed for "Castle Game Engine",
   but generally usable.
 
   @unorderedList(

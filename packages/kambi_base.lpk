@@ -44,7 +44,7 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Kambi VRML game engine - base package. Units not dependent on GLWindow, and no components. You can install this package, it's required by all other programs and packages that are part of Kambi VRML game engine.
+    <Description Value="Castle Game Engine - base package. Units not dependent on GLWindow, and no components. You can install this package, it's required by all other programs and packages that are part of Castle Game Engine.
 "/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>

@@ -38,7 +38,7 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  { OpenGL control, with a couple of extensions for "Kambi VRML game engine".
+  { OpenGL control, with a couple of extensions for "Castle Game Engine".
     You will usually prefer to use TKamOpenGLControl instead of directly this
     class, TKamOpenGLControl adds some very useful features like
     @link(TKamOpenGLControl.Controls).
@@ -241,7 +241,7 @@ type
     property TabStop default true;
   end;
 
-  { OpenGL control, with extensions for "Kambi VRML game engine", including
+  { OpenGL control, with extensions for "Castle Game Engine", including
     @link(Controls) list for TUIControl instances.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances

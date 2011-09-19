@@ -135,7 +135,7 @@ pasdoc \
   $PASDOC_INCLUDE_DIRS --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
   --define FPC --define VER2 --define VER2_4 --define PASDOC \
-  --write-uses-list --title "Kambi VRML game engine" \
+  --write-uses-list --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \
   --auto-abstract \

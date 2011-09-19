@@ -24,7 +24,7 @@
   any shape). See e.g. [http://www.ibiblio.org/e-notes/Splines/Lagrange.htm].
 
   Also, a practical demo of some GLWindow and Curve unit possibilities
-  of Kambi VRML game engine. }
+  of Castle Game Engine. }
 
 program interpolated_curves;
 

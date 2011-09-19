@@ -1,5 +1,5 @@
 { Demo of TVRMLGLAnimation class. In other words, this loads and displays
-  animations of "Kambi VRML game engine".
+  animations of "Castle Game Engine".
 
   If you're looking for example animation models,
   see inside kanim/ subdirectory of

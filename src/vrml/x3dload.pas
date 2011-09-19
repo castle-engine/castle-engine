@@ -139,7 +139,7 @@ const
   }
   'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
   'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
-  'Kambi VRML engine animations (*.kanim)|*.kanim|' +
+  'Castle Game Engine animations (*.kanim)|*.kanim|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
