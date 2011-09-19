@@ -503,7 +503,8 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TColorSetInterpolatorNode.EventSet_FractionReceive(
@@ -949,7 +950,8 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TVectorInterpolatorNode.EventSet_FractionReceive(

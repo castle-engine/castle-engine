@@ -443,7 +443,8 @@ end;
 class function TKambiTriangulationNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 class function TKambiHeadLightNode.ClassNodeTypeName: string;
@@ -488,7 +489,8 @@ end;
 class function TKambiHeadLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 class function TText3DNode.ClassNodeTypeName: string;
@@ -499,7 +501,8 @@ end;
 class function TText3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TText3DNode.CreateNode;
@@ -547,7 +550,8 @@ end;
 class function TBlendModeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TBlendModeNode.CreateNode;
@@ -582,7 +586,8 @@ class function TKambiAppearanceNode.URNMatching(const URN: string): boolean;
 begin
   { Don't call "inherited URNMatching(URN)", since we don't want to
     "intercept" URNs that should indicate standard Appearance node. }
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TKambiAppearanceNode.CreateNode;
@@ -610,7 +615,8 @@ class function TKambiInlineNode.URNMatching(const URN: string): boolean;
 begin
   { Don't call "inherited URNMatching(URN)", since we don't want to
     "intercept" URNs that should indicate standard Inline node. }
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TKambiInlineNode.AfterLoadInlined;
@@ -698,7 +704,8 @@ end;
 
 class function TKambiNavigationInfoNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 function TKambiNavigationInfoNode.OctreeProperties(
@@ -738,7 +745,8 @@ end;
 
 class function TKambiOctreePropertiesNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TKambiOctreePropertiesNode.OverrideLimits(var Limits: TOctreeLimits);
@@ -806,7 +814,8 @@ end;
 
 class function TGeneratedShadowMapNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 function TGeneratedShadowMapNode.Light: TAbstractLightNode;
@@ -840,7 +849,8 @@ end;
 
 class function TProjectedTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TScreenEffectNode.CreateNode;
@@ -877,7 +887,8 @@ end;
 
 class function TScreenEffectNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TScreenEffectNode.DirectEnumerateActive(
@@ -894,7 +905,8 @@ end;
 
 class function TMultiGeneratedTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TEffectNode.CreateNode;
@@ -925,7 +937,8 @@ end;
 
 class function TEffectNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TEffectPartNode.CreateNode;
@@ -952,7 +965,8 @@ end;
 
 class function TEffectPartNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 function TEffectPartNode.LoadContents: string;
@@ -977,7 +991,8 @@ end;
 
 class function TShaderTextureNode.URNMatching(const URN: string): boolean;
 begin
-  Result := (URN = URNKambiNodes + ClassNodeTypeName);
+  Result := (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure RegisterKambiNodes;

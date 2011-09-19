@@ -294,7 +294,8 @@ end;
 class function TMatrixTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
@@ -375,7 +376,8 @@ end;
 class function TTeapotNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 function TTeapotNode.Proxy(var State: TVRMLGraphTraverseState;
@@ -581,7 +583,8 @@ end;
 class function TLoggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TConverterNode.CreateNode;
@@ -617,7 +620,8 @@ end;
 class function TConverterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TRenderedTextureNode.CreateNode;
@@ -738,7 +742,8 @@ end;
 class function TRenderedTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TPlaneNode.CreateNode;
@@ -765,7 +770,8 @@ end;
 class function TPlaneNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 function TPlaneNode.Proxy(var State: TVRMLGraphTraverseState;
@@ -848,7 +854,8 @@ end;
 class function TTogglerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassNodeTypeName) or
+    (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
 procedure TTogglerNode.EventStatusReceive(
