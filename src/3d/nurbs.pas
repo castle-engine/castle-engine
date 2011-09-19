@@ -3,11 +3,11 @@
   Parts based on white dune (GPL >= 2):
   Stephen F. White, J. "MUFTI" Scheurich, others.
 
-  This file is part of "Kambi VRML game engine".
+  This file is part of "Castle Game Engine".
 
-  "Kambi VRML game engine" is free software.
+  "Castle Game Engine" is free software.
 
-  Although most of the "Kambi VRML game engine" is available on terms of LGPL
+  Although most of the "Castle Game Engine" is available on terms of LGPL
   (see COPYING.txt in this distribution for detailed info), parts of this unit
   are an exception: they use white dune strict GPL >= 2 code.
   You can redistribute and/or modify *this unit, NURBS.pas, as a whole*
@@ -19,7 +19,7 @@
   (see ../base/kambiconf.inc), an alternative "dummy" implementation of
   this unit will be used, that doesn't depend on any GPL code.
 
-  "Kambi VRML game engine" is distributed in the hope that it will be useful,
+  "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
