@@ -463,17 +463,6 @@ type
       ABoundingBox,
       AManifoldAndBorderEdges: boolean): string;
 
-    { Write contents of all VRML "Info" nodes.
-      Also write how many Info nodes there are in the scene.
-
-      Actually, this just calls WritelnInfoNodes on the FirstScene
-      --- thanks to the knowledge that all info nodes in all scenes
-      must be equal, since strings cannot be interpolated.
-
-      @deprecated Deprecated: this is useless, info nodes aren't that important,
-      and specific output to StdOut is probably also useless. }
-    procedure WritelnInfoNodes;
-
     { Handling key and mouse events, overriding TUIControl methods.
 
       We pass key and mouse events only if there's exactly one scene
@@ -1674,11 +1663,6 @@ begin
     if Result <> '' then Result += NL;
     Result += FirstScene.InfoManifoldAndBorderEdges;
   end;
-end;
-
-procedure TVRMLGLAnimation.WritelnInfoNodes;
-begin
-  FirstScene.WritelnInfoNodes;
 end;
 
 procedure TVRMLGLAnimation.SetOwnsFirstRootNode(const Value: boolean);

@@ -1028,12 +1028,6 @@ type
     function InfoBoundingBox: string;
     function InfoManifoldAndBorderEdges: string;
 
-    { Write contents of all VRML "Info" nodes.
-      Also write how many Info nodes there are in the scene.
-      @deprecated Deprecated: this is useless, info nodes aren't that important,
-      and specific output to StdOut is probably also useless. }
-    procedure WritelnInfoNodes;
-
     { Actual VRML/X3D graph defining this scene.
 
       It is allowed to change contents of RootNode. Just make sure
@@ -4242,30 +4236,6 @@ begin
     if Result <> '' then Result += NL;
     Result += InfoManifoldAndBorderEdges;
   end;
-end;
-
-type
-  TInfoNodeWriter = class
-    Count: Cardinal;
-    procedure WriteNode(node: TX3DNode);
-  end;
-  procedure TInfoNodeWriter.WriteNode(node: TX3DNode);
-  begin
-   Inc(Count);
-   Writeln('Info node : "',(Node as TInfoNode).FdString.Value, '"')
-  end;
-
-procedure TVRMLScene.WritelnInfoNodes;
-var W: TInfoNodeWriter;
-begin
- if RootNode = nil then Exit;
-
- W := TInfoNodeWriter.Create;
- try
-  RootNode.EnumerateNodes(TInfoNode,
-    {$ifdef FPC_OBJFPC} @ {$endif} W.WriteNode, false);
-  Writeln(W.Count, ' Info nodes in the scene.');
- finally W.Free end;
 end;
 
 { octrees -------------------------------------------------------------------- }
