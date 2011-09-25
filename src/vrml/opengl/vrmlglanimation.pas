@@ -98,6 +98,8 @@ type
     ValidBoundingBox: boolean;
     FBoundingBox: TBox3D;
     FCollisionUseLastScene: boolean;
+    FInitialViewpointIndex: Cardinal;
+    FInitialViewpointName: string;
 
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
@@ -655,6 +657,12 @@ type
       read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
       default DefaultShadowMapsDefaultSize;
     { @groupEnd }
+
+    property InitialViewpointIndex: Cardinal
+      read FInitialViewpointIndex write FInitialViewpointIndex;
+
+    property InitialViewpointName: string
+      read FInitialViewpointName write FInitialViewpointName;
   end;
 
   TVRMLGLAnimationList = specialize TFPGObjectList<TVRMLGLAnimation>;
@@ -705,6 +713,8 @@ begin
 
   ShadowMaps := FParentAnimation.ShadowMaps;
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
+  InitialViewpointIndex := FParentAnimation.InitialViewpointIndex;
+  InitialViewpointName := FParentAnimation.InitialViewpointName;
 
   Static := AStatic;
 

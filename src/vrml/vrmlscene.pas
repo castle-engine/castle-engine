@@ -610,7 +610,7 @@ type
     FFogStack: TVRMLBindableStack;
     FNavigationInfoStack: TNavigationInfoStack;
     FViewpointStack: TViewpointStack;
-  private
+
     { If @true, then next ChangedAll call will do ProcessShadowMapsReceivers
       at the end.
 
@@ -623,6 +623,10 @@ type
     { Mechanism to schedule ChangedAll and GeometryChanged calls. }
     ChangedAllSchedule: Cardinal;
     ChangedAllScheduled: boolean;
+
+    ChangedAllCurrentViewpointIndex: Cardinal;
+    FInitialViewpointIndex: Cardinal;
+    FInitialViewpointName: string;
 
     FPointingDeviceOverItem: PVRMLTriangle;
     FPointingDeviceOverPoint: TVector3Single;
@@ -1908,6 +1912,37 @@ type
     property ShadowMapsDefaultSize: Cardinal
       read FShadowMapsDefaultSize write SetShadowMapsDefaultSize
       default DefaultShadowMapsDefaultSize;
+
+    { When loading new model, use this viewpoint index to initialize camera.
+      VRML/X3D specification says to use the first (index = 0) viewpoint,
+      you can change this property to bind 2nd, 3rd and so on viewpoints.
+
+      This is applied only at loading (actually, at ChangedAll).
+      If you later want to bind another viewpoint, just send set_bind := true
+      to it. }
+    property InitialViewpointIndex: Cardinal
+      read FInitialViewpointIndex write FInitialViewpointIndex;
+
+    { When loading new model and looking for initial viewpoint,
+      consider only viewpoints with this node name.
+      Relevant only if non-empty.
+
+      This may cooperate with InitialViewpointIndex: InitialViewpointIndex
+      specifies the index of viewpoint node that satisfies also
+      InitialViewpointName condition. For example:
+
+      @unorderedList(
+        @item(InitialViewpointIndex = 0 and InitialViewpointName = ''
+          means to use the first viewpoint, ignoring nodes' names.
+          This is the default behavior, also following VRML/X3D specification.)
+        @item(InitialViewpointIndex = 1 and InitialViewpointName = ''
+          means to use the 2nd viewpoint. Node name doesn't matter.)
+        @item(InitialViewpointIndex = 1 and InitialViewpointName = 'blah'
+          means to use the first viewpoint named 'blah'.
+          That is, we are only counting nodes named 'blah' for this.)
+      ) }
+    property InitialViewpointName: string
+      read FInitialViewpointName write FInitialViewpointName;
   end;
 
 var
@@ -2747,7 +2782,17 @@ begin
     if Node is TNavigationInfoNode then
       ParentScene.NavigationInfoStack.PushIfEmpty( TNavigationInfoNode(Node), true) else
     if Node is TAbstractViewpointNode then
-      ParentScene.ViewpointStack.PushIfEmpty( TAbstractViewpointNode(Node), true);
+    begin
+      { before binding viewpoint, check InitialViewpoint* conditions }
+      if (ParentScene.InitialViewpointName = '') or
+         (ParentScene.InitialViewpointName = Node.NodeName) then
+      begin
+        if (ParentScene.InitialViewpointIndex =
+            ParentScene.ChangedAllCurrentViewpointIndex) then
+          ParentScene.ViewpointStack.PushIfEmpty( TAbstractViewpointNode(Node), true);
+        Inc(ParentScene.ChangedAllCurrentViewpointIndex);
+      end;
+    end;
   end else
   if Node is TProximitySensorNode then
     HandleProximitySensor(Node as TProximitySensorNode) else
@@ -2985,6 +3030,7 @@ begin
 
     if RootNode <> nil then
     begin
+      ChangedAllCurrentViewpointIndex := 0;
       Traverser := TChangedAllTraverser.Create;
       try
         Traverser.ParentScene := Self;
