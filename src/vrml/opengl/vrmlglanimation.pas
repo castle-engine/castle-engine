@@ -957,19 +957,24 @@ procedure TVRMLGLAnimation.LoadCore(
        time would mean that I create a lot of objects with exactly the
        same contents. So memory is wasted, without any good reason.
 
-    2. For nodes like Texture2, this is good because then the image
+    2. For nodes like ImageTexture, this is good because then the image
        is loaded from the file only once. This means that memory is saved,
        once again. This also means that in case when texture file doesn't
        exist, user gets only 1 warning/error message (instead of getting
-       warning/error message for each duplicated TTexture2Node instance).
+       warning/error message for each duplicated TImageTextureNode instance).
 
-    3. Also for nodes like Texture2, this means that if we use the same
+    3. Also for nodes like ImageTexture, this means that if we use the same
        VRMLGLRenderer to render every model of the animation,
        then VRMLGLRenderer will recognize this and given texture
        will be loaded only once for OpenGL. So loading time and
        memory are saved *once again*  (otherwise OpenGL would allocate
        internal copy of texture for each duplicated node, once again
        wasting a lot of memory).
+
+       Although 2. and 3. are actually somewhat void right now,
+       as we have a more general cache that caches texture resources
+       even across different nodes right now (the only need is to have
+       equal URLs).
 
     4. And later the Shape cache of TVRMLGLRenderer can speed
        up loading time and conserve memory use, if it sees the same

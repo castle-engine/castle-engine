@@ -581,7 +581,7 @@ constructor TTriangleStripSetGenerator.Create(AShape: TVRMLShape; AOverTriangula
 
   procedure CreateForIndexedTriangleMesh_1;
   var
-    SH: TShapeHintsNode;
+    SH: TShapeHintsNode_1;
     ANode: TIndexedTriangleMeshNode_1;
   begin
     ANode := Geometry as TIndexedTriangleMeshNode_1;

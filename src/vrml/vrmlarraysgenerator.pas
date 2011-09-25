@@ -1120,10 +1120,10 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         Arrays.AddTexCoord2D(TextureUnit);
         TexCoordArray2d[TextureUnit] := TTextureCoordinateNode(TexCoord).FdPoint;
       end else
-      if TexCoord is TTextureCoordinate2Node then
+      if TexCoord is TTextureCoordinate2Node_1 then
       begin
         Arrays.AddTexCoord2D(TextureUnit);
-        TexCoordArray2d[TextureUnit] := TTextureCoordinate2Node(TexCoord).FdPoint;
+        TexCoordArray2d[TextureUnit] := TTextureCoordinate2Node_1(TexCoord).FdPoint;
       end else
       if TexCoord is TTextureCoordinate3DNode then
       begin

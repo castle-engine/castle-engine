@@ -278,7 +278,7 @@ end;
 
 constructor TIndexedFaceSet_1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
 var
-  SH: TShapeHintsNode;
+  SH: TShapeHintsNode_1;
   ANode: TIndexedFaceSetNode_1;
 begin
   inherited;

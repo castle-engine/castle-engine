@@ -217,11 +217,11 @@
           So it may be useful to parse a field and copy it's value into
           other fields.
 
-          Example: TShapeHintsNode in Inventor parses "hints" field,
+          Example: TShapeHintsNode_1 in Inventor parses "hints" field,
           and copies it's value to other fields as appropriate.
-          "hints" field is not exposed in TShapeHintsNode interface,
+          "hints" field is not exposed in TShapeHintsNode_1 interface,
           so everything is clean in the interface, and under the hood
-          TShapeHintsNode can "magically" handle "hints" field for Inventor.)
+          TShapeHintsNode_1 can "magically" handle "hints" field for Inventor.)
       )
 
       When overriding, always check inherited result first, and exit if
@@ -1532,7 +1532,7 @@ begin
       (that's also why they can't be inside our ParseNodeBodyElement).
       That's because ParseNode just raises exception in case of unknown
       node, so I have to catch first everything else (like "hints" field
-      of TShapeHintsNode). }
+      of TShapeHintsNode_1). }
     if not Handled then
     begin
       if VRML1ChildrenParsingAllowed then

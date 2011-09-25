@@ -252,7 +252,7 @@
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
-  TCoordinate3Node = class(TAbstractChildNode)
+  TCoordinate3Node_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -283,7 +283,7 @@
     function TTF_Font: PTrueTypeFont;
   end;
 
-  TInfoNode = class(TAbstractChildNode)
+  TInfoNode_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -434,7 +434,7 @@
     function TransSpecularExp: Single; override;
   end;
 
-  TMaterialBindingNode = class(TAbstractChildNode)
+  TMaterialBindingNode_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -442,7 +442,7 @@
     public property FdValue: TSFEnum read FFdValue;
   end;
 
-  TNormalBindingNode = class(TAbstractChildNode)
+  TNormalBindingNode_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -450,7 +450,7 @@
     public property FdValue: TSFEnum read FFdValue;
   end;
 
-  TTexture2Node = class(TAbstractTexture2DNode)
+  TTexture2Node_1 = class(TAbstractTexture2DNode)
   protected
     { Texture is loaded from file or inlined.
       The priority has the filename, only if it's empty (or an exception
@@ -492,7 +492,7 @@
     function RepeatT: boolean; override;
   end;
 
-  TTexture2TransformNode = class(TAbstractChildNode)
+  TTexture2TransformNode_1 = class(TAbstractChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -514,7 +514,7 @@
     function TextureMatrixTransformation: TMatrix4Single;
   end;
 
-  TTextureCoordinate2Node = class(TAbstractChildNode)
+  TTextureCoordinate2Node_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -522,7 +522,7 @@
     public property FdPoint: TMFVec2f read FFdPoint;
   end;
 
-  TShapeHintsNode = class(TAbstractChildNode)
+  TShapeHintsNode_1 = class(TAbstractChildNode)
   protected
     function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; override;
@@ -545,7 +545,7 @@
 
   { Common base class for all nodes that modify the modelview matrix.
     In descendants you only have to override the MatrixTransform method. }
-  TAbstractTransformationNode = class(TAbstractChildNode)
+  TAbstractTransformationNode_1 = class(TAbstractChildNode)
   protected
     procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -554,7 +554,7 @@
   end;
 
   { VRML 1.0 MatrixTransform node. }
-  TMatrixTransformNode_1 = class(TAbstractTransformationNode)
+  TMatrixTransformNode_1 = class(TAbstractTransformationNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -582,7 +582,7 @@
       override;
   end;
 
-  TRotationNode = class(TAbstractTransformationNode)
+  TRotationNode_1 = class(TAbstractTransformationNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -593,7 +593,7 @@
     function TransformScale: Single; override;
   end;
 
-  TScaleNode = class(TAbstractTransformationNode)
+  TScaleNode_1 = class(TAbstractTransformationNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -604,7 +604,7 @@
     function TransformScale: Single; override;
   end;
 
-  TTransformNode_1 = class(TAbstractTransformationNode)
+  TTransformNode_1 = class(TAbstractTransformationNode_1)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -631,7 +631,7 @@
       override;
   end;
 
-  TTranslationNode = class(TAbstractTransformationNode)
+  TTranslationNode_1 = class(TAbstractTransformationNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -666,7 +666,7 @@
     function Position: TSFVec3f; override;
   end;
 
-  TOrthographicCameraNode = class(TAbstractCameraNode_1)
+  TOrthographicCameraNode_1 = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
 
@@ -677,7 +677,7 @@
     public property FdHeight: TSFFloat read FFdHeight;
   end;
 
-  TPerspectiveCameraNode = class(TAbstractCameraNode_1)
+  TPerspectiveCameraNode_1 = class(TAbstractCameraNode_1)
   public
     procedure CreateNode; override;
 
@@ -752,7 +752,7 @@
   { Base class for VRML 1.0 nodes that push / pop all attributes and matrices.
     It is used in implementation of VRML 1.0 Separator and WWWAnchor.
     Also WWWInline does the same work, when it's "separate" field is true. }
-  TAbstractSeparatorNode = class(TAbstractChildNode)
+  TAbstractSeparatorNode_1 = class(TAbstractChildNode)
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
@@ -760,7 +760,7 @@
     procedure CreateNode; override;
   end;
 
-  TSeparatorNode = class(TAbstractSeparatorNode)
+  TSeparatorNode_1 = class(TAbstractSeparatorNode_1)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -784,7 +784,7 @@
       override;
   end;
 
-  TTransformSeparatorNode = class(TAbstractChildNode)
+  TTransformSeparatorNode_1 = class(TAbstractChildNode)
   private
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalTransformScale: Single;
@@ -796,7 +796,7 @@
     class function ClassNodeTypeName: string; override;
   end;
 
-  TWWWAnchorNode = class(TAbstractSeparatorNode)
+  TWWWAnchorNode_1 = class(TAbstractSeparatorNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
@@ -817,7 +817,7 @@
     The VRML 2.0/X3D field "url" is renamed here to VRML 1.0 field "name".
     (Note that this means that WWWInline.name is actually MFString,
     not just SFString like VRML 1.0 spec says.) }
-  TWWWInlineNode = class(TInlineNode)
+  TWWWInlineNode_1 = class(TInlineNode)
   protected
     function SeparateGroup: boolean; override;
   public
@@ -1143,7 +1143,7 @@ begin
   Result := true;
 end;
 
-procedure TCoordinate3Node.CreateNode;
+procedure TCoordinate3Node_1.CreateNode;
 begin
   inherited;
 
@@ -1152,7 +1152,7 @@ begin
   Fields.Add(FFdPoint);
 end;
 
-class function TCoordinate3Node.ClassNodeTypeName: string;
+class function TCoordinate3Node_1.ClassNodeTypeName: string;
 begin
   result := 'Coordinate3';
 end;
@@ -1204,7 +1204,7 @@ begin
   Result := Version.Major <= 1;
 end;
 
-procedure TInfoNode.CreateNode;
+procedure TInfoNode_1.CreateNode;
 begin
   inherited;
 
@@ -1212,7 +1212,7 @@ begin
   Fields.Add(FFdString);
 end;
 
-class function TInfoNode.ClassNodeTypeName: string;
+class function TInfoNode_1.ClassNodeTypeName: string;
 begin
   result := 'Info';
 end;
@@ -1548,7 +1548,7 @@ begin
   Result := FNode.TransSpecularExp(FIndex);
 end;
 
-procedure TMaterialBindingNode.CreateNode;
+procedure TMaterialBindingNode_1.CreateNode;
 begin
   inherited;
 
@@ -1557,12 +1557,12 @@ begin
   Fields.Add(FFdValue);
 end;
 
-class function TMaterialBindingNode.ClassNodeTypeName: string;
+class function TMaterialBindingNode_1.ClassNodeTypeName: string;
 begin
   result := 'MaterialBinding';
 end;
 
-procedure TNormalBindingNode.CreateNode;
+procedure TNormalBindingNode_1.CreateNode;
 begin
   inherited;
 
@@ -1571,12 +1571,12 @@ begin
   Fields.Add(FFdValue);
 end;
 
-class function TNormalBindingNode.ClassNodeTypeName: string;
+class function TNormalBindingNode_1.ClassNodeTypeName: string;
 begin
   result := 'NormalBinding';
 end;
 
-procedure TTexture2Node.CreateNode;
+procedure TTexture2Node_1.CreateNode;
 begin
   inherited;
 
@@ -1605,12 +1605,12 @@ begin
   Fields.Add(FFdBlendColor);
 end;
 
-class function TTexture2Node.ClassNodeTypeName: string;
+class function TTexture2Node_1.ClassNodeTypeName: string;
 begin
   result := 'Texture2';
 end;
 
-procedure TTexture2Node.LoadTextureData(out CacheUsed: boolean);
+procedure TTexture2Node_1.LoadTextureData(out CacheUsed: boolean);
 var
   FullUrl: string;
 begin
@@ -1638,7 +1638,7 @@ begin
     FTextureImage := FdImage.Value.MakeCopy;
 end;
 
-function TTexture2Node.TextureDescription: string;
+function TTexture2Node_1.TextureDescription: string;
 
   function InlinedDescr: string;
   begin
@@ -1658,17 +1658,17 @@ begin
     result := 'none';
 end;
 
-function TTexture2Node.RepeatS: boolean;
+function TTexture2Node_1.RepeatS: boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
 end;
 
-function TTexture2Node.RepeatT: boolean;
+function TTexture2Node_1.RepeatT: boolean;
 begin
   Result := FdWrapT.Value = TEXWRAP_REPEAT;
 end;
 
-procedure TTexture2TransformNode.CreateNode;
+procedure TTexture2TransformNode_1.CreateNode;
 begin
   inherited;
 
@@ -1689,12 +1689,12 @@ begin
   Fields.Add(FFdCenter);
 end;
 
-class function TTexture2TransformNode.ClassNodeTypeName: string;
+class function TTexture2TransformNode_1.ClassNodeTypeName: string;
 begin
   result := 'Texture2Transform';
 end;
 
-function TTexture2TransformNode.TextureMatrixTransformation: TMatrix4Single;
+function TTexture2TransformNode_1.TextureMatrixTransformation: TMatrix4Single;
 begin
   result := TranslationMatrix( Vector3Single(
     VectorAdd(FdTranslation.Value, FdCenter.Value) ));
@@ -1705,14 +1705,14 @@ begin
     Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
-procedure TTexture2TransformNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTexture2TransformNode_1.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.TextureTransform := MatrixMult(StateStack.Top.TextureTransform,
     TextureMatrixTransformation);
 end;
 
-procedure TTextureCoordinate2Node.CreateNode;
+procedure TTextureCoordinate2Node_1.CreateNode;
 begin
   inherited;
 
@@ -1721,12 +1721,12 @@ begin
   Fields.Add(FFdPoint);
 end;
 
-class function TTextureCoordinate2Node.ClassNodeTypeName: string;
+class function TTextureCoordinate2Node_1.ClassNodeTypeName: string;
 begin
   result := 'TextureCoordinate2';
 end;
 
-procedure TShapeHintsNode.CreateNode;
+procedure TShapeHintsNode_1.CreateNode;
 begin
   inherited;
 
@@ -1747,12 +1747,12 @@ begin
   Fields.Add(FFdCreaseAngle);
 end;
 
-class function TShapeHintsNode.ClassNodeTypeName: string;
+class function TShapeHintsNode_1.ClassNodeTypeName: string;
 begin
   result := 'ShapeHints';
 end;
 
-function TShapeHintsNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
+function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
   const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
@@ -1786,7 +1786,7 @@ begin
   end;
 end;
 
-procedure TAbstractTransformationNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractTransformationNode_1.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
 var
   M, IM: TMatrix4Single;
 begin
@@ -1837,7 +1837,7 @@ begin
   Result := Version.Major <= 1;
 end;
 
-procedure TRotationNode.CreateNode;
+procedure TRotationNode_1.CreateNode;
 begin
   inherited;
 
@@ -1846,12 +1846,12 @@ begin
   Fields.Add(FFdRotation);
 end;
 
-class function TRotationNode.ClassNodeTypeName: string;
+class function TRotationNode_1.ClassNodeTypeName: string;
 begin
   result := 'Rotation';
 end;
 
-procedure TRotationNode.Transformation(
+procedure TRotationNode_1.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   { We don't check here for FdRotation.Axis = zero, RotationMatricesRad
@@ -1860,12 +1860,12 @@ begin
     Matrix, InvertedMatrix);
 end;
 
-function TRotationNode.TransformScale: Single;
+function TRotationNode_1.TransformScale: Single;
 begin
   Result := 1;
 end;
 
-procedure TScaleNode.CreateNode;
+procedure TScaleNode_1.CreateNode;
 begin
   inherited;
 
@@ -1874,17 +1874,17 @@ begin
   Fields.Add(FFdScaleFactor);
 end;
 
-class function TScaleNode.ClassNodeTypeName: string;
+class function TScaleNode_1.ClassNodeTypeName: string;
 begin
  result := 'Scale';
 end;
 
-procedure TScaleNode.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
+procedure TScaleNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   ScalingMatrices(FdScaleFactor.Value, true, Matrix, InvertedMatrix);
 end;
 
-function TScaleNode.TransformScale: Single;
+function TScaleNode_1.TransformScale: Single;
 begin
   Result := ( FdScaleFactor.Value[0] +
               FdScaleFactor.Value[1] +
@@ -1974,7 +1974,7 @@ begin
   Result := Version.Major <= 1;
 end;
 
-procedure TTranslationNode.CreateNode;
+procedure TTranslationNode_1.CreateNode;
 begin
   inherited;
 
@@ -1983,18 +1983,18 @@ begin
   Fields.Add(FFdTranslation);
 end;
 
-class function TTranslationNode.ClassNodeTypeName: string;
+class function TTranslationNode_1.ClassNodeTypeName: string;
 begin
   result := 'Translation';
 end;
 
-procedure TTranslationNode.Transformation(
+procedure TTranslationNode_1.Transformation(
   out Matrix, InvertedMatrix: TMatrix4Single);
 begin
   TranslationMatrices(FdTranslation.Value, Matrix, InvertedMatrix);
 end;
 
-function TTranslationNode.TransformScale: Single;
+function TTranslationNode_1.TransformScale: Single;
 begin
   Result := 1;
 end;
@@ -2026,7 +2026,7 @@ begin
   Result := FdPosition;
 end;
 
-procedure TOrthographicCameraNode.CreateNode;
+procedure TOrthographicCameraNode_1.CreateNode;
 begin
   inherited;
 
@@ -2034,17 +2034,17 @@ begin
   Fields.Add(FFdHeight);
 end;
 
-class function TOrthographicCameraNode.ClassNodeTypeName: string;
+class function TOrthographicCameraNode_1.ClassNodeTypeName: string;
 begin
   result := 'OrthographicCamera';
 end;
 
-class function TOrthographicCameraNode.ProjectionType: TProjectionType;
+class function TOrthographicCameraNode_1.ProjectionType: TProjectionType;
 begin
   result := ptOrthographic;
 end;
 
-procedure TPerspectiveCameraNode.CreateNode;
+procedure TPerspectiveCameraNode_1.CreateNode;
 begin
   inherited;
 
@@ -2052,12 +2052,12 @@ begin
   Fields.Add(FFdHeightAngle);
 end;
 
-class function TPerspectiveCameraNode.ClassNodeTypeName: string;
+class function TPerspectiveCameraNode_1.ClassNodeTypeName: string;
 begin
   result := 'PerspectiveCamera';
 end;
 
-class function TPerspectiveCameraNode.ProjectionType: TProjectionType;
+class function TPerspectiveCameraNode_1.ProjectionType: TProjectionType;
 begin
   result := ptPerspective;
 end;
@@ -2246,7 +2246,7 @@ begin
   Result := Version.Major <= 1;
 end;
 
-procedure TAbstractSeparatorNode.CreateNode;
+procedure TAbstractSeparatorNode_1.CreateNode;
 begin
   inherited;
   VRML1ChildrenAllowed := true;
@@ -2265,7 +2265,7 @@ begin
     State.LocalFog := TLocalFogNode(Child);
 end;
 
-procedure TAbstractSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractSeparatorNode_1.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 var
   Enumerator: TVRML1SeparatorEnumerator;
 begin
@@ -2282,13 +2282,13 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TAbstractSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractSeparatorNode_1.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   StateStack.Pop;
   inherited;
 end;
 
-procedure TSeparatorNode.CreateNode;
+procedure TSeparatorNode_1.CreateNode;
 begin
   inherited;
 
@@ -2296,7 +2296,7 @@ begin
   Fields.Add(FFdRenderCulling);
 end;
 
-class function TSeparatorNode.ClassNodeTypeName: string;
+class function TSeparatorNode_1.ClassNodeTypeName: string;
 begin
   result := 'Separator';
 end;
@@ -2343,19 +2343,19 @@ begin
   Result := Version.Major <= 1;
 end;
 
-procedure TTransformSeparatorNode.CreateNode;
+procedure TTransformSeparatorNode_1.CreateNode;
 begin
   inherited;
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
 end;
 
-class function TTransformSeparatorNode.ClassNodeTypeName: string;
+class function TTransformSeparatorNode_1.ClassNodeTypeName: string;
 begin
   result := 'TransformSeparator';
 end;
 
-procedure TTransformSeparatorNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   inherited;
 
@@ -2366,7 +2366,7 @@ begin
   OriginalTransformScale := StateStack.Top.TransformScale;
 end;
 
-procedure TTransformSeparatorNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTransformSeparatorNode_1.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
 begin
   StateStack.Top.Transform := OriginalTransform;
   StateStack.Top.InvertedTransform := OriginalInvertedTransform;
@@ -2374,7 +2374,7 @@ begin
   inherited;
 end;
 
-procedure TWWWAnchorNode.CreateNode;
+procedure TWWWAnchorNode_1.CreateNode;
 begin
   inherited;
 
@@ -2388,12 +2388,12 @@ begin
   Fields.Add(FFdMap);
 end;
 
-class function TWWWAnchorNode.ClassNodeTypeName: string;
+class function TWWWAnchorNode_1.ClassNodeTypeName: string;
 begin
   result := 'WWWAnchor';
 end;
 
-procedure TWWWInlineNode.CreateNode;
+procedure TWWWInlineNode_1.CreateNode;
 begin
   inherited;
 
@@ -2411,12 +2411,12 @@ begin
   Fields.Add(FFdSeparate);
 end;
 
-class function TWWWInlineNode.ClassNodeTypeName: string;
+class function TWWWInlineNode_1.ClassNodeTypeName: string;
 begin
   result := 'WWWInline';
 end;
 
-function TWWWInlineNode.SeparateGroup: boolean;
+function TWWWInlineNode_1.SeparateGroup: boolean;
 begin
   Result := FdSeparate.Value;
 end;
@@ -2427,18 +2427,18 @@ begin
     TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
     TIndexedFaceSetNode_1, TIndexedLineSetNode_1,
     TPointSetNode_1, TSphereNode_1,
-    TCoordinate3Node, TFontStyleNode_1, TInfoNode, TLODNode_1, TMaterialNode_1,
-    TMaterialBindingNode, TNormalBindingNode, TTexture2Node,
-    TTexture2TransformNode,
-    TTextureCoordinate2Node, TShapeHintsNode,
-    TMatrixTransformNode_1, TRotationNode,
-    TScaleNode, TTransformNode_1,
-    TTranslationNode,
-    TOrthographicCameraNode, TPerspectiveCameraNode,
+    TCoordinate3Node_1, TFontStyleNode_1, TInfoNode_1, TLODNode_1, TMaterialNode_1,
+    TMaterialBindingNode_1, TNormalBindingNode_1, TTexture2Node_1,
+    TTexture2TransformNode_1,
+    TTextureCoordinate2Node_1, TShapeHintsNode_1,
+    TMatrixTransformNode_1, TRotationNode_1,
+    TScaleNode_1, TTransformNode_1,
+    TTranslationNode_1,
+    TOrthographicCameraNode_1, TPerspectiveCameraNode_1,
     TDirectionalLightNode_1, TPointLightNode_1, TSpotLightNode_1,
-    TGroupNode_1, TSeparatorNode, TSwitchNode_1, TTransformSeparatorNode,
-    TWWWAnchorNode,
-    TWWWInlineNode
+    TGroupNode_1, TSeparatorNode_1, TSwitchNode_1, TTransformSeparatorNode_1,
+    TWWWAnchorNode_1,
+    TWWWInlineNode_1
   ]);
 end;
 

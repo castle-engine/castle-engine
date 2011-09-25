@@ -203,7 +203,7 @@ var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
   ViewpointNode: TAbstractViewpointNode;
-  Separator: TSeparatorNode;
+  Separator: TSeparatorNode_1;
   Transform_1: TTransformNode_1;
   Transform_2: TTransformNode;
   Rotation, Orientation: TVector4Single;
@@ -214,7 +214,7 @@ begin
     { Then GravityUp is parallel to DefaultVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
-      1: ViewpointNode := TPerspectiveCameraNode.Create('', WWWBasePath);
+      1: ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
       2: ViewpointNode := TViewpointNode.Create('', WWWBasePath);
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
@@ -246,11 +246,11 @@ begin
            Transform_1.FdTranslation.Value := Position;
            Transform_1.FdRotation.Value := Rotation;
 
-           ViewpointNode := TPerspectiveCameraNode.Create('', WWWBasePath);
+           ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
            ViewpointNode.Position.Value := ZeroVector3Single;
            ViewpointNode.FdOrientation.Value := Orientation;
 
-           Separator := TSeparatorNode.Create('', WWWBasePath);
+           Separator := TSeparatorNode_1.Create('', WWWBasePath);
            Separator.VRML1ChildAdd(Transform_1);
            Separator.VRML1ChildAdd(ViewpointNode);
 

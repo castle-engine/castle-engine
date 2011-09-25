@@ -31,7 +31,7 @@
   { RotationXYZ node (from Inventor). It's not in VRML 1.0 spec.
     But some invalid VRML 1.0 models use it,
     e.g. [http://www-vrl.umich.edu/sel_prj/EECS498/]. }
-  TRotationXYZNode = class(TAbstractTransformationNode)
+  TRotationXYZNode = class(TAbstractTransformationNode_1)
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 

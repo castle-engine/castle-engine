@@ -283,7 +283,7 @@
 
       Returns @true and sets ATexCoord to a node defining texture coords.
       ATexCoord may be set to TAbstractTextureCoordinateNode descendant or
-      to TTextureCoordinate2Node (latter one only for VRML <= 1.0).
+      to TTextureCoordinate2Node_1 (latter one only for VRML <= 1.0).
       ATexCoord can also be set to @nil in this case, which means that
       this node has a field for texCoord, but it's empty right now.
 

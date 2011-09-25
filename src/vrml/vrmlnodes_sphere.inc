@@ -219,12 +219,12 @@ end;
 function TSphereNode_1.Proxy(var State: TVRMLGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  CoordNode: TCoordinate3Node;
+  CoordNode: TCoordinate3Node_1;
   NormalNode: TNormalNode;
-  NormalBinding: TNormalBindingNode;
-  TexCoordNode: TTextureCoordinate2Node;
-  ShapeHints: TShapeHintsNode;
-  MaterialBinding: TMaterialBindingNode;
+  NormalBinding: TNormalBindingNode_1;
+  TexCoordNode: TTextureCoordinate2Node_1;
+  ShapeHints: TShapeHintsNode_1;
+  MaterialBinding: TMaterialBindingNode_1;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
   IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
@@ -232,22 +232,22 @@ begin
     { we have to modify State, so make a copy of it }
     State := TVRMLGraphTraverseState.CreateCopy(State);
 
-    CoordNode := TCoordinate3Node.Create('', WWWBasePath);
+    CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
     NormalNode := TNormalNode.Create('', WWWBasePath);
     State.SetLastNodes(vsNormal, NormalNode, true);
 
-    NormalBinding := TNormalBindingNode.Create('', WWWBasePath);
+    NormalBinding := TNormalBindingNode_1.Create('', WWWBasePath);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
-    TexCoordNode := TTextureCoordinate2Node.Create('', WWWBasePath);
+    TexCoordNode := TTextureCoordinate2Node_1.Create('', WWWBasePath);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
-    ShapeHints := TShapeHintsNode.Create('', WWWBasePath);
+    ShapeHints := TShapeHintsNode_1.Create('', WWWBasePath);
     { For VRML 1.0, Sphere is never solid. }
     ShapeHints.FdshapeType.Value := SHTYPE_UNKNOWN;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
@@ -256,7 +256,7 @@ begin
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
     { calculate MaterialBinding. Sphere has always only 1 material. }
-    MaterialBinding := TMaterialBindingNode.Create('', WWWBasePath);
+    MaterialBinding := TMaterialBindingNode_1.Create('', WWWBasePath);
     MaterialBinding.FdValue.Value := BIND_OVERALL;
     State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
 

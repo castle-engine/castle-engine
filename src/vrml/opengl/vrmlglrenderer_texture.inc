@@ -1348,8 +1348,8 @@ var
          (Viewpoint is TViewpointNode) then
         FieldOfView := TViewpointNode(Viewpoint).FdFieldOfView.Value else
       if (Viewpoint <> nil) and
-         (Viewpoint is TPerspectiveCameraNode) then
-        FieldOfView := TPerspectiveCameraNode(Viewpoint).FdHeightAngle.Value else
+         (Viewpoint is TPerspectiveCameraNode_1) then
+        FieldOfView := TPerspectiveCameraNode_1(Viewpoint).FdHeightAngle.Value else
         FieldOfView := DefaultViewpointFieldOfView;
 
       AngleOfViewX := RadToDeg(TViewpointNode.ViewpointAngleOfView(
@@ -1384,12 +1384,12 @@ var
         if FieldOfView.Count > 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
       end else
       if (Viewpoint <> nil) and
-         (Viewpoint is TOrthographicCameraNode) then
+         (Viewpoint is TOrthographicCameraNode_1) then
       begin
-        FinalFieldOfView[0] := -TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[1] := -TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[2] :=  TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[3] :=  TOrthographicCameraNode(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[0] := -TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[1] := -TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[2] :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView[3] :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
       end;
 
       TOrthoViewpointNode.AspectFieldOfView(FinalFieldOfView, Width / Height);

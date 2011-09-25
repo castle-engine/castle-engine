@@ -399,7 +399,7 @@ begin
     TAsciiTextNode_1, TConeNode_1, TCubeNode_1, TCylinderNode_1,
     TIndexedFaceSetNode_1, TIndexedLineSetNode_1,
     TPointSetNode_1, TSphereNode_1,
-    TCoordinate3Node, TFontStyleNode_1, TInfoNode, TLODNode_1, TMaterialNode_1,
+    TCoordinate3Node_1, TFontStyleNode_1, TInfoNode_1, TLODNode_1, TMaterialNode_1,
 
     { TNormalNode used to also be allowed here, but it's also used by X3D,
       and I don't want to mess X3D inheritance by making TNormalNode descendant
@@ -408,20 +408,20 @@ begin
       you will have to live with warnings about Normal not allowed as
       children in VRML >= 2.0 nodes.
 
-      Also TTexture2Node was here, but is removed: I don't want to mess
+      Also TTexture2Node_1 was here, but is removed: I don't want to mess
       X3D inheritance just for VRML 1.0 + 2.0 mixing feature. }
 
-    TMaterialBindingNode, TNormalBindingNode,
-    TTexture2TransformNode,
-    TTextureCoordinate2Node, TShapeHintsNode,
-    TMatrixTransformNode_1, TRotationNode,
-    TScaleNode, TTransformNode_1,
-    TTranslationNode,
-    TOrthographicCameraNode, TPerspectiveCameraNode,
+    TMaterialBindingNode_1, TNormalBindingNode_1,
+    TTexture2TransformNode_1,
+    TTextureCoordinate2Node_1, TShapeHintsNode_1,
+    TMatrixTransformNode_1, TRotationNode_1,
+    TScaleNode_1, TTransformNode_1,
+    TTranslationNode_1,
+    TOrthographicCameraNode_1, TPerspectiveCameraNode_1,
     TDirectionalLightNode_1, TPointLightNode_1, TSpotLightNode_1,
-    TGroupNode_1, TSeparatorNode, TSwitchNode_1, TTransformSeparatorNode,
-    TWWWAnchorNode,
-    TWWWInlineNode,
+    TGroupNode_1, TSeparatorNode_1, TSwitchNode_1, TTransformSeparatorNode_1,
+    TWWWAnchorNode_1,
+    TWWWInlineNode_1,
 
     { Kambi non-standard nodes }
     TKambiTriangulationNode,
@@ -1130,7 +1130,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TAbstractSensorNode) or
       FieldIs(Field, TTimeSensorNode, 'cycleInterval') or
       FieldIs(Field, TTimeSensorNode, 'enabled') or
-      (Field.ParentNode is TWWWAnchorNode) or
+      (Field.ParentNode is TWWWAnchorNode_1) or
       { metadata, info nodes }
       FieldIs(Field, TAbstractNode, 'metadata') or
       (Field.ParentNode is TMetadataDoubleNode) or
@@ -1139,7 +1139,7 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       (Field.ParentNode is TMetadataSetNode) or
       (Field.ParentNode is TMetadataStringNode) or
       (Field.ParentNode is TWorldInfoNode) or
-      (Field.ParentNode is TInfoNode) or
+      (Field.ParentNode is TInfoNode_1) or
       { interpolators }
       (Field.ParentNode is TAbstractInterpolatorNode) or
       (Field.ParentNode is TNurbsOrientationInterpolatorNode) or
@@ -1170,10 +1170,10 @@ procedure TTestVRMLNodes.TestEmptyChanges;
       FieldIs(Field, TAbstractX3DViewpointNode, 'centerOfRotation') or { also not implemented }
       FieldIs(Field, TAbstractViewpointNode, 'cameraMatrixSendAlsoOnOffscreenRendering') or
       FieldIs(Field, TAbstractCameraNode_1, 'focalDistance') or
-      FieldIs(Field, TPerspectiveCameraNode, 'heightAngle') or
-      FieldIs(Field, TOrthographicCameraNode, 'height') or
+      FieldIs(Field, TPerspectiveCameraNode_1, 'heightAngle') or
+      FieldIs(Field, TOrthographicCameraNode_1, 'height') or
       FieldIs(Field, TMovieTextureNode, 'speed') or
-      FieldIs(Field, TSeparatorNode, 'renderCulling') or { ignored }
+      FieldIs(Field, TSeparatorNode_1, 'renderCulling') or { ignored }
       FieldIs(Field, TInlineNode, 'load') or { handled by eventout callback }
       FieldIs(Field, TInlineNode, 'url') or { handled by eventout callback }
       FieldIs(Field, TAnchorNode, 'parameter') or

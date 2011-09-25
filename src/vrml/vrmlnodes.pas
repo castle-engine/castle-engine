@@ -196,15 +196,15 @@ type
   { forward declarations } { }
   TX3DNodeList = class;
   TX3DNode = class;
-  TCoordinate3Node = class;
-  TShapeHintsNode = class;
+  TCoordinate3Node_1 = class;
+  TShapeHintsNode_1 = class;
   TFontStyleNode_1 = class;
   TMaterialNode_1 = class;
-  TMaterialBindingNode = class;
+  TMaterialBindingNode_1 = class;
   TNormalNode = class;
-  TNormalBindingNode = class;
-  TTexture2Node = class;
-  TTextureCoordinate2Node = class;
+  TNormalBindingNode_1 = class;
+  TTexture2Node_1 = class;
+  TTextureCoordinate2Node_1 = class;
   TAbstractGeometryNode = class;
   TAbstractLightNode = class;
   TKambiTriangulationNode = class;
@@ -243,15 +243,15 @@ type
   TTraverseStateLastNodes = record
     case Integer of
       0: ( Nodes: array [TVRML1StateNode] of TX3DNode; );
-      1: ( Coordinate3 :TCoordinate3Node;
-           ShapeHints :TShapeHintsNode;
+      1: ( Coordinate3 :TCoordinate3Node_1;
+           ShapeHints :TShapeHintsNode_1;
            FontStyle :TFontStyleNode_1;
            Material :TMaterialNode_1;
-           MaterialBinding :TMaterialBindingNode;
+           MaterialBinding :TMaterialBindingNode_1;
            Normal :TNormalNode;
-           NormalBinding :TNormalBindingNode;
-           Texture2 :TTexture2Node;
-           TextureCoordinate2 :TTextureCoordinate2Node;
+           NormalBinding :TNormalBindingNode_1;
+           Texture2 :TTexture2Node_1;
+           TextureCoordinate2 :TTextureCoordinate2Node_1;
            KambiTriangulation: TKambiTriangulationNode;
            { additions here must be synchronized with additions to
              TVRML1StateNode }
@@ -1865,9 +1865,9 @@ const
   { Classes corresponding to nodes on TTraverseStateLastNodes. }
   TraverseStateLastNodesClasses :
     array [TVRML1StateNode] of TX3DNodeClass =
-    ( TCoordinate3Node, TShapeHintsNode, TFontStyleNode_1,
-      TMaterialNode_1, TMaterialBindingNode, TNormalNode, TNormalBindingNode,
-      TTexture2Node, TTextureCoordinate2Node,
+    ( TCoordinate3Node_1, TShapeHintsNode_1, TFontStyleNode_1,
+      TMaterialNode_1, TMaterialBindingNode_1, TNormalNode, TNormalBindingNode_1,
+      TTexture2Node_1, TTextureCoordinate2Node_1,
       TKambiTriangulationNode
       { additions here must be synchronized with additions to
         TTraverseStateLastNodes }
@@ -1970,8 +1970,8 @@ const
   JUSTIFICATION_RIGHT = 2;
   { @groupEnd }
 
-  { Constants for TMaterialBindingNode.FdValue.Value and
-    TNormalBindingNode.FdValue.Value.
+  { Constants for TMaterialBindingNode_1.FdValue.Value and
+    TNormalBindingNode_1.FdValue.Value.
     @groupBegin }
   BIND_DEFAULT = 0;
   BIND_OVERALL = 1;
@@ -1983,20 +1983,20 @@ const
   BIND_PER_VERTEX_INDEXED = 7;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode.FdVertexOrdering.Value.
+  { Constants for TShapeHintsNode_1.FdVertexOrdering.Value.
     @groupBegin }
   VERTORDER_UNKNOWN = 0;
   VERTORDER_CLOCKWISE = 1;
   VERTORDER_COUNTERCLOCKWISE = 2;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode.FdShapeType.Value.
+  { Constants for TShapeHintsNode_1.FdShapeType.Value.
     @groupBegin }
   SHTYPE_UNKNOWN = 0;
   SHTYPE_SOLID = 1;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode.FdFaceType.Value.
+  { Constants for TShapeHintsNode_1.FdFaceType.Value.
     @groupBegin }
   FACETYPE_UNKNOWN = 0;
   FACETYPE_CONVEX = 1;
@@ -2028,7 +2028,7 @@ const
   CYLINDER_PARTS_BOTTOM = 2;
   { @groupEnd }
 
-  { Constants for TTexture2Node.FdWrapS.Value and TTexture2Node.FdWrapT.Value.
+  { Constants for TTexture2Node_1.FdWrapS.Value and TTexture2Node_1.FdWrapT.Value.
     @groupBegin }
   TEXWRAP_REPEAT = 0;
   TEXWRAP_CLAMP = 1;
