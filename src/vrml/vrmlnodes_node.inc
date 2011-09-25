@@ -602,11 +602,11 @@
       ParentInfo: PTraversingInfo);
 
     { Enumerate all our children of some class. Recursively.
-      Zwroci do proc() takze sam obiekt na ktorym EnumerateNodes zostalo
-      wywolane, jezeli tylko ten obiekt jest klasy nodeClass.
+      Enumerates also this instance (Self), if it satisfies the
+      NodeClass and SeekNodeName conditions.
 
-      This enumerates both @link(VRML1Children) as well as
-      nodes in TSFNode and TMFNode fields.
+      This enumerates both VRML 1.0 children (@link(VRML1Children)) as well as
+      VRML >= 2.0 (including X3D) children (nodes in TSFNode and TMFNode fields).
 
       If OnlyActive then it will enumerate only active parts
       of the graph ("active" as defined by @link(Traverse)),
