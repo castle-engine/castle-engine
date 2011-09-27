@@ -244,7 +244,6 @@ begin
     Source.OnResize := @Resize2d;
     Source.Left := 10;
     Source.Top := 10;
-    Source.Close_CharKey := #0;
 
     Freq := TGLWindowImage.Create(nil);
     Freq.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
@@ -254,7 +253,6 @@ begin
     Freq.OnResize := @Resize2d;
     Freq.Left := 10;
     Freq.Top := Source.Top + Source.Height + 10;
-    Freq.Close_CharKey := #0;
 
     Output := TGLWindowImage.Create(nil);
     Output.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
@@ -264,7 +262,6 @@ begin
     Output.OnResize := @Resize2d;
     Output.Left := Source.Left + Source.Width + 10;
     Output.Top := Source.Top + Source.Height + 10;
-    Output.Close_CharKey := #0;
 
     Output.MainMenu := CreateMainMenu;
     Output.OnMenuCommand := @MenuCommand;

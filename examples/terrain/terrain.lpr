@@ -783,14 +783,14 @@ begin
     Glw.OnClose := @Close;
     Glw.OnResize := @Resize;
     Glw.OnDrawStyle := ds3D;
-    { SwapFullScreen funtionality (Close+Open) is for now broken here
-      (we should readd appropriate Controls* and camera to Glw.Controls,
-      sliders should be recreated but with default values coming from
-      last values, elevation should be updated with sliders values;
-      This isn't difficult, but would complicate source code for little gain.) }
-    Glw.SwapFullScreen_Key := K_None;
-    { Closing with Escape is too easy now, you can loose careful sliders values. }
-    Glw.Close_CharKey := #0;
+    { Do not enable
+      - SwapFullScreen: (Close+Open) is for now broken here
+        (we should readd appropriate Controls* and camera to Glw.Controls,
+        sliders should be recreated but with default values coming from
+        last values, elevation should be updated with sliders values;
+        This isn't difficult, but would complicate source code for little gain.)
+      - Close_CharKey: it would make it too easy to close. }
+    Glw.FpsShowOnCaption := true;
     Glw.OpenAndRun(ProgramName, @Draw);
   finally FreeAndNil(Elevation) end;
 end.

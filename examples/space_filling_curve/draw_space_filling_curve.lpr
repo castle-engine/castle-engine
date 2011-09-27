@@ -172,7 +172,6 @@ begin
     { show the window }
     Window.PostRedisplay;
     Window.OnCloseQuery := nil;
-    Window.Close_CharKey := CharEscape;
     Window.OpenAndRun;
   finally FreeAndNil(CurveImage) end;
 end.

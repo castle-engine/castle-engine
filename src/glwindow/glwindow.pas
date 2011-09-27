@@ -2303,6 +2303,7 @@ end;
     and such).
 
     Call SetDemoOptions method to be forced to configure all "demo" options.
+    By default they are all off.
 
     It also always turns on FPS calculation (Fps.Active), regardless
     of "demo" options. FPS calculation is used for various, also non-debugging,
@@ -2310,7 +2311,8 @@ end;
   TGLWindowDemo = class(TGLWindow)
   private
     wLeft, wTop, wWidth, wHeight: integer;
-    fSwappingFullscr: boolean;
+    { Are we in the middle of fullscreen swap. }
+    DuringSwapFullScreen: boolean;
     lastFpsOutputTick: DWORD;
     FFpsBaseCaption: string;
     FFpsShowOnCaption: boolean;
@@ -2318,17 +2320,16 @@ end;
     FClose_CharKey: char;
     FFpsCaptionUpdateInterval: TMilisecTime;
     procedure SetFpsBaseCaption(const Value: string);
-    { Are we in the middle of fullscreen swap, caused by SwapFullScreen_Key.
-      You can use this during OnOpen / OnClose. }
-    property SwappingFullscr: boolean read fSwappingFullscr;
   public
     { Show current frames per second on window caption.
       You can modify this property only @italic(before calling @link(Open).) }
     property FpsShowOnCaption: boolean
-      read FFpsShowOnCaption write FFpsShowOnCaption default true;
+      read FFpsShowOnCaption write FFpsShowOnCaption default false;
 
     { Key to use to switch between FullScreen and not FullScreen.
-      Set to K_None to disable this functionality.
+      Set to K_None (default) to disable this functionality.
+      Suggested value to enable this functionality is K_F11, this is consistent
+      will fullscreen key in other programs.
       You can freely modify it at any time, even after calling @link(Open).
 
       The fullscreen is switched by closing it, changing @link(FullScreen)
@@ -2336,13 +2337,14 @@ end;
       implementations: you have to be able to recreate in OnOpen everything
       that was released in OnClose. }
     property SwapFullScreen_Key: TKey
-      read FSwapFullScreen_Key write FSwapFullScreen_Key default K_F11;
+      read FSwapFullScreen_Key write FSwapFullScreen_Key default K_None;
 
     { Key to use to close the window.
-      Set to #0 to disable this functionality.
+      Set to #0 (default) to disable this functionality.
+      Suggested value to enable this functionality is CharEscape.
       You can freely modify it at any time, even after calling @link(Open). }
     property Close_CharKey: char
-      read FClose_CharKey write FClose_CharKey default CharEscape;
+      read FClose_CharKey write FClose_CharKey default #0;
 
     { Caption prefix to use when you have FpsShowOnCaption = @true.
       When FpsShowOnCaption = @true, you should not set Caption directly,
@@ -4072,7 +4074,7 @@ procedure TGLWindowDemo.SwapFullScreen;
   end;
 
 begin
- fSwappingFullscr := true;
+ DuringSwapFullScreen := true;
  try
   Close(false);
   if not FFullScreen then SaveRect; { save window rect }
@@ -4085,7 +4087,7 @@ begin
    Height := wHeight;
   end;
   Open;
- finally fSwappingFullscr := false end;
+ finally DuringSwapFullScreen := false end;
 end;
 
 procedure TGLWindowDemo.EventIdle;
@@ -4112,7 +4114,7 @@ end;
 
 procedure TGLWindowDemo.EventOpen;
 begin
- if not SwappingFullscr then
+ if not DuringSwapFullScreen then
  begin
   if FpsShowOnCaption then
   begin
@@ -4169,9 +4171,9 @@ end;
 constructor TGLWindowDemo.Create(AOwner: TComponent);
 begin
   inherited;
-  Close_CharKey := CharEscape;
-  SwapFullScreen_Key := K_F11;
-  FpsShowOnCaption := true;
+  Close_CharKey := #0; { CharEscape; }
+  SwapFullScreen_Key := K_None; { K_F11; }
+  FpsShowOnCaption := false;
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
 end;
 
