@@ -115,7 +115,8 @@ EXAMPLES_BASE_NAMES := \
   examples/vrml/gl_primitive_performance \
   examples/vrml/scene_manager_demos \
   examples/vrml/scene_manager_basic \
-  examples/vrml/build_3d_object_by_code
+  examples/vrml/build_3d_object_by_code \
+  src/vrml/teapot/teapot_vrml_to_pascal
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
