@@ -68,7 +68,7 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiClassUtils, KambiUtils, SysUtils, Classes, X3DLoad,
   KambiGLUtils, VRMLGLScene, VRMLGLAnimation,
   KambiFilesUtils, KambiParameters, GLProgress, ProgressUnit,
-  KambiSceneManager;
+  KambiSceneManager, KambiStringUtils;
 
 var
   Window: TGLUIWindow;
@@ -192,6 +192,7 @@ begin
     Window.AutoRedisplay := true;
     Window.OnKeyDown := @KeyDown;
     Window.Caption := ProgramName;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
 
     Window.Open;
 

@@ -34,7 +34,8 @@ program glwindow_gtk_mix;
 
 uses GLWindow, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils,
   VectorMath, KambiUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
-  {$ifdef GTK_1} Gtk, Gdk, Glib {$else} Gtk2, Gdk2, Glib2 {$endif};
+  {$ifdef GTK_1} Gtk, Gdk, Glib {$else} Gtk2, Gdk2, Glib2 {$endif},
+  KambiStringUtils;
 
 type
   TMyGLWindow = class(TGLWindowDemo)
@@ -110,6 +111,7 @@ begin
   Window.OnOpen := @Open;
   Window.OnClose := @Close;
   Window.OnResize := @Resize;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun('GLWindow with some GTK widgets', @Draw);
  finally Window.Free end;
 end.

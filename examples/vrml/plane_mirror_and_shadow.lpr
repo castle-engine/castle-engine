@@ -651,6 +651,7 @@ begin
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnIdle := @Idle;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally
     FreeAndNil(SceneForShadow);

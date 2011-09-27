@@ -35,7 +35,7 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
   Scene: TVRMLGLScene;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
@@ -176,7 +176,7 @@ begin
     else Exit;
   end;
   UpdateViewMode;
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 procedure Idle(Glwin: TGLWindow);
@@ -260,7 +260,7 @@ begin
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Parameters.CheckHigh(1);
 
@@ -285,17 +285,18 @@ begin
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
 
-  Glw.MainMenu := CreateMainMenu;
-  Glw.OnMenuCommand := @MenuCommand;
+  Window.MainMenu := CreateMainMenu;
+  Window.OnMenuCommand := @MenuCommand;
 
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
 
-  Glw.OnOpen := @Open;
-  Glw.OnIdle := @Idle;
+  Window.OnOpen := @Open;
+  Window.OnIdle := @Idle;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
 
   InitializeSHBasisMap;
 
-  Glw.OpenAndRun;
+  Window.OpenAndRun;
 
   FreeAndNil(RenderParams);
 end.

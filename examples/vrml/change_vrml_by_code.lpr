@@ -42,7 +42,7 @@ program change_vrml_by_code;
 
 uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, KambiSceneManager,
-  KambiFilesUtils, KambiParameters;
+  KambiFilesUtils, KambiParameters, KambiStringUtils;
 
 var
   Window: TGLUIWindow;
@@ -107,6 +107,7 @@ begin
     (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
 
     Window.OnIdle := @Idle;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally Scene.Free end;
 end.

@@ -166,14 +166,13 @@ begin
   Window.OnResize := @Resize;
   Window.OnBeforeDraw := @BeforeDraw;
   Window.OnDraw := @Draw;
-
   Window.OnKeyDown := @KeyDown;
   Window.OnKeyUp := @KeyUp;
-
   Window.OnMouseDown := @MouseDown;
   Window.OnMouseMove := @MouseMove;
   Window.OnMouseUp := @MouseUp;
   Window.OnMouseWheel := @MouseWheel;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
 
   Window.OnIdle := @Idle;
   Application.TimerMilisec := 5000;

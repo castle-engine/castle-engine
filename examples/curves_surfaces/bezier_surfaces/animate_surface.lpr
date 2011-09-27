@@ -199,7 +199,7 @@ begin
     Window.OnIdle := @Idle;
     Window.OnDraw := @Draw;
     Window.OnKeyDown := @KeyDown;
-
+    Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.AutoRedisplay := true;
 
     Window.OpenAndRun;

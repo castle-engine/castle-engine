@@ -23,7 +23,8 @@ program change_vrml_by_code_2;
 
 uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, KambiSceneManager,
-  KambiFilesUtils, Quaternions {$ifdef LOG} ,KambiLog {$endif}, KambiParameters;
+  KambiFilesUtils, Quaternions {$ifdef LOG} ,KambiLog {$endif}, KambiParameters,
+  KambiStringUtils;
 
 var
   Window: TGLUIWindow;
@@ -124,6 +125,7 @@ begin
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
     Window.OnIdle := @Idle;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally Scene.Free end;
 end.

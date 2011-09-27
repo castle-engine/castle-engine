@@ -134,5 +134,6 @@ begin
 
   Window.OnOpen := @Open;
   Window.OnKeyDown := @KeyDown;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.

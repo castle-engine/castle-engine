@@ -640,6 +640,7 @@ begin
   Window.OnMouseUp := @MouseUp;
   Window.OnMouseMove := @MouseMove;
   Window.OnDraw := @Draw;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
 
   SurfaceNew(4, 4);
   try

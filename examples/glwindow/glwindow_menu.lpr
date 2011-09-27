@@ -31,7 +31,7 @@ program glwindow_menu;
 {$apptype CONSOLE}
 
 uses SysUtils, VectorMath, GL, GLU, GLExt,
-  GLWindow, KambiGLUtils, GLWinMessages;
+  GLWindow, KambiGLUtils, GLWinMessages, KambiStringUtils;
 
 var
   Window: TGLWindowDemo;
@@ -218,6 +218,7 @@ begin
  Window.Width := 300;
  Window.Height := 300;
  Window.DepthBufferBits := 0;
+ Window.SetDemoOptions(K_F11, CharEscape, true);
  Window.OpenAndRun('Demo GLWindow Menu', @Draw);
 
  Window.MainMenu := nil;

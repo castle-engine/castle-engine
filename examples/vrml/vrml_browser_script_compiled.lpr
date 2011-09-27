@@ -21,7 +21,8 @@ program vrml_browser_script_compiled;
 {$apptype CONSOLE}
 
 uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole, KambiWarnings,
-  VRMLScene, VRMLFields, VRMLTime, SysUtils, KambiParameters;
+  VRMLScene, VRMLFields, VRMLTime, SysUtils, KambiParameters, KambiStringUtils,
+  GLWindow;
 
 var
   BrowserWindow: TGLWindowVRMLBrowser;
@@ -69,6 +70,7 @@ begin
     BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
     BrowserWindow.Scene.ProcessEvents := true;
 
+    BrowserWindow.SetDemoOptions(K_F11, CharEscape, true);
     BrowserWindow.OpenAndRun;
   finally BrowserWindow.Free end;
 end.

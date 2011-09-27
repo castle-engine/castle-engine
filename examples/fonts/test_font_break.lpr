@@ -22,7 +22,8 @@
 program test_font_break;
 
 uses GLWindow, GL, GLU, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
-  KambiUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath;
+  KambiUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath,
+  KambiStringUtils;
 
 var
   Window: TGLWindowDemo;
@@ -78,5 +79,6 @@ begin
  Window.OnClose := @Close;
  Window.OnResize := @Resize;
  Window.DepthBufferBits := 0;
+ Window.SetDemoOptions(K_F11, CharEscape, true);
  Window.OpenAndRun('Font.BreakLines demo', @Draw);
 end.

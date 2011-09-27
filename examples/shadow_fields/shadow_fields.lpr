@@ -44,7 +44,7 @@ program shadow_fields;
 uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
   GLWindow, VRMLGLScene, Cameras, KambiWarnings, KambiParameters,
   ShadowFields, KambiUtils, CubeMap, VRMLNodes, KambiSceneManager,
-  SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape;
+  SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape, KambiStringUtils;
 
 var
   Window: TGLUIWindow;
@@ -658,6 +658,7 @@ begin
     Window.OnMenuCommand := @MenuCommand;
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
 
     { initialize UseShadowFieldsChanged }
     UseShadowFieldsChanged;

@@ -24,7 +24,7 @@
 program doppler_demo;
 
 uses SysUtils, VectorMath, GLWindow, GL, GLU, KambiGLUtils,
-  KambiOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator;
+  KambiOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator, KambiStringUtils;
 
 const
   ALDistanceScaling = 0.02;
@@ -98,6 +98,7 @@ begin
     Window.OnDraw := @Draw;
     Window.OnResize := @Resize2D;
     Window.OnMouseMove := @MouseMove;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally
     SoundEngine.StopAllSources;

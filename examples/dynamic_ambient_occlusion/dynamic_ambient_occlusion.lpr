@@ -37,7 +37,7 @@ type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
 
   Scene: TVRMLGLScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
@@ -571,7 +571,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix;
       glLoadIdentity;
-      gluOrtho2D(0, Glw.Width, 0, Glw.Height);
+      gluOrtho2D(0, Window.Width, 0, Window.Height);
       glMatrixMode(GL_MODELVIEW);
 
       glPushMatrix;
@@ -725,7 +725,7 @@ begin
   if (Elements.Count = 0) or
      Scene.BoundingBox.IsEmpty then
   begin
-    Glw.Controls.Remove(SceneManager); { do not try to render }
+    Window.Controls.Remove(SceneManager); { do not try to render }
     MessageOk(Glwin, 'No elements, or empty bounding box --- we cannot do dyn ambient occlusion. Exiting.', taLeft);
     Glwin.Close;
     Exit;
@@ -738,7 +738,7 @@ begin
 
   if GLSLProgram[0].Support = gsNone then
   begin
-    Glw.Controls.Remove(SceneManager); { do not try to render }
+    Window.Controls.Remove(SceneManager); { do not try to render }
     MessageOk(Glwin, 'Sorry, GLSL shaders not supported on your graphic card. Exiting.', taLeft);
     Glwin.Close;
     Exit;
@@ -874,11 +874,11 @@ begin
     else Exit;
   end;
 
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   Elements := TAOElementList.Create;
 
@@ -886,7 +886,7 @@ begin
   try
     OnWarning := @OnWarningWrite;
 
-    Scene := TVRMLGLScene.Create(Glw);
+    Scene := TVRMLGLScene.Create(Window);
     Scene.Load(Parameters[1]);
     UpdateSceneAttribs;
 
@@ -898,18 +898,19 @@ begin
     Scene.ProcessEvents := true;
 
     { init SceneManager, with a Scene inside }
-    SceneManager := TMySceneManager.Create(Glw);
-    Glw.Controls.Add(SceneManager);
+    SceneManager := TMySceneManager.Create(Window);
+    Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
 
-    Glw.MainMenu := CreateMainMenu;
-    Glw.OnMenuCommand := @MenuCommand;
+    Window.MainMenu := CreateMainMenu;
+    Window.OnMenuCommand := @MenuCommand;
 
-    Glw.OnOpen := @Open;
-    Glw.OnClose := @Close;
-    Glw.OnIdle := @Idle;
-    Glw.OpenAndRun;
+    Window.OnOpen := @Open;
+    Window.OnClose := @Close;
+    Window.OnIdle := @Idle;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
+    Window.OpenAndRun;
   finally
     FreeAndNil(SceneManager);
     FreeAndNil(Elements);

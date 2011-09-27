@@ -29,7 +29,7 @@ program demo_camera;
 
 uses VectorMath, Boxes3D, GL, GLU, GLWindow, Frustum,
   KambiClassUtils, KambiUtils, SysUtils, Classes, Base3D,
-  KambiGLUtils, Cameras, KambiFilesUtils, KambiSceneManager;
+  KambiGLUtils, Cameras, KambiFilesUtils, KambiSceneManager, KambiStringUtils;
 
 type
   TCube = class(T3D)
@@ -89,5 +89,6 @@ begin
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)), 0.1);
 
+  Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.

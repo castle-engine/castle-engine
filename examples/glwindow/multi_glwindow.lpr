@@ -34,7 +34,8 @@ program multi_glwindow;
 
 uses
   GL, GLU, GLWindow, SysUtils, KambiUtils, OpenGLFonts, OpenGLTTFonts,
-  TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse, VectorMath;
+  TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse, VectorMath,
+  KambiStringUtils;
 
 type
   TMyWindow = class(TGLWindowDemo)
@@ -184,7 +185,11 @@ begin
   Windws[i].Top := 30 + 250 * (i div 3);
  end;
  try
-  for i := 0 to High(Windws) do Windws[i].Open;
+  for i := 0 to High(Windws) do 
+  begin
+    Windws[i].Open;
+    Windws[i].SetDemoOptions(K_F11, CharEscape, true);
+  end;
   Application.Run; { Loop will end when the last window is closed by the user }
  finally
   for i := 0 to High(Windws) do FreeAndNil(Windws[i]);

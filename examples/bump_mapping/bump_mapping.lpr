@@ -69,7 +69,7 @@ type
   TBumpMethod = (bmEmboss, bmMultiTexDot, bmVRML);
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
 
   { normal texture is for all methods, bumps in alpha for emboss only }
   NormalAndBumpTex: array [0..3] of TGLuint;
@@ -968,7 +968,7 @@ begin
     S := TStringList.Create;
 
     { fps is on caption already }
-    { S.Append(Format('FPS : %f (real : %f)' +nl, [Glw.FpsFrameTime, Glw.FpsRealTime])); }
+    { S.Append(Format('FPS : %f (real : %f)' +nl, [Window.FpsFrameTime, Window.FpsRealTime])); }
     S.Append('Method: ' + MethodNames[Method]);
     if ShiftByHand then
       S.Append(Format('Shift: %f %f', [XShift, YShift])) else
@@ -1261,34 +1261,34 @@ const
   end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   OnWarning := @OnWarningWrite;
 
   { parse params }
-  Glw.ParseParameters(StandardParseOptions);
+  Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHighAtMost(1);
   if Parameters.High >= 1 then
     VrmlFileName := Parameters[1];
 
   { init cameras }
-  Examiner := TExamineCamera.Create(Glw);
+  Examiner := TExamineCamera.Create(Window);
   Examiner.Init(SceneBoundingBox, 0.1);
 
-  Walker := TWalkCamera.Create(Glw);
+  Walker := TWalkCamera.Create(Window);
   Walker.Init(Vector3Single(0, 0, 10), Vector3Single(0, 0, -1),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0),
     0, 0 { unused, we don't use Gravity here });
 
-  SceneManager := TMySceneManager.Create(Glw);
-  Glw.Controls.Add(SceneManager);
+  SceneManager := TMySceneManager.Create(Window);
+  Window.Controls.Add(SceneManager);
   SceneManager.Camera := Examiner;
 
-  Glw.Controls.Add(TStatusText.Create(Glw));
+  Window.Controls.Add(TStatusText.Create(Window));
 
-  NextButton := TNextButton.Create(Glw);
-  Glw.Controls.Insert(0, NextButton);
+  NextButton := TNextButton.Create(Window);
+  Window.Controls.Insert(0, NextButton);
 
   Scene := TVRMLGLScene.Create(nil);
   LoadSceneCore(VrmlFileName);
@@ -1309,16 +1309,17 @@ begin
     SceneManager.MainScene := Scene;
   end;
 
-  Glw.MainMenu := CreateMainMenu;
-  Glw.OnMenuCommand := @MenuCommand;
+  Window.MainMenu := CreateMainMenu;
+  Window.OnMenuCommand := @MenuCommand;
 
-  Glw.AutoRedisplay := true; { for easy Idle code }
-  Glw.OnOpen := @Open;
-  Glw.OnResize := @Resize;
-  Glw.OnClose := @Close;
-  Glw.OnIdle := @Idle;
+  Window.AutoRedisplay := true; { for easy Idle code }
+  Window.OnOpen := @Open;
+  Window.OnResize := @Resize;
+  Window.OnClose := @Close;
+  Window.OnIdle := @Idle;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
 
-  Glw.OpenAndRun;
+  Window.OpenAndRun;
 
   FreeAndNil(Scene);
   FreeAndNil(RenderParams);

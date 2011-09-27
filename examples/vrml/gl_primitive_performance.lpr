@@ -23,7 +23,7 @@ program gl_primitive_performance;
 uses VectorMath, VRMLNodes, GL, GLExt, GLWindow,
   KambiUtils, SysUtils, Classes, KambiWarnings,
   KambiGLUtils, KambiFilesUtils, VRMLScene, KambiParameters,
-  ProgressUnit, VRMLShape, KambiSceneManager, Base3D;
+  ProgressUnit, VRMLShape, KambiSceneManager, Base3D, KambiStringUtils;
 
 type
   TRenderMode = (
@@ -417,6 +417,7 @@ begin
     Window.OnMenuCommand := @MenuCommand;
 
     Window.OnOpen := @Open;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;
   finally
     FreeAndNil(Scene);

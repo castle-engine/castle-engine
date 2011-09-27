@@ -25,7 +25,8 @@
 
 uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, GLControls, KambiWarnings,
-  KambiUtils, KambiGLUtils, OpenGLFonts, X3DLoad, GLShaders, KambiParameters;
+  KambiUtils, KambiGLUtils, OpenGLFonts, X3DLoad, GLShaders, KambiParameters,
+  KambiStringUtils;
 
 { TBackground ---------------------------------------------------------------- }
 
@@ -386,5 +387,6 @@ begin
 
   Window.StencilBufferBits := 8;
   Window.OnResize := @Resize;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.

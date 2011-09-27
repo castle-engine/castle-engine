@@ -146,6 +146,7 @@ begin
   Window.DoubleBuffer := true;
   Window.OnCloseQuery := @CloseQueryNotAllowed;
   Window.ParseParameters(StandardParseOptions);
+  Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.Open;
 
   { init CurveImage }
@@ -172,6 +173,6 @@ begin
     { show the window }
     Window.PostRedisplay;
     Window.OnCloseQuery := nil;
-    Window.OpenAndRun;
+    Application.Run;
   finally FreeAndNil(CurveImage) end;
 end.

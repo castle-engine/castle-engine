@@ -25,10 +25,11 @@ program show_sh;
 uses VectorMath, Boxes3D, GL, GLWindow, Base3D, UIControls,
   KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
   KambiGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager;
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager,
+  KambiStringUtils;
 
 var
-  Glw: TGLUIWindow;
+  Window: TGLUIWindow;
 
   LM: Cardinal = 0;
   Font: TGLBitmapFont;
@@ -218,31 +219,32 @@ begin
     20: LM := ChangeIntCycle(LM, +1, MaxSHBasis - 1);
     else Exit;
   end;
-  Glw.PostRedisplay;
+  Window.PostRedisplay;
 end;
 
 var
   M: TMenu;
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Window := TGLUIWindow.Create(Application);
 
   SceneManager := TMySceneManager.Create(Application);
-  Glw.Controls.Add(SceneManager);
+  Window.Controls.Add(SceneManager);
 
-  Glw.MainMenu := TMenu.Create('Main menu');
+  Window.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');
     M.Append(TMenuItem.Create('_Previous basis', 10, 'p'));
     M.Append(TMenuItem.Create('_Next basis', 20, 'n'));
-    Glw.MainMenu.Append(M);
+    Window.MainMenu.Append(M);
 
-  SceneManager.Camera := TExamineCamera.Create(Glw);
+  SceneManager.Camera := TExamineCamera.Create(Window);
   (SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)), 0.1);
 
-  Glw.OnOpen := @Open;
-  Glw.OnClose := @Close;
-  Glw.OnMenuCommand := @MenuCommand;
-  Glw.OnDrawStyle := ds2D;
-  Glw.OpenAndRun(ProgramName, @Draw2D);
+  Window.OnOpen := @Open;
+  Window.OnClose := @Close;
+  Window.OnMenuCommand := @MenuCommand;
+  Window.OnDrawStyle := ds2D;
+  Window.SetDemoOptions(K_F11, CharEscape, true);
+  Window.OpenAndRun(ProgramName, @Draw2D);
 end.
