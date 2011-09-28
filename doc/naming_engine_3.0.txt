@@ -1,0 +1,82 @@
+With engine release 3.0, we renamed "Kambi VRML game engine"
+to "Castle Game Engine". We want to break compatibility anyway,
+so I decided to do a large rename of many units and classes,
+to make names more consistent, more sensible etc. This document
+summarizes renames done, and some reasoning.
+
+------------------------------------------------------------------------------
+1. Ideas, reasoning:
+
+- We don't want Kambi, Kam prefix to anything (units, classes).
+  Instead use CastleXxx for units, TCastleXxx for classes,
+  but *only if necessary* (preferably, avoid prefixing everything,
+  to keep names simple).
+
+  Components should all have TCastleXxx prefix (to not clash with
+  other components, this would make our engine conflict with other
+  packages you have installed in Lazarus), eventually some have T3DXxx prefix.
+
+  Units with common names (XxxUtils, XxxWarnings) make have Castle prefix,
+  to avoid clashes with common units.
+
+- We don't want VRML prefix to anything (units, classes).
+  VRML is old (that's why we rename engine after all).
+  Instead use X3D, but *only if necessary* (preferably, avoid any X3D prefix,
+  the engine is directed at X3D anyway --- it's known that "a node"
+  means "a VRML/X3D node" inside the engine).
+
+  E.g. TVRMLGLScene becomes just T3DScene. No need to emphasize "VRML"
+  or "X3D" in the name, since actually this is used to handle any 3D models
+  (even if others are converted to VRML/X3D node graph under the hood...
+  but this is implementation detail, not interesting to everyone.)
+
+- We don't want to add GL or OpenGL to classes (except really low-level
+  stuff, that is used only by programmers who understand OpenGL).
+  Reasoning: 1. our engine is directed 100% now for OpenGL
+  (so e.g. TVRMLGLScene is actually "the thing you use to render 3D models",
+  and most programmers are not interested in emphasizing that it's for OpenGL),
+  2. if some day we will have alternative renderer, it should be pluggable,
+  and the same class names should be usable with it.
+
+  So things that are *conceptually* not tied to OpenGL (even if their
+  current and only implementation is tied to OpenGL) should *not* have GL
+  in their names. Only things that have API specifically for OpenGL cooperation
+  (like CastleGLUtils, or GLImages, or TGLRenderToTexture) may keep
+  "GL" inside name.
+
+  This also avoids clashes with GLScene, that uses a TGLXxx for various
+  class names and GLXxx for various units.
+  And component names should not clash across packages
+  (this would make it difficult to install both GLScene and our engine
+  in Lazarus; we don't want to cause such trouble).
+
+  For engine developers, the directory layout in the engine strictly separates
+  things dependent on OpenGL from others (opengl/ subdirs).
+
+- Make 2D controls (TUIControl descendants) have consistent names.
+  (Currently, some are TKamGLXxx, some TKamXxx, some TGLXxx.)
+  New name for all is TCastleXxx (following above reasons to drop GL and Kam
+  prefixes).
+
+  So e.g. TKamSceneManager becomes... not TVRMLSceneManager,
+  not TX3DSceneManager, but TCastleSceneManager.
+
+- Make 3D objects (T3D descendants) have consistent names.
+  This is actually started: T3DXxx prefix is nice (they are also
+  components, so some prefix is needed), already: T3D, T3DList, T3DTranslated.
+  Use it consistently, and (following above ideas) do not add
+  additional "VRML", "X3D", "GL", "Kam" etc. prefixes to the name.
+
+  So e.g. TVRMLGLScene becomes just T3DScene.
+
+------------------------------------------------------------------------------
+2. Renames done, in short:
+
+- Unit Object3DAsVRML -> X3DLoad, with various X3DLoadInternal* helper units.
+- VRML/X3D node classes renamed to TXxxNode or TAbstractXxxNode.
+  Motivation: remove TVRML prefix, unify own and X3D spec abstract classes naming (no need to differentiate them by name), move Node to the end (more English-like).
+  * TNodeXxx -> TXxxNode
+  * TNodeX3DXxxNode -> TAbstractXxxNode
+  * TVRMLXxx -> either TX3DXxx (special) or TAbstractXxxNode (abstract)
+- "The Castle" game units renamed CastleXxx -> GameXxx.
+  Motivation: do not clash with engine units.
