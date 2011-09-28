@@ -71,9 +71,9 @@ begin
   BrowserWindow := TGLWindowVRMLBrowser.Create(Application);
 
   BrowserWindow.Load(FileName);
-  Writeln(BrowserWindow.Scene.Info(true, true, false));
-  BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  BrowserWindow.Scene.ProcessEvents := true;
+  Writeln(BrowserWindow.MainScene.Info(true, true, false));
+  BrowserWindow.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  BrowserWindow.MainScene.ProcessEvents := true;
 
   BrowserWindow.OpenAndRun;
 end.

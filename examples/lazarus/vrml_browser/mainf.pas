@@ -102,8 +102,8 @@ begin
   VrmlConsole.Memo1.Lines.Append('--- Loading ' + FileName);
 
   Browser.Load(FileName);
-  Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  Browser.Scene.ProcessEvents := true;
+  Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Browser.MainScene.ProcessEvents := true;
 
   SceneFileName := FileName;
   UpdateCaption;

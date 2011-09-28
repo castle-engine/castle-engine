@@ -45,8 +45,8 @@ procedure TForm1.FormCreate(Sender: TObject);
 begin
   { For simplicity, we just load VRML/X3D from hardcoded path. }
   Browser.Load('../../vrml/models/bridge_final.x3dv');
-  Browser.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  Browser.Scene.ProcessEvents := true;
+  Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Browser.MainScene.ProcessEvents := true;
 
   { Thanks to using this button as a TUIControl descendant
     (placing it on Browser.Controls list), VRML scene sensors

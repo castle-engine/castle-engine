@@ -22,17 +22,19 @@ uses Classes, VectorMath, GLWindow, VRMLNodes, VRMLGLScene,
   KambiSceneManager;
 
 type
-  { A simple VRML browser in a window. This creates the scene manager
-    for you, and gives you an ultra-simple @link(Load) method to
-    load 3D model from file.
+  { Window with an OpenGL context, most comfortable to render 3D worlds
+    with 2D controls above. Add your 3D stuff to the scene manager
+    available in @link(SceneManager) property. Add your 2D stuff
+    to the @link(TGLUIWindow.Controls) property (from ancestor TGLUIWindow).
 
-    You can directly access the SceneManager. You can also directly
-    access the loaded scene: this is available in @link(Scene) property,
-    it's always the same thing as SceneManager.MainScene.
+    You can directly access the SceneManager and configure it however you like.
 
-    If you're looking for Lazarus component that does basically the same
-    (easy VRML browser), you want to check out TKamVRMLBrowser
-    (file @code(../packages/components/kambivrmlbrowser.pas)). }
+    You have comfortable @link(Load) method that simply loads a single 3D model
+    to your world.
+
+    If you're looking for analogous Lazarus component
+    (that does basically the same, but can be placed on a Lazarus form)
+    see TKamVRMLBrowser component. }
   TGLWindowVRMLBrowser = class(TGLUIWindow)
   private
     FSceneManager: TKamSceneManager;
@@ -46,11 +48,17 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Creates new @link(Scene), with new camera and such. }
+    { Load a single 3D model to your world
+      (removing other models, and resetting the camera).
+
+      This is nice for simple 3D model browsers, but usually for games you
+      don't want to use this method --- it's more flexible to create TVRMLGLScene
+      yourself, and add it to scene manager yourself, see engine examples like
+      scene_manager_basic.lpr. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
-    function Scene: TVRMLGLScene;
+    function MainScene: TVRMLGLScene;
     property SceneManager: TKamSceneManager read FSceneManager;
 
     { Should we make shadow volumes possible.
@@ -104,11 +112,14 @@ begin
   SceneManager.Items.Add(SceneManager.MainScene);
 
   { initialize octrees titles }
-  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
+  MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
+  MainScene.ShapeOctreeProgressTitle := 'Building Shape octree';
+
+  { just to make our Camera always non-nil }
+  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;
 
-function TGLWindowVRMLBrowser.Scene: TVRMLGLScene;
+function TGLWindowVRMLBrowser.MainScene: TVRMLGLScene;
 begin
   Result := SceneManager.MainScene;
 end;
