@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="9"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/kambiscript;../src/3d;../src/vrml/opengl/glsl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/vrml;../src/vrml/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/kambiscript;../src/ui;../src/ui/opengl"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/castlescript;../src/3d;../src/vrml/opengl/glsl"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/vrml;../src/vrml/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/opengl"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -402,35 +402,35 @@
         <UnitName Value="VideosCache"/>
       </Item88>
       <Item89>
-        <Filename Value="../src/kambiscript/kambiscript.pas"/>
+        <Filename Value="../src/castlescript/kambiscript.pas"/>
         <UnitName Value="KambiScript"/>
       </Item89>
       <Item90>
-        <Filename Value="../src/kambiscript/kambiscriptarrays.pas"/>
+        <Filename Value="../src/castlescript/kambiscriptarrays.pas"/>
         <UnitName Value="KambiScriptArrays"/>
       </Item90>
       <Item91>
-        <Filename Value="../src/kambiscript/kambiscriptcorefunctions.pas"/>
+        <Filename Value="../src/castlescript/kambiscriptcorefunctions.pas"/>
         <UnitName Value="KambiScriptCoreFunctions"/>
       </Item91>
       <Item92>
-        <Filename Value="../src/kambiscript/kambiscriptimages.pas"/>
+        <Filename Value="../src/castlescript/kambiscriptimages.pas"/>
         <UnitName Value="KambiScriptImages"/>
       </Item92>
       <Item93>
-        <Filename Value="../src/kambiscript/kambiscriptlexer.pas"/>
+        <Filename Value="../src/castlescript/kambiscriptlexer.pas"/>
         <UnitName Value="KambiScriptLexer"/>
       </Item93>
       <Item94>
-        <Filename Value="../src/kambiscript/kambiscriptparser.pas"/>
+        <Filename Value="../src/castlescript/kambiscriptparser.pas"/>
         <UnitName Value="KambiScriptParser"/>
       </Item94>
       <Item95>
-        <Filename Value="../src/kambiscript/kambiscriptvectors.pas"/>
+        <Filename Value="../src/castlescript/kambiscriptvectors.pas"/>
         <UnitName Value="KambiScriptVectors"/>
       </Item95>
       <Item96>
-        <Filename Value="../src/kambiscript/vrmlkambiscript.pas"/>
+        <Filename Value="../src/castlescript/vrmlkambiscript.pas"/>
         <UnitName Value="VRMLKambiScript"/>
       </Item96>
       <Item97>

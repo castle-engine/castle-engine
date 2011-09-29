@@ -202,7 +202,7 @@ begin
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'kambiscript');
+    P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('kambiscript.pas');
     P.Targets.AddUnit('kambiscriptarrays.pas');
     P.Targets.AddUnit('kambiscriptcorefunctions.pas');
