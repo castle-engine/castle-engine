@@ -200,7 +200,7 @@ begin
     Co wiecej jednak, moze tak byc ze Window <> nil ale wskazuje na okienko
     ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
     zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
-    castlewindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
+    castlewindow_winsystem.inc. Wiec sprawdzamy tutaj czy Window jest na liscie
     Application.OpenWindows .
 
     Moreover, temporary windows created by CreateTemporaryWindow in
