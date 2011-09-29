@@ -3,4 +3,4 @@ set -eu
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/kambiscript/kambi_calc.lpr
+fpc -dRELEASE @kambi.cfg examples/castlescript/kambi_calc.lpr

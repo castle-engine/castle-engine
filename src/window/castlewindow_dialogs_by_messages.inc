@@ -19,11 +19,11 @@ end;
 
 procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
-  GLWinMessages.MessageOK(Self, S);
+  CastleMessages.MessageOK(Self, S);
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string;
   const MessageType: TWindowMessageType): boolean;
 begin
-  Result := GLWinMessages.MessageYesNo(Self, S);
+  Result := CastleMessages.MessageYesNo(Self, S);
 end;

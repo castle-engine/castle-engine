@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eu
 
-# Call this from ../../ (or just use `make examples').
+# Allow calling this script from it's own dir.
+if [ -f window_menu.lpr ]; then
+  cd ../../
+fi
 
-fpc -dRELEASE @kambi.cfg examples/glwindow/window_menu.lpr
+# Call this from ../../ (or just use `make examples').
+fpc -dRELEASE @kambi.cfg examples/window/window_menu.lpr

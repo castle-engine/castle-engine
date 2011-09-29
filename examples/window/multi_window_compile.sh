@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eu
 
-# Call this from ../../ (or just use `make examples').
+# Allow calling this script from it's own dir.
+if [ -f multi_window.lpr ]; then
+  cd ../../
+fi
 
-fpc -dRELEASE @kambi.cfg examples/glwindow/multi_window.lpr
+# Call this from ../../ (or just use `make examples').
+fpc -dRELEASE @kambi.cfg examples/window/multi_window.lpr

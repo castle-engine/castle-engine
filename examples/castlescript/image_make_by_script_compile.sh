@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/kambiscript/image_make_by_script.lpr
+fpc -dRELEASE @kambi.cfg examples/castlescript/image_make_by_script.lpr
