@@ -50,11 +50,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="16">
-      <Item1>
-        <Filename Value="../src/glwindow/glwindowvrmlbrowser.pas"/>
-        <UnitName Value="GLWindowVRMLBrowser"/>
-      </Item1>
+    <Files Count="15">
       <Item2>
         <Filename Value="../src/glwindow/glsoundmenu.pas"/>
         <UnitName Value="GLSoundMenu"/>
@@ -110,11 +106,11 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="KambiXF86VMode"/>
       </Item15>
-      <Item16>
+      <Item1>
         <Filename Value="../src/glwindow/unix/xlibutils.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
-      </Item16>
+      </Item1>
       <Item9>
         <Filename Value="../src/base/kambiconf.inc"/>
         <Type Value="Include"/>

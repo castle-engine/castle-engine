@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  KambiVRMLBrowser, Cameras, VRMLGLScene;
+  KambiGLControl, Cameras, VRMLGLScene;
 
 type
   TForm1 = class(TForm)
