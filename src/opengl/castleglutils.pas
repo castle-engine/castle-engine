@@ -21,12 +21,12 @@
   based on parameter type). Also simple drawing routines for basic primitives
   (boxes etc.).
   This unit does not assume that you initialized OpenGL in any particular
-  way (e.g. using GLWindow, Glut, SDL, or whatever).
+  way (e.g. using CastleWindow, Glut, SDL, or whatever).
 }
 
 unit CastleGLUtils;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 {$I openglmac.inc}
 
 interface

@@ -26,11 +26,11 @@
 }
 program dynamic_ambient_occlusion;
 
-uses VectorMath, GL, GLU, GLExt, GLWindow,
+uses VectorMath, GL, GLU, GLExt, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes,
   CastleGLUtils, VRMLScene, VRMLGLScene, Base3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, CastleWarnings,
+  VRMLFields, Images, Boxes3D, GLImages, CastleMessages, CastleWarnings,
   GLVersionUnit, Math, CastleSceneManager, RenderingCameraUnit, GenericStructList;
 
 type
@@ -714,7 +714,7 @@ begin
   end;
 end;
 
-{ GLWindow callbacks --------------------------------------------------------- }
+{ CastleWindow callbacks --------------------------------------------------------- }
 
 procedure Open(Glwin: TCastleWindowBase);
 const

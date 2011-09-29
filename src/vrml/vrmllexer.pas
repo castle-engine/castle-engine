@@ -20,7 +20,7 @@ unit VRMLLexer;
   Useful only for debugging this unit. }
 { $define LOG_VRML_TOKENS}
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

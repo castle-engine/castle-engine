@@ -27,7 +27,7 @@ program demo_camera;
 
 {$apptype GUI}
 
-uses VectorMath, Boxes3D, GL, GLU, GLWindow, Frustum,
+uses VectorMath, Boxes3D, GL, GLU, CastleWindow, Frustum,
   CastleClassUtils, CastleUtils, SysUtils, Classes, Base3D,
   CastleGLUtils, Cameras, CastleFilesUtils, CastleSceneManager, CastleStringUtils;
 

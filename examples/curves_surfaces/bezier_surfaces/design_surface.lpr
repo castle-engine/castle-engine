@@ -20,9 +20,9 @@ program design_surface;
 
 {$apptype GUI}
 
-uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
-  CastleStringUtils, Math, GLWinMessages, CastleFilesUtils,
+  CastleStringUtils, Math, CastleMessages, CastleFilesUtils,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 type
@@ -185,7 +185,7 @@ begin
   SetSurfaceFileName(FileName);
 end;
 
-{ GLWindow callbacks --------------------------------------------------------- }
+{ CastleWindow callbacks --------------------------------------------------------- }
 
 procedure DrawStatus(Data: Pointer);
 begin

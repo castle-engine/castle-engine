@@ -23,10 +23,10 @@ program simple_video_editor;
   info on stdout anyway. }
 {$apptype CONSOLE}
 
-uses CastleUtils, SysUtils, GLWindow, GL, GLU, GLImages,
-  ImagesCache, Videos, CastleStringUtils, GLWinMessages,
+uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
+  ImagesCache, Videos, CastleStringUtils, CastleMessages,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
-  CastleGLUtils, VectorMath, Classes, ProgressUnit, GLProgress, CastleTimeUtils;
+  CastleGLUtils, VectorMath, Classes, ProgressUnit, CastleProgress, CastleTimeUtils;
 
 var
   Window: TCastleWindowDemo;
@@ -138,8 +138,8 @@ procedure Open(Window: TCastleWindowBase);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 
-  GLProgressInterface.Window := Window;
-  Progress.UserInterface := GLProgressInterface;
+  WindowProgressInterface.Window := Window;
+  Progress.UserInterface := WindowProgressInterface;
 
   if Parameters.High = 1 then
     LoadVideo(Parameters[1]);

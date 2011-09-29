@@ -16,7 +16,7 @@
 { Time utilities. }
 unit CastleTimeUtils;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

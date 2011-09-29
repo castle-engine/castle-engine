@@ -28,7 +28,7 @@ program simplest_vrml_browser_with_shadow_volumes;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, GLWindow, ProgressUnit, ProgressConsole,
+uses CastleUtils, CastleWindow, ProgressUnit, ProgressConsole,
   VRMLScene, CastleWarnings, CastleParameters;
 
 var

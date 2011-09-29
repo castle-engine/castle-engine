@@ -144,7 +144,7 @@ tglmenubooleanargument     TMenuBooleanArgument
 tglmenuslider              TMenuSlider
 tglmenufloatslider         TMenuFloatSlider
 tglmenuintegerslider       TMenuIntegerSlider
-
+TGLMenuVolumeSlider TCastleMenuVolumeSlider
 ------------------------------------------------------------------------------
 3. Renames done, unit names:
 
@@ -193,6 +193,15 @@ testkambiclassutils                    testcastleclassutils
 testkambiscript                        testcastlescript
 vrmlkambiscript                        x3dcastlescript
 kambioctree                            CastleOctree
+
+glwinmodes                 castlewindowmodes
+glwindow                   castlewindow
+glwinmessages              castlemessages
+glsoundmenu                castlesoundmenu
+glprogress                 castleprogress
+glwindowrecentfiles        castlerecentfiles
+glwininputs                castleinputs
+
 ------------------------------------------------------------------------------
 4. Renames done, package names:
 

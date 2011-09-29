@@ -23,7 +23,7 @@
   http://castle-engine.sourceforge.net/openal_notes.php }
 program doppler_demo;
 
-uses SysUtils, VectorMath, GLWindow, GL, GLU, CastleGLUtils,
+uses SysUtils, VectorMath, CastleWindow, GL, GLU, CastleGLUtils,
   CastleOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator, CastleStringUtils;
 
 const

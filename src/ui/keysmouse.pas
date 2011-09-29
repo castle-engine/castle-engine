@@ -38,23 +38,23 @@
 
 unit KeysMouse;
 
-{ This was started as a spin-off from GLWindow unit.
-  Was extracted from GLWindow unit to a separate unit,
-  that @italic(doesn't depend on GLWindow unit).
+{ This was started as a spin-off from CastleWindow unit.
+  Was extracted from CastleWindow unit to a separate unit,
+  that @italic(doesn't depend on CastleWindow unit).
 
   Advantage: we can keep this unit independent from OpenGL.
   This means that also Cameras unit (that must use unit KeysMouse)
   can stay independent from OpenGL. Which is good, makes
   Cameras unit more generally-usable.
 
-  Disadvantage: because this unit doesn't depend on GLWindow unit,
-  it doesn't know what implementation of GLWindow unit
-  (Xlib, glut, gtk, WinAPI -- see GLWINDOW_xxx defines in GLWindow unit) is used.
+  Disadvantage: because this unit doesn't depend on CastleWindow unit,
+  it doesn't know what implementation of CastleWindow unit
+  (Xlib, glut, gtk, WinAPI -- see CASTLE_WINDOW_xxx defines in CastleWindow unit) is used.
   It also can't use platform-specific units like Xlib, or WinAPI.
   On one hand, this is good (because this unit is simple and portable),
   on the other hand, we can't implement in this unit any conversion
   from WinAPI / XLib / Gtk key codes -> to K_Xxx constants.
-  Such conversion has to be done in GLWindow unit implementation.
+  Such conversion has to be done in CastleWindow unit implementation.
 }
 
 interface

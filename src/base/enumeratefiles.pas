@@ -27,7 +27,7 @@ unit EnumerateFiles;
     (instead of relaying on FindFirst/Next ported to UNIX).
 }
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

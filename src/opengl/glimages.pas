@@ -224,7 +224,7 @@ function ImageDrawPartToDisplayList(
   (or any part of front buffer). That's because when our window will
   be covered by other window (of other programs or our own window
   (like other instances of TCastleWindowBase or dialog windows produced
-  by TCastleWindowBase.FileDialog, in case you use GLWindow unit)) then
+  by TCastleWindowBase.FileDialog, in case you use CastleWindow unit)) then
   glReadPixels will return pixel array filled with contents of
   *those other windows*.
 

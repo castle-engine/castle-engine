@@ -14,7 +14,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestGLWindow;
+unit TestCastleWindow;
 
 interface
 
@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses SysUtils, GLWindow;
+uses SysUtils, CastleWindow;
 
 procedure TTestWindow.Test1;
 var

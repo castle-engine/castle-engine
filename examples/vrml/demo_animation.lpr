@@ -64,10 +64,10 @@
 
 program demo_animation;
 
-uses VectorMath, VRMLNodes, GL, GLU, GLWindow, CastleWarnings,
+uses VectorMath, VRMLNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad,
   CastleGLUtils, VRMLGLScene, VRMLGLAnimation,
-  CastleFilesUtils, CastleParameters, GLProgress, ProgressUnit,
+  CastleFilesUtils, CastleParameters, CastleProgress, ProgressUnit,
   CastleSceneManager, CastleStringUtils;
 
 var
@@ -186,8 +186,8 @@ begin
     SceneManager.MainScene := Animation.FirstScene;
     SceneManager.Items.Add(Animation);
 
-    GLProgressInterface.Window := Window;
-    Progress.UserInterface := GLProgressInterface;
+    WindowProgressInterface.Window := Window;
+    Progress.UserInterface := WindowProgressInterface;
 
     Window.AutoRedisplay := true;
     Window.OnKeyDown := @KeyDown;

@@ -13,11 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is the common code for GLWINDOW_XLIB and GLWINDOW_WINAPI implementations.
+{ This is the common code for CASTLE_WINDOW_XLIB and CASTLE_WINDOW_WINAPI implementations.
 
   Note that if you let some exception to be raised out of
   some event (like OnXxx) then this window may be closed
-  while recovering from this exception. I.e. GLWindow implementation
+  while recovering from this exception. I.e. CastleWindow implementation
   is free to implement part of ProcessMessage like
 
 @longCode(#
@@ -31,7 +31,7 @@
 #)
 
   TODO: this behavior is currently done only by Xlib and WinAPI
-  implementation, in glwindow_winsystem.inc.
+  implementation, in castlewindow_winsystem.inc.
   Is there really any good reason why we can't remove this behavior?
 }
 
@@ -47,9 +47,9 @@ private
     redrawing anything. Similar for WinAPI. }
   RedisplayPosted: boolean;
 
-  { w GLWindow_winsystem implementuje sie OpenBackend ktore
+  { w castlewindow_winsystem implementuje sie OpenBackend ktore
     wywoluje swoja inicjalizacje a potem wywoluje OpenWinSystemDepend
-    ktore powinno byc zdefiniowane w GLWindow_xlib i _winapi. }
+    ktore powinno byc zdefiniowane w castlewindow_xlib i _winapi. }
   procedure OpenWinSystemDepend;
 
   { FlushRedisplay2 works exactly like FlushRedisplay, but additionally
@@ -70,7 +70,7 @@ private
 
     If AllowSuspend then always WasAnyMessage = true (but no, you should
     not depend on it as long as possible; however, it's still private
-    inside GLWindow_winsystem so if you HAVE to you can depend on it).
+    inside castlewindow_winsystem so if you HAVE to you can depend on it).
     So value WasAnyMessage is really usable to you only when you pass
     AllowSuspend = false.
 
@@ -82,7 +82,7 @@ private
 
 {$ifdef read_implementation}
 
-{ common things for winsystem GLWindow implementations.
+{ common things for winsystem CastleWindow implementations.
   Uwagi :
    - zawsze musimy w jakis sposob sprawdzic czy okienko dla ktorego
      dostalismy message jest aktualnie na liscie Application.OpenWindows.
@@ -172,11 +172,11 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
       XFlush - co jest wazne.
   }
 
-  {$ifdef GLWINDOW_WINAPI}  var msg: TMsg;  {$endif}
-  {$ifdef GLWINDOW_XLIB}    var event: TXEvent;  {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI}  var msg: TMsg;  {$endif}
+  {$ifdef CASTLE_WINDOW_XLIB}    var event: TXEvent;  {$endif}
 
   procedure HandleEvent;
-  {$ifdef GLWINDOW_XLIB}
+  {$ifdef CASTLE_WINDOW_XLIB}
   var
     Window: TCastleWindowBase;
     evtype: longint;
@@ -184,7 +184,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
   begin
     WasAnyMessage := true;
 
-    {$ifdef GLWINDOW_WINAPI}
+    {$ifdef CASTLE_WINDOW_WINAPI}
     if msg.message = WM_QUIT then
       quitPosted := true else
     begin
@@ -193,7 +193,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
     end;
     {$endif}
 
-    {$ifdef GLWINDOW_XLIB}
+    {$ifdef CASTLE_WINDOW_XLIB}
     evtype := event.{$ifdef DELPHI} xtype {$else} _type {$endif};
     case evtype of
       MappingNotify: XRefreshKeyboardMapping(@event);
@@ -227,7 +227,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
 
   function CheckMessage: boolean;
   begin
-    {$ifdef GLWINDOW_WINAPI}
+    {$ifdef CASTLE_WINDOW_WINAPI}
     Result := true;
     {seek for message to any of windows of our thread}
     if PeekMessage(msg, 0, 0, 0, PM_REMOVE) then
@@ -239,7 +239,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
       Result := false;
     {$endif}
 
-    {$ifdef GLWINDOW_XLIB}
+    {$ifdef CASTLE_WINDOW_XLIB}
     Result := true;
     if XBool(XCheckMaskEvent(XDisplay, AcceptedEventsMask, @event)) <> XBool_False then
       HandleEvent else
@@ -251,10 +251,10 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
 
   procedure WaitMessage;
   begin
-    {$ifdef GLWINDOW_WINAPI}
+    {$ifdef CASTLE_WINDOW_WINAPI}
     Check( LongInt(GetMessage(msg, 0, 0, 0)) <> -1, 'GetMessage failed with Result -1.');
     {$endif}
-    {$ifdef GLWINDOW_XLIB}
+    {$ifdef CASTLE_WINDOW_XLIB}
     XNextEvent(XDisplay, @event); { implicit XFlush }
     {$endif}
     HandleEvent;
@@ -262,7 +262,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
 
   procedure NoMessageProcessed;
   begin
-    {$ifdef GLWINDOW_XLIB}
+    {$ifdef CASTLE_WINDOW_XLIB}
     XFlush(XDisplay)
     {$endif}
   end;

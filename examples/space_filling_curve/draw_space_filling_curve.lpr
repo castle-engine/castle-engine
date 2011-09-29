@@ -36,7 +36,7 @@ program draw_space_filling_curve;
 
 {$apptype GUI}
 
-uses SysUtils, GL, GLU, GLWindow, CastleUtils, CastleGLUtils, CastleParameters,
+uses SysUtils, GL, GLU, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
   Images, VectorMath, Math, SpaceFillingCurves, CastleStringUtils, GLImages;
 
 var
@@ -46,7 +46,7 @@ const
   CurveCol: TVector3Byte = (255, 255, 255);
   CurveImageBGCol: TVector3Byte = (0, 0, 0);
 
-{ glwindow callbacks ------------------------------------------------------- }
+{ CastleWindow callbacks ------------------------------------------------------- }
 
 procedure Draw(Window: TCastleWindowBase);
 begin

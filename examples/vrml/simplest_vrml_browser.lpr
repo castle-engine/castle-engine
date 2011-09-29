@@ -53,7 +53,7 @@ program simplest_vrml_browser;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, GLWindow, ProgressUnit, ProgressConsole,
+uses CastleUtils, CastleWindow, ProgressUnit, ProgressConsole,
   VRMLScene, SysUtils, CastleWarnings, CastleParameters;
 
 var

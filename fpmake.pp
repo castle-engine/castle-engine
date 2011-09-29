@@ -174,13 +174,13 @@ begin
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'glwindow');
-    P.Targets.AddUnit('glsoundmenu.pas');
-    P.Targets.AddUnit('glwindow.pas');
-    P.Targets.AddUnit('glwindowrecentfiles.pas');
-    P.Targets.AddUnit('glwininputs.pas');
-    P.Targets.AddUnit('glwinmessages.pas');
-    P.Targets.AddUnit('glwinmodes.pas');
-    P.Targets.AddUnit('glprogress.pas');
+    P.Targets.AddUnit('castlesoundmenu.pas');
+    p.targets.addunit('castlewindow.pas');
+    p.targets.addunit('castlerecentfiles.pas');
+    P.Targets.AddUnit('castleinputs.pas');
+    P.Targets.AddUnit('castlemessages.pas');
+    p.targets.addunit('castlewindowmodes.pas');
+    P.Targets.AddUnit('castleprogress.pas');
     if Defaults.OS in AllUnixOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'unix');
@@ -191,7 +191,6 @@ begin
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'windows');
-      P.Targets.AddUnit('glwindowwinapimenu.pas');
       P.Targets.AddUnit('openglwindowsfonts.pas');
     end;
 

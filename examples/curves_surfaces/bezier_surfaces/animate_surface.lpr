@@ -17,9 +17,9 @@
   Test on sample_data/*.animation files. }
 program animate_surface;
 
-uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
+uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
-  CastleStringUtils, GLWinMessages, CastleFilesUtils, CastleParameters;
+  CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters;
 
 var
   Window: TCastleWindowCustom;

@@ -16,7 +16,7 @@
 { Load Collada. }
 unit X3DLoadInternalCollada;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

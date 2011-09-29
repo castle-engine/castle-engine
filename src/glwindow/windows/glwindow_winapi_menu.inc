@@ -13,14 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Helper for GLWindow implementation of menu-related things
+{ @abstract(Helper for CastleWindow implementation of menu-related things
   under WinAPI.)
 
   It converts menu structure from classes in castlewindowmenu.inc to WinAPI menu
   (HMenu handle).
 
   Let me elaborate here a little about how menu shortcuts are handled
-  when GLWindow is implemented on top of WinAPI:
+  when CastleWindow is implemented on top of WinAPI:
 
   @orderedList(
     @item(
@@ -63,13 +63,13 @@
       create textual key descriptions in TMenuItem.KeyString
       and I already created mechanism to translate key downs to
       appropriately translate key presses to menu items.
-      I had to do this because my GLWindow unit must at least basically
+      I had to do this because my CastleWindow unit must at least basically
       work when implemented on top of glut or Xlib, where I don't have
       a concept of a "menu item with key shortcut" available.
 
       So what I'm doing?
       I'm doing 1.1 in this unit using my TMenuItem.KeyString, and
-      I'm ignoring 1.2 (i.e. I'm doing equivalent things myself in GLWindow unit,
+      I'm ignoring 1.2 (i.e. I'm doing equivalent things myself in CastleWindow unit,
       not using any WinAPI accelerator tables).)
   )
 }

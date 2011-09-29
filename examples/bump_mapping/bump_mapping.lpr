@@ -51,10 +51,10 @@
 }
 program bump_mapping;
 
-uses GLWindow, GL, GLU, GLExt, CastleGLUtils,
+uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
   Cameras, Boxes3D, SysUtils, CastleUtils, VectorMath,
   CastleClassUtils, CastleFilesUtils, CastleStringUtils,
-  GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
+  CastleMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
   CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
   VRMLScene, VRMLGLScene, X3DLoad, ProgressUnit, VRMLGLBackground,

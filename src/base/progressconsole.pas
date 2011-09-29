@@ -41,7 +41,7 @@
 }
 unit ProgressConsole;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

@@ -40,7 +40,7 @@
 
 unit CastleClassUtils;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 {$ifdef DELPHI} {$warn SYMBOL_PLATFORM OFF} {$endif}
 
 interface

@@ -59,7 +59,7 @@ unit Images;
     linear like gluScaleImage
 }
 
-{$include kambiconf.inc}
+{$include castleconf.inc}
 {$include pngconf.inc}
 
 interface

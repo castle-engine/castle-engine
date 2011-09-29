@@ -17,7 +17,7 @@
 
 unit OpenGLTTFonts;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 {$I openglmac.inc}
 
 interface

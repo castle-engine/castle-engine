@@ -24,7 +24,7 @@
   Original header is Copyright (c) Mark J. Kilgard, 1994, 1995, 1996, 1998.
 
   @exclude (A lot of docs are not fixed for PasDoc. It's also internal,
-  and actually not used unit (unless you specifically compile GLWindow with
+  and actually not used unit (unless you specifically compile CastleWindow with
   GLUT backend.)) }
 unit CastleGlut;
 
@@ -54,7 +54,7 @@ unit CastleGlut;
    they don't exist in FPC).
 *)
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 { Choose calling convention for glut functions. }
 {$ifdef UNIX}      {$define GLUT_CDECL}   {$endif}

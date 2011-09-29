@@ -86,7 +86,7 @@ public
 
 {$ifdef read_implementation}
 
-{ Czyli implementacja GLWindow za pomoca XWindows poprzez
+{ Czyli implementacja CastleWindow za pomoca XWindows poprzez
   Xlib + glX.
 
   Punktem wyjscia byl znacznie przerobiony, rozszerzony, poprawiony prosty
@@ -102,7 +102,7 @@ const
     ButtonPressMask or ButtonReleaseMask or PointerMotionMask {mouse events} or
     FocusChangeMask;
 
-{$I glwindow_dialogs_by_glwinmessages.inc}
+{$I castlewindow_dialogs_by_messages.inc}
 
 { TCastleWindowBase --------------------------------------------------------  }
 

@@ -23,7 +23,7 @@
   http://www.ii.uni.wroc.pl/~anl/dyd/PO/ }
 program fft_tests;
 
-uses SysUtils, CastleUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
+uses SysUtils, CastleUtils, Images, ImagesFftw, CastleWindow, GL, GLImages,
   CastleTimeUtils, CastleStringUtils, Fftw_s, CastleGLUtils, Math,
   CastleParameters;
 

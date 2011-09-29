@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ This file declares and implements GLWindow menu classes.
-  TMenu, TMenuSeparator, TMenuItem, TMenuItemChecked etc.
-}
+{ CastleWindow menu bar. }
 
 {$ifdef read_interface}
   TMenu = class;
@@ -41,10 +39,10 @@
       it recursively updated in all TMenuEntry instances). }
     ParentWindow: TCastleWindowBase;
 
-    { Internal handle of this menu item within GLWindow backend.
-      This is used by GLWindow backend implementation, to store the
+    { Internal handle of this menu item within CastleWindow backend.
+      This is used by CastleWindow backend implementation, to store the
       intgernal resource corresponding to this menu entry.
-      The exact interpretation depends on GLWindow backend,
+      The exact interpretation depends on CastleWindow backend,
       and should not be messed with. }
     Handle: Pointer;
 
@@ -88,7 +86,7 @@
 
       To indicate that some letter of a caption is a mnemonic
       for this menu item put '_' (underscore) char before this
-      letter. Depending on GLWindow-backend-dependent,
+      letter. Depending on CastleWindow-backend-dependent,
       mnemonics should allow user to easier activate this menu item
       with keyboard (e.g. Alt+mnemonic to dropdown item in MainMenu).
 
@@ -104,7 +102,7 @@
       before *two* or more letters in Caption.
       I.e. you can't define multiple mnemonics for one menu item.
       I.e. this will not crash your program,
-      but results may be GLWindow-backend-dependent.
+      but results may be CastleWindow-backend-dependent.
 
       Just like in GTK toolkit gtk_label_new_with_mnemonic and
       gtk_menu_item_new_with_mnemonic. }
@@ -215,7 +213,7 @@
       (or user will press key matching with our Key/CharKey).
 
       You can override this and return true if you handled the command.
-      If this will return false, GLWindow will call EventMenuCommand
+      If this will return false, CastleWindow will call EventMenuCommand
       (OnMenuCommand).
 
       When entering this method, current OpenGL context is set to
@@ -233,12 +231,12 @@
       Similiar, is CharKey <> #0 and user will press a key with CharKey
       then it will be treated as this menu item click.
 
-      Such key press redirection is handled internally in GLWindow
+      Such key press redirection is handled internally in CastleWindow
       (possibly it's even internally handled in some library on top
-      of which GLWindow is implemented, e.g. WinAPI and GTK menus
+      of which CastleWindow is implemented, e.g. WinAPI and GTK menus
       can be explicitly connected with some key press
       (i.e. without doing any special redirection keypress -> DoCommand
-      in GLWindow).
+      in CastleWindow).
       So you will not get EventKeyDown (OnKeyDown) messages for such
       keypresses (that translate to menu click). Although TCastleWindowBase.KeysDown
       will be appropriately updated, of course.
@@ -463,10 +461,10 @@ function SQuoteMenuEntryCaption(const S: string): string;
 
 {$ifdef read_implementation}
 
-{ Implementation of these classes is NOT dependent on GLWindow
+{ Implementation of these classes is NOT dependent on CastleWindow
   implementation (i.e. it's not GTK or XLib or WinAPI or Glut specific).
   That was the original idea of this unit. Once these classes
-  were even declared in a separate unit (that was not dependent on GLWindow
+  were even declared in a separate unit (that was not dependent on CastleWindow
   unit).
 
   Such separation makes implementation of these things simple --

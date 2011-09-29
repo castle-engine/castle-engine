@@ -180,7 +180,7 @@
 
   You should always call LoadAllExtensions before using this unit.
   This unit may use various OpenGL extensions and check OpenGL version.
-  If you initialize OpenGL context using our GLWindow unit or
+  If you initialize OpenGL context using our CastleWindow unit or
   TCastleControlCustom then this will be done for you automatically during
   GL context initialization.
 }
@@ -213,7 +213,7 @@ unit VRMLGLRenderer;
   {$endif}
 {$endif}
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

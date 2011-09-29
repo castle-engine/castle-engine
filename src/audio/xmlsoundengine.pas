@@ -16,7 +16,7 @@
 { Sound engine loading sounds from XML file (TXmlSoundEngine). }
 unit XmlSoundEngine;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

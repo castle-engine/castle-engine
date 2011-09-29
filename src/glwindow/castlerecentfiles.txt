@@ -33,7 +33,7 @@ Separate "recent files" menu:
   some other operations.
 
 --------------------
-There are reasons after and agains separate "recent files",
+There are reasons after and against separate "recent files",
 see e.g. [http://bugzilla.gnome.org/show_bug.cgi?id=349541]
 or [http://log.emmanuelebassi.net/archives/category/hacking/recent-files/].
 In short:

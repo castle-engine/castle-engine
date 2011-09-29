@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ A simple program using GLWindow.
+{ A simple program using CastleWindow.
   Demonstrates the use of MainMenu in TCastleWindowBase.
 
   Shows
@@ -26,12 +26,12 @@
   - using menu mnemonics (underscore, for Alt+keypress),
   - replacing whole main menu temporarily with other main menu.
 }
-program glwindow_menu;
+program window_menu;
 
 {$apptype CONSOLE}
 
 uses SysUtils, VectorMath, GL, GLU, GLExt,
-  GLWindow, CastleGLUtils, GLWinMessages, CastleStringUtils;
+  CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils;
 
 var
   Window: TCastleWindowDemo;
@@ -219,7 +219,7 @@ begin
  Window.Height := 300;
  Window.DepthBufferBits := 0;
  Window.SetDemoOptions(K_F11, CharEscape, true);
- Window.OpenAndRun('Demo GLWindow Menu', @Draw);
+ Window.OpenAndRun('Demo CastleWindow Menu', @Draw);
 
  Window.MainMenu := nil;
  FreeAndNil(MainMenu);

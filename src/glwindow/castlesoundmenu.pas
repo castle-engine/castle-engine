@@ -13,15 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Menu items (suitable for GLMenu) to control the TXmlSoundEngine. }
-unit GLSoundMenu;
+{ Menu items (suitable for TCastleMenu) to control the TXmlSoundEngine. }
+unit CastleSoundMenu;
 
 interface
 
-uses GLWindow, GLMenu, XmlSoundEngine;
+uses CastleWindow, GLMenu, XmlSoundEngine;
 
 type
-  { An abstract class for GLSoundMenu items.
+  { An abstract class for CastleSoundMenu items.
     In the future maybe such idea will be incorporated into GLMenu unit. }
   TCastleMenuItem = class
   private
@@ -37,7 +37,7 @@ type
     procedure AccessoryValueChanged; virtual;
   end;
 
-  TGLSoundMenuItem = class(TCastleMenuItem)
+  TSoundMenuItem = class(TCastleMenuItem)
   private
     FSoundEngine: TXmlSoundEngine;
   protected
@@ -47,7 +47,7 @@ type
       ASoundEngine: TXmlSoundEngine);
   end;
 
-  TGLSoundInfoMenuItem = class(TGLSoundMenuItem)
+  TSoundInfoMenuItem = class(TSoundMenuItem)
   public
     function Title: string; override;
     procedure Selected; override;
@@ -56,15 +56,15 @@ type
   { Float slider suitable for volume setting.
     Range is always [0 .. 1] and when the slider is exactly
     on 0.0 position it shows "Off". }
-  TCastleMenuVolumeSlider = class(TMenuFloatSlider)
+  TMenuVolumeSlider = class(TMenuFloatSlider)
     constructor Create(const AValue: Single);
     function ValueToStr(const AValue: Single): string; override;
   end;
 
-  TGLSoundVolumeMenuItem = class(TGLSoundMenuItem)
+  TSoundVolumeMenuItem = class(TSoundMenuItem)
   private
-    FSlider: TCastleMenuVolumeSlider;
-    property Slider: TCastleMenuVolumeSlider read FSlider;
+    FSlider: TMenuVolumeSlider;
+    property Slider: TMenuVolumeSlider read FSlider;
   public
     constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
       ASoundEngine: TXmlSoundEngine);
@@ -77,10 +77,10 @@ type
     procedure AccessoryValueChanged; override;
   end;
 
-  TGLMusicVolumeMenuItem = class(TGLSoundMenuItem)
+  TMusicVolumeMenuItem = class(TSoundMenuItem)
   private
-    FSlider: TCastleMenuVolumeSlider;
-    property Slider: TCastleMenuVolumeSlider read FSlider;
+    FSlider: TMenuVolumeSlider;
+    property Slider: TMenuVolumeSlider read FSlider;
   public
     constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
       ASoundEngine: TXmlSoundEngine);
@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses Classes, CastleClassUtils, CastleUtils, GLWinMessages;
+uses Classes, CastleClassUtils, CastleUtils, CastleMessages;
 
 { TCastleMenuItem ---------------------------------------------------------------- }
 
@@ -119,23 +119,23 @@ procedure TCastleMenuItem.AccessoryValueChanged;
 begin
 end;
 
-{ TGLSoundMenuItem ----------------------------------------------------------- }
+{ TSoundMenuItem ----------------------------------------------------------- }
 
-constructor TGLSoundMenuItem.Create(AWindow: TCastleWindowBase;
+constructor TSoundMenuItem.Create(AWindow: TCastleWindowBase;
   Menu: TCastleMenu; ASoundEngine: TXmlSoundEngine);
 begin
   inherited Create(AWindow, Menu);
   FSoundEngine := ASoundEngine;
 end;
 
-{ TGLSoundInfoMenuItem ------------------------------------------------------- }
+{ TSoundInfoMenuItem ------------------------------------------------------- }
 
-function TGLSoundInfoMenuItem.Title: string;
+function TSoundInfoMenuItem.Title: string;
 begin
   Result := 'View sound information';
 end;
 
-procedure TGLSoundInfoMenuItem.Selected;
+procedure TSoundInfoMenuItem.Selected;
 var
   S: TStringList;
 begin
@@ -149,74 +149,74 @@ begin
   finally S.Free end;
 end;
 
-{ TCastleMenuVolumeSlider ---------------------------------------------------- }
+{ TMenuVolumeSlider ---------------------------------------------------- }
 
-constructor TCastleMenuVolumeSlider.Create(const AValue: Single);
+constructor TMenuVolumeSlider.Create(const AValue: Single);
 begin
   inherited Create(0, 1, AValue);
 end;
 
-function TCastleMenuVolumeSlider.ValueToStr(const AValue: Single): string;
+function TMenuVolumeSlider.ValueToStr(const AValue: Single): string;
 begin
   if AValue = 0.0 then
     Result := 'Off' else
     Result := inherited ValueToStr(AValue);
 end;
 
-{ TGLSoundVolumeMenuItem ----------------------------------------------------- }
+{ TSoundVolumeMenuItem ----------------------------------------------------- }
 
-constructor TGLSoundVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
   ASoundEngine: TXmlSoundEngine);
 begin
-  FSlider := TCastleMenuVolumeSlider.Create(ASoundEngine.Volume);
+  FSlider := TMenuVolumeSlider.Create(ASoundEngine.Volume);
   inherited;
 end;
 
-function TGLSoundVolumeMenuItem.Title: string;
+function TSoundVolumeMenuItem.Title: string;
 begin
   Result := 'Volume';
 end;
 
-function TGLSoundVolumeMenuItem.Accessory: TMenuAccessory;
+function TSoundVolumeMenuItem.Accessory: TMenuAccessory;
 begin
   Result := FSlider;
 end;
 
-procedure TGLSoundVolumeMenuItem.AccessoryValueChanged;
+procedure TSoundVolumeMenuItem.AccessoryValueChanged;
 begin
   SoundEngine.Volume := Slider.Value;
 end;
 
-procedure TGLSoundVolumeMenuItem.RefreshAccessory;
+procedure TSoundVolumeMenuItem.RefreshAccessory;
 begin
   Slider.Value := SoundEngine.Volume;
 end;
 
-{ TGLMusicVolumeMenuItem ----------------------------------------------------- }
+{ TMusicVolumeMenuItem ----------------------------------------------------- }
 
-constructor TGLMusicVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
   ASoundEngine: TXmlSoundEngine);
 begin
-  FSlider := TCastleMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);
+  FSlider := TMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);
   inherited;
 end;
 
-function TGLMusicVolumeMenuItem.Title: string;
+function TMusicVolumeMenuItem.Title: string;
 begin
   Result := 'Music volume';
 end;
 
-function TGLMusicVolumeMenuItem.Accessory: TMenuAccessory;
+function TMusicVolumeMenuItem.Accessory: TMenuAccessory;
 begin
   Result := FSlider;
 end;
 
-procedure TGLMusicVolumeMenuItem.AccessoryValueChanged;
+procedure TMusicVolumeMenuItem.AccessoryValueChanged;
 begin
   SoundEngine.MusicPlayer.MusicVolume := Slider.Value;
 end;
 
-procedure TGLMusicVolumeMenuItem.RefreshAccessory;
+procedure TMusicVolumeMenuItem.RefreshAccessory;
 begin
   Slider.Value := SoundEngine.MusicPlayer.MusicVolume;
 end;

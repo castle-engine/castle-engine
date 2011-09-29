@@ -1,4 +1,4 @@
-{$ifdef GLWINDOW_EVENTS_LOG}
+{$ifdef CASTLE_WINDOW_EVENTS_LOG}
 
 if Log then
   WritelnLog('TCastleWindowBase event', eventname+' begin'

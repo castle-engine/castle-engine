@@ -40,7 +40,7 @@
 
 program change_vrml_by_code;
 
-uses VectorMath, VRMLNodes, GL, GLU, GLWindow, CastleWarnings,
+uses VectorMath, VRMLNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleUtils, SysUtils, CastleGLUtils, VRMLGLScene, Cameras, CastleSceneManager,
   CastleFilesUtils, CastleParameters, CastleStringUtils;
 

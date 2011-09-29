@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <CONFIG>
   <Package Version="3">
-    <Name Value="castle_glwindow"/>
+    <Name Value="castle_window"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
       <Version Value="8"/>
@@ -45,74 +45,69 @@
         <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Description Value="Castle Game Engine - GLWindow and units using it.
-This package cannot be installed under Lazarus, it's only for being used in other programs. GLWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
+    <Description Value="Castle Game Engine - CastleWindow and units using it.
+This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="15">
+    <Files Count="14">
       <Item2>
-        <Filename Value="../src/glwindow/glsoundmenu.pas"/>
-        <UnitName Value="GLSoundMenu"/>
+        <Filename Value="../src/glwindow/castlesoundmenu.pas"/>
+        <UnitName Value="CastleSoundMenu"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/glwindow/glwindow.pas"/>
-        <UnitName Value="GLWindow"/>
+        <Filename Value="../src/glwindow/castlewindow.pas"/>
+        <UnitName Value="CastleWindow"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/glwindow/glwindowrecentfiles.pas"/>
-        <UnitName Value="GLWindowRecentFiles"/>
+        <Filename Value="../src/glwindow/castlerecentfiles.pas"/>
+        <UnitName Value="CastleRecentFiles"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/glwindow/glwininputs.pas"/>
-        <UnitName Value="GLWinInputs"/>
+        <Filename Value="../src/glwindow/castleinputs.pas"/>
+        <UnitName Value="CastleInputs"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/glwindow/glwinmessages.pas"/>
-        <UnitName Value="GLWinMessages"/>
+        <Filename Value="../src/glwindow/castlemessages.pas"/>
+        <UnitName Value="CastleMessages"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/glwindow/glwinmodes.pas"/>
-        <UnitName Value="GLWinModes"/>
+        <Filename Value="../src/glwindow/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/glwindow/glprogress.pas"/>
-        <UnitName Value="GLProgress"/>
+        <Filename Value="../src/glwindow/castleprogress.pas"/>
+        <UnitName Value="CastleProgress"/>
       </Item8>
       <Item10>
-        <Filename Value="../src/glwindow/windows/glwindow_winapi.inc"/>
+        <Filename Value="../src/glwindow/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
       </Item10>
-      <Item11>
-        <Filename Value="../src/glwindow/windows/glwindowwinapimenu.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="GLWindowWinAPIMenu"/>
-      </Item11>
       <Item12>
-        <Filename Value="../src/glwindow/unix/glwindow_xf86vmode.inc"/>
+        <Filename Value="../src/glwindow/unix/castlewindow_xf86vmode.inc"/>
         <Type Value="Include"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/glwindow/unix/glwindow_xlib.inc"/>
+        <Filename Value="../src/glwindow/unix/castlewindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/glwindow/unix/kambiglx.pas"/>
+        <Filename Value="../src/glwindow/unix/castleglx.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="KambiGLX"/>
+        <UnitName Value="CastleGlx"/>
       </Item14>
-      <Item15>
-        <Filename Value="../src/glwindow/unix/kambixf86vmode.pas"/>
+      <Item11>
+        <Filename Value="../src/glwindow/unix/castlexf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="KambiXF86VMode"/>
-      </Item15>
+        <UnitName Value="CastleXF86VMode"/>
+      </Item11>
       <Item1>
         <Filename Value="../src/glwindow/unix/xlibutils.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
       </Item1>
       <Item9>
-        <Filename Value="../src/base/kambiconf.inc"/>
+        <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
       </Item9>
     </Files>

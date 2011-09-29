@@ -31,7 +31,7 @@
       displaying text with long lines.
 
       We will try to break text only at whitespace. Note that our "line breaking"
-      works correctly for all fonts (see @link(TGLWinMessagesTheme.Font)),
+      works correctly for all fonts (see @link(TMessagesTheme.Font)),
       even if font is not fixed-character-width font.
 
       If you pass a text as a single string parameter, then our "line breaking"
@@ -49,7 +49,7 @@
       Long lines are automatically broken taking into account current window
       width.)
 
-    @item(You can configure dialog boxes look using GLWinMessagesTheme variable.
+    @item(You can configure dialog boxes look using CastleMessagesTheme variable.
       For example, you can make the dialog box background partially transparent
       (by real transparency or by OpenGL stipple pattern).))
 
@@ -61,7 +61,7 @@
 
   @unorderedList(
     @item(
-      It's implemented using GLWinModes approach. Which means that when you call
+      It's implemented using CastleWindowModes approach. Which means that when you call
       some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
       (OnDraw, OnKeyDown, OnMouseDown, OnIdle etc.) for it's own.
       So you can be sure that e.g. no glwin callbacks that you registered in your
@@ -74,10 +74,10 @@
       program, and things will magically work --- inside MessageXxx we wait until
       user answers the dialog box.
 
-      This also means that this units is only able to work when GLWindow unit
+      This also means that this units is only able to work when CastleWindow unit
       implements Application.ProcessMessage routine. For now this means
-      that GLWindow unit must not work on top of glut (GLWINDOW_GLUT
-      must not be defined while compiling GLWindow), other GLWindow implementations
+      that CastleWindow unit must not work on top of glut (CASTLE_WINDOW_GLUT
+      must not be defined while compiling CastleWindow), other CastleWindow implementations
       are OK.)
 
     @item(
@@ -105,24 +105,24 @@
   )
 *)
 
-unit GLWinMessages;
+unit CastleMessages;
 
 { TODO
   - przydalby sie jeszcze kursor dla MessageInput[Query]
-  - this should be implemented on top of GLWinModes.TGLModeFrozenScreen,
+  - this should be implemented on top of CastleWindowModes.TGLModeFrozenScreen,
     this would simplify implementation a bit
 }
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 
-uses Classes, GLWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, OpenGLFonts,
+uses Classes, CastleWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, OpenGLFonts,
   CastleStringUtils, VectorMath, KeysMouse;
 
 type
   { Specifies text alignment for MessageXxx functions in
-    @link(GLWinMessages) unit. }
+    @link(CastleMessages) unit. }
   TTextAlign = (taLeft, taMiddle, taRight);
 
 { Ask user for simple confirmation. In other words, this is the standard
@@ -310,7 +310,7 @@ function MessageInputQueryVector4Single(
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 
 type
-  TGLWinMessagesTheme = record
+  TMessagesTheme = record
     { Color of the inside area in the message rectangle
       (or of the stipple, if it's <> @nil).
       If RectColor[3] <> 1.0, then it will be nicely blended on the screen. }
@@ -334,7 +334,7 @@ type
   end;
 
 const
-  GLWinMessagesTheme_Default: TGLWinMessagesTheme =
+  MessagesTheme_Default: TMessagesTheme =
   ( RectColor: (0, 0, 0, 1);           { = Black3Single }
     RectBorderCol: (1, 1, 0.33);       { = Yellow3Single }
     ScrollBarCol: (0.5, 0.5, 0.5);     { = Gray3Single }
@@ -346,7 +346,7 @@ const
   );
 
   { }
-  GLWinMessagesTheme_TypicalGUI: TGLWinMessagesTheme =
+  MessagesTheme_TypicalGUI: TMessagesTheme =
   ( RectColor: (0.75, 0.75, 0.66, 1);
     RectBorderCol: (0.87, 0.87, 0.81);
     ScrollBarCol: (0.87, 0.87, 0.81);
@@ -359,14 +359,14 @@ const
 
 var
   { The way MessageXxx procedures in this unit are displayed.
-    By default it is equal to GLWinMessagesTheme_Default.
+    By default it is equal to MessagesTheme_Default.
 
     Note that all procedures in this unit are re-entrant (safe for recursive
     calls, and in threads), unless you modify this variable. When you modify
     this from one thread, be sure that you don't currently use it in some
     MessageXxx (in other thread, or maybe you're in Application.OnIdle or such that
     is called while other window is in MessageXxx). }
-  GLWinMessagesTheme: TGLWinMessagesTheme;
+  MessagesTheme: TMessagesTheme;
 
 type
   TGLWinMessageNotify = procedure(Text: TStringList);
@@ -378,7 +378,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  CastleClassUtils, SysUtils, GLWinModes, CastleLog, GLImages;
+  CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, GLImages;
 
 { TIntRect ------------------------------------------------------------------- }
 
@@ -906,21 +906,21 @@ begin
  MessageRect := MD.WholeMessageRect;
 
  { draw MessageRect (using
-   GLWinMessagesTheme.RectStipple,
-   GLWinMessagesTheme.RectColor,
-   GLWinMessagesTheme.RectBorderCol) }
- if GLWinMessagesTheme.RectStipple <> nil then
+   MessagesTheme.RectStipple,
+   MessagesTheme.RectColor,
+   MessagesTheme.RectBorderCol) }
+ if MessagesTheme.RectStipple <> nil then
  begin
-   KamGLPolygonStipple(GLWinMessagesTheme.RectStipple);
+   KamGLPolygonStipple(MessagesTheme.RectStipple);
    glEnable(GL_POLYGON_STIPPLE);
  end;
- if GLWinMessagesTheme.RectColor[3] <> 1.0 then
+ if MessagesTheme.RectColor[3] <> 1.0 then
  begin
    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
    glEnable(GL_BLEND);
  end;
  DrawGLBorderedRectangle(MessageRect,
-   GLWinMessagesTheme.RectColor, Vector4Single(GLWinMessagesTheme.RectBorderCol));
+   MessagesTheme.RectColor, Vector4Single(MessagesTheme.RectBorderCol));
  glDisable(GL_BLEND);
  glDisable(GL_POLYGON_STIPPLE);
 
@@ -930,7 +930,7 @@ begin
  begin
    glLoadIdentity;
    glTranslatef(MessageRect[0, 0] + BoxMargin, MessageRect[0, 1] + BoxMargin, 0);
-   glColorv(GLWinMessagesTheme.ClosingInfoCol);
+   glColorv(MessagesTheme.ClosingInfoCol);
    DrawStrings(MD.Broken_ClosingInfo, taRight);
 
    MessageRect[0, 1] += BoxMargin +
@@ -938,7 +938,7 @@ begin
      BoxMargin;
 
    glLoadIdentity;
-   glColorv(GLWinMessagesTheme.RectBorderCol);
+   glColorv(MessagesTheme.RectBorderCol);
    HorizontalGLLine(MessageRect[0, 0], MessageRect[1, 0], MessageRect[0, 1]);
 
    MessageRect[0, 1] +=  1 { width of horizontal line };
@@ -964,12 +964,12 @@ begin
   md.przewVisY2 := MessageRect[0, 1] + ScrollBarMargin + ScrollBarVisibleBegin;
 
   glLoadIdentity;
-  glColorv(GLWinMessagesTheme.RectBorderCol);
+  glColorv(MessagesTheme.RectBorderCol);
   VerticalGLLine(md.ScrollBarRect[0, 0],
     md.ScrollBarRect[0, 1], md.ScrollBarRect[1, 1]);
 
   glLineWidth(ScrollBarInternalWidth);
-  glColorv(GLWinMessagesTheme.ScrollBarCol);
+  glColorv(MessagesTheme.ScrollBarCol);
   VerticalGLLine((md.ScrollBarRect[0, 0] + md.ScrollBarRect[1, 0]) / 2,
     md.przewVisY1, md.przewVisY2);
   glLineWidth(1);
@@ -994,11 +994,11 @@ begin
 
  if md.drawAdditional then
  begin
-  glColorv(GLWinMessagesTheme.AdditionalStrCol);
+  glColorv(MessagesTheme.AdditionalStrCol);
   DrawStrings(md.Broken_SAdditional, md.align);
  end;
 
- glColorv(GLWinMessagesTheme.TextCol);
+ glColorv(MessagesTheme.TextCol);
  DrawStrings(md.Broken_MessgText, md.align);
 
  glDisable(GL_SCISSOR_TEST);
@@ -1129,9 +1129,9 @@ begin
     dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_BACK) else
     dlDrawBG := SaveScreen_ToDisplayList_noflush(0, 0, Window.Width, Window.Height, GL_FRONT);
    answered := false;
-   if GLWinMessagesTheme.Font = nil then
+   if MessagesTheme.Font = nil then
     font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18) else
-    font := GLWinMessagesTheme.Font;
+    font := MessagesTheme.Font;
    MessgText := textlist;
    { contents of Broken_xxx will be initialized in resizeMessg(),
      as well as few other MessageData fields like MaxLineWidth or
@@ -1173,7 +1173,7 @@ begin
   messageData.Broken_MessgText.Free;
   messageData.Broken_ClosingInfo.Free;
   messageData.Broken_SAdditional.Free;
-  if GLWinMessagesTheme.Font = nil then messageData.font.Free;
+  if MessagesTheme.Font = nil then messageData.font.Free;
   ASAdditional := messageData.SAdditional;
   FreeAndNil(messageData);
 
@@ -1753,5 +1753,5 @@ end;
 { init / fini ---------------------------------------------------------------- }
 
 initialization
-  GLWinMessagesTheme := GLWinMessagesTheme_Default;
+  MessagesTheme := MessagesTheme_Default;
 end.

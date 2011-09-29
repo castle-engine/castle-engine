@@ -22,7 +22,7 @@ program vrml_browser_script_compiled;
 
 uses CastleUtils, ProgressUnit, ProgressConsole, CastleWarnings,
   VRMLScene, VRMLFields, VRMLTime, SysUtils, CastleParameters, CastleStringUtils,
-  GLWindow;
+  CastleWindow;
 
 var
   Window: TCastleWindow;

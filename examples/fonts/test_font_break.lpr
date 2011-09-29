@@ -21,7 +21,7 @@
 
 program test_font_break;
 
-uses GLWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
+uses CastleWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
   CastleUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath,
   CastleStringUtils;
 

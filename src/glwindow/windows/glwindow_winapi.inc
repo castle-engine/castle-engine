@@ -72,7 +72,7 @@ private
 
 {$ifdef read_implementation}
 
-{$I glwindow_winapi_menu.inc}
+{$I castlewindow_winapi_menu.inc}
 
 { TCastleWindowBase ------------------------------------------------- }
 
@@ -166,7 +166,7 @@ begin
         Result := K_None;
   end;
 
-  { Note that GLWindow WinAPI will never generate KeyDown/Up with these keys:
+  { Note that CastleWindow WinAPI will never generate KeyDown/Up with these keys:
       K_Numpad_End;
       K_Numpad_Down;
       K_Numpad_PageDown;
@@ -200,7 +200,7 @@ begin
     Co wiecej jednak, moze tak byc ze Window <> nil ale wskazuje na okienko
     ktore juz jest zamkniete (a moze nawet na obiekt ktory juz zostal
     zwolniony z pamieci !). Dlaczego tak jest, patrz komentarz na poczatku
-    GLWindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
+    castlewindow_winsystem.inc. Wiec sprawdzamy tutaj czy glwin jest na liscie
     Application.OpenWindows .
 
     Moreover, temporary windows created by CreateTemporaryWindow in
@@ -366,7 +366,7 @@ begin
     WM_KEYUP: begin Handle_WM_KEYUP; Exit end;
 
     { The only way we can get WM_CHAR message is when we get WM_KEYDOWN
-      message and TranslateMessage (called from glwindow_winsystem.inc)
+      message and TranslateMessage (called from castlewindow_winsystem.inc)
       translates it to WM_CHAR message.
       But always in WM_KEYDOWN handler (a few lines above) we do
       PeekMessage(..., WM_CHAR, WM_CHAR, PM_REMOVE) so all WM_CHAR messages
@@ -494,7 +494,7 @@ begin
           windows that block activity of main window, the only way we can do some
           action when the menu is open is to handle some messages here like
           WM_ENTERIDLE or WM_INITMENU; those messages do NOT come from
-          GLWindow_winsystem.inc DispatchMessage call, our WndProc is instead
+          castlewindow_winsystem.inc DispatchMessage call, our WndProc is instead
           called directly by WinAPI).
 
           Still the problem remains: when someone presses a key (we get DoKeyDown)
@@ -834,7 +834,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
             VisualAttr.AddArray([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
               WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-              { If indexed mode will be implemented in GLWindow one day, this can take
+              { If indexed mode will be implemented in CastleWindow one day, this can take
                 WGL_TYPE_COLORINDEX_ARB instead of WGL_TYPE_RGBA_ARB. }
               WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
               WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
@@ -1358,7 +1358,7 @@ var
   Mode: TGLModeFrozenScreen;
 begin
   { init CustomColors to all blacks; TODO: I should use a static table for this
-    (and put a comment in GLWindow to say that custom colors are preserved in win dialog) }
+    (and put a comment in CastleWindow to say that custom colors are preserved in win dialog) }
   FillChar(CustomColors, SizeOf(CustomColors), 0);
 
   { init Struct }
@@ -1448,10 +1448,10 @@ begin
   { no need to worry about multiple applications
     registering same WndClassName because window classes are
     process-specific (so, if other process registers another
-    GLWindow class, it will be just a different class -
+    CastleWindow class, it will be just a different class -
     distinguished by the hInstance parameter of TWndClass and
     CreateWindowEx). }
-  WndClassName := 'GLWindow';
+  WndClassName := 'CastleWindow';
 
   FillChar(WindowClass, SizeOf(WindowClass), 0);
   { style : redraw on size,  own DC for window }

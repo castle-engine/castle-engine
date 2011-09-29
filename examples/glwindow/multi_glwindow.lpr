@@ -14,7 +14,7 @@
 }
 
 { Demo of
-  - using multiple windows with GLWindow unit
+  - using multiple windows with CastleWindow unit
   - instead of registering OnXxx callbacks overriding EventXxx methods
     (more OOP approach)
   - TGLOutlineTTFont rendered with depth (3d letters)
@@ -28,12 +28,12 @@
   different.
 }
 
-program multi_glwindow;
+program multi_window;
 
 {$apptype GUI}
 
 uses
-  GL, GLU, GLWindow, SysUtils, CastleUtils, OpenGLFonts, OpenGLTTFonts,
+  GL, GLU, CastleWindow, SysUtils, CastleUtils, OpenGLFonts, OpenGLTTFonts,
   TTF_BitstreamVeraSans_Unit, CastleGLUtils, KeysMouse, VectorMath,
   CastleStringUtils;
 
@@ -178,7 +178,7 @@ begin
   Windws[i].Rotating := Odd(i);
 
   Windws[i].Caption := IntToStr(i)+
-    ' : outline font + multiple windows under GLWindow demo';
+    ' : outline font + multiple windows under CastleWindow demo';
   Windws[i].Width := 200;
   Windws[i].Height := 200;
   Windws[i].Left := 30 + 250 * (i mod 3);

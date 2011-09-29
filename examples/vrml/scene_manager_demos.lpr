@@ -26,7 +26,7 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, GLWindow, VectorMath, CastleWarnings, Base3D,
+uses CastleUtils, CastleWindow, VectorMath, CastleWarnings, Base3D,
   VRMLScene, VRMLGLScene, CastleSceneManager, VRMLGLAnimation, VRMLNodes;
 
 var

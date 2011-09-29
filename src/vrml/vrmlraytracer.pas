@@ -16,7 +16,7 @@
 { Rendering 3D models by ray-tracing (TClassicRayTracer, TPathTracer). }
 unit VRMLRayTracer;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 { TODO:
   - for classic raytracer do shadow cache

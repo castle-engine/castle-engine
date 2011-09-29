@@ -21,7 +21,7 @@ unit TestOpeningAndRendering3D;
 interface
 
 uses fpcunit, testutils, testregistry, CastleFilesUtils, EnumerateFiles,
-  GLWindow, VRMLScene, VRMLGLScene, CastleSceneManager;
+  CastleWindow, VRMLScene, VRMLGLScene, CastleSceneManager;
 
 type
   TTestOpeningAndRendering3D = class(TTestCase)

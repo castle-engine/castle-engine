@@ -133,10 +133,10 @@ end;
 { TCastleWindowBase dialogs ---------------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.
-  Alternatively, you can include glwindow_dialogs_by_glwinmessages.inc,
+  Alternatively, you can include castlewindow_dialogs_by_messages.inc,
   to have simple dialog boxes drawn on OpenGL context using our GLWinMessages
   unit. }
-{ $I glwindow_dialogs_by_glwinmessages.inc}
+{ $I castlewindow_dialogs_by_messages.inc}
 
 function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
@@ -211,7 +211,7 @@ end;
 function TGLApplication.BackendName: string;
 begin
   { TODO }
-  Result := 'My GLWindow Backend';
+  Result := 'My CastleWindow Backend';
 end;
 
 {$endif read_implementation}

@@ -15,11 +15,11 @@
 
 { This is a demo how one can use TCastleWindowBase.MakeGLAreaContainer
   to put some GTK widgets in window that is still managed
-  as simple TCastleWindowBase object from GLWindow unit.
-  GLWindow must be implemented on top of GTK
-  (GLWINDOW_GTK_1 or GLWINDOW_GTK_2) to be able to compile this.
+  as simple TCastleWindowBase object from CastleWindow unit.
+  CastleWindow must be implemented on top of GTK
+  (CASTLE_WINDOW_GTK_1 or CASTLE_WINDOW_GTK_2) to be able to compile this.
   You must also define GTK_1 when compiling this unit
-  if GLWindow is implemented on top of GTK 1.x (GLWINDOW_GTK_1).
+  if CastleWindow is implemented on top of GTK 1.x (CASTLE_WINDOW_GTK_1).
 
   This demo inserts GtkEntry widget into TCastleWindowBase window.
   When user changes text of this entry, OpenGL area displays it.
@@ -30,21 +30,21 @@
 
 { $define GTK_1}
 
-program glwindow_gtk_mix;
+program window_gtk_mix;
 
-uses GLWindow, GL, GLU, GLExt, CastleGLUtils, OpenGLFonts, SysUtils,
+uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, OpenGLFonts, SysUtils,
   VectorMath, CastleUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
   {$ifdef GTK_1} Gtk, Gdk, Glib {$else} Gtk2, Gdk2, Glib2 {$endif},
   CastleStringUtils;
 
 type
-  TMyGLWindow = class(TCastleWindowDemo)
+  TMyWindow = class(TCastleWindowDemo)
   protected
     function MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget; override;
   end;
 
 var
-  Window: TMyGLWindow;
+  Window: TMyWindow;
   Font: TGLOutlineFont_Abstract;
   Entry: PGtkWidget;
 
@@ -53,7 +53,7 @@ begin
  Window.PostRedisplay;
 end;
 
-function TMyGLWindow.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
+function TMyWindow.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
 begin
  Entry := gtk_entry_new;
  gtk_entry_set_text(GTK_ENTRY(Entry),
@@ -104,7 +104,7 @@ begin
 end;
 
 begin
- Window := TMyGLWindow.Create(nil);
+ Window := TMyWindow.Create(nil);
  try
   Window.Width := 600;
   Window.Height := 400;
@@ -112,6 +112,6 @@ begin
   Window.OnClose := @Close;
   Window.OnResize := @Resize;
   Window.SetDemoOptions(K_F11, CharEscape, true);
-  Window.OpenAndRun('GLWindow with some GTK widgets', @Draw);
+  Window.OpenAndRun('CastleWindow with some GTK widgets', @Draw);
  finally Window.Free end;
 end.

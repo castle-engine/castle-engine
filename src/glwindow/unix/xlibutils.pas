@@ -29,7 +29,7 @@
 
 unit XlibUtils;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

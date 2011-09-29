@@ -62,7 +62,7 @@ type
     (for example, character "X" may produced on normal systems
     by Shift + "x" or by pressing "x" while "caps lock" is on;
     but this is not dealt with in this unit (it's usually provided
-    by operating system / GUI toolkit to GLWindow unit),
+    by operating system / GUI toolkit to CastleWindow unit),
     we just get characters passed to TCamera.KeyDown and such methods.) }
   TInputShortcut = class
   private
@@ -220,8 +220,8 @@ type
     generates a simple 4x4 camera matrix.
 
     This class is not tied to any OpenGL specifics, any VRML specifics,
-    and GLWindow etc. --- this class is fully flexible and may be used
-    in any 3D program, whether using GLWindow, OpenGL etc. or not.
+    and CastleWindow etc. --- this class is fully flexible and may be used
+    in any 3D program, whether using CastleWindow, OpenGL etc. or not.
 
     Various TCamera descendants implement various navigation
     methods, for example TExamineCamera allows the user to rotate

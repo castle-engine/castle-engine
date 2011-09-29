@@ -59,7 +59,7 @@ unit CastleXF86VMode;
 {$ifdef VER1_0_10}
   {$FATAL This unit cannot be safely
     used with FPC 1.0.10 due to some bugs in compiler (that were not present
-    in FPC 1.0.6) -- VideoReset in GLWindow after --fullscreen-custom causes
+    in FPC 1.0.6) -- VideoReset in CastleWindow after --fullscreen-custom causes
     AccessViolation. }
 {$endif}
 

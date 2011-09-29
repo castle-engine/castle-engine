@@ -15,11 +15,11 @@
 
 { Manage a list of recently opened files, and show a menu in TCastleWindowBase.
   See TCastleRecentFiles class. }
-unit GLWindowRecentFiles;
+unit CastleRecentFiles;
 
 interface
 
-uses Classes, GLWindow, RecentFiles;
+uses Classes, CastleWindow, RecentFiles;
 
 type
   { Manage a list of recently opened files, and show a menu in TCastleWindowBase. }

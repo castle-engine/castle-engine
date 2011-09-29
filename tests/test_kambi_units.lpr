@@ -33,7 +33,7 @@ uses
   TestVRMLNodesOptimizedProxy,
   TestVRMLGLScene,
   TestVRMLScene,
-  { Not used anymore --- IntRects stuff is internal inside GLWinMessages,
+  { Not used anymore --- IntRects stuff is internal inside CastleMessages,
     and honestly not important enough.
   TestIntRects, }
   TestSpaceFillingCurves,
@@ -48,11 +48,11 @@ uses
   TestDDS,
   TestTriangulator
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
-  { These require GLWindow initializing it's own window. So they
+  { These require CastleWindow initializing it's own window. So they
     1. conflict with LCL windows (so only when TEXT_RUNNER)
     2. are allowed only when window system (so not when NO_WINDOW_SYSTEM,
        e.g. do not do them when running inside non-X ssh session or cron) }
-  TestGLWindow,
+  TestCastleWindow,
   TestOpeningAndRendering3D
   {$endif} {$endif};
 

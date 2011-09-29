@@ -17,7 +17,7 @@
   single instance Parameters). }
 unit CastleParameters;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

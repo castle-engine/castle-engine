@@ -14,7 +14,7 @@
 }
 
 { Waiting for user input, keeping static image displayed on TCastleWindowBase. }
-unit GLWinInputs;
+unit CastleInputs;
 
 {
   TODO
@@ -22,34 +22,34 @@ unit GLWinInputs;
     razem z ich callbackami, przynajmniej OnDraw.
     Musza byc w stanie dobrze zareagowac na wypadek gdyby user
     zrobil resize na okienku.
-  - Input, InputAnyKey, GLWinModes.TGLModeFrozenScreen should be fixed
+  - Input, InputAnyKey, CastleWindowModes.TGLModeFrozenScreen should be fixed
     to not be vulnerable for "glReadPixels from front buffer is not reliable"
     problem.
 }
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 
-uses GL, GLU, CastleGLUtils, GLWindow, GLWinModes, OpenGLFonts, CastleUtils, Images,
+uses GL, GLU, CastleGLUtils, CastleWindow, CastleWindowModes, OpenGLFonts, CastleUtils, Images,
   CastleStringUtils;
 
 { Wait until user inputs a string (accept by Enter), displaying the static
   image with user string.
 
   At the beginning, we capture the screen from OpenGL ReadBuffer.
-  If FlushGLWindow then we'll make Window.FlushRedisplay before capturing
-  (you should set FlushGLWindow = @true when ReadBuffer = GL_FRONT).
+  If FlushCastleWindow then we'll make Window.FlushRedisplay before capturing
+  (you should set FlushWindow = @true when ReadBuffer = GL_FRONT).
 
   ScreenX0, ScreenY0 is raster position for lower-left screen corner.
 
   AnswerX0, AnswerY0 is raster position for displaying user answer.
 
   AnswerDefault, MinLength, MaxLength and AnswerAllowedChars
-  have the same meaning as in GLWinMessages unit. Initial Answer
+  have the same meaning as in CastleMessages unit. Initial Answer
   cannot contain characters outside AnswerAllowedChars. }
 function Input(Window: TCastleWindowBase;
-  ReadBuffer: TGLenum; FlushGLWindow: boolean;
+  ReadBuffer: TGLenum; FlushWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
   AnswerDefault: string = '';
@@ -69,7 +69,7 @@ function Input(Window: TCastleWindowBase;
   OpenGL clear color will be used.
 
   You can also allow to capture the screen contents.
-  See @link(Input) for ReadBuffer, FlushGLWindow spec.
+  See @link(Input) for ReadBuffer, FlushWindow spec.
   In this case, RasterX, RasterY should be position of lower-left
   screen corner (unless you actully want to shift the displayed screen).
   @groupBegin }
@@ -77,7 +77,7 @@ procedure InputAnyKey(Window: TCastleWindowBase; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer); overload;
 procedure InputAnyKey(Window: TCastleWindowBase; const Img: TImage;
   RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum; FlushGLWindow: boolean;
+procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum; FlushWindow: boolean;
   RasterX, RasterY: Integer); overload;
 { @groupEnd }
 
@@ -136,7 +136,7 @@ end;
 { GLWinInput -------------------------------------------------------------- }
 
 function Input(Window: TCastleWindowBase;
-  ReadBuffer: TGLenum; FlushGLWindow: boolean;
+  ReadBuffer: TGLenum; FlushWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
   AnswerDefault: string {$ifdef DEFPARS} = ''{$endif};
@@ -148,7 +148,7 @@ var
   SavedMode: TGLMode;
   Data: TGLWinInputData;
 begin
-  if FlushGLWindow then Window.FlushRedisplay;
+  if FlushWindow then Window.FlushRedisplay;
   Data.dlBGImage := SaveScreen_ToDisplayList_noflush(
     0, 0, Window.Width, Window.Height, ReadBuffer);
   Data.Answer := AnswerDefault;
@@ -257,12 +257,12 @@ begin
 end;
 
 procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum;
-  FlushGLWindow: boolean; RasterX, RasterY: Integer);
+  FlushWindow: boolean; RasterX, RasterY: Integer);
 var
   DL: TGLuint;
   BGImageWidth, BGImageHeight: Cardinal;
 begin
-  if FlushGLWindow then Window.FlushRedisplay;
+  if FlushWindow then Window.FlushRedisplay;
   BGImageWidth := Window.Width;
   BGImageHeight := Window.Height;
   DL := SaveScreen_ToDisplayList_noflush(

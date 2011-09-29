@@ -16,7 +16,7 @@
   (at your option) any later version.
 
   If the engine is compiled with CASTLE_ENGINE_LGPL symbol
-  (see ../base/kambiconf.inc), an alternative "dummy" implementation of
+  (see ../base/castleconf.inc), an alternative "dummy" implementation of
   this unit will be used, that doesn't depend on any GPL code.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
@@ -29,7 +29,7 @@
 { Common utilities for NURBS curves and surfaces. }
 unit NURBS;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

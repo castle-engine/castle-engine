@@ -86,7 +86,7 @@
 
 unit CastleUtils;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

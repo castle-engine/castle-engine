@@ -163,7 +163,7 @@
 
 unit VRMLNodes;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 
@@ -5641,7 +5641,7 @@ destructor TX3DNodeNames.Destroy;
 begin
   { This may happen after VRMLNodes unit finalization
     (e.g. simplest_vrml_browser_with_shadow_volumes demo_models/shadow_volumes/stonehenge.wrl,
-    where TX3DRootNode with some ExportedNames is freed from GLWindow
+    where TX3DRootNode with some ExportedNames is freed from CastleWindow
     unit finalization, because Application owns Window that owns Scene).
     So secure from AnyNodeDestructionNotifications being nil. }
   if AutoRemove and (AnyNodeDestructionNotifications <> nil) then
@@ -5996,7 +5996,7 @@ initialization
   TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
 finalization
   { Because of various finalization order (some stuff may be owned
-    e.g. by GLWindow.Application, and freed at GLWindow finalization,
+    e.g. by CastleWindow.Application, and freed at CastleWindow finalization,
     which may be done after VRMLNodes finalization) we may defer
     finalization for later. }
   if (VRMLCache = nil) or VRMLCache.Empty then

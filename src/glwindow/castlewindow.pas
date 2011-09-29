@@ -71,7 +71,7 @@
   So the simplest example of using this unit can look like this:
 
 @longcode(#
-  uses GLWindow;
+  uses CastleWindow;
 
   var
     Window: TCastleWindowCustom;
@@ -86,7 +86,7 @@
     Window := TCastleWindowCustom.Create(Application);
     Window.OnResize := @Resize;
     Window.OnDraw := @Draw;
-    Window.Caption := 'Simplest GLWindow example';
+    Window.Caption := 'Simplest CastleWindow example';
     Window.OpenAndRun;
   end.
 #)
@@ -103,7 +103,7 @@
   this time using OOP approach:
 
 @longcode(#
-  uses GLWindow;
+  uses CastleWindow;
 
   type
     TMyWindow = class(TCastleWindowCustom)
@@ -121,7 +121,7 @@
     Window: TMyWindow;
   begin
     Window := TMyWindow.Create(Application);
-    Window.Caption := 'Simplest GLWindow example using more OOP';
+    Window.Caption := 'Simplest CastleWindow example using more OOP';
     Window.OpenAndRun;
   end.
 #)
@@ -130,18 +130,18 @@
   to some other set of callbacks using TWindowCallbacks,
   TCastleWindowBase.GetCallbacksState, TCastleWindowBase.SetCallbacksState.
   Using these functions I implemented unit
-  @link(GLWinModes) and then, on top of this, I implemented some very
-  handy things like modal message boxes (unit @link(GLWinMessages))
-  and progress bar (unit @link(GLProgress)). These units give you some typical
+  @link(CastleWindowModes) and then, on top of this, I implemented some very
+  handy things like modal message boxes (unit @link(CastleMessages))
+  and progress bar (unit @link(CastleProgress)). These units give you some typical
   GUI capabilities, and they are in pure OpenGL.
 
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
   callbacks) you can not do such things so easily -- in general, you have
   to define something to turn off special EventXxx functionality
   (like SetDemoOptions in TCastleWindowDemo and UseControls in TCastleWindowCustom)
-  and you have to turn them off/on when using GLWinModes
+  and you have to turn them off/on when using CastleWindowModes
   (mentioned TCastleWindowDemo and TCastleWindowCustom are already handled in
-  GLWinModes). TODO: I shall do some virtual methods in TCastleWindowBase
+  CastleWindowModes). TODO: I shall do some virtual methods in TCastleWindowBase
   to make this easy.
 
   Random features list:
@@ -163,12 +163,12 @@
       You can attach a menu to a window. Menu structure is constructed using
       various descendants of TMenuEntry class.
       Then you have to assign such menu structure
-      to TCastleWindowBase.MainMenu property. When GLWindow is implemented on top
+      to TCastleWindowBase.MainMenu property. When CastleWindow is implemented on top
       of GTK_1 or GTK_2 or WINAPI or GLUT we will show this menu and call
       TCastleWindowBase.EventMenuCommand (TCastleWindowBase.OnMenuCommand) when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
-      See @code(castle_game_engine/examples/glwindow/glwindow_menu.lpr)
+      See @code(castle_game_engine/examples/window/window_menu.lpr)
       for an example how to use the menu.)
 
     @item(Changing screen resolution and bit depth,
@@ -185,7 +185,7 @@
     @item(You can use native modal dialogs for things such as file selection.
       GTK backend will use GTK dialogs, WinAPI backend
       will use Windows dialog boxes, XLib backend will fall back
-      on GLWinMessages text input.
+      on CastleMessages text input.
 
       See TCastleWindowBase.FileDialog (for opening and saving files) and
       TCastleWindowBase.ColorDialog (for choosing RGB colors).)
@@ -196,16 +196,16 @@
   )
 }
 
-unit GLWindow;
+unit CastleWindow;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
-{ Choose GLWindow backend ------------------------------------------ }
+{ Choose CastleWindow backend ------------------------------------------ }
 
-{ You must define one of the symbols GLWINDOW_GTK_1, GLWINDOW_GTK_2,
-  GLWINDOW_WINAPI (only under Windows),  GLWINDOW_XLIB (only where X11
+{ You must define one of the symbols CASTLE_WINDOW_GTK_1, CASTLE_WINDOW_GTK_2,
+  CASTLE_WINDOW_WINAPI (only under Windows),  CASTLE_WINDOW_XLIB (only where X11
   and Xlib are available, which usually means "only under UNIX"),
-  GLWINDOW_GLUT.
+  CASTLE_WINDOW_GLUT.
 
   Of course the list of available backends may be extended
   with time (although I do not plan it for now, since I'm happy with
@@ -213,13 +213,13 @@ unit GLWindow;
 
   Here are short descriptions for each backend:
 
-  GLWINDOW_GTK_1 and GLWINDOW_GTK_2
-    GLWINDOW_GTK_1 is based on GTK 1.x (>= 1.2) using GtkGLArea widget.
+  CASTLE_WINDOW_GTK_1 and CASTLE_WINDOW_GTK_2
+    CASTLE_WINDOW_GTK_1 is based on GTK 1.x (>= 1.2) using GtkGLArea widget.
     Made around beginning of march 2004. Historically the first,
     it is now by all means superseded by GTK 2 version.
     Saying it clearly: @bold(do not use GTK_1, use GTK_2 instead).
 
-    GLWINDOW_GTK_2 is based on GTK 2.x, using GtkGLExt extension.
+    CASTLE_WINDOW_GTK_2 is based on GTK 2.x, using GtkGLExt extension.
     Made 2005-02.
 
     MainMenu is implemented as a nice-looking GTK menu bar.
@@ -230,20 +230,20 @@ unit GLWindow;
     Currently both GTK_1 and GTK_2 are tested under Linux, FreeBSD and Windows.
     GTK_2 is also tested on Mac OS X.
 
-    GLWINDOW_GTK_1:
-    Known problems of only GLWINDOW_GTK_1 (fixed in GTK_2):
+    CASTLE_WINDOW_GTK_1:
+    Known problems of only CASTLE_WINDOW_GTK_1 (fixed in GTK_2):
     - Some keys simply cannot work as menu item shortcuts:
-      Delete, BackSpace, '?' key, Tab. For GLWINDOW_GTK_2 version,
+      Delete, BackSpace, '?' key, Tab. For CASTLE_WINDOW_GTK_2 version,
       only Tab key cannot work as menu item shortcut (it's always only
       for switching focus). This is an issue with GTK 1/2,
-      that simply can't be fixed in GLWindow.
+      that simply can't be fixed in CastleWindow.
     - When FullScreen = true and MainMenu <> nil, result is not perfect
       because things like gnome-panel may cover your fullscreen window.
-      Solved in GLWINDOW_GTK_2, can't be cleanly solved with GTK_1.
+      Solved in CASTLE_WINDOW_GTK_2, can't be cleanly solved with GTK_1.
     - Under Windows be warned that GTK 1.3 has somewhat buggy
       key events handling - sometimes I don't get keyup events for
       appropriate keys, sometimes keydown events for some keys
-      are temporarily blocked. A little code in glwindow_gtk.inc
+      are temporarily blocked. A little code in CASTLE_WINDOW_gtk.inc
       was added to workaround some problems, but definitely
       this still does not work as smoothly as it should.
     - Menu mnemonics are not implemented (I don't know how to *easily*
@@ -257,9 +257,9 @@ unit GLWindow;
       They probably could be implemented, but (since GTK 1 is obsolete now)
       I didn't feel the need.
 
-    GLWINDOW_GTK_2:
+    CASTLE_WINDOW_GTK_2:
     This is now stable and tested and is much better than GTK_1.
-    At some point, this may be renamed to simply GLWINDOW_GTK
+    At some point, this may be renamed to simply CASTLE_WINDOW_GTK
     and compatilibity with GTK 1.x may be dropped.
 
     Also FullScreen is cleanly implemented in GTK_2,
@@ -276,14 +276,14 @@ unit GLWindow;
       to know such thing), so it's harmless for correctness of your programs,
       but, anyway, user can do it.
 
-  GLWINDOW_WINAPI
+  CASTLE_WINDOW_WINAPI
     Based on Windows API.
 
     MainMenu is implemented as WinAPI menu bar. So it looks nice.
     Dialog windows are implemented as common Windows dialog boxes.
     Has a nice native look on Windows.
 
-  GLWINDOW_XLIB
+  CASTLE_WINDOW_XLIB
     Based on XLib units. No X toolkit is used.
 
     MainMenu is not implemented (it's ignored).
@@ -291,35 +291,35 @@ unit GLWindow;
     And it's not a good idea to implement it yourself (without any standard
     GUI toolkit) --- this makes many Xlib programs ugly, because every single one
     uses his own GUI. In other words:
-    if you want to have MainMenu then just use GLWINDOW_GTK_1/2.
+    if you want to have MainMenu then just use CASTLE_WINDOW_GTK_1/2.
 
-    Dialog boxes are implemented using GLWinMessages.MessageXxx.
+    Dialog boxes are implemented using CastleMessages.MessageXxx.
     So they are not very comfortable to user, but they work.
 
-    On Unix platforms, whether you should use GLWINDOW_GTK_2 or
-    this GLWINDOW_XLIB depends on your program.
+    On Unix platforms, whether you should use CASTLE_WINDOW_GTK_2 or
+    this CASTLE_WINDOW_XLIB depends on your program.
 
-    - For utility programs, usually GLWINDOW_GTK_2.
+    - For utility programs, usually CASTLE_WINDOW_GTK_2.
       You want the menu bar and native (GTK-themed) look of dialog boxes.
 
-    - For fullscreen games, usually GLWINDOW_XLIB.
+    - For fullscreen games, usually CASTLE_WINDOW_XLIB.
       You usually do not use the menu bar in fullscreen games,
       and do not want popup dialog boxes. Instead you draw everything
       inside your OpenGL context, which makes your game look the same
       regardless of the platform and GUI can be styled to your game theme.
       For example, menu may be done by TCastleMenu, and dialog boxes
-      by GLWinMessages.
+      by CastleMessages.
 
       As a bonus, XLIB allows you to change screen resolution when
       starting the game, which may be useful. And has one dependency less
-      (GTK is commonly installed, but gtkglext is not, and GLWINDOW_GTK_2
+      (GTK is commonly installed, but gtkglext is not, and CASTLE_WINDOW_GTK_2
       requires gtkglext).
 
-  GLWINDOW_GLUT
+  CASTLE_WINDOW_GLUT
     Based on glut library. There's little use of implementing
-    GLWindow on top of glut library since the initial idea of GLWindow
+    CastleWindow on top of glut library since the initial idea of CastleWindow
     was to overcome many glut shortcomings. The only advantage of this is that
-    such version of GLWindow may be used for various testing purposes.
+    such version of CastleWindow may be used for various testing purposes.
 
     MainMenu is implemented as glut pop-up menu. Activated by right mouse button.
     Looks ugly and has a lot of usability problems, but works.
@@ -327,8 +327,8 @@ unit GLWindow;
     TryVideoChange is simply not implemented, always returns false.
 
     Known problems:
-    (they are specific to GLWINDOW_GLUT and will not be fixed.
-    Just use other GLWINDOW_xxx backend if you don't want these problems):
+    (they are specific to CASTLE_WINDOW_GLUT and will not be fixed.
+    Just use other CASTLE_WINDOW_xxx backend if you don't want these problems):
     - When original glut (the one by Mark Kilgard,
       as opposed to newer freeglut from http://freeglut.sourceforge.net/)
       is used, Application.ProcessMesssages cannot be implemented.
@@ -356,37 +356,37 @@ unit GLWindow;
       They are simply removed when Caption is displayed.
     - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
 
-  GLWINDOW_TEMPLATE
+  CASTLE_WINDOW_TEMPLATE
     This is a special dummy backend, useful only as an example
-    for programmers that want to implement another GLWindow backend
+    for programmers that want to implement another CastleWindow backend
     (e.g. based on Mac OS X Carbon).
     It compiles, but actually nothing works.
-    See file glwindow_backend_template.inc.
+    See file CASTLE_WINDOW_backend_template.inc.
 }
 
-{ If GLWindow backend is not choosen at this point, choose
+{ If CastleWindow backend is not choosen at this point, choose
   default (best, most functional and stable) for a given OS.
 
-  This way you can override configuration below by compiling GLWindow
-  with some GLWINDOW_xxx symbol already defined. }
-{$ifndef GLWINDOW_WINAPI}
- {$ifndef GLWINDOW_XLIB}
-  {$ifndef GLWINDOW_GLUT}
-   {$ifndef GLWINDOW_GTK_1}
-    {$ifndef GLWINDOW_GTK_2}
+  This way you can override configuration below by compiling CastleWindow
+  with some CASTLE_WINDOW_xxx symbol already defined. }
+{$ifndef CASTLE_WINDOW_WINAPI}
+ {$ifndef CASTLE_WINDOW_XLIB}
+  {$ifndef CASTLE_WINDOW_GLUT}
+   {$ifndef CASTLE_WINDOW_GTK_1}
+    {$ifndef CASTLE_WINDOW_GTK_2}
      {$ifdef MSWINDOWS}
-       {$define GLWINDOW_WINAPI}
-       { $define GLWINDOW_GTK_2}
-       { $define GLWINDOW_GTK_1}
-       { $define GLWINDOW_GLUT}
-       { $define GLWINDOW_TEMPLATE}
+       {$define CASTLE_WINDOW_WINAPI}
+       { $define CASTLE_WINDOW_GTK_2}
+       { $define CASTLE_WINDOW_GTK_1}
+       { $define CASTLE_WINDOW_GLUT}
+       { $define CASTLE_WINDOW_TEMPLATE}
      {$endif}
      {$ifdef UNIX}
-       {$define GLWINDOW_GTK_2}
-       { $define GLWINDOW_GTK_1}
-       { $define GLWINDOW_XLIB}
-       { $define GLWINDOW_GLUT}
-       { $define GLWINDOW_TEMPLATE}
+       {$define CASTLE_WINDOW_GTK_2}
+       { $define CASTLE_WINDOW_GTK_1}
+       { $define CASTLE_WINDOW_XLIB}
+       { $define CASTLE_WINDOW_GLUT}
+       { $define CASTLE_WINDOW_TEMPLATE}
      {$endif}
     {$endif}
    {$endif}
@@ -396,15 +396,15 @@ unit GLWindow;
 
 { To make new GL Window backend -------------------------------------
 
-  - Define a symbol like GLWINDOW_FOO for a new backend,
+  - Define a symbol like CASTLE_WINDOW_FOO for a new backend,
     document it in the "available backends list" above.
-  - Create a file glwindow_foo.inc with contents from
-    glwindow_backend_template.inc
-    and conditionally include it from glwindow_backend.inc.
+  - Create a file castlewindow_foo.inc with contents from
+    castlewindow_backend_template.inc
+    and conditionally include it from castlewindow_backend.inc.
   - Adjust defining
-    GLWINDOW_HAS_VIDEO_CHANGE and GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN
+    CASTLE_WINDOW_HAS_VIDEO_CHANGE and CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN
     for your backend.
-  - Implement all methods in glwindow_foo.inc. You wil find the specification
+  - Implement all methods in castlewindow_foo.inc. You wil find the specification
     what each method should do in the specification of the interface of this
     module.
   - Call all TCastleWindowBase.DoXxx functions at appropriate places from your
@@ -420,38 +420,38 @@ unit GLWindow;
     when user switches to another window or activates MainMenu.
 }
 
-{ Configure some debugging options of GLWindow ------------------------------- }
+{ Configure some debugging options of CastleWindow ------------------------------- }
 
-{ When GLWINDOW_LOG_EVENTS is defined, TCastleWindowBase events will be logged.
+{ When CASTLE_WINDOW_LOG_EVENTS is defined, TCastleWindowBase events will be logged.
   This means logging (using CastleLog) at begin, end, and at exception exit
   inside all TCastleWindowBase events (EventXxx methods).
   Very useful, although floods your log with incredible amount of messages
   very quickly.
 
-  Actually, GLWINDOW_LOG_EVENTS by itself turns logging for @italic(almost)
+  Actually, CASTLE_WINDOW_LOG_EVENTS by itself turns logging for @italic(almost)
   all events. For the really really often events (draw, idle, timer,
-  mouse move for now), you'll need to define also GLWINDOW_LOG_EVENTS_ALL
-  (relevant only if GLWINDOW_EVENTS_LOG).
+  mouse move for now), you'll need to define also CASTLE_WINDOW_LOG_EVENTS_ALL
+  (relevant only if CASTLE_WINDOW_EVENTS_LOG).
 }
-{ $define GLWINDOW_EVENTS_LOG}
-{ $define GLWINDOW_EVENTS_LOG_ALL}
-{$ifndef GLWINDOW_EVENTS_LOG}
-  {$undef GLWINDOW_EVENTS_LOG_ALL}
+{ $define CASTLE_WINDOW_EVENTS_LOG}
+{ $define CASTLE_WINDOW_EVENTS_LOG_ALL}
+{$ifndef CASTLE_WINDOW_EVENTS_LOG}
+  {$undef CASTLE_WINDOW_EVENTS_LOG_ALL}
 {$endif}
 
-{ Define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
+{ Define CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
   after TCastleWindowBase.EventDraw (TCastleWindowBase.OnDraw callback) calls.
   This is done by DoDraw, that is: when a backend initiates the drawing.
   The check is done by CastleGLUtils.CheckGLErrors, checks glGetError
   and eventually raises an exception. }
 {$ifdef DEBUG}
-  {$define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW}
+  {$define CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW}
 {$endif}
 
 { Configure internal things -------------------------------------------------- }
 
-{$ifdef GLWINDOW_GTK_1} {$define GLWINDOW_GTK_ANY} {$endif}
-{$ifdef GLWINDOW_GTK_2} {$define GLWINDOW_GTK_ANY} {$endif}
+{$ifdef CASTLE_WINDOW_GTK_1} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
+{$ifdef CASTLE_WINDOW_GTK_2} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
 
 { Two reasons why sometimes GTK backend call some X-specific things:
 
@@ -462,7 +462,7 @@ unit GLWindow;
      [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]).
      You have to bypass GTK and use things like Xlib's XWarpPointer or
      Windows' SetCursorPos. So this is getting very dirty already ---
-     suddenly GLWindow's GTK backend stops to be portable.
+     suddenly CastleWindow's GTK backend stops to be portable.
 
      Moreover, to use XWarpPointer, you have to get Xlib parameters
      (X window id and display pointer) from GTK window. And here comes
@@ -481,42 +481,42 @@ unit GLWindow;
 
   2. Screen resizing.
 
-     I have to use there XF86VidMode extension, just like for GLWINDOW_XLIB
+     I have to use there XF86VidMode extension, just like for CASTLE_WINDOW_XLIB
      backend. And, just like for TCastleWindowBase.SetMousePosition, I'll need
      for this some functions available only in GTK 2 library that
      "uncover" X11 internals related to GTK for me. }
-{$ifdef GLWINDOW_GTK_2}
+{$ifdef CASTLE_WINDOW_GTK_2}
   {$ifdef UNIX}
-    {$define GLWINDOW_GTK_WITH_XLIB}
+    {$define CASTLE_WINDOW_GTK_WITH_XLIB}
   {$endif}
 {$endif}
 
 { Does backend implement TryVideoChange and VideoReset methods?
   (if this will not be defined, we will use TryVideoChange that always
   returns false and VideoReset that is NOOP). }
-{$undef GLWINDOW_HAS_VIDEO_CHANGE}
-{$ifdef GLWINDOW_WINAPI}
-  {$define GLWINDOW_HAS_VIDEO_CHANGE}
+{$undef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
+{$ifdef CASTLE_WINDOW_WINAPI}
+  {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 {$endif}
-{$ifdef GLWINDOW_XLIB}
-  {$define GLWINDOW_HAS_VIDEO_CHANGE}
-  {$define GLWINDOW_USE_XF86VMODE}
+{$ifdef CASTLE_WINDOW_XLIB}
+  {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
+  {$define CASTLE_WINDOW_USE_XF86VMODE}
 {$endif}
-{$ifdef GLWINDOW_GTK_ANY}
+{$ifdef CASTLE_WINDOW_GTK_ANY}
   {$ifdef UNIX}
     { Hmm. This compiles and basically works, but the new screen is still
       virtual. For now this is disabled. TODO. }
-    { $define GLWINDOW_HAS_VIDEO_CHANGE}
-    { $define GLWINDOW_USE_XF86VMODE}
+    { $define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
+    { $define CASTLE_WINDOW_USE_XF86VMODE}
   {$endif}
 {$endif}
 
-{ See glwindow_private_modifiers_down.inc for description in what
-  situations you want to define GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN. }
-{$ifdef GLWINDOW_GTK_ANY} {$define GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
-{$ifdef GLWINDOW_XLIB}    {$define GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
+{ See castlewindow_private_modifiers_down.inc for description in what
+  situations you want to define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN. }
+{$ifdef CASTLE_WINDOW_GTK_ANY} {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
+{$ifdef CASTLE_WINDOW_XLIB}    {$define CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 
-{ Only relevant for GLWINDOW_GLUT backend:
+{ Only relevant for CASTLE_WINDOW_GLUT backend:
   Define to use FPC Glut/FreeGlut unit. Otherwise, our CastleGlut will be used.
 
   In the future, our CastleGlut unit will be removed. But currently,
@@ -538,7 +538,7 @@ unit GLWindow;
   - ReleaseAllKeysAndMouse: call this when user switches to another window
     or activates a menu.
 
-  Only GLWINDOW_GTK_1/2:
+  Only CASTLE_WINDOW_GTK_1/2:
   - in OpenBackend implement MaxWidth/Height
     (Or maybe these properties should be removed?
     They are made for symmetry with MinWidth/Height. Are they really useful?)
@@ -564,7 +564,7 @@ unit GLWindow;
     param.
   - OnTimer interface sucks -- it doesn't allow you to register many timeout
     functions for different timeouts.
-  - Add to multi_glwindow testing call to FileDialog and ColorDialog.
+  - Add to multi_window testing call to FileDialog and ColorDialog.
 
   Menu things:
   - For WinAPI, glut: impl Enabled
@@ -573,16 +573,16 @@ unit GLWindow;
 interface
 
 uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
-  {$ifdef GLWINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} CastleGlut, {$endif} {$endif}
-  {$ifdef GLWINDOW_WINAPI} Windows,
+  {$ifdef CASTLE_WINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} CastleGlut, {$endif} {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI} Windows,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
   {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
-  {$ifdef GLWINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
-  {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
-  {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
-  {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
+  {$ifdef CASTLE_WINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
+  {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, Images, KeysMouse,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
@@ -594,9 +594,9 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
 { ---------------------------------------------------------------------
 
   I'm aliasing here TKey type and key constants from Keys unit,
-  this way code that uses GLWindow unit has automcatically
+  this way code that uses CastleWindow unit has automcatically
   available TKey type and key constants (because a lot of code
-  using GLWindow unit uses also these type/constant, so I want
+  using CastleWindow unit uses also these type/constant, so I want
   to avoid adding "Keys" unit to uses clauses).
 
   Once the "reuse" keyword will be implemented in FPC,
@@ -671,8 +671,8 @@ const
 
 const
   { }
-  GLWindowPositionCenter = -1000000;
-  GLWindowDefaultSize = -1000000;
+  WindowPositionCenter = -1000000;
+  WindowDefaultSize = -1000000;
 
 type
   TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay);
@@ -681,7 +681,7 @@ type
 
 const
   { All "normal" command-line options,
-    that most programs using GLWindow should be able to handle
+    that most programs using CastleWindow should be able to handle
     without any problems.
 
     In other words, most programs calling @link(TCastleWindowBase.ParseParameters)
@@ -728,7 +728,7 @@ type
     of @link(TCastleWindowBase), with the exception of OnOpen and OnClose callbacks.
     This is used in @link(TCastleWindowBase.GetCallbacksState)
     and @link(TCastleWindowBase.SetCallbacksState).
-    See unit GLWinModes for example when such thing is useful. }
+    See unit CastleWindowModes for example when such thing is useful. }
   TWindowCallbacks = record
     MouseMove: TMouseMoveFunc;
     MouseDown, MouseUp: TMouseUpDownFunc;
@@ -750,21 +750,21 @@ type
   EGLContextNotPossible = class(Exception);
 
   {$define read_interface_types}
-  {$I glwindow_backend.inc}
+  {$I castlewindow_backend.inc}
   {$undef read_interface_types}
 
   { Window with an OpenGL context.
-    See GLWindow unit description for more info and examples of use. }
+    See CastleWindow unit description for more info and examples of use. }
   TCastleWindowBase = class(TComponent)
 
-  { Include GLWindow-backend-specific parts of TCastleWindowBase class.
+  { Include CastleWindow-backend-specific parts of TCastleWindowBase class.
     Remember to explicitly specify the scope
     (usually "private") of things that you add to TCastleWindowBase class in backends,
     this is safest. Some backends may expose some protected or even public
     things that are specific for them. }
 
   {$define read_window_interface}
-  {$I glwindow_backend.inc}
+  {$I castlewindow_backend.inc}
   {$undef read_window_interface}
 
   private
@@ -918,7 +918,7 @@ type
     { Simulate that all the keys and mouse buttons were released.
       For all keys that are down (Pressed[k]) calls DoKeyUp(k).
       For all mouse buttons that are down (mb in MousePressed) calls DoMouseUp(mb).
-      If GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN is defined,
+      If CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN is defined,
       this calls at the beginning SetPrivateModifiersDown(..., ..., false)
       to say that all keys are up.
 
@@ -937,24 +937,24 @@ type
     { Should DoKeyDown be able to call DoMenuCommand, that is should
       we handle menu key shortcuts ourselves.
 
-      This is implemented in backend-specific GLWindow parts.
+      This is implemented in backend-specific CastleWindow parts.
       When in DoKeyDown we get some key event that specifies that
       some menu item should be called -- if RedirectKeyDownToMenuCommand,
       DoKeyDown will do DoMenuCommand. Else DoKeyDown will do nothing.
 
       This should be implemened as "Result := true" if we have to process
-      keypresses in GLWindow to pass them as menu commands, e.g. when GLWindow
+      keypresses in CastleWindow to pass them as menu commands, e.g. when CastleWindow
       works on top of glut or Xlib.
-      When GLWindow works on top of GTK or WinAPI that allow us to do a "real"
+      When CastleWindow works on top of GTK or WinAPI that allow us to do a "real"
       menu, this should be implemented as "Result := false". }
     function RedirectKeyDownToMenuCommand: boolean;
 
     { DoXxx methods ------------------------------------------------------------
 
-      DoXxx method should be called by GLWindow backend when an event
+      DoXxx method should be called by CastleWindow backend when an event
       Xxx happens. DoXxx methods take care of various backend-independent
       stuff, and take care of calling EventXxx (that calls OnXxx in turn).
-      GLWindow backend should never call EventXxx directly.
+      CastleWindow backend should never call EventXxx directly.
       (And nothing should call OnXxx directly except EventXxx.)
 
       Remember that no DoXxx may be called from CloseBackend.
@@ -975,7 +975,7 @@ type
 
     { DoResize with FromIndependentOpen = true is called only once
       (and exactly once) from TCastleWindowBase.Open implementation.
-      So all GLWindow-backend code should always
+      So all CastleWindow-backend code should always
       pass FromIndependentOpen = false (EVEN if it may be called from
       OpenBackend (that is called before DoResize in Open) !).
 
@@ -1017,7 +1017,7 @@ type
 
           @code(if AutoRedisplay then PostRedisplay;)
 
-        So specific GLWindow backends need not to worry about
+        So specific CastleWindow backends need not to worry about
         AutoRedisplay. They only have to implement PostRedisplay. }
     procedure DoDraw;
   private
@@ -1205,24 +1205,24 @@ type
       you usually want to just ignore window managers limits and just
       proceed as if your size requirements are satisfied.
 
-      Special GLWindowDefaultSize value of these properties
+      Special WindowDefaultSize value of these properties
       means: at @link(Open), use some comfortable size slightly
       smaller than desktop size.
       @groupBegin }
-    property Width: integer read FWidth write FWidth default GLWindowDefaultSize;
-    property Height: integer read FHeight write FHeight default GLWindowDefaultSize;
+    property Width: integer read FWidth write FWidth default WindowDefaultSize;
+    property Height: integer read FHeight write FHeight default WindowDefaultSize;
     { @groupEnd }
 
     { Window position on the screen. If one (or both) of them is equal
-      to GLWindowPositionCenter at the initialization (Open) time,
+      to WindowPositionCenter at the initialization (Open) time,
       then it will be set to position the window at the screen center.
       @groupBegin }
     property Left: integer
-      read {$ifdef GLWINDOW_GLUT}GetLeft{$else}FLeft{$endif}
-      write FLeft default GLWindowPositionCenter;
+      read {$ifdef CASTLE_WINDOW_GLUT}GetLeft{$else}FLeft{$endif}
+      write FLeft default WindowPositionCenter;
     property Top :integer
-      read {$ifdef GLWINDOW_GLUT}GetTop{$else}FTop{$endif}
-      write FTop default GLWindowPositionCenter;
+      read {$ifdef CASTLE_WINDOW_GLUT}GetTop{$else}FTop{$endif}
+      write FTop default WindowPositionCenter;
     { @groupEnd }
 
     property FullScreen: boolean read FFullScreen write FFullScreen default false;
@@ -1270,7 +1270,7 @@ type
       unnecessarily tricky for the programmer.)
 
       TODO: for now, this is not implemented. @link(Cursor) ignores mcCustom value,
-      under every GLWindow backend... sorry, CustomCursor is only a plan. }
+      under every CastleWindow backend... sorry, CustomCursor is only a plan. }
     property CustomCursor: TRGBAlphaImage read FCustomCursor
       write SetCustomCursor;
 
@@ -1632,7 +1632,7 @@ end;
       Character c is based on pressed key, current Modifiers state,
       state of keys like "Caps-Lock" , maybe some OS configurarion
       (like locale-specific chars, e.g. polish "ogonki"), etc. In general,
-      it is operating-system (and window-system, and GLWindow-backend)
+      it is operating-system (and window-system, and CastleWindow-backend)
       specific. Not all key presses are representable as
       char, so you may get c = #0 in such situations.
       E.g. "up arrow" key does not have a corresponding char code,
@@ -1649,18 +1649,18 @@ end;
       avoidable in small programs (where you can see all your OnKeyDown and
       OnKeyPress handlers in one file), but in large programs they were producing
       very nasty bugs. E.g. imagine that you handle in OnKeyDown key K_Enter
-      by doing GLWinMessages.MessageOK. But then each time user presses
+      by doing CastleMessages.MessageOK. But then each time user presses
       Enter key you
 
       @orderedList(
-        @item(handle it in OnKeyDown calling GLWinMessages.MessageOK)
-        @item(GLWinMessages.MessageOK changes your GLWindow callbacks
-         so that OnKeyPress(#13) makes GLWinMessages.MessageOK exit.)
+        @item(handle it in OnKeyDown calling CastleMessages.MessageOK)
+        @item(CastleMessages.MessageOK changes your CastleWindow callbacks
+         so that OnKeyPress(#13) makes CastleMessages.MessageOK exit.)
         @item(but then you're getting OnKeyPress(#13) event (because K_Enter
-         is converted to #13 char). So GLWinMessages.MessageOK ends.)
+         is converted to #13 char). So CastleMessages.MessageOK ends.)
       )
 
-      This looked like a bug in GLWinMessages.MessageOK. But actually
+      This looked like a bug in CastleMessages.MessageOK. But actually
       it was a bug in callbacks design: you were getting two callbacks
       (OnKeyDown amd OnKeyPress) for one event (user presses a key).
 
@@ -1717,7 +1717,7 @@ end;
       processing events (e.g. looking for keypress "Yes" or "No"),
       user may try to close your window again.
 
-      GLWinMessages unit offers some nice routines that you can safely
+      CastleMessages unit offers some nice routines that you can safely
       use here, e.g. you can use it inside OnCloseQuery like
 
         if MessageYesNo(Window, 'Are you sure you want to quit?') then
@@ -1784,7 +1784,7 @@ end;
       (not to TGLApplication.OnIdle) when you do something related
       to this window. For example when you check this window's
       @link(Pressed) keys state, or animate something displayed on this window.
-      This allows various "modal boxes" and such (see GLWinMessages)
+      This allows various "modal boxes" and such (see CastleMessages)
       to nicely "pause" such processing by temporarily replacing
       OnIdle and other events of a window that displays a modal box. }
     property OnIdle: TWindowFunc read FOnIdle write FOnIdle;
@@ -1834,7 +1834,7 @@ end;
       can assign other MainMenu values while not Closed, but only values
       <>nil. I.e. you can't set MainMenu to nil if you called Open
       with MainMenu <> nil.
-      See @code(castle_game_engine/examples/glwindow/glwindow_menu.lpr)
+      See @code(castle_game_engine/examples/window/window_menu.lpr)
       for demo of changing value of MainMenu while window is not Closed.
 
       Note that MainMenu.Enabled is honoured (as well as Enabled
@@ -1848,8 +1848,8 @@ end;
       but instead normal EventKeyDown (OnKeyDown) will be called.
 
       When it is useful to set this to false?
-      For example hen using GLWinModes. When you're changing modes (e.g. at the
-      beginning of GLWinMessages.MessageOk) you're temporary setting
+      For example hen using CastleWindowModes. When you're changing modes (e.g. at the
+      beginning of CastleMessages.MessageOk) you're temporary setting
       OnMenuCommand to nil, but this doesn't block TMenuItem.DoCommand
       functions. The only way to block menu from triggering ANY event is to
       set this to MainMenu.Enabled to @false. }
@@ -2230,7 +2230,7 @@ end;
       - How does these dialogs look like?
         Under GTK and WinAPI backends we use native dialogs of these.
         Under Xlib and freeglut backend we simply fallback on
-        GLWinMessages.Message*.
+        CastleMessages.Message*.
     }
 
     { Select a file to open or save.
@@ -2623,7 +2623,7 @@ end;
   private
     { Call wszystkie OnIdle / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoIdle / DoTimer  is a simplest
-      way for GLWindow backend to handle these events.
+      way for CastleWindow backend to handle these events.
       @groupBegin }
     procedure DoIdle;
     procedure DoTimer;
@@ -2644,13 +2644,13 @@ end;
     point in doing that. }
   TGLApplication = class(TComponent)
 
-  { Include GLWindow-backend-specific parts of
+  { Include CastleWindow-backend-specific parts of
     TGLApplication class. Rules and comments that apply here are
     the same as in analogous place at TCastleWindowBase class,
     when read_window_interface is defined. }
 
   {$define read_application_interface}
-  {$I glwindow_backend.inc}
+  {$I castlewindow_backend.inc}
   {$undef read_application_interface}
 
   private
@@ -2687,7 +2687,7 @@ end;
     procedure CreateBackend;
     procedure DestroyBackend;
 
-    { The GLWindow-backend specific part of Quit method implementation.
+    { The CastleWindow-backend specific part of Quit method implementation.
       In non-backend-specific part of Quit we already closed all windows,
       so this will be called only when OpenWindowsCount = 0.
       So the only things you have to do here is:
@@ -2712,7 +2712,7 @@ end;
     { Same as DoSelfIdle, but here with FOnTimer. }
     procedure DoSelfTimer;
 
-    { Something useful for some GLWindow backends. This will implement
+    { Something useful for some CastleWindow backends. This will implement
       (in a simple way) calling of DoSelfOpen and OpenWindows.DoTimer.
 
       Declare in TGLApplication some variable like
@@ -2819,7 +2819,7 @@ end;
 #)
 
       Commonly this is used together with TCastleWindowBase state push / pop
-      routines in GLWinModes. They allow you to temporary replace
+      routines in CastleWindowModes. They allow you to temporary replace
       all TCastleWindowBase callbacks with new ones, and later restore the old ones.
 
       ProcessMessages returns @true if we should continue, that is
@@ -2847,7 +2847,7 @@ end;
 
           If you make some processing in your event loop, for example
           you load some resources or you raytrace some image
-          (examples used by GLProgress or RaytraceToWindow units),
+          (examples used by CastleProgress or RaytraceToWindow units),
           then you surely want to pass AllowSuspend = false.
           You want in such case to make ProcessMessage quickly return
           control to your code, so you can continue whatever you're doing.
@@ -2943,17 +2943,17 @@ procedure Resize2D(Window: TCastleWindowBase);
 implementation
 
 uses CastleParameters, CastleLog, GLImages, GLVersionUnit, X3DLoad
-  { using here GLWinModes/Messages makes recursive uses,
+  { using here CastleWindowModes/Messages makes recursive uses,
     but it's needed for FileDialog }
-  {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}
-  {$ifdef GLWINDOW_WINAPI}, GLWinModes {$endif}
-  {$ifdef GLWINDOW_XLIB}, GLWinMessages {$endif}
-  {$ifdef GLWINDOW_GLUT}, GLWinMessages {$endif};
+  {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI}, CastleWindowModes {$endif}
+  {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif}
+  {$ifdef CASTLE_WINDOW_GLUT}, CastleMessages {$endif};
 
 {$define read_implementation}
 
 {$I castlewindowmenu.inc}
-{$I glwindow_backend.inc}
+{$I castlewindow_backend.inc}
 
 { TWindowFuncList ------------------------------------------------ }
 
@@ -2968,7 +2968,7 @@ begin
 end;
 
 { ----------------------------------------------------------------------------
-  niezalezne od GLWINDOW_xxx rzeczy TCastleWindowBase }
+  niezalezne od CASTLE_WINDOW_xxx rzeczy TCastleWindowBase }
 
 constructor TCastleWindowBase.Create(AOwner: TComponent);
 begin
@@ -2976,10 +2976,10 @@ begin
  FOnOpenList := TWindowFuncList.Create;
  FOnCloseList := TWindowFuncList.Create;
  FClosed := true;
- FWidth  := GLWindowDefaultSize;
- FHeight := GLWindowDefaultSize;
- FLeft  := GLWindowPositionCenter;
- FTop   := GLWindowPositionCenter;
+ FWidth  := WindowDefaultSize;
+ FHeight := WindowDefaultSize;
+ FLeft  := WindowPositionCenter;
+ FTop   := WindowPositionCenter;
  FDoubleBuffer := true;
  FCaption := ProgramName;
  FResizeAllowed := raAllowed;
@@ -3045,14 +3045,14 @@ begin
    fheight := Application.ScreenHeight;
   end else
   begin
-   if Width  = GLWindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
-   if Height = GLWindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
+   if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
+   if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
 
    Clamp(fwidth, minWidth, maxWidth);
    Clamp(fheight, minHeight, maxHeight);
 
-   if left = GLWindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
-   if top  = GLWindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
+   if left = WindowPositionCenter then fleft := (Application.ScreenWidth-width) div 2;
+   if top  = WindowPositionCenter then ftop := (Application.ScreenHeight-height) div 2;
   end;
 
   { reset some window state variables }
@@ -3087,7 +3087,7 @@ begin
     MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
     zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
     moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
-    GLWinMessages.MessageOk. }
+    CastleMessages.MessageOk. }
   EventOpenCalled := true;
   EventOpen;
 
@@ -3208,7 +3208,7 @@ begin
     powyzsza procedure, w szczegolnosci cale CloseImplDepened,
     bez wzgledu na bledy - a ewentualny wyjatek rzucimy dopiero teraz.}
   if closeerrors <> '' then
-   raise Exception.Create('Error(errors?) while trying to close GlWindow : '+nl+closeerrors);
+   raise Exception.Create('Error(errors?) while trying to close CastleWindow : '+nl+closeerrors);
  end;
 end;
 
@@ -3233,22 +3233,22 @@ end;
 procedure TCastleWindowBase.ReleaseAllKeysAndMouse;
 var k: TKey;
     mb: TMouseButton;
-    {$ifdef GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
+    {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
     mk: TModifierKey;
     b: boolean;
     {$endif}
 begin
- {$ifdef GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
- { When GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN, I *HAVE* to use below
+ {$ifdef CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
+ { When CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, I *HAVE* to use below
    SetPrivateModifiersDown. It would be an error to do DoKeyUp(K_Ctrl)
-   directly when GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
+   directly when CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN, instead we have to
    use SetPrivateModifiersDown(mkCtrl, ...).
    This is the only way to make values in PrivateModifiersDown[]
    and Pressed[] arrays consistent. }
  for mk := Low(mk) to High(mk) do
   for b := Low(b) to High(b) do
    SetPrivateModifiersDown(mk, b, false);
- {$endif GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
+ {$endif CASTLE_WINDOW_USE_PRIVATE_MODIFIERS_DOWN}
 
  { Since we do DoKeyUp, this should also take care of Characters. }
 
@@ -3262,7 +3262,7 @@ end;
 { wszystkie zdarzenia TCastleWindowBase - opakowujace je procedury DoXxx ktore
   robia wszystkie rzeczy niezalezne od implementacji dla danego zdarzenia
   (m.in. wywoluja EventXxx ktore m.in. wywoluje OnXxx jesli jest assigned).
-  Implementacje GLWindow powinny wywolywac te funkcje, NIE wywolywac
+  Implementacje CastleWindow powinny wywolywac te funkcje, NIE wywolywac
   bezposrednio EventXxx ani tym bardziej OnXxx !
   ------------------------------------------------------------------------------------ }
 
@@ -3337,7 +3337,7 @@ begin
     if AutoRedisplay then PostRedisplay;
   finally Fps._RenderEnd end;
 
-  {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoDraw'); {$endif}
+  {$ifdef CASTLE_WINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoDraw'); {$endif}
 end;
 
 procedure TCastleWindowBase.DoKeyDown(Key: TKey; CharKey: char);
@@ -3461,55 +3461,55 @@ function TCastleWindowBase.EventCloseQuery: boolean;
 const EventName = 'CloseQuery';
 begin
  result := not Assigned(OnCloseQuery);
- {$I glwindow_eventbegin.inc}
+ {$I castlewindow_eventbegin.inc}
  if Assigned(OnCloseQuery) then
    OnCloseQuery(Self);
- {$I glwindow_eventend.inc}
+ {$I castlewindow_eventend.inc}
 end;
 
-procedure TCastleWindowBase.EventOpen;                              const EventName = 'Open';       begin {$I glwindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   OnOpenList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
-procedure TCastleWindowBase.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventOpen;                              const EventName = 'Open';       begin {$I castlewindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   OnOpenList .ExecuteAll(Self); {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventClose;                             const EventName = 'Close';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   OnCloseList.ExecuteAll(Self); {$I castlewindow_eventend.inc} end;
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
-procedure TCastleWindowBase.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventResize;                            const EventName = 'Resize';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TCastleWindowBase.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin OnKeyDown(Self, Key, C);   end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin OnKeyDown(Self, Key, C);   end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TCastleWindowBase.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin OnKeyUp(Self, key, C);     end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin OnKeyUp(Self, key, C);     end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Button: %s', [MouseButtonStr[btn]])}
-procedure TCastleWindowBase.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin OnMouseDown(Self, btn);    end;   {$I glwindow_eventend.inc} end;
-procedure TCastleWindowBase.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin OnMouseUp(Self, btn);      end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin OnMouseDown(Self, btn);    end;   {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin OnMouseUp(Self, btn);      end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-procedure TCastleWindowBase.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin OnMouseWheel(Self, Scroll, Vertical); end;{$I glwindow_eventend.inc} end;
-procedure TCastleWindowBase.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin OnMouseWheel(Self, Scroll, Vertical); end;{$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I castlewindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I castlewindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
-  GLWINDOW_EVENTS_LOG_ALL is defined.
+  CASTLE_WINDOW_EVENTS_LOG_ALL is defined.
 
-  For glwindow_eventbegin/end.inc to work, we do here a little trick
-  with GLWINDOW_EVENTS_LOG symbol: undefine GLWINDOW_EVENTS_LOG temporarily if
-  GLWINDOW_EVENTS_LOG_ALL not defined. }
-{$ifndef GLWINDOW_EVENTS_LOG_ALL}
-  {$ifdef GLWINDOW_EVENTS_LOG}
-    {$define WAS_GLWINDOW_EVENTS_LOG}
-    {$undef GLWINDOW_EVENTS_LOG}
+  For CASTLE_WINDOW_eventbegin/end.inc to work, we do here a little trick
+  with CASTLE_WINDOW_EVENTS_LOG symbol: undefine CASTLE_WINDOW_EVENTS_LOG temporarily if
+  CASTLE_WINDOW_EVENTS_LOG_ALL not defined. }
+{$ifndef CASTLE_WINDOW_EVENTS_LOG_ALL}
+  {$ifdef CASTLE_WINDOW_EVENTS_LOG}
+    {$define WAS_CASTLE_WINDOW_EVENTS_LOG}
+    {$undef CASTLE_WINDOW_EVENTS_LOG}
   {$endif}
 {$endif}
 
   {$define BONUS_LOG_STRING := Format('New position: %d %d', [newX, newY])}
-  procedure TCastleWindowBase.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I castlewindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I castlewindow_eventend.inc} end;
   {$undef BONUS_LOG_STRING}
 
-  procedure TCastleWindowBase.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I glwindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I glwindow_eventend.inc} end;
-  procedure TCastleWindowBase.EventDraw;                          const EventName = 'Draw';      begin {$I glwindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I glwindow_eventend.inc} end;
-  procedure TCastleWindowBase.EventIdle;                          const EventName = 'Idle';      begin {$I glwindow_eventbegin.inc} if Assigned(OnIdle)      then begin OnIdle(Self);                  end;   {$I glwindow_eventend.inc} end;
-  procedure TCastleWindowBase.EventTimer;                         const EventName = 'Timer';     begin {$I glwindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I castlewindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I castlewindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventDraw;                          const EventName = 'Draw';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I castlewindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventIdle;                          const EventName = 'Idle';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnIdle)      then begin OnIdle(Self);                  end;   {$I castlewindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventTimer;                         const EventName = 'Timer';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I castlewindow_eventend.inc} end;
 
-{$ifndef GLWINDOW_EVENTS_LOG_ALL}
-  {$ifdef WAS_GLWINDOW_EVENTS_LOG}
-    {$define GLWINDOW_EVENTS_LOG}
+{$ifndef CASTLE_WINDOW_EVENTS_LOG_ALL}
+  {$ifdef WAS_CASTLE_WINDOW_EVENTS_LOG}
+    {$define CASTLE_WINDOW_EVENTS_LOG}
   {$endif}
 {$endif}
 
@@ -3544,7 +3544,7 @@ begin
  end;
 end;
 
-{ SaveScreen wykonane na GLWindow (robimy najpierw FlushRedisplay)
+{ SaveScreen wykonane na CastleWindow (robimy najpierw FlushRedisplay)
   -------------------------------------------------------------------------- }
 
 procedure TCastleWindowBase.SaveScreen(const fname: string);
@@ -3888,13 +3888,13 @@ var
 begin
   Include(ProcData^.SpecifiedOptions, poDisplay);
   case OptionNum of
-    0: {$ifdef GLWINDOW_XLIB}
+    0: {$ifdef CASTLE_WINDOW_XLIB}
        if Application.FOpenWindows.Count <> 0 then
          WarningWrite(ProgramName + ': some windows are already open ' +
            'so --display option is ignored.') else
          Application.XDisplayName := Argument;
        {$else}
-         {$ifdef GLWINDOW_GTK_2}
+         {$ifdef CASTLE_WINDOW_GTK_2}
          Application.XDisplayName := Argument;
          {$else}
          WarningWrite(ProgramName + ': warning: --display option is ignored ' +
@@ -4189,10 +4189,10 @@ begin
   { set initial window rect (wLeft/top/width/height) if fullscreen = true }
   if FFullScreen then
   begin
-   wWidth  := GLWindowDefaultSize;
-   wHeight := GLWindowDefaultSize;
-   wLeft   := GLWindowPositionCenter;
-   wTop    := GLWindowPositionCenter;
+   wWidth  := WindowDefaultSize;
+   wHeight := WindowDefaultSize;
+   wLeft   := WindowPositionCenter;
+   wTop    := WindowPositionCenter;
   end;
  end;
 
@@ -4906,7 +4906,7 @@ end;
 
 { --------------------------------------------------------------------------
   Generic part of implementation of TGLApplication,
-  that does not depend what GLWINDOW_xxx backend you want. }
+  that does not depend what CASTLE_WINDOW_xxx backend you want. }
 
 constructor TGLApplication.Create(AOwner: TComponent);
 begin
@@ -5029,7 +5029,7 @@ end;
 
 { TGLApplication.Video* things ---------------------------------------- }
 
-{$ifndef GLWINDOW_HAS_VIDEO_CHANGE}
+{$ifndef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 function TGLApplication.TryVideoChange: boolean;
 begin
  Result := false;
@@ -5038,7 +5038,7 @@ end;
 procedure TGLApplication.VideoReset;
 begin
 end;
-{$endif not GLWINDOW_HAS_VIDEO_CHANGE}
+{$endif not CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 
 function TGLApplication.VideoSettingsDescribe: string;
 begin
@@ -5061,8 +5061,8 @@ begin
  begin
   s := 'Can''t change display settings to : ' + nl + VideoSettingsDescribe;
 
-  {$ifndef GLWINDOW_HAS_VIDEO_CHANGE}
-    s += ' (changing Video properties not implemented when GLWindow is '+
+  {$ifndef CASTLE_WINDOW_HAS_VIDEO_CHANGE}
+    s += ' (changing Video properties not implemented when CastleWindow is '+
       'made on top of ' +BackendName +')';
   {$endif}
 

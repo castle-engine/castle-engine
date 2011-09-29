@@ -16,7 +16,7 @@
 { Abstract precalculated animation (T3DPrecalculatedAnimationCore). }
 unit VRMLAnimation;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

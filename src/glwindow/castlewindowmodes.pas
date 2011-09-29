@@ -19,20 +19,20 @@
   with OpenGL state.
 
   This unit is a tool for creating functions like
-  @link(GLWinMessages.MessageOK). To make nice "modal" box,
+  @link(CastleMessages.MessageOK). To make nice "modal" box,
   you want to temporarily replace TCastleWindowBase callbacks with your own,
   call Application.ProcessMessage method in a loop until user gives an answer,
   and restore everything. This way you can implement functions that
   wait for some keypress, or wait until user inputs some
   string, or wait until user picks something with mouse,
   or wait for 10 seconds displaying some animation, etc. }
-unit GLWinModes;
+unit CastleWindowModes;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 
-uses SysUtils, GL, GLWindow, CastleGLUtils, Images, GLWinMessages,
+uses SysUtils, GL, CastleWindow, CastleGLUtils, Images, CastleMessages,
   UIControls, KeysMouse;
 
 type
@@ -144,8 +144,8 @@ type
     oldPixelStoreUnpack: TPixelStoreUnpack;
     oldMatrixMode: TGLenum;
     oldWinWidth, oldWinHeight: integer;
-    oldGLWinMessagesTheme: TGLWinMessagesTheme;
-    FPushPopGLWinMessagesTheme: boolean;
+    oldMessagesTheme: TMessagesTheme;
+    FPushPopMessagesTheme: boolean;
     FFakeMouseDown: boolean;
     FRestoreProjectionMatrix: boolean;
     FRestoreModelviewMatrix: boolean;
@@ -167,7 +167,7 @@ type
             @item OpenGL matrix mode
             @item OpenGL matrices (saved without using OpenGL stack)
             @item OpenGL PIXEL_STORE_* state
-            @item GLWinMessagesTheme (only if APushPopGLWinMessagesTheme)
+            @item MessagesTheme (only if APushPopMessagesTheme)
           )
         )
 
@@ -214,7 +214,7 @@ type
           see TUIControl.DisableContextOpenClose.)
       ) }
     constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopGLWinMessagesTheme: boolean);
+      APushPopMessagesTheme: boolean);
 
     { Save OpenGL and TCastleWindowBase state, and then change this to a standard
       state. Destructor will restore saved state.
@@ -223,7 +223,7 @@ type
       @link(TWindowState.SetStandardState), see there for explanation
       of parameters. }
     constructor CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopGLWinMessagesTheme: boolean;
+      APushPopMessagesTheme: boolean;
       NewDraw, NewResize, NewCloseQuery: TWindowFunc;
       NewFPSActive: boolean);
 
@@ -264,7 +264,7 @@ type
     FPolygonStipple: PPolygonStipple;
   public
     constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-      APushPopGLWinMessagesTheme: boolean;
+      APushPopMessagesTheme: boolean;
       APolygonStipple: PPolygonStipple);
 
     destructor Destroy; override;
@@ -384,7 +384,7 @@ end;
 { GL Mode ---------------------------------------------------------------- }
 
 constructor TGLMode.Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-  APushPopGLWinMessagesTheme: boolean);
+  APushPopMessagesTheme: boolean);
 
   procedure SimulateReleaseAll;
   var
@@ -415,15 +415,15 @@ begin
  FRestoreModelviewMatrix := true;
  FRestoreTextureMatrix := true;
 
- Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
+ Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed CastleWindow.');
 
  oldWinState := TWindowState.Create(Window);
  oldWinWidth := Window.Width;
  oldWinHeight := Window.Height;
 
- FPushPopGLWinMessagesTheme := APushPopGLWinMessagesTheme;
- if FPushPopGLWinMessagesTheme then
-   oldGLWinMessagesTheme := GLWinMessagesTheme;
+ FPushPopMessagesTheme := APushPopMessagesTheme;
+ if FPushPopMessagesTheme then
+   oldMessagesTheme := MessagesTheme;
 
  Window.MakeCurrent;
 
@@ -458,11 +458,11 @@ begin
 end;
 
 constructor TGLMode.CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
-  APushPopGLWinMessagesTheme: boolean;
+  APushPopMessagesTheme: boolean;
   NewDraw, NewResize, NewCloseQuery: TWindowFunc;
   NewFPSActive: boolean);
 begin
-  Create(AWindow, AttribsToPush, APushPopGLWinMessagesTheme);
+  Create(AWindow, AttribsToPush, APushPopMessagesTheme);
   TWindowState.SetStandardState(AWindow,
     NewDraw, NewResize, NewCloseQuery, NewFPSActive);
 end;
@@ -477,8 +477,8 @@ begin
  if DisabledContextOpenClose then
    TCastleWindowCustom(Window).Controls.EndDisableContextOpenClose;
 
- if FPushPopGLWinMessagesTheme then
-   GLWinMessagesTheme := oldGLWinMessagesTheme;
+ if FPushPopMessagesTheme then
+   MessagesTheme := oldMessagesTheme;
 
  { Although it's forbidden to use TGLMode on Closed TCastleWindowBase,
    in destructor we must take care of every possible situation
@@ -576,10 +576,10 @@ begin
 end;
 
 constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase;
-  AttribsToPush: TGLbitfield; APushPopGLWinMessagesTheme: boolean;
+  AttribsToPush: TGLbitfield; APushPopMessagesTheme: boolean;
   APolygonStipple: PPolygonStipple);
 begin
- inherited Create(AWindow, AttribsToPush, APushPopGLWinMessagesTheme);
+ inherited Create(AWindow, AttribsToPush, APushPopMessagesTheme);
 
  FPolygonStipple := APolygonStipple;
 

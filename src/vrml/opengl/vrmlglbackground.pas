@@ -16,7 +16,7 @@
 { Rendering backgrounds, sky and such (TVRMLGLBackground). }
 unit VRMLGLBackground;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 
 interface
 

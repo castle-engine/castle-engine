@@ -18,14 +18,14 @@
   also shows Pressed and Pressed.Characters.
   Also a demo of GLNotifications unit. }
 
-program glwindow_events;
+program window_events;
 
 {$apptype GUI}
 
-uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, GLNotifications, GLWindow,
+uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, GLNotifications, CastleWindow,
   KeysMouse, CastleStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
-  Classes, GLWinMessages;
+  Classes, CastleMessages;
 
 var
   Window: TCastleWindowCustom;

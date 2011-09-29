@@ -64,7 +64,7 @@
 
 unit CastlePng;
 
-{$I kambiconf.inc}
+{$I castleconf.inc}
 {$I pngconf.inc}
 
 interface

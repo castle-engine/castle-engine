@@ -35,7 +35,7 @@ private
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
-{$I glwindow_dialogs_by_glwinmessages.inc}
+{$I castlewindow_dialogs_by_messages.inc}
 
 { some conversions ------------------------------------------------- }
 
@@ -160,9 +160,9 @@ GLUTEND;
 procedure motion_and_passiveMotionByGlut(x, y: integer); cdecl;
 { gdy glut daje nam motion lub passiveMotion my wywolujemy
   DoMouseMove. Uzywamy przy tym zmiennej mousepressed, ktora
-  pozwala aplikacjom napisanym przy uzyciu GLWindow dowiedziec
+  pozwala aplikacjom napisanym przy uzyciu CastleWindow dowiedziec
   sie jakie przyciski sa aktualnia wcisniete (i tym sposobem
-  w GLWindow nie potrzebujemy osobnego motion i passiveMotion). }
+  w CastleWindow nie potrzebujemy osobnego motion i passiveMotion). }
 GLUTBEGIN
  DoMouseMove(x, y);
 GLUTEND;
@@ -323,7 +323,7 @@ begin
     mcStandard: glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
     mcWait: glutSetCursor(GLUT_CURSOR_WAIT);
     mcText: glutSetCursor(GLUT_CURSOR_TEXT);
-    else raise EInternalError.Create('glwindow_glut.inc TCastleWindowBase.UpdateCursor: unknown Cursor');
+    else raise EInternalError.Create('castlewindow_glut.inc TCastleWindowBase.UpdateCursor: unknown Cursor');
   end;
 end;
 
@@ -508,7 +508,7 @@ begin
 
   { Below: simple OnTimer implementation.
     More sophisticated implementation that tries to use glutTimerFunc
-    is in old/GLWindow_glut_glutTimerFunc.inc }
+    is in old file gluttimerfunc.inc. }
   MaybeDoTimer(LastDoTimerTime);
  end;
 end;
