@@ -25,7 +25,7 @@ uses KambiUtils, ProgressUnit, ProgressConsole, KambiWarnings,
   GLWindow;
 
 var
-  BrowserWindow: TCastleWindow;
+  Window: TCastleWindow;
 
 type
   THelperObj = class
@@ -57,20 +57,20 @@ begin
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TCastleWindow.Create(nil);
+  Window := TCastleWindow.Create(nil);
   try
-    BrowserWindow.Load(FileName);
+    Window.Load(FileName);
 
     { initialize events procesing }
-    BrowserWindow.MainScene.RegisterCompiledScript('touch_initialize',
+    Window.MainScene.RegisterCompiledScript('touch_initialize',
       @THelperObj(nil).ScriptTouchInitialize);
-    BrowserWindow.MainScene.RegisterCompiledScript('touch',
+    Window.MainScene.RegisterCompiledScript('touch',
       @THelperObj(nil).ScriptTouch);
 
-    BrowserWindow.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-    BrowserWindow.MainScene.ProcessEvents := true;
+    Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+    Window.MainScene.ProcessEvents := true;
 
-    BrowserWindow.SetDemoOptions(K_F11, CharEscape, true);
-    BrowserWindow.OpenAndRun;
-  finally BrowserWindow.Free end;
+    Window.SetDemoOptions(K_F11, CharEscape, true);
+    Window.OpenAndRun;
+  finally Window.Free end;
 end.

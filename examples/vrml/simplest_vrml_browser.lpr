@@ -29,17 +29,17 @@
 
   1. Look at all the window methods and callbacks of TCastleWindowBase,
      which is an ancestor of TCastleWindowCustom, which is an ancestor of
-     TCastleWindow (that you have inside BrowserWindow variable).
-     For example: assigning your own handlers for BrowserWindow.OnKeyDown
-     or BrowserWindow.OnIdle is often useful.
+     TCastleWindow (that you have inside Window variable).
+     For example: assigning your own handlers for Window.OnKeyDown
+     or Window.OnIdle is often useful.
 
   2. Look at TCastleSceneManager methods and properties (you have TCastleSceneManager
-     instance inside BrowserWindow.SceneManager variable of this program).
+     instance inside Window.SceneManager variable of this program).
 
   3. Look at T3DScene (and it's parent, T3DSceneCore) methods and properties
-     (you have T3DScene instance inside BrowserWindow.Scene
+     (you have T3DScene instance inside Window.Scene
      variable of this program; the same thing is also available in
-     BrowserWindow.SceneManager.MainScene).
+     Window.SceneManager.MainScene).
 
   4. Finally, often it's more comfortable to just create your own
      TCastleSceneManager and T3DScene instances explicitly, using TCastleWindowCustom
@@ -57,7 +57,7 @@ uses KambiUtils, GLWindow, ProgressUnit, ProgressConsole,
   VRMLScene, SysUtils, KambiWarnings, KambiParameters;
 
 var
-  BrowserWindow: TCastleWindow;
+  Window: TCastleWindow;
   FileName: string = 'models' + PathDelim + 'teapot.x3dv';
 
 begin
@@ -68,12 +68,12 @@ begin
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TCastleWindow.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
-  BrowserWindow.Load(FileName);
-  Writeln(BrowserWindow.MainScene.Info(true, true, false));
-  BrowserWindow.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-  BrowserWindow.MainScene.ProcessEvents := true;
+  Window.Load(FileName);
+  Writeln(Window.MainScene.Info(true, true, false));
+  Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Window.MainScene.ProcessEvents := true;
 
-  BrowserWindow.OpenAndRun;
+  Window.OpenAndRun;
 end.

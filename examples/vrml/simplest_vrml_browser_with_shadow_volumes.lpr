@@ -32,11 +32,11 @@ uses KambiUtils, GLWindow, ProgressUnit, ProgressConsole,
   VRMLScene, KambiWarnings, KambiParameters;
 
 var
-  BrowserWindow: TCastleWindow;
+  Window: TCastleWindow;
 
 procedure StencilOff(Window: TCastleWindowBase; const FailureMessage: string);
 begin
-  BrowserWindow.ShadowVolumesPossible := false;
+  Window.ShadowVolumesPossible := false;
   Writeln('Stencil buffer not available, shadows could not be initialized');
 end;
 
@@ -46,16 +46,16 @@ begin
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TCastleWindow.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
-  BrowserWindow.ShadowVolumesPossible := true;
-  BrowserWindow.ShadowVolumes := true;
+  Window.ShadowVolumesPossible := true;
+  Window.ShadowVolumes := true;
 
-  BrowserWindow.Load(Parameters[1]);
-  Writeln(BrowserWindow.MainScene.Info(true, true, false));
-  BrowserWindow.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-  BrowserWindow.MainScene.ProcessEvents := true;
+  Window.Load(Parameters[1]);
+  Writeln(Window.MainScene.Info(true, true, false));
+  Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Window.MainScene.ProcessEvents := true;
 
-  BrowserWindow.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
+  Window.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
   Application.Run;
 end.
