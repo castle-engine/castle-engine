@@ -25,9 +25,9 @@ function Load3DS(const filename: string): TX3DRootNode;
 
 implementation
 
-uses KambiUtils, Classes, KambiClassUtils, SysUtils, VectorMath, VRMLCameraUtils,
+uses CastleUtils, Classes, CastleClassUtils, SysUtils, VectorMath, VRMLCameraUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils,
-  KambiWarnings;
+  CastleWarnings;
 
 { 3DS reading mostly based on spec from
   [http://www.martinreddy.net/gfx/3d/3DS.spec].

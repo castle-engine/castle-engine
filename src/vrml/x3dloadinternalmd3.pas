@@ -19,7 +19,7 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils, VectorMath, VRMLNodes,
+uses SysUtils, Classes, CastleUtils, CastleClassUtils, VectorMath, VRMLNodes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 { Load MD3 animation into a single animated X3D model. }
@@ -36,7 +36,7 @@ procedure LoadMD3Sequence(
 
 implementation
 
-uses KambiFilesUtils, KambiStringUtils, Boxes3D, X3DLoadInternalUtils,
+uses CastleFilesUtils, CastleStringUtils, Boxes3D, X3DLoadInternalUtils,
   VRMLCameraUtils;
 
 type
@@ -602,7 +602,7 @@ begin
 
     ScenesPerTime := 30;
     { Default ScenesPerTime and times are set such that one MD3
-      frame will result in one frame inside TVRMLGLAnimation.
+      frame will result in one frame inside T3DPrecalculatedAnimation.
       So don't try to merge these frames (on the assumption that
       they are not merged in MD3... so hopefully there's no need for it ?). }
     EqualityEpsilon := 0.0;

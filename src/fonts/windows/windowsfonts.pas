@@ -19,7 +19,7 @@ unit WindowsFonts;
 
 interface
 
-uses Windows, SysUtils, KambiUtils;
+uses Windows, SysUtils, CastleUtils;
 
 type
   { A wrapper for CreateFont WinAPI function.
@@ -135,7 +135,7 @@ procedure EnumFontCharsets(const FontName: string; EnumProc : TEnumFontCharsetsP
 
 implementation
 
-uses KambiStringUtils;
+uses CastleStringUtils;
 
 { TWindowsFont ------------------------------------------------------------ }
 

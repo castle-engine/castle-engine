@@ -18,7 +18,7 @@ unit FileFilters;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils,
+uses SysUtils, Classes, CastleUtils, CastleClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -72,7 +72,7 @@ type
 
 implementation
 
-uses StrUtils, KambiStringUtils;
+uses StrUtils, CastleStringUtils;
 
 { TFileFilter ---------------------------------------------------------------- }
 

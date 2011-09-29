@@ -14,13 +14,13 @@ uses
   Interfaces, Forms, GuiTestRunner, castle_base,
   {$endif}
 
-  KambiWarnings,
+  CastleWarnings,
 
   { Test units (their order determines default tests order) }
-  TestKambiUtils,
+  TestCastleUtils,
   TestOSSpecific,
   TestBasicLists,
-  TestKambiClassUtils,
+  TestCastleClassUtils,
   TestVectorMath,
   TestImages,
   TestOldFPCBugs,
@@ -38,9 +38,9 @@ uses
   TestIntRects, }
   TestSpaceFillingCurves,
   TestObjectsList,
-  TestKambiStringUtils,
-  TestKambiScript,
-  TestKambiScriptVectors,
+  TestCastleStringUtils,
+  TestCastleScript,
+  TestCastleScriptVectors,
   TestCubeMap,
   TestShadowFields,
   TestGLVersion,

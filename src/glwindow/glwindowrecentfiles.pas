@@ -57,7 +57,7 @@ type
 
 implementation
 
-uses SysUtils, KambiClassUtils;
+uses SysUtils, CastleClassUtils;
 
 { TMenuRecentItem ------------------------------------------------------------ }
 

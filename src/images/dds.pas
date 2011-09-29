@@ -190,7 +190,7 @@ const
 
 implementation
 
-uses SysUtils, KambiUtils, KambiClassUtils, KambiWarnings, KambiStringUtils,
+uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
   VectorMath;
 
 { ----------------------------------------------------------------------------

@@ -31,7 +31,7 @@ program glwindow_menu;
 {$apptype CONSOLE}
 
 uses SysUtils, VectorMath, GL, GLU, GLExt,
-  GLWindow, KambiGLUtils, GLWinMessages, KambiStringUtils;
+  GLWindow, CastleGLUtils, GLWinMessages, CastleStringUtils;
 
 var
   Window: TCastleWindowDemo;

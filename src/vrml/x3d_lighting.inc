@@ -675,7 +675,7 @@ begin
     but I guess that the intention was that the non-uniform scale will
     make radius non-uniform, i.e. light volume will not be a regular sphere
     but some 3d ellipsoid. Unfortunately this would require quite more
-    work, AddGlobalLights (in TVRMLScene) would then have to check for collision
+    work, AddGlobalLights (in T3DSceneCore) would then have to check for collision
     between
       sphere transformed by matrix Transform
     and
@@ -703,10 +703,10 @@ begin
     (FdAttenuation.Value[2] = 0) then result := 1;
 
  if DistanceNeededForAttenuation then
-  result := 1/ KambiUtils.max(FdAttenuation.Value[0] +
+  result := 1/ CastleUtils.max(FdAttenuation.Value[0] +
                    FdAttenuation.Value[1] * DistanceToLight +
                    FdAttenuation.Value[2] * Sqr(DistanceToLight), Single(1.0)) else
-  result := 1/ KambiUtils.max(FdAttenuation.Value[0], Single(1.0));
+  result := 1/ CastleUtils.max(FdAttenuation.Value[0], Single(1.0));
 end;}
 
 function TAbstractPositionalLightNode.Attenuation(const DistanceToLight: Single): Single;

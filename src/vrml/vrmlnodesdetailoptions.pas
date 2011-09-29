@@ -41,7 +41,7 @@ function VRMLNodesDetailOptionsHelp: string;
 
 implementation
 
-uses SysUtils, KambiUtils, KambiParameters, VRMLNodes;
+uses SysUtils, CastleUtils, CastleParameters, VRMLNodes;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);

@@ -32,7 +32,7 @@ unit GLWinModes;
 
 interface
 
-uses SysUtils, GL, GLWindow, KambiGLUtils, Images, GLWinMessages,
+uses SysUtils, GL, GLWindow, CastleGLUtils, Images, GLWinMessages,
   UIControls, KeysMouse;
 
 type
@@ -276,7 +276,7 @@ procedure NoClose(Window: TCastleWindowBase);
 
 implementation
 
-uses KambiUtils, GLImages;
+uses CastleUtils, GLImages;
 
 { TWindowState -------------------------------------------------------------- }
 

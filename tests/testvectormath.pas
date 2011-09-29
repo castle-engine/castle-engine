@@ -49,7 +49,7 @@ function RandomNonProjectionMatrix: TMatrix4Single;
 
 implementation
 
-uses KambiUtils, KambiStringUtils, KambiTimeUtils;
+uses CastleUtils, CastleStringUtils, CastleTimeUtils;
 
 const
   {$ifdef VECTOR_MATH_SPEED_TESTS}

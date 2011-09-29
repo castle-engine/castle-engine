@@ -90,7 +90,7 @@ procedure FreeMemNilingAllChars(var Font: TTrueTypeFont); overload;
 
 implementation
 
-uses SysUtils, KambiUtils, GenericStructList;
+uses SysUtils, CastleUtils, GenericStructList;
 
 const
   IdentityMat2:Mat2= { identity matrix }

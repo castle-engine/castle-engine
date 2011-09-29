@@ -1,6 +1,6 @@
-{ Simple program that uses KambiScript to create an image
+{ Simple program that uses CastleScript to create an image
   [http://castle-engine.sourceforge.net/kambi_script.php].
-  KambiScript allows you to load an existing image, or start from scratch,
+  CastleScript allows you to load an existing image, or start from scratch,
   and perform basic image processing. After the script executed,
   we will save image to file.
 
@@ -19,10 +19,10 @@
   See example scripts mkimage_.*kscript in this directory.
 }
 
-uses SysUtils, KambiUtils, KambiFilesUtils, KambiStringUtils, Images,
-  KambiClassUtils, KambiParameters,
-  KambiScript, KambiScriptParser, KambiScriptVectors, KambiScriptImages,
-  KambiWarnings;
+uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, Images,
+  CastleClassUtils, CastleParameters,
+  CastleScript, CastleScriptParser, CastleScriptVectors, CastleScriptImages,
+  CastleWarnings;
 
 var
   Vars: TKamScriptValueList;

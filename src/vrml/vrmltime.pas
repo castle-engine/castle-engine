@@ -18,7 +18,7 @@ unit VRMLTime;
 
 interface
 
-uses KambiUtils, KambiTimeUtils, GenericStructList;
+uses CastleUtils, CastleTimeUtils, GenericStructList;
 
 type
   { This is a complete timestamp for VRML events.
@@ -73,7 +73,7 @@ type
   end;
   PVRMLTime = ^TVRMLTime;
 
-  TKamTime = KambiTimeUtils.TKamTime;
+  TKamTime = CastleTimeUtils.TKamTime;
 
 const
   OldestVRMLTime: TVRMLTime = (Seconds: OldestTime; PlusTicks: 0);

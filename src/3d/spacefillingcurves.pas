@@ -191,7 +191,7 @@ function AllSFCurveClassesNames: string;
 
 implementation
 
-uses KambiUtils;
+uses CastleUtils;
 
 const
   { AngleTurn[Angle, Orient] = (definicja)

@@ -18,7 +18,7 @@ unit VRMLArraysGenerator;
 
 interface
 
-uses VRMLShape, VRMLNodes, VRMLFields, KambiUtils, GeometryArrays, VectorMath;
+uses VRMLShape, VRMLNodes, VRMLFields, CastleUtils, GeometryArrays, VectorMath;
 
 type
   TRadianceTransferFunction = function (Node: TAbstractGeometryNode;
@@ -223,8 +223,8 @@ function ArraysGenerator(AGeometry: TAbstractGeometryNode): TVRMLArraysGenerator
 
 implementation
 
-uses SysUtils, KambiLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  Boxes3D, Triangulator, KambiStringUtils, FaceIndex, KambiWarnings;
+uses SysUtils, CastleLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  Boxes3D, Triangulator, CastleStringUtils, FaceIndex, CastleWarnings;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 

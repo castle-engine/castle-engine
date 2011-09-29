@@ -18,7 +18,7 @@ unit RecentFiles;
 
 interface
 
-uses Classes, KambiXMLConfig;
+uses Classes, CastleXMLConfig;
 
 const
   DefaultMaxCount = 5;
@@ -74,7 +74,7 @@ type
 
 implementation
 
-uses SysUtils, KambiClassUtils;
+uses SysUtils, CastleClassUtils;
 
 constructor TBaseRecentFiles.Create(AOwner: TComponent);
 begin

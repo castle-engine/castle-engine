@@ -21,7 +21,7 @@ unit XmlSoundEngine;
 interface
 
 uses Classes, VectorMath, SysUtils,
-  KambiUtils, KambiXMLConfig, ALSoundEngine, ALSoundAllocator,
+  CastleUtils, CastleXMLConfig, ALSoundEngine, ALSoundAllocator,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 const
@@ -254,8 +254,8 @@ type
 
 implementation
 
-uses ProgressUnit, KambiFilesUtils, DOM, XMLRead, KambiXMLUtils,
-  VorbisFile, KambiStringUtils;
+uses ProgressUnit, CastleFilesUtils, DOM, XMLRead, CastleXMLUtils,
+  VorbisFile, CastleStringUtils;
 
 { TXmlSoundEngine ----------------------------------------------------------- }
 

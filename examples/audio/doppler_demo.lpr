@@ -23,8 +23,8 @@
   http://castle-engine.sourceforge.net/openal_notes.php }
 program doppler_demo;
 
-uses SysUtils, VectorMath, GLWindow, GL, GLU, KambiGLUtils,
-  KambiOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator, KambiStringUtils;
+uses SysUtils, VectorMath, GLWindow, GL, GLU, CastleGLUtils,
+  CastleOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator, CastleStringUtils;
 
 const
   ALDistanceScaling = 0.02;

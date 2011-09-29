@@ -21,8 +21,8 @@ interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3D,
-  VRMLFields, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLShape, VRMLTriangleOctree, ProgressUnit, KambiOctree, VRMLShapeOctree,
+  VRMLFields, VRMLNodes, CastleClassUtils, CastleUtils,
+  VRMLShape, VRMLTriangleOctree, ProgressUnit, CastleOctree, VRMLShapeOctree,
   KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs,
   RenderingCameraUnit, Base3D, VRMLShadowMaps,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
@@ -766,7 +766,7 @@ type
       you're sure that all leafs within Shapes tree are created using
       this.
 
-      Example: T3DScene uses this to create TVRMLGLShape. }
+      Example: T3DScene uses this to create TGLShape. }
     function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape; virtual;
 
@@ -896,7 +896,7 @@ type
       called by constructor of this class, so you can put a lot of your
       initialization there (instead of in the constructor).
 
-      ChangedAll calls BeforeNodesFree(true) first, for safety (and TVRMLGLShape
+      ChangedAll calls BeforeNodesFree(true) first, for safety (and TGLShape
       actually depends on it, see implementation comments). }
     procedure ChangedAll; override;
 
@@ -1011,8 +1011,8 @@ type
     { @groupEnd }
 
     { Returns short information about the scene.
-      This consists of a few lines, separated by KambiUtils.NL.
-      Last line also ends with KambiUtils.NL.
+      This consists of a few lines, separated by CastleUtils.NL.
+      Last line also ends with CastleUtils.NL.
 
       Note that AManifoldAndBorderEdges = @true will require calculation
       of ManifoldEdges and BorderEdges (if they weren't calculated already).
@@ -1941,14 +1941,14 @@ type
 
 var
   { Log T3DSceneCore.ChangedField and T3DSceneCore.ChangedAll occurrences.
-    Relevant only if KambiLog.Log is also true, that is: you still have
-    to call KambiLog.InitializeLog to enable any logging.
+    Relevant only if CastleLog.Log is also true, that is: you still have
+    to call CastleLog.InitializeLog to enable any logging.
     Useful for debugging  and optimizing VRML/X3D events engine. }
   LogChanges: boolean;
 
 implementation
 
-uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
+uses VRMLCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
   X3DLoad;
 
 { TVRMLBindableStack ----------------------------------------------------- }

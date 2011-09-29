@@ -18,7 +18,7 @@ unit VRMLLighting;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils;
+uses VectorMath, VRMLNodes, VRMLTriangle, Math, CastleUtils;
 
 { VRML 2.0 material emissiveColor for lighting equation.
   That is, the @code(O_Ergb) part of lighting equation in
@@ -124,7 +124,7 @@ procedure VRML97FogTo1st(
 
 implementation
 
-uses KambiWarnings;
+uses CastleWarnings;
 
 function VRML97Emission(const IntersectNode: TTriangle;
   LightingCalculationOn: boolean): TVector3Single;

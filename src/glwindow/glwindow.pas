@@ -423,7 +423,7 @@ unit GLWindow;
 { Configure some debugging options of GLWindow ------------------------------- }
 
 { When GLWINDOW_LOG_EVENTS is defined, TCastleWindowBase events will be logged.
-  This means logging (using KambiLog) at begin, end, and at exception exit
+  This means logging (using CastleLog) at begin, end, and at exception exit
   inside all TCastleWindowBase events (EventXxx methods).
   Very useful, although floods your log with incredible amount of messages
   very quickly.
@@ -442,7 +442,7 @@ unit GLWindow;
 { Define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
   after TCastleWindowBase.EventDraw (TCastleWindowBase.OnDraw callback) calls.
   This is done by DoDraw, that is: when a backend initiates the drawing.
-  The check is done by KambiGLUtils.CheckGLErrors, checks glGetError
+  The check is done by CastleGLUtils.CheckGLErrors, checks glGetError
   and eventually raises an exception. }
 {$ifdef DEBUG}
   {$define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW}
@@ -517,10 +517,10 @@ unit GLWindow;
 {$ifdef GLWINDOW_XLIB}    {$define GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN} {$endif}
 
 { Only relevant for GLWINDOW_GLUT backend:
-  Define to use FPC Glut/FreeGlut unit. Otherwise, our KambiGlut will be used.
+  Define to use FPC Glut/FreeGlut unit. Otherwise, our CastleGlut will be used.
 
-  In the future, our KambiGlut unit will be removed. But currently,
-  you need FPC >= 2.5.1 for FreeGlut unit, so keep using KambiGlut by default. }
+  In the future, our CastleGlut unit will be removed. But currently,
+  you need FPC >= 2.5.1 for FreeGlut unit, so keep using CastleGlut by default. }
 { $define FPC_GLUT_UNIT}
 
 { TODO list ------------------------------------------------------------------
@@ -573,21 +573,21 @@ unit GLWindow;
 interface
 
 uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
-  {$ifdef GLWINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} KambiGlut, {$endif} {$endif}
+  {$ifdef GLWINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} CastleGlut, {$endif} {$endif}
   {$ifdef GLWINDOW_WINAPI} Windows,
     { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
     {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
   {$endif}
-  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, KambiGlx, {$endif}
-  {$ifdef GLWINDOW_USE_XF86VMODE} KambiXF86VMode, {$endif}
+  {$ifdef GLWINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
+  {$ifdef GLWINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef GLWINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
   {$ifdef GLWINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
-  {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, KambiDynLib, {$endif}
-  KambiUtils, KambiClassUtils, KambiGLUtils, Images, KeysMouse,
-  KambiStringUtils, KambiFilesUtils, KambiTimeUtils, FileFilters, UIControls,
+  {$ifdef GLWINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
+  CastleUtils, CastleClassUtils, CastleGLUtils, Images, KeysMouse,
+  CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
   { VRML/X3D stuff }
-  VRMLNodes, VRMLGLScene, KambiSceneManager;
+  VRMLNodes, VRMLGLScene, CastleSceneManager;
 
 {$define read_interface}
 
@@ -2068,7 +2068,7 @@ end;
 @longCode(#
   EventBeforeDraw;
   EventDraw;
-  KambiGLUtils.SaveScreenXxx_noflush(..,GL_BACK);
+  CastleGLUtils.SaveScreenXxx_noflush(..,GL_BACK);
 #)
 
           This draws to the back buffer and captures it's contents,
@@ -2079,11 +2079,11 @@ end;
 
 @longCode(#
   FlushRedisplay;
-  KambiGLUtils.SaveScreenXxx_noflush(..,GL_FRONT);
+  CastleGLUtils.SaveScreenXxx_noflush(..,GL_FRONT);
 #)
 
           This isn't absolutely reliable. Read
-          KambiGLUtils.SaveScreenXxx_noflush docs, and OpenGL FAQ:
+          CastleGLUtils.SaveScreenXxx_noflush docs, and OpenGL FAQ:
           capturing the front buffer contents is generally not reliable
           with OpenGL.)
       )
@@ -2752,7 +2752,7 @@ end;
     { Describe the changes recorded in variables VideoXxx,
       used by VideoChange and TryVideoChange.
       This is a multiline string, each line is indented by 2 spaces,
-      always ends with KambiUtils.NL. }
+      always ends with CastleUtils.NL. }
     function VideoSettingsDescribe: string;
 
     { Change the screen size, color bits and such, following the directions
@@ -2942,7 +2942,7 @@ procedure Resize2D(Window: TCastleWindowBase);
 
 implementation
 
-uses KambiParameters, KambiLog, GLImages, GLVersionUnit, X3DLoad
+uses CastleParameters, CastleLog, GLImages, GLVersionUnit, X3DLoad
   { using here GLWinModes/Messages makes recursive uses,
     but it's needed for FileDialog }
   {$ifdef GLWINDOW_GTK_ANY}, GLWinModes {$endif}

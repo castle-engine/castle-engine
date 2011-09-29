@@ -19,8 +19,8 @@ unit Cameras;
 
 interface
 
-uses SysUtils, VectorMath, KambiUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
-  UIControls, Classes, RaysWindow, Base3D, KambiTimeUtils;
+uses SysUtils, VectorMath, CastleUtils, KeysMouse, Boxes3D, Quaternions, Frustum,
+  UIControls, Classes, RaysWindow, Base3D, CastleTimeUtils;
 
 const
   DefaultFallingDownStartSpeed = 0.5;
@@ -1693,7 +1693,7 @@ procedure Register;
 
 implementation
 
-uses Math, KambiStringUtils;
+uses Math, CastleStringUtils;
 
 procedure Register;
 begin

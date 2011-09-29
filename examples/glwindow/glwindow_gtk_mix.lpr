@@ -32,10 +32,10 @@
 
 program glwindow_gtk_mix;
 
-uses GLWindow, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils,
-  VectorMath, KambiUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
+uses GLWindow, GL, GLU, GLExt, CastleGLUtils, OpenGLFonts, SysUtils,
+  VectorMath, CastleUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
   {$ifdef GTK_1} Gtk, Gdk, Glib {$else} Gtk2, Gdk2, Glib2 {$endif},
-  KambiStringUtils;
+  CastleStringUtils;
 
 type
   TMyGLWindow = class(TCastleWindowDemo)

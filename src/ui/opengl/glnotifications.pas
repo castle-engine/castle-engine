@@ -18,8 +18,8 @@ unit GLNotifications;
 
 interface
 
-uses GL, GLU, UIControls, Classes, SysUtils, KambiUtils, KambiGLUtils,
-  OpenGLBmpFonts, OpenGLFonts, KambiTimeUtils, VectorMath, KambiStringUtils,
+uses GL, GLU, UIControls, Classes, SysUtils, CastleUtils, CastleGLUtils,
+  OpenGLBmpFonts, OpenGLFonts, CastleTimeUtils, VectorMath, CastleStringUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -148,7 +148,7 @@ procedure Register;
 
 implementation
 
-uses BFNT_BitstreamVeraSans_Unit, KambiLog;
+uses BFNT_BitstreamVeraSans_Unit, CastleLog;
 
 procedure Register;
 begin

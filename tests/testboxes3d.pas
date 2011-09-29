@@ -35,7 +35,7 @@ type
 
 implementation
 
-uses VectorMath, KambiUtils, Boxes3D, KambiStringUtils, KambiTimeUtils,
+uses VectorMath, CastleUtils, Boxes3D, CastleStringUtils, CastleTimeUtils,
   TestVectorMath;
 
 procedure TTestBoxes3D.TestIsCenteredBox3DPlaneCollision;

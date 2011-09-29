@@ -19,7 +19,7 @@ unit GLMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Rectangles,
-  GL, KambiGLUtils, UIControls, KeysMouse;
+  GL, CastleGLUtils, UIControls, KeysMouse;
 
 const
   DefaultMenuKeyNextItem = K_Down;
@@ -661,8 +661,8 @@ procedure Register;
 
 implementation
 
-uses SysUtils, KambiUtils, Images, KambiFilesUtils, KambiClassUtils,
-  BFNT_BitstreamVeraSans_m10_Unit, KambiStringUtils, GLImages,
+uses SysUtils, CastleUtils, Images, CastleFilesUtils, CastleClassUtils,
+  BFNT_BitstreamVeraSans_m10_Unit, CastleStringUtils, GLImages,
   GLMenuImages;
 
 procedure Register;

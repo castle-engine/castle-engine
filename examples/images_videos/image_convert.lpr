@@ -17,7 +17,7 @@
 
 program image_convert;
 
-uses SysUtils, KambiUtils, Images, KambiParameters;
+uses SysUtils, CastleUtils, Images, CastleParameters;
 
 var
   { required params }

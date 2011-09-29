@@ -21,7 +21,7 @@ type
 implementation
 
 uses VRMLNodes, VRMLScene, X3DLoad, VectorMath, VRMLShape,
-  KambiTimeUtils, KambiStringUtils;
+  CastleTimeUtils, CastleStringUtils;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var

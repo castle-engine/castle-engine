@@ -18,7 +18,7 @@ unit ImagesCache;
 
 interface
 
-uses KambiUtils, Images, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses CastleUtils, Images, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
   { Internal for TImagesCache. @exclude }
@@ -96,7 +96,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils;
+uses SysUtils, CastleStringUtils;
 
 { $define DEBUG_CACHE}
 

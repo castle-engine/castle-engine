@@ -26,8 +26,8 @@ function LoadGEO(const filename: string): TX3DRootNode;
 
 implementation
 
-uses VectorMath, KambiUtils, Classes, SysUtils, Boxes3D, Base3D,
-  KambiFilesUtils, KambiStringUtils, X3DLoadInternalUtils;
+uses VectorMath, CastleUtils, Classes, SysUtils, Boxes3D, Base3D,
+  CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }
 

@@ -22,8 +22,8 @@ program glwindow_events;
 
 {$apptype GUI}
 
-uses SysUtils, KambiUtils, KambiGLUtils, GL, GLU, GLNotifications, GLWindow,
-  KeysMouse, KambiStringUtils,
+uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, GLNotifications, GLWindow,
+  KeysMouse, CastleStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
   Classes, GLWinMessages;
 

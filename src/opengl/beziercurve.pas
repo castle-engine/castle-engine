@@ -23,7 +23,7 @@ unit BezierCurve;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, Classes, Math, VectorMath, Curve,
+uses SysUtils, CastleUtils, CastleClassUtils, Classes, Math, VectorMath, Curve,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -104,7 +104,7 @@ type
 
 implementation
 
-uses GL, GLU, KambiGLUtils;
+uses GL, GLU, CastleGLUtils;
 
 { TRationalBezierCurve ----------------------------------------------- }
 

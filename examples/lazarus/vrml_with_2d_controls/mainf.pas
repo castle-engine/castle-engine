@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  KambiGLControl, GL, GLControls, GLMenu;
+  CastleGLControl, GL, GLControls, GLMenu;
 
 type
 
@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses VRMLScene, KambiUtils, Images, VectorMath;
+uses VRMLScene, CastleUtils, Images, VectorMath;
 
 { TForm1 --------------------------------------------------------------------- }
 

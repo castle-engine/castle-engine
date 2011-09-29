@@ -20,8 +20,8 @@ unit TestOpeningAndRendering3D;
 
 interface
 
-uses fpcunit, testutils, testregistry, KambiFilesUtils, EnumerateFiles,
-  GLWindow, VRMLScene, VRMLGLScene, KambiSceneManager;
+uses fpcunit, testutils, testregistry, CastleFilesUtils, EnumerateFiles,
+  GLWindow, VRMLScene, VRMLGLScene, CastleSceneManager;
 
 type
   TTestOpeningAndRendering3D = class(TTestCase)
@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiGLUtils, GLVersionUnit, KambiWarnings;
+uses SysUtils, CastleUtils, CastleGLUtils, GLVersionUnit, CastleWarnings;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin

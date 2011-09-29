@@ -21,9 +21,9 @@
 
 program test_font_break;
 
-uses GLWindow, GL, GLU, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
-  KambiUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath,
-  KambiStringUtils;
+uses GLWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
+  CastleUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath,
+  CastleStringUtils;
 
 var
   Window: TCastleWindowDemo;

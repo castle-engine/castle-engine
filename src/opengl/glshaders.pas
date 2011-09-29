@@ -40,7 +40,7 @@ unit GLShaders;
 
 interface
 
-uses SysUtils, Classes, GL, GLU, GLExt, KambiGLUtils, KambiUtils, VectorMath,
+uses SysUtils, Classes, GL, GLU, GLExt, CastleGLUtils, CastleUtils, VectorMath,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -407,7 +407,7 @@ property CurrentProgram: TGLSLProgram
 
 implementation
 
-uses KambiStringUtils, KambiWarnings, KambiLog, GLVersionUnit;
+uses CastleStringUtils, CastleWarnings, CastleLog, GLVersionUnit;
 
 { Comfortable shortcut for glGetProgramivARB that always returns 1 value. }
 function glGetProgramiARB(target: TGLenum; pname: TGLenum): TGLint;

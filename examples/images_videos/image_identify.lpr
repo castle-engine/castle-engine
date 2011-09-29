@@ -20,7 +20,7 @@
   or as a command-line tool similar to ImageMagick "identify". }
 program image_identify;
 
-uses SysUtils, KambiUtils, Images, KambiParameters;
+uses SysUtils, CastleUtils, Images, CastleParameters;
 
 var
   I: Integer;

@@ -33,18 +33,18 @@
     <Version Major="1"/>
     <Files Count="5">
       <Item1>
-        <Filename Value="../src/components/kambiglcontrol.pas"/>
+        <Filename Value="../src/components/castleglcontrol.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="KambiGLControl"/>
+        <UnitName Value="CastleGLControl"/>
       </Item1>
       <Item2>
-        <Filename Value="../src/components/kambilclutils.pas"/>
-        <UnitName Value="KambiLCLUtils"/>
+        <Filename Value="../src/components/castlelclutils.pas"/>
+        <UnitName Value="CastleLCLUtils"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/components/kambipropedits.pas"/>
+        <Filename Value="../src/components/castlepropedits.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="KambiPropEdits"/>
+        <UnitName Value="CastlePropEdits"/>
       </Item3>
       <Item5>
         <Filename Value="../src/components/lclrecentfiles.pas"/>
@@ -52,7 +52,7 @@
         <UnitName Value="LCLRecentFiles"/>
       </Item5>
       <Item4>
-        <Filename Value="../src/components/icons/kambiicons.lrs"/>
+        <Filename Value="../src/components/icons/castleicons.lrs"/>
         <Type Value="LRS"/>
       </Item4>
     </Files>

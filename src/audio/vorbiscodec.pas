@@ -6,7 +6,7 @@ unit VorbisCodec;
 
 interface
 
-uses CTypes, KambiOgg;
+uses CTypes, CastleOgg;
 
 type
   Tvorbis_info = record

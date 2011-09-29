@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses KambiUtils, VectorMath, VRMLCameraUtils, Math, Cameras, Quaternions;
+uses CastleUtils, VectorMath, VRMLCameraUtils, Math, Cameras, Quaternions;
 
 procedure TTestCameras.TestToOrientationAndBack;
 

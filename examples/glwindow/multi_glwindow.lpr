@@ -33,9 +33,9 @@ program multi_glwindow;
 {$apptype GUI}
 
 uses
-  GL, GLU, GLWindow, SysUtils, KambiUtils, OpenGLFonts, OpenGLTTFonts,
-  TTF_BitstreamVeraSans_Unit, KambiGLUtils, KeysMouse, VectorMath,
-  KambiStringUtils;
+  GL, GLU, GLWindow, SysUtils, CastleUtils, OpenGLFonts, OpenGLTTFonts,
+  TTF_BitstreamVeraSans_Unit, CastleGLUtils, KeysMouse, VectorMath,
+  CastleStringUtils;
 
 type
   TMyWindow = class(TCastleWindowDemo)

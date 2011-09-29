@@ -26,8 +26,8 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, VectorMath, KambiWarnings, Base3D,
-  VRMLScene, VRMLGLScene, KambiSceneManager, VRMLGLAnimation, VRMLNodes;
+uses CastleUtils, GLWindow, VectorMath, CastleWarnings, Base3D,
+  VRMLScene, VRMLGLScene, CastleSceneManager, VRMLGLAnimation, VRMLNodes;
 
 var
   Window: TCastleWindowCustom;

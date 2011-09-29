@@ -28,15 +28,15 @@ program simplest_vrml_browser_with_shadow_volumes;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, ProgressUnit, ProgressConsole,
-  VRMLScene, KambiWarnings, KambiParameters;
+uses CastleUtils, GLWindow, ProgressUnit, ProgressConsole,
+  VRMLScene, CastleWarnings, CastleParameters;
 
 var
   Window: TCastleWindow;
 
 procedure StencilOff(Window: TCastleWindowBase; const FailureMessage: string);
 begin
-  Window.ShadowVolumesPossible := false;
+  (Window as TCastleWindow).ShadowVolumesPossible := false;
   Writeln('Stencil buffer not available, shadows could not be initialized');
 end;
 

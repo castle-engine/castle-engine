@@ -28,8 +28,8 @@ program demo_camera;
 {$apptype GUI}
 
 uses VectorMath, Boxes3D, GL, GLU, GLWindow, Frustum,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, Base3D,
-  KambiGLUtils, Cameras, KambiFilesUtils, KambiSceneManager, KambiStringUtils;
+  CastleClassUtils, CastleUtils, SysUtils, Classes, Base3D,
+  CastleGLUtils, Cameras, CastleFilesUtils, CastleSceneManager, CastleStringUtils;
 
 type
   TCube = class(T3D)

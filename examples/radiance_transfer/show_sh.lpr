@@ -23,10 +23,10 @@
 program show_sh;
 
 uses VectorMath, Boxes3D, GL, GLWindow, Base3D, UIControls,
-  KambiClassUtils, KambiUtils, SysUtils, KambiFilesUtils,
-  KambiGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, KambiSceneManager,
-  KambiStringUtils;
+  CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils,
+  CastleGLUtils, Cameras, Math, SphereSampling, SphericalHarmonics,
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleSceneManager,
+  CastleStringUtils;
 
 var
   Window: TCastleWindowCustom;

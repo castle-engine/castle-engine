@@ -99,7 +99,7 @@ function CNorm(const Z: complex_single): Single;
 
 implementation
 
-uses VectorMath, KambiUtils, FftwUtils;
+uses VectorMath, CastleUtils, FftwUtils;
 
 constructor TImageFftw.Create(AImage: TRGBImage);
 var

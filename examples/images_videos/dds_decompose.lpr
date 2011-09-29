@@ -22,8 +22,8 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, KambiUtils, Images, DDS, KambiWarnings, KambiStringUtils,
-  KambiParameters;
+uses SysUtils, CastleUtils, Images, DDS, CastleWarnings, CastleStringUtils,
+  CastleParameters;
 
 var
   SaveDecomposed: boolean = true;

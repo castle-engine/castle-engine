@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses VectorMath, ShadowFields, KambiUtils, CubeMap;
+uses VectorMath, ShadowFields, CastleUtils, CubeMap;
 
 procedure TTestShadowFields.Test1;
 var

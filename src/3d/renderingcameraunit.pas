@@ -18,7 +18,7 @@ unit RenderingCameraUnit;
 
 interface
 
-uses KambiUtils, VectorMath, Frustum, Cameras, GenericStructList;
+uses CastleUtils, VectorMath, Frustum, Cameras, GenericStructList;
 
 type
   TRenderingCamera = class;
@@ -130,7 +130,7 @@ var
 
 implementation
 
-uses SysUtils, KambiLog;
+uses SysUtils, CastleLog;
 
 { TCameraChangedEventList ------------------------------------------------ }
 

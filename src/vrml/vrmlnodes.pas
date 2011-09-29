@@ -167,11 +167,11 @@ unit VRMLNodes;
 
 interface
 
-uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
+uses VectorMath, Classes, SysUtils, VRMLLexer, CastleUtils, CastleClassUtils,
   VRMLFields, Boxes3D, Images, TTFontsTypes,
   Videos, VRMLTime, Base3D,
-  KambiScript, VRMLKambiScript, KambiOctree, DDS, TextureImages,
-  XMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, KambiStringUtils,
+  CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,
+  XMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, CastleStringUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}
@@ -290,7 +290,7 @@ type
       expressed in world coordinates. If not, they are expressed in scene
       coordinates.
 
-      This matters if you render the scene using TVRMLGLScene,
+      This matters if you render the scene using T3DScene,
       and transform it by T3DTranslated or direct OpenGL modelview changes.
       By default (WorldCoordinates = false) we assume that light is defined
       in scene space, so it will be transformed by the whole modelview matrix
@@ -381,7 +381,7 @@ type
       So it's guaranteed that changing some field's value of a node
       within TraverseStateLastNodesClasses affects @italic(only)
       the shapes that have given node inside State.LastNodes.
-      TVRMLScene.ChangedField depends on that. }
+      T3DSceneCore.ChangedField depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
     procedure SetLastNodes(const StateNode: TVRML1StateNode;
@@ -393,7 +393,7 @@ type
       which happen very often with TVRMLGraphTraverseState during VRML/X3D
       traversing.
 
-      Note that VRML >= 2.0 "global" lights are added from TVRMLScene,
+      Note that VRML >= 2.0 "global" lights are added from T3DSceneCore,
       not during the traverse pass. }
     Lights: TLightInstancesList;
 
@@ -1647,7 +1647,7 @@ type
       say that only one event per ROUTE per timestamp is allowed.
 
       Use ResetLastEventTime when you really want to reset this memory.
-      In practice, this should be used only by TVRMLScene.ResetTime
+      In practice, this should be used only by T3DSceneCore.ResetTime
       implementation. }
     procedure ResetLastEventTime;
 
@@ -2070,7 +2070,7 @@ var
 
     Rectangles (used for Cube sides) are also subdivided, for better
     Gouraud shading. For the exact meaning of Detail_RectDivisions
-    see KambiGLUtils.DrawGLPlane.
+    see CastleGLUtils.DrawGLPlane.
 
     For now, you can change these variables only @italic(before using anything)
     from this module. If you want to change them inside VRML/X3D
@@ -2191,10 +2191,10 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, X3DLoad, KambiZStream, VRMLCameraUtils, KambiWarnings,
-  KambiFilesUtils, RaysWindow, StrUtils, KambiURLUtils,
-  KambiLog, KambiScriptParser, DataURI, URIParser,
-  NURBS, Quaternions, Cameras, KambiXMLUtils;
+  Math, X3DLoad, CastleZStream, VRMLCameraUtils, CastleWarnings,
+  CastleFilesUtils, RaysWindow, StrUtils, CastleURLUtils,
+  CastleLog, CastleScriptParser, DataURI, URIParser,
+  NURBS, Quaternions, Cameras, CastleXMLUtils;
 
 {$define read_implementation}
 

@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses KambiParameters, KambiUtils, KambiStringUtils, GenericStructList;
+uses CastleParameters, CastleUtils, CastleStringUtils, GenericStructList;
 
 type
   TParsedOption = record

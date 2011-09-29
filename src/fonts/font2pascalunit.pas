@@ -42,7 +42,7 @@ procedure Font2Pascal(const BmpFont: TBmpFont;
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, KambiClassUtils;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleClassUtils;
 
 { WriteUnit* ---------------------------------------------------------- }
 

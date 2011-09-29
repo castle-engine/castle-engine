@@ -19,7 +19,7 @@ unit GLControls;
 interface
 
 uses Classes, GL, VectorMath, UIControls, OpenGLFonts,
-  KeysMouse, Images, KambiUtils;
+  KeysMouse, Images, CastleUtils;
 
 type
   { Base class for all controls inside an OpenGL context using a font. }
@@ -267,7 +267,7 @@ procedure Register;
 implementation
 
 uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
-  KambiGLUtils, GLImages, Math;
+  CastleGLUtils, GLImages, Math;
 
 procedure Register;
 begin

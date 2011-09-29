@@ -19,8 +19,8 @@ unit Curve;
 
 interface
 
-uses VectorMath, Boxes3D, KambiUtils, KambiScript,
-  KambiClassUtils, Classes, Base3D, Frustum,
+uses VectorMath, Boxes3D, CastleUtils, CastleScript,
+  CastleClassUtils, Classes, Base3D, Frustum,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -85,7 +85,7 @@ type
   TCurveList = specialize TFPGObjectList<TCurve>;
 
   { @abstract(This is a curve defined by explicitly giving functions for
-    Point(t) = x(t), y(t), z(t) as KambiScript expressions.) }
+    Point(t) = x(t), y(t), z(t) as CastleScript expressions.) }
   TKamScriptCurve = class(TCurve)
   protected
     FTVariable: TKamScriptFloat;
@@ -308,7 +308,7 @@ type
 
 implementation
 
-uses SysUtils, GL, GLU, ConvexHullUnit, KambiGLUtils;
+uses SysUtils, GL, GLU, ConvexHullUnit, CastleGLUtils;
 
 { TCurve ------------------------------------------------------------ }
 

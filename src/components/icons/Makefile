@@ -1,2 +1,2 @@
-kambiicons.lrs: *.png
-	lazres kambiicons.lrs *.png
+castleicons.lrs: *.png
+	lazres castleicons.lrs *.png

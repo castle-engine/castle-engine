@@ -25,7 +25,7 @@ unit Rectangles;
 
 interface
 
-uses KambiUtils, SysUtils, GenericStructList;
+uses CastleUtils, SysUtils, GenericStructList;
 
 type
   { 2D rectangle. }

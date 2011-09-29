@@ -21,8 +21,8 @@ unit VRMLTriangle;
 
 interface
 
-uses VectorMath, SysUtils, KambiUtils, VRMLNodes, Base3D, Boxes3D,
-  KambiOctree, FaceIndex, GenericStructList;
+uses VectorMath, SysUtils, CastleUtils, VRMLNodes, Base3D, Boxes3D,
+  CastleOctree, FaceIndex, GenericStructList;
 
 { TTriangle  ------------------------------------------------------------ }
 
@@ -666,7 +666,7 @@ type
 
 implementation
 
-uses KambiStringUtils, VRMLShape;
+uses CastleStringUtils, VRMLShape;
 
 { TTriangle  ------------------------------------------------------------- }
 

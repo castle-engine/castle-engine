@@ -59,7 +59,7 @@ unit KeysMouse;
 
 interface
 
-uses KambiUtils, KambiStringUtils;
+uses CastleUtils, CastleStringUtils;
 
 type
   { }

@@ -33,7 +33,7 @@ unit XlibUtils;
 
 interface
 
-uses Xlib, X, XUtil, SysUtils, KambiUtils;
+uses Xlib, X, XUtil, SysUtils, CastleUtils;
 
 const
   { }

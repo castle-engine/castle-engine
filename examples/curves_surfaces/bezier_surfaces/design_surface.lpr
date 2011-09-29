@@ -21,8 +21,8 @@ program design_surface;
 {$apptype GUI}
 
 uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
-  KambiGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, KambiUtils, KeysMouse,
-  KambiStringUtils, Math, GLWinMessages, KambiFilesUtils,
+  CastleGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
+  CastleStringUtils, Math, GLWinMessages, CastleFilesUtils,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
 
 type

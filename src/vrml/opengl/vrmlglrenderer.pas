@@ -218,11 +218,11 @@ unit VRMLGLRenderer;
 interface
 
 uses
-  Classes, SysUtils, KambiUtils, VectorMath, GL, GLExt,
+  Classes, SysUtils, CastleUtils, VectorMath, GL, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
-  KambiGLUtils, VRMLGLRendererLights, TTFontsTypes,
+  CastleGLUtils, VRMLGLRendererLights, TTFontsTypes,
   GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
-  GLCubeMap, KambiClassUtils, DDS, Base3D,
+  GLCubeMap, CastleClassUtils, DDS, Base3D,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
   GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps,
   VRMLGLRendererTextureEnv;
@@ -1220,7 +1220,7 @@ const
 
 var
   { Should we log every event of a cache TVRMLGLRendererContextCache.
-    You have to InitializeLog first (see KambiLog) to make this actually
+    You have to InitializeLog first (see CastleLog) to make this actually
     meaningful. This allows to see how the cache performs. It also causes
     a @italic(lot) of log messages, usually too many even for debugging. }
   LogRendererCache: boolean = false;
@@ -1229,7 +1229,7 @@ var
 
 implementation
 
-uses Math, KambiStringUtils, GLVersionUnit, KambiLog, KambiWarnings,
+uses Math, CastleStringUtils, GLVersionUnit, CastleLog, CastleWarnings,
   RenderingCameraUnit, VRMLCameraUtils, RaysWindow;
 
 {$define read_implementation}

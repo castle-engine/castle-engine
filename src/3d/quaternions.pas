@@ -158,7 +158,7 @@ function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
 
 implementation
 
-uses Math, KambiUtils;
+uses Math, CastleUtils;
 
 { TQuaternion ---------------------------------------------------------------- }
 

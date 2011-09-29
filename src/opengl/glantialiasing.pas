@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setup OpenGL full-screen anti-aliasing (multisamling). }
+{ Setup OpenGL full-screen anti-aliasing (multi-sampling). }
 unit GLAntiAliasing;
 
 interface
@@ -50,7 +50,7 @@ function AntiAliasingToStr(Value: TAntiAliasing): string;
 
 implementation
 
-uses KambiGLUtils, GL, GLExt;
+uses CastleGLUtils, GL, GLExt;
 
 function AntiAliasingGlwMultiSampling: Cardinal;
 begin

@@ -41,10 +41,10 @@
 
 program shadow_fields;
 
-uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
-  GLWindow, VRMLGLScene, Cameras, KambiWarnings, KambiParameters,
-  ShadowFields, KambiUtils, CubeMap, VRMLNodes, KambiSceneManager,
-  SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape, KambiStringUtils;
+uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D,
+  GLWindow, VRMLGLScene, Cameras, CastleWarnings, CastleParameters,
+  ShadowFields, CastleUtils, CubeMap, VRMLNodes, CastleSceneManager,
+  SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape, CastleStringUtils;
 
 var
   Window: TCastleWindowCustom;

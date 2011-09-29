@@ -89,8 +89,8 @@ type
 
 implementation
 
-uses KambiUtils, VRMLLexer, KambiClassUtils, KambiFilesUtils, VRMLFields,
-  KambiTimeUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses CastleUtils, VRMLLexer, CastleClassUtils, CastleFilesUtils, VRMLFields,
+  CastleTimeUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 { TNode* ------------------------------------------------------------ }
 
@@ -1358,7 +1358,7 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
       { if a node has field with chTransform, it must support ITransformNode.
-        TVRMLScene.HandleChangeTransform assumes this. }
+        T3DSceneCore.HandleChangeTransform assumes this. }
       if ContainsCHTransformField(N) then
         Assert(Supports(N, ITransformNode));
 

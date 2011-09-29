@@ -4,7 +4,7 @@
   range (hardcoded in Ranges[] here).
 }
 
-uses SysUtils, KambiUtils;
+uses SysUtils, CastleUtils;
 
 function IsPrime(const Value: Cardinal): boolean;
 var

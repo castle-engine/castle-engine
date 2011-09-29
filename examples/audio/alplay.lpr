@@ -30,8 +30,8 @@
 }
 program alplay;
 
-uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, SoundFile, KambiTimeUtils,
-  KambiWarnings, ALSoundEngine, KambiParameters;
+uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, SoundFile, CastleTimeUtils,
+  CastleWarnings, ALSoundEngine, CastleParameters;
 
 var
   Buffer, Source: TALuint;

@@ -64,8 +64,8 @@ unit Images;
 
 interface
 
-uses SysUtils, Classes, Math, KambiUtils, VectorMath,
-  KambiPng, FileFilters, KambiClassUtils,
+uses SysUtils, Classes, Math, CastleUtils, VectorMath,
+  CastlePng, FileFilters, CastleClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   FPImage, FPReadPCX, 
   {$ifndef VER2_2} FPReadGIF, FPReadPSD, {$endif} FPReadTGA, FPReadTiff, FPReadXPM,
@@ -1637,7 +1637,7 @@ var
 
 implementation
 
-uses ProgressUnit, KambiStringUtils, KambiFilesUtils, KambiWarnings, DDS;
+uses ProgressUnit, CastleStringUtils, CastleFilesUtils, CastleWarnings, DDS;
 
 { image loading utilities --------------------------------------------------- }
 
@@ -3180,7 +3180,7 @@ var MaxVal, Mnoznik: Single;
     Mantissa: Extended;
     Exponent: Integer;
 begin
- MaxVal := KambiUtils.max(v[0], KambiUtils.max(v[1], v[2]));
+ MaxVal := CastleUtils.max(v[0], CastleUtils.max(v[1], v[2]));
 
  { rozpatrujemy tu nie tylko przypadek gdy liczba jest = 0 ale takze
    gdy jest bliska zeru. To jest standardowe zachowanie, ale uwaga -

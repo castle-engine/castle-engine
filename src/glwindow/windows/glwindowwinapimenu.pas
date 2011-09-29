@@ -93,7 +93,7 @@ function MakeWinapiMenu(Menu: TMenu; MenuBar: boolean): HMenu;
 
 implementation
 
-uses KambiUtils;
+uses CastleUtils;
 
 { We use ParentAllowsEnabled trick to take into account main Menu.Enabled
   state. WinAPI doesn't allow the menu bar or popup to be just disabled,

@@ -19,7 +19,7 @@ unit OpenGLFonts;
 
 interface
 
-uses Classes, GL, GLU, SysUtils, KambiGLUtils;
+uses Classes, GL, GLU, SysUtils, CastleGLUtils;
 
 type
   { Abstract class for all OpenGL bitmap fonts. }
@@ -240,7 +240,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiClassUtils, KambiStringUtils;
+uses CastleUtils, CastleClassUtils, CastleStringUtils;
 
 { TGLBitmapFont_Abstract ------------------------------------------------------}
 

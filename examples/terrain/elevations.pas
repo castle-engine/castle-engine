@@ -18,7 +18,7 @@ unit Elevations;
 
 interface
 
-uses SysUtils, Classes, KambiScript, Images;
+uses SysUtils, Classes, CastleScript, Images;
 
 type
   { Elevation (height for each X, Y) data. }
@@ -66,9 +66,9 @@ type
     property ImageY2: Single read FImageY2 write FImageY2 default 1;
   end;
 
-  { Elevation (height for each X, Y) data calculated from KambiScript
+  { Elevation (height for each X, Y) data calculated from CastleScript
     expression. At construction, pass FunctionExpression,
-    that is KambiScript language expression calculating height
+    that is CastleScript language expression calculating height
     based on X, Y.
 
     This descends from TElevationImage, so you add an image to
@@ -297,7 +297,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiScriptParser, Noise, Math;
+uses CastleUtils, CastleScriptParser, Noise, Math;
 
 { TElevationImage ------------------------------------------------------------ }
 

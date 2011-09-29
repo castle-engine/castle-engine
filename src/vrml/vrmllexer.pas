@@ -24,7 +24,7 @@ unit VRMLLexer;
 
 interface
 
-uses SysUtils, Classes, KambiUtils, KambiStringUtils, KambiClassUtils,
+uses SysUtils, Classes, CastleUtils, CastleStringUtils, CastleClassUtils,
   Math {$ifdef LOG_VRML_TOKENS} ,LogFile {$endif};
 
 type

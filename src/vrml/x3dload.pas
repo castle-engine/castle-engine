@@ -62,7 +62,7 @@ unit X3DLoad;
 interface
 
 uses VectorMath, SysUtils, VRMLNodes, X3DLoadInternalMD3,
-  KambiUtils, Classes;
+  CastleUtils, Classes;
 
 { This guesses model format basing on ExtractFileExt(filename),
   then loads model converting it to VRML.
@@ -149,7 +149,7 @@ const
 
 implementation
 
-uses VRMLAnimation, KambiClassUtils,
+uses VRMLAnimation, CastleClassUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada;
 

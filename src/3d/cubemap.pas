@@ -104,7 +104,7 @@ function CubeMapSolidAngle(const Side: TCubeMapSide;
 
 implementation
 
-uses SysUtils, KambiUtils;
+uses SysUtils, CastleUtils;
 
 { Note: CubeMapSolidAngle assumes that implementation of this actually
   returns the position of the middle of the pixel. That is, it assumes

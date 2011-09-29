@@ -24,9 +24,9 @@
 
 program gen_light_map;
 
-uses SysUtils, KambiUtils, VectorMath, VRMLNodes, VRMLScene,
-  VRMLLightMap, Images, ProgressUnit, ProgressConsole, KambiTimeUtils,
-  KambiParameters;
+uses SysUtils, CastleUtils, VectorMath, VRMLNodes, VRMLScene,
+  VRMLLightMap, Images, ProgressUnit, ProgressConsole, CastleTimeUtils,
+  CastleParameters;
 
 function ReadParametersVectorTo1st(i: Integer): TVector3Single;
 begin

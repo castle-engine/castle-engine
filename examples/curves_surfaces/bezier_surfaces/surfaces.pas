@@ -82,8 +82,8 @@ type
 
 implementation
 
-uses KambiClassUtils, GL, GLU, KambiGLUtils, VectorMath, SysUtils,
-  BezierCurve, KambiUtils;
+uses CastleClassUtils, GL, GLU, CastleGLUtils, VectorMath, SysUtils,
+  BezierCurve, CastleUtils;
 
 constructor TSurface.Create(const AXBegin, AXEnd, AYBegin, AYEnd: Float);
 begin

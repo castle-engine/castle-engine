@@ -66,7 +66,7 @@ begin
     P.Targets.AddUnit('faceindex.pas');
     P.Targets.AddUnit('frustum.pas');
     P.Targets.AddUnit('geometryarrays.pas');
-    P.Targets.AddUnit('kambioctree.pas');
+    P.Targets.AddUnit('castleoctree.pas');
     P.Targets.AddUnit('nurbs.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
@@ -103,7 +103,7 @@ begin
     P.Targets.AddUnit('vrmltriangleoctree.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
-    P.Targets.AddUnit('kambiscenemanager.pas');
+    P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglbackground.pas');
     P.Targets.AddUnit('vrmlglscene.pas');
@@ -117,8 +117,8 @@ begin
     P.Targets.AddUnit('alsoundengine.pas');
     P.Targets.AddUnit('alutils.pas');
     P.Targets.AddUnit('xmlsoundengine.pas');
-    P.Targets.AddUnit('kambiogg.pas');
-    P.Targets.AddUnit('kambiopenal.pas');
+    P.Targets.AddUnit('castleogg.pas');
+    P.Targets.AddUnit('castleopenal.pas');
     P.Targets.AddUnit('soundfile.pas');
     P.Targets.AddUnit('vorbiscodec.pas');
     P.Targets.AddUnit('vorbisdecoder.pas');
@@ -127,20 +127,20 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
-    P.Targets.AddUnit('kambiclassutils.pas');
-    P.Targets.AddUnit('kambidynlib.pas');
-    P.Targets.AddUnit('kambifilesutils.pas');
-    P.Targets.AddUnit('kambiinterfaces.pas');
-    P.Targets.AddUnit('kambilog.pas');
-    P.Targets.AddUnit('kambistringutils.pas');
-    P.Targets.AddUnit('kambitimeutils.pas');
-    P.Targets.AddUnit('kambiutils.pas');
-    P.Targets.AddUnit('kambiwarnings.pas');
-    P.Targets.AddUnit('kambixmlconfig.pas');
-    P.Targets.AddUnit('kambixmlutils.pas');
-    P.Targets.AddUnit('kambizlib.pas');
-    P.Targets.AddUnit('kambizstream.pas');
-    P.Targets.AddUnit('kambiparameters.pas');
+    P.Targets.AddUnit('castleclassutils.pas');
+    P.Targets.AddUnit('castledynlib.pas');
+    P.Targets.AddUnit('castlefilesutils.pas');
+    P.Targets.AddUnit('castleinterfaces.pas');
+    P.Targets.AddUnit('castlelog.pas');
+    P.Targets.AddUnit('castlestringutils.pas');
+    P.Targets.AddUnit('castletimeutils.pas');
+    P.Targets.AddUnit('castleutils.pas');
+    P.Targets.AddUnit('castlewarnings.pas');
+    P.Targets.AddUnit('castlexmlconfig.pas');
+    P.Targets.AddUnit('castlexmlutils.pas');
+    P.Targets.AddUnit('castlezlib.pas');
+    P.Targets.AddUnit('castlezstream.pas');
+    P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('progressconsole.pas');
     P.Targets.AddUnit('progressunit.pas');
     P.Targets.AddUnit('recentfiles.pas');
@@ -184,8 +184,8 @@ begin
     if Defaults.OS in AllUnixOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'unix');
-      P.Targets.AddUnit('kambiglx.pas');
-      P.Targets.AddUnit('kambixf86vmode.pas');
+      P.Targets.AddUnit('castleglx.pas');
+      P.Targets.AddUnit('castlexf86vmode.pas');
       P.Targets.AddUnit('xlibutils.pas');
     end;
     if Defaults.OS in AllWindowsOSes then
@@ -198,22 +198,22 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('images.pas');
     P.Targets.AddUnit('imagescache.pas');
-    P.Targets.AddUnit('kambipng.pas');
+    P.Targets.AddUnit('castlepng.pas');
     P.Targets.AddUnit('videos.pas');
     P.Targets.AddUnit('videoscache.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
-    P.Targets.AddUnit('kambiscript.pas');
-    P.Targets.AddUnit('kambiscriptarrays.pas');
-    P.Targets.AddUnit('kambiscriptcorefunctions.pas');
-    P.Targets.AddUnit('kambiscriptimages.pas');
-    P.Targets.AddUnit('kambiscriptlexer.pas');
-    P.Targets.AddUnit('kambiscriptparser.pas');
-    P.Targets.AddUnit('kambiscriptvectors.pas');
-    P.Targets.AddUnit('vrmlkambiscript.pas');
+    P.Targets.AddUnit('castlescript.pas');
+    P.Targets.AddUnit('castlescriptarrays.pas');
+    P.Targets.AddUnit('castlescriptcorefunctions.pas');
+    P.Targets.AddUnit('castlescriptimages.pas');
+    P.Targets.AddUnit('castlescriptlexer.pas');
+    P.Targets.AddUnit('castlescriptparser.pas');
+    P.Targets.AddUnit('castlescriptvectors.pas');
+    P.Targets.AddUnit('x3dcastlescript.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'net');
-    P.Targets.AddUnit('kambiurlutils.pas');
+    P.Targets.AddUnit('castleurlutils.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('beziercurve.pas');
@@ -223,8 +223,8 @@ begin
     P.Targets.AddUnit('glimages.pas');
     P.Targets.AddUnit('glshaders.pas');
     P.Targets.AddUnit('glversionunit.pas');
-    P.Targets.AddUnit('kambiglut.pas');
-    P.Targets.AddUnit('kambiglutils.pas');
+    P.Targets.AddUnit('castleglut.pas');
+    P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('normalizationcubemap.pas');
     P.Targets.AddUnit('openglbmpfonts.pas');
     P.Targets.AddUnit('openglfonts.pas');

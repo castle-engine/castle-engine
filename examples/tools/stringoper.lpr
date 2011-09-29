@@ -25,8 +25,8 @@ program stringoper;
 
 {$apptype CONSOLE}
 
-uses SysUtils, KambiUtils, Classes, KambiStringUtils, KambiFilesUtils,
-  KambiParameters;
+uses SysUtils, CastleUtils, Classes, CastleStringUtils, CastleFilesUtils,
+  CastleParameters;
 
 function FileLinesToParams(const fname: string): string;
 

@@ -20,7 +20,7 @@ unit VRMLCameraUtils;
 
 interface
 
-uses KambiUtils, VectorMath, Boxes3D, VRMLNodes;
+uses CastleUtils, VectorMath, Boxes3D, VRMLNodes;
 
 type
   { VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.

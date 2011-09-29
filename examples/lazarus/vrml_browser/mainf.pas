@@ -22,8 +22,8 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, VRMLGLScene, Cameras, KambiGLControl, KambiWarnings,
-  LCLRecentFiles, KambiXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles;
+  OpenGLContext, Menus, VRMLGLScene, Cameras, CastleGLControl, CastleWarnings,
+  LCLRecentFiles, CastleXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles;
 
 type
   TMain = class(TForm)
@@ -92,9 +92,9 @@ var
 implementation
 
 uses LCLType, VectorMath, Boxes3D, VRMLNodes, VRMLGLRenderer,
-  GL, GLU, GLExt, KambiClassUtils, KambiUtils, X3DLoad,
-  KambiGLUtils, VRMLScene, KambiFilesUtils, KambiParameters,
-  OpenGLInformation, KambiLCLUtils, VrmlConsoleF;
+  GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
+  CastleGLUtils, VRMLScene, CastleFilesUtils, CastleParameters,
+  OpenGLInformation, CastleLCLUtils, VrmlConsoleF;
 
 procedure TMain.OpenScene(const FileName: string);
 begin

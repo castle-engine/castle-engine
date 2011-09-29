@@ -23,10 +23,10 @@
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
-uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, KambiSceneManager,
-  UIControls, Cameras, Quaternions, VectorMath, GLControls, KambiWarnings,
-  KambiUtils, KambiGLUtils, OpenGLFonts, X3DLoad, GLShaders, KambiParameters,
-  KambiStringUtils;
+uses SysUtils, GL, GLWindow, VRMLNodes, VRMLScene, VRMLGLScene, CastleSceneManager,
+  UIControls, Cameras, Quaternions, VectorMath, GLControls, CastleWarnings,
+  CastleUtils, CastleGLUtils, OpenGLFonts, X3DLoad, GLShaders, CastleParameters,
+  CastleStringUtils;
 
 { TBackground ---------------------------------------------------------------- }
 

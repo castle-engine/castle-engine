@@ -27,11 +27,11 @@
 program dynamic_ambient_occlusion;
 
 uses VectorMath, GL, GLU, GLExt, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes,
-  KambiGLUtils, VRMLScene, VRMLGLScene, Base3D, KambiParameters,
-  KambiFilesUtils, KambiStringUtils, GLShaders, VRMLShape,
-  VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, KambiWarnings,
-  GLVersionUnit, Math, KambiSceneManager, RenderingCameraUnit, GenericStructList;
+  CastleClassUtils, CastleUtils, SysUtils, Classes,
+  CastleGLUtils, VRMLScene, VRMLGLScene, Base3D, CastleParameters,
+  CastleFilesUtils, CastleStringUtils, GLShaders, VRMLShape,
+  VRMLFields, Images, Boxes3D, GLImages, GLWinMessages, CastleWarnings,
+  GLVersionUnit, Math, CastleSceneManager, RenderingCameraUnit, GenericStructList;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);

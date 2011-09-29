@@ -64,11 +64,11 @@
 
 program demo_animation;
 
-uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, X3DLoad,
-  KambiGLUtils, VRMLGLScene, VRMLGLAnimation,
-  KambiFilesUtils, KambiParameters, GLProgress, ProgressUnit,
-  KambiSceneManager, KambiStringUtils;
+uses VectorMath, VRMLNodes, GL, GLU, GLWindow, CastleWarnings,
+  CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad,
+  CastleGLUtils, VRMLGLScene, VRMLGLAnimation,
+  CastleFilesUtils, CastleParameters, GLProgress, ProgressUnit,
+  CastleSceneManager, CastleStringUtils;
 
 var
   Window: TCastleWindowCustom;

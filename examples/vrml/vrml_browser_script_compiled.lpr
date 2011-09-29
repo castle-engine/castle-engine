@@ -20,8 +20,8 @@ program vrml_browser_script_compiled;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, ProgressUnit, ProgressConsole, KambiWarnings,
-  VRMLScene, VRMLFields, VRMLTime, SysUtils, KambiParameters, KambiStringUtils,
+uses CastleUtils, ProgressUnit, ProgressConsole, CastleWarnings,
+  VRMLScene, VRMLFields, VRMLTime, SysUtils, CastleParameters, CastleStringUtils,
   GLWindow;
 
 var

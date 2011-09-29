@@ -65,7 +65,7 @@ unit TextureImages;
 
 interface
 
-uses Images, DDS, KambiUtils, VideosCache,
+uses Images, DDS, CastleUtils, VideosCache,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 const
@@ -148,7 +148,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils;
+uses SysUtils, CastleStringUtils;
 
 function LoadTextureImage(const FileName: string; out DDS: TDDSImage): TEncodedImage;
 begin

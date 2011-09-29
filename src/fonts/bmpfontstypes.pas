@@ -130,7 +130,7 @@ function BFNTCharRowByteLength(BFNTChar: PBFNTChar): Cardinal; overload;
 
 implementation
 
-uses KambiUtils;
+uses CastleUtils;
 
 function BFNTCharRowByteLength(Width, Alignment: Cardinal): Cardinal;
 begin

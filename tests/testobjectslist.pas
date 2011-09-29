@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiClassUtils;
+uses CastleUtils, CastleClassUtils;
 
 type
   TItem = class

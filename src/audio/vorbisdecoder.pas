@@ -3,7 +3,7 @@ unit VorbisDecoder;
 
 interface
 
-uses SysUtils, Classes, KambiOpenAL;
+uses SysUtils, Classes, CastleOpenAL;
 
 type
   EVorbisFileError = class(Exception);
@@ -21,7 +21,7 @@ function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
 
 implementation
 
-uses KambiUtils, VorbisFile, VorbisCodec, CTypes;
+uses CastleUtils, VorbisFile, VorbisCodec, CTypes;
 
 {$I vorbisfile_conf.inc}
 

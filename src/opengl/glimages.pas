@@ -54,7 +54,7 @@
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
 )
       when appropriate. Actually, we use @code(Before/After Pack/Unpack NotAlignedImage)
-      procedures from KambiGLUtils unit. )
+      procedures from CastleGLUtils unit. )
 
     @item(
       Don't worry about texture size being power of 2, or about maximum texture
@@ -132,7 +132,7 @@ unit GLImages;
 
 interface
 
-uses GL, GLU, GLExt, SysUtils, Images, VectorMath, KambiGLUtils, Videos, DDS;
+uses GL, GLU, GLExt, SysUtils, Images, VectorMath, CastleGLUtils, Videos, DDS;
 
 const
   PixelsImageClasses: array [0..3] of TImageClass = (
@@ -825,7 +825,7 @@ type
 
 implementation
 
-uses KambiUtils, KambiLog, GLVersionUnit, KambiWarnings, TextureImages;
+uses CastleUtils, CastleLog, GLVersionUnit, CastleWarnings, TextureImages;
 
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 begin

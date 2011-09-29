@@ -14,12 +14,12 @@
 }
 
 { Various utilities for working with OpenAL.
-  Everything is based on my OpenAL bindings in unit KambiOpenAL.
+  Everything is based on my OpenAL bindings in unit CastleOpenAL.
   For higher-level class that takes care of initializing OpenAL
   and loading and playing sounds, see TALSoundEngine.
 
   You shouldn't use any alc* functions or alutInit/alutExit
-  functions from KambiOpenAL yourself. This unit and ALSoundEngine take care
+  functions from CastleOpenAL yourself. This unit and ALSoundEngine take care
   about everything needed there.
 }
 
@@ -29,7 +29,7 @@ interface
 
 {$define read_interface}
 
-uses SysUtils, KambiUtils, KambiOpenAL, Classes, SoundFile, KambiTimeUtils;
+uses SysUtils, CastleUtils, CastleOpenAL, Classes, SoundFile, CastleTimeUtils;
 
 type
   EOpenALError = class(Exception);
@@ -195,7 +195,7 @@ procedure alFreeBuffer(var Buffer: TALuint);
 
 implementation
 
-uses VectorMath, KambiStringUtils, KambiLog;
+uses VectorMath, CastleStringUtils, CastleLog;
 
 {$define read_implementation}
 
@@ -239,7 +239,7 @@ end;
 procedure TALSoundFile.alBufferData(buffer: TALuint);
 begin
   SoundFile.PrepareOpenAL;
-  KambiOpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
+  CastleOpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
     SoundFile.DataSize, SoundFile.Frequency);
 end;
 

@@ -122,7 +122,7 @@ type
   going through the pixel X, Y.
   Takes into account camera 3D settings and screen sizes.
 
-  See TKamSceneManager.PerspectiveView for specification
+  See TCastleSceneManager.PerspectiveView for specification
   of projection properties PerspectiveView etc.
 
   This simply creates and uses TRaysWindow instance, which is not optimal
@@ -139,7 +139,7 @@ procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Intege
 
 implementation
 
-uses Math, KambiUtils;
+uses Math, CastleUtils;
 
 { AdjustViewAngle*ToAspectRatio ---------------------------------------- }
 

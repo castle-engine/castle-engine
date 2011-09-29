@@ -56,7 +56,7 @@ function ColorFromHeight(Elevation: TElevation; Height: Single): TVector3Single;
 
 implementation
 
-uses GL, GLU, GLExt, KambiGLUtils, KambiUtils, SysUtils;
+uses GL, GLU, GLExt, CastleGLUtils, CastleUtils, SysUtils;
 
 var
   ElevationVbo: TGLuint;

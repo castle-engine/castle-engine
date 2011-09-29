@@ -40,7 +40,7 @@ unit GLProgress;
 interface
 
 uses GL, OpenGLFonts, OpenGLBmpFonts, GLWindow, ProgressUnit,
-  GLWinModes, KambiGLUtils;
+  GLWinModes, CastleGLUtils;
 
 const
   DefaultBarYPosition = 0.5;
@@ -81,7 +81,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
+uses SysUtils, CastleUtils, BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
 
 { display -------------------------------------------------------------------- }
 

@@ -53,8 +53,8 @@ program simplest_vrml_browser;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, ProgressUnit, ProgressConsole,
-  VRMLScene, SysUtils, KambiWarnings, KambiParameters;
+uses CastleUtils, GLWindow, ProgressUnit, ProgressConsole,
+  VRMLScene, SysUtils, CastleWarnings, CastleParameters;
 
 var
   Window: TCastleWindow;

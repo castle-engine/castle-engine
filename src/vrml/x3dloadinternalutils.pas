@@ -43,7 +43,7 @@ function SearchTextureFileName(const Path, Base: string): string;
 
 implementation
 
-uses SysUtils, KambiStringUtils, EnumerateFiles, KambiWarnings;
+uses SysUtils, CastleStringUtils, EnumerateFiles, CastleWarnings;
 
 function ToVRMLName(const s: string): string;
 const

@@ -36,9 +36,9 @@
 }
 program precompute_shadow_field;
 
-uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
-  VRMLScene, ShadowFields, KambiTimeUtils, VectorMath,
-  CubeMap, Boxes3D, SphericalHarmonics, KambiParameters;
+uses SysUtils, ProgressUnit, ProgressConsole, CastleUtils,
+  VRMLScene, ShadowFields, CastleTimeUtils, VectorMath,
+  CubeMap, Boxes3D, SphericalHarmonics, CastleParameters;
 
 var
   Scene: T3DSceneCore;

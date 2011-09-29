@@ -79,8 +79,8 @@
         <UnitName Value="GeometryArrays"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/3d/kambioctree.pas"/>
-        <UnitName Value="KambiOctree"/>
+        <Filename Value="../src/3d/castleoctree.pas"/>
+        <UnitName Value="CastleOctree"/>
       </Item8>
       <Item9>
         <Filename Value="../src/3d/noise.pas"/>
@@ -151,12 +151,12 @@
         <UnitName Value="EFX"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/audio/kambiogg.pas"/>
-        <UnitName Value="KambiOgg"/>
+        <Filename Value="../src/audio/castleogg.pas"/>
+        <UnitName Value="CastleOgg"/>
       </Item27>
       <Item28>
-        <Filename Value="../src/audio/kambiopenal.pas"/>
-        <UnitName Value="KambiOpenAL"/>
+        <Filename Value="../src/audio/castleopenal.pas"/>
+        <UnitName Value="CastleOpenAL"/>
       </Item28>
       <Item29>
         <Filename Value="../src/audio/soundfile.pas"/>
@@ -187,65 +187,65 @@
         <UnitName Value="FileFilters"/>
       </Item35>
       <Item36>
-        <Filename Value="../src/base/kambiclassutils.pas"/>
-        <UnitName Value="KambiClassUtils"/>
+        <Filename Value="../src/base/castleclassutils.pas"/>
+        <UnitName Value="CastleClassUtils"/>
       </Item36>
       <Item37>
-        <Filename Value="../src/base/kambiconf.inc"/>
+        <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
       </Item37>
       <Item38>
-        <Filename Value="../src/base/kambidynlib.pas"/>
-        <UnitName Value="KambiDynLib"/>
+        <Filename Value="../src/base/castledynlib.pas"/>
+        <UnitName Value="CastleDynLib"/>
       </Item38>
       <Item39>
-        <Filename Value="../src/base/kambifilesutils.pas"/>
-        <UnitName Value="KambiFilesUtils"/>
+        <Filename Value="../src/base/castlefilesutils.pas"/>
+        <UnitName Value="CastleFilesUtils"/>
       </Item39>
       <Item40>
-        <Filename Value="../src/base/kambiinterfaces.pas"/>
-        <UnitName Value="KambiInterfaces"/>
+        <Filename Value="../src/base/castleinterfaces.pas"/>
+        <UnitName Value="CastleInterfaces"/>
       </Item40>
       <Item41>
-        <Filename Value="../src/base/kambilog.pas"/>
-        <UnitName Value="KambiLog"/>
+        <Filename Value="../src/base/castlelog.pas"/>
+        <UnitName Value="CastleLog"/>
       </Item41>
       <Item42>
-        <Filename Value="../src/base/kambistringutils.pas"/>
-        <UnitName Value="KambiStringUtils"/>
+        <Filename Value="../src/base/castlestringutils.pas"/>
+        <UnitName Value="CastleStringUtils"/>
       </Item42>
       <Item43>
-        <Filename Value="../src/base/kambitimeutils.pas"/>
-        <UnitName Value="KambiTimeUtils"/>
+        <Filename Value="../src/base/castletimeutils.pas"/>
+        <UnitName Value="CastleTimeUtils"/>
       </Item43>
       <Item44>
-        <Filename Value="../src/base/kambiutils.pas"/>
-        <UnitName Value="KambiUtils"/>
+        <Filename Value="../src/base/castleutils.pas"/>
+        <UnitName Value="CastleUtils"/>
       </Item44>
       <Item45>
-        <Filename Value="../src/base/kambiwarnings.pas"/>
-        <UnitName Value="KambiWarnings"/>
+        <Filename Value="../src/base/castlewarnings.pas"/>
+        <UnitName Value="CastleWarnings"/>
       </Item45>
       <Item46>
-        <Filename Value="../src/base/kambixmlconfig.pas"/>
+        <Filename Value="../src/base/castlexmlconfig.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="KambiXMLConfig"/>
+        <UnitName Value="CastleXMLConfig"/>
       </Item46>
       <Item47>
-        <Filename Value="../src/base/kambixmlutils.pas"/>
-        <UnitName Value="KambiXMLUtils"/>
+        <Filename Value="../src/base/castlexmlutils.pas"/>
+        <UnitName Value="CastleXMLUtils"/>
       </Item47>
       <Item48>
-        <Filename Value="../src/base/kambizlib.pas"/>
-        <UnitName Value="KambiZlib"/>
+        <Filename Value="../src/base/castlezlib.pas"/>
+        <UnitName Value="CastleZlib"/>
       </Item48>
       <Item49>
-        <Filename Value="../src/base/kambizstream.pas"/>
-        <UnitName Value="KambiZStream"/>
+        <Filename Value="../src/base/castlezstream.pas"/>
+        <UnitName Value="CastleZStream"/>
       </Item49>
       <Item50>
-        <Filename Value="../src/base/kambiparameters.pas"/>
-        <UnitName Value="KambiParameters"/>
+        <Filename Value="../src/base/castleparameters.pas"/>
+        <UnitName Value="CastleParameters"/>
       </Item50>
       <Item51>
         <Filename Value="../src/base/progressconsole.pas"/>
@@ -260,7 +260,7 @@
         <UnitName Value="RecentFiles"/>
       </Item53>
       <Item54>
-        <Filename Value="../src/base/unix/kambiutils_os_specific_unix.inc"/>
+        <Filename Value="../src/base/unix/castleutils_os_specific_unix.inc"/>
         <Type Value="Include"/>
       </Item54>
       <Item55>
@@ -268,7 +268,7 @@
         <UnitName Value="VectorMath"/>
       </Item55>
       <Item56>
-        <Filename Value="../src/base/windows/kambiutils_os_specific_windows.inc"/>
+        <Filename Value="../src/base/windows/castleutils_os_specific_windows.inc"/>
         <Type Value="Include"/>
       </Item56>
       <Item57>
@@ -382,8 +382,8 @@
         <UnitName Value="ImagesCache"/>
       </Item83>
       <Item84>
-        <Filename Value="../src/images/kambipng.pas"/>
-        <UnitName Value="KambiPng"/>
+        <Filename Value="../src/images/castlepng.pas"/>
+        <UnitName Value="CastlePng"/>
       </Item84>
       <Item85>
         <Filename Value="../src/vrml/x3dloadinternalutils.pas"/>
@@ -402,44 +402,44 @@
         <UnitName Value="VideosCache"/>
       </Item88>
       <Item89>
-        <Filename Value="../src/castlescript/kambiscript.pas"/>
-        <UnitName Value="KambiScript"/>
+        <Filename Value="../src/castlescript/castlescript.pas"/>
+        <UnitName Value="CastleScript"/>
       </Item89>
       <Item90>
-        <Filename Value="../src/castlescript/kambiscriptarrays.pas"/>
-        <UnitName Value="KambiScriptArrays"/>
+        <Filename Value="../src/castlescript/castlescriptarrays.pas"/>
+        <UnitName Value="CastleScriptArrays"/>
       </Item90>
       <Item91>
-        <Filename Value="../src/castlescript/kambiscriptcorefunctions.pas"/>
-        <UnitName Value="KambiScriptCoreFunctions"/>
+        <Filename Value="../src/castlescript/castlescriptcorefunctions.pas"/>
+        <UnitName Value="CastleScriptCoreFunctions"/>
       </Item91>
       <Item92>
-        <Filename Value="../src/castlescript/kambiscriptimages.pas"/>
-        <UnitName Value="KambiScriptImages"/>
+        <Filename Value="../src/castlescript/castlescriptimages.pas"/>
+        <UnitName Value="CastleScriptImages"/>
       </Item92>
       <Item93>
-        <Filename Value="../src/castlescript/kambiscriptlexer.pas"/>
-        <UnitName Value="KambiScriptLexer"/>
+        <Filename Value="../src/castlescript/castlescriptlexer.pas"/>
+        <UnitName Value="CastleScriptLexer"/>
       </Item93>
       <Item94>
-        <Filename Value="../src/castlescript/kambiscriptparser.pas"/>
-        <UnitName Value="KambiScriptParser"/>
+        <Filename Value="../src/castlescript/castlescriptparser.pas"/>
+        <UnitName Value="CastleScriptParser"/>
       </Item94>
       <Item95>
-        <Filename Value="../src/castlescript/kambiscriptvectors.pas"/>
-        <UnitName Value="KambiScriptVectors"/>
+        <Filename Value="../src/castlescript/castlescriptvectors.pas"/>
+        <UnitName Value="CastleScriptVectors"/>
       </Item95>
       <Item96>
-        <Filename Value="../src/castlescript/vrmlkambiscript.pas"/>
-        <UnitName Value="VRMLKambiScript"/>
+        <Filename Value="../src/castlescript/x3dcastlescript.pas"/>
+        <UnitName Value="X3DCastleScript"/>
       </Item96>
       <Item97>
         <Filename Value="../src/net/datauri.pas"/>
         <UnitName Value="DataURI"/>
       </Item97>
       <Item98>
-        <Filename Value="../src/net/kambiurlutils.pas"/>
-        <UnitName Value="KambiURLUtils"/>
+        <Filename Value="../src/net/castleurlutils.pas"/>
+        <UnitName Value="CastleURLUtils"/>
       </Item98>
       <Item99>
         <Filename Value="../src/opengl/beziercurve.pas"/>
@@ -474,8 +474,8 @@
         <UnitName Value="GLVersionUnit"/>
       </Item106>
       <Item107>
-        <Filename Value="../src/opengl/kambiglutils.pas"/>
-        <UnitName Value="KambiGLUtils"/>
+        <Filename Value="../src/opengl/castleglutils.pas"/>
+        <UnitName Value="CastleGLUtils"/>
       </Item107>
       <Item108>
         <Filename Value="../src/opengl/normalizationcubemap.pas"/>
@@ -570,9 +570,9 @@
         <Type Value="Include"/>
       </Item129>
       <Item130>
-        <Filename Value="../src/vrml/opengl/kambiscenemanager.pas"/>
+        <Filename Value="../src/vrml/opengl/castlescenemanager.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="KambiSceneManager"/>
+        <UnitName Value="CastleSceneManager"/>
       </Item130>
       <Item131>
         <Filename Value="../src/vrml/opengl/vrmlglanimation.pas"/>

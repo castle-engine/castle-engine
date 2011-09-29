@@ -22,7 +22,7 @@ unit ProgressUnit;
 interface
 
 uses
-  SysUtils, KambiUtils, KambiTimeUtils;
+  SysUtils, CastleUtils, CastleTimeUtils;
 
 const
   { }
@@ -272,7 +272,7 @@ begin
    since user interface can display only Max >= 1 values)
    and we'll do Step(1) immediately at the end of TProgress.Init,
    to show to user that operation is already done. }
- FMax := KambiUtils.Max(AMax, 1);
+ FMax := CastleUtils.Max(AMax, 1);
 
  FTitle := ATitle;
 

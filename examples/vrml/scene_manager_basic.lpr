@@ -20,7 +20,7 @@
   to make more clear what's going on. }
 program scene_manager_basic;
 
-uses GLWindow, VRMLScene, VRMLGLScene, KambiSceneManager;
+uses GLWindow, VRMLScene, VRMLGLScene, CastleSceneManager;
 
 var
   Window: TCastleWindowCustom;

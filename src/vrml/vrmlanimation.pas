@@ -20,7 +20,7 @@ unit VRMLAnimation;
 
 interface
 
-uses KambiUtils, DOM, Base3D, Classes;
+uses CastleUtils, DOM, Base3D, Classes;
 
 type
   { An abstract (cannot be rendered) precalculated animation.
@@ -77,7 +77,7 @@ type
 
 implementation
 
-uses SysUtils, XMLRead, KambiXMLUtils, KambiFilesUtils;
+uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils;
 
 class procedure T3DPrecalculatedAnimationCore.LoadFromFileToVars(const FileName: string;
   ModelFileNames: TStringList;

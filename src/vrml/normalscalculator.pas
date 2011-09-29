@@ -23,7 +23,7 @@ unit NormalsCalculator;
 
 interface
 
-uses SysUtils, KambiUtils, VectorMath, VRMLNodes;
+uses SysUtils, CastleUtils, VectorMath, VRMLNodes;
 
 { Calculate normal vectors for indexed faces, smoothing them according
   to CreaseAngleRad.

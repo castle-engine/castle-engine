@@ -703,14 +703,14 @@ begin
       GlxExtensions := glXQueryExtensionsString(XDisplay, FXScreen);
       WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+
         'Versions (determined by checking both glXQueryExtension, glXQueryVersion and assigned entry points):' +NL+
-        Format('  Version 1.1: %s', [KambiStringUtils.BoolToStr[GLX_version_1_1(XDisplay)]]) +NL+
-        Format('  Version 1.2: %s', [KambiStringUtils.BoolToStr[GLX_version_1_2(XDisplay)]]) +NL+
-        Format('  Version 1.3: %s', [KambiStringUtils.BoolToStr[GLX_version_1_3(XDisplay)]]) +NL+
-        Format('  Version 1.4: %s', [KambiStringUtils.BoolToStr[GLX_version_1_4(XDisplay)]]) +NL+
+        Format('  Version 1.1: %s', [CastleStringUtils.BoolToStr[GLX_version_1_1(XDisplay)]]) +NL+
+        Format('  Version 1.2: %s', [CastleStringUtils.BoolToStr[GLX_version_1_2(XDisplay)]]) +NL+
+        Format('  Version 1.3: %s', [CastleStringUtils.BoolToStr[GLX_version_1_3(XDisplay)]]) +NL+
+        Format('  Version 1.4: %s', [CastleStringUtils.BoolToStr[GLX_version_1_4(XDisplay)]]) +NL+
         NL+
         'Important extensions (determined by checking glXQueryExtensionsString and assigned entry points):' +NL+
-        Format('  GLX_ARB_multisample: %s'   , [KambiStringUtils.BoolToStr[GLX_ARB_multisample(XDisplay, FXScreen)]]) + NL+
-        Format('  GLX_ARB_create_context: %s', [KambiStringUtils.BoolToStr[GLX_ARB_create_context(XDisplay, FXScreen)]]) +NL+
+        Format('  GLX_ARB_multisample: %s'   , [CastleStringUtils.BoolToStr[GLX_ARB_multisample(XDisplay, FXScreen)]]) + NL+
+        Format('  GLX_ARB_create_context: %s', [CastleStringUtils.BoolToStr[GLX_ARB_create_context(XDisplay, FXScreen)]]) +NL+
         NL+
         'All extensions (according to glXQueryExtensionsString):' +NL+
         GlxExtensions);

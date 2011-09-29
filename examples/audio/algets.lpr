@@ -25,8 +25,8 @@
   be loaded as OpenAL sound, and some additional tests will be performed. }
 program algets;
 
-uses KambiOpenAL, ALUtils, SysUtils, KambiUtils, VectorMath,
-  KambiStringUtils, EFX, ALSoundEngine, KambiTimeUtils, KambiParameters;
+uses CastleOpenAL, ALUtils, SysUtils, CastleUtils, VectorMath,
+  CastleStringUtils, EFX, ALSoundEngine, CastleTimeUtils, CastleParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 

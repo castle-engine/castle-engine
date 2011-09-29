@@ -50,8 +50,8 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 
 implementation
 
-uses SysUtils, KambiUtils, VRMLFields, KambiStringUtils, KambiWarnings,
-  Boxes3D, KambiLog, VectorMath, GenericStructList;
+uses SysUtils, CastleUtils, VRMLFields, CastleStringUtils, CastleWarnings,
+  Boxes3D, CastleLog, VectorMath, GenericStructList;
 
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers

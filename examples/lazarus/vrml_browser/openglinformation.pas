@@ -23,7 +23,7 @@ type
 
 implementation
 
-uses KambiGLUtils;
+uses CastleGLUtils;
 
 { TOpenGLInformation }
 

@@ -31,8 +31,8 @@ unit GLWinInputs;
 
 interface
 
-uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Images,
-  KambiStringUtils;
+uses GL, GLU, CastleGLUtils, GLWindow, GLWinModes, OpenGLFonts, CastleUtils, Images,
+  CastleStringUtils;
 
 { Wait until user inputs a string (accept by Enter), displaying the static
   image with user string.

@@ -18,7 +18,7 @@ unit FaceIndex;
 
 interface
 
-uses KambiUtils, GenericStructList;
+uses CastleUtils, GenericStructList;
 
 type
   { Describe a range of indexes where the face (polygon and such) is located.

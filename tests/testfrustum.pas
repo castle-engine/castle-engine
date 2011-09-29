@@ -37,7 +37,7 @@ type
 
 implementation
 
-uses Math, KambiUtils, KambiTimeUtils;
+uses Math, CastleUtils, CastleTimeUtils;
 
 function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
 
@@ -182,7 +182,7 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
 
   { Note: I tried to optimize this function,
     since it's crucial for TOctree.EnumerateCollidingOctreeItems,
-    and this is crucial for TVRMLGLScene.RenderFrustumOctree,
+    and this is crucial for T3DScene.RenderFrustumOctree,
     and this is crucial for overall speed of rendering. }
 
   var

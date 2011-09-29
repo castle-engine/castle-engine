@@ -131,7 +131,7 @@ type
 
 implementation
 
-uses SysUtils, KambiFilesUtils, KambiUtils, KambiZStream, Classes;
+uses SysUtils, CastleFilesUtils, CastleUtils, CastleZStream, Classes;
 
 procedure TShadowField.LoadFromFile(const FileName: string);
 var

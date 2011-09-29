@@ -18,7 +18,7 @@ unit GeometryArrays;
 
 interface
 
-uses KambiUtils, VectorMath, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+uses CastleUtils, VectorMath, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   FaceIndex;
 
 type
@@ -353,7 +353,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils;
+uses SysUtils, CastleStringUtils;
 
 { TGeometryAttribList ------------------------------------------------------- }
 

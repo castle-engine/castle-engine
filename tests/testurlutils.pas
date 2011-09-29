@@ -18,7 +18,7 @@ unit TestURLUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, KambiURLUtils;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleURLUtils;
 
 type
   TTestURLUtils = class(TTestCase)
@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses KambiUtils;
+uses CastleUtils;
 
 procedure TTestURLUtils.TestUrlProtocol;
 var

@@ -14,7 +14,7 @@
 }
 
 { Test some OS-specific utilities in castle_game_engine,
-  mostly in KambiUtils unit.
+  mostly in CastleUtils unit.
   Usually the mere purpose of these utilities is to hide some OS-specific
   (UNIX-specific, Windows-specific) things from program. }
 
@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses KambiUtils, EnumerateFiles, KambiFilesUtils, KambiTimeUtils;
+uses CastleUtils, EnumerateFiles, CastleFilesUtils, CastleTimeUtils;
 
 procedure TTestOSSpecific.TestChangeDir;
 var

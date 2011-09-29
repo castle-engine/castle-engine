@@ -23,7 +23,7 @@ unit SoundFile;
 
 interface
 
-uses SysUtils, KambiUtils, Classes, KambiOpenAL, KambiTimeUtils;
+uses SysUtils, CastleUtils, Classes, CastleOpenAL, CastleTimeUtils;
 
 type
   ESoundFormatNotSupportedByOpenAL = class(Exception);
@@ -171,7 +171,7 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses KambiStringUtils, VorbisDecoder, VorbisFile, KambiWarnings;
+uses CastleStringUtils, VorbisDecoder, VorbisFile, CastleWarnings;
 
 { TSoundFile ----------------------------------------------------------------- }
 

@@ -18,8 +18,8 @@
 program animate_surface;
 
 uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
-  KambiGLUtils, BezierCurve, Boxes3D, SysUtils, KambiUtils, KeysMouse,
-  KambiStringUtils, GLWinMessages, KambiFilesUtils, KambiParameters;
+  CastleGLUtils, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
+  CastleStringUtils, GLWinMessages, CastleFilesUtils, CastleParameters;
 
 var
   Window: TCastleWindowCustom;

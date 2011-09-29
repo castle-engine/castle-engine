@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils, KambiWarnings;
+uses SysUtils, CastleStringUtils, CastleWarnings;
 
 { Simple type constructors, for ease of coding.
   Versions with only 1 argument set both channel (rgb and alpha) to the same. }

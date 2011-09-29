@@ -26,10 +26,10 @@
 program radiance_transfer;
 
 uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLWindow,
-  KambiClassUtils, KambiUtils, SysUtils, Classes, RenderingCameraUnit,
-  KambiGLUtils, VRMLGLScene, KeysMouse, KambiSceneManager,
-  KambiFilesUtils, KambiWarnings, SphericalHarmonics, Math, Images, GLCubeMap,
-  KambiStringUtils, KambiParameters;
+  CastleClassUtils, CastleUtils, SysUtils, Classes, RenderingCameraUnit,
+  CastleGLUtils, VRMLGLScene, KeysMouse, CastleSceneManager,
+  CastleFilesUtils, CastleWarnings, SphericalHarmonics, Math, Images, GLCubeMap,
+  CastleStringUtils, CastleParameters;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);

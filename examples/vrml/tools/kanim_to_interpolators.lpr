@@ -34,8 +34,8 @@
 }
 program kanim_to_interpolators;
 
-uses SysUtils, Classes, KambiUtils, KambiClassUtils, VRMLNodes, VRMLGLAnimation,
-  KambiStringUtils, ProgressUnit, ProgressConsole, KambiParameters;
+uses SysUtils, Classes, CastleUtils, CastleClassUtils, VRMLNodes, VRMLGLAnimation,
+  CastleStringUtils, ProgressUnit, ProgressConsole, CastleParameters;
 
 var
   CoordinateNodeName: string;

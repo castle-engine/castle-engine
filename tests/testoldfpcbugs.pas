@@ -188,7 +188,7 @@ end;
 { przeciazanie procedur gdy jedna wersja nie bierze zadnych arg.
   To dziala tylko pod 1.1, 1.0.x musza byc odpowiednio zmodyfikowane
   aby to dzialalo. (wiele mojego kodu wymaga zeby to dzialalo,
-  juz KambiUtils.) }
+  juz CastleUtils.) }
 function TestProc(arg:integer):boolean; overload; begin result:=true  end;
 function TestProc             :boolean; overload; begin result:=false end;
 

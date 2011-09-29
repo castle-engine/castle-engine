@@ -21,9 +21,9 @@
 program gl_primitive_performance;
 
 uses VectorMath, VRMLNodes, GL, GLExt, GLWindow,
-  KambiUtils, SysUtils, Classes, KambiWarnings,
-  KambiGLUtils, KambiFilesUtils, VRMLScene, KambiParameters,
-  ProgressUnit, VRMLShape, KambiSceneManager, Base3D, KambiStringUtils;
+  CastleUtils, SysUtils, Classes, CastleWarnings,
+  CastleGLUtils, CastleFilesUtils, VRMLScene, CastleParameters,
+  ProgressUnit, VRMLShape, CastleSceneManager, Base3D, CastleStringUtils;
 
 type
   TRenderMode = (

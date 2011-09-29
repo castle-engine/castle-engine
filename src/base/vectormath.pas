@@ -232,7 +232,7 @@ unit VectorMath;
 
 interface
 
-uses SysUtils, KambiUtils, Matrix, GenericStructList;
+uses SysUtils, CastleUtils, Matrix, GenericStructList;
 
 {$define read_interface}
 
@@ -599,7 +599,7 @@ var
     as equal by FloatsEqual (and so by all other routines in this unit).
 
     Note that initial *EqualityEpsilon values are quite large,
-    if you compare them with the epsilons used by KambiUtils.SameValue
+    if you compare them with the epsilons used by CastleUtils.SameValue
     or Math.SameValue. Well, unfortunately they have to be so large,
     to always detect collisions.
 
@@ -2337,7 +2337,7 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 
 implementation
 
-uses Math, KambiStringUtils;
+uses Math, CastleStringUtils;
 
 {$define read_implementation}
 

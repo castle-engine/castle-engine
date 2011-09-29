@@ -22,7 +22,7 @@ unit OpenGLTTFonts;
 
 interface
 
-uses OpenGLFonts, GL, GLU, TTFontsTypes, SysUtils, KambiGLUtils, KambiStringUtils;
+uses OpenGLFonts, GL, GLU, TTFontsTypes, SysUtils, CastleGLUtils, CastleStringUtils;
 
 const
   SimpleAsciiCharacters = [#32 .. #126];
@@ -187,7 +187,7 @@ type
 
 implementation
 
-uses KambiUtils, VectorMath, GLVersionUnit;
+uses CastleUtils, VectorMath, GLVersionUnit;
 
 const
   {w tej chwili zawsze 256 ale byc moze kiedys cos tu zmienie}

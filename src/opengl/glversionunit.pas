@@ -31,7 +31,7 @@ type
     As obtained from glGetString(GL_VERSION)
     or gluGetString(GLU_VERSION), also by glGetString(GL_VENDOR).
 
-    This is usually created by KambiGLUtils.LoadAllExtensions. }
+    This is usually created by CastleGLUtils.LoadAllExtensions. }
   TGenericGLVersion = class
   public
     constructor Create(const VersionString: string);
@@ -167,16 +167,16 @@ type
 
 var
   { Core OpenGL version information.
-    This is usually created by KambiGLUtils.LoadAllExtensions. }
+    This is usually created by CastleGLUtils.LoadAllExtensions. }
   GLVersion: TGLVersion;
 
   { GLU version information.
-    This is usually created by KambiGLUtils.LoadAllExtensions. }
+    This is usually created by CastleGLUtils.LoadAllExtensions. }
   GLUVersion: TGenericGLVersion;
 
 implementation
 
-uses SysUtils, KambiStringUtils, KambiUtils;
+uses SysUtils, CastleStringUtils, CastleUtils;
 
 { TGenericGLVersion ---------------------------------------------------------- }
 

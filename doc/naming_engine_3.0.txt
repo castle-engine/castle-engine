@@ -151,7 +151,48 @@ tglmenuintegerslider       TMenuIntegerSlider
 - Unit Object3DAsVRML -> X3DLoad, with various X3DLoadInternal* helper units.
 - "The Castle" game units renamed CastleXxx -> GameXxx.
   Motivation: do not clash with engine units.
+- KambiXxx units renamed to CastleXxx (following engine rename)
 
+- Precisely:
+kambiogg                               castleogg
+kambiopenal                            castleopenal
+kambiurlutils                          castleurlutils
+kambipng                               castlepng
+kambipropedits                         castlepropedits
+kambiglcontrol                         castleglcontrol
+kambilclutils                          castlelclutils
+kambiglutils                           castleglutils
+kambiglut                              castleglut
+kambixf86vmode                         castlexf86vmode
+kambiglx                               castleglx
+kambitimeutils                         castletimeutils
+kambistringutils                       castlestringutils
+kambiwarnings                          castlewarnings
+kambidynlib                            castledynlib
+kambiclassutils                        castleclassutils
+kambiinterfaces                        castleinterfaces
+kambixmlconfig                         castlexmlconfig
+kambixmlutils                          castlexmlutils
+kambiparameters                        castleparameters
+kambizstream                           castlezstream
+kambilog                               castlelog
+kambiutils                             castleutils
+kambifilesutils                        castlefilesutils
+kambizlib                              castlezlib
+kambiscenemanager                      castlescenemanager
+kambiscriptcorefunctions               castlescriptcorefunctions
+kambiscriptimages                      castlescriptimages
+kambiscript                            castlescript
+kambiscriptparser                      castlescriptparser
+kambiscriptarrays                      castlescriptarrays
+kambiscriptvectors                     castlescriptvectors
+kambiscriptlexer                       castlescriptlexer
+testkambistringutils                   testcastlestringutils
+testkambiscriptvectors                 testcastlescriptvectors
+testkambiclassutils                    testcastleclassutils
+testkambiscript                        testcastlescript
+vrmlkambiscript                        x3dcastlescript
+kambioctree                            CastleOctree
 ------------------------------------------------------------------------------
 4. Renames done, package names:
 

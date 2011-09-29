@@ -23,10 +23,10 @@ program simple_video_editor;
   info on stdout anyway. }
 {$apptype CONSOLE}
 
-uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLImages,
-  ImagesCache, Videos, KambiStringUtils, GLWinMessages,
-  BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, KambiParameters,
-  KambiGLUtils, VectorMath, Classes, ProgressUnit, GLProgress, KambiTimeUtils;
+uses CastleUtils, SysUtils, GLWindow, GL, GLU, GLImages,
+  ImagesCache, Videos, CastleStringUtils, GLWinMessages,
+  BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
+  CastleGLUtils, VectorMath, Classes, ProgressUnit, GLProgress, CastleTimeUtils;
 
 var
   Window: TCastleWindowDemo;

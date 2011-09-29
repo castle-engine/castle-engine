@@ -20,7 +20,7 @@ unit VRMLGLBackground;
 
 interface
 
-uses VectorMath, SysUtils, GL, GLExt, KambiGLUtils, KambiUtils, Images,
+uses VectorMath, SysUtils, GL, GLExt, CastleGLUtils, CastleUtils, Images,
   VRMLNodes;
 
 type
@@ -108,7 +108,7 @@ type
 
 implementation
 
-uses KambiWarnings, GLImages;
+uses CastleWarnings, GLImages;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.

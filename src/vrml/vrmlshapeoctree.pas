@@ -37,7 +37,7 @@ unit VRMLShapeOctree;
 
 interface
 
-uses SysUtils, Base3D, Boxes3D, KambiOctree, VRMLShape, VectorMath, KambiUtils,
+uses SysUtils, Base3D, Boxes3D, CastleOctree, VRMLShape, VectorMath, CastleUtils,
   VRMLTriangle;
 
 const

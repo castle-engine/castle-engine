@@ -27,8 +27,8 @@
   to allow our engine to recognize and parse all fields of given node. }
 program x3d_nodes_spec_to_pascal;
 
-uses SysUtils, Classes, KambiClassUtils, VRMLFields,
-  KambiStringUtils, VRMLNodes, KambiUtils, KambiParameters;
+uses SysUtils, Classes, CastleClassUtils, VRMLFields,
+  CastleStringUtils, VRMLNodes, CastleUtils, CastleParameters;
 
 var
   InterfaceLines: TMemoryStream;

@@ -18,7 +18,7 @@ unit VideosCache;
 
 interface
 
-uses KambiUtils, ImagesCache, Videos,
+uses CastleUtils, ImagesCache, Videos,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -93,7 +93,7 @@ type
 
 implementation
 
-uses SysUtils, KambiStringUtils;
+uses SysUtils, CastleStringUtils;
 
 { $define DEBUG_CACHE}
 

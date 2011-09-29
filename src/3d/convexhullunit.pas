@@ -19,7 +19,7 @@ unit ConvexHullUnit;
 
 interface
 
-uses VectorMath, KambiUtils, Math;
+uses VectorMath, CastleUtils, Math;
 
 { Calculates ConvexHull ignoring Z coordinates of pixels
   (i.e., Points[i][2] are ignored for every i).

@@ -95,7 +95,7 @@ type
 
 implementation
 
-uses Classes, KambiClassUtils, KambiUtils, GLWinMessages;
+uses Classes, CastleClassUtils, CastleUtils, GLWinMessages;
 
 { TCastleMenuItem ---------------------------------------------------------------- }
 

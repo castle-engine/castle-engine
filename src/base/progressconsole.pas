@@ -67,7 +67,7 @@ var
 implementation
 
 uses
-  SysUtils, KambiUtils;
+  SysUtils, CastleUtils;
 
 const
   { This is the width of the console that we can write without automatically

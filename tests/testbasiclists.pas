@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses KambiUtils, VectorMath;
+uses CastleUtils, VectorMath;
 
 function IsSmallerString(const a, b: string): Integer;
 begin

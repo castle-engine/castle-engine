@@ -27,8 +27,8 @@ function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
 
 implementation
 
-uses KambiStringUtils, KambiFilesUtils, KambiWarnings,
-  VectorMath, KambiUtils, Classes, KambiClassUtils, SysUtils,
+uses CastleStringUtils, CastleFilesUtils, CastleWarnings,
+  VectorMath, CastleUtils, Classes, CastleClassUtils, SysUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils,
   GenericStructList;
 

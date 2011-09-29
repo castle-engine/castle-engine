@@ -18,8 +18,8 @@
   $2 = demo number (int between 0 ... 2). }
 program efx_demo;
 
-uses SysUtils, KambiUtils, KambiOpenAL, ALUtils, EFX, KambiTimeUtils,
-  ALSoundEngine, ALSoundAllocator, KambiParameters;
+uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, EFX, CastleTimeUtils,
+  ALSoundEngine, ALSoundAllocator, CastleParameters;
 
 type
   TDemoMode = (

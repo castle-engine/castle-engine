@@ -19,8 +19,8 @@ unit VRMLGLAnimation;
 interface
 
 uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
-  KambiUtils, Boxes3D, KambiClassUtils, VRMLAnimation, KeysMouse,
-  KambiTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle,
+  CastleUtils, Boxes3D, CastleClassUtils, VRMLAnimation, KeysMouse,
+  CastleTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -660,7 +660,7 @@ procedure Register;
 
 implementation
 
-uses Math, VRMLFields, ProgressUnit, X3DLoad, KambiLog, DateUtils,
+uses Math, VRMLFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
   VRMLShape;
 
 procedure Register;

@@ -63,7 +63,7 @@ type
 
 implementation
 
-uses KambiUtils;
+uses CastleUtils;
 
 constructor TWindowsOutlineFont.Create(const AFaceName: string;
   AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: DWord;

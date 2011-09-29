@@ -78,7 +78,7 @@ type
 
 implementation
 
-uses KambiURLUtils, KambiWarnings, KambiStringUtils, Base64;
+uses CastleURLUtils, CastleWarnings, CastleStringUtils, Base64;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }

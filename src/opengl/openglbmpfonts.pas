@@ -19,7 +19,7 @@ unit OpenGLBmpFonts;
 
 interface
 
-uses BmpFontsTypes, OpenGLFonts, GL, GLU, KambiGLUtils;
+uses BmpFontsTypes, OpenGLFonts, GL, GLU, CastleGLUtils;
 
 type
   { OpenGL bitmap font. Uses a font description from BmpFontsTypes unit
@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses KambiUtils;
+uses CastleUtils;
 
 const BmpTableCount = Ord(High(char)) - Ord(Low(char)) +1;
 

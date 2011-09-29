@@ -19,8 +19,8 @@ unit VRMLGLScene;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, KambiClassUtils, KambiUtils,
-  VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, KambiGLUtils,
+  SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, CastleClassUtils, CastleUtils,
+  VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, CastleGLUtils,
   VRMLShapeOctree, GLShadowVolumeRenderer, Cameras, VRMLFields,
   VRMLGLRendererLights, VRMLShape, Frustum, Base3D, GLShaders,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
@@ -993,8 +993,8 @@ procedure Register;
 
 implementation
 
-uses GLVersionUnit, Images, KambiLog, KambiWarnings,
-  Math, RaysWindow, KambiStringUtils, RenderingCameraUnit;
+uses GLVersionUnit, Images, CastleLog, CastleWarnings,
+  Math, RaysWindow, CastleStringUtils, RenderingCameraUnit;
 
 procedure Register;
 begin

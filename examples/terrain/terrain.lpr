@@ -30,7 +30,7 @@
      You can run the program with command-line parameter to pass filename
      of such .hgt file to load on start.
 
-  2. You can also define terrain as an explicit function using KambiScript
+  2. You can also define terrain as an explicit function using CastleScript
      expression syntax, [http://castle-engine.sourceforge.net/kambi_script.php].
      Try e.g. function like
      - sin(x) + sin(y)
@@ -53,9 +53,9 @@
 program terrain;
 
 uses SysUtils, Classes, Boxes3D,
-  KambiUtils, GLWindow, GL, GLExt, KambiGLUtils, KambiParameters,
-  Cameras, VectorMath, KambiFilesUtils, Elevations, GLWinMessages,
-  KambiStringUtils, GLMenu, UIControls, Images, RenderElevations,
+  CastleUtils, GLWindow, GL, GLExt, CastleGLUtils, CastleParameters,
+  Cameras, VectorMath, CastleFilesUtils, Elevations, GLWinMessages,
+  CastleStringUtils, GLMenu, UIControls, Images, RenderElevations,
   GLShaders, GLImages, VRMLFields, VRMLNodes;
 
 type
@@ -600,7 +600,7 @@ begin
         end;
     60: begin
           Expression := '';
-          if MessageInputQuery(Glwin, 'Pass KambiScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
+          if MessageInputQuery(Glwin, 'Pass CastleScript function expression, using X and Y variables, and calculating height of the terrain at given point.' + nl + nl +
             '(For example, try "sin(x*2) * sin(y*2)").', Expression, taLeft) then
           begin
             try
@@ -708,7 +708,7 @@ begin
     TerrainTypeRadio := Radio.Group;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Terrain defined by KambiScript expression ...', 60, TerrainType = ttKamScript, false);
+    Radio := TMenuItemRadio.Create('Terrain defined by CastleScript expression ...', 60, TerrainType = ttKamScript, false);
     Radio.Group := TerrainTypeRadio;
     M.Append(Radio);
 

@@ -33,8 +33,8 @@
     DefaultDirsToCleanInit to know default masks for removed files.
 
 }
-uses SysUtils, KambiUtils, KambiParameters, EnumerateFiles,
-  KambiFilesUtils, KambiStringUtils;
+uses SysUtils, CastleUtils, CastleParameters, EnumerateFiles,
+  CastleFilesUtils, CastleStringUtils;
 
 { RemoveNonEmptyDir utility -------------------------------------------------- }
 

@@ -18,8 +18,8 @@ unit VRMLFields;
 
 interface
 
-uses VectorMath, Classes, SysUtils, VRMLLexer, KambiUtils, KambiClassUtils,
-  Images, KambiStringUtils, KambiInterfaces, VRMLTime, DOM,
+uses VectorMath, Classes, SysUtils, VRMLLexer, CastleUtils, CastleClassUtils,
+  Images, CastleStringUtils, CastleInterfaces, VRMLTime, DOM,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}
@@ -164,7 +164,7 @@ type
       Exception: include also chLightInstanceProperty when appropriate. }
     chLightLocationDirection,
 
-    { TVRMLScene.MainLightForShadows possibly changed because of this change.
+    { T3DSceneCore.MainLightForShadows possibly changed because of this change.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
@@ -278,7 +278,7 @@ type
       Use only for TSFBool fields within TAbstractDragSensorNode. }
     chDragSensorEnabled,
 
-    { NavigationInfo field value used in TVRMLScene.CameraFromNavigationInfo
+    { NavigationInfo field value used in T3DSceneCore.CameraFromNavigationInfo
       changed. }
     chNavigationInfo,
 
@@ -291,7 +291,7 @@ type
 
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
-      TVRMLScene, TVRMLGLScene, TVRMLShape that cannot be expressed
+      T3DSceneCore, T3DScene, TShape that cannot be expressed
       as one of above flags.
 
       Use only as a last resort, as this is very costly!
@@ -891,13 +891,13 @@ type
     property ChangesAlways: TVRMLChanges read FChangesAlways write FChangesAlways;
 
     { What happens when the value of this field changes.
-      This will be used by TVRMLScene.ChangedField to determine what
+      This will be used by T3DSceneCore.ChangedField to determine what
       must be done when we know that value of this field changed. }
     function Changes: TVRMLChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
-      any possible TVRMLScene (with events on or off) containing the node
+      any possible T3DSceneCore (with events on or off) containing the node
       with this field.
 
       Precise specification:
@@ -928,7 +928,7 @@ type
       one "in" handler sets the field value).
 
       Note that "out" event handlers are executed before Scene is notified
-      about the field value change (before TVRMLScene.ChangedField is called).
+      about the field value change (before T3DSceneCore.ChangedField is called).
       This is also usually exactly what you want --- you can change the scene
       graph inside the event handler (for example, load something on
       Inline.load or Inline.url changes), and let the TVRMLField.ChangesAlways
@@ -2597,7 +2597,7 @@ function VRMLChangesToStr(const Changes: TVRMLChanges): string;
 
 implementation
 
-uses Math, VRMLNodes, KambiXMLUtils, KambiWarnings;
+uses Math, VRMLNodes, CastleXMLUtils, CastleWarnings;
 
 {$define read_implementation}
 

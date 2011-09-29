@@ -21,7 +21,7 @@ unit VRMLSceneWaypoints;
 
 interface
 
-uses SysUtils, KambiUtils, KambiClassUtils, Classes,
+uses SysUtils, CastleUtils, CastleClassUtils, Classes,
   VectorMath, Boxes3D, VRMLNodes, VRMLScene,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
@@ -158,7 +158,7 @@ type
 
 implementation
 
-uses KambiStringUtils, VRMLShape;
+uses CastleStringUtils, VRMLShape;
 
 { TSceneWaypoint ------------------------------------------------------------- }
 

@@ -40,9 +40,9 @@
 
 program change_vrml_by_code;
 
-uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
-  KambiUtils, SysUtils, KambiGLUtils, VRMLGLScene, Cameras, KambiSceneManager,
-  KambiFilesUtils, KambiParameters, KambiStringUtils;
+uses VectorMath, VRMLNodes, GL, GLU, GLWindow, CastleWarnings,
+  CastleUtils, SysUtils, CastleGLUtils, VRMLGLScene, Cameras, CastleSceneManager,
+  CastleFilesUtils, CastleParameters, CastleStringUtils;
 
 var
   Window: TCastleWindowCustom;

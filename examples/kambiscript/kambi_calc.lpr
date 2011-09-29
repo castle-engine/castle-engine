@@ -8,7 +8,7 @@
 
 program kambi_calc;
 
-uses KambiParameters, KambiScriptParser;
+uses CastleParameters, CastleScriptParser;
 
 begin
   Parameters.CheckHigh(1);

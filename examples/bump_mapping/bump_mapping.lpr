@@ -51,14 +51,14 @@
 }
 program bump_mapping;
 
-uses GLWindow, GL, GLU, GLExt, KambiGLUtils,
-  Cameras, Boxes3D, SysUtils, KambiUtils, VectorMath,
-  KambiClassUtils, KambiFilesUtils, KambiStringUtils,
+uses GLWindow, GL, GLU, GLExt, CastleGLUtils,
+  Cameras, Boxes3D, SysUtils, CastleUtils, VectorMath,
+  CastleClassUtils, CastleFilesUtils, CastleStringUtils,
   GLWinMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
   NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
-  KambiParameters, KambiLog, RaysWindow, UIControls, Classes, KambiWarnings,
+  CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
   VRMLScene, VRMLGLScene, X3DLoad, ProgressUnit, VRMLGLBackground,
-  VRMLGLRenderer, KambiSceneManager, RenderingCameraUnit, GLControls;
+  VRMLGLRenderer, CastleSceneManager, RenderingCameraUnit, GLControls;
 
 const
   SceneBoundingBox: TBox3D = ( Data: (

@@ -85,7 +85,7 @@ procedure QuadLightMapTo1st(const Image: TImage;
 
 implementation
 
-uses KambiUtils, VRMLLighting, ProgressUnit;
+uses CastleUtils, VRMLLighting, ProgressUnit;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;

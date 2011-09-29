@@ -117,8 +117,8 @@ unit GLWinMessages;
 
 interface
 
-uses Classes, GLWindow, KambiGLUtils, GL, GLU, GLExt, KambiUtils, OpenGLFonts,
-  KambiStringUtils, VectorMath, KeysMouse;
+uses Classes, GLWindow, CastleGLUtils, GL, GLU, GLExt, CastleUtils, OpenGLFonts,
+  CastleStringUtils, VectorMath, KeysMouse;
 
 type
   { Specifies text alignment for MessageXxx functions in
@@ -378,7 +378,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  KambiClassUtils, SysUtils, GLWinModes, KambiLog, GLImages;
+  CastleClassUtils, SysUtils, GLWinModes, CastleLog, GLImages;
 
 { TIntRect ------------------------------------------------------------------- }
 
@@ -437,7 +437,7 @@ end;
 procedure DrawGLBorderedRectangle(const R: TIntRect;
   const InsideCol, BorderCol: TVector4f);
 begin
-  KambiGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
+  CastleGLUtils.DrawGLBorderedRectangle(R[0, 0], R[0, 1], R[1, 0], R[1, 1],
     InsideCol, BorderCol);
 end;
 

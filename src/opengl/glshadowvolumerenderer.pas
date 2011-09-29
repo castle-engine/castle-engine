@@ -18,7 +18,7 @@ unit GLShadowVolumeRenderer;
 
 interface
 
-uses VectorMath, Boxes3D, GL, GLExt, KambiGLUtils, Frustum, Base3D;
+uses VectorMath, Boxes3D, GL, GLExt, CastleGLUtils, Frustum, Base3D;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);
@@ -33,7 +33,7 @@ type
     It provides everything, except it doesn't
     actually render the 3D models or their shadow volumes (actual rendering
     is provided by T3D descendants, like
-    TVRMLGLScene.Render and TVRMLGLScene.RenderShadowVolume).
+    T3DScene.Render and T3DScene.RenderShadowVolume).
 
     For general usage tutorial of this class,
     see [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
@@ -247,7 +247,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, KambiLog, GLVersionUnit;
+uses SysUtils, CastleUtils, CastleStringUtils, CastleLog, GLVersionUnit;
 
 procedure TGLShadowVolumeRenderer.GLContextOpen;
 begin

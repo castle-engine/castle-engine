@@ -10,7 +10,7 @@ unit VorbisFile;
 
 interface
 
-uses CTypes, VorbisCodec, KambiOgg;
+uses CTypes, VorbisCodec, CastleOgg;
 
 const
   NOTOPEN   = 0;
@@ -124,7 +124,7 @@ var
 
 implementation
 
-uses SysUtils, KambiUtils, KambiDynLib;
+uses SysUtils, CastleUtils, CastleDynLib;
 
 var
   VorbisFileLibrary: TDynLib;

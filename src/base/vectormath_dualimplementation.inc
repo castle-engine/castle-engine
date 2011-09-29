@@ -1340,8 +1340,8 @@ begin
   Closest := PointOnLineClosestToPoint(pos1, VectorSubtract(pos2, pos1), point);
   if IsPointOnSegmentLineWithinSegment(Closest, pos1, pos2) then
     result := PointsDistanceSqr(Closest, point) else
-    result := KambiUtils.min(PointsDistanceSqr(pos1, point),
-                        PointsDistanceSqr(pos2, point));
+    result := CastleUtils.min(PointsDistanceSqr(pos1, point),
+                              PointsDistanceSqr(pos2, point));
 end;
 
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;

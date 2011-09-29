@@ -30,11 +30,11 @@
 
 program fog_culling;
 
-uses SysUtils, VectorMath, GL, GLU, GLWindow, KambiStringUtils,
-  KambiClassUtils, KambiUtils, Classes, KambiWarnings,
-  KambiGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
-  ProgressUnit, ProgressConsole, KambiFilesUtils, Base3D,
-  KambiSceneManager, KambiParameters;
+uses SysUtils, VectorMath, GL, GLU, GLWindow, CastleStringUtils,
+  CastleClassUtils, CastleUtils, Classes, CastleWarnings,
+  CastleGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
+  ProgressUnit, ProgressConsole, CastleFilesUtils, Base3D,
+  CastleSceneManager, CastleParameters;
 
 var
   Window: TCastleWindowCustom;

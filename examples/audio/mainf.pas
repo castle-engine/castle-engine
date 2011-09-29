@@ -50,7 +50,7 @@ var
 
 implementation
 
-uses VectorMath, KambiOpenAL, KambiUtils, KambiStringUtils;
+uses VectorMath, CastleOpenAL, CastleUtils, CastleStringUtils;
 
 { TMain }
 

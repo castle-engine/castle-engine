@@ -18,8 +18,8 @@ unit Base3D;
 
 interface
 
-uses Classes, Math, VectorMath, Frustum, Boxes3D, KambiClassUtils, KeysMouse,
-  KambiUtils, FGL;
+uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
+  CastleUtils, FGL;
 
 type
   TRenderFromViewFunction = procedure of object;
@@ -42,7 +42,7 @@ type
       For example, material or texture on visible surface changed. }
     vcVisibleNonGeometry,
 
-    { Camera view (the settings passed to TVRMLScene.CameraChanged) changed. }
+    { Camera view (the settings passed to T3DSceneCore.CameraChanged) changed. }
     vcCamera);
   TVisibleChanges = set of TVisibleChange;
 
@@ -76,7 +76,7 @@ type
     and more memory-efficient to keep this as an old-style object.
     And memory efficiency is somewhat important here, since large
     scenes may easily have milions of triangles, and each triangle
-    results in one TVRMLTriangle (descendant of T3DTriangle) instance. }
+    results in one TTriangle (descendant of T3DTriangle) instance. }
   T3DTriangle = object
   public
     { Initialize new triangle. Given ATriangle must satisfy IsValidTriangle. }
@@ -91,12 +91,12 @@ type
         @item(Local is based on initial Triangle, given when constructing
           this T3DTriangle. It's constant for this T3DTriangle. It's used
           by octree collision routines, that is things like
-          TVRMLBaseTrianglesOctree.SphereCollision, TVRMLBaseTrianglesOctree.RayCollision
+          TBaseTrianglesOctree.SphereCollision, TBaseTrianglesOctree.RayCollision
           and such expect parameters in the same coord space.
 
           This may be local coord space of this shape (this is used
-          by TVRMLShape.OctreeTriangles) or world coord space
-          (this is used by TVRMLScene.OctreeTriangles).)
+          by TShape.OctreeTriangles) or world coord space
+          (this is used by T3DSceneCore.OctreeTriangles).)
 
         @item(World is the geometry of Local transformed to be in world
           coordinates. Initially, World is just a copy of Local.
@@ -105,16 +105,16 @@ type
           can just remain constant, and so is always Local copy.
 
           If Local contains local shape-space geometry, then World
-          will have to be updated by TVRMLTriangle.UpdateWorld whenever some octree item's
+          will have to be updated by TTriangle.UpdateWorld whenever some octree item's
           geometry will be needed in world coords. This will have to be
-          done e.g. by TVRMLBaseTrianglesOctree.XxxCollision for each returned item.)
+          done e.g. by TBaseTrianglesOctree.XxxCollision for each returned item.)
       ) }
     Local, World: T3DTriangleGeometry;
   end;
   P3DTriangle = ^T3DTriangle;
 
   { Return for given Triangle do we want to ignore collisions with it.
-    For now, Sender is always TVRMLTriangleOctree. }
+    For now, Sender is always TTriangleOctree. }
   T3DTriangleIgnoreFunc = function (
     const Sender: TObject;
     const Triangle: P3DTriangle): boolean of object;
@@ -123,7 +123,7 @@ type
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
     prTrianglesListShadowCasters,
     prManifoldAndBorderEdges,
-    { Prepare octrees (determined by things like TVRMLScene.Spatial). }
+    { Prepare octrees (determined by things like T3DSceneCore.Spatial). }
     prSpatial,
     prScreenEffects);
   TPrepareResourcesOptions = set of TPrepareResourcesOption;
@@ -145,9 +145,9 @@ type
 
       For example, if your 3D tree is a list, and within
       this list is another list, and within this another list is your final
-      colliding object (for example, some TVRMLGLScene instance),
+      colliding object (for example, some T3DScene instance),
       then Hierarchy will contain three items (in order: 1st list, 2nd list,
-      TVRMLGLScene instance).
+      T3DScene instance).
 
       This is never an empty list. }
     Hierarchy: T3DListCore;
@@ -199,9 +199,9 @@ type
     function BaseLights(Scene: T3D): TAbstractLightInstancesList; virtual; abstract;
   end;
 
-  { Base 3D object, that can be managed by TKamSceneManager.
+  { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
-    insert them into the TKamSceneManager. }
+    insert them into the TCastleSceneManager. }
   T3D = class(TComponent)
   private
     FCastsShadow: boolean;
@@ -223,7 +223,7 @@ type
       Setting this to @false pretty much turns everything of this 3D object
       to "off". This is useful for objects that disappear completely from
       the level when something happens. You could just as well remove
-      this object from TKamSceneManager.Items tree, but sometimes it's more
+      this object from TCastleSceneManager.Items tree, but sometimes it's more
       comfortable to simply turn this property to @false.
 
       @noAutoLinkHere }
@@ -249,7 +249,7 @@ type
       (although, for the same of various optimizations, you should try
       to make it as tight as reasonably possible.) For now, it's also OK
       to make it a little too small (nothing bad will happen).
-      Although all currently implemented descendants (TVRMLScene, TVRMLAnimation,
+      Although all currently implemented descendants (T3DSceneCore, T3DPrecalculatedAnimationCore,
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 
@@ -284,7 +284,7 @@ type
       But RenderShadowVolume needs actual transformation explicitly:
       ShadowMaybeVisible needs actual box position in world coordinates,
       so bounding box has to be transformed by ParentTransform.
-      And TVRMLGLScene.RenderShadowVolumeCore needs explicit ParentTransform
+      And T3DScene.RenderShadowVolumeCore needs explicit ParentTransform
       to correctly detect front/back sides (for silhouette edges and
       volume capping). }
     procedure RenderShadowVolume(
@@ -316,7 +316,7 @@ type
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
-        methods of T3D, TVRMLScene or TVRMLGLScene).)
+        methods of T3D, T3DSceneCore or T3DScene).)
 
       @param(ProgressStep Says that we should make Progress.Step calls
         (exactly PrepareResourcesSteps times) during preparation.
@@ -369,7 +369,7 @@ type
       changed.
 
       The information about visibility changed is usually passed upward,
-      to the TKamSceneManager, that broadcasts this to all 3D objects
+      to the TCastleSceneManager, that broadcasts this to all 3D objects
       by VisibleChangeNotification. If you want to @italic(react) to visibility
       changes, you usually should override VisibleChangeNotification,
       not this method.
@@ -390,7 +390,7 @@ type
       read FOnVisibleChangeHere write FOnVisibleChangeHere;
 
     { Something visible changed in the 3D world.
-      This is usually called by our container (like TKamSceneManager),
+      This is usually called by our container (like TCastleSceneManager),
       to allow this 3D object to react (e.g. by regenerating mirror textures)
       to changes in the 3D world (not necessarily in this 3D object,
       maybe in some other T3D instance).
@@ -609,7 +609,7 @@ type
 
     Descends from T3DList, translating all it's children.
     So it can be used to translate any T3D descendants (including
-    another T3DList, TVRMLGLScene, TVRMLGLAnimation).
+    another T3DList, T3DScene, T3DPrecalculatedAnimation).
 
     Actual translation is defined by an abstract method GetTranslation.
     You have to create descendant of this class, and override GetTranslation.

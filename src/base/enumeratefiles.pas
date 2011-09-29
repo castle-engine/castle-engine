@@ -31,7 +31,7 @@ unit EnumerateFiles;
 
 interface
 
-uses SysUtils, KambiUtils, Classes, GenericStructList;
+uses SysUtils, CastleUtils, Classes, GenericStructList;
 
 type
   { }
@@ -169,7 +169,7 @@ function SearchFileHard(const Path, Base: string; out NewBase: string): boolean;
 
 implementation
 
-uses KambiFilesUtils;
+uses CastleFilesUtils;
 
 { EnumFiles ------------------------------------------------------------ }
 
@@ -229,7 +229,7 @@ begin
    if (faSysFile and FileRec.Attr) <> 0 then { znalazles plik z faSysFile }
    begin
     { TODO: it would be nice to be able to write here FileRec instead of
-      FullName under FPC. See comments at IsSymLink in KambiUtils.
+      FullName under FPC. See comments at IsSymLink in CastleUtils.
       See FPC bug (wishlist, actually) 2995. }
     if IsSymLink(FullName) then
     begin

@@ -38,8 +38,8 @@ function LoadCollada(const FileName: string;
 
 implementation
 
-uses SysUtils, KambiUtils, KambiStringUtils, VectorMath,
-  DOM, XMLRead, KambiXMLUtils, KambiWarnings, Classes, KambiClassUtils,
+uses SysUtils, CastleUtils, CastleStringUtils, VectorMath,
+  DOM, XMLRead, CastleXMLUtils, CastleWarnings, Classes, CastleClassUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Math, X3DLoadInternalUtils;
 
 { Large missing stuff:
@@ -330,7 +330,7 @@ begin
     Exit(false);
   end;
 
-  MinCount := Offset + Stride * (Count - 1) + KambiUtils.Max(XIndex, YIndex, ZIndex) + 1;
+  MinCount := Offset + Stride * (Count - 1) + CastleUtils.Max(XIndex, YIndex, ZIndex) + 1;
   Result := Floats.Count >= MinCount;
   if not Result then
   begin

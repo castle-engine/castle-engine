@@ -21,8 +21,8 @@ unit VRMLShader;
 interface
 
 uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, KambiUtils, Boxes3D,
-  VRMLGLRendererTextureEnv, KambiStringUtils;
+  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, CastleUtils, Boxes3D,
+  VRMLGLRendererTextureEnv, CastleStringUtils;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -383,8 +383,8 @@ operator = (const A, B: TShaderCodeHash): boolean;
 
 implementation
 
-uses SysUtils, GL, GLExt, KambiGLUtils, KambiWarnings,
-  KambiLog, StrUtils, Base3D, GLVersionUnit;
+uses SysUtils, GL, GLExt, CastleGLUtils, CastleWarnings,
+  CastleLog, StrUtils, Base3D, GLVersionUnit;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call

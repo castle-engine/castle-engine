@@ -18,7 +18,7 @@ unit Boxes3D;
 
 interface
 
-uses VectorMath, SysUtils, KambiUtils, GenericStructList;
+uses VectorMath, SysUtils, CastleUtils, GenericStructList;
 
 type
   EBox3DEmpty = class(Exception);
@@ -1762,7 +1762,7 @@ begin
    and each call to find_extremum was iterating over every vertex.
    This was obviously wrong, because this caused calling GetVertex
    6 times more often than necessary. In some cases (like preparing
-   TVRMLGLAnimation in "The Castle") this can cause really significant
+   T3DPrecalculatedAnimation in "The Castle") this can cause really significant
    slowdown. }
 
  ThisVertex := GetVertex(GetVertIndex(firstIndexNum));

@@ -34,7 +34,7 @@ unit VRMLRayTracer;
 
 interface
 
-uses VectorMath, Images, RaysWindow, KambiUtils, Classes,
+uses VectorMath, Images, RaysWindow, CastleUtils, Classes,
   VRMLTriangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
 
 type

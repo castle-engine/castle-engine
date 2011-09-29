@@ -18,9 +18,9 @@ unit ALSoundEngine;
 
 interface
 
-uses SysUtils, Classes, KambiOpenAL, ALSoundAllocator, VectorMath, Cameras,
-  KambiTimeUtils, KambiXMLConfig, Math, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  KambiClassUtils;
+uses SysUtils, Classes, CastleOpenAL, ALSoundAllocator, VectorMath, Cameras,
+  CastleTimeUtils, CastleXMLConfig, Math, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  CastleClassUtils;
 
 type
   TALDistanceModel = (dmNone,
@@ -356,8 +356,8 @@ property SoundEngine: TALSoundEngine read GetSoundEngine write SetSoundEngine;
 
 implementation
 
-uses KambiUtils, KambiStringUtils, ALUtils, KambiLog,
-  SoundFile, VorbisFile, EFX, KambiParameters, StrUtils;
+uses CastleUtils, CastleStringUtils, ALUtils, CastleLog,
+  SoundFile, VorbisFile, EFX, CastleParameters, StrUtils;
 
 type
   { For alcGetError errors (ALC_xxx constants). }

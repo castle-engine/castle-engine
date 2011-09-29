@@ -18,7 +18,7 @@ unit VRMLGLRendererLights;
 
 interface
 
-uses VectorMath, GL, GLU, KambiGLUtils, VRMLNodes, VRMLShader;
+uses VectorMath, GL, GLU, CastleGLUtils, VRMLNodes, VRMLShader;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -78,7 +78,7 @@ type
 
 implementation
 
-uses SysUtils, KambiUtils, Math, RenderingCameraUnit;
+uses SysUtils, CastleUtils, Math, RenderingCameraUnit;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 

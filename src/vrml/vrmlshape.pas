@@ -23,8 +23,8 @@ unit VRMLShape;
 
 interface
 
-uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
-  KambiUtils, VRMLTriangleOctree, Frustum, KambiOctree, VRMLTriangle,
+uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, CastleClassUtils,
+  CastleUtils, VRMLTriangleOctree, Frustum, CastleOctree, VRMLTriangle,
   VRMLFields, GeometryArrays, FaceIndex,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
@@ -834,8 +834,8 @@ var
 
 implementation
 
-uses ProgressUnit, VRMLScene, NormalsCalculator, KambiLog, KambiWarnings,
-  KambiStringUtils, VRMLArraysGenerator;
+uses ProgressUnit, VRMLScene, NormalsCalculator, CastleLog, CastleWarnings,
+  CastleStringUtils, VRMLArraysGenerator;
 
 const
   UnknownTexCoord: TTriangle4Single = (
