@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="8"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/glwindow/unix;../src/glwindow/windows;../src/glwindow/gtk;../src/base"/>
-        <OtherUnitFiles Value="../src/glwindow;../src/glwindow/windows"/>
+        <IncludeFiles Value="../src/window/unix;../src/window/windows;../src/window/gtk;../src/base"/>
+        <OtherUnitFiles Value="../src/window;../src/window/windows"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -52,57 +52,57 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <Version Major="1"/>
     <Files Count="14">
       <Item2>
-        <Filename Value="../src/glwindow/castlesoundmenu.pas"/>
+        <Filename Value="../src/window/castlesoundmenu.pas"/>
         <UnitName Value="CastleSoundMenu"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/glwindow/castlewindow.pas"/>
+        <Filename Value="../src/window/castlewindow.pas"/>
         <UnitName Value="CastleWindow"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/glwindow/castlerecentfiles.pas"/>
+        <Filename Value="../src/window/castlerecentfiles.pas"/>
         <UnitName Value="CastleRecentFiles"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/glwindow/castleinputs.pas"/>
+        <Filename Value="../src/window/castleinputs.pas"/>
         <UnitName Value="CastleInputs"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/glwindow/castlemessages.pas"/>
+        <Filename Value="../src/window/castlemessages.pas"/>
         <UnitName Value="CastleMessages"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/glwindow/castlewindowmodes.pas"/>
+        <Filename Value="../src/window/castlewindowmodes.pas"/>
         <UnitName Value="CastleWindowModes"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/glwindow/castleprogress.pas"/>
+        <Filename Value="../src/window/castleprogress.pas"/>
         <UnitName Value="CastleProgress"/>
       </Item8>
       <Item10>
-        <Filename Value="../src/glwindow/windows/castlewindow_winapi.inc"/>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
       </Item10>
       <Item12>
-        <Filename Value="../src/glwindow/unix/castlewindow_xf86vmode.inc"/>
+        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
         <Type Value="Include"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/glwindow/unix/castlewindow_xlib.inc"/>
+        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/glwindow/unix/castleglx.pas"/>
+        <Filename Value="../src/window/unix/castleglx.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGlx"/>
       </Item14>
       <Item11>
-        <Filename Value="../src/glwindow/unix/castlexf86vmode.pas"/>
+        <Filename Value="../src/window/unix/castlexf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleXF86VMode"/>
       </Item11>
       <Item1>
-        <Filename Value="../src/glwindow/unix/xlibutils.pas"/>
+        <Filename Value="../src/window/unix/xlibutils.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="xlibutils"/>
       </Item1>

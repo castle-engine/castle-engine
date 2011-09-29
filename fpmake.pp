@@ -173,7 +173,7 @@ begin
       P.Targets.AddUnit('winfontconvert.pas');
     end;
 
-    P.SourcePath.Add('src' + PathDelim + 'glwindow');
+    P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castlesoundmenu.pas');
     p.targets.addunit('castlewindow.pas');
     p.targets.addunit('castlerecentfiles.pas');
@@ -183,14 +183,14 @@ begin
     P.Targets.AddUnit('castleprogress.pas');
     if Defaults.OS in AllUnixOSes then
     begin
-      P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'unix');
+      P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
       P.Targets.AddUnit('castleglx.pas');
       P.Targets.AddUnit('castlexf86vmode.pas');
       P.Targets.AddUnit('xlibutils.pas');
     end;
     if Defaults.OS in AllWindowsOSes then
     begin
-      P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'windows');
+      P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'windows');
       P.Targets.AddUnit('openglwindowsfonts.pas');
     end;
 

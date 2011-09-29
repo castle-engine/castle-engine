@@ -82,10 +82,10 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
-  examples/glwindow/window_events \
-  examples/glwindow/window_menu \
-  examples/glwindow/window_gtk_mix \
-  examples/glwindow/multi_window \
+  examples/window/window_events \
+  examples/window/window_menu \
+  examples/window/window_gtk_mix \
+  examples/window/multi_window \
   examples/curves_surfaces/bezier_surfaces/animate_surface \
   examples/curves_surfaces/bezier_surfaces/design_surface \
   examples/curves_surfaces/interpolated_curves \
@@ -188,21 +188,21 @@ cleanmore: clean
 
 cleanall: cleanmore
 
-# Clean compiled versions of GLWindow unit.
-# Makes sure that unit GLWindow will be *always* *rebuild* in next compilation.
+# Clean compiled versions of CastleWindow unit.
+# Makes sure that unit CastleWindow will be *always* *rebuild* in next compilation.
 #
-# This is useful, since GLWindow unit may be compiled with various
+# This is useful, since CastleWindow unit may be compiled with various
 # back-ends (e.g. under Unices two most useful back-ends
 # are XLIB and GTK). To make sure that compilation of some program
-# will produce exactly what you need, it's useful to force rebuild of GLWindow.
+# will produce exactly what you need, it's useful to force rebuild of CastleWindow.
 #
 # Of course this means that compilation time will suffer a little,
-# since GLWindow unit will be possibly rebuild without any real need.
-clean-glwindow:
-	rm -f src/glwindow/glwindow.o \
-	      src/glwindow/glwindow.ppu \
-	      src/glwindow/GLWindow.o \
-	      src/glwindow/GLWindow.ppu
+# since CastleWindow unit will be possibly rebuild without any real need.
+clean-window:
+	rm -f src/window/castlewindow.o \
+	      src/window/castlewindow.ppu \
+	      src/window/CastleWindow.o \
+	      src/window/CastleWindow.ppu
 
 # ----------------------------------------
 # Set SVN tag.
