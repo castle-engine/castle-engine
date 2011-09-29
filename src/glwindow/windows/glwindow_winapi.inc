@@ -72,6 +72,8 @@ private
 
 {$ifdef read_implementation}
 
+{$I glwindow_winapi_menu.inc}
+
 { TCastleWindowBase ------------------------------------------------- }
 
 const

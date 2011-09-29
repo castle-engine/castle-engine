@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Helper unit for GLWindow implementation of menu-related things
+{ @abstract(Helper for GLWindow implementation of menu-related things
   under WinAPI.)
 
   It converts menu structure from classes in castlewindowmenu.inc to WinAPI menu
@@ -73,27 +73,6 @@
       not using any WinAPI accelerator tables).)
   )
 }
-
-unit GLWindowWinAPIMenu;
-
-interface
-
-uses GLWindow, Windows;
-
-{ Convert Menu structure to a WinAPI menu. Resulting menu is menu bar
-  (obtained with CreateMenu) if MenuBar = true, else it's popup menu
-  (obtained with CreatePopupMenu).
-
-  Each TMenuItem will be added with identifier taken from it's SmallId.
-
-  If MenuBar then TMenuSeparator entries in Menu.Entries[] are ignored
-  (WinAPI toplevel menu bar cannot have a separator, that's quite sensible
-  actually). Of course separators at lower depths are not ignored. }
-function MakeWinapiMenu(Menu: TMenu; MenuBar: boolean): HMenu;
-
-implementation
-
-uses CastleUtils;
 
 { We use ParentAllowsEnabled trick to take into account main Menu.Enabled
   state. WinAPI doesn't allow the menu bar or popup to be just disabled,
@@ -227,9 +206,16 @@ begin
   end;
 end;
 
+{ Convert Menu structure to a WinAPI menu. Resulting menu is menu bar
+  (obtained with CreateMenu) if MenuBar = true, else it's popup menu
+  (obtained with CreatePopupMenu).
+
+  Each TMenuItem will be added with identifier taken from it's SmallId.
+
+  If MenuBar then TMenuSeparator entries in Menu.Entries[] are ignored
+  (WinAPI toplevel menu bar cannot have a separator, that's quite sensible
+  actually). Of course separators at lower depths are not ignored. }
 function MakeWinapiMenu(Menu: TMenu; MenuBar: boolean): HMenu;
 begin
   Result := MakeWinapiMenuCore(Menu, MenuBar, Menu.Enabled);
 end;
-
-end.
