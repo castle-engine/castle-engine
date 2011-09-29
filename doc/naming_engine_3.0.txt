@@ -10,7 +10,8 @@ summarizes renames done, and some reasoning.
 - We don't want Kambi, Kam prefix to anything (units, classes).
   Instead use CastleXxx for units, TCastleXxx for classes,
   but *only if necessary* (preferably, avoid prefixing everything,
-  to keep names simple).
+  to keep names simple). Don't shorten Castle to Cas or Ca for prefix
+  --- instead, avoid this prefix altogether where possible.
 
   Components should all have TCastleXxx prefix (to not clash with
   other components, this would make our engine conflict with other
