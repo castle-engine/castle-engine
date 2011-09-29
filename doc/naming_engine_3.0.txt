@@ -72,16 +72,13 @@ summarizes renames done, and some reasoning.
   So e.g. TVRMLGLScene becomes just T3DScene.
 
 ------------------------------------------------------------------------------
-2. Renames done, in short:
+2. Renames done, identifiers inside units:
 
-- Unit Object3DAsVRML -> X3DLoad, with various X3DLoadInternal* helper units.
 - VRML/X3D node classes renamed to TXxxNode or TAbstractXxxNode.
   Motivation: remove TVRML prefix, unify own and X3D spec abstract classes naming (no need to differentiate them by name), move Node to the end (more English-like).
   * TNodeXxx -> TXxxNode
   * TNodeX3DXxxNode -> TAbstractXxxNode
   * TVRMLXxx -> either TX3DXxx (special) or TAbstractXxxNode (abstract)
-- "The Castle" game units renamed CastleXxx -> GameXxx.
-  Motivation: do not clash with engine units.
 
 - Window/control renames:
   * TGLWindowXxx -> TCastleWindowXxx, also changing suffixes:
@@ -140,3 +137,16 @@ tvrmltriangleoctree                 TTriangleOctree
 tvrmlbasetrianglesoctreenode        TBaseTrianglesOctreeNode
 tvrmlshapeoctreenode                TShapeOctreeNode
 tvrmlwireframeeffect                TWireframeEffect
+
+------------------------------------------------------------------------------
+3. Renames done, unit names:
+
+- Unit Object3DAsVRML -> X3DLoad, with various X3DLoadInternal* helper units.
+- "The Castle" game units renamed CastleXxx -> GameXxx.
+  Motivation: do not clash with engine units.
+
+------------------------------------------------------------------------------
+4. Renames done, package names:
+
+Lazarus package names have to change too. Now we have
+castle_base, castle_components, castle_window.
