@@ -179,7 +179,7 @@ begin
     p.targets.addunit('castlerecentfiles.pas');
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castlemessages.pas');
-    p.targets.addunit('castlewindowmodes.pas');
+    p.targets.addunit('windowmodes.pas');
     P.Targets.AddUnit('castleprogress.pas');
     if Defaults.OS in AllUnixOSes then
     begin

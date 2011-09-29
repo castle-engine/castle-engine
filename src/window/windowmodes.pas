@@ -26,7 +26,7 @@
   wait for some keypress, or wait until user inputs some
   string, or wait until user picks something with mouse,
   or wait for 10 seconds displaying some animation, etc. }
-unit CastleWindowModes;
+unit WindowModes;
 
 {$I castleconf.inc}
 

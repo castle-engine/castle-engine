@@ -40,7 +40,7 @@ unit CastleProgress;
 interface
 
 uses GL, OpenGLFonts, OpenGLBmpFonts, CastleWindow, ProgressUnit,
-  CastleWindowModes, CastleGLUtils;
+  WindowModes, CastleGLUtils;
 
 const
   DefaultBarYPosition = 0.5;

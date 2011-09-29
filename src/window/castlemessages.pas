@@ -61,7 +61,7 @@
 
   @unorderedList(
     @item(
-      It's implemented using CastleWindowModes approach. Which means that when you call
+      It's implemented using WindowModes approach. Which means that when you call
       some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
       (OnDraw, OnKeyDown, OnMouseDown, OnIdle etc.) for it's own.
       So you can be sure that e.g. no glwin callbacks that you registered in your
@@ -109,7 +109,7 @@ unit CastleMessages;
 
 { TODO
   - przydalby sie jeszcze kursor dla MessageInput[Query]
-  - this should be implemented on top of CastleWindowModes.TGLModeFrozenScreen,
+  - this should be implemented on top of WindowModes.TGLModeFrozenScreen,
     this would simplify implementation a bit
 }
 
@@ -378,7 +378,7 @@ var
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
-  CastleClassUtils, SysUtils, CastleWindowModes, CastleLog, GLImages;
+  CastleClassUtils, SysUtils, WindowModes, CastleLog, GLImages;
 
 { TIntRect ------------------------------------------------------------------- }
 

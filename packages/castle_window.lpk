@@ -72,8 +72,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleMessages"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/window/castlewindowmodes.pas"/>
-        <UnitName Value="CastleWindowModes"/>
+        <Filename Value="../src/window/windowmodes.pas"/>
+        <UnitName Value="WindowModes"/>
       </Item7>
       <Item8>
         <Filename Value="../src/window/castleprogress.pas"/>

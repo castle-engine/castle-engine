@@ -22,7 +22,7 @@ unit CastleInputs;
     razem z ich callbackami, przynajmniej OnDraw.
     Musza byc w stanie dobrze zareagowac na wypadek gdyby user
     zrobil resize na okienku.
-  - Input, InputAnyKey, CastleWindowModes.TGLModeFrozenScreen should be fixed
+  - Input, InputAnyKey, WindowModes.TGLModeFrozenScreen should be fixed
     to not be vulnerable for "glReadPixels from front buffer is not reliable"
     problem.
 }
@@ -31,7 +31,7 @@ unit CastleInputs;
 
 interface
 
-uses GL, GLU, CastleGLUtils, CastleWindow, CastleWindowModes, OpenGLFonts, CastleUtils, Images,
+uses GL, GLU, CastleGLUtils, CastleWindow, WindowModes, OpenGLFonts, CastleUtils, Images,
   CastleStringUtils;
 
 { Wait until user inputs a string (accept by Enter), displaying the static

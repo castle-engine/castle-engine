@@ -130,7 +130,7 @@
   to some other set of callbacks using TWindowCallbacks,
   TCastleWindowBase.GetCallbacksState, TCastleWindowBase.SetCallbacksState.
   Using these functions I implemented unit
-  @link(CastleWindowModes) and then, on top of this, I implemented some very
+  @link(WindowModes) and then, on top of this, I implemented some very
   handy things like modal message boxes (unit @link(CastleMessages))
   and progress bar (unit @link(CastleProgress)). These units give you some typical
   GUI capabilities, and they are in pure OpenGL.
@@ -139,9 +139,9 @@
   callbacks) you can not do such things so easily -- in general, you have
   to define something to turn off special EventXxx functionality
   (like SetDemoOptions in TCastleWindowDemo and UseControls in TCastleWindowCustom)
-  and you have to turn them off/on when using CastleWindowModes
+  and you have to turn them off/on when using WindowModes
   (mentioned TCastleWindowDemo and TCastleWindowCustom are already handled in
-  CastleWindowModes). TODO: I shall do some virtual methods in TCastleWindowBase
+  WindowModes). TODO: I shall do some virtual methods in TCastleWindowBase
   to make this easy.
 
   Random features list:
@@ -728,7 +728,7 @@ type
     of @link(TCastleWindowBase), with the exception of OnOpen and OnClose callbacks.
     This is used in @link(TCastleWindowBase.GetCallbacksState)
     and @link(TCastleWindowBase.SetCallbacksState).
-    See unit CastleWindowModes for example when such thing is useful. }
+    See unit WindowModes for example when such thing is useful. }
   TWindowCallbacks = record
     MouseMove: TMouseMoveFunc;
     MouseDown, MouseUp: TMouseUpDownFunc;
@@ -1848,7 +1848,7 @@ end;
       but instead normal EventKeyDown (OnKeyDown) will be called.
 
       When it is useful to set this to false?
-      For example hen using CastleWindowModes. When you're changing modes (e.g. at the
+      For example hen using WindowModes. When you're changing modes (e.g. at the
       beginning of CastleMessages.MessageOk) you're temporary setting
       OnMenuCommand to nil, but this doesn't block TMenuItem.DoCommand
       functions. The only way to block menu from triggering ANY event is to
@@ -2819,7 +2819,7 @@ end;
 #)
 
       Commonly this is used together with TCastleWindowBase state push / pop
-      routines in CastleWindowModes. They allow you to temporary replace
+      routines in WindowModes. They allow you to temporary replace
       all TCastleWindowBase callbacks with new ones, and later restore the old ones.
 
       ProcessMessages returns @true if we should continue, that is
@@ -2943,10 +2943,10 @@ procedure Resize2D(Window: TCastleWindowBase);
 implementation
 
 uses CastleParameters, CastleLog, GLImages, GLVersionUnit, X3DLoad
-  { using here CastleWindowModes/Messages makes recursive uses,
+  { using here WindowModes/CastleMessages makes recursive CastleWindow usage,
     but it's needed for FileDialog }
-  {$ifdef CASTLE_WINDOW_GTK_ANY}, CastleWindowModes {$endif}
-  {$ifdef CASTLE_WINDOW_WINAPI}, CastleWindowModes {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_ANY}, WindowModes {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI}, WindowModes {$endif}
   {$ifdef CASTLE_WINDOW_XLIB}, CastleMessages {$endif}
   {$ifdef CASTLE_WINDOW_GLUT}, CastleMessages {$endif};
 

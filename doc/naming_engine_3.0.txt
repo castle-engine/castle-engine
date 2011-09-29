@@ -194,7 +194,7 @@ testkambiscript                        testcastlescript
 vrmlkambiscript                        x3dcastlescript
 kambioctree                            CastleOctree
 
-glwinmodes                 castlewindowmodes
+glwinmodes                 windowmodes
 glwindow                   castlewindow
 glwinmessages              castlemessages
 glsoundmenu                castlesoundmenu
