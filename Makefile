@@ -73,8 +73,8 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/efx_demo \
   examples/tools/dircleaner \
   examples/tools/stringoper \
-  examples/kambiscript/kambi_calc \
-  examples/kambiscript/image_make_by_script \
+  examples/castlescript/kambi_calc \
+  examples/castlescript/image_make_by_script \
   examples/images_videos/image_convert \
   examples/images_videos/dds_decompose \
   examples/images_videos/image_identify \
@@ -82,10 +82,10 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
-  examples/glwindow/glwindow_events \
-  examples/glwindow/glwindow_menu \
-  examples/glwindow/glwindow_gtk_mix \
-  examples/glwindow/multi_glwindow \
+  examples/glwindow/window_events \
+  examples/glwindow/window_menu \
+  examples/glwindow/window_gtk_mix \
+  examples/glwindow/multi_window \
   examples/curves_surfaces/bezier_surfaces/animate_surface \
   examples/curves_surfaces/bezier_surfaces/design_surface \
   examples/curves_surfaces/interpolated_curves \
@@ -146,7 +146,7 @@ cleanexamples:
 .PHONY: examples-laz
 examples-laz:
 	lazbuild packages/castle_base.lpk
-	lazbuild packages/castle_glwindow.lpk
+	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
@@ -165,7 +165,7 @@ clean: cleanexamples
 	     | xargs rm -f
 	find . -type d -name lib -exec rm -Rf '{}' ';' -prune
 	rm -Rf packages/castle_base.pas \
-	  packages/castle_glwindow.pas \
+	  packages/castle_window.pas \
 	  packages/castle_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
 # fpmake binary, and units/ produced by fpmake compilation

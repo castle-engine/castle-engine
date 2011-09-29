@@ -31,7 +31,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_glwindow"/>
+        <PackageName Value="castle_window"/>
       </Item1>
       <Item2>
         <PackageName Value="castle_base"/>

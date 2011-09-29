@@ -1,6 +1,6 @@
 TODO: This is a work in progress. I want to finish this for engine 2.6.0 release. This is supposed to be a full tutorial how to make an FPS game, from the basics.
 
-The tutorial handles both alternatives for creating OpenGL context: as Lazarus component (on Lazarus form), or as our TGLWindow instance. Appropriate parts of the tutorial will be in 2-column view to visualize this.
+The tutorial handles both alternatives for creating OpenGL context: as Lazarus component (on Lazarus form), or as our TCastleWindow instance. Appropriate parts of the tutorial will be in 2-column view to visualize this.
 
 ------------------------------------------------------------------------------
 0. Introduction
@@ -13,21 +13,21 @@ Throughout this tutorial you will see a links to our <a>engine reference</a>, an
 
 If you haven't done it yet, download the engine source code with examples from ....
 
-Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (castle_base.lpk, castle_components.lpk, castle_glwindow.lpk), to test that things compile OK. Then install the package <i>castle_components</i>. (Do not install castle_glwindow --- you don't want to have this installed in Lazarus. You can install castle_base explicitly, but there's no need to: installing castle_components will also install castle_base automatically.)
+Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (castle_base.lpk, castle_components.lpk, castle_window.lpk), to test that things compile OK. Then install the package <i>castle_components</i>. (Do not install castle_window --- you don't want to have this installed in Lazarus. You can install castle_base explicitly, but there's no need to: installing castle_components will also install castle_base automatically.)
 
 Once packages are successfully installed, Lazarus restarts, and you should see "Kambi" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
 
-Let's quickly open and run some demos, to make sure that everything works. I suggest running ... (some LCL demo) and ... (some glwindow demo).
+Let's quickly open and run some demos, to make sure that everything works. I suggest running ... (some LCL demo) and ... (some CastleWindow demo).
 
 Make sure you have installed the necessary libraries first, or some of the demos will not work. The required libraries (.so under Unix, .dll under Windows) are mentioned in the <a href="http://castle-engine.sourceforge.net/apidoc/html/introduction.html#SectionLibraries">Requirements -&gt; Libraries</a> section of our reference introduction. Under Windows, you will usually want to grab http://castle-engine.sourceforge.net/miscella/win32_dlls.zip and place them somewhere on your $PATH, or just place them in every directory with .exe files that you compile with our engine.
 
 Now we'll start creating our own game from scratch.
 
-2. Creating OpenGL context --- a window (TGLUIWindow) or a Lazarus component (TKamOpenGLControl)
+2. Creating OpenGL context --- a window (TCastleWindowCustom) or a Lazarus component (TCastleControlCustom)
 
 First of all, you need to initialize a rectangular area on the screen that will be able to display 3D content. This is called OpenGL context. There are two ways of doing this:
 
-- You can use our own GLWindow unit, that defines window class TGLUIWindow. This gives you the most OpenGL capabilities (our TGLUIWindow allows to request some funny stuff from OpenGL, not possible otherwise) and is usually best for 3D games.
+- You can use our own CastleWindow unit, that defines window class TCastleWindowCustom. This gives you the most OpenGL capabilities (our TCastleWindowCustom allows to request some funny stuff from OpenGL, not possible otherwise) and is usually best for 3D games.
 
 You can develop such programs using Lazarus, or any other text editor. The only real requirement is having a FreePascal installed.
 
@@ -39,47 +39,47 @@ Place this source code in your program file (lpr).
 
 [[
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Window.OpenAndRun;
 end.
 ]]
 
 Press "Run" and behold, a window! (without any contents drawn, so you will probably see the underlying screen contents underneath).
 
-- An alternative is to use our TKamOpenGLControl inside normal Lazarus form. Just pick TKamOpenGLControl from the component palette (tab "Kambi") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TKamOpenGLControl inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
+- An alternative is to use our TCastleControlCustom inside normal Lazarus form. Just pick TCastleControlCustom from the component palette (tab "Kambi") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TCastleControlCustom inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
 
 To develop such programs you use Lazarus, period.
 
-This tutorial suggests using the 1st method, GLWindow, not TKamOpenGLControl. But it's really your choice, for TKamOpenGLControl you only start differently: instead of creating a TGLUIWindow instance, you add TKamOpenGLControl to a form. Everything else goes *almost* the same, as TKamOpenGLControl is designed specifically to resemble TGLUIWindow, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
+This tutorial suggests using the 1st method, CastleWindow, not TCastleControlCustom. But it's really your choice, for TCastleControlCustom you only start differently: instead of creating a TCastleWindowCustom instance, you add TCastleControlCustom to a form. Everything else goes *almost* the same, as TCastleControlCustom is designed specifically to resemble TCastleWindowCustom, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
 
 In case of using Lazarus forms, you will usually want to place the initialization code inside your form's methods. In the simplest case, just place it inside the form's OnCreate event.
 
--> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TKamOpenGLControl on your form and resize it to fit the window. Press "Run" and behold :) Then follow the rest of the tutorial, with minimal adjustments.
+-> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TCastleControlCustom on your form and resize it to fit the window. Press "Run" and behold :) Then follow the rest of the tutorial, with minimal adjustments.
 
 3. Creating 3D world --- scene manager
 
-Scene manager is a single TKamSceneManager class instance that knows literally everything about your 3D world. It is essential to create it, and add all your 3D stuff to it.
+Scene manager is a single TCastleSceneManager class instance that knows literally everything about your 3D world. It is essential to create it, and add all your 3D stuff to it.
 
-In the simple scenario, by default TKamSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window, but we'll not dive there in this tutorial (see <a href="http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">Custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources, if you're interested in this).
+In the simple scenario, by default TCastleSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window, but we'll not dive there in this tutorial (see <a href="http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">Custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources, if you're interested in this).
 
 Change your code to initialize scene manager:
 
 [[
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
 begin
-  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager := TCastleSceneManager.Create(Application);
 
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Window.Controls.Add(SceneManager);
   Window.InitAndRun;
 end.
 ]]
 
-As you see, we give Application (this is defined in our GLWindow unit) as the owner (first constructor parameter) of both SceneManager and Window. This way we don't have to care about freeing them later. When the Application is freed (which is done automatically by GLWindow finalization), the SceneManager and Window will be freed too. You can pass "nil" instead of "Application" if you really want to avoid this automatic memory management, and free things yourself. This whole "owner" mechanism is actually a normal behavior of ObjectPascal components.
+As you see, we give Application (this is defined in our CastleWindow unit) as the owner (first constructor parameter) of both SceneManager and Window. This way we don't have to care about freeing them later. When the Application is freed (which is done automatically by CastleWindow finalization), the SceneManager and Window will be freed too. You can pass "nil" instead of "Application" if you really want to avoid this automatic memory management, and free things yourself. This whole "owner" mechanism is actually a normal behavior of ObjectPascal components.
 
 The important new line is the Window.Controls.Add call. This way the scene manager (it's viewport) is visible on the window, which in turn means that all the 3D stuff we will add next is visible too.
 
@@ -97,32 +97,32 @@ To load a level, change your code to this:
 
 [[
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Scene: T3DScene;
 begin
-  Scene := TVRMLGLScene.Create(Application);
+  Scene := T3DScene.Create(Application);
   Scene.Load('my_scene.x3d');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager := TCastleSceneManager.Create(Application);
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
 
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Window.Controls.Add(SceneManager);
   Window.InitAndRun;
 end.
 ]]
 
-At the beginning we create a new instance of TVRMLGLScene, and load it's contents from a file. Scene.Spatial determines what spatial structures (octrees for now) are created, the value [ssRendering, ssDynamicCollisions] is the most flexible one (it allows to speed up the rendering by frustum culling, detect collisions between player and level, and it adapts to a dynamic level that may have some animated parts). Scene.ProcessEvents activates animating VRML/X3D models (you can remove it if you know your level is, and always will be, static).
+At the beginning we create a new instance of T3DScene, and load it's contents from a file. Scene.Spatial determines what spatial structures (octrees for now) are created, the value [ssRendering, ssDynamicCollisions] is the most flexible one (it allows to speed up the rendering by frustum culling, detect collisions between player and level, and it adapts to a dynamic level that may have some animated parts). Scene.ProcessEvents activates animating VRML/X3D models (you can remove it if you know your level is, and always will be, static).
 
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
 5. Adding some items
 
-For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TVRMLGLScene or TVRMLGLAnimation) to a scene manager, exactly like we added a level scene in previous section.
+For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like T3DScene or T3DPrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
 
 However, you usually have a lot of item instances showing the same item. For example, you may place hundreds of potions on a level, and you probably want to add/delete potions on your level quickly. At the same time, you want to load (read from disk, and optimize for OpenGL rendering) only a single potion item. Each potion visible on the level just renders the same 3D model, possibly moved/rotated in a different way.
 
@@ -130,15 +130,15 @@ This means that want to think about two concepts separately: a <b>type</b> of it
 
 Our engine allows you to do this in a flexible way. We have many 3D objects that keep only references to other 3D objects. In particular, T3DTranslated keeps a reference to other 3D object(s), and translates (moves) it.
 
-So you can create an instance of TVRMLGLScene where you load an item, like potion. Then you create as many as you like instances of T3DTranslated, where you add your potion as a children. Additionally, at T3DTranslated, you can setup the translation of your item.
+So you can create an instance of T3DScene where you load an item, like potion. Then you create as many as you like instances of T3DTranslated, where you add your potion as a children. Additionally, at T3DTranslated, you can setup the translation of your item.
 
 [[
 var
-  PotionType: TVRMLGLScene;
+  PotionType: T3DScene;
   PotionInstance1, PotionInstance2: T3DTranslated;
 
 { ... somewhere in begin...end block ... }
-  PotionType := TVRMLGLScene.Create(Application);
+  PotionType := T3DScene.Create(Application);
   PotionType.Load('my_scene.x3d');
   PotionType.ProcessEvents := true; // if the item model has interactive/animated parts by VRML/X3D events
 
@@ -153,14 +153,14 @@ var
   SceneManager.Items.Add(PotionInstance2);
 ]]
 
-For more advanced uses, you may want to create your own class for TPotionType (descending from TVRMLGLScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTranslated, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
+For more advanced uses, you may want to create your own class for TPotionType (descending from T3DScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTranslated, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
 
 [[
 type
   TPotionEffect = (peLife, peMana, peCurePoison);
 
   { A potion properties and 3D model. }
-  TPotionType = class(TVRMLGLScene)
+  TPotionType = class(T3DScene)
     Effect: TPotionEffect;
     CreaturesMayPickItUp: boolean;
     FlameResistant: boolean;
@@ -256,7 +256,7 @@ For more advanced uses, you can use the return value of PlaySound: it's either n
 
 10. Adding an on-screen menu
 
-For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TGLMenu class. For Lazarus: drop TGLMenu on the form. For TGLUIWindow: just create TGLMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TGLMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
+For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TCastleMenu class. For Lazarus: drop TCastleMenu on the form. For TCastleWindowCustom: just create TCastleMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TCastleMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
 
   Browser.Controls.Insert(0, GLMenu1);
 
@@ -276,4 +276,4 @@ In addition to previous point, you may want to change the menu FullSize to true.
 
 An alternative method to achieve (part) of 2nd choice is to set background level camera's IgnoreAllInputs to true. This also blocks user from moving in the scene (although it doesn't make input passed to menu regardless of mouse position).
 
-If you want to place a static 2D image under menu, you can use TKamGLImage underneath, instead of 3D scene.
+If you want to place a static 2D image under menu, you can use TCastleImage underneath, instead of 3D scene.

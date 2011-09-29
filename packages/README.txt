@@ -2,7 +2,7 @@ In this directory you can find Lazarus packages that allow you
 to easily use Castle Game Engine in Lazarus programs.
 
 Short instructions: just compile and install castle_base and castle_components.
-*Do not* install castle_glwindow in Lazarus (only compile it).
+*Do not* install castle_window in Lazarus (only compile it).
 castle_components depends on standard Lazarus package LazOpenGLContext.
 
 ----------------------------------------
@@ -38,14 +38,14 @@ Usage:
      You can then try examples/openglcontrol/openglcontrol_demo.lpk,
      also in Lazarus sources, to check that "LazOpenGLContext" works Ok.
 
-     For castle_glwindow: *do not* install this in Lazarus.
-     This package uses GLWindow unit, and merely using this unit
+     For castle_window: *do not* install this in Lazarus.
+     This package uses CastleWindow unit, and merely using this unit
      will cause the program to initialize TGLApplication instance,
      which in turn initiates some talk with WindowManager, GTK toolkit, etc.
      This would conflict with what Lazarus IDE (and LCL) does,
      causing unpredictable results.
 
-     So castle_glwindow package is supposed only to be "used" (by adding
+     So castle_window package is supposed only to be "used" (by adding
      it to "Required Packages" in project inspector),
      never installed in Lazarus IDE.
 
