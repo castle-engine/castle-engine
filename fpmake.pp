@@ -181,7 +181,6 @@ begin
     P.Targets.AddUnit('glwinmessages.pas');
     P.Targets.AddUnit('glwinmodes.pas');
     P.Targets.AddUnit('glprogress.pas');
-    P.Targets.AddUnit('glwindowvrmlbrowser.pas');
     if Defaults.OS in AllUnixOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'glwindow' + PathDelim + 'unix');
