@@ -163,8 +163,8 @@ clean: cleanexamples
 	                   -iname '*.dcu' -or -iname '*.dpu' ')' \
 	     -print \
 	     | xargs rm -f
-	rm -Rf packages/lib/ \
-	  packages/castle_base.pas \
+	find . -type d -name lib -exec rm -Rf '{}' ';' -prune
+	rm -Rf packages/castle_base.pas \
 	  packages/castle_glwindow.pas \
 	  packages/castle_components.pas \
 	  tests/test_kambi_units tests/test_kambi_units.exe
