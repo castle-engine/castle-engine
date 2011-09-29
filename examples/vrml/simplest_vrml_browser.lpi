@@ -38,7 +38,7 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="1">
       <Unit0>
         <Filename Value="simplest_vrml_browser.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -48,20 +48,6 @@
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../../glwindow/glwindow.pas"/>
-        <UnitName Value="GLWindow"/>
-        <CursorPos X="6" Y="204"/>
-        <TopLine Value="181"/>
-        <UsageCount Value="10"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../../vrml/vrmlnodes.pas"/>
-        <UnitName Value="VRMLNodes"/>
-        <CursorPos X="28" Y="4613"/>
-        <TopLine Value="4602"/>
-        <UsageCount Value="10"/>
-      </Unit2>
     </Units>
     <JumpHistory Count="2" HistoryIndex="1">
       <Position1>

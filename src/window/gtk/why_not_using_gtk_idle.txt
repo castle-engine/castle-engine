@@ -1,4 +1,4 @@
-This documents some history about GTK GLWindow backend.
+This documents some history about GTK CastleWindow backend.
 My initial approach was to use GTK/glib's mechanism for stuff like
 PostRedisplay and Idle, more precisely:
 
@@ -13,7 +13,7 @@ PostRedisplay and Idle, more precisely:
 - GtkIdle (now called Application.ProcessUpdates)
   was registered as GTK's idle function,
   by gtk_idle_add_priority. GtkIdle was responsible for doing our
-  idle / timer events (Application.OnIdle/Timer, TGLWindow.OnIdle/Timer).
+  idle / timer events (Application.OnIdle/Timer, TCastleWindow.OnIdle/Timer).
 
   At the beginning, it was registered with priority
   GTK_PRIORITY_REDRAW, then G_PRIORITY_HIGH_IDLE.
@@ -31,7 +31,7 @@ About idle priority:
     We would like to set it to GTK_PRIORITY_REDRAW (this is
     G_PRIORITY_HIGH_IDLE + 20, smaller than G_PRIORITY_DEFAULT_IDLE,
     which means it's more important). That's because our idle events
-    (Application.OnIdle, TGLWindow.OnIdle etc.)
+    (Application.OnIdle, TCastleWindow.OnIdle etc.)
     must be constantly called, even when AutoRedisplay = true
     (i.e. when we always have some redraw pending), and with
     ~approximately the same frequency as draw events.
@@ -48,14 +48,14 @@ About idle priority:
     mysterious problems.
 
     Simple test case with some comments is in
-    ../../../examples/glwindow/menu_test_alternative.lpr
+    ../../../examples/window/window_menu.lpr
     (and also gtk/tests/test_changing_menu/test_changing_menu.lpr
     on michalis.ii SVN, temporarily private (too obscure...)).
 
     G_PRIORITY_DEFAULT_IDLE doesn't have this problem, but it's leaving
     us with the first problem: Application.OnIdle will not be called
     continously if we redraw continously (like when AutoRedisplay = true).
-     - Old solution: call GlwindowsIdleAndTimer manually
+     - Old solution: call WindowsIdleAndTimer manually
        after calling DoDraw in signal_expose_event.
      - Later solution: we just do not depend on GTK's expose events
        and gtk_widget_queue_draw for the job. We track RedisplayPosted
@@ -72,7 +72,7 @@ Reasoning in TGLApplication.ProcessAllMessages:
     always returns true (because it thinks that it should call GtkIdle
     in a loop).
 
-Reasoning in TGLWindow.FileDialog when using GtkFileChooser:
+Reasoning in TCastleWindow.FileDialog when using GtkFileChooser:
 
     Temporarily set GtkIdleInstalled to false.
     Reason? Just like for ProcessAllMessages: when
@@ -166,7 +166,7 @@ idle event.
     This means that making MessageOk from OnDraw, or OnIdle, still doesn't
     work as expected...
 
-Bottom line: it's not reliable to call any TGLWindow events (that could
+Bottom line: it's not reliable to call any TCastleWindow events (that could
 always call MessageOk and enter loop that will require more expose events
 to run properly) from GTK's signal expose *or* GTK's registered idle.
 
@@ -187,7 +187,7 @@ AutoRedisplayAddToList hack. Reasoning and code below:
      else
        PostRedisplay;
 
-    So specific GLWindow implementations need not to worry about
+    So specific CastleWindow implementations need not to worry about
     AutoRedisplay. They only have to implement PostRedisplay.
 
     Also, some implementations (currently this concerns gtk
@@ -206,17 +206,17 @@ AutoRedisplayAddToList hack. Reasoning and code below:
       Dec(AutoRedisplayAddToList);
       if AutoRedisplayAddToList = 0 then AutoRedisplayList.PostRedisplay;
 
-    at the end, see glwindow_gtk.inc ProcessAllMessages implementation
+    at the end, see castlewindow_gtk.inc ProcessAllMessages implementation
     for example (with proper try...finally clause around).
     Also such backends should do
-      AutoRedisplayList := TGLWindowsList.Create;
+      AutoRedisplayList := TCastleWindowsList.Create;
     and
       FreeAndNil(AutoRedisplayList);
     at appropriate places (e.g. in
-    TGLWindowManager.Create/DestroyImplDependent)
+    TGLApplication.Create/DestroyImplDependent)
     and
       Application.AutoRedisplayList.Delete(Self);
-    in TGLWindow.CloseImplDepend (to make sure that destroyed windows
+    in TCastleWindow.CloseImplDepend (to make sure that destroyed windows
     are not a memebers of AutoRedisplayList).
 
     Note that AutoRedisplayAddToList is an integer (not a simple boolean)

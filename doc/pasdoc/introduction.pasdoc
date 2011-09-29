@@ -129,7 +129,7 @@ PNG images. Otherwise you will get ELibPngNotAvailable exception
 when trying to load/save files in PNG format.
 Note that libpng requires also zlib installed.
 
-KambiZlib unit (required by KambiZStream unit and used by
+CastleZLib unit (required by CastleZStream unit and used by
 VRMLNodes) requires zlib installed.
 
 Some additional libraries are required for sound playing: OggVorbis stuff
@@ -178,14 +178,14 @@ units are allowed to be used by units in specific group.
   @item(
     These units provide some basic functions and classes.
     Some units hide OS-specific issues.
-    Most important are KambiUtils, KambiClassUtils, KambiFilesUtils and
+    Most important are CastleUtils, CastleClassUtils, CastleFilesUtils and
     other Kambi*Utils units which contain many useful routines.
 
     There are also some templates
     (see dynarray.inc, dim2array.inc, dim3array.inc, objectslist.inc,
     and their automatically duplicated versions in templates/ subdirectory).
 
-    There's unit @link(KambiParameters)
+    There's unit @link(CastleParameters)
     for command-line parsing, VectorMath unit with a lot of primitive
     geometry types and functions. And some more.
 
@@ -199,7 +199,7 @@ units are allowed to be used by units in specific group.
     reads 3D sounds descriptions from special XML file (useful for games
     with fixed sound set).
 
-    Lower-level sound units include OpenAL header translation (KambiOpenAL) and
+    Lower-level sound units include OpenAL header translation (CastleOpenAL) and
     OpenAL helpers (@link(ALUtils)).
     Sound file formats (currently, WAV and OggVorbis) are handled by the
     @link(SoundFile) unit.
@@ -212,7 +212,7 @@ units are allowed to be used by units in specific group.
     Also an image cache (@link(ImagesCache)) unit, to help avoiding the same
     images more than once (which is important e.g. when loading game textures).
     Also some things to handle PasJPEG.
-    Also my binding to libpng library (KambiPng).
+    Also my binding to libpng library (CastlePng).
 
     @italic(Uses:) @code(base).)
 
@@ -226,9 +226,9 @@ units are allowed to be used by units in specific group.
 
     @italic(Uses:) @code(base).)
 
-  @itemLabel @code(@noAutoLink(kambiscript))
+  @itemLabel @code(@noAutoLink(castlescript))
   @item(
-    Parsing and executing expressions and programs in KambiScript language
+    Parsing and executing expressions and programs in CastleScript language
     [http://castle-engine.sourceforge.net/kambi_script.php].
 
     @italic(Uses:) @code(base), @code(images),
@@ -249,13 +249,13 @@ units are allowed to be used by units in specific group.
 
 	@orderedList(
 	  @itemSpacing Compact
-	  @item A window, by our TGLWindow class (see @code(glwindow) directory).
-	  @item A Lazarus component, by our TKamOpenGLControl class (see @code(components) directory).
+	  @item A window, by our TCastleWindow class (see @code(window) directory).
+	  @item A Lazarus component, by our TCastleControl class (see @code(components) directory).
 	)
 
 	The main task of a "container" is to handle a list of controls
 	(instances of TUIControl class). For our two current containers
-	this list is TGLWindow.Controls and TKamOpenGLControl.Controls.
+	this list is TCastleWindow.Controls and TCastleControl.Controls.
 	Container doesn't care about particular control types,
 	it just handles generic TUIControl classes, passing to them
 	key, mouse events and much more.)
@@ -265,14 +265,14 @@ units are allowed to be used by units in specific group.
 	(like a camera) or use OpenGL rendering.
 
         The controls are @italic(not tied to the windowing library),
-        for example you can use our TGLMenu both inside GLWindow,
+        for example you can use our TCastleMenu both inside CastleWindow,
         as well as inside Lazarus GL area component, etc.
         Everywhere is fine, as long as you have OpenGL rendering context.)
     )
 
     We have a camera control in @link(Cameras) unit,
-    and OpenGL controls (like TGLMenu) in @code(ui/opengl/) subdirectory.
-    Also our VRML scene (TVRMLGLScene) and animation (TVRMLGLAnimation),
+    and OpenGL controls (like TCastleMenu) in @code(ui/opengl/) subdirectory.
+    Also our VRML scene (T3DScene) and animation (T3DPrecalculatedAnimation),
     and our scene manager (TSceneManager, TODO),
     are controls.
 
@@ -299,31 +299,31 @@ units are allowed to be used by units in specific group.
   @itemLabel @code(opengl)
   @item(
     Basic OpenGL units. All the stuff here is usable in any OpenGL context,
-    e.g. both in Lazarus OpenGL control and in GLWindow.
+    e.g. both in Lazarus OpenGL control and in CastleWindow.
     OpenGL fonts --- bitmap (OpenGLBmpFonts) and outline (OpenGLTTFonts),
-    various OpenGL helpers (KambiGLUtils), handling OpenGL images and textures
+    various OpenGL helpers (CastleGLUtils), handling OpenGL images and textures
     (GLImages),
     helpers for shadows (ShadowVolumesHelper) and anti-aliasing (GLAntiAliasing).
 
     @italic(Uses:) @code(base), @code(images), @code(3d), @code(fonts).)
 
-  @itemLabel @code(@noAutoLink(glwindow))
+  @itemLabel @code(@noAutoLink(window))
   @item(
-    GLWindow unit, to easily create a window with OpenGL context.
-    For people who know the @code(glut) library: well, GLWindow is "my glut",
+    CastleWindow unit, to easily create a window with OpenGL context.
+    For people who know the @code(glut) library: well, CastleWindow is "my glut",
     with nice ObjectPascal interface and countless improvements over
     the simple glut.
 
     This directory also contais various user-interface stuff usable only
-    together with GLWindow, like progress bar display in OpenGL window
-    (GLProgress), messages (GLWinMessages, GLNotifications, GLWinInputs).
+    together with CastleWindow, like progress bar display in OpenGL window
+    (CastleProgress), messages (CastleMessages, CastleNotifications, CastleInputs).
 
     @italic(Uses:) These units can use almost any other units:
     @code(base), @code(images), @code(3d), @code(fonts),
     @code(opengl), @code(vrml).
 
     What is important is that no other engine units may depend on
-    GLWindow units. So every OpenGL code outside @code(glwindow)
+    CastleWindow units. So every OpenGL code outside @code(window)
     directory is usable with OpenGL context initialized in any way,
     like with Lazarus OpenGL control.)
 

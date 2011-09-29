@@ -28,6 +28,6 @@ More formally:
 
   For some programs value "25" may be changed to something other
   (if it will produce more readable output). However, 25 is my standard
-  (e.g. TGLWindow.ParseParsHelp uses this value "25" so any program that
-  wants to use TGLWindow.ParseParsHelp should also use this "25" value
+  (e.g. TCastleWindow.ParseParsHelp uses this value "25" so any program that
+  wants to use TCastleWindow.ParseParsHelp should also use this "25" value
   to provide nice readable output).

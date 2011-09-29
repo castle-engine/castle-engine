@@ -124,9 +124,9 @@ PASDOC_INCLUDE_DIRS="\
   --include images/\
   --include opengl/\
   --include opengl/$TARGET_OS/\
-  --include glwindow/\
-  --include glwindow/$TARGET_OS/\
-  --include glwindow/gtk/\
+  --include window/\
+  --include window/$TARGET_OS/\
+  --include window/gtk/\
   --include kambiscript/\
 "
 

@@ -8,7 +8,7 @@ Make news item around ~end of July about next engine progress and plans.
 
 3.11.0:
 - Blender exporter fixes.
-- Make GLWinMessages buttons clickable, reported for castle many times.
+- Make CastleMessages buttons clickable, reported for castle many times.
   In fact, use there our buttons in GLControls, this would be best.
 
 engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
@@ -30,7 +30,7 @@ Details during 2.6.0 release:
   --- nothing broken, all lights look the same?
 
 - castle: use everything as T3D inside scene manager,
-  do not call special TVRMLGLScene.Render methods.
+  do not call special T3DScene.Render methods.
 - Test on castle using OcclusionQuery.
 - optimize fields send() with direct value, no need for temp field usually?
 
@@ -54,7 +54,7 @@ Details during 2.6.0 release:
   ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
 
 - Make lifetime of lights renderer longer. At least, for whole rendering
-  from a scene manager (so 1 lights renderer for 1 TKamSceneManager.Draw call).
+  from a scene manager (so 1 lights renderer for 1 TCastleSceneManager.Draw call).
 
   Then: maybe even make it global,
   and just track all light for the GL context lifetime? But this is more difficult,
@@ -67,15 +67,15 @@ Details during 2.6.0 release:
 
 - Maybe rename various units and classes to X3D, not VRML.
   Generally, focus docs on VRML/X3D or X3D, never just VRML.
-  Maybe also T3DGLScene instead of TVRMLGLScene?
-  Maybe also TX3DSceneManager instead of TKamSceneManager --- I don't use prefix Kam consistently.
+  Maybe also T3DGLScene instead of T3DScene?
+  Maybe also TX3DSceneManager instead of TCastleSceneManager --- I don't use prefix Kam consistently.
 
 - Move castle creature animations outside of XML, to separate kanim files.
 - Merge VRMLGLAnimationInfo functionality into VRMLGLAnimation class?
 - T3DTransformed, with fields like VRML/X3D Transform.
   Transform frustum (with far plane possibly in infinity) by arbitrary matrix?
 
-- Should we disallow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
+- Should we disallow placing TCamera directly on TCastleWindowCustom / TCastleControlCustom?
   See todo below. Maybe do it for 2.6.0.
 ------------------------------------------------------------------------------
 WWW:
@@ -183,7 +183,7 @@ VSM:
 ------------------------------------------------------------------------------
 Scene manager / controls / better Lazarus integration:
 
-- right after running vrml_with_2d_controls, it seems TGLMenu is focused,
+- right after running vrml_with_2d_controls, it seems TCastleMenu is focused,
   but should not. Hm, what should be focus by default?
   calculated based on initial mouse pos? But switching FullSize
   and such must also change it?
@@ -211,7 +211,7 @@ Scene manager / controls / better Lazarus integration:
   Make Load3D, loading this.
   Rename Object3dAsVRML to load3d unit.
   Hmm, not really --- Load3D will be only for OpenGL, as it will create
-    already TVRMLGLScene / TVRMLGLAnimation etc.
+    already T3DScene / T3DPrecalculatedAnimation etc.
 
 - some more free notifications could be useful:
   - FreeAndNil(FMouseRayHit) when it's triangle is destroyed (e.g. octree rebuild)
@@ -220,7 +220,7 @@ Scene manager / controls / better Lazarus integration:
 
     For now, this isn't a problem, because
     1. nothing uses FMouseRayHit.Triangle afterwards
-       (only TVRMLScene.MouseMove uses it, but this is immediately after
+       (only T3DSceneCore.MouseMove uses it, but this is immediately after
        RayCollision was done).
     2. Some stuff 3D objects are removed from the scene manager at the end
        (try e.g. mouse over touch sensor in touch_sensor_test in view3dscene,
@@ -230,14 +230,14 @@ Scene manager / controls / better Lazarus integration:
 
   - TWalkCamera.AboveGround should be freed when triangle is destroyed.
 
-- Should we disallow placing TCamera directly on TGLUIWindow / TKamOpenGLControls?
+- Should we disallow placing TCamera directly on TCastleWindowCustom / TCastleControlCustoms?
   IOW, should TCamera be changed to not descend from TUIControl?
 
-  Yes: because in 99% you want to use TKamSceneManager.Camera.
+  Yes: because in 99% you want to use TCastleSceneManager.Camera.
   - The scene manager offers instant integration of view with camera
     (with viewpoints, proximity sensors, glLoadMatrix(Camera.Matrix)
     is automatically done for you, and RenderingCamera is updated correctly).
-  - You should not place camera on both TKamSceneManager.Camera and
+  - You should not place camera on both TCastleSceneManager.Camera and
     some Glw.Controls (Idle and some other events would get twice, making
     weird things --- at least 2x faster rotations for Examine).
     Being able to do it currently may be confusing.
@@ -260,9 +260,9 @@ Scene manager / controls / better Lazarus integration:
   grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
 
   pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
-    ../examples/vrml/terrain/terrain.lpr:200:  glLoadMatrix(Camera.Matrix);
-    ../examples/glwindow/bezier_surfaces/animate_surface.lpr:95:  glLoadMatrix(Camera.Matrix);
-    ../examples/glwindow/bezier_surfaces/design_surface.lpr:202:  glLoadMatrix(Camera.Matrix);
+    ../examples/terrain/terrain.lpr:200:  glLoadMatrix(Camera.Matrix);
+    ../examples/curves_surfaces/bezier_surfaces/animate_surface.lpr:95:  glLoadMatrix(Camera.Matrix);
+    ../examples/curves_surfaces/bezier_surfaces/design_surface.lpr:202:  glLoadMatrix(Camera.Matrix);
 
   If TCamera removed from TUIControl, maybe make some common class,
   like TInputListener, for TUIControl, TCamera, TBase3D.
@@ -279,7 +279,7 @@ Scene manager / controls / better Lazarus integration:
 
   - Yes-> Can be moved to 3d/ or ui/.
 
-    Advantage: TGLUIWindow/TKamOpenGLControl could then create
+    Advantage: TCastleWindowCustom/TCastleControlCustom could then create
     and automatically add SceneManager to Controls.
     This would simplify some stuff, since in new engine (almost)
     everything will use SceneManager.
@@ -288,27 +288,27 @@ Scene manager / controls / better Lazarus integration:
 
   - Counterargument for auto-initialization of SceneManager:
 
-    - Some programs want their own TKamSceneManager descendant.
+    - Some programs want their own TCastleSceneManager descendant.
     - Some programs may have > 1 SceneManager, if they will have
       non-default viewports, and both 3d worlds will be separate.
 
-    So it's not true that there's always 1 instance of TKamSceneManager.
+    So it's not true that there's always 1 instance of TCastleSceneManager.
 
     Although this doesn't rule out the possibility to create SceneManager
     by default? We could always create default scenemanager on demand
     (when first calling SceneManager?), and allow to change it anyway
-    by assigning to TGLUIWindow.SceneManager property.
+    by assigning to TCastleWindowCustom.SceneManager property.
 
     But this is unclean, making unclear what happens with Controls?
-    This has the same conceptual problem as with TGLUIWindow.Camera?
+    This has the same conceptual problem as with TCastleWindowCustom.Camera?
 
   - Counterargument: TSceneManager.MainScene must point to
-    VRML-enabled:TVRMLScene.
+    VRML-enabled:T3DSceneCore.
 
-    Unless we make TVRMLSceneManager? Then general TSceneManager
+    Unless we make T3DSceneCoreManager? Then general TSceneManager
     will not be dependent on VRML.
     Or design TBase3D intelligently, maybe there
-    will not be need for any TVRMLGLSCene-specific stuff in current
+    will not be need for any T3DScene-specific stuff in current
     TSceneManager.
 
   Overall, this is quite a large rearrangement for TSceneManager,
@@ -328,7 +328,7 @@ Scene manager / controls / better Lazarus integration:
 
 * Maybe make a news item and a few screenshots how to easily use it from Lazarus?
 
-- Make TKamOpenGLControl.Controls list settable from the IDE,
+- Make TCastleControlCustom.Controls list settable from the IDE,
   to allow visually adding new TUIControls there.
 
   At designtime, warn on error: do not put > 1 camera in Controls list,
@@ -342,10 +342,10 @@ Scene manager / controls / better Lazarus integration:
 
 - Make sure most useful props of our controls are settable:
 
-  For TGLMenu, browse and decide which ones (Items?).
+  For TCastleMenu, browse and decide which ones (Items?).
 
-  TVRMLScene.CompiledScriptHandlers (will require some designer to settable from IDE)
-  TVRMLGLAnimation.FileName, implement similar to TVRMLScene.FileName.
+  T3DSceneCore.CompiledScriptHandlers (will require some designer to settable from IDE)
+  T3DPrecalculatedAnimation.FileName, implement similar to T3DSceneCore.FileName.
 
   For cameras generally, what Init method takes should be settable.
   For cameras generally, Input_Xxx properties.
@@ -358,14 +358,14 @@ Scene manager / controls / better Lazarus integration:
     Walking man icon for TWalkCamera,
     Rotated box for TExamineCamera.
   Same style areas:
-    TKamOpenGLControl
-    TKamVRMLBrowser (maybe use the same image, with just a text "OpenGL" or "GL"
+    TCastleControlCustom
+    TCastleControl (maybe use the same image, with just a text "OpenGL" or "GL"
       on one, "VRML" on other)
-  Needed ideas for TGLMenu.
-  For TKamXMLConfig use some slightly modified icon of TXMLConfig, since this is almost the same?
-  For TKamRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
+  Needed ideas for TCastleMenu.
+  For TCastleConfig use some slightly modified icon of TXMLConfig, since this is almost the same?
+  For TLazRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
 
-* TVRMLScene (no GL) on a Lazarus palette? Confusing with TVRMLGLScene, but is also useful.
+* T3DSceneCore (no GL) on a Lazarus palette? Confusing with T3DScene, but is also useful.
 ------------------------------------------------------------------------------
 - basic networking support
 (I want to have full coverage of X3D "Interactive" with some release).
@@ -456,7 +456,7 @@ Various ideas:
 - display column / line numbers in vrml lexer errors.
   (Not so difficult if we assume it works only for Windows/Unix, because scans only for #10. Make it as an optional (boolean property) for reader. Measure downtime, maybe enable by default for vrml lexer?)
 
-* glwinmessages scrollbars:
+* CastleMessages scrollbars:
   http://www.useit.com/alertbox/20050711.html
 
 - Joerg pointed out possible problem with quads for NurbsSurface*:
@@ -539,8 +539,8 @@ Victor Amat list (overlapping with mine, so let's go with it):
     http://www.bitmanagement.com/documents/BS_Contact_VRML_june2006.pdf
 
 - Instead of ViewerChanged and IsLast..., it would be more natural and easier
-  to keep Camera reference in TVRMLScene.
-  This could ease some integration between TVRMLScene, TVRMLGLScene and viewer.
+  to keep Camera reference in T3DSceneCore.
+  This could ease some integration between T3DSceneCore, T3DScene and viewer.
 
 TGLTextureStorage
     (2D - just a single GLuint for GL_TEXTURE_2D,
@@ -611,7 +611,7 @@ octree todos moved for after view3dscene 3.2:
   (Right now, only avatar->object collisions are done.)
 
 ------------------------------------------------------------------------------
-- TVRMLScene.Shapes tree, with switches/lods approach,
+- T3DSceneCore.Shapes tree, with switches/lods approach,
   may be also used to efficiently implement layers now.
 
 - http://www.libpng.org/pub/png/pngvrml.html finish:
@@ -680,7 +680,7 @@ Shadow volumes finish:
 - remake quat unit on Matrix vectors (with overloaded operators would be fun)
 
 ------------------------------------------------------------------------------
-Ah yes. So the CPU is used (it's not that mem is leaking). I looked at view3dscene, and yes it will constantly use CPU since it continously increases the time (for animations). The same happens with VRML browser components (based on LCL or TGLWindow, doesn't matter). Even if there's no time-dependent sensor active.
+Ah yes. So the CPU is used (it's not that mem is leaking). I looked at view3dscene, and yes it will constantly use CPU since it continously increases the time (for animations). The same happens with VRML browser components (based on LCL or TCastleWindow, doesn't matter). Even if there's no time-dependent sensor active.
 
 I'll think about fixing this. It's not so easy --- without constantly working OnIdle, I'll have to update time in many places. Most importantly for scenes with existing but inactive time-dependent nodes (and this is the most common case for practical scenes), I'll have to predict when they can become active and set timer to then.
 
@@ -774,7 +774,7 @@ in a way that is fast AND preserves current VRML graph:
      The only way to make it work would be to make fields not attached
      to one node, so that they can be shared. But this is going to complicate
      the implementation a lot... (look at how current assumption that
-     TVRMLNode may be inside many TVRMLScene causes a lot of problems).
+     TVRMLNode may be inside many T3DSceneCore causes a lot of problems).
 
   2. Or we have to decide at which point "anchor" these parents,
      for example: anchor at the "geometry". This works for current "Proxy"
@@ -791,7 +791,7 @@ in a way that is fast AND preserves current VRML graph:
      when Transformed=true...
 
   Given this, maybe it's better to just stick with current approach?
-  "Proxy" field is managed through TVRMLShape.Geometry.
+  "Proxy" field is managed through TShape.Geometry.
   bump mapping is managed inside vrml renderer, not as vrml transformation.
   and shadow maps for now just change the graph?
 
@@ -899,7 +899,7 @@ Renderer:
 - Completely remove the need for TVRMLGLRenderer.Prepare.
   We don't use display lists anymore, we can just prepare everything
   inside TVRMLGLRenderer.RenderBegin.
-  In fact, TVRMLGLScene already calls Render to prepare arrays/VBOs.
+  In fact, T3DScene already calls Render to prepare arrays/VBOs.
   We should let and prepare everything else this way, along the rendering.
 
 - Shadow volumes: Make non-manifold shadow casters automatically ignored.
@@ -924,7 +924,7 @@ Renderer:
 
   This is currently harmless and is silently
   ignored, because CopyCount may be smaller than Count.
-  It can be observed by changing kambiutils_dyn_arrays.inc
+  It can be observed by changing
   to make EAssignInterleavedRangeError when Count <> CopyCount
   (not only when it's > CopyCount).
 
@@ -1084,7 +1084,7 @@ Various:
     So maybe this is the *real* problem, and segfault was just some after-effect?
     GDB will not tell me much where this occurs...
     inserting writelns, this happens after everything in castle (main program, all units)
-    and after GLWindow finalization.
+    and after CastleWindow finalization.
   - So it seems it's something external?
     Some messages:
     https://bugs.archlinux.org/task/23879?getfile=6862

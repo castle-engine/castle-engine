@@ -1,10 +1,10 @@
-This is a simple VRML browser in Lazarus, based on TKamVRMLBrowser component
+This is a simple VRML browser in Lazarus, based on TCastleControl component
 of our engine. Something like "mini-view3dscene" using Lazarus.
 
 Possibly real view3dscene in the future will be based on Lazarus.
 This will not happen soon (TOpenGLControl lacks stable GTK 2 support,
 anti-aliasing, and see various quirks in "TODO" section below ---
-this is all much better/stable with our TGLWindow).
+this is all much better/stable with our TCastleWindow).
 But it's possible in the future.
 
 Compiling:
@@ -52,7 +52,7 @@ TODO:
 Old notes:
 
 - At some point, I had a FocusableControl hack implemented in
-  TKamOpenGLControl to allow VRML browser control to receive key events.
+  TCastleControlCustom to allow VRML browser control to receive key events.
   Reason: TOpenGLControl couldn't catch focus, so when I placed some
   focusable controls (edit boxes, buttons)
   on the form, it was not possible to pass key presses to GLControl.
