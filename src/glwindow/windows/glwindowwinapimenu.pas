@@ -89,7 +89,7 @@ uses GLWindow, Windows;
   If MenuBar then TMenuSeparator entries in Menu.Entries[] are ignored
   (WinAPI toplevel menu bar cannot have a separator, that's quite sensible
   actually). Of course separators at lower depths are not ignored. }
-function WindowsMenuFromCastlewindowmenu(Menu: TMenu; MenuBar: boolean): HMenu;
+function MakeWinapiMenu(Menu: TMenu; MenuBar: boolean): HMenu;
 
 implementation
 
@@ -104,7 +104,7 @@ uses KambiUtils;
   ParentAllowsEnabled = main Menu.Enabled.
   When other menu creates it's children, it passes
   ParentAllowsEnabled = @true. }
-function WindowsMenuFromCastlewindowmenuCore(Menu: TMenu;
+function MakeWinapiMenuCore(Menu: TMenu;
   MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
 
   function SMnemonicsToWin(const S: string): string;
@@ -154,11 +154,11 @@ function WindowsMenuFromCastlewindowmenuCore(Menu: TMenu;
 
   procedure AppendGLMenu(Menu: TMenu; ParentAllowsEnabled: boolean);
   begin
-    { I'm casting WindowsMenuFromCastlewindowmenu result (:HMenu)
+    { I'm casting MakeWinapiMenu result (:HMenu)
       to UINT to avoid range check errors }
     KambiOSCheck( AppendMenu(Result,
       MF_STRING or MF_POPUP or EnabledFlag(Menu.Enabled and ParentAllowsEnabled),
-      UINT(WindowsMenuFromCastlewindowmenuCore(Menu, false, true)),
+      UINT(MakeWinapiMenuCore(Menu, false, true)),
       PChar(SMnemonicsToWin(Menu.Caption))) );
   end;
 
@@ -227,9 +227,9 @@ begin
   end;
 end;
 
-function WindowsMenuFromCastlewindowmenu(Menu: TMenu; MenuBar: boolean): HMenu;
+function MakeWinapiMenu(Menu: TMenu; MenuBar: boolean): HMenu;
 begin
-  Result := WindowsMenuFromCastlewindowmenuCore(Menu, MenuBar, Menu.Enabled);
+  Result := MakeWinapiMenuCore(Menu, MenuBar, Menu.Enabled);
 end;
 
 end.

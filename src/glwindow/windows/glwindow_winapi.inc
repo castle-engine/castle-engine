@@ -603,7 +603,7 @@ end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
 begin
-  KambiOSCheck( SetMenu(H_Wnd, WindowsMenuFromCastlewindowmenu(MainMenu, true)),
+  KambiOSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)),
     'SetMenu');
 end;
 
@@ -978,7 +978,7 @@ begin
 
   { calculate H_Menu }
   if MainMenu <> nil then
-    H_Menu := WindowsMenuFromCastlewindowmenu(MainMenu, true) else
+    H_Menu := MakeWinapiMenu(MainMenu, true) else
     H_Menu := 0;
 
   { main point : create the window }
