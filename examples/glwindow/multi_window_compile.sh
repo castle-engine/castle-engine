@@ -3,4 +3,4 @@ set -eu
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/glwindow/multi_glwindow.lpr
+fpc -dRELEASE @kambi.cfg examples/glwindow/multi_window.lpr
