@@ -14,7 +14,9 @@ summarizes renames done, and some reasoning.
 
   Components should all have TCastleXxx prefix (to not clash with
   other components, this would make our engine conflict with other
-  packages you have installed in Lazarus), eventually some have T3DXxx prefix.
+  packages you have installed in Lazarus).
+  Exceptions: T3DXxx prefix for T3D descendants,
+  TXxxCamera for TCamera descendants.
 
   Units with common names (XxxUtils, XxxWarnings) make have Castle prefix,
   to avoid clashes with common units.
