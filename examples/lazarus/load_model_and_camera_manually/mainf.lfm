@@ -8,7 +8,7 @@ object Form1: TForm1
   ClientWidth = 505
   OnCreate = FormCreate
   LCLVersion = '0.9.30'
-  object KamVRMLBrowser1: TKamVRMLBrowser
+  object KamVRMLBrowser1: TCastleControl
     Left = 0
     Height = 428
     Top = 0
@@ -19,7 +19,7 @@ object Form1: TForm1
     left = 235
     top = 143
   end
-  object VRMLGLScene1: TVRMLGLScene
+  object VRMLGLScene1: T3DScene
     Spatial = []
     left = 235
     top = 72

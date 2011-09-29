@@ -47,7 +47,7 @@ type
   public
     { Scene to render.
       Must be set before calling @link(Execute). }
-    Octree: TVRMLBaseTrianglesOctree;
+    Octree: TBaseTrianglesOctree;
 
     { Image where the ray-tracer result will be stored.
       Must be set before calling @link(Execute).
@@ -72,7 +72,7 @@ type
     CamPosition, CamDirection, CamUp: TVector3Single;
 
     { Camera projection properties.
-      See TKamSceneManager.PerspectiveView for specification.
+      See TCastleSceneManager.PerspectiveView for specification.
       @groupBegin }
     PerspectiveView: boolean;
     PerspectiveViewAngles: TVector2Single;
@@ -119,7 +119,7 @@ type
     for documentation.
 
     Make sure that VRML2Lights in states are properly initialized if you
-    plan to render VRML 2.0 nodes. TVRMLScene and descendants do
+    plan to render VRML 2.0 nodes. T3DSceneCore and descendants do
     this for you automatically. }
   TClassicRayTracer = class(TRayTracer)
   public
@@ -145,7 +145,7 @@ type
   TPathTracer = class(TRayTracer)
   private
     CollectedLightItems: TFPList;
-    procedure CollectLightItems(const Triangle: PVRMLTriangle);
+    procedure CollectLightItems(const Triangle: PTriangle);
   public
     constructor Create;
     procedure Execute; override;
@@ -289,11 +289,11 @@ var
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
   function Trace(const Ray0, RayVector: TVector3Single; const Depth: Cardinal;
-    const TriangleToIgnore: PVRMLTriangle; IgnoreMarginAtStart: boolean):
+    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean):
     TVector3Single;
   var
     Intersection: TVector3Single;
-    IntersectNode: PVRMLTriangle;
+    IntersectNode: PTriangle;
     MaterialMirror, MaterialTransparency: Single;
 
     procedure ModifyColorByTransmittedRay;
@@ -538,7 +538,7 @@ begin
   SFCurveClass := TSwapScanCurve;
 end;
 
-  function EmissiveColor(const Item: TVRMLTriangle): TVector3Single;
+  function EmissiveColor(const Item: TTriangle): TVector3Single;
   var
     M: TMaterialNode;
   begin
@@ -556,12 +556,12 @@ end;
     end;
   end;
 
-  function IsLightSource(const Item: TVRMLTriangle): boolean;
+  function IsLightSource(const Item: TTriangle): boolean;
   begin
     Result := VectorLenSqr(EmissiveColor(Item)) > Sqr(SingleEqualityEpsilon);
   end;
 
-procedure TPathTracer.CollectLightItems(const Triangle: PVRMLTriangle);
+procedure TPathTracer.CollectLightItems(const Triangle: PTriangle);
 begin
   if IsLightSource(Triangle^) then
     CollectedLightItems.Add(Triangle);
@@ -653,7 +653,7 @@ const
     box.jpg. }
   LightEmissionArea = 1/30;
 
-  function IsLightShadowed(const Item: PVRMLTriangle;
+  function IsLightShadowed(const Item: PTriangle;
     const ItemPoint: TVector3Single;
     const LightSourceIndiceIndex: Integer;
     LightSourcePoint: TVector3Single): boolean;
@@ -666,9 +666,9 @@ const
     letting it pass }
   var
     OctreeIgnorer: TVRMLOctreeIgnoreForShadowRaysAndOneItem;
-    Shadower: PVRMLTriangle;
+    Shadower: PTriangle;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
-    CachedShadower: PVRMLTriangle;
+    CachedShadower: PTriangle;
   {$endif}
   begin
     {$ifdef PATHTR_USES_SHADOW_CACHE}
@@ -677,8 +677,8 @@ const
     if (CachedShadower <> nil) and
        (CachedShadower <> Item) then
     begin
-      if Octree is TVRMLTriangleOctree then
-        Inc(TVRMLTriangleOctree(Octree).DirectCollisionTestsCounter);
+      if Octree is TTriangleOctree then
+        Inc(TTriangleOctree(Octree).DirectCollisionTestsCounter);
       if IsTriangleSegmentCollision(CachedShadower^.World.Triangle,
         CachedShadower^.World.Plane, ItemPoint, LightSourcePoint) then
         Exit(true);
@@ -707,14 +707,14 @@ const
   end;
 
   function Trace(const Ray0, RayVector: TVector3Single;
-    const Depth: Integer; const TriangleToIgnore: PVRMLTriangle;
+    const Depth: Integer; const TriangleToIgnore: PTriangle;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
     : TVector3Single;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
   var
     Intersection: TVector3Single;
-    IntersectNode: PVRMLTriangle;
+    IntersectNode: PTriangle;
     MaterialInfo: TVRMLMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
     IntersectNormalInRay0Dir: TVector3Single;
 
@@ -777,7 +777,7 @@ const
               swiatla o wiekszej powierzchni (a wlasciwie, o wiekszym kacie
               brylowym) i/lub o wiekszej intensywnosci beda wybierane czesciej. }
       var
-        LightSource: PVRMLTriangle;
+        LightSource: PTriangle;
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
         SampleLightPoint: TVector3Single;
         DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3Single;

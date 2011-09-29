@@ -20,15 +20,15 @@ begin
 end;
 
 var
-  Scene: TVRMLScene;
-  SI: TVRMLShapeTreeIterator;
+  Scene: T3DSceneCore;
+  SI: TShapeTreeIterator;
   Handler: TTriangleHandler;
 begin
-  Scene := TVRMLScene.Create(nil);
+  Scene := T3DSceneCore.Create(nil);
   try
     Scene.Load('models/bridge_final.x3dv');
 
-    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, true);
+    SI := TShapeTreeIterator.Create(Scene.Shapes, true);
     try
       Handler := TTriangleHandler.Create;
       try
@@ -47,7 +47,7 @@ begin
       created anyway. So you can use it also to get triangles list.
 
     var
-      TriangleInfo: PVRMLTriangle;
+      TriangleInfo: PTriangle;
 
       ...
 

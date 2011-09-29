@@ -198,7 +198,7 @@ var
            NO means not OverTriangulate }
   NastyGeometry, GoodGeometry, ProxyGeometryO, ProxyGeometryNO: TAbstractGeometryNode;
   State, ProxyStateO, ProxyStateNO: TVRMLGraphTraverseState;
-  NastyShape, ProxyShapeO, ProxyShapeNO: TVRMLShape;
+  NastyShape, ProxyShapeO, ProxyShapeNO: TShape;
 
   procedure FinalizeNode;
   begin
@@ -225,7 +225,7 @@ var
   begin
     FinalizeNode;
     NastyGeometry := (NodeClass.Create('', '')) as TAbstractGeometryNode;
-    NastyShape := TVRMLShape.Create(nil, NastyGeometry, TVRMLGraphTraverseState.CreateCopy(State), nil);
+    NastyShape := TShape.Create(nil, NastyGeometry, TVRMLGraphTraverseState.CreateCopy(State), nil);
 
     { create also proxy, inside it's own shape.
       This can be used to test that proxy results, *if* they would be used,
@@ -235,13 +235,13 @@ var
     ProxyStateO := State;
     ProxyGeometryO := GoodGeometry.Proxy(ProxyStateO, true);
     if ProxyGeometryO <> nil then
-      ProxyShapeO := TVRMLShape.Create(nil, ProxyGeometryO, TVRMLGraphTraverseState.CreateCopy(ProxyStateO), nil) else
+      ProxyShapeO := TShape.Create(nil, ProxyGeometryO, TVRMLGraphTraverseState.CreateCopy(ProxyStateO), nil) else
       ProxyShapeO := nil;
 
     ProxyStateNO := State;
     ProxyGeometryNO := GoodGeometry.Proxy(ProxyStateNO, false);
     if ProxyGeometryNO <> nil then
-      ProxyShapeNO := TVRMLShape.Create(nil, ProxyGeometryNO, TVRMLGraphTraverseState.CreateCopy(ProxyStateNO), nil) else
+      ProxyShapeNO := TShape.Create(nil, ProxyGeometryNO, TVRMLGraphTraverseState.CreateCopy(ProxyStateNO), nil) else
       ProxyShapeNO := nil;
   end;
 

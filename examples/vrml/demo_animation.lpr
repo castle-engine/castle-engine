@@ -1,4 +1,4 @@
-{ Demo of TVRMLGLAnimation class. In other words, this loads and displays
+{ Demo of T3DPrecalculatedAnimation class. In other words, this loads and displays
   animations of "Castle Game Engine".
 
   If you're looking for example animation models,
@@ -39,14 +39,14 @@
      --backwards
      --no-loop
      --no-backwards
-   For precise meaning, see TVRMLGLAnimation documentation.
+   For precise meaning, see T3DPrecalculatedAnimation documentation.
    In short, --loop causes animation to loop and --backwards causes
    animation to go backward after going forward.
    If you load from *.kanim file, then the default loop/backwards
    settings are loaded from this file. Otherwise, the default is
    --loop --no-backwards.
 
-  This is all implemented in TVRMLGLAnimation class, see docs of this class
+  This is all implemented in T3DPrecalculatedAnimation class, see docs of this class
   for precise description how things work.
 
   You can navigate in the scene using the standard arrow keys, escape exits.
@@ -59,7 +59,7 @@
   At the beginning there is some preprocessing time
   ("Preparing animation") when we create display lists,
   to make future animation run smoothly.
-  That's done by TVRMLGLAnimation.PrepareResources.
+  That's done by T3DPrecalculatedAnimation.PrepareResources.
 }
 
 program demo_animation;
@@ -71,17 +71,17 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiSceneManager, KambiStringUtils;
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Animation: TVRMLGLAnimation;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Animation: T3DPrecalculatedAnimation;
 
-procedure KeyDown(Window: TGLWindow; Key: TKey; C: char);
+procedure KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
 begin
   if C = ' ' then
     Animation.ResetTime(0.0);
 end;
 
-procedure LoadAnimationFromCommandLine(Animation: TVRMLGLAnimation);
+procedure LoadAnimationFromCommandLine(Animation: T3DPrecalculatedAnimation);
 const
   { These are constants used only with "manual" method
     (even number of command-line params),
@@ -155,7 +155,7 @@ const
   end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
@@ -163,7 +163,7 @@ begin
   try
     OnWarning := @OnWarningWrite;
 
-    Animation := TVRMLGLAnimation.Create(nil);
+    Animation := T3DPrecalculatedAnimation.Create(nil);
 
     if Parameters.High = 1 then
     begin
@@ -181,7 +181,7 @@ begin
       Animation.TimeBackwards := Param_AnimTimeBackwards;
 
     { init SceneManager, with the Animation }
-    SceneManager := TKamSceneManager.Create(Window);
+    SceneManager := TCastleSceneManager.Create(Window);
     Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Animation.FirstScene;
     SceneManager.Items.Add(Animation);

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_tglwindow_interface}
+{$ifdef read_window_interface}
 private
   keysTimeout: array [TKey] of byte;
   glutHwnd: integer;
@@ -26,13 +26,13 @@ private
   procedure UpdateGlutModifiers;
 
   procedure UpdateCursor;
-{$endif read_tglwindow_interface}
+{$endif read_window_interface}
 
-{$ifdef read_tglwindowmanager_interface}
+{$ifdef read_application_interface}
 private
   LastDoTimerTime: TMilisecTime;
-  function FindGlutWindow(seekGlutHwnd: integer): TGLWindow;
-{$endif read_tglwindowmanager_interface}
+  function FindGlutWindow(seekGlutHwnd: integer): TCastleWindowBase;
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 {$I glwindow_dialogs_by_glwinmessages.inc}
@@ -96,7 +96,7 @@ end;
 { glut callbacks ---------------------------------------------------------- }
 
 {$define GLUTBEGIN :=
- var GLUTBEGIN_glwin: TGLWindow;
+ var GLUTBEGIN_glwin: TCastleWindowBase;
      GLUTBEGIN_glutHwnd: longint;
  begin
   GLUTBEGIN_glutHwnd := glutGetWindow();
@@ -188,12 +188,12 @@ GLUTEND;
 
 { menu things ------------------------------------------------------------ }
 
-function TGLWindow.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
 begin
  Result := true;
 end;
 
-procedure TGLWindow.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 
   procedure AddToCurrentMenuAllEntries(Menu: TMenu); forward;
 
@@ -249,7 +249,7 @@ begin
  glutAttachMenu(GLUT_RIGHT_BUTTON);
 end;
 
-procedure TGLWindow.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 
   procedure DoDestroyMenu(MenuEntry: TMenuEntry);
   var
@@ -271,33 +271,33 @@ begin
   DoDestroyMenu(MainMenu);
 end;
 
-procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TGLWindow.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
 { ------------------------------------------------------------------------------
-  procedury obslugujace TGLWindow poprzez GLUTa }
+  procedury obslugujace TCastleWindowBase poprzez GLUTa }
 
-procedure TGLWindow.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -307,14 +307,14 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { CustomCursor cannot be handled in glut. So we save FCustomCursor property and...
     do nothing with it. }
   FCustomCursor := Value;
 end;
 
-procedure TGLWindow.UpdateCursor;
+procedure TCastleWindowBase.UpdateCursor;
 begin
   case Cursor of
     { CustomCursor cannot be handled in glut, so mcCustom is treated just like mcDefault }
@@ -323,22 +323,22 @@ begin
     mcStandard: glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
     mcWait: glutSetCursor(GLUT_CURSOR_WAIT);
     mcText: glutSetCursor(GLUT_CURSOR_TEXT);
-    else raise EInternalError.Create('glwindow_glut.inc TGLWindow.UpdateCursor: unknown Cursor');
+    else raise EInternalError.Create('glwindow_glut.inc TCastleWindowBase.UpdateCursor: unknown Cursor');
   end;
 end;
 
-procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     glutWarpPointer(NewMouseX, NewMouseY);
 end;
 
-procedure TGLWindow.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
  glutSwapBuffers;
 end;
 
-procedure TGLWindow.GlutDoKeyDown(Key: TKey; c: char);
+procedure TCastleWindowBase.GlutDoKeyDown(Key: TKey; c: char);
 const
   { tyle razy musi "tyknac" idleByGlut zebym uznal ze klawisz
     zostal zwolniony. }
@@ -348,7 +348,7 @@ begin
  if Key <> K_None then KeysTimeout[Key] := StartKeyTimeout
 end;
 
-procedure TGLWindow.UpdateGlutModifiers;
+procedure TCastleWindowBase.UpdateGlutModifiers;
 { uaktualnij stan K_Shift i Ctrl na podstawie glutGetModifiers().
   current window jest juz odpowiednio ustawione. }
 
@@ -371,7 +371,7 @@ begin
  UpdateModif(K_Alt, (m and GLUT_ACTIVE_ALT) <> 0);
 end;
 
-procedure TGLWindow.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 var GlutDispMode: LongWord;
 begin
  { calculate GlutDispMode, call glutInitDisplayMode(GlutDispMode) }
@@ -430,7 +430,7 @@ begin
  if MainMenu <> nil then MenuInitialize;
 end;
 
-procedure TGLWindow.PostRedisplay;
+procedure TCastleWindowBase.PostRedisplay;
 begin
  if glutHwnd <> 0 then
  begin
@@ -439,7 +439,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Value: string);
 begin
  FCaption := Value;
  if glutHwnd <> 0 then
@@ -449,37 +449,37 @@ begin
  end;
 end;
 
-function TGLWindow.GetLeft: integer;
+function TCastleWindowBase.GetLeft: integer;
 begin
  if glutHwnd <> 0 then
   result := glutGet(GLUT_WINDOW_X) else
   result := fLeft
 end;
 
-function TGLWindow.GetTop: integer;
+function TCastleWindowBase.GetTop: integer;
 begin
  if glutHwnd <> 0 then
   result := glutGet(GLUT_WINDOW_Y) else
   result := fTop
 end;
 
-procedure TGLWindow.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
  if MainMenu <> nil then MenuFinalize;
  glutDestroyWindow(glutHwnd);
  glutHwnd := 0;
 end;
 
-procedure TGLWindow.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   glutSetWindow(glutHwnd);
 end;
 
-procedure TGLWindow.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-procedure TGLWindow.FlushRedisplay;
+procedure TCastleWindowBase.FlushRedisplay;
 begin
  { pod glutem nie mamy jak sie dowiedziec "czy wyslano redisplay ?" }
  DoDraw;
@@ -541,7 +541,7 @@ begin
   Halt;
 end;
 
-function TGLApplication.FindGlutWindow(seekGlutHwnd: integer): TGLWindow;
+function TGLApplication.FindGlutWindow(seekGlutHwnd: integer): TCastleWindowBase;
 var
   i: integer;
 begin

@@ -14,7 +14,7 @@
 }
 
 { A simple program using GLWindow.
-  Demonstrates the use of MainMenu in TGLWindow.
+  Demonstrates the use of MainMenu in TCastleWindowBase.
 
   Shows
   - menu,
@@ -34,7 +34,7 @@ uses SysUtils, VectorMath, GL, GLU, GLExt,
   GLWindow, KambiGLUtils, GLWinMessages, KambiStringUtils;
 
 var
-  Window: TGLWindowDemo;
+  Window: TCastleWindowDemo;
   { Some state variables that determine what will be drawn.
     Just to show that menu commands actually work... }
   CurrentColor: Integer = 0;
@@ -57,7 +57,7 @@ const
     (0, 0, 0)
   );
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 begin
  glClear(GL_COLOR_BUFFER_BIT);
  glColorv(Colors[CurrentColor]);
@@ -80,7 +80,7 @@ begin
  end;
 end;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 begin
  glViewport(0, 0, Window.Width, Window.Height);
  ProjectionGLOrtho(-1, 1, -1, 1);
@@ -89,7 +89,7 @@ end;
 var
   ChangeableMenu: TMenu;
 
-procedure MenuCommand(Window: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; Item: TMenuItem);
 
   procedure ChangeChecked(Item: TMenuItemRadio);
   begin
@@ -143,7 +143,7 @@ var
   Radio: TMenuItemRadio;
   RadioGroup: TMenuItemRadioGroup;
 begin
- Window := TGLWindowDemo.Create(Application);
+ Window := TCastleWindowDemo.Create(Application);
 
  { create menu }
  MainMenu := TMenu.Create('Main menu');

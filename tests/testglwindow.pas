@@ -21,7 +21,7 @@ interface
 uses fpcunit, testutils, testregistry;
 
 type
-  TTestGLWindow = class(TTestCase)
+  TTestWindow = class(TTestCase)
   published
     procedure Test1;
   end;
@@ -30,11 +30,11 @@ implementation
 
 uses SysUtils, GLWindow;
 
-procedure TTestGLWindow.Test1;
+procedure TTestWindow.Test1;
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 begin
-  Window := TGLUIWindow.Create(nil);
+  Window := TCastleWindowCustom.Create(nil);
   try
     Window.Open;
     Window.Close;
@@ -42,5 +42,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestGLWindow);
+  RegisterTest(TTestWindow);
 end.

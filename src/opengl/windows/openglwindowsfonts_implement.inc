@@ -1,4 +1,4 @@
-constructor TGLWindowsOutlineFont.Create(const AFaceName: string;
+constructor TWindowsOutlineFont.Create(const AFaceName: string;
   AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: DWord;
   Depth: TGLfloat; OnlyLines: boolean; dc: HDc);
 var WinFont: TWindowsFont;
@@ -25,7 +25,7 @@ begin
  finally WinFont.Free end;
 end;
 
-destructor TGLWindowsOutlineFont.Destroy;
+destructor TWindowsOutlineFont.Destroy;
 begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLOutlineFont

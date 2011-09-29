@@ -47,11 +47,11 @@ type
   { Button inside OpenGL context.
 
     This is TUIControl descendant, so to use it just add it to
-    the TGLUIWindow.Controls or TKamOpenGLControl.Controls list.
-    You will also usually want to adjust position (TKamGLButton.Left,
-    TKamGLButton.Bottom), TKamGLButton.Caption,
-    and assign TKamGLButton.OnClick (or ovevrride TKamGLButton.DoClick). }
-  TKamGLButton = class(TKamGLFontControl)
+    the TCastleWindowCustom.Controls or TCastleControlCustom.Controls list.
+    You will also usually want to adjust position (TCastleButton.Left,
+    TCastleButton.Bottom), TCastleButton.Caption,
+    and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
+  TCastleButton = class(TKamGLFontControl)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -177,7 +177,7 @@ type
     Use as a comfortable (and with matching colors) background
     for other controls like buttons and such.
     May be used as a toolbar, together with appropriately placed
-    TKamGLButton over it. }
+    TCastleButton over it. }
   TKamPanel = class(TUIControlPos)
   private
     FWidth: Cardinal;
@@ -216,9 +216,9 @@ type
 
   { Image control inside OpenGL context.
     Size is automatically adjusted to the image size.
-    You should set TKamGLImage.Left, TKamGLImage.Bottom properties,
-    and load your image by setting TKamGLImage.FileName property. }
-  TKamGLImage = class(TUIControlPos)
+    You should set TCastleImage.Left, TCastleImage.Bottom properties,
+    and load your image by setting TCastleImage.FileName property. }
+  TCastleImage = class(TUIControlPos)
   private
     FFileName: string;
     FImage: TImage;
@@ -271,12 +271,12 @@ uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TKamGLButton, TKamGLImage]);
+  RegisterComponents('Kambi', [TCastleButton, TCastleImage]);
 end;
 
 const
   { Our controls theme.
-    These colors match somewhat our TGLMenu slider images. }
+    These colors match somewhat our TCastleMenu slider images. }
   ColInsideUp  : array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
   ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
   ColDarkFrame : TVector3Byte = ( 99,  99,  99);
@@ -349,12 +349,12 @@ begin
   inherited;
 end;
 
-{ TKamGLButton --------------------------------------------------------------- }
+{ TCastleButton --------------------------------------------------------------- }
 
 const
   ButtonCaptionImageMargin = 10;
 
-constructor TKamGLButton.Create(AOwner: TComponent);
+constructor TCastleButton.Create(AOwner: TComponent);
 begin
   inherited;
   FAutoSize := true;
@@ -365,21 +365,21 @@ begin
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
-destructor TKamGLButton.Destroy;
+destructor TCastleButton.Destroy;
 begin
   if OwnsImage then FreeAndNil(FImage);
   glFreeDisplayList(FGLImage);
   inherited;
 end;
 
-function TKamGLButton.DrawStyle: TUIControlDrawStyle;
+function TCastleButton.DrawStyle: TUIControlDrawStyle;
 begin
   if Exists then
     Result := ds2D else
     Result := dsNone;
 end;
 
-procedure TKamGLButton.Draw;
+procedure TCastleButton.Draw;
 
   procedure DrawFrame(const Level: Cardinal; const Inset: boolean);
   begin
@@ -482,7 +482,7 @@ begin
   end;
 end;
 
-function TKamGLButton.PositionInside(const X, Y: Integer): boolean;
+function TCastleButton.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := Exists and
     (X >= Left) and
@@ -491,7 +491,7 @@ begin
     (ContainerHeight - Y  < Bottom + Height);
 end;
 
-procedure TKamGLButton.GLContextOpen;
+procedure TCastleButton.GLContextOpen;
 begin
   inherited;
   if (FGLImage = 0) and (FImage <> nil) then
@@ -499,13 +499,13 @@ begin
   UpdateTextSize;
 end;
 
-procedure TKamGLButton.GLContextClose;
+procedure TCastleButton.GLContextClose;
 begin
   glFreeDisplayList(FGLImage);
   inherited;
 end;
 
-function TKamGLButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
+function TCastleButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := inherited;
   if Result or (not Exists) then Exit;
@@ -517,7 +517,7 @@ begin
   VisibleChange;
 end;
 
-function TKamGLButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
+function TCastleButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := inherited;
   if Result or (not Exists) then Exit;
@@ -544,13 +544,13 @@ begin
   end;
 end;
 
-procedure TKamGLButton.DoClick;
+procedure TCastleButton.DoClick;
 begin
   if Assigned(OnClick) then
     OnClick(Self);
 end;
 
-procedure TKamGLButton.SetCaption(const Value: string);
+procedure TCastleButton.SetCaption(const Value: string);
 begin
   if Value <> FCaption then
   begin
@@ -559,7 +559,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetAutoSize(const Value: boolean);
+procedure TCastleButton.SetAutoSize(const Value: boolean);
 begin
   if Value <> FAutoSize then
   begin
@@ -568,7 +568,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetAutoSizeWidth(const Value: boolean);
+procedure TCastleButton.SetAutoSizeWidth(const Value: boolean);
 begin
   if Value <> FAutoSizeWidth then
   begin
@@ -577,7 +577,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetAutoSizeHeight(const Value: boolean);
+procedure TCastleButton.SetAutoSizeHeight(const Value: boolean);
 begin
   if Value <> FAutoSizeHeight then
   begin
@@ -586,7 +586,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.UpdateTextSize;
+procedure TCastleButton.UpdateTextSize;
 begin
   if Font <> nil then
   begin
@@ -596,7 +596,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.UpdateSize;
+procedure TCastleButton.UpdateSize;
 const
   HorizontalMargin = 10;
   VerticalMargin = 10;
@@ -641,7 +641,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetImage(const Value: TImage);
+procedure TCastleButton.SetImage(const Value: TImage);
 begin
   if FImage <> Value then
   begin
@@ -657,7 +657,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetFocused(const Value: boolean);
+procedure TCastleButton.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
   begin
@@ -674,27 +674,27 @@ begin
   inherited;
 end;
 
-procedure TKamGLButton.SetPressed(const Value: boolean);
+procedure TCastleButton.SetPressed(const Value: boolean);
 begin
   if FPressed <> Value then
   begin
     if not Toggle then
-      raise Exception.Create('You cannot modify TKamGLButton.Pressed value when Toggle is false');
+      raise Exception.Create('You cannot modify TCastleButton.Pressed value when Toggle is false');
     FPressed := Value;
   end;
 end;
 
-procedure TKamGLButton.Idle(const CompSpeed: Single;
+procedure TCastleButton.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  { let controls under the TKamGLButton handle keys/mouse,
-    because TKamGLButton doesn't do anything with them by default. }
+  { let controls under the TCastleButton handle keys/mouse,
+    because TCastleButton doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
 end;
 
-procedure TKamGLButton.SetImageLayout(const Value: TKamButtonImageLayout);
+procedure TCastleButton.SetImageLayout(const Value: TKamButtonImageLayout);
 begin
   if FImageLayout <> Value then
   begin
@@ -704,7 +704,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetWidth(const Value: Cardinal);
+procedure TCastleButton.SetWidth(const Value: Cardinal);
 begin
   if FWidth <> Value then
   begin
@@ -713,7 +713,7 @@ begin
   end;
 end;
 
-procedure TKamGLButton.SetHeight(const Value: Cardinal);
+procedure TCastleButton.SetHeight(const Value: Cardinal);
 begin
   if FHeight <> Value then
   begin
@@ -846,16 +846,16 @@ begin
   end;
 end;
 
-{ TKamGLImage ---------------------------------------------------------------- }
+{ TCastleImage ---------------------------------------------------------------- }
 
-destructor TKamGLImage.Destroy;
+destructor TCastleImage.Destroy;
 begin
   FreeAndNil(FImage);
   glFreeDisplayList(FGLImage);
   inherited;
 end;
 
-procedure TKamGLImage.SetFileName(const Value: string);
+procedure TCastleImage.SetFileName(const Value: string);
 var
   NewImage: TImage;
 begin
@@ -873,14 +873,14 @@ begin
     FGLImage := ImageDrawToDisplayList(FImage);
 end;
 
-function TKamGLImage.DrawStyle: TUIControlDrawStyle;
+function TCastleImage.DrawStyle: TUIControlDrawStyle;
 begin
   if Exists and (FGLImage <> 0) then
     Result := ds2D else
     Result := dsNone;
 end;
 
-procedure TKamGLImage.Draw;
+procedure TCastleImage.Draw;
 begin
   if not (Exists and (FGLImage <> 0)) then Exit;
 
@@ -898,7 +898,7 @@ begin
     glPopAttrib;
 end;
 
-function TKamGLImage.PositionInside(const X, Y: Integer): boolean;
+function TCastleImage.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := Exists and
     (FImage <> nil) and
@@ -908,26 +908,26 @@ begin
     (ContainerHeight - Y  < Bottom + FImage.Height);
 end;
 
-procedure TKamGLImage.GLContextOpen;
+procedure TCastleImage.GLContextOpen;
 begin
   inherited;
   if (FGLImage = 0) and (FImage <> nil) then
     FGLImage := ImageDrawToDisplayList(FImage);
 end;
 
-procedure TKamGLImage.GLContextClose;
+procedure TCastleImage.GLContextClose;
 begin
   glFreeDisplayList(FGLImage);
   inherited;
 end;
 
-procedure TKamGLImage.Idle(const CompSpeed: Single;
+procedure TCastleImage.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  { let controls under the TKamGLImage handle keys/mouse,
-    because TKamGLImage doesn't do anything with them by default. }
+  { let controls under the TCastleImage handle keys/mouse,
+    because TCastleImage doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
 end;
 

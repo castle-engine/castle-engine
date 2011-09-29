@@ -40,7 +40,7 @@ uses SysUtils, GL, GLU, GLWindow, KambiUtils, KambiGLUtils, KambiParameters,
   Images, VectorMath, Math, SpaceFillingCurves, KambiStringUtils, GLImages;
 
 var
-  Window: TGLWindowDemo;
+  Window: TCastleWindowDemo;
   CurveImage: TRGBImage;
 const
   CurveCol: TVector3Byte = (255, 255, 255);
@@ -48,7 +48,7 @@ const
 
 { glwindow callbacks ------------------------------------------------------- }
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 begin
   { If DoubleBuffer available, then use it.
     This program should work perfectly with and without DoubleBuffer. }
@@ -57,12 +57,12 @@ begin
   ImageDraw(CurveImage);
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   glClearColor(0.5, 0.5, 0.5, 1.0);
 end;
 
-procedure CloseQueryNotAllowed(Window: TGLWindow); begin end;
+procedure CloseQueryNotAllowed(Window: TCastleWindowBase); begin end;
 
 { curve generation ------------------------------------------------------------ }
 
@@ -105,7 +105,7 @@ begin
   begin
     Window.PostRedisplay;
     Application.ProcessAllMessages;
-    { Since we use TGLWindowDemo, user is able to close the window by
+    { Since we use TCastleWindowDemo, user is able to close the window by
       pressing Escape. In this case we want to break the curve generation
       and end the program. }
     if Window.Closed then
@@ -122,7 +122,7 @@ var
   InitialOrient: boolean; { default value depends on DoPeano }
   StepsResolution, AllStepsCount: Cardinal;
 begin
-  Window := TGLWindowDemo.Create(Application);
+  Window := TCastleWindowDemo.Create(Application);
 
   { parse params }
   if Parameters.High >= 1 then

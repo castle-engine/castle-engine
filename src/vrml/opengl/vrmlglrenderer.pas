@@ -15,7 +15,7 @@
 
 { VRML low-level rendering (TVRMLGLRenderer).
   You usually don't want to use this renderer directly, you should
-  rather use TVRMLGLScene that wraps this renderer and gives you simple
+  rather use T3DScene that wraps this renderer and gives you simple
   method to render whole scene.
 
   The overview of this class can also be found in my master's thesis
@@ -173,7 +173,7 @@
   as TAbstractGeometryNode.Triangulate.
 
   Although for debug purposes, we have a renderer using
-  TVRMLShape.LocalTriangulate, see notes about
+  TShape.LocalTriangulate, see notes about
   USE_VRML_TRIANGULATION in the source code.
 
   @bold(About OpenGL extensions:)
@@ -181,7 +181,7 @@
   You should always call LoadAllExtensions before using this unit.
   This unit may use various OpenGL extensions and check OpenGL version.
   If you initialize OpenGL context using our GLWindow unit or
-  TKamOpenGLControl then this will be done for you automatically during
+  TCastleControlCustom then this will be done for you automatically during
   GL context initialization.
 }
 
@@ -189,10 +189,10 @@ unit VRMLGLRenderer;
 
 { When you define USE_VRML_TRIANGULATION, an alternative
   rendering method will be used. Each node will be triangulated
-  using TVRMLShape.LocalTriangulate, and each generated triangle
+  using TShape.LocalTriangulate, and each generated triangle
   will be passed to OpenGL.
 
-  This is usable only for TVRMLShape.LocalTriangulate testing.
+  This is usable only for TShape.LocalTriangulate testing.
   - It's slower than the normal rendering method,
     as triangles are passed to the OpenGL in the most naive immediate way,
     without any vertex arrays or VBOs. In fact, it will not work with
@@ -250,7 +250,7 @@ type
 
     They are collected here,
     in a class separate from @link(TVRMLGLRenderer),
-    because various things (like TVRMLGLScene and TVRMLGLAnimation)
+    because various things (like T3DScene and T3DPrecalculatedAnimation)
     wrap @link(TVRMLGLRenderer) instances and hide it,
     but still they want to allow user to change these attributes. }
   TVRMLRenderingAttributes = class(TPersistent)
@@ -401,7 +401,7 @@ type
       read FPointSize write FPointSize default DefaultPointSize;
 
     { Line width. This has an effect on VRML/X3D LineSet rendering,
-      and on wireframe rendering for TVRMLSceneRenderingAttributes.WireframeEffect. }
+      and on wireframe rendering for TSceneRenderingAttributes.WireframeEffect. }
     property LineWidth: Single
       read FLineWidth write FLineWidth default DefaultLineWidth;
 
@@ -691,7 +691,7 @@ type
 
     { An instance of TGeometryArrays, decomposing this shape geometry.
       Used to easily render and process this geometry, if assigned.
-      This is managed by TVRMLGLRenderer and TVRMLGLScene. }
+      This is managed by TVRMLGLRenderer and T3DScene. }
     Arrays: TGeometryArrays;
 
     { What Vbos do we need to reload.
@@ -882,7 +882,7 @@ type
   {$I vrmlglrenderer_glsl.inc}
 
   { VRML shape that can be rendered. }
-  TVRMLRendererShape = class(TVRMLShape)
+  TVRMLRendererShape = class(TShape)
   private
     { Generate VBO if needed, and reload VBO contents.
       Assumes (GL_ARB_vertex_buffer_object and not BuggyVBO) is true.
@@ -1186,7 +1186,7 @@ type
       NeedsRestoreViewport will be set to @true if viewport was
       (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
       will not be modified). }
-    procedure UpdateGeneratedTextures(Shape: TVRMLShape;
+    procedure UpdateGeneratedTextures(Shape: TShape;
       TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -2689,7 +2689,7 @@ begin
     We should detect it, and do enable only when appropriate }
 
   { This must be synchronized, and disable all that can be enabled
-    by TVRMLShape.EnableTexture }
+    by TShape.EnableTexture }
   ActiveTexture(TextureUnit);
   DisableCurrentTexture;
 end;
@@ -3706,7 +3706,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.UpdateGeneratedTextures(Shape: TVRMLShape;
+procedure TVRMLGLRenderer.UpdateGeneratedTextures(Shape: TShape;
   TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;

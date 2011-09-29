@@ -28,7 +28,7 @@ uses SysUtils, KambiUtils, Images, ImagesFftw, GLWindow, GL, GLImages,
   KambiParameters;
 
 type
-  TGLWindowImage = class(TGLWindowDemo)
+  TWindowImage = class(TCastleWindowDemo)
   public
     Image: TRGBImage;
     ImageDL: TGLuint;
@@ -38,26 +38,26 @@ type
     procedure EventOpen; override;
   end;
 
-destructor TGLWindowImage.Destroy;
+destructor TWindowImage.Destroy;
 begin
   FreeAndNil(Image);
   inherited;
 end;
 
-procedure TGLWindowImage.EventDraw;
+procedure TWindowImage.EventDraw;
 begin
   inherited;
   glClear(GL_COLOR_BUFFER_BIT);
   glCallList(ImageDL);
 end;
 
-procedure TGLWindowImage.EventOpen;
+procedure TWindowImage.EventOpen;
 begin
   inherited;
   UpdateDL;
 end;
 
-procedure TGLWindowImage.UpdateDL;
+procedure TWindowImage.UpdateDL;
 begin
   MakeCurrent;
   glFreeDisplayList(ImageDL);
@@ -71,7 +71,7 @@ type
     opMulMinus1, opShift);
 
 var
-  Source, Freq, Output: TGLWindowImage;
+  Source, Freq, Output: TWindowImage;
   Fft: TImageFftw;
   Operation: TOperation;
   Alpha: Single = 0.5;
@@ -160,7 +160,7 @@ begin
   if not Output.Closed then Output.UpdateDL;
 end;
 
-procedure MenuCommand(glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: Application.Quit;
@@ -236,7 +236,7 @@ end;
 begin
   Parameters.CheckHigh(1);
   try
-    Source := TGLWindowImage.Create(nil);
+    Source := TWindowImage.Create(nil);
     Source.Image := LoadImage(Parameters[1], [TRGBImage], []) as TRGBImage;
     Source.Width  := Source.Image.Width ;
     Source.Height := Source.Image.Height;
@@ -245,7 +245,7 @@ begin
     Source.Left := 10;
     Source.Top := 10;
 
-    Freq := TGLWindowImage.Create(nil);
+    Freq := TWindowImage.Create(nil);
     Freq.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
     Freq.Width  := Freq.Image.Width ;
     Freq.Height := Freq.Image.Height;
@@ -254,7 +254,7 @@ begin
     Freq.Left := 10;
     Freq.Top := Source.Top + Source.Height + 10;
 
-    Output := TGLWindowImage.Create(nil);
+    Output := TWindowImage.Create(nil);
     Output.Image := TRGBImage.Create(Source.Image.Width, Source.Image.Height);
     Output.Width  := Output.Image.Width ;
     Output.Height := Output.Image.Height;

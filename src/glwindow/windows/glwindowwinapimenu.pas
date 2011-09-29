@@ -16,7 +16,7 @@
 { @abstract(Helper unit for GLWindow implementation of menu-related things
   under WinAPI.)
 
-  It converts menu structure from classes in glwindowmenu.inc to WinAPI menu
+  It converts menu structure from classes in castlewindowmenu.inc to WinAPI menu
   (HMenu handle).
 
   Let me elaborate here a little about how menu shortcuts are handled
@@ -89,7 +89,7 @@ uses GLWindow, Windows;
   If MenuBar then TMenuSeparator entries in Menu.Entries[] are ignored
   (WinAPI toplevel menu bar cannot have a separator, that's quite sensible
   actually). Of course separators at lower depths are not ignored. }
-function WindowsMenuFromGLWindowMenu(Menu: TMenu; MenuBar: boolean): HMenu;
+function WindowsMenuFromCastlewindowmenu(Menu: TMenu; MenuBar: boolean): HMenu;
 
 implementation
 
@@ -104,7 +104,7 @@ uses KambiUtils;
   ParentAllowsEnabled = main Menu.Enabled.
   When other menu creates it's children, it passes
   ParentAllowsEnabled = @true. }
-function WindowsMenuFromGLWindowMenuCore(Menu: TMenu;
+function WindowsMenuFromCastlewindowmenuCore(Menu: TMenu;
   MenuBar: boolean; ParentAllowsEnabled: boolean): HMenu;
 
   function SMnemonicsToWin(const S: string): string;
@@ -154,11 +154,11 @@ function WindowsMenuFromGLWindowMenuCore(Menu: TMenu;
 
   procedure AppendGLMenu(Menu: TMenu; ParentAllowsEnabled: boolean);
   begin
-    { I'm casting WindowsMenuFromGLWindowMenu result (:HMenu)
+    { I'm casting WindowsMenuFromCastlewindowmenu result (:HMenu)
       to UINT to avoid range check errors }
     KambiOSCheck( AppendMenu(Result,
       MF_STRING or MF_POPUP or EnabledFlag(Menu.Enabled and ParentAllowsEnabled),
-      UINT(WindowsMenuFromGLWindowMenuCore(Menu, false, true)),
+      UINT(WindowsMenuFromCastlewindowmenuCore(Menu, false, true)),
       PChar(SMnemonicsToWin(Menu.Caption))) );
   end;
 
@@ -227,9 +227,9 @@ begin
   end;
 end;
 
-function WindowsMenuFromGLWindowMenu(Menu: TMenu; MenuBar: boolean): HMenu;
+function WindowsMenuFromCastlewindowmenu(Menu: TMenu; MenuBar: boolean): HMenu;
 begin
-  Result := WindowsMenuFromGLWindowMenuCore(Menu, MenuBar, Menu.Enabled);
+  Result := WindowsMenuFromCastlewindowmenuCore(Menu, MenuBar, Menu.Enabled);
 end;
 
 end.

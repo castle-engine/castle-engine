@@ -36,7 +36,7 @@ begin
 end;
 
 var
-  Scene: TVRMLScene;
+  Scene: T3DSceneCore;
   Image: TImage;
 
   SceneFileName, OutImageFileName: string;
@@ -69,7 +69,7 @@ begin
 
   { calculate Scene (from the same RootNode) }
   Write('Loading scene... ');
-  Scene := TVRMLScene.Create(nil);
+  Scene := T3DSceneCore.Create(nil);
   Scene.Load(SceneFileName, true);
   Writeln('done.');
   if Scene.GlobalLights.Count = 0 then

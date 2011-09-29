@@ -37,7 +37,7 @@ uses GL, GLWindow, KambiGLUtils, SysUtils, VectorMath,
 { global vars ------------------------------------------------------------ }
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 
   { For the whole lifetime of a program we can have two curves.
     Precise one (must be TMathExprCurve) and approximating one
@@ -84,7 +84,7 @@ var
 { scene manager -------------------------------------------------------------- }
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
   protected
     procedure Render3D(const Params: TRenderParams); override;
   end;
@@ -164,7 +164,7 @@ end;
 
 { glw callbacks ------------------------------------------------------------ }
 
-procedure DrawStatus(Window: TGLWindow);
+procedure DrawStatus(Window: TCastleWindowBase);
 var
   S: TStringList;
 begin
@@ -189,13 +189,13 @@ begin
   end;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   glPointSize(10);
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_m18);
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(StatusFont);
 end;
@@ -270,7 +270,7 @@ type
     Result := true;
   end;
 
-procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
 
   { Inputs a string from user. User can accept the string or cancel
     operation. If user will cancel operation -- we will return false.
@@ -307,7 +307,7 @@ var
   NewTBegin, NewTEnd: Float;
 begin
   case MenuItem.IntData of
-    1: (Window as TGLUIWindow).SwapFullScreen;
+    1: (Window as TCastleWindowCustom).SwapFullScreen;
     2: Window.Close;
 
     201: StatusVisible := not StatusVisible;
@@ -408,7 +408,7 @@ end;
 { main ------------------------------------------------------------ }
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   try
     ApproxCurveClass := TLagrangeInterpolatedCurve;

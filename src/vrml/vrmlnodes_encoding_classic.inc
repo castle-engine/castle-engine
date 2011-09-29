@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
 const
-  { File filters for TGLWindow.FileDialog if you want to open a file and then
+  { File filters for TCastleWindowBase.FileDialog if you want to open a file and then
     pass it to LoadVRMLClassic. Note that only LoadVRMLClassic that takes a FileName
     parameter (as a string) can deal with gzip compressed files. }
   LoadVRMLClassic_FileFilters =

@@ -44,7 +44,7 @@ const
     @item(extend it's "texCoord" field with appropriate
       ProjectedTextureCoordinate,)
   ) }
-procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TVRMLShapeTree;
+procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal);
 
@@ -79,8 +79,8 @@ type
       This also creates shadow map and texture generator nodes for this light. }
     function FindLight(Light: TAbstractLightNode): PLight;
 
-    procedure ShapeRemove(Shape: TVRMLShape);
-    procedure ShapeAdd(Shape: TVRMLShape);
+    procedure ShapeRemove(Shape: TShape);
+    procedure ShapeAdd(Shape: TShape);
 
     { Finish calculating light's projectionXxx parameters,
       and assing them to the light node. }
@@ -165,7 +165,7 @@ end;
 
 { If this shape was processed by some ShapeAdd previously,
   removed the ProjectedTextureCoordinate and GeneratedShadowMap nodes we added. }
-procedure TLightList.ShapeRemove(Shape: TVRMLShape);
+procedure TLightList.ShapeRemove(Shape: TShape);
 
   { Remove old GeneratedShadowMap nodes that we added. }
   procedure RemoveOldShadowMap(Texture: TMFNode);
@@ -205,7 +205,7 @@ begin
   end;
 end;
 
-procedure TLightList.ShapeAdd(Shape: TVRMLShape);
+procedure TLightList.ShapeAdd(Shape: TShape);
 
   { Add ShadowMap to the textures used by the shape.
     Always converts Texture to TMultiTextureNode, to add the shadow map
@@ -533,7 +533,7 @@ begin
     LightsCastingOnEverything.Add(Node);
 end;
 
-procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TVRMLShapeTree;
+procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
   const Enable: boolean;
   const DefaultShadowMapSize: Cardinal);
 var
@@ -541,7 +541,7 @@ var
   L: PLight;
   I: Integer;
 begin
-  { This is valid situation (TVRMLScene.RootNode may be nil).
+  { This is valid situation (T3DSceneCore.RootNode may be nil).
     Nothing to do then. }
   if Model = nil then Exit;
 

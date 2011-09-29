@@ -248,8 +248,8 @@ type
 
     function DeviceNiceName: string;
 
-    procedure LoadFromConfig(ConfigFile: TKamXMLConfig); override;
-    procedure SaveToConfig(ConfigFile: TKamXMLConfig); override;
+    procedure LoadFromConfig(ConfigFile: TCastleConfig); override;
+    procedure SaveToConfig(ConfigFile: TCastleConfig); override;
 
     { Events fired after OpenAL context and device are being open or closed.
       More precisely, when ALInitialized changes (and so, possibly, ALActive
@@ -1138,14 +1138,14 @@ const
   DefaultAudioDevice = '';
   DefaultAudioEnable = true;
 
-procedure TALSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
+procedure TALSoundEngine.LoadFromConfig(ConfigFile: TCastleConfig);
 begin
   inherited;
   Device := ConfigFile.GetValue('sound/device', DefaultAudioDevice);
   Enable := ConfigFile.GetValue('sound/enable', DefaultAudioEnable);
 end;
 
-procedure TALSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
+procedure TALSoundEngine.SaveToConfig(ConfigFile: TCastleConfig);
 begin
   inherited;
   if DeviceSaveToConfig then

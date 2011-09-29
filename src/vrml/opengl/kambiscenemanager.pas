@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager (TKamSceneManager) and viewport (TKamViewport) classes. }
+{ Scene manager (TCastleSceneManager) and viewport (TKamViewport) classes. }
 unit KambiSceneManager;
 
 interface
@@ -45,7 +45,7 @@ type
   end;
 
   { Common abstract class for things that may act as a viewport:
-    TKamSceneManager and TKamViewport. }
+    TCastleSceneManager and TKamViewport. }
   TKamAbstractViewport = class(TUIControlPos)
   private
     FWidth, FHeight: Cardinal;
@@ -103,7 +103,7 @@ type
       This is automatically called at the beginning of our Render method,
       if it's needed.
 
-      @seealso TVRMLGLScene.GLProjection }
+      @seealso T3DScene.GLProjection }
     procedure ApplyProjection; virtual;
 
     { Render one pass, from current (saved in RenderingCamera) camera view,
@@ -150,12 +150,12 @@ type
 
       Default implementation of this method in TKamAbstractViewport
       looks at the MainScene headlight. We return if MainScene is assigned
-      and TVRMLScene.HeadlightOn is @true.
+      and T3DSceneCore.HeadlightOn is @true.
       (HeadlightOn in turn looks
       at information in VRML/X3D file (NavigationInfo.headlight)
       and you can also always set HeadlightOn explicitly by code.)
       The custom light node
-      is obtained from TVRMLScene.CustomHeadlight.
+      is obtained from T3DSceneCore.CustomHeadlight.
 
       You can override this method to determine the headlight in any other way. }
     function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; virtual;
@@ -189,7 +189,7 @@ type
       The default implementation in this class looks at
       MainScene.MainLightForShadows.
 
-      @seealso TVRMLScene.MainLightForShadows }
+      @seealso T3DSceneCore.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean; virtual;
 
@@ -203,7 +203,7 @@ type
       For TKamViewport, these methods refer to scene manager.
       @groupBegin }
     function GetItems: T3D; virtual; abstract;
-    function GetMainScene: TVRMLGLScene; virtual; abstract;
+    function GetMainScene: T3DScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit3D: T3D; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
@@ -289,7 +289,7 @@ type
       This is automatically used to initialize @link(Camera) property
       when @link(Camera) is @nil at ApplyProjection call.
 
-      The implementation in base TKamSceneManager uses MainScene.CreateCamera
+      The implementation in base TCastleSceneManager uses MainScene.CreateCamera
       (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
       If MainScene is not assigned, we will just create a simple
       TExamineCamera.
@@ -349,7 +349,7 @@ type
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
-      the whole container (OpenGL context area, like a window for TGLWindow),
+      the whole container (OpenGL context area, like a window for TCastleWindowBase),
       and the values of Left, Bottom, Width, Height are ignored here.
 
       @seealso CorrectLeft
@@ -371,7 +371,7 @@ type
       This default camera will be created by CreateDefaultCamera.
 
       This camera @italic(should not) be inside some other container
-      (like on TGLUIWindow.Controls or TKamOpenGLControl.Controls list).
+      (like on TCastleWindowCustom.Controls or TCastleControlCustom.Controls list).
       Scene manager / viewport will handle passing events to the camera on it's own,
       we will also pass our own Container to Camera.Container.
       This is desired, this way events are correctly passed
@@ -387,22 +387,22 @@ type
 
       @italic(For TKamViewport only:)
       The TKamViewport's camera is slightly less important than
-      TKamSceneManager.Camera, because TKamSceneManager.Camera may be treated
+      TCastleSceneManager.Camera, because TCastleSceneManager.Camera may be treated
       as a "central" camera. Viewport's camera may not (because you may
       have many viewports and they all deserve fair treatment).
-      So e.g. headlight is done only from TKamSceneManager.Camera
+      So e.g. headlight is done only from TCastleSceneManager.Camera
       (for mirror textures, there must be one headlight for your 3D world).
       Also VRML/X3D ProximitySensors receive events only from
-      TKamSceneManager.Camera.
+      TCastleSceneManager.Camera.
 
       TODO: In the future it should be possible (even encouraged) to assign
-      one of your custom viewport cameras also to TKamSceneManager.Camera.
+      one of your custom viewport cameras also to TCastleSceneManager.Camera.
       It should also be possible to share one camera instance among a couple
       of viewports.
       For now, it doesn't work (last viewport/scene manager will hijack some
       camera events making it not working in other ones).
 
-      @seealso TKamSceneManager.OnCameraChanged }
+      @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
 
     { For scene manager: you can pause everything inside your 3D world,
@@ -412,7 +412,7 @@ type
       @italic(For scene manager:)
 
       "Paused" means that no events (key, mouse, idle) are passed to any
-      @link(TKamSceneManager.Items) or the @link(Camera).
+      @link(TCastleSceneManager.Items) or the @link(Camera).
       This is suitable if you really want to totally, unconditionally,
       make your 3D world view temporary still (for example,
       useful when entering some modal dialog box and you want
@@ -427,19 +427,19 @@ type
       some events processing for the 3D world:
 
       @unorderedList(
-        @item(You can set TVRMLGLScene.TimePlaying or TVRMLGLAnimation.TimePlaying
+        @item(You can set T3DScene.TimePlaying or T3DPrecalculatedAnimation.TimePlaying
           to @false. This is roughly equivalent to not running their Idle methods.
           This means that time will "stand still" for them,
           so their animations will not play. Although they may
           still react and change in response to mouse clicks / key presses,
-          if TVRMLGLScene.ProcessEvents.)
+          if T3DScene.ProcessEvents.)
 
-        @item(You can set TVRMLGLScene.ProcessEvents to @false.
+        @item(You can set T3DScene.ProcessEvents to @false.
           This means that scene will not receive and process any
           key / mouse and other events (through VRML/X3D sensors).
           Some animations (not depending on VRML/X3D events processing)
           may still run, for example MovieTexture will still animate,
-          if only TVRMLGLScene.TimePlaying.)
+          if only T3DScene.TimePlaying.)
 
         @item(For cameras, you can set TCamera.IgnoreAllInputs to ignore
           key / mouse clicks.)
@@ -495,7 +495,7 @@ type
 
     { When @true then headlight is always rendered from custom viewport's
       (TKamViewport) camera, not from central camera (the one in scene manager).
-      This is meaningless in TKamSceneManager.
+      This is meaningless in TCastleSceneManager.
 
       By default this is @false, which means that when rendering
       custom viewport (TKamViewport) we render headlight from
@@ -531,10 +531,10 @@ type
       OpenGL projection matrix in ApplyProjection method), but also may
       be slightly slower.
 
-      Note that for TKamSceneManager, this is by default @false (that is,
+      Note that for TCastleSceneManager, this is by default @false (that is,
       we assume that scene manager, if used for rendering at all
       (DefaultViewport = @true), is the only viewport). You should change
-      AlwaysApplyProjection to @true for TKamSceneManager, if you have
+      AlwaysApplyProjection to @true for TCastleSceneManager, if you have
       both custom viewports and DefaultViewport = @true }
     property AlwaysApplyProjection: boolean
       read FAlwaysApplyProjection write FAlwaysApplyProjection default true;
@@ -545,7 +545,7 @@ type
 
       Note that for now this assumes that MainScene coordinates equal
       world coordinates. This means that you should not transform
-      the MainScene, it should be placed inside @link(TKamSceneManager.Items) without any
+      the MainScene, it should be placed inside @link(TCastleSceneManager.Items) without any
       T3DTranslated on the way. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default false;
@@ -559,7 +559,7 @@ type
 
   { Scene manager that knows about all 3D things inside your world.
 
-    Single scenes/models (like TVRMLGLScene or TVRMLGLAnimation instances)
+    Single scenes/models (like T3DScene or T3DPrecalculatedAnimation instances)
     can be rendered directly, but it's not always comfortable.
     Scenes have to assume that they are "one of the many" inside your 3D world,
     which means that multi-pass rendering techniques have to be implemented
@@ -573,15 +573,15 @@ type
     Naturally, it also serves as container for all your visible 3D scenes.
 
     @link(Items) property keeps a tree of T3D objects.
-    All our 3D objects, like TVRMLScene (and so also TVRMLGLScene)
-    and TVRMLAnimation (and so also TVRMLGLAnimation) descend from
+    All our 3D objects, like T3DSceneCore (and so also T3DScene)
+    and T3DPrecalculatedAnimationCore (and so also T3DPrecalculatedAnimation) descend from
     T3D, and you can add them to the scene manager.
     And naturally you can implement your own T3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
 
-    TKamSceneManager.Render can assume that it's the @italic(only) manager rendering
+    TCastleSceneManager.Render can assume that it's the @italic(only) manager rendering
     to the screen (although you can safely render more 3D geometry *after*
-    calling TKamSceneManager.Render). So it's Render method takes care of
+    calling TCastleSceneManager.Render). So it's Render method takes care of
 
     @unorderedList(
       @item(clearing the screen,)
@@ -594,15 +594,15 @@ type
     For some of these features, you'll have to set the @link(MainScene) property.
 
     This is a TUIControl descendant, which means it's advised usage
-    is to add this to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
+    is to add this to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
     This passes relevant TUIControl events to all the T3D objects inside.
     Note that even when you set DefaultViewport = @false
     (and use custom viewports, by TKamViewport class, to render your 3D world),
     you still should add scene manager to the controls list
     (this allows e.g. 3D items to receive Idle events). }
-  TKamSceneManager = class(TKamAbstractViewport)
+  TCastleSceneManager = class(TKamAbstractViewport)
   private
-    FMainScene: TVRMLGLScene;
+    FMainScene: T3DScene;
     FItems: T3DList;
     FDefaultViewport: boolean;
     FViewports: TKamAbstractViewportList;
@@ -624,15 +624,15 @@ type
       to make sure UpdateGeneratedTextures was done before actual drawing. }
     procedure UpdateGeneratedTexturesIfNeeded;
 
-    procedure SetMainScene(const Value: TVRMLGLScene);
+    procedure SetMainScene(const Value: T3DScene);
     procedure SetDefaultViewport(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
 
     { scene callbacks }
-    procedure SceneBoundViewpointChanged(Scene: TVRMLScene);
-    procedure SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
-    procedure SceneBoundNavigationInfoChanged(Scene: TVRMLScene);
+    procedure SceneBoundViewpointChanged(Scene: T3DSceneCore);
+    procedure SceneBoundViewpointVectorsChanged(Scene: T3DSceneCore);
+    procedure SceneBoundNavigationInfoChanged(Scene: T3DSceneCore);
 
     procedure SetMouseRayHit3D(const Value: T3D);
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
@@ -657,7 +657,7 @@ type
     procedure CameraVisibleChange(ACamera: TObject); override;
 
     function GetItems: T3D; override;
-    function GetMainScene: TVRMLGLScene; override;
+    function GetMainScene: T3DScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
@@ -675,7 +675,7 @@ type
 
       If DisplayProgressTitle <> '', we will display progress bar during
       loading. This is especially useful for long precalculated animations
-      (TVRMLGLAnimation with a lot of ScenesCount), they show nice
+      (T3DPrecalculatedAnimation with a lot of ScenesCount), they show nice
       linearly increasing progress bar. }
     procedure PrepareResources(const DisplayProgressTitle: string = '');
 
@@ -729,13 +729,13 @@ type
 
       This list is read-only from the outside! It's automatically managed
       in this unit (when you change TKamViewport.SceneManager
-      or TKamSceneManager.DefaultViewport, we automatically update this list
+      or TCastleSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
     property Viewports: TKamAbstractViewportList read FViewports;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
-      You may also set your main TVRMLGLScene (if you have any) as MainScene.
+      You may also set your main T3DScene (if you have any) as MainScene.
 
       T3DList is also T3D instance, so yes --- this may be a tree
       of T3D, not only a flat list.
@@ -745,14 +745,14 @@ type
     property Items: T3DList read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
-      (after all, your 3D world doesn't even need to have any TVRMLGLScene
+      (after all, your 3D world doesn't even need to have any T3DScene
       instance). This @italic(must be) also added to our @link(Items)
       (otherwise things will work strangely).
 
       When set, this is used for a couple of things:
 
       @unorderedList(
-        @item Decides what headlight is used (by TVRMLGLScene.Headlight).
+        @item Decides what headlight is used (by T3DScene.Headlight).
 
         @item(Decides what background is rendered.
           @italic(Notes for implementing descendants of this class:)
@@ -772,9 +772,9 @@ type
           (or it's transformation) or bind camera to a viewpoint.
 
           Note that scene manager "hijacks" some Scene events:
-          TVRMLScene.OnBoundViewpointVectorsChanged,
-          TVRMLScene.ViewpointStack.OnBoundChanged,
-          TVRMLScene.NavigationInfoStack.OnBoundChanged
+          T3DSceneCore.OnBoundViewpointVectorsChanged,
+          T3DSceneCore.ViewpointStack.OnBoundChanged,
+          T3DSceneCore.NavigationInfoStack.OnBoundChanged
           for this purpose. If you want to know when viewpoint changes,
           you can use scene manager's event OnBoundViewpointChanged,
           OnBoundNavigationInfoChanged.)
@@ -785,14 +785,14 @@ type
       (We cannot just use every 3D object from @link(Items) for this.)
 
       Freeing MainScene will automatically set this to @nil. }
-    property MainScene: TVRMLGLScene read FMainScene write SetMainScene;
+    property MainScene: T3DScene read FMainScene write SetMainScene;
 
     { Called on any camera change. Exactly when TCamera generates it's
       OnVisibleChange event. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
     { Called when bound Viewpoint node changes.
-      Called exactly when TVRMLScene.ViewpointStack.OnBoundChanged is called. }
+      Called exactly when T3DSceneCore.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
 
     { Called when bound NavigationInfo changes (to a different node,
@@ -813,8 +813,8 @@ type
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
     to show 3D world on the screen.
 
-    For simple games, using this is not needed, because TKamSceneManager
-    also acts as a viewport (when TKamSceneManager.DefaultViewport is @true,
+    For simple games, using this is not needed, because TCastleSceneManager
+    also acts as a viewport (when TCastleSceneManager.DefaultViewport is @true,
     which is the default).
     Using custom viewports (implemented by this class)
     is useful when you want to have more than one viewport showing
@@ -836,7 +836,7 @@ type
     Viewports may be overlapping, that is one viewport may (partially)
     obscure another viewport. Just like with any other TUIControl,
     position of viewport on the Controls list
-    (like TKamOpenGLControl.Controls or TGLUIWindow.Controls)
+    (like TCastleControlCustom.Controls or TCastleWindowCustom.Controls)
     is important: Controls are specified in the front-to-back order.
     That is, if the viewport X may obscure viewport Y,
     then X must be before Y on the Controls list.
@@ -852,11 +852,11 @@ type
     in the upper-right corner that displays view from last fired rocket. }
   TKamViewport = class(TKamAbstractViewport)
   private
-    FSceneManager: TKamSceneManager;
-    procedure SetSceneManager(const Value: TKamSceneManager);
+    FSceneManager: TCastleSceneManager;
+    procedure SetSceneManager(const Value: TCastleSceneManager);
   protected
     function GetItems: T3D; override;
-    function GetMainScene: TVRMLGLScene; override;
+    function GetMainScene: T3DScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
@@ -876,7 +876,7 @@ type
 
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
-    property SceneManager: TKamSceneManager read FSceneManager write SetSceneManager;
+    property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
   end;
 
 procedure Register;
@@ -888,7 +888,7 @@ uses SysUtils, RenderingCameraUnit, KambiGLUtils, ProgressUnit, RaysWindow, GLEx
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TKamSceneManager]);
+  RegisterComponents('Kambi', [TCastleSceneManager]);
 end;
 
 { TManagerRenderParams ------------------------------------------------------- }
@@ -937,8 +937,8 @@ begin
     pointer.
 
     And when SceneManager is freed it sends a free notification
-    (this is also done in "inherited" destructor) to TGLUIWindow instance,
-    which causes removing us from TGLUIWindow.Controls list,
+    (this is also done in "inherited" destructor) to TCastleWindowCustom instance,
+    which causes removing us from TCastleWindowCustom.Controls list,
     which causes SetContainer(nil) call that tries to access Camera.
 
     This scenario would cause segfault, as FCamera pointer is invalid
@@ -982,7 +982,7 @@ begin
     if FCamera <> nil then
     begin
       { Unconditionally change FCamera.OnVisibleChange callback,
-        to override TGLUIWindow / TKamOpenGLControl that also try
+        to override TCastleWindowCustom / TCastleControlCustom that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
       FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
@@ -1122,7 +1122,7 @@ begin
 
     Accidentaly, this also workarounds the problem of TKamViewport:
     when the 3D object stayed the same but it's Cursor value changed,
-    Items.OnCursorChange notify only TKamSceneManager (not custom viewport).
+    Items.OnCursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing ItemsAndCameraCursorChange below, this isn't
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
@@ -1394,7 +1394,7 @@ begin
       to have it tied with scene manager's CameraToChanges implementation.
 
       So if you use custom viewports and want headlight Ok,
-      be sure to explicitly set TKamSceneManager.Camera
+      be sure to explicitly set TCastleSceneManager.Camera
       (probably, to one of your viewpoints' cameras).
       Or use a hacky HeadlightFromViewport. }
 
@@ -1864,16 +1864,16 @@ begin
   Result := false;
 end;
 
-{ TKamSceneManager ----------------------------------------------------------- }
+{ TCastleSceneManager ----------------------------------------------------------- }
 
-constructor TKamSceneManager.Create(AOwner: TComponent);
+constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
   FItems := T3DList.Create(Self);
   FItems.OnVisibleChangeHere := @ItemsVisibleChange;
   FItems.OnCursorChange := @ItemsAndCameraCursorChange;
-  { Items is displayed and streamed with TKamSceneManager
+  { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so set some sensible Name. }
   FItems.Name := 'Items';
@@ -1887,7 +1887,7 @@ begin
   if DefaultViewport then FViewports.Add(Self);
 end;
 
-destructor TKamSceneManager.Destroy;
+destructor TCastleSceneManager.Destroy;
 var
   I: Integer;
 begin
@@ -1918,7 +1918,7 @@ begin
   inherited;
 end;
 
-procedure TKamSceneManager.ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
+procedure TCastleSceneManager.ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
 begin
   { pass visible change notification "upward" (as a TUIControl, to container) }
   VisibleChange;
@@ -1926,7 +1926,7 @@ begin
   Items.VisibleChangeNotification(Changes);
 end;
 
-procedure TKamSceneManager.GLContextOpen;
+procedure TCastleSceneManager.GLContextOpen;
 begin
   inherited;
 
@@ -1940,7 +1940,7 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.GLContextClose;
+procedure TCastleSceneManager.GLContextClose;
 begin
   Items.GLContextClose;
 
@@ -1949,7 +1949,7 @@ begin
   inherited;
 end;
 
-function TKamSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
+function TCastleSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
 var
   Box: TBox3D;
 begin
@@ -1963,7 +1963,7 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.SetMainScene(const Value: TVRMLGLScene);
+procedure TCastleSceneManager.SetMainScene(const Value: T3DScene);
 begin
   if FMainScene <> Value then
   begin
@@ -2002,7 +2002,7 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.SetMouseRayHit3D(const Value: T3D);
+procedure TCastleSceneManager.SetMouseRayHit3D(const Value: T3D);
 begin
   if FMouseRayHit3D <> Value then
   begin
@@ -2024,7 +2024,7 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.SetCamera(const Value: TCamera);
+procedure TCastleSceneManager.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
   begin
@@ -2045,7 +2045,7 @@ begin
     inherited; { not really needed for now, but for safety --- always call inherited }
 end;
 
-procedure TKamSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
@@ -2068,13 +2068,13 @@ begin
   end;
 end;
 
-function TKamSceneManager.PositionInside(const X, Y: Integer): boolean;
+function TCastleSceneManager.PositionInside(const X, Y: Integer): boolean;
 begin
   { When not DefaultViewport, then scene manager is not visible. }
   Result := DefaultViewport and (inherited PositionInside(X, Y));
 end;
 
-procedure TKamSceneManager.PrepareResources(const DisplayProgressTitle: string);
+procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string);
 var
   Options: TPrepareResourcesOptions;
 begin
@@ -2097,7 +2097,7 @@ begin
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];
 
-    { Apply projection now, as TVRMLGLScene.GLProjection calculates
+    { Apply projection now, as T3DScene.GLProjection calculates
       BackgroundSkySphereRadius, which is used by MainScene.Background.
       Otherwise our preparations of "prBackground" here would be useless,
       as BackgroundSkySphereRadius will change later, and MainScene.Background
@@ -2122,21 +2122,21 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.BeforeDraw;
+procedure TCastleSceneManager.BeforeDraw;
 begin
   inherited;
   if not Exists then Exit;
   PrepareResources;
 end;
 
-function TKamSceneManager.CameraToChanges: TVisibleChanges;
+function TCastleSceneManager.CameraToChanges: TVisibleChanges;
 begin
   if (MainScene <> nil) and MainScene.HeadlightOn then
     Result := [vcVisibleNonGeometry] else
     Result := [];
 end;
 
-procedure TKamSceneManager.UpdateGeneratedTexturesIfNeeded;
+procedure TCastleSceneManager.UpdateGeneratedTexturesIfNeeded;
 begin
   if NeedsUpdateGeneratedTextures then
   begin
@@ -2162,7 +2162,7 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.Draw;
+procedure TCastleSceneManager.Draw;
 begin
   if not Exists then Exit;
 
@@ -2174,7 +2174,7 @@ begin
   RenderOnScreen(Camera);
 end;
 
-procedure TKamSceneManager.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
+procedure TCastleSceneManager.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
 var
   Dummy: Single;
 begin
@@ -2196,7 +2196,7 @@ begin
   Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
 end;
 
-procedure TKamSceneManager.Idle(const CompSpeed: Single;
+procedure TCastleSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
@@ -2206,7 +2206,7 @@ begin
     Items.Idle(CompSpeed);
 end;
 
-procedure TKamSceneManager.CameraVisibleChange(ACamera: TObject);
+procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
 begin
   if (MainScene <> nil) and (ACamera = Camera) then
     { MainScene.CameraChanged will cause MainScene.[On]VisibleChangeHere,
@@ -2222,13 +2222,13 @@ begin
     OnCameraChanged(ACamera);
 end;
 
-function TKamSceneManager.CollisionIgnoreItem(const Sender: TObject;
+function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
   const Triangle: P3DTriangle): boolean;
 begin
   Result := false;
 end;
 
-function TKamSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
+function TCastleSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
@@ -2247,7 +2247,7 @@ begin
   end;
 end;
 
-procedure TKamSceneManager.CameraGetHeight(ACamera: TWalkCamera;
+procedure TCastleSceneManager.CameraGetHeight(ACamera: TWalkCamera;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 begin
@@ -2256,7 +2256,7 @@ begin
     IsAbove, AboveHeight, AboveGround);
 end;
 
-procedure TKamSceneManager.SceneBoundViewpointChanged(Scene: TVRMLScene);
+procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: T3DSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromViewpoint(Camera, false);
@@ -2268,7 +2268,7 @@ begin
     OnBoundViewpointChanged(Self);
 end;
 
-procedure TKamSceneManager.SceneBoundNavigationInfoChanged(Scene: TVRMLScene);
+procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: T3DSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromNavigationInfo(Camera, Items.BoundingBox);
@@ -2277,38 +2277,38 @@ begin
     OnBoundNavigationInfoChanged(Self);
 end;
 
-procedure TKamSceneManager.SceneBoundViewpointVectorsChanged(Scene: TVRMLScene);
+procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: T3DSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromViewpoint(Camera, true);
 end;
 
-function TKamSceneManager.GetItems: T3D;
+function TCastleSceneManager.GetItems: T3D;
 begin
   Result := Items;
 end;
 
-function TKamSceneManager.GetMainScene: TVRMLGLScene;
+function TCastleSceneManager.GetMainScene: T3DScene;
 begin
   Result := MainScene;
 end;
 
-function TKamSceneManager.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
+function TCastleSceneManager.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
   Result := ShadowVolumeRenderer;
 end;
 
-function TKamSceneManager.GetMouseRayHit3D: T3D;
+function TCastleSceneManager.GetMouseRayHit3D: T3D;
 begin
   Result := MouseRayHit3D;
 end;
 
-function TKamSceneManager.GetHeadlightCamera: TCamera;
+function TCastleSceneManager.GetHeadlightCamera: TCamera;
 begin
   Result := Camera;
 end;
 
-procedure TKamSceneManager.SetDefaultViewport(const Value: boolean);
+procedure TCastleSceneManager.SetDefaultViewport(const Value: boolean);
 begin
   if Value <> FDefaultViewport then
   begin
@@ -2369,7 +2369,7 @@ begin
   Result := SceneManager.Items;
 end;
 
-function TKamViewport.GetMainScene: TVRMLGLScene;
+function TKamViewport.GetMainScene: T3DScene;
 begin
   Result := SceneManager.MainScene;
 end;
@@ -2406,7 +2406,7 @@ begin
     SceneManager.MouseMove3D(RayOrigin, RayDirection);
 end;
 
-procedure TKamViewport.SetSceneManager(const Value: TKamSceneManager);
+procedure TKamViewport.SetSceneManager(const Value: TCastleSceneManager);
 begin
   if Value <> FSceneManager then
   begin

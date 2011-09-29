@@ -205,8 +205,8 @@ type
 
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
 
-    procedure LoadFromConfig(ConfigFile: TKamXMLConfig); override;
-    procedure SaveToConfig(ConfigFile: TKamXMLConfig); override;
+    procedure LoadFromConfig(ConfigFile: TCastleConfig); override;
+    procedure SaveToConfig(ConfigFile: TCastleConfig); override;
   end;
 
   { Music player. Instance of this class should be created only internally
@@ -472,7 +472,7 @@ begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
 
-procedure TXmlSoundEngine.LoadFromConfig(ConfigFile: TKamXMLConfig);
+procedure TXmlSoundEngine.LoadFromConfig(ConfigFile: TCastleConfig);
 begin
   inherited;
   Volume := ConfigFile.GetFloat('sound/volume', DefaultXmlEngineVolume);
@@ -480,7 +480,7 @@ begin
     DefaultMusicVolume);
 end;
 
-procedure TXmlSoundEngine.SaveToConfig(ConfigFile: TKamXMLConfig);
+procedure TXmlSoundEngine.SaveToConfig(ConfigFile: TCastleConfig);
 begin
   inherited;
   ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultXmlEngineVolume);

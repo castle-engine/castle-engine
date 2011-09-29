@@ -22,8 +22,8 @@
     @item(
       Creating/destroying the class instance immediately creates/destroys
       appropriate program. So be sure to create/destroy these classes only
-      when you have OpenGL context available (for example, create in TGLWindow.OnInit
-      and destroy in TGLWindow.OnClose).)
+      when you have OpenGL context available (for example, create in TCastleWindowBase.OnInit
+      and destroy in TCastleWindowBase.OnClose).)
 
     @item(
       Upon creation, these classes check current OpenGL context abilities.

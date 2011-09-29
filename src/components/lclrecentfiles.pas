@@ -23,7 +23,7 @@ uses Menus, RecentFiles;
 
 type
   { Manage a list of recently opened files, and show a menu in Lazarus. }
-  TKamRecentFiles = class(TBaseRecentFiles)
+  TLazRecentFiles = class(TBaseRecentFiles)
   private
     FNextMenuItem: TMenuItem;
     FirstSeparator: TMenuItem;
@@ -63,7 +63,7 @@ uses SysUtils, Classes, KambiLCLUtils;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TKamRecentFiles]);
+  RegisterComponents('Kambi', [TLazRecentFiles]);
 end;
 
 { TMenuRecentItem ------------------------------------------------------------ }
@@ -108,9 +108,9 @@ begin
     OnOpenRecent(FileName);
 end;
 
-{ TKamRecentFiles -------------------------------------------------------------- }
+{ TLazRecentFiles -------------------------------------------------------------- }
 
-procedure TKamRecentFiles.MenuCreate;
+procedure TLazRecentFiles.MenuCreate;
 var
   I: Integer;
   ParentMenu: TMenuItem;
@@ -139,7 +139,7 @@ begin
   end;
 end;
 
-procedure TKamRecentFiles.MenuDestroy;
+procedure TLazRecentFiles.MenuDestroy;
 var
   ParentMenu: TMenuItem;
   Position: Cardinal;
@@ -168,7 +168,7 @@ begin
   inherited;
 end;
 
-procedure TKamRecentFiles.SetNextMenuItem(Value: TMenuItem);
+procedure TLazRecentFiles.SetNextMenuItem(Value: TMenuItem);
 begin
   if Value <> FNextMenuItem then
   begin

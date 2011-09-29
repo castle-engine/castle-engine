@@ -69,7 +69,7 @@ type
   TBumpMethod = (bmEmboss, bmMultiTexDot, bmVRML);
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 
   { normal texture is for all methods, bumps in alpha for emboss only }
   NormalAndBumpTex: array [0..3] of TGLuint;
@@ -85,7 +85,7 @@ var
   Examiner: TExamineCamera;
   Walker: TWalkCamera;
 
-  Scene: TVRMLGLScene;
+  Scene: T3DScene;
   SceneBrightestLight: TAbstractPositionalLightNode;
   RenderParams: TBasicRenderParams;
 
@@ -266,7 +266,7 @@ begin
 end;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromViewEverything; override;
     procedure ApplyProjection; override;
   end;
@@ -988,7 +988,7 @@ end;
 { TNextButton ---------------------------------------------------------------- }
 
 type
-  TNextButton = class(TKamGLButton)
+  TNextButton = class(TCastleButton)
     constructor Create(AOwner: TComponent); override;
     procedure DoClick; override;
   end;
@@ -1031,7 +1031,7 @@ end;
 var
   VrmlFileName: string = 'vrmldata/levels/fountain/fountain_final.wrl';
 
-procedure Open(glwin: TGLWindow);
+procedure Open(glwin: TCastleWindowBase);
 const
   MinFilter = GL_LINEAR_MIPMAP_LINEAR;
   MagFilter = GL_LINEAR;
@@ -1106,19 +1106,19 @@ begin
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure Close(glwin: TGLWindow);
+procedure Close(glwin: TCastleWindowBase);
 begin
   FreeAndNil(Font);
   Scene.GLContextClose;
 end;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 begin
   NextButton.Left := Window.Width - NextButton.Width - 10;
   NextButton.Bottom := Window.Height - NextButton.Height - 10;
 end;
 
-procedure Idle(glwin: TGLWindow);
+procedure Idle(glwin: TCastleWindowBase);
 var
   LightPositionChanged: boolean;
 
@@ -1163,7 +1163,7 @@ end;
 
 { menu ----------------------------------------------------------------------- }
 
-procedure MenuCommand(glwin: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(glwin: TCastleWindowBase; MenuItem: TMenuItem);
 
   procedure NextCamera;
   begin
@@ -1261,7 +1261,7 @@ const
   end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   OnWarning := @OnWarningWrite;
 
@@ -1290,7 +1290,7 @@ begin
   NextButton := TNextButton.Create(Window);
   Window.Controls.Insert(0, NextButton);
 
-  Scene := TVRMLGLScene.Create(nil);
+  Scene := T3DScene.Create(nil);
   LoadSceneCore(VrmlFileName);
   { make octree for fast RenderFrustum }
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';

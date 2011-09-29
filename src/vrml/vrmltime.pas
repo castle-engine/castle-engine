@@ -43,27 +43,27 @@ type
         VRML standard defines that within one timestamp, only one event may
         pass through one route. This mechanism allows to avoid loops in routes.)
 
-      @item(Now note that when using TVRMLScene, Seconds is increased by
-        TVRMLScene.IncreaseTime. TVRMLScene doesn't require how often
+      @item(Now note that when using T3DSceneCore, Seconds is increased by
+        T3DSceneCore.IncreaseTime. T3DSceneCore doesn't require how often
         should IncreaseTime be called, in particular you can call multiple
-        times TVRMLScene.KeyDown, TVRMLScene.KeyUp, TVRMLScene.PointingDeviceMove
+        times T3DSceneCore.KeyDown, T3DSceneCore.KeyUp, T3DSceneCore.PointingDeviceMove
         without continously updating time. You can even not update time at all,
-        and still call TVRMLScene.KeyDown and such.
+        and still call T3DSceneCore.KeyDown and such.
 
-        This is a good thing --- it allows TVRMLScene to be very flexible.
+        This is a good thing --- it allows T3DSceneCore to be very flexible.
         The idea is that sensors are activated when user interface reports
         some event. You don't have to update time before every KeyDown / KeyUp
         and such.)
 
       @item(The potential problem here is that when you call
-        TVRMLScene.KeyDown twice, without the TVRMLScene.IncreaseTime
+        T3DSceneCore.KeyDown twice, without the T3DSceneCore.IncreaseTime
         in between, then the second KeyDown event will have "clogged" routes.
         Events send from the second KeyDown may be blocked on routes,
         since they will be detected as occuring within the same timestamp,
         so (following VRML standard) they'll have to be ignored.)
 
       @item(Using "Seconds seconds + PlusTicks ticks" allows to avoid this.
-        Each TVRMLScene.KeyDown and such increases world time by 1 tick
+        Each T3DSceneCore.KeyDown and such increases world time by 1 tick
         -- this way, the second KeyDown will have one more tick, so will
         always be considered later, and things will work Ok.)
     ) }

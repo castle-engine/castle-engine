@@ -30,24 +30,24 @@ uses KambiUtils, GLWindow, VectorMath, KambiWarnings, Base3D,
   VRMLScene, VRMLGLScene, KambiSceneManager, VRMLGLAnimation, VRMLNodes;
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Scene, Scene2: TVRMLGLScene;
-  Animation: TVRMLGLAnimation;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Scene, Scene2: T3DScene;
+  Animation: T3DPrecalculatedAnimation;
   Translation: T3DTranslated;
   Scene2Transform: TTransformNode;
   Scene2NewRoot: TX3DRootNode;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   OnWarning := @OnWarningWrite;
 
   { initialize SceneManager }
-  SceneManager := TKamSceneManager.Create(Window);
+  SceneManager := TCastleSceneManager.Create(Window);
   Window.Controls.Add(SceneManager);
 
   { initialize first Scene }
-  Scene := TVRMLGLScene.Create(SceneManager);
+  Scene := T3DScene.Create(SceneManager);
   Scene.Load('models/bridge_final.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
@@ -84,7 +84,7 @@ begin
   SceneManager.Items.Add(Translation);
 
   { initialize a 2nd scene, just because we can }
-  Scene2 := TVRMLGLScene.Create(SceneManager);
+  Scene2 := T3DScene.Create(SceneManager);
   Scene2.Load('models/kambi_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
@@ -105,7 +105,7 @@ begin
   Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
 
   { initialize Animation }
-  Animation := TVRMLGLAnimation.Create(SceneManager);
+  Animation := T3DPrecalculatedAnimation.Create(SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Add(Animation);

@@ -56,10 +56,10 @@ uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, GLWindow,
   KambiFilesUtils, KambiStringUtils, KeysMouse, KambiSceneManager;
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 
-  Scene: TVRMLGLScene;
-  SceneForShadow: TVRMLGLScene;
+  Scene: T3DScene;
+  SceneForShadow: T3DScene;
   RenderParams: TBasicRenderParams;
   LightNode: TPointLightNode;
   LightInstance: TLightInstance;
@@ -126,7 +126,7 @@ type
       no point right now.
 
     SceneManager is here mostly used to keep Camera. }
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
   public
     procedure RenderFromViewEverything; override;
     procedure ApplyProjection; override;
@@ -459,9 +459,9 @@ begin
 end;
 
 var
-  SceneManager: TKamSceneManager;
+  SceneManager: TCastleSceneManager;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
@@ -474,13 +474,13 @@ begin
   glClearColor(ClearColor[0], ClearColor[1], ClearColor[2], ClearColor[3]);
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
   Scene.GLContextClose;
   SceneForShadow.GLContextClose;
 end;
 
-procedure Idle(Window: TGLWindow);
+procedure Idle(Window: TCastleWindowBase);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
@@ -512,7 +512,7 @@ end;
 
 { menu ----------------------------------------------------------------------- }
 
-procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
 var
   S: string;
 begin
@@ -591,7 +591,7 @@ end;
 var
   RootNode: TX3DRootNode;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   { parse parameters  }
   Window.ParseParameters(StandardParseOptions);
@@ -611,14 +611,14 @@ begin
     { use box, just to show anything }
     RootNode := LoadVRMLClassicFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 
-  Scene := TVRMLGLScene.Create(nil);
+  Scene := T3DScene.Create(nil);
   try
     Scene.Load(RootNode, true);
     Scene.Attributes.PreserveOpenGLState := true;
 
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
-    SceneForShadow := TVRMLGLScene.Create(nil);
+    SceneForShadow := T3DScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
     SceneForShadow.Attributes.PureGeometry := true;
     SceneForShadow.Attributes.PreserveOpenGLState := true;

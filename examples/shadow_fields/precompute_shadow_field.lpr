@@ -41,7 +41,7 @@ uses SysUtils, ProgressUnit, ProgressConsole, KambiUtils,
   CubeMap, Boxes3D, SphericalHarmonics, KambiParameters;
 
 var
-  Scene: TVRMLScene;
+  Scene: T3DSceneCore;
   LightSource: boolean;
 
 procedure ComputeCubeMap(const Point: TVector3Single;
@@ -99,7 +99,7 @@ begin
 
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Scene := TVRMLScene.Create(nil);
+  Scene := T3DSceneCore.Create(nil);
   try
     Scene.Load(InputFileName);
     Scene.TriangleOctreeProgressTitle := 'Building octree';

@@ -37,13 +37,13 @@ uses SysUtils, VectorMath, GL, GLU, GLWindow, KambiStringUtils,
   KambiSceneManager, KambiParameters;
 
 var
-  Window: TGLUIWindow;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  Scene: T3DScene;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
   private
-    function TestFogVisibility(Shape: TVRMLGLShape): boolean;
+    function TestFogVisibility(Shape: TGLShape): boolean;
   protected
     procedure Render3D(const Params: TRenderParams); override;
   end;
@@ -51,7 +51,7 @@ type
 var
   SceneManager: TMySceneManager;
 
-function TMySceneManager.TestFogVisibility(Shape: TVRMLGLShape): boolean;
+function TMySceneManager.TestFogVisibility(Shape: TGLShape): boolean;
 begin
   { Test for collision between two spheres.
     1st is the bounding sphere of Shape.
@@ -78,7 +78,7 @@ begin
       BoolToStr[FogCulling] ]));
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   { We use quite large triangles for fog_culling level demo wall.
     This means that fog must be correctly rendered,
@@ -87,7 +87,7 @@ begin
   glHint(GL_FOG_HINT, GL_NICEST);
 end;
 
-procedure KeyDown(Window: TGLWindow; Key: TKey; c: char);
+procedure KeyDown(Window: TCastleWindowBase; Key: TKey; c: char);
 var
   FogNode: TFogNode;
 begin
@@ -113,12 +113,12 @@ end;
 begin
   Parameters.CheckHigh(0);
 
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   SceneManager := TMySceneManager.Create(Application);
   Window.Controls.Add(SceneManager);
 
-  Scene := TVRMLGLScene.Create(Application);
+  Scene := T3DScene.Create(Application);
   OnWarning := @OnWarningWrite;
   Scene.Load('models' + PathDelim + 'fog_culling_final.wrl');
   SceneManager.MainScene := Scene;

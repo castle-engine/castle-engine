@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ File filters, for TGLWindow.FileDialog and for Lazarus file dialogs. }
+{ File filters, for TCastleWindowBase.FileDialog and for Lazarus file dialogs. }
 unit FileFilters;
 
 interface

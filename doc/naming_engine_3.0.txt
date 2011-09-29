@@ -82,3 +82,61 @@ summarizes renames done, and some reasoning.
   * TVRMLXxx -> either TX3DXxx (special) or TAbstractXxxNode (abstract)
 - "The Castle" game units renamed CastleXxx -> GameXxx.
   Motivation: do not clash with engine units.
+
+- Window/control renames:
+  * TGLWindowXxx -> TCastleWindowXxx, also changing suffixes:
+    TGLWindow -> TCastleWindowBase,
+    TGLWindowVRMLBrowser -> TCastleWindow, and so on.
+    TCastleWindow is now the final (with SceneManager ready) class, and this is advised to be used in new programs.
+  * TKamVRMLBrowser -> TCastleControl, this is advised to be used with Lazarus.
+    TKamOpenGLControl -> TCastleControlXxx.
+- Components and important classes renames:
+  * 2D controls to TCastleXxx, like TCastleButton and TCastleImage and TCastleSceneManager.
+  * 3D to T3DPrecalculatedAnimation, T3DScene
+  * TVRMLShape -> TShape
+    TVRMLTriangle -> TTriangle, and so on.
+
+- Precisely:
+tkamopenglcontrolcore  TCastleControlBase
+tkamvrmlbrowser        TCastleControl
+tkamopenglcontrol      TCastleControlCustom
+tglwindowstate         TWindowState
+tglwindowparseoption   TWindowParseOption
+tglwindowparseoptions  TWindowParseOptions
+pglwindowparseoptions  PWindowParseOptions
+tglwindowmessagetype   TWindowMessageType
+tglwindowfunc          TWindowFunc
+tglwindowcallbacks     TWindowCallbacks
+tglwindowlist          TWindowList
+tglwindowdemo          TCastleWindowDemo
+tgluiwindow            TCastleWindowCustom
+tglwindowvrmlbrowser   TCastleWindow
+tglwindow              TCastleWindowBase
+tkamrecentfiles        TLazRecentFiles
+tglrecentfiles         TCastleRecentFiles
+tkamglbutton           TCastleButton
+tkamglimage            TCastleImage
+tglnotifications       TCastleNotifications
+tglmenu                TCastleMenu
+tkamxmlconfig          TCastleConfig
+tkamscenemanager       TCastleSceneManager
+tvrmlanimation         T3DPrecalculatedAnimationCore
+tvrmlglanimation       T3DPrecalculatedAnimation
+tvrmlscenespatialstructure  TSceneSpatialStructure
+tvrmlscenegeometrychanged   TSceneGeometryChanged
+tvrmlscenenotification      TSceneNotification
+tvrmlscenefreeresource      TSceneFreeResource
+tvrmlscenevalidit           TSceneValidit
+tvrmlscenerenderingattributes TSceneRenderingAttributes
+tvrmlscene             T3DSceneCore
+tvrmlglscene           T3DScene
+tvrmlshape             TShape
+tvrmlglshape           TGLShape
+tvrmltriangle          TTriangle
+pvrmltriangle          PTriangle
+tvrmlbasetrianglesoctree            TBaseTrianglesOctree
+tvrmlshapeoctree                    TShapeOctree
+tvrmltriangleoctree                 TTriangleOctree
+tvrmlbasetrianglesoctreenode        TBaseTrianglesOctreeNode
+tvrmlshapeoctreenode                TShapeOctreeNode
+tvrmlwireframeeffect                TWireframeEffect

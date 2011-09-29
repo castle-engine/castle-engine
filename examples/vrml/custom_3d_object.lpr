@@ -17,7 +17,7 @@
   you can define your own T3D descendant.
 
   Note that most programs should be happy just using the T3D descendants
-  already implemented inside our engine. First of all there's TVRMLGLScene,
+  already implemented inside our engine. First of all there's T3DScene,
   that allows to express virtually everything through VRML/X3D nodes,
   and has an optimized renderer, collision solver etc.
 
@@ -68,13 +68,13 @@ begin
 end;
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
   Cube: TCube;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
-  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager := TCastleSceneManager.Create(Application);
   Window.Controls.Add(SceneManager);
 
   Cube := TCube.Create(Application);
@@ -83,7 +83,7 @@ begin
   { init SceneManager.Camera.
     This is optional, if SceneManager.Camera is left unassigned, a suitable
     default camera will be created by the scene manager during ApplyProjection
-    (before first rendering), see TKamSceneManager.CreateDefaultCamera docs. }
+    (before first rendering), see TCastleSceneManager.CreateDefaultCamera docs. }
   SceneManager.Camera := TExamineCamera.Create(Application);
   (SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),

@@ -29,7 +29,7 @@ type
   TShow = (shNone, shWire, shFill);
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
   Camera: TExamineCamera;
 
   Surface: TSurface;
@@ -197,7 +197,7 @@ begin
     5, 10, 10);
 end;
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
   glLoadMatrix(Camera.Matrix);
@@ -263,7 +263,7 @@ begin
   glPopAttrib;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -274,12 +274,12 @@ begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(StatusFont);
 end;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 begin
   glViewport(0, 0, Window.Width, Window.Height);
   if ProjectionPerspective then
@@ -287,7 +287,7 @@ begin
     ProjectionGLOrtho(-1, 1, -1, 1, 0.1, 100);
 end;
 
-procedure Idle(Window: TGLWindow);
+procedure Idle(Window: TCastleWindowBase);
 
   procedure Move(Coord, MoveDir: Integer);
   begin
@@ -309,7 +309,7 @@ begin
   end;
 end;
 
-procedure MouseDown(Window: TGLWindow; Btn: TMouseButton);
+procedure MouseDown(Window: TCastleWindowBase; Btn: TMouseButton);
 
   procedure SelectClosestControlPoint;
   var
@@ -368,14 +368,14 @@ begin
   end;
 end;
 
-procedure MouseUp(Window: TGLWindow; Btn: TMouseButton);
+procedure MouseUp(Window: TCastleWindowBase; Btn: TMouseButton);
 begin
   case Btn of
     mbRight: Dragging := false;
   end;
 end;
 
-procedure MouseMove(Window: TGLWindow; NewX, NewY: integer);
+procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: integer);
 var
   ModelMatrix, ProjMatrix: T16dArray;
   Viewport: TViewPortArray;
@@ -462,7 +462,7 @@ end;
 
 { menu ------------------------------------------------------------ }
 
-procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
 
   procedure New;
   var
@@ -618,7 +618,7 @@ end;
 { main ----------------------------------------------------------------------- }
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Window.OnMenuCommand := @MenuCommand;
   Window.MainMenu := CreateMainMenu;

@@ -23,27 +23,27 @@ uses GLWindow, GLMenu, XmlSoundEngine;
 type
   { An abstract class for GLSoundMenu items.
     In the future maybe such idea will be incorporated into GLMenu unit. }
-  TGLMenuItem = class
+  TCastleMenuItem = class
   private
-    FWindow: TGLWindow;
+    FWindow: TCastleWindowBase;
   protected
-    property Window: TGLWindow read FWindow;
+    property Window: TCastleWindowBase read FWindow;
   public
     { Creates and adds this menu item to Menu. }
-    constructor Create(AWindow: TGLWindow; Menu: TGLMenu);
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu);
     function Title: string; virtual; abstract;
-    function Accessory: TGLMenuItemAccessory; virtual;
+    function Accessory: TCastleMenuItemAccessory; virtual;
     procedure Selected; virtual;
     procedure AccessoryValueChanged; virtual;
   end;
 
-  TGLSoundMenuItem = class(TGLMenuItem)
+  TGLSoundMenuItem = class(TCastleMenuItem)
   private
     FSoundEngine: TXmlSoundEngine;
   protected
     property SoundEngine: TXmlSoundEngine read FSoundEngine;
   public
-    constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
       ASoundEngine: TXmlSoundEngine);
   end;
 
@@ -56,40 +56,40 @@ type
   { Float slider suitable for volume setting.
     Range is always [0 .. 1] and when the slider is exactly
     on 0.0 position it shows "Off". }
-  TGLMenuVolumeSlider = class(TGLMenuFloatSlider)
+  TCastleMenuVolumeSlider = class(TCastleMenuFloatSlider)
     constructor Create(const AValue: Single);
     function ValueToStr(const AValue: Single): string; override;
   end;
 
   TGLSoundVolumeMenuItem = class(TGLSoundMenuItem)
   private
-    FSlider: TGLMenuVolumeSlider;
-    property Slider: TGLMenuVolumeSlider read FSlider;
+    FSlider: TCastleMenuVolumeSlider;
+    property Slider: TCastleMenuVolumeSlider read FSlider;
   public
-    constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
       ASoundEngine: TXmlSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
     procedure RefreshAccessory;
 
     function Title: string; override;
-    function Accessory: TGLMenuItemAccessory; override;
+    function Accessory: TCastleMenuItemAccessory; override;
     procedure AccessoryValueChanged; override;
   end;
 
   TGLMusicVolumeMenuItem = class(TGLSoundMenuItem)
   private
-    FSlider: TGLMenuVolumeSlider;
-    property Slider: TGLMenuVolumeSlider read FSlider;
+    FSlider: TCastleMenuVolumeSlider;
+    property Slider: TCastleMenuVolumeSlider read FSlider;
   public
-    constructor Create(AWindow: TGLWindow; Menu: TGLMenu;
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
       ASoundEngine: TXmlSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
     procedure RefreshAccessory;
 
     function Title: string; override;
-    function Accessory: TGLMenuItemAccessory; override;
+    function Accessory: TCastleMenuItemAccessory; override;
     procedure AccessoryValueChanged; override;
   end;
 
@@ -97,32 +97,32 @@ implementation
 
 uses Classes, KambiClassUtils, KambiUtils, GLWinMessages;
 
-{ TGLMenuItem ---------------------------------------------------------------- }
+{ TCastleMenuItem ---------------------------------------------------------------- }
 
-constructor TGLMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu);
+constructor TCastleMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu);
 begin
   inherited Create;
   Menu.Items.AddObject(Title, Accessory);
   FWindow := AWindow;
 end;
 
-function TGLMenuItem.Accessory: TGLMenuItemAccessory;
+function TCastleMenuItem.Accessory: TCastleMenuItemAccessory;
 begin
   Result := nil;
 end;
 
-procedure TGLMenuItem.Selected;
+procedure TCastleMenuItem.Selected;
 begin
 end;
 
-procedure TGLMenuItem.AccessoryValueChanged;
+procedure TCastleMenuItem.AccessoryValueChanged;
 begin
 end;
 
 { TGLSoundMenuItem ----------------------------------------------------------- }
 
-constructor TGLSoundMenuItem.Create(AWindow: TGLWindow;
-  Menu: TGLMenu; ASoundEngine: TXmlSoundEngine);
+constructor TGLSoundMenuItem.Create(AWindow: TCastleWindowBase;
+  Menu: TCastleMenu; ASoundEngine: TXmlSoundEngine);
 begin
   inherited Create(AWindow, Menu);
   FSoundEngine := ASoundEngine;
@@ -149,14 +149,14 @@ begin
   finally S.Free end;
 end;
 
-{ TGLMenuVolumeSlider ---------------------------------------------------- }
+{ TCastleMenuVolumeSlider ---------------------------------------------------- }
 
-constructor TGLMenuVolumeSlider.Create(const AValue: Single);
+constructor TCastleMenuVolumeSlider.Create(const AValue: Single);
 begin
   inherited Create(0, 1, AValue);
 end;
 
-function TGLMenuVolumeSlider.ValueToStr(const AValue: Single): string;
+function TCastleMenuVolumeSlider.ValueToStr(const AValue: Single): string;
 begin
   if AValue = 0.0 then
     Result := 'Off' else
@@ -165,10 +165,10 @@ end;
 
 { TGLSoundVolumeMenuItem ----------------------------------------------------- }
 
-constructor TGLSoundVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
+constructor TGLSoundVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
   ASoundEngine: TXmlSoundEngine);
 begin
-  FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.Volume);
+  FSlider := TCastleMenuVolumeSlider.Create(ASoundEngine.Volume);
   inherited;
 end;
 
@@ -177,7 +177,7 @@ begin
   Result := 'Volume';
 end;
 
-function TGLSoundVolumeMenuItem.Accessory: TGLMenuItemAccessory;
+function TGLSoundVolumeMenuItem.Accessory: TCastleMenuItemAccessory;
 begin
   Result := FSlider;
 end;
@@ -194,10 +194,10 @@ end;
 
 { TGLMusicVolumeMenuItem ----------------------------------------------------- }
 
-constructor TGLMusicVolumeMenuItem.Create(AWindow: TGLWindow; Menu: TGLMenu;
+constructor TGLMusicVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
   ASoundEngine: TXmlSoundEngine);
 begin
-  FSlider := TGLMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);
+  FSlider := TCastleMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);
   inherited;
 end;
 
@@ -206,7 +206,7 @@ begin
   Result := 'Music volume';
 end;
 
-function TGLMusicVolumeMenuItem.Accessory: TGLMenuItemAccessory;
+function TGLMusicVolumeMenuItem.Accessory: TCastleMenuItemAccessory;
 begin
   Result := FSlider;
 end;

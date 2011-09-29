@@ -30,7 +30,7 @@
 
 { CommonRay/Segment begins --------------------------------------------------- }
 
-  function DoNotLeaf: PVRMLTriangle;
+  function DoNotLeaf: PTriangle;
   {$ifdef SEGMENT_COLLISION}
   var
     Ray0: TYPE_VECTOR3 absolute Pos1;
@@ -250,7 +250,7 @@
 
   var
     i: integer;
-    SubNode: TVRMLBaseTrianglesOctreeNode;
+    SubNode: TBaseTrianglesOctreeNode;
   begin
    {$ifdef SEGMENT_COLLISION}
    RayVector := VectorSubtract(Pos2, Pos1);
@@ -270,7 +270,7 @@
    result := nil;
    for i := 0 to SubnodesToCheckCount - 1 do
    begin
-    SubNode := TVRMLBaseTrianglesOctreeNode(TreeSubNodes[
+    SubNode := TBaseTrianglesOctreeNode(TreeSubNodes[
       SubnodesToCheck[i, 0],
       SubnodesToCheck[i, 1],
       SubnodesToCheck[i, 2]]);

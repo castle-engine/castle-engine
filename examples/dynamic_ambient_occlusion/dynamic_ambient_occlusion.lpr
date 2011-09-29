@@ -37,9 +37,9 @@ type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 
-  Scene: TVRMLGLScene;
+  Scene: T3DScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
   DrawType: TDrawType = dtPass2;
 
@@ -65,7 +65,7 @@ var
 
 type
   TShapeInfo = record
-    Shape: TVRMLShape;
+    Shape: TShape;
     CoordToElement: array of Integer;
   end;
   PShapeInfo = ^TShapeInfo;
@@ -136,7 +136,7 @@ end;
 
 procedure CalculateElements;
 
-  procedure AddShapeElements(ShapeIndex: Integer; Shape: TVRMLShape);
+  procedure AddShapeElements(ShapeIndex: Integer; Shape: TShape);
   var
     Coord: TMFVec3f;
     Calculator: TElementsCalculator;
@@ -191,7 +191,7 @@ procedure CalculateElements;
   end;
 
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
   I, GoodElementsCount, ShapeIndex, ShapeCoord: Integer;
 begin
   Elements.Count := 0;
@@ -199,7 +199,7 @@ begin
   SetLength(Shapes, Scene.Shapes.ShapesCount(true, true, false));
 
   ShapeIndex := 0;
-  SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, true, true, false);
+  SI := TShapeTreeIterator.Create(Scene.Shapes, true, true, false);
   try
     while SI.GetNext do
     begin
@@ -443,12 +443,12 @@ end;
 { ---------------------------------------------------------------------------- }
 
 var
-  FullRenderShape: TVRMLShape;
+  FullRenderShape: TShape;
   FullRenderShapeInfo: PShapeInfo;
   FullRenderIntensityTex: TGrayscaleImage;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromView3D(const Params: TRenderParams); override;
   end;
 
@@ -656,16 +656,16 @@ end;
 type
   THelper = class
     class procedure VertexColor(var Color: TVector3Single;
-      Shape: TVRMLShape; const VertexPosition: TVector3Single;
+      Shape: TShape; const VertexPosition: TVector3Single;
       VertexIndex: Integer);
 
-    class procedure SceneGeometryChanged(Scene: TVRMLScene;
+    class procedure SceneGeometryChanged(Scene: T3DSceneCore;
       const SomeLocalGeometryChanged: boolean;
-      OnlyShapeChanged: TVRMLShape);
+      OnlyShapeChanged: TShape);
   end;
 
 class procedure THelper.VertexColor(var Color: TVector3Single;
-  Shape: TVRMLShape; const VertexPosition: TVector3Single;
+  Shape: TShape; const VertexPosition: TVector3Single;
   VertexIndex: Integer);
 var
   ElemIndex, I: Integer;
@@ -695,9 +695,9 @@ begin
   end;
 end;
 
-class procedure THelper.SceneGeometryChanged(Scene: TVRMLScene;
+class procedure THelper.SceneGeometryChanged(Scene: T3DSceneCore;
   const SomeLocalGeometryChanged: boolean;
-  OnlyShapeChanged: TVRMLShape);
+  OnlyShapeChanged: TShape);
 var
   OldElementsTexSize, OldElementsCount: Cardinal;
 begin
@@ -716,7 +716,7 @@ end;
 
 { GLWindow callbacks --------------------------------------------------------- }
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Glwin: TCastleWindowBase);
 const
   GLSLProgramBaseName = 'dynamic_ambient_occlusion';
 var
@@ -783,13 +783,13 @@ begin
   Writeln('--------------------------------------------------');
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Glwin: TCastleWindowBase);
 begin
   FreeAndNil(GLSLProgram[0]);
   FreeAndNil(GLSLProgram[1]);
 end;
 
-procedure Idle(Glwin: TGLWindow);
+procedure Idle(Glwin: TCastleWindowBase);
 begin
   if Glwin.Pressed.Characters['s'] then
   begin
@@ -859,7 +859,7 @@ begin
   end;
 end;
 
-procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     100: begin DrawType := dtNormalGL; UpdateSceneAttribs; end;
@@ -878,7 +878,7 @@ begin
 end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Elements := TAOElementList.Create;
 
@@ -886,7 +886,7 @@ begin
   try
     OnWarning := @OnWarningWrite;
 
-    Scene := TVRMLGLScene.Create(Window);
+    Scene := T3DScene.Create(Window);
     Scene.Load(Parameters[1]);
     UpdateSceneAttribs;
 

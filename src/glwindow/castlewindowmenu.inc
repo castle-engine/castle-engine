@@ -30,7 +30,7 @@
     procedure MenuFinalize;
   private
     { Stuff internal for proper communication between menu and
-      TGLWindow implementation. }
+      TCastleWindowBase implementation. }
 
     { ParentWindow to call MenuFinalize, MenuInitialize.
 
@@ -39,7 +39,7 @@
       you should use CorrentParentWindow, that looks for it recursively.
       This way we only have to update it on SetMainMenu (no need to keep
       it recursively updated in all TMenuEntry instances). }
-    ParentWindow: TGLWindow;
+    ParentWindow: TCastleWindowBase;
 
     { Internal handle of this menu item within GLWindow backend.
       This is used by GLWindow backend implementation, to store the
@@ -51,7 +51,7 @@
     FParentMenu: TMenu;
     FParentMenuPosition: Cardinal;
 
-    function CorrectParentWindow: TGLWindow;
+    function CorrectParentWindow: TCastleWindowBase;
   public
     { For optimization purposes, you may surround many menu changes
       inside MenuUpdateBegin + MenuUpdateEnd calls.
@@ -228,7 +228,7 @@
 
       If Key <> K_None and user will press this Key
       then this object's DoCommand will be called
-      (and TGLWindow.EventMenuCommnd, and TGLWindow.OnMenuCommand,
+      (and TCastleWindowBase.EventMenuCommnd, and TCastleWindowBase.OnMenuCommand,
       if DoCommand returns false).
       Similiar, is CharKey <> #0 and user will press a key with CharKey
       then it will be treated as this menu item click.
@@ -240,7 +240,7 @@
       (i.e. without doing any special redirection keypress -> DoCommand
       in GLWindow).
       So you will not get EventKeyDown (OnKeyDown) messages for such
-      keypresses (that translate to menu click). Although TGLWindow.KeysDown
+      keypresses (that translate to menu click). Although TCastleWindowBase.KeysDown
       will be appropriately updated, of course.
 
       Note: Caption of this object should not contain
@@ -475,7 +475,7 @@ function SQuoteMenuEntryCaption(const S: string): string;
 
 { TMenuEntry ------------------------------------------------------------ }
 
-function TMenuEntry.CorrectParentWindow: TGLWindow;
+function TMenuEntry.CorrectParentWindow: TCastleWindowBase;
 begin
   if ParentMenu = nil then
     Result := ParentWindow else
@@ -484,7 +484,7 @@ end;
 
 procedure TMenuEntry.MenuInitialize;
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuInitialize;
@@ -492,7 +492,7 @@ end;
 
 procedure TMenuEntry.MenuFinalize;
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuFinalize;
@@ -500,7 +500,7 @@ end;
 
 procedure TMenuEntry.MenuUpdateBegin;
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuUpdateBegin;
@@ -508,7 +508,7 @@ end;
 
 procedure TMenuEntry.MenuUpdateEnd;
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   P := CorrectParentWindow;
   if P <> nil then P.MenuUpdateEnd;
@@ -525,7 +525,7 @@ end;
 
 procedure TMenuEntryWithCaption.SetCaption(const Value: String);
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   FCaption := Value;
 
@@ -535,7 +535,7 @@ end;
 
 procedure TMenuEntryWithCaption.SetEnabled(Value: boolean);
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   if FEnabled <> Value then
   begin
@@ -765,7 +765,7 @@ end;
 
 procedure TMenuItemChecked.SetChecked(Value: boolean);
 var
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
  if Value <> Checked then
  begin
@@ -912,7 +912,7 @@ var
   I: Integer;
   Item: TMenuItemRadio;
   CheckedFast: boolean;
-  P: TGLWindow;
+  P: TCastleWindowBase;
 begin
   { When count is 0, we have no items belonging to our group.
     So selected may only be nil.
@@ -975,12 +975,12 @@ end;
 
 { init/fini ------------------------------------------------------------ }
 
-procedure GLWindowMenu_Init;
+procedure CastleWindowMenu_Init;
 begin
  MenuItems := TMenuEntryList.Create(false);
 end;
 
-procedure GLWindowMenu_Fini;
+procedure CastleWindowMenu_Fini;
 begin
  FreeAndNil(MenuItems);
 end;

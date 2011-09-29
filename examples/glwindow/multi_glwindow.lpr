@@ -19,7 +19,7 @@
     (more OOP approach)
   - TGLOutlineTTFont rendered with depth (3d letters)
   - press c to change cursor in the window that has focus, this is to demo
-    that TGLWindow.Cursor indeed works as appropriate, i.e. changes the cursor
+    that TCastleWindowBase.Cursor indeed works as appropriate, i.e. changes the cursor
     only for the given window.
 
   Started as program based on NeHe 14th tutorial. Now the things insprired
@@ -38,7 +38,7 @@ uses
   KambiStringUtils;
 
 type
-  TMyWindow = class(TGLWindowDemo)
+  TMyWindow = class(TCastleWindowDemo)
   public
     FontGL, FontGLLines: TGLOutlineFont_Abstract;
     RotX, RotY, RotZ, MoveX, MoveY, MoveZ :TGLfloat;

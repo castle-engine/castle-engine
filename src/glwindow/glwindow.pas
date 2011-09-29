@@ -14,34 +14,34 @@
 }
 
 { Window with OpenGL context suitable for 2D and 3D rendering
-  of "Castle Game Engine". The base TGLWindow provides a simple
+  of "Castle Game Engine". The base TCastleWindowBase provides a simple
   window with OpenGL context, and is suitable for any OpenGL program.
-  More advanced TGLWindowVRMLBrowser extends it to comfortably
+  More advanced TCastleWindow extends it to comfortably
   render 2D controls and 3D objects defined by our engine.
 
   @link(Application) object (instance of class @link(TGLApplication))
-  is a central manager of all open @link(TGLWindow) windows.
+  is a central manager of all open @link(TCastleWindowBase) windows.
 
   Using this unit:
 
   @orderedList(
-    @item(Declare and create @link(TGLWindow) instance. (Or a descendant
-      like @link(TGLUIWindow) or @link(TGLWindowDemo).))
+    @item(Declare and create @link(TCastleWindowBase) instance. (Or a descendant
+      like @link(TCastleWindowCustom) or @link(TCastleWindowDemo).))
 
     @item(Assign Glw properties and callbacks like
-      @link(TGLWindow.OnDraw OnDraw),
-      @link(TGLWindow.OnResize OnResize),
-      @link(TGLWindow.Width Width),
-      @link(TGLWindow.Height Height),
-      @link(TGLWindow.Caption Caption).)
+      @link(TCastleWindowBase.OnDraw OnDraw),
+      @link(TCastleWindowBase.OnResize OnResize),
+      @link(TCastleWindowBase.Width Width),
+      @link(TCastleWindowBase.Height Height),
+      @link(TCastleWindowBase.Caption Caption).)
 
-    @item(Call @link(TGLWindow.Open Window.Open),
+    @item(Call @link(TCastleWindowBase.Open Window.Open),
       this will actually show the window and it's
       associated OpenGL context. It also calls
-      @link(TGLWindow.EventOpen EventOpen)
-      (@link(TGLWindow.OnOpen OnOpen) callback)
-      and @link(TGLWindow.EventResize EventResize)
-      (@link(TGLWindow.OnResize OnResize) callback).)
+      @link(TCastleWindowBase.EventOpen EventOpen)
+      (@link(TCastleWindowBase.OnOpen OnOpen) callback)
+      and @link(TCastleWindowBase.EventResize EventResize)
+      (@link(TCastleWindowBase.OnResize OnResize) callback).)
 
     @item(Call @link(TGLApplication.Run Application.Run).
       This will enter message loop that will call
@@ -54,18 +54,18 @@
         @longCode(#  while Application.ProcessMessage do <something>;#)
       instead of Application.Run.
 
-      You can also call @link(TGLWindow.OpenAndRun Window.OpenAndRun),
+      You can also call @link(TCastleWindowBase.OpenAndRun Window.OpenAndRun),
       this is just a shortcut for Window.Open + Application.Run.)
 
     @item(Application.Run ends when you call @link(TGLApplication.Quit Application.Quit)
-      or when you close last visible window using @link(TGLWindow.Close Close(true)).
+      or when you close last visible window using @link(TCastleWindowBase.Close Close(true)).
 
       User is also allowed to close a window using WindowManager facilities
       (clicking on "X" button in the frame corner, pressing Alt+F4 or something
       like that). By default, such user action will make window close
       (but you can freely customize what your program does when user
       tries to close the window using callback
-      @link(TGLWindow.OnCloseQuery OnCloseQuery)).)
+      @link(TCastleWindowBase.OnCloseQuery OnCloseQuery)).)
   )
 
   So the simplest example of using this unit can look like this:
@@ -74,16 +74,16 @@
   uses GLWindow;
 
   var
-    Window: TGLUIWindow;
+    Window: TCastleWindowCustom;
 
-  procedure Draw(Window: TGLWindow);
+  procedure Draw(Window: TCastleWindowBase);
   begin  ...  end;
 
-  procedure Resize(Window: TGLWindow);
+  procedure Resize(Window: TCastleWindowBase);
   begin  ...  end;
 
   begin
-    Window := TGLUIWindow.Create(Application);
+    Window := TCastleWindowCustom.Create(Application);
     Window.OnResize := @Resize;
     Window.OnDraw := @Draw;
     Window.Caption := 'Simplest GLWindow example';
@@ -93,9 +93,9 @@
 
   @italic(More object-oriented approach):
   Instead of assigning callbacks (OnDraw, OnResize etc.) you can
-  also derive a new class from TGLWindow and override some of virtual
+  also derive a new class from TCastleWindowBase and override some of virtual
   methods, like EventDraw, EventResize etc. Every callback OnXxx
-  has a corresponding EventXxx method. In TGLWindow class,
+  has a corresponding EventXxx method. In TCastleWindowBase class,
   all EventXxx methods simply call appropriate OnXxx callbacks
   (this way you can use whatever approach you like -- OOP or not-OOP).
 
@@ -106,7 +106,7 @@
   uses GLWindow;
 
   type
-    TMyWindow = class(TGLUIWindow)
+    TMyWindow = class(TCastleWindowCustom)
       procedure EventDraw; override;
       procedure EventResize; override;
     end;
@@ -127,8 +127,8 @@
 #)
 
   The non-OOP approach has one advantage: you can easily switch all callbacks
-  to some other set of callbacks using TGLWindowCallbacks,
-  TGLWindow.GetCallbacksState, TGLWindow.SetCallbacksState.
+  to some other set of callbacks using TWindowCallbacks,
+  TCastleWindowBase.GetCallbacksState, TCastleWindowBase.SetCallbacksState.
   Using these functions I implemented unit
   @link(GLWinModes) and then, on top of this, I implemented some very
   handy things like modal message boxes (unit @link(GLWinMessages))
@@ -138,10 +138,10 @@
   Using OOP approach (overriding EventXxx methods instead of registering OnXxx
   callbacks) you can not do such things so easily -- in general, you have
   to define something to turn off special EventXxx functionality
-  (like SetDemoOptions in TGLWindowDemo and UseControls in TGLUIWindow)
+  (like SetDemoOptions in TCastleWindowDemo and UseControls in TCastleWindowCustom)
   and you have to turn them off/on when using GLWinModes
-  (mentioned TGLWindowDemo and TGLUIWindow are already handled in
-  GLWinModes). TODO: I shall do some virtual methods in TGLWindow
+  (mentioned TCastleWindowDemo and TCastleWindowCustom are already handled in
+  GLWinModes). TODO: I shall do some virtual methods in TCastleWindowBase
   to make this easy.
 
   Random features list:
@@ -153,19 +153,19 @@
       event loop handling, which is crucial for implementing things
       like @link(MessageInputQuery) function that does modal GUI dialog box.)
 
-    @item(TGLWindow.Pressed to easily and reliably check which keys
+    @item(TCastleWindowBase.Pressed to easily and reliably check which keys
       are pressed.)
 
-    @item(Frames per second measuring, see @link(TGLWindow.Fps),)
+    @item(Frames per second measuring, see @link(TCastleWindowBase.Fps),)
 
     @item(A menu bar under WinAPI and GTK backends.
 
       You can attach a menu to a window. Menu structure is constructed using
       various descendants of TMenuEntry class.
       Then you have to assign such menu structure
-      to TGLWindow.MainMenu property. When GLWindow is implemented on top
+      to TCastleWindowBase.MainMenu property. When GLWindow is implemented on top
       of GTK_1 or GTK_2 or WINAPI or GLUT we will show this menu and call
-      TGLWindow.EventMenuCommand (TGLWindow.OnMenuCommand) when user clicks some menu item.
+      TCastleWindowBase.EventMenuCommand (TCastleWindowBase.OnMenuCommand) when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
       See @code(castle_game_engine/examples/glwindow/glwindow_menu.lpr)
@@ -175,11 +175,11 @@
       see TGLApplication.VideoChange.
 
       Also you can request various OpenGL buffers: color buffer with alpha
-      channel (@link(TGLWindow.AlphaBits AlphaBits)),
-      stencil buffer (@link(TGLWindow.StencilBufferBits StencilBufferBits)),
-      double buffer (@link(TGLWindow.DoubleBuffer DoubleBuffer)), accumulation buffer
-      (@link(TGLWindow.AccumBufferBits AccumBufferBits)),
-      multisampling (full-screen antialiasing) buffers (@link(TGLWindow.MultiSampling MultiSampling))?
+      channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
+      stencil buffer (@link(TCastleWindowBase.StencilBufferBits StencilBufferBits)),
+      double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer)), accumulation buffer
+      (@link(TCastleWindowBase.AccumBufferBits AccumBufferBits)),
+      multisampling (full-screen antialiasing) buffers (@link(TCastleWindowBase.MultiSampling MultiSampling))?
       )
 
     @item(You can use native modal dialogs for things such as file selection.
@@ -187,10 +187,10 @@
       will use Windows dialog boxes, XLib backend will fall back
       on GLWinMessages text input.
 
-      See TGLWindow.FileDialog (for opening and saving files) and
-      TGLWindow.ColorDialog (for choosing RGB colors).)
+      See TCastleWindowBase.FileDialog (for opening and saving files) and
+      TCastleWindowBase.ColorDialog (for choosing RGB colors).)
 
-    @item(TGLWindow.ParseParameters method allows you to easily initialize TGLWindow
+    @item(TCastleWindowBase.ParseParameters method allows you to easily initialize TCastleWindowBase
       properties like initial size and position using command-line
       parameters like @code(@--geometry WIDTHxHEIGHT), @code(@--display) etc.)
   )
@@ -252,7 +252,7 @@ unit GLWindow;
       is displayed.
     - File filters are not implemented. This is fixed in GTK_2 by
       using newer GtkFileChooser.
-    - TGLWindow.Message*, TGLWindow.SetMousePosition are not implemented
+    - TCastleWindowBase.Message*, TCastleWindowBase.SetMousePosition are not implemented
       with GTK 1 backend (raise "not implemented" exceptions).
       They probably could be implemented, but (since GTK 1 is obsolete now)
       I didn't feel the need.
@@ -307,7 +307,7 @@ unit GLWindow;
       and do not want popup dialog boxes. Instead you draw everything
       inside your OpenGL context, which makes your game look the same
       regardless of the platform and GUI can be styled to your game theme.
-      For example, menu may be done by TGLMenu, and dialog boxes
+      For example, menu may be done by TCastleMenu, and dialog boxes
       by GLWinMessages.
 
       As a bonus, XLIB allows you to change screen resolution when
@@ -342,7 +342,7 @@ unit GLWindow;
       to change size of our window (using window manager-specific
       things, like dragging our window's border)
       but we will simply "pretend" that nothing happened
-      (TGLWindow instance will not change it's Width/Height,
+      (TCastleWindowBase instance will not change it's Width/Height,
       will not do OnResize event etc.).
       Similar with (Min|Max)(Width|Height) constraints:
       they can't be forced using glut, we will simply ignore
@@ -407,7 +407,7 @@ unit GLWindow;
   - Implement all methods in glwindow_foo.inc. You wil find the specification
     what each method should do in the specification of the interface of this
     module.
-  - Call all TGLWindow.DoXxx functions at appropriate places from your
+  - Call all TCastleWindowBase.DoXxx functions at appropriate places from your
     backend.
     You can call all DoIdle and DoTimer for all Application.OpenWindows
     using Application.FOpenWindows.DoIdle/Timer (this will give usually
@@ -422,9 +422,9 @@ unit GLWindow;
 
 { Configure some debugging options of GLWindow ------------------------------- }
 
-{ When GLWINDOW_LOG_EVENTS is defined, TGLWindow events will be logged.
+{ When GLWINDOW_LOG_EVENTS is defined, TCastleWindowBase events will be logged.
   This means logging (using KambiLog) at begin, end, and at exception exit
-  inside all TGLWindow events (EventXxx methods).
+  inside all TCastleWindowBase events (EventXxx methods).
   Very useful, although floods your log with incredible amount of messages
   very quickly.
 
@@ -440,7 +440,7 @@ unit GLWindow;
 {$endif}
 
 { Define GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW to check OpenGL errors
-  after TGLWindow.EventDraw (TGLWindow.OnDraw callback) calls.
+  after TCastleWindowBase.EventDraw (TCastleWindowBase.OnDraw callback) calls.
   This is done by DoDraw, that is: when a backend initiates the drawing.
   The check is done by KambiGLUtils.CheckGLErrors, checks glGetError
   and eventually raises an exception. }
@@ -455,7 +455,7 @@ unit GLWindow;
 
 { Two reasons why sometimes GTK backend call some X-specific things:
 
-  1. Grrrr. Implementing TGLWindow.SetMousePosition is a real hack for GTK.
+  1. Grrrr. Implementing TCastleWindowBase.SetMousePosition is a real hack for GTK.
 
      First of all, there is no GDK or GTK function for this.
      (confirmed by google, e.g. see here
@@ -473,16 +473,16 @@ unit GLWindow;
      GTK 2 bindings don't include these macros too, but GTK 2 library contains
      functions gdk_x11_drawable_get_xid/xdisplay and I can get to them.
 
-     All in all, right now I implemented TGLWindow.SetMousePosition
+     All in all, right now I implemented TCastleWindowBase.SetMousePosition
      only for GTK 2 under Unix. It's possible to do this for GTK 1 under Unix,
      but more hacking is needed (hint: fix GTK 1 bindings in this regard).
      It's possible to do this for Windows, you have to use SetCursorPos
-     (see the real Windows backend TGLWindow.SetMousePosition implementation).
+     (see the real Windows backend TCastleWindowBase.SetMousePosition implementation).
 
   2. Screen resizing.
 
      I have to use there XF86VidMode extension, just like for GLWINDOW_XLIB
-     backend. And, just like for TGLWindow.SetMousePosition, I'll need
+     backend. And, just like for TCastleWindowBase.SetMousePosition, I'll need
      for this some functions available only in GTK 2 library that
      "uncover" X11 internals related to GTK for me. }
 {$ifdef GLWINDOW_GTK_2}
@@ -675,21 +675,21 @@ const
   GLWindowDefaultSize = -1000000;
 
 type
-  TGLWindowParseOption = (poGeometry, poScreenGeometry, poDisplay);
-  TGLWindowParseOptions = set of TGLWindowParseOption;
-  PGLWindowParseOptions = ^TGLWindowParseOptions;
+  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay);
+  TWindowParseOptions = set of TWindowParseOption;
+  PWindowParseOptions = ^TWindowParseOptions;
 
 const
   { All "normal" command-line options,
     that most programs using GLWindow should be able to handle
     without any problems.
 
-    In other words, most programs calling @link(TGLWindow.ParseParameters)
+    In other words, most programs calling @link(TCastleWindowBase.ParseParameters)
     method can safely pass as the 1st parameter this constant,
     StandardParseOptions.
-    Or they can simply call overloaded version of TGLWindow.ParseParameters
+    Or they can simply call overloaded version of TCastleWindowBase.ParseParameters
     that doesn't take any parameters, it is always equivalent to
-    calling TGLWindow.ParseParameters(StandardParseOptions). }
+    calling TCastleWindowBase.ParseParameters(StandardParseOptions). }
   StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay];
 
   DefaultDepthBufferBits = 16;
@@ -700,46 +700,46 @@ const
   DefaultTooltipDistance = 10;
 
 type
-  TGLWindow = class;
+  TCastleWindowBase = class;
 
-  {$I glwindowmenu.inc}
+  {$I castlewindowmenu.inc}
 
-  { Type of message box, for TGLWindow.MessageOK and TGLWindow.MessageYesNo. }
-  TGLWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
+  { Type of message box, for TCastleWindowBase.MessageOK and TCastleWindowBase.MessageYesNo. }
+  TWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
 
   TIdleFunc = procedure;
-  TGLWindowFunc = procedure(Window: TGLWindow);
-  TDrawFunc = TGLWindowFunc;
-  TKeyCharFunc = procedure(Window: TGLWindow; Key: TKey; C: char);
-  TMouseMoveFunc = procedure(Window: TGLWindow; NewX, NewY: Integer);
-  TMouseUpDownFunc = procedure(Window: TGLWindow; Button: TMouseButton);
-  TMouseWheelFunc = procedure(Window: TGLWindow; const Scroll: Single; const Vertical: boolean);
-  TMenuCommandFunc = procedure(Window: TGLWindow; Item: TMenuItem);
-  TGLContextLoweredFunc = procedure(Window: TGLWindow; const FailureMessage: string);
+  TWindowFunc = procedure(Window: TCastleWindowBase);
+  TDrawFunc = TWindowFunc;
+  TKeyCharFunc = procedure(Window: TCastleWindowBase; Key: TKey; C: char);
+  TMouseMoveFunc = procedure(Window: TCastleWindowBase; NewX, NewY: Integer);
+  TMouseUpDownFunc = procedure(Window: TCastleWindowBase; Button: TMouseButton);
+  TMouseWheelFunc = procedure(Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
+  TMenuCommandFunc = procedure(Window: TCastleWindowBase; Item: TMenuItem);
+  TGLContextLoweredFunc = procedure(Window: TCastleWindowBase; const FailureMessage: string);
 
-  { List of @link(TGLWindowFunc) procedures. }
-  TGLWindowFuncList = class(specialize TGenericStructList<TGLWindowFunc>)
+  { List of @link(TWindowFunc) procedures. }
+  TWindowFuncList = class(specialize TGenericStructList<TWindowFunc>)
   public
     { Call all (non-nil) Items. }
-    procedure ExecuteAll(Window: TGLWindow);
+    procedure ExecuteAll(Window: TCastleWindowBase);
   end;
 
   { Saved state of all callbacks
-    of @link(TGLWindow), with the exception of OnOpen and OnClose callbacks.
-    This is used in @link(TGLWindow.GetCallbacksState)
-    and @link(TGLWindow.SetCallbacksState).
+    of @link(TCastleWindowBase), with the exception of OnOpen and OnClose callbacks.
+    This is used in @link(TCastleWindowBase.GetCallbacksState)
+    and @link(TCastleWindowBase.SetCallbacksState).
     See unit GLWinModes for example when such thing is useful. }
-  TGLWindowCallbacks = record
+  TWindowCallbacks = record
     MouseMove: TMouseMoveFunc;
     MouseDown, MouseUp: TMouseUpDownFunc;
     MouseWheel: TMouseWheelFunc;
     KeyDown, KeyUp: TKeyCharFunc;
-    BeforeDraw, Draw, CloseQuery, Idle, Timer: TGLWindowFunc;
-    Resize: TGLWindowFunc;
+    BeforeDraw, Draw, CloseQuery, Idle, Timer: TWindowFunc;
+    Resize: TWindowFunc;
     MenuCommand: TMenuCommandFunc;
     { When expanding this type: remember to also expand
-      implementation of TGLWindow.GetCallbacksState and
-      TGLWindow.SetCallbacksState.
+      implementation of TCastleWindowBase.GetCallbacksState and
+      TCastleWindowBase.SetCallbacksState.
 
       @seealso DefaultCallbacksState }
   end;
@@ -755,32 +755,32 @@ type
 
   { Window with an OpenGL context.
     See GLWindow unit description for more info and examples of use. }
-  TGLWindow = class(TComponent)
+  TCastleWindowBase = class(TComponent)
 
-  { Include GLWindow-backend-specific parts of TGLWindow class.
+  { Include GLWindow-backend-specific parts of TCastleWindowBase class.
     Remember to explicitly specify the scope
-    (usually "private") of things that you add to TGLWindow class in backends,
+    (usually "private") of things that you add to TCastleWindowBase class in backends,
     this is safest. Some backends may expose some protected or even public
     things that are specific for them. }
 
-  {$define read_tglwindow_interface}
+  {$define read_window_interface}
   {$I glwindow_backend.inc}
-  {$undef read_tglwindow_interface}
+  {$undef read_window_interface}
 
   private
     FWidth, FHeight, FLeft, FTop: Integer;
-    FOnOpen: TGLWindowFunc;
-    FOnOpenList: TGLWindowFuncList;
+    FOnOpen: TWindowFunc;
+    FOnOpenList: TWindowFuncList;
     FOnBeforeDraw, FOnDraw: TDrawFunc;
-    FOnResize: TGLWindowFunc;
-    FOnClose: TGLWindowFunc;
-    FOnCloseList: TGLWindowFuncList;
-    FOnCloseQuery: TGLWindowFunc;
+    FOnResize: TWindowFunc;
+    FOnClose: TWindowFunc;
+    FOnCloseList: TWindowFuncList;
+    FOnCloseQuery: TWindowFunc;
     FOnKeyDown, FOnKeyUp: TKeyCharFunc;
     FMouseMove: TMouseMoveFunc;
     FMouseDown, FMouseUp: TMouseUpDownFunc;
     FMouseWheel: TMouseWheelFunc;
-    FOnIdle, FOnTimer: TGLWindowFunc;
+    FOnIdle, FOnTimer: TWindowFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
@@ -974,7 +974,7 @@ type
     }
 
     { DoResize with FromIndependentOpen = true is called only once
-      (and exactly once) from TGLWindow.Open implementation.
+      (and exactly once) from TCastleWindowBase.Open implementation.
       So all GLWindow-backend code should always
       pass FromIndependentOpen = false (EVEN if it may be called from
       OpenBackend (that is called before DoResize in Open) !).
@@ -1126,7 +1126,7 @@ type
 
     { Handle appropriate event.
 
-      In the TGLWindow class, these methods simply call appropriate OnXxx
+      In the TCastleWindowBase class, these methods simply call appropriate OnXxx
       callbacks (if assigned). In case of list callbacks (OnOpenList,
       OnCloseList) --- these are called here too.
 
@@ -1355,14 +1355,14 @@ type
       During EventOpen (OnOpen) you already have valid
       Width / Height values, that is those values were already adjusted
       if ResizeAllowed <> raNotAllowed. }
-    property OnOpen: TGLWindowFunc read FOnOpen write FOnOpen;
+    property OnOpen: TWindowFunc read FOnOpen write FOnOpen;
 
     { Callbacks called when OpenGL context is initialized.
       Called always after OnOpen. Useful when one callback is not enough.
 
-      The list instance (TGLWindowFuncList) is created / destroyed
+      The list instance (TWindowFuncList) is created / destroyed
       in this class. You can add / remove freely your callbacks from this class. }
-    property OnOpenList: TGLWindowFuncList read FOnOpenList;
+    property OnOpenList: TWindowFuncList read FOnOpenList;
 
     { Minimum and maximum window sizes. Always
 
@@ -1482,7 +1482,7 @@ type
       @link(Open) will raise an error.
 
       It's undefined how I'll treat this variable when indexed color mode
-      will be possible in TGLWindow. }
+      will be possible in TCastleWindowBase. }
     property AlphaBits: Cardinal
       read FAlphaBits write FAlphaBits default 0;
   public
@@ -1606,18 +1606,18 @@ end;
 
       Simple 2D OpenGL programs may want to register here simple
       @link(Resize2D). }
-    property OnResize: TGLWindowFunc read FOnResize write FOnResize;
+    property OnResize: TWindowFunc read FOnResize write FOnResize;
 
     { Called when the window is closed, right before the OpenGL context
       is destroyed. This is your last chance to release OpenGL resources,
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event. }
-    property OnClose: TGLWindowFunc read FOnClose write FOnClose;
+    property OnClose: TWindowFunc read FOnClose write FOnClose;
 
     { List of callbacks called when the window is closed,
       right before the OpenGL context is destroyed.
       Just like OnClose. Use when one callback is not enough. }
-    property OnCloseList: TGLWindowFuncList read FOnCloseList;
+    property OnCloseList: TWindowFuncList read FOnCloseList;
 
     { Called when user presses a key.
       Only for keys that can be represented as TKey or Char types.
@@ -1731,7 +1731,7 @@ end;
       on closing the window (i.e. QuitWhenLastWindowClosed = false).
       By default, if this event is undefined, we call Close(true)
       when user tries to close the window. }
-    property OnCloseQuery: TGLWindowFunc read FOnCloseQuery write FOnCloseQuery; { = nil }
+    property OnCloseQuery: TWindowFunc read FOnCloseQuery write FOnCloseQuery; { = nil }
 
     { Called when mouse is moved. Remember you always have the currently
       pressed mouse buttons in MousePressed. When this is called,
@@ -1787,7 +1787,7 @@ end;
       This allows various "modal boxes" and such (see GLWinMessages)
       to nicely "pause" such processing by temporarily replacing
       OnIdle and other events of a window that displays a modal box. }
-    property OnIdle: TGLWindowFunc read FOnIdle write FOnIdle;
+    property OnIdle: TWindowFunc read FOnIdle write FOnIdle;
 
     { Timer event is called approximately after each
       @link(TGLApplication.TimerMilisec Application.TimerMilisec)
@@ -1795,7 +1795,7 @@ end;
 
       Called at the same time when
       @link(TGLApplication.OnTimer Application.OnTimer) is called. }
-    property OnTimer: TGLWindowFunc read FOnTimer write FOnTimer;
+    property OnTimer: TWindowFunc read FOnTimer write FOnTimer;
 
     { Should we automatically redraw the window all the time,
       without a need for PostRedisplay call.
@@ -1855,7 +1855,7 @@ end;
       set this to MainMenu.Enabled to @false. }
     property MainMenu: TMenu read FMainMenu write SetMainMenu;
 
-    { If true then in TGLWindow destructor MainMenu will be destroyed too
+    { If true then in TCastleWindowBase destructor MainMenu will be destroyed too
       (if not nil, od course). Usually this is something useful. }
     property OwnsMainMenu: boolean read FOwnsMainMenu write FOwnsMainMenu default true;
 
@@ -1984,8 +1984,8 @@ end;
       StencilOff callbacks are called (if assigned).
       It's important to note that they are called before actually
       retrying. This means that MultiSamplingOff/StencilOff
-      will be always called before TGLWindow.Open that eventually
-      succeeds, so they will be always called before eventual TGLWindow.OnOpen
+      will be always called before TCastleWindowBase.Open that eventually
+      succeeds, so they will be always called before eventual TCastleWindowBase.OnOpen
       and such. This is usually what you want.
 
       FailureMessage passed to *Off callbacks will be the multiline
@@ -2004,7 +2004,7 @@ end;
         @item(Calls EventClose (and OnClose).)
         @item(Hides window, destroys it.)
         @item(
-          if this was the only open TGLWindow window
+          if this was the only open TCastleWindowBase window
           and QuitWhenLastWindowClosed = true then
           this calls Application.Quit.)
       )
@@ -2118,8 +2118,8 @@ end;
       OnClose, OnCloseList).
 
       @seealso DefaultCallbacksState }
-    function GetCallbacksState: TGLWindowCallbacks;
-    procedure SetCallbacksState(const Callbacks: TGLWindowCallbacks);
+    function GetCallbacksState: TWindowCallbacks;
+    procedure SetCallbacksState(const Callbacks: TWindowCallbacks);
     { @groupend }
 
     constructor Create(AOwner: TComponent); override;
@@ -2189,10 +2189,10 @@ end;
 
       @raises(EInvalidParams When some of our options have invalid arguments.) }
     procedure ParseParameters(
-      const AllowedOptions: TGLWindowParseOptions = StandardParseOptions); overload;
+      const AllowedOptions: TWindowParseOptions = StandardParseOptions); overload;
     procedure ParseParameters(
-      const AllowedOptions: TGLWindowParseOptions;
-      out SpecifiedOptions: TGLWindowParseOptions); overload;
+      const AllowedOptions: TWindowParseOptions;
+      out SpecifiedOptions: TWindowParseOptions); overload;
 
     { Help text for options in AllowedOptions.
       The idea is that if you call @code(ParseParameters(AllowedOptions))
@@ -2213,18 +2213,18 @@ end;
       paragraph (separated from the rest of your "--help" text
       by e.g. empty lines around). }
     class function ParseParametersHelp(
-      const AllowedOptions: TGLWindowParseOptions;
+      const AllowedOptions: TWindowParseOptions;
       AddHeader: boolean): string;
 
     { dialog boxes using GUI ------------------------------------------------ }
 
     { About all dialogs:
       - Behaviour of callbacks:
-        callbacks of Application and callbacks of other TGLWindow MAY be called while
+        callbacks of Application and callbacks of other TCastleWindowBase MAY be called while
         the dialog is open. Callbacks of THIS object (OnXxx) will not be
         called. You should treat XxxDialog like
           TGLMode.Create(Self, ...)
-          TGLWindowState.SetStandardState
+          TCastleWindowBaseState.SetStandardState
           ....
           TGLMode.Free
       - How does these dialogs look like?
@@ -2289,11 +2289,11 @@ end;
     { @groupEnd }
 
     { Simple "OK" dialog box. }
-    procedure MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+    procedure MessageOK(const S: string; const MessageType: TWindowMessageType);
 
     { Simple yes/no question dialog box. }
     function MessageYesNo(const S: string;
-      const MessageType: TGLWindowMessageType = mtQuestion): boolean;
+      const MessageType: TWindowMessageType = mtQuestion): boolean;
   end;
 
   { Window with OpenGL context and some functionality typically useful
@@ -2314,7 +2314,7 @@ end;
     It also always turns on FPS calculation (Fps.Active), regardless
     of "demo" options. FPS calculation is used for various, also non-debugging,
     features (like time-based animation) so it's generally always wanted. }
-  TGLWindowDemo = class(TGLWindow)
+  TCastleWindowDemo = class(TCastleWindowBase)
   private
     wLeft, wTop, wWidth, wHeight: integer;
     { Are we in the middle of fullscreen swap. }
@@ -2419,11 +2419,11 @@ end;
 
     TCamera descendants can be treated like any other TUIControl,
     that is you can add them directly to the @link(Controls) list.
-    Note that usually, when using TKamSceneManager, you should only
-    assign camera to TKamSceneManager.Camera, so most programs
+    Note that usually, when using TCastleSceneManager, you should only
+    assign camera to TCastleSceneManager.Camera, so most programs
     @italic(should not) add their TCamera intances directly to the
     Controls list. }
-  TGLUIWindow = class(TGLWindowDemo, IUIContainer)
+  TCastleWindowCustom = class(TCastleWindowDemo, IUIContainer)
   private
     FControls: TUIControlList;
     FUseControls: boolean;
@@ -2490,7 +2490,7 @@ end;
 
           OpenGL projection matrix is not modified (so projection
           is whatever you set yourself, by EventResize, OnResize,
-          or whatever TKamSceneManager set for you).
+          or whatever TCastleSceneManager set for you).
 
           Note that the interpretation of dsNone is different than for
           TUIControl.DrawStyle: for TUIControl.DrawStyle, dsNone
@@ -2515,7 +2515,7 @@ end;
 
           OpenGL projection matrix is not modified (so projection
           is whatever you set yourself, by EventResize, OnResize,
-          or whatever TKamSceneManager set for you).
+          or whatever TCastleSceneManager set for you).
 
           This is suitable if you want to draw something 3D,
           that may be later covered by 2D controls.)
@@ -2562,7 +2562,7 @@ end;
   { Window with an OpenGL context, most comfortable to render 3D worlds
     with 2D controls above. Add your 3D stuff to the scene manager
     available in @link(SceneManager) property. Add your 2D stuff
-    to the @link(TGLUIWindow.Controls) property (from ancestor TGLUIWindow).
+    to the @link(TCastleWindowCustom.Controls) property (from ancestor TCastleWindowCustom).
 
     You can directly access the SceneManager and configure it however you like.
 
@@ -2571,10 +2571,10 @@ end;
 
     If you're looking for analogous Lazarus component
     (that does basically the same, but can be placed on a Lazarus form)
-    see TKamVRMLBrowser component. }
-  TGLWindowVRMLBrowser = class(TGLUIWindow)
+    see TCastleControl component. }
+  TCastleWindow = class(TCastleWindowCustom)
   private
-    FSceneManager: TKamSceneManager;
+    FSceneManager: TCastleSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -2589,14 +2589,14 @@ end;
       (removing other models, and resetting the camera).
 
       This is nice for simple 3D model browsers, but usually for games you
-      don't want to use this method --- it's more flexible to create TVRMLGLScene
+      don't want to use this method --- it's more flexible to create T3DScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
-    function MainScene: TVRMLGLScene;
-    property SceneManager: TKamSceneManager read FSceneManager;
+    function MainScene: T3DScene;
+    property SceneManager: TCastleSceneManager read FSceneManager;
 
     { Should we make shadow volumes possible.
 
@@ -2610,16 +2610,16 @@ end;
     property ShadowVolumesPossible: boolean
       read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
-    { See TKamSceneManager.ShadowVolumes. }
+    { See TCastleSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes default false;
 
-    { See TKamSceneManager.ShadowVolumesDraw. }
+    { See TCastleSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
 
-  TGLWindowList = class(specialize TFPGObjectList<TGLWindow>)
+  TWindowList = class(specialize TFPGObjectList<TCastleWindowBase>)
   private
     { Call wszystkie OnIdle / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoIdle / DoTimer  is a simplest
@@ -2633,8 +2633,8 @@ end;
     procedure PostRedisplay;
   end;
 
-  { Application, managing all open TGLWindow (OpenGL windows).
-    This tracks all open instances of TGLWindow
+  { Application, managing all open TCastleWindowBase (OpenGL windows).
+    This tracks all open instances of TCastleWindowBase
     and implements message loop. It also handles some global tasks
     like managing the screen (changing current screen resolution and/or
     bit depth etc.)
@@ -2646,12 +2646,12 @@ end;
 
   { Include GLWindow-backend-specific parts of
     TGLApplication class. Rules and comments that apply here are
-    the same as in analogous place at TGLWindow class,
-    when read_tglwindow_interface is defined. }
+    the same as in analogous place at TCastleWindowBase class,
+    when read_window_interface is defined. }
 
-  {$define read_tglwindowmanager_interface}
+  {$define read_application_interface}
   {$I glwindow_backend.inc}
-  {$undef read_tglwindowmanager_interface}
+  {$undef read_application_interface}
 
   private
     FOnIdle :TIdleFunc;
@@ -2660,29 +2660,29 @@ end;
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
-      Update in TGLWindow.MakeCurrent, also TGLWindow.Close. }
-    Current: TGLWindow;
+      Update in TCastleWindowBase.MakeCurrent, also TCastleWindowBase.Close. }
+    Current: TCastleWindowBase;
 
-    FOpenWindows: TGLWindowList;
-    function GetOpenWindows(Index: integer): TGLWindow;
+    FOpenWindows: TWindowList;
+    function GetOpenWindows(Index: integer): TCastleWindowBase;
 
     { Add new item to OpenWindows.
       Windows must not be already on OpenWindows list. }
-    procedure OpenWindowsAdd(Window: TGLWindow);
+    procedure OpenWindowsAdd(Window: TCastleWindowBase);
 
     { Delete window from OpenWindows.
 
       glwin don't have to be on the OpenWindows list. If it is not, this
-      method is NOOP. This is useful when this is called from TGLWindow.Close
-      because TGLWindow.Close should work even for partially constructed
+      method is NOOP. This is useful when this is called from TCastleWindowBase.Close
+      because TCastleWindowBase.Close should work even for partially constructed
       Windows.
 
       If glwin was present on OpenWindows and after removing glwin
       OpenWindowsCount = 0 and QuitWhenLastWindowClosed then it calls Quit. }
-    procedure OpenWindowsRemove(Window: TGLWindow; QuitWhenLastWindowClosed: boolean);
+    procedure OpenWindowsRemove(Window: TCastleWindowBase; QuitWhenLastWindowClosed: boolean);
 
     { Find window on the OpenWindows list. Returns index, or -1 if not found. }
-    function FindWindow(Window: TGLWindow): integer;
+    function FindWindow(Window: TCastleWindowBase): integer;
 
     procedure CreateBackend;
     procedure DestroyBackend;
@@ -2725,7 +2725,7 @@ end;
       you shouldn't read or write LastDoTimerTime yourself. }
     procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 
-    { Just like TGLWindow.AllowSuspendForInput, except this is for
+    { Just like TCastleWindowBase.AllowSuspendForInput, except this is for
       the whole Application. Returns @true only if all open
       windows allow it, and we do not have OnIdle and OnTimer. }
     function AllowSuspendForInput: boolean;
@@ -2741,7 +2741,7 @@ end;
     { @groupEnd }
 
     { Color bits per pixel that will be set by next VideoChange call,
-      and that are tried to be used at TGLWindow.Open.
+      and that are tried to be used at TCastleWindowBase.Open.
       Zero means that system default is used. }
     property VideoColorBits: integer read FVideoColorBits write FVideoColorBits default 0;
 
@@ -2787,11 +2787,11 @@ end;
     { List of all open windows.
       @groupBegin }
     function OpenWindowsCount: integer;
-    property OpenWindows[Index: integer]: TGLWindow read GetOpenWindows;
+    property OpenWindows[Index: integer]: TCastleWindowBase read GetOpenWindows;
     { @groupEnd }
 
     { Called all the time.
-      At least as regularly as OnDraw, see TGLWindow.OnIdle. }
+      At least as regularly as OnDraw, see TCastleWindowBase.OnIdle. }
     property OnIdle: TIdleFunc read FOnIdle write FOnIdle;
 
     { Event called approximately after each TimerMilisec miliseconds.
@@ -2807,8 +2807,8 @@ end;
 
     { Process some messages from the window system.
       During this, messages are processed and passed
-      to the appropriate TGLWindow windows, calling appropriate methods
-      and callbacks like TGLWindow.OnDraw, TGLWindow.OnIdle and many others.
+      to the appropriate TCastleWindowBase windows, calling appropriate methods
+      and callbacks like TCastleWindowBase.OnDraw, TCastleWindowBase.OnIdle and many others.
 
       This method is crucial for implementing modal dialog boxes and such,
       generally any kind of "display something until something happens".
@@ -2818,9 +2818,9 @@ end;
   while not SomethingHappened do Application.ProcessMessages;
 #)
 
-      Commonly this is used together with TGLWindow state push / pop
+      Commonly this is used together with TCastleWindowBase state push / pop
       routines in GLWinModes. They allow you to temporary replace
-      all TGLWindow callbacks with new ones, and later restore the old ones.
+      all TCastleWindowBase callbacks with new ones, and later restore the old ones.
 
       ProcessMessages returns @true if we should continue, that is
       if @link(Quit) method was not called (directly or by closing
@@ -2889,12 +2889,12 @@ end;
       application work. }
     procedure Quit;
 
-    { Run the program using TGLWindow, by doing the event loop.
+    { Run the program using TCastleWindowBase, by doing the event loop.
       Think of it as just a shortcut for "while ProcessMessage do ;".
 
       Note that this does nothing if OpenWindowsCount = 0, that is there
       are no open windows. Besides the obvious reason (you didn't call
-      TGLWindow.Open on any window...) this may also happen if you called
+      TCastleWindowBase.Open on any window...) this may also happen if you called
       Close (or Application.Quit) from your window OnOpen / OnResize callback.
       In such case no event would probably reach
       our program, and user would have no chance to quit, so Run just refuses
@@ -2912,18 +2912,18 @@ var
 
     Don't change value of this variable, don't Free this object.
     This will be handled in initialization / finalization of this module.
-    Many things in this unit, also in TGLWindow class implementation,
+    Many things in this unit, also in TCastleWindowBase class implementation,
     depend on having this variable present all the time. }
   Application: TGLApplication;
 
 const
-  DefaultCallbacksState: TGLWindowCallbacks =
+  DefaultCallbacksState: TWindowCallbacks =
   ( MouseMove: nil; MouseDown: nil; MouseUp: nil; MouseWheel: nil;
     KeyDown: nil; KeyUp: nil;
     BeforeDraw: nil; Draw: nil; CloseQuery: nil; Idle: nil; Timer: nil; Resize: nil;
     MenuCommand: nil);
 
-{ A simple TGLWindow.OnResize callback implementation, that sets 2D projection.
+{ A simple TCastleWindowBase.OnResize callback implementation, that sets 2D projection.
   You can use it like @code(Window.OnResize := Resize2D;) or just by calling
   it directly from your OnResize callback.
 
@@ -2932,12 +2932,12 @@ const
   glViewport(0, 0, Window.Width, Window.Height);
   ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
 #) }
-procedure Resize2D(Window: TGLWindow);
+procedure Resize2D(Window: TCastleWindowBase);
 
 {$undef read_interface}
 
 {$define read_interface_2}
-{$i glwindowmenu.inc}
+{$i castlewindowmenu.inc}
 {$undef read_interface_2}
 
 implementation
@@ -2952,12 +2952,12 @@ uses KambiParameters, KambiLog, GLImages, GLVersionUnit, X3DLoad
 
 {$define read_implementation}
 
-{$I glwindowmenu.inc}
+{$I castlewindowmenu.inc}
 {$I glwindow_backend.inc}
 
-{ TGLWindowFuncList ------------------------------------------------ }
+{ TWindowFuncList ------------------------------------------------ }
 
-procedure TGLWindowFuncList.ExecuteAll(Window: TGLwindow);
+procedure TWindowFuncList.ExecuteAll(Window: TCastleWindowBase);
 var i: integer;
 begin
  for i := 0 to Count-1 do
@@ -2968,13 +2968,13 @@ begin
 end;
 
 { ----------------------------------------------------------------------------
-  niezalezne od GLWINDOW_xxx rzeczy TGLWindow }
+  niezalezne od GLWINDOW_xxx rzeczy TCastleWindowBase }
 
-constructor TGLWindow.Create(AOwner: TComponent);
+constructor TCastleWindowBase.Create(AOwner: TComponent);
 begin
  inherited;
- FOnOpenList := TGLWindowFuncList.Create;
- FOnCloseList := TGLWindowFuncList.Create;
+ FOnOpenList := TWindowFuncList.Create;
+ FOnCloseList := TWindowFuncList.Create;
  FClosed := true;
  FWidth  := GLWindowDefaultSize;
  FHeight := GLWindowDefaultSize;
@@ -2996,7 +2996,7 @@ begin
  CreateBackend;
 end;
 
-destructor TGLWindow.Destroy;
+destructor TCastleWindowBase.Destroy;
 begin
  Close; { <- This will be ignored if already Closed }
 
@@ -3015,7 +3015,7 @@ begin
  inherited;
 end;
 
-procedure TGLWindow.Open;
+procedure TCastleWindowBase.Open;
 begin
  if not FClosed then Exit;
 
@@ -3111,7 +3111,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.OpenOptionalMultiSamplingAndStencil(
+procedure TCastleWindowBase.OpenOptionalMultiSamplingAndStencil(
   const MultiSamplingOff, StencilOff: TGLContextLoweredFunc);
 const
   SFailureMessage =
@@ -3169,14 +3169,14 @@ begin
   end;
 end;
 
-procedure TGLWindow.CloseError(const error: string);
+procedure TCastleWindowBase.CloseError(const error: string);
 begin
  if closeerrors <> '' then
   closeerrors := closeerrors+nl+error else
   closeerrors := error
 end;
 
-procedure TGLWindow.Close(QuitWhenLastWindowClosed: boolean);
+procedure TCastleWindowBase.Close(QuitWhenLastWindowClosed: boolean);
 begin
  if FClosed then Exit;
 
@@ -3212,7 +3212,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.MakeCurrent;
+procedure TCastleWindowBase.MakeCurrent;
 begin
   { Calling BackendMakeCurrent is done very often (before every event,
     so a couple of times for every frame). And usually it's useless,
@@ -3224,13 +3224,13 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetAutoRedisplay(value: boolean);
+procedure TCastleWindowBase.SetAutoRedisplay(value: boolean);
 begin
  fAutoRedisplay := value;
  if value and (not Closed) then PostRedisplay;
 end;
 
-procedure TGLWindow.ReleaseAllKeysAndMouse;
+procedure TCastleWindowBase.ReleaseAllKeysAndMouse;
 var k: TKey;
     mb: TMouseButton;
     {$ifdef GLWINDOW_USE_PRIVATE_MODIFIERS_DOWN}
@@ -3259,14 +3259,14 @@ begin
   DoMouseUp(MouseX, MouseY, mb);
 end;
 
-{ wszystkie zdarzenia TGLWindow - opakowujace je procedury DoXxx ktore
+{ wszystkie zdarzenia TCastleWindowBase - opakowujace je procedury DoXxx ktore
   robia wszystkie rzeczy niezalezne od implementacji dla danego zdarzenia
   (m.in. wywoluja EventXxx ktore m.in. wywoluje OnXxx jesli jest assigned).
   Implementacje GLWindow powinny wywolywac te funkcje, NIE wywolywac
   bezposrednio EventXxx ani tym bardziej OnXxx !
   ------------------------------------------------------------------------------------ }
 
-procedure TGLWindow.DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
+procedure TCastleWindowBase.DoResize(AWidth, AHeight: integer; FromIndependentOpen: boolean);
 begin
  { zabezpiecz sie przed
    1) glutem, ktoremu nie mamy jak powiedziec ze ResizeAllowed <> raNotAllowed
@@ -3315,13 +3315,13 @@ begin
  EventResize;
 end;
 
-procedure TGLWindow.DoCloseQuery;
+procedure TCastleWindowBase.DoCloseQuery;
 begin
   MakeCurrent;
   if EventCloseQuery then Close;
 end;
 
-procedure TGLWindow.DoDraw;
+procedure TCastleWindowBase.DoDraw;
 begin
   MakeCurrent;
 
@@ -3337,10 +3337,10 @@ begin
     if AutoRedisplay then PostRedisplay;
   finally Fps._RenderEnd end;
 
-  {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TGLWindow.DoDraw'); {$endif}
+  {$ifdef GLWINDOW_CHECK_GL_ERRORS_AFTER_DRAW} CheckGLErrors('End of TCastleWindowBase.DoDraw'); {$endif}
 end;
 
-procedure TGLWindow.DoKeyDown(Key: TKey; CharKey: char);
+procedure TCastleWindowBase.DoKeyDown(Key: TKey; CharKey: char);
 
   function SeekMatchingMenuItem: TMenuItem;
 
@@ -3385,7 +3385,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.DoKeyUp(key: TKey);
+procedure TCastleWindowBase.DoKeyUp(key: TKey);
 var
   C: char;
 begin
@@ -3399,7 +3399,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.DoMouseMove(x, y: integer);
+procedure TCastleWindowBase.DoMouseMove(x, y: integer);
 begin
  MakeCurrent;
  EventMouseMove(x, y);
@@ -3407,7 +3407,7 @@ begin
  FMouseY := y;
 end;
 
-procedure TGLWindow.DoMouseDown(x, y: integer; btn: TMouseButton);
+procedure TCastleWindowBase.DoMouseDown(x, y: integer; btn: TMouseButton);
 begin
  FMouseX := x;
  FMouseY := y;
@@ -3416,7 +3416,7 @@ begin
  EventMouseDown(btn);
 end;
 
-procedure TGLWindow.DoMouseUp(x, y: integer; btn: TMouseButton);
+procedure TCastleWindowBase.DoMouseUp(x, y: integer; btn: TMouseButton);
 begin
  FMouseX := x;
  FMouseY := y;
@@ -3425,22 +3425,22 @@ begin
  EventMouseUp(btn);
 end;
 
-procedure TGLWindow.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindowBase.DoMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   MakeCurrent;
   EventMouseWheel(Scroll, Vertical);
 end;
 
-procedure TGLWindow.DoIdle;
+procedure TCastleWindowBase.DoIdle;
 begin
   Fps._IdleBegin;
   MakeCurrent;
   EventIdle;
 end;
 
-procedure TGLWindow.DoTimer; begin  MakeCurrent; EventTimer end;
+procedure TCastleWindowBase.DoTimer; begin  MakeCurrent; EventTimer end;
 
-procedure TGLWindow.DoMenuCommand(Item: TMenuItem);
+procedure TCastleWindowBase.DoMenuCommand(Item: TMenuItem);
 begin
  if (MainMenu <> nil) and (not MainMenu.Enabled) then Exit;
 
@@ -3457,7 +3457,7 @@ end;
   wywoluja po prostu OnXxx. Te funkcje moga byc pokrywane w podklasach.
   ---------------------------------------------------------------------------- }
 
-function TGLWindow.EventCloseQuery: boolean;
+function TCastleWindowBase.EventCloseQuery: boolean;
 const EventName = 'CloseQuery';
 begin
  result := not Assigned(OnCloseQuery);
@@ -3467,23 +3467,23 @@ begin
  {$I glwindow_eventend.inc}
 end;
 
-procedure TGLWindow.EventOpen;                              const EventName = 'Open';       begin {$I glwindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   OnOpenList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventOpen;                              const EventName = 'Open';       begin {$I glwindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   OnOpenList .ExecuteAll(Self); {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventClose;                             const EventName = 'Close';      begin {$I glwindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   OnCloseList.ExecuteAll(Self); {$I glwindow_eventend.inc} end;
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
-procedure TGLWindow.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventResize;                            const EventName = 'Resize';     begin {$I glwindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin OnKeyDown(Self, Key, C);   end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventKeyDown(Key: TKey; C: char);       const EventName = 'KeyDown';    begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyDown)     then begin OnKeyDown(Self, Key, C);   end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Key %s, character %s (ord: %d)', [KeyToStr(Key), CharToNiceStr(c), Ord(c)])}
-procedure TGLWindow.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin OnKeyUp(Self, key, C);     end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventKeyUp(key: TKey; C: char);         const EventName = 'KeyUp';      begin {$I glwindow_eventbegin.inc} if Assigned(OnKeyUp)       then begin OnKeyUp(Self, key, C);     end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
 {$define BONUS_LOG_STRING := Format('Button: %s', [MouseButtonStr[btn]])}
-procedure TGLWindow.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin OnMouseDown(Self, btn);    end;   {$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin OnMouseUp(Self, btn);      end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMouseDown(btn: TMouseButton);      const EventName = 'MouseDown';  begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseDown)   then begin OnMouseDown(Self, btn);    end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMouseUp(btn: TMouseButton);        const EventName = 'MouseUp';    begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseUp)     then begin OnMouseUp(Self, btn);      end;   {$I glwindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
-procedure TGLWindow.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin OnMouseWheel(Self, Scroll, Vertical); end;{$I glwindow_eventend.inc} end;
-procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMouseWheel(const Scroll: Single; const Vertical: boolean);  const EventName = 'MouseWheel'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseWheel)  then begin OnMouseWheel(Self, Scroll, Vertical); end;{$I glwindow_eventend.inc} end;
+procedure TCastleWindowBase.EventMenuCommand(Item: TMenuItem);      const EventName = 'MenuCommand';begin {$I glwindow_eventbegin.inc} if Assigned(OnMenuCommand) then begin OnMenuCommand(Self, Item); end;   {$I glwindow_eventend.inc} end;
 
 { Events below happen so often, that they are logged only when
   GLWINDOW_EVENTS_LOG_ALL is defined.
@@ -3499,13 +3499,13 @@ procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'M
 {$endif}
 
   {$define BONUS_LOG_STRING := Format('New position: %d %d', [newX, newY])}
-  procedure TGLWindow.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventMouseMove(newX, newY: integer);const EventName = 'MouseMove'; begin {$I glwindow_eventbegin.inc} if Assigned(OnMouseMove) then begin OnMouseMove(Self, newX, newY); end;   {$I glwindow_eventend.inc} end;
   {$undef BONUS_LOG_STRING}
 
-  procedure TGLWindow.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I glwindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I glwindow_eventend.inc} end;
-  procedure TGLWindow.EventDraw;                          const EventName = 'Draw';      begin {$I glwindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I glwindow_eventend.inc} end;
-  procedure TGLWindow.EventIdle;                          const EventName = 'Idle';      begin {$I glwindow_eventbegin.inc} if Assigned(OnIdle)      then begin OnIdle(Self);                  end;   {$I glwindow_eventend.inc} end;
-  procedure TGLWindow.EventTimer;                         const EventName = 'Timer';     begin {$I glwindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventBeforeDraw;                    const EventName = 'BeforeDraw';begin {$I glwindow_eventbegin.inc} if Assigned(OnBeforeDraw)then begin OnBeforeDraw(Self);            end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventDraw;                          const EventName = 'Draw';      begin {$I glwindow_eventbegin.inc} if Assigned(OnDraw)      then begin OnDraw(Self);                  end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventIdle;                          const EventName = 'Idle';      begin {$I glwindow_eventbegin.inc} if Assigned(OnIdle)      then begin OnIdle(Self);                  end;   {$I glwindow_eventend.inc} end;
+  procedure TCastleWindowBase.EventTimer;                         const EventName = 'Timer';     begin {$I glwindow_eventbegin.inc} if Assigned(OnTimer)     then begin OnTimer(Self);                 end;   {$I glwindow_eventend.inc} end;
 
 {$ifndef GLWINDOW_EVENTS_LOG_ALL}
   {$ifdef WAS_GLWINDOW_EVENTS_LOG}
@@ -3513,19 +3513,19 @@ procedure TGLWindow.EventMenuCommand(Item: TMenuItem);      const EventName = 'M
   {$endif}
 {$endif}
 
-function TGLWindow.AllowSuspendForInput: boolean;
+function TCastleWindowBase.AllowSuspendForInput: boolean;
 begin
  result := not (Assigned(OnIdle) or Assigned(OnTimer));
 end;
 
 { Menu things ------------------------------------------------------------ }
 
-procedure TGLWindow.SetMainMenu(Value: TMenu);
+procedure TCastleWindowBase.SetMainMenu(Value: TMenu);
 begin
  if MainMenu <> Value then
  begin
   if (not Closed) and ((MainMenu <> nil) <> (Value <> nil)) then
-   raise EInternalError.Create('While TGLWindow is not Closed, '+
+   raise EInternalError.Create('While TCastleWindowBase is not Closed, '+
      'you can''t set MainMenu from nil to non-nil or from non-nil to nil');
 
   if FMainMenu <> nil then
@@ -3547,7 +3547,7 @@ end;
 { SaveScreen wykonane na GLWindow (robimy najpierw FlushRedisplay)
   -------------------------------------------------------------------------- }
 
-procedure TGLWindow.SaveScreen(const fname: string);
+procedure TCastleWindowBase.SaveScreen(const fname: string);
 var
   Image: TRGBImage;
 begin
@@ -3557,7 +3557,7 @@ begin
   finally FreeAndNil(Image) end;
 end;
 
-function TGLWindow.SaveScreen: TRGBImage;
+function TCastleWindowBase.SaveScreen: TRGBImage;
 begin
   if DoubleBuffer then
   begin
@@ -3571,7 +3571,7 @@ begin
   end;
 end;
 
-function TGLWindow.SaveAlignedScreen: TRGBImage;
+function TCastleWindowBase.SaveAlignedScreen: TRGBImage;
 begin
   if DoubleBuffer then
   begin
@@ -3585,7 +3585,7 @@ begin
   end;
 end;
 
-function TGLWindow.SaveScreen(
+function TCastleWindowBase.SaveScreen(
   const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TRGBImage;
 var
   ReadBuffer: TGLenum;
@@ -3604,7 +3604,7 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-function TGLWindow.SaveScreen_ToDisplayList: TGLuint;
+function TCastleWindowBase.SaveScreen_ToDisplayList: TGLuint;
 begin
   if DoubleBuffer then
   begin
@@ -3618,7 +3618,7 @@ begin
   end;
 end;
 
-function TGLWindow.SaveScreen_ToDisplayList(
+function TCastleWindowBase.SaveScreen_ToDisplayList(
   const xpos, ypos, SavedAreaWidth, SavedAreaHeight: integer): TGLuint;
 var
   ReadBuffer: TGLenum;
@@ -3637,7 +3637,7 @@ begin
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
-procedure TGLWindow.SaveScreenDialog(ProposedFileName: string);
+procedure TCastleWindowBase.SaveScreenDialog(ProposedFileName: string);
 begin
   if FileDialog('Save screen to file', ProposedFileName, false,
     SaveImage_FileFilters) then
@@ -3648,7 +3648,7 @@ begin
   end;
 end;
 
-function TGLWindow.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; const FileFilters: string): boolean;
 var
   FFList: TFileFilterList;
@@ -3660,7 +3660,7 @@ begin
   finally FreeAndNil(FFList) end;
 end;
 
-function TGLWindow.ColorDialog(var Color: TVector3Byte): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3Byte): boolean;
 var
   ColorSingle: TVector3Single;
 begin
@@ -3675,7 +3675,7 @@ end;
 { ----------------------------------------------------------------------------
   Get/Set callbacks State }
 
-function TGLWindow.GetCallbacksState: TGLWindowCallbacks;
+function TCastleWindowBase.GetCallbacksState: TWindowCallbacks;
 begin
  with result do
  begin
@@ -3695,7 +3695,7 @@ begin
  end;
 end;
 
-procedure TGLWindow.SetCallbacksState(const Callbacks: TGLWindowCallbacks);
+procedure TCastleWindowBase.SetCallbacksState(const Callbacks: TWindowCallbacks);
 begin
  with Callbacks do
  begin
@@ -3717,25 +3717,25 @@ end;
 
 { OpenAndRun ----------------------------------------------------------------- }
 
-procedure TGLWindow.OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc);
+procedure TCastleWindowBase.OpenAndRun(const ACaption: string; AOnDraw: TDrawFunc);
 begin
  FCaption := ACaption;
  OnDraw := AOnDraw;
  OpenAndRun;
 end;
 
-procedure TGLWindow.OpenAndRun;
+procedure TCastleWindowBase.OpenAndRun;
 begin
  Open;
  Application.Run;
 end;
 
-{ TGLWindow ParseParameters -------------------------------------------------- }
+{ TCastleWindowBase ParseParameters -------------------------------------------------- }
 
 type
   TOptionProcData = record
-    SpecifiedOptions: TGLWindowParseOptions;
-    Window: TGLWindow;
+    SpecifiedOptions: TWindowParseOptions;
+    Window: TCastleWindowBase;
   end;
   POptionProcData = ^TOptionProcData;
 
@@ -3904,8 +3904,8 @@ begin
   end;
 end;
 
-procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions;
-  out SpecifiedOptions: TGLWindowParseOptions);
+procedure TCastleWindowBase.ParseParameters(const AllowedOptions: TWindowParseOptions;
+  out SpecifiedOptions: TWindowParseOptions);
 
 const
   GeometryOptions: array[0..1]of TOption =
@@ -3918,7 +3918,7 @@ const
   DisplayOptions: array[0..0]of TOption =
   ( (Short:#0; Long:'display'; Argument: oaRequired) );
 
-  OptionsForParam: array[TGLWindowParseOption] of
+  OptionsForParam: array[TWindowParseOption] of
     record
       pOptions: POption_Array;
       Count: Integer;
@@ -3936,7 +3936,7 @@ const
   );
 
 var Data: TOptionProcData;
-    ParamKind: TGLWindowParseOption;
+    ParamKind: TWindowParseOption;
 begin
  Data.SpecifiedOptions := [];
  Data.Window := Self;
@@ -3950,18 +3950,18 @@ begin
  SpecifiedOptions := Data.SpecifiedOptions;
 end;
 
-procedure TGLWindow.ParseParameters(const AllowedOptions: TGLWindowParseOptions);
+procedure TCastleWindowBase.ParseParameters(const AllowedOptions: TWindowParseOptions);
 var
-  dummy: TGLWindowParseOptions;
+  dummy: TWindowParseOptions;
 begin
   ParseParameters(AllowedOptions, dummy);
 end;
 
-class function TGLWindow.ParseParametersHelp(
-  const AllowedOptions: TGLWindowParseOptions;
+class function TCastleWindowBase.ParseParametersHelp(
+  const AllowedOptions: TWindowParseOptions;
   AddHeader: boolean): string;
 const
-  HelpForParam: array[TGLWindowParseOption] of string =
+  HelpForParam: array[TWindowParseOption] of string =
   ('  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' +nl+
    '                        Set initial window size and/or position' +nl+
    '  --fullscreen          Set initial window size to cover whole screen',
@@ -3971,7 +3971,7 @@ const
    '  --display DISPLAY-NAME' +nl+
    '                        Use given XWindows display name.'
    );
-var ParamKind: TGLWindowParseOption;
+var ParamKind: TWindowParseOption;
 begin
  if AddHeader then
   result := 'Window options:' else
@@ -3987,15 +3987,15 @@ end;
 
 { Fps ------------------------------------------------------------------------ }
 
-procedure TGLWindow.FpsToCaption(const WindowTitle: string);
+procedure TCastleWindowBase.FpsToCaption(const WindowTitle: string);
 begin
   Caption := WindowTitle +
     Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]);
 end;
 
-{ TGLWindow miscella ---------------------------------------- }
+{ TCastleWindowBase miscella ---------------------------------------- }
 
-function TGLWindow.RequestedBufferAttributes: string;
+function TCastleWindowBase.RequestedBufferAttributes: string;
 begin
  if DoubleBuffer then
   result := 'double buffered' else
@@ -4014,7 +4014,7 @@ begin
   result += Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
 
-procedure TGLWindow.CheckRequestedBufferAttributes(const ProviderName: string;
+procedure TCastleWindowBase.CheckRequestedBufferAttributes(const ProviderName: string;
   ProvidedStencilBits, ProvidedDepthBits, ProvidedAlphaBits,
   ProvidedAccumRedBits, ProvidedAccumGreenBits, ProvidedAccumBlueBits,
   ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
@@ -4050,37 +4050,37 @@ begin
  end;
 end;
 
-function TGLWindow.GetMouseX: Integer;
+function TCastleWindowBase.GetMouseX: Integer;
 begin
   Result := FMouseX;
 end;
 
-function TGLWindow.GetMouseY: Integer;
+function TCastleWindowBase.GetMouseY: Integer;
 begin
   Result := FMouseY;
 end;
 
-function TGLWindow.GetWidth: Integer;
+function TCastleWindowBase.GetWidth: Integer;
 begin
   Result := FWidth;
 end;
 
-function TGLWindow.GetHeight: Integer;
+function TCastleWindowBase.GetHeight: Integer;
 begin
   Result := FHeight;
 end;
 
-function TGLWindow.GetMousePressed: TMouseButtons;
+function TCastleWindowBase.GetMousePressed: TMouseButtons;
 begin
   Result := FMousePressed;
 end;
 
-function TGLWindow.GetPressed: TKeysPressed;
+function TCastleWindowBase.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
 end;
 
-procedure TGLWindow.MenuUpdateBegin;
+procedure TCastleWindowBase.MenuUpdateBegin;
 begin
   { MenuUpdateNeedsInitialize = false always when MenuUpdateInside = 0. }
   Assert((MenuUpdateInside <> 0) or (not MenuUpdateNeedsInitialize));
@@ -4088,7 +4088,7 @@ begin
   Inc(MenuUpdateInside);
 end;
 
-procedure TGLWindow.MenuUpdateEnd;
+procedure TCastleWindowBase.MenuUpdateEnd;
 begin
   Dec(MenuUpdateInside);
   if (MenuUpdateInside = 0) and MenuUpdateNeedsInitialize then
@@ -4101,7 +4101,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.MenuInitialize;
+procedure TCastleWindowBase.MenuInitialize;
 begin
   if MenuUpdateInside = 0 then
   begin
@@ -4114,7 +4114,7 @@ begin
     MenuUpdateNeedsInitialize := true;
 end;
 
-procedure TGLWindow.MenuFinalize;
+procedure TCastleWindowBase.MenuFinalize;
 begin
   { MenuFinalize ignores MenuUpdateInside state, not needed. }
   if MenuInitialized and (not Closed) then
@@ -4124,9 +4124,9 @@ begin
   end;
 end;
 
-{ TGLWindowDemo ---------------------------------------------------------------- }
+{ TCastleWindowDemo ---------------------------------------------------------------- }
 
-procedure TGLWindowDemo.SwapFullScreen;
+procedure TCastleWindowDemo.SwapFullScreen;
 
   procedure SaveRect;
   begin
@@ -4153,7 +4153,7 @@ begin
  finally DuringSwapFullScreen := false end;
 end;
 
-procedure TGLWindowDemo.EventIdle;
+procedure TCastleWindowDemo.EventIdle;
 begin
  inherited;
  {ponizej udalo mi sie zaimplementowac cos jak timer, a jednak nie uzylem
@@ -4170,12 +4170,12 @@ begin
  end;
 end;
 
-function TGLWindowDemo.AllowSuspendForInput: boolean;
+function TCastleWindowDemo.AllowSuspendForInput: boolean;
 begin
  result := (inherited AllowSuspendForInput) and (not FpsShowOnCaption);
 end;
 
-procedure TGLWindowDemo.EventOpen;
+procedure TCastleWindowDemo.EventOpen;
 begin
  if not DuringSwapFullScreen then
  begin
@@ -4199,7 +4199,7 @@ begin
  inherited;
 end;
 
-procedure TGLWindowDemo.EventKeyDown(Key: TKey; c: char);
+procedure TCastleWindowDemo.EventKeyDown(Key: TKey; c: char);
 begin
  if (c <> #0) and (c = Close_CharKey) then
    Close else
@@ -4211,7 +4211,7 @@ begin
      podejrzewac ze wcisniecie klawisza mozna juz uznac za nieaktualne. }
 end;
 
-procedure TGLWindowDemo.SetDemoOptions(ASwapFullScreen_Key: TKey;
+procedure TCastleWindowDemo.SetDemoOptions(ASwapFullScreen_Key: TKey;
   AClose_CharKey: char;
   AFpsShowOnCaption: boolean);
 begin
@@ -4220,7 +4220,7 @@ begin
   FpsShowOnCaption := AFpsShowOnCaption;
 end;
 
-procedure TGLWindowDemo.SetFpsBaseCaption(const Value: string);
+procedure TCastleWindowDemo.SetFpsBaseCaption(const Value: string);
 begin
   if FFpsBaseCaption <> Value then
   begin
@@ -4231,7 +4231,7 @@ begin
   end;
 end;
 
-constructor TGLWindowDemo.Create(AOwner: TComponent);
+constructor TCastleWindowDemo.Create(AOwner: TComponent);
 begin
   inherited;
   Close_CharKey := #0; { CharEscape; }
@@ -4247,14 +4247,14 @@ type
     notifications, doing appropriate operations with parent Container. }
   TControlledUIControlList = class(TUIControlList)
   private
-    Container: TGLUIWindow;
+    Container: TCastleWindowCustom;
   public
-    constructor Create(const FreeObjects: boolean; const AContainer: TGLUIWindow);
+    constructor Create(const FreeObjects: boolean; const AContainer: TCastleWindowCustom);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   end;
 
 constructor TControlledUIControlList.Create(const FreeObjects: boolean;
-  const AContainer: TGLUIWindow);
+  const AContainer: TCastleWindowCustom);
 begin
   inherited Create(FreeObjects);
   Container := AContainer;
@@ -4308,16 +4308,16 @@ begin
   end;
 
   { This notification may get called during FreeAndNil(FControls)
-    in TGLUIWindow.Destroy. Then FControls is already nil, and we're
+    in TCastleWindowCustom.Destroy. Then FControls is already nil, and we're
     getting remove notification for all items (as FreeAndNil first sets
     object to nil). Testcase: lets_take_a_walk exit. }
   if Container.FControls <> nil then
     Container.UpdateFocusAndMouseCursor;
 end;
 
-{ TGLUIWindow --------------------------------------------------------- }
+{ TCastleWindowCustom --------------------------------------------------------- }
 
-constructor TGLUIWindow.Create(AOwner: TComponent);
+constructor TCastleWindowCustom.Create(AOwner: TComponent);
 begin
   inherited;
   FControls := TControlledUIControlList.Create(false, Self);
@@ -4327,13 +4327,13 @@ begin
   FTooltipDistance := DefaultTooltipDistance;
 end;
 
-destructor TGLUIWindow.Destroy;
+destructor TCastleWindowCustom.Destroy;
 begin
   FreeAndNil(FControls);
   inherited;
 end;
 
-procedure TGLUIWindow.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleWindowCustom.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
     This is crucial: TControlledUIControlList.Notify,
@@ -4347,7 +4347,7 @@ begin
   end;
 end;
 
-procedure TGLUIWindow.UpdateFocusAndMouseCursor;
+procedure TCastleWindowCustom.UpdateFocusAndMouseCursor;
 
   function CalculateFocus: TUIControl;
   var
@@ -4389,7 +4389,7 @@ begin
   Cursor := CalculateMouseCursor;
 end;
 
-procedure TGLUIWindow.EventIdle;
+procedure TCastleWindowCustom.EventIdle;
 
   procedure UpdateTooltip;
   var
@@ -4476,7 +4476,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventKeyDown(Key: TKey; Ch: char);
+procedure TCastleWindowCustom.EventKeyDown(Key: TKey; Ch: char);
 var
   C: TUIControl;
   I: Integer;
@@ -4494,7 +4494,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventKeyUp(Key: TKey; Ch: char);
+procedure TCastleWindowCustom.EventKeyUp(Key: TKey; Ch: char);
 var
   C: TUIControl;
   I: Integer;
@@ -4512,7 +4512,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventMouseDown(Button: TMouseButton);
+procedure TCastleWindowCustom.EventMouseDown(Button: TMouseButton);
 var
   C: TUIControl;
   I: Integer;
@@ -4530,7 +4530,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventMouseUp(Button: TMouseButton);
+procedure TCastleWindowCustom.EventMouseUp(Button: TMouseButton);
 var
   C: TUIControl;
   I: Integer;
@@ -4548,7 +4548,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventMouseWheel(const Scroll: Single; const Vertical: boolean);
+procedure TCastleWindowCustom.EventMouseWheel(const Scroll: Single; const Vertical: boolean);
 var
   C: TUIControl;
   I: Integer;
@@ -4566,7 +4566,7 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.EventOpen;
+procedure TCastleWindowCustom.EventOpen;
 var
   I: Integer;
 begin
@@ -4580,7 +4580,7 @@ begin
   end;
 end;
 
-function TGLUIWindow.AllowSuspendForInput: boolean;
+function TCastleWindowCustom.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
@@ -4602,7 +4602,7 @@ begin
   end;
 end;
 
-procedure TGLUIWindow.SetUseControls(const Value: boolean);
+procedure TCastleWindowCustom.SetUseControls(const Value: boolean);
 begin
   if Value <> UseControls then
   begin
@@ -4612,7 +4612,7 @@ begin
   end;
 end;
 
-procedure TGLUIWindow.EventMouseMove(NewX, NewY: Integer);
+procedure TCastleWindowCustom.EventMouseMove(NewX, NewY: Integer);
 var
   C: TUIControl;
   I: Integer;
@@ -4632,12 +4632,12 @@ begin
   inherited;
 end;
 
-procedure TGLUIWindow.ControlsVisibleChange(Sender: TObject);
+procedure TCastleWindowCustom.ControlsVisibleChange(Sender: TObject);
 begin
   PostRedisplay;
 end;
 
-procedure TGLUIWindow.EventBeforeDraw;
+procedure TCastleWindowCustom.EventBeforeDraw;
 var
   I: Integer;
 begin
@@ -4650,7 +4650,7 @@ begin
   end;
 end;
 
-procedure TGLUIWindow.EventDraw;
+procedure TCastleWindowCustom.EventDraw;
 
   { Call Draw for all controls having DrawStyle = ds3D.
 
@@ -4766,7 +4766,7 @@ begin
     inherited;
 end;
 
-procedure TGLUIWindow.EventResize;
+procedure TCastleWindowCustom.EventResize;
 var
   I: Integer;
 begin
@@ -4779,12 +4779,12 @@ begin
   end;
 end;
 
-procedure TGLUIWindow.EventClose;
+procedure TCastleWindowCustom.EventClose;
 var
   I: Integer;
 begin
   { call GLContextClose on controls before inherited (OnClose).
-    This may be called from Close, which may be called from TGLWindow destructor,
+    This may be called from Close, which may be called from TCastleWindowBase destructor,
     so prepare for Controls being possibly nil now. }
   if UseControls and (Controls <> nil) then
   begin
@@ -4795,32 +4795,32 @@ begin
   inherited;
 end;
 
-function TGLUIWindow.GetTooltipX: Integer;
+function TCastleWindowCustom.GetTooltipX: Integer;
 begin
   Result := FTooltipX;
 end;
 
-function TGLUIWindow.GetTooltipY: Integer;
+function TCastleWindowCustom.GetTooltipY: Integer;
 begin
   Result := FTooltipY;
 end;
 
-{ TGLWindowVRMLBrowser ------------------------------------------------------- }
+{ TCastleWindow ------------------------------------------------------- }
 
-constructor TGLWindowVRMLBrowser.Create(AOwner: TComponent);
+constructor TCastleWindow.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FSceneManager := TKamSceneManager.Create(Self);
+  FSceneManager := TCastleSceneManager.Create(Self);
   Controls.Add(SceneManager);
 end;
 
-procedure TGLWindowVRMLBrowser.Load(const SceneFileName: string);
+procedure TCastleWindow.Load(const SceneFileName: string);
 begin
   Load(LoadVRML(SceneFileName, false), true);
 end;
 
-procedure TGLWindowVRMLBrowser.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+procedure TCastleWindow.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
   { destroy MainScene and Camera, we will recreate them }
   SceneManager.MainScene.Free;
@@ -4828,7 +4828,7 @@ begin
   SceneManager.Items.Clear;
   SceneManager.Camera.Free;
 
-  SceneManager.MainScene := TVRMLGLScene.Create(Self);
+  SceneManager.MainScene := T3DScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
   SceneManager.Items.Add(SceneManager.MainScene);
 
@@ -4840,37 +4840,37 @@ begin
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;
 
-function TGLWindowVRMLBrowser.MainScene: TVRMLGLScene;
+function TCastleWindow.MainScene: T3DScene;
 begin
   Result := SceneManager.MainScene;
 end;
 
-function TGLWindowVRMLBrowser.GetShadowVolumes: boolean;
+function TCastleWindow.GetShadowVolumes: boolean;
 begin
   Result := SceneManager.ShadowVolumes;
 end;
 
-procedure TGLWindowVRMLBrowser.SetShadowVolumes(const Value: boolean);
+procedure TCastleWindow.SetShadowVolumes(const Value: boolean);
 begin
   SceneManager.ShadowVolumes := Value;
 end;
 
-function TGLWindowVRMLBrowser.GetShadowVolumesDraw: boolean;
+function TCastleWindow.GetShadowVolumesDraw: boolean;
 begin
   Result := SceneManager.ShadowVolumesDraw;
 end;
 
-procedure TGLWindowVRMLBrowser.SetShadowVolumesDraw(const Value: boolean);
+procedure TCastleWindow.SetShadowVolumesDraw(const Value: boolean);
 begin
   SceneManager.ShadowVolumesDraw := Value;
 end;
 
-function TGLWindowVRMLBrowser.GetShadowVolumesPossible: boolean;
+function TCastleWindow.GetShadowVolumesPossible: boolean;
 begin
   Result := SceneManager.ShadowVolumesPossible;
 end;
 
-procedure TGLWindowVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
+procedure TCastleWindow.SetShadowVolumesPossible(const Value: boolean);
 begin
   if not Closed then
     raise Exception.Create('You can''t change ShadowVolumesPossible ' +
@@ -4881,23 +4881,23 @@ begin
     StencilBufferBits := 0;
 end;
 
-{ TGLWindowList ------------------------------------------------------------ }
+{ TWindowList ------------------------------------------------------------ }
 
-procedure TGLWindowList.PostRedisplay;
+procedure TWindowList.PostRedisplay;
 var
   i: Integer;
 begin
   for i := 0 to Count - 1 do Items[i].PostRedisplay;
 end;
 
-procedure TGLWindowList.DoIdle;
+procedure TWindowList.DoIdle;
 var
   i: integer;
 begin
   for i := 0 to Count - 1 do Items[i].DoIdle;
 end;
 
-procedure TGLWindowList.DoTimer;
+procedure TWindowList.DoTimer;
 var
   i: integer;
 begin
@@ -4911,7 +4911,7 @@ end;
 constructor TGLApplication.Create(AOwner: TComponent);
 begin
   inherited;
-  FOpenWindows := TGLWindowList.Create(false);
+  FOpenWindows := TWindowList.Create(false);
   FTimerMilisec := 1000;
   CreateBackend;
 end;
@@ -4920,7 +4920,7 @@ destructor TGLApplication.Destroy;
 begin
   { Close any windows possibly open now.
     This is necessary --- after destroying Application there would be really
-    no way for them to close properly (that is, TGLWindow.CloseBackend
+    no way for them to close properly (that is, TCastleWindowBase.CloseBackend
     may, and usually will, fail with very strange errors when called
     after freeing central Application). }
   Quit;
@@ -4935,7 +4935,7 @@ begin
   inherited;
 end;
 
-function TGLApplication.GetOpenWindows(Index: integer): TGLWindow;
+function TGLApplication.GetOpenWindows(Index: integer): TCastleWindowBase;
 begin
   result := FOpenWindows[Index];
 end;
@@ -4945,19 +4945,19 @@ begin
   result := FOpenWindows.Count;
 end;
 
-procedure TGLApplication.OpenWindowsAdd(Window: TGLWindow);
+procedure TGLApplication.OpenWindowsAdd(Window: TCastleWindowBase);
 begin
   FOpenWindows.Add(Window);
 end;
 
-procedure TGLApplication.OpenWindowsRemove(Window: TGLWindow;
+procedure TGLApplication.OpenWindowsRemove(Window: TCastleWindowBase;
   QuitWhenLastWindowClosed: boolean);
 begin
   if (FOpenWindows.Remove(Window) <> -1) and
      (OpenWindowsCount = 0) and QuitWhenLastWindowClosed then Quit;
 end;
 
-function TGLApplication.FindWindow(Window: TGLWindow): integer;
+function TGLApplication.FindWindow(Window: TCastleWindowBase): integer;
 begin
   for result := 0 to OpenWindowsCount-1 do
     if OpenWindows[result] = Window then exit;
@@ -5074,7 +5074,7 @@ end;
 
 { Resize2D ------------------------------------------------------------ }
 
-procedure Resize2D(Window: TGLWindow);
+procedure Resize2D(Window: TCastleWindowBase);
 begin
  glViewport(0, 0, Window.Width, Window.Height);
  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
@@ -5083,7 +5083,7 @@ end;
 { init/fini --------------------------------------------------------------- }
 
 initialization
- GLWindowMenu_Init;
+ CastleWindowMenu_Init;
  Application := TGLApplication.Create(nil);
 finalization
  { Instead of using FreeAndNil, just call Free.
@@ -5097,8 +5097,8 @@ finalization
  Application.Free;
  Assert(Application = nil);
 
- { Order is important: GLWindowMenu_Fini frees MenuItems, which is needed
-   by TMenu destructor. And some TGLWindow instances may be freed
+ { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
+   by TMenu destructor. And some TCastleWindowBase instances may be freed
    only by Application destructor (when they are owned by Application). }
- GLWindowMenu_Fini;
+ CastleWindowMenu_Fini;
 end.

@@ -13,97 +13,97 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_tglwindow_private}
+{$ifdef read_window_private}
 
-{$endif read_tglwindow_private}
+{$endif read_window_private}
 
-{$ifdef read_tglwindowmanager_private}
+{$ifdef read_application_private}
 
-{$endif read_tglwindowmanager_private}
+{$endif read_application_private}
 
 {$ifdef read_implementation}
 
-{ TGLWindow ------------------------------------------------------------------ }
+{ TCastleWindowBase ------------------------------------------------------------------ }
 
-procedure TGLWindow.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
   { TODO (initialize backend-specific per-window stuff; may do nothing) }
 end;
 
-procedure TGLWindow.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
-procedure TGLWindow.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   { TODO (may do nothing if you do not care about displaying menu) }
 end;
 
-procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
     but don't care about updating it fast) }
 end;
 
-procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
     but don't care about updating it fast) }
 end;
 
-procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { TODO (may do nothing if you do not care about displaying menu;
     may do MenuFinalize + MenuInitialize if you display menu,
     but don't care about updating it fast) }
 end;
 
-function TGLWindow.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TGLWindow.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
   { TODO }
 end;
 
-procedure TGLWindow.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 begin
   { TODO (create OpenGL context, show window with this context) }
 end;
 
-procedure TGLWindow.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
   { TODO (destroy OpenGL context, hide window; counterpart to OpenBackend) }
 end;
 
-procedure TGLWindow.PostRedisplay;
+procedure TCastleWindowBase.PostRedisplay;
 begin
   if not Closed then { TODO };
 end;
 
-procedure TGLWindow.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Value: string);
 begin
   FCaption := Value;
   if not Closed then { TODO };
 end;
 
-procedure TGLWindow.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   { TODO }
 end;
 
-procedure TGLWindow.FlushRedisplay;
+procedure TCastleWindowBase.FlushRedisplay;
 begin
   { TODO (redraw *now*, if PostRedisplay pending;
     it's valid (although non-optimal) to just always call DoDraw here) }
 end;
 
-procedure TGLWindow.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -113,24 +113,24 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   { TODO }
   FCustomCursor := Value;
 end;
 
-function TGLWindow.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
 begin
   Result := { TODO } true;
 end;
 
-procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     { TODO };
 end;
 
-{ TGLWindow dialogs ---------------------------------------------------------- }
+{ TCastleWindowBase dialogs ---------------------------------------------------------- }
 
 { Methods below should make native-looking dialog boxes.
   Alternatively, you can include glwindow_dialogs_by_glwinmessages.inc,
@@ -138,24 +138,24 @@ end;
   unit. }
 { $I glwindow_dialogs_by_glwinmessages.inc}
 
-function TGLWindow.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   { TODO }
 end;
 
-function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
 begin
   { TODO }
 end;
 
-procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   { TODO }
 end;
 
-function TGLWindow.MessageYesNo(const S: string;
-  const MessageType: TGLWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: string;
+  const MessageType: TWindowMessageType): boolean;
 begin
   { TODO }
 end;

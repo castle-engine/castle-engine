@@ -22,7 +22,7 @@ uses Cameras, Surfaces, GLWindow, GL, GLU, VectorMath,
   KambiStringUtils, GLWinMessages, KambiFilesUtils, KambiParameters;
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
   Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
@@ -89,7 +89,7 @@ begin
   CameraScene;
 end;
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 const
   SurfaceXSegments = 20;
   SurfaceYSegments = 20;
@@ -127,7 +127,7 @@ begin
   finally FreeAndNil(Surface) end;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHTING);
@@ -136,13 +136,13 @@ begin
   glShadeModel(GL_FLAT);
 end;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 begin
   glViewport(0, 0, Window.Width, Window.Height);
   ProjectionGLPerspective(30, Window.Width/Window.Height, 0.1, 100);
 end;
 
-procedure Idle(Window: TGLWindow);
+procedure Idle(Window: TCastleWindowBase);
 begin
   if FUp then
   begin
@@ -163,7 +163,7 @@ begin
   end;
 end;
 
-procedure KeyDown(Window: TGLWindow; Key: TKey; C: char);
+procedure KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
 begin
   case C of
     'c': begin
@@ -184,7 +184,7 @@ begin
 end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Camera := TWalkCamera.Create(Window);
   Camera.PreferGravityUpForRotations := false;

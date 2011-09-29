@@ -6,26 +6,26 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  KambiVRMLBrowser, GL, GLControls, GLMenu;
+  KambiGLControl, GL, GLControls, GLMenu;
 
 type
 
   { TForm1 }
 
   TForm1 = class(TForm)
-    Browser: TKamVRMLBrowser;
-    GLMenu1: TGLMenu;
-    SampleButton: TKamGLButton;
-    SampleImage: TKamGLImage;
-    SampleImageAlpha: TKamGLImage;
-    ButtonImageFixSize1: TKamGLButton;
-    ButtonImageFixSize2: TKamGLButton;
-    ButtonImageFixSize3: TKamGLButton;
-    ButtonImageFixSize4: TKamGLButton;
-    ButtonImage1: TKamGLButton;
-    ButtonImage2: TKamGLButton;
-    ButtonImage3: TKamGLButton;
-    ButtonImage4: TKamGLButton;
+    Browser: TCastleControl;
+    GLMenu1: TCastleMenu;
+    SampleButton: TCastleButton;
+    SampleImage: TCastleImage;
+    SampleImageAlpha: TCastleImage;
+    ButtonImageFixSize1: TCastleButton;
+    ButtonImageFixSize2: TCastleButton;
+    ButtonImageFixSize3: TCastleButton;
+    ButtonImageFixSize4: TCastleButton;
+    ButtonImage1: TCastleButton;
+    ButtonImage2: TCastleButton;
+    ButtonImage3: TCastleButton;
+    ButtonImage4: TCastleButton;
     procedure FormCreate(Sender: TObject);
     procedure BrowserResize(Sender: TObject);
     procedure GLMenu1Click(Sender: TObject);
@@ -56,7 +56,7 @@ begin
     (If you would like to change this, you can set SampleButton.ExlusiveEvents
     to false.)
 
-    (Images (TKamGLImage) actually also obscure scene underneath, but since
+    (Images (TCastleImage) actually also obscure scene underneath, but since
     they do not handle any keys or mouse by default, they let themn through
     to 3d scene. This could be changed by overriding their MouseDown etc.) }
 

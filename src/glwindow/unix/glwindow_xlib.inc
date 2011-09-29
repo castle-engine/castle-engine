@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_tglwindow_interface}
+{$ifdef read_window_interface}
 private
   glcontext: GLXContext;
   windowXID: TWindow;
@@ -29,9 +29,9 @@ private
   procedure X_FocusOut(const event: TXFocusOutEvent);
 
   procedure UpdateCursor;
-{$endif read_tglwindow_interface}
+{$endif read_window_interface}
 
-{$ifdef read_tglwindowmanager_interface}
+{$ifdef read_application_interface}
 private
   FXDisplayName: string;
   FXDisplay: PDisplay;
@@ -51,7 +51,7 @@ private
   function KeySymToKey(ksym: TKeySym): TKey;
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
-  function FindWindowXID(seekWindowXID: TWindow): TGLWindow;
+  function FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
   procedure SetXDisplayName(const Value: string);
 
   { Check XDisplay. Call this once you're sure that XDisplay is set to
@@ -69,7 +69,7 @@ private
 public
   { XDisplayName uzywane przez wszystkie nastepne wywolania Window.Open.
     Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i
-    implementacja TGLWindow zaklada ze po zrobieniu Open Application.XDisplay bedzie
+    implementacja TCastleWindowBase zaklada ze po zrobieniu Open Application.XDisplay bedzie
     caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Open !
     XDisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
     SetXDisplayName powoduje cos jak FXDisplayName := XDisplayName(FDiaplayName),
@@ -82,7 +82,7 @@ public
   property XDisplay: PDisplay read FXDisplay;
 
   property XScreen: Integer read FXScreen;
-{$endif read_tglwindowmanager_interface}
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 
@@ -104,9 +104,9 @@ const
 
 {$I glwindow_dialogs_by_glwinmessages.inc}
 
-{ TGLWindow --------------------------------------------------------  }
+{ TCastleWindowBase --------------------------------------------------------  }
 
-procedure TGLWindow.OpenWinSystemDepend;
+procedure TCastleWindowBase.OpenWinSystemDepend;
 var
   sizeHints: TXSizeHints;
   AttrValueMask: Cardinal;
@@ -325,7 +325,7 @@ begin
   MakeCurrent;
 end;
 
-procedure TGLWindow.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 var
   dummy_event: TXEvent;
 begin
@@ -358,7 +358,7 @@ begin
   if XVisual   <> nil  then begin XFree(XVisual);                                  XVisual := nil    end;
 end;
 
-procedure TGLWindow.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -368,13 +368,13 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TGLWindow.UpdateCursor;
+procedure TCastleWindowBase.UpdateCursor;
 
   function CreateNoneCursor: TCursor;
   var
@@ -423,25 +423,25 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     XWarpPointer(Application.XDisplay, X.None, WindowXID,
       0, 0, 0, 0, NewMouseX, NewMouseY);
 end;
 
-procedure TGLWindow.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   Assert(not Closed);
   Check( glXMakeCurrent(Application.XDisplay, windowXID, glcontext), 'glXMakeCurrent');
 end;
 
-procedure TGLWindow.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
   windowXID := None;
 end;
 
-procedure TGLWindow.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Value: string);
 var
   PValue: PChar;
   WindTitleProp: TXTextProperty;
@@ -459,47 +459,47 @@ begin
   end;
 end;
 
-function TGLWindow.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
 begin
  Result := true;
 end;
 
-procedure TGLWindow.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
   { does nothing }
 end;
 
-procedure TGLWindow.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 begin
   { does nothing }
 end;
 
-procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   { does nothing }
 end;
 
-procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   { does nothing }
 end;
 
-function TGLWindow.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TGLWindow.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
   glXSwapBuffers(Application.XDisplay, windowXID);
 end;
 
-procedure TGLWindow.X_KeyPress(const event: TXKeyEvent);
+procedure TCastleWindowBase.X_KeyPress(const event: TXKeyEvent);
 var
   k: TKeySym;
   CharKey: char;
@@ -524,7 +524,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.X_KeyRelease(const event: TXKeyEvent);
+procedure TCastleWindowBase.X_KeyRelease(const event: TXKeyEvent);
 var
   k: TKeySym;
   CharKey: char;
@@ -553,7 +553,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.X_ConfigureNotify(const event: TXConfigureEvent);
+procedure TCastleWindowBase.X_ConfigureNotify(const event: TXConfigureEvent);
 var
   dummy_win: TWindow;
 begin
@@ -586,7 +586,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.X_ButtonPress(const event: TXButtonPressedEvent);
+procedure TCastleWindowBase.X_ButtonPress(const event: TXButtonPressedEvent);
 var
   btn: TMouseButton;
 begin
@@ -600,7 +600,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.X_ButtonRelease(const event: TXButtonReleasedEvent);
+procedure TCastleWindowBase.X_ButtonRelease(const event: TXButtonReleasedEvent);
 var
   btn: TMouseButton;
 begin
@@ -608,7 +608,7 @@ begin
     DoMouseUp(event.x, event.y, btn)
 end;
 
-procedure TGLWindow.X_MotionNotify(const event: TXMotionEvent);
+procedure TCastleWindowBase.X_MotionNotify(const event: TXMotionEvent);
 begin
   { We could refresh MousePressed now. But no need for now?
   mousePressed:=[];
@@ -619,7 +619,7 @@ begin
   DoMouseMove(event.x, event.y);
 end;
 
-procedure TGLWindow.X_FocusOut(const event: TXFocusOutEvent);
+procedure TCastleWindowBase.X_FocusOut(const event: TXFocusOutEvent);
 begin
   { Clear KeysDown and MousePressed information.
     Otherwise, we could miss the keyup or mouseup event, if user pressed
@@ -630,7 +630,7 @@ end;
 
 { TGLApplication ------------------------------------------------------- }
 
-function TGLApplication.FindWindowXID(seekWindowXID: TWindow): TGLWindow;
+function TGLApplication.FindWindowXID(seekWindowXID: TWindow): TCastleWindowBase;
 var
   i: integer;
 begin

@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestVRMLScene = class(TTestCase)
+  TTestSceneCore = class(TTestCase)
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -23,11 +23,11 @@ implementation
 uses VRMLNodes, VRMLScene, X3DLoad, VectorMath, VRMLShape,
   KambiTimeUtils, KambiStringUtils;
 
-procedure TTestVRMLScene.TestBorderManifoldEdges;
+procedure TTestSceneCore.TestBorderManifoldEdges;
 var
-  Scene: TVRMLScene;
+  Scene: T3DSceneCore;
 begin
-  Scene := TVRMLScene.Create(nil);
+  Scene := T3DSceneCore.Create(nil);
   try
     Scene.Load('data' + PathDelim + 'model_manifold.wrl');
     Assert(Scene.BorderEdges.Count = 0);
@@ -35,21 +35,21 @@ begin
 end;
 
 {$ifdef ITERATOR_SPEED_TEST}
-procedure TTestVRMLScene.TestIteratorSpeed;
+procedure TTestSceneCore.TestIteratorSpeed;
 
   procedure CheckIteratorSpeed(const FileName: string;
     const TestCount: Integer = 1000);
   var
-    Scene: TVRMLScene;
-    List: TVRMLShapesList;
-    SI: TVRMLShapeTreeIterator;
+    Scene: T3DSceneCore;
+    List: TShapesList;
+    SI: TShapeTreeIterator;
     OnlyActive: boolean;
     I: Integer;
     Test: Integer;
   begin
     Writeln('CheckIteratorSpeed on ', FileName);
 
-    Scene := TVRMLScene.Create(nil);
+    Scene := T3DSceneCore.Create(nil);
     try
       Scene.Load(FileName);
       for OnlyActive := false to true do
@@ -57,23 +57,23 @@ procedure TTestVRMLScene.TestIteratorSpeed;
         ProcessTimerBegin;
         for Test := 0 to TestCount - 1 do
         begin
-          List := TVRMLShapesList.Create(Scene.Shapes, OnlyActive);
+          List := TShapesList.Create(Scene.Shapes, OnlyActive);
           for I := 0 to List.Count - 1 do
             { Just do anything that requires access to List[I] }
             PointerToStr(List[I].Geometry);
           FreeAndNil(List);
         end;
-        Writeln('TVRMLShapesList traverse: ', ProcessTimerEnd:1:2);
+        Writeln('TShapesList traverse: ', ProcessTimerEnd:1:2);
 
         ProcessTimerBegin;
         for Test := 0 to TestCount - 1 do
         begin
-          SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
+          SI := TShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
           while SI.GetNext do
             PointerToStr(SI.Current.Geometry);
           FreeAndNil(SI);
         end;
-        Writeln('TVRMLShapeTreeIterator: ', ProcessTimerEnd:1:2);
+        Writeln('TShapeTreeIterator: ', ProcessTimerEnd:1:2);
 
       end;
     finally FreeAndNil(Scene) end;
@@ -93,26 +93,26 @@ begin
 end;
 {$endif ITERATOR_SPEED_TEST}
 
-procedure TTestVRMLScene.TestIterator;
+procedure TTestSceneCore.TestIterator;
 
   procedure CheckIterator(const FileName: string);
   var
-    Scene: TVRMLScene;
-    List: TVRMLShapeList;
-    SI: TVRMLShapeTreeIterator;
+    Scene: T3DSceneCore;
+    List: TShapeList;
+    SI: TShapeTreeIterator;
     OnlyActive: boolean;
     I: Integer;
   begin
-    Scene := TVRMLScene.Create(nil);
+    Scene := T3DSceneCore.Create(nil);
     try
       Scene.Load(FileName);
       for OnlyActive := false to true do
       begin
         { Compare the simple iterator implementation (that just calls
           Traverse and gathers results to the list) with actual sophisticated
-          implementation in TVRMLShapeTreeIterator. }
-        List := TVRMLShapeList.Create(Scene.Shapes, OnlyActive);
-        SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
+          implementation in TShapeTreeIterator. }
+        List := TShapeList.Create(Scene.Shapes, OnlyActive);
+        SI := TShapeTreeIterator.Create(Scene.Shapes, OnlyActive);
         for I := 0 to List.Count - 1 do
         begin
           Check(SI.GetNext, 'SI.GetNext');
@@ -141,5 +141,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestVRMLScene);
+  RegisterTest(TTestSceneCore);
 end.

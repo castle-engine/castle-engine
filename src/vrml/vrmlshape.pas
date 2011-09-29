@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML shape (TVRMLShape class) and a simple tree of shapes
-  (TVRMLShapeTree class). }
+{ VRML shape (TShape class) and a simple tree of shapes
+  (TShapeTree class). }
 unit VRMLShape;
 
 { $define SHAPE_ITERATOR_SOPHISTICATED}
@@ -31,7 +31,7 @@ uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, KambiClassUtils,
 const
   { }
   DefLocalTriangleOctreeMaxDepth = 10;
-  { Default octree leaf capacity for TVRMLShape.OctreeTriangles.
+  { Default octree leaf capacity for TShape.OctreeTriangles.
 
     This is slightly larger than DefTriangleOctreeLeafCapacity, as this
     octree will usually be used interactively for collision detection,
@@ -44,39 +44,39 @@ const
   );
 
 type
-  { Internal type for TVRMLShape
+  { Internal type for TShape
     @exclude }
-  TVRMLShapeValidities = set of (svLocalBBox, svBBox,
+  TShapeValidities = set of (svLocalBBox, svBBox,
     svVerticesCountNotOver,  svVerticesCountOver,
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere,
     svNormals);
 
-  { Internal type for TVRMLShape
+  { Internal type for TShape
     @exclude }
-  TVRMLShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
+  TShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
 
-  { Possible spatial structure types that may be managed by TVRMLShape,
-    see TVRMLShape.Spatial. }
-  TVRMLShapeSpatialStructure = (
-    { Create the TVRMLShape.OctreeTriangles.
+  { Possible spatial structure types that may be managed by TShape,
+    see TShape.Spatial. }
+  TShapeSpatialStructure = (
+    { Create the TShape.OctreeTriangles.
       This is an octree containing all triangles. }
     ssTriangles);
-  TVRMLShapeSpatialStructures = set of TVRMLShapeSpatialStructure;
+  TShapeSpatialStructures = set of TShapeSpatialStructure;
 
-  TVRMLShape = class;
+  TShape = class;
 
-  TShapeTraverseFunc = procedure (Shape: TVRMLShape) of object;
+  TShapeTraverseFunc = procedure (Shape: TShape) of object;
 
-  TEnumerateShapeTexturesFunction = procedure (Shape: TVRMLShape;
+  TEnumerateShapeTexturesFunction = procedure (Shape: TShape;
     Texture: TAbstractTextureNode) of object;
 
   TFaceIndex = FaceIndex.TFaceIndex;
 
-  { Triangle information, called by TVRMLShape.LocalTriangulate and such.
+  { Triangle information, called by TShape.LocalTriangulate and such.
 
     @param(Shape A shape containing this triangle.
-      This is always an instance of TVRMLShape class, but due
+      This is always an instance of TShape class, but due
       to unit dependencies it cannot be declared as such.)
 
     @param(Normal Normal vectors, for each triangle point.)
@@ -112,16 +112,16 @@ type
 
     So we process VRML tree to this tree, which is much simpler tree with
     all the geometry nodes (TAbstractGeometryNode) along with their state
-    (TVRMLGraphTraverseState) as leafs (TVRMLShape). }
-  TVRMLShapeTree = class
+    (TVRMLGraphTraverseState) as leafs (TShape). }
+  TShapeTree = class
   private
     FParentScene: TObject;
   public
     constructor Create(AParentScene: TObject);
 
-    { Parent TVRMLScene instance. This cannot be declared here as
-      TVRMLScene (this would create circular unit dependency),
-      but it always is TVRMLScene. }
+    { Parent T3DSceneCore instance. This cannot be declared here as
+      T3DSceneCore (this would create circular unit dependency),
+      but it always is T3DSceneCore. }
     property ParentScene: TObject read FParentScene write FParentScene;
 
     procedure Traverse(Func: TShapeTraverseFunc;
@@ -134,13 +134,13 @@ type
     { Look for shape with Geometry.NodeName = GeometryNodeName.
       Returns @nil if not found. }
     function FindGeometryNodeName(const GeometryNodeName: string;
-      OnlyActive: boolean = false): TVRMLShape;
+      OnlyActive: boolean = false): TShape;
 
     { Look for shape with Geometry that has a parent named ParentNodeName.
       Parent is searched by Geometry.TryFindParentNodeByName.
       Returns @nil if not found. }
     function FindShapeWithParentNamed(const ParentNodeName: string;
-      OnlyActive: boolean = false): TVRMLShape;
+      OnlyActive: boolean = false): TShape;
 
     { Assuming that the model was created by Blender VRML 1 or 2 exporter,
       this searches for a first shape that was created from Blender
@@ -156,7 +156,7 @@ type
       name. So when working with VRML 1.0, you're stuck with looking
       for mesh names. }
     function FindBlenderMesh(const BlenderMeshName: string;
-      OnlyActive: boolean = false): TVRMLShape;
+      OnlyActive: boolean = false): TShape;
 
     { Enumerate all single texture nodes (possibly) used by the shapes.
       This looks into all shapes (not only active, so e.g. it looks into all
@@ -177,7 +177,7 @@ type
     and it's current state (parent Shape node, current transformation and such).
 
     This class caches results of methods LocalBoundingBox, BoundingBox,
-    and most others (see TVRMLShapeValidities for hints).
+    and most others (see TShapeValidities for hints).
     This means that things work fast, but this also means that
     you must manually call @link(Changed)
     when you changed some properties of Geometry or contents of State.
@@ -185,17 +185,17 @@ type
     But note that you can't change Geometry or State to different
     objects --- they are readonly properties.
 
-    Also note that if you're using @link(TVRMLScene) class
+    Also note that if you're using @link(T3DSceneCore) class
     then you don't have to worry about calling @link(Changed)
-    of items in @link(TVRMLScene.Shapes).
+    of items in @link(T3DSceneCore.Shapes).
     All you have to do is to call appropriate @code(Changed*)
-    methods of @link(TVRMLScene). }
-  TVRMLShape = class(TVRMLShapeTree)
+    methods of @link(T3DSceneCore). }
+  TShape = class(TShapeTree)
   private
     FLocalBoundingBox: TBox3D;
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
-    Validities: TVRMLShapeValidities;
+    Validities: TShapeValidities;
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
     FOriginalGeometry: TAbstractGeometryNode;
@@ -229,21 +229,21 @@ type
       Next Geometry() or State() call will cause Proxy to be recalculated. }
     procedure FreeProxy;
   private
-    TriangleOctreeToAdd: TVRMLTriangleOctree;
+    TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
       const Position: TTriangle3Single;
       const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
       const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
-      const ProgressTitle: string): TVRMLTriangleOctree;
+      const ProgressTitle: string): TTriangleOctree;
   private
     FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
 
-    FOctreeTriangles: TVRMLTriangleOctree;
+    FOctreeTriangles: TTriangleOctree;
 
-    FSpatial: TVRMLShapeSpatialStructures;
-    procedure SetSpatial(const Value: TVRMLShapeSpatialStructures);
+    FSpatial: TShapeSpatialStructures;
+    procedure SetSpatial(const Value: TShapeSpatialStructures);
 
     function OverrideOctreeLimits(
       const BaseLimits: TOctreeLimits): TOctreeLimits;
@@ -252,7 +252,7 @@ type
     { Mailbox, for speeding up collision queries.
       @groupBegin }
     MailboxSavedTag: TMailboxTag;
-    MailboxResult: PVRMLTriangle;
+    MailboxResult: PTriangle;
     MailboxIntersection: TVector3Single;
     MailboxIntersectionDistance: Single;
     { @groupEnd }
@@ -260,7 +260,7 @@ type
 
     { Meaningful only when svNormals in Validities.
       Normals may be assigned only if svNormals in Validities. }
-    FNormalsCached: TVRMLShapeNormalsCached;
+    FNormalsCached: TShapeNormalsCached;
     FNormals: TVector3SingleList;
     { Meaningful only when svNormals in Validities and
       NormalsCached = ncCreaseAngle. }
@@ -268,7 +268,7 @@ type
     FNormalsOverTriangulate: boolean;
 
     { Free and nil FOctreeTriangles. Also, makes sure to call
-      PointingDeviceClear on ParentScene (since some PVRMLTriangle pointers
+      PointingDeviceClear on ParentScene (since some PTriangle pointers
       were freed). }
     procedure FreeOctreeTriangles;
   public
@@ -294,7 +294,7 @@ type
       or it may be processed by @link(TAbstractGeometryNode.Proxy)
       for easier handling.
 
-      Owned by this TVRMLShape class. }
+      Owned by this TShape class. }
     function State(const OverTriangulate: boolean = true): TVRMLGraphTraverseState;
 
     { Calculate bounding box and vertices/triangles count,
@@ -346,7 +346,7 @@ type
       const Frustum: TFrustum): boolean;
 
     { Notify this shape that you changed a field inside one of it's nodes
-      (automatically done by TVRMLScene).
+      (automatically done by T3DSceneCore).
       This should be called when fields within Shape.Geometry,
       Shape.State.Last*, Shape.State.ShapeNode or such change.
 
@@ -357,14 +357,14 @@ type
       general chTransform (which means that transformation of children changed,
       which implicates many things --- not only shape changes).
       Here, chTransform in Changes means that only the transformation
-      of TVRMLShape.State changed (so only on fields ignored by
+      of TShape.State changed (so only on fields ignored by
       EqualsNoTransform). }
     procedure Changed(const InactiveOnly: boolean;
       const Changes: TVRMLChanges); virtual;
 
     { @exclude
       Called when local geometry changed. Internally used to communicate
-      between TVRMLScene and TVRMLShape.
+      between T3DSceneCore and TShape.
 
       "Local" means that we're concerned here about changes visible
       in shape local coordinate system. E.g. things that only change our
@@ -385,7 +385,7 @@ type
       It contains only triangles within this shape.
 
       There is no distinction here between collidable / visible
-      (as for TVRMLScene octrees), since the whole shape may be
+      (as for T3DSceneCore octrees), since the whole shape may be
       visible and/or collidable.
 
       The triangles are specified in local coordinate system of this shape
@@ -394,25 +394,25 @@ type
       shape changes.
 
       This is automatically managed (initialized, updated, and used)
-      by parent TVRMLScene. You usually don't need to know about this
+      by parent T3DSceneCore. You usually don't need to know about this
       octree from outside.
 
       To initialize this, add ssTriangles to @link(Spatial) property,
-      otherwise it's @nil. Parent TVRMLScene will take care of this
-      (when parent TVRMLScene.Spatial contains ssDynamicCollisions, then
+      otherwise it's @nil. Parent T3DSceneCore will take care of this
+      (when parent T3DSceneCore.Spatial contains ssDynamicCollisions, then
       all shapes contain ssTriangles within their Spatial).
 
-      Parent TVRMLScene will take care to keep this octree always updated.
+      Parent T3DSceneCore will take care to keep this octree always updated.
 
-      Parent TVRMLScene will also take care of actually using
-      this octree: TVRMLScene.OctreeCollisions methods actually use the
+      Parent T3DSceneCore will also take care of actually using
+      this octree: T3DSceneCore.OctreeCollisions methods actually use the
       octrees of specific shapes at the bottom. }
-    function OctreeTriangles: TVRMLTriangleOctree;
+    function OctreeTriangles: TTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
-      This works analogous to TVRMLScene.Spatial, but this manages
-      octrees within this TVRMLShape. }
-    property Spatial: TVRMLShapeSpatialStructures read FSpatial write SetSpatial;
+      This works analogous to T3DSceneCore.Spatial, but this manages
+      octrees within this TShape. }
+    property Spatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
@@ -471,9 +471,9 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     { Equivalent to using OctreeTriangles.SegmentCollision, except this
       wil use the mailbox. }
@@ -483,9 +483,9 @@ type
       out IntersectionDistance: Single;
       const Pos1, Pos2: TVector3Single;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     { Create normals suitable for this shape.
 
@@ -607,22 +607,22 @@ type
     function Node: TAbstractShapeNode;
   end;
 
-  TVRMLShapeTreeList = specialize TFPGObjectList<TVRMLShapeTree>;
+  TShapeTreeList = specialize TFPGObjectList<TShapeTree>;
 
-  { Internal (non-leaf) node of the TVRMLShapeTree.
+  { Internal (non-leaf) node of the TShapeTree.
     This is practically just a list of other children
-    (other TVRMLShapeTree items).
+    (other TShapeTree items).
 
     All children are considered "active" by this class.
 
-    This class owns it's children TVRMLShapeTree.
-    Since TVRMLShapeTree is a simple tree structure, there are no duplicates
-    possible, that is given TVRMLShapeTree instance may be within only
-    one parent TVRMLShapeTree. (VRML node's parenting mechanism is more
+    This class owns it's children TShapeTree.
+    Since TShapeTree is a simple tree structure, there are no duplicates
+    possible, that is given TShapeTree instance may be within only
+    one parent TShapeTree. (VRML node's parenting mechanism is more
     complicated than this, because of DEF/USE mechanism.) }
-  TVRMLShapeTreeGroup = class(TVRMLShapeTree)
+  TShapeTreeGroup = class(TShapeTree)
   private
-    FChildren: TVRMLShapeTreeList;
+    FChildren: TShapeTreeList;
   public
     constructor Create(AParentScene: TObject);
     destructor Destroy; override;
@@ -632,20 +632,20 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
 
-    property Children: TVRMLShapeTreeList read FChildren;
+    property Children: TShapeTreeList read FChildren;
 
     procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
 
-    { Start index for TVRMLShapeTreeIterator.
+    { Start index for TShapeTreeIterator.
       Must be >= -1 (-1 means to start from 0).
 
       May be >= Children.Count, even IterateBeginIndex + 1 may
       be >= Children.Count, i.e. it's Ok if this is already out of range. }
     function IterateBeginIndex(OnlyActive: boolean): Integer; virtual;
 
-    { End index for TVRMLShapeTreeIterator. Valid indexes are < this.
+    { End index for TShapeTreeIterator. Valid indexes are < this.
       This must be <= Children.Count. }
     function IterateEndIndex(OnlyActive: boolean): Cardinal; virtual;
 
@@ -654,14 +654,14 @@ type
     function DebugInfo(const Indent: string = ''): string; override;
   end;
 
-  { Node of the TVRMLShapeTree representing an alternative,
+  { Node of the TShapeTree representing an alternative,
     choosing one (or none) child from it's children list as active.
 
     It's ideal for representing the VRML >= 2.0 Switch node
     (not possible for VRML 1.0 Switch node, as it may affect also other
     nodes after Switch). Actually, it even has a SwitchNode link that is
     used to decide which child to choose (using SwitchNode.FdWhichChoice).  }
-  TVRMLShapeTreeSwitch = class(TVRMLShapeTreeGroup)
+  TShapeTreeSwitch = class(TShapeTreeGroup)
   private
     FSwitchNode: TSwitchNode;
   public
@@ -678,12 +678,12 @@ type
     {$endif}
   end;
 
-  { Node of the TVRMLShapeTree transforming it's children.
+  { Node of the TShapeTree transforming it's children.
 
     It's ideal for handling VRML 2.0 / X3D Transform node,
     and similar nodes (MatrixTransform and some H-Anim nodes also act
     as a transformation node and also may be handled by this). }
-  TVRMLShapeTreeTransform = class(TVRMLShapeTreeGroup)
+  TShapeTreeTransform = class(TShapeTreeGroup)
   private
     FTransformNode: TX3DNode;
     FTransformState: TVRMLGraphTraverseState;
@@ -699,12 +699,12 @@ type
     property TransformNode: TX3DNode read FTransformNode write FTransformNode;
 
     { State right before traversing the TransformNode.
-      Owned by this TVRMLShapeTreeTransform instance. You should assign
+      Owned by this TShapeTreeTransform instance. You should assign
       to it when you set TransformNode. }
     property TransformState: TVRMLGraphTraverseState read FTransformState;
   end;
 
-  { Node of the TVRMLShapeTree representing the LOD (level of detail) VRML
+  { Node of the TShapeTree representing the LOD (level of detail) VRML
     concept. It chooses one child from it's children list as active.
     Represents the VRML >= 2.0 LOD node
     (not possible for VRML 1.0 LOD node, as it may affect also other
@@ -721,7 +721,7 @@ type
     from parent scene to make this LOD work. (Reasoning behind this decision:
     parent scene has CameraPosition and such, and parent scene
     knows whether to initiate level_changes event sending.) }
-  TVRMLShapeTreeLOD = class(TVRMLShapeTreeGroup)
+  TShapeTreeLOD = class(TShapeTreeGroup)
   private
     FLODNode: TAbstractLODNode;
     FLODInvertedTransform: TMatrix4Single;
@@ -741,7 +741,7 @@ type
 
       Should be calculated by CalculateLevel. By default
       we simply use the first (highest-detail) LOD as active.
-      So if you never assign this (e.g. because TVRMLScene.CameraViewKnown
+      So if you never assign this (e.g. because T3DSceneCore.CameraViewKnown
       = @false, that is user position is never known) we'll always
       use the highest-detail children. }
     property Level: Cardinal read FLevel write FLevel default 0;
@@ -760,7 +760,7 @@ type
     {$endif}
   end;
 
-  TProximitySensorInstance = class(TVRMLShapeTree)
+  TProximitySensorInstance = class(TShapeTree)
   private
     FNode: TProximitySensorNode;
   public
@@ -777,44 +777,44 @@ type
     function DebugInfo(const Indent: string = ''): string; override;
   end;
 
-  TVRMLShapeList = class;
+  TShapeList = class;
 
-  { Iterates over all TVRMLShape items that would be enumerated by
+  { Iterates over all TShape items that would be enumerated by
     Tree.Traverse. Sometimes it's easier to write code using this iterator
-    than to create callbacks and use TVRMLShapeTree.Traverse. }
-  TVRMLShapeTreeIterator = class
+    than to create callbacks and use TShapeTree.Traverse. }
+  TShapeTreeIterator = class
   private
-    FCurrent: TVRMLShape;
+    FCurrent: TShape;
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     Info: Pointer;
     SingleShapeRemaining: boolean;
     FOnlyActive, FOnlyVisible, FOnlyCollidable: boolean;
     function CurrentMatches: boolean;
     {$else}
-    List: TVRMLShapeList;
+    List: TShapeList;
     CurrentIndex: Integer;
     {$endif}
   public
-    constructor Create(Tree: TVRMLShapeTree; const OnlyActive: boolean;
+    constructor Create(Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false);
     destructor Destroy; override;
     function GetNext: boolean;
-    property Current: TVRMLShape read FCurrent;
+    property Current: TShape read FCurrent;
   end;
 
-  TVRMLShapeList = class(specialize TFPGObjectList<TVRMLShape>)
+  TShapeList = class(specialize TFPGObjectList<TShape>)
   private
     AddedCount: Integer;
-    procedure AddToList(Shape: TVRMLShape);
-    procedure AddToListIfVisible(Shape: TVRMLShape);
-    procedure AddToListIfCollidable(Shape: TVRMLShape);
-    procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+    procedure AddToList(Shape: TShape);
+    procedure AddToListIfVisible(Shape: TShape);
+    procedure AddToListIfCollidable(Shape: TShape);
+    procedure AddToListIfVisibleAndCollidable(Shape: TShape);
   public
     constructor Create;
 
     { Constructor that initializes list contents by traversing given tree. }
-    constructor Create(Tree: TVRMLShapeTree; const OnlyActive: boolean;
+    constructor Create(Tree: TShapeTree; const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false);
 
@@ -826,7 +826,7 @@ type
   end;
 
 var
-  { If nonzero, disables automatic TVRMLShape.DynamicGeometry detection
+  { If nonzero, disables automatic TShape.DynamicGeometry detection
     on every node modification. This is useful if you do some interactive
     editing of the shape, but you don't want the shape octree to be replaced
     by it's approximation. }
@@ -843,20 +843,20 @@ const
     (0, 0, 0, 1),
     (0, 0, 0, 1) );
 
-{ TVRMLShapeTree ------------------------------------------------------------ }
+{ TShapeTree ------------------------------------------------------------ }
 
-constructor TVRMLShapeTree.Create(AParentScene: TObject);
+constructor TShapeTree.Create(AParentScene: TObject);
 begin
   inherited Create;
   FParentScene := AParentScene;
 end;
 
-function TVRMLShapeTree.FindGeometryNodeName(
-  const GeometryNodeName: string; OnlyActive: boolean): TVRMLShape;
+function TShapeTree.FindGeometryNodeName(
+  const GeometryNodeName: string; OnlyActive: boolean): TShape;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
-  SI := TVRMLShapeTreeIterator.Create(Self, OnlyActive);
+  SI := TShapeTreeIterator.Create(Self, OnlyActive);
   try
     while SI.GetNext do
     begin
@@ -867,12 +867,12 @@ begin
   Result := nil;
 end;
 
-function TVRMLShapeTree.FindShapeWithParentNamed(
-  const ParentNodeName: string; OnlyActive: boolean): TVRMLShape;
+function TShapeTree.FindShapeWithParentNamed(
+  const ParentNodeName: string; OnlyActive: boolean): TShape;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
-  SI := TVRMLShapeTreeIterator.Create(Self, OnlyActive);
+  SI := TShapeTreeIterator.Create(Self, OnlyActive);
   try
     while SI.GetNext do
     begin
@@ -883,12 +883,12 @@ begin
   Result := nil;
 end;
 
-function TVRMLShapeTree.FindBlenderMesh(
-  const BlenderMeshName: string; OnlyActive: boolean): TVRMLShape;
+function TShapeTree.FindBlenderMesh(
+  const BlenderMeshName: string; OnlyActive: boolean): TShape;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
-  SI := TVRMLShapeTreeIterator.Create(Self, OnlyActive);
+  SI := TShapeTreeIterator.Create(Self, OnlyActive);
   try
     while SI.GetNext do
       if SI.Current.BlenderMeshName = BlenderMeshName then
@@ -897,9 +897,9 @@ begin
   Result := nil;
 end;
 
-{ TVRMLShape -------------------------------------------------------------- }
+{ TShape -------------------------------------------------------------- }
 
-constructor TVRMLShape.Create(AParentScene: TObject;
+constructor TShape.Create(AParentScene: TObject;
   AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TVRMLGraphTraverseState;
   ParentInfo: PTraversingInfo);
 
@@ -973,7 +973,7 @@ begin
   {$endif}
 end;
 
-destructor TVRMLShape.Destroy;
+destructor TShape.Destroy;
 begin
   FreeProxy;
   FreeAndNil(FNormals);
@@ -982,23 +982,23 @@ begin
   inherited;
 end;
 
-procedure TVRMLShape.FreeOctreeTriangles;
+procedure TShape.FreeOctreeTriangles;
 begin
   { secure against ParentScene = nil, since this may be called from destructor }
 
   if ParentScene <> nil then
   begin
-    { Some PVRMLTriangles will be freed. Make sure to clear
+    { Some PTriangles will be freed. Make sure to clear
       PointingDeviceOverItem, unless they belong to a different shape. }
-    if (TVRMLScene(ParentScene).PointingDeviceOverItem <> nil) and
-       (TVRMLScene(ParentScene).PointingDeviceOverItem^.Shape = Self) then
-      TVRMLScene(ParentScene).PointingDeviceClear;
+    if (T3DSceneCore(ParentScene).PointingDeviceOverItem <> nil) and
+       (T3DSceneCore(ParentScene).PointingDeviceOverItem^.Shape = Self) then
+      T3DSceneCore(ParentScene).PointingDeviceClear;
   end;
 
   FreeAndNil(FOctreeTriangles);
 end;
 
-function TVRMLShape.OctreeTriangles: TVRMLTriangleOctree;
+function TShape.OctreeTriangles: TTriangleOctree;
 begin
   if (ssTriangles in Spatial) and (FOctreeTriangles = nil) then
   begin
@@ -1013,12 +1013,12 @@ begin
   Result := FOctreeTriangles;
 end;
 
-function TVRMLShape.TriangleOctreeLimits: POctreeLimits;
+function TShape.TriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
 end;
 
-function TVRMLShape.LocalBoundingBox: TBox3D;
+function TShape.LocalBoundingBox: TBox3D;
 begin
   if not (svLocalBBox in Validities) then
   begin
@@ -1029,7 +1029,7 @@ begin
   Result := FLocalBoundingBox;
 end;
 
-function TVRMLShape.BoundingBox: TBox3D;
+function TShape.BoundingBox: TBox3D;
 begin
   if not (svBBox in Validities) then
   begin
@@ -1040,7 +1040,7 @@ begin
   Result := FBoundingBox;
 end;
 
-function TVRMLShape.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TShape.VerticesCount(OverTriangulate: boolean): Cardinal;
 
   procedure Calculate;
   begin
@@ -1069,7 +1069,7 @@ begin
   Result := FVerticesCount[OverTriangulate];
 end;
 
-function TVRMLShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TShape.TrianglesCount(OverTriangulate: boolean): Cardinal;
 
   procedure Calculate;
   begin
@@ -1098,7 +1098,7 @@ begin
   Result := FTrianglesCount[OverTriangulate];
 end;
 
-function TVRMLShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
+function TShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
 var
   G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
@@ -1195,7 +1195,7 @@ begin
     Result := ArrayForBox(LocalBoundingBox);
 end;
 
-procedure TVRMLShape.FreeProxy;
+procedure TShape.FreeProxy;
 begin
   if Log and LogChanges and
     { OriginalGeometry should always be <> nil, but just in case
@@ -1243,7 +1243,7 @@ begin
   Assert(FState[true] = nil);
 end;
 
-procedure TVRMLShape.Changed(const InactiveOnly: boolean;
+procedure TShape.Changed(const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 begin
   { Remember to code everything here to act only when some stuff
@@ -1273,10 +1273,10 @@ begin
     LocalGeometryChanged(false, false);
 
   if not InactiveOnly then
-    TVRMLScene(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    T3DSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
-procedure TVRMLShape.ValidateBoundingSphere;
+procedure TShape.ValidateBoundingSphere;
 begin
  if not (svBoundingSphere in Validities) then
  begin
@@ -1285,19 +1285,19 @@ begin
  end;
 end;
 
-function TVRMLShape.BoundingSphereCenter: TVector3Single;
+function TShape.BoundingSphereCenter: TVector3Single;
 begin
  ValidateBoundingSphere;
  Result := FBoundingSphereCenter;
 end;
 
-function TVRMLShape.BoundingSphereRadiusSqr: Single;
+function TShape.BoundingSphereRadiusSqr: Single;
 begin
  ValidateBoundingSphere;
  Result := FBoundingSphereRadiusSqr;
 end;
 
-function TVRMLShape.FrustumBoundingSphereCollisionPossible(
+function TShape.FrustumBoundingSphereCollisionPossible(
   const Frustum: TFrustum): TFrustumCollisionPossible;
 begin
  ValidateBoundingSphere;
@@ -1305,7 +1305,7 @@ begin
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
-function TVRMLShape.FrustumBoundingSphereCollisionPossibleSimple(
+function TShape.FrustumBoundingSphereCollisionPossibleSimple(
   const Frustum: TFrustum): boolean;
 begin
  ValidateBoundingSphere;
@@ -1313,7 +1313,7 @@ begin
    FBoundingSphereCenter, FBoundingSphereRadiusSqr);
 end;
 
-function TVRMLShape.OverrideOctreeLimits(
+function TShape.OverrideOctreeLimits(
   const BaseLimits: TOctreeLimits): TOctreeLimits;
 var
   Props: TKambiOctreePropertiesNode;
@@ -1328,7 +1328,7 @@ begin
   end;
 end;
 
-procedure TVRMLShape.AddTriangleToOctreeProgress(Shape: TObject;
+procedure TShape.AddTriangleToOctreeProgress(Shape: TObject;
   const Position: TTriangle3Single;
   const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
   const Face: TFaceIndex);
@@ -1337,9 +1337,9 @@ begin
   TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
 end;
 
-function TVRMLShape.CreateTriangleOctree(
+function TShape.CreateTriangleOctree(
   const ALimits: TOctreeLimits;
-  const ProgressTitle: string): TVRMLTriangleOctree;
+  const ProgressTitle: string): TTriangleOctree;
 
   procedure LocalTriangulateBox(const Box: TBox3D);
 
@@ -1388,7 +1388,7 @@ function TVRMLShape.CreateTriangleOctree(
   end;
 
 begin
-  Result := TVRMLTriangleOctree.Create(ALimits, LocalBoundingBox);
+  Result := TTriangleOctree.Create(ALimits, LocalBoundingBox);
   try
     if DynamicGeometry then
     begin
@@ -1414,7 +1414,7 @@ begin
   except Result.Free; raise end;
 end;
 
-procedure TVRMLShape.SetSpatial(const Value: TVRMLShapeSpatialStructures);
+procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);
 var
   Old, New: boolean;
 begin
@@ -1432,7 +1432,7 @@ begin
   end;
 end;
 
-procedure TVRMLShape.LocalGeometryChanged(
+procedure TShape.LocalGeometryChanged(
   const CalledFromParentScene, ChangedOnlyCoord: boolean);
 begin
   if FOctreeTriangles <> nil then
@@ -1462,12 +1462,12 @@ begin
   if not CalledFromParentScene then
   begin
     if ChangedOnlyCoord then
-      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self) else
-      TVRMLScene(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+      T3DSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self) else
+      T3DSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
   end;
 end;
 
-function TVRMLShape.Transparent: boolean;
+function TShape.Transparent: boolean;
 var
   M: TMaterialNode;
 begin
@@ -1499,12 +1499,12 @@ begin
     Result := true;
 end;
 
-procedure TVRMLShape.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShape.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
 begin
   Func(Self);
 end;
 
-function TVRMLShape.ShapesCount(
+function TShape.ShapesCount(
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 begin
   if ((not OnlyVisible) or Visible) and
@@ -1513,25 +1513,25 @@ begin
     Result := 0;
 end;
 
-function TVRMLShape.Visible: boolean;
+function TShape.Visible: boolean;
 begin
   Result := State.InsideInvisible = 0;
 end;
 
-function TVRMLShape.Collidable: boolean;
+function TShape.Collidable: boolean;
 begin
   Result := State.InsideIgnoreCollision = 0;
 end;
 
-function TVRMLShape.RayCollision(
+function TShape.RayCollision(
   const Tag: TMailboxTag;
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then
@@ -1564,15 +1564,15 @@ begin
   {$endif}
 end;
 
-function TVRMLShape.SegmentCollision(
+function TShape.SegmentCollision(
   const Tag: TMailboxTag;
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then
@@ -1605,7 +1605,7 @@ begin
   {$endif}
 end;
 
-function TVRMLShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
+function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
 var
   G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
@@ -1633,7 +1633,7 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
+function TShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
 var
   G: TAbstractGeometryNode;
   S: TVRMLGraphTraverseState;
@@ -1662,7 +1662,7 @@ begin
   Result := FNormals;
 end;
 
-function TVRMLShape.NormalsCreaseAngle(OverTriangulate: boolean;
+function TShape.NormalsCreaseAngle(OverTriangulate: boolean;
   const CreaseAngle: Single): TVector3SingleList;
 var
   G: TAbstractGeometryNode;
@@ -1694,7 +1694,7 @@ begin
   Result := FNormals;
 end;
 
-procedure TVRMLShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+procedure TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
 
   procedure HandleSingleTextureNode(Tex: TX3DNode);
   begin
@@ -1771,19 +1771,19 @@ end;
 type
   TUsesTextureHelper = class
     Node: TAbstractTextureNode;
-    procedure HandleTexture(Shape: TVRMLShape; Texture: TAbstractTextureNode);
+    procedure HandleTexture(Shape: TShape; Texture: TAbstractTextureNode);
   end;
 
   BreakUsesTexture = class(TCodeBreaker);
 
-procedure TUsesTextureHelper.HandleTexture(Shape: TVRMLShape;
+procedure TUsesTextureHelper.HandleTexture(Shape: TShape;
   Texture: TAbstractTextureNode);
 begin
   if Texture = Node then
     raise BreakUsesTexture.Create;
 end;
 
-function TVRMLShape.UsesTexture(Node: TAbstractTextureNode): boolean;
+function TShape.UsesTexture(Node: TAbstractTextureNode): boolean;
 var
   Helper: TUsesTextureHelper;
 begin
@@ -1799,7 +1799,7 @@ begin
   finally Helper.Free end;
 end;
 
-function TVRMLShape.ShadowCaster: boolean;
+function TShape.ShadowCaster: boolean;
 var
   S: TAbstractShapeNode;
   A: TX3DNode;
@@ -1816,7 +1816,7 @@ begin
   end;
 end;
 
-procedure TVRMLShape.ValidateGeometryState(const OverTriangulate: boolean);
+procedure TShape.ValidateGeometryState(const OverTriangulate: boolean);
 begin
   if FGeometry[OverTriangulate] = nil then
   begin
@@ -1848,32 +1848,32 @@ begin
   end;
 end;
 
-function TVRMLShape.Geometry(const OverTriangulate: boolean): TAbstractGeometryNode;
+function TShape.Geometry(const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   ValidateGeometryState(OverTriangulate);
   Result := FGeometry[OverTriangulate];
 end;
 
-function TVRMLShape.State(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+function TShape.State(const OverTriangulate: boolean): TVRMLGraphTraverseState;
 begin
   ValidateGeometryState(OverTriangulate);
   Result := FState[OverTriangulate];
 end;
 
-function TVRMLShape.ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
+function TShape.ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := Geometry(OverTriangulate);
   if Result = OriginalGeometry then Result := nil;
 end;
 
-function TVRMLShape.ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+function TShape.ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
 begin
   if Geometry(OverTriangulate) <> OriginalGeometry then
     Result := State(OverTriangulate) else
     Result := nil;
 end;
 
-procedure TVRMLShape.LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+procedure TShape.LocalTriangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
 var
   Arrays: TGeometryArrays;
   RangeBeginIndex: Integer;
@@ -1925,7 +1925,7 @@ var
              TexCoord[1] := Arrays.TexCoord4D(0, VI2)^;
              TexCoord[2] := Arrays.TexCoord4D(0, VI3)^;
            end;
-        else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at tvrmlshape.localtriangulate');
+        else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at TShape.localtriangulate');
       end;
     end else
       TexCoord := UnknownTexCoord;
@@ -2026,7 +2026,7 @@ begin
   TriangleEvent(Shape, TriangleTransform(Position, Transform^), Normal, TexCoord, Face);
 end;
 
-procedure TVRMLShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
+procedure TShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
 var
   TR: TTriangulateRedirect;
 begin
@@ -2038,41 +2038,41 @@ begin
   finally FreeAndNil(TR) end;
 end;
 
-function TVRMLShape.DebugInfo(const Indent: string): string;
+function TShape.DebugInfo(const Indent: string): string;
 begin
   Result := Indent + NiceName + NL;
 end;
 
-function TVRMLShape.NiceName: string;
+function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
 end;
 
-function TVRMLShape.DebugName: string;
+function TShape.DebugName: string;
 begin
   Result := NiceName;
 end;
 
-function TVRMLShape.Node: TAbstractShapeNode;
+function TShape.Node: TAbstractShapeNode;
 begin
   Result := State.ShapeNode;
 end;
 
-{ TVRMLShapeTreeGroup -------------------------------------------------------- }
+{ TShapeTreeGroup -------------------------------------------------------- }
 
-constructor TVRMLShapeTreeGroup.Create(AParentScene: TObject);
+constructor TShapeTreeGroup.Create(AParentScene: TObject);
 begin
   inherited Create(AParentScene);
-  FChildren := TVRMLShapeTreeList.Create(true);
+  FChildren := TShapeTreeList.Create(true);
 end;
 
-destructor TVRMLShapeTreeGroup.Destroy;
+destructor TShapeTreeGroup.Destroy;
 begin
   FreeAndNil(FChildren);
   inherited;
 end;
 
-procedure TVRMLShapeTreeGroup.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShapeTreeGroup.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
 var
   I: Integer;
 begin
@@ -2080,7 +2080,7 @@ begin
     FChildren.Items[I].Traverse(Func, OnlyActive);
 end;
 
-function TVRMLShapeTreeGroup.ShapesCount(
+function TShapeTreeGroup.ShapesCount(
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 var
   I: Integer;
@@ -2096,7 +2096,7 @@ begin
   end;
 end;
 
-procedure TVRMLShapeTreeGroup.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+procedure TShapeTreeGroup.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
 var
   I: Integer;
 begin
@@ -2105,18 +2105,18 @@ begin
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-function TVRMLShapeTreeGroup.IterateBeginIndex(OnlyActive: boolean): Integer;
+function TShapeTreeGroup.IterateBeginIndex(OnlyActive: boolean): Integer;
 begin
   Result := -1;
 end;
 
-function TVRMLShapeTreeGroup.IterateEndIndex(OnlyActive: boolean): Cardinal;
+function TShapeTreeGroup.IterateEndIndex(OnlyActive: boolean): Cardinal;
 begin
   Result := FChildren.Count;
 end;
 {$endif}
 
-function TVRMLShapeTreeGroup.DebugInfo(const Indent: string): string;
+function TShapeTreeGroup.DebugInfo(const Indent: string): string;
 var
   I: Integer;
 begin
@@ -2125,9 +2125,9 @@ begin
     Result += FChildren[I].DebugInfo(Indent + Format('  %3d:', [I]));
 end;
 
-{ TVRMLShapeTreeSwitch ------------------------------------------------------- }
+{ TShapeTreeSwitch ------------------------------------------------------- }
 
-procedure TVRMLShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
 var
   WhichChoice: Integer;
 begin
@@ -2141,7 +2141,7 @@ begin
     inherited;
 end;
 
-function TVRMLShapeTreeSwitch.ShapesCount(
+function TShapeTreeSwitch.ShapesCount(
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 var
   WhichChoice: Integer;
@@ -2158,7 +2158,7 @@ begin
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-function TVRMLShapeTreeSwitch.IterateBeginIndex(OnlyActive: boolean): Integer;
+function TShapeTreeSwitch.IterateBeginIndex(OnlyActive: boolean): Integer;
 var
   WhichChoice: Integer;
 begin
@@ -2174,7 +2174,7 @@ begin
     Result := inherited;
 end;
 
-function TVRMLShapeTreeSwitch.IterateEndIndex(OnlyActive: boolean): Cardinal;
+function TShapeTreeSwitch.IterateEndIndex(OnlyActive: boolean): Cardinal;
 var
   WhichChoice: Integer;
 begin
@@ -2190,28 +2190,28 @@ begin
 end;
 {$endif}
 
-{ TVRMLShapeTreeTransform ---------------------------------------------------- }
+{ TShapeTreeTransform ---------------------------------------------------- }
 
-constructor TVRMLShapeTreeTransform.Create(AParentScene: TObject);
+constructor TShapeTreeTransform.Create(AParentScene: TObject);
 begin
   inherited;
   FTransformState := TVRMLGraphTraverseState.Create;
 end;
 
-destructor TVRMLShapeTreeTransform.Destroy;
+destructor TShapeTreeTransform.Destroy;
 begin
   FreeAndNil(FTransformState);
   inherited;
 end;
 
-{ TVRMLShapeTreeLOD ------------------------------------------------------- }
+{ TShapeTreeLOD ------------------------------------------------------- }
 
-function TVRMLShapeTreeLOD.LODInvertedTransform: PMatrix4Single;
+function TShapeTreeLOD.LODInvertedTransform: PMatrix4Single;
 begin
   Result := @FLODInvertedTransform;
 end;
 
-function TVRMLShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
+function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
 var
   Camera: TVector3Single;
   Dummy: Single;
@@ -2244,7 +2244,7 @@ begin
     ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
 end;
 
-procedure TVRMLShapeTreeLOD.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShapeTreeLOD.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
 begin
   if Children.Count > 0 then
   begin
@@ -2255,7 +2255,7 @@ begin
   end;
 end;
 
-function TVRMLShapeTreeLOD.ShapesCount(
+function TShapeTreeLOD.ShapesCount(
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean): Cardinal;
 begin
   if Children.Count > 0 then
@@ -2269,14 +2269,14 @@ begin
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
-function TVRMLShapeTreeLOD.IterateBeginIndex(OnlyActive: boolean): Integer;
+function TShapeTreeLOD.IterateBeginIndex(OnlyActive: boolean): Integer;
 begin
   if (Children.Count > 0) and OnlyActive then
     Result := Level - 1 else
     Result := inherited;
 end;
 
-function TVRMLShapeTreeLOD.IterateEndIndex(OnlyActive: boolean): Cardinal;
+function TShapeTreeLOD.IterateEndIndex(OnlyActive: boolean): Cardinal;
 begin
   if (Children.Count > 0) and OnlyActive then
     Result := Level + 1 else
@@ -2308,14 +2308,14 @@ begin
   Result := Indent + 'ProximitySensor (' + Node.NodeName + ')' + NL;
 end;
 
-{ TVRMLShapeTreeIterator ----------------------------------------------------- }
+{ TShapeTreeIterator ----------------------------------------------------- }
 
 { When SHAPE_ITERATOR_SOPHISTICATED is defined, we use a complicated
   implementation that has a nice O(1) speed for constructor and all
   GetNext calls (well, actually some calls may have O(depth), but most
   will not). It traverses one step further in each GetNext.
   It's building a simple stack of items to make efficient push/pop while
-  walking down/up the tree of TVRMLShapesTree.
+  walking down/up the tree of TShapesTree.
 
   When SHAPE_ITERATOR_SOPHISTICATED is not defined, we use a very simple
   implementation: just call Tree.Traverse,
@@ -2330,7 +2330,7 @@ end;
   In practice however, it turned out that the sophisticated version
   was useless. Time measures shown that "naive" and simple
   version is even very very slightly faster in some cases.
-  Time measure is in castle_game_engine/tests/testvrmlscene.pas,
+  Time measure is in castle_game_engine/tests/testscenecore.pas,
   define ITERATOR_SPEED_TEST and test for yourself.
 
   So in practice good memory allocator in FPC
@@ -2344,9 +2344,9 @@ end;
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
 
 type
-  { To efficiently implement TVRMLShapeTreeIterator, we have to
-    use an efficient stack push/pop when entering TVRMLShapeTreeGroup
-    (this includes TVRMLShapeTreeSwitch), and remember current Index
+  { To efficiently implement TShapeTreeIterator, we have to
+    use an efficient stack push/pop when entering TShapeTreeGroup
+    (this includes TShapeTreeSwitch), and remember current Index
     within current group.
 
     Note that this follows the logic of implemented Traverse methods.
@@ -2354,7 +2354,7 @@ type
     realize iterator with actually calling Traverse methods. }
   PIteratorInfo = ^TIteratorInfo;
   TIteratorInfo = record
-    Group: TVRMLShapeTreeGroup;
+    Group: TShapeTreeGroup;
     Index: Integer;
     GroupCount: Cardinal;
     Parent: PIteratorInfo;
@@ -2363,7 +2363,7 @@ type
 {$define IteratorInfo := PIteratorInfo(Info)}
 
 { Check Current for FOnlyVisible and FOnlyCollidable flags. }
-function TVRMLShapeTreeIterator.CurrentMatches: boolean;
+function TShapeTreeIterator.CurrentMatches: boolean;
 begin
   if FOnlyVisible and FOnlyCollidable then
     Result := (Current <> nil) and Current.Visible and Current.Collidable else
@@ -2374,7 +2374,7 @@ begin
     Result := (Current <> nil);
 end;
 
-constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
+constructor TShapeTreeIterator.Create(Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
@@ -2383,26 +2383,26 @@ begin
   FOnlyVisible := OnlyVisible;
   FOnlyCollidable := OnlyCollidable;
 
-  if Tree is TVRMLShapeTreeGroup then
+  if Tree is TShapeTreeGroup then
   begin
     New(IteratorInfo);
-    IteratorInfo^.Group := TVRMLShapeTreeGroup(Tree);
+    IteratorInfo^.Group := TShapeTreeGroup(Tree);
     IteratorInfo^.Index := IteratorInfo^.Group.IterateBeginIndex(OnlyActive);
     IteratorInfo^.GroupCount := IteratorInfo^.Group.IterateEndIndex(OnlyActive);
     IteratorInfo^.Parent := nil;
   end else
   begin
-    { When the whole tree is one single TVRMLShape, this is a special case
+    { When the whole tree is one single TShape, this is a special case
       marked by IteratorInfo = nil and using SingleShapeRemaining.
       FCurrent is just constant in this case. }
-    Assert(Tree is TVRMLShape);
-    FCurrent := TVRMLShape(Tree);
+    Assert(Tree is TShape);
+    FCurrent := TShape(Tree);
     IteratorInfo := nil;
     SingleShapeRemaining := true;
   end;
 end;
 
-destructor TVRMLShapeTreeIterator.Destroy;
+destructor TShapeTreeIterator.Destroy;
 
   procedure Done(I: PIteratorInfo);
   begin
@@ -2418,10 +2418,10 @@ begin
   inherited;
 end;
 
-function TVRMLShapeTreeIterator.GetNext: boolean;
+function TShapeTreeIterator.GetNext: boolean;
 var
   ParentInfo: PIteratorInfo;
-  Child: TVRMLShapeTree;
+  Child: TShapeTree;
 begin
   if IteratorInfo <> nil then
   begin
@@ -2433,9 +2433,9 @@ begin
       if Cardinal(IteratorInfo^.Index) < IteratorInfo^.GroupCount then
       begin
         Child := IteratorInfo^.Group.Children.Items[IteratorInfo^.Index];
-        if Child is TVRMLShape then
+        if Child is TShape then
         begin
-          FCurrent := TVRMLShape(Child);
+          FCurrent := TShape(Child);
 
           if CurrentMatches then
             Result := true else
@@ -2444,10 +2444,10 @@ begin
           Exit;
         end else
         begin
-          Assert(Child is TVRMLShapeTreeGroup);
+          Assert(Child is TShapeTreeGroup);
           ParentInfo := IteratorInfo;
           New(IteratorInfo);
-          IteratorInfo^.Group := TVRMLShapeTreeGroup(Child);
+          IteratorInfo^.Group := TShapeTreeGroup(Child);
           IteratorInfo^.Index := IteratorInfo^.Group.IterateBeginIndex(FOnlyActive);
           IteratorInfo^.GroupCount := IteratorInfo^.Group.IterateEndIndex(FOnlyActive);
           IteratorInfo^.Parent := ParentInfo;
@@ -2478,21 +2478,21 @@ end;
 
 {$else SHAPE_ITERATOR_SOPHISTICATED}
 
-constructor TVRMLShapeTreeIterator.Create(Tree: TVRMLShapeTree;
+constructor TShapeTreeIterator.Create(Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   inherited Create;
-  List := TVRMLShapeList.Create(Tree, OnlyActive, OnlyVisible, OnlyCollidable);
+  List := TShapeList.Create(Tree, OnlyActive, OnlyVisible, OnlyCollidable);
   CurrentIndex := -1;
 end;
 
-destructor TVRMLShapeTreeIterator.Destroy;
+destructor TShapeTreeIterator.Destroy;
 begin
   FreeAndNil(List);
   inherited;
 end;
 
-function TVRMLShapeTreeIterator.GetNext: boolean;
+function TShapeTreeIterator.GetNext: boolean;
 begin
   Inc(CurrentIndex);
   Result := CurrentIndex < List.Count;
@@ -2502,14 +2502,14 @@ end;
 
 {$endif SHAPE_ITERATOR_SOPHISTICATED}
 
-{ TVRMLShapeList ------------------------------------------------------- }
+{ TShapeList ------------------------------------------------------- }
 
-constructor TVRMLShapeList.Create;
+constructor TShapeList.Create;
 begin
   inherited Create(false);
 end;
 
-constructor TVRMLShapeList.Create(Tree: TVRMLShapeTree;
+constructor TShapeList.Create(Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   Create;
@@ -2531,13 +2531,13 @@ begin
   Assert(AddedCount = Count);
 end;
 
-procedure TVRMLShapeList.AddToList(Shape: TVRMLShape);
+procedure TShapeList.AddToList(Shape: TShape);
 begin
   Items[AddedCount] := Shape;
   Inc(AddedCount);
 end;
 
-procedure TVRMLShapeList.AddToListIfVisible(Shape: TVRMLShape);
+procedure TShapeList.AddToListIfVisible(Shape: TShape);
 begin
   if Shape.Visible then
   begin
@@ -2546,7 +2546,7 @@ begin
   end;
 end;
 
-procedure TVRMLShapeList.AddToListIfCollidable(Shape: TVRMLShape);
+procedure TShapeList.AddToListIfCollidable(Shape: TShape);
 begin
   if Shape.Collidable then
   begin
@@ -2555,7 +2555,7 @@ begin
   end;
 end;
 
-procedure TVRMLShapeList.AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+procedure TShapeList.AddToListIfVisibleAndCollidable(Shape: TShape);
 begin
   if Shape.Visible and Shape.Collidable then
   begin
@@ -2565,11 +2565,11 @@ begin
 end;
 
 var
-  { Has to be global (not private field in TVRMLShapeList),
+  { Has to be global (not private field in TShapeList),
     since TFPGObjectList.Sort requires normal function (not "of object"). }
   SortPosition: TVector3Single;
 
-function IsSmallerFrontToBack(const A, B: TVRMLShape): Integer;
+function IsSmallerFrontToBack(const A, B: TShape): Integer;
 begin
   { We always treat empty box as closer than non-empty.
     And two empty boxes are always equal.
@@ -2592,7 +2592,7 @@ begin
     Result :=  0;
 end;
 
-function IsSmallerBackToFront(const A, B: TVRMLShape): Integer;
+function IsSmallerBackToFront(const A, B: TShape): Integer;
 begin
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
@@ -2607,13 +2607,13 @@ begin
     Result :=  0;
 end;
 
-procedure TVRMLShapeList.SortFrontToBack(const Position: TVector3Single);
+procedure TShapeList.SortFrontToBack(const Position: TVector3Single);
 begin
   SortPosition := Position;
   Sort(@IsSmallerFrontToBack);
 end;
 
-procedure TVRMLShapeList.SortBackToFront(const Position: TVector3Single);
+procedure TShapeList.SortBackToFront(const Position: TVector3Single);
 begin
   SortPosition := Position;
   Sort(@IsSmallerBackToFront);

@@ -27,9 +27,9 @@ type
   TTestOpeningAndRendering3D = class(TTestCase)
   private
     { Available only during Test1 }
-    Window: TGLUIWindow;
-    SceneManager: TKamSceneManager;
-    Scene: TVRMLGLScene;
+    Window: TCastleWindowCustom;
+    SceneManager: TCastleSceneManager;
+    Scene: T3DScene;
     RecreateSceneEachTime: boolean;
 
     { FileName empty means to load empty scene. }
@@ -64,11 +64,11 @@ begin
     Assert(SceneManager.MainScene = nil);
     Assert(SceneManager.Items.List.Count = 0);
 
-    Scene := TVRMLGLScene.Create(Window);
+    Scene := T3DScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
-    SceneManager := TKamSceneManager.Create(Window);
+    SceneManager := TCastleSceneManager.Create(Window);
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
   end;
@@ -144,13 +144,13 @@ begin
 
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
-  Window := TGLUIWindow.Create(nil);
+  Window := TCastleWindowCustom.Create(nil);
   try
-    Scene := TVRMLGLScene.Create(Window);
+    Scene := T3DScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
-    SceneManager := TKamSceneManager.Create(Window);
+    SceneManager := TCastleSceneManager.Create(Window);
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
 

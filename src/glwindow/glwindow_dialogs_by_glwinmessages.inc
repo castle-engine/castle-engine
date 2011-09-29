@@ -1,10 +1,10 @@
-function TGLWindow.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 begin
   Result := MessageInputQuery(Self, Title, FileName, taLeft);
 end;
 
-function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
 var
   NewColor: TVector3Single;
 begin
@@ -17,13 +17,13 @@ begin
   Color := NewColor;
 end;
 
-procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   GLWinMessages.MessageOK(Self, S);
 end;
 
-function TGLWindow.MessageYesNo(const S: string;
-  const MessageType: TGLWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: string;
+  const MessageType: TWindowMessageType): boolean;
 begin
   Result := GLWinMessages.MessageYesNo(Self, S);
 end;

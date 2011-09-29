@@ -13,14 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Helpers for making modal boxes (TGLWindowState, TGLMode, TGLModeFrozenScreen)
-  cooperating with the TGLWindow windows.
-  They allow to easily save/restore TGLWindow attributes along
+{ Helpers for making modal boxes (TWindowState, TGLMode, TGLModeFrozenScreen)
+  cooperating with the TCastleWindowBase windows.
+  They allow to easily save/restore TCastleWindowBase attributes along
   with OpenGL state.
 
   This unit is a tool for creating functions like
   @link(GLWinMessages.MessageOK). To make nice "modal" box,
-  you want to temporarily replace TGLWindow callbacks with your own,
+  you want to temporarily replace TCastleWindowBase callbacks with your own,
   call Application.ProcessMessage method in a loop until user gives an answer,
   and restore everything. This way you can implement functions that
   wait for some keypress, or wait until user inputs some
@@ -37,10 +37,10 @@ uses SysUtils, GL, GLWindow, KambiGLUtils, Images, GLWinMessages,
 
 type
   { }
-  TGLWindowState = class
+  TWindowState = class
   private
-    { TGLWindow attributes }
-    oldCallbacks: TGLWindowCallbacks;
+    { TCastleWindowBase attributes }
+    oldCallbacks: TWindowCallbacks;
     oldCaption: string;
     oldUserdata: Pointer;
     oldAutoRedisplay: boolean;
@@ -48,39 +48,39 @@ type
     oldMainMenu: TMenu;
     { This is saved value of oldMainMenu.Enabled.
       So that you can change MainMenu.Enabled without changing MainMenu
-      and SetGLWindowState will restore this. }
+      and SeTWindowState will restore this. }
     oldMainMenuEnabled: boolean;
     OldCursor: TMouseCursor;
     OldCustomCursor: TRGBAlphaImage;
-    { TGLWindowDemo attributes } { }
+    { TCastleWindowDemo attributes } { }
     oldSwapFullScreen_Key: TKey;
     oldClose_charkey: char;
     oldFpsShowOnCaption: boolean;
-    { TGLUIWindow attributes } { }
+    { TCastleWindowCustom attributes } { }
     OldControls: TUIControlList;
     { protected now: OldUseControls: boolean; } { }
     OldOnDrawStyle: TUIControlDrawStyle;
 
-    { When adding new attributes to TGLWindow that should be saved/restored,
+    { When adding new attributes to TCastleWindowBase that should be saved/restored,
       you must remember to
       1. expand this record with new fields
       2. expand routines Get, Set and SetStandard below. } { }
   public
     { Constructor. Gets the state of given window (like GetState). }
-    constructor Create(Window: TGLWindow);
+    constructor Create(Window: TCastleWindowBase);
     destructor Destroy; override;
 
-    { GetState saves the TGLWindow state, SetState applies this state
+    { GetState saves the TCastleWindowBase state, SetState applies this state
       back to the window (the same window, or other).
-      Every property that can change when TGLWindow is open are saved.
-      This way you can save/restore TGLWindow state, you can also copy
+      Every property that can change when TCastleWindowBase is open are saved.
+      This way you can save/restore TCastleWindowBase state, you can also copy
       a state from one window into another.
 
-      Notes about TGLWindow.MainMenu saving: only the reference
+      Notes about TCastleWindowBase.MainMenu saving: only the reference
       to MainMenu is stored. So:
 
       @unorderedList(
-        @item(If you use TGLWindow.MainMenu,
+        @item(If you use TCastleWindowBase.MainMenu,
           be careful when copying it to another window (no two windows
           may own the same MainMenu instance at the same time;
           also, you would have to make sure MainMenu instance will not be
@@ -96,11 +96,11 @@ type
       )
 
       @groupBegin }
-    procedure GetState(Window: TGLWindow);
-    procedure SetState(Window: TGLWindow);
+    procedure GetState(Window: TCastleWindowBase);
+    procedure SetState(Window: TCastleWindowBase);
     { @groupEnd }
 
-    { Resets all window properties (that are get / set by TGLWindowState).
+    { Resets all window properties (that are get / set by TWindowState).
       For most properties, we simply reset them to some sensible default
       values. For some important properties, we take their value
       explicitly by parameter.
@@ -109,37 +109,37 @@ type
 
       @unorderedList(
         @item(Callbacks (OnXxx) are set to @nil.)
-        @item(TGLWindow.Caption and TGLWindow.MainMenu are left as they were.)
-        @item(TGLWindow.Cursor is reset to mcDefault.)
-        @item(TGLWindow.UserData is reset to @nil.)
-        @item(TGLWindow.AutoRedisplay is reset to @false.)
-        @item(TGLWindow.OnDrawStyle is reset to dsNone.)
-        @item(TGLWindow.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
+        @item(TCastleWindowBase.Caption and TCastleWindowBase.MainMenu are left as they were.)
+        @item(TCastleWindowBase.Cursor is reset to mcDefault.)
+        @item(TCastleWindowBase.UserData is reset to @nil.)
+        @item(TCastleWindowBase.AutoRedisplay is reset to @false.)
+        @item(TCastleWindowBase.OnDrawStyle is reset to dsNone.)
+        @item(TCastleWindowBase.MainMenu.Enabled will be reset to @false (only if MainMenu <> nil).)
 
-        @item(TGLWindowDemo.SwapFullScreen_Key will be reset to K_None.)
-        @item(TGLWindowDemo.Close_charkey will be reset to #0.)
-        @item(TGLWindowDemo.FpsShowOnCaption will be reset to false.)
+        @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
+        @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
+        @item(TCastleWindowDemo.FpsShowOnCaption will be reset to false.)
 
-        @item(TGLUIWindow.Controls is set to empty.)
+        @item(TCastleWindowCustom.Controls is set to empty.)
       )
 
       If you're looking for a suitable callback to pass as NewCloseQuery
-      (new TGLWindow.OnCloseQuery), @@NoClose may be suitable:
+      (new TCastleWindowBase.OnCloseQuery), @@NoClose may be suitable:
       it's an empty callback, thus using it disables the possibility
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
-    class procedure SetStandardState(Window: TGLWindow;
-      NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
+    class procedure SetStandardState(Window: TCastleWindowBase;
+      NewDraw, NewResize, NewCloseQuery: TWindowFunc;
       NewFPSActive: boolean);
   end;
 
-  { Enter / exit modal box on a TGLWindow. Saves/restores the state
-    of TGLWindow properties (see TGLWindowState) and various OpenGL state. }
+  { Enter / exit modal box on a TCastleWindowBase. Saves/restores the state
+    of TCastleWindowBase properties (see TWindowState) and various OpenGL state. }
   TGLMode = class
   protected
-    Window: TGLWindow;
+    Window: TCastleWindowBase;
   private
-    oldWinState: TGLWindowState;
+    oldWinState: TWindowState;
     oldProjectionMatrix, oldTextureMatrix, oldModelviewMatrix: TMatrix4f;
     oldPixelStoreUnpack: TPixelStoreUnpack;
     oldMatrixMode: TGLenum;
@@ -152,7 +152,7 @@ type
     FRestoreTextureMatrix: boolean;
     DisabledContextOpenClose: boolean;
   public
-    { Constructor saves open TGLWindow and OpenGL state.
+    { Constructor saves open TCastleWindowBase and OpenGL state.
       Destructor will restore them.
 
       Some gory details (that you will usually not care about...
@@ -162,7 +162,7 @@ type
         @item(We save/restore:
           @unorderedList(
             @itemSpacing Compact
-            @item TGLWindowState
+            @item TWindowState
             @item OpenGL attributes specified in AttribsToPush
             @item OpenGL matrix mode
             @item OpenGL matrices (saved without using OpenGL stack)
@@ -172,22 +172,22 @@ type
         )
 
         @item(OpenGL context connected to this window is also made current
-          during constructor and destructor. Also, TGLWindow.PostRedisplay
+          during constructor and destructor. Also, TCastleWindowBase.PostRedisplay
           is called (since new callbacks, as well as original callbacks,
           probably want to redraw window contents.))
 
         @item(
           All pressed keys and mouse butons are saved and faked to be released,
-          by calling TGLWindow.EventMouseUp, Window.EventKeyUp with original
+          by calling TCastleWindowBase.EventMouseUp, Window.EventKeyUp with original
           callbacks.
           This way, if user releases some keys/mouse inside modal box,
-          your original TGLWindow callbacks will not miss this fact.
+          your original TCastleWindowBase callbacks will not miss this fact.
           This way e.g. user scripts in VRML/X3D worlds that observe keys
           work fine.
 
           If FakeMouseDown then at destruction (after restoring original
           callbacks) we will also notify your original callbacks that
-          user pressed these buttons (by sending TGLWindow.EventMouseDown).
+          user pressed these buttons (by sending TCastleWindowBase.EventMouseDown).
           Note that FakeMouseDown feature turned out to be usually more
           troublesome than  usefull --- too often some unwanted MouseDown
           event was caused by this mechanism.
@@ -202,29 +202,29 @@ type
         )
 
         @item(At destructor, we notify original callbacks about size changes
-          by sending TGLWindow.EventResize. This way your original callbacks
+          by sending TCastleWindowBase.EventResize. This way your original callbacks
           know about size changes, and can set OpenGL projection etc.)
 
         @item(
           We call IgnoreNextIdleSpeed at the end, when closing our mode,
-          see TGLWindow.IgnoreNextIdleSpeed for comments why this is needed.)
+          see TCastleWindowBase.IgnoreNextIdleSpeed for comments why this is needed.)
 
         @item(This also performs important optimization to avoid closing /
-          reinitializing window TGLUIWindow.Controls OpenGL resources,
+          reinitializing window TCastleWindowCustom.Controls OpenGL resources,
           see TUIControl.DisableContextOpenClose.)
       ) }
-    constructor Create(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
+    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean);
 
-    { Save OpenGL and TGLWindow state, and then change this to a standard
+    { Save OpenGL and TCastleWindowBase state, and then change this to a standard
       state. Destructor will restore saved state.
 
       This is a shortcut for @link(Create) followed by
-      @link(TGLWindowState.SetStandardState), see there for explanation
+      @link(TWindowState.SetStandardState), see there for explanation
       of parameters. }
-    constructor CreateReset(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
+    constructor CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
-      NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
+      NewDraw, NewResize, NewCloseQuery: TWindowFunc;
       NewFPSActive: boolean);
 
     destructor Destroy; override;
@@ -240,21 +240,21 @@ type
       read FRestoreTextureMatrix write FRestoreTextureMatrix default true;
   end;
 
-  { Enter / exit modal box on a TGLWindow, additionally saving the screen
+  { Enter / exit modal box on a TCastleWindowBase, additionally saving the screen
     contents before entering modal box. This is nice if you want to wait
     for some event (like pressing a key), keeping the same screen
     displayed.
 
-    During this lifetime, we set special TGLWindow.OnDraw and TGLWindow.OnResize
+    During this lifetime, we set special TCastleWindowBase.OnDraw and TCastleWindowBase.OnResize
     to draw the saved image in a simplest 2D OpenGL projection.
 
     If you pass PolygonStipple <> nil to constructor,
     window will be additionally covered by this stipple (remember we only
     copy PolygonStipple pointer, so don't free it).
 
-    Between creation/destroy, TGLWindow.UserData is used by this function
+    Between creation/destroy, TCastleWindowBase.UserData is used by this function
     for internal purposes. So don't use it yourself.
-    We'll restore initial TGLWindow.UserData at destruction.
+    We'll restore initial TCastleWindowBase.UserData at destruction.
 
      }
   TGLModeFrozenScreen = class(TGLMode)
@@ -263,37 +263,37 @@ type
     SavedScreenWidth, SavedScreenHeight: Cardinal;
     FPolygonStipple: PPolygonStipple;
   public
-    constructor Create(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
+    constructor Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
       APushPopGLWinMessagesTheme: boolean;
       APolygonStipple: PPolygonStipple);
 
     destructor Destroy; override;
   end;
 
-{ Empty TGLWindow callback, useful as TGLWindow.OnCloseQuery
+{ Empty TCastleWindowBase callback, useful as TCastleWindowBase.OnCloseQuery
   to disallow closing the window by user. }
-procedure NoClose(Window: TGLWindow);
+procedure NoClose(Window: TCastleWindowBase);
 
 implementation
 
 uses KambiUtils, GLImages;
 
-{ TGLWindowState -------------------------------------------------------------- }
+{ TWindowState -------------------------------------------------------------- }
 
-constructor TGLWindowState.Create(Window: TGLWindow);
+constructor TWindowState.Create(Window: TCastleWindowBase);
 begin
   inherited Create;
   OldControls := TUIControlList.Create(false);
   GetState(Window);
 end;
 
-destructor TGLWindowState.Destroy;
+destructor TWindowState.Destroy;
 begin
   FreeAndNil(OldControls);
   inherited;
 end;
 
-procedure TGLWindowState.GetState(Window: TGLWindow);
+procedure TWindowState.GetState(Window: TCastleWindowBase);
 begin
   oldCallbacks := Window.GetCallbacksState;
   oldCaption := Window.Caption;
@@ -306,22 +306,22 @@ begin
   OldCursor := Window.Cursor;
   OldCustomCursor := Window.CustomCursor;
 
-  if Window is TGLWindowDemo then
+  if Window is TCastleWindowDemo then
   begin
-    oldSwapFullScreen_Key := TGLWindowDemo(Window).SwapFullScreen_Key;
-    oldClose_charkey := TGLWindowDemo(Window).Close_charkey;
-    oldFpsShowOnCaption := TGLWindowDemo(Window).FpsShowOnCaption;
+    oldSwapFullScreen_Key := TCastleWindowDemo(Window).SwapFullScreen_Key;
+    oldClose_charkey := TCastleWindowDemo(Window).Close_charkey;
+    oldFpsShowOnCaption := TCastleWindowDemo(Window).FpsShowOnCaption;
   end;
 
-  if Window is TGLUIWindow then
+  if Window is TCastleWindowCustom then
   begin
-    OldControls.Assign(TGLUIWindow(Window).Controls);
-    { protected now OldUseControls := TGLUIWindow(Window).UseControls; }
-    OldOnDrawStyle := TGLUIWindow(Window).OnDrawStyle;
+    OldControls.Assign(TCastleWindowCustom(Window).Controls);
+    { protected now OldUseControls := TCastleWindowCustom(Window).UseControls; }
+    OldOnDrawStyle := TCastleWindowCustom(Window).OnDrawStyle;
   end;
 end;
 
-procedure TGLWindowState.SetState(Window: TGLWindow);
+procedure TWindowState.SetState(Window: TCastleWindowBase);
 begin
   Window.SetCallbacksState(oldCallbacks);
   Window.Caption := oldCaption;
@@ -334,23 +334,23 @@ begin
   Window.Cursor := OldCursor;
   Window.CustomCursor := OldCustomCursor;
 
-  if Window is TGLWindowDemo then
+  if Window is TCastleWindowDemo then
   begin
-    TGLWindowDemo(Window).SwapFullScreen_Key := oldSwapFullScreen_Key;
-    TGLWindowDemo(Window).Close_charkey := oldClose_charkey;
-    TGLWindowDemo(Window).FpsShowOnCaption := oldFpsShowOnCaption;
+    TCastleWindowDemo(Window).SwapFullScreen_Key := oldSwapFullScreen_Key;
+    TCastleWindowDemo(Window).Close_charkey := oldClose_charkey;
+    TCastleWindowDemo(Window).FpsShowOnCaption := oldFpsShowOnCaption;
   end;
 
-  if Window is TGLUIWindow then
+  if Window is TCastleWindowCustom then
   begin
-    TGLUIWindow(Window).Controls.Assign(OldControls);
-    { protected now TGLUIWindow(Window).UseControls := OldUseControls; }
-    TGLUIWindow(Window).OnDrawStyle := OldOnDrawStyle;
+    TCastleWindowCustom(Window).Controls.Assign(OldControls);
+    { protected now TCastleWindowCustom(Window).UseControls := OldUseControls; }
+    TCastleWindowCustom(Window).OnDrawStyle := OldOnDrawStyle;
   end;
 end;
 
-class procedure TGLWindowState.SetStandardState(Window: TGLWindow;
-  NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
+class procedure TWindowState.SetStandardState(Window: TCastleWindowBase;
+  NewDraw, NewResize, NewCloseQuery: TWindowFunc;
   NewFPSActive: boolean);
 begin
   Window.SetCallbacksState(DefaultCallbacksState);
@@ -366,24 +366,24 @@ begin
   {Window.MainMenu := leave current value}
   Window.Cursor := mcDefault;
 
-  if Window is TGLWindowDemo then
+  if Window is TCastleWindowDemo then
   begin
-    TGLWindowDemo(Window).SwapFullScreen_Key := K_None;
-    TGLWindowDemo(Window).Close_charkey := #0;
-    TGLWindowDemo(Window).FpsShowOnCaption := false;
+    TCastleWindowDemo(Window).SwapFullScreen_Key := K_None;
+    TCastleWindowDemo(Window).Close_charkey := #0;
+    TCastleWindowDemo(Window).FpsShowOnCaption := false;
   end;
 
-  if Window is TGLUIWindow then
+  if Window is TCastleWindowCustom then
   begin
-    TGLUIWindow(Window).Controls.Clear;
-    { protected now TGLUIWindow(Window).UseControls := true; }
-    TGLUIWindow(Window).OnDrawStyle := dsNone;
+    TCastleWindowCustom(Window).Controls.Clear;
+    { protected now TCastleWindowCustom(Window).UseControls := true; }
+    TCastleWindowCustom(Window).OnDrawStyle := dsNone;
   end;
 end;
 
 { GL Mode ---------------------------------------------------------------- }
 
-constructor TGLMode.Create(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
+constructor TGLMode.Create(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
   APushPopGLWinMessagesTheme: boolean);
 
   procedure SimulateReleaseAll;
@@ -417,7 +417,7 @@ begin
 
  Check(not Window.Closed, 'ModeGLEnter cannot be called on a closed GLWindow.');
 
- oldWinState := TGLWindowState.Create(Window);
+ oldWinState := TWindowState.Create(Window);
  oldWinWidth := Window.Width;
  oldWinHeight := Window.Height;
 
@@ -444,7 +444,7 @@ begin
 
  Window.PostRedisplay;
 
- if AWindow is TGLUIWindow then
+ if AWindow is TCastleWindowCustom then
  begin
    { We know that at destruction these controls will be restored to
      the window's Controls list. So there's no point calling any
@@ -453,17 +453,17 @@ begin
      and at destruction when restoring.) }
 
    DisabledContextOpenClose := true;
-   TGLUIWindow(AWindow).Controls.BeginDisableContextOpenClose;
+   TCastleWindowCustom(AWindow).Controls.BeginDisableContextOpenClose;
  end;
 end;
 
-constructor TGLMode.CreateReset(AWindow: TGLWindow; AttribsToPush: TGLbitfield;
+constructor TGLMode.CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
   APushPopGLWinMessagesTheme: boolean;
-  NewDraw, NewResize, NewCloseQuery: TGLWindowFunc;
+  NewDraw, NewResize, NewCloseQuery: TWindowFunc;
   NewFPSActive: boolean);
 begin
   Create(AWindow, AttribsToPush, APushPopGLWinMessagesTheme);
-  TGLWindowState.SetStandardState(AWindow,
+  TWindowState.SetStandardState(AWindow,
     NewDraw, NewResize, NewCloseQuery, NewFPSActive);
 end;
 
@@ -475,12 +475,12 @@ begin
  FreeAndNil(oldWinState);
 
  if DisabledContextOpenClose then
-   TGLUIWindow(Window).Controls.EndDisableContextOpenClose;
+   TCastleWindowCustom(Window).Controls.EndDisableContextOpenClose;
 
  if FPushPopGLWinMessagesTheme then
    GLWinMessagesTheme := oldGLWinMessagesTheme;
 
- { Although it's forbidden to use TGLMode on Closed TGLWindow,
+ { Although it's forbidden to use TGLMode on Closed TCastleWindowBase,
    in destructor we must take care of every possible situation
    (because this may be called in finally ... end things when
    everything should be possible). }
@@ -537,7 +537,7 @@ end;
 
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
-procedure FrozenImageDraw(Window: TGLWindow);
+procedure FrozenImageDraw(Window: TCastleWindowBase);
 var Mode: TGLModeFrozenScreen;
     Attribs: TGLbitfield;
 begin
@@ -575,7 +575,7 @@ begin
  finally glPopAttrib end;
 end;
 
-constructor TGLModeFrozenScreen.Create(AWindow: TGLWindow;
+constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowBase;
   AttribsToPush: TGLbitfield; APushPopGLWinMessagesTheme: boolean;
   APolygonStipple: PPolygonStipple);
 begin
@@ -589,7 +589,7 @@ begin
    (because we want that Window.FlushRedisplay calls original OnDraw). }
  Window.FlushRedisplay;
 
- TGLWindowState.SetStandardState(AWindow,
+ TWindowState.SetStandardState(AWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
    {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
@@ -614,7 +614,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-procedure NoClose(Window: TGLWindow);
+procedure NoClose(Window: TCastleWindowBase);
 begin
 end;
 

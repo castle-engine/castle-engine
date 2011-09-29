@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Progress bar displayed in a TGLWindow.
+{ Progress bar displayed in a TCastleWindowBase.
 
-  Simply set @code(GLProgressInterface.Window) to your TGLWindow
+  Simply set @code(GLProgressInterface.Window) to your TCastleWindowBase
   instance, and assign
 
 @longCode(#  Progress.UserInterface := GLProgressInterface;#)
@@ -51,7 +51,7 @@ type
     { Background image (screen captured at the moment of Init call) }
     list_drawProgressBG: TGLuint;
     ProgressFont: TGLBitmapFont_Abstract;
-    FWindow: TGLWindow;
+    FWindow: TCastleWindowBase;
     SavedMode: TGLMode;
     FBarYPosition: Single;
   public
@@ -60,7 +60,7 @@ type
     { Window used to render the progress bar.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
-    property Window: TGLWindow read FWindow write FWindow;
+    property Window: TCastleWindowBase read FWindow write FWindow;
 
     { Vertical position of the displayed bar. 0 means that
       the middle of bar is on the bottom of the screen, 1 means it's
@@ -85,7 +85,7 @@ uses SysUtils, KambiUtils,  BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
 
 { display -------------------------------------------------------------------- }
 
-procedure DisplayProgress(Window: TGLWindow);
+procedure DisplayProgress(Window: TCastleWindowBase);
 var
   Margin: integer;
   BarHeight, y1, y2, YMiddle: TGLfloat;

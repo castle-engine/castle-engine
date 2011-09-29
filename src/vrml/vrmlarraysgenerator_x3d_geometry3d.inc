@@ -59,12 +59,12 @@ type
   protected
     procedure GenerateCoordinateBegin; override;
   public
-    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
   end;
 
   TIndexedFaceSetGenerator = class(TAbstractIndexedFaceSetGenerator)
   public
-    constructor Create(AShape: TVRMLShape; AOverTriangulate: boolean); override;
+    constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
   end;
 
 { TAbstractIndexedFaceSetGenerator ------------------------------------------- }
@@ -276,7 +276,7 @@ end;
 
 { TIndexedFaceSet_1Generator -------------------------------------------------- }
 
-constructor TIndexedFaceSet_1Generator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSet_1Generator.Create(AShape: TShape; AOverTriangulate: boolean);
 var
   SH: TShapeHintsNode_1;
   ANode: TIndexedFaceSetNode_1;
@@ -325,7 +325,7 @@ end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
 
-constructor TIndexedFaceSetGenerator.Create(AShape: TVRMLShape; AOverTriangulate: boolean);
+constructor TIndexedFaceSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 var
   ANode: TIndexedFaceSetNode;
 begin

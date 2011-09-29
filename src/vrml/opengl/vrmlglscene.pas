@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D complete scene handling and OpenGL rendering (TVRMLGLScene). }
+{ VRML/X3D complete scene handling and OpenGL rendering (T3DScene). }
 unit VRMLGLScene;
 
 interface
@@ -32,7 +32,7 @@ const
   DefaultBlendingSourceFactor = GL_SRC_ALPHA;
 
   { Default value of Attributes.BlendingDestinationFactor.
-    See TVRMLSceneRenderingAttributes.BlendingDestinationFactor.
+    See TSceneRenderingAttributes.BlendingDestinationFactor.
 
     Using ONE_MINUS_SRC_ALPHA is the standard value for 3D graphic stuff,
     often producing best results. However, it causes troubles when
@@ -40,7 +40,7 @@ const
     For closed convex 3D objects, using backface culling
     (solid = TRUE for geometry) helps. For multiple transparent shapes,
     sorting the transparent shapes helps,
-    see TVRMLSceneRenderingAttributes.BlendingSort.
+    see TSceneRenderingAttributes.BlendingSort.
     Sometimes, no solution works for all camera angles.
 
     Another disadvantage of ONE_MINUS_SRC_ALPHA may be that
@@ -61,21 +61,21 @@ const
   DefaultWireframeColor: TVector3Single = (0, 0, 0);
 
 type
-  TVRMLGLShape = class;
+  TGLShape = class;
 
   TObjectProcedure = procedure of object;
 
-  TTestShapeVisibility = function (Shape: TVRMLGLShape): boolean
+  TTestShapeVisibility = function (Shape: TGLShape): boolean
     of object;
 
-  TVRMLGLSceneList = class;
+  T3DSceneList = class;
 
-  { Values for TVRMLSceneRenderingAttributes.WireframeEffect.
+  { Values for TSceneRenderingAttributes.WireframeEffect.
 
     Generally, two other attributes may affect the way wireframe is rendered:
-    TVRMLSceneRenderingAttributes.WireframeColor and
-    TVRMLSceneRenderingAttributes.LineWidth, quite self-explanatory. }
-  TVRMLWireframeEffect = (
+    TSceneRenderingAttributes.WireframeColor and
+    TSceneRenderingAttributes.LineWidth, quite self-explanatory. }
+  TWireframeEffect = (
 
     { Default setting, model polygons are simply passed to OpenGL.
       Whether this results in filled or wireframe look, depends on OpenGL
@@ -86,7 +86,7 @@ type
 
       LineWidth is used as wireframe line width (regardless of PureGeometry).
 
-      Depending on TVRMLSceneRenderingAttributes.PureGeometry value:
+      Depending on TSceneRenderingAttributes.PureGeometry value:
 
       @unorderedList(
         @item(If PureGeometry then WireframeColor is used as wireframe
@@ -143,12 +143,12 @@ type
       See weSolidWireframe TODO notes. }
     weSilhouette);
 
-  TBeforeShapeRenderProc = procedure (Shape: TVRMLShape) of object;
+  TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
-  TVRMLSceneRenderingAttributes = class(TVRMLRenderingAttributes)
+  TSceneRenderingAttributes = class(TVRMLRenderingAttributes)
   private
-    { Scenes that use Renderer with this TVRMLSceneRenderingAttributes instance. }
-    FScenes: TVRMLGLSceneList;
+    { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
+    FScenes: T3DSceneList;
 
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
@@ -156,7 +156,7 @@ type
     FBlendingSort: boolean;
     FControlBlending: boolean;
     FWireframeColor: TVector3Single;
-    FWireframeEffect: TVRMLWireframeEffect;
+    FWireframeEffect: TWireframeEffect;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
     FDebugHierOcclusionQueryResults: boolean;
@@ -223,7 +223,7 @@ type
     { @groupEnd }
 
     { Setting this to @false disables any modification of OpenGL
-      blending (and depth mask) state by TVRMLGLScene.
+      blending (and depth mask) state by T3DScene.
       This makes every other @link(Blending) setting ignored,
       and is useful only if you set your own OpenGL blending parameters
       when rendering this scene. }
@@ -238,8 +238,8 @@ type
       Whether this results in filled or wireframe, depends on OpenGL
       glPolygonMode setting, filled by default.
 
-      See description of TVRMLWireframeEffect for what other modes do. }
-    property WireframeEffect: TVRMLWireframeEffect
+      See description of TWireframeEffect for what other modes do. }
+    property WireframeEffect: TWireframeEffect
       read FWireframeEffect write FWireframeEffect default weNormal;
 
     { Wireframe color, used with some WireframeEffect values.
@@ -255,12 +255,12 @@ type
       OTOH, a lag of one frame may happen between an object should
       be rendered and it actually appears.
 
-      When you render more than once the same instance of TVRMLGLScene scene,
+      When you render more than once the same instance of T3DScene scene,
       you should not activate it (as the occlusion query doesn't make sense
       if each following render of the scene takes place at totally different
       translation). Also, when rendering something more than just
-      one TVRMLGLScene scene (maybe many times the same TVRMLGLScene instance,
-      maybe many different TVRMLGLScene instances, maybe something totally
+      one T3DScene scene (maybe many times the same T3DScene instance,
+      maybe many different T3DScene instances, maybe something totally
       independent from VRML scenes) you should try to sort rendering order
       from the most to the least possible occluder (otherwise occlusion
       query will not be as efficient at culling).
@@ -278,9 +278,9 @@ type
 
       This method doesn't impose any lag of one frame (like UseOcclusionQuery).
 
-      This requires the usage of TVRMLScene.OctreeRendering.
+      This requires the usage of T3DSceneCore.OctreeRendering.
       Also, it always does frustum culling (like fcBox for now),
-      regardless of TVRMLGLScene.OctreeFrustumCulling setting.
+      regardless of T3DScene.OctreeFrustumCulling setting.
 
       The algorithm used underneath is "Coherent Hierarchical Culling",
       described in detail in "GPU Gems 2",
@@ -307,10 +307,10 @@ type
       write FDebugHierOcclusionQueryResults default false;
   end;
 
-  { TVRMLShape descendant for usage within TVRMLGLScene.
-    Basically, this is just the same thing as TVRMLShape, with some
-    internal information needed by TVRMLGLScene. }
-  TVRMLGLShape = class(TVRMLRendererShape)
+  { TShape descendant for usage within T3DScene.
+    Basically, this is just the same thing as TShape, with some
+    internal information needed by T3DScene. }
+  TGLShape = class(TVRMLRendererShape)
   private
     { Keeps track if this shape was passed to Renderer.Prepare. }
     PreparedForRenderer: boolean;
@@ -355,9 +355,9 @@ const
 type
   { Possible checks done while frustum culling.
 
-    This is used for TVRMLGLScene.FrustumCulling (what checks
+    This is used for T3DScene.FrustumCulling (what checks
     should be done when shapes octree is not available) and
-    TVRMLGLScene.OctreeFrustumCulling (what checks
+    T3DScene.OctreeFrustumCulling (what checks
     should be done when shapes octree is available).
 
     In the second case, checks done by TFrustumCulling are applied
@@ -376,9 +376,9 @@ type
   TFrustumCulling = (
     { No checks.
 
-      Setting this as TVRMLGLScene.FrustumCulling
+      Setting this as T3DScene.FrustumCulling
       turns off frustum culling entirely, which is usually not a wise thing
-      to do... Setting this as TVRMLGLScene.OctreeFrustumCulling
+      to do... Setting this as T3DScene.OctreeFrustumCulling
       let's octree do all the work, which is quite sensible actually. }
     fcNone,
 
@@ -398,8 +398,8 @@ type
   { Basic non-abstact implementation of render params for calling T3D.Render.
     To be used when you have to call T3D.Render, but you don't use scene manager.
     Usually this should not be needed, and this class may be removed at some
-    point! You should always try to use TKamSceneManager to manage and render
-    3D stuff in new programs, and then TKamSceneManager will take care of creating
+    point! You should always try to use TCastleSceneManager to manage and render
+    3D stuff in new programs, and then TCastleSceneManager will take care of creating
     proper render params instance for you. }
   TBasicRenderParams = class(TRenderParams)
   public
@@ -410,7 +410,7 @@ type
   end;
 
   { Complete handling and rendering of a 3D VRML/X3D scene.
-    This is a descendant of TVRMLScene that adds efficient rendering
+    This is a descendant of T3DSceneCore that adds efficient rendering
     using OpenGL.
 
     This uses internal @link(TVRMLGLRenderer) instance,
@@ -426,7 +426,7 @@ type
     class with current OpenGL context. Which means that all the following
     calls should be done with the same OpenGL context set as current.
     Calling GLContextClose or the destructor removes this connection. }
-  TVRMLGLScene = class(TVRMLScene)
+  T3DScene = class(T3DSceneCore)
   private
     Renderer: TVRMLGLRenderer;
 
@@ -474,13 +474,13 @@ type
     FOwnsRenderer: boolean;
 
     { Fog for this shape. @nil if none. }
-    function ShapeFog(Shape: TVRMLShape): IAbstractFogObject;
+    function ShapeFog(Shape: TShape): IAbstractFogObject;
   private
     { Used by UpdateGeneratedTextures, to prevent rendering the shape
       for which reflection texture is generated. (This wouldn't cause
       recursive loop in our engine, but still it's bad --- rendering
       from the inside of the object usually obscures the world around...). }
-    AvoidShapeRendering: TVRMLGLShape;
+    AvoidShapeRendering: TGLShape;
 
     { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
       for shadow maps. }
@@ -490,10 +490,10 @@ type
 
     { Private things for RenderFrustum --------------------------------------- }
 
-    function FrustumCulling_None(Shape: TVRMLGLShape): boolean;
-    function FrustumCulling_Sphere(Shape: TVRMLGLShape): boolean;
-    function FrustumCulling_Box(Shape: TVRMLGLShape): boolean;
-    function FrustumCulling_Both(Shape: TVRMLGLShape): boolean;
+    function FrustumCulling_None(Shape: TGLShape): boolean;
+    function FrustumCulling_Sphere(Shape: TGLShape): boolean;
+    function FrustumCulling_Box(Shape: TGLShape): boolean;
+    function FrustumCulling_Both(Shape: TGLShape): boolean;
   private
           FFrustumCulling: TFrustumCulling;
     FOctreeFrustumCulling: TFrustumCulling;
@@ -505,7 +505,7 @@ type
 
     RenderFrustum_Frustum: PFrustum;
 
-    function RenderFrustumOctree_TestShape(Shape: TVRMLGLShape): boolean;
+    function RenderFrustumOctree_TestShape(Shape: TGLShape): boolean;
     procedure RenderFrustumOctree_EnumerateShapes(
       ShapeIndex: Integer; CollidesForSure: boolean);
 
@@ -539,7 +539,7 @@ type
     FrameId: Cardinal;
   protected
     function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; override;
+      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -550,7 +550,7 @@ type
       provided ACustomRenderer. ACustomRenderer must be <> @nil.
 
       Note that this renderer must be created with AttributesClass
-      = TVRMLSceneRenderingAttributes.
+      = TSceneRenderingAttributes.
 
       @italic(Don't use this unless you really know what you're doing!)
       In all normal circumstances you should use normal @link(Create)
@@ -560,10 +560,10 @@ type
 
       Once again, if you're not sure, then simply don't use this
       constructor. It's for internal use --- namely it's internally used
-      by TVRMLGLAnimation, this way all scenes of the animation share
+      by T3DPrecalculatedAnimation, this way all scenes of the animation share
       the same renderer which means that they also share the same
       information about textures and images loaded into OpenGL.
-      And this is crucial for TVRMLGLAnimation, otherwise animation with
+      And this is crucial for T3DPrecalculatedAnimation, otherwise animation with
       100 scenes would load the same texture to OpenGL 100 times. }
     constructor CreateCustomRenderer(AOwner: TComponent;
       ACustomRenderer: TVRMLGLRenderer);
@@ -583,7 +583,7 @@ type
       ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
 
     { Render for OpenGL. The rendering parameters are configurable
-      by @link(Attributes), see TVRMLSceneRenderingAttributes and
+      by @link(Attributes), see TSceneRenderingAttributes and
       TVRMLRenderingAttributes.
 
       For more details about rendering, see @link(VRMLGLRenderer) unit comments.
@@ -603,7 +603,7 @@ type
 
         @item(Only a subset of shapes indicated by Params.Transparent is rendered.
           This is necessary if you want to mix in one 3D world many scenes
-          (like TVRMLGLScene instances), and each of them may have some opaque
+          (like T3DScene instances), and each of them may have some opaque
           and some transparent
           parts. In such case, you want to render everything opaque
           (from every scene) first, and only then render everything transparent.
@@ -634,7 +634,7 @@ type
       How many shapes were rendered (send to OpenGL
       pipeline) versus all shapes that were available
       (this is the number of shapes in @link(Shapes) tree that are
-      @link(TVRMLShape.Visible Visible)).
+      @link(TShape.Visible Visible)).
 
       This way you can see how effective was frustum culling
       in @link(Render) or how effective was your function TestShapeVisibility
@@ -861,7 +861,7 @@ type
       that temporarily cannot be rendered.
 
       Note: this Background object is managed (automatically created/freed
-      etc.) by this TVRMLGLScene object but it is NOT used anywhere
+      etc.) by this T3DScene object but it is NOT used anywhere
       in this class, e.g. Render does not call Background.Render. If you want to
       use this Background somehow, you have to do this yourself.
 
@@ -884,7 +884,7 @@ type
       in base TVRMLRenderingAttributes class) may be a costly operation
       (next PrepareResources with prRender, or Render call, may need
       to recalculate some things). }
-    function Attributes: TVRMLSceneRenderingAttributes;
+    function Attributes: TSceneRenderingAttributes;
 
     { Set OpenGL projection, based on currently
       bound Viewpoint, NavigationInfo and used camera.
@@ -960,11 +960,11 @@ type
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
   end;
 
-  TVRMLGLSceneList = class(specialize TFPGObjectList<TVRMLGLScene>)
+  T3DSceneList = class(specialize TFPGObjectList<T3DScene>)
   private
     { Just call InvalidateBackground or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in
-      TVRMLGLScene are also private and we don't want to expose
+      T3DScene are also private and we don't want to expose
       them here. }
     procedure InvalidateBackground;
     procedure CloseGLRenderer;
@@ -977,7 +977,7 @@ type
   end;
 
 const
-  { Options to pass to TVRMLGLScene.PrepareResources to make
+  { Options to pass to T3DScene.PrepareResources to make
     sure that rendering with shadow volumes is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
@@ -998,19 +998,19 @@ uses GLVersionUnit, Images, KambiLog, KambiWarnings,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TVRMLGLScene]);
+  RegisterComponents('Kambi', [T3DScene]);
 end;
 
-{ TVRMLGLShape --------------------------------------------------------------- }
+{ TGLShape --------------------------------------------------------------- }
 
-procedure TVRMLGLShape.Changed(const InactiveOnly: boolean;
+procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TVRMLChanges);
 var
-  GLScene: TVRMLGLScene;
+  GLScene: T3DScene;
 begin
   inherited;
 
-  GLScene := TVRMLGLScene(ParentScene);
+  GLScene := T3DScene(ParentScene);
 
   if Cache <> nil then
   begin
@@ -1036,9 +1036,9 @@ begin
     PreparedUseBlending := false;
 end;
 
-procedure TVRMLGLShape.PrepareResources;
+procedure TGLShape.PrepareResources;
 var
-  GLScene: TVRMLGLScene;
+  GLScene: T3DScene;
 
   { UseBlending is used by RenderScene to decide
     is Blending used for given shape. Make sure that you called
@@ -1065,10 +1065,10 @@ var
       at TextureNode.TextureImage / TextureVidep etc.
       So it's important to initialize UseBlending before
       user has any chance to do FreeResources or to free RootNode
-      (see TVRMLScene.RootNode docs).
+      (see T3DSceneCore.RootNode docs).
 
       TODO: ideally, we would like to just push all our logic into
-      TVRMLShape.Transparent, and write just
+      TShape.Transparent, and write just
         UseBlending := Transparent;
       But we cannot, for now: we need Renderer to check image's
       AlphaChannelType efficiently.
@@ -1092,7 +1092,7 @@ var
   end;
 
 begin
-  GLScene := TVRMLGLScene(ParentScene);
+  GLScene := T3DScene(ParentScene);
 
   if not PreparedForRenderer then
   begin
@@ -1118,73 +1118,73 @@ end;
 
 type
   TShapesSplitBlendingHelper = class
-    Shapes: array [boolean] of TVRMLShapeList;
+    Shapes: array [boolean] of TShapeList;
     TestShapeVisibility: TTestShapeVisibility;
 
-    procedure AddToList(Shape: TVRMLShape);
-    procedure AddToListIfVisible(Shape: TVRMLShape);
-    procedure AddToListIfCollidable(Shape: TVRMLShape);
-    procedure AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+    procedure AddToList(Shape: TShape);
+    procedure AddToListIfVisible(Shape: TShape);
+    procedure AddToListIfCollidable(Shape: TShape);
+    procedure AddToListIfVisibleAndCollidable(Shape: TShape);
 
-    procedure AddToListIfTested(Shape: TVRMLShape);
-    procedure AddToListIfVisibleAndTested(Shape: TVRMLShape);
-    procedure AddToListIfCollidableAndTested(Shape: TVRMLShape);
-    procedure AddToListIfVisibleAndCollidableAndTested(Shape: TVRMLShape);
+    procedure AddToListIfTested(Shape: TShape);
+    procedure AddToListIfVisibleAndTested(Shape: TShape);
+    procedure AddToListIfCollidableAndTested(Shape: TShape);
+    procedure AddToListIfVisibleAndCollidableAndTested(Shape: TShape);
   end;
 
-procedure TShapesSplitBlendingHelper.AddToList(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToList(Shape: TShape);
 begin
-  Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+  Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfVisible(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfVisible(Shape: TShape);
 begin
   if Shape.Visible then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfCollidable(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfCollidable(Shape: TShape);
 begin
   if Shape.Collidable then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidable(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidable(Shape: TShape);
 begin
   if Shape.Visible and Shape.Collidable then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfTested(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfTested(Shape: TShape);
 begin
-  if TestShapeVisibility(TVRMLGLShape(Shape)) then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+  if TestShapeVisibility(TGLShape(Shape)) then
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndTested(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndTested(Shape: TShape);
 begin
-  if Shape.Visible and TestShapeVisibility(TVRMLGLShape(Shape)) then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+  if Shape.Visible and TestShapeVisibility(TGLShape(Shape)) then
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfCollidableAndTested(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfCollidableAndTested(Shape: TShape);
 begin
-  if Shape.Collidable and TestShapeVisibility(TVRMLGLShape(Shape)) then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+  if Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidableAndTested(Shape: TVRMLShape);
+procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidableAndTested(Shape: TShape);
 begin
-  if Shape.Visible and Shape.Collidable and TestShapeVisibility(TVRMLGLShape(Shape)) then
-    Shapes[TVRMLGLShape(Shape).UseBlending].Add(Shape);
+  if Shape.Visible and Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
 end;
 
-{ Create two TVRMLShapeList lists simultaneously, one with opaque shapes
+{ Create two TShapeList lists simultaneously, one with opaque shapes
   (UseBlending = @false), the other with transparent shapes
   (UseBlending = @true).
 
-  It's exactly like you would create a list TVRMLShapeList by traversing
-  the Tree (by @code(TVRMLShapeList.Create(Tree: TVRMLShapeTree;
+  It's exactly like you would create a list TShapeList by traversing
+  the Tree (by @code(TShapeList.Create(Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean))),
   and then filter it to two lists: one only with UseBlending = @false,
   the other with the rest.
@@ -1195,16 +1195,16 @@ end;
   and UseOcclusionQuery). }
 
 procedure VRMLShapesSplitBlending(
-  Tree: TVRMLShapeTree;
+  Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   TestShapeVisibility: TTestShapeVisibility;
-  out OpaqueShapes, TransparentShapes: TVRMLShapeList);
+  out OpaqueShapes, TransparentShapes: TShapeList);
 var
   Helper: TShapesSplitBlendingHelper;
   Capacity: Integer;
 begin
-  OpaqueShapes      := TVRMLShapeList.Create;
-  TransparentShapes := TVRMLShapeList.Create;
+  OpaqueShapes      := TShapeList.Create;
+  TransparentShapes := TShapeList.Create;
 
   Helper := TShapesSplitBlendingHelper.Create;
   try
@@ -1261,9 +1261,9 @@ begin
   Result := FBaseLights;
 end;
 
-{ TVRMLGLScene ------------------------------------------------------------ }
+{ T3DScene ------------------------------------------------------------ }
 
-constructor TVRMLGLScene.Create(AOwner: TComponent);
+constructor T3DScene.Create(AOwner: TComponent);
 begin
   { inherited Create *may* call some virtual things overriden here
     (although right now it doesn't): it may bind new viewpoint which
@@ -1283,10 +1283,10 @@ begin
   if Renderer = nil then
   begin
     FOwnsRenderer := true;
-    Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
+    Renderer := TVRMLGLRenderer.Create(TSceneRenderingAttributes, Cache);
   end;
 
-  Assert(Renderer.Attributes is TVRMLSceneRenderingAttributes);
+  Assert(Renderer.Attributes is TSceneRenderingAttributes);
 
   { Note that this calls Renderer.Attributes, so use this after
     initializing Renderer. }
@@ -1306,7 +1306,7 @@ begin
    OctreeFrustumCulling := fcBox; { set through property setter }
 end;
 
-constructor TVRMLGLScene.CreateCustomCache(
+constructor T3DScene.CreateCustomCache(
   AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
 begin
   OwnsCache := false;
@@ -1316,7 +1316,7 @@ begin
   Create(AOwner);
 end;
 
-constructor TVRMLGLScene.CreateCustomRenderer(
+constructor T3DScene.CreateCustomRenderer(
   AOwner: TComponent; ACustomRenderer: TVRMLGLRenderer);
 begin
   FOwnsRenderer := false;
@@ -1325,7 +1325,7 @@ begin
   CreateCustomCache(AOwner, ACustomRenderer.Cache);
 end;
 
-destructor TVRMLGLScene.Destroy;
+destructor T3DScene.Destroy;
 begin
   GLContextClose;
 
@@ -1373,13 +1373,13 @@ begin
   inherited;
 end;
 
-function TVRMLGLScene.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape;
+function T3DScene.CreateShape(AGeometry: TAbstractGeometryNode;
+  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
-  Result := TVRMLGLShape.Create(Self, AGeometry, AState, ParentInfo);
+  Result := TGLShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
-procedure TVRMLGLScene.CloseGLRenderer;
+procedure T3DScene.CloseGLRenderer;
 { This must be coded carefully, because
   - it's called by ChangedAll, and so may be called when our constructor
     didn't do it's work yet.
@@ -1399,8 +1399,8 @@ procedure TVRMLGLScene.CloseGLRenderer;
   end;
 
 var
-  SI: TVRMLShapeTreeIterator;
-  S: TVRMLGLShape;
+  SI: TShapeTreeIterator;
+  S: TGLShape;
   I: Integer;
   Pass: TRenderingPass;
 begin
@@ -1413,11 +1413,11 @@ begin
       since this CloseGLRenderer may happen after some
       "visibility" changed, that is you changed proxy
       or such by event. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false);
+    SI := TShapeTreeIterator.Create(Shapes, false, false);
     try
       while SI.GetNext do
       begin
-        S := TVRMLGLShape(SI.Current);
+        S := TGLShape(SI.Current);
         if S.Cache <> nil then
           Renderer.Cache.Shape_DecReference(S.Cache);
         for Pass := Low(Pass) to High(Pass) do
@@ -1432,17 +1432,17 @@ begin
       CloseGLScreenEffect(TScreenEffectNode(ScreenEffectNodes[I]));
 
   { TODO: if FOwnsRenderer then we should do something more detailed
-    then just Renderer.UnprepareAll. It's not needed for TVRMLGLAnimation
+    then just Renderer.UnprepareAll. It's not needed for T3DPrecalculatedAnimation
     right now, so it's not implemented. }
   if Renderer <> nil then Renderer.UnprepareAll;
 
   if Shapes <> nil then
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+    SI := TShapeTreeIterator.Create(Shapes, false, true);
     try
       while SI.GetNext do
       begin
-        S := TVRMLGLShape(SI.Current);
+        S := TGLShape(SI.Current);
 
         S.PreparedForRenderer := false;
         S.PreparedUseBlending := false;
@@ -1457,14 +1457,14 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.GLContextClose;
+procedure T3DScene.GLContextClose;
 begin
   inherited;
   CloseGLRenderer;
   InvalidateBackground;
 end;
 
-function TVRMLGLScene.ShapeFog(Shape: TVRMLShape): IAbstractFogObject;
+function T3DScene.ShapeFog(Shape: TShape): IAbstractFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then
@@ -1596,7 +1596,7 @@ type
   public
     Id: TGLuint;
 
-    Node: TVRMLShapeOctreeNode;
+    Node: TShapeOctreeNode;
 
     function Available: LongBool;
     function GetResult: TGLuint;
@@ -1625,7 +1625,7 @@ begin
   glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
 end;
 
-procedure TVRMLGLScene.RenderScene(
+procedure T3DScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams);
 var
   OcclusionBoxState: boolean;
@@ -1680,12 +1680,12 @@ var
 
   { Call RenderShape if some tests succeed.
     It assumes that test with TestShapeVisibility is already done. }
-  procedure RenderShape_SomeTests(Shape: TVRMLGLShape);
+  procedure RenderShape_SomeTests(Shape: TGLShape);
 
     procedure DoRenderShape;
 
       { Renders Shape, by calling Renderer.RenderShape. }
-      procedure RenderShape(Shape: TVRMLGLShape);
+      procedure RenderShape(Shape: TGLShape);
       begin
         { Optionally free Shape arrays data now, if they need to be regenerated. }
         if (Assigned(Attributes.OnVertexColor) or
@@ -1717,7 +1717,7 @@ var
 
         TODO: In the future, this could be solved nicer, by having separate
         occlusion query states for different views. But this isn't easy
-        to implement, as occlusion query state is part of TVRMLShape and
+        to implement, as occlusion query state is part of TShape and
         octree nodes (for hierarchical occ query), so all these things
         should have a map "target->oq state" for various rendering targets. }
 
@@ -1774,7 +1774,7 @@ var
 
   { Call RenderShape if many tests, including TestShapeVisibility,
     succeed. }
-  procedure RenderShape_AllTests(Shape: TVRMLGLShape);
+  procedure RenderShape_AllTests(Shape: TGLShape);
   begin
     if ( (not Assigned(TestShapeVisibility)) or
          TestShapeVisibility(Shape)) then
@@ -1783,14 +1783,14 @@ var
 
   procedure RenderAllAsOpaque;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     if not Params.Transparent then
     begin
-      SI := TVRMLShapeTreeIterator.Create(Shapes, true, true);
+      SI := TShapeTreeIterator.Create(Shapes, true, true);
       try
         while SI.GetNext do
-          RenderShape_AllTests(TVRMLGLShape(SI.Current));
+          RenderShape_AllTests(TGLShape(SI.Current));
       finally FreeAndNil(SI) end;
     end;
   end;
@@ -1800,7 +1800,7 @@ var
     If different than currently set, then change BlendingXxxFactorSet and update
     by glBlendFunc. This way, we avoid calling glBlendFunc (which is potentially costly,
     since it changes GL state) too often. }
-  procedure AdjustBlendFunc(Shape: TVRMLShape;
+  procedure AdjustBlendFunc(Shape: TShape;
     var BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum);
   var
     B: TBlendModeNode;
@@ -1854,7 +1854,7 @@ var
 
   procedure DoHierarchicalOcclusionQuery;
   var
-    { Stack of TVRMLShapeOctreeNode.
+    { Stack of TShapeOctreeNode.
 
       Although queue would also work not so bad, stack is better.
       The idea is that it should try to keep front-to-back order,
@@ -1862,10 +1862,10 @@ var
       Stack gives more chance to process front shapes first. }
     TraversalStack: TKamObjectStack;
 
-    procedure TraverseNode(Node: TVRMLShapeOctreeNode);
+    procedure TraverseNode(Node: TShapeOctreeNode);
     var
       I: Integer;
-      Shape: TVRMLGLShape;
+      Shape: TGLShape;
     begin
       if Node.IsLeaf then
       begin
@@ -1873,7 +1873,7 @@ var
           shape only once within this frame (FrameId is useful here). }
         for I := 0 to Node.ItemsIndices.Count - 1 do
         begin
-          Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
+          Shape := TGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
           if Shape.RenderedFrameId <> FrameId then
           begin
             RenderShape_SomeTests(Shape);
@@ -1891,7 +1891,7 @@ var
       end;
     end;
 
-    procedure PullUpVisibility(Node: TVRMLShapeOctreeNode);
+    procedure PullUpVisibility(Node: TShapeOctreeNode);
     begin
       while not Node.Visible do
       begin
@@ -1901,10 +1901,10 @@ var
       end;
     end;
 
-    procedure RenderLeafNodeVolume(Node: TVRMLShapeOctreeNode);
+    procedure RenderLeafNodeVolume(Node: TShapeOctreeNode);
     var
       I: Integer;
-      Shape: TVRMLGLShape;
+      Shape: TGLShape;
       Box: TBox3D;
     begin
       OcclusionBoxStateBegin;
@@ -1932,7 +1932,7 @@ var
 
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TVRMLGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
+        Shape := TGLShape(OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
         if Shape.RenderedFrameId <> FrameId then
           Box.Add(Shape.BoundingBox);
       end;
@@ -1951,7 +1951,7 @@ var
     { queue of TOcclusionQuery }
     QueryQueue: TKamObjectQueue;
     Q: TOcclusionQuery;
-    Node: TVRMLShapeOctreeNode;
+    Node: TShapeOctreeNode;
     WasVisible, LeafOrWasInvisible: boolean;
   begin
     {$include norqcheckbegin.inc}
@@ -1983,7 +1983,7 @@ var
 
         if TraversalStack.Count <> 0 then
         begin
-          Node := TVRMLShapeOctreeNode(TraversalStack.Pop);
+          Node := TShapeOctreeNode(TraversalStack.Pop);
           if Node.FrustumCollisionPossible(RenderFrustum_Frustum^) then
           begin
             {$ifdef VISIBILITY_KEEP_FRAMES}
@@ -2086,7 +2086,7 @@ var
   end;
 
 var
-  OpaqueShapes, TransparentShapes: TVRMLShapeList;
+  OpaqueShapes, TransparentShapes: TShapeList;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
   I: Integer;
   LightRenderEvent: TVRMLLightRenderEvent;
@@ -2164,7 +2164,7 @@ begin
                 OpaqueShapes.SortFrontToBack(CameraPosition);
 
               for I := 0 to OpaqueShapes.Count - 1 do
-                RenderShape_SomeTests(TVRMLGLShape(OpaqueShapes[I]));
+                RenderShape_SomeTests(TGLShape(OpaqueShapes[I]));
             end;
 
             { draw partially transparent objects }
@@ -2183,9 +2183,9 @@ begin
 
               for I := 0 to TransparentShapes.Count - 1 do
               begin
-                AdjustBlendFunc(TVRMLGLShape(TransparentShapes[I]),
+                AdjustBlendFunc(TGLShape(TransparentShapes[I]),
                   BlendingSourceFactorSet, BlendingDestinationFactorSet);
-                RenderShape_SomeTests(TVRMLGLShape(TransparentShapes[I]));
+                RenderShape_SomeTests(TGLShape(TransparentShapes[I]));
               end;
             end;
           finally
@@ -2206,37 +2206,37 @@ begin
     glPopMatrix;
 end;
 
-procedure TVRMLGLScene.PrepareResources(
+procedure T3DScene.PrepareResources(
   Options: TPrepareResourcesOptions; ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareAllShapes;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false);
+    SI := TShapeTreeIterator.Create(Shapes, false, false);
     try
       while SI.GetNext do
-        TVRMLGLShape(SI.Current).PrepareResources;
+        TGLShape(SI.Current).PrepareResources;
     finally FreeAndNil(SI) end;
   end;
 
   procedure PrepareRenderShapes;
   var
-    SI: TVRMLShapeTreeIterator;
-    Shape: TVRMLGLShape;
+    SI: TShapeTreeIterator;
+    Shape: TGLShape;
   begin
     if Log then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
 
     { Note: we prepare also not visible shapes, in case they become visible. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false);
+    SI := TShapeTreeIterator.Create(Shapes, false, false);
     try
       Inc(Renderer.PrepareRenderShape);
       try
         Renderer.RenderBegin(BaseLights as TLightInstancesList, nil, 0);
         while SI.GetNext do
         begin
-          Shape := TVRMLGLShape(SI.Current);
+          Shape := TGLShape(SI.Current);
           Renderer.RenderShape(Shape, ShapeFog(Shape));
         end;
         Renderer.RenderEnd;
@@ -2278,7 +2278,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.Render(
+procedure T3DScene.Render(
   TestShapeVisibility: TTestShapeVisibility;
   const Params: TRenderParams);
 
@@ -2360,14 +2360,14 @@ begin
   end;
 end;
 
-class procedure TVRMLGLScene.LightRenderInShadow(const Light: TLightInstance;
+class procedure T3DScene.LightRenderInShadow(const Light: TLightInstance;
   var LightOn: boolean);
 begin
   if Light.Node.FdKambiShadows.Value then
     LightOn := false;
 end;
 
-procedure TVRMLGLScene.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure T3DScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during VRMLGLRenderer unprepare
@@ -2415,7 +2415,7 @@ begin
   Result[3] := 0;
 end;
 
-procedure TVRMLGLScene.RenderAllShadowVolume(
+procedure T3DScene.RenderAllShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2667,7 +2667,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.RenderSilhouetteShadowVolume(
+procedure T3DScene.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3105,7 +3105,7 @@ begin
   finally FreeAndNil(TrianglesPlaneSide) end;
 end;
 
-procedure TVRMLGLScene.RenderShadowVolumeCore(
+procedure T3DScene.RenderShadowVolumeCore(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3119,7 +3119,7 @@ begin
       LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
 end;
 
-procedure TVRMLGLScene.RenderShadowVolumeCore(
+procedure T3DScene.RenderShadowVolumeCore(
   ShadowVolumeRenderer: TGLShadowVolumeRenderer;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3135,7 +3135,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.RenderShadowVolume(
+procedure T3DScene.RenderShadowVolume(
   ShadowVolumeRenderer: TGLShadowVolumeRenderer;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3154,7 +3154,7 @@ begin
     AllowSilhouetteOptimization);
 end;
 
-procedure TVRMLGLScene.RenderShadowVolume(
+procedure T3DScene.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -3164,12 +3164,12 @@ begin
       ParentTransformIsIdentity, ParentTransform, true);
 end;
 
-procedure TVRMLGLScene.RenderSilhouetteEdges(
+procedure T3DScene.RenderSilhouetteEdges(
   const ObserverPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 { This is actually a modified implementation of
-  TVRMLGLScene.RenderSilhouetteShadowQuads: instead of rendering
+  T3DScene.RenderSilhouetteShadowQuads: instead of rendering
   shadow quad for each silhouette edge, the edge is simply rendered
   as OpenGL line. }
 
@@ -3248,7 +3248,7 @@ begin
   glEnd;
 end;
 
-procedure TVRMLGLScene.RenderBorderEdges(
+procedure T3DScene.RenderBorderEdges(
   const Transform: TMatrix4Single);
 var
   Triangles: TTriangle3SingleList;
@@ -3291,24 +3291,24 @@ end;
 
 { Frustum culling ------------------------------------------------------------ }
 
-function TVRMLGLScene.FrustumCulling_None(Shape: TVRMLGLShape): boolean;
+function T3DScene.FrustumCulling_None(Shape: TGLShape): boolean;
 begin
   Result := true;
 end;
 
-function TVRMLGLScene.FrustumCulling_Sphere(Shape: TVRMLGLShape): boolean;
+function T3DScene.FrustumCulling_Sphere(Shape: TGLShape): boolean;
 begin
   Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(
     RenderFrustum_Frustum^);
 end;
 
-function TVRMLGLScene.FrustumCulling_Box(Shape: TVRMLGLShape): boolean;
+function T3DScene.FrustumCulling_Box(Shape: TGLShape): boolean;
 begin
   Result := RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
     Shape.BoundingBox);
 end;
 
-function TVRMLGLScene.FrustumCulling_Both(Shape: TVRMLGLShape): boolean;
+function T3DScene.FrustumCulling_Both(Shape: TGLShape): boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -3317,7 +3317,7 @@ begin
       Shape.BoundingBox);
 end;
 
-procedure TVRMLGLScene.SetFrustumCulling(const Value: TFrustumCulling);
+procedure T3DScene.SetFrustumCulling(const Value: TFrustumCulling);
 begin
   if Value <> FFrustumCulling then
   begin
@@ -3333,7 +3333,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.SetOctreeFrustumCulling(const Value: TFrustumCulling);
+procedure T3DScene.SetOctreeFrustumCulling(const Value: TFrustumCulling);
 begin
   if Value <> FOctreeFrustumCulling then
   begin
@@ -3350,18 +3350,18 @@ end;
 
 { Render --------------------------------------------------------------------- }
 
-function TVRMLGLScene.RenderFrustumOctree_TestShape(
-  Shape: TVRMLGLShape): boolean;
+function T3DScene.RenderFrustumOctree_TestShape(
+  Shape: TGLShape): boolean;
 begin
   Result := Shape.RenderFrustumOctree_Visible;
 end;
 
-procedure TVRMLGLScene.RenderFrustumOctree_EnumerateShapes(
+procedure T3DScene.RenderFrustumOctree_EnumerateShapes(
   ShapeIndex: Integer; CollidesForSure: boolean);
 var
-  Shape: TVRMLGLShape;
+  Shape: TGLShape;
 begin
-  Shape := TVRMLGLShape(OctreeRendering.ShapesList[ShapeIndex]);
+  Shape := TGLShape(OctreeRendering.ShapesList[ShapeIndex]);
 
   if (not Shape.RenderFrustumOctree_Visible) and
      ( CollidesForSure or
@@ -3369,7 +3369,7 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 end;
 
-procedure TVRMLGLScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure T3DScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
   { Call Render with explicit TTestShapeVisibility function
     instead of Frustum parameter. That is, choose test function
@@ -3381,14 +3381,14 @@ procedure TVRMLGLScene.Render(const Frustum: TFrustum; const Params: TRenderPara
     Shapes (which may be slower if you really have a lot of Shapes). }
   procedure RenderFrustum;
 
-    procedure RenderFrustumOctree(Octree: TVRMLShapeOctree);
+    procedure RenderFrustumOctree(Octree: TShapeOctree);
     var
-      SI: TVRMLShapeTreeIterator;
+      SI: TShapeTreeIterator;
     begin
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false, true);
+      SI := TShapeTreeIterator.Create(Shapes, false, true);
       try
         while SI.GetNext do
-          TVRMLGLShape(SI.Current).RenderFrustumOctree_Visible := false;
+          TGLShape(SI.Current).RenderFrustumOctree_Visible := false;
       finally FreeAndNil(SI) end;
 
       Octree.EnumerateCollidingOctreeItems(Frustum,
@@ -3428,14 +3428,14 @@ end;
 
 { Background-related things -------------------------------------------------- }
 
-procedure TVRMLGLScene.InvalidateBackground;
+procedure T3DScene.InvalidateBackground;
 begin
   FreeAndNil(FBackground);
   FBackgroundNode := nil;
   FBackgroundValid := false;
 end;
 
-procedure TVRMLGLScene.SetBackgroundSkySphereRadius(const Value: Single);
+procedure T3DScene.SetBackgroundSkySphereRadius(const Value: Single);
 begin
   if Value <> FBackgroundSkySphereRadius then
   begin
@@ -3444,7 +3444,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLScene.PrepareBackground;
+procedure T3DScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
   BgNode: TBackgroundNode;
@@ -3523,7 +3523,7 @@ begin
   FBackgroundValid := true;
 end;
 
-function TVRMLGLScene.Background: TVRMLGLBackground;
+function T3DScene.Background: TVRMLGLBackground;
 var
   BackgroundNode: TAbstractBackgroundNode;
 begin
@@ -3541,12 +3541,12 @@ begin
   end;
 end;
 
-function TVRMLGLScene.Attributes: TVRMLSceneRenderingAttributes;
+function T3DScene.Attributes: TSceneRenderingAttributes;
 begin
-  Result := Renderer.Attributes as TVRMLSceneRenderingAttributes;
+  Result := Renderer.Attributes as TSceneRenderingAttributes;
 end;
 
-procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
+procedure T3DScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
   const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean);
@@ -3562,7 +3562,7 @@ begin
     ProjectionNear, ProjectionFar);
 end;
 
-procedure TVRMLGLScene.GLProjection(ACamera: TCamera;
+procedure T3DScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
   const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean;
@@ -3714,18 +3714,18 @@ begin
   case ProjectionType of
     ptPerspective: DoPerspective;
     ptOrthographic: DoOrthographic;
-    else EInternalError.Create('TVRMLGLScene.GLProjectionCore-ProjectionType?');
+    else EInternalError.Create('T3DScene.GLProjectionCore-ProjectionType?');
   end;
 
   UpdateCameraProjectionMatrix;
 end;
 
-procedure TVRMLGLScene.LastRender_SumNext;
+procedure T3DScene.LastRender_SumNext;
 begin
   FLastRender_SumNext := true;
 end;
 
-procedure TVRMLGLScene.UpdateGeneratedTextures(
+procedure T3DScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const OriginalViewportX, OriginalViewportY: LongInt;
@@ -3733,14 +3733,14 @@ procedure TVRMLGLScene.UpdateGeneratedTextures(
 var
   I: Integer;
   NeedsRestoreViewport: boolean;
-  Shape: TVRMLGLShape;
+  Shape: TGLShape;
   TextureNode: TAbstractTextureNode;
 begin
   NeedsRestoreViewport := false;
 
   for I := 0 to GeneratedTextures.Count - 1 do
   begin
-    Shape := TVRMLGLShape(GeneratedTextures.L[I].Shape);
+    Shape := TGLShape(GeneratedTextures.L[I].Shape);
     TextureNode := GeneratedTextures.L[I].TextureNode;
 
     if TextureNode is TGeneratedCubeMapTextureNode then
@@ -3763,24 +3763,24 @@ begin
                OriginalViewportWidth, OriginalViewportHeight);
 end;
 
-procedure TVRMLGLScene.ViewChangedSuddenly;
+procedure T3DScene.ViewChangedSuddenly;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
   inherited;
 
   if Attributes.ReallyUseOcclusionQuery then
   begin
     { Set OcclusionQueryAsked := false for all shapes. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false, false, false);
+    SI := TShapeTreeIterator.Create(Shapes, false, false, false);
     try
       while SI.GetNext do
-        TVRMLGLShape(SI.Current).OcclusionQueryAsked := false;
+        TGLShape(SI.Current).OcclusionQueryAsked := false;
     finally FreeAndNil(SI) end;
   end;
 end;
 
-procedure TVRMLGLScene.VisibleChangeNotification(const Changes: TVisibleChanges);
+procedure T3DScene.VisibleChangeNotification(const Changes: TVisibleChanges);
 var
   I: Integer;
 begin
@@ -3813,7 +3813,7 @@ begin
   end;
 end;
 
-function TVRMLGLScene.ScreenEffectsCount: Integer;
+function T3DScene.ScreenEffectsCount: Integer;
 var
   I: Integer;
   SE: TScreenEffectNode;
@@ -3829,7 +3829,7 @@ begin
     end;
 end;
 
-function TVRMLGLScene.ScreenEffects(Index: Integer): TGLSLProgram;
+function T3DScene.ScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
   SE: TScreenEffectNode;
@@ -3847,10 +3847,10 @@ begin
         Dec(Index);
   end;
 
-  raise EInternalError.Create('TVRMLGLScene.ScreenEffects: Invalid index');
+  raise EInternalError.Create('T3DScene.ScreenEffects: Invalid index');
 end;
 
-function TVRMLGLScene.ScreenEffectsNeedDepth: boolean;
+function T3DScene.ScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
 begin
@@ -3865,9 +3865,9 @@ begin
   Exit(false);
 end;
 
-{ TVRMLSceneRenderingAttributes ---------------------------------------------- }
+{ TSceneRenderingAttributes ---------------------------------------------- }
 
-constructor TVRMLSceneRenderingAttributes.Create;
+constructor TSceneRenderingAttributes.Create;
 begin
   inherited;
 
@@ -3880,22 +3880,22 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
 
-  FScenes := TVRMLGLSceneList.Create(false);
+  FScenes := T3DSceneList.Create(false);
 end;
 
-destructor TVRMLSceneRenderingAttributes.Destroy;
+destructor TSceneRenderingAttributes.Destroy;
 begin
   FreeAndNil(FScenes);
   inherited;
 end;
 
-procedure TVRMLSceneRenderingAttributes.Assign(Source: TPersistent);
+procedure TSceneRenderingAttributes.Assign(Source: TPersistent);
 var
-  S: TVRMLSceneRenderingAttributes;
+  S: TSceneRenderingAttributes;
 begin
-  if Source is TVRMLSceneRenderingAttributes then
+  if Source is TSceneRenderingAttributes then
   begin
-    S := TVRMLSceneRenderingAttributes(Source);
+    S := TSceneRenderingAttributes(Source);
     Blending := S.Blending;
     BlendingSourceFactor := S.BlendingSourceFactor;
     BlendingDestinationFactor := S.BlendingDestinationFactor;
@@ -3908,46 +3908,46 @@ begin
     inherited;
 end;
 
-procedure TVRMLSceneRenderingAttributes.ReleaseCachedResources;
+procedure TSceneRenderingAttributes.ReleaseCachedResources;
 begin
   inherited;
 
   { We have to do at least Renderer.UnprepareAll.
-    Actually, we have to do more: TVRMLGLScene must also be disconnected
+    Actually, we have to do more: T3DScene must also be disconnected
     from OpenGL, to release screen effects (referencing renderer shaders)
     and such. So full CloseGLRenderer is needed. }
 
   FScenes.CloseGLRenderer;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetBlending(const Value: boolean);
+procedure TSceneRenderingAttributes.SetBlending(const Value: boolean);
 begin
   FBlending := Value;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetBlendingSourceFactor(
+procedure TSceneRenderingAttributes.SetBlendingSourceFactor(
   const Value: TGLenum);
 begin
   FBlendingSourceFactor := Value;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetBlendingDestinationFactor(
+procedure TSceneRenderingAttributes.SetBlendingDestinationFactor(
   const Value: TGLenum);
 begin
   FBlendingDestinationFactor := Value;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
+procedure TSceneRenderingAttributes.SetBlendingSort(const Value: boolean);
 begin
   FBlendingSort := Value;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetControlBlending(const Value: boolean);
+procedure TSceneRenderingAttributes.SetControlBlending(const Value: boolean);
 begin
   FControlBlending := Value;
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);
+procedure TSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);
 begin
   if UseOcclusionQuery <> Value then
   begin
@@ -3961,20 +3961,20 @@ begin
   end;
 end;
 
-function TVRMLSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
+function TSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
 begin
   Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
     GL_ARB_occlusion_query and (GLQueryCounterBits > 0);
 end;
 
-function TVRMLSceneRenderingAttributes.
+function TSceneRenderingAttributes.
   ReallyUseHierarchicalOcclusionQuery: boolean;
 begin
   Result := UseHierarchicalOcclusionQuery and GL_ARB_occlusion_query and
     (GLQueryCounterBits > 0);
 end;
 
-procedure TVRMLSceneRenderingAttributes.SetShaders(const Value: TShadersRendering);
+procedure TSceneRenderingAttributes.SetShaders(const Value: TShadersRendering);
 var
   I: Integer;
 begin
@@ -3992,9 +3992,9 @@ begin
   end;
 end;
 
-{ TVRMLGLSceneList ------------------------------------------------------ }
+{ T3DSceneList ------------------------------------------------------ }
 
-procedure TVRMLGLSceneList.GLContextClose;
+procedure T3DSceneList.GLContextClose;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4005,7 +4005,7 @@ begin
      Items[I].GLContextClose;
 end;
 
-procedure TVRMLGLSceneList.InvalidateBackground;
+procedure T3DSceneList.InvalidateBackground;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4016,7 +4016,7 @@ begin
      Items[I].InvalidateBackground;
 end;
 
-procedure TVRMLGLSceneList.CloseGLRenderer;
+procedure T3DSceneList.CloseGLRenderer;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4027,7 +4027,7 @@ begin
      Items[I].CloseGLRenderer;
 end;
 
-procedure TVRMLGLSceneList.ViewChangedSuddenly;
+procedure T3DSceneList.ViewChangedSuddenly;
 var
   I: Integer;
 begin

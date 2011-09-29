@@ -22,18 +22,18 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry;
 
 type
-  TTestVRMLGLScene = class(TTestCase)
+  TTestScene = class(TTestCase)
   published
-    procedure TestVRMLGLScene;
+    procedure TestScene;
   end;
 
 implementation
 
 uses VRMLNodes, VRMLScene, VRMLGLScene, Boxes3D, VectorMath;
 
-procedure TTestVRMLGLScene.TestVRMLGLScene;
+procedure TTestScene.TestScene;
 
-  procedure EmptySceneAsserts(EmptyScene: TVRMLGLScene);
+  procedure EmptySceneAsserts(EmptyScene: T3DScene);
   var
     CamProjection: TProjectionType;
     CamPos, CamDir, CamUp, GravityUp: TVector3Single;
@@ -54,16 +54,16 @@ procedure TTestVRMLGLScene.TestVRMLGLScene;
    Assert(EmptyScene.Background = nil);
   end;
 
-var EmptyScene: TVRMLGLScene;
+var EmptyScene: T3DScene;
 begin
- EmptyScene := TVRMLGLScene.Create(nil);
+ EmptyScene := T3DScene.Create(nil);
  try
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);
  finally FreeAndNil(EmptyScene) end;
 
- EmptyScene := TVRMLGLScene.Create(nil);
+ EmptyScene := T3DScene.Create(nil);
  try
   EmptyScene.Load(TX3DRootNode.Create('', ''), true);
   EmptySceneAsserts(EmptyScene);
@@ -73,5 +73,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestVRMLGLScene);
+ RegisterTest(TTestScene);
 end.

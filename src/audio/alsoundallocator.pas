@@ -255,8 +255,8 @@ type
       Descendant TXMLSoundEngine additionally saves sound and music volume.
 
       @groupBegin }
-    procedure LoadFromConfig(ConfigFile: TKamXMLConfig); virtual;
-    procedure SaveToConfig(ConfigFile: TKamXMLConfig); virtual;
+    procedure LoadFromConfig(ConfigFile: TCastleConfig); virtual;
+    procedure SaveToConfig(ConfigFile: TCastleConfig); virtual;
     { @groupEnd }
   published
     { Minimum / maximum number of allocated OpenAL sources.
@@ -626,7 +626,7 @@ begin
         FAllocatedSources[I].DoUsingEnd;
 end;
 
-procedure TALSoundAllocator.LoadFromConfig(ConfigFile: TKamXMLConfig);
+procedure TALSoundAllocator.LoadFromConfig(ConfigFile: TCastleConfig);
 begin
   MinAllocatedSources := ConfigFile.GetValue(
     'sound/allocated_sources/min', DefaultMinAllocatedSources);
@@ -634,7 +634,7 @@ begin
     'sound/allocated_sources/max', DefaultMaxAllocatedSources);
 end;
 
-procedure TALSoundAllocator.SaveToConfig(ConfigFile: TKamXMLConfig);
+procedure TALSoundAllocator.SaveToConfig(ConfigFile: TCastleConfig);
 begin
   ConfigFile.SetDeleteValue('sound/allocated_sources/min',
     MinAllocatedSources, DefaultMinAllocatedSources);

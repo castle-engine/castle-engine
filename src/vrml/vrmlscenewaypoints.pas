@@ -50,7 +50,7 @@ type
 
       Count of this list is enlarged, if necessary,
       to include all waypoints indicated in the Scene. }
-    procedure ExtractPositions(Scene: TVRMLScene);
+    procedure ExtractPositions(Scene: T3DSceneCore);
   end;
 
   TSceneSector = class
@@ -110,7 +110,7 @@ type
 
       Count of this list is enlarged, if necessary,
       to include all sectors indicated in the Scene. }
-    procedure ExtractBoundingBoxes(Scene: TVRMLScene);
+    procedure ExtractBoundingBoxes(Scene: T3DSceneCore);
 
     { This adds appropriate Waypoints to all sectors on this list,
       and adds appropriate Sectors to all Waypoints on given list.
@@ -176,11 +176,11 @@ end;
 
 { TSceneWaypointList -------------------------------------------------------- }
 
-procedure TSceneWaypointList.ExtractPositions(Scene: TVRMLScene);
+procedure TSceneWaypointList.ExtractPositions(Scene: T3DSceneCore);
 var
   NodesToRemove: TX3DNodeList;
 
-  procedure TraverseForWaypoints(Shape: TVRMLShape);
+  procedure TraverseForWaypoints(Shape: TShape);
 
     procedure CreateNewWaypoint(const WaypointNodeName: string);
     var
@@ -222,11 +222,11 @@ var
 
 var
   I: Integer;
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
   NodesToRemove := TX3DNodeList.Create(false);
   try
-    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    SI := TShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
       while SI.GetNext do TraverseForWaypoints(SI.Current);
     finally SysUtils.FreeAndNil(SI) end;
@@ -282,11 +282,11 @@ end;
 
 { TSceneSectorList -------------------------------------------------------- }
 
-procedure TSceneSectorList.ExtractBoundingBoxes(Scene: TVRMLScene);
+procedure TSceneSectorList.ExtractBoundingBoxes(Scene: T3DSceneCore);
 var
   NodesToRemove: TX3DNodeList;
 
-  procedure TraverseForSectors(Shape: TVRMLShape);
+  procedure TraverseForSectors(Shape: TShape);
 
     procedure AddSectorBoundingBox(const SectorNodeName: string);
     var
@@ -326,11 +326,11 @@ var
 
 var
   I: Integer;
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
   NodesToRemove := TX3DNodeList.Create(false);
   try
-    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    SI := TShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
       while SI.GetNext do TraverseForSectors(SI.Current);
     finally SysUtils.FreeAndNil(SI) end;

@@ -56,7 +56,7 @@ end;
 
 var
   InputFileName, OutputFileName: string;
-  Anim: TVRMLGLAnimation;
+  Anim: T3DPrecalculatedAnimation;
   Vrml: TX3DRootNode;
   Interp: TCoordinateInterpolatorNode;
   Coord: TCoordinateNode;
@@ -69,7 +69,7 @@ begin
   InputFileName := Parameters[2];
   OutputFileName := Parameters[3];
 
-  Anim := TVRMLGLAnimation.Create(nil);
+  Anim := T3DPrecalculatedAnimation.Create(nil);
   try
     Writeln('Reading ', InputFileName, ' ...');
     Anim.LoadFromFile(InputFileName, false, false);

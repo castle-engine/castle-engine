@@ -586,12 +586,12 @@ type
       a descendant from ReplaceClass, and you always keep at most one
       ReplaceClass descendant on the list.
       For example, you have UI controls list (like
-      TGLWindow.Controls), and you want your NewItem to be the only instance
-      of TGLMenu class inside.
+      TCastleWindowBase.Controls), and you want your NewItem to be the only instance
+      of TCastleMenu class inside.
       Moreover, in case order on the list is important (for example on
-      TGLWindow.Controls order corresponds to screen depth --- what control
+      TCastleWindowBase.Controls order corresponds to screen depth --- what control
       is under / above each other), you want to place NewItem at the same
-      position as previous TGLMenu instance, if any. }
+      position as previous TCastleMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
       AddBeginning: boolean = false): TObject;
 

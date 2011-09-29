@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Notifications displayed in the OpenGL window (TGLNotifications). }
+{ Notifications displayed in the OpenGL window (TCastleNotifications). }
 unit GLNotifications;
 
 interface
@@ -56,9 +56,9 @@ type
     or "Player Foo joined game".
 
     This is a TUIControl descendant, so to use it --- just add it
-    to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
+    to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
     Call @link(Show) to display a message. }
-  TGLNotifications = class(TUIControl)
+  TCastleNotifications = class(TUIControl)
   private
     { Messages, ordered from oldest (new mesages are added at the end).}
     Messages: TNotificationList;
@@ -152,7 +152,7 @@ uses BFNT_BitstreamVeraSans_Unit, KambiLog;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TGLNotifications]);
+  RegisterComponents('Kambi', [TCastleNotifications]);
 end;
 
 procedure TNotificationList.DeleteFirst(DelCount: Integer);
@@ -165,9 +165,9 @@ begin
   for I := 1 to DelCount do Delete(0);
 end;
 
-{ TGLNotifications ------------------------------------------------------- }
+{ TCastleNotifications ------------------------------------------------------- }
 
-constructor TGLNotifications.Create(AOwner: TComponent);
+constructor TCastleNotifications.Create(AOwner: TComponent);
 begin
   inherited;
   Messages := TNotificationList.Create;
@@ -182,27 +182,27 @@ begin
   FColor := Yellow3Single;
 end;
 
-destructor TGLNotifications.Destroy;
+destructor TCastleNotifications.Destroy;
 begin
   FreeAndNil(Messages);
   FreeAndNil(FHistory);
   inherited;
 end;
 
-procedure TGLNotifications.GLContextOpen;
+procedure TCastleNotifications.GLContextOpen;
 begin
   inherited;
   if FFont = nil then
     FFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure TGLNotifications.GLContextClose;
+procedure TCastleNotifications.GLContextClose;
 begin
   FreeAndNil(FFont);
   inherited;
 end;
 
-procedure TGLNotifications.Show(S: TStringList);
+procedure TCastleNotifications.Show(S: TStringList);
 
   procedure AddStrings(S: TStrings);
   var
@@ -246,7 +246,7 @@ begin
   VisibleChange;
 end;
 
-procedure TGLNotifications.Show(const s: string);
+procedure TCastleNotifications.Show(const s: string);
 var
   strs: TStringList;
 begin
@@ -257,7 +257,7 @@ begin
   finally strs.Free end;
 end;
 
-procedure TGLNotifications.Clear;
+procedure TCastleNotifications.Clear;
 begin
   Messages.Clear;
   if CollectHistory then
@@ -265,7 +265,7 @@ begin
   VisibleChange;
 end;
 
-procedure TGLNotifications.Draw;
+procedure TCastleNotifications.Draw;
 var
   i: integer;
   x, y: integer;
@@ -296,14 +296,14 @@ begin
   end;
 end;
 
-function TGLNotifications.DrawStyle: TUIControlDrawStyle;
+function TCastleNotifications.DrawStyle: TUIControlDrawStyle;
 begin
   if Exists and (Messages.Count <> 0) then
     Result := ds2D else
     Result := dsNone;
 end;
 
-procedure TGLNotifications.Idle(const CompSpeed: Single;
+procedure TCastleNotifications.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 { Check which messages should time out. }

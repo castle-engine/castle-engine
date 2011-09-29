@@ -36,7 +36,7 @@ uses WindowsFonts, GL, GLU, GLExt, Windows
 
 type
   { }
-  TGLWindowsOutlineFont = class(TGLOutlineFont)
+  TWindowsOutlineFont = class(TGLOutlineFont)
   private
     CreatedTTF: TTrueTypeFont;
   public
@@ -50,7 +50,7 @@ type
     destructor Destroy; override;
   end;
 
-  TGLWindowsBitmapFont = class(TGLBitmapFont)
+  TWindowsBitmapFont = class(TGLBitmapFont)
   private
     CreatedBFNT: TBmpFont;
   public
@@ -65,7 +65,7 @@ implementation
 
 uses KambiUtils;
 
-constructor TGLWindowsOutlineFont.Create(const AFaceName: string;
+constructor TWindowsOutlineFont.Create(const AFaceName: string;
   AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: DWord;
   Depth: TGLfloat; OnlyLines: boolean);
 var WinFont: TWindowsFont;
@@ -88,7 +88,7 @@ begin
  finally WinFont.Free end;
 end;
 
-destructor TGLWindowsOutlineFont.Destroy;
+destructor TWindowsOutlineFont.Destroy;
 begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLOutlineFont
@@ -96,15 +96,15 @@ begin
  FreeMemNilingAllChars(CreatedTTF);
 end;
 
-{ TGLWindowsBitmapFont ---------------------------------------- }
+{ TWindowsBitmapFont ---------------------------------------- }
 
-{ This is almost identical to implementation of TGLWindowsOutlineFont.
+{ This is almost identical to implementation of TWindowsOutlineFont.
   It's bad that I created this by some copy&pasting, I should merge
-  implementation of TGLWindowsOutlineFont and TGLWindowsBitmapFont.
+  implementation of TWindowsOutlineFont and TWindowsBitmapFont.
   However, when I tried to do that using macros, it turned out to be
   too much work. }
 
-constructor TGLWindowsBitmapFont.Create(const AFaceName: string;
+constructor TWindowsBitmapFont.Create(const AFaceName: string;
   AHeight: Integer; AWeight: DWord; AItalic: boolean; ACharSet: DWord);
 var WinFont: TWindowsFont;
     WinFontHandle: HFont;
@@ -126,7 +126,7 @@ begin
  finally WinFont.Free end;
 end;
 
-destructor TGLWindowsBitmapFont.Destroy;
+destructor TWindowsBitmapFont.Destroy;
 begin
  inherited;
  { yes, FreeMem AFTER inherited because TGLBitmapFont

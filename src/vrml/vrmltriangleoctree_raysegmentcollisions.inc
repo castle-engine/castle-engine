@@ -69,7 +69,7 @@ var
   function TryTriangleCollision(
     out Intersection: TYPE_VECTOR3;
     out IntersectionDistance: TYPE_SCALAR;
-    var Item: TVRMLTriangle): boolean;
+    var Item: TTriangle): boolean;
   begin
     Result:=
       {$ifdef SEGMENT_COLLISION}
@@ -108,7 +108,7 @@ var
 
 var
   Iterate_ItemNumber: integer;
-  Iterate_Item: PVRMLTriangle;
+  Iterate_Item: PTriangle;
   Iterate_Intersection: TYPE_VECTOR3;
   Iterate_IntersectionDistance: TYPE_SCALAR;
 begin

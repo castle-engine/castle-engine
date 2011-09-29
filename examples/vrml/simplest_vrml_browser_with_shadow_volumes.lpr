@@ -28,13 +28,13 @@ program simplest_vrml_browser_with_shadow_volumes;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindow, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole,
+uses KambiUtils, GLWindow, ProgressUnit, ProgressConsole,
   VRMLScene, KambiWarnings, KambiParameters;
 
 var
-  BrowserWindow: TGLWindowVRMLBrowser;
+  BrowserWindow: TCastleWindow;
 
-procedure StencilOff(Window: TGLWindow; const FailureMessage: string);
+procedure StencilOff(Window: TCastleWindowBase; const FailureMessage: string);
 begin
   BrowserWindow.ShadowVolumesPossible := false;
   Writeln('Stencil buffer not available, shadows could not be initialized');
@@ -46,15 +46,15 @@ begin
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create(Application);
+  BrowserWindow := TCastleWindow.Create(Application);
 
   BrowserWindow.ShadowVolumesPossible := true;
   BrowserWindow.ShadowVolumes := true;
 
   BrowserWindow.Load(Parameters[1]);
-  Writeln(BrowserWindow.Scene.Info(true, true, false));
-  BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  BrowserWindow.Scene.ProcessEvents := true;
+  Writeln(BrowserWindow.MainScene.Info(true, true, false));
+  BrowserWindow.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+  BrowserWindow.MainScene.ProcessEvents := true;
 
   BrowserWindow.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
   Application.Run;

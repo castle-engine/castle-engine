@@ -30,8 +30,8 @@ type
 
     This is designed as a base class, usable on it's own, but also
     as a parent for classes that show this list inside a menu.
-    For Lazarus menu version, see TKamRecentFiles.
-    For TGLWindow menu version, see TGLRecentFiles. }
+    For Lazarus menu version, see TLazRecentFiles.
+    For TCastleWindowBase menu version, see TCastleRecentFiles. }
   TBaseRecentFiles = class(TComponent)
   private
     FFileNames: TStringList;
@@ -58,10 +58,10 @@ type
       filename is absolute. }
     procedure Add(const FileName: string; const MaybeStdIn: boolean = true); virtual;
 
-    { These load and save recently opened files list to/from the TKamXMLConfig file.
+    { These load and save recently opened files list to/from the TCastleConfig file.
       Path should not contain final "/" --- it will be added automatically. }
-    procedure LoadFromConfig(ConfigFile: TKamXMLConfig; const Path: string);
-    procedure SaveToConfig(ConfigFile: TKamXMLConfig; const Path: string);
+    procedure LoadFromConfig(ConfigFile: TCastleConfig; const Path: string);
+    procedure SaveToConfig(ConfigFile: TCastleConfig; const Path: string);
 
     { List of currently stored filenames. @italic(This is readonly.) }
     property FileNames: TStringList read FFileNames;
@@ -125,7 +125,7 @@ begin
   MenuCreate;
 end;
 
-procedure TBaseRecentFiles.LoadFromConfig(ConfigFile: TKamXMLConfig; const Path: string);
+procedure TBaseRecentFiles.LoadFromConfig(ConfigFile: TCastleConfig; const Path: string);
 var
   I, C: Integer;
   S: string;
@@ -143,7 +143,7 @@ begin
   MenuCreate;
 end;
 
-procedure TBaseRecentFiles.SaveToConfig(ConfigFile: TKamXMLConfig; const Path: string);
+procedure TBaseRecentFiles.SaveToConfig(ConfigFile: TCastleConfig; const Path: string);
 var
   I: Integer;
 begin

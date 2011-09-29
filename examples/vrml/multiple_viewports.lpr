@@ -14,12 +14,12 @@
 }
 
 { Demo of using custom viewports (TKamViewport) to view the same 3D world
-  (scene manager in TKamSceneManager). }
+  (scene manager in TCastleSceneManager). }
 
-{ If defined, then the 3D world will contain a translated TVRMLGLAnimation
+{ If defined, then the 3D world will contain a translated T3DPrecalculatedAnimation
   with a dinosaur. It's most suitable when as the main scene you load
   models/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
-  This shows that animated TVRMLGLAnimation works fully with mirrors
+  This shows that animated T3DPrecalculatedAnimation works fully with mirrors
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
@@ -205,13 +205,13 @@ end;
 { ---------------------------------------------------------------------------- }
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Scene: T3DScene;
   Viewports: array [0..3] of TMyViewport;
-  OpenButton, QuitButton: TKamGLButton;
+  OpenButton, QuitButton: TCastleButton;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 const
   Margin = 5;
 var
@@ -311,7 +311,7 @@ end;
 var
   I: Integer;
   {$ifdef ADD_GL_ANIMATION}
-  Animation: TVRMLGLAnimation;
+  Animation: T3DPrecalculatedAnimation;
   Translation: T3DTranslated;
   {$endif ADD_GL_ANIMATION}
 begin
@@ -320,14 +320,14 @@ begin
 
   OnWarning := @OnWarningWrite;
 
-  Scene := TVRMLGLScene.Create(Application);
+  Scene := T3DScene.Create(Application);
   Scene.Load(FileName);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
-  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager := TCastleSceneManager.Create(Application);
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
   SceneManager.DefaultViewport := false;
@@ -340,7 +340,7 @@ begin
   SceneManager.Items.Add(Translation);
 
   { initialize Animation }
-  Animation := TVRMLGLAnimation.Create(SceneManager);
+  Animation := T3DPrecalculatedAnimation.Create(SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Child := Animation;
@@ -371,12 +371,12 @@ begin
 
   CameraReinitialize;
 
-  OpenButton := TKamGLButton.Create(Application);
+  OpenButton := TCastleButton.Create(Application);
   OpenButton.Caption := 'Open 3D file';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
   Window.Controls.Add(OpenButton);
 
-  QuitButton := TKamGLButton.Create(Application);
+  QuitButton := TCastleButton.Create(Application);
   QuitButton.Caption := 'Quit';
   QuitButton.OnClick := @TDummy(nil).QuitButtonClick;
   Window.Controls.Add(QuitButton);

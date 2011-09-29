@@ -1442,7 +1442,7 @@ function TryFindExistingImageExt(const fname: string; OnlyLoadable: boolean): st
   to let him know which formats are supported (and by which extensions
   they are recognized). Although almost always a better way to show
   this to user is just to use SaveImage_FileFilters with a save dialog
-  like TGLWindow.FileDialog, this shows file types in the open/save dialog,
+  like TCastleWindowBase.FileDialog, this shows file types in the open/save dialog,
   so it's most natural and convenient to user.
 
   ListImageExtsLong produces a multiline info (separated by NL, last line not terminated

@@ -170,7 +170,7 @@ object Main: TMain
       end
     end
   end
-  object Browser: TKamVRMLBrowser
+  object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
     Height = 332
@@ -249,13 +249,13 @@ object Main: TMain
     left = 83
     top = 73
   end
-  object Config: TKamXMLConfig
+  object Config: TCastleConfig
     StartEmpty = False
     RootName = 'CONFIG'
     left = 272
     top = 104
   end
-  object RecentFiles: TKamRecentFiles
+  object RecentFiles: TLazRecentFiles
     OnOpenRecent = RecentFilesOpenRecent
     left = 274
     top = 175

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ A precalculated 3D animation rendered in OpenGL (TVRMLGLAnimation). }
+{ A precalculated 3D animation rendered in OpenGL (T3DPrecalculatedAnimation). }
 unit VRMLGLAnimation;
 
 interface
@@ -66,18 +66,18 @@ type
 
     A special case when you pass only one scene to this class is allowed
     (it may be handy in some situations). This will obviously produce
-    just a still result, i.e. resulting TVRMLGLAnimation will be just
-    a wrapper around single TVRMLGLScene instance.
+    just a still result, i.e. resulting T3DPrecalculatedAnimation will be just
+    a wrapper around single T3DScene instance.
 
     For more information see the "VRML engine documentation",
     [http://castle-engine.sourceforge.net/vrml_engine_doc/].
     Specifically the section
-    "Non-interactive precalculated animation: TVRMLGLAnimation",
+    "Non-interactive precalculated animation: T3DPrecalculatedAnimation",
     [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
-  TVRMLGLAnimation = class(TVRMLAnimation)
+  T3DPrecalculatedAnimation = class(T3DPrecalculatedAnimationCore)
   private
-    FScenes: TVRMLGLSceneList;
-    function GetScenes(I: Integer): TVRMLGLScene;
+    FScenes: T3DSceneList;
+    function GetScenes(I: Integer): T3DScene;
   private
     Renderer: TVRMLGLRenderer;
     FCache: TVRMLGLRendererContextCache;
@@ -114,7 +114,7 @@ type
   private
     { Helpers for LoadFromVRMLEvents implementation. }
     LoadFromVRMLEvents_TimeBegin: Single;
-    LoadFromVRMLEvents_Scene: TVRMLScene;
+    LoadFromVRMLEvents_Scene: T3DSceneCore;
     LoadFromVRMLEvents_ScenesPerTime: Cardinal;
     procedure LoadFromVRMLEvents_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TX3DRootNode; out Time: Single);
@@ -194,7 +194,7 @@ type
         This creates a trivial animation that suddenly jumps from
         one RootNode to the next at specified times. It may be useful if you
         already have generated a lot of RootNodes, densely distributed
-        over time, and you don't need TVRMLGLAnimation to insert any more
+        over time, and you don't need T3DPrecalculatedAnimation to insert any more
         scenes.)
 
       @param(EqualityEpsilon
@@ -217,7 +217,7 @@ type
     { Load precalculated animation by playing a single VRML file with
       events (interpolators, TimeSensor and such working).
       Conceptually, this "records" interactive animation stored in VRML file
-      into TVRMLGLAnimation precalculated animation.
+      into T3DPrecalculatedAnimation precalculated animation.
 
       ATimeBegin, ATimeEnd tell what time slice should be recorded.
       They will also set @link(TimeBegin) and @link(TimeEnd) properties.
@@ -250,12 +250,12 @@ type
       )
 
       This is usefull when you know that you have a static scene,
-      but still you want to treat it as TVRMLGLAnimation. }
+      but still you want to treat it as T3DPrecalculatedAnimation. }
     procedure LoadStatic(
       RootNode: TX3DNode;
       AOwnsRootNode: boolean);
 
-    { This loads TVRMLGLAnimation by loading it's parameters
+    { This loads T3DPrecalculatedAnimation by loading it's parameters
       (models to use, times to use etc.) from given file.
 
       Various file formats are possible, everything that can be handled by
@@ -296,7 +296,7 @@ type
 
     property Loaded: boolean read FLoaded;
 
-    { Is the RootNode in first scene owned by this TVRMLGLAnimation instance?
+    { Is the RootNode in first scene owned by this T3DPrecalculatedAnimation instance?
       If yes, it will be freed at closing the animation.
       Otherwise, you are responsible for freeing it yourself
       (but you cannot do this while animation is loaded, anyway). }
@@ -307,19 +307,19 @@ type
       things: don't set their scenes Attributes properties.
       Use only our @link(Attributes).
 
-      The scenes here have TVRMLScene.Static set to @true, which means
+      The scenes here have T3DSceneCore.Static set to @true, which means
       we assume you will not modify their VRML nodes graph (by TVRMLField.Send
       and such). Note that this doesn't prevent you from enabling
-      TVRMLScene.ProcessEvents on the first scene (TVRMLScene.ProcessEvents
-      will be property handled regardless of TVRMLScene.Static value). }
-    property Scenes[I: Integer]: TVRMLGLScene read GetScenes;
+      T3DSceneCore.ProcessEvents on the first scene (T3DSceneCore.ProcessEvents
+      will be property handled regardless of T3DSceneCore.Static value). }
+    property Scenes[I: Integer]: T3DScene read GetScenes;
     function ScenesCount: Integer;
 
     { Just a shortcut for Scenes[0]. }
-    function FirstScene: TVRMLGLScene;
+    function FirstScene: T3DScene;
 
     { Just a shortcut for Scenes[ScenesCount - 1]. }
-    function LastScene: TVRMLGLScene;
+    function LastScene: T3DScene;
 
     { Prepare all scenes for rendering. Basically, this calls
       PrepareResources(...) for all Scenes.
@@ -341,14 +341,14 @@ type
       that you will not need some allocated resources anymore and you
       want to conserve memory use.
 
-      See TVRMLScene.FreeResource documentation for a description of what
+      See T3DSceneCore.FreeResource documentation for a description of what
       are possible resources to free.
 
       Note in case you pass frRootNode: the first scene has OwnsRootNode
       set to what you passed as OwnsFirstRootNode. Which means that
       if you passed OwnsFirstRootNode = @true, then frRootNode will @bold(not
       free) the initial RootNodes[0]. }
-    procedure FreeResources(Resources: TVRMLSceneFreeResources);
+    procedure FreeResources(Resources: TSceneFreeResources);
 
     { Close anything associated with current OpenGL context in this class.
       This calls GLContextClose on every Scenes[], and additionally may close
@@ -416,15 +416,15 @@ type
           And so on.)
       )
     }
-    function SceneFromTime(const Time: Single): TVRMLGLScene;
+    function SceneFromTime(const Time: Single): T3DScene;
 
     { Appropriate scene from @link(Scenes) based on current @link(Time).
       This is just a shortcut for SceneFromTime(@link(Time)),
       useful if you track animation time in our @link(Time) property. }
-    function CurrentScene: TVRMLGLScene;
+    function CurrentScene: T3DScene;
 
     { Attributes controlling rendering.
-      See TVRMLSceneRenderingAttributes and TVRMLRenderingAttributes
+      See TSceneRenderingAttributes and TVRMLRenderingAttributes
       for documentation of properties.
 
       You can change properties of this
@@ -437,7 +437,7 @@ type
       Note that Attributes may be accessed and even changed when the scene
       is not loaded (e.g. before calling Load / LoadFromFile).
       Also, Attributes are preserved between various animations loaded. }
-    function Attributes: TVRMLSceneRenderingAttributes;
+    function Attributes: TSceneRenderingAttributes;
 
     { The sum of bounding boxes of all animation frames.
 
@@ -452,12 +452,12 @@ type
 
     { Call this when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations.
-      This calls TVRMLGLScene.ChangedAll on all Scenes[]
+      This calls T3DScene.ChangedAll on all Scenes[]
       and invalidates some cached things inside this class. }
     procedure ChangedAll;
 
     { Returns some textual info about this animation.
-      Similar to TVRMLGLScene.Info. }
+      Similar to T3DScene.Info. }
     function Info(
       ATriangleVerticesCounts,
       ABoundingBox,
@@ -467,9 +467,9 @@ type
 
       We pass key and mouse events only if there's exactly one scene
       (ScenesCount = 1), as there's no sensible way of activating
-      VRML events when TVRMLGLAnimation contains more than one scene.
+      VRML events when T3DPrecalculatedAnimation contains more than one scene.
       (Precalculated animation of this class, and interactive
-      animation by TVRMLScene.ProcessEvents do not mix sensibly.)
+      animation by T3DSceneCore.ProcessEvents do not mix sensibly.)
 
       So when ScenesCount = 1, we simply pass key and mouse events to
       the only Scene[0]. Be sure to turn on @code(Scene[0].ProcessEvents := true)
@@ -569,7 +569,7 @@ type
 
       Practically, this is useful only for tools like view3dscene, that want
       to have full VRML/X3D events when possible, and at the same time they want
-      to load everything as TVRMLGLAnimation, for ease of coding.
+      to load everything as T3DPrecalculatedAnimation, for ease of coding.
 
       To put it simply, just don't use this in normal programs -- it's a hack.
 
@@ -583,14 +583,14 @@ type
     { Is the animation time playing, and how fast.
 
       For exact meaning of our TimePlaying, TimePlayingSpeed, see
-      TVRMLScene.TimePlaying, TVRMLScene.TimePlayingSpeed.
-      Like in TVRMLScene, these are realized by our @link(Idle) method,
+      T3DSceneCore.TimePlaying, T3DSceneCore.TimePlayingSpeed.
+      Like in T3DSceneCore, these are realized by our @link(Idle) method,
       so Time is automatically increased in @link(Idle) which is called
-      automatically if you added this to some TGLUIWindow.Controls or
-      TKamOpenGLControl.Controls.
+      automatically if you added this to some TCastleWindowCustom.Controls or
+      TCastleControlCustom.Controls.
 
       Note that Scenes[0].TimePlaying, Scenes[0].TimePlayingSpeed do not matter
-      when you're operating on the TVRMLGLAnimation level.
+      when you're operating on the T3DPrecalculatedAnimation level.
       They will not affect our @link(Time), or even Scenes[0].Time,
       and they will not be synchronized with our values.
 
@@ -639,7 +639,7 @@ type
       write FCollisionUseLastScene default false;
 
     { At loading, process the animation to support shadow maps.
-      See TVRMLScene.ShadowMaps and related properties for documentation.
+      See T3DSceneCore.ShadowMaps and related properties for documentation.
       @groupBegin }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
     property ShadowMapsDefaultSize: Cardinal
@@ -654,7 +654,7 @@ type
       read FInitialViewpointName write FInitialViewpointName;
   end;
 
-  TVRMLGLAnimationList = specialize TFPGObjectList<TVRMLGLAnimation>;
+  T3DPrecalculatedAnimationList = specialize TFPGObjectList<T3DPrecalculatedAnimation>;
 
 procedure Register;
 
@@ -665,32 +665,32 @@ uses Math, VRMLFields, ProgressUnit, X3DLoad, KambiLog, DateUtils,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TVRMLGLAnimation]);
+  RegisterComponents('Kambi', [T3DPrecalculatedAnimation]);
 end;
 
-{ TVRMLGLAnimationScene ------------------------------------------------------ }
+{ T3DPrecalculatedAnimationScene ------------------------------------------------------ }
 
 type
-  TVRMLGLAnimationScene = class(TVRMLGLScene)
+  T3DPrecalculatedAnimationScene = class(T3DScene)
   private
-    FParentAnimation: TVRMLGLAnimation;
+    FParentAnimation: T3DPrecalculatedAnimation;
   public
     constructor CreateForAnimation(
       ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       ACustomRenderer: TVRMLGLRenderer;
-      AParentAnimation: TVRMLGLAnimation;
+      AParentAnimation: T3DPrecalculatedAnimation;
       AStatic: boolean);
-    property ParentAnimation: TVRMLGLAnimation read FParentAnimation;
+    property ParentAnimation: T3DPrecalculatedAnimation read FParentAnimation;
     procedure DoGeometryChanged(const Change: TGeometryChange;
-      LocalGeometryShape: TVRMLShape); override;
+      LocalGeometryShape: TShape); override;
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
   end;
 
-constructor TVRMLGLAnimationScene.CreateForAnimation(
+constructor T3DPrecalculatedAnimationScene.CreateForAnimation(
   ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   ACustomRenderer: TVRMLGLRenderer;
-  AParentAnimation: TVRMLGLAnimation;
+  AParentAnimation: T3DPrecalculatedAnimation;
   AStatic: boolean);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
@@ -710,20 +710,20 @@ begin
   Load(ARootNode, AOwnsRootNode);
 end;
 
-procedure TVRMLGLAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
-  LocalGeometryShape: TVRMLShape);
+procedure T3DPrecalculatedAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
+  LocalGeometryShape: TShape);
 begin
   inherited;
   ParentAnimation.ValidBoundingBox := false;
 end;
 
-procedure TVRMLGLAnimationScene.VisibleChangeHere(const Changes: TVisibleChanges);
+procedure T3DPrecalculatedAnimationScene.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
   inherited;
   ParentAnimation.VisibleChangeHere(Changes);
 end;
 
-procedure TVRMLGLAnimationScene.CursorChange;
+procedure T3DPrecalculatedAnimationScene.CursorChange;
 begin
   inherited;
 
@@ -746,20 +746,20 @@ begin
   inherited CreateFmt('Models are structurally different: ' + S, Args);
 end;
 
-{ TVRMLGLAnimation ------------------------------------------------------------ }
+{ T3DPrecalculatedAnimation ------------------------------------------------------------ }
 
 { About Create and CreateCustomCache relationship:
 
   Note that Create cannot call CreateCustomCache and depend that
   CreateCustomCache calls "inherited Create". This wouldn't be nice
-  for descendants: If some TVRMLGLAnimation descendant would override "Create"
+  for descendants: If some T3DPrecalculatedAnimation descendant would override "Create"
   to do his initialization, and we would create this descendant by
   CreateCustomCache --- we would miss executing descendant's constructor code.
 
   So only our Create may call "inherited Create".
   CreateCustomCache should always call just "Create" (virtual). }
 
-constructor TVRMLGLAnimation.Create(AOwner: TComponent);
+constructor T3DPrecalculatedAnimation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -769,7 +769,7 @@ begin
     FCache := TVRMLGLRendererContextCache.Create;
   end;
 
-  Renderer := TVRMLGLRenderer.Create(TVRMLSceneRenderingAttributes, Cache);
+  Renderer := TVRMLGLRenderer.Create(TSceneRenderingAttributes, Cache);
 
   FTimeLoop := true;
   FTimeBackwards := false;
@@ -779,7 +779,7 @@ begin
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 end;
 
-constructor TVRMLGLAnimation.CreateCustomCache(AOwner: TComponent;
+constructor T3DPrecalculatedAnimation.CreateCustomCache(AOwner: TComponent;
   ACache: TVRMLGLRendererContextCache);
 begin
   OwnsCache := false;
@@ -788,7 +788,7 @@ begin
   Create(AOwner);
 end;
 
-destructor TVRMLGLAnimation.Destroy;
+destructor T3DPrecalculatedAnimation.Destroy;
 begin
   Close;
   FreeAndNil(Renderer);
@@ -798,7 +798,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLGLAnimation.LoadCore(
+procedure T3DPrecalculatedAnimation.LoadCore(
   GetRootNodeWithTime: TGetRootNodeWithTime;
   RootNodesCount: Cardinal;
   AOwnsFirstRootNode: boolean;
@@ -1154,9 +1154,9 @@ var
   SceneStatic: boolean;
 
   function CreateOneScene(Node: TX3DRootNode;
-    OwnsRootNode: boolean): TVRMLGLAnimationScene;
+    OwnsRootNode: boolean): T3DPrecalculatedAnimationScene;
   begin
-    Result := TVRMLGLAnimationScene.CreateForAnimation(
+    Result := T3DPrecalculatedAnimationScene.CreateForAnimation(
       Node, OwnsRootNode, Renderer, Self, SceneStatic);
   end;
 
@@ -1178,7 +1178,7 @@ begin
     it only (if and only if) occurs if RootNodesCount = 1. }
   SceneStatic := not (TryFirstSceneDynamic and (RootNodesCount = 1));
 
-  FScenes := TVRMLGLSceneList.Create(false);
+  FScenes := T3DSceneList.Create(false);
 
   { calculate FScenes contents now }
 
@@ -1226,7 +1226,7 @@ begin
       begin
         { In this case I don't waste memory, and I'm simply reusing
           LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
-          This way I have a series of the same instances of TVRMLGLScene
+          This way I have a series of the same instances of T3DScene
           along the way. When freeing FScenes, we will be smart and
           avoid deallocating the same pointer twice. }
         FreeAndNil(NewRootNode);
@@ -1262,14 +1262,14 @@ begin
   FLoaded := true;
 end;
 
-procedure TVRMLGLAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
+procedure T3DPrecalculatedAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
   RootNode := Load_RootNodes[Index] as TX3DRootNode;
   Time := Load_Times[Index];
 end;
 
-procedure TVRMLGLAnimation.Load(
+procedure T3DPrecalculatedAnimation.Load(
   RootNodes: TX3DNodeList;
   AOwnsFirstRootNode: boolean;
   ATimes: TSingleList;
@@ -1284,7 +1284,7 @@ begin
     AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
 end;
 
-procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime(
+procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents_GetRootNodeWithTime(
   const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
@@ -1299,7 +1299,7 @@ begin
   RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
 end;
 
-procedure TVRMLGLAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
+procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
   const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
@@ -1307,7 +1307,7 @@ begin
   Progress.Step;
 end;
 
-procedure TVRMLGLAnimation.LoadFromVRMLEvents(
+procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents(
   RootNode: TX3DRootNode;
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
@@ -1319,7 +1319,7 @@ var
 begin
   LoadFromVRMLEvents_ScenesPerTime := ScenesPerTime;
   LoadFromVRMLEvents_TimeBegin := ATimeBegin;
-  LoadFromVRMLEvents_Scene := TVRMLScene.Create(nil);
+  LoadFromVRMLEvents_Scene := T3DSceneCore.Create(nil);
   try
     LoadFromVRMLEvents_Scene.Load(RootNode, AOwnsRootNode);
 
@@ -1356,7 +1356,7 @@ begin
   finally FreeAndNil(LoadFromVRMLEvents_Scene) end;
 end;
 
-procedure TVRMLGLAnimation.LoadStatic(
+procedure T3DPrecalculatedAnimation.LoadStatic(
   RootNode: TX3DNode;
   AOwnsRootNode: boolean);
 var
@@ -1374,7 +1374,7 @@ begin
   finally FreeAndNil(RootNodes) end;
 end;
 
-procedure TVRMLGLAnimation.LoadFromFile(const FileName: string;
+procedure T3DPrecalculatedAnimation.LoadFromFile(const FileName: string;
   const AllowStdIn, LoadTime: boolean);
 var
   Times: TSingleList;
@@ -1403,7 +1403,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.Close;
+procedure T3DPrecalculatedAnimation.Close;
 var
   I: Integer;
 begin
@@ -1439,29 +1439,29 @@ begin
   FLoaded := false;
 end;
 
-function TVRMLGLAnimation.GetScenes(I: Integer): TVRMLGLScene;
+function T3DPrecalculatedAnimation.GetScenes(I: Integer): T3DScene;
 begin
   Result := FScenes[I];
 end;
 
-function TVRMLGLAnimation.ScenesCount: Integer;
+function T3DPrecalculatedAnimation.ScenesCount: Integer;
 begin
   if Loaded then
     Result := FScenes.Count else
     Result := 0;
 end;
 
-function TVRMLGLAnimation.FirstScene: TVRMLGLScene;
+function T3DPrecalculatedAnimation.FirstScene: T3DScene;
 begin
   Result := FScenes.First;
 end;
 
-function TVRMLGLAnimation.LastScene: TVRMLGLScene;
+function T3DPrecalculatedAnimation.LastScene: T3DScene;
 begin
   Result := FScenes.Last;
 end;
 
-procedure TVRMLGLAnimation.PrepareResources(Options: TPrepareResourcesOptions;
+procedure T3DPrecalculatedAnimation.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
@@ -1489,12 +1489,12 @@ begin
   end;
 end;
 
-function TVRMLGLAnimation.PrepareResourcesSteps: Cardinal;
+function T3DPrecalculatedAnimation.PrepareResourcesSteps: Cardinal;
 begin
   Result := ScenesCount;
 end;
 
-procedure TVRMLGLAnimation.FreeResources(Resources: TVRMLSceneFreeResources);
+procedure T3DPrecalculatedAnimation.FreeResources(Resources: TSceneFreeResources);
 var
   I: Integer;
 begin
@@ -1502,7 +1502,7 @@ begin
     FScenes[I].FreeResources(Resources);
 end;
 
-procedure TVRMLGLAnimation.GLContextClose;
+procedure T3DPrecalculatedAnimation.GLContextClose;
 { Note that this is called from destructor, so we must be extra careful
   here and check is everything <> nil before freeing it. }
 begin
@@ -1513,19 +1513,19 @@ begin
     Renderer.UnprepareAll;
 end;
 
-function TVRMLGLAnimation.TimeDuration: Single;
+function T3DPrecalculatedAnimation.TimeDuration: Single;
 begin
   Result := TimeEnd - TimeBegin;
 end;
 
-function TVRMLGLAnimation.TimeDurationWithBack: Single;
+function T3DPrecalculatedAnimation.TimeDurationWithBack: Single;
 begin
   Result := TimeDuration;
   if TimeBackwards then
     Result *= 2;
 end;
 
-function TVRMLGLAnimation.SceneFromTime(const Time: Single): TVRMLGLScene;
+function T3DPrecalculatedAnimation.SceneFromTime(const Time: Single): T3DScene;
 var
   SceneNumber: Integer;
   DivResult: SmallInt;
@@ -1586,12 +1586,12 @@ begin
   Result := FScenes[SceneNumber];
 end;
 
-function TVRMLGLAnimation.Attributes: TVRMLSceneRenderingAttributes;
+function T3DPrecalculatedAnimation.Attributes: TSceneRenderingAttributes;
 begin
-  Result := TVRMLSceneRenderingAttributes(Renderer.Attributes);
+  Result := TSceneRenderingAttributes(Renderer.Attributes);
 end;
 
-function TVRMLGLAnimation.BoundingBox: TBox3D;
+function T3DPrecalculatedAnimation.BoundingBox: TBox3D;
 
   procedure ValidateBoundingBox;
   var
@@ -1613,7 +1613,7 @@ begin
     Result := EmptyBox3D;
 end;
 
-procedure TVRMLGLAnimation.BeforeNodesFree;
+procedure T3DPrecalculatedAnimation.BeforeNodesFree;
 var
   I: Integer;
 begin
@@ -1621,7 +1621,7 @@ begin
     FScenes[I].BeforeNodesFree;
 end;
 
-procedure TVRMLGLAnimation.ChangedAll;
+procedure T3DPrecalculatedAnimation.ChangedAll;
 var
   I: Integer;
 begin
@@ -1630,7 +1630,7 @@ begin
   ValidBoundingBox := false;
 end;
 
-function TVRMLGLAnimation.InfoBoundingBox: string;
+function T3DPrecalculatedAnimation.InfoBoundingBox: string;
 var
   BBox: TBox3D;
 begin
@@ -1643,7 +1643,7 @@ begin
   Result += NL;
 end;
 
-function TVRMLGLAnimation.Info(
+function T3DPrecalculatedAnimation.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
   AManifoldAndBorderEdges: boolean): string;
@@ -1670,7 +1670,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.SetOwnsFirstRootNode(const Value: boolean);
+procedure T3DPrecalculatedAnimation.SetOwnsFirstRootNode(const Value: boolean);
 var
   I: Integer;
 begin
@@ -1696,35 +1696,35 @@ begin
   end;
 end;
 
-function TVRMLGLAnimation.KeyDown(Key: TKey; C: char): boolean;
+function T3DPrecalculatedAnimation.KeyDown(Key: TKey; C: char): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].KeyDown(Key, C) else
     Result := false;
 end;
 
-function TVRMLGLAnimation.KeyUp(Key: TKey; C: char): boolean;
+function T3DPrecalculatedAnimation.KeyUp(Key: TKey; C: char): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].KeyUp(Key, C) else
     Result := false;
 end;
 
-function TVRMLGLAnimation.MouseDown(const Button: TMouseButton): boolean;
+function T3DPrecalculatedAnimation.MouseDown(const Button: TMouseButton): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].MouseDown(Button) else
     Result := false;
 end;
 
-function TVRMLGLAnimation.MouseUp(const Button: TMouseButton): boolean;
+function T3DPrecalculatedAnimation.MouseUp(const Button: TMouseButton): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].MouseUp(Button) else
     Result := false;
 end;
 
-function TVRMLGLAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+function T3DPrecalculatedAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 begin
   if ScenesCount = 1 then
@@ -1732,7 +1732,7 @@ begin
     Result := false;
 end;
 
-procedure TVRMLGLAnimation.ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
+procedure T3DPrecalculatedAnimation.ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
 
   function TimeOriginAtLoad: boolean;
   var
@@ -1761,7 +1761,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.ResetTime(const NewValue: TKamTime);
+procedure T3DPrecalculatedAnimation.ResetTime(const NewValue: TKamTime);
 begin
   FTime := NewValue;
 
@@ -1771,14 +1771,14 @@ begin
     Scenes[0].ResetTime(NewValue);
 end;
 
-procedure TVRMLGLAnimation.Idle(const CompSpeed: Single);
+procedure T3DPrecalculatedAnimation.Idle(const CompSpeed: Single);
 var
   OldTime: TKamTime;
 begin
   inherited;
 
   { Ignore Idle calls when CompSpeed is precisely zero
-    (this may happen, and is good, see TGLWindow.IgnoreNextIdleSpeed).
+    (this may happen, and is good, see TCastleWindowBase.IgnoreNextIdleSpeed).
     In this case, time increase will be zero so the whole code
     will not do anything anyway. }
 
@@ -1788,7 +1788,7 @@ begin
     FTime += TimePlayingSpeed * CompSpeed;
 
     { When ScenesCount = 1, it's sensible for single scene to receive
-      events, to increase it's time. Note that TVRMLScene.SetTime
+      events, to increase it's time. Note that T3DSceneCore.SetTime
       will signal when redisplay will be needed (something visible changed),
       we don't have to worry about it.
 
@@ -1807,18 +1807,18 @@ begin
   end;
 end;
 
-function TVRMLGLAnimation.CurrentScene: TVRMLGLScene;
+function T3DPrecalculatedAnimation.CurrentScene: T3DScene;
 begin
   Result := SceneFromTime(Time);
 end;
 
-procedure TVRMLGLAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure T3DPrecalculatedAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   if Loaded and Exists then
     CurrentScene.Render(Frustum, Params);
 end;
 
-procedure TVRMLGLAnimation.RenderShadowVolume(
+procedure T3DPrecalculatedAnimation.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -1828,17 +1828,17 @@ begin
       ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure TVRMLGLAnimation.GetHeightAbove(
+procedure T3DPrecalculatedAnimation.GetHeightAbove(
   const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 
-  procedure MakeScene(Scene: TVRMLScene);
+  procedure MakeScene(Scene: T3DSceneCore);
   var
     NewIsAbove: boolean;
     NewAboveHeight: Single;
-    NewAboveGround: PVRMLTriangle;
+    NewAboveGround: PTriangle;
   begin
     Scene.GetHeightAbove(
       Position, GravityUp, TrianglesToIgnoreFunc,
@@ -1863,7 +1863,7 @@ begin
   end;
 end;
 
-function TVRMLGLAnimation.MoveAllowed(
+function T3DPrecalculatedAnimation.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1889,7 +1889,7 @@ begin
   end;
 end;
 
-function TVRMLGLAnimation.MoveAllowedSimple(
+function T3DPrecalculatedAnimation.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1904,7 +1904,7 @@ begin
            CameraRadius, TrianglesToIgnoreFunc) ));
 end;
 
-function TVRMLGLAnimation.MoveBoxAllowedSimple(
+function T3DPrecalculatedAnimation.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1917,7 +1917,7 @@ begin
            TrianglesToIgnoreFunc) ));
 end;
 
-function TVRMLGLAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DPrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Loaded and Exists and Collides and
@@ -1927,7 +1927,7 @@ begin
     );
 end;
 
-function TVRMLGLAnimation.SphereCollision(
+function T3DPrecalculatedAnimation.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1938,7 +1938,7 @@ begin
     );
 end;
 
-function TVRMLGLAnimation.BoxCollision(
+function T3DPrecalculatedAnimation.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1949,7 +1949,7 @@ begin
     );
 end;
 
-function TVRMLGLAnimation.RayCollision(
+function T3DPrecalculatedAnimation.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
@@ -1988,7 +1988,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.UpdateGeneratedTextures(
+procedure T3DPrecalculatedAnimation.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const OriginalViewportX, OriginalViewportY: LongInt;
@@ -2002,14 +2002,14 @@ begin
       OriginalViewportWidth, OriginalViewportHeight);
 end;
 
-procedure TVRMLGLAnimation.VisibleChangeNotification(const Changes: TVisibleChanges);
+procedure T3DPrecalculatedAnimation.VisibleChangeNotification(const Changes: TVisibleChanges);
 begin
   inherited;
   if Loaded then
     CurrentScene.VisibleChangeNotification(Changes);
 end;
 
-function TVRMLGLAnimation.Dragging: boolean;
+function T3DPrecalculatedAnimation.Dragging: boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -2018,7 +2018,7 @@ begin
     Result := CurrentScene.Dragging;
 end;
 
-procedure TVRMLGLAnimation.SetShadowMaps(const Value: boolean);
+procedure T3DPrecalculatedAnimation.SetShadowMaps(const Value: boolean);
 var
   I: Integer;
 begin
@@ -2033,7 +2033,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLAnimation.SetShadowMapsDefaultSize(const Value: Cardinal);
+procedure T3DPrecalculatedAnimation.SetShadowMapsDefaultSize(const Value: Cardinal);
 var
   I: Integer;
 begin

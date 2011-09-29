@@ -47,10 +47,10 @@ uses SysUtils, GL, KambiGLUtils, VectorMath, Boxes3D,
   SphericalHarmonics, GLCubeMap, GLWinMessages, VRMLShape, KambiStringUtils;
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 
-  SceneCaster, SceneReceiver, SceneLocalLight: TVRMLGLScene;
-  SceneManager: TKamSceneManager;
+  SceneCaster, SceneReceiver, SceneLocalLight: T3DScene;
+  SceneManager: TCastleSceneManager;
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
   GLList_EnvLight: TGLuint;
@@ -131,7 +131,7 @@ begin
 end;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromViewEverything; override;
     procedure ApplyProjection; override;
     function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; override;
@@ -256,7 +256,7 @@ begin
   CustomHeadlight := nil;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
   glNewList(GLList_EnvLight, GL_COMPILE);
@@ -264,7 +264,7 @@ begin
   glEndList;
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
   SceneCaster.GLContextClose;
   SceneReceiver.GLContextClose;
@@ -274,12 +274,12 @@ end;
 type
   THelper = class
     procedure VertexColor(var Color: TVector3Single;
-      Shape: TVRMLShape; const VertexPosition: TVector3Single;
+      Shape: TShape; const VertexPosition: TVector3Single;
       VertexIndex: Integer);
   end;
 
 procedure THelper.VertexColor(var Color: TVector3Single;
-  Shape: TVRMLShape; const VertexPosition: TVector3Single;
+  Shape: TShape; const VertexPosition: TVector3Single;
   VertexIndex: Integer);
 const
   { TODO: this is needed to make results with CalculateByEnvMaps
@@ -498,7 +498,7 @@ begin
     Result.Append(M);
 end;
 
-procedure MenuCommand(Window: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; Item: TMenuItem);
 var
   NewSHCount: Cardinal;
 begin
@@ -558,7 +558,7 @@ var
   BoxSum: TBox3D;
   V: TVector3Single;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHighAtMost(3);
 
@@ -574,13 +574,13 @@ begin
 
     RenderParams := TBasicRenderParams.Create;
 
-    SceneCaster := TVRMLGLScene.Create(nil);
+    SceneCaster := T3DScene.Create(nil);
     SceneCaster.Load(ShadowCasterFileName);
 
-    SceneReceiver := TVRMLGLScene.Create(nil);
+    SceneReceiver := T3DScene.Create(nil);
     SceneReceiver.Load(ShadowReceiverFileName);
 
-    SceneLocalLight := TVRMLGLScene.Create(nil);
+    SceneLocalLight := T3DScene.Create(nil);
     SceneLocalLight.Load(LocalLightFileName);
 
     CasterOOF := TShadowField.Create;

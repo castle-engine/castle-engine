@@ -10,9 +10,9 @@ uses
 
 type
   TForm1 = class(TForm)
-    KamVRMLBrowser1: TKamVRMLBrowser;
+    KamVRMLBrowser1: TCastleControl;
     WalkCamera1: TWalkCamera;
-    VRMLGLScene1: TVRMLGLScene;
+    VRMLGLScene1: T3DScene;
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }

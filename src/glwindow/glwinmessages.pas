@@ -15,7 +15,7 @@
 
 (*
   @abstract(Dialog boxes (asking user for confirmation, question,
-  simple text input etc.) inside @link(TGLWindow).)
+  simple text input etc.) inside @link(TCastleWindowBase).)
 
   Features:
 
@@ -45,7 +45,7 @@
       be modified in any way.)
 
     @item(User is allowed to resize the window while MessageXxx works.
-      (As long as TGLWindow.ResizeAllowed = raAllowed, of course.)
+      (As long as TCastleWindowBase.ResizeAllowed = raAllowed, of course.)
       Long lines are automatically broken taking into account current window
       width.)
 
@@ -62,7 +62,7 @@
   @unorderedList(
     @item(
       It's implemented using GLWinModes approach. Which means that when you call
-      some MessageXxx procedure, it temporarily switches all TGLWindow callbacks
+      some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
       (OnDraw, OnKeyDown, OnMouseDown, OnIdle etc.) for it's own.
       So you can be sure that e.g. no glwin callbacks that you registered in your
       own programs/units will be called while MessageXxx works.
@@ -86,12 +86,12 @@
       and so they continue to work even while we're inside MessageXxx procedure.
 
       While this can be useful, you should be careful when implementing these
-      Application callbacks. When they access some TGLWindow instance, it may be currently
+      Application callbacks. When they access some TCastleWindowBase instance, it may be currently
       inside MessageXxx call.)
 
     @item(
-      The whole MessageXxx is supposed to start and end on an open TGLWindow
-      instance, so no Open or Close methods of TGLWindow will be called during
+      The whole MessageXxx is supposed to start and end on an open TCastleWindowBase
+      instance, so no Open or Close methods of TCastleWindowBase will be called during
       MessageXxx.
 
       OnCloseQuery during MessageXxx calls prevents user from exiting the program,
@@ -129,11 +129,11 @@ type
   and simplest "OK" dialog box.
 
   @groupBegin }
-procedure MessageOK(Window: TGLWindow; const s: string;
+procedure MessageOK(Window: TCastleWindowBase; const s: string;
   textalign: TTextAlign = taMiddle); overload;
-procedure MessageOK(Window: TGLWindow;  const SArray: array of string;
+procedure MessageOK(Window: TCastleWindowBase;  const SArray: array of string;
   textalign: TTextAlign = taMiddle); overload;
-procedure MessageOK(Window: TGLWindow;  textlist: TStringList;
+procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
   textalign: TTextAlign = taMiddle); overload;
 { @groupEnd }
 
@@ -143,13 +143,13 @@ procedure MessageOK(Window: TGLWindow;  textlist: TStringList;
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
 
   @groupBegin }
-function MessageInput(Window: TGLWindow; const s: string;
+function MessageInput(Window: TCastleWindowBase; const s: string;
   textalign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): string; overload;
-function MessageInput(Window: TGLWindow; textlist: TStringList;
+function MessageInput(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign = taMiddle;
   const answerDefault: string = '';
   answerMinLen: integer = 0;
@@ -163,12 +163,12 @@ function MessageInput(Window: TGLWindow; textlist: TStringList;
   @param AnswerMaxLen 0 (zero) means that there's no maximum answer length.
 
   @groupBegin }
-function MessageInputQuery(Window: TGLWindow; const s: string;
+function MessageInputQuery(Window: TCastleWindowBase; const s: string;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
   const answerAllowedChars: TSetOfChars = AllChars): boolean; overload;
-function MessageInputQuery(Window: TGLWindow; textlist: TStringList;
+function MessageInputQuery(Window: TCastleWindowBase; textlist: TStringList;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer = 0;
   answerMaxLen: integer = 0;
@@ -194,17 +194,17 @@ function MessageInputQuery(Window: TGLWindow; textlist: TStringList;
     So you can't even know if user pressed lower of upper case letter.)
 
   @groupBegin }
-function MessageChar(Window: TGLWindow; const s: string;
+function MessageChar(Window: TCastleWindowBase; const s: string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
-function MessageChar(Window: TGLWindow;  const SArray: array of string;
+function MessageChar(Window: TCastleWindowBase;  const SArray: array of string;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle;
   IgnoreCase: boolean = false): char; overload;
-function MessageChar(Window: TGLWindow;  textlist: TStringList;
+function MessageChar(Window: TCastleWindowBase;  textlist: TStringList;
   const AllowedChars: TSetOfChars;
   const ClosingInfo: string;
   textalign: TTextAlign = taMiddle;
@@ -217,13 +217,13 @@ function MessageChar(Window: TGLWindow;  textlist: TStringList;
   as Keys.TKey will be ignored, and will not close the dialog box).
 
   @groupBegin }
-function MessageKey(Window: TGLWindow; const S: string;
+function MessageKey(Window: TCastleWindowBase; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 
-function MessageKey(Window: TGLWindow; const SArray: array of string;
+function MessageKey(Window: TCastleWindowBase; const SArray: array of string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 
-function MessageKey(Window: TGLWindow; TextList: TStringList;
+function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey; overload;
 { @groupEnd }
 
@@ -237,24 +237,24 @@ function MessageKey(Window: TGLWindow; TextList: TStringList;
   If user pressed a key, returns appropriate Key (for sure <> K_None).
 
   @groupBegin }
-procedure MessageKeyMouse(Window: TGLWindow; const S: string;
+procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
   out MouseWheel: TMouseWheelDirection); overload;
 
-procedure MessageKeyMouse(Window: TGLWindow; TextList: TStringList;
+procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
   out MouseWheel: TMouseWheelDirection); overload;
 { @groupEnd }
 
-function MessageYesNo(Window: TGLWindow; const s: string;
+function MessageYesNo(Window: TCastleWindowBase; const s: string;
   textalign: TTextAlign = taMiddle): boolean; overload;
-function MessageYesNo(Window: TGLWindow;  const SArray: array of string;
+function MessageYesNo(Window: TCastleWindowBase;  const SArray: array of string;
   textalign: TTextAlign = taMiddle): boolean; overload;
-function MessageYesNo(Window: TGLWindow;  textlist: TStringList;
+function MessageYesNo(Window: TCastleWindowBase;  textlist: TStringList;
   textalign: TTextAlign = taMiddle): boolean; overload;
 
 { Ask user to input an unsigned integer.
@@ -268,18 +268,18 @@ function MessageYesNo(Window: TGLWindow;  textlist: TStringList;
   --- no default answer.
 
   @groupBegin }
-function MessageInputCardinal(Window: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal; overload;
-function MessageInputCardinal(Window: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal; overload;
 
-function MessageInputQueryCardinal(Window: TGLWindow; const Title: string;
+function MessageInputQueryCardinal(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
 { @groupEnd }
 
 { Ask user to input a value in hexadecimal.
   Give MaxWidth = 0 to say that there is no maximum width. }
-function MessageInputQueryCardinalHex(Window: TGLWindow; const Title: string;
+function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 
 { Ask user to input a floating-point number.
@@ -291,22 +291,22 @@ function MessageInputQueryCardinalHex(Window: TGLWindow; const Title: string;
   number, and FloatToStr shows that this is really something like 0.0099xxxxx.
 
   @groupBegin }
-function MessageInputQuery(Window: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
-function MessageInputQuery(Window: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Single; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function MessageInputQuery(Window: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Double; TextAlign: TTextAlign; const ValueAsString: string = ''): boolean;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
 function MessageInputQueryVector3Single(
-  Window: TGLWindow; const Title: string;
+  Window: TCastleWindowBase; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 
 function MessageInputQueryVector4Single(
-  Window: TGLWindow; const Title: string;
+  Window: TCastleWindowBase; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 
 type
@@ -484,10 +484,10 @@ type
       gdy zmienisz min/maxShiftY }
     function ShiftY: integer;
     property FloatShiftY: Single read FFloatshiftY;
-    procedure SetFloatShiftY(Window: TGLWindow; newValue: Single);
+    procedure SetFloatShiftY(Window: TCastleWindowBase; newValue: Single);
 
-    procedure SetFloatShiftYPageDown(Window: TGLWindow);
-    procedure SetFloatShiftYPageUp(Window: TGLWindow);
+    procedure SetFloatShiftYPageDown(Window: TCastleWindowBase);
+    procedure SetFloatShiftYPageUp(Window: TCastleWindowBase);
   public
     { minimalne i maksymalne sensowne wartosci dla shiftY }
     minShiftY, maxShiftY: integer;
@@ -548,7 +548,7 @@ type
 
     { bedzie wyswietlany jezeli DrawAdditional }
     property SAdditional: string read FSAdditional;
-    procedure SetSAdditional(Window: TGLWindow; const value: string);
+    procedure SetSAdditional(Window: TCastleWindowBase; const value: string);
   public
     UserData: Pointer;
 
@@ -562,7 +562,7 @@ type
 function TMessageData.ShiftY: integer;
 begin result := Round(FloatShiftY) end;
 
-procedure TMessageData.SetFloatShiftY(Window: TGLWindow; newValue: Single);
+procedure TMessageData.SetFloatShiftY(Window: TCastleWindowBase; newValue: Single);
 begin
  Clamp(newValue, minShiftY, maxShiftY);
  if newValue <> FloatShiftY then
@@ -572,7 +572,7 @@ begin
  end;
 end;
 
-procedure TMessageData.SetFloatShiftYPageDown(Window: TGLWindow);
+procedure TMessageData.SetFloatShiftYPageDown(Window: TCastleWindowBase);
 var
   PageHeight: Single;
 begin
@@ -580,7 +580,7 @@ begin
   SetFloatShiftY(Window, ShiftY + PageHeight);
 end;
 
-procedure TMessageData.SetFloatShiftYPageUp(Window: TGLWindow);
+procedure TMessageData.SetFloatShiftYPageUp(Window: TCastleWindowBase);
 var
   PageHeight: Single;
 begin
@@ -588,7 +588,7 @@ begin
   SetFloatShiftY(Window, ShiftY - PageHeight);
 end;
 
-procedure TMessageData.SetSAdditional(Window: TGLWindow; const value: string);
+procedure TMessageData.SetSAdditional(Window: TCastleWindowBase; const value: string);
 begin
  FSAdditional := value;
  Window.PostRedisplay;
@@ -610,7 +610,7 @@ end;
 
 { GLWinMessage callbacks -------------------------------------------------- }
 
-procedure ResizeMessg(Window: TGLWindow);
+procedure ResizeMessg(Window: TCastleWindowBase);
 var
   MD: TMessageData;
   { width at which we should break our string lists md.Broken_Xxx }
@@ -699,7 +699,7 @@ begin
  end;
 end;
 
-procedure KeyDownMessg(Window: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessg(Window: TCastleWindowBase; key: TKey; c: char);
 var
   md: TMessageData;
   KeyHandled: boolean;
@@ -734,7 +734,7 @@ begin
   end;
 end;
 
-procedure MouseDownMessg(Window: TGLWindow; btn: TMouseButton);
+procedure MouseDownMessg(Window: TCastleWindowBase; btn: TMouseButton);
 var mx, my: integer; { mousex, y przetlumaczone na wspolrzedne OpenGL'a tego okienka }
     md: TMessageData;
 begin
@@ -760,12 +760,12 @@ begin
   end;
 end;
 
-procedure MouseUpMessg(Window: TGLWindow; btn: TMouseButton);
+procedure MouseUpMessg(Window: TCastleWindowBase; btn: TMouseButton);
 begin
  if btn = mbLeft then TMessageData(Window.userdata).ScrollBarDragging := false;
 end;
 
-procedure MouseMoveMessg(Window: TGLWindow; newx, newy: integer);
+procedure MouseMoveMessg(Window: TCastleWindowBase; newx, newy: integer);
 var md: TMessageData;
     moveY: integer;
 begin
@@ -789,7 +789,7 @@ begin
  md.setFloatShiftY(Window, md.shiftY + moveY);
 end;
 
-procedure MouseWheelMessg(Window: TGLWindow; const Scroll: Single; const Vertical: boolean);
+procedure MouseWheelMessg(Window: TCastleWindowBase; const Scroll: Single; const Vertical: boolean);
 var
   MD: TMessageData;
 begin
@@ -803,7 +803,7 @@ begin
   end;
 end;
 
-procedure IdleMessg(Window: TGLWindow);
+procedure IdleMessg(Window: TCastleWindowBase);
 
   function Faktor: Single;
   begin
@@ -820,7 +820,7 @@ begin
  end;
 end;
 
-procedure DrawMessg(Window: TGLWindow);
+procedure DrawMessg(Window: TCastleWindowBase);
 var md: TMessageData;
 
   procedure DrawString(const text: string; textalign: TTextAlign);
@@ -1011,7 +1011,7 @@ end;
     will be within WholeMessageRect. You should not react to mouse
     click on other places.
 }
-procedure GLWinMessage(Window: TGLWindow; textlist: TStringList;
+procedure GLWinMessage(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign; MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
   MessageOnUserMouseWheel: TMouseWheelFunc;
@@ -1183,7 +1183,7 @@ begin
  end;
 end;
 
-procedure GLWinMessage_NoAdditional(Window: TGLWindow; textlist: TStringList;
+procedure GLWinMessage_NoAdditional(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign;
   MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
@@ -1202,19 +1202,19 @@ end;
 
 { MessageOK function with callbacks ------------------------------------------ }
 
-procedure MouseDownMessgOK(Window: TGLWindow; Btn: TMouseButton);
+procedure MouseDownMessgOK(Window: TCastleWindowBase; Btn: TMouseButton);
 begin
   if Btn = mbLeft then
     TMessageData(Window.UserData).answered := true;
 end;
 
-procedure KeyDownMessgOK(Window: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessgOK(Window: TCastleWindowBase; key: TKey; c: char);
 begin
   if c = #13 then
     TMessageData(Window.UserData).answered := true;
 end;
 
-procedure MessageOK(Window: TGLWindow;  const SArray: array of string;
+procedure MessageOK(Window: TCastleWindowBase;  const SArray: array of string;
   textalign: TTextAlign = taMiddle);
 var textlist: TStringList;
 begin
@@ -1225,7 +1225,7 @@ begin
  finally textlist.Free end;
 end;
 
-procedure MessageOK(Window: TGLWindow; const s: string; textalign: TTextAlign);
+procedure MessageOK(Window: TCastleWindowBase; const s: string; textalign: TTextAlign);
 var textlist: TStringList;
 begin
  textlist := TStringList.Create;
@@ -1235,7 +1235,7 @@ begin
  finally textlist.free end;
 end;
 
-procedure MessageOK(Window: TGLWindow;  textlist: TStringList;
+procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
   textalign: TTextAlign);
 begin
  GLWinMessage_NoAdditional(Window, textlist, textalign,
@@ -1257,7 +1257,7 @@ type
   end;
   PInputData = ^TInputData;
 
-procedure KeyDownMessgInput(Window: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessgInput(Window: TCastleWindowBase; key: TKey; c: char);
 var md: TMessageData;
     id: PInputData;
 begin
@@ -1298,7 +1298,7 @@ begin
  end;
 end;
 
-function MessageInput(Window: TGLWindow; const s: string;
+function MessageInput(Window: TCastleWindowBase; const s: string;
   textalign: TTextAlign; const answerDefault: string;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
 var textlist: TStringList;
@@ -1311,7 +1311,7 @@ begin
  finally textlist.free end;
 end;
 
-function MessageInput(Window: TGLWindow; textlist: TStringList;
+function MessageInput(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign; const answerDefault: string;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): string;
 var inputData: TInputData;
@@ -1327,7 +1327,7 @@ begin
    @inputdata, '', true, result);
 end;
 
-function MessageInputQuery(Window: TGLWindow; const s: string;
+function MessageInputQuery(Window: TCastleWindowBase; const s: string;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
 var textlist: TStringList;
@@ -1340,7 +1340,7 @@ begin
  finally textlist.free end;
 end;
 
-function MessageInputQuery(Window: TGLWindow; textlist: TStringList;
+function MessageInputQuery(Window: TCastleWindowBase; textlist: TStringList;
   var answer: string; textalign: TTextAlign;
   answerMinLen: integer; answerMaxLen: integer; const answerAllowedChars: TSetOfChars): boolean;
 var inputData: TInputData;
@@ -1373,7 +1373,7 @@ type
   end;
   PCharData = ^TCharData;
 
-procedure KeyDownMessgChar(Window: TGLWindow; key: TKey; c: char);
+procedure KeyDownMessgChar(Window: TCastleWindowBase; key: TKey; c: char);
 var
   md: TMessageData;
   cd: PCharData;
@@ -1399,7 +1399,7 @@ begin
   end;
 end;
 
-function MessageChar(Window: TGLWindow; const s: string; const AllowedChars: TSetOfChars;
+function MessageChar(Window: TCastleWindowBase; const s: string; const AllowedChars: TSetOfChars;
   const ClosingInfo: string; textalign: TTextAlign;
   IgnoreCase: boolean): char;
 var textlist: TStringList;
@@ -1411,7 +1411,7 @@ begin
  finally textlist.free end;
 end;
 
-function MessageChar(Window: TGLWindow;  const SArray: array of string; const AllowedChars: TSetOfChars;
+function MessageChar(Window: TCastleWindowBase;  const SArray: array of string; const AllowedChars: TSetOfChars;
   const ClosingInfo: string; textalign: TTextAlign;
   IgnoreCase: boolean): char; overload;
 var textlist: TStringList;
@@ -1423,7 +1423,7 @@ begin
  finally textlist.Free end;
 end;
 
-function MessageChar(Window: TGLWindow; textlist: TStringList;
+function MessageChar(Window: TCastleWindowBase; textlist: TStringList;
   const AllowedChars: TSetOfChars; const ClosingInfo: string;
   textalign: TTextAlign;
   IgnoreCase: boolean): char; overload;
@@ -1445,7 +1445,7 @@ type
   end;
   PMessageKeyData = ^TMessageKeyData;
 
-procedure MessageKey_KeyDown(Window: TGLWindow; Key: TKey; C: char);
+procedure MessageKey_KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
 var
   MD: TMessageData;
   KD: PMessageKeyData;
@@ -1460,7 +1460,7 @@ begin
   end;
 end;
 
-function MessageKey(Window: TGLWindow; const S: string;
+function MessageKey(Window: TCastleWindowBase; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
@@ -1472,7 +1472,7 @@ begin
   finally TextList.free end;
 end;
 
-function MessageKey(Window: TGLWindow; const SArray: array of string;
+function MessageKey(Window: TCastleWindowBase; const SArray: array of string;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   TextList: TStringList;
@@ -1484,7 +1484,7 @@ begin
   finally TextList.Free end;
 end;
 
-function MessageKey(Window: TGLWindow; TextList: TStringList;
+function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign): TKey;
 var
   MessageKeyData: TMessageKeyData;
@@ -1506,7 +1506,7 @@ type
   end;
   PMessageKeyMouseData = ^TMessageKeyMouseData;
 
-procedure MessageKeyMouse_KeyDown(Window: TGLWindow; Key: TKey; C: char);
+procedure MessageKeyMouse_KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
 var
   MD: TMessageData;
   KD: PMessageKeyMouseData;
@@ -1524,7 +1524,7 @@ begin
   end;
 end;
 
-procedure MessageKeyMouse_MouseDown(Window: TGLWindow; MouseButton: TMouseButton);
+procedure MessageKeyMouse_MouseDown(Window: TCastleWindowBase; MouseButton: TMouseButton);
 var
   MD: TMessageData;
   KD: PMessageKeyMouseData;
@@ -1539,7 +1539,7 @@ begin
   KD^.AnswerMouseWheel := mwNone;
 end;
 
-procedure MessageKeyMouse_MouseWheel(Window: TGLWindow;
+procedure MessageKeyMouse_MouseWheel(Window: TCastleWindowBase;
   const Scroll: Single; const Vertical: boolean);
 var
   MD: TMessageData;
@@ -1555,7 +1555,7 @@ begin
   KD^.AnswerMouseWheel := MouseWheelDirection(Scroll, Vertical);
 end;
 
-procedure MessageKeyMouse(Window: TGLWindow; const S: string;
+procedure MessageKeyMouse(Window: TCastleWindowBase; const S: string;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
@@ -1571,7 +1571,7 @@ begin
   finally TextList.Free end;
 end;
 
-procedure MessageKeyMouse(Window: TGLWindow; TextList: TStringList;
+procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
   const ClosingInfo: string; TextAlign: TTextAlign;
   out Key: TKey;
   out MousePress: boolean; out MouseButton: TMouseButton;
@@ -1599,21 +1599,21 @@ const
   MessageYesNo_ClosingInfo = '[Y]es/[N]o';
   MessageYesNo_AllowedChars: TSetOfChars = ['n','N','y','Y'];
 
-function MessageYesNo(Window: TGLWindow; const s: string;
+function MessageYesNo(Window: TCastleWindowBase; const s: string;
   textalign: TTextAlign): boolean; overload;
 begin
  result := LoCase(MessageChar(Window, s, MessageYesNo_AllowedChars,
    MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
 end;
 
-function MessageYesNo(Window: TGLWindow;  const SArray: array of string;
+function MessageYesNo(Window: TCastleWindowBase;  const SArray: array of string;
   textalign: TTextAlign): boolean; overload;
 begin
  result := LoCase(MessageChar(Window, SArray, MessageYesNo_AllowedChars,
    MessageYesNo_ClosingInfo, textalign)) = MessageYesNo_YesLetter;
 end;
 
-function MessageYesNo(Window: TGLWindow;  textlist: TStringList;
+function MessageYesNo(Window: TCastleWindowBase;  textlist: TStringList;
   textalign: TTextAlign): boolean; overload;
 begin
  result := LoCase(MessageChar(Window, textlist, MessageYesNo_AllowedChars,
@@ -1622,20 +1622,20 @@ end;
 
 { MessageInputCardinal ------------------------------------------------------- }
 
-function MessageInputCardinal(Window: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   TextAlign: TTextAlign; const AnswerDefault: string): Cardinal;
 begin
  result := StrToInt( MessageInput(Window, s, TextAlign, AnswerDefault,
    1, 0, ['0'..'9']) );
 end;
 
-function MessageInputCardinal(Window: TGLWindow; const s: string;
+function MessageInputCardinal(Window: TCastleWindowBase; const s: string;
   TextAlign: TTextAlign; AnswerDefault: Cardinal): Cardinal;
 begin
  result := MessageInputCardinal(Window, s, TextAlign, IntToStr(AnswerDefault));
 end;
 
-function MessageInputQueryCardinal(Window: TGLWindow; const Title: string;
+function MessageInputQueryCardinal(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign): boolean;
 var ValueStr: string;
 begin
@@ -1645,7 +1645,7 @@ begin
   Value := StrToInt(ValueStr);
 end;
 
-function MessageInputQueryCardinalHex(Window: TGLWindow; const Title: string;
+function MessageInputQueryCardinalHex(Window: TCastleWindowBase; const Title: string;
   var Value: Cardinal; TextAlign: TTextAlign; MaxWidth: Cardinal): boolean;
 var ValueStr: string;
 begin
@@ -1658,7 +1658,7 @@ end;
 
 { MessageInputQuery on floats ------------------------------------------------ }
 
-function MessageInputQuery(Window: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Extended; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var s: string;
 begin
@@ -1680,7 +1680,7 @@ begin
  end;
 end;
 
-function MessageInputQuery(Window: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Single; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
@@ -1692,7 +1692,7 @@ begin
 end;
 
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function MessageInputQuery(Window: TGLWindow; const Title: string;
+function MessageInputQuery(Window: TCastleWindowBase; const Title: string;
   var Value: Double; TextAlign: TTextAlign; const ValueAsString: string): boolean;
 var
   ValueExtended: Extended;
@@ -1707,7 +1707,7 @@ end;
 { MessageInputQueryVector3Single --------------------------------------------- }
 
 function MessageInputQueryVector3Single(
-  Window: TGLWindow; const Title: string;
+  Window: TCastleWindowBase; const Title: string;
   var Value: TVector3Single; TextAlign: TTextAlign): boolean;
 var s: string;
 begin
@@ -1730,7 +1730,7 @@ end;
 { MessageInputQueryVector4Single --------------------------------------------- }
 
 function MessageInputQueryVector4Single(
-  Window: TGLWindow; const Title: string;
+  Window: TCastleWindowBase; const Title: string;
   var Value: TVector4Single; TextAlign: TTextAlign): boolean;
 var s: string;
 begin

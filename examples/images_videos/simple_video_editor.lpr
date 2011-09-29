@@ -29,7 +29,7 @@ uses KambiUtils, SysUtils, GLWindow, GL, GLU, GLImages,
   KambiGLUtils, VectorMath, Classes, ProgressUnit, GLProgress, KambiTimeUtils;
 
 var
-  Window: TGLWindowDemo;
+  Window: TCastleWindowDemo;
 
   Video: TVideo;
   VideoFileName: string;
@@ -43,7 +43,7 @@ var
   MenuTimeBackwards: TMenuItemChecked;
   MenuRevert, MenuSave: TMenuItem;
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 const
   TimeBarHeight = 10;
   TimeBarMargin = 2;
@@ -100,7 +100,7 @@ begin
   DrawStatus(nil);
 end;
 
-procedure Idle(Window: TGLWindow);
+procedure Idle(Window: TCastleWindowBase);
 begin
   if TimePlaying then
     Time += Window.Fps.IdleSpeed;
@@ -134,7 +134,7 @@ begin
   end;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 
@@ -145,12 +145,12 @@ begin
     LoadVideo(Parameters[1]);
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(StatusFont);
 end;
 
-procedure MenuCommand(Window: TGLWindow; MenuItem: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
 var
   S: string;
   I: Integer;
@@ -300,7 +300,7 @@ end;
 var
   Cache: TImagesCache;
 begin
-  Window := TGLWindowDemo.Create(Application);
+  Window := TCastleWindowDemo.Create(Application);
 
   try
     Cache := TImagesCache.Create;

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Waiting for user input, keeping static image displayed on TGLWindow. }
+{ Waiting for user input, keeping static image displayed on TCastleWindowBase. }
 unit GLWinInputs;
 
 {
@@ -48,7 +48,7 @@ uses GL, GLU, KambiGLUtils, GLWindow, GLWinModes, OpenGLFonts, KambiUtils, Image
   AnswerDefault, MinLength, MaxLength and AnswerAllowedChars
   have the same meaning as in GLWinMessages unit. Initial Answer
   cannot contain characters outside AnswerAllowedChars. }
-function Input(Window: TGLWindow;
+function Input(Window: TCastleWindowBase;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
@@ -73,11 +73,11 @@ function Input(Window: TGLWindow;
   In this case, RasterX, RasterY should be position of lower-left
   screen corner (unless you actully want to shift the displayed screen).
   @groupBegin }
-procedure InputAnyKey(Window: TGLWindow; const ImgFileName: string;
+procedure InputAnyKey(Window: TCastleWindowBase; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(Window: TGLWindow; const Img: TImage;
+procedure InputAnyKey(Window: TCastleWindowBase; const Img: TImage;
   RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(Window: TGLWindow; ReadBuffer: TGLenum; FlushGLWindow: boolean;
+procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum; FlushGLWindow: boolean;
   RasterX, RasterY: Integer); overload;
 { @groupEnd }
 
@@ -102,7 +102,7 @@ type
   end;
   PGLWinInputData = ^TGLWinInputData;
 
-procedure DrawGL(Window: TGLWindow);
+procedure DrawGL(Window: TCastleWindowBase);
 var D: PGLWinInputData;
 begin
  D := PGLWinInputData(Window.UserData);
@@ -113,7 +113,7 @@ begin
  D^.Font.Print(D^.Answer+'_');
 end;
 
-procedure KeyDown(Window: TGLWindow; key: TKey; c: Char);
+procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: Char);
 var D: PGLWinInputData;
 begin
  D := PGLWinInputData(Window.UserData);
@@ -135,7 +135,7 @@ end;
 
 { GLWinInput -------------------------------------------------------------- }
 
-function Input(Window: TGLWindow;
+function Input(Window: TCastleWindowBase;
   ReadBuffer: TGLenum; FlushGLWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
@@ -185,7 +185,7 @@ type
   end;
   PInputAnyKeyData = ^TInputAnyKeyData;
 
-procedure DrawGLAnyKey(Window: TGLWindow);
+procedure DrawGLAnyKey(Window: TCastleWindowBase);
 var D: PInputAnyKeyData;
 begin
  D := PInputAnyKeyData(Window.UserData);
@@ -193,7 +193,7 @@ begin
  glCallList(D^.dlDrawImage);
 end;
 
-procedure KeyDownAnyKey(Window: TGLWindow; key: TKey; c: char);
+procedure KeyDownAnyKey(Window: TCastleWindowBase; key: TKey; c: char);
 var D: PInputAnyKeyData;
 begin
  D := PInputAnyKeyData(Window.UserData);
@@ -202,7 +202,7 @@ end;
 
 { GLWinInputAnyKey ----------------------------------------------------------- }
 
-procedure InputAnyKeyCore(Window: TGLWindow; dlDrawImage: TGLuint;
+procedure InputAnyKeyCore(Window: TCastleWindowBase; dlDrawImage: TGLuint;
   RasterX, RasterY: Integer; BGImageWidth, BGImageHeight: Cardinal);
 var
   Data: TInputAnyKeyData;
@@ -227,7 +227,7 @@ begin
  finally SavedMode.Free end;
 end;
 
-procedure InputAnyKey(Window: TGLWindow; const Img: TImage;
+procedure InputAnyKey(Window: TCastleWindowBase; const Img: TImage;
   RasterX, RasterY: Integer);
 var
   DL: TGLuint;
@@ -238,7 +238,7 @@ begin
   finally glFreeDisplayList(DL) end;
 end;
 
-procedure InputAnyKey(Window: TGLWindow; const ImgFileName: string;
+procedure InputAnyKey(Window: TCastleWindowBase; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer);
 var
   DL: TGLuint;
@@ -256,7 +256,7 @@ begin
   finally glFreeDisplayList(DL) end;
 end;
 
-procedure InputAnyKey(Window: TGLWindow; ReadBuffer: TGLenum;
+procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum;
   FlushGLWindow: boolean; RasterX, RasterY: Integer);
 var
   DL: TGLuint;

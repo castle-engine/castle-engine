@@ -39,7 +39,7 @@ type
     EditUpY: TEdit;
     EditUpX: TEdit;
     GroupBoxCamera: TGroupBox;
-    Browser: TKamVRMLBrowser;
+    Browser: TCastleControl;
     LabelPosition: TLabel;
     LabelDirection: TLabel;
     LabelUp: TLabel;
@@ -59,8 +59,8 @@ type
     Timer1: TTimer;
     MenuItem2: TMenuItem;
     MenuMouseLookToggle: TMenuItem;
-    Config: TKamXMLConfig;
-    RecentFiles: TKamRecentFiles;
+    Config: TCastleConfig;
+    RecentFiles: TLazRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
     procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
     procedure BrowserCameraChanged(Camera: TCamera);

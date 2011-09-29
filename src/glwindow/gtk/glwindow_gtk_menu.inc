@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TGLWindow.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
 begin
  Result := false;
 end;
@@ -34,7 +34,7 @@ function gtk_check_menu_item_get_draw_as_radio(
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
 var
-  Window: TGLWindow absolute UserData;
+  Window: TCastleWindowBase absolute UserData;
 begin
   { For reasons of using MenuRecreateForbidden, see signal_menu_item_select
     comments. }
@@ -67,20 +67,20 @@ end;
   Not surprising --- we just destroyed the very resource that received focus...
 
   Menu recreate calls could happen when some KeyUp
-  message will cause e.g. TGLWindowState.SetStandardState. For example,
+  message will cause e.g. TWindowState.SetStandardState. For example,
   this happens in view3dscene when KeyUp may produce message to KeySensor about
   key release, and this may produce ChangedAll on VRML scene, which produces
   GLProgress run...
 
   MenuRecreateForbidden is not an ideal solution, menu should be eventually
   recreated at some later point, TODO... For now this works Ok,
-  as TGLWindowState.SetStandardState only changes Enabled to false and later back
+  as TWindowState.SetStandardState only changes Enabled to false and later back
   to true, so actually recreating menu is not needed. }
 
 function signal_menu_item_select(AItem: PGtkItem;
   UserData: gpointer): gboolean; cdecl;
 var
-  Window: TGLWindow absolute UserData;
+  Window: TCastleWindowBase absolute UserData;
 begin
   Inc(Window.MenuRecreateForbidden);
   try
@@ -146,7 +146,7 @@ end;
   that window_vbox is empty and current value of MainMenu.Handle
   is clear. }
 
-procedure TGLWindow.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 
   { This tells GTK that key shortcut to Item is as specified in
     Key and CharKey. Key and Charkey are taken from TMenuItem.Key/CharKey
@@ -390,7 +390,7 @@ begin
     g_false, g_false, 0);
 end;
 
-procedure TGLWindow.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 
   { Set Handle := nil for all menu entries }
   procedure ClearMenuHandles(MenuEntry: TMenuEntry);
@@ -449,7 +449,7 @@ begin
     WritelnLog('Menu', 'Warning: menu entry "' + Entry.Caption + '" has Handle = nil (this means that corresponding GTK menu item object was not created, but it should)');
 end;
 
-procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -462,7 +462,7 @@ begin
     gtk_menu_item_set_label(PGtkMenuItem(EntryGtk), PChar(Entry.Caption));
 end;
 
-procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -471,7 +471,7 @@ begin
   gtk_widget_set_sensitive(PGtkWidget(EntryGtk), Entry.Enabled);
 end;
 
-procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 var
   EntryGtk: PGtkWidget;
 begin
@@ -488,7 +488,7 @@ begin
   end;
 end;
 
-function TGLWindow.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := true;
 end;

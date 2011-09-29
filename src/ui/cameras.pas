@@ -231,15 +231,15 @@ type
     games.
 
     The most comfortable way to use a camera is with a scene manager
-    (TKamSceneManager). You can create your camera instance,
+    (TCastleSceneManager). You can create your camera instance,
     call it's @code(Init) method (this is initializes most important properties),
-    and assign it to TKamSceneManager.Camera property.
+    and assign it to TCastleSceneManager.Camera property.
     This way SceneManager will pass all necessary window events to the camera,
     and when drawing SceneManager will load camera matrix like
     @code(glLoadMatrix(Camera.Matrix);).
-    In fact, if you do not assign anything to TKamSceneManager.Camera property,
+    In fact, if you do not assign anything to TCastleSceneManager.Camera property,
     then the default camera will be created for you. So @italic(when
-    using TKamSceneManager, you do not have to do anything to use a camera)
+    using TCastleSceneManager, you do not have to do anything to use a camera)
     --- default camera will be created and automatically used for you. }
   TCamera = class(TUIControl)
   private
@@ -383,12 +383,12 @@ type
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
-      to TGLUIWindow.Controls or TKamOpenGLControl.Controls before
+      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
       using this method.
 
       PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
       describe your projection, required for calculating the ray properly.
-      See TKamSceneManager.PerspectiveView for their specification.
+      See TCastleSceneManager.PerspectiveView for their specification.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top. }
@@ -401,7 +401,7 @@ type
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
       mouse position), which means that you have to add this camera
-      to TGLUIWindow.Controls or TKamOpenGLControl.Controls before
+      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
       using this method. }
     procedure MouseRay(
       const PerspectiveView: boolean;
@@ -415,7 +415,7 @@ type
 
       PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
       describe your projection, required for calculating the ray properly.
-      See TKamSceneManager.PerspectiveView for their specification.
+      See TCastleSceneManager.PerspectiveView for their specification.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top.
@@ -968,7 +968,7 @@ type
       during one second. Assuming "normal circumstances",
       namely that CompSpeed provided to @link(Idle) method
       is expressed in seconds (which is the case, when you use
-      camera with TGLWindow.Controls or TKamSceneManager.Camera).
+      camera with TCastleWindowBase.Controls or TCastleSceneManager.Camera).
       So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
       MoveSpeed expressed the speed in nice units / per second.
 
@@ -2380,7 +2380,7 @@ var
   Direction, Up, GravityUp: TVector3Single;
 begin
   { Make the same view as
-    CameraViewpointForWholeScene call in TVRMLScene.CameraFromViewpoint,
+    CameraViewpointForWholeScene call in T3DSceneCore.CameraFromViewpoint,
     to make "Home" behavior same as going to the default viewpoint.
     Nice for user. }
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
@@ -3662,7 +3662,7 @@ var
          MouseLook may be true for a very short time.
 
          For example, consider castle, where MouseLook is usually true
-         during the game, but it's off in game menu (TGLMenu) and start screen.
+         during the game, but it's off in game menu (TCastleMenu) and start screen.
          So when you're in the game, and choose "End game", game menu
          closes (immediately bringing back MouseLook = true by TGLMode.Destroy
          restoring everything), but game mode immediately closes and goes
@@ -4052,7 +4052,7 @@ begin
          - SetMousePosition sets mouse to the Middle,
            but this time no MouseMove is generated
          - player moved mouse to MiddleX+10. Although mouse was
-           positioned on Middle, TGLWindow thinks that the mouse
+           positioned on Middle, TCastleWindowBase thinks that the mouse
            is still positioned on Middle-10, and I will get "+20" move
            for player (while I should get only "+10")
 
@@ -4074,7 +4074,7 @@ begin
       by subtracing new - old position, knowing that old = middle this
       will always be Ok.
 
-      Later: see TGLWindow.UpdateMouseLook implementation notes,
+      Later: see TCastleWindowBase.UpdateMouseLook implementation notes,
       we actually depend on the fact that MouseLook checks and works
       only if mouse position is at the middle. }
     if (OldX = MiddleWidth) and
@@ -4082,7 +4082,7 @@ begin
     begin
       { MouseXChange and MouseYChange are differences between current
         and previous window coords
-        (like in TGLWindow.MouseX/MouseY, so 0,0 is top-left corner). }
+        (like in TCastleWindowBase.MouseX/MouseY, so 0,0 is top-left corner). }
       MouseXChange := NewX - OldX;
       MouseYChange := NewY - OldY;
 
@@ -4444,7 +4444,7 @@ begin
   Walk.PreferGravityUpForMoving := true;
   IgnoreAllInputs := false;
 
-  { This follows the same logic as TVRMLScene.CameraFromNavigationInfo }
+  { This follows the same logic as T3DSceneCore.CameraFromNavigationInfo }
 
   { set NavigationClass, and eventually adjust Walk properties }
   case Value of

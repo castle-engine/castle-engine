@@ -27,13 +27,13 @@ uses
   Cameras, VRMLNodes, VRMLGLScene, KambiSceneManager;
 
 const
-  { Default value for TKamOpenGLControlCore.AggressiveUpdateGap.
+  { Default value for TCastleControlBase.AggressiveUpdateGap.
     "1000 div 60" means that we strike for 60 frames per second,
     although this is gross approximation (no guarantees, of course;
     especially if your Idle / Draw take a long time). }
   DefaultAggressiveUpdateGap = 1000 div 60;
 
-  { Default value for TKamOpenGLControlCore.AggressiveUpdate }
+  { Default value for TCastleControlBase.AggressiveUpdate }
   DefaultAggressiveUpdate = false;
 
   DefaultTooltipDelay = 1000;
@@ -41,9 +41,9 @@ const
 
 type
   { OpenGL control, with a couple of extensions for "Castle Game Engine".
-    You will usually prefer to use TKamOpenGLControl instead of directly this
-    class, TKamOpenGLControl adds some very useful features like
-    @link(TKamOpenGLControl.Controls).
+    You will usually prefer to use TCastleControlCustom instead of directly this
+    class, TCastleControlCustom adds some very useful features like
+    @link(TCastleControlCustom.Controls).
 
     Provides OnGLContextOpen and OnGLContextClose events.
 
@@ -56,7 +56,7 @@ type
     when GL context is initialized. This will initialize all extensions
     and set GLVersion variables, describing OpenGL version
     and available extensions. }
-  TKamOpenGLControlCore = class(TOpenGLControl)
+  TCastleControlBase = class(TOpenGLControl)
   private
     FMouseX: Integer;
     FMouseY: Integer;
@@ -117,8 +117,8 @@ type
       *Event method.
 
       Note that this means that OnKeyDown / OnKeyUp are always fired
-      (this is contrary to the TGLUIWindow OnKeyDown / OnKeyUp behaviour,
-      that is called only if no TKamOpenGLControl.Controls processed
+      (this is contrary to the TCastleWindowCustom OnKeyDown / OnKeyUp behaviour,
+      that is called only if no TCastleControlCustom.Controls processed
       this key).
 
       The cleanest way to react to key / mouse events is to handle it in
@@ -247,9 +247,9 @@ type
     @link(Controls) list for TUIControl instances.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances
-    to this window (like TGLMenu, TKamSceneManager and more).
+    to this window (like TCastleMenu, TCastleSceneManager and more).
     We will pass events to these controls, draw them etc. }
-  TKamOpenGLControl = class(TKamOpenGLControlCore, IUIContainer)
+  TCastleControlCustom = class(TCastleControlBase, IUIContainer)
   private
     FControls: TUIControlList;
     FUseControls: boolean;
@@ -327,7 +327,7 @@ type
   published
     { How OnDraw callback fits within various Draw methods of our
       @link(Controls).
-      See TGLUIWindow.OnDrawStyle for full description. }
+      See TCastleWindowCustom.OnDrawStyle for full description. }
     property OnDrawStyle: TUIControlDrawStyle
       read FOnDrawStyle write FOnDrawStyle default dsNone;
 
@@ -348,15 +348,15 @@ type
   { Lazarus component with an OpenGL context, most comfortable to render 3D worlds
     with 2D controls above. Add your 3D stuff to the scene manager
     available in @link(SceneManager) property. Add your 2D stuff
-    to the @link(TKamOpenGLControl.Controls) property (from ancestor TKamOpenGLControl).
+    to the @link(TCastleControlCustom.Controls) property (from ancestor TCastleControlCustom).
 
     You can directly access the SceneManager and configure it however you like.
 
     You have comfortable @link(Load) method that simply loads a single 3D model
     to your world. }
-  TKamVRMLBrowser = class(TKamOpenGLControl)
+  TCastleControl = class(TCastleControlCustom)
   private
-    FSceneManager: TKamSceneManager;
+    FSceneManager: TCastleSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
@@ -373,16 +373,16 @@ type
       (removing other models, and resetting the camera).
 
       This is nice for simple 3D model browsers, but usually for games you
-      don't want to use this method --- it's more flexible to create TVRMLGLScene
+      don't want to use this method --- it's more flexible to create T3DScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
-    function MainScene: TVRMLGLScene;
+    function MainScene: T3DScene;
     function Camera: TCamera;
   published
-    property SceneManager: TKamSceneManager read FSceneManager;
+    property SceneManager: TCastleSceneManager read FSceneManager;
 
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
@@ -399,11 +399,11 @@ type
     property ShadowVolumesPossible: boolean
       read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
-    { See TKamSceneManager.ShadowVolumes. }
+    { See TCastleSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
       read GetShadowVolumes write SetShadowVolumes default false;
 
-    { See TKamSceneManager.ShadowVolumesDraw. }
+    { See TCastleSceneManager.ShadowVolumesDraw. }
     property ShadowVolumesDraw: boolean
       read GetShadowVolumesDraw write SetShadowVolumesDraw default false;
   end;
@@ -435,12 +435,12 @@ uses LCLType, GL, GLU, GLExt, KambiGLUtils, KambiStringUtils, X3DLoad;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TKamOpenGLControl, TKamVRMLBrowser]);
+  RegisterComponents('Kambi', [TCastleControlCustom, TCastleControl]);
 end;
 
-{ TKamOpenGLControlCoreCore -------------------------------------------------- }
+{ TCastleControlBaseCore -------------------------------------------------- }
 
-constructor TKamOpenGLControlCore.Create(AOwner: TComponent);
+constructor TCastleControlBase.Create(AOwner: TComponent);
 begin
   inherited;
   FFps := TFramesPerSecond.Create;
@@ -455,14 +455,14 @@ begin
   ApplicationProperties.OnIdle := @ApplicationPropertiesIdle;
 end;
 
-destructor TKamOpenGLControlCore.Destroy;
+destructor TCastleControlBase.Destroy;
 begin
   FreeAndNil(FPressed);
   FreeAndNil(FFps);
   inherited;
 end;
 
-procedure TKamOpenGLControlCore.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
+procedure TCastleControlBase.ApplicationPropertiesIdle(Sender: TObject; var Done: Boolean);
 begin
   Idle;
   Done := false;
@@ -470,9 +470,9 @@ end;
 
 { Initial idea was to do
 
-procedure TKamOpenGLControlCore.CreateHandle;
+procedure TCastleControlBase.CreateHandle;
 begin
-  Writeln('TKamOpenGLControlCore.CreateHandle ', GLInitialized,
+  Writeln('TCastleControlBase.CreateHandle ', GLInitialized,
     ' ', OnGLContextOpen <> nil);
   inherited CreateHandle;
   if not GLInitialized then
@@ -480,7 +480,7 @@ begin
     GLInitialized := true;
     DoGLContextOpen;
   end;
-  Writeln('TKamOpenGLControlCore.CreateHandle end');
+  Writeln('TCastleControlBase.CreateHandle end');
 end;
 
 Reasoning: looking at implementation of OpenGLContext,
@@ -495,7 +495,7 @@ OpenGL context. Looking at implementation of GLGtkGlxContext
 we see that only during MakeCurrent the widget is guaranteed
 to be realized. }
 
-function TKamOpenGLControlCore.MakeCurrent(SaveOldToStack: boolean): boolean;
+function TCastleControlBase.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
 
@@ -514,13 +514,13 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControlCore.Invalidate;
+procedure TCastleControlBase.Invalidate;
 begin
   Invalidated := true; { will be actually used only when AggressiveUpdate }
   inherited;
 end;
 
-procedure TKamOpenGLControlCore.DestroyHandle;
+procedure TCastleControlBase.DestroyHandle;
 begin
   if GLInitialized then
   begin
@@ -530,7 +530,7 @@ begin
   inherited DestroyHandle;
 end;
 
-procedure TKamOpenGLControlCore.DoGLContextOpen;
+procedure TCastleControlBase.DoGLContextOpen;
 begin
   LoadAllExtensions;
 
@@ -538,19 +538,19 @@ begin
     OnGLContextOpen(Self);
 end;
 
-procedure TKamOpenGLControlCore.DoGLContextClose;
+procedure TCastleControlBase.DoGLContextClose;
 begin
   if Assigned(OnGLContextClose) then
     OnGLContextClose(Self);
 end;
 
-procedure TKamOpenGLControlCore.ReleaseAllKeysAndMouse;
+procedure TCastleControlBase.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
   FMousePressed := [];
 end;
 
-procedure TKamOpenGLControlCore.AggressiveUpdateTick;
+procedure TCastleControlBase.AggressiveUpdateTick;
 begin
   if AggressiveUpdate then
   begin
@@ -579,36 +579,36 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControlCore.UpdateShiftState(const Shift: TShiftState);
+procedure TCastleControlBase.UpdateShiftState(const Shift: TShiftState);
 begin
   Pressed.Keys[K_Shift] := ssShift in Shift;
   Pressed.Keys[K_Alt  ] := ssAlt   in Shift;
   Pressed.Keys[K_Ctrl ] := ssCtrl  in Shift;
 end;
 
-procedure TKamOpenGLControlCore.KeyDownEvent(var Key: Word; Shift: TShiftState);
+procedure TCastleControlBase.KeyDownEvent(var Key: Word; Shift: TShiftState);
 begin
 end;
 
-procedure TKamOpenGLControlCore.KeyUpEvent(var Key: Word; Shift: TShiftState);
+procedure TCastleControlBase.KeyUpEvent(var Key: Word; Shift: TShiftState);
 begin
 end;
 
-procedure TKamOpenGLControlCore.MouseDownEvent(Button: Controls.TMouseButton;
+procedure TCastleControlBase.MouseDownEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
 end;
 
-procedure TKamOpenGLControlCore.MouseUpEvent(Button: Controls.TMouseButton;
+procedure TCastleControlBase.MouseUpEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
 end;
 
-procedure TKamOpenGLControlCore.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
+procedure TCastleControlBase.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
 begin
 end;
 
-procedure TKamOpenGLControlCore.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TCastleControlBase.KeyDown(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
@@ -626,7 +626,7 @@ begin
   KeyDownEvent(Key, Shift);
 end;
 
-procedure TKamOpenGLControlCore.KeyUp(var Key: Word; Shift: TShiftState);
+procedure TCastleControlBase.KeyUp(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
@@ -644,7 +644,7 @@ begin
   KeyUpEvent(Key, Shift);
 end;
 
-procedure TKamOpenGLControlCore.MouseDown(Button: Controls.TMouseButton;
+procedure TCastleControlBase.MouseDown(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
@@ -664,7 +664,7 @@ begin
   MouseDownEvent(Button, Shift, X, Y);
 end;
 
-procedure TKamOpenGLControlCore.MouseUp(Button: Controls.TMouseButton;
+procedure TCastleControlBase.MouseUp(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
@@ -684,7 +684,7 @@ begin
   MouseUpEvent(Button, Shift, X, Y);
 end;
 
-procedure TKamOpenGLControlCore.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
+procedure TCastleControlBase.MouseMove(Shift: TShiftState; NewX, NewY: Integer);
 begin
   MouseMoveEvent(Shift, NewX, NewY);
 
@@ -700,30 +700,30 @@ begin
   inherited MouseMove(Shift, NewX, NewY);
 end;
 
-procedure TKamOpenGLControlCore.Idle;
+procedure TCastleControlBase.Idle;
 begin
   Fps._IdleBegin;
 end;
 
-procedure TKamOpenGLControlCore.DoExit;
+procedure TCastleControlBase.DoExit;
 begin
   inherited;
   ReleaseAllKeysAndMouse;
 end;
 
-procedure TKamOpenGLControlCore.DoBeforeDraw;
+procedure TCastleControlBase.DoBeforeDraw;
 begin
   if Assigned(OnBeforeDraw) then
     OnBeforeDraw(Self);
 end;
 
-procedure TKamOpenGLControlCore.DoDraw;
+procedure TCastleControlBase.DoDraw;
 begin
   if Assigned(OnDraw) then
     OnDraw(Self);
 end;
 
-procedure TKamOpenGLControlCore.Paint;
+procedure TCastleControlBase.Paint;
 begin
   { Note that we don't call here inherited, instead doing everything ourselves. }
   if MakeCurrent then
@@ -738,37 +738,37 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControlCore.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleControlBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   Mouse.CursorPos := ControlToScreen(Point(NewMouseX, NewMouseY));
 end;
 
-function TKamOpenGLControlCore.GetMouseX: Integer;
+function TCastleControlBase.GetMouseX: Integer;
 begin
   Result := FMouseX;
 end;
 
-function TKamOpenGLControlCore.GetMouseY: Integer;
+function TCastleControlBase.GetMouseY: Integer;
 begin
   Result := FMouseY;
 end;
 
-function TKamOpenGLControlCore.GetWidth: Integer;
+function TCastleControlBase.GetWidth: Integer;
 begin
   Result := Width;
 end;
 
-function TKamOpenGLControlCore.GetHeight: Integer;
+function TCastleControlBase.GetHeight: Integer;
 begin
   Result := Height;
 end;
 
-function TKamOpenGLControlCore.GetMousePressed: TMouseButtons;
+function TCastleControlBase.GetMousePressed: TMouseButtons;
 begin
   Result := FMousePressed;
 end;
 
-function TKamOpenGLControlCore.GetPressed: TKeysPressed;
+function TCastleControlBase.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
 end;
@@ -780,14 +780,14 @@ type
     notifications, doing appropriate operations with parent Container. }
   TControlledUIControlList = class(TUIControlList)
   private
-    Container: TKamOpenGLControl;
+    Container: TCastleControlCustom;
   public
-    constructor Create(const FreeObjects: boolean; const AContainer: TKamOpenGLControl);
+    constructor Create(const FreeObjects: boolean; const AContainer: TCastleControlCustom);
     procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   end;
 
 constructor TControlledUIControlList.Create(const FreeObjects: boolean;
-  const AContainer: TKamOpenGLControl);
+  const AContainer: TCastleControlCustom);
 begin
   inherited Create(FreeObjects);
   Container := AContainer;
@@ -840,9 +840,9 @@ begin
     Container.UpdateFocusAndMouseCursor;
 end;
 
-{ TKamOpenGLControl --------------------------------------------------------- }
+{ TCastleControlCustom --------------------------------------------------------- }
 
-constructor TKamOpenGLControl.Create(AOwner: TComponent);
+constructor TCastleControlCustom.Create(AOwner: TComponent);
 begin
   inherited;
   TabStop := true;
@@ -853,13 +853,13 @@ begin
   FTooltipDistance := DefaultTooltipDistance;
 end;
 
-destructor TKamOpenGLControl.Destroy;
+destructor TCastleControlCustom.Destroy;
 begin
   FreeAndNil(FControls);
   inherited;
 end;
 
-procedure TKamOpenGLControl.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleControlCustom.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
     This is crucial: TControlledUIControlList.Notify,
@@ -873,7 +873,7 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControl.UpdateFocusAndMouseCursor;
+procedure TCastleControlCustom.UpdateFocusAndMouseCursor;
 
   function CalculateFocus: TUIControl;
   var
@@ -927,7 +927,7 @@ begin
     Cursor := NewCursor;
 end;
 
-procedure TKamOpenGLControl.Idle;
+procedure TCastleControlCustom.Idle;
 
   procedure UpdateTooltip;
   var
@@ -1014,7 +1014,7 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.KeyDownEvent(var Key: Word; Shift: TShiftState);
+procedure TCastleControlCustom.KeyDownEvent(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
@@ -1040,7 +1040,7 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.KeyUpEvent(var Key: Word; Shift: TShiftState);
+procedure TCastleControlCustom.KeyUpEvent(var Key: Word; Shift: TShiftState);
 var
   MyKey: TKey;
   Ch: char;
@@ -1066,7 +1066,7 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.MouseDownEvent(Button: Controls.TMouseButton;
+procedure TCastleControlCustom.MouseDownEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
@@ -1087,7 +1087,7 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.MouseUpEvent(Button: Controls.TMouseButton;
+procedure TCastleControlCustom.MouseUpEvent(Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   MyButton: KeysMouse.TMouseButton;
@@ -1108,7 +1108,7 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
+procedure TCastleControlCustom.MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer);
 var
   C: TUIControl;
   I: Integer;
@@ -1128,12 +1128,12 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.ControlsVisibleChange(Sender: TObject);
+procedure TCastleControlCustom.ControlsVisibleChange(Sender: TObject);
 begin
   Invalidate;
 end;
 
-procedure TKamOpenGLControl.DoBeforeDraw;
+procedure TCastleControlCustom.DoBeforeDraw;
 var
   I: Integer;
 begin
@@ -1146,7 +1146,7 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControl.DoDraw;
+procedure TCastleControlCustom.DoDraw;
 
   { Call Draw for all controls having DrawStyle = ds3D.
 
@@ -1260,7 +1260,7 @@ begin
     inherited;
 end;
 
-procedure TKamOpenGLControl.Resize;
+procedure TCastleControlCustom.Resize;
 var
   I: Integer;
 begin
@@ -1275,7 +1275,7 @@ begin
   end;
 end;
 
-procedure TKamOpenGLControl.DoGLContextOpen;
+procedure TCastleControlCustom.DoGLContextOpen;
 var
   I: Integer;
 begin
@@ -1290,12 +1290,12 @@ begin
 end;
 
 
-procedure TKamOpenGLControl.DoGLContextClose;
+procedure TCastleControlCustom.DoGLContextClose;
 var
   I: Integer;
 begin
   { call GLContextClose on controls before inherited (OnGLContextClose).
-    This may be called from Close, which may be called from TGLWindow destructor,
+    This may be called from Close, which may be called from TCastleWindowBase destructor,
     so prepare for Controls being possibly nil now. }
   if UseControls and (Controls <> nil) then
   begin
@@ -1306,7 +1306,7 @@ begin
   inherited;
 end;
 
-procedure TKamOpenGLControl.SetUseControls(const Value: boolean);
+procedure TCastleControlCustom.SetUseControls(const Value: boolean);
 begin
   if Value <> UseControls then
   begin
@@ -1316,32 +1316,32 @@ begin
   end;
 end;
 
-function TKamOpenGLControl.GetTooltipX: Integer;
+function TCastleControlCustom.GetTooltipX: Integer;
 begin
   Result := FTooltipX;
 end;
 
-function TKamOpenGLControl.GetTooltipY: Integer;
+function TCastleControlCustom.GetTooltipY: Integer;
 begin
   Result := FTooltipY;
 end;
 
-{ TKamVRMLBrowser ----------------------------------------------------------- }
+{ TCastleControl ----------------------------------------------------------- }
 
-constructor TKamVRMLBrowser.Create(AOwner :TComponent);
+constructor TCastleControl.Create(AOwner :TComponent);
 begin
   inherited;
 
-  FSceneManager := TKamSceneManager.Create(Self);
+  FSceneManager := TCastleSceneManager.Create(Self);
   Controls.Add(SceneManager);
 end;
 
-procedure TKamVRMLBrowser.Load(const SceneFileName: string);
+procedure TCastleControl.Load(const SceneFileName: string);
 begin
   Load(LoadVRML(SceneFileName, false), true);
 end;
 
-procedure TKamVRMLBrowser.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
+procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 begin
   { destroy MainScene and Camera, we will recreate them }
   SceneManager.MainScene.Free;
@@ -1349,7 +1349,7 @@ begin
   SceneManager.Items.Clear;
   SceneManager.Camera.Free;
 
-  SceneManager.MainScene := TVRMLGLScene.Create(Self);
+  SceneManager.MainScene := T3DScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
   SceneManager.Items.Add(SceneManager.MainScene);
 
@@ -1361,42 +1361,42 @@ begin
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;
 
-function TKamVRMLBrowser.MainScene: TVRMLGLScene;
+function TCastleControl.MainScene: T3DScene;
 begin
   Result := SceneManager.MainScene;
 end;
 
-function TKamVRMLBrowser.Camera: TCamera;
+function TCastleControl.Camera: TCamera;
 begin
   Result := SceneManager.Camera;
 end;
 
-function TKamVRMLBrowser.GetShadowVolumes: boolean;
+function TCastleControl.GetShadowVolumes: boolean;
 begin
   Result := SceneManager.ShadowVolumes;
 end;
 
-procedure TKamVRMLBrowser.SetShadowVolumes(const Value: boolean);
+procedure TCastleControl.SetShadowVolumes(const Value: boolean);
 begin
   SceneManager.ShadowVolumes := Value;
 end;
 
-function TKamVRMLBrowser.GetShadowVolumesDraw: boolean;
+function TCastleControl.GetShadowVolumesDraw: boolean;
 begin
   Result := SceneManager.ShadowVolumesDraw;
 end;
 
-procedure TKamVRMLBrowser.SetShadowVolumesDraw(const Value: boolean);
+procedure TCastleControl.SetShadowVolumesDraw(const Value: boolean);
 begin
   SceneManager.ShadowVolumesDraw := Value;
 end;
 
-function TKamVRMLBrowser.GetShadowVolumesPossible: boolean;
+function TCastleControl.GetShadowVolumesPossible: boolean;
 begin
   Result := SceneManager.ShadowVolumesPossible;
 end;
 
-procedure TKamVRMLBrowser.SetShadowVolumesPossible(const Value: boolean);
+procedure TCastleControl.SetShadowVolumesPossible(const Value: boolean);
 begin
   if GLInitialized then
     raise Exception.Create('You can''t change ShadowVolumesPossible ' +
@@ -1407,19 +1407,19 @@ begin
     Looking in the sources, for GTK always at least 1-bit stencil buffer is
     requested (pretty useless?), for Windows nothing is requested.
     There's no way to workaround it, this must be fixed in OpenGLContext
-    for TKamVRMLBrowser to work reliably. }
+    for TCastleControl to work reliably. }
 
 {  if SceneManager.ShadowVolumesPossible then
     StencilBufferBits := 8 else
     StencilBufferBits := 0;}
 end;
 
-function TKamVRMLBrowser.GetOnCameraChanged: TNotifyEvent;
+function TCastleControl.GetOnCameraChanged: TNotifyEvent;
 begin
   Result := SceneManager.OnCameraChanged;
 end;
 
-procedure TKamVRMLBrowser.SetOnCameraChanged(const Value: TNotifyEvent);
+procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
 begin
   SceneManager.OnCameraChanged := Value;
 end;

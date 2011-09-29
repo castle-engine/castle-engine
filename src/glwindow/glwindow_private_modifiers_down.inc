@@ -16,7 +16,7 @@
 { Small helpful utilities for GLWindow implementations that are based
   on a system where left shift and right shift keys (or Alt, or Ctrl keys) 
   are given as different keys. This situation requires some special care
-  because in our TKey type (and so in TGLWindow.KeysDown table)
+  because in our TKey type (and so in TCastleWindowBase.KeysDown table)
   we do not differentiate between right and left Shift key (or Alt, or Ctrl).
   
   Currently this concerns GTK and Xlib implementations.
@@ -33,7 +33,7 @@
   SetPrivateModifiersDown will take care of calling DoKeyDown(k) and DoKeyUp(k)
   for you for k = K_Shift, K_Ctrl, K_Alt. }
   
-{$ifdef read_tglwindow_interface}
+{$ifdef read_window_interface}
 private
   { We keep here internally state of left shift key
     (in PrivateModifiersDown[mkShift, false]), right shift key
@@ -62,11 +62,11 @@ private
   procedure SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
     Value:boolean);
     
-{$endif read_tglwindow_interface}
+{$endif read_window_interface}
   
 {$ifdef read_implementation}
 
-procedure TGLWindow.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
+procedure TCastleWindowBase.SetPrivateModifiersDown(ModKey:TModifierKey; IsRight:boolean; 
   Value:boolean);
 var OldState, NewState:boolean;
 begin

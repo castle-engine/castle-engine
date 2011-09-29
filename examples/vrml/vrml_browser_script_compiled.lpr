@@ -20,12 +20,12 @@ program vrml_browser_script_compiled;
 
 {$apptype CONSOLE}
 
-uses KambiUtils, GLWindowVRMLBrowser, ProgressUnit, ProgressConsole, KambiWarnings,
+uses KambiUtils, ProgressUnit, ProgressConsole, KambiWarnings,
   VRMLScene, VRMLFields, VRMLTime, SysUtils, KambiParameters, KambiStringUtils,
   GLWindow;
 
 var
-  BrowserWindow: TGLWindowVRMLBrowser;
+  BrowserWindow: TCastleWindow;
 
 type
   THelperObj = class
@@ -57,18 +57,18 @@ begin
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create(nil);
+  BrowserWindow := TCastleWindow.Create(nil);
   try
     BrowserWindow.Load(FileName);
 
     { initialize events procesing }
-    BrowserWindow.Scene.RegisterCompiledScript('touch_initialize',
+    BrowserWindow.MainScene.RegisterCompiledScript('touch_initialize',
       @THelperObj(nil).ScriptTouchInitialize);
-    BrowserWindow.Scene.RegisterCompiledScript('touch',
+    BrowserWindow.MainScene.RegisterCompiledScript('touch',
       @THelperObj(nil).ScriptTouch);
 
-    BrowserWindow.Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    BrowserWindow.Scene.ProcessEvents := true;
+    BrowserWindow.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
+    BrowserWindow.MainScene.ProcessEvents := true;
 
     BrowserWindow.SetDemoOptions(K_F11, CharEscape, true);
     BrowserWindow.OpenAndRun;

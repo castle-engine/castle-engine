@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML scenes (TVRMLScene). }
+{ 3D scenes (T3DSceneCore). }
 
 unit VRMLScene;
 
@@ -33,9 +33,9 @@ const
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
 
-  { Internal helper type for TVRMLScene.
+  { Internal helper type for T3DSceneCore.
     @exclude }
-  TVRMLSceneValidity = (fvBoundingBox,
+  TSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     fvTrianglesListShadowCasters,
@@ -45,27 +45,27 @@ type
     fvShapesActiveVisibleCount);
 
   { @exclude }
-  TVRMLSceneValidities = set of TVRMLSceneValidity;
+  TSceneValidities = set of TSceneValidity;
 
   { Scene edge that is between exactly two triangles.
-    It's used by @link(TVRMLScene.ManifoldEdges),
+    It's used by @link(T3DSceneCore.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
     { Index to get vertexes of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using TVRMLScene.ShareManifoldAndBorderEdges with various scenes from
+      using T3DSceneCore.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the first triangle
       (i.e. Triangles[0]). }
     VertexIndex: Cardinal;
 
-    { Indexes to TVRMLScene.TrianglesListShadowCasters array }
+    { Indexes to T3DSceneCore.TrianglesListShadowCasters array }
     Triangles: array [0..1] of Cardinal;
 
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
       but @italic(only at generation of manifold edges time).
       Like said in VertexIndex, keeping here actual vertex info would prevent
-      TVRMLScene.ShareManifoldAndBorderEdges. However, using these when generating
+      T3DSceneCore.ShareManifoldAndBorderEdges. However, using these when generating
       makes a great speed-up when generating manifold edges.
 
       Memory cost is acceptable: assume we have model with 10 000 faces,
@@ -82,7 +82,7 @@ type
       implementation code is a little simplified, so I'm keeping this.
       Also, in the future, maybe it will be sensible
       to use this for actual shadow quad rendering, in cases when we know that
-      TVRMLScene.ShareManifoldAndBorderEdges was not used to make it. }
+      T3DSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
     V0, V1: TVector3Single;
   end;
   PManifoldEdge = ^TManifoldEdge;
@@ -90,17 +90,17 @@ type
   TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
 
   { Scene edge that has one neighbor, i.e. border edge.
-    It's used by @link(TVRMLScene.BorderEdges),
+    It's used by @link(T3DSceneCore.BorderEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TBorderEdge = record
     { Index to get vertex of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using TVRMLScene.ShareManifoldAndBorderEdges with various scenes from
+      using T3DSceneCore.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
     VertexIndex: Cardinal;
 
-    { Index to TVRMLScene.TrianglesListShadowCasters array. }
+    { Index to T3DSceneCore.TrianglesListShadowCasters array. }
     TriangleIndex: Cardinal;
   end;
   PBorderEdge = ^TBorderEdge;
@@ -108,12 +108,12 @@ type
   TBorderEdgeList = specialize TGenericStructList<TBorderEdge>;
 
   { These are various features that may be freed by
-    TVRMLScene.FreeResources.
+    T3DSceneCore.FreeResources.
 
-    @italic(Warning): This is for experienced usage of TVRMLScene.
+    @italic(Warning): This is for experienced usage of T3DSceneCore.
     Everything is explained in detail below, but still  --- if you have some
     doubts, or you just don't observe any memory shortage in your program,
-    it's probably best to not use TVRMLScene.FreeResources.
+    it's probably best to not use T3DSceneCore.FreeResources.
 
     @unorderedList(
       @item(For frRootNode, you @italic(may) get nasty effects including crashes
@@ -136,33 +136,33 @@ type
         of preparing models, e.g. inside PrepareResources.)
     )
   }
-  TVRMLSceneFreeResource = (
+  TSceneFreeResource = (
     { Free (and set to nil) RootNode of the scene. Works only if
-      TVRMLScene.OwnsRootNode is @true (the general assertion is that
-      TVRMLScene will @italic(never) free RootNode when OwnsRootNode is
+      T3DSceneCore.OwnsRootNode is @true (the general assertion is that
+      T3DSceneCore will @italic(never) free RootNode when OwnsRootNode is
       @false).
 
       frRootNode allows you to save some memory, but may be quite dangerous.
       You have to be careful then about what methods from the scene you use.
       Usually, you will prepare appropriate things first (usually by
-      TVRMLGLScene.PrepareResources), and after that call FreeResources
+      T3DScene.PrepareResources), and after that call FreeResources
       with frRootNode.
 
       Note that event processing is impossible without RootNode nodes and
       fields and routes, so don't ever use this if you want to set
-      TVRMLScene.ProcessEvents to @true.
+      T3DSceneCore.ProcessEvents to @true.
 
       Note that if you will try to use a resource that was already freed
       by frRootNode, you may even get segfault (access violation).
       So be really careful, be sure to prepare everything first by
-      TVRMLGLScene.PrepareResources or such. }
+      T3DScene.PrepareResources or such. }
     frRootNode,
 
     { Unloads the texture images/videos allocated in VRML texture nodes.
 
       It's useful if you know that you already prepared everything
       that needed the texture images, and you will not need texture images
-      later. For TVRMLGLScene this means that you use Optimization
+      later. For T3DScene this means that you use Optimization
       method other than roNone,
       and you already did PrepareResources (so textures are already loaded to OpenGL),
       and your code will not access TextureImage / TextureVideo anymore.
@@ -192,18 +192,18 @@ type
 
       Frees memory, but next call to ManifoldEdges and BorderEdges will
       need to calculate them again (or you will need to call
-      TVRMLScene.ShareManifoldAndBorderEdges again).
+      T3DSceneCore.ShareManifoldAndBorderEdges again).
       Note that using this scene as shadow caster for shadow volumes algorithm
       requires ManifoldEdges and BorderEdges. }
     frManifoldAndBorderEdges);
 
-  TVRMLSceneFreeResources = set of TVRMLSceneFreeResource;
+  TSceneFreeResources = set of TSceneFreeResource;
 
-  TVRMLScene = class;
+  T3DSceneCore = class;
 
-  TVRMLSceneNotification = procedure (Scene: TVRMLScene) of object;
+  TSceneNotification = procedure (Scene: T3DSceneCore) of object;
 
-  { Callback for TVRMLScene.OnGeometryChanged.
+  { Callback for T3DSceneCore.OnGeometryChanged.
 
     SomeLocalGeometryChanged means that octree, triangles, bounding volumes
     local to some shape changed (not just e.g. shape transformation).
@@ -211,9 +211,9 @@ type
     OnlyShapeChanged is meaningful when SomeLocalGeometryChanged = @true.
     If nil, it indicates that only the given shape geometry changed.
     If not nil, assume that every shape's geometry potentially changed. }
-  TVRMLSceneGeometryChanged = procedure (Scene: TVRMLScene;
+  TSceneGeometryChanged = procedure (Scene: T3DSceneCore;
     const SomeLocalGeometryChanged: boolean;
-    OnlyShapeChanged: TVRMLShape) of object;
+    OnlyShapeChanged: TShape) of object;
 
   { VRML bindable nodes stack.
     This keeps a stack of TAbstractBindableNode, with comfortable routines
@@ -221,8 +221,8 @@ type
     as a list, with the last item being the top one. }
   TVRMLBindableStack = class(TVRMLBindableStackBasic)
   private
-    FParentScene: TVRMLScene;
-    FOnBoundChanged: TVRMLSceneNotification;
+    FParentScene: T3DSceneCore;
+    FOnBoundChanged: TSceneNotification;
     BoundChangedSchedule: Cardinal;
     BoundChangedScheduled: boolean;
 
@@ -261,9 +261,9 @@ type
       or at a closing EndChangesSchedule. }
     procedure DoScheduleBoundChanged;
   public
-    constructor Create(AParentScene: TVRMLScene);
+    constructor Create(AParentScene: T3DSceneCore);
 
-    property ParentScene: TVRMLScene read FParentScene;
+    property ParentScene: T3DSceneCore read FParentScene;
 
     { Returns top item on this stack, or @nil if not present. }
     function Top: TAbstractBindableNode;
@@ -294,7 +294,7 @@ type
       @link(Top), changed. This also includes notification
       when @link(Top) changed to (or from) @nil, that is
       when no node becomes bound or when some node is initially bound. }
-    property OnBoundChanged: TVRMLSceneNotification
+    property OnBoundChanged: TSceneNotification
       read FOnBoundChanged write FOnBoundChanged;
   end;
 
@@ -318,31 +318,31 @@ type
       or TGeneratedShadowMapNode. }
     TextureNode: TAbstractTextureNode;
     Handler: TGeneratedTextureHandler;
-    Shape: TVRMLShape;
+    Shape: TShape;
   end;
   PGeneratedTexture = ^TGeneratedTexture;
 
   { @exclude
-    Internal for TVRMLScene: list of generated textures
+    Internal for T3DSceneCore: list of generated textures
     (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
     along with their shape. }
   TGeneratedTextureList = class(specialize TGenericStructList<TGeneratedTexture>)
   public
     function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
     function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
-    procedure AddShapeTexture(Shape: TVRMLShape; Tex: TAbstractTextureNode);
+    procedure AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode);
     procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
   end;
 
   { List of transform nodes (ITransformNode),
-    used to extract TVRMLShapeTreeList for this node. }
+    used to extract TShapeTreeList for this node. }
   TTransformInstancesList = class(TX3DNodeList)
   public
-    { Returns existing TVRMLShapeTreeList corresponding to given Node.
+    { Returns existing TShapeTreeList corresponding to given Node.
       If not found, and AutoCreate, then creates new.
       If not found, and not AutoCreate, then return @nil. }
     function Instances(Node: TX3DNode;
-      const AutoCreate: boolean): TVRMLShapeTreeList;
+      const AutoCreate: boolean): TShapeTreeList;
     procedure FreeShapeTrees;
   end;
 
@@ -363,34 +363,34 @@ type
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
   TCompiledScriptHandlerInfoList = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
 
-  { Possible spatial structure types that may be managed by TVRMLScene,
-    see TVRMLScene.Spatial. }
-  TVRMLSceneSpatialStructure = (
-    { Create and keep current the TVRMLScene.OctreeRendering.
+  { Possible spatial structure types that may be managed by T3DSceneCore,
+    see T3DSceneCore.Spatial. }
+  TSceneSpatialStructure = (
+    { Create and keep current the T3DSceneCore.OctreeRendering.
       This is a dynamic octree containing all visible shapes. }
     ssRendering,
 
-    { Create and keep current the TVRMLScene.OctreeDynamicCollisions.
+    { Create and keep current the T3DSceneCore.OctreeDynamicCollisions.
       This is a dynamic octree containing all collidable items. }
     ssDynamicCollisions,
 
-    { Create the TVRMLScene.OctreeVisibleTriangles.
+    { Create the T3DSceneCore.OctreeVisibleTriangles.
       This is an octree containing all visible triangles, suitable only
       for scenes that stay static. }
     ssVisibleTriangles,
 
-    { Create the TVRMLScene.OctreeCollidableTriangles.
+    { Create the T3DSceneCore.OctreeCollidableTriangles.
       This is an octree containing all collidable triangles, suitable only
       for scenes that stay static. }
     ssCollidableTriangles);
-  TVRMLSceneSpatialStructures = set of TVRMLSceneSpatialStructure;
+  TSceneSpatialStructures = set of TSceneSpatialStructure;
 
   { Triangles array for shadow casting object.
 
     This guarantees that the whole array has first OpaqueCount opaque triangles,
     then the rest is transparent.
     The precise definition between "opaque"
-    and "transparent" is done by TVRMLShape.Transparent.
+    and "transparent" is done by TShape.Transparent.
     This is also used by OpenGL rendering to determine which shapes
     need blending.
 
@@ -420,7 +420,7 @@ type
       will be bad.
 
       When DoGeometryChanged with gcAll is called, we know that ChangedAll
-      called this, and every TVRMLShape will be (or already is) destroyed
+      called this, and every TShape will be (or already is) destroyed
       and created new. }
     gcAll,
 
@@ -432,8 +432,8 @@ type
 
     { Local geometry change
       happened (actual octree free is already done by
-      TVRMLShape.LocalGeometryChanged, octree create will be done at next demand).
-      We should update stuff at higher (TVRMLScene) level accordingly.
+      TShape.LocalGeometryChanged, octree create will be done at next demand).
+      We should update stuff at higher (T3DSceneCore) level accordingly.
 
       gcLocalGeometryChangedCoord means that coordinates changed.
       Compared to gcLocalGeometryChanged, this means that model edges
@@ -454,7 +454,7 @@ type
 
   { VRML scene, a final class to handle VRML models
     (with the exception of rendering, which is delegated to descendants,
-    like TVRMLGLScene for OpenGL).
+    like T3DScene for OpenGL).
 
     Provides a lot of useful functionality. Simple loading of the scene (@link(Load)
     method), calculating various things (like @link(BoundingBox) method).
@@ -484,10 +484,10 @@ type
     cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
     that scene did not change much). }
-  TVRMLScene = class(TVRMLEventsEngine)
+  T3DSceneCore = class(TVRMLEventsEngine)
   private
     FOwnsRootNode: boolean;
-    FShapes: TVRMLShapeTree;
+    FShapes: TShapeTree;
     FRootNode: TX3DRootNode;
     FOnPointingDeviceSensorsChange: TNotifyEvent;
     FTimePlaying: boolean;
@@ -514,12 +514,12 @@ type
       animated with it's own OrientationInterpolator). }
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
-    { This always holds pointers to all TVRMLShapeTreeLOD instances in Shapes
+    { This always holds pointers to all TShapeTreeLOD instances in Shapes
       tree. }
     ShapeLODs: TObjectList;
     { Recalculate and update LODTree.Level (if camera position known).
       Also sends level_changed when needed. }
-    procedure UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
+    procedure UpdateLODLevel(LODTree: TShapeTreeLOD);
 
     procedure SetFileName(const AValue: string);
     procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
@@ -532,7 +532,7 @@ type
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
     procedure TransformationChanged(TransformNode: TX3DNode;
-      Instances: TVRMLShapeTreeList; const Changes: TVRMLChanges);
+      Instances: TShapeTreeList; const Changes: TVRMLChanges);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -543,7 +543,7 @@ type
 
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
-    Validities: TVRMLSceneValidities;
+    Validities: TSceneValidities;
     function CalculateBoundingBox: TBox3D;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
@@ -577,10 +577,10 @@ type
     procedure FreeResources_UnloadTexture3DData(Node: TX3DNode);
     procedure FreeResources_UnloadBackgroundImage(Node: TX3DNode);
   private
-    FOnGeometryChanged: TVRMLSceneGeometryChanged;
-    FOnViewpointsChanged: TVRMLSceneNotification;
-    FOnBoundViewpointVectorsChanged: TVRMLSceneNotification;
-    FOnBoundNavigationInfoFieldsChanged: TVRMLSceneNotification;
+    FOnGeometryChanged: TSceneGeometryChanged;
+    FOnViewpointsChanged: TSceneNotification;
+    FOnBoundViewpointVectorsChanged: TSceneNotification;
+    FOnBoundNavigationInfoFieldsChanged: TSceneNotification;
 
     FProcessEvents: boolean;
     procedure SetProcessEvents(const Value: boolean);
@@ -628,7 +628,7 @@ type
     FInitialViewpointIndex: Cardinal;
     FInitialViewpointName: string;
 
-    FPointingDeviceOverItem: PVRMLTriangle;
+    FPointingDeviceOverItem: PTriangle;
     FPointingDeviceOverPoint: TVector3Single;
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensors: TX3DNodeList;
@@ -689,23 +689,23 @@ type
       Also, in some special cases an octree may be constructed in
       some special way (not only using @link(CreateShapeOctree)
       or @link(CreateTriangleOctree)) so that it doesn't contain
-      the whole scene from some TVRMLScene object, or it contains
-      the scene from many TVRMLScene objects, or something else.
+      the whole scene from some T3DSceneCore object, or it contains
+      the scene from many T3DSceneCore objects, or something else.
 
       What I want to say is that it's generally wrong to think of
-      an octree as something that maps 1-1 to some TVRMLScene object.
+      an octree as something that maps 1-1 to some T3DSceneCore object.
       Octrees, as implemented here, are a lot more flexible.
 
       @groupBegin }
     function CreateTriangleOctree(const Limits: TOctreeLimits;
       const ProgressTitle: string;
-      const Collidable: boolean): TVRMLTriangleOctree;
+      const Collidable: boolean): TTriangleOctree;
     function CreateShapeOctree(const Limits: TOctreeLimits;
       const ProgressTitle: string;
-      const Collidable: boolean): TVRMLShapeOctree;
+      const Collidable: boolean): TShapeOctree;
     { @groupEnd }
   private
-    TriangleOctreeToAdd: TVRMLTriangleOctree;
+    TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
       const Position: TTriangle3Single;
       const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
@@ -717,13 +717,13 @@ type
     FShapeOctreeLimits: TOctreeLimits;
     FShapeOctreeProgressTitle: string;
 
-    FOctreeRendering: TVRMLShapeOctree;
-    FOctreeDynamicCollisions: TVRMLShapeOctree;
-    FOctreeVisibleTriangles: TVRMLTriangleOctree;
-    FOctreeCollidableTriangles: TVRMLTriangleOctree;
-    FSpatial: TVRMLSceneSpatialStructures;
+    FOctreeRendering: TShapeOctree;
+    FOctreeDynamicCollisions: TShapeOctree;
+    FOctreeVisibleTriangles: TTriangleOctree;
+    FOctreeCollidableTriangles: TTriangleOctree;
+    FSpatial: TSceneSpatialStructures;
 
-    procedure SetSpatial(const Value: TVRMLSceneSpatialStructures);
+    procedure SetSpatial(const Value: TSceneSpatialStructures);
   private
     FMainLightForShadowsExists: boolean;
     FMainLightForShadows: TVector4Single;
@@ -757,18 +757,18 @@ type
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
 
-    { Create TVRMLShape (or descendant) instance suitable for this
-      TVRMLScene descendant. In this class, this simply creates new
-      TVRMLShape instance. If you make a descendant of TVRMLScene,
+    { Create TShape (or descendant) instance suitable for this
+      T3DSceneCore descendant. In this class, this simply creates new
+      TShape instance. If you make a descendant of T3DSceneCore,
       you may need to store some per-shape information, and then it may
-      be useful to have your own TVRMLShape descendant to carry this information.
+      be useful to have your own TShape descendant to carry this information.
       So you can override this to create your own descendant, and then
       you're sure that all leafs within Shapes tree are created using
       this.
 
-      Example: TVRMLGLScene uses this to create TVRMLGLShape. }
+      Example: T3DScene uses this to create TVRMLGLShape. }
     function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape; virtual;
+      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
 
@@ -820,7 +820,7 @@ type
       So e.g. if you want to do something after each change of
       @link(Shapes) tree, you can simply override ChangedAll
       and do your work after calling "inherited". }
-    property Shapes: TVRMLShapeTree read FShapes;
+    property Shapes: TShapeTree read FShapes;
 
     { Number of active shapes in the @link(Shapes) tree.
       This is equivalent to Shapes.ShapesCount(true), except that this
@@ -828,7 +828,7 @@ type
       invalidated only when needed). }
     function ShapesActiveCount: Cardinal;
 
-    { Number of active and visible (TVRMLShape.Visible) shapes in the
+    { Number of active and visible (TShape.Visible) shapes in the
       @link(Shapes) tree.
 
       @seealso ShapesActiveCount }
@@ -869,16 +869,16 @@ type
       to our VRML node graph are allowed. This makes sure we call
       BeforeNodesFree befor freeing, and ChangedAll afterwards.
 
-      This avoids a common pitfall with relying on TVRMLShape or such
+      This avoids a common pitfall with relying on TShape or such
       existence between BeforeNodesFree and ChangedAll.
-      BeforeNodesFree may free all our TVRMLShape instances, so if you
+      BeforeNodesFree may free all our TShape instances, so if you
       want to free TX3DNode from our graph --- you typically want to
       get this TX3DNode instance *before* calling BeforeNodesFree.
       Using this method to free the node ensures this. }
     procedure NodeFreeRemovingFromAllParents(Node: TX3DNode);
 
     { Remove the geometry of this shape from the scene. }
-    procedure RemoveShapeGeometry(Shape: TVRMLShape);
+    procedure RemoveShapeGeometry(Shape: TShape);
 
     { Notify scene that potentially everything changed
       in the VRML graph. This includes adding/removal of some nodes within
@@ -920,7 +920,7 @@ type
       reported to scene by calling this method. This includes changes
       to the inactive graph part (e.g. in inactive Switch child),
       because our shapes have to track it also.
-      Changes to TVRMLShape.State.LastNodes (these nodes may come
+      Changes to TShape.State.LastNodes (these nodes may come
       from StateDefaultNodes) should also be reported here.
       In fact, you can even notify this scene about changes to fields
       that don't belong to our RootNode --- nothing bad will happen.
@@ -937,8 +937,8 @@ type
       when this is called. (They may be recalculated only on-demand,
       that is when you actually access them.)
       However, it is guaranteed that shape's transformation
-      (like TVRMLShape.State.Transform) are already updated. }
-    property OnGeometryChanged: TVRMLSceneGeometryChanged
+      (like TShape.State.Transform) are already updated. }
+    property OnGeometryChanged: TSceneGeometryChanged
       read FOnGeometryChanged write FOnGeometryChanged;
 
     { Notification when the list of viewpoints in the scene possibly
@@ -949,7 +949,7 @@ type
       If you only want to get notified when currently @italic(bound)
       viewpoint changes, then what you seek is rather
       @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged). }
-    property OnViewpointsChanged: TVRMLSceneNotification
+    property OnViewpointsChanged: TSceneNotification
       read FOnViewpointsChanged write FOnViewpointsChanged;
 
     { Notification when the currently bound viewpoint's vectors
@@ -964,18 +964,18 @@ type
       @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged).
       This is called only when @italic(currently bound viewpoint stays
       the same, only it's vectors change). }
-    property OnBoundViewpointVectorsChanged: TVRMLSceneNotification
+    property OnBoundViewpointVectorsChanged: TSceneNotification
       read FOnBoundViewpointVectorsChanged write FOnBoundViewpointVectorsChanged;
 
     { Called when geometry changed.
       Does OnGeometryChanged, and does some other stuff necessary
       (mark some octrees for regenerating at next access).
 
-      This is public only for overloading (and for internal TVRMLShape
-      access). Do not call this yourself --- TVRMLShape and TVRMLScene
+      This is public only for overloading (and for internal TShape
+      access). Do not call this yourself --- TShape and T3DSceneCore
       implementations know when and how to call this. }
     procedure DoGeometryChanged(const Change: TGeometryChange;
-      LocalGeometryShape: TVRMLShape); virtual;
+      LocalGeometryShape: TShape); virtual;
 
     { Call OnViewpointsChanged, if assigned. }
     procedure DoViewpointsChanged;
@@ -983,7 +983,7 @@ type
     { Call OnBoundViewpointVectorsChanged, if assigned. }
     procedure DoBoundViewpointVectorsChanged;
 
-    property OnBoundNavigationInfoFieldsChanged: TVRMLSceneNotification
+    property OnBoundNavigationInfoFieldsChanged: TSceneNotification
       read FOnBoundNavigationInfoFieldsChanged write FOnBoundNavigationInfoFieldsChanged;
     procedure DoBoundNavigationInfoFieldsChanged; virtual;
 
@@ -991,12 +991,12 @@ type
 
       Since these calls may be costly (traversing the hierarchy),
       and their results are often
-      not immediately needed by TVRMLScene or TX3DNode hierarchy,
+      not immediately needed by T3DSceneCore or TX3DNode hierarchy,
       it's sometimes not desirable to call them immediately
       when geometry changed / all changed.
 
       So you can use ScheduleChangedAll instead of ChangedAll.
-      All event handlers within TVRMLScene already do this.
+      All event handlers within T3DSceneCore already do this.
 
       When you're within Begin/EndChangesSchedule, then
       ScheduleChangedAll just sets an internal flag and actual ChangedAll
@@ -1041,7 +1041,7 @@ type
       and even to set RootNode to @nil. Be sure to call ChangedAll after this.
       Changing RootNode allows you to load
       and unload whole new VRML/X3D graph (for example from some 3D file)
-      whenever you want, and keep the same TVRMLScene instance
+      whenever you want, and keep the same T3DSceneCore instance
       (with the same rendering settings and such).
 
       Note that there is also a trick to conserve memory use.
@@ -1056,8 +1056,8 @@ type
       from this class. Generally, use only things that you prepared
       with PrepareResources. So e.g. calling Render or using BoundingBox.
       If all your needs are that simple, then you can use this trick
-      to save some memory. This is actually useful when using TVRMLGLAnimation,
-      as it creates a lot of intermediate node structures and TVRMLScene
+      to save some memory. This is actually useful when using T3DPrecalculatedAnimation,
+      as it creates a lot of intermediate node structures and T3DSceneCore
       instances. }
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
 
@@ -1066,7 +1066,7 @@ type
 
     { The dynamic octree containing all visible shapes.
       It's useful for "frustum culling", it will be automatically
-      used by TVRMLGLScene.RenderFrustum to speed up the rendering.
+      used by T3DScene.RenderFrustum to speed up the rendering.
 
       This octree will be automatically updated on dynamic scenes
       (when e.g. animation moves some shape by changing it's transformation).
@@ -1076,7 +1076,7 @@ type
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects.  }
-    function OctreeRendering: TVRMLShapeOctree;
+    function OctreeRendering: TShapeOctree;
 
     { The dynamic octree containing all collidable items.
 
@@ -1103,7 +1103,7 @@ type
 
       TODO: Temporarily, this is updated simply by rebuilding.
       This is a work in progress. }
-    function OctreeDynamicCollisions: TVRMLShapeOctree;
+    function OctreeDynamicCollisions: TShapeOctree;
 
     { The octree containing all visible triangles.
       It's mainly useful for ray-tracers. When rendering using OpenGL,
@@ -1118,7 +1118,7 @@ type
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects.  }
-    function OctreeVisibleTriangles: TVRMLTriangleOctree;
+    function OctreeVisibleTriangles: TTriangleOctree;
 
     { The octree containing all collidable triangles.
       This is pretty much unused for now.
@@ -1141,13 +1141,13 @@ type
 
       Note that when VRML scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.  }
-    function OctreeCollidableTriangles: TVRMLTriangleOctree;
+    function OctreeCollidableTriangles: TTriangleOctree;
 
     { Octree for collisions. This returns either OctreeCollidableTriangles
       or OctreeDynamicCollisions, whichever is available (or @nil if none).
       Be sure to add ssDynamicCollisions or ssCollidableTriangles to have
       this available. }
-    function OctreeCollisions: TVRMLBaseTrianglesOctree;
+    function OctreeCollisions: TBaseTrianglesOctree;
 
     { Properties of created triangle octrees.
       See VRMLTriangleOctree unit comments for description.
@@ -1301,7 +1301,7 @@ type
     { @groupEnd }
 
     { This allows you to "share" @link(ManifoldEdges) and
-      @link(BorderEdges) values between TVRMLScene instances,
+      @link(BorderEdges) values between T3DSceneCore instances,
       to conserve memory and preparation time.
       The values set here will be returned by following ManifoldEdges and
       BorderEdges calls. The values passed here will @italic(not
@@ -1310,10 +1310,10 @@ type
 
       This is handy if you know that this scene has the same
       ManifoldEdges and BorderEdges contents as some other scene. In particular,
-      this is extremely handy in cases of animations in TVRMLGLAnimation,
+      this is extremely handy in cases of animations in T3DPrecalculatedAnimation,
       where all scenes actually need only a single instance of TManifoldEdgeList
       and TBorderEdgeList,
-      this greatly speeds up TVRMLGLAnimation loading and reduces memory use.
+      this greatly speeds up T3DPrecalculatedAnimation loading and reduces memory use.
 
       Note that passing here as values the same references
       that are already returned by ManifoldEdges / BorderEdges is always
@@ -1326,19 +1326,19 @@ type
       BorderShared: TBorderEdgeList);
 
     { Frees some scene resources, to conserve memory.
-      See TVRMLSceneFreeResources documentation. }
-    procedure FreeResources(Resources: TVRMLSceneFreeResources);
+      See TSceneFreeResources documentation. }
+    procedure FreeResources(Resources: TSceneFreeResources);
 
     { Recursively unset node's TX3DNode.Scene. Useful if you want to remove
       part of a node graph and put it in some other scene.
 
       @italic(You almost never need to call this method) --- this
-      is done automatically for you when TVRMLScene is destroyed.
+      is done automatically for you when T3DSceneCore is destroyed.
       However, if you process RootNode graph
       and extract some node from it (that is, delete node from our
       RootNode graph, but instead of freeing it you insert it
       into some other VRML graph) you must call it to manually
-      "untie" this node (and all it's children) from this TVRMLScene instance. }
+      "untie" this node (and all it's children) from this T3DSceneCore instance. }
     procedure UnregisterScene(Node: TX3DNode);
 
     function KeyDown(Key: TKey; C: char): boolean; override;
@@ -1354,14 +1354,14 @@ type
       In this case, OverPoint is ignored. }
     procedure PointingDeviceMove(
       const RayOrigin, RayDirection: TVector3Single;
-      const OverPoint: TVector3Single; const OverItem: PVRMLTriangle);
+      const OverPoint: TVector3Single; const OverItem: PTriangle);
 
     { Current item over which the pointing device is. @nil if over none.
       For example, you can investigate it's pointing device sensors
       (in PointingDeviceOverItem^.State.PointingDeviceSensors),
       although there's a shortcut for just this in @link(PointingDeviceSensors).
       You can change this by PointingDeviceMove and PointingDeviceClear. }
-    property PointingDeviceOverItem: PVRMLTriangle
+    property PointingDeviceOverItem: PTriangle
       read FPointingDeviceOverItem write FPointingDeviceOverItem;
 
     { Current 3D point under the pointing device.
@@ -1448,7 +1448,7 @@ type
       Or you can even assign here your own TInputShortcut instance.
       Then you're responsible for freeing it yourself.
       This may be comfortable e.g. to share your own TInputShortcut instance
-      among many TVRMLScene instances. }
+      among many T3DSceneCore instances. }
     property Input_PointingDeviceActivate: TInputShortcut
       read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
 
@@ -1460,7 +1460,7 @@ type
       See @link(Time) for details what is affected by this.
 
       This is automatically taken care of if you added this scene
-      to TGLUIWindow.Controls or TKamOpenGLControl.Controls.
+      to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
       Then our @link(Idle) takes care of doing the job,
       according to TimePlaying and TimePlayingSpeed.
 
@@ -1718,7 +1718,7 @@ type
       should actually be used --- for this, see HeadlightOn. }
     function CustomHeadlight: TAbstractLightNode;
 
-    { Should we use headlight for this scene. Controls if containing TKamSceneManager
+    { Should we use headlight for this scene. Controls if containing TCastleSceneManager
       will use a headlight, if this is the main scene.
 
       When you load a new model, this is always updated based on this model's
@@ -1749,7 +1749,7 @@ type
 
       @italic(Current implementation notes:)
 
-      Currently, this is used by TVRMLGLScene if you use
+      Currently, this is used by T3DScene if you use
       Attributes.UseOcclusionQuery.
       Normally, occlusion query tries to reuse results from previous
       frame, using the assumption that usually camera changes slowly
@@ -1819,7 +1819,7 @@ type
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Idle) will take care of increasing @link(Time).
       Our @link(Idle) is usually automatically called (if you added this
-      scene to TGLUIWindow.Controls or TKamOpenGLControl.Controls)
+      scene to TCastleWindowCustom.Controls or TCastleControlCustom.Controls)
       so you don't have to do anything to make this work. }
     property TimePlaying: boolean read FTimePlaying write FTimePlaying default true;
 
@@ -1830,7 +1830,7 @@ type
     { Which spatial structures (octrees, for now) should be created and managed.
 
       You should set this, based on your expected usage of octrees.
-      See TVRMLSceneSpatialStructure for possible values.
+      See TSceneSpatialStructure for possible values.
       For usual dynamic scenes rendered with OpenGL,
       you want this to be [ssRendering, ssDynamicCollisions].
 
@@ -1844,7 +1844,7 @@ type
       to 1. get you chance to change TriangleOctreeLimits and such
       before creating octree 2. otherwise, scenes that not require
       collision detection would unnecessarily create octrees at construction. }
-    property Spatial: TVRMLSceneSpatialStructures read FSpatial write SetSpatial;
+    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
 
     { Should the VRML event mechanism work.
 
@@ -1940,7 +1940,7 @@ type
   end;
 
 var
-  { Log TVRMLScene.ChangedField and TVRMLScene.ChangedAll occurrences.
+  { Log T3DSceneCore.ChangedField and T3DSceneCore.ChangedAll occurrences.
     Relevant only if KambiLog.Log is also true, that is: you still have
     to call KambiLog.InitializeLog to enable any logging.
     Useful for debugging  and optimizing VRML/X3D events engine. }
@@ -1953,7 +1953,7 @@ uses VRMLCameraUtils, KambiStringUtils, KambiLog, DateUtils, KambiWarnings,
 
 { TVRMLBindableStack ----------------------------------------------------- }
 
-constructor TVRMLBindableStack.Create(AParentScene: TVRMLScene);
+constructor TVRMLBindableStack.Create(AParentScene: T3DSceneCore);
 begin
   inherited Create(false);
   FParentScene := AParentScene;
@@ -2171,7 +2171,7 @@ begin
     Result := nil;
 end;
 
-procedure TGeneratedTextureList.AddShapeTexture(Shape: TVRMLShape;
+procedure TGeneratedTextureList.AddShapeTexture(Shape: TShape;
   Tex: TAbstractTextureNode);
 var
   GenTex: PGeneratedTexture;
@@ -2241,14 +2241,14 @@ end;
 { TTransformInstancesList ------------------------------------------------- }
 
 function TTransformInstancesList.Instances(Node: TX3DNode;
-  const AutoCreate: boolean): TVRMLShapeTreeList;
+  const AutoCreate: boolean): TShapeTreeList;
 begin
-  Result := Node.ShapeTrees as TVRMLShapeTreeList;
+  Result := Node.ShapeTrees as TShapeTreeList;
 
   if (Result = nil) and AutoCreate then
   begin
-    Node.ShapeTrees := TVRMLShapeTreeList.Create(false);
-    Result := TVRMLShapeTreeList(Node.ShapeTrees);
+    Node.ShapeTrees := TShapeTreeList.Create(false);
+    Result := TShapeTreeList(Node.ShapeTrees);
     Add(Node);
   end;
 end;
@@ -2273,9 +2273,9 @@ begin
     Add(Item);
 end;
 
-{ TVRMLScene ----------------------------------------------------------- }
+{ T3DSceneCore ----------------------------------------------------------- }
 
-constructor TVRMLScene.Create(AOwner: TComponent);
+constructor T3DSceneCore.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -2285,7 +2285,7 @@ begin
   FTriangleOctreeLimits := DefTriangleOctreeLimits;
   FShapeOctreeLimits := DefShapeOctreeLimits;
 
-  FShapes := TVRMLShapeTreeGroup.Create(Self);
+  FShapes := TShapeTreeGroup.Create(Self);
   ShapeLODs := TObjectList.Create(false);
   FGlobalLights := TLightInstancesList.Create;
 
@@ -2323,7 +2323,7 @@ begin
     anyway when RootNode = nil). }
 end;
 
-destructor TVRMLScene.Destroy;
+destructor T3DSceneCore.Destroy;
 begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
@@ -2383,7 +2383,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLScene.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
+procedure T3DSceneCore.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
 begin
   BeforeNodesFree;
@@ -2412,7 +2412,7 @@ begin
     ResetTimeAtLoad;
 end;
 
-procedure TVRMLScene.Load(const AFileName: string; AllowStdIn: boolean;
+procedure T3DSceneCore.Load(const AFileName: string; AllowStdIn: boolean;
   const AResetTime: boolean);
 begin
   { Note that if LoadVRML fails, we will not change the RootNode,
@@ -2423,13 +2423,13 @@ begin
   FFileName := AFileName;
 end;
 
-procedure TVRMLScene.SetFileName(const AValue: string);
+procedure T3DSceneCore.SetFileName(const AValue: string);
 begin
   if AValue <> FFileName then
     Load(AValue);
 end;
 
-function TVRMLScene.ShapesActiveCount: Cardinal;
+function T3DSceneCore.ShapesActiveCount: Cardinal;
 begin
   if not (fvShapesActiveCount in Validities) then
   begin
@@ -2439,7 +2439,7 @@ begin
   Result := FShapesActiveCount;
 end;
 
-function TVRMLScene.ShapesActiveVisibleCount: Cardinal;
+function T3DSceneCore.ShapesActiveVisibleCount: Cardinal;
 begin
   if not (fvShapesActiveVisibleCount in Validities) then
   begin
@@ -2449,43 +2449,43 @@ begin
   Result := FShapesActiveVisibleCount;
 end;
 
-function TVRMLScene.CalculateBoundingBox: TBox3D;
+function T3DSceneCore.CalculateBoundingBox: TBox3D;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
   Result := EmptyBox3D;
-  SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+  SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
       Result.Add(SI.Current.BoundingBox);
   finally FreeAndNil(SI) end;
 end;
 
-function TVRMLScene.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
+function T3DSceneCore.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
   Result := 0;
-  SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+  SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
       Result += SI.Current.VerticesCount(OverTriangulate);
   finally FreeAndNil(SI) end;
 end;
 
-function TVRMLScene.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
+function T3DSceneCore.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
 begin
   Result := 0;
-  SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+  SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
       Result += SI.Current.TrianglesCount(OverTriangulate);
   finally FreeAndNil(SI) end;
 end;
 
-function TVRMLScene.BoundingBox: TBox3D;
+function T3DSceneCore.BoundingBox: TBox3D;
 begin
   if Exists then
   begin
@@ -2499,7 +2499,7 @@ begin
     Result := EmptyBox3D;
 end;
 
-function TVRMLScene.VerticesCount(OverTriangulate: boolean): Cardinal;
+function T3DSceneCore.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
   if OverTriangulate then
   begin
@@ -2519,7 +2519,7 @@ begin
   Result := FVerticesCount[OverTriangulate];
 end;
 
-function TVRMLScene.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function T3DSceneCore.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
   if OverTriangulate then
   begin
@@ -2539,10 +2539,10 @@ begin
   Result := FTrianglesCount[OverTriangulate];
 end;
 
-function TVRMLScene.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TVRMLShape;
+function T3DSceneCore.CreateShape(AGeometry: TAbstractGeometryNode;
+  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
-  Result := TVRMLShape.Create(Self, AGeometry, AState, ParentInfo);
+  Result := TShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
 type
@@ -2551,8 +2551,8 @@ type
     recursively create other TChangedAllTraverser instances
     to create recursive groups). }
   TChangedAllTraverser = class
-    ParentScene: TVRMLScene;
-    ShapesGroup: TVRMLShapeTreeGroup;
+    ParentScene: T3DSceneCore;
+    ShapesGroup: TShapeTreeGroup;
     Active: boolean;
     procedure Traverse(
       Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
@@ -2566,10 +2566,10 @@ procedure TChangedAllTraverser.Traverse(
   { Handle ITransformNode node }
   procedure HandleTransform(TransformNode: TX3DNode);
   var
-    TransformTree: TVRMLShapeTreeTransform;
+    TransformTree: TShapeTreeTransform;
     Traverser: TChangedAllTraverser;
   begin
-    TransformTree := TVRMLShapeTreeTransform.Create(ParentScene);
+    TransformTree := TShapeTreeTransform.Create(ParentScene);
     TransformTree.TransformNode := TransformNode;
 
     { We want to save at TransformState the state right before traversing
@@ -2598,7 +2598,7 @@ procedure TChangedAllTraverser.Traverse(
     Traverser := TChangedAllTraverser.Create;
     try
       Traverser.ParentScene := ParentScene;
-      { No need to create another TVRMLShapeTreeGroup, like ChildGroup
+      { No need to create another TShapeTreeGroup, like ChildGroup
         for Switch/LOD nodes. We can just add new shapes to our TransformTree.
         Reason: unlike Switch/LOD nodes, we don't care about keeping
         the indexes of children stable. }
@@ -2614,20 +2614,20 @@ procedure TChangedAllTraverser.Traverse(
 
   procedure HandleSwitch(SwitchNode: TSwitchNode);
   var
-    SwitchTree: TVRMLShapeTreeSwitch;
+    SwitchTree: TShapeTreeSwitch;
     Traverser: TChangedAllTraverser;
     ChildNode: TX3DNode;
-    ChildGroup: TVRMLShapeTreeGroup;
+    ChildGroup: TShapeTreeGroup;
     I: Integer;
   begin
-    SwitchTree := TVRMLShapeTreeSwitch.Create(ParentScene);
+    SwitchTree := TShapeTreeSwitch.Create(ParentScene);
     SwitchTree.SwitchNode := SwitchNode;
     ShapesGroup.Children.Add(SwitchTree);
 
     for I := 0 to SwitchNode.FdChildren.Count - 1 do
     begin
       ChildNode := SwitchNode.FdChildren[I];
-      ChildGroup := TVRMLShapeTreeGroup.Create(ParentScene);
+      ChildGroup := TShapeTreeGroup.Create(ParentScene);
       SwitchTree.Children.Add(ChildGroup);
 
       Traverser := TChangedAllTraverser.Create;
@@ -2645,31 +2645,31 @@ procedure TChangedAllTraverser.Traverse(
 
   procedure HandleLOD(LODNode: TAbstractLODNode);
   var
-    LODTree: TVRMLShapeTreeLOD;
+    LODTree: TShapeTreeLOD;
     Traverser: TChangedAllTraverser;
     ChildNode: TX3DNode;
-    ChildGroup: TVRMLShapeTreeGroup;
+    ChildGroup: TShapeTreeGroup;
     I: Integer;
   begin
-    LODTree := TVRMLShapeTreeLOD.Create(ParentScene);
+    LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
     LODTree.LODInvertedTransform^ := StateStack.Top.InvertedTransform;
     ShapesGroup.Children.Add(LODTree);
     ParentScene.ShapeLODs.Add(LODTree);
 
-    { First add TVRMLShapeTreeGroup.Create as children, as many times
+    { First add TShapeTreeGroup.Create as children, as many times
       as there are LODNode.FdChildren. Reason: LODTree.CalculateLevel
       uses this Count. }
 
     for I := 0 to LODNode.FdChildren.Items.Count - 1 do
-      LODTree.Children.Add(TVRMLShapeTreeGroup.Create(ParentScene));
+      LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
 
     ParentScene.UpdateLODLevel(LODTree);
 
     for I := 0 to LODNode.FdChildren.Count - 1 do
     begin
       ChildNode := LODNode.FdChildren[I];
-      ChildGroup := TVRMLShapeTreeGroup(LODTree.Children.Items[I]);
+      ChildGroup := TShapeTreeGroup(LODTree.Children.Items[I]);
 
       Traverser := TChangedAllTraverser.Create;
       try
@@ -2698,7 +2698,7 @@ procedure TChangedAllTraverser.Traverse(
   end;
 
 var
-  Shape: TVRMLShape;
+  Shape: TShape;
 begin
   if Node is TAbstractGeometryNode then
   begin
@@ -2797,7 +2797,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.UpdateLODLevel(LODTree: TVRMLShapeTreeLOD);
+procedure T3DSceneCore.UpdateLODLevel(LODTree: TShapeTreeLOD);
 var
   OldLevel, NewLevel: Cardinal;
 begin
@@ -2835,7 +2835,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure T3DSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
   TransformInstancesList.FreeShapeTrees;
@@ -2851,19 +2851,19 @@ begin
   begin
     { Clean Shapes, ShapeLODs }
     FreeAndNil(FShapes);
-    FShapes := TVRMLShapeTreeGroup.Create(Self);
+    FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
   end;
 end;
 
-procedure TVRMLScene.NodeFreeRemovingFromAllParents(Node: TX3DNode);
+procedure T3DSceneCore.NodeFreeRemovingFromAllParents(Node: TX3DNode);
 begin
   BeforeNodesFree;
   Node.FreeRemovingFromAllParents;
   ChangedAll;
 end;
 
-procedure TVRMLScene.RemoveShapeGeometry(Shape: TVRMLShape);
+procedure T3DSceneCore.RemoveShapeGeometry(Shape: TShape);
 begin
   { Do not use Shape.Geometry here, as it may be a temporary result
     of OriginalGeometry.Proxy.
@@ -2876,7 +2876,7 @@ begin
   NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
 end;
 
-procedure TVRMLScene.ChangedAllEnumerateCallback(Node: TX3DNode);
+procedure T3DSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if not Static then
     Node.Scene := Self;
@@ -2897,16 +2897,16 @@ begin
       (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler);
 end;
 
-procedure TVRMLScene.ChangedAll;
+procedure T3DSceneCore.ChangedAll;
 
   { Add where necessary lights with scope = global. }
   procedure AddGlobalLights;
 
     procedure AddLightEverywhere(const L: TLightInstance);
     var
-      SI: TVRMLShapeTreeIterator;
+      SI: TShapeTreeIterator;
     begin
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      SI := TShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
           SI.Current.State.AddLight(L);
@@ -2920,9 +2920,9 @@ procedure TVRMLScene.ChangedAll;
     procedure AddLightRadius(const L: TLightInstance;
       const Location: TVector3Single; const Radius: Single);
     var
-      SI: TVRMLShapeTreeIterator;
+      SI: TShapeTreeIterator;
     begin
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      SI := TShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
           if SI.Current.BoundingBox.SphereCollision(Location, Radius) then
@@ -3018,7 +3018,7 @@ begin
 
     { Clean Shapes and other stuff initialized by traversing }
     FreeAndNil(FShapes);
-    FShapes := TVRMLShapeTreeGroup.Create(Self);
+    FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
     GlobalLights.Clear;
 
@@ -3028,9 +3028,9 @@ begin
       Traverser := TChangedAllTraverser.Create;
       try
         Traverser.ParentScene := Self;
-        { We just created FShapes as TVRMLShapeTreeGroup, so this cast
+        { We just created FShapes as TShapeTreeGroup, so this cast
           is safe }
-        Traverser.ShapesGroup := TVRMLShapeTreeGroup(FShapes);
+        Traverser.ShapesGroup := TShapeTreeGroup(FShapes);
         Traverser.Active := true;
         RootNode.Traverse(TX3DNode, @Traverser.Traverse);
       finally FreeAndNil(Traverser) end;
@@ -3103,7 +3103,7 @@ end;
 type
   { When Transform changes, we have to traverse Shapes tree simultaneously
     with traversing VRML graph. So we have to know at each point
-    the TVRMLShapeTree we're on. To record this, we'll manage a linked list
+    the TShapeTree we're on. To record this, we'll manage a linked list
     of PShapesParentInfo records.
 
     We will traverse Shapes tree knowing
@@ -3111,7 +3111,7 @@ type
 
   PShapesParentInfo = ^TShapesParentInfo;
   TShapesParentInfo = record
-    Group: TVRMLShapeTreeGroup;
+    Group: TShapeTreeGroup;
     Index: Integer;
   end;
 
@@ -3128,7 +3128,7 @@ type
     So many TransformChange traversals may run at once, so they must
     have different state variables. }
   TTransformChangeHelper = class
-    ParentScene: TVRMLScene;
+    ParentScene: T3DSceneCore;
     Shapes: PShapesParentInfo;
     ChangingNode: TX3DNode; {< must be also ITransformNode }
     AnythingChanged: boolean;
@@ -3152,7 +3152,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   { Handle ITransformNode }
   procedure HandleTransform(TransformNode: TX3DNode);
   var
-    ShapeTransform: TVRMLShapeTreeTransform;
+    ShapeTransform: TShapeTreeTransform;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
   begin
@@ -3168,7 +3168,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     end;
 
     { get Shape and increase Shapes^.Index }
-    ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeTransform;
+    ShapeTransform := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeTransform;
     Inc(Shapes^.Index);
 
     { update transformation inside Transform nodes that are *within*
@@ -3178,7 +3178,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     OldShapes := Shapes;
     try
       { NewShapes group is just our ShapeTransform. Transform children do not
-        have addition TVRMLShapeTreeGroup, unlike Switch/LOD nodes. }
+        have addition TShapeTreeGroup, unlike Switch/LOD nodes. }
       NewShapes.Group := ShapeTransform;
       NewShapes.Index := 0;
       Shapes := @NewShapes;
@@ -3194,12 +3194,12 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   var
     I: Integer;
     ChildInactive: boolean;
-    ShapeSwitch: TVRMLShapeTreeSwitch;
+    ShapeSwitch: TShapeTreeSwitch;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
   begin
     { get Shape and increase Shapes^.Index }
-    ShapeSwitch := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeSwitch;
+    ShapeSwitch := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeSwitch;
     Inc(Shapes^.Index);
 
     OldShapes := Shapes;
@@ -3210,7 +3210,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 
       for I := 0 to SwitchNode.FdChildren.Items.Count - 1 do
       begin
-        NewShapes.Group := ShapeSwitch.Children[I] as TVRMLShapeTreeGroup;
+        NewShapes.Group := ShapeSwitch.Children[I] as TShapeTreeGroup;
         NewShapes.Index := 0;
         Shapes := @NewShapes;
 
@@ -3231,12 +3231,12 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   procedure HandleLOD(LODNode: TAbstractLODNode);
   var
     I: Integer;
-    ShapeLOD: TVRMLShapeTreeLOD;
+    ShapeLOD: TShapeTreeLOD;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
   begin
     { get Shape and increase Shapes^.Index }
-    ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TVRMLShapeTreeLOD;
+    ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
     Inc(Shapes^.Index);
 
     { by the way, update LODInvertedTransform, since it changed }
@@ -3254,7 +3254,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 
       for I := 0 to LODNode.FdChildren.Items.Count - 1 do
       begin
-        NewShapes.Group := ShapeLOD.Children[I] as TVRMLShapeTreeGroup;
+        NewShapes.Group := ShapeLOD.Children[I] as TShapeTreeGroup;
         NewShapes.Index := 0;
         Shapes := @NewShapes;
 
@@ -3292,10 +3292,10 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     end;
 
   var
-    SI: TVRMLShapeTreeIterator;
-    Current: TVRMLShape;
+    SI: TShapeTreeIterator;
+    Current: TShape;
   begin
-    SI := TVRMLShapeTreeIterator.Create(ParentScene.Shapes, false);
+    SI := TShapeTreeIterator.Create(ParentScene.Shapes, false);
     try
       while SI.GetNext do
       begin
@@ -3314,7 +3314,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
   end;
 
 var
-  Shape: TVRMLShape;
+  Shape: TShape;
   ProximitySensorInstance: TProximitySensorInstance;
 begin
   case Node.TransformationChange of
@@ -3327,7 +3327,7 @@ begin
         { get Shape and increase Shapes^.Index }
         Check(Shapes^.Index < Shapes^.Group.Children.Count,
           'Missing shape in Shapes tree');
-        Shape := Shapes^.Group.Children[Shapes^.Index] as TVRMLShape;
+        Shape := Shapes^.Group.Children[Shapes^.Index] as TShape;
         Inc(Shapes^.Index);
 
         Shape.State.AssignTransform(StateStack.Top);
@@ -3357,7 +3357,7 @@ begin
         { There's no need to do anything more here.
           Fog node TransformScale was already updated by
           TAbstractBindableNode.BeforeTraverse.
-          Renderer in TVRMLGLScene will detect that TransformScale changed,
+          Renderer in T3DScene will detect that TransformScale changed,
           and eventually destroy display lists and such when rendering next time. }
         if Inactive = 0 then
           ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -3406,14 +3406,14 @@ begin
   end;
 end;
 
-procedure TVRMLScene.TransformationChanged(TransformNode: TX3DNode;
-  Instances: TVRMLShapeTreeList; const Changes: TVRMLChanges);
+procedure T3DSceneCore.TransformationChanged(TransformNode: TX3DNode;
+  Instances: TShapeTreeList; const Changes: TVRMLChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
   TraverseStack: TVRMLGraphTraverseStateStack;
   I: Integer;
-  TransformShapeTree: TVRMLShapeTreeTransform;
+  TransformShapeTree: TShapeTreeTransform;
   DoVisibleChanged: boolean;
 begin
   { This is the optimization for changing VRML >= 2.0 transformation
@@ -3425,7 +3425,7 @@ begin
 
     So we have to re-traverse from this Transform node, and change
     states of affected children. Our TransformNodesInfo gives us
-    a list of TVRMLShapeTreeTransform corresponding to this transform node,
+    a list of TShapeTreeTransform corresponding to this transform node,
     so we know we can traverse from this point.
 
     In more difficult cases, children of this Transform node may
@@ -3457,7 +3457,7 @@ begin
 
       for I := 0 to Instances.Count - 1 do
       begin
-        TransformShapeTree := Instances[I] as TVRMLShapeTreeTransform;
+        TransformShapeTree := Instances[I] as TShapeTreeTransform;
         TraverseStack.Clear;
         TraverseStack.Push(TransformShapeTree.TransformState);
 
@@ -3506,14 +3506,14 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ChangedFields(Node: TX3DNode; Field: TVRMLField);
+procedure T3DSceneCore.ChangedFields(Node: TX3DNode; Field: TVRMLField);
 begin
   Assert(Field <> nil);
   Assert(Field.ParentNode = Node);
   ChangedField(Field);
 end;
 
-procedure TVRMLScene.ChangedField(Field: TVRMLField);
+procedure T3DSceneCore.ChangedField(Field: TVRMLField);
 var
   Node: TX3DNode;
   Changes: TVRMLChanges;
@@ -3535,7 +3535,7 @@ var
   { Handle VRML >= 2.0 transformation changes. }
   procedure HandleChangeTransform;
   var
-    Instances: TVRMLShapeTreeList;
+    Instances: TShapeTreeList;
   begin
     Check(Supports(Node, ITransformNode),
       'chTransform flag may be set only for ITransformNode');
@@ -3555,7 +3555,7 @@ var
   procedure HandleChangeCoordinate;
   var
     Coord: TMFVec3f;
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     { TCoordinateNode is special, although it's part of VRML 1.0 state,
       it can also occur within coordinate-based nodes of VRML >= 2.0.
@@ -3564,7 +3564,7 @@ var
       In fact, code below takes into account both VRML 1.0 and 2.0 situation.
       That's why chCoordinate should not be used with chVisibleVRML1State
       --- chVisibleVRML1State handling is not needed after this. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if SI.Current.Geometry.Coord(SI.Current.State, Coord) and
@@ -3576,17 +3576,17 @@ var
   end;
 
   { Good for both chVisibleVRML1State and chGeometryVRML1State
-    (TVRMLShape.Changed actually cares about the difference between these two.) }
+    (TShape.Changed actually cares about the difference between these two.) }
   procedure HandleVRML1State;
   var
     VRML1StateNode: TVRML1StateNode;
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     if Node.VRML1StateNode(VRML1StateNode) then
     begin
       { Node is part of VRML 1.0 state, so it affects Shapes where
         it's present on State.LastNodes list. }
-      SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+      SI := TShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
           if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = Node) or
@@ -3599,11 +3599,11 @@ var
 
   procedure HandleChangeMaterial;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     { VRML 2.0 Material affects only shapes where it's
       placed inside Appearance.material field. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if SI.Current.State.ShapeNode.Material = Node then
@@ -3615,7 +3615,7 @@ var
   procedure HandleChangeLightInstanceProperty;
   var
     J: integer;
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
     LightInstance: PLightInstance;
     LightNode: TAbstractLightNode;
   begin
@@ -3633,7 +3633,7 @@ var
       constraints. Or not --- this will hurt performance, global = FALSE
       is a good optimization for local lights, we don't want long lights list. }
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if SI.Current.State.Lights <> nil then
@@ -3709,7 +3709,7 @@ var
 
   procedure HandleChangeColorNode;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     { Affects all geometry nodes with "color" field referencing this node.
 
@@ -3717,7 +3717,7 @@ var
       This is not detected for now, and doesn't matter (we do not handle
       particle systems at all now). }
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if ((SI.Current.Geometry is TAbstractComposedGeometryNode) and (TAbstractComposedGeometryNode(SI.Current.Geometry).FdColor.Value = Node)) or
@@ -3731,12 +3731,12 @@ var
 
   procedure HandleChangeTextureCoordinate;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
     TexCoord: TX3DNode;
   begin
     { VRML 2.0 TextureCoordinate affects only shapes where it's
       placed inside texCoord field. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
@@ -3770,11 +3770,11 @@ var
     end;
 
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     { VRML 2.0 / X3D TextureTransform* affects only shapes where it's
       placed inside textureTransform field. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if (SI.Current.State.ShapeNode <> nil) and
@@ -3788,10 +3788,10 @@ var
 
   procedure HandleChangeGeometry;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     { Geometry nodes, affect only shapes that use them. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
         if (SI.Current.Geometry = Node) or
@@ -3868,7 +3868,7 @@ var
   { Handle chTextureImage, chTextureRendererProperties }
   procedure HandleChangeTextureImageOrRenderer;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     if chTextureImage in Changes then
     begin
@@ -3882,7 +3882,7 @@ var
         TAbstractTexture3DNode(Node).TextureLoaded := false;
     end;
 
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
@@ -3926,12 +3926,12 @@ var
 
   procedure HandleChangeClipPlane;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
     Assert(Node is TClipPlaneNode);
 
-    { Call TVRMLShape.Changed for all shapes using this ClipPlane node. }
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    { Call TShape.Changed for all shapes using this ClipPlane node. }
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
       begin
@@ -3994,7 +3994,7 @@ var
     SE: TScreenEffectNode;
   begin
     SE := Node as TScreenEffectNode;
-    { Just like TVRMLGLScene.CloseGLScreenEffect: no need to even
+    { Just like T3DScene.CloseGLScreenEffect: no need to even
       communicate with renderer, just reset ShaderLoaded and Shader.
       At the nearest time, it will be recalculated. }
     SE.ShaderLoaded := false;
@@ -4077,8 +4077,8 @@ begin
   finally EndChangesSchedule end;
 end;
 
-procedure TVRMLScene.DoGeometryChanged(const Change: TGeometryChange;
-  LocalGeometryShape: TVRMLShape);
+procedure T3DSceneCore.DoGeometryChanged(const Change: TGeometryChange;
+  LocalGeometryShape: TShape);
 var
   SomeLocalGeometryChanged: boolean;
   EdgesStructureChanged: boolean;
@@ -4150,19 +4150,19 @@ begin
       LocalGeometryShape);
 end;
 
-procedure TVRMLScene.DoViewpointsChanged;
+procedure T3DSceneCore.DoViewpointsChanged;
 begin
   if Assigned(OnViewpointsChanged) then
     OnViewpointsChanged(Self);
 end;
 
-procedure TVRMLScene.DoBoundViewpointVectorsChanged;
+procedure T3DSceneCore.DoBoundViewpointVectorsChanged;
 begin
   if Assigned(OnBoundViewpointVectorsChanged) then
     OnBoundViewpointVectorsChanged(Self);
 end;
 
-procedure TVRMLScene.DoBoundNavigationInfoFieldsChanged;
+procedure T3DSceneCore.DoBoundNavigationInfoFieldsChanged;
 begin
   if Assigned(OnBoundNavigationInfoFieldsChanged) then
     OnBoundNavigationInfoFieldsChanged(Self);
@@ -4178,7 +4178,7 @@ resourcestring
     'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
     'scene has %d triangles and %d vertices.';
 
-function TVRMLScene.InfoTriangleVerticesCounts: string;
+function T3DSceneCore.InfoTriangleVerticesCounts: string;
 begin
   if (VerticesCount(false) = VerticesCount(true)) and
      (TrianglesCount(false) = TrianglesCount(true)) then
@@ -4193,7 +4193,7 @@ begin
   end;
 end;
 
-function TVRMLScene.InfoBoundingBox: string;
+function T3DSceneCore.InfoBoundingBox: string;
 var
   BBox: TBox3D;
 begin
@@ -4206,14 +4206,14 @@ begin
   Result += NL;
 end;
 
-function TVRMLScene.InfoManifoldAndBorderEdges: string;
+function T3DSceneCore.InfoManifoldAndBorderEdges: string;
 begin
   Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Note that for some algorithms, like shadow volumes, perfect manifold (that is, no border edges) works best.',
     [ ManifoldEdges.Count,
       BorderEdges.Count ]) + NL;
 end;
 
-function TVRMLScene.Info(
+function T3DSceneCore.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
   AManifoldAndBorderEdges: boolean): string;
@@ -4240,7 +4240,7 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
-function TVRMLScene.OverrideOctreeLimits(
+function T3DSceneCore.OverrideOctreeLimits(
   const BaseLimits: TOctreeLimits;
   const OP: TSceneOctreeProperties): TOctreeLimits;
 var
@@ -4256,17 +4256,17 @@ begin
   end;
 end;
 
-function TVRMLScene.TriangleOctreeLimits: POctreeLimits;
+function T3DSceneCore.TriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
 end;
 
-function TVRMLScene.ShapeOctreeLimits: POctreeLimits;
+function T3DSceneCore.ShapeOctreeLimits: POctreeLimits;
 begin
   Result := @FShapeOctreeLimits;
 end;
 
-procedure TVRMLScene.AddTriangleToOctreeProgress(Shape: TObject;
+procedure T3DSceneCore.AddTriangleToOctreeProgress(Shape: TObject;
   const Position: TTriangle3Single;
   const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
   const Face: TFaceIndex);
@@ -4275,14 +4275,14 @@ begin
   TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
 end;
 
-procedure TVRMLScene.SetSpatial(const Value: TVRMLSceneSpatialStructures);
+procedure T3DSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
 
-  procedure SetShapeSpatial(const Value: TVRMLShapeSpatialStructures;
+  procedure SetShapeSpatial(const Value: TShapeSpatialStructures;
     OnlyCollidable: boolean);
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
 
@@ -4363,7 +4363,7 @@ begin
   end;
 end;
 
-function TVRMLScene.OctreeRendering: TVRMLShapeOctree;
+function T3DSceneCore.OctreeRendering: TShapeOctree;
 begin
   if (ssRendering in Spatial) and (FOctreeRendering = nil) then
   begin
@@ -4378,7 +4378,7 @@ begin
   Result := FOctreeRendering;
 end;
 
-function TVRMLScene.OctreeDynamicCollisions: TVRMLShapeOctree;
+function T3DSceneCore.OctreeDynamicCollisions: TShapeOctree;
 begin
   if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
   begin
@@ -4393,7 +4393,7 @@ begin
   Result := FOctreeDynamicCollisions;
 end;
 
-function TVRMLScene.OctreeVisibleTriangles: TVRMLTriangleOctree;
+function T3DSceneCore.OctreeVisibleTriangles: TTriangleOctree;
 begin
   if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
@@ -4403,7 +4403,7 @@ begin
   Result := FOctreeVisibleTriangles;
 end;
 
-function TVRMLScene.OctreeCollidableTriangles: TVRMLTriangleOctree;
+function T3DSceneCore.OctreeCollidableTriangles: TTriangleOctree;
 begin
   if (ssCollidableTriangles in Spatial) and (FOctreeCollidableTriangles = nil) then
     FOctreeCollidableTriangles := CreateTriangleOctree(
@@ -4413,7 +4413,7 @@ begin
   Result := FOctreeCollidableTriangles;
 end;
 
-function TVRMLScene.OctreeCollisions: TVRMLBaseTrianglesOctree;
+function T3DSceneCore.OctreeCollisions: TBaseTrianglesOctree;
 begin
   if OctreeCollidableTriangles <> nil then
     Result := OctreeCollidableTriangles else
@@ -4422,16 +4422,16 @@ begin
     Result := nil;
 end;
 
-function TVRMLScene.CreateTriangleOctree(
+function T3DSceneCore.CreateTriangleOctree(
   const Limits: TOctreeLimits;
   const ProgressTitle: string;
-  const Collidable: boolean): TVRMLTriangleOctree;
+  const Collidable: boolean): TTriangleOctree;
 
   procedure FillOctree(TriangleEvent: TTriangleEvent);
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+    SI := TShapeTreeIterator.Create(Shapes, true);
     try
       while SI.GetNext do
         if (Collidable and SI.Current.Collidable) or
@@ -4444,7 +4444,7 @@ begin
   Inc(Dirty);
   try
 
-  Result := TVRMLTriangleOctree.Create(Limits, BoundingBox);
+  Result := TTriangleOctree.Create(Limits, BoundingBox);
   try
     Result.Triangles.Capacity := TrianglesCount(false);
     if (ProgressTitle <> '') and
@@ -4463,24 +4463,24 @@ begin
   finally Dec(Dirty) end;
 end;
 
-function TVRMLScene.CreateShapeOctree(
+function T3DSceneCore.CreateShapeOctree(
   const Limits: TOctreeLimits;
   const ProgressTitle: string;
-  const Collidable: boolean): TVRMLShapeOctree;
+  const Collidable: boolean): TShapeOctree;
 var
   I: Integer;
-  ShapesList: TVRMLShapeList;
+  ShapesList: TShapeList;
 begin
   Inc(Dirty);
   try
 
   if Collidable then
     { Add only active and collidable shapes }
-    ShapesList := TVRMLShapeList.Create(Shapes, true, false, true) else
+    ShapesList := TShapeList.Create(Shapes, true, false, true) else
     { Add only active and visible shapes }
-    ShapesList := TVRMLShapeList.Create(Shapes, true, true, false);
+    ShapesList := TShapeList.Create(Shapes, true, true, false);
 
-  Result := TVRMLShapeOctree.Create(Limits, BoundingBox, ShapesList, true);
+  Result := TShapeOctree.Create(Limits, BoundingBox, ShapesList, true);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and
@@ -4538,7 +4538,7 @@ type
     end;
   end;
 
-function TVRMLScene.GetViewpointCore(
+function T3DSceneCore.GetViewpointCore(
   const OnlyPerspective: boolean;
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
@@ -4581,7 +4581,7 @@ begin
   end;
 end;
 
-function TVRMLScene.GetViewpoint(
+function T3DSceneCore.GetViewpoint(
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TAbstractViewpointNode;
@@ -4590,7 +4590,7 @@ begin
     ViewpointDescription);
 end;
 
-function TVRMLScene.GetPerspectiveViewpoint(
+function T3DSceneCore.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TAbstractViewpointNode;
 var
@@ -4603,7 +4603,7 @@ end;
 
 { fog ---------------------------------------------------------------------- }
 
-function TVRMLScene.FogNode: TFogNode;
+function T3DSceneCore.FogNode: TFogNode;
 begin
   Result := FogStack.Top as TFogNode;
 end;
@@ -4628,11 +4628,11 @@ begin
     TriangleList.Add(Position);
 end;
 
-function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
+function T3DSceneCore.TrianglesListShadowCasters: TTrianglesShadowCastersList;
 
   function CreateTrianglesListShadowCasters: TTrianglesShadowCastersList;
 
-    function ShadowCaster(AShape: TVRMLShape): boolean;
+    function ShadowCaster(AShape: TShape): boolean;
     var
       Shape: TAbstractShapeNode;
     begin
@@ -4645,7 +4645,7 @@ function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
     end;
 
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
     TriangleAdder: TTriangleAdder;
     WasSomeTransparentShadowCaster: boolean;
   begin
@@ -4663,7 +4663,7 @@ function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
         WasSomeTransparentShadowCaster := false;
 
         { Add all opaque triangles }
-        SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+        SI := TShapeTreeIterator.Create(Shapes, true);
         try
           while SI.GetNext do
             if ShadowCaster(SI.Current) then
@@ -4680,7 +4680,7 @@ function TVRMLScene.TrianglesListShadowCasters: TTrianglesShadowCastersList;
         { Add all transparent triangles }
         if WasSomeTransparentShadowCaster then
         begin
-          SI := TVRMLShapeTreeIterator.Create(Shapes, true);
+          SI := TShapeTreeIterator.Create(Shapes, true);
           try
             while SI.GetNext do
               if ShadowCaster(SI.Current) and
@@ -4708,7 +4708,7 @@ begin
   Result := FTrianglesListShadowCasters;
 end;
 
-procedure TVRMLScene.InvalidateTrianglesListShadowCasters;
+procedure T3DSceneCore.InvalidateTrianglesListShadowCasters;
 begin
   Exclude(Validities, fvTrianglesListShadowCasters);
   FreeAndNil(FTrianglesListShadowCasters);
@@ -4716,7 +4716,7 @@ end;
 
 { edges lists ------------------------------------------------------------- }
 
-procedure TVRMLScene.CalculateIfNeededManifoldAndBorderEdges;
+procedure T3DSceneCore.CalculateIfNeededManifoldAndBorderEdges;
 
   { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
     FBorderEdges are @nil on enter. }
@@ -4857,19 +4857,19 @@ begin
   end;
 end;
 
-function TVRMLScene.ManifoldEdges: TManifoldEdgeList;
+function T3DSceneCore.ManifoldEdges: TManifoldEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FManifoldEdges;
 end;
 
-function TVRMLScene.BorderEdges: TBorderEdgeList;
+function T3DSceneCore.BorderEdges: TBorderEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FBorderEdges;
 end;
 
-procedure TVRMLScene.ShareManifoldAndBorderEdges(
+procedure T3DSceneCore.ShareManifoldAndBorderEdges(
   ManifoldShared: TManifoldEdgeList;
   BorderShared: TBorderEdgeList);
 begin
@@ -4914,7 +4914,7 @@ begin
   Include(Validities, fvManifoldAndBorderEdges);
 end;
 
-procedure TVRMLScene.InvalidateManifoldAndBorderEdges;
+procedure T3DSceneCore.InvalidateManifoldAndBorderEdges;
 begin
   Exclude(Validities, fvManifoldAndBorderEdges);
 
@@ -4932,22 +4932,22 @@ end;
 
 { freeing resources ---------------------------------------------------------- }
 
-procedure TVRMLScene.FreeResources_UnloadTextureData(Node: TX3DNode);
+procedure T3DSceneCore.FreeResources_UnloadTextureData(Node: TX3DNode);
 begin
   (Node as TAbstractTexture2DNode).IsTextureLoaded := false;
 end;
 
-procedure TVRMLScene.FreeResources_UnloadTexture3DData(Node: TX3DNode);
+procedure T3DSceneCore.FreeResources_UnloadTexture3DData(Node: TX3DNode);
 begin
   (Node as TAbstractTexture3DNode).TextureLoaded := false;
 end;
 
-procedure TVRMLScene.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
+procedure T3DSceneCore.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
 begin
   (Node as TBackgroundNode).BgImagesLoaded := false;
 end;
 
-procedure TVRMLScene.FreeResources(Resources: TVRMLSceneFreeResources);
+procedure T3DSceneCore.FreeResources(Resources: TSceneFreeResources);
 begin
   if (frRootNode in Resources) and OwnsRootNode then
   begin
@@ -4976,12 +4976,12 @@ end;
 
 { events --------------------------------------------------------------------- }
 
-procedure TVRMLScene.ScriptsInitializeCallback(Node: TX3DNode);
+procedure T3DSceneCore.ScriptsInitializeCallback(Node: TX3DNode);
 begin
   TScriptNode(Node).Initialized := true;
 end;
 
-procedure TVRMLScene.ScriptsInitialize;
+procedure T3DSceneCore.ScriptsInitialize;
 begin
   if RootNode <> nil then
   begin
@@ -4997,12 +4997,12 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ScriptsFinalizeCallback(Node: TX3DNode);
+procedure T3DSceneCore.ScriptsFinalizeCallback(Node: TX3DNode);
 begin
   TScriptNode(Node).Initialized := false;
 end;
 
-procedure TVRMLScene.ScriptsFinalize;
+procedure T3DSceneCore.ScriptsFinalize;
 begin
   if RootNode <> nil then
   begin
@@ -5015,7 +5015,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.SetProcessEvents(const Value: boolean);
+procedure T3DSceneCore.SetProcessEvents(const Value: boolean);
 
   { When ProcessEvents is set to @true, you want to call initial
     position/orientation_changed events.
@@ -5063,7 +5063,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.SetStatic(const Value: boolean);
+procedure T3DSceneCore.SetStatic(const Value: boolean);
 begin
   if FStatic <> Value then
   begin
@@ -5082,7 +5082,7 @@ end;
 
 { key sensors handling ------------------------------------------------------- }
 
-function TVRMLScene.KeyDown(Key: TKey; C: char): boolean;
+function T3DSceneCore.KeyDown(Key: TKey; C: char): boolean;
 var
   I: Integer;
 begin
@@ -5108,7 +5108,7 @@ begin
     PointingDeviceActive := true;
 end;
 
-function TVRMLScene.KeyUp(Key: TKey; C: char): boolean;
+function T3DSceneCore.KeyUp(Key: TKey; C: char): boolean;
 var
   I: Integer;
 begin
@@ -5136,9 +5136,9 @@ end;
 
 { pointing device handling --------------------------------------------------- }
 
-procedure TVRMLScene.PointingDeviceMove(
+procedure T3DSceneCore.PointingDeviceMove(
   const RayOrigin, RayDirection: TVector3Single;
-  const OverPoint: TVector3Single; const OverItem: PVRMLTriangle);
+  const OverPoint: TVector3Single; const OverItem: PTriangle);
 var
   TouchSensor: TTouchSensorNode;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
@@ -5315,7 +5315,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.DoPointingDeviceSensorsChange;
+procedure T3DSceneCore.DoPointingDeviceSensorsChange;
 begin
   { I want to keep assertion that Cursor = mcHand when
     we're over or keeping active some pointing-device sensors. }
@@ -5329,14 +5329,14 @@ begin
     OnPointingDeviceSensorsChange(Self);
 end;
 
-procedure TVRMLScene.PointingDeviceClear;
+procedure T3DSceneCore.PointingDeviceClear;
 var
   SensorsChanged: boolean;
 begin
   SensorsChanged :=
     (FPointingDeviceOverItem <> nil) or
     { This may be called from destructor (through
-      TVRMLShape.FreeOctreeTriangles when freeing shapes), so prepare for
+      TShape.FreeOctreeTriangles when freeing shapes), so prepare for
       the FPointingDeviceActiveSensors = nil case. }
     ( (FPointingDeviceActiveSensors <> nil) and
       (FPointingDeviceActiveSensors.Count <> 0) );
@@ -5353,7 +5353,7 @@ begin
     DoPointingDeviceSensorsChange;
 end;
 
-procedure TVRMLScene.SetPointingDeviceActive(const Value: boolean);
+procedure T3DSceneCore.SetPointingDeviceActive(const Value: boolean);
 
   procedure AnchorActivate(Anchor: TAnchorNode);
   var
@@ -5459,14 +5459,14 @@ begin
   end;
 end;
 
-function TVRMLScene.PointingDeviceSensors: TPointingDeviceSensorList;
+function T3DSceneCore.PointingDeviceSensors: TPointingDeviceSensorList;
 begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
     Result := nil;
 end;
 
-procedure TVRMLScene.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
+procedure T3DSceneCore.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
 begin
   if FInput_PointingDeviceActivate <> Value then
   begin
@@ -5479,7 +5479,7 @@ begin
   end;
 end;
 
-function TVRMLScene.MouseDown(const Button: TMouseButton): boolean;
+function T3DSceneCore.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5493,7 +5493,7 @@ begin
   end;
 end;
 
-function TVRMLScene.MouseUp(const Button: TMouseButton): boolean;
+function T3DSceneCore.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5507,7 +5507,7 @@ begin
   end;
 end;
 
-function TVRMLScene.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+function T3DSceneCore.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 begin
   Result := inherited;
@@ -5517,14 +5517,14 @@ begin
     { If ray hit outside this scene (other 3D object, or empty space)
       then mouse is no longer over any part of *this* scene. }
     PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil) else
-    PointingDeviceMove(RayOrigin, RayDirection, RayHit.Point, PVRMLTriangle(RayHit.Triangle));
+    PointingDeviceMove(RayOrigin, RayDirection, RayHit.Point, PTriangle(RayHit.Triangle));
 
   { Do not treat it as handled (returning ExclusiveEvents),
     this would disable too much (like Camera usually under Scene on Controls).
   Result := false; }
 end;
 
-function TVRMLScene.Dragging: boolean;
+function T3DSceneCore.Dragging: boolean;
 
   function ActiveDraggingSensor: boolean;
   var
@@ -5547,12 +5547,12 @@ end;
 
 { Time stuff ------------------------------------------------------------ }
 
-function TVRMLScene.GetTime: TVRMLTime;
+function T3DSceneCore.GetTime: TVRMLTime;
 begin
   Result := FTime;
 end;
 
-procedure TVRMLScene.InternalSetTime(
+procedure T3DSceneCore.InternalSetTime(
   const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
 var
   SomethingVisibleChanged: boolean;
@@ -5596,7 +5596,7 @@ begin
   FTime := NewValue;
 end;
 
-procedure TVRMLScene.SetTime(const NewValue: TKamTime);
+procedure T3DSceneCore.SetTime(const NewValue: TKamTime);
 var
   TimeIncrease: TKamTime;
   NewCompleteValue: TVRMLTime;
@@ -5608,7 +5608,7 @@ begin
     InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
-procedure TVRMLScene.IncreaseTime(const TimeIncrease: TKamTime);
+procedure T3DSceneCore.IncreaseTime(const TimeIncrease: TKamTime);
 var
   NewCompleteValue: TVRMLTime;
 begin
@@ -5618,7 +5618,7 @@ begin
     InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
-procedure TVRMLScene.ResetLastEventTime(Node: TX3DNode);
+procedure T3DSceneCore.ResetLastEventTime(Node: TX3DNode);
 var
   I: Integer;
 begin
@@ -5628,7 +5628,7 @@ begin
     TAbstractScriptNode(Node).ResetLastEventTimes;
 end;
 
-procedure TVRMLScene.ResetTime(const NewValue: TKamTime);
+procedure T3DSceneCore.ResetTime(const NewValue: TKamTime);
 var
   NewCompleteValue: TVRMLTime;
 begin
@@ -5640,7 +5640,7 @@ begin
   InternalSetTime(NewCompleteValue, 0, true);
 end;
 
-procedure TVRMLScene.ResetTimeAtLoad;
+procedure T3DSceneCore.ResetTimeAtLoad;
 var
   TimeAtLoad: TKamTime;
 begin
@@ -5653,36 +5653,36 @@ begin
   ResetTime(TimeAtLoad);
 end;
 
-procedure TVRMLScene.IncreaseTimeTick;
+procedure T3DSceneCore.IncreaseTimeTick;
 begin
   Inc(FTime.PlusTicks);
 end;
 
-procedure TVRMLScene.Idle(const CompSpeed: Single);
+procedure T3DSceneCore.Idle(const CompSpeed: Single);
 begin
   inherited;
 
   { Ignore Idle calls when CompSpeed is precisely zero
-    (this may happen, and is correct, see TGLWindow.IgnoreNextIdleSpeed).
+    (this may happen, and is correct, see TCastleWindowBase.IgnoreNextIdleSpeed).
     In this case, time increase will be zero so the whole code
     will not do anything anyway. }
   if TimePlaying and (CompSpeed <> 0) then
     IncreaseTime(TimePlayingSpeed * CompSpeed);
 end;
 
-procedure TVRMLScene.ResetWorldTime(const NewValue: TKamTime);
+procedure T3DSceneCore.ResetWorldTime(const NewValue: TKamTime);
 begin
   ResetTime(NewValue);
 end;
 
-function TVRMLScene.WorldTime: TVRMLTime;
+function T3DSceneCore.WorldTime: TVRMLTime;
 begin
   Result := Time;
 end;
 
 { changes schedule ----------------------------------------------------------- }
 
-procedure TVRMLScene.BeginChangesSchedule;
+procedure T3DSceneCore.BeginChangesSchedule;
 begin
   { ChangedAllScheduled = false always when ChangedAllSchedule = 0. }
   Assert((ChangedAllSchedule <> 0) or (not ChangedAllScheduled));
@@ -5690,14 +5690,14 @@ begin
   Inc(ChangedAllSchedule);
 end;
 
-procedure TVRMLScene.ScheduleChangedAll;
+procedure T3DSceneCore.ScheduleChangedAll;
 begin
   if ChangedAllSchedule = 0 then
     ChangedAll else
     ChangedAllScheduled := true;
 end;
 
-procedure TVRMLScene.EndChangesSchedule;
+procedure T3DSceneCore.EndChangesSchedule;
 begin
   Dec(ChangedAllSchedule);
   if (ChangedAllSchedule = 0) and ChangedAllScheduled then
@@ -5715,7 +5715,7 @@ end;
 
 { proximity sensor ----------------------------------------------------------- }
 
-procedure TVRMLScene.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
+procedure T3DSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
   Position, Direction, Up: TVector3Single;
   Node: TProximitySensorNode;
@@ -5796,7 +5796,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.CameraChanged(ACamera: TCamera;
+procedure T3DSceneCore.CameraChanged(ACamera: TCamera;
   const Changes: TVisibleChanges);
 var
   I: Integer;
@@ -5807,7 +5807,7 @@ begin
   BeginChangesSchedule;
   try
     for I := 0 to ShapeLODs.Count - 1 do
-      UpdateLODLevel(TVRMLShapeTreeLOD(ShapeLODs.Items[I]));
+      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]));
 
     if ProcessEvents then
     begin
@@ -5830,7 +5830,7 @@ begin
         (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
           FCameraPosition, FCameraDirection, FCameraUp);
         TransformationChanged(BillboardInstancesList[I],
-          BillboardInstancesList[I].ShapeTrees as TVRMLShapeTreeList,
+          BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
           [chTransform]);
       end;
     end;
@@ -5841,7 +5841,7 @@ end;
 
 { compiled scripts ----------------------------------------------------------- }
 
-procedure TVRMLScene.RegisterCompiledScript(const HandlerName: string;
+procedure T3DSceneCore.RegisterCompiledScript(const HandlerName: string;
   Handler: TCompiledScriptHandler);
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
@@ -5851,7 +5851,7 @@ begin
   HandlerInfo^.Name := HandlerName;
 end;
 
-procedure TVRMLScene.ExecuteCompiledScript(const HandlerName: string;
+procedure T3DSceneCore.ExecuteCompiledScript(const HandlerName: string;
   ReceivedValue: TVRMLField);
 var
   I: Integer;
@@ -5866,7 +5866,7 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-procedure TVRMLScene.CameraFromNavigationInfo(
+procedure T3DSceneCore.CameraFromNavigationInfo(
   Camera: TCamera; const Box: TBox3D;
   const ForceNavigationType: string;
   const ForceCameraRadius: Single);
@@ -6034,7 +6034,7 @@ begin
     Also, no point in calling Examine.Init, for the same reason. }
 end;
 
-procedure TVRMLScene.CameraFromViewpoint(ACamera: TCamera;
+procedure T3DSceneCore.CameraFromViewpoint(ACamera: TCamera;
   const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
   Position: TVector3Single;
@@ -6075,7 +6075,7 @@ begin
   end;
 end;
 
-function TVRMLScene.CreateCamera(AOwner: TComponent;
+function T3DSceneCore.CreateCamera(AOwner: TComponent;
   const Box: TBox3D;
   const ForceNavigationType: string = ''): TUniversalCamera;
 begin
@@ -6084,13 +6084,13 @@ begin
   CameraFromViewpoint(Result, false, false);
 end;
 
-function TVRMLScene.CreateCamera(AOwner: TComponent;
+function T3DSceneCore.CreateCamera(AOwner: TComponent;
   const ForceNavigationType: string = ''): TUniversalCamera;
 begin
   Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
 end;
 
-procedure TVRMLScene.CameraTransition(Camera: TCamera;
+procedure T3DSceneCore.CameraTransition(Camera: TCamera;
   const Position, Direction, Up: TVector3Single);
 var
   NavigationNode: TNavigationInfoNode;
@@ -6135,7 +6135,7 @@ begin
     Camera.SetView(Position, Direction, Up);
 end;
 
-procedure TVRMLScene.CameraTransition(Camera: TCamera;
+procedure T3DSceneCore.CameraTransition(Camera: TCamera;
   const Position, Direction, Up, GravityUp: TVector3Single);
 begin
   if Camera is TWalkCamera then
@@ -6149,22 +6149,22 @@ end;
 
 { misc ----------------------------------------------------------------------- }
 
-function TVRMLScene.GetViewpointStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetViewpointStack: TVRMLBindableStackBasic;
 begin
   Result := FViewpointStack;
 end;
 
-function TVRMLScene.GetNavigationInfoStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetNavigationInfoStack: TVRMLBindableStackBasic;
 begin
   Result := FNavigationInfoStack;
 end;
 
-function TVRMLScene.GetBackgroundStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetBackgroundStack: TVRMLBindableStackBasic;
 begin
   Result := FBackgroundStack;
 end;
 
-function TVRMLScene.GetFogStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetFogStack: TVRMLBindableStackBasic;
 begin
   Result := FFogStack;
 end;
@@ -6172,7 +6172,7 @@ end;
 type
   BreakMainLightForShadows = class(TCodeBreaker);
 
-procedure TVRMLScene.CalculateMainLightForShadowsPosition;
+procedure T3DSceneCore.CalculateMainLightForShadowsPosition;
 begin
   if FMainLightForShadowsNode is TAbstractPositionalLightNode then
     FMainLightForShadows := Vector4Single(
@@ -6184,12 +6184,12 @@ begin
       MatrixMultDirection(
         FMainLightForShadowsTransform,
         TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
-    raise Exception.CreateFmt('TVRMLScene.MainLightForShadows: ' +
+    raise Exception.CreateFmt('T3DSceneCore.MainLightForShadows: ' +
       'light node "%s" cannot be used to cast shadows, it has no position ' +
       'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
 end;
 
-procedure TVRMLScene.SearchMainLightForShadows(
+procedure T3DSceneCore.SearchMainLightForShadows(
   Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
@@ -6206,7 +6206,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.ValidateMainLightForShadows;
+procedure T3DSceneCore.ValidateMainLightForShadows;
 
   procedure CalculateMainLightForShadows;
   begin
@@ -6225,7 +6225,7 @@ begin
   end;
 end;
 
-function TVRMLScene.MainLightForShadows(
+function T3DSceneCore.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 begin
   ValidateMainLightForShadows;
@@ -6234,7 +6234,7 @@ begin
     AMainLightPosition := FMainLightForShadows;
 end;
 
-procedure TVRMLScene.SetHeadlightOn(const Value: boolean);
+procedure T3DSceneCore.SetHeadlightOn(const Value: boolean);
 begin
   if FHeadlightOn <> Value then
   begin
@@ -6245,7 +6245,7 @@ begin
   end;
 end;
 
-function TVRMLScene.CustomHeadlight: TAbstractLightNode;
+function T3DSceneCore.CustomHeadlight: TAbstractLightNode;
 var
   MaybeResult: TX3DNode;
 begin
@@ -6259,14 +6259,14 @@ begin
   end;
 end;
 
-procedure TVRMLScene.UpdateHeadlightOnFromNavigationInfo;
+procedure T3DSceneCore.UpdateHeadlightOnFromNavigationInfo;
 begin
   if NavigationInfoStack.Top <> nil then
     HeadlightOn := NavigationInfoStack.Top.FdHeadlight.Value else
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-procedure TVRMLScene.ViewChangedSuddenly;
+procedure T3DSceneCore.ViewChangedSuddenly;
 begin
   if Log then
     WritelnLog('Scene', 'Optimizer received hint: View changed suddenly');
@@ -6274,7 +6274,7 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure TVRMLScene.CameraChanged(RenderingCamera: TRenderingCamera);
+procedure T3DSceneCore.CameraChanged(RenderingCamera: TRenderingCamera);
 var
   V: TAbstractViewpointNode;
 begin
@@ -6316,14 +6316,14 @@ begin
   end;
 end;
 
-procedure TVRMLScene.PrepareResources(Options: TPrepareResourcesOptions;
+procedure T3DSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareShapesOctrees;
   var
-    SI: TVRMLShapeTreeIterator;
+    SI: TShapeTreeIterator;
   begin
-    SI := TVRMLShapeTreeIterator.Create(Shapes, false);
+    SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do SI.Current.OctreeTriangles;
     finally FreeAndNil(SI) end;
@@ -6351,7 +6351,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.GetHeightAbove(const Position, GravityUp: TVector3Single;
+procedure T3DSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
@@ -6360,13 +6360,13 @@ begin
   begin
     OctreeCollisions.GetHeightAbove(
       Position, GravityUp,
-      IsAbove, AboveHeight, PVRMLTriangle(AboveGround),
+      IsAbove, AboveHeight, PTriangle(AboveGround),
       nil, TrianglesToIgnoreFunc);
   end else
     inherited;
 end;
 
-function TVRMLScene.MoveAllowed(
+function T3DSceneCore.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6383,7 +6383,7 @@ begin
   end;
 end;
 
-function TVRMLScene.MoveAllowedSimple(
+function T3DSceneCore.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6394,7 +6394,7 @@ begin
       CameraRadius, nil, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLScene.MoveBoxAllowedSimple(
+function T3DSceneCore.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6405,7 +6405,7 @@ begin
       nil, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLScene.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
@@ -6414,7 +6414,7 @@ begin
       nil, false, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLScene.SphereCollision(
+function T3DSceneCore.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -6423,7 +6423,7 @@ begin
       Pos, Radius,  nil, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLScene.BoxCollision(const Box: TBox3D;
+function T3DSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
@@ -6431,12 +6431,12 @@ begin
       Box,  nil, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLScene.RayCollision(
+function T3DSceneCore.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
-  Triangle: PVRMLTriangle;
+  Triangle: PTriangle;
   Intersection: TVector3Single;
 begin
   Result := nil;
@@ -6457,7 +6457,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.SetShadowMaps(const Value: boolean);
+procedure T3DSceneCore.SetShadowMaps(const Value: boolean);
 begin
   if FShadowMaps <> Value then
   begin
@@ -6468,7 +6468,7 @@ begin
   end;
 end;
 
-procedure TVRMLScene.SetShadowMapsDefaultSize(const Value: Cardinal);
+procedure T3DSceneCore.SetShadowMapsDefaultSize(const Value: Cardinal);
 begin
   if FShadowMapsDefaultSize <> Value then
   begin
@@ -6482,7 +6482,7 @@ begin
   end;
 end;
 
-function TVRMLScene.Caption: string;
+function T3DSceneCore.Caption: string;
 var
   WorldInfoNode: TWorldInfoNode;
 begin
@@ -6493,16 +6493,16 @@ begin
     Result := ExtractFileName(FileName);
 end;
 
-procedure TVRMLScene.InvalidateBackground;
+procedure T3DSceneCore.InvalidateBackground;
 begin
 end;
 
-procedure TVRMLScene.UnregisterSceneCallback(Node: TX3DNode);
+procedure T3DSceneCore.UnregisterSceneCallback(Node: TX3DNode);
 begin
   Node.Scene := nil;
 end;
 
-procedure TVRMLScene.UnregisterScene(Node: TX3DNode);
+procedure T3DSceneCore.UnregisterScene(Node: TX3DNode);
 begin
   Node.EnumerateNodes(TX3DNode, @UnregisterSceneCallback, false);
 end;

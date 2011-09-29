@@ -13,15 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is a demo how one can use TGLWindow.MakeGLAreaContainer
+{ This is a demo how one can use TCastleWindowBase.MakeGLAreaContainer
   to put some GTK widgets in window that is still managed
-  as simple TGLWindow object from GLWindow unit.
+  as simple TCastleWindowBase object from GLWindow unit.
   GLWindow must be implemented on top of GTK
   (GLWINDOW_GTK_1 or GLWINDOW_GTK_2) to be able to compile this.
   You must also define GTK_1 when compiling this unit
   if GLWindow is implemented on top of GTK 1.x (GLWINDOW_GTK_1).
 
-  This demo inserts GtkEntry widget into TGLWindow window.
+  This demo inserts GtkEntry widget into TCastleWindowBase window.
   When user changes text of this entry, OpenGL area displays it.
 
   This demo also demonstrates some simple use of TGLOutlineFont
@@ -38,7 +38,7 @@ uses GLWindow, GL, GLU, GLExt, KambiGLUtils, OpenGLFonts, SysUtils,
   KambiStringUtils;
 
 type
-  TMyGLWindow = class(TGLWindowDemo)
+  TMyGLWindow = class(TCastleWindowDemo)
   protected
     function MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget; override;
   end;
@@ -69,7 +69,7 @@ begin
  gtk_widget_show(Result);
 end;
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 begin
  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
  glLoadIdentity;
@@ -81,7 +81,7 @@ begin
  Font.Print(gtk_entry_get_text(GTK_ENTRY(Entry)));
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
  Font := TGLOutlineFont.Create(@TTF_BitstreamVeraSans, 10);
  glEnable(GL_DEPTH_TEST);
@@ -92,12 +92,12 @@ begin
  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
  FreeAndNil(Font);
 end;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 begin
  glViewport(0, 0, Window.Width, Window.Height);
  ProjectionGLPerspective(45, Window.Width / Window.Height, 0.1, 100);

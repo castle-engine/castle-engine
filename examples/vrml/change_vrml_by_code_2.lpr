@@ -27,9 +27,9 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiStringUtils;
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Scene: T3DScene;
 
 const
   XCount = 15;
@@ -38,7 +38,7 @@ const
 var
   Transform: array [0 .. XCount - 1, 0 .. YCount - 1] of TTransformNode;
 
-procedure Idle(Window: TGLWindow);
+procedure Idle(Window: TCastleWindowBase);
 var
   I, J: Integer;
 begin
@@ -94,7 +94,7 @@ begin
 end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHigh(0);
   OnWarning := @OnWarningWrite;
@@ -102,7 +102,7 @@ begin
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;
 
-  Scene := TVRMLGLScene.Create(nil);
+  Scene := T3DScene.Create(nil);
   try
     Scene.Load(CreateVrmlGraph, true);
 
@@ -112,7 +112,7 @@ begin
     {$endif}
 
     { make SceneManager with our Scene }
-    SceneManager := TKamSceneManager.Create(Window);
+    SceneManager := TCastleSceneManager.Create(Window);
     Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);

@@ -63,7 +63,7 @@ type
 }
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TLightInstancesList; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -78,7 +78,7 @@ procedure TriangleLightMapTo1st(const Image: TImage;
 
   @seealso TriangleLightMapTo1st }
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TLightInstancesList; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);
@@ -88,7 +88,7 @@ implementation
 uses KambiUtils, VRMLLighting, ProgressUnit;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
-  Lights: TLightInstancesList; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const RenderDir: TVector3Single): TVector3Single;
 var i: Integer;
 begin
@@ -102,7 +102,7 @@ end;
 
 procedure TriangleLightMapTo1st(const Image: TImage;
   LeftDownImagePart: boolean;
-  Lights: TLightInstancesList; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
@@ -167,7 +167,7 @@ begin
 end;
 
 procedure QuadLightMapTo1st(const Image: TImage;
-  Lights: TLightInstancesList; Octree: TVRMLBaseTrianglesOctree;
+  Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
   const ProgresTitle: string);

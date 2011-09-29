@@ -43,9 +43,9 @@ type
     );
 
 var
-  Window: TGLUIWindow;
-  Scene: TVRMLScene;
-  Shape: TVRMLShape;
+  Window: TCastleWindowCustom;
+  Scene: T3DSceneCore;
+  Shape: TShape;
   Vertexes: TVector3SingleList;
   CoordIndex: TLongIntList;
   TrianglesCoordIndex: TLongIntList;
@@ -55,7 +55,7 @@ var
   VBOVertex: TGLuint;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
     procedure Render3D(const Params: TRenderParams); override;
   end;
 
@@ -124,7 +124,7 @@ begin
   end;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
   Writeln('OpenGL has locking VAR support: ', GL_EXT_compiled_vertex_array);
   Writeln('Vertex arrays optimal fill: ',
@@ -162,7 +162,7 @@ var
     end;
   end;
 
-procedure MenuCommand(Window: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Window: TCastleWindowBase; Item: TMenuItem);
 const
   VARModes = [
     rmVARTrianglesByVertex, rmVARLockedTrianglesByVertex,
@@ -301,9 +301,9 @@ begin
   end;
 end;
 
-procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
+procedure DumpShapeTree(Shape: TShapeTree; const Indent: string = '');
 
-  procedure DumpShape(Shape: TVRMLShape);
+  procedure DumpShape(Shape: TShape);
   var
     Vertexes: TVector3SingleList;
     CoordIndex: TLongIntList;
@@ -327,13 +327,13 @@ procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
       [Vertexes.Count, CoordIndex.Count, Shape.TrianglesCount(false)]));
   end;
 
-  procedure DumpShapeGroup(Shape: TVRMLShapeTreeGroup);
+  procedure DumpShapeGroup(Shape: TShapeTreeGroup);
   var
-    List: TVRMLShapeTreeList;
+    List: TShapeTreeList;
     I: Integer;
   begin
     Writeln('Grouping shape: ', Shape.ClassName);
-    List := TVRMLShapeTreeGroup(Shape).Children;
+    List := TShapeTreeGroup(Shape).Children;
     for I := 0 to List.Count - 1 do
     begin
       Write(Indent, I:4, ': ');
@@ -342,10 +342,10 @@ procedure DumpShapeTree(Shape: TVRMLShapeTree; const Indent: string = '');
   end;
 
 begin
-  if Shape is TVRMLShape then
-    DumpShape(TVRMLShape(Shape)) else
-  if Shape is TVRMLShapeTreeGroup then
-    DumpShapeGroup(TVRMLShapeTreeGroup(Shape)) else
+  if Shape is TShape then
+    DumpShape(TShape(Shape)) else
+  if Shape is TShapeTreeGroup then
+    DumpShapeGroup(TShapeTreeGroup(Shape)) else
     Writeln('Unknown shape type: ', Shape.ClassName);
 end;
 
@@ -353,14 +353,14 @@ var
   ShapeNum: Integer;
   SceneManager: TMySceneManager;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHighAtLeast(1);
   Parameters.CheckHighAtMost(2);
   try
     OnWarning := @OnWarningWrite;
 
-    Scene := TVRMLScene.Create(nil);
+    Scene := T3DSceneCore.Create(nil);
     Scene.Load(Parameters[1]);
 
     if Parameters.High >= 2 then
@@ -371,13 +371,13 @@ begin
     DumpShapeTree(Scene.Shapes);
     Writeln('-------- End of scene shapes tree');
 
-    if not (Scene.Shapes is TVRMLShapeTreeGroup) then
+    if not (Scene.Shapes is TShapeTreeGroup) then
       raise Exception.Create('Shapes tree starts from LOD or Switch, not supported in this trivial demo');
-    if ShapeNum >= TVRMLShapeTreeGroup(Scene.Shapes).Children.Count then
+    if ShapeNum >= TShapeTreeGroup(Scene.Shapes).Children.Count then
       raise Exception.CreateFmt('No shape number %d (means empty scene if shape number = 0)', [ShapeNum]);
-    if not (TVRMLShapeTreeGroup(Scene.Shapes).Children[ShapeNum] is TVRMLShape) then
+    if not (TShapeTreeGroup(Scene.Shapes).Children[ShapeNum] is TShape) then
       raise Exception.Create('Specified shape is compound (LOD or Switch), not supported in this trivial demo');
-    Shape := TVRMLShape(TVRMLShapeTreeGroup(Scene.Shapes).Children[ShapeNum]);
+    Shape := TShape(TShapeTreeGroup(Scene.Shapes).Children[ShapeNum]);
 
     { Get info about vertexes, coordindex from 1st shape on our scene.
 

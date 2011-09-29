@@ -26,11 +26,11 @@ uses GLWindow, GL, GLU, KambiGLUtils, OpenGLFonts, SysUtils, Classes,
   KambiStringUtils;
 
 var
-  Window: TGLWindowDemo;
+  Window: TCastleWindowDemo;
   Font: TGLBitmapFont_Abstract;
   BoxWidth: Integer;
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 var x1, x2: Integer;
 begin
  glClear(GL_COLOR_BUFFER_BIT);
@@ -55,25 +55,25 @@ begin
    false, 0);
 end;
 
-procedure Resize(Window: TGLWindow);
+procedure Resize(Window: TCastleWindowBase);
 begin
  glViewport(0, 0, Window.Width, Window.Height);
  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
  BoxWidth := Window.Width * 2 div 3;
 end;
 
-procedure Open(Window: TGLWindow);
+procedure Open(Window: TCastleWindowBase);
 begin
  Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure Close(Window: TGLWindow);
+procedure Close(Window: TCastleWindowBase);
 begin
  FreeAndNil(Font);
 end;
 
 begin
- Window := TGLWindowDemo.Create(Application);
+ Window := TCastleWindowDemo.Create(Application);
 
  Window.OnOpen := @Open;
  Window.OnClose := @Close;

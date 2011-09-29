@@ -31,7 +31,7 @@
 
     @item(Screen saving, that is saving OpenGL buffer contents to TImage instance.
       Wrapper around glReadPixels and related things.
-      See TGLWindow.SaveScreen, based on SaveScreen_noflush in this unit.)
+      See TCastleWindowBase.SaveScreen, based on SaveScreen_noflush in this unit.)
 
     @item(Rendering straight to texture (see TGLRenderToTexture class).
       This is our abstraction
@@ -223,14 +223,14 @@ function ImageDrawPartToDisplayList(
   in general, it's not predictable to save image from GL_FRONT OpenGL buffer
   (or any part of front buffer). That's because when our window will
   be covered by other window (of other programs or our own window
-  (like other instances of TGLWindow or dialog windows produced
-  by TGLWindow.FileDialog, in case you use GLWindow unit)) then
+  (like other instances of TCastleWindowBase or dialog windows produced
+  by TCastleWindowBase.FileDialog, in case you use GLWindow unit)) then
   glReadPixels will return pixel array filled with contents of
   *those other windows*.
 
   Prefixing functions below, SaveScreen_noflush, with things like
-    TGLWindow.FlushRedisplay, or even
-    TGLWindow.PostRedisplay + TGLWindow.FlushRedisplay, or even
+    TCastleWindowBase.FlushRedisplay, or even
+    TCastleWindowBase.PostRedisplay + TCastleWindowBase.FlushRedisplay, or even
     an explicit call to Draw procedure and an explicit call
       to SwapBuffers / glFlush, or oven
     only an explicit call to Draw procedure (without glFlush/swapbuffers)
@@ -251,11 +251,11 @@ function ImageDrawPartToDisplayList(
 
   The suffix "noflush" in the name is there to remind you that this
   function grabs the current buffer contents. Usually you want to
-  call something like @link(TGLWindow.FlushRedisplay) right before grabbing
+  call something like @link(TCastleWindowBase.FlushRedisplay) right before grabbing
   from the front buffer (which isn't reliable anyway), or redraw
-  (like by TGLWindow.EventDraw) right before grabbing from the back buffer.
+  (like by TCastleWindowBase.EventDraw) right before grabbing from the back buffer.
 
-  See TGLWindow.SaveScreen for more friendly ways to capture the screen.
+  See TCastleWindowBase.SaveScreen for more friendly ways to capture the screen.
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
@@ -708,7 +708,7 @@ type
         @item(tbNone: we will not capture screen contents to any texture
           at all. This is useful for rendering a screen that you want
           to manually capture to normal memory with glReadPixels
-          (see also SaveScreen_noflush in this unit or TGLWindow.SaveScreen).
+          (see also SaveScreen_noflush in this unit or TCastleWindowBase.SaveScreen).
           Be sure to capture the screen before RenderEnd.)
       )
 

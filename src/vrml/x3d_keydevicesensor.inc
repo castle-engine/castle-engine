@@ -21,11 +21,11 @@
 
     { React to key down/up events.
 
-      This is used by TVRMLScene to communicate with this key sensor.
+      This is used by T3DSceneCore to communicate with this key sensor.
 
       Semantics follow TUIControl.KeyDown,
-      TUIControl.KeyUp behavior which in turn follow TGLWindow.OnKeyDown,
-      TGLWindow.OnKeyUp behavior. This means that Key may be K_None (if not
+      TUIControl.KeyUp behavior which in turn follow TCastleWindowBase.OnKeyDown,
+      TCastleWindowBase.OnKeyUp behavior. This means that Key may be K_None (if not
       representable as TKey) and C may be #0 (if not representable as char),
       although not both at the same time (that is, at least one of Key or C
       parameters contains some useful value). Also, key presses are affected

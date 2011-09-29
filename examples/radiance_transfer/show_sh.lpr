@@ -29,14 +29,14 @@ uses VectorMath, Boxes3D, GL, GLWindow, Base3D, UIControls,
   KambiStringUtils;
 
 var
-  Window: TGLUIWindow;
+  Window: TCastleWindowCustom;
 
   LM: Cardinal = 0;
   Font: TGLBitmapFont;
 
   MinSHValue, MaxSHValue: Float;
 
-procedure Draw2D(Glwin: TGLWindow);
+procedure Draw2D(Glwin: TCastleWindowBase);
 var
   L: Cardinal;
   M: Integer;
@@ -50,7 +50,7 @@ begin
 end;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
   protected
     procedure Render3D(const Params: TRenderParams); override;
     procedure ApplyProjection; override;
@@ -201,18 +201,18 @@ begin
   ProjectionGLPerspective(45.0, ContainerWidth/ContainerHeight, 0.01, 10);
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Glwin: TCastleWindowBase);
 begin
   glEnable(GL_DEPTH_TEST);
   Font := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Glwin: TCastleWindowBase);
 begin
   FreeAndNil(Font);
 end;
 
-procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: LM := ChangeIntCycle(LM, -1, MaxSHBasis - 1);
@@ -225,7 +225,7 @@ end;
 var
   M: TMenu;
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   SceneManager := TMySceneManager.Create(Application);
   Window.Controls.Add(SceneManager);

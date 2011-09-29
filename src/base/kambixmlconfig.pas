@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Storing configuration files in XML (TKamXMLConfig). }
+{ Storing configuration files in XML (TCastleConfig). }
 unit KambiXMLConfig;
 
 { In new FPC versions, XMLConf unit is advised and XMLCfg is deprecated.
@@ -39,7 +39,7 @@ type
     This is a descendant of TXMLConfig that adds various small extensions:
     float types (GetFloat, SetFloat, SetDeleteFloat),
     vector types, PathElement utility. }
-  TKamXMLConfig = class(TXMLConfig)
+  TCastleConfig = class(TXMLConfig)
   public
     { Internal notes: At the beginning I made the float methods
       to overload existing names (GetValue, SetValue etc.).
@@ -116,12 +116,12 @@ uses SysUtils, KambiStringUtils, Classes;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TKamXMLConfig]);
+  RegisterComponents('Kambi', [TCastleConfig]);
 end;
 
-{ TKamXMLConfig -------------------------------------------------------------- }
+{ TCastleConfig -------------------------------------------------------------- }
 
-function TKamXMLConfig.GetFloat(const APath: string;
+function TCastleConfig.GetFloat(const APath: string;
   const ADefaultValue: Float): Float;
 var
   ResultString: string;
@@ -130,13 +130,13 @@ begin
   Result := StrToFloatDef(ResultString, ADefaultValue);
 end;
 
-procedure TKamXMLConfig.SetFloat(const APath: string;
+procedure TCastleConfig.SetFloat(const APath: string;
   const AValue: Float);
 begin
   SetValue(APath, FloatToStr(AValue));
 end;
 
-procedure TKamXMLConfig.SetDeleteFloat(const APath: string;
+procedure TCastleConfig.SetDeleteFloat(const APath: string;
   const AValue, ADefaultValue: Float);
 begin
   SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
@@ -146,7 +146,7 @@ const
   VectorComponentPaths: array [0..3] of string =
   ('/x', '/y', '/z', '/w');
 
-function TKamXMLConfig.GetValue(const APath: string;
+function TCastleConfig.GetValue(const APath: string;
   const ADefaultValue: TVector3Single): TVector3Single;
 var
   I: Integer;
@@ -155,7 +155,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TKamXMLConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetValue(const APath: string;
   const AValue: TVector3Single);
 var
   I: Integer;
@@ -164,7 +164,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TKamXMLConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteValue(const APath: string;
   const AValue, ADefaultValue: TVector3Single);
 var
   I: Integer;
@@ -173,7 +173,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TKamXMLConfig.GetValue(const APath: string;
+function TCastleConfig.GetValue(const APath: string;
   const ADefaultValue: TVector4Single): TVector4Single;
 var
   I: Integer;
@@ -182,7 +182,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TKamXMLConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetValue(const APath: string;
   const AValue: TVector4Single);
 var
   I: Integer;
@@ -191,7 +191,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TKamXMLConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteValue(const APath: string;
   const AValue, ADefaultValue: TVector4Single);
 var
   I: Integer;
@@ -200,7 +200,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TKamXMLConfig.PathElement(const APath: string): TDOMElement;
+function TCastleConfig.PathElement(const APath: string): TDOMElement;
 
   { Find a children element, nil if not found. }
   function FindElementChildren(Element: TDOMElement;

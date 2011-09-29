@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef read_tglwindow_interface}
+{$ifdef read_window_interface}
 private
   h_GLRc: HGLRC;
   h_Dc: HDC;
@@ -42,9 +42,9 @@ private
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
-{$endif read_tglwindow_interface}
+{$endif read_window_interface}
 
-{$ifdef read_tglwindowmanager_interface}
+{$ifdef read_application_interface}
 private
   { Should we do ChangeDisplaySettings(nil, 0) when Destroy? }
   DisplaySettingsChanged: boolean;
@@ -68,11 +68,11 @@ private
   fappActive: boolean;
   procedure SetAppActive(value: boolean);
   property appActive: boolean read fappActive write SetAppActive;
-{$endif read_tglwindowmanager_interface}
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 
-{ TGLWindow ------------------------------------------------- }
+{ TCastleWindowBase ------------------------------------------------- }
 
 const
   { Some constants missing from FPC's Windows unit. }
@@ -92,7 +92,7 @@ const
 
 { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
   available. }
-function TGLWindow.VirtualKeyToKey(VirtualKey: Byte): TKey;
+function TCastleWindowBase.VirtualKeyToKey(VirtualKey: Byte): TKey;
 var
   VirtualKeyToKeyResult: TKey absolute Result;
 
@@ -187,9 +187,9 @@ end;
 
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
-  Window: TGLWindow;
+  Window: TCastleWindowBase;
 begin
-  Window := TGLWindow(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Window := TCastleWindowBase(GetWindowLongPtr(hWnd, GWL_USERDATA));
   { wszystkie hwnd jakie tu beda wpadac to beda nasze okna. Ale zanim
     ustawimy oknu SetWindowLongPtr (GetWindowLongPtr bedzie do tego czasu zwracac 0)
     ono juz dostaje jakies messagy - WM_CREATE i inne.
@@ -210,7 +210,7 @@ begin
     result := DefWindowProc(hWnd, uMsg, wParm, lParm);
 end;
 
-function TGLWindow.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
+function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
 { Note: the following Windows events may be called from CloseBackend
   (so they probably should check InCloseBackend):
@@ -408,13 +408,13 @@ begin
              and read by MouseX, MouseY properties would be slightly different.
              And there are real cases when this is extremely important that they use
              exactly the same coordinate systems --- see e.g. mouse look handling in
-             TGLUIWindow.EventMouseMove.
+             TCastleWindowCustom.EventMouseMove.
 
           So what's the problem ? Well, if the window is not FullScreen, Left and Top
           as recorded in lParm are exactly what I want. But when FullScreen, Left and Top
           are always 0, 0 --- which means that they don't take menu bar height into
           account. The effect: mouse look + menu bar + fullscreen mode don't work
-          (i.e. user is unable to do mouse look, TGLUIWindow.EventMouseMove always
+          (i.e. user is unable to do mouse look, TCastleWindowCustom.EventMouseMove always
           ignores it). Tested on view3dscene.
 
           So I workaround this by adding CYMENU. This is not perfect, as this assumes
@@ -588,12 +588,12 @@ begin
   Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
 end;
 
-function TGLWindow.RedirectKeyDownToMenuCommand: boolean;
+function TCastleWindowBase.RedirectKeyDownToMenuCommand: boolean;
 begin
   Result := true;
 end;
 
-procedure TGLWindow.BackendMenuFinalize;
+procedure TCastleWindowBase.BackendMenuFinalize;
 var
   Old_H_Menu: HMenu;
 begin
@@ -601,36 +601,36 @@ begin
   KambiOSCheck( DestroyMenu(Old_H_Menu), 'DestroyMenu(Old_H_Menu)');
 end;
 
-procedure TGLWindow.BackendMenuInitialize;
+procedure TCastleWindowBase.BackendMenuInitialize;
 begin
-  KambiOSCheck( SetMenu(H_Wnd, WindowsMenuFromGLWindowMenu(MainMenu, true)),
+  KambiOSCheck( SetMenu(H_Wnd, WindowsMenuFromCastlewindowmenu(MainMenu, true)),
     'SetMenu');
 end;
 
-procedure TGLWindow.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TGLWindow.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
+procedure TCastleWindowBase.MenuUpdateEnabled(Entry: TMenuEntryWithCaption);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-procedure TGLWindow.MenuUpdateChecked(Entry: TMenuItemChecked);
+procedure TCastleWindowBase.MenuUpdateChecked(Entry: TMenuItemChecked);
 begin
   MenuFinalize;
   MenuInitialize;
 end;
 
-function TGLWindow.MenuUpdateCheckedFast: boolean;
+function TCastleWindowBase.MenuUpdateCheckedFast: boolean;
 begin
   Result := false;
 end;
 
-procedure TGLWindow.OpenWinSystemDepend;
+procedure TCastleWindowBase.OpenWinSystemDepend;
 
   { Both SetPixelFormat* set pixel format (required context capabilities)
     of Windows H_Dc device context. They try to set it, and eventually rise some
@@ -978,7 +978,7 @@ begin
 
   { calculate H_Menu }
   if MainMenu <> nil then
-    H_Menu := WindowsMenuFromGLWindowMenu(MainMenu, true) else
+    H_Menu := WindowsMenuFromCastlewindowmenu(MainMenu, true) else
     H_Menu := 0;
 
   { main point : create the window }
@@ -1058,7 +1058,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 var
   Point: Windows.TPoint;
 begin
@@ -1079,19 +1079,19 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   if not Closed then
     SetCursorPos(Left + NewMouseX, Top + NewMouseY);
 end;
 
-procedure TGLWindow.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
   InCloseBackend := true;
   try
@@ -1112,28 +1112,28 @@ begin
   finally InCloseBackend := false; end;
 end;
 
-procedure TGLWindow.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   Assert(not Closed);
   KambiOSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
-procedure TGLWindow.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Value: string);
 begin
   fCaption := Value;
   if h_Wnd <> 0 then SetWindowText(h_Wnd, PChar(Value));
 end;
 
-procedure TGLWindow.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-procedure TGLWindow.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
   Windows.SwapBuffers(h_Dc);
 end;
 
-function TGLWindow.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
   { Prepare string with encoded filter names and patterns, as specified
@@ -1334,7 +1334,7 @@ begin
   end;
 end;
 
-function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
 
   function Vector3SingleToColorRef(const Value: TVector3Single): TColorRef;
   begin
@@ -1380,21 +1380,21 @@ begin
 end;
 
 const
-  MessageTypeToWin: array [TGLWindowMessageType] of LongWord =
+  MessageTypeToWin: array [TWindowMessageType] of LongWord =
   ( MB_ICONINFORMATION,
     MB_ICONWARNING,
     MB_ICONQUESTION,
     MB_ICONERROR,
     0 );
 
-  MessageTypeToCaption: array [TGLWindowMessageType] of string =
+  MessageTypeToCaption: array [TWindowMessageType] of string =
   ( 'Information',
     'Warning',
     'Question',
     'Error',
     'Information');
 
-procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 begin
   MessageBox(H_Wnd, PChar(S),
     { Always pass meaningfull caption. Passing nil here causes Windows to
@@ -1407,8 +1407,8 @@ begin
     MB_APPLMODAL);
 end;
 
-function TGLWindow.MessageYesNo(const S: string;
-  const MessageType: TGLWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: string;
+  const MessageType: TWindowMessageType): boolean;
 begin
   Result := MessageBox(H_Wnd, PChar(S),
     PChar(MessageTypeToCaption[MessageType]),

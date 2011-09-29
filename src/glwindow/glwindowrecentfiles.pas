@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage a list of recently opened files, and show a menu in TGLWindow.
-  See TGLRecentFiles class. }
+{ Manage a list of recently opened files, and show a menu in TCastleWindowBase.
+  See TCastleRecentFiles class. }
 unit GLWindowRecentFiles;
 
 interface
@@ -22,8 +22,8 @@ interface
 uses Classes, GLWindow, RecentFiles;
 
 type
-  { Manage a list of recently opened files, and show a menu in TGLWindow. }
-  TGLRecentFiles = class(TBaseRecentFiles)
+  { Manage a list of recently opened files, and show a menu in TCastleWindowBase. }
+  TCastleRecentFiles = class(TBaseRecentFiles)
   private
     FNextMenuItem: TMenuEntry;
     FirstSeparator: TMenuEntry;
@@ -99,9 +99,9 @@ begin
   Result := true;
 end;
 
-{ TGLRecentFiles -------------------------------------------------------------- }
+{ TCastleRecentFiles -------------------------------------------------------------- }
 
-procedure TGLRecentFiles.MenuCreate;
+procedure TCastleRecentFiles.MenuCreate;
 var
   I: Integer;
   ParentMenu: TMenu;
@@ -129,7 +129,7 @@ begin
   end;
 end;
 
-procedure TGLRecentFiles.MenuDestroy;
+procedure TCastleRecentFiles.MenuDestroy;
 var
   ParentMenu: TMenu;
   Position: Cardinal;
@@ -158,7 +158,7 @@ begin
   inherited;
 end;
 
-procedure TGLRecentFiles.SetNextMenuItem(Value: TMenuEntry);
+procedure TCastleRecentFiles.SetNextMenuItem(Value: TMenuEntry);
 begin
   if Value <> FNextMenuItem then
   begin

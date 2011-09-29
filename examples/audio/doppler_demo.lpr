@@ -30,11 +30,11 @@ const
   ALDistanceScaling = 0.02;
 
 var
-  Window: TGLWindowDemo;
+  Window: TCastleWindowDemo;
   PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3Single;
   Source: TALSound;
 
-procedure Draw(Window: TGLWindow);
+procedure Draw(Window: TCastleWindowBase);
 begin
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -51,14 +51,14 @@ begin
   glEnd;
 end;
 
-procedure Timer(Window: TGLWindow);
+procedure Timer(Window: TCastleWindowBase);
 begin
   alSourceVector3f(Source.ALSource, AL_VELOCITY,
     (SourcePosition - PreviousSourcePosition) * ALDistanceScaling);
   PreviousSourcePosition := SourcePosition;
 end;
 
-procedure MouseMove(Window: TGLWindow; NewX, NewY: Integer);
+procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: Integer);
 begin
   if mbLeft in Window.MousePressed then
   begin
@@ -71,7 +71,7 @@ end;
 var
   Buffer: TALBuffer;
 begin
-  Window := TGLWindowDemo.Create(Application);
+  Window := TCastleWindowDemo.Create(Application);
 
   SoundEngine.ParseParameters;
   SoundEngine.MinAllocatedSources := 1;

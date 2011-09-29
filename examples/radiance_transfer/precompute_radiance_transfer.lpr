@@ -62,7 +62,7 @@ uses SysUtils, KambiUtils, VectorMath, VRMLScene, VRMLNodes,
   SphericalHarmonics, KambiParameters, KambiTimeUtils, VRMLShape;
 
 var
-  Scene: TVRMLScene;
+  Scene: T3DSceneCore;
   Normals: TVector3SingleList;
   SHBasisCount: Integer = 25;
   RaysPerVertex: Cardinal = 1000;
@@ -196,7 +196,7 @@ const
   end;
 
 var
-  SI: TVRMLShapeTreeIterator;
+  SI: TShapeTreeIterator;
   Geometry: TAbstractGeometryNode;
   State: TVRMLGraphTraverseState;
   RadianceTransfer: TVector3SingleList;
@@ -207,7 +207,7 @@ begin
 
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Scene := TVRMLScene.Create(nil);
+  Scene := T3DSceneCore.Create(nil);
   try
     Scene.Load(Parameters[1]);
     Scene.TriangleOctreeProgressTitle := 'Building octree';
@@ -215,7 +215,7 @@ begin
 
     ProcessTimerBegin;
 
-    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, false);
+    SI := TShapeTreeIterator.Create(Scene.Shapes, false);
     try
       while SI.GetNext do
       begin

@@ -10,7 +10,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   Position = poDesktopCenter
   LCLVersion = '0.9.30'
-  object Browser: TKamVRMLBrowser
+  object Browser: TCastleControl
     Left = 0
     Height = 624
     Top = 0
@@ -19,7 +19,7 @@ object Form1: TForm1
     OnResize = BrowserResize
     TabOrder = 0
   end
-  object SampleButton: TKamGLButton
+  object SampleButton: TCastleButton
     Bottom = 10
     Width = 100
     Height = 100
@@ -33,20 +33,20 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 16
   end
-  object SampleImage: TKamGLImage
+  object SampleImage: TCastleImage
     Bottom = 150
     TUIControlPos_RealLeft = 20
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 96
   end
-  object SampleImageAlpha: TKamGLImage
+  object SampleImageAlpha: TCastleImage
     Bottom = 150
     Blending = True
     TUIControlPos_RealLeft = 200
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 184
   end
-  object ButtonImageFixSize1: TKamGLButton
+  object ButtonImageFixSize1: TCastleButton
     Bottom = 320
     Tooltip = 'Sample tooltip over a button'
     Width = 240
@@ -59,7 +59,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 58
   end
-  object ButtonImageFixSize2: TKamGLButton
+  object ButtonImageFixSize2: TCastleButton
     Bottom = 320
     Tooltip = 'Sample tooltip over a button'
     Width = 240
@@ -73,7 +73,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 128
   end
-  object ButtonImageFixSize3: TKamGLButton
+  object ButtonImageFixSize3: TCastleButton
     Bottom = 320
     Tooltip = 'Sample tooltip over a button'
     Width = 240
@@ -86,7 +86,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 200
   end
-  object ButtonImageFixSize4: TKamGLButton
+  object ButtonImageFixSize4: TCastleButton
     Bottom = 320
     Tooltip = 'Sample tooltip over a button'
     Width = 240
@@ -100,7 +100,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 411
     TUIControlPos_Design_Top = 272
   end
-  object ButtonImage1: TKamGLButton
+  object ButtonImage1: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
     Width = 20
@@ -112,7 +112,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 58
   end
-  object ButtonImage2: TKamGLButton
+  object ButtonImage2: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
     Width = 20
@@ -125,7 +125,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 128
   end
-  object ButtonImage3: TKamGLButton
+  object ButtonImage3: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
     Width = 250
@@ -137,7 +137,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 200
   end
-  object ButtonImage4: TKamGLButton
+  object ButtonImage4: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
     Width = 20
@@ -150,7 +150,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 272
   end
-  object GLMenu1: TGLMenu
+  object GLMenu1: TCastleMenu
     PositionRelativeMenuX = prLowerBorder
     PositionRelativeMenuY = prLowerBorder
     PositionRelativeScreenX = prLowerBorder

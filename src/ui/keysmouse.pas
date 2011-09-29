@@ -78,7 +78,7 @@ type
 
   { Look of the mouse cursor.
     Used for various properties:
-    TUIControl.Cursor, T3D.Cursor, TGLWindow.Cursor.
+    TUIControl.Cursor, T3D.Cursor, TCastleWindowBase.Cursor.
 
     mcDefault, mcNone, mcCustom have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
@@ -88,11 +88,11 @@ type
     mcDefault,
     { Make cursor invisible. }
     mcNone,
-    { Use a custom cursor image in TGLWindow.CustomCursor.
+    { Use a custom cursor image in TCastleWindowBase.CustomCursor.
 
       In normal circumstances, this should not be used for
       TUIControl.Cursor, T3D.Cursor and others, as they have no way
-      to set TGLWindow.CustomCursor. }
+      to set TCastleWindowBase.CustomCursor. }
     mcCustom,
     { Standard arrow, indicates, well, that user can point / click something. }
     mcStandard,
@@ -365,8 +365,8 @@ const
   ('none', 'up', 'down', 'left', 'right');
 
 { Determine simple mouse wheel direction from a Scroll and Vertical
-  parameters received from TGLWindow.OnMouseWheel.
-  Assumes that Scroll <> 0, like TGLWindow.OnMouseWheel guarantees. }
+  parameters received from TCastleWindowBase.OnMouseWheel.
+  Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
 function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
 
 implementation

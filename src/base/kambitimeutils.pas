@@ -237,12 +237,12 @@ function KamTimer: TKamTimerResult;
 
 type
   { Utility to measure frames per second, independent of actual
-    rendering API. For example, it can be easily "plugged" into TGLWindow
-    (see TGLWindow.FPS) or Lazarus GL control (see TKamOpenGLControl.FPS).
+    rendering API. For example, it can be easily "plugged" into TCastleWindowBase
+    (see TCastleWindowBase.FPS) or Lazarus GL control (see TCastleControlCustom.FPS).
 
-    Things named "_" here are supposed to be internal to the TGLWindow /
-    TKamOpenGLControl and such implementations. Other properties can be
-    controlled by the user of TGLWindow / TKamOpenGLControl. }
+    Things named "_" here are supposed to be internal to the TCastleWindowBase /
+    TCastleControlCustom and such implementations. Other properties can be
+    controlled by the user of TCastleWindowBase / TCastleControlCustom. }
   TFramesPerSecond = class
   private
     FActive: boolean;
@@ -311,13 +311,13 @@ type
       equal to 0.0.
 
       This is useful if you just came back from some lenghty
-      state, like a GUI dialog box (like TGLWindow.FileDialog or modal boxes
+      state, like a GUI dialog box (like TCastleWindowBase.FileDialog or modal boxes
       in GLWinMessages --- but actually all our stuff already calls this
       as needed, TGLMode takes care of this). IdleSpeed would be ridicoulously
       long in such case (if our loop is totally stopped) or not relevant
       (if we do our loop, but with totally different callbacks, like
       GLWinMessages). Instead, it's most sensible in such case to fake
-      that IdleSpeed is 0.0, so things such as TVRMLScene.Time
+      that IdleSpeed is 0.0, so things such as T3DSceneCore.Time
       should not advance wildly just because we did GUI box.
 
       This forces the IdleSpeed to zero only once, that is only on the

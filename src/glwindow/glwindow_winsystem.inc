@@ -37,7 +37,7 @@
 
 
 
-{$ifdef read_tglwindow_interface}
+{$ifdef read_window_interface}
 private
   { Track if some PostRedisplay was called (and not realized yet by
     DoDraw call). PostRedisplay only sets this, leaving actually
@@ -57,9 +57,9 @@ private
     czy tez nie wykryto takiej potrzeby (nie bylo zaleglego PostRedisplay
     ani komunikatu w rodzaju Expose od WindowManagera do wykonania) }
   function FlushRedisplay2: boolean;
-{$endif read_tglwindow_interface}
+{$endif read_window_interface}
 
-{$ifdef read_tglwindowmanager_interface}
+{$ifdef read_application_interface}
 private
   LastDoTimerTime: TMilisecTime;
   quitPosted: boolean;
@@ -78,7 +78,7 @@ private
     ActuallyProcessMessage is implemented using ProcessMessage2
     (and simply ignoring WasAnyMessage). }
   function ProcessMessage2(AllowSuspend: boolean; var WasAnyMessage: boolean): boolean;
-{$endif read_tglwindowmanager_interface}
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 
@@ -93,7 +93,7 @@ private
      (wyslany przez WindowManagera kiedy mysmy robili cos innego.
      User szybko zrobil key down, potem up, dopiero potem my zauwazylismy
      ze dostalismy KeyDown, zrobilismy sobie Close (moze nawet
-     zwolnilismy z pamieci obiekt TGLWindow !!) i potem wywolujemy
+     zwolnilismy z pamieci obiekt TCastleWindowBase !!) i potem wywolujemy
      ProcessMessage (bo np. sa jeszcze jakies inne okienka otwarte)
      i dostajemy messaga KeyUp dla okienka ktore juz jest Closed
      albo moze nawet ktorego juz nie ma w pamieci !!
@@ -101,14 +101,14 @@ private
      Dotyczy to zarowno WinAPI jak i Xlib.
 }
 
-{ TGLWindow ----------------------------------------------------------------- }
+{ TCastleWindowBase ----------------------------------------------------------------- }
 
-procedure TGLWindow.PostRedisplay;
+procedure TCastleWindowBase.PostRedisplay;
 begin
   RedisplayPosted := true;
 end;
 
-procedure TGLWindow.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 begin
   { reset some variables common to all _winsystem implementations }
   RedisplayPosted := false;
@@ -116,7 +116,7 @@ begin
   OpenWinSystemDepend;
 end;
 
-function TGLWindow.FlushRedisplay2: boolean;
+function TCastleWindowBase.FlushRedisplay2: boolean;
 begin
   Result := RedisplayPosted;
   if Result then
@@ -126,7 +126,7 @@ begin
   end;
 end;
 
-procedure TGLWindow.FlushRedisplay;
+procedure TCastleWindowBase.FlushRedisplay;
 begin
   FlushRedisplay2;
 end;
@@ -178,7 +178,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
   procedure HandleEvent;
   {$ifdef GLWINDOW_XLIB}
   var
-    Window: TGLWindow;
+    Window: TCastleWindowBase;
     evtype: longint;
   {$endif}
   begin
@@ -199,9 +199,9 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
       MappingNotify: XRefreshKeyboardMapping(@event);
       else
       begin
-        { zdarzenia ktore sa skierowane do konkretnego TGLWindow }
+        { zdarzenia ktore sa skierowane do konkretnego TCastleWindowBase }
         { sprawdzamy czy okienko jest na liscie Application.OpenWindows, przy okazji
-          zamieniajac windowXID na obiekt klasy TGLWindow. }
+          zamieniajac windowXID na obiekt klasy TCastleWindowBase. }
         Window := Application.FindWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
         if Window <> nil then
           case evtype of
@@ -270,7 +270,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
 var
   WasAnyDrawing: boolean;
   I: integer;
-  Window: TGLWindow;
+  Window: TCastleWindowBase;
 begin
   WasAnyMessage := false;
   try

@@ -22,7 +22,7 @@ uses SysUtils, Classes, KeysMouse, KambiUtils, KambiClassUtils;
 
 type
   { Basic user interface container. This may be a window
-    (like TGLUIWindow) or some Lazarus control (like TKamOpenGLControl
+    (like TCastleWindowCustom) or some Lazarus control (like TCastleControlCustom
     component). }
   IUIContainer = interface
   ['{0F0BA87D-95C3-4520-B9F9-CDF30015FDB3}']
@@ -164,7 +164,7 @@ type
       in Walker mode, rotating model in Examine mode, and many more.
 
       @param(CompSpeed Should be calculated like TFramesPerSecond.IdleSpeed,
-        and usually it's in fact just taken from TGLWindow.Fps.IdleSpeed.)
+        and usually it's in fact just taken from TCastleWindowBase.Fps.IdleSpeed.)
 
       HandleMouseAndKeys says if this control can
       handle currently pressed keys and mouse buttons.
@@ -179,7 +179,7 @@ type
       is @true) usually means @false. This reflects the fact that "normal"
       UI controls, that actually take screen space implied by PositionInside,
       want to block controls underneath from handling keys/mouse.
-      For example, when pressing key "left" over TGLMenu, you do not
+      For example, when pressing key "left" over TCastleMenu, you do not
       want to let the Camera to also capture this left key down.
 
       @italic(More reasoning behind HandleMouseAndKeys:)
@@ -239,7 +239,7 @@ type
 
       In this class, this simply returns always @true.
 
-      @seeAlso TGLWindow.AllowSuspendForInput }
+      @seeAlso TCastleWindowBase.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
     { Prepare your resources, right before drawing. }
@@ -254,9 +254,9 @@ type
       @unorderedList(
         @item(All controls with DrawStyle = ds3D are drawn first,
           with projection that you set yourself. Usually you should
-          use TKamSceneManager, which sets projection automatically for you
-          to something suitable, see TKamSceneManager.ApplyProjection and
-          TVRMLGLScene.GLProjection.
+          use TCastleSceneManager, which sets projection automatically for you
+          to something suitable, see TCastleSceneManager.ApplyProjection and
+          T3DScene.GLProjection.
 
           Then all the controls with DrawStyle = ds2D are drawn.
           For them, OpenGL projection is guaranteed to be set to standard 2D
@@ -294,12 +294,12 @@ type
     { Draw a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipStyle
       to return something <> dsNone.
-      Then the TGLWindow.TooltipVisible will be detected,
+      Then the TCastleWindowBase.TooltipVisible will be detected,
       and your DrawTooltip will be called.
 
       So you can draw your tooltip either in overridden DrawTooltip,
-      and/or somewhere else when you see that TGLWindow.TooltipVisible is @true.
-      (Tooltip is always drawn for TGLWindow.Focus control.)
+      and/or somewhere else when you see that TCastleWindowBase.TooltipVisible is @true.
+      (Tooltip is always drawn for TCastleWindowBase.Focus control.)
       But in both cases, make sure to override TooltipStyle to return
       something <> dsNone.
 
@@ -314,7 +314,7 @@ type
 
     { Called always when containing window size changes.
       Also, when the control is first inserted into the window controls list
-      (like @link(TGLUIWindow.Controls)), it will also receive
+      (like @link(TCastleWindowCustom.Controls)), it will also receive
       initial ContainerResize event. So every member of of Controls list
       knows window width / height.
 
@@ -323,7 +323,7 @@ type
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
 
     { Container of this control. When adding control to container's Controls
-      list (like TGLUIWindow.Controls) container will automatically
+      list (like TCastleWindowCustom.Controls) container will automatically
       set itself here, an when removing from container this will be changed
       back to @nil.
 
@@ -365,21 +365,21 @@ type
       time. In such case, default (when DisableContextOpenClose = 0) behavior
       will often release (only to be forced to reinitialize again) OpenGL
       resources of the control. Some controls have large OpenGL
-      resources (for example TVRMLGLScene keeps display lists, textures etc.,
-      and TVRMLGLAnimation keeps all the scenes) --- so constantly
+      resources (for example T3DScene keeps display lists, textures etc.,
+      and T3DPrecalculatedAnimation keeps all the scenes) --- so constantly
       reinitializing them may eat a noticeable time.
 
       By using non-zero DisableContextOpenClose you can disable this behavior.
 
       In particular, TGLMode uses this trick, to avoid releasing and
       reinitializing OpenGL resources for controls only temporarily
-      removed from the @link(TGLUIWindow.Controls) list. }
+      removed from the @link(TCastleWindowCustom.Controls) list. }
     property DisableContextOpenClose: Cardinal
       read FDisableContextOpenClose write FDisableContextOpenClose;
 
     { Design note: ExclusiveEvents is not published now, as it's too "obscure"
       (for normal usage you don't want to deal with it). Also, it's confusing
-      on TVRMLScene, the name suggests it relates to ProcessEvents (VRML events,
+      on T3DSceneCore, the name suggests it relates to ProcessEvents (VRML events,
       totally not related to this property that is concerned with handling
       TUIControl events.) }
 
@@ -414,7 +414,7 @@ type
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
       You can also remove this from controls list (like
-      @link(TGLUIWindow.Controls)), but often it's more comfortable
+      @link(TCastleWindowCustom.Controls)), but often it's more comfortable
       to set this property to false. }
     property Exists: boolean read FExists write SetExists default true;
   end;

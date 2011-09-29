@@ -79,7 +79,7 @@ function LoadAsVRML(const filename: string;
 const
   { File filters for files loaded by LoadVRML, suitable
     for TFileFilterList.AddFiltersFromString and
-    TGLWindow.FileDialog. }
+    TCastleWindowBase.FileDialog. }
   LoadVRML_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
@@ -129,7 +129,7 @@ procedure LoadVRMLSequence(
 const
   { File filters for files loaded by LoadVRMLSequence, suitable
     for TFileFilterList.AddFiltersFromString and
-    TGLWindow.FileDialog. }
+    TCastleWindowBase.FileDialog. }
   LoadVRMLSequence_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
@@ -210,7 +210,7 @@ procedure LoadVRMLSequence(const FileName: string;
   begin
     ModelFileNames := TStringList.Create;
     try
-      TVRMLAnimation.LoadFromFileToVars(FileName, ModelFileNames, Times,
+      T3DPrecalculatedAnimationCore.LoadFromFileToVars(FileName, ModelFileNames, Times,
         ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
 
       Assert(ModelFileNames.Count = Times.Count);

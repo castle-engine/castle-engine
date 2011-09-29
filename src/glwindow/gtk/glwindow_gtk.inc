@@ -36,7 +36,7 @@
     {$endif};
 {$endif read_interface_types}
 
-{$ifdef read_tglwindow_interface}
+{$ifdef read_window_interface}
 private
   RedisplayPosted: boolean;
 
@@ -115,7 +115,7 @@ protected
     You can e.g. create in MakeGLAreaContainer some complex container,
     put there many various GTK widgets, connect your signals to them,
     and then put GLArea inside it.
-    This way using this function you can extend window TGLWindow
+    This way using this function you can extend window TCastleWindowBase
     with whatever GTK GUI you like.
 
     The only requirement is that GLArea widget must be placed
@@ -143,9 +143,9 @@ protected
 
     Example of using this can be found in examples/glwindow/test_glwindow_gtk_mix }
   function MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget; virtual;
-{$endif read_tglwindow_interface}
+{$endif read_window_interface}
 
-{$ifdef read_tglwindowmanager_interface}
+{$ifdef read_application_interface}
 private
   { used in ProcessUpdates }
   LastDoTimerTime: TMilisecTime;
@@ -154,17 +154,17 @@ private
 
   { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
-  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+  function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
   { Find in OpenWindows window with GLAreaGtk = given seekGLAreaGtk.
     Return nil if no such window is found. }
-  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+  function TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 
   { Same as TryFindWindowGtk, but exception EInternalError when
     no such window is found. }
-  function FindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+  function FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
   { Same as TryFindGLAreaGtk, but exception EInternalError when
     no such window is found. }
-  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+  function FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 
   { This must be constantly called.
     We use it for two tasks currently:
@@ -226,14 +226,14 @@ private
   {$endif GLWINDOW_GTK_2}
 public
   {$ifdef GLWINDOW_GTK_2}
-  { Set XDisplay name, this will be used for all TGLWindow
-    that will be subsequently initialized by TGLWindow.Open.
+  { Set XDisplay name, this will be used for all TCastleWindowBase
+    that will be subsequently initialized by TCastleWindowBase.Open.
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
   property XDisplayName: string read FXDisplayName write FXDisplayName;
   {$endif}
-{$endif read_tglwindowmanager_interface}
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 
@@ -685,10 +685,10 @@ procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   {$endif}
 
 var MenuItem: TMenuItem;
-    Window: TGLWindow;
+    Window: TCastleWindowBase;
 begin
  MenuItem := MenuItemFromSmallId( PtrInt(Data) );
- Window := TGLWindow( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
+ Window := TCastleWindowBase( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
  if MenuItem is TMenuItemChecked then
  begin
@@ -743,9 +743,9 @@ SIGNAL_WINDOW_BEGIN
   Result := g_false;
 SIGNAL_WINDOW_END;
 
-{ TGLWindow ------------------------------------------------------------ }
+{ TCastleWindowBase ------------------------------------------------------------ }
 
-procedure TGLWindow.SetCursor(const Value: TMouseCursor);
+procedure TCastleWindowBase.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
   begin
@@ -755,13 +755,13 @@ begin
   end;
 end;
 
-procedure TGLWindow.SetCustomCursor(const Value: TRGBAlphaImage);
+procedure TCastleWindowBase.SetCustomCursor(const Value: TRGBAlphaImage);
 begin
   FCustomCursor := Value;
   { TODO }
 end;
 
-procedure TGLWindow.UpdateCursor;
+procedure TCastleWindowBase.UpdateCursor;
 
   function CreateNoneCursor: PGdkCursor;
   const
@@ -817,7 +817,7 @@ begin
   gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[Cursor]);
 end;
 
-procedure TGLWindow.SetMousePosition(const NewMouseX, NewMouseY: Integer);
+procedure TCastleWindowBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
 begin
   {$ifdef GLWINDOW_GTK_WITH_XLIB}
   if not Closed then
@@ -827,11 +827,11 @@ begin
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
       0, 0, 0, 0, NewMouseX, NewMouseY);
   {$else}
-  raise Exception.Create('TGLWindow.SetMousePosition not implemented with GTK 1');
+  raise Exception.Create('TCastleWindowBase.SetMousePosition not implemented with GTK 1');
   {$endif}
 end;
 
-procedure TGLWindow.SwapBuffers;
+procedure TCastleWindowBase.SwapBuffers;
 begin
  {$ifdef GLWINDOW_GTK_2}
  gdk_gl_drawable_swap_buffers(GLDrawable);
@@ -840,14 +840,14 @@ begin
  {$endif}
 end;
 
-procedure TGLWindow.PostRedisplay;
+procedure TCastleWindowBase.PostRedisplay;
 begin
   { We track RedisplayPosted ourselves, without GTK gtk_widget_queue_draw.
     This makes things simpler. }
   RedisplayPosted := true;
 end;
 
-procedure TGLWindow.FlushRedisplay;
+procedure TCastleWindowBase.FlushRedisplay;
 begin
   if RedisplayPosted then
   begin
@@ -867,14 +867,14 @@ begin
   }
 end;
 
-procedure TGLWindow.SetCaption(const Value: string);
+procedure TCastleWindowBase.SetCaption(const Value: string);
 begin
  FCaption := Value;
  if not Closed then
   gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
 end;
 
-procedure TGLWindow.BackendMakeCurrent;
+procedure TCastleWindowBase.BackendMakeCurrent;
 begin
  Assert(not Closed);
 
@@ -905,12 +905,12 @@ begin
  {$endif}
 end;
 
-function TGLWindow.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
+function TCastleWindowBase.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
 begin
  Result := GTK_WIDGET(GLArea);
 end;
 
-procedure TGLWindow.OpenBackend;
+procedure TCastleWindowBase.OpenBackend;
 
 { Notes about FullScreen implementation with GTK_1:
   1) Note that Left/Top and Width/Height will already be initialized before
@@ -1189,7 +1189,7 @@ begin
                  set_default_glarea_size
 
     If FullScreen, Width/Height here should be equal to
-    Application.ScreenWidth/Height. But maybe later I will change this in TGLWindow.Open
+    Application.ScreenWidth/Height. But maybe later I will change this in TCastleWindowBase.Open
     implementation, so I do not want to depend on this. }
 
   gtk_widget_set_usize(GTK_WIDGET(WindowGtk),
@@ -1320,7 +1320,7 @@ begin
  UpdateCursor;
 end;
 
-procedure TGLWindow.CloseBackend;
+procedure TCastleWindowBase.CloseBackend;
 begin
  {$ifdef GLWINDOW_GTK_1}
  if FullScreen and FullScreenUsingOverrideRedirect then
@@ -1384,11 +1384,11 @@ begin
  end;
 end;
 
-procedure TGLWindow.CreateBackend;
+procedure TCastleWindowBase.CreateBackend;
 begin
 end;
 
-{ TGLWindow.*Dialog --------------------------------------------------- }
+{ TCastleWindowBase.*Dialog --------------------------------------------------- }
 
 type
   { Data type for GtkDialogRun (both variants).
@@ -1436,7 +1436,7 @@ begin
   Data^.Answer := ResponseId;
 end;
 
-function TGLWindow.GtkDialogRun(ADialog: PGtkWindow;
+function TCastleWindowBase.GtkDialogRun(ADialog: PGtkWindow;
   ok_button, cancel_button: PGtkWidget): boolean;
 var
   Data: TDialogData;
@@ -1469,7 +1469,7 @@ begin
   Result := Data.Answer = GTK_RESPONSE_ACCEPT;
 end;
 
-function TGLWindow.GtkDialogRun(ADialog: PGtkDialog): gint;
+function TCastleWindowBase.GtkDialogRun(ADialog: PGtkDialog): gint;
 var
   Data: TDialogData;
   Mode: TGLModeFrozenScreen;
@@ -1522,7 +1522,7 @@ begin
          (gtk_micro_version >= Micro) ));
 end;
 
-function TGLWindow.FileDialog(const Title: string; var FileName: string;
+function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
 {$ifndef GLWINDOW_GTK_1}
@@ -1709,7 +1709,7 @@ begin
 end;
 {$endif}
 
-function TGLWindow.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;
@@ -1733,7 +1733,7 @@ end;
 
 {$ifdef GLWINDOW_GTK_2}
 const
-  MessageTypeToGtk: array [TGLWindowMessageType] of TGtkMessageType =
+  MessageTypeToGtk: array [TWindowMessageType] of TGtkMessageType =
   ( GTK_MESSAGE_INFO,
     GTK_MESSAGE_WARNING,
     GTK_MESSAGE_QUESTION,
@@ -1741,7 +1741,7 @@ const
     { GTK_MESSAGE_OTHER, missing from FPC bindings } TGtkMessageType(4) );
 {$endif GLWINDOW_GTK_2}
 
-procedure TGLWindow.MessageOK(const S: string; const MessageType: TGLWindowMessageType);
+procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
 {$ifdef GLWINDOW_GTK_2}
 var
   Dialog: PGtkMessageDialog;
@@ -1753,11 +1753,11 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 {$else}
 begin
-  raise Exception.Create('TGLWindow.MessageOK not implemented with GTK 1');
+  raise Exception.Create('TCastleWindowBase.MessageOK not implemented with GTK 1');
 {$endif}
 end;
 
-function TGLWindow.MessageYesNo(const S: string; const MessageType: TGLWindowMessageType): boolean;
+function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
 {$ifdef GLWINDOW_GTK_2}
 var
   Dialog: PGtkMessageDialog;
@@ -1770,7 +1770,7 @@ begin
 {$else}
 begin
   Result := false;
-  raise Exception.Create('TGLWindow.MessageYesNo not implemented with GTK 1');
+  raise Exception.Create('TCastleWindowBase.MessageYesNo not implemented with GTK 1');
 {$endif}
 end;
 
@@ -1788,7 +1788,7 @@ procedure TGLApplication.ProcessUpdates;
   procedure GlwindowsFlushRedisplay;
   var
     I: Integer;
-    Window: TGLWindow;
+    Window: TCastleWindowBase;
   begin
     I := 0;
     while I < OpenWindowsCount do
@@ -1821,7 +1821,7 @@ begin
   GlwindowsIdleAndTimer;
 end;
 
-function TGLApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+function TGLApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
 var
   i: Integer;
 begin
@@ -1831,7 +1831,7 @@ begin
   Result := nil;
 end;
 
-function TGLApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+function TGLApplication.TryFindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 var
   i: Integer;
 begin
@@ -1841,14 +1841,14 @@ begin
   Result := nil;
 end;
 
-function TGLApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TGLWindow;
+function TGLApplication.FindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowBase;
 begin
  Result := TryFindWindowGtk(seekWindowGtk);
  if Result = nil then raise EInternalError.Create(
    'No open window with such WindowGtk found');
 end;
 
-function TGLApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TGLWindow;
+function TGLApplication.FindGLAreaGtk(seekGLAreaGtk: PGtkGLArea): TCastleWindowBase;
 begin
  Result := TryFindGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(

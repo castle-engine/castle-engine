@@ -31,7 +31,7 @@ uses VRMLScene, PropEdits, KambiLCLUtils, X3DLoad, UIControls,
   KambiGLControl, GLControls, Images, LResources;
 
 type
-  TVRMLSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)
+  TSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)
   public
     function GetFilter: String; override;
   end;
@@ -44,7 +44,7 @@ type
   TUIControlListPropertyEditor = class(TListPropertyEditor)
   end;
 
-function TVRMLSceneFileNamePropertyEditor.GetFilter: String;
+function TSceneFileNamePropertyEditor.GetFilter: String;
 var
   LCLFilter: string;
   FilterIndex: Integer;
@@ -66,12 +66,12 @@ end;
 
 procedure Register;
 begin
-  RegisterPropertyEditor(TypeInfo(AnsiString), TVRMLScene,
-    'FileName', TVRMLSceneFileNamePropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TKamGLImage,
+  RegisterPropertyEditor(TypeInfo(AnsiString), T3DSceneCore,
+    'FileName', TSceneFileNamePropertyEditor);
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImage,
     'FileName', TImageFileNamePropertyEditor);
   { TODO: crashes
-  RegisterPropertyEditor(TypeInfo(TUIControlList), TKamOpenGLControl,
+  RegisterPropertyEditor(TypeInfo(TUIControlList), TCastleControlCustom,
     'Controls', TUIControlListPropertyEditor);
   }
 end;

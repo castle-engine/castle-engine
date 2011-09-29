@@ -13,23 +13,23 @@
   ----------------------------------------------------------------------------
 }
 
-{ Octrees for fast 3D seaching in VRML shapes (TVRMLShapeOctree).
+{ Octrees for fast 3D seaching in VRML shapes (TShapeOctree).
 
-  Don't confuse it with @link(TVRMLTriangleOctree) from unit
+  Don't confuse it with @link(TTriangleOctree) from unit
   @link(VRMLTriangleOctree):
-  @link(TVRMLTriangleOctree) is an octree based on scene triangles,
-  while @link(TVRMLShapeOctree) is an octree based on scene
+  @link(TTriangleOctree) is an octree based on scene triangles,
+  while @link(TShapeOctree) is an octree based on scene
   Shapes. A scene usually has much more (e.g. 100 000, but this
   is really only an example) triangles than Shapes (e.g. 100-1000,
   but this is really only an example).
 
   If you want to work on triangle-by-triangle basis,
-  use @link(TVRMLTriangleOctree). But if you want to work with higher-level
-  objects, Shapes, use this class, @link(TVRMLShapeOctree).
+  use @link(TTriangleOctree). But if you want to work with higher-level
+  objects, Shapes, use this class, @link(TShapeOctree).
 
   This octree is the key structure to do scene culling
   (e.g. to camera frustum) on a Shape-basis, as used
-  by @link(TVRMLGLScene). }
+  by @link(T3DScene). }
 
 unit VRMLShapeOctree;
 
@@ -52,9 +52,9 @@ const
   );
 
 type
-  TVRMLShapeOctree = class;
+  TShapeOctree = class;
 
-  TVRMLShapeOctreeNode = class(TVRMLBaseTrianglesOctreeNode)
+  TShapeOctreeNode = class(TBaseTrianglesOctreeNode)
   private
     { These do the job of their counterparts (without Local prefix),
       except they do not transform resulting triangle and Intersection
@@ -66,12 +66,12 @@ type
       the result at the end, if non-nil. }
     function LocalSphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     function LocalBoxCollision(const ABox: TBox3D;
-      const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     function LocalSegmentCollision(
       out Intersection: TVector3Single;
@@ -79,9 +79,9 @@ type
       const Pos1, Pos2: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     function LocalRayCollision(
       out Intersection: TVector3Single;
@@ -89,20 +89,20 @@ type
       const Ray0, RayVector: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
     function CommonSphereLeaf(const pos: TVector3Single;
       const Radius: Single;
-      const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function CommonBoxLeaf(const ABox: TBox3D;
-      const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function CommonSegmentLeaf(
       out Intersection: TVector3Single;
@@ -110,9 +110,9 @@ type
       const pos1, pos2: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function CommonRayLeaf(
       out Intersection: TVector3Single;
@@ -120,29 +120,29 @@ type
       const Ray0, RayVector: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
   public
-    function ParentTree: TVRMLShapeOctree;
-    function ParentNode: TVRMLShapeOctreeNode;
+    function ParentTree: TShapeOctree;
+    function ParentNode: TShapeOctreeNode;
 
     function SphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function IsSphereCollision(const pos: TVector3Single;
       const Radius: Single;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function BoxCollision(const ABox: TBox3D;
-      const TriangleToIgnore: PVRMLTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function IsBoxCollision(const ABox: TBox3D;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function SegmentCollision(
@@ -151,14 +151,14 @@ type
       const Pos1, Pos2: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function IsSegmentCollision(
       const Pos1, Pos2: TVector3Single;
       const Tag: TMailboxTag;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -168,14 +168,14 @@ type
       const Ray0, RayVector: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function IsRayCollision(
       const Ray0, RayVector: TVector3Single;
       const Tag: TMailboxTag;
-      const TriangleToIgnore: PVRMLTriangle;
+      const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -185,22 +185,22 @@ type
     Visible: boolean;
   end;
 
-  TVRMLShapeOctree = class(TVRMLBaseTrianglesOctree)
+  TShapeOctree = class(TBaseTrianglesOctree)
   private
-    FShapesList: TVRMLShapeList;
+    FShapesList: TShapeList;
     FOwnsShapesList: boolean;
   protected
     function StatisticsBonus(
       const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
-      const ARootBox: TBox3D; AShapesList: TVRMLShapeList;
+      const ARootBox: TBox3D; AShapesList: TShapeList;
       AOwnsShapesList: boolean);
 
     destructor Destroy; override;
 
-    function TreeRoot: TVRMLShapeOctreeNode;
-    property ShapesList: TVRMLShapeList read FShapesList;
+    function TreeRoot: TShapeOctreeNode;
+    property ShapesList: TShapeList read FShapesList;
     property OwnsShapesList: boolean read FOwnsShapesList;
 
     procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
@@ -210,9 +210,9 @@ type
 
 implementation
 
-{ TVRMLShapeOctreeNode ---------------------------------------- }
+{ TShapeOctreeNode ---------------------------------------- }
 
-procedure TVRMLShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+procedure TShapeOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
 var
   BoxLo, BoxHi: TOctreeSubnodeIndex;
   SubnodesBox: TBox3D;
@@ -221,7 +221,7 @@ begin
   SubnodesBox := ParentTree.ShapesList[ItemIndex].BoundingBox;
 
   { We assume below that SubnodesBox is not empty.
-    Only such shapes can be added to TVRMLShapeOctree. }
+    Only such shapes can be added to TShapeOctree. }
 
   { For safety, I'm enlarging box a little, to be sure.
     This way if BoundingBox will lie exactly on one of
@@ -238,23 +238,23 @@ begin
         TreeSubNodes[B0, B1, B2].AddItem(ItemIndex);
 end;
 
-function TVRMLShapeOctreeNode.ParentTree: TVRMLShapeOctree;
+function TShapeOctreeNode.ParentTree: TShapeOctree;
 begin
-  Result := TVRMLShapeOctree(InternalParentTree);
+  Result := TShapeOctree(InternalParentTree);
 end;
 
-function TVRMLShapeOctreeNode.ParentNode: TVRMLShapeOctreeNode;
+function TShapeOctreeNode.ParentNode: TShapeOctreeNode;
 begin
-  Result := TVRMLShapeOctreeNode(InternalParentNode);
+  Result := TShapeOctreeNode(InternalParentNode);
 end;
 
-function TVRMLShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3Single;
+function TShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3Single;
   const Radius: Single;
-  const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
-  Shape: TVRMLShape;
+  Shape: TShape;
   LocalBox: TBox3D;
 begin
   { TODO: this is bad, as 1. we take box around the sphere,
@@ -276,18 +276,18 @@ begin
   end;
 end;
 
-function TVRMLShapeOctreeNode.LocalSphereCollision(const Pos: TVector3Single;
+function TShapeOctreeNode.LocalSphereCollision(const Pos: TVector3Single;
   const Radius: Single;
-  const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonSphere(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
+function TShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
   const Radius: Single;
-  const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
@@ -295,21 +295,21 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TVRMLShapeOctreeNode.IsSphereCollision(const Pos: TVector3Single;
+function TShapeOctreeNode.IsSphereCollision(const Pos: TVector3Single;
   const Radius: Single;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TVRMLShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
-  const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+function TShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
-  Shape: TVRMLShape;
+  Shape: TShape;
   LocalBox: TBox3D;
 begin
   { TODO: this is bad, as we transform this box, making larger box.
@@ -329,16 +329,16 @@ begin
   end;
 end;
 
-function TVRMLShapeOctreeNode.LocalBoxCollision(const ABox: TBox3D;
-  const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+function TShapeOctreeNode.LocalBoxCollision(const ABox: TBox3D;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonBox(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLShapeOctreeNode.BoxCollision(const ABox: TBox3D;
-  const TriangleToIgnore: PVRMLTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+function TShapeOctreeNode.BoxCollision(const ABox: TBox3D;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalBoxCollision(ABox, TriangleToIgnore,
     TrianglesToIgnoreFunc);
@@ -346,30 +346,30 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TVRMLShapeOctreeNode.IsBoxCollision(const ABox: TBox3D;
-  const TriangleToIgnore: PVRMLTriangle;
+function TShapeOctreeNode.IsBoxCollision(const ABox: TBox3D;
+  const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := LocalBoxCollision(ABox, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TVRMLShapeOctreeNode.CommonSegmentLeaf(
+function TShapeOctreeNode.CommonSegmentLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
-  Shape: TVRMLShape;
+  Shape: TShape;
   LocalPos1, LocalPos2: TVector3Single;
   ThisIntersection: TVector3Single;
   ThisIntersectionDistance: Single;
-  ThisResult: PVRMLTriangle;
+  ThisResult: PTriangle;
 begin
   Result := nil;
 
@@ -429,15 +429,15 @@ begin
   end;
 end;
 
-function TVRMLShapeOctreeNode.LocalSegmentCollision(
+function TShapeOctreeNode.LocalSegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonSegment(
     Intersection, IntersectionDistance, Pos1, Pos2,
@@ -446,15 +446,15 @@ begin
     IgnoreMarginAtStart, TrianglesToIgnoreFunc);
 end;
 
-function TVRMLShapeOctreeNode.SegmentCollision(
+function TShapeOctreeNode.SegmentCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Pos1, Pos2: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalSegmentCollision(
     Intersection, IntersectionDistance, Pos1, Pos2,
@@ -473,10 +473,10 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TVRMLShapeOctreeNode.IsSegmentCollision(
+function TShapeOctreeNode.IsSegmentCollision(
   const Pos1, Pos2: TVector3Single;
   const Tag: TMailboxTag;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
@@ -491,22 +491,22 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TVRMLShapeOctreeNode.CommonRayLeaf(
+function TShapeOctreeNode.CommonRayLeaf(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
-  Shape: TVRMLShape;
+  Shape: TShape;
   LocalRay0, LocalRayVector: TVector3Single;
   ThisIntersection: TVector3Single;
   ThisIntersectionDistance: Single;
-  ThisResult: PVRMLTriangle;
+  ThisResult: PTriangle;
 begin
   Result := nil;
 
@@ -567,15 +567,15 @@ begin
   end;
 end;
 
-function TVRMLShapeOctreeNode.LocalRayCollision(
+function TShapeOctreeNode.LocalRayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonRay(
     Intersection, IntersectionDistance, Ray0, RayVector,
@@ -584,15 +584,15 @@ begin
     TrianglesToIgnoreFunc);
 end;
 
-function TVRMLShapeOctreeNode.RayCollision(
+function TShapeOctreeNode.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PVRMLTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalRayCollision(Intersection, IntersectionDistance,
     Ray0, RayVector,
@@ -611,10 +611,10 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TVRMLShapeOctreeNode.IsRayCollision(
+function TShapeOctreeNode.IsRayCollision(
   const Ray0, RayVector: TVector3Single;
   const Tag: TMailboxTag;
-  const TriangleToIgnore: PVRMLTriangle;
+  const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
@@ -629,29 +629,29 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-{ TVRMLShapeOctree ------------------------------------------ }
+{ TShapeOctree ------------------------------------------ }
 
-constructor TVRMLShapeOctree.Create(const ALimits: TOctreeLimits;
-  const ARootBox: TBox3D; AShapesList: TVRMLShapeList;
+constructor TShapeOctree.Create(const ALimits: TOctreeLimits;
+  const ARootBox: TBox3D; AShapesList: TShapeList;
   AOwnsShapesList: boolean);
 begin
-  inherited Create(ALimits, ARootBox, TVRMLShapeOctreeNode, true);
+  inherited Create(ALimits, ARootBox, TShapeOctreeNode, true);
   FShapesList := AShapesList;
   FOwnsShapesList := AOwnsShapesList;
 end;
 
-destructor TVRMLShapeOctree.Destroy;
+destructor TShapeOctree.Destroy;
 begin
   if OwnsShapesList then FreeAndNil(FShapesList);
   inherited;
 end;
 
-function TVRMLShapeOctree.TreeRoot: TVRMLShapeOctreeNode;
+function TShapeOctree.TreeRoot: TShapeOctreeNode;
 begin
- Result := TVRMLShapeOctreeNode(InternalTreeRoot);
+ Result := TShapeOctreeNode(InternalTreeRoot);
 end;
 
-function TVRMLShapeOctree.StatisticsBonus(
+function TShapeOctree.StatisticsBonus(
   const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
 begin
  Result := nl+
@@ -668,7 +668,7 @@ begin
     [ ShapesList.Count, ItemsCount, ItemsCount / ShapesList.Count] );
 end;
 
-procedure TVRMLShapeOctree.EnumerateTriangles(
+procedure TShapeOctree.EnumerateTriangles(
   EnumerateTriangleFunc: TEnumerateTriangleFunc);
 var
   I: Integer;
@@ -678,7 +678,7 @@ begin
       EnumerateTriangleFunc);
 end;
 
-function TVRMLShapeOctree.TrianglesCount: Cardinal;
+function TShapeOctree.TrianglesCount: Cardinal;
 var
   I: Integer;
 begin

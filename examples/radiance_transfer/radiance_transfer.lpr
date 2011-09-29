@@ -35,8 +35,8 @@ type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
 
 var
-  Window: TGLUIWindow;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  Scene: T3DScene;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
   LightPos: TVector3Single;
@@ -88,7 +88,7 @@ begin
 end;
 
 type
-  TMySceneManager = class(TKamSceneManager)
+  TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromViewEverything; override;
   end;
 
@@ -121,7 +121,7 @@ var
 
 procedure UpdateViewMode; forward;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Glwin: TCastleWindowBase);
 begin
   glEnable(GL_LIGHT0);
   UpdateViewMode;
@@ -164,7 +164,7 @@ begin
     Scene.Attributes.OnRadianceTransfer := @THelper(nil).DoRadianceTransfer;
 end;
 
-procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
 begin
   case Item.IntData of
     10: ViewMode := vmNormal;
@@ -179,7 +179,7 @@ begin
   Window.PostRedisplay;
 end;
 
-procedure Idle(Glwin: TGLWindow);
+procedure Idle(Glwin: TCastleWindowBase);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
@@ -260,13 +260,13 @@ begin
 end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHigh(1);
 
   RenderParams := TBasicRenderParams.Create;
 
-  Scene := TVRMLGLScene.Create(Application);
+  Scene := T3DScene.Create(Application);
   OnWarning := @OnWarningWrite;
   Scene.Load(Parameters[1]);
 

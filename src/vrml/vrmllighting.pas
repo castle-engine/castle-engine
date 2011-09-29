@@ -33,7 +33,7 @@ uses VectorMath, VRMLNodes, VRMLTriangle, Math, KambiUtils;
   recursion 0 (i.e., actually it's a ray-caster in this case).
   Using emissiveColor in such case would almost always
   give a completely black, useless image. }
-function VRML97Emission(const IntersectNode: TVRMLTriangle;
+function VRML97Emission(const IntersectNode: TTriangle;
   LightingCalculationOn: boolean): TVector3Single;
 
 { VRML 2.0 light contribution to the specified vertex color.
@@ -73,12 +73,12 @@ function VRML97Emission(const IntersectNode: TVRMLTriangle;
   to multiply / accumulate values outside of the (0, 1) range
   during calculations. OpenGL also clamps only at the end. }
 function VRML97LightContribution(const Light: TLightInstance;
-  const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
+  const Intersection: TVector3Single; const IntersectNode: TTriangle;
   const CamPosition: TVector3Single): TVector3Single;
 
 { VRML 2.0 light contribution, without knowing the camera or full material.
   We have a 3D vertex, we know it lies on a plane with given normal,
-  and we have light information. We don't have a TVRMLTriangle reference,
+  and we have light information. We don't have a TTriangle reference,
   and we do not have any camera information. Try to calculate VRML lighting
   as close as possible to the fully correct version (see regular
   VRML97LightContribution) with this information.
@@ -126,7 +126,7 @@ implementation
 
 uses KambiWarnings;
 
-function VRML97Emission(const IntersectNode: TVRMLTriangle;
+function VRML97Emission(const IntersectNode: TTriangle;
   LightingCalculationOn: boolean): TVector3Single;
 var
   M1: TMaterialNode_1;
@@ -158,7 +158,7 @@ begin
 end;
 
 function VRML97LightContribution(const Light: TLightInstance;
-  const Intersection: TVector3Single; const IntersectNode: TVRMLTriangle;
+  const Intersection: TVector3Single; const IntersectNode: TTriangle;
   const CamPosition: TVector3Single): TVector3Single;
 {$I vrmllighting_97_lightcontribution.inc}
 

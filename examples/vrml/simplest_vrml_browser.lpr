@@ -27,23 +27,23 @@
 
   To extend this into your own game:
 
-  1. Look at all the window methods and callbacks of TGLWindow,
-     which is an ancestor of TGLUIWindow, which is an ancestor of
-     TGLWindowVRMLBrowser (that you have inside BrowserWindow variable).
+  1. Look at all the window methods and callbacks of TCastleWindowBase,
+     which is an ancestor of TCastleWindowCustom, which is an ancestor of
+     TCastleWindow (that you have inside BrowserWindow variable).
      For example: assigning your own handlers for BrowserWindow.OnKeyDown
      or BrowserWindow.OnIdle is often useful.
 
-  2. Look at TKamSceneManager methods and properties (you have TKamSceneManager
+  2. Look at TCastleSceneManager methods and properties (you have TCastleSceneManager
      instance inside BrowserWindow.SceneManager variable of this program).
 
-  3. Look at TVRMLGLScene (and it's parent, TVRMLScene) methods and properties
-     (you have TVRMLGLScene instance inside BrowserWindow.Scene
+  3. Look at T3DScene (and it's parent, T3DSceneCore) methods and properties
+     (you have T3DScene instance inside BrowserWindow.Scene
      variable of this program; the same thing is also available in
      BrowserWindow.SceneManager.MainScene).
 
   4. Finally, often it's more comfortable to just create your own
-     TKamSceneManager and TVRMLGLScene instances explicitly, using TGLUIWindow
-     (instead of TGLWindowVRMLBrowser). This way you get a little more control
+     TCastleSceneManager and T3DScene instances explicitly, using TCastleWindowCustom
+     (instead of TCastleWindow). This way you get a little more control
      and understanding of our scene manager, which is really the core
      of our engine since version 2.0. It's quite easy, see
      scene_manager_demos.lpr example.
@@ -57,7 +57,7 @@ uses KambiUtils, GLWindow, ProgressUnit, ProgressConsole,
   VRMLScene, SysUtils, KambiWarnings, KambiParameters;
 
 var
-  BrowserWindow: TGLWindowVRMLBrowser;
+  BrowserWindow: TCastleWindow;
   FileName: string = 'models' + PathDelim + 'teapot.x3dv';
 
 begin
@@ -68,7 +68,7 @@ begin
   OnWarning := @OnWarningWrite;
   Progress.UserInterface := ProgressConsoleInterface;
 
-  BrowserWindow := TGLWindowVRMLBrowser.Create(Application);
+  BrowserWindow := TCastleWindow.Create(Application);
 
   BrowserWindow.Load(FileName);
   Writeln(BrowserWindow.MainScene.Info(true, true, false));

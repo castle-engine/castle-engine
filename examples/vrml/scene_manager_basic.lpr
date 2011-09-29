@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simplest demo of using TKamSceneManager.
+{ Simplest demo of using TCastleSceneManager.
 
   For even simpler usage, you can see at simplest_vrml_browser.lpr.
   Program below explicitly creates SceneManager and Scene instances,
@@ -23,20 +23,20 @@ program scene_manager_basic;
 uses GLWindow, VRMLScene, VRMLGLScene, KambiSceneManager;
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Scene: T3DScene;
 begin
-  Scene := TVRMLGLScene.Create(Application { Owner that will free the Scene });
+  Scene := T3DScene.Create(Application { Owner that will free the Scene });
   Scene.Load('models/boxes.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  SceneManager := TKamSceneManager.Create(Application);
+  SceneManager := TCastleSceneManager.Create(Application);
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
 
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Window.Controls.Add(SceneManager);
   Window.OpenAndRun;
 end.

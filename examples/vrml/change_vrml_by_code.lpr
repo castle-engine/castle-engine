@@ -45,16 +45,16 @@ uses VectorMath, VRMLNodes, GL, GLU, GLWindow, KambiWarnings,
   KambiFilesUtils, KambiParameters, KambiStringUtils;
 
 var
-  Window: TGLUIWindow;
-  SceneManager: TKamSceneManager;
-  Scene: TVRMLGLScene;
+  Window: TCastleWindowCustom;
+  SceneManager: TCastleSceneManager;
+  Scene: T3DScene;
 
 var
   TransformBox2: TTransformNode;
   TransformBox3: TTransformNode;
   TransformBox4: TTransformNode;
 
-procedure Idle(Window: TGLWindow);
+procedure Idle(Window: TCastleWindowBase);
 begin
   { We want to keep track of current time here (for calculating rotations
     below). It's most natural to just use Scene.Time property for this.
@@ -81,12 +81,12 @@ begin
 end;
 
 begin
-  Window := TGLUIWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
 
   Parameters.CheckHigh(0);
   OnWarning := @OnWarningWrite;
 
-  Scene := TVRMLGLScene.Create(nil);
+  Scene := T3DScene.Create(nil);
   try
     Scene.Load('models' + PathDelim + 'boxes.x3dv');
     TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
@@ -97,7 +97,7 @@ begin
       'Box4Transform', true) as TTransformNode;
 
     { init SceneManager with our Scene }
-    SceneManager := TKamSceneManager.Create(Window);
+    SceneManager := TCastleSceneManager.Create(Window);
     Window.Controls.Add(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);

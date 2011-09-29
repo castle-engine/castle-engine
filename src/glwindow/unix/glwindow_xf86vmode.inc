@@ -15,7 +15,7 @@
 
 { This implements TGLApplication video resizing with XF86VMode }
 
-{$ifdef read_tglwindowmanager_interface}
+{$ifdef read_application_interface}
 private
   VideoModeChanged: boolean;
   { *ModeInfos are valid only if VideoModeChanged }
@@ -33,7 +33,7 @@ public
     renderowanego obrazu. Wiec domyslnie UseVirtualXScreen = false. }
   property UseVirtualXScreen: boolean
     read FUseVirtualXScreen write FUseVirtualXScreen default false;
-{$endif read_tglwindowmanager_interface}
+{$endif read_application_interface}
 
 {$ifdef read_implementation}
 

@@ -25,7 +25,7 @@ program test_blender_exported_hierarchy;
 
 uses SysUtils, KambiUtils, VRMLShape, VRMLScene, KambiParameters;
 
-procedure Traverse(Shape: TVRMLShape);
+procedure Traverse(Shape: TShape);
 begin
   Writeln(
     'Blender object "', Shape.BlenderObjectName, '" (VRML/X3D ', Shape.BlenderObjectNode.NodeTypeName, ') -> ' +
@@ -33,14 +33,14 @@ begin
 end;
 
 var
-  Scene: TVRMLScene;
-  SI: TVRMLShapeTreeIterator;
+  Scene: T3DSceneCore;
+  SI: TShapeTreeIterator;
 begin
-  Scene := TVRMLScene.Create(nil);
+  Scene := T3DSceneCore.Create(nil);
   try
     Scene.Load(Parameters[1], true);
 
-    SI := TVRMLShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    SI := TShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
     try
       while SI.GetNext do Traverse(SI.Current);
     finally FreeAndNil(SI) end;

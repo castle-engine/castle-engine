@@ -63,7 +63,7 @@ type
 
 var
   { global stuff }
-  Glw: TGLUIWindow;
+  Glw: TCastleWindowCustom;
   Camera: TCamera;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
@@ -91,14 +91,14 @@ var
   SpecializedGridRendering: boolean = true;
 
 type
-  TControlsNoise = class(TGLMenu)
+  TControlsNoise = class(TCastleMenu)
   public
-    OctavesSlider: TGLMenuFloatSlider;
-    AmplitudeSlider: TGLMenuFloatSlider;
-    FrequencySlider: TGLMenuFloatSlider;
-    SmoothnessSlider: TGLMenuFloatSlider;
-    HeterogeneousSlider: TGLMenuFloatSlider;
-    SeedSlider: TGLMenuIntegerSlider;
+    OctavesSlider: TCastleMenuFloatSlider;
+    AmplitudeSlider: TCastleMenuFloatSlider;
+    FrequencySlider: TCastleMenuFloatSlider;
+    SmoothnessSlider: TCastleMenuFloatSlider;
+    HeterogeneousSlider: TCastleMenuFloatSlider;
+    SeedSlider: TCastleMenuIntegerSlider;
 
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
@@ -106,14 +106,14 @@ type
 
   { For any TElevationImage except
     TElevationNoise (that has it's own TControlsNoise). }
-  TControlsImage = class(TGLMenu)
+  TControlsImage = class(TCastleMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
   end;
 
   { For any TElevation. }
-  TControlsGeneral = class(TGLMenu)
+  TControlsGeneral = class(TCastleMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
@@ -124,12 +124,12 @@ var
   ControlsNoise: TControlsNoise;
   ControlsImage: TControlsImage;
   ControlsGeneral: TControlsGeneral;
-  SubdivisionSlider: TGLMenuIntegerSlider;
-  LayersCountSlider: TGLMenuIntegerSlider;
-  ImageHeightScaleSlider: TGLMenuFloatSlider;
+  SubdivisionSlider: TCastleMenuIntegerSlider;
+  LayersCountSlider: TCastleMenuIntegerSlider;
+  ImageHeightScaleSlider: TCastleMenuFloatSlider;
 
-{ Current TGLMenu, or none, based on Elevation class and ControlsVisible. }
-function CurrentControls: TGLMenu;
+{ Current TCastleMenu, or none, based on Elevation class and ControlsVisible. }
+function CurrentControls: TCastleMenu;
 begin
   if not ControlsVisible then Exit(nil);
 
@@ -147,7 +147,7 @@ begin
     FreeAndNil(Elevation);
     Elevation := Value;
 
-    Glw.Controls.MakeSingle(TGLMenu, CurrentControls, true { before camera });
+    Glw.Controls.MakeSingle(TCastleMenu, CurrentControls, true { before camera });
 
     if Elevation is TElevationImage then
       TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
@@ -191,7 +191,7 @@ begin
   end;
 end;
 
-procedure Draw(Glwin: TGLWindow);
+procedure Draw(Glwin: TCastleWindowBase);
 
   procedure WalkCameraAboveGround;
   var
@@ -287,7 +287,7 @@ begin
   glPopAttrib;
 end;
 
-procedure Resize(Glwin: TGLWindow);
+procedure Resize(Glwin: TCastleWindowBase);
 var
   ProjectionNear: Single;
 begin
@@ -302,12 +302,12 @@ constructor TControlsNoise.Create(AOwner: TComponent);
 begin
   inherited;
 
-  OctavesSlider := TGLMenuFloatSlider.Create(0.0, 20.0, 4.0);
-  SmoothnessSlider := TGLMenuFloatSlider.Create(1.0, 10.0, 2.0);
-  HeterogeneousSlider := TGLMenuFloatSlider.Create(0.0, 2.0, 0.0);
-  AmplitudeSlider := TGLMenuFloatSlider.Create(0.1, 10.0, 1.0);
-  FrequencySlider := TGLMenuFloatSlider.Create(0.5, 10.0, 1.0);
-  SeedSlider := TGLMenuIntegerSlider.Create(0, 99, 0);
+  OctavesSlider := TCastleMenuFloatSlider.Create(0.0, 20.0, 4.0);
+  SmoothnessSlider := TCastleMenuFloatSlider.Create(1.0, 10.0, 2.0);
+  HeterogeneousSlider := TCastleMenuFloatSlider.Create(0.0, 2.0, 0.0);
+  AmplitudeSlider := TCastleMenuFloatSlider.Create(0.1, 10.0, 1.0);
+  FrequencySlider := TCastleMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  SeedSlider := TCastleMenuIntegerSlider.Create(0, 99, 0);
 
   Items.AddObject('Octaves', OctavesSlider);
   Items.AddObject('Smoothness', SmoothnessSlider);
@@ -412,7 +412,7 @@ begin
   Writeln(GLSLProgram.DebugInfo);
 end;
 
-procedure Open(Glwin: TGLWindow);
+procedure Open(Glwin: TCastleWindowBase);
 
   function LoadTexture(const FileName: string): TGLuint;
   begin
@@ -424,11 +424,11 @@ begin
   RenderElevationsOpenGL;
 
   { sliders used by both Controls* }
-  SubdivisionSlider := TGLMenuIntegerSlider.Create(1, 10, Subdivision);
+  SubdivisionSlider := TCastleMenuIntegerSlider.Create(1, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
-  LayersCountSlider := TGLMenuIntegerSlider.Create(1, 10, LayersCount);
+  LayersCountSlider := TCastleMenuIntegerSlider.Create(1, 10, LayersCount);
   LayersCountSlider.OwnedByParent := false;
-  ImageHeightScaleSlider := TGLMenuFloatSlider.Create(0.0, 2.0, 0.25);
+  ImageHeightScaleSlider := TCastleMenuFloatSlider.Create(0.0, 2.0, 0.25);
   ImageHeightScaleSlider.OwnedByParent := false;
 
   ControlsNoise := TControlsNoise.Create(nil);
@@ -455,7 +455,7 @@ begin
   GLSLProgramRegenerate;
 end;
 
-procedure Close(Glwin: TGLWindow);
+procedure Close(Glwin: TCastleWindowBase);
 begin
   FreeAndNil(GLSLProgram);
 
@@ -470,7 +470,7 @@ begin
   RenderElevationsCloseGL;
 end;
 
-procedure MenuCommand(Glwin: TGLWindow; Item: TMenuItem);
+procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
 
   procedure ExportToX3D(const FileName: string;
     const AddShadersTextures: boolean);
@@ -645,7 +645,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Glw.Controls.MakeSingle(TGLMenu, CurrentControls, true { before camera });
+        Glw.Controls.MakeSingle(TCastleMenu, CurrentControls, true { before camera });
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
@@ -754,7 +754,7 @@ begin
 end;
 
 begin
-  Glw := TGLUIWindow.Create(Application);
+  Glw := TCastleWindowCustom.Create(Application);
 
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
