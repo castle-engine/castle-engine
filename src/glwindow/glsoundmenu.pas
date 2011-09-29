@@ -32,7 +32,7 @@ type
     { Creates and adds this menu item to Menu. }
     constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu);
     function Title: string; virtual; abstract;
-    function Accessory: TCastleMenuItemAccessory; virtual;
+    function Accessory: TMenuAccessory; virtual;
     procedure Selected; virtual;
     procedure AccessoryValueChanged; virtual;
   end;
@@ -56,7 +56,7 @@ type
   { Float slider suitable for volume setting.
     Range is always [0 .. 1] and when the slider is exactly
     on 0.0 position it shows "Off". }
-  TCastleMenuVolumeSlider = class(TCastleMenuFloatSlider)
+  TCastleMenuVolumeSlider = class(TMenuFloatSlider)
     constructor Create(const AValue: Single);
     function ValueToStr(const AValue: Single): string; override;
   end;
@@ -73,7 +73,7 @@ type
     procedure RefreshAccessory;
 
     function Title: string; override;
-    function Accessory: TCastleMenuItemAccessory; override;
+    function Accessory: TMenuAccessory; override;
     procedure AccessoryValueChanged; override;
   end;
 
@@ -89,7 +89,7 @@ type
     procedure RefreshAccessory;
 
     function Title: string; override;
-    function Accessory: TCastleMenuItemAccessory; override;
+    function Accessory: TMenuAccessory; override;
     procedure AccessoryValueChanged; override;
   end;
 
@@ -106,7 +106,7 @@ begin
   FWindow := AWindow;
 end;
 
-function TCastleMenuItem.Accessory: TCastleMenuItemAccessory;
+function TCastleMenuItem.Accessory: TMenuAccessory;
 begin
   Result := nil;
 end;
@@ -177,7 +177,7 @@ begin
   Result := 'Volume';
 end;
 
-function TGLSoundVolumeMenuItem.Accessory: TCastleMenuItemAccessory;
+function TGLSoundVolumeMenuItem.Accessory: TMenuAccessory;
 begin
   Result := FSlider;
 end;
@@ -206,7 +206,7 @@ begin
   Result := 'Music volume';
 end;
 
-function TGLMusicVolumeMenuItem.Accessory: TCastleMenuItemAccessory;
+function TGLMusicVolumeMenuItem.Accessory: TMenuAccessory;
 begin
   Result := FSlider;
 end;

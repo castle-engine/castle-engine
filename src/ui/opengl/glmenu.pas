@@ -39,8 +39,8 @@ type
   TCastleMenu = class;
 
   { This is something that can be attached to some menu items of TCastleMenu.
-    For example, a slider --- see TCastleMenuSlider. }
-  TCastleMenuItemAccessory = class
+    For example, a slider --- see TMenuSlider. }
+  TMenuAccessory = class
   private
     FOwnedByParent: boolean;
   public
@@ -49,11 +49,11 @@ type
     { Return the width you will need to display yourself.
 
       Note that this will be asked only from FixItemsRectangles
-      from TCastleMenu. So for example TCastleMenuItemArgument
+      from TCastleMenu. So for example TMenuArgument
       is *not* supposed to return here something based on
-      current TCastleMenuItemArgument.Value,
+      current TMenuArgument.Value,
       because we will not query GetWidth after every change of
-      TCastleMenuItemArgument.Value. Instead, TCastleMenuItemArgument
+      TMenuArgument.Value. Instead, TMenuArgument
       should return here the width of widest possible Value. }
     function GetWidth(MenuFont: TGLBitmapFont): Integer; virtual; abstract;
 
@@ -62,7 +62,7 @@ type
     procedure Draw(const Rectangle: TRectangle); virtual; abstract;
 
     { This will be called if user will press a key when currently
-      selected item has this TCastleMenuItemAccessory.
+      selected item has this TMenuAccessory.
 
       You can use ParentMenu to call
       ParentMenu.CurrentItemAccessoryValueChanged. }
@@ -70,7 +70,7 @@ type
       ParentMenu: TCastleMenu): boolean; virtual;
 
     { This will be called if user will click mouse when currently
-      selected item has this TCastleMenuItemAccessory.
+      selected item has this TMenuAccessory.
 
       MouseX, Y passed here are in coords where MouseY goes up from the bottom
       to the top. (This is different than usual window system coords.)
@@ -106,19 +106,19 @@ type
       const Rectangle: TRectangle; ParentMenu: TCastleMenu); virtual;
 
     { Should this accessory be freed when TCastleMenu using it is freed.
-      Useful to set this to @false when you want to share one TCastleMenuItemAccessory
+      Useful to set this to @false when you want to share one TMenuAccessory
       across more than one TCastleMenu. }
     property OwnedByParent: boolean
       read FOwnedByParent write FOwnedByParent default true;
   end;
 
-  { This is TCastleMenuItemAccessory that will just display
+  { This is TMenuAccessory that will just display
     additional text (using some different color than Menu.CurrentItemColor)
     after the menu item. The intention is that the Value will be changeable
     by the user (while the basic item text remains constant).
     For example Value may describe "on" / "off" state of something,
     the name of some key currently assigned to some function etc. }
-  TCastleMenuItemArgument = class(TCastleMenuItemAccessory)
+  TMenuArgument = class(TMenuAccessory)
   private
     FMaximumValueWidth: Integer;
     FValue: string;
@@ -130,19 +130,19 @@ type
     property MaximumValueWidth: Integer
       read FMaximumValueWidth write FMaximumValueWidth;
 
-    { Calculate text width using font used by TCastleMenuItemArgument. }
+    { Calculate text width using font used by TMenuArgument. }
     class function TextWidth(const Text: string): Integer;
 
     function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
     procedure Draw(const Rectangle: TRectangle); override;
   end;
 
-  { This is like TCastleMenuItemArgument that displays boolean value
+  { This is like TMenuArgument that displays boolean value
     (as "Yes" or "No").
 
     Don't access MaximumValueWidth or inherited Value (as string)
     when using this class --- this class should handle this by itself. }
-  TCastleMenuBooleanArgument = class(TCastleMenuItemArgument)
+  TMenuBooleanArgument = class(TMenuArgument)
   private
     FBooleanValue: boolean;
     procedure SetValue(const AValue: boolean);
@@ -151,7 +151,7 @@ type
     property Value: boolean read FBooleanValue write SetValue;
   end;
 
-  TCastleMenuSlider = class(TCastleMenuItemAccessory)
+  TMenuSlider = class(TMenuAccessory)
   private
     FDisplayValue: boolean;
   protected
@@ -177,7 +177,7 @@ type
       read FDisplayValue write FDisplayValue default true;
   end;
 
-  TCastleMenuFloatSlider = class(TCastleMenuSlider)
+  TMenuFloatSlider = class(TMenuSlider)
   private
     FBeginRange: Single;
     FEndRange: Single;
@@ -207,7 +207,7 @@ type
     function ValueToStr(const AValue: Single): string; virtual;
   end;
 
-  TCastleMenuIntegerSlider = class(TCastleMenuSlider)
+  TMenuIntegerSlider = class(TMenuSlider)
   private
     FBeginRange: Integer;
     FEndRange: Integer;
@@ -483,7 +483,7 @@ type
     { @deprecated Deprecated name for Click. }
     procedure CurrentItemSelected; virtual;
 
-    { Called when the value of current accessory (TCastleMenuItemAccessory assigned
+    { Called when the value of current accessory (TMenuAccessory assigned
       to CurrentItem) will change value.
       (Which may happen due to user clicking, or pressing some keys etc.)
 
@@ -615,8 +615,8 @@ type
     { Items of this menu.
 
       Note that Objects of this class have special meaning: they must
-      be either nil or some TCastleMenuItemAccessory instance
-      (different TCastleMenuItemAccessory instance for each item).
+      be either nil or some TMenuAccessory instance
+      (different TMenuAccessory instance for each item).
       When freeing this TCastleMenu instance, note that we will also
       free all Items.Objects. }
     property Items: TStringList read FItems write SetItems;
@@ -625,7 +625,7 @@ type
       @seealso Click }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
 
-    { Called when the value of current accessory (TCastleMenuItemAccessory assigned
+    { Called when the value of current accessory (TMenuAccessory assigned
       to CurrentItem) will change value.
       @seealso AccessoryValueChanged }
     property OnAccessoryValueChanged: TNotifyEvent
@@ -755,22 +755,22 @@ begin
   ImageSliderPosition := nil;
 end;
 
-{ TCastleMenuItemAccessory ------------------------------------------------------ }
+{ TMenuAccessory ------------------------------------------------------ }
 
-constructor TCastleMenuItemAccessory.Create;
+constructor TMenuAccessory.Create;
 begin
   inherited;
   FOwnedByParent := true;
 end;
 
-function TCastleMenuItemAccessory.KeyDown(Key: TKey; C: char;
+function TMenuAccessory.KeyDown(Key: TKey; C: char;
   ParentMenu: TCastleMenu): boolean;
 begin
   { Nothing to do in this class. }
   Result := false;
 end;
 
-function TCastleMenuItemAccessory.MouseDown(
+function TMenuAccessory.MouseDown(
   const MouseX, MouseY: Integer; Button: TMouseButton;
   const Rectangle: TRectangle; ParentMenu: TCastleMenu): boolean;
 begin
@@ -778,33 +778,33 @@ begin
   Result := false;
 end;
 
-procedure TCastleMenuItemAccessory.MouseMove(const NewX, NewY: Integer;
+procedure TMenuAccessory.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
   const Rectangle: TRectangle; ParentMenu: TCastleMenu);
 begin
   { Nothing to do in this class. }
 end;
 
-{ TCastleMenuItemArgument -------------------------------------------------------- }
+{ TMenuArgument -------------------------------------------------------- }
 
-constructor TCastleMenuItemArgument.Create(const AMaximumValueWidth: Integer);
+constructor TMenuArgument.Create(const AMaximumValueWidth: Integer);
 begin
   inherited Create;
   FMaximumValueWidth := AMaximumValueWidth;
 end;
 
-class function TCastleMenuItemArgument.TextWidth(const Text: string): Integer;
+class function TMenuArgument.TextWidth(const Text: string): Integer;
 begin
   MenuFontInit;
   Result := MenuFont.TextWidth(Text);
 end;
 
-function TCastleMenuItemArgument.GetWidth(MenuFont: TGLBitmapFont): Integer;
+function TMenuArgument.GetWidth(MenuFont: TGLBitmapFont): Integer;
 begin
   Result := MaximumValueWidth;
 end;
 
-procedure TCastleMenuItemArgument.Draw(const Rectangle: TRectangle);
+procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
   MenuFontInit;
 
@@ -816,18 +816,18 @@ begin
   glPopMatrix;
 end;
 
-{ TCastleMenuBooleanArgument ----------------------------------------------------- }
+{ TMenuBooleanArgument ----------------------------------------------------- }
 
-constructor TCastleMenuBooleanArgument.Create(const AValue: boolean);
+constructor TMenuBooleanArgument.Create(const AValue: boolean);
 begin
   inherited Create(
-    Max(TCastleMenuItemArgument.TextWidth(BoolToStrYesNo[true]),
-        TCastleMenuItemArgument.TextWidth(BoolToStrYesNo[false])));
+    Max(TMenuArgument.TextWidth(BoolToStrYesNo[true]),
+        TMenuArgument.TextWidth(BoolToStrYesNo[false])));
   FBooleanValue := AValue;
   inherited Value := BoolToStrYesNo[Value];
 end;
 
-procedure TCastleMenuBooleanArgument.SetValue(const AValue: boolean);
+procedure TMenuBooleanArgument.SetValue(const AValue: boolean);
 begin
   if FBooleanValue <> AValue then
   begin
@@ -836,21 +836,21 @@ begin
   end;
 end;
 
-{ TCastleMenuSlider -------------------------------------------------------------- }
+{ TMenuSlider -------------------------------------------------------------- }
 
-constructor TCastleMenuSlider.Create;
+constructor TMenuSlider.Create;
 begin
   inherited;
   FDisplayValue := true;
 end;
 
-function TCastleMenuSlider.GetWidth(MenuFont: TGLBitmapFont): Integer;
+function TMenuSlider.GetWidth(MenuFont: TGLBitmapFont): Integer;
 begin
   ImageSliderInit;
   Result := ImageSlider.Width;
 end;
 
-procedure TCastleMenuSlider.Draw(const Rectangle: TRectangle);
+procedure TMenuSlider.Draw(const Rectangle: TRectangle);
 begin
   ImageSliderInit;
 
@@ -864,7 +864,7 @@ end;
 const
   ImageSliderPositionMargin = 2;
 
-procedure TCastleMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
+procedure TMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
   const Position: Single);
 begin
   ImageSliderInit;
@@ -880,7 +880,7 @@ begin
   glPopMatrix;
 end;
 
-function TCastleMenuSlider.XCoordToSliderPosition(
+function TMenuSlider.XCoordToSliderPosition(
   const XCoord: Single; const Rectangle: TRectangle): Single;
 begin
   { I subtract below ImageSliderPosition.Width div 2
@@ -894,7 +894,7 @@ begin
   Clamp(Result, 0, 1);
 end;
 
-procedure TCastleMenuSlider.DrawSliderText(
+procedure TMenuSlider.DrawSliderText(
   const Rectangle: TRectangle; const Text: string);
 begin
   SliderFontInit;
@@ -909,9 +909,9 @@ begin
   glPopMatrix;
 end;
 
-{ TCastleMenuFloatSlider --------------------------------------------------------- }
+{ TMenuFloatSlider --------------------------------------------------------- }
 
-constructor TCastleMenuFloatSlider.Create(
+constructor TMenuFloatSlider.Create(
   const ABeginRange, AEndRange, AValue: Single);
 begin
   inherited Create;
@@ -920,7 +920,7 @@ begin
   FValue := AValue;
 end;
 
-procedure TCastleMenuFloatSlider.Draw(const Rectangle: TRectangle);
+procedure TMenuFloatSlider.Draw(const Rectangle: TRectangle);
 begin
   inherited;
 
@@ -930,7 +930,7 @@ begin
     DrawSliderText(Rectangle, ValueToStr(Value));
 end;
 
-function TCastleMenuFloatSlider.KeyDown(Key: TKey; C: char;
+function TMenuFloatSlider.KeyDown(Key: TKey; C: char;
   ParentMenu: TCastleMenu): boolean;
 var
   ValueChange: Single;
@@ -938,7 +938,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  { TODO: TCastleMenuFloatSlider should rather get "smooth" changing of Value ? }
+  { TODO: TMenuFloatSlider should rather get "smooth" changing of Value ? }
   if Key <> K_None then
   begin
     ValueChange := (EndRange - BeginRange) / 100;
@@ -965,7 +965,7 @@ begin
   end;
 end;
 
-function TCastleMenuFloatSlider.MouseDown(
+function TMenuFloatSlider.MouseDown(
   const MouseX, MouseY: Integer; Button: TMouseButton;
   const Rectangle: TRectangle; ParentMenu: TCastleMenu): boolean;
 begin
@@ -981,7 +981,7 @@ begin
   end;
 end;
 
-procedure TCastleMenuFloatSlider.MouseMove(const NewX, NewY: Integer;
+procedure TMenuFloatSlider.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
   const Rectangle: TRectangle; ParentMenu: TCastleMenu);
 begin
@@ -993,14 +993,14 @@ begin
   end;
 end;
 
-function TCastleMenuFloatSlider.ValueToStr(const AValue: Single): string;
+function TMenuFloatSlider.ValueToStr(const AValue: Single): string;
 begin
   Result := Format('%f', [AValue]);
 end;
 
-{ TCastleMenuIntegerSlider ------------------------------------------------------- }
+{ TMenuIntegerSlider ------------------------------------------------------- }
 
-constructor TCastleMenuIntegerSlider.Create(
+constructor TMenuIntegerSlider.Create(
   const ABeginRange, AEndRange, AValue: Integer);
 begin
   inherited Create;
@@ -1009,7 +1009,7 @@ begin
   FValue := AValue;
 end;
 
-procedure TCastleMenuIntegerSlider.Draw(const Rectangle: TRectangle);
+procedure TMenuIntegerSlider.Draw(const Rectangle: TRectangle);
 begin
   inherited;
 
@@ -1019,7 +1019,7 @@ begin
     DrawSliderText(Rectangle, ValueToStr(Value));
 end;
 
-function TCastleMenuIntegerSlider.KeyDown(Key: TKey; C: char;
+function TMenuIntegerSlider.KeyDown(Key: TKey; C: char;
   ParentMenu: TCastleMenu): boolean;
 var
   ValueChange: Integer;
@@ -1032,7 +1032,7 @@ begin
     ValueChange := 1;
 
     { KeySelectItem works just like KeySliderIncrease.
-      Reasoning: see TCastleMenuFloatSlider. }
+      Reasoning: see TMenuFloatSlider. }
 
     if (Key = ParentMenu.KeySelectItem) or
        (Key = ParentMenu.KeySliderIncrease) then
@@ -1050,7 +1050,7 @@ begin
   end;
 end;
 
-function TCastleMenuIntegerSlider.XCoordToValue(
+function TMenuIntegerSlider.XCoordToValue(
   const XCoord: Single; const Rectangle: TRectangle): Integer;
 begin
   { We do additional Clamped over Round result to avoid any
@@ -1060,7 +1060,7 @@ begin
       BeginRange, EndRange)), BeginRange, EndRange);
 end;
 
-function TCastleMenuIntegerSlider.MouseDown(
+function TMenuIntegerSlider.MouseDown(
   const MouseX, MouseY: Integer; Button: TMouseButton;
   const Rectangle: TRectangle; ParentMenu: TCastleMenu): boolean;
 begin
@@ -1075,7 +1075,7 @@ begin
   end;
 end;
 
-procedure TCastleMenuIntegerSlider.MouseMove(const NewX, NewY: Integer;
+procedure TMenuIntegerSlider.MouseMove(const NewX, NewY: Integer;
   const MousePressed: TMouseButtons;
   const Rectangle: TRectangle; ParentMenu: TCastleMenu);
 begin
@@ -1086,7 +1086,7 @@ begin
   end;
 end;
 
-function TCastleMenuIntegerSlider.ValueToStr(const AValue: Integer): string;
+function TMenuIntegerSlider.ValueToStr(const AValue: Integer): string;
 begin
   Result := IntToStr(AValue);
 end;
@@ -1131,7 +1131,7 @@ begin
     for I := 0 to FItems.Count - 1 do
       if FItems.Objects[I] <> nil then
       begin
-        if TCastleMenuItemAccessory(FItems.Objects[I]).OwnedByParent then
+        if TMenuAccessory(FItems.Objects[I]).OwnedByParent then
           FItems.Objects[I].Free;
         FItems.Objects[I] := nil;
       end;
@@ -1232,7 +1232,7 @@ begin
 
     if Items.Objects[I] <> nil then
       FAccessoryRectangles.L[I].Width :=
-        TCastleMenuItemAccessory(Items.Objects[I]).GetWidth(MenuFont) else
+        TMenuAccessory(Items.Objects[I]).GetWidth(MenuFont) else
       FAccessoryRectangles.L[I].Width := 0;
 
     MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.L[I].Width);
@@ -1417,7 +1417,7 @@ begin
     glPopMatrix;
 
     if Items.Objects[I] <> nil then
-      TCastleMenuItemAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);
+      TMenuAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);
   end;
 
   if DesignerMode then
@@ -1431,7 +1431,7 @@ function TCastleMenu.KeyDown(Key: TKey; C: char): boolean;
     Result := false;
     if Items.Objects[CurrentItem] <> nil then
     begin
-      Result := TCastleMenuItemAccessory(Items.Objects[CurrentItem]).KeyDown(
+      Result := TMenuAccessory(Items.Objects[CurrentItem]).KeyDown(
         Key, C, Self);
     end;
   end;
@@ -1575,11 +1575,11 @@ begin
       CurrentItem := NewItemIndex else
     { If NewItemIndex = CurrentItem and NewItemIndex <> -1,
       then user just moves mouse within current item.
-      So maybe we should call TCastleMenuItemAccessory.MouseMove. }
+      So maybe we should call TMenuAccessory.MouseMove. }
     if (Items.Objects[CurrentItem] <> nil) and
        (PointInRectangle(MX, MY, FAccessoryRectangles.L[CurrentItem])) and
        (ItemAccessoryGrabbed = CurrentItem) then
-      TCastleMenuItemAccessory(Items.Objects[CurrentItem]).MouseMove(
+      TMenuAccessory(Items.Objects[CurrentItem]).MouseMove(
         MX, MY, Container.MousePressed,
         FAccessoryRectangles.L[CurrentItem], Self);
   end;
@@ -1608,7 +1608,7 @@ begin
      (Container.MousePressed - [Button] = []) then
   begin
     ItemAccessoryGrabbed := CurrentItem;
-    TCastleMenuItemAccessory(Items.Objects[CurrentItem]).MouseDown(
+    TMenuAccessory(Items.Objects[CurrentItem]).MouseDown(
       MX, MY, Button, FAccessoryRectangles.L[CurrentItem], Self);
     Result := ExclusiveEvents;
   end;

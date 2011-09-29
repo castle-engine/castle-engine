@@ -137,6 +137,12 @@ tvrmltriangleoctree                 TTriangleOctree
 tvrmlbasetrianglesoctreenode        TBaseTrianglesOctreeNode
 tvrmlshapeoctreenode                TShapeOctreeNode
 tvrmlwireframeeffect                TWireframeEffect
+tglmenuitemaccessory       TMenuAccessory
+tglmenuitemargument        TMenuArgument
+tglmenubooleanargument     TMenuBooleanArgument
+tglmenuslider              TMenuSlider
+tglmenufloatslider         TMenuFloatSlider
+tglmenuintegerslider       TMenuIntegerSlider
 
 ------------------------------------------------------------------------------
 3. Renames done, unit names:

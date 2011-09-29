@@ -93,12 +93,12 @@ var
 type
   TControlsNoise = class(TCastleMenu)
   public
-    OctavesSlider: TCastleMenuFloatSlider;
-    AmplitudeSlider: TCastleMenuFloatSlider;
-    FrequencySlider: TCastleMenuFloatSlider;
-    SmoothnessSlider: TCastleMenuFloatSlider;
-    HeterogeneousSlider: TCastleMenuFloatSlider;
-    SeedSlider: TCastleMenuIntegerSlider;
+    OctavesSlider: TMenuFloatSlider;
+    AmplitudeSlider: TMenuFloatSlider;
+    FrequencySlider: TMenuFloatSlider;
+    SmoothnessSlider: TMenuFloatSlider;
+    HeterogeneousSlider: TMenuFloatSlider;
+    SeedSlider: TMenuIntegerSlider;
 
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
@@ -124,9 +124,9 @@ var
   ControlsNoise: TControlsNoise;
   ControlsImage: TControlsImage;
   ControlsGeneral: TControlsGeneral;
-  SubdivisionSlider: TCastleMenuIntegerSlider;
-  LayersCountSlider: TCastleMenuIntegerSlider;
-  ImageHeightScaleSlider: TCastleMenuFloatSlider;
+  SubdivisionSlider: TMenuIntegerSlider;
+  LayersCountSlider: TMenuIntegerSlider;
+  ImageHeightScaleSlider: TMenuFloatSlider;
 
 { Current TCastleMenu, or none, based on Elevation class and ControlsVisible. }
 function CurrentControls: TCastleMenu;
@@ -302,12 +302,12 @@ constructor TControlsNoise.Create(AOwner: TComponent);
 begin
   inherited;
 
-  OctavesSlider := TCastleMenuFloatSlider.Create(0.0, 20.0, 4.0);
-  SmoothnessSlider := TCastleMenuFloatSlider.Create(1.0, 10.0, 2.0);
-  HeterogeneousSlider := TCastleMenuFloatSlider.Create(0.0, 2.0, 0.0);
-  AmplitudeSlider := TCastleMenuFloatSlider.Create(0.1, 10.0, 1.0);
-  FrequencySlider := TCastleMenuFloatSlider.Create(0.5, 10.0, 1.0);
-  SeedSlider := TCastleMenuIntegerSlider.Create(0, 99, 0);
+  OctavesSlider := TMenuFloatSlider.Create(0.0, 20.0, 4.0);
+  SmoothnessSlider := TMenuFloatSlider.Create(1.0, 10.0, 2.0);
+  HeterogeneousSlider := TMenuFloatSlider.Create(0.0, 2.0, 0.0);
+  AmplitudeSlider := TMenuFloatSlider.Create(0.1, 10.0, 1.0);
+  FrequencySlider := TMenuFloatSlider.Create(0.5, 10.0, 1.0);
+  SeedSlider := TMenuIntegerSlider.Create(0, 99, 0);
 
   Items.AddObject('Octaves', OctavesSlider);
   Items.AddObject('Smoothness', SmoothnessSlider);
@@ -424,11 +424,11 @@ begin
   RenderElevationsOpenGL;
 
   { sliders used by both Controls* }
-  SubdivisionSlider := TCastleMenuIntegerSlider.Create(1, 10, Subdivision);
+  SubdivisionSlider := TMenuIntegerSlider.Create(1, 10, Subdivision);
   SubdivisionSlider.OwnedByParent := false;
-  LayersCountSlider := TCastleMenuIntegerSlider.Create(1, 10, LayersCount);
+  LayersCountSlider := TMenuIntegerSlider.Create(1, 10, LayersCount);
   LayersCountSlider.OwnedByParent := false;
-  ImageHeightScaleSlider := TCastleMenuFloatSlider.Create(0.0, 2.0, 0.25);
+  ImageHeightScaleSlider := TMenuFloatSlider.Create(0.0, 2.0, 0.25);
   ImageHeightScaleSlider.OwnedByParent := false;
 
   ControlsNoise := TControlsNoise.Create(nil);
