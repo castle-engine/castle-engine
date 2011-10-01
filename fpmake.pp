@@ -102,7 +102,7 @@ begin
     P.Targets.AddUnit('vrmltriangle.pas');
     P.Targets.AddUnit('vrmltriangleoctree.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'vrml' + PathDelim + 'opengl');
+    P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('vrmlglanimation.pas');
     P.Targets.AddUnit('vrmlglbackground.pas');
