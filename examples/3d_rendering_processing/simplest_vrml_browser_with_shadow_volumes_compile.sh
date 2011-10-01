@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/vrml/simplest_vrml_browser_with_shadow_volumes.lpr
+fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes.lpr

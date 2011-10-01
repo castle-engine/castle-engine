@@ -2,10 +2,10 @@
 set -eu
 
 # Hack to allow calling this script from it's dir.
-if [ -f multiple_viewports.lpr ]; then
+if [ -f change_vrml_by_code_2.lpr ]; then
   cd ../../
 fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/vrml/multiple_viewports.lpr
+fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/change_vrml_by_code_2.lpr

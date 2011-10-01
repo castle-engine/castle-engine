@@ -76,7 +76,7 @@ begin
     P.Targets.AddUnit('sphericalharmonics.pas');
     P.Targets.AddUnit('triangulator.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'vrml');
+    P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('vrmllighting.pas');
     P.Targets.AddUnit('normalscalculator.pas');
     P.Targets.AddUnit('x3dload.pas');

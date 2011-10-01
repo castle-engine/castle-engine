@@ -64,7 +64,7 @@ all:
 #    to force everyone who wants to execute "make examples" to install
 #    fftw library (especially since it's really not needed by my engine,
 #    currently my fftw code is just for testing, it's not actually used
-#    by VRML engine or any game for anything).
+#    by our engine or any game for anything).
 
 EXAMPLES_BASE_NAMES := \
   examples/audio/algets \
@@ -98,25 +98,25 @@ EXAMPLES_BASE_NAMES := \
   examples/shadow_fields/shadow_fields \
   examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/terrain/terrain \
-  examples/vrml/custom_3d_object \
-  examples/vrml/triangulate_demo \
-  examples/vrml/test_blender_exported_hierarchy \
-  examples/vrml/tools/gen_light_map \
-  examples/vrml/tools/kanim_to_interpolators \
-  examples/vrml/multiple_viewports \
-  examples/vrml/demo_animation \
-  examples/vrml/fog_culling \
-  examples/vrml/plane_mirror_and_shadow \
-  examples/vrml/change_vrml_by_code \
-  examples/vrml/change_vrml_by_code_2 \
-  examples/vrml/vrml_browser_script_compiled \
-  examples/vrml/simplest_vrml_browser \
-  examples/vrml/simplest_vrml_browser_with_shadow_volumes \
-  examples/vrml/gl_primitive_performance \
-  examples/vrml/scene_manager_demos \
-  examples/vrml/scene_manager_basic \
-  examples/vrml/build_3d_object_by_code \
-  src/vrml/teapot/teapot_vrml_to_pascal
+  examples/3d_rendering_processing/custom_3d_object \
+  examples/3d_rendering_processing/triangulate_demo \
+  examples/3d_rendering_processing/test_blender_exported_hierarchy \
+  examples/3d_rendering_processing/tools/gen_light_map \
+  examples/3d_rendering_processing/tools/kanim_to_interpolators \
+  examples/3d_rendering_processing/multiple_viewports \
+  examples/3d_rendering_processing/demo_animation \
+  examples/3d_rendering_processing/fog_culling \
+  examples/3d_rendering_processing/plane_mirror_and_shadow \
+  examples/3d_rendering_processing/change_vrml_by_code \
+  examples/3d_rendering_processing/change_vrml_by_code_2 \
+  examples/3d_rendering_processing/vrml_browser_script_compiled \
+  examples/3d_rendering_processing/simplest_vrml_browser \
+  examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes \
+  examples/3d_rendering_processing/gl_primitive_performance \
+  examples/3d_rendering_processing/scene_manager_demos \
+  examples/3d_rendering_processing/scene_manager_basic \
+  examples/3d_rendering_processing/build_3d_object_by_code \
+  src/x3d/teapot/teapot_vrml_to_pascal
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
@@ -176,8 +176,8 @@ clean: cleanexamples
 # some .res files that are known to be useless
 	rm -f examples/tools/dircleaner.res \
 	      examples/lazarus/camera/camera.res \
-	      examples/vrml/triangulate_demo.res \
-	      examples/vrml/simplest_vrml_browser_with_shadow_volumes.res
+	      examples/3d_rendering_processing/triangulate_demo.res \
+	      examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes.res
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \

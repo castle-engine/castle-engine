@@ -8,4 +8,4 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f triangulate_demo.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @kambi.cfg examples/vrml/triangulate_demo.lpr
+fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/triangulate_demo.lpr

@@ -6,8 +6,8 @@
     <CompilerOptions>
       <Version Value="9"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/castlescript;../src/3d;../src/vrml/opengl/glsl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/vrml;../src/vrml/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/opengl"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/opengl"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -91,19 +91,19 @@
         <UnitName Value="NURBS"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/vrml/x3dloadinternalgeo.pas"/>
+        <Filename Value="../src/x3d/x3dloadinternalgeo.pas"/>
         <UnitName Value="X3DLoadInternalGEO"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/vrml/x3dloadinternalmd3.pas"/>
+        <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/vrml/x3dloadinternalobj.pas"/>
+        <Filename Value="../src/x3d/x3dloadinternalobj.pas"/>
         <UnitName Value="X3DLoadInternalOBJ"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/vrml/x3dloadinternal3ds.pas"/>
+        <Filename Value="../src/x3d/x3dloadinternal3ds.pas"/>
         <UnitName Value="X3DLoadInternal3DS"/>
       </Item14>
       <Item16>
@@ -386,7 +386,7 @@
         <UnitName Value="CastlePng"/>
       </Item84>
       <Item85>
-        <Filename Value="../src/vrml/x3dloadinternalutils.pas"/>
+        <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
       </Item85>
       <Item86>
@@ -534,154 +534,154 @@
         <UnitName Value="UIControls"/>
       </Item120>
       <Item121>
-        <Filename Value="../src/vrml/x3dloadinternalcollada.pas"/>
+        <Filename Value="../src/x3d/x3dloadinternalcollada.pas"/>
         <UnitName Value="X3DLoadInternalCollada"/>
       </Item121>
       <Item122>
-        <Filename Value="../src/vrml/normalscalculator.pas"/>
+        <Filename Value="../src/x3d/normalscalculator.pas"/>
         <UnitName Value="NormalsCalculator"/>
       </Item122>
       <Item123>
-        <Filename Value="../src/vrml/x3dload.pas"/>
+        <Filename Value="../src/x3d/x3dload.pas"/>
         <UnitName Value="X3DLoad"/>
       </Item123>
       <Item124>
-        <Filename Value="../src/vrml/opengl/glsl/shadow_map_common.fs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/shadow_map_common.fs.inc"/>
         <Type Value="Include"/>
       </Item124>
       <Item125>
-        <Filename Value="../src/vrml/opengl/glsl/template.fs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/template.fs.inc"/>
         <Type Value="Include"/>
       </Item125>
       <Item126>
-        <Filename Value="../src/vrml/opengl/glsl/template.vs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/template.vs.inc"/>
         <Type Value="Include"/>
       </Item126>
       <Item127>
-        <Filename Value="../src/vrml/opengl/glsl/template_add_light.glsl.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/template_add_light.glsl.inc"/>
         <Type Value="Include"/>
       </Item127>
       <Item128>
-        <Filename Value="../src/vrml/opengl/glsl/variance_shadow_map_common.fs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/variance_shadow_map_common.fs.inc"/>
         <Type Value="Include"/>
       </Item128>
       <Item129>
-        <Filename Value="../src/vrml/opengl/glsl/variance_shadow_map_generate.fs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/variance_shadow_map_generate.fs.inc"/>
         <Type Value="Include"/>
       </Item129>
       <Item130>
-        <Filename Value="../src/vrml/opengl/castlescenemanager.pas"/>
+        <Filename Value="../src/x3d/opengl/castlescenemanager.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleSceneManager"/>
       </Item130>
       <Item131>
-        <Filename Value="../src/vrml/opengl/vrmlglanimation.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlglanimation.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="VRMLGLAnimation"/>
       </Item131>
       <Item132>
-        <Filename Value="../src/vrml/opengl/vrmlglbackground.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlglbackground.pas"/>
         <UnitName Value="VRMLGLBackground"/>
       </Item132>
       <Item133>
-        <Filename Value="../src/vrml/opengl/vrmlglrenderer.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlglrenderer.pas"/>
         <UnitName Value="VRMLGLRenderer"/>
       </Item133>
       <Item134>
-        <Filename Value="../src/vrml/opengl/vrmlglrendererlights.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlglrendererlights.pas"/>
         <UnitName Value="VRMLGLRendererLights"/>
       </Item134>
       <Item135>
-        <Filename Value="../src/vrml/opengl/vrmlglrenderertextureenv.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlglrenderertextureenv.pas"/>
         <UnitName Value="VRMLGLRendererTextureEnv"/>
       </Item135>
       <Item136>
-        <Filename Value="../src/vrml/opengl/vrmlglscene.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlglscene.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="VRMLGLScene"/>
       </Item136>
       <Item137>
-        <Filename Value="../src/vrml/opengl/vrmlglrenderer_meshrenderer.inc"/>
+        <Filename Value="../src/x3d/opengl/vrmlglrenderer_meshrenderer.inc"/>
         <Type Value="Include"/>
       </Item137>
       <Item138>
-        <Filename Value="../src/vrml/opengl/vrmlshader.pas"/>
+        <Filename Value="../src/x3d/opengl/vrmlshader.pas"/>
         <UnitName Value="VRMLShader"/>
       </Item138>
       <Item139>
-        <Filename Value="../src/vrml/vrmlanimation.pas"/>
+        <Filename Value="../src/x3d/vrmlanimation.pas"/>
         <UnitName Value="VRMLAnimation"/>
       </Item139>
       <Item140>
-        <Filename Value="../src/vrml/vrmlarraysgenerator.pas"/>
+        <Filename Value="../src/x3d/vrmlarraysgenerator.pas"/>
         <UnitName Value="VRMLArraysGenerator"/>
       </Item140>
       <Item141>
-        <Filename Value="../src/vrml/vrmlarraysgenerator_x3d_geometry3d.inc"/>
+        <Filename Value="../src/x3d/vrmlarraysgenerator_x3d_geometry3d.inc"/>
         <Type Value="Include"/>
       </Item141>
       <Item142>
-        <Filename Value="../src/vrml/vrmlarraysgenerator_x3d_rendering.inc"/>
+        <Filename Value="../src/x3d/vrmlarraysgenerator_x3d_rendering.inc"/>
         <Type Value="Include"/>
       </Item142>
       <Item143>
-        <Filename Value="../src/vrml/vrmlcamerautils.pas"/>
+        <Filename Value="../src/x3d/vrmlcamerautils.pas"/>
         <UnitName Value="VRMLCameraUtils"/>
       </Item143>
       <Item144>
-        <Filename Value="../src/vrml/vrmlfields.pas"/>
+        <Filename Value="../src/x3d/vrmlfields.pas"/>
         <UnitName Value="VRMLFields"/>
       </Item144>
       <Item145>
-        <Filename Value="../src/vrml/vrmllexer.pas"/>
+        <Filename Value="../src/x3d/vrmllexer.pas"/>
         <UnitName Value="VRMLLexer"/>
       </Item145>
       <Item146>
-        <Filename Value="../src/vrml/vrmllighting.pas"/>
+        <Filename Value="../src/x3d/vrmllighting.pas"/>
         <UnitName Value="VRMLLighting"/>
       </Item146>
       <Item147>
-        <Filename Value="../src/vrml/vrmlnodes.pas"/>
+        <Filename Value="../src/x3d/vrmlnodes.pas"/>
         <UnitName Value="VRMLNodes"/>
       </Item147>
       <Item148>
-        <Filename Value="../src/vrml/vrmlnodesdetailoptions.pas"/>
+        <Filename Value="../src/x3d/vrmlnodesdetailoptions.pas"/>
         <UnitName Value="VRMLNodesDetailOptions"/>
       </Item148>
       <Item149>
-        <Filename Value="../src/vrml/vrmlraytracer.pas"/>
+        <Filename Value="../src/x3d/vrmlraytracer.pas"/>
         <UnitName Value="VRMLRayTracer"/>
       </Item149>
       <Item150>
-        <Filename Value="../src/vrml/vrmlscene.pas"/>
+        <Filename Value="../src/x3d/vrmlscene.pas"/>
         <UnitName Value="VRMLScene"/>
       </Item150>
       <Item151>
-        <Filename Value="../src/vrml/vrmlscenewaypoints.pas"/>
+        <Filename Value="../src/x3d/vrmlscenewaypoints.pas"/>
         <UnitName Value="VRMLSceneWaypoints"/>
       </Item151>
       <Item152>
-        <Filename Value="../src/vrml/vrmlshadowmaps.pas"/>
+        <Filename Value="../src/x3d/vrmlshadowmaps.pas"/>
         <UnitName Value="VRMLShadowMaps"/>
       </Item152>
       <Item153>
-        <Filename Value="../src/vrml/vrmlshape.pas"/>
+        <Filename Value="../src/x3d/vrmlshape.pas"/>
         <UnitName Value="VRMLShape"/>
       </Item153>
       <Item154>
-        <Filename Value="../src/vrml/vrmlshapeoctree.pas"/>
+        <Filename Value="../src/x3d/vrmlshapeoctree.pas"/>
         <UnitName Value="VRMLShapeOctree"/>
       </Item154>
       <Item155>
-        <Filename Value="../src/vrml/vrmltime.pas"/>
+        <Filename Value="../src/x3d/vrmltime.pas"/>
         <UnitName Value="VRMLTime"/>
       </Item155>
       <Item156>
-        <Filename Value="../src/vrml/vrmltriangle.pas"/>
+        <Filename Value="../src/x3d/vrmltriangle.pas"/>
         <UnitName Value="VRMLTriangle"/>
       </Item156>
       <Item15>
-        <Filename Value="../src/vrml/vrmltriangleoctree.pas"/>
+        <Filename Value="../src/x3d/vrmltriangleoctree.pas"/>
         <UnitName Value="VRMLTriangleOctree"/>
       </Item15>
       <Item157>

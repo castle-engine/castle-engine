@@ -8,4 +8,4 @@ fi
 
 # Call this from ../../ (or just use `make examples').
 
-fpc -dRELEASE @kambi.cfg examples/vrml/scene_manager_basic.lpr
+fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/scene_manager_basic.lpr
