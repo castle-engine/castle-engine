@@ -1138,8 +1138,6 @@ begin
         J := 0;
         while J < Trimesh3ds.FacesCount do
         begin
-          FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;
-
           IFS := TIndexedFaceSetNode.Create('', WWWBasePath);
           IFS.FdTexCoord.Value := TexCoord;
           IFS.FdCoord.Value := Coord;
@@ -1150,7 +1148,10 @@ begin
 
           Shape := TShapeNode.Create('', WWWBasePath);
           Shape.FdGeometry.Value := IFS;
-          Shape.Appearance := TAppearanceNode(Appearances[FaceMaterialNum]);
+
+          FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;
+          if FaceMaterialNum <> -1 then
+            Shape.Appearance := TAppearanceNode(Appearances[FaceMaterialNum]);
 
           Result.FdChildren.Add(Shape);
 
