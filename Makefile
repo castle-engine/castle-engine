@@ -131,6 +131,9 @@ EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
 EXAMPLES_WINDOWS_EXECUTABLES := $(addsuffix .exe,$(EXAMPLES_BASE_NAMES)) \
   $(addsuffix .exe,$(EXAMPLES_LAZARUS_BASE_NAMES))
 
+EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
+  $(addsuffix .res,$(EXAMPLES_LAZARUS_BASE_NAMES))
+
 .PHONY: examples
 examples:
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
@@ -141,7 +144,7 @@ examples-ignore-errors:
 
 .PHONY: cleanexamples
 cleanexamples:
-	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES)
+	rm -f $(EXAMPLES_UNIX_EXECUTABLES) $(EXAMPLES_WINDOWS_EXECUTABLES) $(EXAMPLES_RES_FILES)
 
 .PHONY: examples-laz
 examples-laz:
@@ -173,11 +176,6 @@ clean: cleanexamples
 	$(MAKE) -C doc/pasdoc/ clean
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
-# some .res files that are known to be useless
-	rm -f examples/tools/dircleaner.res \
-	      examples/lazarus/camera/camera.res \
-	      examples/3d_rendering_processing/triangulate_demo.res \
-	      examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes.res
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
