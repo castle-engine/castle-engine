@@ -421,6 +421,7 @@ var
       NewNode := ParseXMLNode(Element, ContainerFieldDummy, Names, false);
       NewNode.PositionInParent := PositionInParent;
       Result.FdChildren.Add(NewNode);
+      Result.WarningIfChildNotAllowed(NewNode);
     end;
 
   begin

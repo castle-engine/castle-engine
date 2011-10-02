@@ -141,6 +141,7 @@
     FMeta: TStringStringMap;
     FPrototypeNames: TVRMLPrototypeNames;
     FExportedNames: TX3DNodeNames;
+    procedure WarningIfChildNotAllowed(const Child: TX3DNode);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
 
@@ -690,6 +691,23 @@ end;
 function TX3DRootNode.SeparateGroup: boolean;
 begin
   Result := false;
+end;
+
+procedure TX3DRootNode.WarningIfChildNotAllowed(const Child: TX3DNode);
+begin
+  { We could just do here FdChildren.WarningIfChildNotAllowed(Child),
+    but the warning message of it is a little unfriendly: it uncovers
+    to user that we have a special TX3DRootNode that descends from Group node.
+    So instead, do it by hand.
+
+    Also, add LayerSet (not allowed in Group.FdChildren).
+    This is special (see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/concepts.html#Rootnodes),
+    "4.3.2 Root nodes" from X3D 3.2 spec.
+  }
+
+  if not (Supports(Child, IAbstractChildNode) or (Child is TLayerSetNode)) then
+    OnWarning(wtMajor, 'VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
+      [Child.NodeTypeName]));
 end;
 
 procedure TStaticGroupNode.CreateNode;
