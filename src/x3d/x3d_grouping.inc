@@ -141,7 +141,7 @@
     FMeta: TStringStringMap;
     FPrototypeNames: TVRMLPrototypeNames;
     FExportedNames: TX3DNodeNames;
-    procedure WarningIfChildNotAllowed(const Child: TX3DNode);
+    procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
 
@@ -693,7 +693,7 @@ begin
   Result := false;
 end;
 
-procedure TX3DRootNode.WarningIfChildNotAllowed(const Child: TX3DNode);
+procedure TX3DRootNode.TopLevelCheckChild(const Child: TX3DNode);
 begin
   { We could just do here FdChildren.WarningIfChildNotAllowed(Child),
     but the warning message of it is a little unfriendly: it uncovers

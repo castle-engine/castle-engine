@@ -288,12 +288,12 @@ end;
 
 { This parses a sequence of VRML statements: any number of nodes,
   (external) protypes, routes, import/export declarations.
-  This is good to use to parse whole VRML file,
-  or a (non-external) prototype content. }
+  This is good to use to parse whole VRML file (when FileTopLevel = true),
+  or a (non-external) prototype content (when FileTopLevel = false). }
 function ParseVRMLStatements(
   Lexer: TVRMLLexer; Names: TVRMLNames;
   const EndToken: TVRMLToken;
-  ParseX3DHeader: boolean): TX3DRootNode;
+  FileTopLevel: boolean): TX3DRootNode;
 var
   PositionInParent: Integer;
 
@@ -434,7 +434,9 @@ var
       NewNode := ParseNode(Lexer, Names, false);
       NewNode.PositionInParent := PositionInParent;
       Result.FdChildren.Add(NewNode);
-      Result.WarningIfChildNotAllowed(NewNode);
+      { for prototypes, do not check NewNode class, as anything is valid. }
+      if FileTopLevel then
+        Result.TopLevelCheckChild(NewNode);
     end;
 
   begin
@@ -477,7 +479,7 @@ begin
   try
     { Parse X3D "configuration information": profile, component and meta
       statements here. }
-    if ParseX3DHeader and (Lexer.Version.Major >= 3) then
+    if FileTopLevel and (Lexer.Version.Major >= 3) then
     begin
       ParseProfile;
       ParseComponents;

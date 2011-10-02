@@ -49,7 +49,7 @@ function ParseXMLNode(Element: TDOMElement;
   out ContainerField: string; Names: TVRMLNames;
   NilIfUnresolvedUSE: boolean): TX3DNode; forward;
 function ParseVRMLStatements(Element: TDOMElement;
-  ParseX3DHeader: boolean;
+  FileTopLevel: boolean;
   X3DHeaderElement: TDOMElement; Names: TVRMLNames): TX3DRootNode; forward;
 
 { Checks is Element a correct <connect> element, extracting
@@ -290,14 +290,15 @@ begin
 end;
 
 { This parses a sequence of X3D statements: any number of nodes,
-  (external) protypes, routes. This is good to use to parse whole VRML file,
-  or a (non-external) prototype content.
+  (external) protypes, routes.
+  This is good to use to parse whole VRML file (when FileTopLevel = true),
+  or a (non-external) prototype content (when FileTopLevel = false).
 
   It's somewhat similar to classic VRML ParseVRMLStatements.
   (Admittedly, it was even implemented by copying and modifying
   classic ParseVRMLStatements :) ). }
 function ParseVRMLStatements(Element: TDOMElement;
-  ParseX3DHeader: boolean;
+  FileTopLevel: boolean;
   X3DHeaderElement: TDOMElement; Names: TVRMLNames): TX3DRootNode;
 var
   PositionInParent: Integer;
@@ -421,7 +422,9 @@ var
       NewNode := ParseXMLNode(Element, ContainerFieldDummy, Names, false);
       NewNode.PositionInParent := PositionInParent;
       Result.FdChildren.Add(NewNode);
-      Result.WarningIfChildNotAllowed(NewNode);
+      { for prototypes, do not check NewNode class, as anything is valid. }
+      if FileTopLevel then
+        Result.TopLevelCheckChild(NewNode);
     end;
 
   begin
@@ -442,7 +445,7 @@ var
 begin
   Result := CreateRootNode;
   try
-    if ParseX3DHeader then
+    if FileTopLevel then
     begin
       ParseProfile;
       ParseComponentsAndMetas;
