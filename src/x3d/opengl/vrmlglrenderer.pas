@@ -432,10 +432,7 @@ type
           This means that "shaders", "effects" VRML/X3D fields
           are ignored, and various effects are disabled
           (like shadow maps, bump mapping, screen effects).
-
-          In this case, the renderer doesn't even enable/disable
-          any shaders, and the caller can enable some GLSL program
-          for the whole model.)
+          No GLSL program is active, we always force fixed-function pipeline.)
 
         @item(srWhenRequired Enable only for shapes that require it.
           For shapes that don't strictly require shaders
