@@ -997,6 +997,9 @@ implementation
 uses GLVersionUnit, Images, CastleLog, CastleWarnings,
   Math, RaysWindow, CastleStringUtils, RenderingCameraUnit;
 
+var
+  TemporaryShadersChange: Cardinal = 0;
+
 procedure Register;
 begin
   RegisterComponents('Kambi', [T3DScene]);
@@ -3409,32 +3412,48 @@ procedure T3DScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
   end;
 
 var
-  RestoreShaders: boolean;
-  RestoreShadersProgram: TGLSLProgram;
+  SavedShaders: TShadersRendering;
+  SavedCustomShader: TGLSLProgram;
 begin
   if Exists and (Dirty = 0) then
   begin
-    { When rendering to Variance Shadow Map, caller uses it's own shader.
-      Our own shaders must be turned off. }
-    RestoreShaders := RenderingCamera.Target = rtVarianceShadowMap;
-    if RestoreShaders then
-    begin
-      { create VarianceShadowMapsProgram if needed }
-      if VarianceShadowMapsProgram = nil then
-      begin
-        VarianceShadowMapsProgram := TGLSLProgram.Create;
-        VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram.Link(true);
-      end;
+    case RenderingCamera.Target of
+      rtVarianceShadowMap:
+        { When rendering to Variance Shadow Map, we need special shader. }
+        begin
+          { create VarianceShadowMapsProgram if needed }
+          if VarianceShadowMapsProgram = nil then
+          begin
+            VarianceShadowMapsProgram := TGLSLProgram.Create;
+            VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
+            VarianceShadowMapsProgram.Link(true);
+          end;
 
-      RestoreShadersProgram := Attributes.CustomShader;
-      Attributes.CustomShader := VarianceShadowMapsProgram;
+          SavedCustomShader := Attributes.CustomShader;
+          Attributes.CustomShader := VarianceShadowMapsProgram;
+        end;
+      rtShadowMap:
+        { When rendering to classic Shadow Map, disable shaders.
+          This makes rendering faster, and avoids problems with GLSL program using
+          the shadow map and writing to depth based on it.
+          It's also consistent with VSM. }
+        begin
+          Inc(TemporaryShadersChange);
+          SavedShaders := Attributes.Shaders;
+          Attributes.Shaders := srDisable;
+        end;
     end;
 
     RenderFrustum;
 
-    if RestoreShaders then
-      Attributes.CustomShader := RestoreShadersProgram;
+    case RenderingCamera.Target of
+      rtVarianceShadowMap: Attributes.CustomShader := SavedCustomShader;
+      rtShadowMap        :
+        begin
+          Attributes.Shaders := SavedShaders;
+          Dec(TemporaryShadersChange);
+        end;
+    end;
   end;
 end;
 
@@ -3993,14 +4012,15 @@ begin
   if Shaders <> Value then
   begin
     inherited;
-    { When swithing to a higher TShadersRendering value
+    { When switching to a higher TShadersRendering value
       (that uses more shaders), we want to force generating necessary
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
       awfully stutters for some time after changing this property. }
-    for I := 0 to FScenes.Count - 1 do
-      if FScenes[I] <> nil then
-        FScenes[I].RenderPrepared := false;
+    if TemporaryShadersChange = 0 then
+      for I := 0 to FScenes.Count - 1 do
+        if FScenes[I] <> nil then
+          FScenes[I].RenderPrepared := false;
   end;
 end;
 
