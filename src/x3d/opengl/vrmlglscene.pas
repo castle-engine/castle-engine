@@ -998,7 +998,7 @@ uses GLVersionUnit, Images, CastleLog, CastleWarnings,
   Math, RaysWindow, CastleStringUtils, RenderingCameraUnit;
 
 var
-  TemporaryShadersChange: Cardinal = 0;
+  TemporaryAttributeChange: Cardinal = 0;
 
 procedure Register;
 begin
@@ -3438,9 +3438,10 @@ begin
           the shadow map and writing to depth based on it.
           It's also consistent with VSM. }
         begin
-          Inc(TemporaryShadersChange);
+          Inc(TemporaryAttributeChange);
           SavedShaders := Attributes.Shaders;
           Attributes.Shaders := srDisable;
+          Dec(TemporaryAttributeChange);
         end;
     end;
 
@@ -3450,8 +3451,9 @@ begin
       rtVarianceShadowMap: Attributes.CustomShader := SavedCustomShader;
       rtShadowMap        :
         begin
+          Inc(TemporaryAttributeChange);
           Attributes.Shaders := SavedShaders;
-          Dec(TemporaryShadersChange);
+          Dec(TemporaryAttributeChange);
         end;
     end;
   end;
@@ -3948,7 +3950,8 @@ begin
     from OpenGL, to release screen effects (referencing renderer shaders)
     and such. So full CloseGLRenderer is needed. }
 
-  FScenes.CloseGLRenderer;
+  if TemporaryAttributeChange = 0 then
+    FScenes.CloseGLRenderer;
 end;
 
 procedure TSceneRenderingAttributes.SetBlending(const Value: boolean);
@@ -4017,7 +4020,7 @@ begin
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
       awfully stutters for some time after changing this property. }
-    if TemporaryShadersChange = 0 then
+    if TemporaryAttributeChange = 0 then
       for I := 0 to FScenes.Count - 1 do
         if FScenes[I] <> nil then
           FScenes[I].RenderPrepared := false;
