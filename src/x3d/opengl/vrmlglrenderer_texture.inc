@@ -380,7 +380,6 @@
     RenderToTexture: TGLRenderToTexture;
     { VarianceShadowMaps calculated at the PrepareCore time. }
     VarianceShadowMaps: boolean;
-    VarianceShadowMapsProgram: TGLSLProgram;
     NeedsMipmaps: boolean;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
@@ -1974,10 +1973,6 @@ begin
   begin
     GLName := Renderer.Cache.TextureFloat_IncReference(
       TextureNode, MinFilter, GL_LINEAR, TextureWrap, Size, Size, true);
-
-    VarianceShadowMapsProgram := TGLSLProgram.Create;
-    VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-    VarianceShadowMapsProgram.Link(true);
   end else
   begin
     if not GL_ARB_depth_texture then
@@ -2011,9 +2006,6 @@ begin
       Renderer.Cache.TextureDepth_DecReference(GLName);
     GLName := 0;
   end;
-
-  if VarianceShadowMapsProgram <> nil then
-    FreeAndNil(VarianceShadowMapsProgram);
 end;
 
 function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): boolean;
@@ -2073,9 +2065,7 @@ begin
         glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
         glPolygonOffset(TextureNode.FdScale.Value, TextureNode.FdBias.Value); { saved by GL_POLYGON_BIT }
 
-        if VarianceShadowMaps then VarianceShadowMapsProgram.Enable;
-          Render;
-        if VarianceShadowMaps then VarianceShadowMapsProgram.Disable;
+        Render;
 
       glPopAttrib;
 

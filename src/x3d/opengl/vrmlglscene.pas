@@ -487,6 +487,7 @@ type
     AvoidNonShadowCasterRendering: boolean;
 
     RenderPrepared: boolean;
+    VarianceShadowMapsProgram: TGLSLProgram;
 
     { Private things for RenderFrustum --------------------------------------- }
 
@@ -1455,6 +1456,9 @@ begin
       end;
     finally FreeAndNil(SI) end;
   end;
+
+  if VarianceShadowMapsProgram <> nil then
+    FreeAndNil(VarianceShadowMapsProgram);
 end;
 
 procedure T3DScene.GLContextClose;
@@ -3406,7 +3410,7 @@ procedure T3DScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
 var
   RestoreShaders: boolean;
-  RestoreShadersValue: TShadersRendering;
+  RestoreShadersProgram: TGLSLProgram;
 begin
   if Exists and (Dirty = 0) then
   begin
@@ -3415,14 +3419,22 @@ begin
     RestoreShaders := RenderingCamera.Target = rtVarianceShadowMap;
     if RestoreShaders then
     begin
-      RestoreShadersValue := Attributes.Shaders;
-      Attributes.Shaders := srDisable;
+      { create VarianceShadowMapsProgram if needed }
+      if VarianceShadowMapsProgram = nil then
+      begin
+        VarianceShadowMapsProgram := TGLSLProgram.Create;
+        VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
+        VarianceShadowMapsProgram.Link(true);
+      end;
+
+      RestoreShadersProgram := Attributes.CustomShader;
+      Attributes.CustomShader := VarianceShadowMapsProgram;
     end;
 
     RenderFrustum;
 
     if RestoreShaders then
-      Attributes.Shaders := RestoreShadersValue;
+      Attributes.CustomShader := RestoreShadersProgram;
   end;
 end;
 
