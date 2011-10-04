@@ -692,7 +692,7 @@ after view3dscene 3.0:
 - fix extensions to all be gracefully declared by EXTERNPROTO,
   post to Joerg from white_dune
 
-Using StringSensor Make it possible then to load new image file in kambi_script_edit_texture.x3dv
+Using StringSensor Make it possible then to load new image file in castle_script_edit_texture.x3dv
 
 ------------------------------------------------------------------------------
 MatrixTransform fix:

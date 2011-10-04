@@ -85,7 +85,7 @@ begin
 
   { initialize a 2nd scene, just because we can }
   Scene2 := T3DScene.Create(SceneManager);
-  Scene2.Load('models/kambi_script_particles.x3dv');
+  Scene2.Load('models/castle_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
 {  Scene2.Attributes.WireframeEffect := weWireframeOnly;} { render this as wireframe }

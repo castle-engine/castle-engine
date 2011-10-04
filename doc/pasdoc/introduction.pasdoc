@@ -229,7 +229,7 @@ units are allowed to be used by units in specific group.
   @itemLabel @code(@noAutoLink(castlescript))
   @item(
     Parsing and executing expressions and programs in CastleScript language
-    [http://castle-engine.sourceforge.net/kambi_script.php].
+    [http://castle-engine.sourceforge.net/castle_script.php].
 
     @italic(Uses:) @code(base), @code(images),
       VRML parts also use @code(vrml).)

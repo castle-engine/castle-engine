@@ -14,7 +14,7 @@
 }
 
 { @abstract(Lexer for CastleScript language, see
-  [http://castle-engine.sourceforge.net/kambi_script.php].)
+  [http://castle-engine.sourceforge.net/castle_script.php].)
 
   For specification of tokens that this lexer understands,
   see documentation of CastleScriptParser unit. }

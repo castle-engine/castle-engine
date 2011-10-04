@@ -15,7 +15,7 @@
 
 (*
   @abstract(Parser for CastleScript language, see
-  [http://castle-engine.sourceforge.net/kambi_script.php].)
+  [http://castle-engine.sourceforge.net/castle_script.php].)
 
   Can parse whole program in CastleScript language, is also prepared
   to parse only a single expression (usefull for cases when I need

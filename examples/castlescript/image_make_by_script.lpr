@@ -1,12 +1,12 @@
 { Simple program that uses CastleScript to create an image
-  [http://castle-engine.sourceforge.net/kambi_script.php].
+  [http://castle-engine.sourceforge.net/caste_script.php].
   CastleScript allows you to load an existing image, or start from scratch,
   and perform basic image processing. After the script executed,
   we will save image to file.
 
   Run with two parameters: script filename, and output image filename.
   For example
-    image_make_by_script mkimage_gradient.kscript new_image.png
+    image_make_by_script mkimage_gradient.castlescript new_image.png
 
   Within the script, you have variables:
   - result, helper_img (type image),
@@ -16,7 +16,7 @@
 
   You should make a function named "main" in the script, this will be executed.
 
-  See example scripts mkimage_.*kscript in this directory.
+  See example scripts mkimage_*.castlescript in this directory.
 }
 
 uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, Images,
