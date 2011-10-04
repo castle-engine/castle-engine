@@ -62,7 +62,7 @@ type
         all around), let's stick to Double for now.)
     )
   }
-  TKamTime = Double;
+  TFloatTime = Double;
 
 const
   OldestTime = -MaxDouble;
@@ -204,34 +204,34 @@ function ProcessTimerEnd: Double;
 
 {$ifdef MSWINDOWS}
 type
-  TKamTimerResult = Int64;
-  TKamTimerFrequency = Int64;
+  TTimerResult = Int64;
+  TTimerFrequency = Int64;
 
-function KamTimerFrequency: TKamTimerFrequency;
+function TimerFrequency: TTimerFrequency;
 {$endif MSWINDOWS}
 
 {$ifdef UNIX}
 type
-  TKamTimerResult = Int64;
-  TKamTimerFrequency = LongWord;
+  TTimerResult = Int64;
+  TTimerFrequency = LongWord;
 
 const
-  KamTimerFrequency: TKamTimerFrequency = 1000000;
+  TimerFrequency: TTimerFrequency = 1000000;
 {$endif UNIX}
 
-{ KamTimer is used to measure passed "real time". "Real" as opposed
-  to e.g. process time (see ProcessTimerNow and friends above).
-  Call KamTimer twice, calculate the difference, and you get time
-  passed --- with frequency in KamTimerFrequency.
+{ Measure passed real time. Note "real time" --- as opposed
+  to e.g. process time (for this, see ProcessTimerNow and friends above).
+  Call Timer twice, calculate the difference, and you get time
+  passed --- with frequency in TimerFrequency.
 
-  KamTimerFrequency says how much KamTimer gets larger during 1 second
+  TimerFrequency says how much Timer gets larger during 1 second
   (how many "ticks" are during one second).
 
   Implementation details: Under Unix this uses gettimeofday.
   Under Windows this uses QueryPerformanceCounter/Frequency,
   unless WinAPI "performance timer" is not available, then standard
   GetTickCount is used. }
-function KamTimer: TKamTimerResult;
+function Timer: TTimerResult;
 
 { TFramesPerSecond ----------------------------------------------------------- }
 
@@ -250,13 +250,13 @@ type
     FRealTime: Double;
     FIdleSpeed: Single;
     DoIgnoreNextIdleSpeed: boolean;
-    FIdleStartTime: TKamTimerResult;
+    FIdleStartTime: TTimerResult;
     LastRecalculateTime: TMilisecTime;
-    RenderStartTime: TKamTimerResult;
+    RenderStartTime: TTimerResult;
     { 0 means "no frame was rendered yet" }
     FramesRendered: Int64;
     { how much time passed inside frame rendering }
-    FrameTimePassed: TKamTimerResult;
+    FrameTimePassed: TTimerResult;
   public
     constructor Create;
 
@@ -312,11 +312,11 @@ type
 
       This is useful if you just came back from some lenghty
       state, like a GUI dialog box (like TCastleWindowBase.FileDialog or modal boxes
-      in GLWinMessages --- but actually all our stuff already calls this
+      in CastleMessages --- but actually all our stuff already calls this
       as needed, TGLMode takes care of this). IdleSpeed would be ridicoulously
       long in such case (if our loop is totally stopped) or not relevant
       (if we do our loop, but with totally different callbacks, like
-      GLWinMessages). Instead, it's most sensible in such case to fake
+      CastleMessages). Instead, it's most sensible in such case to fake
       that IdleSpeed is 0.0, so things such as T3DSceneCore.Time
       should not advance wildly just because we did GUI box.
 
@@ -326,7 +326,7 @@ type
     procedure IgnoreNextIdleSpeed;
 
     { Time of last idle call. }
-    property IdleStartTime: TKamTimerResult read FIdleStartTime;
+    property IdleStartTime: TTimerResult read FIdleStartTime;
   end;
 
 implementation
@@ -475,30 +475,30 @@ type
 
 var
   FTimerState: TTimerState = tsNotInitialized;
-  FKamTimerFrequency: TKamTimerFrequency;
+  FTimerFrequency: TTimerFrequency;
 
 { Set FTimerState to something <> tsNotInitialized.
-  Also set FKamTimerFrequency. }
-procedure InitKamTimer;
+  Also set FTimerFrequency. }
+procedure InitTimer;
 begin
-  if QueryPerformanceFrequency(FKamTimerFrequency) then
+  if QueryPerformanceFrequency(FTimerFrequency) then
     FTimerState := tsQueryPerformance else
   begin
     FTimerState := tsGetTickCount;
-    FKamTimerFrequency := 1000;
+    FTimerFrequency := 1000;
   end;
 end;
 
-function KamTimerFrequency: TKamTimerFrequency;
+function TimerFrequency: TTimerFrequency;
 begin
-  if FTimerState = tsNotInitialized then InitKamTimer;
+  if FTimerState = tsNotInitialized then InitTimer;
 
-  Result := FKamTimerFrequency;
+  Result := FTimerFrequency;
 end;
 
-function KamTimer: TKamTimerResult;
+function Timer: TTimerResult;
 begin
-  if FTimerState = tsNotInitialized then InitKamTimer;
+  if FTimerState = tsNotInitialized then InitTimer;
 
   if FTimerState = tsQueryPerformance then
     QueryPerformanceCounter(Result) else
@@ -507,7 +507,7 @@ end;
 {$endif MSWINDOWS}
 
 {$ifdef UNIX}
-function KamTimer: TKamTimerResult;
+function Timer: TTimerResult;
 var
   tv: TTimeval;
 begin
@@ -546,7 +546,7 @@ end;
 procedure TFramesPerSecond._RenderBegin;
 begin
   if not Active then Exit;
-  RenderStartTime := KamTimer;
+  RenderStartTime := Timer;
 end;
 
 procedure TFramesPerSecond._RenderEnd;
@@ -558,7 +558,7 @@ begin
   if not Active then Exit;
 
   Inc(FramesRendered);
-  FrameTimePassed += KamTimer - RenderStartTime;
+  FrameTimePassed += Timer - RenderStartTime;
 
   NowTime := GetTickCount;
   if NowTime - LastRecalculateTime >= TimeToRecalculate then
@@ -575,7 +575,7 @@ begin
     FRealTime := FramesRendered * 1000 / (NowTime - LastRecalculateTime);
 
     if FrameTimePassed > 0 then
-      FFrameTime := FramesRendered * KamTimerFrequency / FrameTimePassed else
+      FFrameTime := FramesRendered * TimerFrequency / FrameTimePassed else
       FFrameTime := 0;
 
     LastRecalculateTime := NowTime;
@@ -586,17 +586,17 @@ end;
 
 procedure TFramesPerSecond._IdleBegin;
 var
-  NewIdleStartTime: TKamTimerResult;
+  NewIdleStartTime: TTimerResult;
 begin
   { update FIdleSpeed, DoIgnoreNextIdleSpeed, FIdleStartTime }
-  NewIdleStartTime := KamTimer;
+  NewIdleStartTime := Timer;
 
   if DoIgnoreNextIdleSpeed then
   begin
     FIdleSpeed := 0.0;
     DoIgnoreNextIdleSpeed := false;
   end else
-    FIdleSpeed := ((NewIdleStartTime - FIdleStartTime) / KamTimerFrequency);
+    FIdleSpeed := ((NewIdleStartTime - FIdleStartTime) / TimerFrequency);
 
   FIdleStartTime := NewIdleStartTime;
 end;

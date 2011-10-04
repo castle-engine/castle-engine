@@ -61,7 +61,7 @@ type
 
     { Duration in seconds. Returns -1 if not known (DataSize or Frequency are zero,
       or DataFormat is unknown). }
-    function Duration: TKamTime;
+    function Duration: TFloatTime;
   end;
 
   TSoundFileClass = class of TSoundFile;
@@ -219,7 +219,7 @@ begin
   { Nothing to do in this class. }
 end;
 
-function TSoundFile.Duration: TKamTime;
+function TSoundFile.Duration: TFloatTime;
 var
   SampleSize: Cardinal;
 begin

@@ -116,7 +116,7 @@ var
 var
   TestSoundFileName: string;
   Device: PALCDevice;
-  IgnoredDuration: TKamTime;
+  IgnoredDuration: TFloatTime;
 begin
   {$ifdef FORCE_COMPAT}
   alCreateSources(1, @SampleSource);

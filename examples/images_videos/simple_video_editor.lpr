@@ -34,7 +34,7 @@ var
   Video: TVideo;
   VideoFileName: string;
 
-  Time: TKamTime;
+  Time: TFloatTime;
   TimePlaying: boolean = true;
 
   StatusFont: TGLBitmapFont;

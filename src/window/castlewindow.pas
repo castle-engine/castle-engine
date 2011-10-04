@@ -2435,7 +2435,7 @@ end;
     FTooltipX, FTooltipY: Integer;
     LastPositionForTooltip: boolean;
     LastPositionForTooltipX, LastPositionForTooltipY: Integer;
-    LastPositionForTooltipTime: TKamTimerResult;
+    LastPositionForTooltipTime: TTimerResult;
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
@@ -4393,7 +4393,7 @@ procedure TCastleWindowCustom.EventIdle;
 
   procedure UpdateTooltip;
   var
-    T: TKamTimerResult;
+    T: TTimerResult;
     NewTooltipVisible: boolean;
   begin
     { Update TooltipVisible and LastPositionForTooltip*.
@@ -4417,7 +4417,7 @@ procedure TCastleWindowCustom.EventIdle;
         (Focus <> nil) and
         (Focus.TooltipStyle <> dsNone) and
         ( (1000 * (T - LastPositionForTooltipTime)) div
-          KamTimerFrequency > TooltipDelay );
+          TimerFrequency > TooltipDelay );
 
     if FTooltipVisible <> NewTooltipVisible then
     begin

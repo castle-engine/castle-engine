@@ -110,18 +110,18 @@ end;
 
 procedure TTestOSSpecific.TestTimer;
 {var
-  TimerStart: TKamTimerResult;}
+  TimerStart: TTimerResult;}
 begin
 {  Writeln('Waiting 5 seconds...');
 
   ProcessTimerBegin;
-  TimerStart := KamTimer;
+  TimerStart := Timer;
   Delay(5000);
   Writeln( Format(
     'Delay(5 seconds) done,' +nl+
     'ProcessTimer reports that %f seconds elapsed,'+nl+
     'Timer reports that %f seconds elapsed.',
-    [ ProcessTimerEnd, (KamTimer - TimerStart) / KamTimerFrequency ])); }
+    [ ProcessTimerEnd, (Timer - TimerStart) / TimerFrequency ])); }
 end;
 
 procedure TTestOSSpecific.TestProgramPaths;

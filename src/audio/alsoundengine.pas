@@ -41,7 +41,7 @@ type
   TALBuffersCache = class
     FileName: string; //< Absolute (expanded) file name.
     Buffer: TALbuffer;
-    Duration: TKamTime;
+    Duration: TFloatTime;
     References: Cardinal;
   end;
   TALBuffersCacheList = specialize TFPGObjectList<TALBuffersCache>;
@@ -164,7 +164,7 @@ type
       is released only once you call FreeBuffer as many times as you called
       LoadBuffer for it.
       @groupBegin }
-    function LoadBuffer(const FileName: string; out Duration: TKamTime): TALBuffer;
+    function LoadBuffer(const FileName: string; out Duration: TFloatTime): TALBuffer;
     function LoadBuffer(const FileName: string): TALBuffer;
     { @groupEnd }
 
@@ -891,7 +891,7 @@ begin
 end;
 
 function TALSoundEngine.LoadBuffer(const FileName: string;
-  out Duration: TKamTime): TALBuffer;
+  out Duration: TFloatTime): TALBuffer;
 var
   I: Integer;
   Cache: TALBuffersCache;
@@ -931,7 +931,7 @@ end;
 
 function TALSoundEngine.LoadBuffer(const FileName: string): TALBuffer;
 var
-  Dummy: TKamTime;
+  Dummy: TFloatTime;
 begin
   Result := LoadBuffer(FileName, Dummy);
 end;

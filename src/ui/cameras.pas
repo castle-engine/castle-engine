@@ -251,8 +251,8 @@ type
     FCameraRadius: Single;
 
     Animation: boolean;
-    AnimationEndTime: TKamTime;
-    AnimationCurrentTime: TKamTime;
+    AnimationEndTime: TFloatTime;
+    AnimationCurrentTime: TFloatTime;
 
     AnimationBeginPosition: TVector3Single;
     AnimationBeginDirection: TVector3Single;
@@ -465,8 +465,8 @@ type
       how often Idle will be called.)
 
       @groupBegin }
-    procedure AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
-    procedure AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TKamTime);
+    procedure AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
+    procedure AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TFloatTime);
     { @groupEnd }
 
     { Initial camera values.
@@ -2053,7 +2053,7 @@ begin
   end;
 end;
 
-procedure TCamera.AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TKamTime);
+procedure TCamera.AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TFloatTime);
 begin
   GetView(
     AnimationBeginPosition,
@@ -2074,7 +2074,7 @@ begin
     VectorsEqual(AnimationBeginUp       , AnimationEndUp));
 end;
 
-procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TKamTime);
+procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
 var
   Pos, Dir, Up: TVector3Single;
 begin

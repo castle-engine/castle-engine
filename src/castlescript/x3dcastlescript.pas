@@ -26,7 +26,7 @@ type
   TKamScriptVRMLValueList = class(TKamScriptValueList)
   private
     FFieldOrEvents: TVRMLFieldOrEventList;
-    FLastEventTimes: TVRMLTimeList;
+    FLastEventTimes: TX3DTimeList;
     InsideAfterExecute: boolean;
   public
     constructor Create(AFreeObjects: boolean);
@@ -89,7 +89,7 @@ procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TVRMLTime);
+  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
 
 {$undef read_interface}
 
@@ -294,9 +294,9 @@ begin
 end;
 
 procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TVRMLTime);
+  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
 
-  function GetTimestamp(out Time: TVRMLTime): boolean;
+  function GetTimestamp(out Time: TX3DTime): boolean;
   begin
     { In practice, this should always return true, as script is
       run only when ProcessEvents := true, script node always has
@@ -331,7 +331,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 var
   AbortSending: boolean;
   Field: TVRMLField;
-  Time: TVRMLTime;
+  Time: TX3DTime;
   SendToEvent: TVRMLEvent;
 begin
   if Value.ValueAssigned then
@@ -494,7 +494,7 @@ constructor TKamScriptVRMLValueList.Create(AFreeObjects: boolean);
 begin
   inherited;
   FFieldOrEvents := TVRMLFieldOrEventList.Create(false);
-  FLastEventTimes := TVRMLTimeList.Create;
+  FLastEventTimes := TX3DTimeList.Create;
 end;
 
 destructor TKamScriptVRMLValueList.Destroy;
@@ -508,7 +508,7 @@ procedure TKamScriptVRMLValueList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
   inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
-  FLastEventTimes.Add(OldestVRMLTime);
+  FLastEventTimes.Add(OldestX3DTime);
 end;
 
 procedure TKamScriptVRMLValueList.BeforeExecute;
@@ -582,7 +582,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    FLastEventTimes.L[I] := OldestVRMLTime;
+    FLastEventTimes.L[I] := OldestX3DTime;
 end;
 
 end.

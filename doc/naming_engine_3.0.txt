@@ -145,6 +145,9 @@ tglmenuslider              TMenuSlider
 tglmenufloatslider         TMenuFloatSlider
 tglmenuintegerslider       TMenuIntegerSlider
 TGLMenuVolumeSlider TCastleMenuVolumeSlider
+TKamTime TFloatTime
+TVRMLTime TX3DTime
+KamTimer Timer
 ------------------------------------------------------------------------------
 3. Renames done, unit names:
 

@@ -79,7 +79,7 @@ type
     procedure alBufferData(buffer: TALuint);
 
     class procedure alBufferDataFromFile(buffer: TALuint; const FileName: string;
-      out Duration: TKamTime);
+      out Duration: TFloatTime);
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -244,7 +244,7 @@ begin
 end;
 
 class procedure TALSoundFile.alBufferDataFromFile(buffer: TALuint;
-  const FileName: string; out Duration: TKamTime);
+  const FileName: string; out Duration: TFloatTime);
 var
   F: TSoundFile;
   FAL: TALSoundFile;

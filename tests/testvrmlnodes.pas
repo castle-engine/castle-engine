@@ -1303,7 +1303,7 @@ procedure TTestVRMLNodes.TestTimeDependentNodeHandlerAvailable;
   procedure CheckTimeDependentNodeHandler(N: TX3DNode);
   var
     B: boolean;
-    C: TKamTime;
+    C: TFloatTime;
   begin
     { CheckTimeDependentNodeHandler is a separate procedure,
       to limit lifetime of temporary IAbstractTimeDependentNode,
