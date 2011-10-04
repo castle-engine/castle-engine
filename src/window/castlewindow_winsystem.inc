@@ -194,7 +194,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
     {$endif}
 
     {$ifdef CASTLE_WINDOW_XLIB}
-    evtype := event.{$ifdef DELPHI} xtype {$else} _type {$endif};
+    evtype := event._type;
     case evtype of
       MappingNotify: XRefreshKeyboardMapping(@event);
       else
@@ -202,7 +202,7 @@ function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
         { zdarzenia ktore sa skierowane do konkretnego TCastleWindowBase }
         { sprawdzamy czy okienko jest na liscie Application.OpenWindows, przy okazji
           zamieniajac windowXID na obiekt klasy TCastleWindowBase. }
-        Window := Application.FindWindowXID(event.xany. {$ifdef DELPHI} xwindow {$else} window {$endif});
+        Window := Application.FindWindowXID(event.xany.window);
         if Window <> nil then
           case evtype of
             Expose: { XExposeEvent }

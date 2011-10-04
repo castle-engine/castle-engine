@@ -18,17 +18,6 @@
 
 {$ifdef read_interface}
 
-  {$define PTRINT_DEFINED}
-  {$ifdef DELPHI} {$undef PTRINT_DEFINED} {$endif}
-  {$ifdef VER1_0} {$undef PTRINT_DEFINED} {$endif}
-
-  {$ifndef PTRINT_DEFINED}
-type
-  { Under Delphi and FPC 1.0.x my code can run only on i386. }
-  PtrInt = LongInt;
-  PtrUInt = LongWord;
-  {$endif}
-
 { Pointer arithmetic. Will wrap over if you add too much. Add may be negative.
   This is just a shortcut for @code(PtrInt(Result) := PtrInt(P)+Add),
   without any range / overflow checks. }
@@ -59,11 +48,6 @@ function IsMemWordFilled(const Data; Size: Integer; Value: Word): boolean;
   Size if the number of dwords (not bytes), this is consequent
   with Size parameter from FillDWord from FPC's RTL. }
 function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
-
-{$ifdef DELPHI}
-{ FillDWord for compatibility with FPC. }
-procedure FillDWord(var X; Count: PtrInt; Value: DWord);
-{$endif}
 
 {$endif read_interface}
 
@@ -183,19 +167,5 @@ begin
  end;
  Result := true;
 end;
-
-{$ifdef DELPHI}
-procedure FillDWord(var X; Count: PtrInt; Value: DWord);
-var P: PDWord;
-    i: Integer;
-begin
- P := @X;
- for i := 1 to Count do
- begin
-  P^ := Value;
-  Inc(P);
- end;
-end;
-{$endif}
 
 {$endif read_implementation}

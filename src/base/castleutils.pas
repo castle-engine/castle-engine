@@ -94,9 +94,7 @@ uses
   {$ifdef MSWINDOWS}
     Windows, {$ifdef DELPHI} Messages, Types, ShellAPI, {$endif}
   {$endif}
-  {$ifdef UNIX}
-    {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
-  {$endif}
+  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
   Variants, SysUtils, Math, FGL;
 
 {$define read_interface}
@@ -108,8 +106,8 @@ type
   TIsSmallerFunc = function (const A, B, Data: Pointer): boolean;
   TIsSmallerFuncByObject = function (const A, B: Pointer): boolean of object;
 
-  Float = {$ifdef DELPHI} Extended {$else} Math.Float {$endif};
-  PFloat = {$ifdef DELPHI} PExtended {$else} Math.PFloat {$endif};
+  Float = Math.Float;
+  PFloat = Math.PFloat;
 
   PCardinal = ^Cardinal;
   PLongWord = ^LongWord;

@@ -3496,8 +3496,6 @@ function LoadImage(const filename: string;
 var
   f: TStream;
 begin
-  {$ifdef DELPHI} Result := nil; { <- only to avoid stupid warning } {$endif}
-
   try
     { Even CreateReadFileStream may already raise an exception if FileName
       points to a directory. }

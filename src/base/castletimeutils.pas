@@ -21,12 +21,8 @@ unit CastleTimeUtils;
 interface
 
 uses
-  {$ifdef MSWINDOWS}
-    Windows,
-  {$endif}
-  {$ifdef UNIX}
-    {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, Dl, {$endif}
-  {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
+  {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
   SysUtils, Math;
 
 type
@@ -142,23 +138,19 @@ const
     @seealso ProcessTimerNow }
   ProcessTimersPerSec
     {$ifdef UNIX}
-      {$ifdef USE_LIBC}
-        : function: clock_t = Libc.CLK_TCK
-      {$else}
-        = { What is the frequency of FpTimes ?
-            sysconf (_SC_CLK_TCK) ?
-            Or does sysconf exist only in Libc ? }
-          { Values below were choosen experimentally for Linux and FreeBSD
-            (and I know that on most UNIXes it should be 128, that's
-            a traditional value) }
-          {$ifdef LINUX} 100 {$else}
-            {$ifdef DARWIN}
-              { In /usr/include/ppc/_limits.h and
-                   /usr/include/i386/_limits.h
-                __DARWIN_CLK_TCK is defined to 100. }
-              100 {$else}
-                128 {$endif} {$endif}
-      {$endif}
+      = { What is the frequency of FpTimes ?
+          sysconf (_SC_CLK_TCK) ?
+          Or does sysconf exist only in Libc ? }
+        { Values below were choosen experimentally for Linux and FreeBSD
+          (and I know that on most UNIXes it should be 128, that's
+          a traditional value) }
+        {$ifdef LINUX} 100 {$else}
+          {$ifdef DARWIN}
+            { In /usr/include/ppc/_limits.h and
+                 /usr/include/i386/_limits.h
+              __DARWIN_CLK_TCK is defined to 100. }
+            100 {$else}
+              128 {$endif} {$endif}
     {$endif}
     {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif};
 
@@ -377,9 +369,7 @@ begin result := t1-t2 end;
 function GetTickCount: TMilisecTime;
 var timeval: TTimeVal;
 begin
- {$ifdef USE_LIBC} gettimeofday(timeval, nil)
- {$else}           FpGettimeofday(@timeval, nil)
- {$endif};
+ FpGettimeofday(@timeval, nil);
 
  { Odrzucamy najbardziej znaczace cyfry z x -- i dobrze, bo w
    timeval.tv_sec najbardziej znaczace cyfry sa najmniej wazne bo najrzadziej
@@ -432,7 +422,7 @@ begin
 
    This is not FPC bug as I tested this with C program too. }
 
- Result := {$ifdef USE_LIBC} times {$else} FpTimes {$endif} (Dummy);
+ Result := FpTimes(Dummy);
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
@@ -511,9 +501,7 @@ function Timer: TTimerResult;
 var
   tv: TTimeval;
 begin
-  {$ifdef USE_LIBC} gettimeofday(tv, nil)
-  {$else}           FpGettimeofday(@tv, nil)
-  {$endif};
+  FpGettimeofday(@tv, nil);
 
   { w Int64 zmiesci sie cale TTimeval bez obcinania.
     Robie tylko odpowiednie casty na zapas zeby na pewno liczyl wszystko

@@ -17,9 +17,10 @@
 
 { I don't ever use RaiseLastOSError or OSCheck or EOSError,
   instead I'm using my own EKambiOSError, KambiOSCheck, RaiseLastKambiOSError.
-  This is the safest way when trying to be compatible with FPC 1.0.x, 1.9.x
-  and Windows Delphi. And when I want to have possibility to use Libc unit,
-  at least under Linux, preferably also under other UNIXes. }
+
+  This was the safest way to be compatible with FPC 1.0.x, 1.9.x,
+  and Windows Delphi, optional Libc unit under Unix.
+  This reason is not important now. }
 
 {$ifdef read_interface}
 
@@ -35,8 +36,7 @@ type
 { OS error code. From
   @unorderedList(
     @itemSpacing Compact
-    @item BaseUnix.ErrNo under UNIXes when USE_LIBC not defined
-    @item Libc.ErrNo under UNIXes when USE_LIBC is defined
+    @item BaseUnix.ErrNo under UNIXes
     @item Windows.GetLastError under Windows
   ) }
 function LastKambiOSError: LongWord;
@@ -80,9 +80,7 @@ end;
 function LastKambiOSError: LongWord;
 begin
  Result:=
-   {$ifdef UNIX}
-     {$ifdef USE_LIBC} Libc.ErrNo {$else} BaseUnix.ErrNo {$endif}
-   {$endif UNIX}
+   {$ifdef UNIX} BaseUnix.ErrNo {$endif}
    {$ifdef MSWINDOWS} Windows.GetLastError {$endif} ;
 end;
 

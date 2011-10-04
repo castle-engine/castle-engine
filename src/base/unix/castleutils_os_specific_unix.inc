@@ -32,9 +32,7 @@ begin
  NewLength := 100;
  repeat
   SetLength(Result, NewLength);
-  ReadLinkResult :=
-    {$ifdef USE_LIBC} Libc.readlink {$else} FpReadlink {$endif}
-      (PChar(FileName), Pointer(Result), NewLength);
+  ReadLinkResult := FpReadlink(PChar(FileName), Pointer(Result), NewLength);
 
   KambiOSCheck( ReadLinkResult <> -1, 'readlink' );
 

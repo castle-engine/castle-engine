@@ -202,15 +202,8 @@
   entirely avoid calculating the actual collision point
   (@code(Ray0 + T * RayVector)).
 
-  This unit compiles with FPC and Delphi. But it will miss
-  most things when compiled with Delphi. Because it compiles with Delphi,
-  Images unit (that depends on some simplest things from this unit)
-  can be compiled with Delphi too.
-
-  This unit, when compiled with FPC, will contain some stuff useful
-  for integration with FPC's Matrix unit.
-  The idea is to integrate in the future this unit with FPC's Matrix unit
-  much more. For now, there are some "glueing" functions here like
+  Contains some stuff useful for integration with FPC's Matrix unit.
+  For now, there are some "glueing" functions here like
   Vector_Get_Normalized that allow you to comfortably
   perform operations on Matrix unit object types.
   Most important is also the overload of ":=" operator that allows

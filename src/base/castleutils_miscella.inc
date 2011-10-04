@@ -20,12 +20,6 @@
 { OS constants ---------------------------------------- }
 
 const
-  {$ifdef DELPHI}
-    { }
-    LineEnding = {$ifdef UNIX}  #10 {$endif}
-                 {$ifdef MSWINDOWS} #13#10 {$endif} ;
-  {$endif}
-
   { New line. Short name for LineEnding. }
   NL = LineEnding;
 

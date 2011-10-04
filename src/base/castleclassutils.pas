@@ -41,7 +41,6 @@
 unit CastleClassUtils;
 
 {$I castleconf.inc}
-{$ifdef DELPHI} {$warn SYMBOL_PLATFORM OFF} {$endif}
 
 interface
 
@@ -646,12 +645,8 @@ procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 
 implementation
 
-uses
-  {$ifdef UNIX}
-    {$ifdef USE_LIBC} Libc {$else} Unix {$endif}
-  {$endif}
-  {$ifdef MSWINDOWS} Windows {$endif}
-  , StrUtils, CastleFilesUtils;
+uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
+  StrUtils, CastleFilesUtils;
 
 { TTextReader ---------------------------------------------------------------- }
 

@@ -222,11 +222,7 @@ begin
  try
   KambiOSCheck(
     {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
-    {$ifdef UNIX}
-      {$ifdef USE_LIBC} Libc.__rename('some_not_existing_file_name', 'foo') <> -1
-      {$else}           FpRename('some_not_existing_file_name', 'foo') <> -1
-      {$endif}
-    {$endif UNIX}
+    {$ifdef UNIX} FpRename('some_not_existing_file_name', 'foo') <> -1 {$endif}
     );
   raise Exception.Create('uups ! KambiOSCheck failed !');
  except

@@ -99,7 +99,7 @@ var
   should @italic(never) exit with exception. Because such exception
   (because of Delphi stupidity ?) shows ugly Windows
   dialog box saying something like "Program exited unexpectedly,
-  contain with author etc. bullshit". There is no way for me to avoid
+  contact with author etc. bullshit". There is no way for me to avoid
   this dialog box, even by my own ExceptProc. }
 procedure HaltOnException(proc: TProcedure; HaltCode: integer); overload;
 procedure HaltOnException(proc: TProcedure); overload;
@@ -197,31 +197,17 @@ end;
 procedure HaltOnException(proc: TProcedure);
 begin HaltOnException(proc, HaltCodeOnException); end;
 
-{$ifdef DELPHI}
-type TExceptProc = procedure(ExceptObject: TObject; ExceptAddr: Pointer);
-var ExceptProc: TExceptProc absolute System.ExceptProc;
-{$endif}
 var OldExceptProc: TExceptProc;
 
 procedure CastleUtils_ExceptProc(ExceptObject: TObject;
-  ExceptAddr: Pointer
-  {$ifdef FPC}
-    {$ifdef VER1_9_6} ; Frame: Pointer
-    {$else} ; FrameCount: Longint; Frame: PPointer
-    {$endif}
-  {$endif});
+  ExceptAddr: Pointer; FrameCount: Longint; Frame: PPointer);
 begin
  if ExceptObject is BreakProgram then
   Halt(BreakProgram(ExceptObject).HaltCode);
 
  OutputException(ExceptObject, ExceptAddr);
  {$ifdef DEBUG}
- OldExceptProc(ExceptObject, ExceptAddr
-   {$ifdef FPC}
-     {$ifdef VER1_9_6} ,Frame
-     {$else} ,FrameCount, Frame
-     {$endif}
-   {$endif});
+ OldExceptProc(ExceptObject, ExceptAddr, FrameCount, Frame);
  {$else}
  Halt(HaltCodeOnException);
  {$endif}

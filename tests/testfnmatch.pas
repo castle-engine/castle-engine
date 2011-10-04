@@ -46,21 +46,15 @@ implementation
 }
 
 uses
-  {$ifdef VER1_0} Linux {$else} UnixUtil {$endif}
-  {$ifdef USE_LIBC}, Libc {$endif};
+  UnixUtil, Libc;
 
 procedure TTestFNMatch.TestFNMatch;
 
   procedure CheckMatch(const Pattern, Name: string; GoodResult: boolean);
   var UnixUtilResult, LibcResult: boolean;
   begin
-   UnixUtilResult:=
-     {$ifdef VER1_0} Linux {$else} UnixUtil {$endif} .FNMatch(Pattern, Name);
-   {$ifdef USE_LIBC}
+   UnixUtilResult := UnixUtil.FNMatch(Pattern, Name);
    LibcResult := Libc.FNMatch(PChar(Pattern), PChar(Name), 0) = 0;
-   {$else}
-   LibcResult := UnixUtilResult; { just fake LibcResult as UnixUtilResult }
-   {$endif}
 
    { We have 3 results. All should be equal. }
    Assert(UnixUtilResult = LibcResult);

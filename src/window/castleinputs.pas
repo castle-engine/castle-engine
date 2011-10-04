@@ -139,10 +139,10 @@ function Input(Window: TCastleWindowBase;
   ReadBuffer: TGLenum; FlushWindow: boolean;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
-  AnswerDefault: string {$ifdef DEFPARS} = ''{$endif};
-  MinLength: Integer {$ifdef DEFPARS} = 0{$endif};
-  MaxLength: Integer {$ifdef DEFPARS} = 0{$endif};
-  const AnswerAllowedChars: TSetOfChars {$ifdef DEFPARS} = AllChars{$endif}
+  AnswerDefault: string = '';
+  MinLength: Integer = 0;
+  MaxLength: Integer = 0;
+  const AnswerAllowedChars: TSetOfChars = AllChars
   ): string;
 var
   SavedMode: TGLMode;

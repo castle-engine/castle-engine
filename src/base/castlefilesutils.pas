@@ -30,11 +30,8 @@ unit CastleFilesUtils;
 
 interface
 
-uses
-  {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX}
-    {$ifdef USE_LIBC} Libc, {$else} BaseUnix, Unix, {$endif}
-  {$endif}
+uses {$ifdef MSWINDOWS} Windows, {$endif}
+  {$ifdef UNIX} BaseUnix, Unix, {$endif}
   SysUtils, CastleUtils;
 
 type
@@ -58,18 +55,6 @@ type
   this may work, but still you should be always prepared that it
   may raise @link(EExeNameNotAvailable). }
 function ExeName: string;
-
-{$ifdef DELPHI}
-{ This is copied from FPC RTL. }
-{ See FPC ApplicationName documentation. }
-Function ApplicationName : String;
-
-Type
-  TGetAppNameEvent  = Function : String;
-
-Var
-  OnGetApplicationName : TGetAppNameEvent;
-{$endif}
 
 { @italic(Something like) the basename of our executable file.
   This does not contain path and extension of our executable.
@@ -379,7 +364,7 @@ function TryFileCopy(const SourceFileName, DestFileName: string; CanOverwrite: b
 
   TODO: moving dirs is actually not implemented
   (well, sometimes may work but not generally). Use only for files now. }
-procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean {$ifdef DEFPARS}=False{$endif}); overload;
+procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean = false); overload;
 
 { Change directory, raising exception if not possible.
   NewDir may (but doesn't have to) include trailing PathDelim.
@@ -431,7 +416,7 @@ function FnameAutoInc(const FileNamePattern: string): string;
   (no actual reading of any filesystem info), so it works faster and
   DirName does not need to exist. }
 function ParentPath(DirName: string;
-  DoExpandDirName: boolean {$ifdef DEFPARS} = true {$endif}): string;
+  DoExpandDirName: boolean = true): string;
 
 { Pascal files operations ---------------------------------------------------- }
 
@@ -451,11 +436,11 @@ type
   For undefined files, default size is 1, not the strange default 128.
   @groupBegin }
 procedure SafeReset(var f: file; const filename: string; readonly: boolean;
-  opensize: word {$ifdef DEFPARS}=1{$endif}); overload;
+  opensize: word = 1); overload;
 procedure SafeReset(var f: text; const filename: string; readonly: boolean); overload;
 
 procedure SafeRewrite(var f: file; const filename: string;
-  opensize: word {$ifdef DEFPARS}=1{$endif}); overload;
+  opensize: word = 1); overload;
 procedure SafeRewrite(var f: text; const filename: string); overload;
 { @groupEnd }
 
@@ -514,18 +499,6 @@ begin
  Result := FExeName;
 end;
 
-{$ifdef DELPHI}
-{ Copied from FPC RTL }
-Function ApplicationName : String;
-
-begin
-  If Assigned(OnGetApplicationName) then
-    Result:=OnGetApplicationName()
-  else
-    Result:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
-end;
-{$endif}
-
 function ProgramBaseName_Other(const ParamStr0: string): string;
 begin
  Result :=
@@ -574,32 +547,22 @@ begin
   begin
    Result :=
      (dirname<>'') and
-     DirectoryExists(dirname) and
-     {$ifdef USE_LIBC}
-       (euidaccess(PChar(dirname), W_OK or X_OK)=0)
-     {$else}
-       true {TODO}
-     {$endif};
+     DirectoryExists(dirname)
+     { TODO: with Libc, we added here
+         and (euidaccess(PChar(dirname), W_OK or X_OK)=0)
+       How to do it with FPC BaseUnix/Unix? };
    if Result then
     DirName := InclPathDelim(DirName);
   end;
 
+const
+  { Constant in Libc at least for Linux }
+  P_tmpdir = '/tmp/';
 begin
  result := GetEnvironmentVariable('TMPDIR');
  if UsableDir(result) then Exit;
 
- {$ifdef USE_LIBC}
  result := P_tmpdir;
- if UsableDir(result) then Exit;
- {$endif}
-
- { P_tmpdir is not available when not USE_LIBC.
-
-   But it's a constant '/tmp' (at least with FPC's Libc unit,
-   maybe in C stdio.h header it sometimes gets other value
-   on some UNIXes) so it can be safely ignored. }
-
- result := '/tmp/';
  if UsableDir(result) then Exit;
 
  result := HomePath;
@@ -742,14 +705,10 @@ end;
 
 function IsSymLink(const FileName: string): boolean;
 {$ifdef UNIX}
-var statbuf: {$ifdef USE_LIBC} TStatBuf {$else} TStat {$endif};
+var statbuf: TStat;
 begin
- {$ifdef USE_LIBC} lstat(PChar(FileName), statbuf)
- {$else}           FpLstat(PChar(FileName), @statbuf)
- {$endif};
-
- Result := {$ifdef USE_LIBC} S_ISLNK {$else} FpS_ISLNK {$endif}
-   (statbuf.st_mode);
+ FpLstat(PChar(FileName), @statbuf);
+ Result := FpS_ISLNK(statbuf.st_mode);
 {$endif}
 {$ifdef MSWINDOWS}
 begin
@@ -759,12 +718,6 @@ end;
 
 {$ifdef UNIX}
 function HomePath:  string;
-{$ifdef USE_LIBC}
-var ResultBuf: passwd;
-    dummy: PPasswordRecord;
-    Buffer: PChar;
-    alloc: integer;
-{$endif}
 begin
  { home dir jest dla mnie zmienna $HOME a nie tym co moglbym uzyskac z libc
    pytajac o uzytkownika real uid i jego home dir zapisany w /etc/passwd.
@@ -779,8 +732,8 @@ begin
 
  result := GetEnvironmentVariable('HOME');
 
- {$ifdef USE_LIBC}
- { take home dir from user-database looking for real-uid }
+ { TODO: with Libc we could take home dir from user-database looking for real-uid
+
  if (result='') or (not DirectoryExists(result)) then
  begin
   alloc := 0;
@@ -792,9 +745,8 @@ begin
   SetString(result, ResultBuf.pw_dir, strlen(ResultBuf.pw_dir));
   Libc.free(Buffer);
  end;
- {$else}
- {TODO}
- {$endif}
+
+ }
 
  Result := InclPathDelim(Result);
 end;
@@ -881,7 +833,7 @@ begin
  end;
 end;
 
-procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean{=False});
+procedure FileMove(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
 begin
  if (not CanOverwrite) and FileExists(DestFileName) then
   raise EFileExists.Create('File '+DestFileName+' already exists.');
@@ -912,9 +864,8 @@ begin
  { TODO: zrob jeszcze obsluge kopiowania katalogow jesli sa na innych dyskach }
 {$else}
  { TODO: zrobic zeby mozna bylo move directory z override'm }
- if {$ifdef USE_LIBC} __rename {$else} FpRename {$endif}
-   (PChar(SourceFileName), PChar(DestFileName)) = -1 then
-  if Errno = {$ifdef USE_LIBC} EXDEV {$else} ESysEXDEV {$endif} then
+ if FpRename(PChar(SourceFileName), PChar(DestFileName)) = -1 then
+  if Errno = ESysEXDEV then
   begin
    { gdy sa na innym systemie plikow rob Copy + Delete }
    FileCopy(SourceFileName, DestFileName, CanOverwrite);
@@ -1121,9 +1072,7 @@ begin
    sposob polegac na tym ze jego wartosc okresla cokolwiek w jakikolwiek sposob. }
 
  try
-  FExeName := KamReadLink('/proc/'+IntToStr(
-    {$ifdef USE_LIBC} Libc.Getpid {$else} FpGetpid {$endif}
-    )+'/exe')
+  FExeName := KamReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
  except
   on EKambiOSError do FExeName := '';
  end;

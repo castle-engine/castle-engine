@@ -5,7 +5,6 @@
   @unorderedList(
     @item(link to zlib1.dll under Windows (from [http://gnuwin32.sourceforge.net/]),
       this uses cdecl calling convention)
-    @item compile under Delphi too
     @item(name changed from zlib to CastleZLib to not collide with FPC and Kylix
       zlib units)
     @item(changed to link using my TDynLib instead of linking with
@@ -14,7 +13,7 @@
       on target system. If zlib will not be installed, CastleZLibInited
       will be simply set to false.)
   )
-  
+
   @exclude (This is only a C header translation --- no nice PasDoc docs.)
 }
 
@@ -236,47 +235,47 @@ initialization
      but unfortunately stupid Delphi doesn't get @(xxx) construct.
      I must use @xxx construct. *)
 
-  {$ifdef FPC_OBJFPC} Pointer(zlibVersionpchar) {$else} @zlibVersionpchar {$endif} := ZLibrary.Symbol('zlibVersion');
-  {$ifdef FPC_OBJFPC} Pointer(deflate) {$else} @deflate {$endif} := ZLibrary.Symbol('deflate');
-  {$ifdef FPC_OBJFPC} Pointer(deflateEnd) {$else} @deflateEnd {$endif} := ZLibrary.Symbol('deflateEnd');
-  {$ifdef FPC_OBJFPC} Pointer(inflate) {$else} @inflate {$endif} := ZLibrary.Symbol('inflate');
-  {$ifdef FPC_OBJFPC} Pointer(inflateEnd) {$else} @inflateEnd {$endif} := ZLibrary.Symbol('inflateEnd');
-  {$ifdef FPC_OBJFPC} Pointer(deflateSetDictionary) {$else} @deflateSetDictionary {$endif} := ZLibrary.Symbol('deflateSetDictionary');
-  {$ifdef FPC_OBJFPC} Pointer(deflateCopy) {$else} @deflateCopy {$endif} := ZLibrary.Symbol('deflateCopy');
-  {$ifdef FPC_OBJFPC} Pointer(deflateReset) {$else} @deflateReset {$endif} := ZLibrary.Symbol('deflateReset');
-  {$ifdef FPC_OBJFPC} Pointer(deflateParams) {$else} @deflateParams {$endif} := ZLibrary.Symbol('deflateParams');
-  {$ifdef FPC_OBJFPC} Pointer(inflateSetDictionary) {$else} @inflateSetDictionary {$endif} := ZLibrary.Symbol('inflateSetDictionary');
-  {$ifdef FPC_OBJFPC} Pointer(inflateSync) {$else} @inflateSync {$endif} := ZLibrary.Symbol('inflateSync');
-  {$ifdef FPC_OBJFPC} Pointer(inflateReset) {$else} @inflateReset {$endif} := ZLibrary.Symbol('inflateReset');
-  {$ifdef FPC_OBJFPC} Pointer(compress) {$else} @compress {$endif} := ZLibrary.Symbol('compress');
-  {$ifdef FPC_OBJFPC} Pointer(compress2) {$else} @compress2 {$endif} := ZLibrary.Symbol('compress2');
-  {$ifdef FPC_OBJFPC} Pointer(uncompress) {$else} @uncompress {$endif} := ZLibrary.Symbol('uncompress');
-  {$ifdef FPC_OBJFPC} Pointer(gzopen) {$else} @gzopen {$endif} := ZLibrary.Symbol('gzopen');
-  {$ifdef FPC_OBJFPC} Pointer(gzdopen) {$else} @gzdopen {$endif} := ZLibrary.Symbol('gzdopen');
-  {$ifdef FPC_OBJFPC} Pointer(gzsetparams) {$else} @gzsetparams {$endif} := ZLibrary.Symbol('gzsetparams');
-  {$ifdef FPC_OBJFPC} Pointer(gzread) {$else} @gzread {$endif} := ZLibrary.Symbol('gzread');
-  {$ifdef FPC_OBJFPC} Pointer(gzwrite) {$else} @gzwrite {$endif} := ZLibrary.Symbol('gzwrite');
-//  {$ifdef FPC_OBJFPC} Pointer(gzprintf) {$else} @gzprintf {$endif} := ZLibrary.Symbol('gzprintf');
-  {$ifdef FPC_OBJFPC} Pointer(gzputs) {$else} @gzputs {$endif} := ZLibrary.Symbol('gzputs');
-  {$ifdef FPC_OBJFPC} Pointer(gzgets) {$else} @gzgets {$endif} := ZLibrary.Symbol('gzgets');
-  {$ifdef FPC_OBJFPC} Pointer(gzputc) {$else} @gzputc {$endif} := ZLibrary.Symbol('gzputc');
-  {$ifdef FPC_OBJFPC} Pointer(gzgetc) {$else} @gzgetc {$endif} := ZLibrary.Symbol('gzgetc');
-  {$ifdef FPC_OBJFPC} Pointer(gzflush) {$else} @gzflush {$endif} := ZLibrary.Symbol('gzflush');
-  {$ifdef FPC_OBJFPC} Pointer(gzseek) {$else} @gzseek {$endif} := ZLibrary.Symbol('gzseek');
-  {$ifdef FPC_OBJFPC} Pointer(gzrewind) {$else} @gzrewind {$endif} := ZLibrary.Symbol('gzrewind');
-  {$ifdef FPC_OBJFPC} Pointer(gztell) {$else} @gztell {$endif} := ZLibrary.Symbol('gztell');
-  {$ifdef FPC_OBJFPC} Pointer(gzeof) {$else} @gzeof {$endif} := ZLibrary.Symbol('gzeof');
-  {$ifdef FPC_OBJFPC} Pointer(gzclose) {$else} @gzclose {$endif} := ZLibrary.Symbol('gzclose');
-  {$ifdef FPC_OBJFPC} Pointer(gzerror) {$else} @gzerror {$endif} := ZLibrary.Symbol('gzerror');
-  {$ifdef FPC_OBJFPC} Pointer(adler32) {$else} @adler32 {$endif} := ZLibrary.Symbol('adler32');
-  {$ifdef FPC_OBJFPC} Pointer(crc32) {$else} @crc32 {$endif} := ZLibrary.Symbol('crc32');
-  {$ifdef FPC_OBJFPC} Pointer(deflateInit_) {$else} @deflateInit_ {$endif} := ZLibrary.Symbol('deflateInit_');
-  {$ifdef FPC_OBJFPC} Pointer(inflateInit_) {$else} @inflateInit_ {$endif} := ZLibrary.Symbol('inflateInit_');
-  {$ifdef FPC_OBJFPC} Pointer(deflateInit2_) {$else} @deflateInit2_ {$endif} := ZLibrary.Symbol('deflateInit2_');
-  {$ifdef FPC_OBJFPC} Pointer(inflateInit2_) {$else} @inflateInit2_ {$endif} := ZLibrary.Symbol('inflateInit2_');
-  {$ifdef FPC_OBJFPC} Pointer(zErrorpchar) {$else} @zErrorpchar {$endif} := ZLibrary.Symbol('zError');
-  {$ifdef FPC_OBJFPC} Pointer(inflateSyncPoint) {$else} @inflateSyncPoint {$endif} := ZLibrary.Symbol('inflateSyncPoint');
-  {$ifdef FPC_OBJFPC} Pointer(get_crc_table) {$else} @get_crc_table {$endif} := ZLibrary.Symbol('get_crc_table');
+  Pointer(zlibVersionpchar) := ZLibrary.Symbol('zlibVersion');
+  Pointer(deflate) := ZLibrary.Symbol('deflate');
+  Pointer(deflateEnd) := ZLibrary.Symbol('deflateEnd');
+  Pointer(inflate) := ZLibrary.Symbol('inflate');
+  Pointer(inflateEnd) := ZLibrary.Symbol('inflateEnd');
+  Pointer(deflateSetDictionary) := ZLibrary.Symbol('deflateSetDictionary');
+  Pointer(deflateCopy) := ZLibrary.Symbol('deflateCopy');
+  Pointer(deflateReset) := ZLibrary.Symbol('deflateReset');
+  Pointer(deflateParams) := ZLibrary.Symbol('deflateParams');
+  Pointer(inflateSetDictionary) := ZLibrary.Symbol('inflateSetDictionary');
+  Pointer(inflateSync) := ZLibrary.Symbol('inflateSync');
+  Pointer(inflateReset) := ZLibrary.Symbol('inflateReset');
+  Pointer(compress) := ZLibrary.Symbol('compress');
+  Pointer(compress2) := ZLibrary.Symbol('compress2');
+  Pointer(uncompress) := ZLibrary.Symbol('uncompress');
+  Pointer(gzopen) := ZLibrary.Symbol('gzopen');
+  Pointer(gzdopen) := ZLibrary.Symbol('gzdopen');
+  Pointer(gzsetparams) := ZLibrary.Symbol('gzsetparams');
+  Pointer(gzread) := ZLibrary.Symbol('gzread');
+  Pointer(gzwrite) := ZLibrary.Symbol('gzwrite');
+//  Pointer(gzprintf) := ZLibrary.Symbol('gzprintf');
+  Pointer(gzputs) := ZLibrary.Symbol('gzputs');
+  Pointer(gzgets) := ZLibrary.Symbol('gzgets');
+  Pointer(gzputc) := ZLibrary.Symbol('gzputc');
+  Pointer(gzgetc) := ZLibrary.Symbol('gzgetc');
+  Pointer(gzflush) := ZLibrary.Symbol('gzflush');
+  Pointer(gzseek) := ZLibrary.Symbol('gzseek');
+  Pointer(gzrewind) := ZLibrary.Symbol('gzrewind');
+  Pointer(gztell) := ZLibrary.Symbol('gztell');
+  Pointer(gzeof) := ZLibrary.Symbol('gzeof');
+  Pointer(gzclose) := ZLibrary.Symbol('gzclose');
+  Pointer(gzerror) := ZLibrary.Symbol('gzerror');
+  Pointer(adler32) := ZLibrary.Symbol('adler32');
+  Pointer(crc32) := ZLibrary.Symbol('crc32');
+  Pointer(deflateInit_) := ZLibrary.Symbol('deflateInit_');
+  Pointer(inflateInit_) := ZLibrary.Symbol('inflateInit_');
+  Pointer(deflateInit2_) := ZLibrary.Symbol('deflateInit2_');
+  Pointer(inflateInit2_) := ZLibrary.Symbol('inflateInit2_');
+  Pointer(zErrorpchar) := ZLibrary.Symbol('zError');
+  Pointer(inflateSyncPoint) := ZLibrary.Symbol('inflateSyncPoint');
+  Pointer(get_crc_table) := ZLibrary.Symbol('get_crc_table');
  end;
 finalization
  FCastleZLibInited := false;

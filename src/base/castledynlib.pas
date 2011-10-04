@@ -20,9 +20,7 @@ interface
 
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef UNIX}
-    {$ifdef USE_LIBC} Libc, {$else} Unix, Dl, {$endif}
-  {$endif}
+  {$ifdef UNIX} Unix, Dl, {$endif}
   SysUtils
   {$ifdef FPC} , DynLibs {$endif};
 

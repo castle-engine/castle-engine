@@ -219,7 +219,7 @@ var PointsFX: PArray_PointFX;
   end;
 
 begin
- Result := nil; { <- only to avoid stupid Delphi warning }
+ Result := nil; { <- only to avoid Delphi warning }
 
  ResultItems := TTTFCharItemList.Create;
  try

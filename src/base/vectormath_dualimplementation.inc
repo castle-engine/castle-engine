@@ -2405,17 +2405,6 @@ begin
   result[3, 3] := 1;
 end;
 
-{
-nie moze byc w dual implementation, potrzebujemy tego pod Delphi.
-
-function GrayscaleValue(const v: TVector3): TScalar;
-begin
- result := GrayscaleValuesFloat[0]*v[0]+
-           GrayscaleValuesFloat[1]*v[1]+
-           GrayscaleValuesFloat[2]*v[2];
-end;
-}
-
 { We're happily using FPC's Matrix unit to trivially implement
   matrix determinant and inverse. }
 

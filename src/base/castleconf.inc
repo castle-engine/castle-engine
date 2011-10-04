@@ -13,12 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ This file defines many symbols that I use in my sources.
+{ Define some useful symbols for conditional compilation.
 
-  I *do not* have to include it in all my units, I include it only when
-  I use some particular symbol (e.g. DELPHI) in my unit. Then I want to include
-  this file to make sure that such symbol is correctly defined
-  (e.g. that DELPHI is defined if and only if I'm compiling with Delphi).
+  This is a central include file for our Castle Game Engine.
+  It is not necessarily included in all of our units, however it's included
+  in many of them --- always when something needs to check for given symbol.
 
   This file does not define some basic compiler settings, like
   syntax things (hugestrings ? which FPC mode to use ? ...) or what
@@ -39,57 +38,10 @@
   http://castle-engine.sourceforge.net/engine.php#section_license) }
 { $define CASTLE_ENGINE_LGPL}
 
-{ According to Borland starting from Delphi 6 MSWINDOWS
-  is the preferred symbol to mark Windows-only code
+{ MSWINDOWS is the preferred symbol to mark Windows-only code
   (that is not necessarily tied only to 32-bit Windows).
-  But older Delphi and FPC 1.0.x did not define this symbol,
-  I fix this below. }
+  But older Delphi and FPC 1.0.x did not define this symbol, fix it. }
 {$ifdef WIN32} {$define MSWINDOWS} {$endif}
-
-{ A hack to detect Kylix 1, that AFAIK does not define any VERxxx }
-{$IFNDEF FPC} {$ifdef LINUX} {$define VER140} {$endif} {$endif}
-
-{ Symbols to check that we're compiled with Delphi (DELPHI symbol)
-  and Delphi version.
-
-  Note that Delphi 6 = Kylix 1. To differentiate between Delphi on Windows
-  and Kylix use MSWINDOWS / LINUX symbols. }
-{$ifdef VER80}  {$define DELPHI}                                                                                     {$endif}
-{$ifdef VER90}  {$define DELPHI}                                                                                     {$endif}
-{$ifdef VER93}  {$define DELPHI}                                                                                     {$endif}
-{$ifdef VER100} {$define DELPHI}                                                                                     {$endif}
-{$ifdef VER110} {$define DELPHI}                                                                                     {$endif}
-{$ifdef VER120} {$define DELPHI} {$define DELPHI4_UP}                                                                {$endif}
-{$ifdef VER125} {$define DELPHI} {$define DELPHI4_UP}                                                                {$endif}
-{$ifdef VER130} {$define DELPHI} {$define DELPHI4_UP} {$define DELPHI5_UP}                                           {$endif}
-{$ifdef VER140} {$define DELPHI} {$define DELPHI4_UP} {$define DELPHI5_UP} {$define DELPHI6_UP}                      {$endif}
-{$ifdef VER150} {$define DELPHI} {$define DELPHI4_UP} {$define DELPHI5_UP} {$define DELPHI6_UP} {$define DELPHI7_UP} {$endif}
-
-{ Borland does not define UNIX symbol, but I often use it. }
-{$ifdef DELPHI} {$ifdef LINUX} {$define UNIX} {$endif} {$endif}
-
-{ Does compiler support various things ?
-  DEFPARS - Default parameters,
-  SUPPORTS_INTERFACE - interfaces }
-{$ifdef DELPHI4_UP}
-  {$define DEFPARS}
-  {$define SUPPORTS_INTERFACE}
-{$endif}
-{$ifdef FPC}
-  {$ifndef VER1_0}
-    {$define DEFPARS}
-    {$define SUPPORTS_INTERFACE}
-  {$endif}
-{$endif}
-
-{ I don't like Delphi warnings that "faXxx is specific to platform" }
-{$ifdef DELPHI} {$warn SYMBOL_PLATFORM OFF} {$endif}
-
-{ Always define USE_LIBC under FPC 1.0.x under UNIX,
-  see README.use_libc }
-{$ifdef FPC} {$ifdef VER1_0} {$ifdef UNIX}
-  {$define USE_LIBC}
-{$endif} {$endif} {$endif}
 
 (*EXTENDED_EQUALS_DOUBLE should be defined when Extended type is
   the same thing as Double type on this platform.
