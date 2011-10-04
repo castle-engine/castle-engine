@@ -30,8 +30,8 @@
   But I can say it easily in ../kambi.cfg using "-gl -gh" options.
 }
 
-{$ifndef KambiConf_ALREADY_INCLUDED}
-{$define KambiConf_ALREADY_INCLUDED}
+{$ifndef CASTLE_CONF_INCLUDED}
+{$define CASTLE_CONF_INCLUDED}
 
 { Configurable: define CASTLE_ENGINE_LGPL to compile only
   components available on permissive LGPL (see
@@ -87,4 +87,4 @@
   {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 {$endif}
 
-{$endif not KambiConf_ALREADY_INCLUDED}
+{$endif not CASTLE_CONF_INCLUDED}
