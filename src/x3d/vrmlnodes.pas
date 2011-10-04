@@ -1513,7 +1513,7 @@ type
     FDestinationNode: TX3DNode;
     FDestinationEvent: TVRMLEvent;
 
-    LastEventTime: TVRMLTime;
+    LastEventTime: TX3DTime;
     FInternal: boolean;
 
     procedure DestructionNotification(Node: TX3DNode);
@@ -1542,7 +1542,7 @@ type
       const DestEnding: boolean);
 
     procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     constructor Create;
     destructor Destroy; override;
@@ -5174,7 +5174,7 @@ begin
 end;
 
 procedure TVRMLRoute.EventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   Assert(Event = SourceEvent);
 
@@ -5195,7 +5195,7 @@ end;
 
 procedure TVRMLRoute.ResetLastEventTime;
 begin
-  LastEventTime := OldestVRMLTime;
+  LastEventTime := OldestX3DTime;
 end;
 
 type

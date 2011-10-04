@@ -49,13 +49,13 @@
   private
     FBufferLoaded: boolean;
     Buffer: TALBuffer;
-    FDuration: TKamTime;
+    FDuration: TFloatTime;
     Sound: TALSound;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
     procedure SoundUsingEnd(ASound: TALSound);
     procedure UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
     procedure UpdatePlaying;
     procedure ALOpenClose(Sender: TObject);
 
@@ -63,7 +63,7 @@
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
   protected
-    function CycleInterval: TKamTime; override;
+    function CycleInterval: TFloatTime; override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -80,7 +80,7 @@
     FTransformScale: Single;
     procedure UpdateSourcePosition;
     procedure EventLocationReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   protected
     procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
   public
@@ -199,7 +199,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TAudioClipNode.CycleInterval: TKamTime;
+function TAudioClipNode.CycleInterval: TFloatTime;
 begin
   { Secure from invalid FDuration (when sound file is not loaded, or duration
     is just unknown). }
@@ -214,7 +214,7 @@ begin
 end;
 
 procedure TAudioClipNode.UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 begin
   UpdatePlaying;
 end;
@@ -268,7 +268,7 @@ procedure TAudioClipNode.SetBufferLoaded(const Value: boolean);
 var
   I: Integer;
   FullUrl: string;
-  LoadedDuration: TKamTime;
+  LoadedDuration: TFloatTime;
 begin
   if FBufferLoaded <> Value then
   begin
@@ -414,7 +414,7 @@ begin
 end;
 
 procedure TSoundNode.EventLocationReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   UpdateSourcePosition;
 end;

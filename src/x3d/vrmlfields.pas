@@ -596,7 +596,7 @@ type
       This is suitable e.g. for cases when TimeSensor.set_startTime or such
       must be ignored. }
     procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime); virtual;
+      const Time: TX3DTime); virtual;
   public
     { Normal constructor.
 
@@ -2870,7 +2870,7 @@ begin
 end;
 
 procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 var
   ValuePossiblyChanged: boolean;
 begin

@@ -858,7 +858,7 @@ begin
 
     Reason: TextureNode may be already freed at the Unprepare time.
     VRMLGLRenderer explicitly allows to free vrml nodes before
-    unpreparing them. This is used e.g. by doing TVRMLScene.Load
+    unpreparing them. This is used e.g. by doing T3DSceneCore.Load
     (that calls ChangedAll, that calls Unprepare, only at the end,
     *after* old nodes have been already freed.)
 
@@ -1135,11 +1135,11 @@ end;
 
 function TGLMovieTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 var
-  VideoTime: TKamTime;
+  VideoTime: TFloatTime;
 begin
   { Note: don't call IsTextureImage, IsTextureVideo here --- this
     would cause reloading images/videos, nullifying
-    TVRMLScene.FreeResources([frTextureDataInNodes]) purpose.
+    T3DSceneCore.FreeResources([frTextureDataInNodes]) purpose.
 
     Actually, it would be safe to call this for non-MovieTexture nodes,
     as they should be prepared to display lists before doing
@@ -1327,7 +1327,7 @@ var
   Viewpoint: TAbstractViewpointNode;
 
   function GetProjectionMatrix: TMatrix4Single;
-  { This somewhat follows the logic similar to TVRMLGLScene.GLProjectionCore:
+  { This somewhat follows the logic similar to T3DScene.GLProjectionCore:
     we have to calculate projection, given Viewpoint node.
 
     We have to calculate things a little differently, e.g. we have

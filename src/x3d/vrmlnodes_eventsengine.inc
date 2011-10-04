@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLEventsEngine (ancestor of TVRMLScene, with which the nodes
+{ TVRMLEventsEngine (ancestor of T3DSceneCore, with which the nodes
   implementations interact) and related types. }
 
 {$ifdef read_interface}
@@ -32,7 +32,7 @@
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TVRMLField); virtual; abstract;
   public
-    function GetTime: TVRMLTime; virtual; abstract;
+    function GetTime: TX3DTime; virtual; abstract;
     function GetViewpointStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetNavigationInfoStack: TVRMLBindableStackBasic; virtual; abstract;
     function GetBackgroundStack: TVRMLBindableStackBasic; virtual; abstract;
@@ -47,7 +47,7 @@
   TVRMLEventsEngineList = class(specialize TFPGObjectList<TVRMLEventsEngine>)
   public
     { Notify listeners about a field value change.
-      See TVRMLScene.ChangedField for exact specification. }
+      See T3DSceneCore.ChangedField for exact specification. }
     procedure ChangedField(Field: TVRMLField);
   end;
 {$endif read_interface}

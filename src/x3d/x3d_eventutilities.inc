@@ -18,11 +18,11 @@
   TAbstractSequencerNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
     procedure EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
     procedure EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   private
     FCurrentKeyRange: Integer;
   protected
@@ -42,7 +42,7 @@
       last send. Value -1 means that SendValueChanged was not yet called,
       this is the default value (after construction). }
     property CurrentKeyRange: Integer read FCurrentKeyRange;
-    procedure SetCurrentKeyRange(const Value: Integer; const Time: TVRMLTime);
+    procedure SetCurrentKeyRange(const Value: Integer; const Time: TX3DTime);
 
     { Override this is descendants to actually send value_changed event
       witk keyValue[ValueIndex]. You are guaranteed that ValueIndex
@@ -51,7 +51,7 @@
       (although spec requires that key and keyValue fields have the same size,
       we have to protect against invalid files). }
     procedure SendValueChanged(const ValueIndex: Integer;
-      const Time: TVRMLTime); virtual; abstract;
+      const Time: TX3DTime); virtual; abstract;
   public
     procedure CreateNode; override;
 
@@ -79,7 +79,7 @@
   TBooleanFilterNode = class(TAbstractChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -105,7 +105,7 @@
   TBooleanSequencerNode = class(TAbstractSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
-      const Time: TVRMLTime); override;
+      const Time: TX3DTime); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -122,7 +122,7 @@
   TBooleanToggleNode = class(TAbstractChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -139,7 +139,7 @@
   TBooleanTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -157,7 +157,7 @@
   TIntegerSequencerNode = class(TAbstractSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
-      const Time: TVRMLTime); override;
+      const Time: TX3DTime); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -174,7 +174,7 @@
   TIntegerTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -195,7 +195,7 @@
   TTimeTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -251,7 +251,7 @@ begin
 end;
 
 procedure TAbstractSequencerNode.SetCurrentKeyRange(const Value: Integer;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 begin
   if FCurrentKeyRange <> Value then
   begin
@@ -263,7 +263,7 @@ begin
 end;
 
 procedure TAbstractSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 var
   KeyCount: Integer;
   NewKeyRange: Integer;
@@ -288,7 +288,7 @@ begin
 end;
 
 procedure TAbstractSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 var
   KeyCount, NewKeyRange: Integer;
 begin
@@ -310,7 +310,7 @@ begin
 end;
 
 procedure TAbstractSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 var
   KeyCount, NewKeyRange: Integer;
 begin
@@ -359,7 +359,7 @@ begin
 end;
 
 procedure TBooleanFilterNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   B: boolean;
 begin
@@ -406,7 +406,7 @@ begin
 end;
 
 procedure TBooleanSequencerNode.SendValueChanged(const ValueIndex: Integer;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 begin
   if FdKeyValue.Count <> FdKey.Count then
     OnWarning(wtMajor, 'VRML/X3D', 'BooleanSequencer node: key and keyValue fields should have the same size');
@@ -429,7 +429,7 @@ begin
 end;
 
 procedure TBooleanToggleNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   B: boolean;
 begin
@@ -464,7 +464,7 @@ begin
 end;
 
 procedure TBooleanTriggerNode.EventSet_triggerTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   EventTriggerTrue.Send(true, Time);
 end;
@@ -506,7 +506,7 @@ begin
 end;
 
 procedure TIntegerSequencerNode.SendValueChanged(const ValueIndex: Integer;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 begin
   if FdKeyValue.Count <> FdKey.Count then
     OnWarning(wtMajor, 'VRML/X3D', 'IntegerSequencer node: key and keyValue fields should have the same size');
@@ -535,7 +535,7 @@ begin
 end;
 
 procedure TIntegerTriggerNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   EventtriggerValue.Send(FdintegerKey.Value, Time);
 end;
@@ -577,7 +577,7 @@ begin
 end;
 
 procedure TTimeTriggerNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   EventTriggerTime.Send(Time.Seconds, Time);
 end;

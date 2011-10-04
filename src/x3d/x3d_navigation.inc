@@ -22,7 +22,7 @@
   TAbstractViewpointNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -257,7 +257,7 @@
   TNavigationInfoNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -473,7 +473,7 @@ begin
 end;
 
 procedure TAbstractViewpointNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
@@ -852,7 +852,7 @@ begin
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);

@@ -311,7 +311,7 @@ type
       already stands at the default position.) This makes this method
       consistent: after calling it, you always know that @link(Camera) is
       assigned and going to the default position. }
-    procedure CameraAnimateToDefault(const Time: TKamTime);
+    procedure CameraAnimateToDefault(const Time: TFloatTime);
 
     { Screen effects are shaders that post-process the rendered screen.
       If any screen effects are active, we will automatically render
@@ -1831,7 +1831,7 @@ begin
   inherited;
 end;
 
-procedure TKamAbstractViewport.CameraAnimateToDefault(const Time: TKamTime);
+procedure TKamAbstractViewport.CameraAnimateToDefault(const Time: TFloatTime);
 var
   DefCamera: TCamera;
 begin

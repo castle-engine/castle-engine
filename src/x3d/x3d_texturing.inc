@@ -246,9 +246,9 @@
   TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractSoundSourceNode,
     IAbstractUrlObject, IAbstractTimeDependentNode)
   private
-    FDuration: TKamTime;
+    FDuration: TFloatTime;
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
-    function CycleInterval: TKamTime;
+    function CycleInterval: TFloatTime;
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
@@ -315,10 +315,10 @@
       Duration (and so, also cycleInterval) is not reset when video
       is freed (like when you set
       IsTextureLoaded to @false, maybe implicitly by calling
-      TVRMLScene.FreeResources with frTextureDataInNodes).
+      T3DSceneCore.FreeResources with frTextureDataInNodes).
       This way this is available even you freed the texture video data to
       save memory. }
-    property Duration: TKamTime read FDuration;
+    property Duration: TFloatTime read FDuration;
   end;
 
   TMultiTextureNode = class(TAbstractTextureNode)
@@ -951,7 +951,7 @@ begin
   end;
 end;
 
-function TMovieTextureNode.CycleInterval: TKamTime;
+function TMovieTextureNode.CycleInterval: TFloatTime;
 begin
   if FdSpeed.Value <> 0 then
     Result := Duration / Abs(FdSpeed.Value) else

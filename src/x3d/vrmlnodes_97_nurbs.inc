@@ -135,7 +135,7 @@
   TNurbsPositionInterpolatorNode_2 = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -530,7 +530,7 @@ begin
 end;
 
 procedure TNurbsPositionInterpolatorNode_2.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   Knot, KeyWeight: TDoubleList;
   OutputValue: TVector3Single;

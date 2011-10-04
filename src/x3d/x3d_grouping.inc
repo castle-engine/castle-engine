@@ -56,9 +56,9 @@
   TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   private
     procedure EventAddChildrenReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventRemoveChildrenReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
 
@@ -147,7 +147,7 @@
 
     { Root node never saves/restores the traversing state.
       This means that all state changes "leak out" from a root node.
-      This is a good thing: if root node isn't used as a final TVRMLScene.RootNode,
+      This is a good thing: if root node isn't used as a final T3DSceneCore.RootNode,
       then it is placed inside Inline node, which will do save/restore anyway.
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
@@ -389,7 +389,7 @@ begin
     correctly...
 
     Other (rejected) approach was to add ParentGroup to TLightInstance
-    and do it as post-processing step, i.e. in TVRMLScene in
+    and do it as post-processing step, i.e. in T3DSceneCore in
     AddGlobalLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,
@@ -503,7 +503,7 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   MF: TMFNode;
   I: Integer;
@@ -529,7 +529,7 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   MF: TMFNode;
   I: Integer;

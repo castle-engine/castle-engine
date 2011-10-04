@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML time stuff. }
+{ X3D time. }
 unit VRMLTime;
 
 interface
@@ -21,7 +21,7 @@ interface
 uses CastleUtils, CastleTimeUtils, GenericStructList;
 
 type
-  { This is a complete timestamp for VRML events.
+  { Complete timestamp for X3D events.
     For most purposes, you're interested only in it's @link(Seconds) field,
     this is the amount of continous time that passed (in double-precision
     seconds).
@@ -40,7 +40,7 @@ type
 
     @orderedList(
       @item(First, note that
-        VRML standard defines that within one timestamp, only one event may
+        X3D standard defines that within one timestamp, only one event may
         pass through one route. This mechanism allows to avoid loops in routes.)
 
       @item(Now note that when using T3DSceneCore, Seconds is increased by
@@ -67,52 +67,52 @@ type
         -- this way, the second KeyDown will have one more tick, so will
         always be considered later, and things will work Ok.)
     ) }
-  TVRMLTime = record
-    Seconds: TKamTime;
+  TX3DTime = record
+    Seconds: TFloatTime;
     PlusTicks: Cardinal;
   end;
-  PVRMLTime = ^TVRMLTime;
+  PX3DTime = ^TX3DTime;
 
-  TKamTime = CastleTimeUtils.TKamTime;
+  TFloatTime = CastleTimeUtils.TFloatTime;
 
 const
-  OldestVRMLTime: TVRMLTime = (Seconds: OldestTime; PlusTicks: 0);
+  OldestX3DTime: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
 
 {$ifdef FPC_OBJFPC}
-operator >  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
-operator >= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
-operator <  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
-operator <= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
+operator >  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+operator >= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+operator <  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 {$endif FPC_OBJFPC}
 
 type
-  TVRMLTimeList = specialize TGenericStructList<TVRMLTime>;
+  TX3DTimeList = specialize TGenericStructList<TX3DTime>;
 
 implementation
 
 {$ifdef FPC_OBJFPC}
-operator >  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
+operator >  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks > Time2.PlusTicks) );
 end;
 
-operator >= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
+operator >= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks >= Time2.PlusTicks) );
 end;
 
-operator <  (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
+operator <  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks < Time2.PlusTicks) );
 end;
 
-operator <= (const Time1: TVRMLTime; const Time2: TVRMLTime): boolean;
+operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and

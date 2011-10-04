@@ -42,23 +42,23 @@
     public property EventIsOver: TVRMLEvent read FEventIsOver;
 
     { Activate pointing device sensor. Used by the events engine
-      (like TVRMLScene) to notify this sensor.
+      (like T3DSceneCore) to notify this sensor.
 
-      OverPoint indicates 3D point (in global, that is TVRMLScene, coordinates)
+      OverPoint indicates 3D point (in global, that is T3DSceneCore, coordinates)
       pointed by the mouse.
 
       In TAbstractPointingDeviceSensorNode class,
       this simply sends isActive := TRUE event. }
-    procedure Activate(const Time: TVRMLTime;
+    procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); virtual;
 
     { Deactivate pointing device sensor. Used by the events engine
-      (like TVRMLScene) to notify this sensor.
+      (like T3DSceneCore) to notify this sensor.
 
       In TAbstractPointingDeviceSensorNode class,
       this simply sends isActive := FALSE event. }
-    procedure Deactivate(const Time: TVRMLTime); virtual;
+    procedure Deactivate(const Time: TX3DTime); virtual;
   end;
 
   TAbstractDragSensorNode = class(TAbstractPointingDeviceSensorNode)
@@ -72,9 +72,9 @@
     private FEventTrackPoint_changed: TVRMLEvent;
     public property EventTrackPoint_changed: TVRMLEvent read FEventTrackPoint_changed;
 
-    { Called by events engine (like TVRMLScene) when you move your mouse
+    { Called by events engine (like T3DSceneCore) when you move your mouse
       over the @italic(active) drag sensor. }
-    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); virtual;
+    procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); virtual;
   end;
 
   TAbstractTouchSensorNode = class(TAbstractPointingDeviceSensorNode)
@@ -134,11 +134,11 @@
     private FEventRotation_changed: TVRMLEvent;
     public property EventRotation_changed: TVRMLEvent read FEventRotation_changed;
 
-    procedure Activate(const Time: TVRMLTime;
+    procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); override;
-    procedure Deactivate(const Time: TVRMLTime); override;
-    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
+    procedure Deactivate(const Time: TX3DTime); override;
+    procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TPlaneSensorNode = class(TAbstractDragSensorNode)
@@ -181,11 +181,11 @@
     private FEventTranslation_changed: TVRMLEvent;
     public property EventTranslation_changed: TVRMLEvent read FEventTranslation_changed;
 
-    procedure Activate(const Time: TVRMLTime;
+    procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); override;
-    procedure Deactivate(const Time: TVRMLTime); override;
-    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
+    procedure Deactivate(const Time: TX3DTime); override;
+    procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TSphereSensorNode = class(TAbstractDragSensorNode)
@@ -215,11 +215,11 @@
     private FEventRotation_changed: TVRMLEvent;
     public property EventRotation_changed: TVRMLEvent read FEventRotation_changed;
 
-    procedure Activate(const Time: TVRMLTime;
+    procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
       const OverPoint: TVector3Single); override;
-    procedure Deactivate(const Time: TVRMLTime); override;
-    procedure Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single); override;
+    procedure Deactivate(const Time: TX3DTime); override;
+    procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TTouchSensorNode = class(TAbstractTouchSensorNode)
@@ -283,14 +283,14 @@ begin
   Events.Add(FEventIsOver);
 end;
 
-procedure TAbstractPointingDeviceSensorNode.Activate(const Time: TVRMLTime;
+procedure TAbstractPointingDeviceSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
   EventIsActive.Send(true, Time);
 end;
 
-procedure TAbstractPointingDeviceSensorNode.Deactivate(const Time: TVRMLTime);
+procedure TAbstractPointingDeviceSensorNode.Deactivate(const Time: TX3DTime);
 begin
   EventIsActive.Send(false, Time);
 end;
@@ -308,7 +308,7 @@ begin
   Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
 end;
 
-procedure TAbstractDragSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TAbstractDragSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single);
 begin
   { Nothing to do in this class }
 end;
@@ -362,7 +362,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TCylinderSensorNode.Activate(const Time: TVRMLTime;
+procedure TCylinderSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 var
@@ -407,7 +407,7 @@ begin
   WasRotation := false;
 end;
 
-procedure TCylinderSensorNode.Deactivate(const Time: TVRMLTime);
+procedure TCylinderSensorNode.Deactivate(const Time: TX3DTime);
 begin
   if FdAutoOffset.Value and WasRotation then
     FdOffset.Send(RotationAngle);
@@ -415,7 +415,7 @@ begin
   inherited;
 end;
 
-procedure TCylinderSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TCylinderSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single);
 var
   Intersection, LocalIntersection: TVector3Single;
   WasIntersection: boolean;
@@ -497,7 +497,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TPlaneSensorNode.Activate(const Time: TVRMLTime;
+procedure TPlaneSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 var
@@ -549,7 +549,7 @@ begin
   WasTranslation := false;
 end;
 
-procedure TPlaneSensorNode.Deactivate(const Time: TVRMLTime);
+procedure TPlaneSensorNode.Deactivate(const Time: TX3DTime);
 begin
   if FdAutoOffset.Value and WasTranslation then
     FdOffset.Send(Translation);
@@ -557,7 +557,7 @@ begin
   inherited;
 end;
 
-procedure TPlaneSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TPlaneSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single);
 var
   Intersection, TranslationGlobal: TVector3Single;
 begin
@@ -650,7 +650,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TSphereSensorNode.Activate(const Time: TVRMLTime;
+procedure TSphereSensorNode.Activate(const Time: TX3DTime;
   const ATransform, AInvertedTransform: TMatrix4Single;
   const OverPoint: TVector3Single);
 begin
@@ -666,7 +666,7 @@ begin
   WasRotation := false;
 end;
 
-procedure TSphereSensorNode.Deactivate(const Time: TVRMLTime);
+procedure TSphereSensorNode.Deactivate(const Time: TX3DTime);
 begin
   if FdAutoOffset.Value and WasRotation then
     FdOffset.Send(Rotation);
@@ -674,7 +674,7 @@ begin
   inherited;
 end;
 
-procedure TSphereSensorNode.Drag(const Time: TVRMLTime; const RayOrigin, RayDirection: TVector3Single);
+procedure TSphereSensorNode.Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single);
 var
   Intersection, LocalIntersection, RotationAxis: TVector3Single;
   RotationAngle: Single;

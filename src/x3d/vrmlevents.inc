@@ -18,13 +18,13 @@
 
   { }
   TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
-    const Time: TVRMLTime) of object;
+    const Time: TX3DTime) of object;
 
   TVRMLEventReceiveList = class(specialize TGenericStructList<TVRMLEventReceive>)
   public
     { Call all functions. }
     procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   end;
 
   { VRML event. }
@@ -79,14 +79,14 @@
       from ParentNode.Scene.GetTime. If ParentNode is @nil
       (which should not happen with normal fields within nodes)
       or if ParentNode.Scene is @nil (which may happen only if events
-      processing is not turned on, that is TVRMLScene.ProcessEvents is @false)
+      processing is not turned on, that is T3DSceneCore.ProcessEvents is @false)
       then event is not send. }
-    procedure Send(Field: TVRMLField; const Time: TVRMLTime);
+    procedure Send(Field: TVRMLField; const Time: TX3DTime);
     procedure Send(Field: TVRMLField);
 
     { Send a value to event.
 
-      See the @link(Send Send(TVRMLField, TVRMLTime)) method.
+      See the @link(Send Send(TVRMLField, TX3DTime)) method.
       These shortcuts just create temporary appropriate TVRMLField instance,
       and call Send(TVRMLField) method.
 
@@ -100,23 +100,23 @@
       array of vectors).
 
       @groupBegin }
-    procedure Send(const Value: LongInt; const Time: TVRMLTime);
-    procedure Send(const Value: boolean; const Time: TVRMLTime);
-    procedure Send(const Value: string; const Time: TVRMLTime);
-    procedure Send(const Value: TVector2Single; const Time: TVRMLTime);
-    procedure Send(const Value: TVector3Single; const Time: TVRMLTime);
-    procedure Send(const Value: TVector4Single; const Time: TVRMLTime);
-    procedure Send(const Value: Single; const Time: TVRMLTime);
-    procedure Send(const Value: Double; const Time: TVRMLTime);
-    procedure Send(const Value: TMatrix3Single; const Time: TVRMLTime);
-    procedure Send(const Value: TMatrix4Single; const Time: TVRMLTime);
-    procedure Send(const Value: TMatrix3Double; const Time: TVRMLTime);
-    procedure Send(const Value: TMatrix4Double; const Time: TVRMLTime);
+    procedure Send(const Value: LongInt; const Time: TX3DTime);
+    procedure Send(const Value: boolean; const Time: TX3DTime);
+    procedure Send(const Value: string; const Time: TX3DTime);
+    procedure Send(const Value: TVector2Single; const Time: TX3DTime);
+    procedure Send(const Value: TVector3Single; const Time: TX3DTime);
+    procedure Send(const Value: TVector4Single; const Time: TX3DTime);
+    procedure Send(const Value: Single; const Time: TX3DTime);
+    procedure Send(const Value: Double; const Time: TX3DTime);
+    procedure Send(const Value: TMatrix3Single; const Time: TX3DTime);
+    procedure Send(const Value: TMatrix4Single; const Time: TX3DTime);
+    procedure Send(const Value: TMatrix3Double; const Time: TX3DTime);
+    procedure Send(const Value: TMatrix4Double; const Time: TX3DTime);
 
-    procedure SendArray(const Value: array of string; const Time: TVRMLTime);
-    procedure SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
-    procedure SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
-    procedure SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
+    procedure SendArray(const Value: array of string; const Time: TX3DTime);
+    procedure SendArray(const Value: array of TVector2Single; const Time: TX3DTime);
+    procedure SendArray(const Value: array of TVector3Single; const Time: TX3DTime);
+    procedure SendArray(const Value: array of TVector4Single; const Time: TX3DTime);
 
     procedure Send(const Value: LongInt);
     procedure Send(const Value: boolean);
@@ -190,7 +190,7 @@
 { TVRMLEventReceiveList -------------------------------------------------- }
 
 procedure TVRMLEventReceiveList.ExecuteAll(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   I: Integer;
 begin
@@ -234,7 +234,7 @@ begin
   Result := sxNone;
 end;
 
-procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TX3DTime);
 
   procedure RemoveHandlers;
   var
@@ -261,7 +261,7 @@ begin
   end;
 end;
 
-procedure TVRMLEvent.Send(const Value: LongInt; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: LongInt; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -272,7 +272,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: boolean; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: boolean; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -283,7 +283,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: string; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: string; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -294,7 +294,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -305,7 +305,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -316,7 +316,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector4Single; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TVector4Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -329,7 +329,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Single; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -340,7 +340,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Double; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: Double; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -351,7 +351,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix3Single; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TMatrix3Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -362,7 +362,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix4Single; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TMatrix4Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -373,7 +373,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix3Double; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TMatrix3Double; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -384,7 +384,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix4Double; const Time: TVRMLTime);
+procedure TVRMLEvent.Send(const Value: TMatrix4Double; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -395,7 +395,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of string; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of string; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -406,7 +406,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector2Single; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of TVector2Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -417,7 +417,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector3Single; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of TVector3Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin
@@ -428,7 +428,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector4Single; const Time: TVRMLTime);
+procedure TVRMLEvent.SendArray(const Value: array of TVector4Single; const Time: TX3DTime);
 var
   Field: TVRMLField;
 begin

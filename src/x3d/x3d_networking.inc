@@ -110,9 +110,9 @@
   TInlineNode = class(TAbstractGroupingNode, IAbstractBoundedObject, IAbstractUrlObject)
   private
     procedure EventLoadReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventUrlReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   private
     { Is the inline currently loaded. This means "loaded",
       not "successfully loaded": when Loaded := true,
@@ -569,7 +569,7 @@ begin
 end;
 
 procedure TInlineNode.EventLoadReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined,
     so the VRML graph changes, so they deserve ChangedAll.
@@ -582,7 +582,7 @@ begin
     in the middle of ChangedAll, for which we're not ready).
 
     Moreover, we need to use BeforeNodesFree. Otherwise our UnLoadInlined
-    will free items to which existing TVRMLScene / TVRMLShape may keep
+    will free items to which existing T3DSceneCore / TShape may keep
     references. Testcase: inline_load_control_test_1.x3dv,
     with --debug-log-vrml-changes,
     press ctrl then shift, without BeforeNodesFree will fail ->
@@ -598,7 +598,7 @@ begin
 end;
 
 procedure TInlineNode.EventUrlReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if FdLoad.Value then
   begin

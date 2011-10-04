@@ -87,7 +87,7 @@ var
   procedure SendEvents;
   var
     LineBounds: TMFVec2f;
-    Time: TVRMLTime;
+    Time: TX3DTime;
     FinalRowHeight: Single;
     I: Integer;
   begin

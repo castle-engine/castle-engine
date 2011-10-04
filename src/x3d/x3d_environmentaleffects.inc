@@ -18,7 +18,7 @@
   TAbstractBackgroundNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -155,7 +155,7 @@
     function GetFdvolumetricVisibilityStart: TSFFloat;
     function GetTransformScale: Single;
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -306,7 +306,7 @@ begin
 end;
 
 procedure TAbstractBackgroundNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if Scene <> nil then
   begin
@@ -541,7 +541,7 @@ begin
 end;
 
 procedure TFogNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if Scene <> nil then
   begin

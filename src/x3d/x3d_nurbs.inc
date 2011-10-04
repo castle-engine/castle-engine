@@ -201,7 +201,7 @@
   TNurbsOrientationInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -251,7 +251,7 @@
   TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -319,7 +319,7 @@
   TNurbsSurfaceInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -920,7 +920,7 @@ begin
 end;
 
 procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   ControlPoint: TVector3SingleList;
   Knot: TDoubleList;
@@ -1345,7 +1345,7 @@ begin
 end;
 
 procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   ControlPoint: TVector3SingleList;
   Knot: TDoubleList;
@@ -1497,7 +1497,7 @@ begin
 end;
 
 procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   ControlPoint: TVector3SingleList;
   OutputNormal: TVector3Single;

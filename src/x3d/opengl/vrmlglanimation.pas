@@ -89,8 +89,8 @@ type
     FLoaded: boolean;
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
-    FTimeAtLoad: TKamTime;
-    FTime: TKamTime;
+    FTimeAtLoad: TFloatTime;
+    FTime: TFloatTime;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     FTryFirstSceneDynamic: boolean;
@@ -498,7 +498,7 @@ type
       Other value means that we used current real time as time origin,
       following VRML/X3D specification.
       See also [http://castle-engine.sourceforge.net/vrml_time_origin_considered_uncomfortable.php] }
-    property TimeAtLoad: TKamTime read FTimeAtLoad;
+    property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
     { Current time of the animation. Although you do not have to use it:
       you can always acccess any point in time of the animtion by SceneFromTime.
@@ -510,13 +510,13 @@ type
       always to the same value as our own @link(Time).
       This makes time-dependent nodes (like TimeSensor,
       MovieTexture etc.) inside this scene work Ok. }
-    property Time: TKamTime read FTime;
+    property Time: TFloatTime read FTime;
 
     { Set @link(Time) to initial value after loading a world. }
     procedure ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
 
     { Set @link(Time) to arbitrary value. }
-    procedure ResetTime(const NewValue: TKamTime);
+    procedure ResetTime(const NewValue: TFloatTime);
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
@@ -1761,7 +1761,7 @@ begin
   end;
 end;
 
-procedure T3DPrecalculatedAnimation.ResetTime(const NewValue: TKamTime);
+procedure T3DPrecalculatedAnimation.ResetTime(const NewValue: TFloatTime);
 begin
   FTime := NewValue;
 
@@ -1773,7 +1773,7 @@ end;
 
 procedure T3DPrecalculatedAnimation.Idle(const CompSpeed: Single);
 var
-  OldTime: TKamTime;
+  OldTime: TFloatTime;
 begin
   inherited;
 

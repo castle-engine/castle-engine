@@ -155,7 +155,7 @@
 
       They require State of this node during VRML traverse state --- this
       is mainly for VRML 1.0 nodes, that depend on such state.
-      OverTriangulate has the same meaning as for TVRMLShape.Triangulate.
+      OverTriangulate has the same meaning as for TShape.Triangulate.
 
       Vertices count calculates number of different vertexes in this node.
       That is, it doesn't eliminate doubles in cases like Coordinate node
@@ -307,8 +307,8 @@
 
       Typically, converts some complex geometry node (like
       Extrusion or Teapot) into more common node like IndexedFaceSet
-      or IndexedTriangleSet. TVRMLShape class wraps this method into
-      a more comfortable interface, that is TVRMLShape methods
+      or IndexedTriangleSet. TShape class wraps this method into
+      a more comfortable interface, that is TShape methods
       simply automatically convert geometry nodes to their proxy versions
       if needed.
 
@@ -342,7 +342,7 @@
     { Does the @link(Proxy) method look at the OverTriangulate parameter
       at all. Default implementation in TAbstractGeometryNode returns safer @true.
       Descendants may override and return @false, to allow
-      e.g. more caching in TVRMLShape. }
+      e.g. more caching in TShape. }
     function ProxyUsesOverTriangulate: boolean; virtual;
 
     { Returns color.point field, assuming that "color" field is set and
@@ -524,9 +524,9 @@
   TIndexedLineSetNode = class(TAbstractX3DGeometryNode)
   private
     procedure EventSet_ColorIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventSet_CoordIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -582,7 +582,7 @@
   TIndexedTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -608,7 +608,7 @@
   TIndexedTriangleSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -634,7 +634,7 @@
   TIndexedTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -1351,14 +1351,14 @@ begin
 end;
 
 procedure TIndexedLineSetNode.EventSet_ColorIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   FdColorIndex.Assign(Value);
   FdColorIndex.Changed;
 end;
 
 procedure TIndexedLineSetNode.EventSet_CoordIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   FdCoordIndex.Assign(Value);
   FdCoordIndex.Changed;
@@ -1402,7 +1402,7 @@ begin
 end;
 
 procedure TIndexedTriangleFanSetNode.EventSet_IndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   FdIndex.Assign(Value);
   FdIndex.Changed;
@@ -1440,7 +1440,7 @@ begin
 end;
 
 procedure TIndexedTriangleSetNode.EventSet_IndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   FdIndex.Assign(Value);
   FdIndex.Changed;
@@ -1478,7 +1478,7 @@ begin
 end;
 
 procedure TIndexedTriangleStripSetNode.EventSet_IndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   FdIndex.Assign(Value);
   FdIndex.Changed;

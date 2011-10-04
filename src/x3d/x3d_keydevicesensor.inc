@@ -33,8 +33,8 @@
       user holds down a key --- we get many key down messages.
 
       @groupBegin }
-    procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime); virtual;
-    procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime); virtual;
+    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); virtual;
+    procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); virtual;
     { @groupEnd }
   end;
 
@@ -74,8 +74,8 @@
     private FEventShiftKey: TVRMLEvent;
     public property EventShiftKey: TVRMLEvent read FEventShiftKey;
 
-    procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime); override;
-    procedure KeyUp(Key: TKey; C: char; const Time: TVRMLTime); override;
+    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
+    procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); override;
   end;
 
   TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
@@ -98,7 +98,7 @@
     private FEventFinalText: TVRMLEvent;
     public property EventFinalText: TVRMLEvent read FEventFinalText;
 
-    procedure KeyDown(Key: TKey; C: char; const Time: TVRMLTime); override;
+    procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
   end;
 
 {$endif read_interface}
@@ -111,12 +111,12 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TAbstractKeyDeviceSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TAbstractKeyDeviceSensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
 begin
   { Nothing to do in this class. }
 end;
@@ -179,7 +179,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
   begin
@@ -224,7 +224,7 @@ begin
   end;
 end;
 
-procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TKeySensorNode.KeyUp(Key: TKey; C: char; const Time: TX3DTime);
 
   procedure HandleSpecial(var SpecialPressed: boolean; SpecialEvent: TVRMLEvent);
   begin
@@ -287,7 +287,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TStringSensorNode.KeyDown(Key: TKey; C: char; const Time: TVRMLTime);
+procedure TStringSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
 begin
   inherited;
 

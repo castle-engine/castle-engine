@@ -36,7 +36,7 @@
       read GetTimeDependentNodeHandler;
   end;
 
-  TTimeFunction = function: TKamTime of object;
+  TTimeFunction = function: TFloatTime of object;
 
   { Common helper for all X3DTimeDependentNode descendants.
     This includes things descending from interface IAbstractTimeDependentNode,
@@ -52,15 +52,15 @@
   private
     FIsActive: boolean;
     FIsPaused: boolean;
-    FElapsedTime: TKamTime;
-    FElapsedTimeInCycle: TKamTime;
+    FElapsedTime: TFloatTime;
+    FElapsedTimeInCycle: TFloatTime;
     procedure SetIsActive(const Value: boolean);
     procedure SetIsPaused(const Value: boolean);
-    procedure SetElapsedTime(const Value: TKamTime);
+    procedure SetElapsedTime(const Value: TFloatTime);
   public
     Node: TX3DNode;
 
-    CurrentTime: TVRMLTime;
+    CurrentTime: TX3DTime;
 
     { These describe current state of this TimeDependentNode,
       see X3D specification about "Time" component.
@@ -72,12 +72,12 @@
       @groupBegin }
     property IsActive: boolean read FIsActive write SetIsActive;
     property IsPaused: boolean read FIsPaused write SetIsPaused;
-    property ElapsedTime: TKamTime read FElapsedTime write SetElapsedTime;
+    property ElapsedTime: TFloatTime read FElapsedTime write SetElapsedTime;
     { @groupEnd }
   public
     { Cycle interval for this time-dependent node. }
     OnCycleInterval: TTimeFunction;
-    function CycleInterval: TKamTime;
+    function CycleInterval: TFloatTime;
   public
     Fdloop: TSFBool;
     FdpauseTime: TSFTime;
@@ -96,14 +96,14 @@
     { Like ElapsedTime, but spent in the current cycle.
       When cycleInterval = 0, this is always 0.
       When cycleInterval <> 0, this is always >= 0 and < cycleInterval . }
-    property ElapsedTimeInCycle: TKamTime read FElapsedTimeInCycle;
+    property ElapsedTimeInCycle: TFloatTime read FElapsedTimeInCycle;
 
     { Call this when world time increases.
       This is the most important method of this class, that basically
       implements time-dependent nodes operations.
 
       OldValue, NewValue and TimeIncrease must match, as produced
-      by TVRMLScene.SetTime and friends.
+      by T3DSceneCore.SetTime and friends.
 
       When ResetTime = true, this means that "TimeIncrease value is unknown"
       (you @italic(must) pass TimeIncrease = 0 in this case).
@@ -119,8 +119,8 @@
       cycleInterval, loop properties.
 
       @returns(If some state of time-dependent node  changed.) }
-    function SetTime(const OldValue, NewValue: TVRMLTime;
-      const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
+    function SetTime(const OldValue, NewValue: TX3DTime;
+      const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
   end;
 
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
@@ -129,7 +129,7 @@
     { To satify IAbstractTimeDependentNode }
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
   protected
-    function CycleInterval: TKamTime; virtual; abstract;
+    function CycleInterval: TFloatTime; virtual; abstract;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -168,9 +168,9 @@
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
   private
     procedure EventElapsedTimeReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   protected
-    function CycleInterval: TKamTime; override;
+    function CycleInterval: TFloatTime; override;
   public
     procedure CreateNode; override;
 
@@ -209,14 +209,14 @@ type
   protected
     function ExposedEventsFieldClass: TVRMLFieldClass; override;
     procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
-      const Time: TVRMLTime); override;
+      const Time: TX3DTime); override;
   end;
 
   TSFStopTime = class(TSFTime)
   protected
     function ExposedEventsFieldClass: TVRMLFieldClass; override;
     procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
-      const Time: TVRMLTime); override;
+      const Time: TX3DTime); override;
   end;
 
 function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TVRMLFieldClass;
@@ -225,7 +225,7 @@ begin
 end;
 
 procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
-  Event: TVRMLEvent; AValue: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; AValue: TVRMLField; const Time: TX3DTime);
 
   { Is parent node an active X3DTimeDependentNode.
 
@@ -249,7 +249,7 @@ begin
 end;
 
 procedure TSFStopTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 
   { Is parent node an active X3DTimeDependentNode, and AValue <= startTime.
 
@@ -294,7 +294,7 @@ begin
   end;
 end;
 
-procedure TTimeDependentNodeHandler.SetElapsedTime(const Value: TKamTime);
+procedure TTimeDependentNodeHandler.SetElapsedTime(const Value: TFloatTime);
 begin
   if Value <> FElapsedTime then
   begin
@@ -303,22 +303,22 @@ begin
   end;
 end;
 
-function TTimeDependentNodeHandler.CycleInterval: TKamTime;
+function TTimeDependentNodeHandler.CycleInterval: TFloatTime;
 begin
   Assert(Assigned(OnCycleInterval));
   Result := OnCycleInterval();
 end;
 
 function TTimeDependentNodeHandler.SetTime(
-  const OldValue, NewValue: TVRMLTime;
-  const TimeIncrease: TKamTime; const ResetTime: boolean): boolean;
+  const OldValue, NewValue: TX3DTime;
+  const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
 
 var
   NewIsActive: boolean;
   NewIsPaused: boolean;
-  NewElapsedTime: TKamTime;
+  NewElapsedTime: TFloatTime;
   CycleTimeSend: boolean;
-  CycleTime: TKamTime;
+  CycleTime: TFloatTime;
 
   { $define LOG_TIME_DEPENDENT_NODES}
 
@@ -331,7 +331,7 @@ var
     and CycleTime value) if the *new* cycle started. This means
     that new ElapsedTime reached the non-zero CycleInterval
     and loop = TRUE. }
-  procedure IncreaseElapsedTime(const Increase: TKamTime;
+  procedure IncreaseElapsedTime(const Increase: TFloatTime;
     StopOnNonLoopedEnd: boolean);
   begin
     NewElapsedTime      := NewElapsedTime      + Increase;
@@ -662,7 +662,7 @@ begin
   EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
 end;
 
-function TTimeSensorNode.CycleInterval: TKamTime;
+function TTimeSensorNode.CycleInterval: TFloatTime;
 begin
   Result := FdCycleInterval.Value;
 end;
@@ -680,7 +680,7 @@ begin
 end;
 
 procedure TTimeSensorNode.EventElapsedTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   Fraction: Single;
 begin

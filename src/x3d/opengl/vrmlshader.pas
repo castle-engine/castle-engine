@@ -84,7 +84,7 @@ type
       const UniformValue: TVRMLField; const EnableDisable: boolean);
 
     procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
-      const Time: TVRMLTime);
+      const Time: TX3DTime);
 
     { Set uniform shader variable from VRML/X3D field (exposed or not).
       We also start observing an exposed field or eventIn,
@@ -918,7 +918,7 @@ begin
 end;
 
 procedure TVRMLShaderProgram.EventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   UniformName: string;
   Scene: TVRMLEventsEngine;

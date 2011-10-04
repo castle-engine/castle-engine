@@ -353,7 +353,7 @@ type
   end;
 
   TCompiledScriptHandler = procedure (
-    Value: TVRMLField; const Time: TVRMLTime) of object;
+    Value: TVRMLField; const Time: TX3DTime) of object;
 
   { @exclude }
   TCompiledScriptHandlerInfo = record
@@ -597,11 +597,11 @@ type
     procedure ScriptsInitialize;
     procedure ScriptsFinalize;
   private
-    FTime: TVRMLTime;
+    FTime: TX3DTime;
 
     { Internal procedure that handles Time changes. }
     procedure InternalSetTime(
-      const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
+      const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
     procedure ResetLastEventTime(Node: TX3DNode);
   private
@@ -1484,8 +1484,8 @@ type
       will be notified by usual method, that is VisibleChangeHere.
 
       @groupBegin }
-    procedure SetTime(const NewValue: TKamTime);
-    procedure IncreaseTime(const TimeIncrease: TKamTime);
+    procedure SetTime(const NewValue: TFloatTime);
+    procedure IncreaseTime(const TimeIncrease: TFloatTime);
     { @groupEnd }
 
     { Increase @link(Time) by some infinitely small value.
@@ -1500,8 +1500,8 @@ type
       and AudioClip. See SetTime for changing this.
 
       Default value is 0.0 (zero). }
-    property Time: TVRMLTime read FTime;
-    function GetTime: TVRMLTime; override;
+    property Time: TX3DTime read FTime;
+    function GetTime: TX3DTime; override;
 
     { Set @link(Time) to arbitrary value.
 
@@ -1514,7 +1514,7 @@ type
       TimeIncrease notion, without it we can only reset them).
 
       @groupBegin }
-    procedure ResetTime(const NewValue: TKamTime);
+    procedure ResetTime(const NewValue: TFloatTime);
     { @groupEnd }
 
     { Set @link(Time) to suitable initial value after loading a world.
@@ -1525,9 +1525,9 @@ type
     procedure ResetTimeAtLoad;
 
     { @deprecated Deprecated name for ResetTime. }
-    procedure ResetWorldTime(const NewValue: TKamTime);
+    procedure ResetWorldTime(const NewValue: TFloatTime);
     { @deprecated Deprecated name for Time. }
-    function WorldTime: TVRMLTime;
+    function WorldTime: TX3DTime;
 
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TAbstractBackgroundNode class. }
@@ -5547,13 +5547,13 @@ end;
 
 { Time stuff ------------------------------------------------------------ }
 
-function T3DSceneCore.GetTime: TVRMLTime;
+function T3DSceneCore.GetTime: TX3DTime;
 begin
   Result := FTime;
 end;
 
 procedure T3DSceneCore.InternalSetTime(
-  const NewValue: TVRMLTime; const TimeIncrease: TKamTime; const ResetTime: boolean);
+  const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 var
   SomethingVisibleChanged: boolean;
   I: Integer;
@@ -5596,10 +5596,10 @@ begin
   FTime := NewValue;
 end;
 
-procedure T3DSceneCore.SetTime(const NewValue: TKamTime);
+procedure T3DSceneCore.SetTime(const NewValue: TFloatTime);
 var
-  TimeIncrease: TKamTime;
-  NewCompleteValue: TVRMLTime;
+  TimeIncrease: TFloatTime;
+  NewCompleteValue: TX3DTime;
 begin
   NewCompleteValue.Seconds := NewValue;
   NewCompleteValue.PlusTicks := 0;
@@ -5608,9 +5608,9 @@ begin
     InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
-procedure T3DSceneCore.IncreaseTime(const TimeIncrease: TKamTime);
+procedure T3DSceneCore.IncreaseTime(const TimeIncrease: TFloatTime);
 var
-  NewCompleteValue: TVRMLTime;
+  NewCompleteValue: TX3DTime;
 begin
   NewCompleteValue.Seconds := FTime.Seconds + TimeIncrease;
   NewCompleteValue.PlusTicks := 0;
@@ -5628,9 +5628,9 @@ begin
     TAbstractScriptNode(Node).ResetLastEventTimes;
 end;
 
-procedure T3DSceneCore.ResetTime(const NewValue: TKamTime);
+procedure T3DSceneCore.ResetTime(const NewValue: TFloatTime);
 var
-  NewCompleteValue: TVRMLTime;
+  NewCompleteValue: TX3DTime;
 begin
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetLastEventTime, false);
@@ -5642,7 +5642,7 @@ end;
 
 procedure T3DSceneCore.ResetTimeAtLoad;
 var
-  TimeAtLoad: TKamTime;
+  TimeAtLoad: TFloatTime;
 begin
   if (NavigationInfoStack.Top <> nil) and
      (NavigationInfoStack.Top is TKambiNavigationInfoNode) and
@@ -5670,12 +5670,12 @@ begin
     IncreaseTime(TimePlayingSpeed * CompSpeed);
 end;
 
-procedure T3DSceneCore.ResetWorldTime(const NewValue: TKamTime);
+procedure T3DSceneCore.ResetWorldTime(const NewValue: TFloatTime);
 begin
   ResetTime(NewValue);
 end;
 
-function T3DSceneCore.WorldTime: TVRMLTime;
+function T3DSceneCore.WorldTime: TX3DTime;
 begin
   Result := Time;
 end;
@@ -6095,7 +6095,7 @@ procedure T3DSceneCore.CameraTransition(Camera: TCamera;
 var
   NavigationNode: TNavigationInfoNode;
   TransitionAnimate: boolean;
-  TransitionTime: TKamTime;
+  TransitionTime: TFloatTime;
   TransitionType: string;
   I: Integer;
 begin

@@ -72,7 +72,7 @@
     OwnsWriteStream: boolean;
     WriteStreamInitialized: boolean;
     procedure EventWriteReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -96,7 +96,7 @@
   TConverterNode = class(TAbstractChildNode)
   private
     procedure EventInReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -225,15 +225,15 @@
   TTogglerNode = class(TAbstractChildNode)
   private
     procedure EventStatusReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventNotStatusReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventToggleReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventSetReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
     procedure EventResetReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -472,7 +472,7 @@ begin
 end;
 
 procedure TLoggerNode.EventWriteReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 
   procedure StdOutNotAvail;
   begin
@@ -603,7 +603,7 @@ begin
 end;
 
 procedure TConverterNode.EventInReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should
@@ -790,7 +790,7 @@ type
   protected
     function ExposedEventsFieldClass: TVRMLFieldClass; override;
     procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
-      const Time: TVRMLTime); override;
+      const Time: TX3DTime); override;
   end;
 
 function TSFBoolIgnorable.ExposedEventsFieldClass: TVRMLFieldClass;
@@ -799,7 +799,7 @@ begin
 end;
 
 procedure TSFBoolIgnorable.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
-  const Time: TVRMLTime);
+  const Time: TX3DTime);
 begin
   { This makes status and notStatus input events ignored,
     and output events not generated when enabled = FALSE. }
@@ -859,7 +859,7 @@ begin
 end;
 
 procedure TTogglerNode.EventStatusReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   { Do not send event to notStatus, if it already has correct value
     (so our own value didn't actually changed).
@@ -876,7 +876,7 @@ begin
 end;
 
 procedure TTogglerNode.EventNotStatusReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   { Do not send event to status, if it already has correct value
     (so our own value didn't actually changed).
@@ -893,21 +893,21 @@ begin
 end;
 
 procedure TTogglerNode.EventToggleReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(not FdStatus.Value, Time);
 end;
 
 procedure TTogglerNode.EventSetReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(true, Time);
 end;
 
 procedure TTogglerNode.EventResetReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(false, Time);
