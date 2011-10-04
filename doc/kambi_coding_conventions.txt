@@ -83,9 +83,6 @@ of documentation, see
   Windows. WIN32 symbol is only for 32 bit Windows.
   FPC >= 2.2.0 defines MSWINDOWS as it should, so there's no problem.
 
-  See also base/kambiconf.inc for some more handy symbols that I use,
-  like DELPHI.
-
   I also use DEBUG symbol in my sources, with obvious meaning.
   See kambi.cfg for it's exact meaning. There's also RELEASE symbol,
   but I usually don't check for it's existence -- the logic says that
