@@ -1396,7 +1396,7 @@ PROTO EditableTransform [
         # This is a constant, feel free to change to suit your taste.
         initializeOnly SFTime editSpeed 2
 
-        url "kambiscript:
+        url "castlescript:
 
 function keyPress(value, time)
   when (isActive,

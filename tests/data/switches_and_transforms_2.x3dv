@@ -107,7 +107,7 @@ DEF Scr Script {
   inputOutput SFInt32 leftChoice 0
   inputOutput SFInt32 rightChoice 0
   inputOnly SFString keyPress
-  url "kambiscript:
+  url "castlescript:
 
 function keyPress(value, time)
   when(value = '1', leftChoice := 0);

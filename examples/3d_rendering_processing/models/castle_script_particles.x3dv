@@ -33,7 +33,7 @@ DEF Scr Script {
   # Value passed here doesn't matter.
   inputOutput SFBool update_lines FALSE
 
-  url "kambiscript:
+  url "castlescript:
 
 function initialize(timestamp)
 

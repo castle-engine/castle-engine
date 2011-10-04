@@ -49,7 +49,7 @@ DEF Scr Script {
   inputOnly SFBool timer_2_active
   outputOnly SFTime timer_1_start
   outputOnly SFTime timer_2_start
-  url "kambiscript:
+  url "castlescript:
 
 function timer_1_active(value, time)
   when ( not(value), timer_2_start := time)
