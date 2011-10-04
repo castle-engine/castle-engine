@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { }
-  TScriptType = (stCompiled, stKambiScript);
+  TScriptType = (stCompiled, stCastleScript);
 
   TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
   private
@@ -27,11 +27,11 @@
 
     CompiledScriptContents: TStringList;
 
-    KambiScriptProgram: TKamScriptProgram;
-    KambiScriptVariables: TKamScriptVRMLValueList;
+    CastleScriptProgram: TKamScriptProgram;
+    CastleScriptVariables: TKamScriptVRMLValueList;
 
     procedure EventUrlReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   protected
     procedure ExecuteScript(const FunctionName: string;
       ReceivedValue: TVRMLField);
@@ -53,8 +53,8 @@
       even when they are in the inactive part of VRML graph.
 
       If you want scripts to work, you have to initialize them yourself.
-      If you use TVRMLScene, this will be done for you automatically
-      when you change TVRMLScene.ProcessEvents, so it's not a problem in
+      If you use T3DSceneCore, this will be done for you automatically
+      when you change T3DSceneCore.ProcessEvents, so it's not a problem in
       practice. }
     property Initialized: boolean read FInitialized write SetInitialized
       default false;
@@ -69,7 +69,7 @@
   TScriptNode = class(TAbstractScriptNode)
   private
     procedure IDeclEventReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -117,14 +117,14 @@ begin
 
   FreeAndNil(CompiledScriptContents);
 
-  FreeAndNil(KambiScriptProgram);
-  FreeAndNil(KambiScriptVariables);
+  FreeAndNil(CastleScriptProgram);
+  FreeAndNil(CastleScriptVariables);
 
   inherited;
 end;
 
 procedure TAbstractScriptNode.EventUrlReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 begin
   { Simply shutdown + initialize from new URL }
   Initialized := false;
@@ -157,7 +157,7 @@ begin
               the handler of the same name. }
             Scene.ExecuteCompiledScript(FunctionName, ReceivedValue);
         end;
-      stKambiScript:
+      stCastleScript:
         begin
           { ReceivedValue may be nil for initialize/shutdown calls. }
           if ReceivedValue <> nil then
@@ -168,17 +168,17 @@ begin
             ParameterValue := nil;
           ParameterTime := TKamScriptFloat.Create(true, Scene.GetTime.Seconds);
           try
-            KambiScriptVariables.BeforeExecute;
+            CastleScriptVariables.BeforeExecute;
             try
               if ParameterValue <> nil then
-                KambiScriptProgram.ExecuteFunction(FunctionName,
+                CastleScriptProgram.ExecuteFunction(FunctionName,
                   [ ParameterValue, ParameterTime ], true) else
-                KambiScriptProgram.ExecuteFunction(FunctionName,
+                CastleScriptProgram.ExecuteFunction(FunctionName,
                   [ ParameterTime ], true);
             except
               on E: EKamScriptError do
               begin
-                OnWarning(wtMajor, 'VRML/X3D', 'Error when executing KambiScript: ' + E.Message);
+                OnWarning(wtMajor, 'VRML/X3D', 'Error when executing CastleScript: ' + E.Message);
                 Exit;
               end;
             end;
@@ -191,7 +191,7 @@ begin
               (not Writeable), but we allow it to be writeable now, for local
               changes by user (may be comfortable sometimes). }
 
-            KambiScriptVariables.AfterExecute;
+            CastleScriptVariables.AfterExecute;
           finally
             FreeAndNil(ParameterValue);
             FreeAndNil(ParameterTime)
@@ -206,29 +206,29 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
 
   { @raises(EKamScriptSyntaxError in case of program parsing error
       (we just let through EKamScriptSyntaxError from ParseProgram).) }
-  procedure KambiScriptInitialize(const ProgramContent: string);
+  procedure CastleScriptInitialize(const ProgramContent: string);
   var
     I: Integer;
   begin
-    FreeAndNil(KambiScriptProgram);
-    FreeAndNil(KambiScriptVariables);
+    FreeAndNil(CastleScriptProgram);
+    FreeAndNil(CastleScriptVariables);
 
-    KambiScriptVariables := TKamScriptVRMLValueList.Create(true);
+    CastleScriptVariables := TKamScriptVRMLValueList.Create(true);
 
     { Add fields and output events (coming from interface decl,
-      not normal Script fields/events) to KambiScriptVariables. }
+      not normal Script fields/events) to CastleScriptVariables. }
 
     for I := 0 to Fields.Count - 1 do
       if Fields[I].ParentInterfaceDeclaration <> nil then
-        KambiScriptVariables.Add(Fields[I]);
+        CastleScriptVariables.Add(Fields[I]);
 
     for I := 0 to Events.Count - 1 do
       if (not Events[I].InEvent) and
          (Events[I].ParentInterfaceDeclaration <> nil) then
-        KambiScriptVariables.Add(Events[I]);
+        CastleScriptVariables.Add(Events[I]);
 
-    KambiScriptProgram := ParseProgram(ProgramContent, KambiScriptVariables);
-    KambiScriptProgram.Environment.WWWBasePath := WWWBasePath;
+    CastleScriptProgram := ParseProgram(ProgramContent, CastleScriptVariables);
+    CastleScriptProgram.Environment.WWWBasePath := WWWBasePath;
   end;
 
   function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
@@ -249,38 +249,40 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
       FInitializedFullUrl := Url;
     end else
 
-    if Protocol = 'kambiscript' then
+    if (Protocol = 'castlescript') or
+       (Protocol = 'kambiscript') then
     begin
       try
-        KambiScriptInitialize(UrlDeleteProtocol(Url));
+        CastleScriptInitialize(UrlDeleteProtocol(Url));
 
         Result := true;
-        FInitializedScriptType := stKambiScript;
+        FInitializedScriptType := stCastleScript;
         FInitializedFullUrl := Url;
       except
-        { This catches exceptions from KambiScriptInitialize }
+        { This catches exceptions from CastleScriptInitialize }
         on E: EKamScriptSyntaxError do
           OnWarning(wtMajor, 'VRML/X3D', Format(
-            'Exception %s when parsing KambiScript: %s',
+            'Exception %s when parsing CastleScript: %s',
               [E.ClassName, E.Message ]));
       end;
     end else
 
     if (Protocol = '') and
-       SameText(ExtractFileExt(Url), '.kscript') then
+       (SameText(ExtractFileExt(Url), '.castlescript') or
+        SameText(ExtractFileExt(Url), '.kscript') ) then
     begin
       PotentialFullUrl := PathFromWWWBasePath(Url);
       try
         ScriptContents := FileToString(PotentialFullUrl);
 
-        KambiScriptInitialize(ScriptContents);
+        CastleScriptInitialize(ScriptContents);
 
         Result := true;
-        FInitializedScriptType := stKambiScript;
+        FInitializedScriptType := stCastleScript;
         FInitializedFullUrl := PotentialFullUrl;
       except
         { This catches exceptions from FileToString,
-          and exceptions from KambiScriptInitialize
+          and exceptions from CastleScriptInitialize
           (EKamScriptSyntaxError only). }
         on E: Exception do
           OnWarning(wtMinor, 'VRML/X3D', Format(
@@ -353,8 +355,8 @@ end;
 
 procedure TAbstractScriptNode.ResetLastEventTimes;
 begin
-  if Initialized and (FInitializedScriptType = stKambiScript) then
-    KambiScriptVariables.ResetLastEventTimes;
+  if Initialized and (FInitializedScriptType = stCastleScript) then
+    CastleScriptVariables.ResetLastEventTimes;
 end;
 
 procedure TScriptNode.CreateNode;
@@ -396,7 +398,7 @@ begin
 end;
 
 procedure TScriptNode.IDeclEventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TVRMLTime);
+  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   FunctionName: string;
 begin
