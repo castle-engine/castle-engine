@@ -15,7 +15,7 @@
 
 { VRML shape (TShape class) and a simple tree of shapes
   (TShapeTree class). }
-unit VRMLShape;
+unit Shape;
 
 { $define SHAPE_ITERATOR_SOPHISTICATED}
 
@@ -24,7 +24,7 @@ unit VRMLShape;
 interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, CastleClassUtils,
-  CastleUtils, VRMLTriangleOctree, Frustum, CastleOctree, VRMLTriangle,
+  CastleUtils, VRMLTriangleOctree, Frustum, CastleOctree, Triangle,
   VRMLFields, GeometryArrays, FaceIndex,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 

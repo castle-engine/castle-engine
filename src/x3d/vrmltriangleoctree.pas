@@ -30,7 +30,7 @@ unit VRMLTriangleOctree;
 interface
 
 uses VectorMath, SysUtils, CastleUtils, VRMLNodes, Boxes3D,
-  CastleOctree, VRMLTriangle, Base3D, FaceIndex;
+  CastleOctree, Triangle, Base3D, FaceIndex;
 
 {$define read_interface}
 

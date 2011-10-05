@@ -118,7 +118,7 @@
     @item(Blending settings (GL_BLEND enabled state, glBlendFunc),
       and glDepthMask.
 
-      These are typically controlled by higher-level renderer (VRMLGLScene)
+      These are typically controlled by higher-level renderer (Scene)
       to allow rendering scenes with both tranparent and opaque objects.
       Only such higher-level renderer may control them, as only it controls
       the order of rendering shapes, which is important for rendering
@@ -221,7 +221,7 @@ uses
   Classes, SysUtils, CastleUtils, VectorMath, GL, GLExt,
   VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
   CastleGLUtils, VRMLGLRendererLights, TTFontsTypes,
-  GLShaders, GLImages, Videos, VRMLTime, VRMLShape,
+  GLShaders, GLImages, Videos, VRMLTime, Shape,
   GLCubeMap, CastleClassUtils, DDS, Base3D,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
   GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps,

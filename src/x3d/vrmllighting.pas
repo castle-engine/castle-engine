@@ -18,7 +18,7 @@ unit VRMLLighting;
 
 interface
 
-uses VectorMath, VRMLNodes, VRMLTriangle, Math, CastleUtils;
+uses VectorMath, VRMLNodes, Triangle, Math, CastleUtils;
 
 { VRML 2.0 material emissiveColor for lighting equation.
   That is, the @code(O_Ergb) part of lighting equation in

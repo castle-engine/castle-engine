@@ -587,7 +587,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
   { VRML/X3D stuff }
-  VRMLNodes, VRMLGLScene, CastleSceneManager;
+  VRMLNodes, Scene, CastleSceneManager;
 
 {$define read_interface}
 

@@ -37,8 +37,8 @@ unit VRMLShapeOctree;
 
 interface
 
-uses SysUtils, Base3D, Boxes3D, CastleOctree, VRMLShape, VectorMath, CastleUtils,
-  VRMLTriangle;
+uses SysUtils, Base3D, Boxes3D, CastleOctree, Shape, VectorMath, CastleUtils,
+  Triangle;
 
 const
   { Kambi private notes: values below found experimetally, many tests on

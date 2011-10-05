@@ -18,9 +18,9 @@ unit VRMLGLAnimation;
 
 interface
 
-uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, VRMLGLScene,
+uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, Scene,
   CastleUtils, Boxes3D, CastleClassUtils, VRMLAnimation, KeysMouse,
-  CastleTimeUtils, Frustum, VectorMath, Base3D, VRMLTriangle,
+  CastleTimeUtils, Frustum, VectorMath, Base3D, Triangle,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
@@ -661,7 +661,7 @@ procedure Register;
 implementation
 
 uses Math, VRMLFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
-  VRMLShape;
+  Shape;
 
 procedure Register;
 begin

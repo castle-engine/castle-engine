@@ -18,7 +18,7 @@ unit CastleSceneManager;
 
 interface
 
-uses Classes, VectorMath, VRMLNodes, VRMLGLScene, VRMLScene, Cameras,
+uses Classes, VectorMath, VRMLNodes, Scene, VRMLScene, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, Boxes3D, VRMLGLBackground, CastleUtils, CastleClassUtils,
   GLShaders, GLImages, CastleTimeUtils,

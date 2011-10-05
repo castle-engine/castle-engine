@@ -158,7 +158,7 @@ type
 
 implementation
 
-uses CastleStringUtils, VRMLShape;
+uses CastleStringUtils, Shape;
 
 { TSceneWaypoint ------------------------------------------------------------- }
 

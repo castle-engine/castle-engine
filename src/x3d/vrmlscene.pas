@@ -22,8 +22,8 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3D,
   VRMLFields, VRMLNodes, CastleClassUtils, CastleUtils,
-  VRMLShape, VRMLTriangleOctree, ProgressUnit, CastleOctree, VRMLShapeOctree,
-  KeysMouse, VRMLTime, Cameras, VRMLTriangle, Contnrs,
+  Shape, VRMLTriangleOctree, ProgressUnit, CastleOctree, VRMLShapeOctree,
+  KeysMouse, VRMLTime, Cameras, Triangle, Contnrs,
   RenderingCameraUnit, Base3D, VRMLShadowMaps,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 

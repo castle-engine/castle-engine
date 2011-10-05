@@ -15,7 +15,7 @@
 
 { Triangles in VRML/X3D models (TTriangle) and octrees
   that resolve collisions with such triangles (TBaseTrianglesOctree). }
-unit VRMLTriangle;
+unit Triangle;
 
 {$I vrmloctreeconf.inc}
 
@@ -666,7 +666,7 @@ type
 
 implementation
 
-uses CastleStringUtils, VRMLShape;
+uses CastleStringUtils, Shape;
 
 { TTriangle  ------------------------------------------------------------- }
 

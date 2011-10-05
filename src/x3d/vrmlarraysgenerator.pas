@@ -18,7 +18,7 @@ unit VRMLArraysGenerator;
 
 interface
 
-uses VRMLShape, VRMLNodes, VRMLFields, CastleUtils, GeometryArrays, VectorMath;
+uses Shape, VRMLNodes, VRMLFields, CastleUtils, GeometryArrays, VectorMath;
 
 type
   TRadianceTransferFunction = function (Node: TAbstractGeometryNode;

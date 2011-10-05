@@ -205,6 +205,31 @@ glprogress                 castleprogress
 glwindowrecentfiles        castlerecentfiles
 glwininputs                castleinputs
 
+vrmltriangle                                       triangle
+opengl/vrmlglscene                                 scene
+vrmlshape                                          shape
+vrmltime                                           x3dtime
+vrmltriangleoctree                                 triangleoctree
+vrmlfields                                         x3dfields
+vrmlscenewaypoints                                 scenewaypoints
+vrmlnodesdetailoptions                             x3dnodesdetailoptions
+vrmllexer                                          x3dlexer
+vrmlglbackground                            background
+vrmlglrendererlights                        glrendererlights
+vrmlglrenderer                              glrenderer
+vrmlglanimation                             precalculatedanimation
+vrmlglrenderertextureenv                    glrenderertextureenv
+vrmlshader                                  glrenderershader
+vrmlanimation                                      precalculatedanimationcore
+vrmlshadowmaps                                     x3dshadowmaps
+vrmlarraysgenerator                                arraysgenerator
+vrmlcamerautils                                    x3dcamerautils
+vrmlraytracer                                      raytracer
+vrmlnodes                                          x3dnodes
+vrmllighting                                       lighting
+vrmlshapeoctree                                    shapeoctree
+vrmlscene                                          scenecore
+
 ------------------------------------------------------------------------------
 4. Renames done, package names:
 

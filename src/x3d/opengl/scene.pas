@@ -14,7 +14,7 @@
 }
 
 { VRML/X3D complete scene handling and OpenGL rendering (T3DScene). }
-unit VRMLGLScene;
+unit Scene;
 
 interface
 
@@ -22,7 +22,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, CastleClassUtils, CastleUtils,
   VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, CastleGLUtils,
   VRMLShapeOctree, GLShadowVolumeRenderer, Cameras, VRMLFields,
-  VRMLGLRendererLights, VRMLShape, Frustum, Base3D, GLShaders,
+  VRMLGLRendererLights, Shape, Frustum, Base3D, GLShaders,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}

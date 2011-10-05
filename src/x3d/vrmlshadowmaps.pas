@@ -18,7 +18,7 @@ unit VRMLShadowMaps;
 
 interface
 
-uses VRMLNodes, VRMLShape;
+uses VRMLNodes, Shape;
 
 type
   TPercentageCloserFiltering = (pcfNone, pcf4, pcf4Bilinear, pcf16);
