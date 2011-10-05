@@ -229,7 +229,7 @@
       Otherwise either read your stuff and return @true
       (Lexer should advance to the position of next "nodeBodyElement").
       Or return @false without changing Lexer position. }
-    function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
+    function ParseNodeBodyElement(Lexer: TX3DLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; virtual;
 
     { Called at the end of parsing (in both classic and XML encoding). }
@@ -470,7 +470,7 @@
       In special cases like TX3DUnknownNode this may
       actually initialize whole Fields list (by VRML 1.0 "fields" extensibility
       feature). }
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); virtual;
 
     { Parse node body, i.e. mainly node's fields. }
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
@@ -938,27 +938,27 @@
       May be @nil if none.
 
       A given TX3DNode may be renderable only by a single renderer.
-      This means it can be placed only within one TVRMLGLScene
-      or one TVRMLGLAnimation (nothing else gives you a renderer).
+      This means it can be placed only within one T3DScene
+      or one T3DPrecalculatedAnimation (nothing else gives you a renderer).
 
-      A given TX3DNode may be placed inside many TVRMLScene instances
-      (including TVRMLGLScene). But if more than one scene is used,
-      then all the scenes must be static (TVRMLScene.ProcessEvents = false
-      and TVRMLScene.Static = true). Static scenes are ones
-      that never change, that is never have any TVRMLScene.ChangedField called.
+      A given TX3DNode may be placed inside many T3DSceneCore instances
+      (including T3DScene). But if more than one scene is used,
+      then all the scenes must be static (T3DSceneCore.ProcessEvents = false
+      and T3DSceneCore.Static = true). Static scenes are ones
+      that never change, that is never have any T3DSceneCore.ChangedField called.
       This means that events processing is disabled, and also
       other dynamic scene changes from code are disallowed.
 
       These two rules are both at action when you think about
-      a node inside many TVRMLGLScene instances. In this case,
+      a node inside many T3DScene instances. In this case,
       all such scene instances must be created with the same
-      renderer (hence the need for TVRMLGLScene.CreateCustomRenderer)
+      renderer (hence the need for T3DScene.CreateCustomRenderer)
       and all must be static. This is actually exactly how
-      TVRMLGLAnimation works: it internally creates a single renderer
-      and a series of TVRMLGLScene instances. }
+      T3DPrecalculatedAnimation works: it internally creates a single renderer
+      and a series of T3DScene instances. }
     property Scene: TVRMLEventsEngine read FScene write FScene;
 
-    { Managed and used by TVRMLScene to keep TVRMLShapeTreesList
+    { Managed and used by T3DSceneCore to keep TShapeTreesList
       for every ITransformNode. }
     property ShapeTrees: TObject read FShapeTrees write FShapeTrees;
 
@@ -979,7 +979,7 @@
     procedure AddCustomField(Field: TVRMLField; const Exposed: boolean = false);
 
     { What happens when transformation of the node changes.
-      This is internally used by TVRMLScene when Transform (or similar)
+      This is internally used by T3DSceneCore when Transform (or similar)
       node affecting this node changes. It's an important optimization,
       to avoid large if clause with many "is" and "Supports" checks
       that would be quite slow.
@@ -1512,7 +1512,7 @@ begin
     Result := CombinePaths(WWWBasePath, RelativePath);
 end;
 
-procedure TX3DNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TX3DNode.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 var
   Handled: boolean;
   Position: Integer;
@@ -1558,7 +1558,7 @@ begin
   ParseAfter(Names);
 end;
 
-function TX3DNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
+function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TVRMLNames;
   const APositionInParent: Integer): boolean;
 
   procedure ParseExtensibilityFields;
@@ -1571,7 +1571,7 @@ function TX3DNode.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
     begin
       Lexer.CheckTokenIs(vtName, 'Field type name');
       FieldTypeName := Lexer.TokenName;
-      FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+      FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
       if FieldType = nil then
         raise EVRMLParserError.Create(
           Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
@@ -2857,7 +2857,7 @@ begin
   end;
 end;
 
-{ I couldn't implement this as TVRMLField method, as VRMLFields
+{ I couldn't implement this as TVRMLField method, as X3DFields
   cannot declare TX3DNode in the interface, so also
   cannot declare TX3DNodeDeepCopyState. }
 procedure FieldDeepCopyContents(Destination, Source: TVRMLField;
@@ -2939,7 +2939,7 @@ begin
 
     { TODO: No need to copy prototypes for now?
 
-      This DeepCopy is used for now by protos expanding and by TVRMLGLAnimation.
+      This DeepCopy is used for now by protos expanding and by T3DPrecalculatedAnimation.
       Neither need prototype links (as protos are already expanded when copying,
       and they don't need anything more).
 

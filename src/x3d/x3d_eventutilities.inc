@@ -247,7 +247,7 @@ begin
     discrete events from float fraction, then they are not interested
     in T value). }
 
-  Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
+  Result := X3DNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
 procedure TAbstractSequencerNode.SetCurrentKeyRange(const Value: Integer;

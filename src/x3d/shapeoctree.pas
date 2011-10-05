@@ -16,7 +16,7 @@
 { Octrees for fast 3D seaching in VRML shapes (TShapeOctree).
 
   Don't confuse it with @link(TTriangleOctree) from unit
-  @link(VRMLTriangleOctree):
+  @link(TriangleOctree):
   @link(TTriangleOctree) is an octree based on scene triangles,
   while @link(TShapeOctree) is an octree based on scene
   Shapes. A scene usually has much more (e.g. 100 000, but this
@@ -31,7 +31,7 @@
   (e.g. to camera frustum) on a Shape-basis, as used
   by @link(T3DScene). }
 
-unit VRMLShapeOctree;
+unit ShapeOctree;
 
 {$I vrmloctreeconf.inc}
 

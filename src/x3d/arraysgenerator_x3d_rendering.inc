@@ -13,11 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLArraysGenerator descendants implementing nodes in X3D "Rendering"
+{ TArraysGenerator descendants implementing nodes in X3D "Rendering"
   component. }
 
 type
-  TPointSet_1Generator = class(TVRMLArraysGenerator)
+  TPointSet_1Generator = class(TArraysGenerator)
   protected
     procedure PrepareIndexesPrimitives; override;
     procedure GenerateCoordinateBegin; override;

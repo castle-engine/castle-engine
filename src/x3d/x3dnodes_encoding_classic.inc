@@ -71,7 +71,7 @@ procedure SaveVRMLClassic(Node: TX3DNode;
 { Internal for ParseIgnoreToMatchingSqBracket and
   ParseIgnoreToMatchingCurlyBracket }
 procedure ParseIgnoreToMatchingBracket(
-  Lexer: TVRMLLexer; Names: TVRMLNames;
+  Lexer: TX3DLexer; Names: TVRMLNames;
   LevelSqBracket, LevelCurlyBracket: integer);
 begin
   while (LevelSqBracket > 0) or
@@ -92,14 +92,14 @@ end;
    Read everything up to (and including) matching "]".
    This is a hack to omit (not really parse) interface sections
    of prototypes. *)
-procedure ParseIgnoreToMatchingSqBracket(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure ParseIgnoreToMatchingSqBracket(Lexer: TX3DLexer; Names: TVRMLNames);
 begin
   ParseIgnoreToMatchingBracket(Lexer, Names, 1, 0);
 end;
 
 (* Just like ParseIgnoreToMatchingSqBracket, but here for "{" and "}" brackets.
    This is a hack to omit (not really parse) unknown VRML nodes. *)
-procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TX3DLexer; Names: TVRMLNames);
 begin
   ParseIgnoreToMatchingBracket(Lexer, Names, 0, 1);
 end;
@@ -120,7 +120,7 @@ end;
 
   @raises(EVRMLParserError On various parsing errors.)
 *)
-function ParseNode(Lexer: TVRMLLexer; Names: TVRMLNames;
+function ParseNode(Lexer: TX3DLexer; Names: TVRMLNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const nodename: string);
@@ -291,7 +291,7 @@ end;
   This is good to use to parse whole VRML file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false). }
 function ParseVRMLStatements(
-  Lexer: TVRMLLexer; Names: TVRMLNames;
+  Lexer: TX3DLexer; Names: TVRMLNames;
   const EndToken: TVRMLToken;
   FileTopLevel: boolean): TX3DRootNode;
 var
@@ -519,10 +519,10 @@ end;
 function LoadVRMLClassic(Stream: TPeekCharStream;
   const WWWBasePath: string): TX3DRootNode;
 var
-  Lexer: TVRMLLexer;
+  Lexer: TX3DLexer;
   Names: TVRMLNames;
 begin
-  Lexer := TVRMLLexer.Create(Stream, false);
+  Lexer := TX3DLexer.Create(Stream, false);
   try
     Names := TVRMLNames.Create(false, WWWBasePath, Lexer.Version);
     try

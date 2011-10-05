@@ -18,7 +18,7 @@ unit X3DLoadInternalUtils;
 
 interface
 
-uses VectorMath, VRMLNodes;
+uses VectorMath, X3DNodes;
 
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;
@@ -47,10 +47,10 @@ uses SysUtils, CastleStringUtils, EnumerateFiles, CastleWarnings;
 
 function ToVRMLName(const s: string): string;
 const
-  { moglibysmy tu uzyc VRMLLexer.VRMLNameChars ktore podaje naprawde
+  { moglibysmy tu uzyc X3DLexer.VRMLNameChars ktore podaje naprawde
     wszystkie dozwolone znaki w nazwie VRMLa. Ale, dla czytelnosci,
     lepiej jednak nie uzywac wszystkich dziwnych znakow z
-    VRMLLexer.VRMLNameChars i ograniczyc sie do ponizszego zbioru znakow }
+    X3DLexer.VRMLNameChars i ograniczyc sie do ponizszego zbioru znakow }
   VRMLNameChars = ['a'..'z','A'..'Z','0'..'9'];
   NonVRMLNameChars = AllChars - VRMLNameChars;
 begin

@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Generating TGeometryArrays for VRML/X3D shapes (TVRMLArraysGenerator). }
-unit VRMLArraysGenerator;
+{ Generating TGeometryArrays for VRML/X3D shapes (TArraysGenerator). }
+unit ArraysGenerator;
 
 interface
 
-uses Shape, VRMLNodes, VRMLFields, CastleUtils, GeometryArrays, VectorMath;
+uses Shape, X3DNodes, X3DFields, CastleUtils, GeometryArrays, VectorMath;
 
 type
   TRadianceTransferFunction = function (Node: TAbstractGeometryNode;
@@ -35,11 +35,11 @@ type
 
   { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
     of our renderer: generate a TGeometryArrays for a shape,
-    then TVRMLGLRenderer will pass TGeometryArrays to OpenGL.
+    then TGLRenderer will pass TGeometryArrays to OpenGL.
 
     Geometry must be based on coordinates when using this,
     that is TAbstractGeometryNode.Coord must return @true. }
-  TVRMLArraysGenerator = class
+  TArraysGenerator = class
   private
     FShape: TShape;
     FState: TVRMLGraphTraverseState;
@@ -214,12 +214,12 @@ type
     class function BumpMappingAllowed: boolean; virtual;
   end;
 
-  TVRMLArraysGeneratorClass = class of TVRMLArraysGenerator;
+  TArraysGeneratorClass = class of TArraysGenerator;
 
-{ TVRMLArraysGenerator class suitable for given geometry.
+{ TArraysGenerator class suitable for given geometry.
   Returns @nil if not suitable generator for this node,
   which means that this node cannot be rendered through TGeometryArrays. }
-function ArraysGenerator(AGeometry: TAbstractGeometryNode): TVRMLArraysGeneratorClass;
+function GetArraysGenerator(AGeometry: TAbstractGeometryNode): TArraysGeneratorClass;
 
 implementation
 
@@ -305,7 +305,7 @@ begin
 
     { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
       This would cause noticeable slowdown when using AssignToInterleavedIndexed
-      for VRMLArraysGenerator, that in turn affects dynamic scenes
+      for ArraysGenerator, that in turn affects dynamic scenes
       and especially dynamic shading like radiance_transfer. }
     Move(Pointer(PtrUInt(Source.List) + PtrUInt(Index) * PtrUInt(Source.ItemSize))^,
       Target^, Source.ItemSize);
@@ -379,7 +379,7 @@ type
     So you do not have to generate any texture coordinates
     in descendants. Everything related to textures is already
     handled in this class. }
-  TAbstractTextureCoordinateGenerator = class(TVRMLArraysGenerator)
+  TAbstractTextureCoordinateGenerator = class(TArraysGenerator)
   private
     TexImplementation: TTextureCoordsImplementation;
 
@@ -706,9 +706,9 @@ type
     should be used to derive non-abstract renderers for nodes. }
   TAbstractCompleteGenerator = TAbstractBumpMappingGenerator;
 
-{ TVRMLArraysGenerator ------------------------------------------------------ }
+{ TArraysGenerator ------------------------------------------------------ }
 
-constructor TVRMLArraysGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
+constructor TArraysGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited Create;
 
@@ -722,7 +722,7 @@ begin
   FCoordIndex := Geometry.CoordIndex;
 end;
 
-procedure TVRMLArraysGenerator.WarningShadingProblems(
+procedure TArraysGenerator.WarningShadingProblems(
   const ColorPerVertex, NormalPerVertex: boolean);
 const
   SPerVertex: array [boolean] of string = ('per-face', 'per-vertex');
@@ -733,7 +733,7 @@ begin
       Geometry.NodeTypeName]));
 end;
 
-function TVRMLArraysGenerator.GenerateArrays: TGeometryArrays;
+function TArraysGenerator.GenerateArrays: TGeometryArrays;
 var
   AllowIndexed: boolean;
   MaxIndex: Integer;
@@ -813,7 +813,7 @@ begin
   finally FreeAndNil(IndexesFromCoordIndex); end;
 end;
 
-procedure TVRMLArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
+procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   if Geometry is TAbstractComposedGeometryNode then
   begin
@@ -822,17 +822,17 @@ begin
   end;
 end;
 
-procedure TVRMLArraysGenerator.GenerateCoordinateBegin;
+procedure TArraysGenerator.GenerateCoordinateBegin;
 begin
   { nothing to do in this class }
 end;
 
-procedure TVRMLArraysGenerator.GenerateCoordinateEnd;
+procedure TArraysGenerator.GenerateCoordinateEnd;
 begin
   { nothing to do in this class }
 end;
 
-procedure TVRMLArraysGenerator.GenerateVertex(IndexNum: integer);
+procedure TArraysGenerator.GenerateVertex(IndexNum: integer);
 begin
   if CoordIndex <> nil then
   begin
@@ -843,7 +843,7 @@ begin
     ArrayIndexNum := IndexNum;
 end;
 
-function TVRMLArraysGenerator.GetVertex(IndexNum: integer): TVector3Single;
+function TArraysGenerator.GetVertex(IndexNum: integer): TVector3Single;
 begin
   { This assertion should never fail, it's the responsibility
     of the programmer. }
@@ -854,20 +854,20 @@ begin
     Result := Coord.Items.L[IndexNum];
 end;
 
-function TVRMLArraysGenerator.CoordCount: Integer;
+function TArraysGenerator.CoordCount: Integer;
 begin
   if CoordIndex <> nil then
     Result := CoordIndex.Items.Count else
     Result := Coord.Items.Count;
 end;
 
-procedure TVRMLArraysGenerator.GenerateCoordsRange(
+procedure TArraysGenerator.GenerateCoordsRange(
   const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 begin
   FCurrentRangeNumber := RangeNumber;
 end;
 
-class function TVRMLArraysGenerator.BumpMappingAllowed: boolean;
+class function TArraysGenerator.BumpMappingAllowed: boolean;
 begin
   Result := false;
 end;
@@ -2339,12 +2339,12 @@ end;
 
 { non-abstract generators ---------------------------------------------------- }
 
-{$I vrmlarraysgenerator_x3d_rendering.inc}
-{$I vrmlarraysgenerator_x3d_geometry3d.inc}
+{$I arraysgenerator_x3d_rendering.inc}
+{$I arraysgenerator_x3d_geometry3d.inc}
 
 { global routines ------------------------------------------------------------ }
 
-function ArraysGenerator(AGeometry: TAbstractGeometryNode): TVRMLArraysGeneratorClass;
+function GetArraysGenerator(AGeometry: TAbstractGeometryNode): TArraysGeneratorClass;
 begin
   if AGeometry is TIndexedTriangleMeshNode_1 then
     Result := TTriangleStripSetGenerator else

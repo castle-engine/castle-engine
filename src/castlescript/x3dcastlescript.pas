@@ -18,7 +18,7 @@ unit X3DCastleScript;
 
 interface
 
-uses VRMLFields, CastleScript, CastleUtils, CastleClassUtils, VRMLTime;
+uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;
 
 {$define read_interface}
 
@@ -95,7 +95,7 @@ procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
 
 implementation
 
-uses SysUtils, VRMLNodes, CastleLog, CastleScriptVectors, CastleWarnings,
+uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors, CastleWarnings,
   VectorMath, CastleScriptImages, CastleScriptArrays;
 
 {$define read_implementation}

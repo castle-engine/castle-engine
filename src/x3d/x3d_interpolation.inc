@@ -439,7 +439,7 @@ end;
 function TAbstractInterpolatorNode.KeyRange(
   const Fraction: Single; out T: Single): Integer;
 begin
-  Result := VRMLNodes.KeyRange(FdKey.Items, Fraction, T);
+  Result := X3DNodes.KeyRange(FdKey.Items, Fraction, T);
 end;
 
 procedure TColorInterpolatorNode.CreateNode;

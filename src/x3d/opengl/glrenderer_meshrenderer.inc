@@ -14,23 +14,23 @@
 }
 
 { VRML / X3D rendering.
-  This is internal for VRMLGLRenderer unit.
+  This is internal for GLRenderer unit.
 
   Some ideas for implementation:
 
-  - VRMLGLRenderer unit, and TVRMLGLRenderer class are already
+  - GLRenderer unit, and TGLRenderer class are already
     large and complicated. The idea of this file is to take some tasks
     from their hands. TVRMLMeshRenderer and descendants are created
     only for the time of one RenderShape call, and are used
     to render specific non-trivial VRML mesh nodes.
 
-  - Since all classes within this file and VRMLGLRenderer live
+  - Since all classes within this file and GLRenderer live
     in one Pascal unit, we could break it and access each other's
     private fields etc. We try to not do it. We try to have a clean
     documented interface. Experience with TGeneralIndexedRenderer
     taught me that this has to be really flexible and designed for
     long-term work, to encompass many nodes and features. So, while
-    this is internal for VRMLGLRenderer, it still must be implemented
+    this is internal for GLRenderer, it still must be implemented
     and documented cleanly.
 
   - In the future, this may be abstracted from OpenGL and used as a basis
@@ -40,7 +40,7 @@
 type
   TVRMLMeshRenderer = class
   private
-    FRenderer: TVRMLGLRenderer;
+    FRenderer: TGLRenderer;
     FShape: TVRMLRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TVRMLGraphTraverseState;
@@ -48,7 +48,7 @@ type
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
-    property Renderer: TVRMLGLRenderer read FRenderer;
+    property Renderer: TGLRenderer read FRenderer;
     property Shape: TVRMLRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TVRMLGraphTraverseState read FState;
@@ -58,7 +58,7 @@ type
       per-shape resources for fast rendering (arrays and vbos). }
     PrepareRenderShape: Cardinal;
 
-    constructor Create(ARenderer: TVRMLGLRenderer; AShape: TVRMLRendererShape);
+    constructor Create(ARenderer: TGLRenderer; AShape: TVRMLRendererShape);
 
     { Render the whole geometry.
 
@@ -79,7 +79,7 @@ type
   end;
 
   { Base abstract class for rendering nodes with explicit "coord" field.
-    (Both IndexedXxx and not indexed). Uses TVRMLArraysGenerator
+    (Both IndexedXxx and not indexed). Uses TArraysGenerator
     instance to generate TGeometryArrays contents, then renders them. }
   TBaseCoordinateRenderer = class(TVRMLMeshRenderer)
   private
@@ -104,7 +104,7 @@ type
     Vbo: TVboArrays;
 
     { You have to set this before calling Render, to enable proper shading. }
-    Shader: TVRMLShader;
+    Shader: TShader;
 
     { Used (and updated) to the number of OpenGL texture units reserved. }
     BoundTextureUnits: Cardinal;
@@ -145,7 +145,7 @@ type
 
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
-constructor TVRMLMeshRenderer.Create(ARenderer: TVRMLGLRenderer;
+constructor TVRMLMeshRenderer.Create(ARenderer: TGLRenderer;
   AShape: TVRMLRendererShape);
 begin
   inherited Create;
@@ -193,7 +193,7 @@ var
     except
       on E: EGLSLAttributeNotFound do
         { Do not make warnings about missing internal attributes
-          (for the same reason as uniform values, see VRMLShader). }
+          (for the same reason as uniform values, see GLRendererShader). }
         if not Arrays.Attribs[I].Internal then
           OnWarning(wtMajor, 'VRML/X3D', E.Message);
     end;
@@ -626,7 +626,7 @@ begin
     glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
 
     { We potentially override the fog already set
-      by TVRMLGLRenderer.RenderShapeFog here. Not a problem
+      by TGLRenderer.RenderShapeFog here. Not a problem
       (TODO: although previous EnableFog added to hash, which may make
       shader programs cache less shared.) }
     Shader.EnableFog(ftLinear, fcPassedCoordinate);

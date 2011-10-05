@@ -2,11 +2,11 @@
 
   { GLSL program integrated with VRML renderer. Adds ability to bind
     VRML textures to uniform variables of GLSL shader. }
-  TVRMLGLSLProgram = class(TVRMLShaderProgram)
+  TVRMLGLSLProgram = class(TX3DShaderProgram)
   private
-    Renderer: TVRMLGLRenderer;
+    Renderer: TGLRenderer;
   public
-    constructor Create(ARenderer: TVRMLGLRenderer);
+    constructor Create(ARenderer: TGLRenderer);
     function SetupUniforms(var BoundTextureUnits: Cardinal): boolean; override;
   end;
 
@@ -16,7 +16,7 @@
 
 { TVRMLGLSLProgram ----------------------------------------------------------- }
 
-constructor TVRMLGLSLProgram.Create(ARenderer: TVRMLGLRenderer);
+constructor TVRMLGLSLProgram.Create(ARenderer: TGLRenderer);
 begin
   inherited Create;
   Renderer := ARenderer;

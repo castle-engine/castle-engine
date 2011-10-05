@@ -21,7 +21,7 @@ unit X3DLoadInternalOBJ;
 
 interface
 
-uses VRMLNodes;
+uses X3DNodes;
 
 function LoadWavefrontOBJ(const filename: string): TX3DRootNode;
 

@@ -13,15 +13,15 @@
   ----------------------------------------------------------------------------
 }
 
-{ Rendering backgrounds, sky and such (TVRMLGLBackground). }
-unit VRMLGLBackground;
+{ Rendering backgrounds, sky and such (TBackground). }
+unit Background;
 
 {$I castleconf.inc}
 
 interface
 
 uses VectorMath, SysUtils, GL, GLExt, CastleGLUtils, CastleUtils, Images,
-  VRMLNodes;
+  X3DNodes;
 
 type
   { Background rendering sky, ground and such around the camera.
@@ -42,7 +42,7 @@ type
     position, and render like the camera was always in the middle
     of the background box/sphere. But still we take into acccount camera
     rotations. This makes convincing sky look. }
-  TVRMLGLBackground = class
+  TBackground = class
   private
     szescianNieba_list: TGLuint;
     nieboTex: packed array [TBackgroundSide] of TGLuint;
@@ -123,9 +123,9 @@ const
 
   BGAllSides: TBackgroundSides = [Low(TBackgroundSide) .. High(TBackgroundSide)];
 
-{ TVRMLGLBackground ------------------------------------------------------------ }
+{ TBackground ------------------------------------------------------------ }
 
-procedure TVRMLGLBackground.Render;
+procedure TBackground.Render;
 begin
   glPushMatrix;
     glMultMatrix(Transform);
@@ -133,7 +133,7 @@ begin
   glPopMatrix;
 end;
 
-class function TVRMLGLBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
+class function TBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
   const Proposed: Single): Single;
 
 { Conditions are ZNear < CubeSize/2, ZFar > SphereRadius.
@@ -169,7 +169,7 @@ begin
     Result := (Min + Max) / 2;
 end;
 
-constructor TVRMLGLBackground.Create(
+constructor TBackground.Create(
   GroundAngle: PArray_Single; GroundAngleCount: Integer;
   GroundColor: PArray_Vector3Single; GroundColorCount: Integer;
   const Imgs: TBackgroundImages;
@@ -376,7 +376,7 @@ begin
   CubeSize := SkySphereRadius * SphereRadiusToCubeSize;
   CubeSize2 := CubeSize / 2;
 
-  szescianNieba_list := glGenListsCheck(1, 'TVRMLGLBackground.Create');
+  szescianNieba_list := glGenListsCheck(1, 'TBackground.Create');
 
   glNewList(szescianNieba_list, GL_COMPILE);
   glPushAttrib(GL_ENABLE_BIT or GL_TEXTURE_BIT or GL_COLOR_BUFFER_BIT);
@@ -473,7 +473,7 @@ begin
   end;
 end;
 
-destructor TVRMLGLBackground.Destroy;
+destructor TBackground.Destroy;
 begin
   glDeleteLists(szescianNieba_list, 1);
   glDeleteTextures(6, @nieboTex);

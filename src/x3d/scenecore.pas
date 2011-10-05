@@ -15,16 +15,16 @@
 
 { 3D scenes (T3DSceneCore). }
 
-unit VRMLScene;
+unit SceneCore;
 
 interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3D,
-  VRMLFields, VRMLNodes, CastleClassUtils, CastleUtils,
-  Shape, VRMLTriangleOctree, ProgressUnit, CastleOctree, VRMLShapeOctree,
-  KeysMouse, VRMLTime, Cameras, Triangle, Contnrs,
-  RenderingCameraUnit, Base3D, VRMLShadowMaps,
+  X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
+  Shape, TriangleOctree, ProgressUnit, CastleOctree, ShapeOctree,
+  KeysMouse, X3DTime, Cameras, Triangle, Contnrs,
+  RenderingCameraUnit, Base3D, X3DShadowMaps,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 const
@@ -1150,7 +1150,7 @@ type
     function OctreeCollisions: TBaseTrianglesOctree;
 
     { Properties of created triangle octrees.
-      See VRMLTriangleOctree unit comments for description.
+      See TriangleOctree unit comments for description.
 
       Default value comes from DefTriangleOctreeLimits.
 
@@ -1175,7 +1175,7 @@ type
     { @groupEnd }
 
     { Properties of created shape octrees.
-      See VRMLShapeOctree unit comments for description.
+      See ShapeOctree unit comments for description.
 
       Default value comes from DefShapeOctreeLimits.
 
@@ -1948,7 +1948,7 @@ var
 
 implementation
 
-uses VRMLCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
+uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
   X3DLoad;
 
 { TVRMLBindableStack ----------------------------------------------------- }

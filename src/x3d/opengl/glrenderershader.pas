@@ -13,16 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setting up OpenGL shading (TVRMLShader).
+{ Setting up OpenGL shading (TShader).
 
-  Internal for VRMLGLRenderer. @exclude }
-unit VRMLShader;
+  Internal for GLRenderer. @exclude }
+unit GLRendererShader;
 
 interface
 
 uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  VRMLShadowMaps, VRMLTime, VRMLFields, VRMLNodes, CastleUtils, Boxes3D,
-  VRMLGLRendererTextureEnv, CastleStringUtils;
+  X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, Boxes3D,
+  GLRendererTextureEnv, CastleStringUtils;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -50,12 +50,12 @@ type
     procedure Clear;
   end;
 
-  { GLSL program integrated with VRML/X3D and TVRMLShader.
+  { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
     and to observe VRML/X3D events and automatically update uniform values.
-    Also allows to initialize and check program by TVRMLShader.LinkProgram,
-    and get a hash of it by TVRMLShader.CodeHash. }
-  TVRMLShaderProgram = class(TGLSLProgram)
+    Also allows to initialize and check program by TShader.LinkProgram,
+    and get a hash of it by TShader.CodeHash. }
+  TX3DShaderProgram = class(TGLSLProgram)
   private
     { Events where we registered our EventReceive method. }
     EventsObserved: TVRMLEventList;
@@ -113,7 +113,7 @@ type
     { @groupEnd }
   end;
 
-  TVRMLShader = class;
+  TShader = class;
 
   TShaderSource = class
   private
@@ -154,7 +154,7 @@ type
     Number: Cardinal;
     Node: TAbstractLightNode;
     Light: PLightInstance;
-    Shader: TVRMLShader;
+    Shader: TShader;
     { Code calculated (on demand, when method called) using above vars. }
     FCode: TShaderSource;
     LightUniformName1: string;
@@ -187,7 +187,7 @@ type
     ShadowMapSize: Cardinal;
     ShadowLight: TAbstractLightNode;
     ShadowVisualizeDepth: boolean;
-    Shader: TVRMLShader;
+    Shader: TShader;
 
     { Uniform to set for this texture. May be empty. }
     UniformName: string;
@@ -209,13 +209,13 @@ type
 
   { Create appropriate shader and at the same time set OpenGL parameters
     for fixed-function rendering. Once everything is set up,
-    you can create TVRMLShaderProgram instance
+    you can create TX3DShaderProgram instance
     and initialize it by LinkProgram here, then enable it if you want.
     Or you can simply allow the fixed-function pipeline to work.
 
-    This is used internally by TVRMLGLRenderer. It isn't supposed to be used
+    This is used internally by TGLRenderer. It isn't supposed to be used
     directly by other code. }
-  TVRMLShader = class
+  TShader = class
   private
     { When adding new field, remember to clear it in Clear method. }
     { List of effect nodes that determine uniforms of our program. }
@@ -240,7 +240,7 @@ type
     FFogType: TFogType;
     FFogCoordinateSource: TFogCoordinateSource;
 
-    { We have to optimize the most often case of TVRMLShader usage,
+    { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
 
       - Enabling shader features should not do anything time-consuming,
@@ -323,12 +323,12 @@ type
 
     { Add fragment and vertex shader code, link.
       @raises EGLSLError In case of troubles with linking. }
-    procedure LinkProgram(AProgram: TVRMLShaderProgram);
+    procedure LinkProgram(AProgram: TX3DShaderProgram);
 
-    { Calculate the hash of all the current TVRMLShader settings,
+    { Calculate the hash of all the current TShader settings,
       that is the hash of GLSL program code initialized by this shader
       LinkProgram. You should use this only when the GLSL program source
-      is completely initialized (all TVRMLShader settings are set).
+      is completely initialized (all TShader settings are set).
 
       It can be used to decide when the shader GLSL program needs
       to be regenerated, shared etc. }
@@ -392,7 +392,7 @@ uses SysUtils, GL, GLExt, CastleGLUtils, CastleWarnings,
 
   TODO: some day, avoid using predefined OpenGL state variables.
   Use only shader uniforms. Right now, we allow some state to be assigned
-  using direct normal OpenGL fixed-function functions in VRMLGLRenderer,
+  using direct normal OpenGL fixed-function functions in GLRenderer,
   and our shaders just use it.
 }
 
@@ -694,16 +694,16 @@ begin
   Result := false;
 end;
 
-{ TVRMLShaderProgram ------------------------------------------------------- }
+{ TX3DShaderProgram ------------------------------------------------------- }
 
-constructor TVRMLShaderProgram.Create;
+constructor TX3DShaderProgram.Create;
 begin
   inherited;
   EventsObserved := TVRMLEventList.Create(false);
   UniformsTextures := TVRMLFieldList.Create(false);
 end;
 
-destructor TVRMLShaderProgram.Destroy;
+destructor TX3DShaderProgram.Destroy;
 var
   I: Integer;
 begin
@@ -717,7 +717,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLShaderProgram.BindNonTextureUniform(
+procedure TX3DShaderProgram.BindNonTextureUniform(
   const FieldOrEvent: TVRMLInterfaceDeclaration;
   const EnableDisable: boolean);
 var
@@ -763,7 +763,7 @@ begin
   end;
 end;
 
-procedure TVRMLShaderProgram.SetUniformFromField(
+procedure TX3DShaderProgram.SetUniformFromField(
   const UniformName: string; const UniformValue: TVRMLField;
   const EnableDisable: boolean);
 var
@@ -917,7 +917,7 @@ begin
     Disable;
 end;
 
-procedure TVRMLShaderProgram.EventReceive(
+procedure TX3DShaderProgram.EventReceive(
   Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
 var
   UniformName: string;
@@ -955,7 +955,7 @@ begin
   end;
 end;
 
-procedure TVRMLShaderProgram.BindUniforms(const Node: TX3DNode;
+procedure TX3DShaderProgram.BindUniforms(const Node: TX3DNode;
   const EnableDisable: boolean);
 var
   I: Integer;
@@ -974,7 +974,7 @@ begin
   end;
 end;
 
-procedure TVRMLShaderProgram.BindUniforms(const Nodes: TX3DNodeList;
+procedure TX3DShaderProgram.BindUniforms(const Nodes: TX3DNodeList;
   const EnableDisable: boolean);
 var
   I: Integer;
@@ -1131,7 +1131,7 @@ begin
           through TextureCoordinate4D, so we have to use texture3DProj }
         tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
         ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
-        else raise EInternalError.Create('TVRMLShader.EnableTexture:TextureType?');
+        else raise EInternalError.Create('TShader.EnableTexture:TextureType?');
       end;
 
       Code := TShaderSource.Create;
@@ -1164,7 +1164,7 @@ begin
   end;
 end;
 
-{ TVRMLShader ---------------------------------------------------------------- }
+{ TShader ---------------------------------------------------------------- }
 
 function InsertIntoString(const Base: string; const P: Integer; const S: string): string;
 begin
@@ -1175,7 +1175,7 @@ const
   DefaultVertexShader = {$I template.vs.inc};
   DefaultFragmentShader = {$I template.fs.inc};
 
-constructor TVRMLShader.Create;
+constructor TShader.Create;
 begin
   inherited;
 
@@ -1190,7 +1190,7 @@ begin
   WarnMissingPlugs := true;
 end;
 
-destructor TVRMLShader.Destroy;
+destructor TShader.Destroy;
 begin
   FreeAndNil(UniformsNodes);
   FreeAndNil(LightShaders);
@@ -1199,7 +1199,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLShader.Clear;
+procedure TShader.Clear;
 begin
   Source[stVertex].Count := 1;
   Source[stVertex][0] := DefaultVertexShader;
@@ -1238,7 +1238,7 @@ begin
   MaterialSpecularColor := ZeroVector3Single;
 end;
 
-procedure TVRMLShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
+procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
   CompleteCode: TShaderSource; const ForwardDeclareInFinalShader: boolean);
 const
   PlugPrefix = 'PLUG_';
@@ -1385,7 +1385,7 @@ begin
   CodeForPlugValue.Add(PlugValue);
 end;
 
-function TVRMLShader.PlugDirectly(Code: TKamStringList;
+function TShader.PlugDirectly(Code: TKamStringList;
   const CodeIndex: Cardinal;
   const PlugName, PlugValue: string;
   const InsertAtBeginIfNotFound: boolean): boolean;
@@ -1413,14 +1413,14 @@ begin
     OnWarning(wtMinor, 'VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
-procedure TVRMLShader.EnableEffects(Effects: TMFNode;
+procedure TShader.EnableEffects(Effects: TMFNode;
   const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 begin
   EnableEffects(Effects.Items, Code, ForwardDeclareInFinalShader);
 end;
 
-procedure TVRMLShader.EnableEffects(Effects: TX3DNodeList;
+procedure TShader.EnableEffects(Effects: TX3DNodeList;
   const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
 
@@ -1469,7 +1469,7 @@ begin
       EnableEffect(TEffectNode(Effects[I]));
 end;
 
-procedure TVRMLShader.LinkProgram(AProgram: TVRMLShaderProgram);
+procedure TShader.LinkProgram(AProgram: TX3DShaderProgram);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize,
     TextureCoordMatrix, TextureUniformsDeclare: string;
@@ -1848,7 +1848,7 @@ var
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := 'vertex_eye.z';
         fcPassedCoordinate: CoordinateSource := 'gl_FogCoord';
-        else raise EInternalError.Create('TVRMLShader.EnableShaderFog:FogCoordinateSource?');
+        else raise EInternalError.Create('TShader.EnableShaderFog:FogCoordinateSource?');
       end;
 
       Plug(stVertex,
@@ -1860,7 +1860,7 @@ var
       case FFogType of
         ftLinear: FogFactor := '(gl_Fog.end - gl_FogFragCoord) * gl_Fog.scale';
         ftExp   : FogFactor := 'exp(-gl_Fog.density * gl_FogFragCoord)';
-        else raise EInternalError.Create('TVRMLShader.EnableShaderFog:FogType?');
+        else raise EInternalError.Create('TShader.EnableShaderFog:FogType?');
       end;
 
       Plug(stFragment,
@@ -1981,10 +1981,10 @@ begin
   SetupUniformsOnce;
 end;
 
-function TVRMLShader.CodeHash: TShaderCodeHash;
+function TShader.CodeHash: TShaderCodeHash;
 
   { Add to FCodeHash some stuff that must be added at the end,
-    since it can be changed back (replacing previous values) during TVRMLShader
+    since it can be changed back (replacing previous values) during TShader
     lifetime. }
   procedure CodeHashFinalize;
   begin
@@ -2001,7 +2001,7 @@ begin
   Result := FCodeHash;
 end;
 
-procedure TVRMLShader.EnableTexture(const TextureUnit: Cardinal;
+procedure TShader.EnableTexture(const TextureUnit: Cardinal;
   const TextureType: TTextureType;
   const Node: TAbstractTextureNode;
   const Env: TTextureEnv;
@@ -2063,7 +2063,7 @@ begin
   TextureShader.Prepare(FCodeHash);
 end;
 
-procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
+procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComplete);
 begin
   { Enable for fixed-function pipeline }
@@ -2107,11 +2107,11 @@ begin
           [TextureUnit]);
         FCodeHash.AddInteger(1307 * (TextureUnit + 1));
       end;
-    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
+    else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
 end;
 
-procedure TVRMLShader.EnableTexGen(const TextureUnit: Cardinal;
+procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComponent; const Component: TTexComponent);
 const
   PlaneComponentNames: array [TTexComponent] of char = ('S', 'T', 'R', 'Q');
@@ -2128,7 +2128,7 @@ begin
     1: glEnable(GL_TEXTURE_GEN_T);
     2: glEnable(GL_TEXTURE_GEN_R);
     3: glEnable(GL_TEXTURE_GEN_Q);
-    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Component?');
+    else raise EInternalError.Create('TShader.EnableTexGen:Component?');
   end;
 
   { Enable for shader pipeline.
@@ -2138,7 +2138,7 @@ begin
   case Generation of
     tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'kambi_vertex_eye'; end;
     tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'vertex_object' ; end;
-    else raise EInternalError.Create('TVRMLShader.EnableTexGen:Generation?');
+    else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
 
   TextureCoordGen += Format('gl_TexCoord[%d].%s = dot(%s, %s%s[%0:d]);' + NL,
@@ -2147,7 +2147,7 @@ begin
   FCodeHash.AddInteger(1319 * (TextureUnit + 1) * (Ord(Generation) + 1) * (Component + 1));
 end;
 
-procedure TVRMLShader.DisableTexGen(const TextureUnit: Cardinal);
+procedure TShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
   { Disable for fixed-function pipeline }
   if GLUseMultiTexturing then
@@ -2158,7 +2158,7 @@ begin
   glDisable(GL_TEXTURE_GEN_Q);
 end;
 
-procedure TVRMLShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
+procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   if ClipPlane = '' then
@@ -2168,12 +2168,12 @@ begin
   end;
 end;
 
-procedure TVRMLShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
+procedure TShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
   glDisable(GL_CLIP_PLANE0 + ClipPlaneIndex);
 end;
 
-procedure TVRMLShader.EnableAlphaTest;
+procedure TShader.EnableAlphaTest;
 begin
   { Enable for fixed-function pipeline }
   glEnable(GL_ALPHA_TEST);
@@ -2187,7 +2187,7 @@ begin
   FCodeHash.AddInteger(2011);
 end;
 
-procedure TVRMLShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
+procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
   const NormalMapTextureUnit: Cardinal;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 begin
@@ -2207,7 +2207,7 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableLight(const Number: Cardinal; Light: PLightInstance);
+procedure TShader.EnableLight(const Number: Cardinal; Light: PLightInstance);
 var
   LightShader: TLightShader;
 begin
@@ -2225,7 +2225,7 @@ begin
   LightShader.Prepare(FCodeHash, LightShaders.Count - 1);
 end;
 
-procedure TVRMLShader.EnableFog(const FogType: TFogType;
+procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource);
 begin
   FFogEnabled := true;
@@ -2236,7 +2236,7 @@ begin
     709 * (Ord(FFogCoordinateSource) + 1));
 end;
 
-function TVRMLShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
+function TShader.EnableCustomShaderCode(Shaders: TMFNodeShaders;
   out Node: TComposedShaderNode): boolean;
 var
   I, J: Integer;
@@ -2298,7 +2298,7 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableAppearanceEffects(Effects: TMFNode);
+procedure TShader.EnableAppearanceEffects(Effects: TMFNode);
 begin
   AppearanceEffects := Effects;
   if AppearanceEffects.Count <> 0 then
@@ -2308,7 +2308,7 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableGroupEffects(Effects: TX3DNodeList);
+procedure TShader.EnableGroupEffects(Effects: TX3DNodeList);
 begin
   GroupEffects := Effects;
   if GroupEffects.Count <> 0 then
@@ -2318,15 +2318,15 @@ begin
   end;
 end;
 
-procedure TVRMLShader.EnableLighting;
+procedure TShader.EnableLighting;
 begin
   Lighting := true;
   FCodeHash.AddInteger(7);
 end;
 
-procedure TVRMLShader.EnableMaterialFromColor;
+procedure TShader.EnableMaterialFromColor;
 begin
-  { glColorMaterial is already set by TVRMLGLRenderer.RenderBegin }
+  { glColorMaterial is already set by TGLRenderer.RenderBegin }
   glEnable(GL_COLOR_MATERIAL);
 
   { This will cause appropriate shader later }
@@ -2334,7 +2334,7 @@ begin
   FCodeHash.AddInteger(29);
 end;
 
-function TVRMLShader.DeclareShadowFunctions: string;
+function TShader.DeclareShadowFunctions: string;
 const
   ShadowDeclare: array [boolean { vsm? }] of string =
   ('float shadow(sampler2DShadow shadowMap, const vec4 shadowMapCoord, const in float size);',

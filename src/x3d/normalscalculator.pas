@@ -23,7 +23,7 @@ unit NormalsCalculator;
 
 interface
 
-uses SysUtils, CastleUtils, VectorMath, VRMLNodes;
+uses SysUtils, CastleUtils, VectorMath, X3DNodes;
 
 { Calculate normal vectors for indexed faces, smoothing them according
   to CreaseAngleRad.
@@ -95,7 +95,7 @@ function CreateSmoothNormalsCoordinateNode(
 
 implementation
 
-uses VRMLFields, Triangulator, GenericStructList;
+uses X3DFields, Triangulator, GenericStructList;
 
 type
   TFace = record

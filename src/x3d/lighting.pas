@@ -14,11 +14,11 @@
 }
 
 { VRML lighting calculation. }
-unit VRMLLighting;
+unit Lighting;
 
 interface
 
-uses VectorMath, VRMLNodes, Triangle, Math, CastleUtils;
+uses VectorMath, X3DNodes, Triangle, Math, CastleUtils;
 
 { VRML 2.0 material emissiveColor for lighting equation.
   That is, the @code(O_Ergb) part of lighting equation in
@@ -160,13 +160,13 @@ end;
 function VRML97LightContribution(const Light: TLightInstance;
   const Intersection: TVector3Single; const IntersectNode: TTriangle;
   const CamPosition: TVector3Single): TVector3Single;
-{$I vrmllighting_97_lightcontribution.inc}
+{$I lighting_97_lightcontribution.inc}
 
 function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
   :TVector3Single;
 {$define CAMERA_INDEP}
-{$I vrmllighting_97_lightcontribution.inc}
+{$I lighting_97_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
 function VRML97FogType(FogNode: TFogNode): TVRMLFogType;

@@ -14,11 +14,11 @@
 }
 
 { Shadow maps internal utilities. }
-unit VRMLShadowMaps;
+unit X3DShadowMaps;
 
 interface
 
-uses VRMLNodes, Shape;
+uses X3DNodes, Shape;
 
 type
   TPercentageCloserFiltering = (pcfNone, pcf4, pcf4Bilinear, pcf16);
@@ -50,7 +50,7 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 
 implementation
 
-uses SysUtils, CastleUtils, VRMLFields, CastleStringUtils, CastleWarnings,
+uses SysUtils, CastleUtils, X3DFields, CastleStringUtils, CastleWarnings,
   Boxes3D, CastleLog, VectorMath, GenericStructList;
 
 const

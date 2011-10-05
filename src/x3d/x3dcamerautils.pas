@@ -16,14 +16,14 @@
 { Utilities specifically for VRML cameras.
   @seealso(Cameras @link(Cameras) unit has our general classes and utilities
     for camera handling.) }
-unit VRMLCameraUtils;
+unit X3DCameraUtils;
 
 interface
 
-uses CastleUtils, VectorMath, Boxes3D, VRMLNodes;
+uses CastleUtils, VectorMath, Boxes3D, X3DNodes;
 
 type
-  { VRML major version for VRMLCameraUtils: either VRML 1.0 or 2.0.
+  { VRML major version for X3DCameraUtils: either VRML 1.0 or 2.0.
     For Inventor you should treat it like VRML 1.0. }
   TVRMLCameraVersion = 1..2;
 

@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D lights OpenGL rendering. Internal for VRMLGLRenderer. @exclude }
-unit VRMLGLRendererLights;
+{ VRML/X3D lights OpenGL rendering. Internal for GLRenderer. @exclude }
+unit GLRendererLights;
 
 interface
 
-uses VectorMath, GL, GLU, CastleGLUtils, VRMLNodes, VRMLShader;
+uses VectorMath, GL, GLU, CastleGLUtils, X3DNodes, GLRendererShader;
 
 type
   { Modify light's properties of the light right before it's rendered.
@@ -57,13 +57,13 @@ type
     { Set OpenGL lights properties.
       Sets OpenGL fixed-function pipeline lights,
       enabling and disabling them as needed.
-      Lights are also passed to TVRMLShader, calling appropriate
-      TVRMLShader.EnableLight methods. So shader pipeline is also dealt with.
+      Lights are also passed to TShader, calling appropriate
+      TShader.EnableLight methods. So shader pipeline is also dealt with.
 
       Lights1 and Lights2 lists are simply glued inside.
       Lights2 may be @nil (equal to being empty). }
     procedure Render(const Lights1, Lights2: TLightInstancesList;
-      const Shader: TVRMLShader);
+      const Shader: TShader);
 
     { Process light source properties right before rendering the light.
 
@@ -256,7 +256,7 @@ end;
 
 procedure TVRMLGLLightsRenderer.Render(
   const Lights1, Lights2: TLightInstancesList;
-  const Shader: TVRMLShader);
+  const Shader: TShader);
 var
   LightsEnabled: Cardinal;
 

@@ -206,7 +206,7 @@ glwindowrecentfiles        castlerecentfiles
 glwininputs                castleinputs
 
 vrmltriangle                                       triangle
-opengl/vrmlglscene                                 scene
+vrmlglscene                                        scene
 vrmlshape                                          shape
 vrmltime                                           x3dtime
 vrmltriangleoctree                                 triangleoctree

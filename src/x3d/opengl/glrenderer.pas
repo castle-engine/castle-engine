@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML low-level rendering (TVRMLGLRenderer).
+{ VRML low-level rendering (TGLRenderer).
   You usually don't want to use this renderer directly, you should
   rather use T3DScene that wraps this renderer and gives you simple
   method to render whole scene.
@@ -26,8 +26,8 @@
 
   @orderedList(
     @item(
-      Call @link(TVRMLGLRenderer.Prepare) for all
-      the states that you want to later render. The order of calling TVRMLGLRenderer.Prepare
+      Call @link(TGLRenderer.Prepare) for all
+      the states that you want to later render. The order of calling TGLRenderer.Prepare
       methods doesn't matter, also you are free to prepare states that you
       will not actually use later. Of course a state, once prepared,
       may be used in rendering as many times as you want.
@@ -37,58 +37,58 @@
       must have exactly the same (fields, properties) values as when
       it was prepared. In particular, it must have the same
       pointers to nodes Last*/Active* and their contents
-      also must be the same. TVRMLGLRenderer.Prepare
+      also must be the same. TGLRenderer.Prepare
       may save some associations between objects and OpenGL resources,
       so it's important that the same pointer must always point to the
       same object (until it's unprepared).
 
-      TVRMLGLRenderer.Prepare requires active OpenGL context. It doesn't modify
+      TGLRenderer.Prepare requires active OpenGL context. It doesn't modify
       OpenGL state (only allocates some resources like texture names).
       It cannot be called inside a display list.
     )
 
     @item(
-      When you want to release resources, you should call TVRMLGLRenderer.Unprepare on
+      When you want to release resources, you should call TGLRenderer.Unprepare on
       nodes that you want to change or free. This should be used
-      with nodes that were passed as Last*/Active* in some State for TVRMLGLRenderer.Prepare.
+      with nodes that were passed as Last*/Active* in some State for TGLRenderer.Prepare.
 
       Note: before engine 2.0.0 release, it was allowed to free some VRML nodes
       @italic(before) unpreparing them. This was depending on the fact that
       during unprepare we will not actually dereference pointers
       (not look at nodes contents etc.). This is forbidden since 2010-03-25,
-      as it causes some difficult problems (like TVRMLShaderProgram.Destroy
+      as it causes some difficult problems (like TGLRendererShaderProgram.Destroy
       really needs to access some VRML nodes), and was inherently unclean
       and unsafe (it's not a nice programming practice to have a pointers
       that may be invalid).
     )
 
     @item(
-      To start actual rendering, call TVRMLGLRenderer.RenderBegin. To end rendering, call
-      TVRMLGLRenderer.RenderEnd. Between these calls, you should not touch OpenGL state
+      To start actual rendering, call TGLRenderer.RenderBegin. To end rendering, call
+      TGLRenderer.RenderEnd. Between these calls, you should not touch OpenGL state
       yourself --- the renderer may depend that every state change goes
-      through it. At the end of TVRMLGLRenderer.RenderEnd, the OpenGL state is restored
-      just as it was before TVRMLGLRenderer.RenderBegin.
+      through it. At the end of TGLRenderer.RenderEnd, the OpenGL state is restored
+      just as it was before TGLRenderer.RenderBegin.
     )
 
     @item(
-      Between TVRMLGLRenderer.RenderBegin and TVRMLGLRenderer.RenderEnd
+      Between TGLRenderer.RenderBegin and TGLRenderer.RenderEnd
       you should render the shapes by calling RenderShape.
 
       Remember that you can render only shapes that have Shape.State
-      prepared by TVRMLGLRenderer.Prepare.
+      prepared by TGLRenderer.Prepare.
     )
 
     @item(
       Since the first prepare / render calls, this renderer assumes it's
       always called in the same OpenGL context. To break association
-      with OpenGL context call TVRMLGLRenderer.UnprepareAll (this is like calling TVRMLGLRenderer.Unprepare
+      with OpenGL context call TGLRenderer.UnprepareAll (this is like calling TGLRenderer.Unprepare
       on every prepared thing + clearing some remaining resources).
     )
   )
 
   @bold(OpenGL state affecting VRML rendering:)
 
-  Some OpenGL state is unconditionally reset by TVRMLGLRenderer.RenderBegin.
+  Some OpenGL state is unconditionally reset by TGLRenderer.RenderBegin.
   See TVRMLRenderingAttributes.PreserveOpenGLState.
 
   There's also some OpenGL state that we let affect our rendering.
@@ -185,7 +185,7 @@
   GL context initialization.
 }
 
-unit VRMLGLRenderer;
+unit GLRenderer;
 
 { When you define USE_VRML_TRIANGULATION, an alternative
   rendering method will be used. Each node will be triangulated
@@ -208,7 +208,7 @@ unit VRMLGLRenderer;
 
 {$ifdef USE_VRML_TRIANGULATION}
   {$ifdef RELEASE}
-    {$fatal Undefine USE_VRML_TRIANGULATION for VRMLGLRenderer,
+    {$fatal Undefine USE_VRML_TRIANGULATION for GLRenderer,
       you don't want to use this in RELEASE version. }
   {$endif}
 {$endif}
@@ -219,13 +219,13 @@ interface
 
 uses
   Classes, SysUtils, CastleUtils, VectorMath, GL, GLExt,
-  VRMLFields, VRMLNodes, VRMLLexer, Boxes3D, OpenGLTTFonts, Images,
-  CastleGLUtils, VRMLGLRendererLights, TTFontsTypes,
-  GLShaders, GLImages, Videos, VRMLTime, Shape,
+  X3DFields, X3DNodes, X3DLexer, Boxes3D, OpenGLTTFonts, Images,
+  CastleGLUtils, GLRendererLights, TTFontsTypes,
+  GLShaders, GLImages, Videos, X3DTime, Shape,
   GLCubeMap, CastleClassUtils, DDS, Base3D,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList,
-  GeometryArrays, VRMLArraysGenerator, VRMLShader, VRMLShadowMaps,
-  VRMLGLRendererTextureEnv;
+  GeometryArrays, ArraysGenerator, GLRendererShader, X3DShadowMaps,
+  GLRendererTextureEnv;
 
 {$define read_interface}
 
@@ -235,7 +235,7 @@ type
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
   { Faces to cull (make invisible) during VRML/X3D rendering. }
   TCullFace = (cfNone, cfCW, cfCCW);
-  TBumpMapping = VRMLShader.TBumpMapping;
+  TBumpMapping = GLRendererShader.TBumpMapping;
 
 const
   DefaultPointSize = 3.0;
@@ -246,12 +246,12 @@ const
 
 type
   { Various properties that control rendering done
-    with @link(TVRMLGLRenderer).
+    with @link(TGLRenderer).
 
     They are collected here,
-    in a class separate from @link(TVRMLGLRenderer),
+    in a class separate from @link(TGLRenderer),
     because various things (like T3DScene and T3DPrecalculatedAnimation)
-    wrap @link(TVRMLGLRenderer) instances and hide it,
+    wrap @link(TGLRenderer) instances and hide it,
     but still they want to allow user to change these attributes. }
   TVRMLRenderingAttributes = class(TPersistent)
   private
@@ -688,7 +688,7 @@ type
 
     { An instance of TGeometryArrays, decomposing this shape geometry.
       Used to easily render and process this geometry, if assigned.
-      This is managed by TVRMLGLRenderer and T3DScene. }
+      This is managed by TGLRenderer and T3DScene. }
     Arrays: TGeometryArrays;
 
     { What Vbos do we need to reload.
@@ -717,7 +717,7 @@ type
 
   TShaderProgramCache = class
   public
-    { Hash of TVRMLShader code when initializing this shader
+    { Hash of TShader code when initializing this shader
       by LinkProgram. Used to decide when shader needs to be regenerated,
       and when it can be shared. }
     Hash: TShaderCodeHash;
@@ -732,20 +732,20 @@ type
 
   TShaderProgramCacheList = specialize TFPGObjectList<TShaderProgramCache>;
 
-  TVRMLGLRenderer = class;
+  TGLRenderer = class;
 
-  { A cache that may be used by many TVRMLGLRenderer
+  { A cache that may be used by many TGLRenderer
     instances to share some common OpenGL resources.
 
     For examples, texture names. Such things can usually be shared by all
-    TVRMLGLRenderer instances used within the same OpenGL context.
-    And this may save a lot of memory if you use many TVRMLGLRenderer
+    TGLRenderer instances used within the same OpenGL context.
+    And this may save a lot of memory if you use many TGLRenderer
     instances in your program.
 
     Instance of this class is tied to particular OpenGL context if and only if
-    there are some TVRMLGLRenderer instances using this cache and
+    there are some TGLRenderer instances using this cache and
     tied to that OpenGL context. }
-  TVRMLGLRendererContextCache = class
+  TGLRendererContextCache = class
   private
     Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TTextureImageCacheList;
@@ -859,7 +859,7 @@ type
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
     function Shape_IncReference(Shape: TVRMLRendererShape;
-      Fog: IAbstractFogObject; ARenderer: TVRMLGLRenderer): TShapeCache;
+      Fog: IAbstractFogObject; ARenderer: TGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
 
@@ -867,16 +867,16 @@ type
       either taking an existing instance from cache or creating and adding
       a new one. If we create a new one, we will use Shader to initialize
       program hash and to create and link actual TVRMLGLSLProgram instance. }
-    function Program_IncReference(ARenderer: TVRMLGLRenderer;
-      Shader: TVRMLShader; const ShapeNiceName: string): TShaderProgramCache;
+    function Program_IncReference(ARenderer: TGLRenderer;
+      Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 
     procedure Program_DecReference(var ProgramCache: TShaderProgramCache);
   end;
 
-  {$I vrmlglrenderer_resource.inc}
-  {$I vrmlglrenderer_texture.inc}
-  {$I vrmlglrenderer_bumpmapping.inc}
-  {$I vrmlglrenderer_glsl.inc}
+  {$I glrenderer_resource.inc}
+  {$I glrenderer_texture.inc}
+  {$I glrenderer_bumpmapping.inc}
+  {$I glrenderer_glsl.inc}
 
   { VRML shape that can be rendered. }
   TVRMLRendererShape = class(TShape)
@@ -914,7 +914,7 @@ type
     ltDashedDotted,
     ltDashDotDot);
 
-  TVRMLGLRenderer = class
+  TGLRenderer = class
   private
     { ---------------------------------------------------------
       GLContext-specific things, so freed (or reset in some other way to default
@@ -929,11 +929,11 @@ type
 
     { ------------------------------------------------------------------------ }
 
-    { For speed, we keep a single instance of TVRMLShader,
+    { For speed, we keep a single instance of TShader,
       instead of creating / destroying an instance at each RenderShape.
-      This is necessary, otherwise the constructor / destructor of TVRMLShader
+      This is necessary, otherwise the constructor / destructor of TShader
       would be bottle-necks. }
-    PreparedShader: TVRMLShader;
+    PreparedShader: TShader;
 
     { ------------------------------------------------------------
       Things usable only during Render. }
@@ -1030,7 +1030,7 @@ type
 
     FAttributes: TVRMLRenderingAttributes;
 
-    FCache: TVRMLGLRendererContextCache;
+    FCache: TGLRendererContextCache;
 
     { Lights shining on all shapes. Set in each RenderBegin. }
     BaseLights: TLightInstancesList;
@@ -1066,39 +1066,39 @@ type
     procedure DisableCurrentTexture;
 
     procedure RenderShapeLineProperties(Shape: TVRMLRendererShape;
-      Fog: IAbstractFogObject; Shader: TVRMLShader);
+      Fog: IAbstractFogObject; Shader: TShader);
     procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader);
+      Shader: TShader);
     procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
     procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
     procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
     procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
     procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
     procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      GeneratorClass: TArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
     procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      GeneratorClass: TArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       UsedGLSLTexCoordsNeeded: Cardinal);
     procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-      Shader: TVRMLShader;
+      Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
-      GeneratorClass: TVRMLArraysGeneratorClass;
+      GeneratorClass: TArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
 
     { Reset various OpenGL state parameters, done at RenderBegin
@@ -1116,7 +1116,7 @@ type
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
     constructor Create(AttributesClass: TVRMLRenderingAttributesClass;
-      ACache: TVRMLGLRendererContextCache);
+      ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
 
@@ -1125,7 +1125,7 @@ type
       or after UnprepareAll call (before any Prepare or Render* calls). }
     property Attributes: TVRMLRenderingAttributes read FAttributes;
 
-    property Cache: TVRMLGLRendererContextCache read FCache;
+    property Cache: TGLRendererContextCache read FCache;
 
     { Prepare given State, to be able to render shapes with it.
       Between preparing and unpreparing, nodes passed here are "frozen":
@@ -1203,7 +1203,7 @@ type
     procedure PrepareScreenEffect(Node: TScreenEffectNode);
   end;
 
-  EVRMLGLRendererror = class(EVRMLError);
+  EGLRendererror = class(EVRMLError);
 
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];
@@ -1216,7 +1216,7 @@ const
     'Steep Parallax With Self-Shadowing' );
 
 var
-  { Should we log every event of a cache TVRMLGLRendererContextCache.
+  { Should we log every event of a cache TGLRendererContextCache.
     You have to InitializeLog first (see CastleLog) to make this actually
     meaningful. This allows to see how the cache performs. It also causes
     a @italic(lot) of log messages, usually too many even for debugging. }
@@ -1227,20 +1227,20 @@ var
 implementation
 
 uses Math, CastleStringUtils, GLVersionUnit, CastleLog, CastleWarnings,
-  RenderingCameraUnit, VRMLCameraUtils, RaysWindow;
+  RenderingCameraUnit, X3DCameraUtils, RaysWindow;
 
 {$define read_implementation}
 
-{$I vrmlglrenderer_meshrenderer.inc}
-{$I vrmlglrenderer_textrenderer.inc}
-{$I vrmlglrenderer_resource.inc}
-{$I vrmlglrenderer_texture.inc}
-{$I vrmlglrenderer_bumpmapping.inc}
-{$I vrmlglrenderer_glsl.inc}
+{$I glrenderer_meshrenderer.inc}
+{$I glrenderer_textrenderer.inc}
+{$I glrenderer_resource.inc}
+{$I glrenderer_texture.inc}
+{$I glrenderer_bumpmapping.inc}
+{$I glrenderer_glsl.inc}
 
-{ TVRMLGLRendererContextCache -------------------------------------------- }
+{ TGLRendererContextCache -------------------------------------------- }
 
-constructor TVRMLGLRendererContextCache.Create;
+constructor TGLRendererContextCache.Create;
 begin
   inherited;
   TextureImageCaches := TTextureImageCacheList.Create;
@@ -1252,7 +1252,7 @@ begin
   ProgramCaches := TShaderProgramCacheList.Create;
 end;
 
-destructor TVRMLGLRendererContextCache.Destroy;
+destructor TGLRendererContextCache.Destroy;
 
 { $define ONLY_WARN_ON_CACHE_LEAK}
 
@@ -1277,62 +1277,62 @@ begin
           (Fonts[fsfam, fsbold, fsitalic].References = 0));
         Assert(Fonts[fsfam, fsbold, fsitalic].Instance = nil,
           'Some references to fonts still exist' +
-          ' when freeing TVRMLGLRendererContextCache');
+          ' when freeing TGLRendererContextCache');
       end;
 
   if TextureImageCaches <> nil then
   begin
     Assert(TextureImageCaches.Count = 0, 'Some references to texture images still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(TextureImageCaches);
   end;
 
   if TextureVideoCaches <> nil then
   begin
     Assert(TextureVideoCaches.Count = 0, 'Some references to texture videos still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(TextureVideoCaches);
   end;
 
   if TextureCubeMapCaches <> nil then
   begin
     Assert(TextureCubeMapCaches.Count = 0, 'Some references to texture cubemaps still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(TextureCubeMapCaches);
   end;
 
   if Texture3DCaches <> nil then
   begin
     Assert(Texture3DCaches.Count = 0, 'Some references to texture 3D still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(Texture3DCaches);
   end;
 
   if TextureDepthOrFloatCaches <> nil then
   begin
     Assert(TextureDepthOrFloatCaches.Count = 0, 'Some references to depth or float texture still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(TextureDepthOrFloatCaches);
   end;
 
   if ShapeCaches <> nil then
   begin
     Assert(ShapeCaches.Count = 0, 'Some references to Shapes still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(ShapeCaches);
   end;
 
   if ProgramCaches <> nil then
   begin
     Assert(ProgramCaches.Count = 0, 'Some references to GLSL programs still exist' +
-      ' when freeing TVRMLGLRendererContextCache');
+      ' when freeing TGLRendererContextCache');
     FreeAndNil(ProgramCaches);
   end;
 
   inherited;
 end;
 
-function TVRMLGLRendererContextCache.Fonts_IncReference(
+function TGLRendererContextCache.Fonts_IncReference(
   fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
   TTF_Font: PTrueTypeFont): TGLOutlineFont;
 begin
@@ -1344,7 +1344,7 @@ begin
     WritelnLog('++', 'Font: %d', [Fonts[fsfam, fsbold, fsitalic].References]);
 end;
 
-procedure TVRMLGLRendererContextCache.Fonts_DecReference(
+procedure TGLRendererContextCache.Fonts_DecReference(
   fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
 begin
   Dec(Fonts[fsfam, fsbold, fsitalic].References);
@@ -1359,7 +1359,7 @@ const
   AlphaTolerance = 5;
   AlphaWrongPixelsTolerance = 0.01;
 
-function TVRMLGLRendererContextCache.TextureImage_IncReference(
+function TGLRendererContextCache.TextureImage_IncReference(
   const TextureImage: TEncodedImage;
   const TextureFullUrl: string;
   const TextureNode: TAbstractTextureNode;
@@ -1455,7 +1455,7 @@ begin
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
-procedure TVRMLGLRendererContextCache.TextureImage_DecReference(
+procedure TGLRendererContextCache.TextureImage_DecReference(
   const TextureGLName: TGLuint);
 var
   I: Integer;
@@ -1476,11 +1476,11 @@ begin
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.TextureImage_DecReference: no reference ' +
+    'TGLRendererContextCache.TextureImage_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
-function TVRMLGLRendererContextCache.TextureVideo_IncReference(
+function TGLRendererContextCache.TextureVideo_IncReference(
   const TextureVideo: TVideo;
   const TextureFullUrl: string;
   const TextureNode: TMovieTextureNode;
@@ -1546,7 +1546,7 @@ begin
     WritelnLog('++', '%s: %d', [TextureFullUrl, 1]);
 end;
 
-procedure TVRMLGLRendererContextCache.TextureVideo_DecReference(
+procedure TGLRendererContextCache.TextureVideo_DecReference(
   const TextureVideo: TGLVideo);
 var
   I: Integer;
@@ -1567,11 +1567,11 @@ begin
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.TextureVideo_DecReference: no reference ' +
+    'TGLRendererContextCache.TextureVideo_DecReference: no reference ' +
     'found to texture %s', [PointerToStr(TextureVideo)]);
 end;
 
-function TVRMLGLRendererContextCache.TextureCubeMap_IncReference(
+function TGLRendererContextCache.TextureCubeMap_IncReference(
   Node: TAbstractEnvironmentTextureNode;
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
@@ -1644,7 +1644,7 @@ begin
     WritelnLog('++', 'cube map %s: %d', [PointerToStr(Node), 1]);
 end;
 
-procedure TVRMLGLRendererContextCache.TextureCubeMap_DecReference(
+procedure TGLRendererContextCache.TextureCubeMap_DecReference(
   const TextureGLName: TGLuint);
 var
   I: Integer;
@@ -1664,11 +1664,11 @@ begin
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.TextureCubeMap_DecReference: no reference ' +
+    'TGLRendererContextCache.TextureCubeMap_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
-function TVRMLGLRendererContextCache.Texture3D_IncReference(
+function TGLRendererContextCache.Texture3D_IncReference(
   Node: TAbstractTexture3DNode;
   const MinFilter, MagFilter: TGLint;
   const Anisotropy: TGLfloat;
@@ -1732,7 +1732,7 @@ begin
     WritelnLog('++', '3d texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
-procedure TVRMLGLRendererContextCache.Texture3D_DecReference(
+procedure TGLRendererContextCache.Texture3D_DecReference(
   const TextureGLName: TGLuint);
 var
   I: Integer;
@@ -1752,11 +1752,11 @@ begin
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.Texture3D_DecReference: no reference ' +
+    'TGLRendererContextCache.Texture3D_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
-function TVRMLGLRendererContextCache.TextureDepth_IncReference(
+function TGLRendererContextCache.TextureDepth_IncReference(
   Node: TAbstractTextureNode;
   const TextureWrap: TTextureWrap2D;
   DepthCompareField: TSFString;
@@ -1840,7 +1840,7 @@ begin
     WritelnLog('++', 'Depth texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
-procedure TVRMLGLRendererContextCache.TextureDepth_DecReference(
+procedure TGLRendererContextCache.TextureDepth_DecReference(
   const TextureGLName: TGLuint);
 var
   I: Integer;
@@ -1860,11 +1860,11 @@ begin
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.TextureDepth_DecReference: no reference ' +
+    'TGLRendererContextCache.TextureDepth_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
-function TVRMLGLRendererContextCache.TextureFloat_IncReference(
+function TGLRendererContextCache.TextureFloat_IncReference(
   Node: TAbstractTextureNode;
   const TextureMinFilter, TextureMagFilter: TGLint;
   const TextureWrap: TTextureWrap2D;
@@ -1920,7 +1920,7 @@ begin
     WritelnLog('++', 'Float texture %s: %d', [PointerToStr(Node), 1]);
 end;
 
-procedure TVRMLGLRendererContextCache.TextureFloat_DecReference(
+procedure TGLRendererContextCache.TextureFloat_DecReference(
   const TextureGLName: TGLuint);
 var
   I: Integer;
@@ -1940,13 +1940,13 @@ begin
     end;
 
   raise EInternalError.CreateFmt(
-    'TVRMLGLRendererContextCache.TextureFloat_DecReference: no reference ' +
+    'TGLRendererContextCache.TextureFloat_DecReference: no reference ' +
     'found to texture %d', [TextureGLName]);
 end;
 
-function TVRMLGLRendererContextCache.Shape_IncReference(
+function TGLRendererContextCache.Shape_IncReference(
   Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
-  ARenderer: TVRMLGLRenderer): TShapeCache;
+  ARenderer: TGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
   FogVolumetricDirection: TVector3Single;
@@ -2029,7 +2029,7 @@ begin
     WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.NodeTypeName, Result.References]);
 end;
 
-procedure TVRMLGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
+procedure TGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
 var
   I: Integer;
 begin
@@ -2048,11 +2048,11 @@ begin
   end;
 
   raise EInternalError.Create(
-    'TVRMLGLRendererContextCache.Shape_DecReference: no reference found');
+    'TGLRendererContextCache.Shape_DecReference: no reference found');
 end;
 
-function TVRMLGLRendererContextCache.Program_IncReference(ARenderer: TVRMLGLRenderer;
-  Shader: TVRMLShader; const ShapeNiceName: string): TShaderProgramCache;
+function TGLRendererContextCache.Program_IncReference(ARenderer: TGLRenderer;
+  Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 var
   I: Integer;
 begin
@@ -2090,7 +2090,7 @@ begin
     WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
 end;
 
-procedure TVRMLGLRendererContextCache.Program_DecReference(var ProgramCache: TShaderProgramCache);
+procedure TGLRendererContextCache.Program_DecReference(var ProgramCache: TShaderProgramCache);
 var
   I: Integer;
 begin
@@ -2109,7 +2109,7 @@ begin
   end;
 
   raise EInternalError.Create(
-    'TVRMLGLRendererContextCache.Program_DecReference: no reference found');
+    'TGLRendererContextCache.Program_DecReference: no reference found');
 end;
 
 { TVRMLRenderingAttributes --------------------------------------------------- }
@@ -2275,11 +2275,11 @@ begin
   FShaders := Value;
 end;
 
-{ TVRMLGLRenderer ---------------------------------------------------------- }
+{ TGLRenderer ---------------------------------------------------------- }
 
-constructor TVRMLGLRenderer.Create(
+constructor TGLRenderer.Create(
   AttributesClass: TVRMLRenderingAttributesClass;
-  ACache: TVRMLGLRendererContextCache);
+  ACache: TGLRendererContextCache);
 begin
   inherited Create;
 
@@ -2291,13 +2291,13 @@ begin
 
   TextureTransformUnitsUsedMore := TLongIntList.Create;
 
-  PreparedShader := TVRMLShader.Create;
+  PreparedShader := TShader.Create;
 
   FCache := ACache;
   Assert(FCache <> nil);
 end;
 
-destructor TVRMLGLRenderer.Destroy;
+destructor TGLRenderer.Destroy;
 begin
   UnprepareAll;
 
@@ -2464,13 +2464,13 @@ end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
-procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TMFNode;
+procedure TGLRenderer.PrepareIDecls(Nodes: TMFNode;
   State: TVRMLGraphTraverseState);
 begin
   PrepareIDecls(Nodes.Items, State);
 end;
 
-procedure TVRMLGLRenderer.PrepareIDecls(Nodes: TX3DNodeList;
+procedure TGLRenderer.PrepareIDecls(Nodes: TX3DNodeList;
   State: TVRMLGraphTraverseState);
 var
   I: Integer;
@@ -2479,7 +2479,7 @@ begin
     GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
 end;
 
-procedure TVRMLGLRenderer.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLRenderer.Prepare(State: TVRMLGraphTraverseState);
 
   procedure PrepareFont(
     fsfam: TVRMLFontFamily;
@@ -2580,9 +2580,9 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
+procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
 var
-  Shader: TVRMLShader;
+  Shader: TShader;
   ShaderProgram: TVRMLGLSLProgram;
   ShaderNode: TComposedShaderNode;
 begin
@@ -2595,10 +2595,10 @@ begin
       { make sure that textures inside shaders are prepared }
       PrepareIDecls(Node.FdShaders, Node.StateForShaderPrepare);
 
-      Shader := TVRMLShader.Create;
+      Shader := TShader.Create;
       try
         { for ScreenEffect, we require that some ComposedShader was present.
-          Rendering with default TVRMLShader shader makes no sense. }
+          Rendering with default TShader shader makes no sense. }
         if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
         try
           ShaderProgram := TVRMLGLSLProgram.Create(Self);
@@ -2623,12 +2623,12 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.UnprepareTexture(Node: TAbstractTextureNode);
+procedure TGLRenderer.UnprepareTexture(Node: TAbstractTextureNode);
 begin
   GLTextureNodes.Unprepare(Node);
 end;
 
-procedure TVRMLGLRenderer.UnprepareAll;
+procedure TGLRenderer.UnprepareAll;
 var
   fsfam: TVRMLFontFamily;
   fsbold , fsitalic: boolean;
@@ -2648,7 +2648,7 @@ begin
   ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
-function TVRMLGLRenderer.BumpMapping: TBumpMapping;
+function TGLRenderer.BumpMapping: TBumpMapping;
 begin
   if (Attributes.BumpMapping <> bmNone) and
     Attributes.EnableTextures and
@@ -2659,7 +2659,7 @@ begin
     Result := bmNone;
 end;
 
-function TVRMLGLRenderer.PreparedTextureAlphaChannelType(
+function TGLRenderer.PreparedTextureAlphaChannelType(
   TextureNode: TAbstractTextureNode;
   out AlphaChannelType: TAlphaChannelType): boolean;
 var
@@ -2674,13 +2674,13 @@ end;
 
 { Render ---------------------------------------------------------------------- }
 
-procedure TVRMLGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
+procedure TGLRenderer.ActiveTexture(const TextureUnit: Cardinal);
 begin
   if GLUseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
 end;
 
-procedure TVRMLGLRenderer.DisableTexture(const TextureUnit: Cardinal);
+procedure TGLRenderer.DisableTexture(const TextureUnit: Cardinal);
 begin
   { TODO: what to do for Shader? We cannot disable texture later...
     We should detect it, and do enable only when appropriate }
@@ -2691,14 +2691,14 @@ begin
   DisableCurrentTexture;
 end;
 
-procedure TVRMLGLRenderer.DisableCurrentTexture;
+procedure TGLRenderer.DisableCurrentTexture;
 begin
   glDisable(GL_TEXTURE_2D);
   if GL_ARB_texture_cube_map then glDisable(GL_TEXTURE_CUBE_MAP_ARB);
   if GL3DTextures <> gsNone  then glDisable(GL_TEXTURE_3D);
 end;
 
-procedure TVRMLGLRenderer.GetFog(Node: IAbstractFogObject;
+procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
   out Enabled, Volumetric: boolean;
   out VolumetricDirection: TVector3Single;
   out VolumetricVisibilityStart: Single);
@@ -2720,7 +2720,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderCleanState(const Beginning: boolean);
+procedure TGLRenderer.RenderCleanState(const Beginning: boolean);
 
   procedure DisabeAllTextureUnits;
   var
@@ -2776,7 +2776,7 @@ begin
     glDisable(GL_TEXTURE_GEN_Q);
 
     { We don't really need to enable GL_NORMALIZE.
-      We always provide normalized normals (that's how vrmlarraysgenerator.pas
+      We always provide normalized normals (that's how arraysgenerator.pas
       and vrmlmeshrenderer.inc always calculate them, and when provided
       in VRML/X3D they should also be already normalized).
       However, turning GL_NORMALIZE off doesn't give us *any* performance
@@ -2823,7 +2823,7 @@ begin
 
     { - We always set diffuse material component from the color.
         This satisfies all cases.
-      - TVRMLShader.EnableMaterialFromColor
+      - TShader.EnableMaterialFromColor
         takes care of actually enabling COLOR_MATERIAL, it depends on
         the setting below.
       - We never change glColorMaterial during rendering,
@@ -2833,7 +2833,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
+procedure TGLRenderer.RenderBegin(ABaseLights: TLightInstancesList;
   LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
 var
   Attribs: TGLbitfield;
@@ -2879,7 +2879,7 @@ begin
   LightsRenderer := TVRMLGLLightsRenderer.Create(LightRenderEvent);
 end;
 
-procedure TVRMLGLRenderer.RenderEnd;
+procedure TGLRenderer.RenderEnd;
 begin
   FreeAndNil(LightsRenderer);
 
@@ -2897,7 +2897,7 @@ begin
 end;
 
 {$ifdef USE_VRML_TRIANGULATION}
-procedure TVRMLGLRenderer.DrawTriangle(Shape: TObject;
+procedure TGLRenderer.DrawTriangle(Shape: TObject;
   const Position: TTriangle3Single;
   const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
   const Face: TFaceIndex);
@@ -2913,12 +2913,12 @@ begin
 end;
 {$endif USE_VRML_TRIANGULATION}
 
-procedure TVRMLGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShape(Shape: TVRMLRendererShape;
   Fog: IAbstractFogObject);
 var
-  Shader: TVRMLShader;
+  Shader: TShader;
 begin
-  { instead of TVRMLShader.Create, reuse existing PreparedShader for speed }
+  { instead of TShader.Create, reuse existing PreparedShader for speed }
   Shader := PreparedShader;
   Shader.Clear;
 
@@ -2928,8 +2928,8 @@ begin
   RenderShapeLineProperties(Shape, Fog, Shader);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader);
+procedure TGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader);
 var
   LP: TLinePropertiesNode;
 begin
@@ -2950,18 +2950,18 @@ begin
   RenderShapeMaterials(Shape, Fog, Shader);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader);
+procedure TGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader);
 
-  {$I vrmlglrenderer_materials.inc}
+  {$I glrenderer_materials.inc}
 
 begin
   RenderMaterialsBegin;
   RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   SceneLights: TLightInstancesList;
@@ -2988,8 +2988,8 @@ begin
   RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
 const
@@ -3058,7 +3058,7 @@ const
             glFogi(GL_FOG_MODE, GL_EXP);
             glFogf(GL_FOG_DENSITY, FogDensityFactor / VisibilityRangeScaled);
           end;
-        else raise EInternalError.Create('TVRMLGLRenderer.RenderShapeFog:FogType?');
+        else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType?');
       end;
 
       glEnable(GL_FOG);
@@ -3081,8 +3081,8 @@ begin
   RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
   { Pass non-nil TextureTransform that is not a MultiTextureTransform.
@@ -3235,8 +3235,8 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   { How many clip planes were enabled (and so, how many must be disabled
@@ -3315,11 +3315,11 @@ begin
   ClipPlanesEnd;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TArraysGeneratorClass;
   MeshRenderer: TVRMLMeshRenderer;
 
   { If Shape.Geometry should be rendered using one of TVRMLMeshRenderer
@@ -3332,7 +3332,7 @@ var
   begin
     Result := true;
 
-    GeneratorClass := ArraysGenerator(Shape.Geometry);
+    GeneratorClass := GetArraysGenerator(Shape.Geometry);
 
     if GeneratorClass = nil then
     begin
@@ -3381,10 +3381,10 @@ end;
 
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
-procedure TVRMLGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 var
   { > 0 means that we had custom shader node *and* it already
@@ -3476,10 +3476,10 @@ begin
     GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
 end;
 
-procedure TVRMLGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TArraysGeneratorClass;
   ExposedMeshRenderer: TObject;
   UsedGLSLTexCoordsNeeded: Cardinal);
 
@@ -3583,13 +3583,13 @@ begin
   finally RenderTexturesEnd end;
 end;
 
-procedure TVRMLGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
-  Fog: IAbstractFogObject; Shader: TVRMLShader;
+procedure TGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
+  Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
-  GeneratorClass: TVRMLArraysGeneratorClass;
+  GeneratorClass: TArraysGeneratorClass;
   ExposedMeshRenderer: TObject);
 var
-  Generator: TVRMLArraysGenerator;
+  Generator: TArraysGenerator;
   CoordinateRenderer: TBaseCoordinateRenderer;
   VBO: boolean;
 begin
@@ -3669,7 +3669,7 @@ begin
   {$endif USE_VRML_TRIANGULATION}
 end;
 
-procedure TVRMLGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
+procedure TGLRenderer.PushTextureUnit(const TexUnit: Cardinal);
 begin
   { Only continue if texture unit is not already pushed
     (otherwise glPushMatrix would not be paired by exactly one glPopMatrix
@@ -3703,7 +3703,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.UpdateGeneratedTextures(Shape: TShape;
+procedure TGLRenderer.UpdateGeneratedTextures(Shape: TShape;
   TextureNode: TAbstractTextureNode;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
@@ -3830,7 +3830,7 @@ begin
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
 end;
 
-procedure TVRMLGLRenderer.SetCullFace(const Value: TCullFace);
+procedure TGLRenderer.SetCullFace(const Value: TCullFace);
 begin
   if FCullFace <> Value then
   begin
@@ -3850,7 +3850,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.SetSmoothShading(const Value: boolean);
+procedure TGLRenderer.SetSmoothShading(const Value: boolean);
 begin
   if FSmoothShading <> Value then
   begin
@@ -3861,7 +3861,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.SetFixedFunctionLighting(const Value: boolean);
+procedure TGLRenderer.SetFixedFunctionLighting(const Value: boolean);
 begin
   if FFixedFunctionLighting <> Value then
   begin
@@ -3870,7 +3870,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.SetLineWidth(const Value: Single);
+procedure TGLRenderer.SetLineWidth(const Value: Single);
 begin
   if FLineWidth <> Value then
   begin
@@ -3879,7 +3879,7 @@ begin
   end;
 end;
 
-procedure TVRMLGLRenderer.SetLineType(const Value: TLineType);
+procedure TGLRenderer.SetLineType(const Value: TLineType);
 begin
   if FLineType <> Value then
   begin

@@ -18,9 +18,9 @@ unit CastleSceneManager;
 
 interface
 
-uses Classes, VectorMath, VRMLNodes, Scene, VRMLScene, Cameras,
+uses Classes, VectorMath, X3DNodes, Scene, SceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
-  KeysMouse, Boxes3D, VRMLGLBackground, CastleUtils, CastleClassUtils,
+  KeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
   GLShaders, GLImages, CastleTimeUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
@@ -183,7 +183,7 @@ type
 
       The default implementation in this class does what is usually
       most natural: return MainScene.Background, if MainScene assigned. }
-    function Background: TVRMLGLBackground; virtual;
+    function Background: TBackground; virtual;
 
     { Detect position/direction of the main light that produces shadows.
       The default implementation in this class looks at
@@ -884,7 +884,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, VRMLGLRenderer, ALSoundEngine;
+  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine;
 
 procedure Register;
 begin
@@ -1291,7 +1291,7 @@ begin
   end;
 end;
 
-function TKamAbstractViewport.Background: TVRMLGLBackground;
+function TKamAbstractViewport.Background: TBackground;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.Background else
@@ -1471,7 +1471,7 @@ end;
 procedure TKamAbstractViewport.RenderFromViewEverything;
 var
   ClearBuffers: TGLbitfield;
-  UsedBackground: TVRMLGLBackground;
+  UsedBackground: TBackground;
   MainLightPosition: TVector4Single; { ignored }
 begin
   ClearBuffers := GL_DEPTH_BUFFER_BIT;

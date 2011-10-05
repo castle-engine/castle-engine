@@ -33,7 +33,7 @@
       ANode: TAbstractTextureNode): boolean; virtual; abstract;
 
     { Do the time-consuming preparations before rendering this texture.
-      Called from TVRMLGLRenderer.Prepare, always through our
+      Called from TGLRenderer.Prepare, always through our
       Prepare method. Our Prepare method takes care to catch
       common exceptions from this (EFramebufferError, ETextureLoadError),
       convert them to OnWarning and make Unprepare to undo the preparations.
@@ -42,7 +42,7 @@
     procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
   public
     { ANode must be TAbstractTextureNode }
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); override;
+    constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
 
     { Reference to handled texture node.
       Never @nil.
@@ -62,7 +62,7 @@
     procedure Prepare(State: TVRMLGraphTraverseState);
   public
     { This is the alpha channel of this texture.
-      Used by TVRMLGLRenderer.PreparedTextureAlphaChannelType and bump mapping.
+      Used by TGLRenderer.PreparedTextureAlphaChannelType and bump mapping.
       Should be calculated and set in Prepare.
 
       For textures with normal images, this is the saved result of
@@ -74,7 +74,7 @@
       TODO: it would be better to move this inside, possibly
       only to applicable class types? And expose only function
       like UseBlending, and this is the main use of
-      TVRMLGLRenderer.PreparedTextureAlphaChannelType ? }
+      TGLRenderer.PreparedTextureAlphaChannelType ? }
     AlphaChannelType: TAlphaChannelType;
 
     { Bind texture for OpenGL (without enabling it).
@@ -103,7 +103,7 @@
       It's also already enabled (by glEnable(GL_TEXTURE_2D /
       GL_TEXTURE_CUBE_MAP_ARB / GL_TEXTURE_3D) ). }
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; virtual; abstract;
+      Shader: TShader; const Env: TTextureEnv): boolean; virtual; abstract;
 
     { Sets texture state for many texture units, based on this node.
       On every texture unit where something is enabled,
@@ -141,7 +141,7 @@
     procedure EnableAll(
       const TextureUnitsCount: Cardinal;
       out TexCoordsNeeded: Cardinal;
-      Shader: TVRMLShader); virtual; abstract;
+      Shader: TShader); virtual; abstract;
   end;
 
   TGLTextureNodes = class(TResourceRendererList)
@@ -170,7 +170,7 @@
       or not really a texture node at all). }
     function Prepare(State: TVRMLGraphTraverseState;
       ANode: TAbstractTextureNode;
-      ARenderer: TVRMLGLRenderer): TGLTextureNode;
+      ARenderer: TGLRenderer): TGLTextureNode;
 
     { Only bind texture node. Calls TGLTextureNode.Enable method.
       If no texture renderer is prepared for this node,
@@ -183,15 +183,15 @@
       returns @false. }
     function Enable(ANode: TAbstractTextureNode;
       const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+      Shader: TShader; const Env: TTextureEnv): boolean;
 
     { Prepare / unprepare all textures inside Node.InterfaceDeclarations
       SFNode / MFNode fields. }
     procedure PrepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
       const State: TVRMLGraphTraverseState;
-      const Renderer: TVRMLGLRenderer);
+      const Renderer: TGLRenderer);
     procedure UnprepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
-      const Renderer: TVRMLGLRenderer);
+      const Renderer: TGLRenderer);
   end;
 
   { Common class for all single (not multi-texture) texture nodes.
@@ -209,7 +209,7 @@
     procedure SetTextureRGBFromImage(Image: TEncodedImage);
   public
     procedure EnableAll(const TextureUnitsCount: Cardinal;
-      out TexCoordsNeeded: Cardinal; Shader: TVRMLShader); override;
+      out TexCoordsNeeded: Cardinal; Shader: TShader); override;
   end;
 
   { Handler for TMultiTextureNode.
@@ -225,7 +225,7 @@
     procedure PrepareCore(State: TVRMLGraphTraverseState); override;
   public
     { ANode must be TMultiTextureNode }
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); override;
+    constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
     destructor Destroy; override;
 
     function TextureNode: TMultiTextureNode;
@@ -233,9 +233,9 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
     procedure EnableAll(const TextureUnitsCount: Cardinal;
-      out TexCoordsNeeded: Cardinal; Shader: TVRMLShader); override;
+      out TexCoordsNeeded: Cardinal; Shader: TShader); override;
   end;
 
   { Handler for TAbstractTexture2DNode with image (not a video). }
@@ -253,7 +253,7 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
   end;
 
   TGLMovieTextureNode = class(TGLSingleTextureNode)
@@ -268,7 +268,7 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
   end;
 
   TGLRenderedTextureNode = class(TGLSingleTextureNode)
@@ -290,7 +290,7 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
 
     procedure Update(
       const Render: TRenderFromViewFunction;
@@ -315,7 +315,7 @@
 
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
   end;
 
   TGLComposedCubeMapTextureNode = class(TGLCubeMapTextureNode)
@@ -372,7 +372,7 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
   end;
 
   TGLGeneratedShadowMap = class(TGLSingleTextureNode)
@@ -400,7 +400,7 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
 
     procedure Update(
       const Render: TRenderFromViewFunction;
@@ -421,7 +421,7 @@
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
-      Shader: TVRMLShader; const Env: TTextureEnv): boolean; override;
+      Shader: TShader; const Env: TTextureEnv): boolean; override;
   end;
 
 {$endif read_interface}
@@ -443,7 +443,7 @@ end;
 
 { TGLTextureNode ------------------------------------------------------------- }
 
-constructor TGLTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode);
+constructor TGLTextureNode.Create(ARenderer: TGLRenderer; ANode: TX3DNode);
 begin
   Assert(ANode is TAbstractTextureNode, 'TGLTextureNode.Create acceps as Node only TAbstractTextureNode');
   inherited;
@@ -614,7 +614,7 @@ end;
 
 function TGLTextureNodes.Prepare(State: TVRMLGraphTraverseState;
   ANode: TAbstractTextureNode;
-  ARenderer: TVRMLGLRenderer): TGLTextureNode;
+  ARenderer: TGLRenderer): TGLTextureNode;
 var
   GLTextureNodeClass: TGLTextureNodeClass;
 begin
@@ -651,7 +651,7 @@ begin
 end;
 
 function TGLTextureNodes.Enable(ANode: TAbstractTextureNode;
-  const TextureUnit: Cardinal; Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  const TextureUnit: Cardinal; Shader: TShader; const Env: TTextureEnv): boolean;
 var
   GLTextureNode: TGLTextureNode;
 begin
@@ -663,7 +663,7 @@ end;
 
 procedure TGLTextureNodes.PrepareInterfaceDeclarationsTextures(
   const ANode: TX3DNode;
-  const State: TVRMLGraphTraverseState; const Renderer: TVRMLGLRenderer);
+  const State: TVRMLGraphTraverseState; const Renderer: TGLRenderer);
 
   { If TextureNode <> @nil and is a texture node, prepare it. }
   procedure PrepareTexture(TextureNode: TX3DNode);
@@ -701,7 +701,7 @@ begin
 end;
 
 procedure TGLTextureNodes.UnprepareInterfaceDeclarationsTextures(
-  const ANode: TX3DNode; const Renderer: TVRMLGLRenderer);
+  const ANode: TX3DNode; const Renderer: TGLRenderer);
 
   { If TextureNode <> @nil and is a texture node, prepare it. }
   procedure UnprepareTexture(TextureNode: TX3DNode);
@@ -750,7 +750,7 @@ begin
 end;
 
 procedure TGLSingleTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
-  out TexCoordsNeeded: Cardinal; Shader: TVRMLShader);
+  out TexCoordsNeeded: Cardinal; Shader: TShader);
 var
   Env: TTextureEnv;
 begin
@@ -775,7 +775,7 @@ end;
 
 { TGLMultiTextureNode -------------------------------------------------------- }
 
-constructor TGLMultiTextureNode.Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode);
+constructor TGLMultiTextureNode.Create(ARenderer: TGLRenderer; ANode: TX3DNode);
 begin
   Assert(ANode is TMultiTextureNode, 'TGLMultiTextureNode.Create acceps as Node only TMultiTextureNode');
   inherited;
@@ -857,7 +857,7 @@ begin
     We cannot look at TextureNode.FdTexture here.
 
     Reason: TextureNode may be already freed at the Unprepare time.
-    VRMLGLRenderer explicitly allows to free vrml nodes before
+    GLRenderer explicitly allows to free vrml nodes before
     unpreparing them. This is used e.g. by doing T3DSceneCore.Load
     (that calls ChangedAll, that calls Unprepare, only at the end,
     *after* old nodes have been already freed.)
@@ -887,7 +887,7 @@ begin
 end;
 
 function TGLMultiTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   { This should never be called. TGLMultiTextureNode cannot set only one
     texture unit. }
@@ -895,7 +895,7 @@ begin
 end;
 
 procedure TGLMultiTextureNode.EnableAll(const TextureUnitsCount: Cardinal;
-  out TexCoordsNeeded: Cardinal; Shader: TVRMLShader);
+  out TexCoordsNeeded: Cardinal; Shader: TShader);
 const
   ColorSourceGL: array [TColorSource] of TGLint =
   ( GL_PRIMARY_COLOR, GL_TEXTURE, GL_CONSTANT, GL_PREVIOUS );
@@ -1068,7 +1068,7 @@ begin
 end;
 
 function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1159,7 +1159,7 @@ begin
 end;
 
 function TGLMovieTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1307,7 +1307,7 @@ begin
 end;
 
 function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1540,7 +1540,7 @@ begin
 end;
 
 function TGLCubeMapTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -1897,7 +1897,7 @@ begin
 end;
 
 function TGL3DTextureNode.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -2018,7 +2018,7 @@ begin
 end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
@@ -2110,7 +2110,7 @@ begin
 end;
 
 function TGLShaderTexture.Enable(const TextureUnit: Cardinal;
-  Shader: TVRMLShader; const Env: TTextureEnv): boolean;
+  Shader: TShader; const Env: TTextureEnv): boolean;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;

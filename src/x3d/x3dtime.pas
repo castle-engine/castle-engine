@@ -14,7 +14,7 @@
 }
 
 { X3D time. }
-unit VRMLTime;
+unit X3DTime;
 
 interface
 

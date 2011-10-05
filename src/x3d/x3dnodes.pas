@@ -30,8 +30,8 @@
 
   @unorderedList(
     @item(Nodes can be loaded/saved from the stream in a "classic" encoding.
-      This uses internally the lexer (in VRMLLexer unit)
-      and parser of VRML fields (in VRMLFields unit).
+      This uses internally the lexer (in X3DLexer unit)
+      and parser of VRML fields (in X3DFields unit).
 
       We can also load from an XML encoding. (Saving to XML encoding
       is not implemented for now.)
@@ -64,7 +64,7 @@
       triangulating and such.)
 
     @item(This unit doesn't depend on OpenGL, or any other particular rendering
-      method. So it's suitable also for VRMLRayTracer, and every other possible
+      method. So it's suitable also for RayTracer, and every other possible
       renderer that will ever get implemented.)
 
     @item(Your own units can define new VRML/X3D nodes, by declaring
@@ -157,19 +157,19 @@
   @bold(Files organization:) X3D nodes are inside x3d_COMPONET_NAME.inc files.
   That's a nice thing, since X3D components provide a natural way to group
   the vast number of nodes into files. Some remaining nodes that are not part
-  of X3D are in other vrmlnodes_xxx.inc files, for example
-  vrmlnodes_1.inc contains only VRML-1.0 specific nodes.
+  of X3D are in other x3dnodes_xxx.inc files, for example
+  x3dnodes_1.inc contains only VRML-1.0 specific nodes.
 *)
 
-unit VRMLNodes;
+unit X3DNodes;
 
 {$I castleconf.inc}
 
 interface
 
-uses VectorMath, Classes, SysUtils, VRMLLexer, CastleUtils, CastleClassUtils,
-  VRMLFields, Boxes3D, Images, TTFontsTypes,
-  Videos, VRMLTime, Base3D,
+uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
+  X3DFields, Boxes3D, Images, TTFontsTypes,
+  Videos, X3DTime, Base3D,
   CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,
   XMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, CastleStringUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
@@ -729,7 +729,7 @@ type
     function Empty: boolean; override;
   end;
 
-{$I vrmlnodes_node.inc}
+{$I x3dnodes_node.inc}
 
   TX3DNodeClassesList = class(TList)
   private
@@ -763,7 +763,7 @@ type
   TAllowedChildren = (acAll, acClasses, acInterface);
 
   { VRML/X3D field holding a reference to a single node.
-    It's defined in this unit, not in VRMLFields, since it uses
+    It's defined in this unit, not in X3DFields, since it uses
     TX3DNode definition. NULL value of the field is indicated by
     Value field = nil.
 
@@ -837,7 +837,7 @@ type
       read FDefaultValueExists write SetDefaultValueExists default false;
 
     property Value: TX3DNode read FValue write SetValue;
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
 
@@ -980,7 +980,7 @@ type
     procedure AssignItems(SourceItems: TX3DNodeList);
     procedure Replace(Index: Integer; Node: TX3DNode);
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
 
@@ -1075,13 +1075,13 @@ type
 {$I x3d_followers.inc}
 {$I x3d_particlesystems.inc}
 
-{$I vrmlnodes_1.inc}
-{$I vrmlnodes_inventor.inc}
-{$I vrmlnodes_97_hanim.inc}
-{$I vrmlnodes_97_nurbs.inc}
-{$I vrmlnodes_kambi.inc}
-{$I vrmlnodes_avalon.inc}
-{$I vrmlnodes_bitmanagement.inc}
+{$I x3dnodes_1.inc}
+{$I x3dnodes_inventor.inc}
+{$I x3dnodes_97_hanim.inc}
+{$I x3dnodes_97_nurbs.inc}
+{$I x3dnodes_kambi.inc}
+{$I x3dnodes_avalon.inc}
+{$I x3dnodes_bitmanagement.inc}
 
 { TX3DUnknownNode --------------------------------------------------- }
 
@@ -1103,7 +1103,7 @@ type
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     function NodeTypeName: string; override;
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1186,7 +1186,7 @@ type
     property Event: TVRMLEvent read FEvent;
     { @groupEnd }
 
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames;
       FieldValue, IsClauseAllowed: boolean);
 
     { Parse interface declaration encoded in XML.
@@ -1415,7 +1415,7 @@ type
     { Parses InterfaceDeclarations. Also inits WWWBasePath from
       Names.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
-      Lexer: TVRMLLexer; Names: TVRMLNames);
+      Lexer: TX3DLexer; Names: TVRMLNames);
 
     { Parse interface declarations in XML encoding.
       Handle sequence of <field> elements.
@@ -1441,7 +1441,7 @@ type
     { Parse prototype, and add it to Names.Prototypes.
       Adds to @code(Names) by @code(Names.Prototypes.Bind(Self)).
       @groupBegin }
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); virtual; abstract;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); virtual; abstract;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); virtual; abstract;
     { @groupEnd }
 
@@ -1459,7 +1459,7 @@ type
   public
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
@@ -1488,7 +1488,7 @@ type
     destructor Destroy; override;
     property URLList: TMFString read FURLList;
 
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
     procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
@@ -1625,7 +1625,7 @@ type
     { Parse the route (classic VRML encoding).
       Implementation should be able to safely assume that current token
       is ROUTE. }
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 
     { Parse the route (XML encoding).
       Given Element here must have TagName = 'ROUTE'. }
@@ -1673,7 +1673,7 @@ type
   public
     InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
 
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 
     { Parse the IMPORT declaration (XML encoding).
       Given Element here must have TagName = 'IMPORT'. }
@@ -1687,7 +1687,7 @@ type
   public
     ExportedNodeName, ExportedNodeAlias: string;
 
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 
     { Parse the EXPORT declaration (XML encoding).
       Given Element here must have TagName = 'EXPORT'. }
@@ -1697,7 +1697,7 @@ type
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLExport;
   end;
 
-{$I vrmlnodes_eventsengine.inc}
+{$I x3dnodes_eventsengine.inc}
 
 { Node names ----------------------------------------------------------------- }
 
@@ -1774,8 +1774,8 @@ type
     procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
   end;
 
-  TVRMLVersion = VRMLLexer.TVRMLVersion;
-  TX3DEncoding = VRMLLexer.TX3DEncoding;
+  TVRMLVersion = X3DLexer.TVRMLVersion;
+  TX3DEncoding = X3DLexer.TX3DEncoding;
 
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
@@ -1944,9 +1944,9 @@ var
 
 { global procedures ---------------------------------------------------------- }
 
-{$I vrmlnodes_encoding_classic.inc}
-{$I vrmlnodes_encoding_xml.inc}
-{$I vrmlnodes_save.inc}
+{$I x3dnodes_encoding_classic.inc}
+{$I x3dnodes_encoding_xml.inc}
+{$I x3dnodes_save.inc}
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -2051,8 +2051,8 @@ const
   { Latest X3D version supported. }
   X3DVersion: TVRMLVersion = (Major: 3; Minor: 2);
 
-  xeClassic = VRMLLexer.xeClassic;
-  xeXML = VRMLLexer.xeXML;
+  xeClassic = X3DLexer.xeClassic;
+  xeXML = X3DLexer.xeXML;
 
 var
   { Quadric triangulation settings.
@@ -2191,7 +2191,7 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, X3DLoad, CastleZStream, VRMLCameraUtils, CastleWarnings,
+  Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings,
   CastleFilesUtils, RaysWindow, StrUtils, CastleURLUtils,
   CastleLog, CastleScriptParser, DataURI, URIParser,
   NURBS, Quaternions, Cameras, CastleXMLUtils;
@@ -2228,18 +2228,18 @@ resourcestring
   end;
 }
 
-{$I vrmlnodes_extrusion.inc}
-{$I vrmlnodes_elevationgrid.inc}
-{$I vrmlnodes_boundingboxes.inc}
-{$I vrmlnodes_verticesandtrianglescounting.inc}
-{$I vrmlnodes_coordpolygons.inc}
-{$I vrmlnodes_eventsengine.inc}
-{$I vrmlnodes_cone_cylinder.inc}
-{$I vrmlnodes_sphere.inc}
-{$I vrmlnodes_box.inc}
-{$I vrmlnodes_save.inc}
-{$I vrmlnodes_encoding_classic.inc}
-{$I vrmlnodes_encoding_xml.inc}
+{$I x3dnodes_extrusion.inc}
+{$I x3dnodes_elevationgrid.inc}
+{$I x3dnodes_boundingboxes.inc}
+{$I x3dnodes_verticesandtrianglescounting.inc}
+{$I x3dnodes_coordpolygons.inc}
+{$I x3dnodes_eventsengine.inc}
+{$I x3dnodes_cone_cylinder.inc}
+{$I x3dnodes_sphere.inc}
+{$I x3dnodes_box.inc}
+{$I x3dnodes_save.inc}
+{$I x3dnodes_encoding_classic.inc}
+{$I x3dnodes_encoding_xml.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}
@@ -2276,13 +2276,13 @@ resourcestring
 {$I x3d_followers.inc}
 {$I x3d_particlesystems.inc}
 
-{$I vrmlnodes_1.inc}
-{$I vrmlnodes_inventor.inc}
-{$I vrmlnodes_97_hanim.inc}
-{$I vrmlnodes_97_nurbs.inc}
-{$I vrmlnodes_kambi.inc}
-{$I vrmlnodes_avalon.inc}
-{$I vrmlnodes_bitmanagement.inc}
+{$I x3dnodes_1.inc}
+{$I x3dnodes_inventor.inc}
+{$I x3dnodes_97_hanim.inc}
+{$I x3dnodes_97_nurbs.inc}
+{$I x3dnodes_kambi.inc}
+{$I x3dnodes_avalon.inc}
+{$I x3dnodes_bitmanagement.inc}
 
 function InterfaceDeclarationKeywords(
   const AccessTypes: TVRMLAccessTypes): TVRMLKeywords;
@@ -2694,7 +2694,7 @@ begin
   ItemsAllocated := 0;
 end;
 
-{$I vrmlnodes_node.inc}
+{$I x3dnodes_node.inc}
 
 { TX3DNodesCache ------------------------------------------------------------ }
 
@@ -2955,7 +2955,7 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TSFNode.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFNode.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
@@ -3395,7 +3395,7 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TMFNode.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TMFNode.ParseValue(Lexer: TX3DLexer; Names: TObject);
 
   procedure ParseOneItem;
   var
@@ -3535,7 +3535,7 @@ begin
  result := fNodeTypeName;
 end;
 
-procedure TX3DUnknownNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TX3DUnknownNode.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 
 (*TODO: use "fields" and "isA" VRML 1.0 extensibility features here.
 
@@ -3635,7 +3635,7 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.Parse(Lexer: TVRMLLexer; Names: TVRMLNames;
+procedure TVRMLInterfaceDeclaration.Parse(Lexer: TX3DLexer; Names: TVRMLNames;
   FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
@@ -3664,7 +3664,7 @@ begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'field type (for interface declaration)');
   FieldTypeName := Lexer.TokenName;
-  FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+  FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
   if FieldType = nil then
     raise EVRMLParserError.Create(
       Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
@@ -3730,7 +3730,7 @@ begin
   { calculate FieldType }
   if DOMGetAttribute(Element, 'type', FieldTypeName) then
   begin
-    FieldType := VRMLFieldsManager.FieldTypeNameToClass(FieldTypeName);
+    FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
     if FieldType = nil then
       raise EX3DXmlError.CreateFmt('Field type "%s" unknown', [FieldTypeName]);
   end else
@@ -4551,7 +4551,7 @@ begin
 end;
 
 procedure TVRMLPrototypeBase.ParseInterfaceDeclarations(ExternalProto: boolean;
-  Lexer: TVRMLLexer; Names: TVRMLNames);
+  Lexer: TX3DLexer; Names: TVRMLNames);
 var
   I: TVRMLInterfaceDeclaration;
 begin
@@ -4616,7 +4616,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLPrototype.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TVRMLPrototype.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 var
   OldNames: TVRMLNames;
 begin
@@ -4776,7 +4776,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLExternalPrototype.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TVRMLExternalPrototype.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -5091,7 +5091,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRoute.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TVRMLRoute.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 var
   SourceNodeName, SourceEventName: string;
   DestinationNodeName, DestinationEventName: string;
@@ -5481,7 +5481,7 @@ end;
 
 { TVRMLImport ---------------------------------------------------------------- }
 
-procedure TVRMLImport.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TVRMLImport.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'Inline node name');
@@ -5565,7 +5565,7 @@ end;
 
 { TVRMLExport ---------------------------------------------------------------- }
 
-procedure TVRMLExport.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TVRMLExport.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'exported node name');
@@ -5639,7 +5639,7 @@ end;
 
 destructor TX3DNodeNames.Destroy;
 begin
-  { This may happen after VRMLNodes unit finalization
+  { This may happen after X3DNodes unit finalization
     (e.g. simplest_vrml_browser_with_shadow_volumes demo_models/shadow_volumes/stonehenge.wrl,
     where TX3DRootNode with some ExportedNames is freed from CastleWindow
     unit finalization, because Application owns Window that owns Scene).
@@ -5929,7 +5929,7 @@ end;
 
 { unit init/fini ------------------------------------------------------------ }
 
-procedure VRMLNodesFinalization;
+procedure X3DNodesFinalization;
 begin
   TraverseState_FreeAndNilNodes(StateDefaultNodes);
   FreeAndNil(TraverseSingleStack);
@@ -5942,7 +5942,7 @@ end;
 initialization
   AnyNodeDestructionNotifications := TNodeDestructionNotificationList.Create;
 
-  VRMLFieldsManager.RegisterClasses([TSFNode, TMFNode]);
+  X3DFieldsManager.RegisterClasses([TSFNode, TMFNode]);
 
   NodesManager := TNodesManager.Create;
 
@@ -5997,10 +5997,10 @@ initialization
 finalization
   { Because of various finalization order (some stuff may be owned
     e.g. by CastleWindow.Application, and freed at CastleWindow finalization,
-    which may be done after VRMLNodes finalization) we may defer
+    which may be done after X3DNodes finalization) we may defer
     finalization for later. }
   if (VRMLCache = nil) or VRMLCache.Empty then
-    VRMLNodesFinalization else
-    VRMLCache.OnEmpty := @VRMLNodesFinalization;
+    X3DNodesFinalization else
+    VRMLCache.OnEmpty := @X3DNodesFinalization;
 end.
 

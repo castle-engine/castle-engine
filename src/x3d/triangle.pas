@@ -21,7 +21,7 @@ unit Triangle;
 
 interface
 
-uses VectorMath, SysUtils, CastleUtils, VRMLNodes, Base3D, Boxes3D,
+uses VectorMath, SysUtils, CastleUtils, X3DNodes, Base3D, Boxes3D,
   CastleOctree, FaceIndex, GenericStructList;
 
 { TTriangle  ------------------------------------------------------------ }
@@ -939,7 +939,7 @@ function TBaseTrianglesOctreeNode.CommonSegment(
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 {$define SEGMENT_COLLISION}
-{$I vrmltriangle_raysegment_nonleaf.inc}
+{$I triangle_raysegment_nonleaf.inc}
 {$undef SEGMENT_COLLISION}
 
 function TBaseTrianglesOctreeNode.CommonRay(
@@ -951,7 +951,7 @@ function TBaseTrianglesOctreeNode.CommonRay(
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
-{$I vrmltriangle_raysegment_nonleaf.inc}
+{$I triangle_raysegment_nonleaf.inc}
 
 { TBaseTrianglesOctree --------------------------------------------------- }
 

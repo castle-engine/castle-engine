@@ -524,7 +524,7 @@
 
   TShapeHintsNode_1 = class(TAbstractChildNode)
   protected
-    function ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
+    function ParseNodeBodyElement(Lexer: TX3DLexer; Names: TVRMLNames;
       const APositionInParent: Integer): boolean; override;
   public
     procedure CreateNode; override;
@@ -1752,7 +1752,7 @@ begin
   result := 'ShapeHints';
 end;
 
-function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TVRMLLexer; Names: TVRMLNames;
+function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TVRMLNames;
   const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
@@ -2167,7 +2167,7 @@ function TSpotLightNode_1.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
-  { If author didn't provide and VRMLShadowMaps unit didn't calculate
+  { If author didn't provide and X3DShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
   { Implementation just like for TSpotLightNode,

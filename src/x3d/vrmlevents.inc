@@ -55,7 +55,7 @@
 
     { This only reads (optional) "IS" clause of the event, as may occur
       in VRML nodeBodyStatement. }
-    procedure Parse(Lexer: TVRMLLexer);
+    procedure Parse(Lexer: TX3DLexer);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
     function SaveToXml: TSaveToXmlMethod; override;
@@ -219,7 +219,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLEvent.Parse(Lexer: TVRMLLexer);
+procedure TVRMLEvent.Parse(Lexer: TX3DLexer);
 begin
   ParseIsClause(Lexer);
 end;

@@ -14,7 +14,7 @@
 }
 
 { Rendering 3D models by ray-tracing (TClassicRayTracer, TPathTracer). }
-unit VRMLRayTracer;
+unit RayTracer;
 
 {$I castleconf.inc}
 
@@ -35,7 +35,7 @@ unit VRMLRayTracer;
 interface
 
 uses VectorMath, Images, RaysWindow, CastleUtils, Classes,
-  Triangle, VRMLTriangleOctree, VRMLNodes, SpaceFillingCurves;
+  Triangle, TriangleOctree, X3DNodes, SpaceFillingCurves;
 
 type
   { }
@@ -218,7 +218,7 @@ type
 
 implementation
 
-uses SysUtils, VRMLLighting, SphereSampling;
+uses SysUtils, Lighting, SphereSampling;
 
 { RayVector calculations ----------------------------------------------------- }
 

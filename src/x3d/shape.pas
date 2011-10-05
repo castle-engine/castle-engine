@@ -23,9 +23,9 @@ unit Shape;
 
 interface
 
-uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, VRMLNodes, CastleClassUtils,
-  CastleUtils, VRMLTriangleOctree, Frustum, CastleOctree, Triangle,
-  VRMLFields, GeometryArrays, FaceIndex,
+uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
+  CastleUtils, TriangleOctree, Frustum, CastleOctree, Triangle,
+  X3DFields, GeometryArrays, FaceIndex,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 const
@@ -415,7 +415,7 @@ type
     property Spatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
-      See VRMLTriangleOctree unit comments for description.
+      See TriangleOctree unit comments for description.
 
       Default value comes from DefLocalTriangleOctreeLimits.
 
@@ -834,8 +834,8 @@ var
 
 implementation
 
-uses ProgressUnit, VRMLScene, NormalsCalculator, CastleLog, CastleWarnings,
-  CastleStringUtils, VRMLArraysGenerator;
+uses ProgressUnit, SceneCore, NormalsCalculator, CastleLog, CastleWarnings,
+  CastleStringUtils, ArraysGenerator;
 
 const
   UnknownTexCoord: TTriangle4Single = (
@@ -1136,7 +1136,7 @@ var
 
   function ArrayForBox(Box: TBox3D): TGeometryArrays;
   begin
-    { When there's no TVRMLArraysGenerator suitable, then we either have
+    { When there's no TArraysGenerator suitable, then we either have
       a Text node (Text, AsciiText, Text3D) or an unsupported node.
 
       For now, we make an array describing a single quad: this shape's
@@ -1175,12 +1175,12 @@ var
   end;
 
 var
-  GeneratorClass: TVRMLArraysGeneratorClass;
-  Generator: TVRMLArraysGenerator;
+  GeneratorClass: TArraysGeneratorClass;
+  Generator: TArraysGenerator;
 begin
   G := Geometry(OverTriangulate);
   S := State(OverTriangulate);
-  GeneratorClass := ArraysGenerator(G);
+  GeneratorClass := GetArraysGenerator(G);
   if GeneratorClass <> nil then
   begin
     Generator := GeneratorClass.Create(Self, OverTriangulate);

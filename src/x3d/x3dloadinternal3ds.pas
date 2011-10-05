@@ -19,13 +19,13 @@ unit X3DLoadInternal3DS;
 
 interface
 
-uses VRMLNodes;
+uses X3DNodes;
 
 function Load3DS(const filename: string): TX3DRootNode;
 
 implementation
 
-uses CastleUtils, Classes, CastleClassUtils, SysUtils, VectorMath, VRMLCameraUtils,
+uses CastleUtils, Classes, CastleClassUtils, SysUtils, VectorMath, X3DCameraUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils,
   CastleWarnings;
 

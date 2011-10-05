@@ -19,7 +19,7 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, CastleUtils, CastleClassUtils, VectorMath, VRMLNodes,
+uses SysUtils, Classes, CastleUtils, CastleClassUtils, VectorMath, X3DNodes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 { Load MD3 animation into a single animated X3D model. }
@@ -37,7 +37,7 @@ procedure LoadMD3Sequence(
 implementation
 
 uses CastleFilesUtils, CastleStringUtils, Boxes3D, X3DLoadInternalUtils,
-  VRMLCameraUtils;
+  X3DCameraUtils;
 
 type
   TMd3Triangle = record
@@ -534,7 +534,7 @@ var
 begin
   Result := TX3DRootNode.Create(
     ToVRMLName(Md3.Name
-      { Although adding here FrameNumber is not a bad idea, but VRMLGLAnimation
+      { Although adding here FrameNumber is not a bad idea, but PrecalculatedAnimation
         requires for now that sequence of VRML models have the same node names }
       { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
 

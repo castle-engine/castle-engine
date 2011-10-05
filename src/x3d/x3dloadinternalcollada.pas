@@ -20,7 +20,7 @@ unit X3DLoadInternalCollada;
 
 interface
 
-uses VRMLNodes;
+uses X3DNodes;
 
 { Load Collada file as X3D.
 

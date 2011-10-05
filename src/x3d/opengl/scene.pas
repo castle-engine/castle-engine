@@ -19,10 +19,10 @@ unit Scene;
 interface
 
 uses
-  SysUtils, Classes, VectorMath, Boxes3D, VRMLNodes, CastleClassUtils, CastleUtils,
-  VRMLScene, VRMLGLRenderer, GL, GLU, GLExt, VRMLGLBackground, CastleGLUtils,
-  VRMLShapeOctree, GLShadowVolumeRenderer, Cameras, VRMLFields,
-  VRMLGLRendererLights, Shape, Frustum, Base3D, GLShaders,
+  SysUtils, Classes, VectorMath, Boxes3D, X3DNodes, CastleClassUtils, CastleUtils,
+  SceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
+  ShapeOctree, GLShadowVolumeRenderer, Cameras, X3DFields,
+  GLRendererLights, Shape, Frustum, Base3D, GLShaders,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}
@@ -413,12 +413,12 @@ type
     This is a descendant of T3DSceneCore that adds efficient rendering
     using OpenGL.
 
-    This uses internal @link(TVRMLGLRenderer) instance,
+    This uses internal @link(TGLRenderer) instance,
     adding some features and comfortable methods on top of it (like blending).
     See @link(Render) method for some details.
 
     This class also provides comfortable management for
-    @link(TVRMLGLBackground) instance associated with this VRML model,
+    @link(TBackground) instance associated with this VRML model,
     that may be used to render currenly bound VRML background.
     See @link(Background) function.
 
@@ -428,10 +428,10 @@ type
     Calling GLContextClose or the destructor removes this connection. }
   T3DScene = class(T3DSceneCore)
   private
-    Renderer: TVRMLGLRenderer;
+    Renderer: TGLRenderer;
 
     { Cache used by this scene. Always initialized to non-nil by constructor. }
-    Cache: TVRMLGLRendererContextCache;
+    Cache: TGLRendererContextCache;
     OwnsCache: boolean;
 
     { Render everything.
@@ -545,7 +545,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    constructor CreateCustomCache(AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
+    constructor CreateCustomCache(AOwner: TComponent; ACache: TGLRendererContextCache);
 
     { A very special constructor, that forces this class to use
       provided ACustomRenderer. ACustomRenderer must be <> @nil.
@@ -567,7 +567,7 @@ type
       And this is crucial for T3DPrecalculatedAnimation, otherwise animation with
       100 scenes would load the same texture to OpenGL 100 times. }
     constructor CreateCustomRenderer(AOwner: TComponent;
-      ACustomRenderer: TVRMLGLRenderer);
+      ACustomRenderer: TGLRenderer);
 
     destructor Destroy; override;
 
@@ -587,8 +587,8 @@ type
       by @link(Attributes), see TSceneRenderingAttributes and
       TVRMLRenderingAttributes.
 
-      For more details about rendering, see @link(VRMLGLRenderer) unit comments.
-      This method internally uses TVRMLGLRenderer instance, additionally
+      For more details about rendering, see @link(GLRenderer) unit comments.
+      This method internally uses TGLRenderer instance, additionally
       handling the blending:
 
       @unorderedList(
@@ -831,7 +831,7 @@ type
     { Node for which FBackground is currently prepared. }
     FBackgroundNode: TAbstractBindableNode;
     { Cached Background value }
-    FBackground: TVRMLGLBackground;
+    FBackground: TBackground;
     { Is FBackground valid ? We can't use "nil" FBackground value to flag this
       (bacause nil is valid value for Background function).
       If not FBackgroundValid then FBackground must always be nil.
@@ -847,7 +847,7 @@ type
 
     procedure PrepareBackground;
 
-    { Returns TVRMLGLBackground instance for this scene. Background's properties
+    { Returns TBackground instance for this scene. Background's properties
       are based on the attributes of currently bound X3DBackgroundNode
       VRML node in the RootNode scene (and on his place in scene transformations).
       When events are not concerned, this is simply the first X3DBackgroundNode
@@ -876,7 +876,7 @@ type
       Remember that this cache is connected with the current OpenGL context.
       So you HAVE to call GLContextClose to disconnent this object from
       current OpenGL context after you used this function. }
-    function Background: TVRMLGLBackground;
+    function Background: TBackground;
 
     { Rendering attributes.
 
@@ -1118,7 +1118,7 @@ begin
   end;
 end;
 
-{ VRMLShapesSplitBlending ---------------------------------------------------- }
+{ ShapesSplitBlending ---------------------------------------------------- }
 
 type
   TShapesSplitBlendingHelper = class
@@ -1198,7 +1198,7 @@ end;
   into lists, I can sort them easily (sorting is used for BlendingSort,
   and UseOcclusionQuery). }
 
-procedure VRMLShapesSplitBlending(
+procedure ShapesSplitBlending(
   Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   TestShapeVisibility: TTestShapeVisibility;
@@ -1279,7 +1279,7 @@ begin
   if Cache = nil then
   begin
     OwnsCache := true;
-    Cache := TVRMLGLRendererContextCache.Create;
+    Cache := TGLRendererContextCache.Create;
   end;
 
   { Renderer may be already assigned, when we came here from
@@ -1287,7 +1287,7 @@ begin
   if Renderer = nil then
   begin
     FOwnsRenderer := true;
-    Renderer := TVRMLGLRenderer.Create(TSceneRenderingAttributes, Cache);
+    Renderer := TGLRenderer.Create(TSceneRenderingAttributes, Cache);
   end;
 
   Assert(Renderer.Attributes is TSceneRenderingAttributes);
@@ -1311,7 +1311,7 @@ begin
 end;
 
 constructor T3DScene.CreateCustomCache(
-  AOwner: TComponent; ACache: TVRMLGLRendererContextCache);
+  AOwner: TComponent; ACache: TGLRendererContextCache);
 begin
   OwnsCache := false;
   Assert(ACache <> nil);
@@ -1321,7 +1321,7 @@ begin
 end;
 
 constructor T3DScene.CreateCustomRenderer(
-  AOwner: TComponent; ACustomRenderer: TVRMLGLRenderer);
+  AOwner: TComponent; ACustomRenderer: TGLRenderer);
 begin
   FOwnsRenderer := false;
   Renderer := ACustomRenderer;
@@ -1648,8 +1648,8 @@ var
       glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
 
       { A lot of state should be disabled. Remember that this is done
-        in the middle of TVRMLGLRenderer rendering, between
-        RenderBegin/End, and TVRMLGLRenderer doesn't need to
+        in the middle of TGLRenderer rendering, between
+        RenderBegin/End, and TGLRenderer doesn't need to
         restore state after each shape render. So e.g. texturing
         and alpha test may be enabled, which could lead to very
         strange effects (box would be rendered with random texel,
@@ -2153,11 +2153,11 @@ begin
         end;
         if Attributes.ControlBlending and Attributes.Blending then
         begin
-          VRMLShapesSplitBlending(Shapes, true, true, false,
+          ShapesSplitBlending(Shapes, true, true, false,
             TestShapeVisibility,
             OpaqueShapes, TransparentShapes);
           try
-            { VRMLShapesSplitBlending already filtered shapes through
+            { ShapesSplitBlending already filtered shapes through
               TestShapeVisibility callback, so below we can render them
               with RenderShape_SomeTests to skip checking
               TestShapeVisibility twice.
@@ -2377,7 +2377,7 @@ end;
 procedure T3DScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
-    This means vrml nodes are still valid during VRMLGLRenderer unprepare
+    This means vrml nodes are still valid during GLRenderer unprepare
     calls.
 
     Although we don't really want to lose our connection with OpenGL
@@ -3541,7 +3541,7 @@ begin
           GroundColorCount := GroundAngleCount + 1;
       end;
 
-      FBackground := TVRMLGLBackground.Create(
+      FBackground := TBackground.Create(
         PArray_Single(BgNode.FdGroundAngle.Items.List), GroundAngleCount,
         PArray_Vector3Single(BgNode.FdGroundColor.Items.List), GroundColorCount,
         BgNode.BgImages,
@@ -3556,7 +3556,7 @@ begin
   FBackgroundValid := true;
 end;
 
-function T3DScene.Background: TVRMLGLBackground;
+function T3DScene.Background: TBackground;
 var
   BackgroundNode: TAbstractBackgroundNode;
 begin
@@ -3741,7 +3741,7 @@ begin
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
   BackgroundSkySphereRadius :=
-    TVRMLGLBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar,
+    TBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar,
       BackgroundSkySphereRadius);
 
   case ProjectionType of

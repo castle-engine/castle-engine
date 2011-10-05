@@ -61,7 +61,7 @@ unit X3DLoad;
 
 interface
 
-uses VectorMath, SysUtils, VRMLNodes, X3DLoadInternalMD3,
+uses VectorMath, SysUtils, X3DNodes, X3DLoadInternalMD3,
   CastleUtils, Classes;
 
 { This guesses model format basing on ExtractFileExt(filename),
@@ -149,7 +149,7 @@ const
 
 implementation
 
-uses VRMLAnimation, CastleClassUtils,
+uses PrecalculatedAnimationCore, CastleClassUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada;
 

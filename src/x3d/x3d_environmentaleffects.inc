@@ -114,7 +114,7 @@
     private FFdTopUrl: TMFString;
     public property FdTopUrl: TMFString read FFdTopUrl;
 
-    procedure Parse(Lexer: TVRMLLexer; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
 
     { Pierwsze uzycie BgImages (albo pierwsze uzycie BgImages po Parse)
       automatycznie zaladuje obrazki z URLi
@@ -474,7 +474,7 @@ begin
   end;
 end;
 
-procedure TBackgroundNode.Parse(Lexer: TVRMLLexer; Names: TVRMLNames);
+procedure TBackgroundNode.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
 begin
   inherited;
   { Force reload on next BgImages use, since our fields are different now }

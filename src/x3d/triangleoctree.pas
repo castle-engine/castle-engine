@@ -14,7 +14,7 @@
 }
 
 { Triangle octrees (TTriangleOctree). }
-unit VRMLTriangleOctree;
+unit TriangleOctree;
 
 {
   TODO
@@ -29,7 +29,7 @@ unit VRMLTriangleOctree;
 
 interface
 
-uses VectorMath, SysUtils, CastleUtils, VRMLNodes, Boxes3D,
+uses VectorMath, SysUtils, CastleUtils, X3DNodes, Boxes3D,
   CastleOctree, Triangle, Base3D, FaceIndex;
 
 {$define read_interface}
@@ -392,7 +392,7 @@ function TTriangleOctreeNode.CommonSegmentLeaf(
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 {$define SEGMENT_COLLISION}
-{$I vrmltriangleoctree_raysegmentcollisions.inc}
+{$I triangleoctree_raysegmentcollisions.inc}
 {$undef SEGMENT_COLLISION}
 
 function TTriangleOctreeNode.IsSegmentCollision(
@@ -438,7 +438,7 @@ function TTriangleOctreeNode.CommonRayLeaf(
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
-{$I vrmltriangleoctree_raysegmentcollisions.inc}
+{$I triangleoctree_raysegmentcollisions.inc}
 
 function TTriangleOctreeNode.IsRayCollision(
   const Ray0, RayVector: TVector3Single;

@@ -17,12 +17,12 @@
   For user-oriented description what are sectors and waypoints,
   when they should be used etc. see "The Castle" developer docs,
   [http://castle-engine.sourceforge.net/castle-development.php]. }
-unit VRMLSceneWaypoints;
+unit SceneWaypoints;
 
 interface
 
 uses SysUtils, CastleUtils, CastleClassUtils, Classes,
-  VectorMath, Boxes3D, VRMLNodes, VRMLScene,
+  VectorMath, Boxes3D, X3DNodes, SceneCore,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type

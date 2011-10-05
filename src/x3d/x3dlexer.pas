@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML lexer (TVRMLLexer). }
-unit VRMLLexer;
+{ VRML lexer (TX3DLexer). }
+unit X3DLexer;
 
 { Every newly read token will be reported with LogWrite.
   Useful only for debugging this unit. }
@@ -125,7 +125,7 @@ type
     @link(CreateFromFile) implementation,
     that creates TFileStream and then wraps it inside
     @link(TBufferedReadStream)). }
-  TVRMLLexer = class
+  TX3DLexer = class
   private
     fVersion: TVRMLVersion;
     fToken: TVRMLToken;
@@ -325,14 +325,14 @@ type
   { Error when reading VRML/X3D classic encoding. }
   EVRMLClassicReadError = class(EVRMLError)
   protected
-    function MessagePositionPrefix(Lexer: TVRMLLexer): string; virtual; abstract;
+    function MessagePositionPrefix(Lexer: TX3DLexer): string; virtual; abstract;
   public
     { Standard constructor.
 
       Lexer instance must be valid for this call, but not longer.
       That is, you can free the lexer after this constructor finished,
       it doesn't need to be valid for the whole lifetime of this object. }
-    constructor Create(Lexer: TVRMLLexer; const s: string);
+    constructor Create(Lexer: TX3DLexer; const s: string);
   end;
 
   { Error when reading VRML/X3D. For now, just equal to EVRMLClassicReadError,
@@ -340,14 +340,14 @@ type
     Problems in other encodings (XML) are for now always turned into warnings. }
   EVRMLReadError = EVRMLClassicReadError;
 
-  EVRMLLexerError = class(EVRMLClassicReadError)
+  EX3DLexerError = class(EVRMLClassicReadError)
   protected
-    function MessagePositionPrefix(Lexer: TVRMLLexer): string; override;
+    function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
   end;
 
   EVRMLParserError = class(EVRMLClassicReadError)
   protected
-    function MessagePositionPrefix(Lexer: TVRMLLexer): string; override;
+    function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
   end;
 
 const
@@ -454,9 +454,9 @@ begin
     Result := SaveVRMLClassic_FileFilters;
 end;
 
-{ TVRMLLexer ------------------------------------------------------------- }
+{ TX3DLexer ------------------------------------------------------------- }
 
-procedure TVRMLLexer.CreateCommonBegin(AStream: TPeekCharStream;
+procedure TX3DLexer.CreateCommonBegin(AStream: TPeekCharStream;
   AOwnsStream: boolean);
 begin
   inherited Create;
@@ -465,7 +465,7 @@ begin
   FOwnsStream := AOwnsStream;
 end;
 
-procedure TVRMLLexer.CreateCommonEnd;
+procedure TX3DLexer.CreateCommonEnd;
 begin
   { calculate VRMLWhitespaces, VRMLNoWhitespaces
     (based on VRMLVerXxx) }
@@ -493,7 +493,7 @@ begin
   NextToken;
 end;
 
-constructor TVRMLLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean);
+constructor TX3DLexer.Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 const
   GzipHeader = #$1F + #$8B;
 
@@ -516,7 +516,7 @@ const
   begin
     Encoding := NextTokenOnce(Line);
     if Encoding <> EncodingUtf8 then
-      raise EVRMLLexerError.Create(Self,
+      raise EX3DLexerError.Create(Self,
         'VRML 2.0 / X3D incorrect signature: only utf8 encoding supported');
   end;
 
@@ -548,7 +548,7 @@ const
 
     { "V" }
     if not SCharIs(S, I, 'V') then
-      raise EVRMLLexerError.Create(Self,
+      raise EX3DLexerError.Create(Self,
         SIncorrectSignature + 'Expected "V" and version number');
     Inc(I);
 
@@ -559,13 +559,13 @@ const
       Major := StrToInt(CopyPos(S, NumStart, I - 1));
     except
       on E: EConvertError do
-        raise EVRMLLexerError.Create(Self,
+        raise EX3DLexerError.Create(Self,
           SIncorrectSignature + 'Incorrect major version number: ' + E.Message);
     end;
 
     { dot }
     if not SCharIs(S, I, '.') then
-      raise EVRMLLexerError.Create(Self,
+      raise EX3DLexerError.Create(Self,
         SIncorrectSignature + 'Expected "." between major and minor version number');
     Inc(I);
 
@@ -576,7 +576,7 @@ const
       Minor := StrToInt(CopyPos(S, NumStart, I - 1));
     except
       on E: EConvertError do
-        raise EVRMLLexerError.Create(Self,
+        raise EX3DLexerError.Create(Self,
           SIncorrectSignature + 'Incorrect minor version number: ' + E.Message);
     end;
 
@@ -605,7 +605,7 @@ begin
   { Normal (uncompressed) VRML file, continue reading ... }
 
   if Stream.ReadChar = -1 then
-    raise EVRMLLexerError.Create(Self,
+    raise EX3DLexerError.Create(Self,
       'Unexpected end of file on the 1st line');
 
   { Recognize various Inventor / VRML / X3D headers,
@@ -620,7 +620,7 @@ begin
     FVersion.Minor := 0;
 
     if not IsPrefix('V1.0 ascii', Line) then
-      raise EVRMLLexerError.Create(Self,
+      raise EX3DLexerError.Create(Self,
         'Inventor signature recognized, but only '+
         'Inventor 1.0 ascii files are supported. Sor'+'ry.');
   end else
@@ -632,7 +632,7 @@ begin
     { then must be 'ascii';
       VRML 1.0 'ascii' may be followed immediately by some black char. }
     if not IsPrefix(EncodingAscii, Line) then
-      raise EVRMLLexerError.Create(Self, 'Wrong VRML 1.0 signature: '+
+      raise EX3DLexerError.Create(Self, 'Wrong VRML 1.0 signature: '+
         'VRML 1.0 files must have "ascii" encoding');
   end else
   if IsPrefixRemove(VRML2DraftHeaderStart, Line) or
@@ -646,17 +646,17 @@ begin
   begin
     ParseVersion(Line, FVersion.Major, FVersion.Minor);
     if FVersion.Major < 3 then
-      raise EVRMLLexerError.Create(Self,
+      raise EX3DLexerError.Create(Self,
         'Wrong X3D major version number, should be >= 3');
     Utf8HeaderReadRest(Line);
   end else
-    raise EVRMLLexerError.Create(Self,
+    raise EX3DLexerError.Create(Self,
       'VRML signature error : unrecognized signature');
 
   CreateCommonEnd;
 end;
 
-constructor TVRMLLexer.CreateFromFile(const FileName: string);
+constructor TX3DLexer.CreateFromFile(const FileName: string);
 var
   FileStream: TFileStream;
 begin
@@ -664,7 +664,7 @@ begin
   Create(TBufferedReadStream.Create(FileStream, true), true);
 end;
 
-constructor TVRMLLexer.CreateForPartialStream(
+constructor TX3DLexer.CreateForPartialStream(
   AStream: TPeekCharStream; AOwnsStream: boolean;
   const AVersion: TVRMLVersion);
 begin
@@ -673,7 +673,7 @@ begin
   CreateCommonEnd;
 end;
 
-constructor TVRMLLexer.CreateForPartialStream(const S: string;
+constructor TX3DLexer.CreateForPartialStream(const S: string;
   const AVersion: TVRMLVersion);
 var
   StringStream: TStringStream;
@@ -683,14 +683,14 @@ begin
     TBufferedReadStream.Create(StringStream, true), true, AVersion);
 end;
 
-destructor TVRMLLexer.Destroy;
+destructor TX3DLexer.Destroy;
 begin
   if FOwnsStream then
     FreeAndNil(FStream);
   inherited;
 end;
 
-procedure TVRMLLexer.StreamReadUptoFirstBlack(out FirstBlack: Integer);
+procedure TX3DLexer.StreamReadUptoFirstBlack(out FirstBlack: Integer);
 begin
  repeat
   Stream.ReadUpto(VRMLNoWhitespaces);
@@ -705,7 +705,7 @@ begin
  until false;
 end;
 
-procedure TVRMLLexer.ReadString;
+procedure TX3DLexer.ReadString;
 { String in encoded using the form
   "char*" where char is either not " or \" sequence. }
 var
@@ -719,7 +719,7 @@ begin
   endingChar := Stream.ReadChar;
 
   if endingChar = -1 then
-   raise EVRMLLexerError.Create(Self,
+   raise EX3DLexerError.Create(Self,
      'Unexpected end of file in the middle of string token');
 
   { gdy endingChar = '\' to ignorujemy palke ktora wlasnie przeczytalismy
@@ -731,7 +731,7 @@ begin
   begin
     NextChar := Stream.ReadChar;
     if NextChar = -1 then
-      raise EVRMLLexerError.Create(Self,
+      raise EX3DLexerError.Create(Self,
         'Unexpected end of file in the middle of string token');
     fTokenString += Chr(NextChar);
   end;
@@ -739,7 +739,7 @@ begin
  until endingChar = Ord('"');
 end;
 
-function TVRMLLexer.NextToken: TVRMLToken;
+function TX3DLexer.NextToken: TVRMLToken;
 
   procedure ReadNameOrKeyword(FirstLetter: char);
   {read name token. First letter has been already read.}
@@ -842,7 +842,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
        will be calculated. See console.testy/test_string_plus) }
      CharAfterEInt := Stream.ReadChar;
      if CharAfterEInt = -1 then
-       raise EVRMLLexerError.Create(Self,
+       raise EX3DLexerError.Create(Self,
          'Unexpected end of file in the middle of real constant');
      CharAfterE := Chr(CharAfterEInt);
      RestOfToken := Stream.ReadUpto(NoDigits);
@@ -925,7 +925,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
 
     if fToken = vtInteger then fTokenFloat := TokenInteger;
    except
-    on E: EConvertError do raise EVRMLLexerError.Create(Self, E.Message);
+    on E: EConvertError do raise EX3DLexerError.Create(Self, E.Message);
    end;
   end;
 
@@ -941,7 +941,7 @@ function TVRMLLexer.NextToken: TVRMLToken;
      else
       if FirstBlackChr in VRMLNameFirstChars then
        ReadNameOrKeyword(FirstBlackChr) else
-       raise EVRMLLexerError.Create(Self, Format('Illegal character in stream : %s (#%d)',
+       raise EX3DLexerError.Create(Self, Format('Illegal character in stream : %s (#%d)',
          [FirstBlackChr, Ord(FirstBlackChr)]));
     end;
   end;
@@ -1000,7 +1000,7 @@ begin
   result := Token;
 end;
 
-procedure TVRMLLexer.NextTokenForceVTName;
+procedure TX3DLexer.NextTokenForceVTName;
 var FirstBlack: integer;
 begin
  StreamReadUptoFirstBlack(FirstBlack);
@@ -1022,7 +1022,7 @@ begin
  CheckTokenIs(vtName);
 end;
 
-procedure TVRMLLexer.NextTokenForceVTString;
+procedure TX3DLexer.NextTokenForceVTString;
 var FirstBlack: integer;
 begin
  StreamReadUptoFirstBlack(FirstBlack);
@@ -1041,17 +1041,17 @@ begin
  CheckTokenIs(vtString);
 end;
 
-function TVRMLLexer.TokenIsKeyword(const Keyword: TVRMLKeyword): boolean;
+function TX3DLexer.TokenIsKeyword(const Keyword: TVRMLKeyword): boolean;
 begin
   Result := (Token = vtKeyword) and (TokenKeyword = Keyword);
 end;
 
-function TVRMLLexer.TokenIsKeyword(const Keywords: TVRMLKeywords): boolean;
+function TX3DLexer.TokenIsKeyword(const Keywords: TVRMLKeywords): boolean;
 begin
   Result := (Token = vtKeyword) and (TokenKeyword in Keywords);
 end;
 
-function TVRMLLexer.DescribeToken: string;
+function TX3DLexer.DescribeToken: string;
 begin
  result := VRMLTokenNames[Token];
  case Token of
@@ -1063,26 +1063,26 @@ begin
  end;
 end;
 
-procedure TVRMLLexer.CheckTokenIs(Tok: TVRMLToken);
+procedure TX3DLexer.CheckTokenIs(Tok: TVRMLToken);
 begin
  CheckTokenIs(Tok, VRMLTokenNames[Tok]);
 end;
 
-procedure TVRMLLexer.CheckTokenIs(Tok: TVRMLToken; const TokDescription: string);
+procedure TX3DLexer.CheckTokenIs(Tok: TVRMLToken; const TokDescription: string);
 begin
  if Token <> Tok then
   raise EVRMLParserError.Create(Self, 'Expected '+TokDescription
     +', got '+DescribeToken);
 end;
 
-procedure TVRMLLexer.CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string);
+procedure TX3DLexer.CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string);
 begin
  if not (Token in Toks) then
   raise EVRMLParserError.Create(Self, 'Expected '+ToksDescription
     +', got '+DescribeToken);
 end;
 
-procedure TVRMLLexer.CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
+procedure TX3DLexer.CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
 begin
   if not ( (Token = vtKeyword) and (TokenKeyword = Keyword) ) then
     raise EVRMLParserError.Create(Self,
@@ -1092,17 +1092,17 @@ end;
 
 { Exceptions ----------------------------------------------------------------- }
 
-constructor EVRMLClassicReadError.Create(Lexer: TVRMLLexer; const s: string);
+constructor EVRMLClassicReadError.Create(Lexer: TX3DLexer; const s: string);
 begin
   inherited Create(MessagePositionPrefix(Lexer) + S);
 end;
 
-function EVRMLLexerError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
+function EX3DLexerError.MessagePositionPrefix(Lexer: TX3DLexer): string;
 begin
   Result := Format('VRML/X3D lexical error at position %d: ', [Lexer.Stream.Position]);
 end;
 
-function EVRMLParserError.MessagePositionPrefix(Lexer: TVRMLLexer): string;
+function EVRMLParserError.MessagePositionPrefix(Lexer: TX3DLexer): string;
 begin
   Result := Format('VRML/X3D parse error at position %d: ', [Lexer.Stream.Position]);
 end;

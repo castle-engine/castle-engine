@@ -14,8 +14,8 @@
 }
 
 { Texture environment detection.
-  @exclude Internal unit for VRMLGLRenderer and VRMLShader. }
-unit VRMLGLRendererTextureEnv;
+  @exclude Internal unit for GLRenderer and GLRendererShader. }
+unit GLRendererTextureEnv;
 
 interface
 

@@ -20,7 +20,7 @@ unit X3DLoadInternalGEO;
 
 interface
 
-uses VRMLNodes;
+uses X3DNodes;
 
 function LoadGEO(const filename: string): TX3DRootNode;
 

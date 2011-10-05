@@ -14,12 +14,12 @@
 }
 
 { A precalculated 3D animation rendered in OpenGL (T3DPrecalculatedAnimation). }
-unit VRMLGLAnimation;
+unit PrecalculatedAnimation;
 
 interface
 
-uses SysUtils, Classes, VRMLNodes, VRMLGLRenderer, VRMLScene, Scene,
-  CastleUtils, Boxes3D, CastleClassUtils, VRMLAnimation, KeysMouse,
+uses SysUtils, Classes, X3DNodes, GLRenderer, SceneCore, Scene,
+  CastleUtils, Boxes3D, CastleClassUtils, PrecalculatedAnimationCore, KeysMouse,
   CastleTimeUtils, Frustum, VectorMath, Base3D, Triangle,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
@@ -79,8 +79,8 @@ type
     FScenes: T3DSceneList;
     function GetScenes(I: Integer): T3DScene;
   private
-    Renderer: TVRMLGLRenderer;
-    FCache: TVRMLGLRendererContextCache;
+    Renderer: TGLRenderer;
+    FCache: TGLRendererContextCache;
     OwnsCache: boolean;
     FTimeBegin, FTimeEnd: Single;
     FTimeLoop: boolean;
@@ -150,7 +150,7 @@ type
 
     { Constructor that allows you to pass your own Cache instance. }
     constructor CreateCustomCache(AOwner: TComponent;
-      ACache: TVRMLGLRendererContextCache);
+      ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
 
@@ -558,7 +558,7 @@ type
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
     function Dragging: boolean; override;
 
-    property Cache: TVRMLGLRendererContextCache read FCache;
+    property Cache: TGLRendererContextCache read FCache;
 
     { Turn this on to treat specially the case when a single scene (Scenes.Count = 1)
       is loaded: we will set this scene's Static = @false.
@@ -660,7 +660,7 @@ procedure Register;
 
 implementation
 
-uses Math, VRMLFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
+uses Math, X3DFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
   Shape;
 
 procedure Register;
@@ -677,7 +677,7 @@ type
   public
     constructor CreateForAnimation(
       ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
-      ACustomRenderer: TVRMLGLRenderer;
+      ACustomRenderer: TGLRenderer;
       AParentAnimation: T3DPrecalculatedAnimation;
       AStatic: boolean);
     property ParentAnimation: T3DPrecalculatedAnimation read FParentAnimation;
@@ -689,7 +689,7 @@ type
 
 constructor T3DPrecalculatedAnimationScene.CreateForAnimation(
   ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
-  ACustomRenderer: TVRMLGLRenderer;
+  ACustomRenderer: TGLRenderer;
   AParentAnimation: T3DPrecalculatedAnimation;
   AStatic: boolean);
 begin
@@ -766,10 +766,10 @@ begin
   if Cache = nil then
   begin
     OwnsCache := true;
-    FCache := TVRMLGLRendererContextCache.Create;
+    FCache := TGLRendererContextCache.Create;
   end;
 
-  Renderer := TVRMLGLRenderer.Create(TSceneRenderingAttributes, Cache);
+  Renderer := TGLRenderer.Create(TSceneRenderingAttributes, Cache);
 
   FTimeLoop := true;
   FTimeBackwards := false;
@@ -780,7 +780,7 @@ begin
 end;
 
 constructor T3DPrecalculatedAnimation.CreateCustomCache(AOwner: TComponent;
-  ACache: TVRMLGLRendererContextCache);
+  ACache: TGLRendererContextCache);
 begin
   OwnsCache := false;
   FCache := ACache;
@@ -964,8 +964,8 @@ procedure T3DPrecalculatedAnimation.LoadCore(
        warning/error message for each duplicated TImageTextureNode instance).
 
     3. Also for nodes like ImageTexture, this means that if we use the same
-       VRMLGLRenderer to render every model of the animation,
-       then VRMLGLRenderer will recognize this and given texture
+       GLRenderer to render every model of the animation,
+       then GLRenderer will recognize this and given texture
        will be loaded only once for OpenGL. So loading time and
        memory are saved *once again*  (otherwise OpenGL would allocate
        internal copy of texture for each duplicated node, once again
@@ -976,7 +976,7 @@ procedure T3DPrecalculatedAnimation.LoadCore(
        even across different nodes right now (the only need is to have
        equal URLs).
 
-    4. And later the Shape cache of TVRMLGLRenderer can speed
+    4. And later the Shape cache of TGLRenderer can speed
        up loading time and conserve memory use, if it sees the same
        reference to given GeometryNode twice. }
   function VRMLModelsMerge(Model1, Model2: TX3DNode): boolean;
@@ -1208,7 +1208,7 @@ begin
       on E: EModelsStructureDifferent do
       begin
         if Log then
-          WritelnLog('VRMLGLAnimation', Format(
+          WritelnLog('PrecalculatedAnimation', Format(
             'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
             [I - 1, I]) + E.Message);
       end;

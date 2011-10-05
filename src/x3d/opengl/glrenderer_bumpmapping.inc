@@ -8,7 +8,7 @@
     class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
     { ANode must be TAppearanceNode }
-    constructor Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode); override;
+    constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
 
     function Node: TAppearanceNode;
 
@@ -20,7 +20,7 @@
 
     { Enable things for rendering with bump mapping. Returns success. }
     function Enable(var BoundTextureUnits: Cardinal;
-      Shader: TVRMLShader): boolean;
+      Shader: TShader): boolean;
   end;
 
   TBumpMappingRendererList = class(TResourceRendererList)
@@ -41,7 +41,7 @@
       this will create and prepare TBumpMappingRenderer instance for it
       (if one doesn't exist already). }
     procedure Prepare(State: TVRMLGraphTraverseState;
-      ARenderer: TVRMLGLRenderer);
+      ARenderer: TGLRenderer);
 
     { If this State contains appropriate TAppearanceNode,
       and TBumpMappingRenderer instance is prepared for this Node,
@@ -51,14 +51,14 @@
       and it's Enable method returned @true. Otherwise, we return @nil. }
     function Enable(State: TVRMLGraphTraverseState;
       var BoundTextureUnits: Cardinal;
-      Shader: TVRMLShader): TBumpMappingRenderer;
+      Shader: TShader): TBumpMappingRenderer;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-constructor TBumpMappingRenderer.Create(ARenderer: TVRMLGLRenderer; ANode: TX3DNode);
+constructor TBumpMappingRenderer.Create(ARenderer: TGLRenderer; ANode: TX3DNode);
 begin
   Assert(ANode is TAppearanceNode, 'TBumpMappingRenderer.Create acceps as Node only TAppearanceNode');
   inherited;
@@ -93,7 +93,7 @@ begin
   { Note: We cannot store returned TGLTextureNode references in TBumpMappingRenderer
     instance (although it's tempting, as it would be comfortable).
     Reason: they may be freed by UnprepareTexture calls, called from
-    Unprepare method in TVRMLGLRenderer (that may in turn be called
+    Unprepare method in TGLRenderer (that may in turn be called
     by anything in the scene). Our references would then be invalid. }
 
   if IsImageTexture(Node.FdNormalMap.Value) then
@@ -115,7 +115,7 @@ begin
 end;
 
 function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
-  Shader: TVRMLShader): boolean;
+  Shader: TShader): boolean;
 
   { Return OpenGL texture initialized for texture node Node.
     If Node is nil or invalid type,
@@ -182,7 +182,7 @@ begin
 end;
 
 procedure TBumpMappingRendererList.Prepare(State: TVRMLGraphTraverseState;
-  ARenderer: TVRMLGLRenderer);
+  ARenderer: TGLRenderer);
 var
   ANode: TAppearanceNode;
   BumpMappingRenderer: TBumpMappingRenderer;
@@ -202,7 +202,7 @@ end;
 
 function TBumpMappingRendererList.Enable(State: TVRMLGraphTraverseState;
   var BoundTextureUnits: Cardinal;
-  Shader: TVRMLShader): TBumpMappingRenderer;
+  Shader: TShader): TBumpMappingRenderer;
 var
   ANode: TAppearanceNode;
 begin

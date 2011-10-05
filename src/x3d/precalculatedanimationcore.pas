@@ -14,7 +14,7 @@
 }
 
 { Abstract precalculated animation (T3DPrecalculatedAnimationCore). }
-unit VRMLAnimation;
+unit PrecalculatedAnimationCore;
 
 {$I castleconf.inc}
 

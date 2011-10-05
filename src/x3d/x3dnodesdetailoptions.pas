@@ -14,7 +14,7 @@
 }
 
 { Parsing command-line options that control the quadric rendering quality. }
-unit VRMLNodesDetailOptions;
+unit X3DNodesDetailOptions;
 
 interface
 
@@ -35,13 +35,13 @@ interface
   @raises(EInvalidParams on violation of allowed Detail values
     (e.g. when Detail_QuadricSlices < 3 etc.))
   @raises(EConverError when option Argument is not an int) }
-procedure VRMLNodesDetailOptionsParse;
+procedure X3DNodesDetailOptionsParse;
 
-function VRMLNodesDetailOptionsHelp: string;
+function X3DNodesDetailOptionsHelp: string;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleParameters, VRMLNodes;
+uses SysUtils, CastleUtils, CastleParameters, X3DNodes;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
@@ -63,11 +63,11 @@ begin
   0: Detail_QuadricSlices := ArgumentToCardinal('Quadric slices', MinQuadricSlices);
   1: Detail_QuadricStacks := ArgumentToCardinal('Quadric stacks', MinQuadricStacks);
   2: Detail_RectDivisions := ArgumentToCardinal('Rectangle divisions', MinRectDivisions);
-  else raise EInternalError.Create('VRMLNodesDetailOptions.OptionProc: OptionNum');
+  else raise EInternalError.Create('X3DNodesDetailOptions.OptionProc: OptionNum');
  end;
 end;
 
-procedure VRMLNodesDetailOptionsParse;
+procedure X3DNodesDetailOptionsParse;
 const
   Options: array[0..2] of TOption =
   ( (Short: #0; Long: 'detail-quadric-slices'; Argument: oaRequired),
@@ -78,7 +78,7 @@ begin
  Parameters.Parse(Options, @OptionProc, nil, true);
 end;
 
-function VRMLNodesDetailOptionsHelp: string;
+function X3DNodesDetailOptionsHelp: string;
 begin
  Result:=
    '  --detail-quadric-slices VALUE ,' +nl+

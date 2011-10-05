@@ -14,12 +14,12 @@
 }
 
 { VRML fields (TVRMLField and many descendants). }
-unit VRMLFields;
+unit X3DFields;
 
 interface
 
-uses VectorMath, Classes, SysUtils, VRMLLexer, CastleUtils, CastleClassUtils,
-  Images, CastleStringUtils, CastleInterfaces, VRMLTime, DOM,
+uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
+  Images, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
 
 {$define read_interface}
@@ -285,7 +285,7 @@ type
     { ScreenEffect.enabled changed }
     chScreenEffectEnabled,
 
-    { X3DBackgroundNode properties that are stored inside TVRMLGLBackground
+    { X3DBackgroundNode properties that are stored inside TBackground
       display list have changed. }
     chBackground,
 
@@ -412,8 +412,8 @@ type
 
     { VRML node containing this field/event.
       This must always contain an instance
-      of TX3DNode class (although it cannot be declared such, since VRMLFields
-      unit cannot depend on VRMLNodes interface).
+      of TX3DNode class (although it cannot be declared such, since X3DFields
+      unit cannot depend on X3DNodes interface).
 
       It may be @nil for special fields/events when parent node is unknown. }
     property ParentNode: TVRMLFileItem read FParentNode;
@@ -440,7 +440,7 @@ type
     { Parse only "IS" clause, if it's not present --- don't do nothing.
       For example, for the TVRMLField descendant, this does not try to parse
       field value. }
-    procedure ParseIsClause(Lexer: TVRMLLexer);
+    procedure ParseIsClause(Lexer: TX3DLexer);
 
     { Add alternative name for the same field/event, to be used in different
       VRML version.
@@ -650,15 +650,15 @@ type
 
       Names may be @nil and is unused for descendants other than TSFNode
       and TMFNode. }
-    procedure Parse(Lexer: TVRMLLexer; Names: TObject; IsClauseAllowed: boolean);
+    procedure Parse(Lexer: TX3DLexer; Names: TObject; IsClauseAllowed: boolean);
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); virtual; abstract;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); virtual; abstract;
 
     { Parse field value from X3D XML encoded attribute using a Lexer.
       Attributes in X3D are generally encoded such that normal
       @code(ParseValue(Lexer, nil)) call is appropriate,
       so this is done in this class. }
-    procedure ParseXMLAttributeLexer(Lexer: TVRMLLexer); virtual;
+    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer); virtual;
 
     { Parse field value from X3D XML encoded attribute.
 
@@ -1077,7 +1077,7 @@ type
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses ItemClass.Parse method. }
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     destructor Destroy; override;
 
@@ -1088,7 +1088,7 @@ type
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure ParseXMLAttributeLexer(Lexer: TVRMLLexer); override;
+    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer); override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -1135,7 +1135,7 @@ type
     property NoneString: string read fNoneString;
     { @groupEnd }
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     { Are all flag values set to @true currently. }
     function AreAllFlags(value: boolean): boolean;
@@ -1173,7 +1173,7 @@ type
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -1214,7 +1214,7 @@ type
 
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1253,7 +1253,7 @@ type
       negative sphere radius. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1288,7 +1288,7 @@ type
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1338,7 +1338,7 @@ type
 
     destructor Destroy; override;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -1371,7 +1371,7 @@ type
 
     { See TSFFloat.MustBeNonnegative for explanation of this. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1406,7 +1406,7 @@ type
 
     property Value: TMatrix3Single read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1437,7 +1437,7 @@ type
 
     property Value: TMatrix3Double read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1468,7 +1468,7 @@ type
 
     property Value: TMatrix4Single read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1514,7 +1514,7 @@ type
 
     property Value: TMatrix4Double read FValue write FValue;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1568,7 +1568,7 @@ type
       it only presents them to you differently. }
     property ValueDeg: TVector4Single read GetValueDeg write SetValueDeg;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
@@ -1601,7 +1601,7 @@ type
     DefaultValue: string;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1633,7 +1633,7 @@ type
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1664,7 +1664,7 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1701,7 +1701,7 @@ type
     DefaultValue: TVector4Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1738,7 +1738,7 @@ type
     DefaultValue: TVector2Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1769,7 +1769,7 @@ type
     DefaultValue: TVector3Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
@@ -1800,7 +1800,7 @@ type
     DefaultValue: TVector4Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TVRMLLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TVRMLField;
       const EqualityEpsilon: Double): boolean; override;
@@ -2522,7 +2522,7 @@ type
   { Stores information about available VRML field classes.
     The only use for now is to make a mapping from VRML field name to
     actual class (needed by VRML interface declarations). }
-  TVRMLFieldsManager = class
+  TX3DFieldsManager = class
   private
     Registered: TStringList;
   public
@@ -2538,7 +2538,7 @@ type
 
   {$I vrmlevents.inc}
 
-function VRMLFieldsManager: TVRMLFieldsManager;
+function X3DFieldsManager: TX3DFieldsManager;
 
 { Decode color from integer value, following VRML SFImage specification.
   @groupBegin }
@@ -2597,7 +2597,7 @@ function VRMLChangesToStr(const Changes: TVRMLChanges): string;
 
 implementation
 
-uses Math, VRMLNodes, CastleXMLUtils, CastleWarnings;
+uses Math, X3DNodes, CastleXMLUtils, CastleWarnings;
 
 {$define read_implementation}
 
@@ -2731,7 +2731,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLFieldOrEvent.ParseIsClause(Lexer: TVRMLLexer);
+procedure TVRMLFieldOrEvent.ParseIsClause(Lexer: TX3DLexer);
 begin
   if Lexer.TokenIsKeyword(vkIS) then
   begin
@@ -3077,23 +3077,23 @@ begin
   Result := false;
 end;
 
-procedure TVRMLField.Parse(Lexer: TVRMLLexer; Names: TObject; IsClauseAllowed: boolean);
+procedure TVRMLField.Parse(Lexer: TX3DLexer; Names: TObject; IsClauseAllowed: boolean);
 begin
   if IsClauseAllowed and Lexer.TokenIsKeyword(vkIS) then
     ParseIsClause(Lexer) else
     ParseValue(Lexer, Names);
 end;
 
-procedure TVRMLField.ParseXMLAttributeLexer(Lexer: TVRMLLexer);
+procedure TVRMLField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
 begin
   ParseValue(Lexer, nil);
 end;
 
 procedure TVRMLField.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
 var
-  Lexer: TVRMLLexer;
+  Lexer: TX3DLexer;
 begin
-  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue,
+  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue,
     (Names as TVRMLNames).Version);
   try
     try
@@ -3335,7 +3335,7 @@ begin
   result := ItemClass.CreateUndefined(ParentNode, '', false);
 end;
 
-procedure TVRMLSimpleMultField.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TVRMLSimpleMultField.ParseValue(Lexer: TX3DLexer; Names: TObject);
 var
   SingleItem: TVRMLSingleField;
 begin
@@ -3382,7 +3382,7 @@ begin
   finally FreeAndNil(SingleItem) end;
 end;
 
-procedure TVRMLSimpleMultField.ParseXMLAttributeLexer(Lexer: TVRMLLexer);
+procedure TVRMLSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
 var
   SingleItem: TVRMLSingleField;
 begin
@@ -3487,28 +3487,28 @@ end;
 { This returns Float, not just Single, because it's used by
   TSFDouble and ParseVector(double version),
   that want double-precision preserved. }
-function ParseFloat(Lexer: TVRMLLexer): Float;
+function ParseFloat(Lexer: TX3DLexer): Float;
 begin
   Lexer.CheckTokenIs(TokenNumbers, 'float number');
   result := Lexer.TokenFloat;
   Lexer.NextToken;
 end;
 
-procedure ParseVector(var Vector: array of Single; Lexer: TVRMLLexer); overload;
+procedure ParseVector(var Vector: array of Single; Lexer: TX3DLexer); overload;
 var
   i: integer;
 begin
   for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
 
-procedure ParseVector(var Vector: array of Double; Lexer: TVRMLLexer); overload;
+procedure ParseVector(var Vector: array of Double; Lexer: TX3DLexer); overload;
 var
   i: integer;
 begin
   for i := 0 to High(Vector) do Vector[i] := ParseFloat(Lexer);
 end;
 
-function ParseLongWord(Lexer: TVRMLLexer): LongWord;
+function ParseLongWord(Lexer: TX3DLexer): LongWord;
 begin
   Lexer.CheckTokenIs(vtInteger);
   result := Lexer.TokenInteger;
@@ -3526,7 +3526,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFBool.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFBool.ParseValue(Lexer: TX3DLexer; Names: TObject);
 
   procedure VRML2BooleanIntegerWarning;
   begin
@@ -3660,7 +3660,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFFloat.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFFloat.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   Value := ParseFloat(Lexer);
 end;
@@ -3761,7 +3761,7 @@ begin
   FValue := AValue;
 end;
 
-procedure TSFDouble.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFDouble.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   Value := ParseFloat(Lexer);
 end;
@@ -3937,7 +3937,7 @@ end;
 
 {$include norqcheckend.inc}
 
-procedure TSFImage.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFImage.ParseValue(Lexer: TX3DLexer; Names: TObject);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -3962,7 +3962,7 @@ begin
     Value will still remain non-nil.
 
     This is all because I just changed Images unit interface to class-like
-    and I want to do minimal changes to VRMLFields unit to not break
+    and I want to do minimal changes to X3DFields unit to not break
     anything. TODO -- this will be solved better in the future, by simply
     allowing Value to be nil at any time.
     }
@@ -4129,7 +4129,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFLong.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFLong.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   Lexer.CheckTokenIs(vtInteger);
 
@@ -4249,7 +4249,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Names: TObject);
 var
   Column: integer;
 begin
@@ -4455,7 +4455,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFRotation.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFRotation.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   ParseVector(Axis, Lexer);
   RotationRad := ParseFloat(Lexer);
@@ -4597,7 +4597,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFString.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFString.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   Lexer.CheckTokenIs(vtString);
   Value := Lexer.TokenString;
@@ -4669,7 +4669,7 @@ end;
 procedure TSFString.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
 begin
   { SFString has quite special interpretation, it's just attrib
-    name. It would not be usefull trying to use TVRMLLexer here,
+    name. It would not be usefull trying to use TX3DLexer here,
     it's easier just to handle this as a special case.
 
     Uhm... some X3D XML files commit the reverse mistake
@@ -4716,7 +4716,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Names: TObject);
 begin
   ParseVector(Value, Lexer);
 end;
@@ -4946,7 +4946,7 @@ begin
   result := fFlagNames[i]
 end;
 
-procedure TSFBitMask.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFBitMask.ParseValue(Lexer: TX3DLexer; Names: TObject);
 
   procedure InterpretTokenAsFlagName;
   var
@@ -5089,7 +5089,7 @@ begin
   result := fEnumNames.Count
 end;
 
-procedure TSFEnum.ParseValue(Lexer: TVRMLLexer; Names: TObject);
+procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Names: TObject);
 var
   val: integer;
 begin
@@ -5901,7 +5901,7 @@ end;
 
 procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
 var
-  Lexer: TVRMLLexer;
+  Lexer: TX3DLexer;
 begin
   { For MFString, it's very common that normal parsing fails because
     of missing double quotes, even in models from
@@ -5911,7 +5911,7 @@ begin
     quotes. We just do what Xj3D seems to do, that is
     we handle this as a single string (producing a warning). }
 
-  Lexer := TVRMLLexer.CreateForPartialStream(AttributeValue,
+  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue,
     (Names as TVRMLNames).Version);
   try
     try
@@ -5940,9 +5940,9 @@ begin
   if Writer.Encoding = xeXML then Writer.Write('''');
 end;
 
-{ TVRMLFieldsManager --------------------------------------------------------- }
+{ TX3DFieldsManager --------------------------------------------------------- }
 
-constructor TVRMLFieldsManager.Create;
+constructor TX3DFieldsManager.Create;
 begin
   inherited;
   Registered := TStringList.Create;
@@ -5950,18 +5950,18 @@ begin
   Registered.CaseSensitive := true;
 end;
 
-destructor TVRMLFieldsManager.Destroy;
+destructor TX3DFieldsManager.Destroy;
 begin
   FreeAndNil(Registered);
   inherited;
 end;
 
-procedure TVRMLFieldsManager.RegisterClass(AClass: TVRMLFieldClass);
+procedure TX3DFieldsManager.RegisterClass(AClass: TVRMLFieldClass);
 begin
   Registered.AddObject(AClass.VRMLTypeName, TObject(AClass));
 end;
 
-procedure TVRMLFieldsManager.RegisterClasses(
+procedure TX3DFieldsManager.RegisterClasses(
   const Classes: array of TVRMLFieldClass);
 var
   I: Integer;
@@ -5970,7 +5970,7 @@ begin
     RegisterClass(Classes[I]);
 end;
 
-function TVRMLFieldsManager.FieldTypeNameToClass(
+function TX3DFieldsManager.FieldTypeNameToClass(
   const TypeName: string): TVRMLFieldClass;
 var
   I: Integer;
@@ -5982,17 +5982,17 @@ begin
 end;
 
 var
-  FVRMLFieldsManager: TVRMLFieldsManager;
+  FX3DFieldsManager: TX3DFieldsManager;
 
-function VRMLFieldsManager: TVRMLFieldsManager;
-{ This function automatically creates FVRMLFieldsManager instance.
+function X3DFieldsManager: TX3DFieldsManager;
+{ This function automatically creates FX3DFieldsManager instance.
   I don't do this in initialization of this unit, since (because
-  of circular uses clauses) VRMLFieldsManager may be referenced
-  before our initialization (e.g. by initialization of VRMLNodes). }
+  of circular uses clauses) X3DFieldsManager may be referenced
+  before our initialization (e.g. by initialization of X3DNodes). }
 begin
-  if FVRMLFieldsManager = nil then
-    FVRMLFieldsManager := TVRMLFieldsManager.Create;
-  Result := FVRMLFieldsManager;
+  if FX3DFieldsManager = nil then
+    FX3DFieldsManager := TX3DFieldsManager.Create;
+  Result := FX3DFieldsManager;
 end;
 
 { global utilities ----------------------------------------------------------- }
@@ -6012,7 +6012,7 @@ begin
 end;
 
 initialization
-  VRMLFieldsManager.RegisterClasses([
+  X3DFieldsManager.RegisterClasses([
     TSFBitMask,
     TSFEnum,
     TSFBool,     TMFBool,
@@ -6041,5 +6041,5 @@ initialization
     TSFColorRGBA,TMFColorRGBA
     ]);
 finalization
-  FreeAndNil(FVRMLFieldsManager);
+  FreeAndNil(FX3DFieldsManager);
 end.
