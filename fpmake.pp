@@ -25,7 +25,7 @@ begin
       OSes below are actually tested. }
     P.OSes := [darwin, linux, freebsd, win32];
 
-    P.Options {$ifndef VER2_2} .Text {$endif} := '@kambi.cfg';
+    P.Options {$ifndef VER2_2} .Text {$endif} := '@castle-fpc.cfg';
 
     { Add dependencies on FPC packages.
       These aren't really needed, as your default fpc.cfg should

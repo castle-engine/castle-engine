@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eu
 
-# Call this from ../../ (or just use `make examples').
+# Call this script from this directory,
+# or from base castle_game_engine directory.
+# Or just do "make examples" in base castle_game_engine directory.
 
-fpc -dRELEASE @kambi.cfg examples/images_videos/image_to_pas.lpr
+# Allow calling this script from it's dir.
+if [ -f image_to_pas.lpr ]; then cd ../../; fi
+
+fpc -dRELEASE @castle-fpc.cfg examples/images_videos/image_to_pas.lpr

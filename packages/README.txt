@@ -61,7 +61,7 @@ Mini-FAQ about these packages:
   So all you actually need is bare FPC installation.
   Use castle_game_engine/Makefile to compile all units and use compile.sh
   scripts to compile each particular program. If you need more flexibility,
-  take a look at castle_game_engine/kambi.cfg, this specifies actual options
+  take a look at castle_game_engine/castle-fpc.cfg, this specifies actual options
   used by castle_game_engine/Makefile and all compile.sh scripts.
 
 - What is the difference between castle_base and castle_components:

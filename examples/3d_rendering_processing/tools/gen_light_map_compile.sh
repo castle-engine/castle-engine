@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eu
 
-# Call this from ../../../ (or just use `make examples').
+# Call this script from this directory,
+# or from base castle_game_engine directory.
+# Or just do "make examples" in base castle_game_engine directory.
 
-fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/tools/gen_light_map.lpr
+# Allow calling this script from it's dir.
+if [ -f gen_light_map.lpr ]; then cd ../../../; fi
+
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/tools/gen_light_map.lpr

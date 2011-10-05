@@ -3,7 +3,7 @@ Short primer on how to profile view3dscene with valgrind (actually callgrind, on
 http://valgrind.org/docs/manual/cl-manual.html
 
 Compile for valgrind:
-- look in ../kambi.cfg for valgrind options, uncomment them
+- look in ../castle-fpc.cfg for valgrind options, uncomment them
 - clean units (to recompile all for valgrind), like
     ./clean_everything.sh
 - compile as usual, with -dRELEASE (you want to profile released code)

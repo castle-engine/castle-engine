@@ -1,11 +1,11 @@
 #!/bin/bash
 set -eu
 
-# Call this script from it's own directory,
+# Call this script from this directory,
 # or from base castle_game_engine directory.
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
 if [ -f triangulate_demo.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/triangulate_demo.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/triangulate_demo.lpr

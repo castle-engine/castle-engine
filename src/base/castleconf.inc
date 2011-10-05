@@ -23,11 +23,11 @@
   syntax things (hugestrings ? which FPC mode to use ? ...) or what
   checks to do (io checks ? range checks ? assertions ? ...).
   Instead I depend on the fact that all my units must be compiled with
-  my ../kambi.cfg configuration file. That file defines such basic
+  my ../castle-fpc.cfg configuration file. That file defines such basic
   compiler options. That's because I can't control everything using
   include file, like this one. E.g. I can't say here to add HeapTrc
   and LineInfo at the beginning of "uses" clause of current unit/program.
-  But I can say it easily in ../kambi.cfg using "-gl -gh" options.
+  But I can say it easily in ../castle-fpc.cfg using "-gl -gh" options.
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}

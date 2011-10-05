@@ -78,8 +78,8 @@ Here it is:
 
   @item(
     If you need more control over compilation process then
-    you can also directly use kambi.cfg file. This is my configuration
-    file for FPC. It's used by @code(castle_game_engine/Makefile) and by all @code(compile.sh)
+    you can also directly use castle-fpc.cfg file. This is my configuration
+    file for FPC. It's used by @code(castle_game_engine/fpmake.pp) and by all @code(compile.sh)
     scripts of all programs. All my programs and units must be compiled with
     FPC using exactly this configuration.
 

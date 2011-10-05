@@ -84,7 +84,7 @@ of documentation, see
   FPC >= 2.2.0 defines MSWINDOWS as it should, so there's no problem.
 
   I also use DEBUG symbol in my sources, with obvious meaning.
-  See kambi.cfg for it's exact meaning. There's also RELEASE symbol,
+  See castle-fpc.cfg for it's exact meaning. There's also RELEASE symbol,
   but I usually don't check for it's existence -- the logic says that
   $ifdef DEBUG then I'm in debug mode, else I'm in release mode.
   So there's no need to check for RELEASE symbol.
@@ -102,7 +102,7 @@ of documentation, see
     look good when displayed in some situations. Especially when
     one Message is embedded as part of the Message of other exception.
     But, if Message really must express line-breaks: they should be
-    always expressed as KambiUtils.nl constant.
+    always expressed as CastleUtils.nl constant.
   - Message must not contain any general program information like
     ProgramName, ExeName etc. (The exception to this rule is when
     such information is really related to the error that happened,

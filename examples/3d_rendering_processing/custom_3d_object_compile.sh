@@ -1,10 +1,11 @@
 #!/bin/bash
 set -eu
 
-# Allow calling this script from it's dir.
-if [ -f custom_3d_object.lpr ]; then
-  cd ../../
-fi
+# Call this script from this directory,
+# or from base castle_game_engine directory.
+# Or just do "make examples" in base castle_game_engine directory.
 
-# Call this from ../../ (or just use `make examples').
-fpc -dRELEASE @kambi.cfg examples/3d_rendering_processing/custom_3d_object.lpr
+# Allow calling this script from it's dir.
+if [ -f custom_3d_object.lpr ]; then cd ../../; fi
+
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/custom_3d_object.lpr

@@ -1,11 +1,11 @@
 #!/bin/bash
 set -eu
 
-# Hack to allow calling this script from it's dir.
-if [ -f animate_surface.lpr ]; then
-  cd ../../../
-fi
+# Call this script from this directory,
+# or from base castle_game_engine directory.
+# Or just do "make examples" in base castle_game_engine directory.
 
-# Call this from ../../ (or just use `make examples').
+# Allow calling this script from it's dir.
+if [ -f animate_surface.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @kambi.cfg examples/curves_surfaces/bezier_surfaces/animate_surface.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/curves_surfaces/bezier_surfaces/animate_surface.lpr
