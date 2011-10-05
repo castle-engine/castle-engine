@@ -37,7 +37,7 @@ var
 
 implementation
 
-uses VRMLScene, CastleUtils, Images, VectorMath;
+uses CastleSceneCore, CastleUtils, Images, VectorMath;
 
 { TForm1 --------------------------------------------------------------------- }
 

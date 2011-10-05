@@ -64,9 +64,9 @@
 
 program demo_animation;
 
-uses VectorMath, VRMLNodes, GL, GLU, CastleWindow, CastleWarnings,
+uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad,
-  CastleGLUtils, VRMLGLScene, VRMLGLAnimation,
+  CastleGLUtils, CastleScene, PrecalculatedAnimation,
   CastleFilesUtils, CastleParameters, CastleProgress, ProgressUnit,
   CastleSceneManager, CastleStringUtils;
 

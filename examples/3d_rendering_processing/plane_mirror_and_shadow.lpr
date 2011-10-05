@@ -50,9 +50,9 @@
 }
 program plane_mirror_and_shadow;
 
-uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, GLExt, CastleWindow,
+uses VectorMath, Boxes3D, X3DNodes, GL, GLU, GLExt, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad, CastleWarnings,
-  CastleGLUtils, VRMLGLScene, Cameras, RenderingCameraUnit, CastleParameters,
+  CastleGLUtils, CastleScene, Cameras, RenderingCameraUnit, CastleParameters,
   CastleFilesUtils, CastleStringUtils, KeysMouse, CastleSceneManager;
 
 var

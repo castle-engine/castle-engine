@@ -14,15 +14,15 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestVRMLNodesOptimizedProxy;
+unit TestX3DNodesOptimizedProxy;
 
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, VRMLNodes;
+  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, X3DNodes;
 
 type
-  TTestVRMLNodesOptimizedProxy = class(TTestCase)
+  TTestX3DNodesOptimizedProxy = class(TTestCase)
   published
     { Some of the geometry nodes, even though they have Proxy,
       have also optimized versions for some operations (like calculating
@@ -36,7 +36,7 @@ type
 
 implementation
 
-uses Boxes3D, VRMLShape;
+uses Boxes3D, Shape;
 
 { TNastyProxy ---------------------------------------------------------------- }
 
@@ -190,9 +190,9 @@ begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-{ TTestVRMLNodesOptimizedProxy ----------------------------------------------- }
+{ TTestX3DNodesOptimizedProxy ----------------------------------------------- }
 
-procedure TTestVRMLNodesOptimizedProxy.TestGeometryUsesOptimizedMethods;
+procedure TTestX3DNodesOptimizedProxy.TestGeometryUsesOptimizedMethods;
 var
   { Suffix O means OverTriangulate,
            NO means not OverTriangulate }
@@ -319,5 +319,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestVRMLNodesOptimizedProxy);
+ RegisterTest(TTestX3DNodesOptimizedProxy);
 end.

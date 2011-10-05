@@ -14,23 +14,23 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestVRMLNodes;
+unit TestX3DNodes;
 
 {$I tests.inc}
 
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, VRMLNodes;
+  Classes, SysUtils, fpcunit, testutils, testregistry, VectorMath, X3DNodes;
 
 type
-  TTestVRMLNodes = class(TTestCase)
+  TTestX3DNodes = class(TTestCase)
   published
     procedure TestNodesManager;
 
     { This is really large test that reads and writes various VRML files
       and checks whether the generated VRML file is the same.
-      It checks "the same" by comparing sequence of VRMLLexer
+      It checks "the same" by comparing sequence of X3DLexer
       tokens for them.
 
       Note that this is not guaranteed to pass for every file,
@@ -89,7 +89,7 @@ type
 
 implementation
 
-uses CastleUtils, VRMLLexer, CastleClassUtils, CastleFilesUtils, VRMLFields,
+uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
   CastleTimeUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 { TNode* ------------------------------------------------------------ }
@@ -116,7 +116,7 @@ end;
 
 { ------------------------------------------------------------ }
 
-procedure TTestVRMLNodes.TestNodesManager;
+procedure TTestX3DNodes.TestNodesManager;
 begin
  try
   { throw exception because TSpecialNode.ClassNodeTypeName = '' }
@@ -214,7 +214,7 @@ end;
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
 procedure TVRMLTokenInfoList.ReadFromFile(const FileName: string);
 var
-  Lexer: TVRMLLexer;
+  Lexer: TX3DLexer;
 
   function CurrentToken: TVRMLTokenInfo;
   begin
@@ -230,7 +230,7 @@ var
   I: Integer;
 begin
   Count := 0;
-  Lexer := TVRMLLexer.CreateFromFile(FileName);
+  Lexer := TX3DLexer.CreateFromFile(FileName);
   try
     Add(CurrentToken);
     while Lexer.Token <> vtEnd do
@@ -241,7 +241,7 @@ begin
   finally FreeAndNil(Lexer); end;
 end;
 
-procedure TTestVRMLNodes.TestParseSaveToFile;
+procedure TTestX3DNodes.TestParseSaveToFile;
 
   procedure TestReadWrite(const FileName: string);
   var
@@ -280,7 +280,7 @@ begin
   {$endif CASTLE_ENGINE_TRUNK_AVAILABLE}
 end;
 
-procedure TTestVRMLNodes.TestInterfaceSupports;
+procedure TTestX3DNodes.TestInterfaceSupports;
 var
   L: TX3DNodeClassesList;
 
@@ -319,7 +319,7 @@ begin
   finally FreeAndNil(L) end;
 end;
 
-procedure TTestVRMLNodes.TestUniqueFields;
+procedure TTestX3DNodes.TestUniqueFields;
 var
   I, J, K: Integer;
   N: TX3DNode;
@@ -361,7 +361,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestAllowedChildren;
+procedure TTestX3DNodes.TestAllowedChildren;
 var
   AllowedChildrenNodes: TX3DNodeClassesList;
   AllowedGeometryNodes: TX3DNodeClassesList;
@@ -373,7 +373,7 @@ begin
     inheritance classes, like X3D, but I had simply long lists for
     some properties.
 
-    They were removed from VRMLNodes, since using X3D inheritance
+    They were removed from X3DNodes, since using X3D inheritance
     is obiously much simpler and long-term solution. For example,
     all children nodes simply inherit from TAbstractChildNode
     (actually, IAbstractChildNode, and since FPC "Supports" doesn't work
@@ -592,7 +592,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestContainerFieldList;
+procedure TTestX3DNodes.TestContainerFieldList;
 const
   { This is pasted, and then processed by regexps, from X3D XML
     encoding specification (chapter 6 "Encoding of nodes").
@@ -862,7 +862,7 @@ begin
   finally FreeAndNil(ContainerFieldList) end;
 end;
 
-procedure TTestVRMLNodes.TestContainerFieldGeometry;
+procedure TTestX3DNodes.TestContainerFieldGeometry;
 var
   I: Integer;
   N: TX3DNode;
@@ -898,7 +898,7 @@ procedure TMyObject.Foo(Node: TX3DNode);
 begin
 end;
 
-procedure TTestVRMLNodes.TestDestructionNotification;
+procedure TTestX3DNodes.TestDestructionNotification;
 var
   A: TNodeDestructionNotificationList;
   M1, M2, M3: TMyObject;
@@ -926,7 +926,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestGeometryNodesImplemented;
+procedure TTestX3DNodes.TestGeometryNodesImplemented;
 var
   I: Integer;
   N: TX3DNode;
@@ -970,7 +970,7 @@ begin
   finally FreeAndNil(State) end;
 end;
 
-procedure TTestVRMLNodes.TestGeometryNodesChanges;
+procedure TTestX3DNodes.TestGeometryNodesChanges;
 var
   I, J: Integer;
   N: TX3DNode;
@@ -1004,7 +1004,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestVisibleVRML1StateChanges;
+procedure TTestX3DNodes.TestVisibleVRML1StateChanges;
 var
   I, J: Integer;
   N: TX3DNode;
@@ -1045,7 +1045,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestColorNodeChanges;
+procedure TTestX3DNodes.TestColorNodeChanges;
 var
   I, J: Integer;
   N: TX3DNode;
@@ -1079,7 +1079,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestTextureCoordinate;
+procedure TTestX3DNodes.TestTextureCoordinate;
 var
   I, J: Integer;
   N: TX3DNode;
@@ -1113,7 +1113,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestEmptyChanges;
+procedure TTestX3DNodes.TestEmptyChanges;
 
   { Confirmed fiels that may have Changes = []. }
   function ConfirmedEmptyChanges(Field: TVRMLField): boolean;
@@ -1298,7 +1298,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestTimeDependentNodeHandlerAvailable;
+procedure TTestX3DNodes.TestTimeDependentNodeHandlerAvailable;
 
   procedure CheckTimeDependentNodeHandler(N: TX3DNode);
   var
@@ -1337,7 +1337,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestITransformNode;
+procedure TTestX3DNodes.TestITransformNode;
 
   function ContainsCHTransformField(const N: TX3DNode): boolean;
   var
@@ -1375,7 +1375,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestSortPositionInParent;
+procedure TTestX3DNodes.TestSortPositionInParent;
 var
   List: TVRMLFileItemList;
   I0, I1, I2, I3, I4, I5: TTimeSensorNode;
@@ -1455,7 +1455,7 @@ begin
   finally FreeAndNil(BS) end;
 end;
 
-procedure TTestVRMLNodes.TestRootNodeMeta;
+procedure TTestX3DNodes.TestRootNodeMeta;
 { Test reading, writing, copying of TX3DRootNode profile, component, metas.
   Also, test updating metas when saving, with generator and source. }
 var
@@ -1571,7 +1571,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestConvertToX3D;
+procedure TTestX3DNodes.TestConvertToX3D;
 var
   Node: TX3DRootNode;
   TempStream: TMemoryStream;
@@ -1684,7 +1684,7 @@ begin
   end;
 end;
 
-procedure TTestVRMLNodes.TestReadingWritingQuotes;
+procedure TTestX3DNodes.TestReadingWritingQuotes;
 const
   ValidString = 'test string with " and '' and \ and / inside';
   ValidString2 = '" another '''' test string  with some weirdness \\ inside';
@@ -1758,5 +1758,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestVRMLNodes);
+ RegisterTest(TTestX3DNodes);
 end.

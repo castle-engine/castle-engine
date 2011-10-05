@@ -1,6 +1,7 @@
 { Simple demo how to get direct list of 3D scene triangles. }
+program triangulate_demo;
 
-uses SysUtils, VectorMath, VRMLScene, VRMLShape;
+uses SysUtils, VectorMath, CastleSceneCore, Shape;
 
 type
   TTriangleHandler = class

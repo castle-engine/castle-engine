@@ -1,4 +1,4 @@
-unit TestVRMLScene;
+unit TestSceneCore;
 
 {$I tests.inc}
 
@@ -20,7 +20,7 @@ type
 
 implementation
 
-uses VRMLNodes, VRMLScene, X3DLoad, VectorMath, VRMLShape,
+uses X3DNodes, CastleSceneCore, X3DLoad, VectorMath, Shape,
   CastleTimeUtils, CastleStringUtils;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;

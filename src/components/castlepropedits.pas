@@ -27,7 +27,7 @@ procedure Register;
 
 implementation
 
-uses VRMLScene, PropEdits, CastleLCLUtils, X3DLoad, UIControls,
+uses CastleSceneCore, PropEdits, CastleLCLUtils, X3DLoad, UIControls,
   CastleGLControl, GLControls, Images, LResources;
 
 type

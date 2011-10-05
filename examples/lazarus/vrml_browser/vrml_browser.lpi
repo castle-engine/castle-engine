@@ -247,11 +247,11 @@
         <UsageCount Value="9"/>
       </Unit26>
       <Unit27>
-        <Filename Value="vrmlconsolef.pas"/>
+        <Filename Value="consolef.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="VrmlConsole"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="VrmlConsoleF"/>
+        <UnitName Value="ConsoleF"/>
         <TopLine Value="28"/>
         <CursorPos X="3" Y="50"/>
         <UsageCount Value="52"/>

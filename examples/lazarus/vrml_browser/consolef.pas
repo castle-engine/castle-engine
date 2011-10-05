@@ -1,4 +1,4 @@
-unit VrmlConsoleF;
+unit ConsoleF;
 
 {$mode objfpc}{$H+}
 

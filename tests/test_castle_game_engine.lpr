@@ -29,10 +29,10 @@ uses
   TestParsingParameters,
   TestFNMatch,
   TestCameras,
-  TestVRMLNodes,
-  TestVRMLNodesOptimizedProxy,
-  TestVRMLGLScene,
-  TestVRMLScene,
+  TestX3DNodes,
+  TestX3DNodesOptimizedProxy,
+  TestScene,
+  TestSceneCore,
   { Not used anymore --- IntRects stuff is internal inside CastleMessages,
     and honestly not important enough.
   TestIntRects, }
@@ -57,14 +57,14 @@ uses
   {$endif} {$endif};
 
 {var
-  T: TTestVRMLNodes;}
+  T: TTestX3DNodes;}
 begin
   OnWarning := @OnWarningWrite;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestVRMLNodes.Create;
+  T := TTestX3DNodes.Create;
   T.TestConvertToX3D;
   T.Free;
   Exit; }

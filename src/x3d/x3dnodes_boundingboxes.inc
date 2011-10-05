@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRMLNodes_BoundingBoxes, czyli implementacja metod BoundingBox
-  dla node'ow wywodzacych sie od TAbstractGeometryNode. }
+{ Implement BoundingBox / LocalBoundingBox for geometry nodes. }
 
 { ----------------------------------------------------------------------------
   Bounding box utilities for nodes with explicit Coordinates (indexed and not).

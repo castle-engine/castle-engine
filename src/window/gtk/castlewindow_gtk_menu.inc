@@ -69,7 +69,7 @@ end;
   Menu recreate calls could happen when some KeyUp
   message will cause e.g. TWindowState.SetStandardState. For example,
   this happens in view3dscene when KeyUp may produce message to KeySensor about
-  key release, and this may produce ChangedAll on VRML scene, which produces
+  key release, and this may produce ChangedAll on T3DScene, which produces
   CastleProgress run...
 
   MenuRecreateForbidden is not an ideal solution, menu should be eventually

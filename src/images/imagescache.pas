@@ -90,7 +90,7 @@ type
     function Empty: boolean; virtual;
 
     { Called when cache becomes empty. This is only for internal usage
-      by VRMLNodes unit for now. }
+      by X3DNodes unit for now. }
     property OnEmpty: TProcedure read FOnEmpty write FOnEmpty;
   end;
 

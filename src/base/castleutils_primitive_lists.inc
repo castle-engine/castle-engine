@@ -82,7 +82,7 @@ type
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
-      (e.g. TVRMLGLScene.RenderFrustumOctree passes
+      (e.g. T3DScene.RenderFrustumOctree passes
       RenderFrustumOctree_Visible.SetTrue method as callback
       that should mark visible items.)
       @groupBegin }

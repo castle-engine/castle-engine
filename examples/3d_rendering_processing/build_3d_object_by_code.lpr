@@ -22,7 +22,7 @@
   http://castle-engine.sourceforge.net/vrml_implementation_status.php
   for a complete list of supported VRML/X3D nodes. }
 
-uses SysUtils, VectorMath, VRMLNodes;
+uses SysUtils, VectorMath, X3DNodes;
 
 var
   Root: TX3DRootNode;
@@ -84,7 +84,7 @@ begin
       (that can be later loaded by our engine). }
     SaveVRML(Root, 'test.x3d', 'build_3d_object_by_code', '', xeXML);
 
-    { You also could create a TVRMLScene, or even TVRMLGLScene
+    { You also could create a T3DSceneCore, or even T3DScene
       to render this 3D object directly in OpenGL (without saving to any
       file). For example in scene_manager_basic.lpr you could replace
         Scene.Load('models/boxes.x3dv');
@@ -93,7 +93,7 @@ begin
       to render your constructed 3D object.
 
       Note that you can even rebuild and change the 3D object *after*
-      it's already loaded and rendered by TVRMLGLScene.
+      it's already loaded and rendered by T3DScene.
       See demos change_vrml_by_code.lpr and change_vrml_by_code_2.lpr. }
 
   finally FreeAndNil(Root) end;

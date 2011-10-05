@@ -55,10 +55,10 @@ uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
   Cameras, Boxes3D, SysUtils, CastleUtils, VectorMath,
   CastleClassUtils, CastleFilesUtils, CastleStringUtils,
   CastleMessages,  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, Images, KeysMouse,
-  NormalizationCubeMap, GLImages, GLVersionUnit, VRMLNodes,
+  NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,
   CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
-  VRMLScene, VRMLGLScene, X3DLoad, ProgressUnit, VRMLGLBackground,
-  VRMLGLRenderer, CastleSceneManager, RenderingCameraUnit, GLControls;
+  CastleSceneCore, CastleScene, X3DLoad, ProgressUnit, Background,
+  GLRenderer, CastleSceneManager, RenderingCameraUnit, GLControls;
 
 const
   SceneBoundingBox: TBox3D = ( Data: (
@@ -860,7 +860,7 @@ begin
     ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar);
 
   Scene.BackgroundSkySphereRadius :=
-    TVRMLGLBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
+    TBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
 
   UpdateCameraProjectionMatrix;
 end;
@@ -870,7 +870,7 @@ end;
 { Some preparations for bmVRML, to make it look better.
   LightPosition more suitable.
   Walker position initialized from Scene viewport. }
-procedure PrepareForVRMLScene;
+procedure PrepareForSceneCore;
 var
   CamPos, CamDir, CamUp, GravityUp: TVector3Single;
 begin
@@ -935,7 +935,7 @@ begin
   { if Method not bmVRML, then this will be done anyway when user will switch
     to bmVRML method. }
   if Method = bmVRML then
-    PrepareForVRMLScene;
+    PrepareForSceneCore;
 end;
 
 { status text ---------------------------------------------------------------- }
@@ -1016,7 +1016,7 @@ begin
     Method := Low(Method) else
     Method := Succ(Method);
   if Method = bmVRML then
-    PrepareForVRMLScene;
+    PrepareForSceneCore;
 
   { if, and only if, Method = bmVRML, then SceneManager contains our Scene. }
   if Method = bmVRML then
@@ -1304,7 +1304,7 @@ begin
     Scene is part of SceneManager only when Method = bmVRML }
   if Method = bmVRML then
   begin
-    PrepareForVRMLScene;
+    PrepareForSceneCore;
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
   end;

@@ -21,7 +21,7 @@ program vrml_browser_script_compiled;
 {$apptype CONSOLE}
 
 uses CastleUtils, ProgressUnit, ProgressConsole, CastleWarnings,
-  VRMLScene, VRMLFields, VRMLTime, SysUtils, CastleParameters, CastleStringUtils,
+  CastleSceneCore, X3DFields, X3DTime, SysUtils, CastleParameters, CastleStringUtils,
   CastleWindow;
 
 var

@@ -25,9 +25,9 @@
 
 program radiance_transfer;
 
-uses VectorMath, Boxes3D, VRMLNodes, GL, GLU, CastleWindow,
+uses VectorMath, Boxes3D, X3DNodes, GL, GLU, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes, RenderingCameraUnit,
-  CastleGLUtils, VRMLGLScene, KeysMouse, CastleSceneManager,
+  CastleGLUtils, CastleScene, KeysMouse, CastleSceneManager,
   CastleFilesUtils, CastleWarnings, SphericalHarmonics, Math, Images, GLCubeMap,
   CastleStringUtils, CastleParameters;
 

@@ -20,10 +20,10 @@
   on load under the hood). }
 program gl_primitive_performance;
 
-uses VectorMath, VRMLNodes, GL, GLExt, CastleWindow,
+uses VectorMath, X3DNodes, GL, GLExt, CastleWindow,
   CastleUtils, SysUtils, Classes, CastleWarnings,
-  CastleGLUtils, CastleFilesUtils, VRMLScene, CastleParameters,
-  ProgressUnit, VRMLShape, CastleSceneManager, Base3D, CastleStringUtils;
+  CastleGLUtils, CastleFilesUtils, CastleSceneCore, CastleParameters,
+  ProgressUnit, Shape, CastleSceneManager, Base3D, CastleStringUtils;
 
 type
   TRenderMode = (
@@ -45,7 +45,7 @@ type
 var
   Window: TCastleWindowCustom;
   Scene: T3DSceneCore;
-  Shape: TShape;
+  MyShape: TShape;
   Vertexes: TVector3SingleList;
   CoordIndex: TLongIntList;
   TrianglesCoordIndex: TLongIntList;
@@ -65,7 +65,7 @@ var
 begin
   if Params.Transparent then Exit;
 
-  glMultMatrix(Shape.State.Transform);
+  glMultMatrix(MyShape.State.Transform);
 
   { render scene }
   case Mode of
@@ -377,22 +377,22 @@ begin
       raise Exception.CreateFmt('No shape number %d (means empty scene if shape number = 0)', [ShapeNum]);
     if not (TShapeTreeGroup(Scene.Shapes).Children[ShapeNum] is TShape) then
       raise Exception.Create('Specified shape is compound (LOD or Switch), not supported in this trivial demo');
-    Shape := TShape(TShapeTreeGroup(Scene.Shapes).Children[ShapeNum]);
+    MyShape := TShape(TShapeTreeGroup(Scene.Shapes).Children[ShapeNum]);
 
     { Get info about vertexes, coordindex from 1st shape on our scene.
 
       Don't even think about using it in production code, the simple
       code below omits a lot of X3D/VRML complexity just to get to
       the raw (and extremely dumbed down) vertex data. }
-    if Shape.Geometry is TIndexedFaceSetNode_1 then
+    if MyShape.Geometry is TIndexedFaceSetNode_1 then
     begin
-      Vertexes := TIndexedFaceSetNode_1(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TIndexedFaceSetNode_1(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TIndexedFaceSetNode_1(MyShape.Geometry).Coordinates(MyShape.State).Items;
+      CoordIndex := TIndexedFaceSetNode_1(MyShape.Geometry).CoordIndex.Items;
     end else
-    if Shape.Geometry is TIndexedFaceSetNode then
+    if MyShape.Geometry is TIndexedFaceSetNode then
     begin
-      Vertexes := TIndexedFaceSetNode(Shape.Geometry).Coordinates(Shape.State).Items;
-      CoordIndex := TIndexedFaceSetNode(Shape.Geometry).CoordIndex.Items;
+      Vertexes := TIndexedFaceSetNode(MyShape.Geometry).Coordinates(MyShape.State).Items;
+      CoordIndex := TIndexedFaceSetNode(MyShape.Geometry).CoordIndex.Items;
     end else
       raise Exception.Create('Specified shape is not IndexedFaceSet');
 
@@ -403,7 +403,7 @@ begin
 
     Writeln('Vertexes count: ', Vertexes.Count);
     Writeln('CoordIndex count: ', CoordIndex.Count);
-    Writeln('Triangles count: ', Shape.TrianglesCount(false), ' (made: ', TrianglesCoordIndex.Count div 3, ')');
+    Writeln('Triangles count: ', MyShape.TrianglesCount(false), ' (made: ', TrianglesCoordIndex.Count div 3, ')');
 
     SceneManager := TMySceneManager.Create(Application);
     SceneManager.Items.Add(Scene);

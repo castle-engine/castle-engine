@@ -34,7 +34,7 @@
 }
 program kanim_to_interpolators;
 
-uses SysUtils, Classes, CastleUtils, CastleClassUtils, VRMLNodes, VRMLGLAnimation,
+uses SysUtils, Classes, CastleUtils, CastleClassUtils, X3DNodes, PrecalculatedAnimation,
   CastleStringUtils, ProgressUnit, ProgressConsole, CastleParameters;
 
 var

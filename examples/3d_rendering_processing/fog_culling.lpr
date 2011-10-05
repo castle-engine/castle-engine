@@ -32,7 +32,7 @@ program fog_culling;
 
 uses SysUtils, VectorMath, GL, GLU, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
-  CastleGLUtils, VRMLNodes, VRMLScene, VRMLGLScene,
+  CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
   ProgressUnit, ProgressConsole, CastleFilesUtils, Base3D,
   CastleSceneManager, CastleParameters;
 

@@ -21,8 +21,8 @@
 
 program change_vrml_by_code_2;
 
-uses VectorMath, VRMLNodes, GL, GLU, CastleWindow, CastleWarnings,
-  CastleUtils, SysUtils, CastleGLUtils, VRMLGLScene, Cameras, CastleSceneManager,
+uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
+  CastleUtils, SysUtils, CastleGLUtils, CastleScene, Cameras, CastleSceneManager,
   CastleFilesUtils, Quaternions {$ifdef LOG} ,CastleLog {$endif}, CastleParameters,
   CastleStringUtils;
 

@@ -56,7 +56,7 @@ uses SysUtils, Classes, Boxes3D,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   Cameras, VectorMath, CastleFilesUtils, Elevations, CastleMessages,
   CastleStringUtils, GLMenu, UIControls, Images, RenderElevations,
-  GLShaders, GLImages, VRMLFields, VRMLNodes;
+  GLShaders, GLImages, X3DFields, X3DNodes;
 
 type
   TTerrainType = (ttNoise, ttKamScript, ttImage, ttGrid);

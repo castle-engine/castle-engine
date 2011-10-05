@@ -15,11 +15,11 @@
 
 { Rendering lightmaps. }
 
-unit VRMLLightMap;
+unit LightMap;
 
 interface
 
-uses VectorMath, VRMLNodes, Images, VRMLTriangle;
+uses VectorMath, X3DNodes, Images, Triangle;
 
 type
   TQuad3Single = packed array[0..3]of TVector3Single;
@@ -39,7 +39,7 @@ type
     We use these lights properties to calculate the generated colors.
 
     We follow the VRML/X3D lighting equation parameters, just like
-    our regular ray-tracer, from VRMLLighting unit. Except we don't have
+    our regular ray-tracer. Except we don't have
     here the material description, and we don't know the camera configuration
     (light map must not be dependent on camera).)
 
@@ -85,7 +85,7 @@ procedure QuadLightMapTo1st(const Image: TImage;
 
 implementation
 
-uses CastleUtils, VRMLLighting, ProgressUnit;
+uses CastleUtils, Lighting, ProgressUnit;
 
 function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;

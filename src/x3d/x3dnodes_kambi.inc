@@ -297,7 +297,7 @@
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Shader and ShaderLoaded properties are internally manager by the renderer.
-      Right now, this means TVRMLGLScene.
+      Right now, this means T3DScene.
       Always when ShaderLoaded = @false then Shader is @nil.
       When ShaderLoaded = @true, the Shader may be non-nil (if was enabled
       and loaded successfully) or not.
@@ -866,7 +866,7 @@ begin
   Fields.Add(FFdShaders);
 
   FFdNeedsDepth := TSFBool.Create(Self, 'needsDepth', false);
-   { no change needed, TVRMLGLScene recalculates NeedsDepth every time
+   { no change needed, T3DScene recalculates NeedsDepth every time
      when ScreenEffectsNeedDepth is called by scene manager. }
    FdNeedsDepth.ChangesAlways := [];
   Fields.Add(FFdNeedsDepth);

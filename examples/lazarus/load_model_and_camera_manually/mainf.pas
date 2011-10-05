@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  CastleGLControl, Cameras, VRMLGLScene;
+  CastleGLControl, Cameras, CastleScene;
 
 type
   TForm1 = class(TForm)
     KamVRMLBrowser1: TCastleControl;
     WalkCamera1: TWalkCamera;
-    VRMLGLScene1: T3DScene;
+    Scene1: T3DScene;
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }
@@ -27,7 +27,7 @@ implementation
 
 {$R *.lfm}
 
-uses VectorMath, VRMLScene;
+uses VectorMath, CastleSceneCore;
 
 { Demo how to load 3D scene, and camera, manually, adjusting all
   relevant properties. Some of the properties below could be also 
@@ -40,12 +40,12 @@ uses VectorMath, VRMLScene;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  VRMLGLScene1.Load('../../vrml/models/bridge_final.x3dv');
-  VRMLGLScene1.Spatial := [ssRendering, ssDynamicCollisions]; // if you want collisions, and faster rendering
-  VRMLGLScene1.ProcessEvents := true; // if you use VRML/X3D events
+  Scene1.Load('../../vrml/models/bridge_final.x3dv');
+  Scene1.Spatial := [ssRendering, ssDynamicCollisions]; // if you want collisions, and faster rendering
+  Scene1.ProcessEvents := true; // if you use VRML/X3D events
 
-  KamVRMLBrowser1.SceneManager.MainScene := VRMLGLScene1;
-  KamVRMLBrowser1.SceneManager.Items.Add(VRMLGLScene1);
+  KamVRMLBrowser1.SceneManager.MainScene := Scene1;
+  KamVRMLBrowser1.SceneManager.Items.Add(Scene1);
 
   WalkCamera1.Init(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0), 1, 0.1);

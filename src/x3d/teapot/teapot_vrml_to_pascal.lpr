@@ -17,7 +17,7 @@
   with 4 Teapot constants.
   This way we get Utah teapot coordinate data in Pascal. }
 
-uses SysUtils, VRMLNodes;
+uses SysUtils, X3DNodes;
 
 var
   Model: TX3DNode;

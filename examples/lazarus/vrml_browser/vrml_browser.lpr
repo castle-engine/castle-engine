@@ -9,7 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms
   { add your units here }, mainf, LazOpenGLContext, castle_base,
-  castle_components, OpenGLInformation, vrmlconsolef;
+  castle_components, OpenGLInformation, consolef;
 
 begin
   Application.Initialize;

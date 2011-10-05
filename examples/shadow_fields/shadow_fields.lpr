@@ -42,9 +42,9 @@
 program shadow_fields;
 
 uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D,
-  CastleWindow, VRMLGLScene, Cameras, CastleWarnings, CastleParameters,
-  ShadowFields, CastleUtils, CubeMap, VRMLNodes, CastleSceneManager,
-  SphericalHarmonics, GLCubeMap, CastleMessages, VRMLShape, CastleStringUtils;
+  CastleWindow, CastleScene, Cameras, CastleWarnings, CastleParameters,
+  ShadowFields, CastleUtils, CubeMap, X3DNodes, CastleSceneManager,
+  SphericalHarmonics, GLCubeMap, CastleMessages, Shape, CastleStringUtils;
 
 var
   Window: TCastleWindowCustom;

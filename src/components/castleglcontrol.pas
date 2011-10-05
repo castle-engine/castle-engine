@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
   VectorMath, KeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, VRMLNodes, VRMLGLScene, CastleSceneManager;
+  Cameras, X3DNodes, CastleScene, CastleSceneManager;
 
 const
   { Default value for TCastleControlBase.AggressiveUpdateGap.

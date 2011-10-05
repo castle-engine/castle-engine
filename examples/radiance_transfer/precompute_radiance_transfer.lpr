@@ -57,9 +57,9 @@
 
 program precompute_radiance_transfer;
 
-uses SysUtils, CastleUtils, VectorMath, VRMLScene, VRMLNodes,
+uses SysUtils, CastleUtils, VectorMath, CastleSceneCore, X3DNodes,
   SphereSampling, ProgressUnit, ProgressConsole,
-  SphericalHarmonics, CastleParameters, CastleTimeUtils, VRMLShape;
+  SphericalHarmonics, CastleParameters, CastleTimeUtils, Shape;
 
 var
   Scene: T3DSceneCore;

@@ -54,7 +54,7 @@ program simplest_vrml_browser;
 {$apptype CONSOLE}
 
 uses CastleUtils, CastleWindow, ProgressUnit, ProgressConsole,
-  VRMLScene, SysUtils, CastleWarnings, CastleParameters;
+  CastleSceneCore, SysUtils, CastleWarnings, CastleParameters;
 
 var
   Window: TCastleWindow;

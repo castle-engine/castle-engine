@@ -14,7 +14,7 @@
 }
 
 { }
-unit TestVRMLGLScene;
+unit TestScene;
 
 interface
 
@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses VRMLNodes, VRMLScene, VRMLGLScene, Boxes3D, VectorMath;
+uses X3DNodes, CastleSceneCore, CastleScene, Boxes3D, VectorMath;
 
 procedure TTestScene.TestScene;
 

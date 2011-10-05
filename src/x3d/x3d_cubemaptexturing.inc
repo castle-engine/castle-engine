@@ -60,7 +60,7 @@
       If not, then you do not have to update the texture --- no point, since
       it would look exactly like the current one.
 
-      Scene classes (T3DSceneCore, T3DScene, TVRMLGLRenderer)
+      Scene classes (T3DSceneCore, T3DScene, TGLRenderer)
       take care to set this field. After each actual update of the texture,
       it's set to @false. Each time something visible affecting the look
       of this texture possibly changed, it's set to @true. }

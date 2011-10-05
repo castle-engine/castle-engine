@@ -2468,9 +2468,8 @@ initialization
 
       Radeon open-source OpenGL driver may cause EDivByZero exceptions.
       Reported by Daniel Mantione with Radeon Mobility M7,
-      steps to reproduce: just run "The Castle" and enter "New Game",
-      EDivByZero is raised from inside of glCallList inside
-      TVRMLFLATSCENEGL__SSS_RENDERSHAPE, line 1213 of vrmlglscene.pas.
+      EDivByZero was raised by glCallList inside T3DScene (not used there
+      anymore).
       Disabling fp exceptions fixed the problem.
 
       NVidia proprietary drivers exit with EDivByZero on the first

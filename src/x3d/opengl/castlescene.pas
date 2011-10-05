@@ -14,13 +14,13 @@
 }
 
 { VRML/X3D complete scene handling and OpenGL rendering (T3DScene). }
-unit Scene;
+unit CastleScene;
 
 interface
 
 uses
   SysUtils, Classes, VectorMath, Boxes3D, X3DNodes, CastleClassUtils, CastleUtils,
-  SceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
+  CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
   ShapeOctree, GLShadowVolumeRenderer, Cameras, X3DFields,
   GLRendererLights, Shape, Frustum, Base3D, GLShaders,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;

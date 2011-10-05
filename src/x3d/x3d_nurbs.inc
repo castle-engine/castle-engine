@@ -15,7 +15,7 @@
 
 { NurbsCurve2D and Contour2D are shared with VRML 97 NURBS definition.
   The rest is, for now, completely separate from VRML 97 NURBS definition
-  in vrmlnodes_97_nurbs.inc. }
+  in x3dnodes_97_nurbs.inc. }
 
 {$ifdef read_interface}
   { }

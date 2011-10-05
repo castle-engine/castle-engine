@@ -15,7 +15,7 @@
 
 { 3D scenes (T3DSceneCore). }
 
-unit SceneCore;
+unit CastleSceneCore;
 
 interface
 
@@ -452,10 +452,7 @@ type
       change. }
     gcActiveShapesChanged);
 
-  { VRML scene, a final class to handle VRML models
-    (with the exception of rendering, which is delegated to descendants,
-    like T3DScene for OpenGL).
-
+  { 3D scene, 3D model handling (except rendering, for which see T3DScene).
     Provides a lot of useful functionality. Simple loading of the scene (@link(Load)
     method), calculating various things (like @link(BoundingBox) method).
 

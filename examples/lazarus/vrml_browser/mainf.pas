@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, VRMLGLScene, Cameras, CastleGLControl, CastleWarnings,
+  OpenGLContext, Menus, CastleScene, Cameras, CastleGLControl, CastleWarnings,
   LCLRecentFiles, CastleXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles;
 
 type
@@ -91,10 +91,10 @@ var
 
 implementation
 
-uses LCLType, VectorMath, Boxes3D, VRMLNodes, VRMLGLRenderer,
+uses LCLType, VectorMath, Boxes3D, X3DNodes, GLRenderer,
   GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
-  CastleGLUtils, VRMLScene, CastleFilesUtils, CastleParameters,
-  OpenGLInformation, CastleLCLUtils, VrmlConsoleF;
+  CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
+  OpenGLInformation, CastleLCLUtils, ConsoleF;
 
 procedure TMain.OpenScene(const FileName: string);
 begin

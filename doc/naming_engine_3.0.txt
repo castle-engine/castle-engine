@@ -206,7 +206,7 @@ glwindowrecentfiles        castlerecentfiles
 glwininputs                castleinputs
 
 vrmltriangle                                       triangle
-vrmlglscene                                        scene
+vrmlglscene                                        castlescene
 vrmlshape                                          shape
 vrmltime                                           x3dtime
 vrmltriangleoctree                                 triangleoctree
@@ -228,7 +228,7 @@ vrmlraytracer                                      raytracer
 vrmlnodes                                          x3dnodes
 vrmllighting                                       lighting
 vrmlshapeoctree                                    shapeoctree
-vrmlscene                                          scenecore
+vrmlscene                                          castlescenecore
 
 ------------------------------------------------------------------------------
 4. Renames done, package names:

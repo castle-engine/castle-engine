@@ -23,12 +23,12 @@
   RegisterXxxNodes procedure, that you should paste call at
   initialization).
 
-  Generated VRML class can be directly used inside unit like VRMLNodes
+  Generated VRML class can be directly used inside unit like X3DNodes
   to allow our engine to recognize and parse all fields of given node. }
 program x3d_nodes_spec_to_pascal;
 
-uses SysUtils, Classes, CastleClassUtils, VRMLFields,
-  CastleStringUtils, VRMLNodes, CastleUtils, CastleParameters;
+uses SysUtils, Classes, CastleClassUtils, X3DFields,
+  CastleStringUtils, X3DNodes, CastleUtils, CastleParameters;
 
 var
   InterfaceLines: TMemoryStream;

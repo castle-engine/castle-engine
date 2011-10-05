@@ -61,7 +61,7 @@ var
 
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 
-  { This was brutally copied from vrmlnodes_triangulating.inc
+  { This was brutally copied from x3dnodes_triangulating.inc
     (Sphere_LocalTriangulate), then adjusted. See there for comments. }
 
   procedure RenderSphere;

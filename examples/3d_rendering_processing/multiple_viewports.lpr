@@ -23,7 +23,7 @@
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
-uses SysUtils, GL, CastleWindow, VRMLNodes, VRMLScene, VRMLGLScene, CastleSceneManager,
+uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, GLControls, CastleWarnings,
   CastleUtils, CastleGLUtils, OpenGLFonts, X3DLoad, GLShaders, CastleParameters,
   CastleStringUtils;

@@ -524,8 +524,8 @@ type
 
     { Do we have to restore OpenGL state at the end of rendering.
       If @true, then RenderEnd restores the exact OpenGL state that was
-      before RenderBegin. This is comfortable if you do any other rendering
-      besides VRML scene, and depend on some state preserved.
+      before RenderBegin. This is comfortable if you do some other rendering
+      besides T3DScene, and depend on some state preserved.
       Unfortunately this is also quite expensive, and can slow down
       the rendering. }
     property PreserveOpenGLState: boolean

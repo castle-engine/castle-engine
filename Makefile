@@ -35,16 +35,6 @@
 #     Same as cleanmore for now.
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if somewhat hard, and clean editor backup.
-#
-# Internal notes (not important if you do not want to read/modify
-# this Makefile):
-#
-# Note: In many places in this Makefile I'm writing some special code
-# to not descend to 'private' and 'old' subdirectories.
-# This is something that is usable only for me (Michalis),
-# if you're trying to understand this Makefile you can just ignore
-# such things (you may be sure that I will never have here directory
-# called 'private' or 'old').
 
 # compiling ------------------------------------------------------------
 
