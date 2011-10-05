@@ -123,7 +123,7 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/vrml_browser/vrml_browser \
   examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
-  tests/test_kambi_units
+  tests/test_castle_game_engine
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)
@@ -170,7 +170,7 @@ clean: cleanexamples
 	rm -Rf packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \
-	  tests/test_kambi_units tests/test_kambi_units.exe
+	  tests/test_castle_game_engine tests/test_castle_game_engine.exe
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/
 	$(MAKE) -C doc/pasdoc/ clean

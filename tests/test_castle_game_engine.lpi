@@ -10,7 +10,7 @@
       </Flags>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <Title Value="test_kambi_units"/>
+      <Title Value="test_castle_game_engine"/>
       <ActiveEditorIndexAtStart Value="1"/>
     </General>
     <PublishOptions>
@@ -41,9 +41,9 @@
     </RequiredPackages>
     <Units Count="16">
       <Unit0>
-        <Filename Value="test_kambi_units.lpr"/>
+        <Filename Value="test_castle_game_engine.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="test_kambi_units"/>
+        <UnitName Value="test_castle_game_engine"/>
         <CursorPos X="51" Y="20"/>
         <TopLine Value="12"/>
         <EditorIndex Value="1"/>
