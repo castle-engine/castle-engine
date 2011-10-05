@@ -64,48 +64,27 @@
 
     class function ProjectionType: TProjectionType; virtual; abstract;
 
-    { Calculate camera properties in the form of 3 vectors
-      (position + direction + up) based on current field values of
-      this node. Following VRML spec:
+    { Calculate camera vectors (position, direction, up, gravity up).
+      Follows VRML/X3D specification:
 
-@preformatted(
-  CamPos = FdPosition,
-  CamDir = (0, 0, -1) rotated by FdOrientation,
-  CamUp = (0, 1, 0) rotated by FdOrientation,
-  GravityUp = (0, 1, 0) (not rotated by FdOrientation!),
+      @unorderedList(
+        @item(position is taken directly from FdPosition field,)
+        @item(direction and up are (respectively) -Z and +Y rotated by FdOrientation,)
+        @item(gravity up is +Y.)
+      )
 
-  and everything is transformed by current camera transform
-  (that is stored inside TAbstractViewpointNode.Transform automatically).
-)
-      (you should give here the actual VRML transformation at the point in file
-      where camera is defined).
+      They are all then transformed by the current viewpoint transformation
+      (determined by parent nodes like Transform).
 
-      Dodajemy do tego dodatki Kambiego :
-      jesli FdDirection.Count > 0 to CamDirection nie jest liczone z
-      FdOrientation ale jest brane wprost z FdDirection.Items[0].
-      Podobnie dla FdUp.
+      One conclusion from the above is that the only way to change the gravity up
+      vector (this determines in which direction viewer falls down)
+      is to use the Transform node around the viewpoint node.
 
-      Zwraca zawsze znormalizowany CamDir i CamUp i GravityUp bo:
-      @orderedList(
-        @item(
-          zeby zmusic cie do stosowania konsekwentnej zasady wyrazonej na
-          poczatku VRMLNodes i nie pisania kodu ktory w jakis sposob bylby
-          uzalezniony od podawanych tu CamDir. To dlatego ze
-          pola FdOrientation / FdDirection / FdUp tego wezla NIE sluza do
-          podawania czegokolwiek poza kierunkami, a wiec ich dlugosc jest
-          niewazna. No i stosujac FdOrientation, a wiec uzywajac standardowego
-          VRMLa 1.0, nie mozna nawet podac dlugosci FdDirection/FdUp innej
-          niz 1.)
-        @item(
-          Normalizujemy tutaj bo w implementacji tej funkcji czesto wiemy
-          ze nie trzeba normalizowac, np. gdy zwracamy standardowe dir/up
-          kamery obrocone o orientation to nie potrzebujemy robic zadnej
-          normalizacji bo wiemy ze wynik ma dlugosc 1. W ten sytuacji byloby
-          nieoptymalne gdybys musial po wywolaniu tej procedury wywolac
-          NormalizeTo1st(CamDir), bo przeciez czesto w ponizszej procedurze
-          wiadomo ze nie trzea normalizowac (a wiec wywolanie NormalizeTo1st
-          i wywolywany w jego srodku Sqrt sa zbedne).)
-      ) }
+      Additionally, as an extension, we also look at FdDirection and FdUp
+      and FdGravityUp vectors. See
+      http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_cameras_alt_orient
+
+      Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
