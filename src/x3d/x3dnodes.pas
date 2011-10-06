@@ -218,6 +218,7 @@ type
   TLocalFogNode = class;
   TEffectNode = class;
   TX3DRootNode = class;
+  TVRMLGraphTraverseState = class;
 
   TX3DNodeClass = class of TX3DNode;
 
@@ -302,6 +303,32 @@ type
 
     { Deprecated name for Node. @exclude @deprecated }
     function LightNode: TAbstractLightNode;
+
+    { Light contribution to the specified vertex color.
+      This can be used by software renderers (ray-tracers etc.)
+      to calculate pixel color following VRML/X3D specifications.
+      TVRMLGraphTraverseState.Emission should be added to
+      TLightInstance.Contribution (for each light),
+      and resulting color should be processed by TFogNode.ApplyFog.
+
+      We do not clamp color components to (0, 1). This would be a waste of time,
+      you should clamp only at the end (or never). This also allows
+      to multiply / accumulate values outside of the (0, 1) range
+      during calculations. OpenGL also clamps only at the end. }
+    function Contribution(
+      const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
+      State: TVRMLGraphTraverseState;
+      const CamPosition: TVector3Single): TVector3Single;
+
+    { Light contribution, without knowing the camera or full material.
+      We have a 3D vertex, we know it lies on a plane with given normal,
+      and we have light information. Try to calculate VRML/X3D lighting
+      equation as close as possible to the fully correct version (see regular
+      @link(Contribution) method) with this information.
+
+      The specular lighting part must be simply ignored in this case.  }
+    function ContributionCameraIndependent(
+      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
   end;
   PLightInstance = ^TLightInstance;
 
@@ -317,7 +344,7 @@ type
     procedure AppendInWorldCoordinates(const AList: TLightInstancesList);
   end;
 
-  { Clipping plane, along with a tranformation. }
+  { Clipping plane, along with a transformation. }
   TClipPlane = record
     Node: TClipPlaneNode;
     Transform: TMatrix4Single;
@@ -573,6 +600,20 @@ type
     Effects: TX3DNodeList;
 
     function AddClipPlane: PClipPlane;
+
+    { Calculate emission color of given shape.
+
+      This can be used by software renderers (ray-tracers etc.)
+      to calculate pixel color following VRML/X3D specifications.
+      Emission should be added to
+      TLightInstance.Contribution (for each light),
+      and resulting color should be processed by TFogNode.ApplyFog.
+
+      When LightingCalculationOn = @false we actually take diffuseColor
+      instead of emissiveColor. This is useful if you want to force
+      the scene completely unlit, usually diffuseColor is more useful for this
+      (since emissiveColor is often black on everything). }
+    function Emission(LightingCalculationOn: boolean): TVector3Single;
   end;
 
   { Stack of TVRMLGraphTraverseState.
@@ -2300,6 +2341,19 @@ end;
 
 { TLightInstance ------------------------------------------------------------- }
 
+function TLightInstance.Contribution(
+  const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
+  State: TVRMLGraphTraverseState;
+  const CamPosition: TVector3Single): TVector3Single;
+{$I x3dnodes_lightcontribution.inc}
+
+function TLightInstance.ContributionCameraIndependent(
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
+  :TVector3Single;
+{$define CAMERA_INDEP}
+{$I x3dnodes_lightcontribution.inc}
+{$undef CAMERA_INDEP}
+
 function TLightInstance.LightNode: TAbstractLightNode;
 begin
   Result := Node;
@@ -2606,6 +2660,36 @@ begin
       FOwnedLastNodes[SN] := false;
       FLastNodes.Nodes[SN] := NewLastNodes.Nodes[SN];
     end;
+end;
+
+function TVRMLGraphTraverseState.Emission(LightingCalculationOn: boolean): TVector3Single;
+var
+  M1: TMaterialNode_1;
+  M2: TMaterialNode;
+begin
+  if ShapeNode <> nil then
+  begin
+    M2 := ShapeNode.Material;
+    if M2 <> nil then
+    begin
+      if LightingCalculationOn then
+        Result := M2.FdEmissiveColor.Value else
+        Result := M2.FdDiffuseColor.Value;
+    end else
+    begin
+      if LightingCalculationOn then
+        { Default VRML 2.0 Material.emissiveColor }
+        Result := ZeroVector3Single else
+        { Default VRML 2.0 Material.diffuseColor }
+        Result := Vector3Single(0.8, 0.8, 0.8);
+    end;
+  end else
+  begin
+    M1 := LastNodes.Material;
+    if LightingCalculationOn then
+      Result := M1.EmissiveColor3Single(0) else
+      Result := M1.DiffuseColor3Single(0);
+  end;
 end;
 
 { TVRMLGraphTraverseStateStack --------------------------------------------- }

@@ -1,19 +1,40 @@
-{ zapisana w jednym pliku implementacja dwoch funkcji ktore w skomplikowany
-  sposob wspoldziela swoj kod : VRML97LightContribution i
-  VRML97LightContribution_CameraIndependent. Symbol CAMERA_INDEP
-  oznacza ze mamy zrobic druga funkcje. }
+{ Implement
+  TLightInstance.Contribution and
+  TLightInstance.ContributionCameraIndependent.
+
+  Note: In some cases we have to do something different than VRML 2.0/X3D spec:
+
+  @unorderedList(
+    @item(
+      For VRML 1.0 SpotLight, we have to calculate spot light differently
+      (because VRML 1.0 SpotLight gives me dropOffRate instead of
+      beamWidth), so we use spot factor equation following OpenGL equations.)
+
+    @item(
+      For VRML 1.0, we have to calculate ambientFactor in a little different way:
+      see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation],
+      when light's ambientIntensity is < 0 then we just return 0 and
+      otherwise we use material's ambientColor.)
+
+    @item(
+      VRML 97 lighting equations suggest one-sided lighting, only where
+      the normal points out. In my opinion, one-sided lighting is not useful,
+      and also our OpenGL rendering uses two-sides lighting.
+      (One reason for OpenGL rendering is to integrate nicely with flat mirrors,
+      where you have to flip normals. So OpenGL renderer always gives
+      vectors from CCW, and so uses two-side to not favor any side of the face.))
+  )
+}
 
 var Spot: Single;
     Attenuat: Single;
 
-    LightNode: TAbstractLightNode;
-    PosLightNode: TAbstractPositionalLightNode absolute LightNode;
-
     Factors: TVector3Single;
-    { kierunek od Intersection do zrodla swiatla, normalized }
+    { kierunek od Point do zrodla swiatla, normalized }
     LightDirNorm: TVector3Single;
     { wektor normalny do powierzchni (skierowany w strone Light) }
     Normal: TVector3Single;
+    PosLightNode: TAbstractPositionalLightNode;
 
     {$ifndef CAMERA_INDEP}
     M1: TMaterialNode_1;
@@ -28,9 +49,6 @@ var Spot: Single;
     MaterialDiffuseColor: TVector3Single;
     MaterialSpecularColor: TVector3Single;
     MaterialShininessExp: Single;
-
-    {$define Point := Intersection}
-    {$define PointPlaneNormal := IntersectNode.World.Plane}
     {$endif}
 
   function CalculateSpot_1(SpotLight: TSpotLightNode_1): Single;
@@ -40,7 +58,7 @@ var Spot: Single;
     { Uzywamy dropOffRate VRMLa 1.0 zeby sprawic by spot byl
       bardziej "skupiony" zgodnie z rownaniami swiatla OpenGLa.
       W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
-    CosSpotAngle := (-LightDirNorm) ** Light.Direction;
+    CosSpotAngle := (-LightDirNorm) ** Direction;
     { TODO: optimize: no need to calc ArcCos here if we would precalc
       CosCutOffAngle for every light. }
     SpotAngle := ArcCos(CosSpotAngle);
@@ -53,7 +71,7 @@ var Spot: Single;
   var
     CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
   begin
-    CosSpotAngle := (-LightDirNorm) ** Light.Direction;
+    CosSpotAngle := (-LightDirNorm) ** Direction;
     SpotAngle := ArcCos(CosSpotAngle);
     SpotCO := SpotLight.FdCutOffAngle.Value;
     SpotBW := SpotLight.FdBeamWidth.Value;
@@ -72,9 +90,9 @@ begin
  {$ifndef CAMERA_INDEP}
  M1 := nil;
  M2 := nil;
- if IntersectNode.State.ShapeNode <> nil then
+ if State.ShapeNode <> nil then
  begin
-   M2 := IntersectNode.State.ShapeNode.Material;
+   M2 := State.ShapeNode.Material;
    if M2 <> nil then
    begin
      MaterialAmbientIntensity := M2.FdAmbientIntensity.Value;
@@ -91,16 +109,15 @@ begin
    end;
  end else
  begin
-   M1 := IntersectNode.State.LastNodes.Material;
+   M1 := State.LastNodes.Material;
    MaterialAmbientColor := M1.AmbientColor3Single(0);
    MaterialDiffuseColor := M1.DiffuseColor3Single(0);
    MaterialSpecularColor := M1.SpecularColor3Single(0);
    MaterialShininessExp := M1.ShininessExp(0);
  end;
  {$endif}
- LightNode := TAbstractLightNode(Light.Node);
 
- if (not LightNode.FdOn.Value) then
+ if (not Node.FdOn.Value) then
  begin
    Result := ZeroVector3Single;
    Exit;
@@ -110,18 +127,19 @@ begin
    For now lights with non-trivial attenuation put under some transformation
    that does distance scaling will not render as required by VRML 2.0 spec.
    Czyli musze implementowac InvertTransformation ? }
- if LightNode is TAbstractPositionalLightNode then
+ if Node is TAbstractPositionalLightNode then
  begin
+  PosLightNode := TAbstractPositionalLightNode(Node);
   if PosLightNode.DistanceNeededForAttenuation then
-   Attenuat := PosLightNode.Attenuation( PointsDistance(Point, Light.Location) ) else
+   Attenuat := PosLightNode.Attenuation( PointsDistance(Point, Location) ) else
    Attenuat := PosLightNode.Attenuation( Single(0.0) );
  end else
   Attenuat := 1;
 
  { LightDirNorm is called "L" in the equation in VRML spec }
- if LightNode is TAbstractPositionalLightNode then
-  LightDirNorm := Normalized(Light.Location - Point) else
-  LightDirNorm := -Light.Direction;
+ if Node is TAbstractPositionalLightNode then
+  LightDirNorm := Normalized(Location - Point) else
+  LightDirNorm := -Direction;
  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
    powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
    jest okreslane jako two-sided lighting, czyli wziac albo Normal albo
@@ -143,13 +161,13 @@ begin
 
  { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
    dla innych swiatel jest zawsze = 1. }
- if LightNode is TSpotLightNode_1 then
-   Spot := CalculateSpot_1(TSpotLightNode_1(LightNode)) else
- if LightNode is TSpotLightNode then
-   Spot := CalculateSpot(TSpotLightNode(LightNode)) else
+ if Node is TSpotLightNode_1 then
+   Spot := CalculateSpot_1(TSpotLightNode_1(Node)) else
+ if Node is TSpotLightNode then
+   Spot := CalculateSpot(TSpotLightNode(Node)) else
    Spot := 1;
 
- Result := LightNode.FdColor.Value * (Attenuat * Spot);
+ Result := Node.FdColor.Value * (Attenuat * Spot);
 
  { Now we calculate "ambient_i" part of equation.
 
@@ -166,32 +184,26 @@ begin
  {$ifdef CAMERA_INDEP}
  Factors := ZeroVector3Single;
  {$else}
- if LightNode.FdAmbientIntensity.Value < 0 then
+ if Node.FdAmbientIntensity.Value < 0 then
    Factors := ZeroVector3Single else
  if M1 <> nil then
    Factors := (MaterialDiffuseColor * MaterialAmbientColor) *
-     LightNode.FdAmbientIntensity.Value else
+     Node.FdAmbientIntensity.Value else
    Factors := MaterialDiffuseColor *
-     (LightNode.FdAmbientIntensity.Value * MaterialAmbientIntensity);
+     (Node.FdAmbientIntensity.Value * MaterialAmbientIntensity);
  {$endif}
 
  { Factors += diffuse factor }
  Factors += MaterialDiffuseColor *
-   (LightNode.FdIntensity.Value * (Normal ** LightDirNorm));
+   (Node.FdIntensity.Value * (Normal ** LightDirNorm));
 
  {$ifndef CAMERA_INDEP}
  { Factors += specular factor }
  Factors += MaterialSpecularColor *
-   (LightNode.FdIntensity.Value *
+   (Node.FdIntensity.Value *
      Power( Max(Normal ** CameraAndLightHalfway, Single(0.0)),
        MaterialShininessExp));
  {$endif}
 
  Result *= Factors;
 end;
-
-{$ifndef CAMERA_INDEP}
-  {$undef Point}
-  {$undef PointPlaneNormal}
-  {$undef MaterialDiffuseColor}
-{$endif}

@@ -374,8 +374,7 @@ var
     M2: TMaterialNode;
     Lights: TLightInstancesList;
   begin
-    IntersectNode := Octree.RayCollision(Intersection,
-      Ray0, RayVector, true,
+    IntersectNode := Octree.RayCollision(Intersection, Ray0, RayVector, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
@@ -402,7 +401,7 @@ var
       MaterialTransparency := M1.Transparency(0);
     end;
 
-    Result := VRML97Emission(IntersectNode^, InitialDepth <> 0);
+    Result := IntersectNode^.State.Emission(InitialDepth <> 0);
     with IntersectNode^ do
     begin
       if Depth > 0 then
@@ -410,9 +409,9 @@ var
         Lights := State.Lights;
         if Lights <> nil then
           for i := 0 to Lights.Count - 1 do
-            if LightNotBlocked(Lights.Items[i]) then
-              Result += VRML97LightContribution(
-                Lights.Items[i], Intersection, IntersectNode^, CamPosition);
+            if LightNotBlocked(Lights.L[i]) then
+              Result += Lights.L[i].Contribution(Intersection,
+                IntersectNode^.World.Plane, IntersectNode^.State, CamPosition);
 
         { Add BaseLights contribution, just like other lights.
 
@@ -446,9 +445,9 @@ var
           the headlight. Which is true in the current uses. }
         for I := 0 to BaseLights.Count - 1 do
           if (Depth = InitialDepth) or
-             LightNotBlocked(BaseLights.Items[I]) then
-            Result += VRML97LightContribution(
-              BaseLights.Items[I], Intersection, IntersectNode^, CamPosition);
+             LightNotBlocked(BaseLights.L[I]) then
+            Result += BaseLights.L[I].Contribution(Intersection,
+              IntersectNode^.World.Plane, IntersectNode^.State, CamPosition);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)

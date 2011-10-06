@@ -20,74 +20,6 @@ interface
 
 uses VectorMath, X3DNodes, Triangle, Math, CastleUtils;
 
-{ VRML 2.0 material emissiveColor for lighting equation.
-  That is, the @code(O_Ergb) part of lighting equation in
-  VRML 2.0 spec section "4.14.4 Lighting equations".
-
-  This takes also into account VRML 1.0, when emissiveColor
-  of VRML 1.0 material is taken.
-
-  When LightingCalculationOn we do something special:
-  we take material's diffuseColor instead of emissiveColor.
-  This is supposed to be used when you use ray-tracer with
-  recursion 0 (i.e., actually it's a ray-caster in this case).
-  Using emissiveColor in such case would almost always
-  give a completely black, useless image. }
-function VRML97Emission(const IntersectNode: TTriangle;
-  LightingCalculationOn: boolean): TVector3Single;
-
-{ VRML 2.0 light contribution to the specified vertex color.
-  This calculates the following equation part from VRML 2.0 spec section
-  "4.14.4 Lighting equations" :
-
-@preformatted(
-  on_i * attenuation_i * spot_i * I_Lrgb
-    * (ambient_i + diffuse_i + specular_i)
-)
-
-  In some cases we do something different than VRML 2.0 spec:
-
-  @unorderedList(
-    @item(
-      For VRML 1.0 SpotLight, we have to calculate spot light differently
-      (because VRML 1.0 SpotLight gives me dropOffRate instead of
-      beamWidth), so we use spot factor equation following OpenGL equations.)
-
-    @item(
-      For VRML 1.0, we have to calculate ambientFactor in a little different way:
-      see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_light_attenuation],
-      when light's ambientIntensity is < 0 then we just return 0 and
-      otherwise we use material's ambientColor.)
-
-    @item(
-      VRML 97 lighting equations suggest one-sided lighting, only where
-      the normal points out. In my opinion, one-sided lighting is not useful,
-      and also our OpenGL rendering uses two-sides lighting.
-      (One reason for OpenGL rendering is to integrate nicely with flat mirrors,
-      where you have to flip normals. So OpenGL renderer always gives
-      vectors from CCW, and so uses two-side to not favor any side of the face.))
-  )
-
-  We do not clamp color components to (0, 1). This would be a waste of time,
-  you should clamp only at the end (or never). This also allows
-  to multiply / accumulate values outside of the (0, 1) range
-  during calculations. OpenGL also clamps only at the end. }
-function VRML97LightContribution(const Light: TLightInstance;
-  const Intersection: TVector3Single; const IntersectNode: TTriangle;
-  const CamPosition: TVector3Single): TVector3Single;
-
-{ VRML 2.0 light contribution, without knowing the camera or full material.
-  We have a 3D vertex, we know it lies on a plane with given normal,
-  and we have light information. We don't have a TTriangle reference,
-  and we do not have any camera information. Try to calculate VRML lighting
-  as close as possible to the fully correct version (see regular
-  VRML97LightContribution) with this information.
-
-  The specular lighting part must be simply ignored in this case.
-
-  This is used by VRMLLightMap. }
-function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
 
 { Apply fog to the color of the vertex.
 
@@ -120,50 +52,6 @@ procedure VRML97FogTo1st(
 implementation
 
 uses CastleWarnings;
-
-function VRML97Emission(const IntersectNode: TTriangle;
-  LightingCalculationOn: boolean): TVector3Single;
-var
-  M1: TMaterialNode_1;
-  M2: TMaterialNode;
-begin
-  if IntersectNode.State.ShapeNode <> nil then
-  begin
-    M2 := IntersectNode.State.ShapeNode.Material;
-    if M2 <> nil then
-    begin
-      if LightingCalculationOn then
-        Result := M2.FdEmissiveColor.Value else
-        Result := M2.FdDiffuseColor.Value;
-    end else
-    begin
-      if LightingCalculationOn then
-        { Default VRML 2.0 Material.emissiveColor }
-        Result := ZeroVector3Single else
-        { Default VRML 2.0 Material.diffuseColor }
-        Result := Vector3Single(0.8, 0.8, 0.8);
-    end;
-  end else
-  begin
-    M1 := IntersectNode.State.LastNodes.Material;
-    if LightingCalculationOn then
-      Result := M1.EmissiveColor3Single(0) else
-      Result := M1.DiffuseColor3Single(0);
-  end;
-end;
-
-function VRML97LightContribution(const Light: TLightInstance;
-  const Intersection: TVector3Single; const IntersectNode: TTriangle;
-  const CamPosition: TVector3Single): TVector3Single;
-{$I lighting_97_lightcontribution.inc}
-
-function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
-  :TVector3Single;
-{$define CAMERA_INDEP}
-{$I lighting_97_lightcontribution.inc}
-{$undef CAMERA_INDEP}
-
 
 procedure VRML97FogTo1st(var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
