@@ -77,7 +77,6 @@ begin
     P.Targets.AddUnit('triangulator.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
-    P.Targets.AddUnit('lighting.pas');
     P.Targets.AddUnit('normalscalculator.pas');
     P.Targets.AddUnit('x3dload.pas');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');

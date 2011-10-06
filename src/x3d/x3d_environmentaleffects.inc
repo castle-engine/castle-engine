@@ -199,6 +199,18 @@
     { Fog type, but may also return ftNone if we are @nil (checks Self <> nil)
       or visibilityRange = 0. }
     function FogTypeOrNone: TFogTypeOrNone;
+
+    { Apply fog to the color of the vertex.
+
+      This can be used by software renderers (ray-tracers etc.)
+      to calculate pixel color following VRML/X3D specifications.
+      After all the lighting is summed up (see TVRMLGraphTraverseState.Emission and
+      TLightInstance.Contribution), process color by this method to apply fog.
+
+      Does nothing if AFogType = ftNone. In this special case, it's also
+      allowed to call this on @nil instance. }
+    procedure ApplyFog(var Color: TVector3Single;
+      const Position, VertexPos: TVector3Single; const AFogType: TFogTypeOrNone);
   end;
 
   TFogCoordinateNode = class(TAbstractGeometricPropertyNode)
@@ -626,6 +638,71 @@ begin
     Exit(ftNone);
 
   Result := FogType;
+end;
+
+procedure TFogNode.ApplyFog(var Color: TVector3Single;
+  const Position, VertexPos: TVector3Single; const AFogType: TFogTypeOrNone);
+var
+  FogVisibilityRangeScaled: Single;
+
+  procedure ApplyDistance(const Distance: Single);
+  var
+    F: Single;
+  begin
+    case AFogType of
+      ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
+      ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+    end;
+    Color := Vector_Init_Lerp(F, FdColor.Value, Color);
+  end;
+
+var
+  FogVolumetricVisibilityStart: Single;
+  Distance, DistanceSqr: Single;
+  VertProjected: TVector3Single;
+begin
+  if AFogType <> ftNone then
+  begin
+    FogVisibilityRangeScaled := FdVisibilityRange.Value * TransformScale;
+
+    if FdVolumetric.Value then
+    begin
+      FogVolumetricVisibilityStart := FdVolumetricVisibilityStart.Value * TransformScale;
+
+      { Calculation of Distance for volumetric fog
+        below is analogous to TVRMLMeshRenderer.DoBeforeGLVertex
+        caculation. }
+
+      VertProjected := PointOnLineClosestToPoint(
+        ZeroVector3Single, FdVolumetricDirection.Value, VertexPos);
+      Distance := VectorLen(VertProjected);
+      if not AreParallelVectorsSameDirection(
+        VertProjected, FdVolumetricDirection.Value) then
+        Distance := -Distance;
+      { Now I want
+        - Distance = FogVolumetricVisibilityStart -> 0
+        - Distance = FogVolumetricVisibilityStart + X -> X
+          (so that Distance = FogVolumetricVisibilityStart +
+          FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
+      Distance -= FogVolumetricVisibilityStart;
+
+      { When Distance < 0 our intention is to have no fog.
+        So Distance < 0 should be equivalent to Distance = 0. }
+      MaxTo1st(Distance, 0);
+
+      if Distance >= FogVisibilityRangeScaled - SingleEqualityEpsilon then
+        Color := FdColor.Value else
+        ApplyDistance(Distance);
+    end else
+    begin
+      DistanceSqr := PointsDistanceSqr(Position, VertexPos);
+
+      if DistanceSqr >= Sqr(FogVisibilityRangeScaled - SingleEqualityEpsilon) then
+        Color := FdColor.Value else
+        ApplyDistance(Sqrt(DistanceSqr));
+
+    end;
+  end;
 end;
 
 procedure TFogCoordinateNode.CreateNode;

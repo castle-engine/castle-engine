@@ -218,7 +218,7 @@ type
 
 implementation
 
-uses SysUtils, Lighting, SphereSampling;
+uses SysUtils, SphereSampling;
 
 { RayVector calculations ----------------------------------------------------- }
 
@@ -458,8 +458,8 @@ var
       end;
     end;
 
-    { That's right, VRMLFog calculation should be done on every
-      Depth of ray-tracing, not only once (i.e. for primary rays).
+    { Fog calculation should be done on every
+      depth of ray-tracing, not only once (i.e. for primary rays).
       Reasoning: imagine that you look through a glass window
       (and you're really close to this window, so that fog doesn't
       affect the window glass noticeably) and through this window
@@ -468,7 +468,7 @@ var
       glass wasn't affected much by the fog, you will see a forest
       covered by the fog. So each recursive call of Trace should bring
       a color affected by the fog. }
-    VRML97FogTo1st(Result, CamPosition, Intersection, FogNode, FogType);
+    FogNode.ApplyFog(Result, CamPosition, Intersection, FogType);
   end;
 
 var

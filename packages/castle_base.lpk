@@ -49,7 +49,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="157">
+    <Files Count="156">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -636,10 +636,6 @@
         <Filename Value="../src/x3d/x3dlexer.pas"/>
         <UnitName Value="X3DLexer"/>
       </Item145>
-      <Item146>
-        <Filename Value="../src/x3d/lighting.pas"/>
-        <UnitName Value="Lighting"/>
-      </Item146>
       <Item147>
         <Filename Value="../src/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>
@@ -684,10 +680,10 @@
         <Filename Value="../src/x3d/triangleoctree.pas"/>
         <UnitName Value="TriangleOctree"/>
       </Item15>
-      <Item157>
+      <Item146>
         <Filename Value="../src/ui/opengl/glnotifications.pas"/>
         <UnitName Value="GLNotifications"/>
-      </Item157>
+      </Item146>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
