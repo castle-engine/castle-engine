@@ -89,11 +89,6 @@ function VRML97LightContribution(const Light: TLightInstance;
 function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
   const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
 
-type
-  TVRMLFogType = type Integer;
-
-function VRML97FogType(FogNode: TFogNode): TVRMLFogType;
-
 { Apply fog to the color of the vertex.
 
   Given Color is assumed to contain already the sum of
@@ -120,7 +115,7 @@ function VRML97FogType(FogNode: TFogNode): TVRMLFogType;
 procedure VRML97FogTo1st(
   var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
-  FogNode: TFogNode; FogType: Integer);
+  FogNode: TFogNode; FogType: TFogTypeOrNone);
 
 implementation
 
@@ -169,20 +164,10 @@ function VRML97LightContribution_CameraIndependent(const Light: TLightInstance;
 {$I lighting_97_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
-function VRML97FogType(FogNode: TFogNode): TVRMLFogType;
-begin
-  if (FogNode = nil) or
-     (FogNode.FdVisibilityRange.Value = 0.0) then
-    Exit(-1);
-
-  Result := ArrayPosStr(FogNode.FdFogType.Value, ['LINEAR', 'EXPONENTIAL']);
-  if Result = -1 then
-    OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type '''+FogNode.FdFogType.Value+'''');
-end;
 
 procedure VRML97FogTo1st(var Color: TVector3Single;
   const Position, VertexPos: TVector3Single;
-  FogNode: TFogNode; FogType: Integer);
+  FogNode: TFogNode; FogType: TFogTypeOrNone);
 var
   FogVisibilityRangeScaled: Single;
 
@@ -191,8 +176,8 @@ var
     F: Single;
   begin
     case FogType of
-      0: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
-      1: F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
+      ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
+      ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
     end;
     Color := Vector_Init_Lerp(F, FogNode.FdColor.Value, Color);
   end;
@@ -202,7 +187,7 @@ var
   Distance, DistanceSqr: Single;
   VertProjected: TVector3Single;
 begin
-  if FogType <> -1 then
+  if FogType <> ftNone then
   begin
     FogVisibilityRangeScaled :=
       FogNode.FdVisibilityRange.Value * FogNode.TransformScale;

@@ -283,7 +283,7 @@ end;
 
 procedure TClassicRayTracer.Execute;
 var
-  FogType: Integer;
+  FogType: TFogTypeOrNone;
 
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
@@ -469,8 +469,7 @@ var
       glass wasn't affected much by the fog, you will see a forest
       covered by the fog. So each recursive call of Trace should bring
       a color affected by the fog. }
-    VRML97FogTo1st(Result, CamPosition, Intersection,
-      FogNode, FogType);
+    VRML97FogTo1st(Result, CamPosition, Intersection, FogNode, FogType);
   end;
 
 var
@@ -488,7 +487,7 @@ var
   PixCoord: TVector2Cardinal;
   SFCurve: TSpaceFillingCurve;
 begin
-  FogType := VRML97FogType(FogNode);
+  FogType := FogNode.FogTypeOrNone;
 
   RaysWindow := nil;
   SFCurve := nil;

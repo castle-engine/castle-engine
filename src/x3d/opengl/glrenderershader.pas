@@ -31,7 +31,6 @@ type
   TTexGenerationComplete = (tgSphere, tgNormal, tgReflection);
   TTexComponent = 0..3;
 
-  TFogType = (ftLinear, ftExp);
   TFogCoordinateSource = (
     { Fog is determined by depth (distance to camera). }
     fcDepth,

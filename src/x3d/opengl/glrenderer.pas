@@ -3039,14 +3039,7 @@ const
       glFogv(GL_FOG_COLOR, Vector4Single(Node.FdColor.Value, 1.0));
 
       { calculate FogType }
-      if Node.FdFogType.Value = 'LINEAR' then
-        FogType := ftLinear else
-      if Node.FdFogType.Value = 'EXPONENTIAL' then
-        FogType := ftExp else
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type "' + Node.FdFogType.Value + '"');
-        FogType := ftLinear;
-      end;
+      FogType := Node.FogType;
 
       case FogType of
         ftLinear: begin

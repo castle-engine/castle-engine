@@ -41,6 +41,9 @@
     function TransformRotation: TMatrix4Single;
   end;
 
+  TFogTypeOrNone = (ftLinear, ftExp, ftNone);
+  TFogType = ftLinear..ftExp;
+
   IAbstractFogObject = interface(IX3DNode)
   ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
     function GetFdcolor: TSFColor;
@@ -59,6 +62,8 @@
 
     function GetTransformScale: Single;
     property TransformScale: Single read GetTransformScale;
+
+    function FogType: TFogType;
   end;
 
   TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
@@ -187,6 +192,9 @@
     private FFdAlternative: TSFNode;
     public property FdAlternative: TSFNode read FFdAlternative;
     { @groupEnd }
+
+    function FogType: TFogType;
+    function FogTypeOrNone: TFogTypeOrNone;
   end;
 
   TFogCoordinateNode = class(TAbstractGeometricPropertyNode)
@@ -241,6 +249,8 @@
     private FFdVolumetricVisibilityStart: TSFFloat;
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
     { @groupEnd }
+
+    function FogType: TFogType;
   end;
 
   TTextureBackgroundNode = class(TAbstractBackgroundNode)
@@ -593,6 +603,27 @@ begin
   Result := TransformScale;
 end;
 
+function TFogNode.FogType: TFogType;
+begin
+  if FdFogType.Value = 'LINEAR' then
+    Result := ftLinear else
+  if FdFogType.Value = 'EXPONENTIAL' then
+    Result := ftExp else
+  begin
+    OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
+    Result := ftLinear;
+  end;
+end;
+
+function TFogNode.FogTypeOrNone: TFogTypeOrNone;
+begin
+  if (Self = nil) or
+     (FdVisibilityRange.Value = 0.0) then
+    Exit(ftNone);
+
+  Result := FogType;
+end;
+
 procedure TFogCoordinateNode.CreateNode;
 begin
   inherited;
@@ -705,6 +736,18 @@ begin
     We should keep LocalFogScale in State, and pass it along
     to RenderShape. This method should not exist. }
   Result := FTransformScale;
+end;
+
+function TLocalFogNode.FogType: TFogType;
+begin
+  if FdFogType.Value = 'LINEAR' then
+    Result := ftLinear else
+  if FdFogType.Value = 'EXPONENTIAL' then
+    Result := ftExp else
+  begin
+    OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
+    Result := ftLinear;
+  end;
 end;
 
 procedure TTextureBackgroundNode.CreateNode;
