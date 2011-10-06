@@ -110,8 +110,8 @@ EXAMPLES_BASE_NAMES := \
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
-  examples/lazarus/vrml_browser/vrml_browser \
-  examples/lazarus/vrml_with_2d_controls/vrml_with_2d_controls \
+  examples/lazarus/model_3d_viewer/model_3d_viewer \
+  examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   tests/test_castle_game_engine
 
