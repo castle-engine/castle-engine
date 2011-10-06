@@ -53,7 +53,7 @@ begin
 end;
 
 initialization
-  {$I vrmlconsolef.lrs}
+  {$I consolef.lrs}
 
 end.
 
