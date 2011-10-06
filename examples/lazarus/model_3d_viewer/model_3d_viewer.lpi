@@ -46,9 +46,9 @@
     </RequiredPackages>
     <Units Count="41">
       <Unit0>
-        <Filename Value="vrml_browser.lpr"/>
+        <Filename Value="model_3d_viewer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="vrml_browser"/>
+        <UnitName Value="model_3d_viewer"/>
         <TopLine Value="1"/>
         <CursorPos X="53" Y="17"/>
         <UsageCount Value="72"/>

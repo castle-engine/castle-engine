@@ -1,4 +1,4 @@
-program vrml_with_2d_controls;
+program model_3d_with_2d_controls;
 
 {$mode objfpc}{$H+}
 

@@ -1,4 +1,4 @@
-program vrml_browser;
+program model_3d_viewer;
 
 {$mode objfpc}{$H+}
 

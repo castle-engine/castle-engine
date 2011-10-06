@@ -45,9 +45,9 @@
     </RequiredPackages>
     <Units Count="13">
       <Unit0>
-        <Filename Value="vrml_with_2d_controls.lpr"/>
+        <Filename Value="model_3d_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="vrml_with_2d_controls"/>
+        <UnitName Value="model_3d_with_2d_controls"/>
         <TopLine Value="1"/>
         <CursorPos X="39" Y="10"/>
         <UsageCount Value="35"/>
