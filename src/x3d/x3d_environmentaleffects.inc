@@ -193,7 +193,11 @@
     public property FdAlternative: TSFNode read FFdAlternative;
     { @groupEnd }
 
+    { Fog type. }
     function FogType: TFogType;
+
+    { Fog type, but may also return ftNone if we are @nil (checks Self <> nil)
+      or visibilityRange = 0. }
     function FogTypeOrNone: TFogTypeOrNone;
   end;
 
