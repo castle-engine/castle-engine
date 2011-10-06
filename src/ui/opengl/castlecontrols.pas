@@ -14,7 +14,7 @@
 }
 
 { Controls drawn inside OpenGL context. }
-unit GLControls;
+unit CastleControls;
 
 interface
 
@@ -23,7 +23,7 @@ uses Classes, GL, VectorMath, UIControls, OpenGLFonts,
 
 type
   { Base class for all controls inside an OpenGL context using a font. }
-  TKamGLFontControl = class(TUIControlPos)
+  TUIControlFont = class(TUIControlPos)
   private
     FFont: TGLBitmapFont_Abstract;
     FTooltip: string;
@@ -42,7 +42,7 @@ type
     property Tooltip: string read FTooltip write FTooltip;
   end;
 
-  TKamButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
+  TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
   { Button inside OpenGL context.
 
@@ -51,7 +51,7 @@ type
     You will also usually want to adjust position (TCastleButton.Left,
     TCastleButton.Bottom), TCastleButton.Caption,
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
-  TCastleButton = class(TKamGLFontControl)
+  TCastleButton = class(TUIControlFont)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -68,7 +68,7 @@ type
     FOpacity: Single;
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
-    FImageLayout: TKamButtonImageLayout;
+    FImageLayout: TCastleButtonImageLayout;
     FImageAlphaTest: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
@@ -81,7 +81,7 @@ type
     procedure UpdateSize;
     procedure SetImage(const Value: TImage);
     procedure SetPressed(const Value: boolean);
-    procedure SetImageLayout(const Value: TKamButtonImageLayout);
+    procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
   public
@@ -163,7 +163,7 @@ type
     property Opacity: Single read FOpacity write FOpacity default 1.0;
 
     { Where the @link(Image) is drawn on a button. }
-    property ImageLayout: TKamButtonImageLayout
+    property ImageLayout: TCastleButtonImageLayout
       read FImageLayout write SetImageLayout default ilLeft;
 
     { If the image has alpha channel, should we render with alpha test
@@ -178,7 +178,7 @@ type
     for other controls like buttons and such.
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
-  TKamPanel = class(TUIControlPos)
+  TCastlePanel = class(TUIControlPos)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -216,9 +216,9 @@ type
 
   { Image control inside OpenGL context.
     Size is automatically adjusted to the image size.
-    You should set TCastleImage.Left, TCastleImage.Bottom properties,
-    and load your image by setting TCastleImage.FileName property. }
-  TCastleImage = class(TUIControlPos)
+    You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
+    and load your image by setting TCastleImageControl.FileName property. }
+  TCastleImageControl = class(TUIControlPos)
   private
     FFileName: string;
     FImage: TImage;
@@ -242,15 +242,14 @@ type
     property Blending: boolean read FBlending write FBlending default false;
   end;
 
-{ Create and destroy the default UI interface bitmap font.
+{ Create and destroy the default bitmap font used throughout UI interface.
 
-  They don't actually create new font each time --- first create
-  creates the font, next ones only increase the internal counter.
-  Destroy decreases the counter and only really frees when it goes to zero.
+  They work fast. Actually, only the first "create" call does actual work,
+  following calls only increment an internal counter.
+  Destroy decreases the counter and only frees the resources when the counter
+  is zero.
 
-  The bottom line: you should use them just like normal create / destroy
-  (always pair a destroy with a create; destroying @nil is allowed NOOP
-  for comfort). But they work fast.
+  Destroying @nil is allowed NO-OP, for comfort.
 
   @groupBegin }
 function CreateUIFont: TGLBitmapFont_Abstract;
@@ -271,12 +270,12 @@ uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleButton, TCastleImage]);
+  RegisterComponents('Kambi', [TCastleButton, TCastleImageControl]);
 end;
 
 const
   { Our controls theme.
-    These colors match somewhat our TCastleMenu slider images. }
+    These colors match somewhat our TCastleOnScreenMenu slider images. }
   ColInsideUp  : array[boolean] of TVector3Byte = ( (165, 245, 210), (169, 251, 216) );
   ColInsideDown: array[boolean] of TVector3Byte = ( (126, 188, 161), (139, 207, 177) );
   ColDarkFrame : TVector3Byte = ( 99,  99,  99);
@@ -305,16 +304,16 @@ begin
   glVertex2f(X + 0.1, Y + 0.1);
 end;
 
-{ TKamGLFontControl ---------------------------------------------------------- }
+{ TUIControlFont ---------------------------------------------------------- }
 
-function TKamGLFontControl.TooltipStyle: TUIControlDrawStyle;
+function TUIControlFont.TooltipStyle: TUIControlDrawStyle;
 begin
   if Tooltip <> '' then
     Result := ds2D else
     Result := dsNone;
 end;
 
-procedure TKamGLFontControl.DrawTooltip;
+procedure TUIControlFont.DrawTooltip;
 var
   X, Y, W, H: Integer;
 begin
@@ -337,13 +336,13 @@ begin
     nil, 5, 1, 1);
 end;
 
-procedure TKamGLFontControl.GLContextOpen;
+procedure TUIControlFont.GLContextOpen;
 begin
   inherited;
   FFont := CreateUIFont;
 end;
 
-procedure TKamGLFontControl.GLContextClose;
+procedure TUIControlFont.GLContextClose;
 begin
   DestroyUIFont(FFont);
   inherited;
@@ -694,7 +693,7 @@ begin
   LetOthersHandleMouseAndKeys := true;
 end;
 
-procedure TCastleButton.SetImageLayout(const Value: TKamButtonImageLayout);
+procedure TCastleButton.SetImageLayout(const Value: TCastleButtonImageLayout);
 begin
   if FImageLayout <> Value then
   begin
@@ -722,29 +721,29 @@ begin
   end;
 end;
 
-{ TKamPanel ------------------------------------------------------------------ }
+{ TCastlePanel ------------------------------------------------------------------ }
 
-constructor TKamPanel.Create(AOwner: TComponent);
+constructor TCastlePanel.Create(AOwner: TComponent);
 begin
   inherited;
   FOpacity := 1;
   FVerticalSeparators := TCardinalList.Create;
 end;
 
-destructor TKamPanel.Destroy;
+destructor TCastlePanel.Destroy;
 begin
   FreeAndNil(FVerticalSeparators);
   inherited;
 end;
 
-function TKamPanel.DrawStyle: TUIControlDrawStyle;
+function TCastlePanel.DrawStyle: TUIControlDrawStyle;
 begin
   if Exists then
     Result := ds2D else
     Result := dsNone;
 end;
 
-procedure TKamPanel.Draw;
+procedure TCastlePanel.Draw;
 
   function PanelCol(const V: TVector3Byte): TVector3Single;
   const
@@ -804,7 +803,7 @@ begin
     glPopAttrib;
 end;
 
-function TKamPanel.PositionInside(const X, Y: Integer): boolean;
+function TCastlePanel.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := Exists and
     (X >= Left) and
@@ -813,22 +812,22 @@ begin
     (ContainerHeight - Y  < Bottom + Height);
 end;
 
-procedure TKamPanel.Idle(const CompSpeed: Single;
+procedure TCastlePanel.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  { let controls under the TKamPanel handle keys/mouse,
-    because TKamPanel doesn't do anything with them by default. }
+  { let controls under the TCastlePanel handle keys/mouse,
+    because TCastlePanel doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
 end;
 
-class function TKamPanel.SeparatorSize: Cardinal;
+class function TCastlePanel.SeparatorSize: Cardinal;
 begin
   Result := 2;
 end;
 
-procedure TKamPanel.SetWidth(const Value: Cardinal);
+procedure TCastlePanel.SetWidth(const Value: Cardinal);
 begin
   if FWidth <> Value then
   begin
@@ -837,7 +836,7 @@ begin
   end;
 end;
 
-procedure TKamPanel.SetHeight(const Value: Cardinal);
+procedure TCastlePanel.SetHeight(const Value: Cardinal);
 begin
   if FHeight <> Value then
   begin
@@ -846,16 +845,16 @@ begin
   end;
 end;
 
-{ TCastleImage ---------------------------------------------------------------- }
+{ TCastleImageControl ---------------------------------------------------------------- }
 
-destructor TCastleImage.Destroy;
+destructor TCastleImageControl.Destroy;
 begin
   FreeAndNil(FImage);
   glFreeDisplayList(FGLImage);
   inherited;
 end;
 
-procedure TCastleImage.SetFileName(const Value: string);
+procedure TCastleImageControl.SetFileName(const Value: string);
 var
   NewImage: TImage;
 begin
@@ -873,14 +872,14 @@ begin
     FGLImage := ImageDrawToDisplayList(FImage);
 end;
 
-function TCastleImage.DrawStyle: TUIControlDrawStyle;
+function TCastleImageControl.DrawStyle: TUIControlDrawStyle;
 begin
   if Exists and (FGLImage <> 0) then
     Result := ds2D else
     Result := dsNone;
 end;
 
-procedure TCastleImage.Draw;
+procedure TCastleImageControl.Draw;
 begin
   if not (Exists and (FGLImage <> 0)) then Exit;
 
@@ -898,7 +897,7 @@ begin
     glPopAttrib;
 end;
 
-function TCastleImage.PositionInside(const X, Y: Integer): boolean;
+function TCastleImageControl.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := Exists and
     (FImage <> nil) and
@@ -908,26 +907,26 @@ begin
     (ContainerHeight - Y  < Bottom + FImage.Height);
 end;
 
-procedure TCastleImage.GLContextOpen;
+procedure TCastleImageControl.GLContextOpen;
 begin
   inherited;
   if (FGLImage = 0) and (FImage <> nil) then
     FGLImage := ImageDrawToDisplayList(FImage);
 end;
 
-procedure TCastleImage.GLContextClose;
+procedure TCastleImageControl.GLContextClose;
 begin
   glFreeDisplayList(FGLImage);
   inherited;
 end;
 
-procedure TCastleImage.Idle(const CompSpeed: Single;
+procedure TCastleImageControl.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  { let controls under the TCastleImage handle keys/mouse,
-    because TCastleImage doesn't do anything with them by default. }
+  { let controls under the TCastleImageControl handle keys/mouse,
+    because TCastleImageControl doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
 end;
 

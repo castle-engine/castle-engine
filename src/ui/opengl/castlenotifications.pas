@@ -14,7 +14,7 @@
 }
 
 { Notifications displayed in the OpenGL window (TCastleNotifications). }
-unit GLNotifications;
+unit CastleNotifications;
 
 interface
 

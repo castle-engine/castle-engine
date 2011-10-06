@@ -55,7 +55,7 @@ program terrain;
 uses SysUtils, Classes, Boxes3D,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   Cameras, VectorMath, CastleFilesUtils, Elevations, CastleMessages,
-  CastleStringUtils, GLMenu, UIControls, Images, RenderElevations,
+  CastleStringUtils, OnScreenMenu, UIControls, Images, RenderElevations,
   GLShaders, GLImages, X3DFields, X3DNodes;
 
 type
@@ -91,7 +91,7 @@ var
   SpecializedGridRendering: boolean = true;
 
 type
-  TControlsNoise = class(TCastleMenu)
+  TControlsNoise = class(TCastleOnScreenMenu)
   public
     OctavesSlider: TMenuFloatSlider;
     AmplitudeSlider: TMenuFloatSlider;
@@ -106,14 +106,14 @@ type
 
   { For any TElevationImage except
     TElevationNoise (that has it's own TControlsNoise). }
-  TControlsImage = class(TCastleMenu)
+  TControlsImage = class(TCastleOnScreenMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
   end;
 
   { For any TElevation. }
-  TControlsGeneral = class(TCastleMenu)
+  TControlsGeneral = class(TCastleOnScreenMenu)
   public
     constructor Create(AOwner: TComponent); override;
     procedure AccessoryValueChanged; override;
@@ -128,8 +128,8 @@ var
   LayersCountSlider: TMenuIntegerSlider;
   ImageHeightScaleSlider: TMenuFloatSlider;
 
-{ Current TCastleMenu, or none, based on Elevation class and ControlsVisible. }
-function CurrentControls: TCastleMenu;
+{ Current TCastleOnScreenMenu, or none, based on Elevation class and ControlsVisible. }
+function CurrentControls: TCastleOnScreenMenu;
 begin
   if not ControlsVisible then Exit(nil);
 
@@ -147,7 +147,7 @@ begin
     FreeAndNil(Elevation);
     Elevation := Value;
 
-    Glw.Controls.MakeSingle(TCastleMenu, CurrentControls, true { before camera });
+    Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true { before camera });
 
     if Elevation is TElevationImage then
       TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
@@ -465,7 +465,7 @@ begin
   FreeAndNil(SubdivisionSlider);
   FreeAndNil(LayersCountSlider);
   FreeAndNil(ImageHeightScaleSlider);
-  GLMenuCloseGL;
+  OnScreenMenuCloseGL;
 
   RenderElevationsCloseGL;
 end;
@@ -645,7 +645,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Glw.Controls.MakeSingle(TCastleMenu, CurrentControls, true { before camera });
+        Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true { before camera });
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:

@@ -241,10 +241,10 @@ begin
     P.Targets.AddUnit('cameras.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
-    P.Targets.AddUnit('glcontrols.pas');
-    P.Targets.AddUnit('glmenu.pas');
-    P.Targets.AddUnit('glmenuimages.pas');
-    P.Targets.AddUnit('glnotifications.pas');
+    P.Targets.AddUnit('castlecontrols.pas');
+    P.Targets.AddUnit('onscreenmenu.pas');
+    P.Targets.AddUnit('onscreenmenuimages.pas');
+    P.Targets.AddUnit('castlenotifications.pas');
 
     Run;
   end;

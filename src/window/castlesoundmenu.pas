@@ -13,37 +13,37 @@
   ----------------------------------------------------------------------------
 }
 
-{ Menu items (suitable for TCastleMenu) to control the TXmlSoundEngine. }
+{ Menu items (suitable for TCastleOnScreenMenu) to control the TXmlSoundEngine. }
 unit CastleSoundMenu;
 
 interface
 
-uses CastleWindow, GLMenu, XmlSoundEngine;
+uses CastleWindow, OnScreenMenu, XmlSoundEngine;
 
 type
   { An abstract class for CastleSoundMenu items.
-    In the future maybe such idea will be incorporated into GLMenu unit. }
-  TCastleMenuItem = class
+    In the future maybe such idea will be incorporated into OnScreenMenu unit. }
+  TOnScreenMenuItem = class
   private
     FWindow: TCastleWindowBase;
   protected
     property Window: TCastleWindowBase read FWindow;
   public
     { Creates and adds this menu item to Menu. }
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu);
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
     function Title: string; virtual; abstract;
     function Accessory: TMenuAccessory; virtual;
     procedure Selected; virtual;
     procedure AccessoryValueChanged; virtual;
   end;
 
-  TSoundMenuItem = class(TCastleMenuItem)
+  TSoundMenuItem = class(TOnScreenMenuItem)
   private
     FSoundEngine: TXmlSoundEngine;
   protected
     property SoundEngine: TXmlSoundEngine read FSoundEngine;
   public
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu;
       ASoundEngine: TXmlSoundEngine);
   end;
 
@@ -66,7 +66,7 @@ type
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
   public
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu;
       ASoundEngine: TXmlSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
@@ -82,7 +82,7 @@ type
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
   public
-    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+    constructor Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu;
       ASoundEngine: TXmlSoundEngine);
 
     { Call this if volume changed by something outside of this class. }
@@ -97,32 +97,32 @@ implementation
 
 uses Classes, CastleClassUtils, CastleUtils, CastleMessages;
 
-{ TCastleMenuItem ---------------------------------------------------------------- }
+{ TOnScreenMenuItem ---------------------------------------------------------------- }
 
-constructor TCastleMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu);
+constructor TOnScreenMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu);
 begin
   inherited Create;
   Menu.Items.AddObject(Title, Accessory);
   FWindow := AWindow;
 end;
 
-function TCastleMenuItem.Accessory: TMenuAccessory;
+function TOnScreenMenuItem.Accessory: TMenuAccessory;
 begin
   Result := nil;
 end;
 
-procedure TCastleMenuItem.Selected;
+procedure TOnScreenMenuItem.Selected;
 begin
 end;
 
-procedure TCastleMenuItem.AccessoryValueChanged;
+procedure TOnScreenMenuItem.AccessoryValueChanged;
 begin
 end;
 
 { TSoundMenuItem ----------------------------------------------------------- }
 
 constructor TSoundMenuItem.Create(AWindow: TCastleWindowBase;
-  Menu: TCastleMenu; ASoundEngine: TXmlSoundEngine);
+  Menu: TCastleOnScreenMenu; ASoundEngine: TXmlSoundEngine);
 begin
   inherited Create(AWindow, Menu);
   FSoundEngine := ASoundEngine;
@@ -165,7 +165,7 @@ end;
 
 { TSoundVolumeMenuItem ----------------------------------------------------- }
 
-constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu;
   ASoundEngine: TXmlSoundEngine);
 begin
   FSlider := TMenuVolumeSlider.Create(ASoundEngine.Volume);
@@ -194,7 +194,7 @@ end;
 
 { TMusicVolumeMenuItem ----------------------------------------------------- }
 
-constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleMenu;
+constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowBase; Menu: TCastleOnScreenMenu;
   ASoundEngine: TXmlSoundEngine);
 begin
   FSlider := TMenuVolumeSlider.Create(ASoundEngine.MusicPlayer.MusicVolume);

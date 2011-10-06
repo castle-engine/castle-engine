@@ -113,9 +113,9 @@ tglwindow              TCastleWindowBase
 tkamrecentfiles        TLazRecentFiles
 tglrecentfiles         TCastleRecentFiles
 tkamglbutton           TCastleButton
-tkamglimage            TCastleImage
+tkamglimage            TCastleImageControl
 tglnotifications       TCastleNotifications
-tglmenu                TCastleMenu
+tglmenu                TCastleOnScreenMenu
 tkamxmlconfig          TCastleConfig
 tkamscenemanager       TCastleSceneManager
 tvrmlanimation         T3DPrecalculatedAnimationCore
@@ -148,6 +148,10 @@ TGLMenuVolumeSlider TCastleMenuVolumeSlider
 TKamTime TFloatTime
 TVRMLTime TX3DTime
 KamTimer Timer
+tkamglfontcontrol TUIControlFont
+tkambuttonimagelayout TCastleButtonImageLayout
+tkampanel TCastlePanel
+
 ------------------------------------------------------------------------------
 3. Renames done, unit names:
 
@@ -229,6 +233,9 @@ vrmlnodes                                          x3dnodes
 vrmllighting                                       lighting
 vrmlshapeoctree                                    shapeoctree
 vrmlscene                                          castlescenecore
+glnotifications CastleNotifications
+glcontrols CastleControls
+glmenu OnScreenMenu
 
 ------------------------------------------------------------------------------
 4. Renames done, package names:

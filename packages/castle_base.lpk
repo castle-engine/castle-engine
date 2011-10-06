@@ -512,18 +512,18 @@
         <UnitName Value="KeysMouse"/>
       </Item115>
       <Item116>
-        <Filename Value="../src/ui/opengl/glcontrols.pas"/>
+        <Filename Value="../src/ui/opengl/castlecontrols.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="GLControls"/>
+        <UnitName Value="CastleControls"/>
       </Item116>
       <Item117>
-        <Filename Value="../src/ui/opengl/glmenu.pas"/>
+        <Filename Value="../src/ui/opengl/onscreenmenu.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="GLMenu"/>
+        <UnitName Value="OnScreenMenu"/>
       </Item117>
       <Item118>
-        <Filename Value="../src/ui/opengl/glmenuimages.pas"/>
-        <UnitName Value="GLMenuImages"/>
+        <Filename Value="../src/ui/opengl/onscreenmenuimages.pas"/>
+        <UnitName Value="OnScreenMenuImages"/>
       </Item118>
       <Item119>
         <Filename Value="../src/ui/rectangles.pas"/>
@@ -681,8 +681,8 @@
         <UnitName Value="TriangleOctree"/>
       </Item15>
       <Item146>
-        <Filename Value="../src/ui/opengl/glnotifications.pas"/>
-        <UnitName Value="GLNotifications"/>
+        <Filename Value="../src/ui/opengl/castlenotifications.pas"/>
+        <UnitName Value="castlenotifications"/>
       </Item146>
     </Files>
     <Type Value="RunAndDesignTime"/>
