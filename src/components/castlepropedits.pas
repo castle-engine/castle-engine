@@ -28,7 +28,7 @@ procedure Register;
 implementation
 
 uses CastleSceneCore, PropEdits, CastleLCLUtils, X3DLoad, UIControls,
-  CastleGLControl, GLControls, Images, LResources;
+  CastleGLControl, CastleControls, Images, LResources;
 
 type
   TSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)
@@ -68,7 +68,7 @@ procedure Register;
 begin
   RegisterPropertyEditor(TypeInfo(AnsiString), T3DSceneCore,
     'FileName', TSceneFileNamePropertyEditor);
-  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImage,
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
     'FileName', TImageFileNamePropertyEditor);
   { TODO: crashes
   RegisterPropertyEditor(TypeInfo(TUIControlList), TCastleControlCustom,

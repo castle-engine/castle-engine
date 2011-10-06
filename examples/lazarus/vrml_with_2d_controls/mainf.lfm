@@ -33,13 +33,13 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 16
   end
-  object SampleImage: TCastleImage
+  object SampleImage: TCastleImageControl
     Bottom = 150
     TUIControlPos_RealLeft = 20
     TUIControlPos_Design_Left = 152
     TUIControlPos_Design_Top = 96
   end
-  object SampleImageAlpha: TCastleImage
+  object SampleImageAlpha: TCastleImageControl
     Bottom = 150
     Blending = True
     TUIControlPos_RealLeft = 200
@@ -150,7 +150,7 @@ object Form1: TForm1
     TUIControlPos_Design_Left = 696
     TUIControlPos_Design_Top = 272
   end
-  object GLMenu1: TCastleMenu
+  object OnScreenMenu1: TCastleOnScreenMenu
     PositionRelativeMenuX = prLowerBorder
     PositionRelativeMenuY = prLowerBorder
     PositionRelativeScreenX = prLowerBorder
@@ -160,7 +160,7 @@ object Form1: TForm1
       'two'
       'three'
     )
-    OnClick = GLMenu1Click
+    OnClick = OnScreenMenu1Click
     left = 392
     top = 404
   end

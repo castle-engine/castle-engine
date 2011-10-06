@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, LResources, Forms, Controls, Graphics, Dialogs,
-  CastleGLControl, GL, GLControls, GLMenu;
+  CastleGLControl, GL, CastleControls, OnScreenMenu;
 
 type
 
@@ -14,10 +14,10 @@ type
 
   TForm1 = class(TForm)
     Browser: TCastleControl;
-    GLMenu1: TCastleMenu;
+    OnScreenMenu1: TCastleOnScreenMenu;
     SampleButton: TCastleButton;
-    SampleImage: TCastleImage;
-    SampleImageAlpha: TCastleImage;
+    SampleImage: TCastleImageControl;
+    SampleImageAlpha: TCastleImageControl;
     ButtonImageFixSize1: TCastleButton;
     ButtonImageFixSize2: TCastleButton;
     ButtonImageFixSize3: TCastleButton;
@@ -28,7 +28,7 @@ type
     ButtonImage4: TCastleButton;
     procedure FormCreate(Sender: TObject);
     procedure BrowserResize(Sender: TObject);
-    procedure GLMenu1Click(Sender: TObject);
+    procedure OnScreenMenu1Click(Sender: TObject);
     procedure SampleButtonClick(Sender: TObject);
   end;
 
@@ -56,7 +56,7 @@ begin
     (If you would like to change this, you can set SampleButton.ExlusiveEvents
     to false.)
 
-    (Images (TCastleImage) actually also obscure scene underneath, but since
+    (Images (TCastleImageControl) actually also obscure scene underneath, but since
     they do not handle any keys or mouse by default, they let themn through
     to 3d scene. This could be changed by overriding their MouseDown etc.) }
 
@@ -71,7 +71,7 @@ begin
   Browser.Controls.Insert(0, ButtonImage2);
   Browser.Controls.Insert(0, ButtonImage3);
   Browser.Controls.Insert(0, ButtonImage4);
-  Browser.Controls.Insert(0, GLMenu1);
+  Browser.Controls.Insert(0, OnScreenMenu1);
 
   { load button's images. Actually, load it only once, and use the same
     reference (leaving OwnsImage = false) on other buttons. }
@@ -92,7 +92,7 @@ begin
   SampleImage.FileName := 'sample_image.png';
   SampleImageAlpha.FileName := 'sample_image_with_alpha.png';
 
-  GLMenu1.Position := Vector2Integer(400, 150);
+  OnScreenMenu1.Position := Vector2Integer(400, 150);
 end;
 
 procedure TForm1.BrowserResize(Sender: TObject);
@@ -100,9 +100,9 @@ begin
   SampleButton.Width := Browser.Width - 20;
 end;
 
-procedure TForm1.GLMenu1Click(Sender: TObject);
+procedure TForm1.OnScreenMenu1Click(Sender: TObject);
 begin
-  ShowMessage(Format('Clicked menu item %d.', [GLMenu1.CurrentItem]));
+  ShowMessage(Format('Clicked menu item %d.', [OnScreenMenu1.CurrentItem]));
 end;
 
 procedure TForm1.SampleButtonClick(Sender: TObject);
