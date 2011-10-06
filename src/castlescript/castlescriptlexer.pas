@@ -27,13 +27,13 @@ uses CastleUtils, CastleScript, SysUtils, Math;
 
 type
   TToken = (tokEnd,
-    tokInteger, {< Value of constant integer will be in w TKamScriptLexer.TokenInteger. }
-    tokFloat, {< Value of constant float will be in w TKamScriptLexer.TokenFloat. }
-    tokBoolean, {< Value of constant boolean will be in w TKamScriptLexer.TokenBoolean. }
-    tokString, {< Value of constant string will be in w TKamScriptLexer.TokenString. }
+    tokInteger, {< Value of constant integer will be in w TCasScriptLexer.TokenInteger. }
+    tokFloat, {< Value of constant float will be in w TCasScriptLexer.TokenFloat. }
+    tokBoolean, {< Value of constant boolean will be in w TCasScriptLexer.TokenBoolean. }
+    tokString, {< Value of constant string will be in w TCasScriptLexer.TokenString. }
 
-    tokIdentifier, {< Identifier will be in TKamScriptLexer.TokenString. }
-    tokFuncName, {< Function class of given function will be in TKamScriptLexer.TokenFunctionClass. }
+    tokIdentifier, {< Identifier will be in TCasScriptLexer.TokenString. }
+    tokFuncName, {< Function class of given function will be in TCasScriptLexer.TokenFunctionClass. }
     tokFunctionKeyword,
 
     tokMinus, tokPlus,
@@ -46,14 +46,14 @@ type
     tokLQaren, tokRQaren,
     tokComma, tokSemicolon, tokAssignment);
 
-  TKamScriptLexer = class
+  TCasScriptLexer = class
   private
     FToken: TToken;
     FTokenInteger: Int64;
     FTokenFloat: Float;
     FTokenBoolean: boolean;
     FTokenString: string;
-    FTokenFunctionClass: TKamScriptFunctionClass;
+    FTokenFunctionClass: TCasScriptFunctionClass;
 
     FTextPos: Integer;
     FText: string;
@@ -64,7 +64,7 @@ type
     property TokenFloat: Float read FTokenFloat;
     property TokenString: string read FTokenString;
     property TokenBoolean: boolean read FTokenBoolean;
-    property TokenFunctionClass: TKamScriptFunctionClass read FTokenFunctionClass;
+    property TokenFunctionClass: TCasScriptFunctionClass read FTokenFunctionClass;
 
     { Position of lexer in the @link(Text) string. }
     property TextPos: Integer read FTextPos;
@@ -79,7 +79,7 @@ type
       When @link(Token) is tokEnd, then NextToken doesn't do anything,
       i.e. @link(Token) will remain tokEnd forever.
 
-      @raises EKamScriptLexerError }
+      @raises ECasScriptLexerError }
     function NextToken: TToken;
 
     constructor Create(const AText: string);
@@ -90,13 +90,13 @@ type
     { Check is current token Tok, eventually rise parser error.
       This is an utility for parser.
 
-      @raises(EKamScriptParserError
+      @raises(ECasScriptParserError
         if current Token doesn't match required Tok.) }
     procedure CheckTokenIs(Tok: TToken);
   end;
 
-  { A common class for EKamScriptLexerError and EKamScriptParserError }
-  EKamScriptSyntaxError = class(EKamScriptError)
+  { A common class for ECasScriptLexerError and ECasScriptParserError }
+  ECasScriptSyntaxError = class(ECasScriptError)
   private
     FLexerTextPos: Integer;
     FLexerText: string;
@@ -107,14 +107,14 @@ type
       not access it before you Freed it; too troublesome, usually) }
     property LexerTextPos: Integer read FLexerTextPos;
     property LexerText: string read FLexerText;
-    constructor Create(Lexer: TKamScriptLexer; const s: string);
-    constructor CreateFmt(Lexer: TKamScriptLexer; const s: string;
+    constructor Create(Lexer: TCasScriptLexer; const s: string);
+    constructor CreateFmt(Lexer: TCasScriptLexer; const s: string;
       const args: array of const);
   end;
 
-  EKamScriptLexerError = class(EKamScriptSyntaxError);
+  ECasScriptLexerError = class(ECasScriptSyntaxError);
 
-  EKamScriptParserError = class(EKamScriptSyntaxError);
+  ECasScriptParserError = class(ECasScriptSyntaxError);
 
 implementation
 
@@ -129,7 +129,7 @@ begin
  end;
 end;
 
-constructor TKamScriptLexer.Create(const atext: string);
+constructor TCasScriptLexer.Create(const atext: string);
 begin
  inherited Create;
  ftext := atext;
@@ -137,7 +137,7 @@ begin
  NextToken;
 end;
 
-function TKamScriptLexer.NextToken: TToken;
+function TCasScriptLexer.NextToken: TToken;
 const
   whiteChars = [' ', #9, #10, #13];
   digits = ['0'..'9'];
@@ -152,7 +152,7 @@ const
       begin
         Inc(fTextPos);
         if TextPos > Length(Text) then
-          raise EKamScriptLexerError.Create(Self, 'Unfinished comment');
+          raise ECasScriptLexerError.Create(Self, 'Unfinished comment');
       end;
       Inc(FTextPos);
       OmitWhiteSpace; { recusively omit the rest of whitespace }
@@ -202,7 +202,7 @@ const
     repeat
       NextApos := CharPos('''', Text, FTextPos + 1);
       if NextApos = 0 then
-        raise EKamScriptLexerError.Create(Self, 'Unfinished string');
+        raise ECasScriptLexerError.Create(Self, 'Unfinished string');
       FTokenString += CopyPos(Text, FTextPos + 1, NextApos - 1);
       FTextPos := NextApos + 1;
 
@@ -245,7 +245,7 @@ const
 
     Inc(fTextPos);
     if not SCharIs(text, fTextPos, digits) then
-     raise EKamScriptLexerError.Create(Self, 'Digit expected');
+     raise ECasScriptLexerError.Create(Self, 'Digit expected');
     digitsCount := 1;
     val := DigitAsByte(text[fTextPos]);
     Inc(fTextPos);
@@ -271,7 +271,7 @@ const
   var startPos: integer;
   begin
    if not (text[fTextPos] in identStartChars) then
-    raise EKamScriptLexerError.CreateFmt(Self,
+    raise ECasScriptLexerError.CreateFmt(Self,
       'Invalid character "%s" not allowed in CastleScript', [text[fTextPos]]);
    startPos := fTextPos;
    Inc(fTextPos);
@@ -311,7 +311,7 @@ const
    11,12,13,14,15,16,17,18,19,20 );
 var
   p: integer;
-  fc: TKamScriptFunctionClass;
+  fc: TCasScriptFunctionClass;
 begin
  OmitWhiteSpace;
 
@@ -401,7 +401,7 @@ const
     '[', ']',
     ',', ';', ':=');
 
-function TKamScriptLexer.TokenDescription: string;
+function TCasScriptLexer.TokenDescription: string;
 begin
   Result := TokenShortDescription[Token];
   case Token of
@@ -414,24 +414,24 @@ begin
   end;
 end;
 
-procedure TKamScriptLexer.CheckTokenIs(Tok: TToken);
+procedure TCasScriptLexer.CheckTokenIs(Tok: TToken);
 begin
   if Token <> Tok then
-    raise EKamScriptParserError.CreateFmt(Self,
+    raise ECasScriptParserError.CreateFmt(Self,
       'Expected "%s", but got "%s"',
       [ TokenShortDescription[Tok], TokenDescription ]);
 end;
 
-{ EKamScriptSyntaxError --------------------------------------- }
+{ ECasScriptSyntaxError --------------------------------------- }
 
-constructor EKamScriptSyntaxError.Create(Lexer: TKamScriptLexer; const s: string);
+constructor ECasScriptSyntaxError.Create(Lexer: TCasScriptLexer; const s: string);
 begin
  inherited Create(s);
  FLexerTextPos := Lexer.TextPos;
  FLexerText := Lexer.Text;
 end;
 
-constructor EKamScriptSyntaxError.CreateFmt(Lexer: TKamScriptLexer; const s: string;
+constructor ECasScriptSyntaxError.CreateFmt(Lexer: TCasScriptLexer; const s: string;
   const args: array of const);
 begin
  Create(Lexer, Format(s, args))

@@ -1,138 +1,138 @@
-{ Common implementation of matrix-based TKamScriptValue descendants.
+{ Common implementation of matrix-based TCasScriptValue descendants.
   Needs following macros defined before including:
 
   MatrixGetCount
-  TKamScriptVecXx
-  TKamScriptMatrixXx
+  TCasScriptVecXx
+  TCasScriptMatrixXx
   TMatrixXxx
   RegisterMatrixXxFunctions
 }
 
-{ TKamScriptMatrixXx ---------------------------------------------------------- }
+{ TCasScriptMatrixXx ---------------------------------------------------------- }
 
-class procedure TKamScriptMatrixXx.HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
   { The function allows only >= 1 arguments, and this handler is
-    registered only for TKamScriptMatrixXx values, so we can safely take
-    the first arg as TKamScriptMatrixXx. }
-  TKamScriptMatrixXx(AResult).Value := TKamScriptMatrixXx(Arguments[0]).Value;
+    registered only for TCasScriptMatrixXx values, so we can safely take
+    the first arg as TCasScriptMatrixXx. }
+  TCasScriptMatrixXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TKamScriptMatrixXx(AResult).Value := MatrixAdd(
-      TKamScriptMatrixXx(AResult).Value, TKamScriptMatrixXx(Arguments[I]).Value);
+    TCasScriptMatrixXx(AResult).Value := MatrixAdd(
+      TCasScriptMatrixXx(AResult).Value, TCasScriptMatrixXx(Arguments[I]).Value);
 end;
 
-class procedure TKamScriptMatrixXx.HandleSubtract(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
-  TKamScriptMatrixXx(AResult).Value := TKamScriptMatrixXx(Arguments[0]).Value;
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
+  TCasScriptMatrixXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TKamScriptMatrixXx(AResult).Value := MatrixSubtract(
-      TKamScriptMatrixXx(AResult).Value, TKamScriptMatrixXx(Arguments[I]).Value);
+    TCasScriptMatrixXx(AResult).Value := MatrixSubtract(
+      TCasScriptMatrixXx(AResult).Value, TCasScriptMatrixXx(Arguments[I]).Value);
 end;
 
-class procedure TKamScriptMatrixXx.HandleNegate(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
-  TKamScriptMatrixXx(AResult).Value := MatrixNegate(TKamScriptMatrixXx(Arguments[0]).Value);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
+  TCasScriptMatrixXx(AResult).Value := MatrixNegate(TCasScriptMatrixXx(Arguments[0]).Value);
 end;
 
-class procedure TKamScriptMatrixXx.HandleMultiply(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
 begin
   if (Length(Arguments) = 2) and
-     (Arguments[0] is TKamScriptFloat) and
-     (Arguments[1] is TKamScriptMatrixXx) then
+     (Arguments[0] is TCasScriptFloat) and
+     (Arguments[1] is TCasScriptMatrixXx) then
   begin
-    CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
-    TKamScriptMatrixXx(AResult).Value := MatrixMultScalar(
-      TKamScriptMatrixXx(Arguments[1]).Value,
-      TKamScriptFloat(Arguments[0]).Value);
+    CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
+    TCasScriptMatrixXx(AResult).Value := MatrixMultScalar(
+      TCasScriptMatrixXx(Arguments[1]).Value,
+      TCasScriptFloat(Arguments[0]).Value);
   end else
   if (Length(Arguments) = 2) and
-     (Arguments[1] is TKamScriptFloat) and
-     (Arguments[0] is TKamScriptMatrixXx) then
+     (Arguments[1] is TCasScriptFloat) and
+     (Arguments[0] is TCasScriptMatrixXx) then
   begin
-    CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
-    TKamScriptMatrixXx(AResult).Value := MatrixMultScalar(
-      TKamScriptMatrixXx(Arguments[0]).Value,
-      TKamScriptFloat(Arguments[1]).Value);
+    CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
+    TCasScriptMatrixXx(AResult).Value := MatrixMultScalar(
+      TCasScriptMatrixXx(Arguments[0]).Value,
+      TCasScriptFloat(Arguments[1]).Value);
   end else
   if (Length(Arguments) = 2) and
-     (Arguments[0] is TKamScriptMatrixXx) and
-     (Arguments[1] is TKamScriptVecXx) then
+     (Arguments[0] is TCasScriptMatrixXx) and
+     (Arguments[1] is TCasScriptVecXx) then
   begin
-    CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVecXx);
-    TKamScriptVecXx(AResult).Value := MatrixMultVector(
-      TKamScriptMatrixXx(Arguments[0]).Value,
-      TKamScriptVecXx(Arguments[1]).Value);
+    CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
+    TCasScriptVecXx(AResult).Value := MatrixMultVector(
+      TCasScriptMatrixXx(Arguments[0]).Value,
+      TCasScriptVecXx(Arguments[1]).Value);
   end else
   begin
     { So this is matrix * matrix... operation }
-    CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
-    TKamScriptMatrixXx(AResult).Value := TKamScriptMatrixXx(Arguments[0]).Value;
+    CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
+    TCasScriptMatrixXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value;
     for I := 1 to Length(Arguments) - 1 do
-      TKamScriptMatrixXx(AResult).Value := MatrixMult(
-        TKamScriptMatrixXx(AResult).Value, TKamScriptMatrixXx(Arguments[I]).Value);
+      TCasScriptMatrixXx(AResult).Value := MatrixMult(
+        TCasScriptMatrixXx(AResult).Value, TCasScriptMatrixXx(Arguments[I]).Value);
   end;
 end;
 
-class procedure TKamScriptMatrixXx.HandleDivide(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
-  TKamScriptMatrixXx(AResult).Value := MatrixMultScalar(
-    TKamScriptMatrixXx(Arguments[0]).Value,
-    1/TKamScriptFloat(Arguments[1]).Value);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
+  TCasScriptMatrixXx(AResult).Value := MatrixMultScalar(
+    TCasScriptMatrixXx(Arguments[0]).Value,
+    1/TCasScriptFloat(Arguments[1]).Value);
 end;
 
-class procedure TKamScriptMatrixXx.HandleEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
+  TCasScriptBoolean(AResult).Value :=
     MatricesPerfectlyEqual(
-      TKamScriptMatrixXx(Arguments[0]).Value,
-      TKamScriptMatrixXx(Arguments[1]).Value);
+      TCasScriptMatrixXx(Arguments[0]).Value,
+      TCasScriptMatrixXx(Arguments[1]).Value);
 end;
 
-class procedure TKamScriptMatrixXx.HandleNotEqual(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptBoolean);
-  TKamScriptBoolean(AResult).Value :=
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
+  TCasScriptBoolean(AResult).Value :=
     not MatricesPerfectlyEqual(
-      TKamScriptMatrixXx(Arguments[0]).Value,
-      TKamScriptMatrixXx(Arguments[1]).Value);
+      TCasScriptMatrixXx(Arguments[0]).Value,
+      TCasScriptMatrixXx(Arguments[1]).Value);
 end;
 
-class procedure TKamScriptMatrixXx.HandleMatrix(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleMatrix(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptMatrixXx);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
   for I := 0 to MatrixGetCount - 1 do
-    TKamScriptMatrixXx(AResult).FValue[I] := TKamScriptVecXx(Arguments[I]).Value;
-  TKamScriptMatrixXx(AResult).ValueAssigned := true;
+    TCasScriptMatrixXx(AResult).FValue[I] := TCasScriptVecXx(Arguments[I]).Value;
+  TCasScriptMatrixXx(AResult).ValueAssigned := true;
 end;
 
-class procedure TKamScriptMatrixXx.HandleMatrixGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleMatrixGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptVecXx);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
 
-  Index := TKamScriptInteger(Arguments[1]).Value;
+  Index := TCasScriptInteger(Arguments[1]).Value;
   if not Between(Index, 0, MatrixGetCount - 1) then
-    raise EKamScriptError.CreateFmt('Invalid index %d for matrix_get on %d-column matrix',
+    raise ECasScriptError.CreateFmt('Invalid index %d for matrix_get on %d-column matrix',
       [Index, MatrixGetCount]);
 
-  TKamScriptVecXx(AResult).Value := TKamScriptMatrixXx(Arguments[0]).Value[Index];
+  TCasScriptVecXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value[Index];
 end;
 
-class procedure TKamScriptMatrixXx.HandleMatrixSet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
 begin
@@ -141,31 +141,31 @@ begin
   AResult := nil;
   ParentOfResult := false;
 
-  Index := TKamScriptInteger(Arguments[1]).Value;
+  Index := TCasScriptInteger(Arguments[1]).Value;
   if not Between(Index, 0, MatrixGetCount - 1) then
-    raise EKamScriptError.CreateFmt('Invalid index %d for matrix_set on %d-column matrix',
+    raise ECasScriptError.CreateFmt('Invalid index %d for matrix_set on %d-column matrix',
       [Index, MatrixGetCount]);
 
-  TKamScriptMatrixXx(Arguments[0]).FValue[Index] := TKamScriptVecXx(Arguments[2]).Value;
-  TKamScriptMatrixXx(Arguments[0]).ValueAssigned := true;
+  TCasScriptMatrixXx(Arguments[0]).FValue[Index] := TCasScriptVecXx(Arguments[2]).Value;
+  TCasScriptMatrixXx(Arguments[0]).ValueAssigned := true;
 
   AResult := Arguments[0];
 end;
 
-class procedure TKamScriptMatrixXx.HandleMatrixGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptMatrixXx.HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
-  TKamScriptInteger(AResult).Value := MatrixGetCount;
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
+  TCasScriptInteger(AResult).Value := MatrixGetCount;
 end;
 
-procedure TKamScriptMatrixXx.AssignValue(Source: TKamScriptValue);
+procedure TCasScriptMatrixXx.AssignValue(Source: TCasScriptValue);
 begin
-  if Source is TKamScriptMatrixXx then
-    Value := TKamScriptMatrixXx(Source).Value else
+  if Source is TCasScriptMatrixXx then
+    Value := TCasScriptMatrixXx(Source).Value else
     raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
-procedure TKamScriptMatrixXx.SetValue(const AValue: TMatrixXxx);
+procedure TCasScriptMatrixXx.SetValue(const AValue: TMatrixXxx);
 begin
   FValue := AValue;
   ValueAssigned := true;
@@ -173,30 +173,30 @@ end;
 
 procedure RegisterMatrixXxFunctions;
 var
-  MatrixArgClasses: array of TKamScriptValueClass;
+  MatrixArgClasses: array of TCasScriptValueClass;
   I: Integer;
 begin
-  { TKamScriptMatrixXx, functions from KambiScriptCoreFunctions }
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleAdd, TKamScriptAdd, [TKamScriptMatrixXx], true);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleSubtract, TKamScriptSubtract, [TKamScriptMatrixXx], true);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleNegate, TKamScriptNegate, [TKamScriptMatrixXx], false);
+  { TCasScriptMatrixXx, functions from CastleScriptCoreFunctions }
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleAdd, TCasScriptAdd, [TCasScriptMatrixXx], true);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleSubtract, TCasScriptSubtract, [TCasScriptMatrixXx], true);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleNegate, TCasScriptNegate, [TCasScriptMatrixXx], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptMatrixXx, TKamScriptFloat], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptFloat, TKamScriptMatrixXx], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptMatrixXx, TKamScriptVecXx], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMultiply, TKamScriptMultiply, [TKamScriptMatrixXx], true);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleDivide, TKamScriptDivide, [TKamScriptMatrixXx, TKamScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptMatrixXx, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptFloat, TCasScriptMatrixXx], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptMatrixXx, TCasScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptMatrixXx], true);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleDivide, TCasScriptDivide, [TCasScriptMatrixXx, TCasScriptFloat], false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleEqual, TKamScriptEqual, [TKamScriptMatrixXx, TKamScriptMatrixXx], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleNotEqual, TKamScriptNotEqual, [TKamScriptMatrixXx, TKamScriptMatrixXx], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleEqual, TCasScriptEqual, [TCasScriptMatrixXx, TCasScriptMatrixXx], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleNotEqual, TCasScriptNotEqual, [TCasScriptMatrixXx, TCasScriptMatrixXx], false);
 
-  { TKamScriptMatrixXx, functions from KambiScriptVectors }
+  { TCasScriptMatrixXx, functions from CastleScriptVectors }
   SetLength(MatrixArgClasses, MatrixGetCount);
   for I := 0 to MatrixGetCount - 1 do
-    MatrixArgClasses[I] := TKamScriptVecXx;
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMatrix, TKamScriptMatrixFun, MatrixArgClasses, false);
+    MatrixArgClasses[I] := TCasScriptVecXx;
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMatrix, TCasScriptMatrixFun, MatrixArgClasses, false);
 
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMatrixGet, TKamScriptMatrixGet, [TKamScriptMatrixXx, TKamScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMatrixSet, TKamScriptMatrixSet, [TKamScriptMatrixXx, TKamScriptInteger, TKamScriptVecXx], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptMatrixXx(nil).HandleMatrixGetCount, TKamScriptMatrixGetCount, [TKamScriptMatrixXx], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMatrixGet, TCasScriptMatrixGet, [TCasScriptMatrixXx, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMatrixSet, TCasScriptMatrixSet, [TCasScriptMatrixXx, TCasScriptInteger, TCasScriptVecXx], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMatrixGetCount, TCasScriptMatrixGetCount, [TCasScriptMatrixXx], false);
 end;

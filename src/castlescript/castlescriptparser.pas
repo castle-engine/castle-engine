@@ -30,11 +30,11 @@ interface
 uses CastleScript, CastleScriptLexer, Math;
 
 type
-  { Reexported in this unit, so that the identifier EKamScriptSyntaxError
+  { Reexported in this unit, so that the identifier ECasScriptSyntaxError
     will be visible when using this unit. }
-  EKamScriptSyntaxError = CastleScriptLexer.EKamScriptSyntaxError;
+  ECasScriptSyntaxError = CastleScriptLexer.ECasScriptSyntaxError;
 
-{ Creates and returns instance of TKamScriptExpression,
+{ Creates and returns instance of TCasScriptExpression,
   that represents parsed tree of expression in S.
 
   This parses a subset of CastleScript language, that allows you
@@ -60,16 +60,16 @@ type
     So setting OwnedByParentExpression and freeing it yourself
     is the only sensible thing to do.)
 
-  @raises(EKamScriptSyntaxError in case of error when parsing expression.) }
+  @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
 function ParseFloatExpression(const S: string;
-  const Variables: array of TKamScriptValue): TKamScriptExpression;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse constant float expression.
   This can be used as a great replacement for StrToFloat.
   Takes a string with any constant mathematical expression,
   according to CastleScript syntax, parses it and calculates.
 
-  @raises(EKamScriptSyntaxError in case of error when parsing expression.) }
+  @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
 function ParseConstantFloatExpression(const S: string): Float;
 
 { Parse CastleScript program.
@@ -77,13 +77,13 @@ function ParseConstantFloatExpression(const S: string): Float;
   Variable list works like for ParseFloatExpression, see there for
   description.
 
-  @raises(EKamScriptSyntaxError in case of error when parsing expression.)
+  @raises(ECasScriptSyntaxError in case of error when parsing expression.)
 
   @groupBegin }
 function ParseProgram(const S: string;
-  const Variables: array of TKamScriptValue): TKamScriptProgram; overload;
+  const Variables: array of TCasScriptValue): TCasScriptProgram; overload;
 function ParseProgram(const S: string;
-  const Variables: TKamScriptValueList): TKamScriptProgram; overload;
+  const Variables: TCasScriptValueList): TCasScriptProgram; overload;
 { @groupEnd }
 
 implementation
@@ -91,35 +91,35 @@ implementation
 uses SysUtils, CastleScriptCoreFunctions;
 
 function Expression(
-  const Lexer: TKamScriptLexer;
-  Environment: TKamScriptEnvironment;
-  const Variables: array of TKamScriptValue): TKamScriptExpression; forward;
+  const Lexer: TCasScriptLexer;
+  Environment: TCasScriptEnvironment;
+  const Variables: array of TCasScriptValue): TCasScriptExpression; forward;
 
 function NonAssignmentExpression(
-  const Lexer: TKamScriptLexer;
-  Environment: TKamScriptEnvironment;
+  const Lexer: TCasScriptLexer;
+  Environment: TCasScriptEnvironment;
   const AllowFullExpressionInFactor: boolean;
-  const Variables: array of TKamScriptValue): TKamScriptExpression;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
 
-  function BinaryOper(tok: TToken): TKamScriptFunctionClass;
+  function BinaryOper(tok: TToken): TCasScriptFunctionClass;
   begin
     case tok of
-      tokPlus: Result := TKamScriptAdd;
-      tokMinus: Result := TKamScriptSubtract;
+      tokPlus: Result := TCasScriptAdd;
+      tokMinus: Result := TCasScriptSubtract;
 
-      tokMultiply: Result := TKamScriptMultiply;
-      tokDivide: Result := TKamScriptDivide;
-      tokPower: Result := TKamScriptPower;
-      tokModulo: Result := TKamScriptModulo;
+      tokMultiply: Result := TCasScriptMultiply;
+      tokDivide: Result := TCasScriptDivide;
+      tokPower: Result := TCasScriptPower;
+      tokModulo: Result := TCasScriptModulo;
 
-      tokGreater: Result := TKamScriptGreater;
-      tokLesser: Result := TKamScriptLesser;
-      tokGreaterEqual: Result := TKamScriptGreaterEq;
-      tokLesserEqual: Result := TKamScriptLesserEq;
-      tokEqual: Result := TKamScriptEqual;
-      tokNotEqual: Result := TKamScriptNotEqual;
+      tokGreater: Result := TCasScriptGreater;
+      tokLesser: Result := TCasScriptLesser;
+      tokGreaterEqual: Result := TCasScriptGreaterEq;
+      tokLesserEqual: Result := TCasScriptLesserEq;
+      tokEqual: Result := TCasScriptEqual;
+      tokNotEqual: Result := TCasScriptNotEqual;
 
-      else raise EKamScriptParserError.Create(Lexer,
+      else raise ECasScriptParserError.Create(Lexer,
         'internal error : token not a binary operator');
     end
   end;
@@ -132,7 +132,7 @@ const
   TermOperator = [tokPlus, tokMinus];
   ComparisonOperator = [tokGreater, tokLesser, tokGreaterEqual, tokLesserEqual, tokEqual, tokNotEqual];
 
-  function Operand: TKamScriptValue;
+  function Operand: TCasScriptValue;
   var
     I: Integer;
   begin
@@ -147,7 +147,7 @@ const
       end;
 
     if Result = nil then
-      raise EKamScriptParserError.CreateFmt(Lexer, 'Undefined identifier "%s"',
+      raise ECasScriptParserError.CreateFmt(Lexer, 'Undefined identifier "%s"',
         [Lexer.TokenString]);
 
     Lexer.NextToken;
@@ -155,7 +155,7 @@ const
 
   { Returns either Expression or NonAssignmentExpression, depending on
     AllowFullExpressionInFactor value. }
-  function ExpressionInsideFactor: TKamScriptExpression;
+  function ExpressionInsideFactor: TCasScriptExpression;
   begin
     if AllowFullExpressionInFactor then
       Result := Expression(Lexer, Environment, Variables) else
@@ -163,38 +163,38 @@ const
         AllowFullExpressionInFactor, Variables);
   end;
 
-  function Factor: TKamScriptExpression;
+  function Factor: TCasScriptExpression;
   var
-    FC: TKamScriptFunctionClass;
-    FParams: TKamScriptExpressionList;
+    FC: TCasScriptFunctionClass;
+    FParams: TCasScriptExpressionList;
   begin
     Result := nil;
     try
       case Lexer.Token of
         tokIdentifier: Result := Operand;
         tokInteger: begin
-            Result := TKamScriptInteger.Create(false, Lexer.TokenInteger);
+            Result := TCasScriptInteger.Create(false, Lexer.TokenInteger);
             Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokFloat: begin
-            Result := TKamScriptFloat.Create(false, Lexer.TokenFloat);
+            Result := TCasScriptFloat.Create(false, Lexer.TokenFloat);
             Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokBoolean: begin
-            Result := TKamScriptBoolean.Create(false, Lexer.TokenBoolean);
+            Result := TCasScriptBoolean.Create(false, Lexer.TokenBoolean);
             Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokString: begin
-            Result := TKamScriptString.Create(false, Lexer.TokenString);
+            Result := TCasScriptString.Create(false, Lexer.TokenString);
             Result.Environment := Environment;
             Lexer.NextToken;
           end;
         tokMinus: begin
             Lexer.NextToken;
-            Result := TKamScriptNegate.Create([Factor()]);
+            Result := TCasScriptNegate.Create([Factor()]);
             Result.Environment := Environment;
           end;
         tokLParen: begin
@@ -206,7 +206,7 @@ const
         tokFuncName: begin
             FC := Lexer.TokenFunctionClass;
             Lexer.NextToken;
-            FParams := TKamScriptExpressionList.Create(false);
+            FParams := TCasScriptExpressionList.Create(false);
             try
               try
                 Lexer.CheckTokenIs(tokLParen);
@@ -230,15 +230,15 @@ const
               Result.Environment := Environment;
             finally FParams.Free end;
           end;
-        else raise EKamScriptParserError.Create(Lexer, SErrWrongFactor +
+        else raise ECasScriptParserError.Create(Lexer, SErrWrongFactor +
           ', but got "' + Lexer.TokenDescription + '"');
       end;
     except Result.FreeByParentExpression; raise end;
   end;
 
-  function Term: TKamScriptExpression;
+  function Term: TCasScriptExpression;
   var
-    FC: TKamScriptFunctionClass;
+    FC: TCasScriptFunctionClass;
   begin
     Result := nil;
     try
@@ -253,9 +253,9 @@ const
     except Result.FreeByParentExpression; raise end;
   end;
 
-  function ComparisonArgument: TKamScriptExpression;
+  function ComparisonArgument: TCasScriptExpression;
   var
-    FC: TKamScriptFunctionClass;
+    FC: TCasScriptFunctionClass;
   begin
     Result := nil;
     try
@@ -271,7 +271,7 @@ const
   end;
 
 var
-  FC: TKamScriptFunctionClass;
+  FC: TCasScriptFunctionClass;
 begin
   Result := nil;
   try
@@ -287,10 +287,10 @@ begin
 end;
 
 type
-  TKamScriptValuesArray = array of TKamScriptValue;
+  TCasScriptValuesArray = array of TCasScriptValue;
 
 function VariablesListToArray(
-  const Variables: TKamScriptValueList): TKamScriptValuesArray;
+  const Variables: TCasScriptValueList): TCasScriptValuesArray;
 var
   I: Integer;
 begin
@@ -300,24 +300,24 @@ begin
 end;
 
 function Expression(
-  const Lexer: TKamScriptLexer;
-  Environment: TKamScriptEnvironment;
-  const Variables: TKamScriptValueList): TKamScriptExpression;
+  const Lexer: TCasScriptLexer;
+  Environment: TCasScriptEnvironment;
+  const Variables: TCasScriptValueList): TCasScriptExpression;
 begin
   Result := Expression(Lexer, Environment, VariablesListToArray(Variables));
 end;
 
 function Expression(
-  const Lexer: TKamScriptLexer;
-  Environment: TKamScriptEnvironment;
-  const Variables: array of TKamScriptValue): TKamScriptExpression;
+  const Lexer: TCasScriptLexer;
+  Environment: TCasScriptEnvironment;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
 
-  function PossiblyAssignmentExpression: TKamScriptExpression;
+  function PossiblyAssignmentExpression: TCasScriptExpression;
   { How to parse this?
 
     Straighforward approach is to try parsing
     Operand, then check is it followed by ":=".
-    In case of parsing errors (we can catch them by EKamScriptParserError),
+    In case of parsing errors (we can catch them by ECasScriptParserError),
     or something else than ":=", we rollback and parse NonAssignmentExpression.
 
     The trouble with this approach: "rollback". This is uneasy,
@@ -331,7 +331,7 @@ function Expression(
     cannot occur within NonAssignmentExpression without parenthesis).
     After parsing NonAssignmentExpression, we can check for ":=". }
   var
-    Operand, AssignedValue: TKamScriptExpression;
+    Operand, AssignedValue: TCasScriptExpression;
   begin
     Result := NonAssignmentExpression(Lexer, Environment, true, Variables);
     try
@@ -342,20 +342,20 @@ function Expression(
         AssignedValue := PossiblyAssignmentExpression();
 
         Operand := Result;
-        { set Result to nil, in case of exception from TKamScriptAssignment
+        { set Result to nil, in case of exception from TCasScriptAssignment
           constructor. }
         Result := nil;
 
-        { TKamScriptAssignment in constructor checks that
+        { TCasScriptAssignment in constructor checks that
           Operand is actually a simple writeable operand. }
-        Result := TKamScriptAssignment.Create([Operand, AssignedValue]);
+        Result := TCasScriptAssignment.Create([Operand, AssignedValue]);
         Result.Environment := Environment;
       end;
     except Result.FreeByParentExpression; raise end;
   end;
 
 var
-  SequenceArgs: TKamScriptExpressionList;
+  SequenceArgs: TCasScriptExpressionList;
 begin
   Result := nil;
   try
@@ -363,7 +363,7 @@ begin
 
     if Lexer.Token = tokSemicolon then
     begin
-      SequenceArgs := TKamScriptExpressionList.Create(false);
+      SequenceArgs := TCasScriptExpressionList.Create(false);
       try
         try
           SequenceArgs.Add(Result);
@@ -376,7 +376,7 @@ begin
           end;
         except SequenceArgs.FreeContentsByParentExpression; raise end;
 
-        Result := TKamScriptSequence.Create(SequenceArgs);
+        Result := TCasScriptSequence.Create(SequenceArgs);
         Result.Environment := Environment;
       finally FreeAndNil(SequenceArgs) end;
     end;
@@ -384,23 +384,23 @@ begin
 end;
 
 function AProgram(
-  const Lexer: TKamScriptLexer;
-  const GlobalVariables: array of TKamScriptValue): TKamScriptProgram;
+  const Lexer: TCasScriptLexer;
+  const GlobalVariables: array of TCasScriptValue): TCasScriptProgram;
 var
-  Environment: TKamScriptEnvironment;
+  Environment: TCasScriptEnvironment;
 
-  function AFunction: TKamScriptFunctionDefinition;
+  function AFunction: TCasScriptFunctionDefinition;
   var
-    BodyVariables: TKamScriptValueList;
-    Parameter: TKamScriptValue;
+    BodyVariables: TCasScriptValueList;
+    Parameter: TCasScriptValue;
   begin
-    Result := TKamScriptFunctionDefinition.Create;
+    Result := TCasScriptFunctionDefinition.Create;
     try
       Lexer.CheckTokenIs(tokIdentifier);
       Result.Name := Lexer.TokenString;
       Lexer.NextToken;
 
-      BodyVariables := TKamScriptValueList.Create(false);
+      BodyVariables := TCasScriptValueList.Create(false);
       try
         Lexer.CheckTokenIs(tokLParen);
         Lexer.NextToken;
@@ -409,7 +409,7 @@ var
         begin
           repeat
             Lexer.CheckTokenIs(tokIdentifier);
-            Parameter := TKamScriptParameterValue.Create(true);
+            Parameter := TCasScriptParameterValue.Create(true);
             Parameter.Environment := Environment;
             Parameter.Name := Lexer.TokenString;
             Parameter.OwnedByParentExpression := false;
@@ -439,7 +439,7 @@ var
   end;
 
 begin
-  Result := TKamScriptProgram.Create;
+  Result := TCasScriptProgram.Create;
   try
     Environment := Result.Environment;
     while Lexer.Token = tokFunctionKeyword do
@@ -453,15 +453,15 @@ end;
 { ParseFloatExpression ------------------------------------------------------- }
 
 function ParseFloatExpression(const S: string;
-  const Variables: array of TKamScriptValue): TKamScriptExpression;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
 var
-  Lexer: TKamScriptLexer;
+  Lexer: TCasScriptLexer;
   I: Integer;
 begin
   for I := 0 to Length(Variables) - 1 do
     Variables[I].OwnedByParentExpression := false;
 
-  Lexer := TKamScriptLexer.Create(s);
+  Lexer := TCasScriptLexer.Create(s);
   try
     Result := nil;
     try
@@ -469,16 +469,16 @@ begin
         Result := NonAssignmentExpression(Lexer, nil { no Environment }, false, Variables);
         Lexer.CheckTokenIs(tokEnd);
       except
-        { Change EKamScriptFunctionArgumentsError (raised when
-          creating functions) to EKamScriptParserError.
-          This allows the caller to catch only EKamScriptSyntaxError,
+        { Change ECasScriptFunctionArgumentsError (raised when
+          creating functions) to ECasScriptParserError.
+          This allows the caller to catch only ECasScriptSyntaxError,
           and adds position information to error message. }
-        on E: EKamScriptFunctionArgumentsError do
-          raise EKamScriptParserError.Create(Lexer, E.Message);
+        on E: ECasScriptFunctionArgumentsError do
+          raise ECasScriptParserError.Create(Lexer, E.Message);
       end;
 
       { At the end, wrap Result in float() cast. }
-      Result := TKamScriptFloatFun.Create([Result]);
+      Result := TCasScriptFloatFun.Create([Result]);
     except Result.FreeByParentExpression; raise end;
   finally Lexer.Free end;
 end;
@@ -487,12 +487,12 @@ end;
 
 function ParseConstantFloatExpression(const S: string): Float;
 var
-  Expr: TKamScriptExpression;
+  Expr: TCasScriptExpression;
 begin
   try
     Expr := ParseFloatExpression(s, []);
   except
-    on E: EKamScriptSyntaxError do
+    on E: ECasScriptSyntaxError do
     begin
       E.Message := 'Error when parsing constant expression: ' + E.Message;
       raise;
@@ -500,28 +500,28 @@ begin
   end;
 
   try
-    Result := (Expr.Execute as TKamScriptFloat).Value;
+    Result := (Expr.Execute as TCasScriptFloat).Value;
   finally Expr.Free end;
 end;
 
 { ParseProgram --------------------------------------------------------------- }
 
 function ParseProgram(const S: string;
-  const Variables: TKamScriptValueList): TKamScriptProgram;
+  const Variables: TCasScriptValueList): TCasScriptProgram;
 begin
   Result := ParseProgram(S, VariablesListToArray(Variables));
 end;
 
 function ParseProgram(const S: string;
-  const Variables: array of TKamScriptValue): TKamScriptProgram;
+  const Variables: array of TCasScriptValue): TCasScriptProgram;
 var
-  Lexer: TKamScriptLexer;
+  Lexer: TCasScriptLexer;
   I: Integer;
 begin
   for I := 0 to Length(Variables) - 1 do
     Variables[I].OwnedByParentExpression := false;
 
-  Lexer := TKamScriptLexer.Create(s);
+  Lexer := TCasScriptLexer.Create(s);
   try
     Result := nil;
     try
@@ -529,12 +529,12 @@ begin
         Result := AProgram(Lexer, Variables);
         Lexer.CheckTokenIs(tokEnd);
       except
-        { Change EKamScriptFunctionArgumentsError (raised when
-          creating functions) to EKamScriptParserError.
-          This allows the caller to catch only EKamScriptSyntaxError,
+        { Change ECasScriptFunctionArgumentsError (raised when
+          creating functions) to ECasScriptParserError.
+          This allows the caller to catch only ECasScriptSyntaxError,
           and adds position information to error message. }
-        on E: EKamScriptFunctionArgumentsError do
-          raise EKamScriptParserError.Create(Lexer, E.Message);
+        on E: ECasScriptFunctionArgumentsError do
+          raise ECasScriptParserError.Create(Lexer, E.Message);
       end;
     except Result.Free; raise end;
   finally Lexer.Free end;

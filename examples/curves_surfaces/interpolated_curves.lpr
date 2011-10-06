@@ -52,7 +52,7 @@ var
 
     Set PreciseCurve only with SetPreciseCurve.
     Set ApproxCurve only with SetApproxCurve. }
-  PreciseCurve: TKamScriptCurve;
+  PreciseCurve: TCasScriptCurve;
   ApproxCurve: TControlPointsCurve;
 
   CurvesRenderSegments: Cardinal = 100;
@@ -76,10 +76,10 @@ var
   ApproxCurveControlPointsCount: Cardinal = 10;
   ApproxCurveClass: TControlPointsCurveClass { = TLagrangeInterpolatedCurve };
 
-  { TVariable used in all TKamScriptCurve curves (sharing doesn't do any
+  { TVariable used in all TCasScriptCurve curves (sharing doesn't do any
     harm in this case, as each curve will set it from beginnig to end
     anyway). }
-  TVariable: TKamScriptFloat;
+  TVariable: TCasScriptFloat;
 
 { scene manager -------------------------------------------------------------- }
 
@@ -134,11 +134,11 @@ procedure SetApproxCurve; forward;
   References to NewX/Y/ZFunction will be copied, so do NOT Free
   NewX/Y/ZFunction yourself after calling this procedure. }
 procedure SetPreciseCurve(
-  NewXFunction, NewYFunction, NewZFunction: TKamScriptExpression;
+  NewXFunction, NewYFunction, NewZFunction: TCasScriptExpression;
   const NewTBegin, NewTEnd: Float);
 begin
   FreeAndNil(PreciseCurve);
-  PreciseCurve := TKamScriptCurve.Create(NewTBegin, NewTEnd,
+  PreciseCurve := TCasScriptCurve.Create(NewTBegin, NewTEnd,
     NewXFunction, NewYFunction, NewZFunction, TVariable);
   SceneManager.Items.Add(PreciseCurve);
 
@@ -155,7 +155,7 @@ end;
 procedure SetApproxCurve;
 begin
   FreeAndNil(ApproxCurve);
-  ApproxCurve := ApproxCurveClass.CreateDivideKamScriptCurve(
+  ApproxCurve := ApproxCurveClass.CreateDivideCasScriptCurve(
     PreciseCurve, ApproxCurveControlPointsCount);
   SceneManager.Items.Add(ApproxCurve);
 
@@ -280,7 +280,7 @@ procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
     Only if he will accept operation and provide valid MathExpr we will
     create new Expr and return true. }
   function MessageInputQueryFunction(const Prompt: string;
-    var Expr: TKamScriptExpression): boolean;
+    var Expr: TCasScriptExpression): boolean;
   var
     ExprString: string;
   begin
@@ -291,7 +291,7 @@ procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
 
       try
         Expr := ParseFloatExpression(ExprString, [TVariable]);
-      except on E: EKamScriptSyntaxError do
+      except on E: ECasScriptSyntaxError do
         begin
           MessageOK(Window, ExceptMessage(E, nil), taLeft);
           Result := false;
@@ -303,7 +303,7 @@ procedure MenuCommand(Window: TCastleWindowBase; MenuItem: TMenuItem);
   end;
 
 var
-  NewXFunction, NewYFunction, NewZFunction: TKamScriptExpression;
+  NewXFunction, NewYFunction, NewZFunction: TCasScriptExpression;
   NewTBegin, NewTEnd: Float;
 begin
   case MenuItem.IntData of
@@ -413,7 +413,7 @@ begin
   try
     ApproxCurveClass := TLagrangeInterpolatedCurve;
 
-    TVariable := TKamScriptFloat.Create(false);
+    TVariable := TCasScriptFloat.Create(false);
     TVariable.Name := 't';
     TVariable.OwnedByParentExpression := false;
 
@@ -426,8 +426,8 @@ begin
 
     { init PreciseCurve }
     SetPreciseCurve(
-      TKamScriptSin.Create([TVariable]),
-      TKamScriptCos.Create([TVariable]),
+      TCasScriptSin.Create([TVariable]),
+      TCasScriptCos.Create([TVariable]),
       TVariable,
       0, 4*Pi);
 

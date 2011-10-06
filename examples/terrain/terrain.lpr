@@ -59,7 +59,7 @@ uses SysUtils, Classes, Boxes3D,
   GLShaders, GLImages, X3DFields, X3DNodes;
 
 type
-  TTerrainType = (ttNoise, ttKamScript, ttImage, ttGrid);
+  TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
 
 var
   { global stuff }
@@ -178,8 +178,8 @@ begin
       TerrainType := ttGrid else
     if Elevation is TElevationNoise then
       TerrainType := ttNoise else
-    if Elevation is TElevationKamScript then
-      TerrainType := ttKamScript else
+    if Elevation is TElevationCasScript then
+      TerrainType := ttCasScript else
     if Elevation is TElevationImage then
       TerrainType := ttImage else
       raise EInternalError.Create('Unknown TerrainType from Elevation class');
@@ -604,7 +604,7 @@ begin
             '(For example, try "sin(x*2) * sin(y*2)").', Expression, taLeft) then
           begin
             try
-              NewElevation := TElevationKamScript.Create(Expression);
+              NewElevation := TElevationCasScript.Create(Expression);
             except
               on E: Exception do
               begin
@@ -708,7 +708,7 @@ begin
     TerrainTypeRadio := Radio.Group;
     M.Append(Radio);
 
-    Radio := TMenuItemRadio.Create('Terrain defined by CastleScript expression ...', 60, TerrainType = ttKamScript, false);
+    Radio := TMenuItemRadio.Create('Terrain defined by CastleScript expression ...', 60, TerrainType = ttCasScript, false);
     Radio.Group := TerrainTypeRadio;
     M.Append(Radio);
 

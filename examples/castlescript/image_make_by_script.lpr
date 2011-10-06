@@ -25,48 +25,48 @@ uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, Images,
   CastleWarnings;
 
 var
-  Vars: TKamScriptValueList;
-  Prog: TKamScriptProgram;
+  Vars: TCasScriptValueList;
+  Prog: TCasScriptProgram;
 begin
   Parameters.CheckHigh(2);
 
   OnWarning := @OnWarningWrite;
 
-  Vars := TKamScriptValueList.Create(true);
+  Vars := TCasScriptValueList.Create(true);
   try
-    Vars.Add(TKamScriptImage.Create(true));
+    Vars.Add(TCasScriptImage.Create(true));
     Vars.Last.Name := 'result';
-    Vars.Add(TKamScriptImage.Create(true));
+    Vars.Add(TCasScriptImage.Create(true));
     Vars.Last.Name := 'helper_img';
 
-    Vars.Add(TKamScriptInteger.Create(true));
+    Vars.Add(TCasScriptInteger.Create(true));
     Vars.Last.Name := 'i';
-    Vars.Add(TKamScriptInteger.Create(true));
+    Vars.Add(TCasScriptInteger.Create(true));
     Vars.Last.Name := 'j';
-    Vars.Add(TKamScriptInteger.Create(true));
+    Vars.Add(TCasScriptInteger.Create(true));
     Vars.Last.Name := 'k';
-    Vars.Add(TKamScriptInteger.Create(true));
+    Vars.Add(TCasScriptInteger.Create(true));
     Vars.Last.Name := 'l';
 
-    Vars.Add(TKamScriptFloat.Create(true));
+    Vars.Add(TCasScriptFloat.Create(true));
     Vars.Last.Name := 'x';
-    Vars.Add(TKamScriptFloat.Create(true));
+    Vars.Add(TCasScriptFloat.Create(true));
     Vars.Last.Name := 'y';
-    Vars.Add(TKamScriptFloat.Create(true));
+    Vars.Add(TCasScriptFloat.Create(true));
     Vars.Last.Name := 'z';
 
-    Vars.Add(TKamScriptVec2f.Create(true));
+    Vars.Add(TCasScriptVec2f.Create(true));
     Vars.Last.Name := 'v2';
-    Vars.Add(TKamScriptVec3f.Create(true));
+    Vars.Add(TCasScriptVec3f.Create(true));
     Vars.Last.Name := 'v3';
-    Vars.Add(TKamScriptVec4f.Create(true));
+    Vars.Add(TCasScriptVec4f.Create(true));
     Vars.Last.Name := 'v4';
 
     Prog := ParseProgram(FileToString(Parameters[1]), Vars);
     try
       Prog.Environment.WWWBasePath := InclPathDelim(GetCurrentDir);
       Prog.ExecuteFunction('main', []);
-      SaveImage(TKamScriptImage(Vars[0]).Value, Parameters[2]);
+      SaveImage(TCasScriptImage(Vars[0]).Value, Parameters[2]);
     finally FreeAndNil(Prog) end;
   finally FreeAndNil(Vars) end;
 end.

@@ -46,9 +46,9 @@ procedure TTestCastleScript.Test1;
 
   procedure WritelnLexer(const s: string);
   var
-    Lexer: TKamScriptLexer;
+    Lexer: TCasScriptLexer;
   begin
-    Lexer := TKamScriptLexer.Create(s);
+    Lexer := TCasScriptLexer.Create(s);
     repeat
       Writeln(Lexer.TokenDescription);
       Lexer.NextToken;
@@ -65,53 +65,53 @@ end;
 
 procedure TTestCastleScript.TestCodeCreatedExprs;
 var
-  Expr: TKamScriptExpression;
-  MyVariable: TKamScriptFloat;
+  Expr: TCasScriptExpression;
+  MyVariable: TCasScriptFloat;
 begin
-  Expr := TKamScriptAdd.Create([
-      TKamScriptSin.Create([TKamScriptFloat.Create(false, 3)]),
-      TKamScriptFloat.Create(false, 10),
-      TKamScriptFloat.Create(false, 1)
+  Expr := TCasScriptAdd.Create([
+      TCasScriptSin.Create([TCasScriptFloat.Create(false, 3)]),
+      TCasScriptFloat.Create(false, 10),
+      TCasScriptFloat.Create(false, 1)
     ]);
   try
-    Assert((Expr.Execute as TKamScriptFloat).Value = sin(3) + 10 + 1);
+    Assert((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
   finally FreeAndNil(Expr) end;
 
-  MyVariable := TKamScriptFloat.Create(false, 3);
-  Expr := TKamScriptAdd.Create([
-      TKamScriptSin.Create([MyVariable]),
-      TKamScriptFloat.Create(false, 10),
-      TKamScriptFloat.Create(false, 1)
+  MyVariable := TCasScriptFloat.Create(false, 3);
+  Expr := TCasScriptAdd.Create([
+      TCasScriptSin.Create([MyVariable]),
+      TCasScriptFloat.Create(false, 10),
+      TCasScriptFloat.Create(false, 1)
     ]);
   try
-    Assert((Expr.Execute as TKamScriptFloat).Value = sin(3) + 10 + 1);
+    Assert((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
 
     MyVariable.Value := 4;
-    Assert((Expr.Execute as TKamScriptFloat).Value = sin(4) + 10 + 1);
+    Assert((Expr.Execute as TCasScriptFloat).Value = sin(4) + 10 + 1);
 
     MyVariable.Value := 5;
-    Assert((Expr.Execute as TKamScriptFloat).Value = sin(5) + 10 + 1);
+    Assert((Expr.Execute as TCasScriptFloat).Value = sin(5) + 10 + 1);
   finally FreeAndNil(Expr) end;
 end;
 
 procedure TTestCastleScript.TestInheritsFrom;
 begin
-  Assert(TKamScriptFloat.InheritsFrom(TKamScriptFloat));
-  Assert(TKamScriptValue.InheritsFrom(TKamScriptValue));
-  Assert(TKamScriptFloat.InheritsFrom(TKamScriptValue));
-  Assert(not TKamScriptValue.InheritsFrom(TKamScriptFloat));
+  Assert(TCasScriptFloat.InheritsFrom(TCasScriptFloat));
+  Assert(TCasScriptValue.InheritsFrom(TCasScriptValue));
+  Assert(TCasScriptFloat.InheritsFrom(TCasScriptValue));
+  Assert(not TCasScriptValue.InheritsFrom(TCasScriptFloat));
 end;
 
 procedure TTestCastleScript.TestFloatPrograms;
 var
-  Vars: array [0..3] of TKamScriptFloat;
-  VarsAsValue: array [Low(Vars)..High(Vars)] of TKamScriptValue absolute Vars;
-  Prog: TKamScriptProgram;
+  Vars: array [0..3] of TCasScriptFloat;
+  VarsAsValue: array [Low(Vars)..High(Vars)] of TCasScriptValue absolute Vars;
+  Prog: TCasScriptProgram;
   I: Integer;
 begin
   for I := 0 to High(Vars) do
   begin
-    Vars[I] := TKamScriptFloat.Create(true);
+    Vars[I] := TCasScriptFloat.Create(true);
     Vars[I].Value := I;
     Vars[I].Name := 'x' + IntToStr(I);
   end;
@@ -132,7 +132,7 @@ end;
 
 procedure TTestCastleScript.TestVariousTypesPrograms;
 var
-  Prog: TKamScriptProgram;
+  Prog: TCasScriptProgram;
 
   procedure ExecuteExpectError;
   begin
@@ -140,19 +140,19 @@ var
       Prog.ExecuteFunction('main', []);
       Assert(false, 'should not get here');
     except
-      on EKamScriptError do ;
+      on ECasScriptError do ;
     end;
   end;
 
 var
-  Vars: TKamScriptValueList;
+  Vars: TCasScriptValueList;
 begin
-  Vars := TKamScriptValueList.Create(true);
+  Vars := TCasScriptValueList.Create(true);
   try
-    Vars.Add(TKamScriptInteger.Create(true, 23));
-    Vars.Add(TKamScriptFloat.Create(true, 3.14));
-    Vars.Add(TKamScriptBoolean.Create(true, false));
-    Vars.Add(TKamScriptString.Create(true, 'foo'));
+    Vars.Add(TCasScriptInteger.Create(true, 23));
+    Vars.Add(TCasScriptFloat.Create(true, 3.14));
+    Vars.Add(TCasScriptBoolean.Create(true, false));
+    Vars.Add(TCasScriptString.Create(true, 'foo'));
 
     Vars[0].Name := 'my_int';
     Vars[1].Name := 'my_float';
@@ -164,21 +164,21 @@ begin
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert((Vars[0] as TKamScriptInteger).Value = 23);
-    Assert((Vars[1] as TKamScriptFloat).Value = 3.14);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
-    Assert((Vars[3] as TKamScriptString).Value = 'foo');
+    Assert((Vars[0] as TCasScriptInteger).Value = 23);
+    Assert((Vars[1] as TCasScriptFloat).Value = 3.14);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    Assert((Vars[3] as TCasScriptString).Value = 'foo');
 
     Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script2.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert((Vars[0] as TKamScriptInteger).Value = 23 + 12);
-    Assert((Vars[1] as TKamScriptFloat).Value = Sqrt(3.14 + 2.0));
-    Assert((Vars[2] as TKamScriptBoolean).Value = true);
-    Assert((Vars[3] as TKamScriptString).Value = 'barfooxyz');
+    Assert((Vars[0] as TCasScriptInteger).Value = 23 + 12);
+    Assert((Vars[1] as TCasScriptFloat).Value = Sqrt(3.14 + 2.0));
+    Assert((Vars[2] as TCasScriptBoolean).Value = true);
+    Assert((Vars[3] as TCasScriptString).Value = 'barfooxyz');
 
-    { should raise EKamScriptError }
+    { should raise ECasScriptError }
 
     Prog := ParseProgram('function main() my_int := 123.0', Vars);
     ExecuteExpectError;
@@ -193,23 +193,23 @@ begin
     Prog := ParseProgram('function main() my_int := int(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TKamScriptInteger).Value = 3);
+    Assert((Vars[0] as TCasScriptInteger).Value = 3);
 
     Prog := ParseProgram('function main() my_int := int(-3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TKamScriptInteger).Value = -3);
+    Assert((Vars[0] as TCasScriptInteger).Value = -3);
 
     Prog := ParseProgram('function main() my_int := int(666)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TKamScriptInteger).Value = 666);
+    Assert((Vars[0] as TCasScriptInteger).Value = 666);
 
     Prog := ParseProgram('function main() my_int := int(''44'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert((Vars[0] as TKamScriptInteger).Value = 44);
+    Assert((Vars[0] as TCasScriptInteger).Value = 44);
     Prog := ParseProgram('function main() my_int := int(''blah'')', Vars);
     ExecuteExpectError;
     FreeAndNil(Prog);
@@ -217,76 +217,76 @@ begin
     Prog := ParseProgram('function main() my_int := int(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TKamScriptInteger).Value = 0);
+    Assert((Vars[0] as TCasScriptInteger).Value = 0);
 
     Prog := ParseProgram('function main() my_int := int(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TKamScriptInteger).Value = 1);
+    Assert((Vars[0] as TCasScriptInteger).Value = 1);
 
     Prog := ParseProgram('function main() my_int := int(5 < 6)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TKamScriptInteger).Value = 1);
+    Assert((Vars[0] as TCasScriptInteger).Value = 1);
 
     { test float() }
 
     Prog := ParseProgram('function main() my_float := float(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 3.14);
+    Assert((Vars[1] as TCasScriptFloat).Value = 3.14);
 
     Prog := ParseProgram('function main() my_float := float(-3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = -3.14);
+    Assert((Vars[1] as TCasScriptFloat).Value = -3.14);
 
     Prog := ParseProgram('function main() my_float := float(666)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 666);
+    Assert((Vars[1] as TCasScriptFloat).Value = 666);
 
     Prog := ParseProgram('function main() my_float := 123', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 123);
+    Assert((Vars[1] as TCasScriptFloat).Value = 123);
 
     Prog := ParseProgram('function main() my_float := float(''44.456'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 44.456);
+    Assert((Vars[1] as TCasScriptFloat).Value = 44.456);
 
     Prog := ParseProgram('function main() my_float := float(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 0);
+    Assert((Vars[1] as TCasScriptFloat).Value = 0);
 
     Prog := ParseProgram('function main() my_float := float(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 1);
+    Assert((Vars[1] as TCasScriptFloat).Value = 1);
 
     Prog := ParseProgram('function main() my_float := float(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[1] as TKamScriptFloat).Value = 0);
+    Assert((Vars[1] as TCasScriptFloat).Value = 0);
 
     { test bool() }
 
     Prog := ParseProgram('function main() my_bool := bool(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+    Assert((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog := ParseProgram('function main() my_bool := bool(0.0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(''44.456'')', Vars);
     ExecuteExpectError;
@@ -295,88 +295,88 @@ begin
     Prog := ParseProgram('function main() my_bool := bool(''faLSE'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(''true'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+    Assert((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog := ParseProgram('function main() my_bool := bool(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+    Assert((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog := ParseProgram('function main() my_bool := bool(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
 
     { test string() }
 
     Prog := ParseProgram('function main() my_string := string(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = '3.14');
+    Assert((Vars[3] as TCasScriptString).Value = '3.14');
 
     Prog := ParseProgram('function main() my_string := string(0.0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = '0');
+    Assert((Vars[3] as TCasScriptString).Value = '0');
 
     Prog := ParseProgram('function main() my_string := string(0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = '0');
+    Assert((Vars[3] as TCasScriptString).Value = '0');
 
     Prog := ParseProgram('function main() my_string := string(''44.456hoho'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = '44.456hoho');
+    Assert((Vars[3] as TCasScriptString).Value = '44.456hoho');
 
     Prog := ParseProgram('function main() my_string := string(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = 'true');
+    Assert((Vars[3] as TCasScriptString).Value = 'true');
 
     Prog := ParseProgram('function main() my_string := string(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = 'false');
+    Assert((Vars[3] as TCasScriptString).Value = 'false');
 
     Prog := ParseProgram('function main() my_string := string(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TKamScriptString).Value = 'false');
+    Assert((Vars[3] as TCasScriptString).Value = 'false');
 
     { test if() }
 
     Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script3.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
-    Assert((Vars[0] as TKamScriptInteger).Value = 12);
-    Assert((Vars[1] as TKamScriptFloat).Value = 0);
-    Assert((Vars[2] as TKamScriptBoolean).Value = true);
+    Assert((Vars[0] as TCasScriptInteger).Value = 12);
+    Assert((Vars[1] as TCasScriptFloat).Value = 0);
+    Assert((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog.ExecuteFunction('main_alt', []);
-    Assert((Vars[0] as TKamScriptInteger).Value = 44);
-    Assert((Vars[1] as TKamScriptFloat).Value = 13);
-    Assert((Vars[2] as TKamScriptBoolean).Value = false);
+    Assert((Vars[0] as TCasScriptInteger).Value = 44);
+    Assert((Vars[1] as TCasScriptFloat).Value = 13);
+    Assert((Vars[2] as TCasScriptBoolean).Value = false);
 
     { test while() }
 
     Prog.ExecuteFunction('main_alt_while', []);
-    Assert((Vars[0] as TKamScriptInteger).Value = 13);
-    Assert((Vars[3] as TKamScriptString).Value = 'foo 1 2 3 4 5 6 7 8 9 10 11 12');
+    Assert((Vars[0] as TCasScriptInteger).Value = 13);
+    Assert((Vars[3] as TCasScriptString).Value = 'foo 1 2 3 4 5 6 7 8 9 10 11 12');
 
     { test for() }
 
     Prog.ExecuteFunction('main_alt_for', []);
-    Assert((Vars[3] as TKamScriptString).Value = 'xxxxxxxxxxxfooxxxxxxxxxxx');
+    Assert((Vars[3] as TCasScriptString).Value = 'xxxxxxxxxxxfooxxxxxxxxxxx');
 
     FreeAndNil(Prog);
 
@@ -386,7 +386,7 @@ begin
       Prog := ParseProgram('function main() my_int := 123', Vars);
       Assert(false, 'should not get here');
     except
-      on EKamScriptError do ;
+      on ECasScriptError do ;
     end;
     FreeAndNil(Prog);
 
@@ -401,7 +401,7 @@ end;
 
 procedure TTestCastleScript.TestArrays;
 var
-  Prog: TKamScriptProgram;
+  Prog: TCasScriptProgram;
 
   procedure ExecuteExpectError(const FuncName: string);
   begin
@@ -409,20 +409,20 @@ var
       Prog.ExecuteFunction(FuncName, []);
       Assert(false, 'should not get here');
     except
-      on EKamScriptError do ;
+      on ECasScriptError do ;
     end;
   end;
 
 var
-  Vars: TKamScriptValueList;
+  Vars: TCasScriptValueList;
 begin
-  Vars := TKamScriptValueList.Create(true);
+  Vars := TCasScriptValueList.Create(true);
   try
-    Vars.Add(TKamScriptInteger.Create(true, 23));
-    Vars.Add(TKamScriptFloat.Create(true, 3.14));
-    Vars.Add(TKamScriptBoolean.Create(true, false));
-    Vars.Add(TKamScriptString.Create(true, 'foo'));
-    Vars.Add(TKamScriptLongIntArray.Create(true));
+    Vars.Add(TCasScriptInteger.Create(true, 23));
+    Vars.Add(TCasScriptFloat.Create(true, 3.14));
+    Vars.Add(TCasScriptBoolean.Create(true, false));
+    Vars.Add(TCasScriptString.Create(true, 'foo'));
+    Vars.Add(TCasScriptLongIntArray.Create(true));
 
     Vars[0].Name := 'my_int';
     Vars[1].Name := 'my_float';
@@ -433,10 +433,10 @@ begin
     Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_array.kscript'), Vars);
 
     Prog.ExecuteFunction('main', []);
-    Assert(TKamScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
+    Assert(TCasScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
 
     Prog.ExecuteFunction('main_array_d_test', []);
-    Assert(TKamScriptFloat(Vars[1]).Value = 3.0);
+    Assert(TCasScriptFloat(Vars[1]).Value = 3.0);
 
     ExecuteExpectError('main_test_invalid_index_get');
     ExecuteExpectError('main_test_invalid_index_get_2');
@@ -446,7 +446,7 @@ begin
 
     Prog := ParseProgram(FileToString('data' + PathDelim + 'test_script_string_as_array.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
-    Assert(TKamScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
+    Assert(TCasScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
 
     ExecuteExpectError('error1');
     ExecuteExpectError('error2');
@@ -484,37 +484,37 @@ end;
 
 procedure TTestCastleScript.TestInvalidOps;
 
-  { Executing (but not parsing) of Expr should raise EKamScriptError }
+  { Executing (but not parsing) of Expr should raise ECasScriptError }
   procedure ExpectMathErrors(const Expr: string);
   var
-    Ex: TKamScriptExpression;
+    Ex: TCasScriptExpression;
   begin
     Ex := ParseFloatExpression(Expr, []);
     try
       try
         Ex.Execute;
-        Assert(false, Expr + ' should raise EKamScriptAnyMathError, but didn''t raise anything');
+        Assert(false, Expr + ' should raise ECasScriptAnyMathError, but didn''t raise anything');
       except
-        on EKamScriptAnyMathError do ;
+        on ECasScriptAnyMathError do ;
       end;
     finally FreeAndNil(Ex) end;
   end;
 
-  { Executing (but not parsing) of Expr should raise EKamScriptError,
-    but not EKamScriptAnyMathError. }
+  { Executing (but not parsing) of Expr should raise ECasScriptError,
+    but not ECasScriptAnyMathError. }
   procedure ExpectNonMathErrors(const Expr: string);
   var
-    Ex: TKamScriptExpression;
+    Ex: TCasScriptExpression;
   begin
     Ex := ParseFloatExpression(Expr, []);
     try
       try
         Ex.Execute;
-        Assert(false, Expr + ' should raise EKamScriptError, but didn''t raise anything');
+        Assert(false, Expr + ' should raise ECasScriptError, but didn''t raise anything');
       except
-        on E: EKamScriptError do
+        on E: ECasScriptError do
         begin
-          Assert(not (E is EKamScriptAnyMathError));
+          Assert(not (E is ECasScriptAnyMathError));
         end;
       end;
     finally FreeAndNil(Ex) end;
@@ -534,11 +534,11 @@ end;
 
 procedure TTestCastleScript.TestTryExecuteMath;
 
-  { Executing (but not parsing) of Expr should raise EKamScriptError.
+  { Executing (but not parsing) of Expr should raise ECasScriptError.
     TryExecute will return @nil then. }
   procedure ExpectMathErrors(const Expr: string);
   var
-    Ex: TKamScriptExpression;
+    Ex: TCasScriptExpression;
   begin
     Ex := ParseFloatExpression(Expr, []);
     try
@@ -546,21 +546,21 @@ procedure TTestCastleScript.TestTryExecuteMath;
     finally FreeAndNil(Ex) end;
   end;
 
-  { Executing (but not parsing) of Expr should raise EKamScriptError,
-    but not EKamScriptAnyMathError. TryExecute let's this error through then. }
+  { Executing (but not parsing) of Expr should raise ECasScriptError,
+    but not ECasScriptAnyMathError. TryExecute let's this error through then. }
   procedure ExpectNonMathErrors(const Expr: string);
   var
-    Ex: TKamScriptExpression;
+    Ex: TCasScriptExpression;
   begin
     Ex := ParseFloatExpression(Expr, []);
     try
       try
         Ex.TryExecuteMath;
-        Assert(false, Expr + ' should raise EKamScriptError, but didn''t raise anything');
+        Assert(false, Expr + ' should raise ECasScriptError, but didn''t raise anything');
       except
-        on E: EKamScriptError do
+        on E: ECasScriptError do
         begin
-          Assert(not (E is EKamScriptAnyMathError));
+          Assert(not (E is ECasScriptAnyMathError));
         end;
       end;
     finally FreeAndNil(Ex) end;

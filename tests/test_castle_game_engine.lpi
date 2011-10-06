@@ -243,19 +243,19 @@
         <Name Value="EConvertError"/>
       </Item14>
       <Item15>
-        <Name Value="EKamScriptError"/>
+        <Name Value="ECasScriptError"/>
       </Item15>
       <Item16>
-        <Name Value="EKamScriptFunctionArgumentsError"/>
+        <Name Value="ECasScriptFunctionArgumentsError"/>
       </Item16>
       <Item17>
-        <Name Value="EKamScriptParserError"/>
+        <Name Value="ECasScriptParserError"/>
       </Item17>
       <Item18>
-        <Name Value="EKamScriptFunctionNoHandler"/>
+        <Name Value="ECasScriptFunctionNoHandler"/>
       </Item18>
       <Item19>
-        <Name Value="EKamScriptAnyMathError"/>
+        <Name Value="ECasScriptAnyMathError"/>
       </Item19>
       <Item20>
         <Name Value="EKambiOSError"/>

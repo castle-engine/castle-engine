@@ -23,7 +23,7 @@ uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;
 {$define read_interface}
 
 type
-  TKamScriptVRMLValueList = class(TKamScriptValueList)
+  TCasScriptVRMLValueList = class(TCasScriptValueList)
   private
     FFieldOrEvents: TVRMLFieldOrEventList;
     FLastEventTimes: TX3DTimeList;
@@ -32,12 +32,12 @@ type
     constructor Create(AFreeObjects: boolean);
     destructor Destroy; override;
 
-    { List of field/events associated with this list's KamScript variables.
+    { List of field/events associated with this list's CasScript variables.
       This list is read-only (use @link(Add) to add here).
       It always has the same Count as our own count. }
     property FieldOrEvents: TVRMLFieldOrEventList read FFieldOrEvents;
 
-    { Create TKamScriptValue descendant suitable to hold FieldOrEvent
+    { Create TCasScriptValue descendant suitable to hold FieldOrEvent
       value, and add it to Items.
       FieldOrEvent is added to FieldOrEvents list, so we keep
       all information. }
@@ -77,18 +77,18 @@ type
     procedure ResetLastEventTimes;
   end;
 
-function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
+function VRMLCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
 
 { Do common things before VRML script with this variable is executed.
   This resets ValueAssigned (will be used in AfterExecute),
   and sets current variable's value from FieldOrEvent (if this is a field). }
-procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
+procedure VRMLCasScriptBeforeExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent);
 
 { Do common things after VRML script with this variable is executed.
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
-procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
+procedure VRMLCasScriptAfterExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
 
 {$undef read_interface}
@@ -101,14 +101,14 @@ uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors, CastleWarnings,
 {$define read_implementation}
 
 type
-  { We use TKamScriptVec4f to represent VRML rotations.
-    TKamScriptRotation is just for notation convenience. }
-  TKamScriptRotation = TKamScriptVec4f;
-  TKamScriptRotationArray = TKamScriptVec4fArray;
+  { We use TCasScriptVec4f to represent VRML rotations.
+    TCasScriptRotation is just for notation convenience. }
+  TCasScriptRotation = TCasScriptVec4f;
+  TCasScriptRotationArray = TCasScriptVec4fArray;
 
 { general utils -------------------------------------------------------- }
 
-function VRMLKamScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TKamScriptValue;
+function VRMLCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
 var
   FieldClass: TVRMLFieldClass;
 begin
@@ -118,172 +118,172 @@ begin
 
   if FieldClass.InheritsFrom(TSFEnum) or
      FieldClass.InheritsFrom(TSFLong) then
-    Result := TKamScriptInteger.Create(true) else
+    Result := TCasScriptInteger.Create(true) else
   if FieldClass.InheritsFrom(TMFLong) then
-    Result := TKamScriptLongIntArray.Create(true) else
+    Result := TCasScriptLongIntArray.Create(true) else
   if FieldClass.InheritsFrom(TSFFloat) or
      FieldClass.InheritsFrom(TSFDouble) then
-    Result := TKamScriptFloat.Create(true) else
+    Result := TCasScriptFloat.Create(true) else
   if FieldClass.InheritsFrom(TMFFloat) then
-    Result := TKamScriptSingleArray.Create(true) else
+    Result := TCasScriptSingleArray.Create(true) else
   if FieldClass.InheritsFrom(TMFDouble) then
-    Result := TKamScriptDoubleArray.Create(true) else
+    Result := TCasScriptDoubleArray.Create(true) else
   if FieldClass.InheritsFrom(TSFBool) then
-    Result := TKamScriptBoolean.Create(true) else
+    Result := TCasScriptBoolean.Create(true) else
   if FieldClass.InheritsFrom(TMFBool) then
-    Result := TKamScriptBooleanArray.Create(true) else
+    Result := TCasScriptBooleanArray.Create(true) else
   if FieldClass.InheritsFrom(TSFString) then
-    Result := TKamScriptString.Create(true) else
+    Result := TCasScriptString.Create(true) else
   if FieldClass.InheritsFrom(TMFString) then
-    Result := TKamScriptStringArray.Create(true) else
+    Result := TCasScriptStringArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec2f) then
-    Result := TKamScriptVec2f.Create(true) else
+    Result := TCasScriptVec2f.Create(true) else
   if FieldClass.InheritsFrom(TMFVec2f) then
-    Result := TKamScriptVec2fArray.Create(true) else
+    Result := TCasScriptVec2fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec3f) then
-    Result := TKamScriptVec3f.Create(true) else
+    Result := TCasScriptVec3f.Create(true) else
   if FieldClass.InheritsFrom(TMFVec3f) then
-    Result := TKamScriptVec3fArray.Create(true) else
+    Result := TCasScriptVec3fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec4f) then
-    Result := TKamScriptVec4f.Create(true) else
+    Result := TCasScriptVec4f.Create(true) else
   if FieldClass.InheritsFrom(TMFVec4f) then
-    Result := TKamScriptVec4fArray.Create(true) else
+    Result := TCasScriptVec4fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec2d) then
-    Result := TKamScriptVec2d.Create(true) else
+    Result := TCasScriptVec2d.Create(true) else
   if FieldClass.InheritsFrom(TMFVec2d) then
-    Result := TKamScriptVec2dArray.Create(true) else
+    Result := TCasScriptVec2dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec3d) then
-    Result := TKamScriptVec3d.Create(true) else
+    Result := TCasScriptVec3d.Create(true) else
   if FieldClass.InheritsFrom(TMFVec3d) then
-    Result := TKamScriptVec3dArray.Create(true) else
+    Result := TCasScriptVec3dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec4d) then
-    Result := TKamScriptVec4d.Create(true) else
+    Result := TCasScriptVec4d.Create(true) else
   if FieldClass.InheritsFrom(TMFVec4d) then
-    Result := TKamScriptVec4dArray.Create(true) else
+    Result := TCasScriptVec4dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFRotation) then
-    Result := TKamScriptRotation.Create(true) else
+    Result := TCasScriptRotation.Create(true) else
   if FieldClass.InheritsFrom(TMFRotation) then
-    Result := TKamScriptRotationArray.Create(true) else
+    Result := TCasScriptRotationArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix3f) then
-    Result := TKamScriptMatrix3f.Create(true) else
+    Result := TCasScriptMatrix3f.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix3f) then
-    Result := TKamScriptMatrix3fArray.Create(true) else
+    Result := TCasScriptMatrix3fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix4f) then
-    Result := TKamScriptMatrix4f.Create(true) else
+    Result := TCasScriptMatrix4f.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4f) then
-    Result := TKamScriptMatrix4fArray.Create(true) else
+    Result := TCasScriptMatrix4fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix3d) then
-    Result := TKamScriptMatrix3d.Create(true) else
+    Result := TCasScriptMatrix3d.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix3d) then
-    Result := TKamScriptMatrix3dArray.Create(true) else
+    Result := TCasScriptMatrix3dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix4d) then
-    Result := TKamScriptMatrix4d.Create(true) else
+    Result := TCasScriptMatrix4d.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4d) then
-    Result := TKamScriptMatrix4dArray.Create(true) else
+    Result := TCasScriptMatrix4dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
-    Result := TKamScriptImage.Create(true) else
+    Result := TCasScriptImage.Create(true) else
   begin
     OnWarning(wtMajor, 'VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.VrmlTypeName);
-    Result := TKamScriptFloat.Create(true);
+    Result := TCasScriptFloat.Create(true);
   end;
 
   Result.Name := FieldOrEvent.Name;
 end;
 
-procedure VRMLKamScriptBeforeExecute(Value: TKamScriptValue;
+procedure VRMLCasScriptBeforeExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent);
 
   procedure AssignVRMLFieldValue(Field: TVRMLField);
   begin
     if Field is TSFEnum then
-      TKamScriptInteger(Value).Value := TSFEnum(Field).Value else
+      TCasScriptInteger(Value).Value := TSFEnum(Field).Value else
     if Field is TSFLong then
-      TKamScriptInteger(Value).Value := TSFLong(Field).Value else
+      TCasScriptInteger(Value).Value := TSFLong(Field).Value else
     if Field is TMFLong then
-      TKamScriptLongIntArray(Value).Value := TMFLong(Field).Items else
+      TCasScriptLongIntArray(Value).Value := TMFLong(Field).Items else
 
     if Field is TSFFloat then
-      TKamScriptFloat(Value).Value := TSFFloat(Field).Value else
+      TCasScriptFloat(Value).Value := TSFFloat(Field).Value else
     if Field is TSFDouble then
-      TKamScriptFloat(Value).Value := TSFDouble(Field).Value else
+      TCasScriptFloat(Value).Value := TSFDouble(Field).Value else
     if Field is TMFFloat then
-      TKamScriptSingleArray(Value).Value := TMFFloat(Field).Items else
+      TCasScriptSingleArray(Value).Value := TMFFloat(Field).Items else
     if Field is TMFDouble then
-      TKamScriptDoubleArray(Value).Value := TMFDouble(Field).Items else
+      TCasScriptDoubleArray(Value).Value := TMFDouble(Field).Items else
 
     if Field is TSFBool then
-      TKamScriptBoolean(Value).Value := TSFBool(Field).Value else
+      TCasScriptBoolean(Value).Value := TSFBool(Field).Value else
     if Field is TMFBool then
-      TKamScriptBooleanArray(Value).Value := TMFBool(Field).Items else
+      TCasScriptBooleanArray(Value).Value := TMFBool(Field).Items else
 
     if Field is TSFString then
-      TKamScriptString(Value).Value := TSFString(Field).Value else
+      TCasScriptString(Value).Value := TSFString(Field).Value else
     if Field is TMFString then
-      TKamScriptStringArray(Value).Value := TMFString(Field).Items else
+      TCasScriptStringArray(Value).Value := TMFString(Field).Items else
 
     if Field is TSFVec2f then
-      TKamScriptVec2f(Value).Value := TSFVec2f(Field).Value else
+      TCasScriptVec2f(Value).Value := TSFVec2f(Field).Value else
     if Field is TMFVec2f then
-      TKamScriptVec2fArray(Value).Value := TMFVec2f(Field).Items else
+      TCasScriptVec2fArray(Value).Value := TMFVec2f(Field).Items else
 
     if Field is TSFVec3f then
-      TKamScriptVec3f(Value).Value := TSFVec3f(Field).Value else
+      TCasScriptVec3f(Value).Value := TSFVec3f(Field).Value else
     if Field is TMFVec3f then
-      TKamScriptVec3fArray(Value).Value := TMFVec3f(Field).Items else
+      TCasScriptVec3fArray(Value).Value := TMFVec3f(Field).Items else
 
     if Field is TSFVec4f then
-      TKamScriptVec4f(Value).Value := TSFVec4f(Field).Value else
+      TCasScriptVec4f(Value).Value := TSFVec4f(Field).Value else
     if Field is TMFVec4f then
-      TKamScriptVec4fArray(Value).Value := TMFVec4f(Field).Items else
+      TCasScriptVec4fArray(Value).Value := TMFVec4f(Field).Items else
 
     if Field is TSFVec2d then
-      TKamScriptVec2d(Value).Value := TSFVec2d(Field).Value else
+      TCasScriptVec2d(Value).Value := TSFVec2d(Field).Value else
     if Field is TMFVec2d then
-      TKamScriptVec2dArray(Value).Value := TMFVec2d(Field).Items else
+      TCasScriptVec2dArray(Value).Value := TMFVec2d(Field).Items else
 
     if Field is TSFVec3d then
-      TKamScriptVec3d(Value).Value := TSFVec3d(Field).Value else
+      TCasScriptVec3d(Value).Value := TSFVec3d(Field).Value else
     if Field is TMFVec3d then
-      TKamScriptVec3dArray(Value).Value := TMFVec3d(Field).Items else
+      TCasScriptVec3dArray(Value).Value := TMFVec3d(Field).Items else
 
     if Field is TSFVec4d then
-      TKamScriptVec4d(Value).Value := TSFVec4d(Field).Value else
+      TCasScriptVec4d(Value).Value := TSFVec4d(Field).Value else
     if Field is TMFVec4d then
-      TKamScriptVec4dArray(Value).Value := TMFVec4d(Field).Items else
+      TCasScriptVec4dArray(Value).Value := TMFVec4d(Field).Items else
 
     if Field is TSFRotation then
-      TKamScriptRotation(Value).Value := TSFRotation(Field).Value else
+      TCasScriptRotation(Value).Value := TSFRotation(Field).Value else
     if Field is TMFRotation then
-      TKamScriptRotationArray(Value).Value := TMFRotation(Field).Items else
+      TCasScriptRotationArray(Value).Value := TMFRotation(Field).Items else
 
     if Field is TSFMatrix3f then
-      TKamScriptMatrix3f(Value).Value := TSFMatrix3f(Field).Value else
+      TCasScriptMatrix3f(Value).Value := TSFMatrix3f(Field).Value else
     if Field is TMFMatrix3f then
-      TKamScriptMatrix3fArray(Value).Value := TMFMatrix3f(Field).Items else
+      TCasScriptMatrix3fArray(Value).Value := TMFMatrix3f(Field).Items else
 
     if Field is TSFMatrix4f then
-      TKamScriptMatrix4f(Value).Value := TSFMatrix4f(Field).Value else
+      TCasScriptMatrix4f(Value).Value := TSFMatrix4f(Field).Value else
     if Field is TMFMatrix4f then
-      TKamScriptMatrix4fArray(Value).Value := TMFMatrix4f(Field).Items else
+      TCasScriptMatrix4fArray(Value).Value := TMFMatrix4f(Field).Items else
 
     if Field is TSFMatrix3d then
-      TKamScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
+      TCasScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
     if Field is TMFMatrix3d then
-      TKamScriptMatrix3dArray(Value).Value := TMFMatrix3d(Field).Items else
+      TCasScriptMatrix3dArray(Value).Value := TMFMatrix3d(Field).Items else
 
     if Field is TSFMatrix4d then
-      TKamScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
+      TCasScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
     if Field is TMFMatrix4d then
-      TKamScriptMatrix4dArray(Value).Value := TMFMatrix4d(Field).Items else
+      TCasScriptMatrix4dArray(Value).Value := TMFMatrix4d(Field).Items else
 
     if Field is TSFImage then
-      TKamScriptImage(Value).Value := TSFImage(Field).Value else
+      TCasScriptImage(Value).Value := TSFImage(Field).Value else
     {if Field is TMFImage then
-      TKamScriptImageArray(Value).Value := TMFImage(Field).Items else}
+      TCasScriptImageArray(Value).Value := TMFImage(Field).Items else}
 
       { No sensible way to convert, just fall back to predictable 0.0. }
-      TKamScriptFloat(Value).Value := 0.0;
+      TCasScriptFloat(Value).Value := 0.0;
   end;
 
 begin
@@ -293,7 +293,7 @@ begin
   Value.ValueAssigned := false;
 end;
 
-procedure VRMLKamScriptAfterExecute(Value: TKamScriptValue;
+procedure VRMLCasScriptAfterExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
 
   function GetTimestamp(out Time: TX3DTime): boolean;
@@ -362,94 +362,94 @@ begin
       or leave Field value (and set AbortSending as true). }
 
     if Field is TSFEnum then
-      TSFEnum(Field).Value := TKamScriptInteger(Value).Value else
+      TSFEnum(Field).Value := TCasScriptInteger(Value).Value else
     if Field is TSFLong then
-      TSFLong(Field).Value := TKamScriptInteger(Value).Value else
+      TSFLong(Field).Value := TCasScriptInteger(Value).Value else
     if Field is TMFLong then
-      TMFLong(Field).Items := TKamScriptLongIntArray(Value).Value else
+      TMFLong(Field).Items := TCasScriptLongIntArray(Value).Value else
 
     if Field is TSFFloat then
-      TSFFloat(Field).Value := TKamScriptFloat(Value).Value else
+      TSFFloat(Field).Value := TCasScriptFloat(Value).Value else
     if Field is TSFDouble then
-      TSFDouble(Field).Value := TKamScriptFloat(Value).Value else
+      TSFDouble(Field).Value := TCasScriptFloat(Value).Value else
     if Field is TMFFloat then
-      TMFFloat(Field).Items := TKamScriptSingleArray(Value).Value else
+      TMFFloat(Field).Items := TCasScriptSingleArray(Value).Value else
     if Field is TMFDouble then
-      TMFDouble(Field).Items := TKamScriptDoubleArray(Value).Value else
+      TMFDouble(Field).Items := TCasScriptDoubleArray(Value).Value else
 
     if Field is TSFBool then
-      TSFBool(Field).Value := TKamScriptBoolean(Value).Value else
+      TSFBool(Field).Value := TCasScriptBoolean(Value).Value else
     if Field is TMFBool then
-      TMFBool(Field).Items := TKamScriptBooleanArray(Value).Value else
+      TMFBool(Field).Items := TCasScriptBooleanArray(Value).Value else
 
     if Field is TSFString then
-      TSFString(Field).Value := TKamScriptString(Value).Value else
+      TSFString(Field).Value := TCasScriptString(Value).Value else
     if Field is TMFString then
-      TMFString(Field).Items := TKamScriptStringArray(Value).Value else
+      TMFString(Field).Items := TCasScriptStringArray(Value).Value else
 
     if Field is TSFVec2f then
-      TSFVec2f(Field).Value := TKamScriptVec2f(Value).Value else
+      TSFVec2f(Field).Value := TCasScriptVec2f(Value).Value else
     if Field is TMFVec2f then
-      TMFVec2f(Field).Items := TKamScriptVec2fArray(Value).Value else
+      TMFVec2f(Field).Items := TCasScriptVec2fArray(Value).Value else
 
     if Field is TSFVec3f then
-      TSFVec3f(Field).Value := TKamScriptVec3f(Value).Value else
+      TSFVec3f(Field).Value := TCasScriptVec3f(Value).Value else
     if Field is TMFVec3f then
-      TMFVec3f(Field).Items := TKamScriptVec3fArray(Value).Value else
+      TMFVec3f(Field).Items := TCasScriptVec3fArray(Value).Value else
 
     if Field is TSFVec4f then
-      TSFVec4f(Field).Value := TKamScriptVec4f(Value).Value else
+      TSFVec4f(Field).Value := TCasScriptVec4f(Value).Value else
     if Field is TMFVec4f then
-      TMFVec4f(Field).Items := TKamScriptVec4fArray(Value).Value else
+      TMFVec4f(Field).Items := TCasScriptVec4fArray(Value).Value else
 
     if Field is TSFVec2d then
-      TSFVec2d(Field).Value := TKamScriptVec2d(Value).Value else
+      TSFVec2d(Field).Value := TCasScriptVec2d(Value).Value else
     if Field is TMFVec2d then
-      TMFVec2d(Field).Items := TKamScriptVec2dArray(Value).Value else
+      TMFVec2d(Field).Items := TCasScriptVec2dArray(Value).Value else
 
     if Field is TSFVec3d then
-      TSFVec3d(Field).Value := TKamScriptVec3d(Value).Value else
+      TSFVec3d(Field).Value := TCasScriptVec3d(Value).Value else
     if Field is TMFVec3d then
-      TMFVec3d(Field).Items := TKamScriptVec3dArray(Value).Value else
+      TMFVec3d(Field).Items := TCasScriptVec3dArray(Value).Value else
 
     if Field is TSFVec4d then
-      TSFVec4d(Field).Value := TKamScriptVec4d(Value).Value else
+      TSFVec4d(Field).Value := TCasScriptVec4d(Value).Value else
     if Field is TMFVec4d then
-      TMFVec4d(Field).Items := TKamScriptVec4dArray(Value).Value else
+      TMFVec4d(Field).Items := TCasScriptVec4dArray(Value).Value else
 
     if Field is TSFRotation then
-      TSFRotation(Field).Value := TKamScriptRotation(Value).Value else
+      TSFRotation(Field).Value := TCasScriptRotation(Value).Value else
     if Field is TMFRotation then
-      TMFRotation(Field).Items := TKamScriptRotationArray(Value).Value else
+      TMFRotation(Field).Items := TCasScriptRotationArray(Value).Value else
 
     if Field is TSFMatrix3f then
-      TSFMatrix3f(Field).Value := TKamScriptMatrix3f(Value).Value else
+      TSFMatrix3f(Field).Value := TCasScriptMatrix3f(Value).Value else
     if Field is TMFMatrix3f then
-      TMFMatrix3f(Field).Items := TKamScriptMatrix3fArray(Value).Value else
+      TMFMatrix3f(Field).Items := TCasScriptMatrix3fArray(Value).Value else
 
     if Field is TSFMatrix4f then
-      TSFMatrix4f(Field).Value := TKamScriptMatrix4f(Value).Value else
+      TSFMatrix4f(Field).Value := TCasScriptMatrix4f(Value).Value else
     if Field is TMFMatrix4f then
-      TMFMatrix4f(Field).Items := TKamScriptMatrix4fArray(Value).Value else
+      TMFMatrix4f(Field).Items := TCasScriptMatrix4fArray(Value).Value else
 
     if Field is TSFMatrix3d then
-      TSFMatrix3d(Field).Value := TKamScriptMatrix3d(Value).Value else
+      TSFMatrix3d(Field).Value := TCasScriptMatrix3d(Value).Value else
     if Field is TMFMatrix3d then
-      TMFMatrix3d(Field).Items := TKamScriptMatrix3dArray(Value).Value else
+      TMFMatrix3d(Field).Items := TCasScriptMatrix3dArray(Value).Value else
 
     if Field is TSFMatrix4d then
-      TSFMatrix4d(Field).Value := TKamScriptMatrix4d(Value).Value else
+      TSFMatrix4d(Field).Value := TCasScriptMatrix4d(Value).Value else
     if Field is TMFMatrix4d then
-      TMFMatrix4d(Field).Items := TKamScriptMatrix4dArray(Value).Value else
+      TMFMatrix4d(Field).Items := TCasScriptMatrix4dArray(Value).Value else
 
     if Field is TSFImage then
     begin
       FreeAndNil(TSFImage(Field).Value);
-      TSFImage(Field).Value := TKamScriptImage(Value).Value.MakeCopy;
+      TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy;
     end else
     {if Field is TMFImage then
     begin
-      TMFImage(Field).Items := TKamScriptImageArray(Value).Value
+      TMFImage(Field).Items := TCasScriptImageArray(Value).Value
     end else}
 
     begin
@@ -482,54 +482,54 @@ begin
       But in this case, we know FieldOrEvent comes from a Script node,
       and in this situation ChangedField doesn't do anything anyway. }
 
-    { This is needed for TKamScriptVRMLValueList.AfterExecute trick.
+    { This is needed for TCasScriptVRMLValueList.AfterExecute trick.
       We handled this change, so we mark it by ValueAssigned = false. }
     Value.ValueAssigned := false;
   end;
 end;
 
-{ TKamScriptVRMLValueList -------------------------------------------------- }
+{ TCasScriptVRMLValueList -------------------------------------------------- }
 
-constructor TKamScriptVRMLValueList.Create(AFreeObjects: boolean);
+constructor TCasScriptVRMLValueList.Create(AFreeObjects: boolean);
 begin
   inherited;
   FFieldOrEvents := TVRMLFieldOrEventList.Create(false);
   FLastEventTimes := TX3DTimeList.Create;
 end;
 
-destructor TKamScriptVRMLValueList.Destroy;
+destructor TCasScriptVRMLValueList.Destroy;
 begin
   SysUtils.FreeAndNil(FFieldOrEvents);
   SysUtils.FreeAndNil(FLastEventTimes);
   inherited;
 end;
 
-procedure TKamScriptVRMLValueList.Add(FieldOrEvent: TVRMLFieldOrEvent);
+procedure TCasScriptVRMLValueList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
-  inherited Add(VRMLKamScriptCreateValue(FieldOrEvent));
+  inherited Add(VRMLCasScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
   FLastEventTimes.Add(OldestX3DTime);
 end;
 
-procedure TKamScriptVRMLValueList.BeforeExecute;
+procedure TCasScriptVRMLValueList.BeforeExecute;
 var
   I: Integer;
 begin
   if not InsideAfterExecute then
   begin
     for I := 0 to Count - 1 do
-      VRMLKamScriptBeforeExecute(Items[I], FieldOrEvents[I]);
+      VRMLCasScriptBeforeExecute(Items[I], FieldOrEvents[I]);
   end;
 end;
 
-procedure TKamScriptVRMLValueList.AfterExecute;
+procedure TCasScriptVRMLValueList.AfterExecute;
 var
   I: Integer;
   WasSomeValueAssigned: boolean;
 begin
   if not InsideAfterExecute then
   begin
-    { Note that VRMLKamScriptAfterExecute may send events when given
+    { Note that VRMLCasScriptAfterExecute may send events when given
       fields changed. These events may cause yet another execution
       of the same script. For example,
       - setting inputOutput field of the script causes another execution
@@ -570,14 +570,14 @@ begin
         begin
           if Items[I].ValueAssigned then
             WasSomeValueAssigned := true;
-          VRMLKamScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I]);
+          VRMLCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I]);
         end;
       until not WasSomeValueAssigned;
     finally InsideAfterExecute := false end;
   end;
 end;
 
-procedure TKamScriptVRMLValueList.ResetLastEventTimes;
+procedure TCasScriptVRMLValueList.ResetLastEventTimes;
 var
   I: Integer;
 begin

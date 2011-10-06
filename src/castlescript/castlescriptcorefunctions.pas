@@ -21,788 +21,788 @@ interface
 uses CastleScript;
 
 type
-  TKamScriptAdd = class(TKamScriptFunction)
+  TCasScriptAdd = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptSubtract = class(TKamScriptFunction)
+  TCasScriptSubtract = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptMultiply = class(TKamScriptFunction)
+  TCasScriptMultiply = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptDivide = class(TKamScriptFunction)
+  TCasScriptDivide = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptNegate = class(TKamScriptFunction)
+  TCasScriptNegate = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptModulo = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-    class function InfixOperatorName: string; override;
-  end;
-
-  TKamScriptSin = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptCos = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptTan = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptCotan = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptArcSin = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptArcCos = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptArcTan = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptArcCotan = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptSinh = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptCosh = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptTanh = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptCotanh = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptLog2 = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptLn = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptLog = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptPower2 = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptExp = class(TKamScriptFunction)
-  public
-    class function Name: string; override;
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptPower = class(TKamScriptFunction)
+  TCasScriptModulo = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptSqr = class(TKamScriptFunction)
+  TCasScriptSin = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptSqrt = class(TKamScriptFunction)
+  TCasScriptCos = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptMax = class(TKamScriptFunction)
-  public
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptMin = class(TKamScriptFunction)
-  public
-    class function ShortName: string; override;
-  end;
-
-  TKamScriptSgn = class(TKamScriptFunction)
+  TCasScriptTan = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptAbs = class(TKamScriptFunction)
+  TCasScriptCotan = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptCeil = class(TKamScriptFunction)
+  TCasScriptArcSin = class(TCasScriptFunction)
   public
+    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptFloor = class(TKamScriptFunction)
+  TCasScriptArcCos = class(TCasScriptFunction)
   public
+    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptRound = class(TKamScriptFunction)
+  TCasScriptArcTan = class(TCasScriptFunction)
   public
+    class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptGreater = class(TKamScriptFunction)
+  TCasScriptArcCotan = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptSinh = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptCosh = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptTanh = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptCotanh = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptLog2 = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptLn = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptLog = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptPower2 = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptExp = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptPower = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptLesser = class(TKamScriptFunction)
+  TCasScriptSqr = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptSqrt = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptMax = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptMin = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptSgn = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptAbs = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptCeil = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptFloor = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptRound = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptGreater = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptGreaterEq = class(TKamScriptFunction)
+  TCasScriptLesser = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptLesserEq = class(TKamScriptFunction)
+  TCasScriptGreaterEq = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptEqual = class(TKamScriptFunction)
+  TCasScriptLesserEq = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptNotEqual = class(TKamScriptFunction)
+  TCasScriptEqual = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
     class function InfixOperatorName: string; override;
   end;
 
-  TKamScriptOr = class(TKamScriptFunction)
+  TCasScriptNotEqual = class(TCasScriptFunction)
+  public
+    class function Name: string; override;
+    class function ShortName: string; override;
+    class function InfixOperatorName: string; override;
+  end;
+
+  TCasScriptOr = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptAnd = class(TKamScriptFunction)
+  TCasScriptAnd = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptNot = class(TKamScriptFunction)
+  TCasScriptNot = class(TCasScriptFunction)
   public
     class function Name: string; override;
     class function ShortName: string; override;
   end;
 
-  TKamScriptInt = class(TKamScriptFunction)
+  TCasScriptInt = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptFloatFun = class(TKamScriptFunction)
+  TCasScriptFloatFun = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptBool = class(TKamScriptFunction)
+  TCasScriptBool = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptStringFun = class(TKamScriptFunction)
+  TCasScriptStringFun = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptWriteln = class(TKamScriptFunction)
+  TCasScriptWriteln = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptCharacterFromCode = class(TKamScriptFunction)
+  TCasScriptCharacterFromCode = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptRandom = class(TKamScriptFunction)
+  TCasScriptRandom = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
 implementation
 
-class function TKamScriptAdd.Name: string;
+class function TCasScriptAdd.Name: string;
 begin
   Result := 'add (+)';
 end;
 
-class function TKamScriptAdd.ShortName: string;
+class function TCasScriptAdd.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptAdd.InfixOperatorName: string;
+class function TCasScriptAdd.InfixOperatorName: string;
 begin
   Result := '+';
 end;
 
-class function TKamScriptSubtract.Name: string;
+class function TCasScriptSubtract.Name: string;
 begin
   Result := 'subtract (-)';
 end;
 
-class function TKamScriptSubtract.ShortName: string;
+class function TCasScriptSubtract.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptSubtract.InfixOperatorName: string;
+class function TCasScriptSubtract.InfixOperatorName: string;
 begin
   Result := '-';
 end;
 
-class function TKamScriptMultiply.Name: string;
+class function TCasScriptMultiply.Name: string;
 begin
   Result := 'multiply (*)';
 end;
 
-class function TKamScriptMultiply.ShortName: string;
+class function TCasScriptMultiply.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptMultiply.InfixOperatorName: string;
+class function TCasScriptMultiply.InfixOperatorName: string;
 begin
   Result := '*';
 end;
 
-class function TKamScriptDivide.Name: string;
+class function TCasScriptDivide.Name: string;
 begin
   Result := 'divide (/)';
 end;
 
-class function TKamScriptDivide.ShortName: string;
+class function TCasScriptDivide.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptDivide.InfixOperatorName: string;
+class function TCasScriptDivide.InfixOperatorName: string;
 begin
   Result := '/';
 end;
 
-class function TKamScriptNegate.Name: string;
+class function TCasScriptNegate.Name: string;
 begin
   Result := 'negate (unary -)';
 end;
 
-class function TKamScriptNegate.ShortName: string;
+class function TCasScriptNegate.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptModulo.Name: string;
+class function TCasScriptModulo.Name: string;
 begin
   Result := 'modulo (%)';
 end;
 
-class function TKamScriptModulo.ShortName: string;
+class function TCasScriptModulo.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptModulo.InfixOperatorName: string;
+class function TCasScriptModulo.InfixOperatorName: string;
 begin
   Result := '%';
 end;
 
-class function TKamScriptSin.Name: string;
+class function TCasScriptSin.Name: string;
 begin
   Result := 'sinus';
 end;
 
-class function TKamScriptSin.ShortName: string;
+class function TCasScriptSin.ShortName: string;
 begin
   Result := 'Sin';
 end;
 
-class function TKamScriptCos.Name: string;
+class function TCasScriptCos.Name: string;
 begin
   Result := 'cosinus';
 end;
 
-class function TKamScriptCos.ShortName: string;
+class function TCasScriptCos.ShortName: string;
 begin
   Result := 'Cos';
 end;
 
-class function TKamScriptTan.Name: string;
+class function TCasScriptTan.Name: string;
 begin
   Result := 'tangens';
 end;
 
-class function TKamScriptTan.ShortName: string;
+class function TCasScriptTan.ShortName: string;
 begin
   Result := 'Tan';
 end;
 
-class function TKamScriptCotan.Name: string;
+class function TCasScriptCotan.Name: string;
 begin
   Result := 'cotangens';
 end;
 
-class function TKamScriptCotan.ShortName: string;
+class function TCasScriptCotan.ShortName: string;
 begin
   Result := 'Cotan';
 end;
 
-class function TKamScriptArcSin.Name: string;
+class function TCasScriptArcSin.Name: string;
 begin
   Result := 'arcSinus';
 end;
 
-class function TKamScriptArcSin.ShortName: string;
+class function TCasScriptArcSin.ShortName: string;
 begin
   Result := 'ArcSin';
 end;
 
-class function TKamScriptArcCos.Name: string;
+class function TCasScriptArcCos.Name: string;
 begin
   Result := 'arcCosinus';
 end;
 
-class function TKamScriptArcCos.ShortName: string;
+class function TCasScriptArcCos.ShortName: string;
 begin
   Result := 'ArcCos';
 end;
 
-class function TKamScriptArcTan.Name: string;
+class function TCasScriptArcTan.Name: string;
 begin
   Result := 'arcTangens';
 end;
 
-class function TKamScriptArcTan.ShortName: string;
+class function TCasScriptArcTan.ShortName: string;
 begin
   Result := 'ArcTan';
 end;
 
-class function TKamScriptArcCotan.Name: string;
+class function TCasScriptArcCotan.Name: string;
 begin
   Result := 'arcCotangens';
 end;
 
-class function TKamScriptArcCotan.ShortName: string;
+class function TCasScriptArcCotan.ShortName: string;
 begin
   Result := 'ArcCotan';
 end;
 
-class function TKamScriptSinh.Name: string;
+class function TCasScriptSinh.Name: string;
 begin
   Result := 'sinh';
 end;
 
-class function TKamScriptSinh.ShortName: string;
+class function TCasScriptSinh.ShortName: string;
 begin
   Result := 'Sinh';
 end;
 
-class function TKamScriptCosh.Name: string;
+class function TCasScriptCosh.Name: string;
 begin
   Result := 'cosh';
 end;
 
-class function TKamScriptCosh.ShortName: string;
+class function TCasScriptCosh.ShortName: string;
 begin
   Result := 'Cosh';
 end;
 
-class function TKamScriptTanh.Name: string;
+class function TCasScriptTanh.Name: string;
 begin
   Result := 'tanh';
 end;
 
-class function TKamScriptTanh.ShortName: string;
+class function TCasScriptTanh.ShortName: string;
 begin
   Result := 'Tanh';
 end;
 
-class function TKamScriptCotanh.Name: string;
+class function TCasScriptCotanh.Name: string;
 begin
   Result := 'cotanh';
 end;
 
-class function TKamScriptCotanh.ShortName: string;
+class function TCasScriptCotanh.ShortName: string;
 begin
   Result := 'Cotanh';
 end;
 
-class function TKamScriptLog2.Name: string;
+class function TCasScriptLog2.Name: string;
 begin
   Result := 'logarithm (base 2)';
 end;
 
-class function TKamScriptLog2.ShortName: string;
+class function TCasScriptLog2.ShortName: string;
 begin
   Result := 'Log2';
 end;
 
-class function TKamScriptLn.Name: string;
+class function TCasScriptLn.Name: string;
 begin
   Result := 'logarithm (base e)';
 end;
 
-class function TKamScriptLn.ShortName: string;
+class function TCasScriptLn.ShortName: string;
 begin
   Result := 'Ln';
 end;
 
-class function TKamScriptLog.Name: string;
+class function TCasScriptLog.Name: string;
 begin
   Result := 'logarithm';
 end;
 
-class function TKamScriptLog.ShortName: string;
+class function TCasScriptLog.ShortName: string;
 begin
   Result := 'Log';
 end;
 
-class function TKamScriptPower2.Name: string;
+class function TCasScriptPower2.Name: string;
 begin
   Result := 'power (base 2)';
 end;
 
-class function TKamScriptPower2.ShortName: string;
+class function TCasScriptPower2.ShortName: string;
 begin
   Result := 'Power2';
 end;
 
-class function TKamScriptExp.Name: string;
+class function TCasScriptExp.Name: string;
 begin
   Result := 'power (base enat)';
 end;
 
-class function TKamScriptExp.ShortName: string;
+class function TCasScriptExp.ShortName: string;
 begin
   Result := 'Exp';
 end;
 
-class function TKamScriptPower.Name: string;
+class function TCasScriptPower.Name: string;
 begin
   Result := 'power';
 end;
 
-class function TKamScriptPower.ShortName: string;
+class function TCasScriptPower.ShortName: string;
 begin
   Result := 'Power';
 end;
 
-class function TKamScriptPower.InfixOperatorName: string;
+class function TCasScriptPower.InfixOperatorName: string;
 begin
   Result := '^';
 end;
 
-class function TKamScriptSqr.Name: string;
+class function TCasScriptSqr.Name: string;
 begin
   Result := 'sqr (square)';
 end;
 
-class function TKamScriptSqr.ShortName: string;
+class function TCasScriptSqr.ShortName: string;
 begin
   Result := 'Sqr';
 end;
 
-class function TKamScriptSqrt.Name: string;
+class function TCasScriptSqrt.Name: string;
 begin
   Result := 'sqrt (square root)';
 end;
 
-class function TKamScriptSqrt.ShortName: string;
+class function TCasScriptSqrt.ShortName: string;
 begin
   Result := 'Sqrt';
 end;
 
-class function TKamScriptMax.ShortName: string;
+class function TCasScriptMax.ShortName: string;
 begin
   Result := 'max';
 end;
 
-class function TKamScriptMin.ShortName: string;
+class function TCasScriptMin.ShortName: string;
 begin
   Result := 'min';
 end;
 
-class function TKamScriptSgn.Name: string;
+class function TCasScriptSgn.Name: string;
 begin
   Result := 'signum';
 end;
 
-class function TKamScriptSgn.ShortName: string;
+class function TCasScriptSgn.ShortName: string;
 begin
   Result := 'Sgn';
 end;
 
-class function TKamScriptAbs.Name: string;
+class function TCasScriptAbs.Name: string;
 begin
   Result := 'abs (absolute value)';
 end;
 
-class function TKamScriptAbs.ShortName: string;
+class function TCasScriptAbs.ShortName: string;
 begin
   Result := 'Abs';
 end;
 
-class function TKamScriptCeil.ShortName: string;
+class function TCasScriptCeil.ShortName: string;
 begin
   Result := 'Ceil';
 end;
 
-class function TKamScriptFloor.ShortName: string;
+class function TCasScriptFloor.ShortName: string;
 begin
   Result := 'Floor';
 end;
 
-class function TKamScriptRound.ShortName: string;
+class function TCasScriptRound.ShortName: string;
 begin
   Result := 'round';
 end;
 
-class function TKamScriptGreater.Name: string;
+class function TCasScriptGreater.Name: string;
 begin
   Result := 'greater (>)';
 end;
 
-class function TKamScriptGreater.ShortName: string;
+class function TCasScriptGreater.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptGreater.InfixOperatorName: string;
+class function TCasScriptGreater.InfixOperatorName: string;
 begin
   Result := '>';
 end;
 
-class function TKamScriptLesser.Name: string;
+class function TCasScriptLesser.Name: string;
 begin
   Result := 'lesser (<)';
 end;
 
-class function TKamScriptLesser.ShortName: string;
+class function TCasScriptLesser.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptLesser.InfixOperatorName: string;
+class function TCasScriptLesser.InfixOperatorName: string;
 begin
   Result := '<';
 end;
 
-class function TKamScriptGreaterEq.Name: string;
+class function TCasScriptGreaterEq.Name: string;
 begin
   Result := 'greater/equal (>=)';
 end;
 
-class function TKamScriptGreaterEq.ShortName: string;
+class function TCasScriptGreaterEq.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptGreaterEq.InfixOperatorName: string;
+class function TCasScriptGreaterEq.InfixOperatorName: string;
 begin
   Result := '>=';
 end;
 
-class function TKamScriptLesserEq.Name: string;
+class function TCasScriptLesserEq.Name: string;
 begin
   Result := 'lesser/equal (<=)';
 end;
 
-class function TKamScriptLesserEq.ShortName: string;
+class function TCasScriptLesserEq.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptLesserEq.InfixOperatorName: string;
+class function TCasScriptLesserEq.InfixOperatorName: string;
 begin
   Result := '<=';
 end;
 
-class function TKamScriptEqual.Name: string;
+class function TCasScriptEqual.Name: string;
 begin
   Result := 'equal (=)';
 end;
 
-class function TKamScriptEqual.ShortName: string;
+class function TCasScriptEqual.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptEqual.InfixOperatorName: string;
+class function TCasScriptEqual.InfixOperatorName: string;
 begin
   Result := '=';
 end;
 
-class function TKamScriptNotEqual.Name: string;
+class function TCasScriptNotEqual.Name: string;
 begin
   Result := 'not equal (<>)';
 end;
 
-class function TKamScriptNotEqual.ShortName: string;
+class function TCasScriptNotEqual.ShortName: string;
 begin
   Result := '';
 end;
 
-class function TKamScriptNotEqual.InfixOperatorName: string;
+class function TCasScriptNotEqual.InfixOperatorName: string;
 begin
   Result := '<>';
 end;
 
-class function TKamScriptOr.Name: string;
+class function TCasScriptOr.Name: string;
 begin
   Result := 'or (alternative)';
 end;
 
-class function TKamScriptOr.ShortName: string;
+class function TCasScriptOr.ShortName: string;
 begin
   Result := 'Or';
 end;
 
-class function TKamScriptAnd.Name: string;
+class function TCasScriptAnd.Name: string;
 begin
   Result := 'and (conjunction)';
 end;
 
-class function TKamScriptAnd.ShortName: string;
+class function TCasScriptAnd.ShortName: string;
 begin
   Result := 'And';
 end;
 
-class function TKamScriptNot.Name: string;
+class function TCasScriptNot.Name: string;
 begin
   Result := 'not (logical negation)';
 end;
 
-class function TKamScriptNot.ShortName: string;
+class function TCasScriptNot.ShortName: string;
 begin
   Result := 'Not';
 end;
 
-class function TKamScriptInt.ShortName: string;
+class function TCasScriptInt.ShortName: string;
 begin
   Result := 'int';
 end;
 
-class function TKamScriptFloatFun.ShortName: string;
+class function TCasScriptFloatFun.ShortName: string;
 begin
   Result := 'float';
 end;
 
-class function TKamScriptBool.ShortName: string;
+class function TCasScriptBool.ShortName: string;
 begin
   Result := 'bool';
 end;
 
-class function TKamScriptStringFun.ShortName: string;
+class function TCasScriptStringFun.ShortName: string;
 begin
   Result := 'string';
 end;
 
-class function TKamScriptWriteln.ShortName: string;
+class function TCasScriptWriteln.ShortName: string;
 begin
   Result := 'writeln';
 end;
 
-class function TKamScriptCharacterFromCode.ShortName: string;
+class function TCasScriptCharacterFromCode.ShortName: string;
 begin
   Result := 'character_from_code';
 end;
 
-class function TKamScriptRandom.ShortName: string;
+class function TCasScriptRandom.ShortName: string;
 begin
   Result := 'random';
 end;

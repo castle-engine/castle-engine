@@ -86,24 +86,24 @@ type
 
   { @abstract(This is a curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions.) }
-  TKamScriptCurve = class(TCurve)
+  TCasScriptCurve = class(TCurve)
   protected
-    FTVariable: TKamScriptFloat;
-    FXFunction, FYFunction, FZFunction: TKamScriptExpression;
+    FTVariable: TCasScriptFloat;
+    FXFunction, FYFunction, FZFunction: TCasScriptExpression;
     FBoundingBox: TBox3D;
   public
     function Point(const t: Float): TVector3Single; override;
 
     { XFunction, YFunction, ZFunction are functions based on variable 't'.
       @groupBegin }
-    property XFunction: TKamScriptExpression read FXFunction;
-    property YFunction: TKamScriptExpression read FYFunction;
-    property ZFunction: TKamScriptExpression read FZFunction;
+    property XFunction: TCasScriptExpression read FXFunction;
+    property YFunction: TCasScriptExpression read FYFunction;
+    property ZFunction: TCasScriptExpression read FZFunction;
     { @groupEnd }
 
     { This is the variable controlling 't' value, embedded also in
       XFunction, YFunction, ZFunction. }
-    property TVariable: TKamScriptFloat read FTVariable;
+    property TVariable: TCasScriptFloat read FTVariable;
 
     { This class provides simple implementation for BoundingBox: it is simply
       a BoundingBox of Point(i, SegmentsForBoundingBox)
@@ -114,8 +114,8 @@ type
     { XFunction, YFunction, ZFunction references are copied here,
       and will be freed in destructor (so don't Free them yourself). }
     constructor Create(const ATBegin, ATEnd: Float;
-      AXFunction, AYFunction, AZFunction: TKamScriptExpression;
-      ATVariable: TKamScriptFloat;
+      AXFunction, AYFunction, AZFunction: TCasScriptExpression;
+      ATVariable: TCasScriptFloat;
       ASegmentsForBoundingBox: Cardinal = 100);
 
     destructor Destroy; override;
@@ -174,14 +174,14 @@ type
     procedure RenderConvexHull;
 
     { Constructor.
-      This is virtual because it's called by CreateDivideKamScriptCurve.
+      This is virtual because it's called by CreateDivideCasScriptCurve.
       It's also useful in many places in curves.lpr. }
     constructor Create(const ATBegin, ATEnd: Float); virtual;
 
     { Calculates ControlPoints taking Point(i, ControlPointsCount-1)
-      for i in [0 .. ControlPointsCount-1] from KamScriptCurve.
-      TBegin and TEnd are copied from KamScriptCurve. }
-    constructor CreateDivideKamScriptCurve(KamScriptCurve: TKamScriptCurve;
+      for i in [0 .. ControlPointsCount-1] from CasScriptCurve.
+      TBegin and TEnd are copied from CasScriptCurve. }
+    constructor CreateDivideCasScriptCurve(CasScriptCurve: TCasScriptCurve;
       ControlPointsCount: Cardinal);
 
     destructor Destroy; override;
@@ -349,27 +349,27 @@ begin
  FDefaultSegments := 10;
 end;
 
-{ TKamScriptCurve ------------------------------------------------------------ }
+{ TCasScriptCurve ------------------------------------------------------------ }
 
-function TKamScriptCurve.Point(const t: Float): TVector3Single;
+function TCasScriptCurve.Point(const t: Float): TVector3Single;
 begin
   TVariable.Value := t;
-  Result[0] := (XFunction.Execute as TKamScriptFloat).Value;
-  Result[1] := (YFunction.Execute as TKamScriptFloat).Value;
-  Result[2] := (ZFunction.Execute as TKamScriptFloat).Value;
+  Result[0] := (XFunction.Execute as TCasScriptFloat).Value;
+  Result[1] := (YFunction.Execute as TCasScriptFloat).Value;
+  Result[2] := (ZFunction.Execute as TCasScriptFloat).Value;
 
  {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
    VectorToNiceStr(Result), ')');}
 end;
 
-function TKamScriptCurve.BoundingBox: TBox3D;
+function TCasScriptCurve.BoundingBox: TBox3D;
 begin
  Result := FBoundingBox;
 end;
 
-constructor TKamScriptCurve.Create(const ATBegin, ATEnd: Float;
-  AXFunction, AYFunction, AZFunction: TKamScriptExpression;
-  ATVariable: TKamScriptFloat;
+constructor TCasScriptCurve.Create(const ATBegin, ATEnd: Float;
+  AXFunction, AYFunction, AZFunction: TCasScriptExpression;
+  ATVariable: TCasScriptFloat;
   ASegmentsForBoundingBox: Cardinal);
 var i, k: Integer;
     P: TVector3Single;
@@ -395,7 +395,7 @@ begin
  end;
 end;
 
-destructor TKamScriptCurve.Destroy;
+destructor TCasScriptCurve.Destroy;
 begin
  FXFunction.FreeByParentExpression;
  FYFunction.FreeByParentExpression;
@@ -460,14 +460,14 @@ begin
  FBoundingBox := EmptyBox3D;
 end;
 
-constructor TControlPointsCurve.CreateDivideKamScriptCurve(
-  KamScriptCurve: TKamScriptCurve; ControlPointsCount: Cardinal);
+constructor TControlPointsCurve.CreateDivideCasScriptCurve(
+  CasScriptCurve: TCasScriptCurve; ControlPointsCount: Cardinal);
 var i: Integer;
 begin
- Create(KamScriptCurve.TBegin, KamScriptCurve.TEnd);
+ Create(CasScriptCurve.TBegin, CasScriptCurve.TEnd);
  ControlPoints.Count := ControlPointsCount;
  for i := 0 to ControlPointsCount-1 do
-  ControlPoints.L[i] := KamScriptCurve.PointOfSegment(i, ControlPointsCount-1);
+  ControlPoints.L[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
  UpdateControlPoints;
 end;
 

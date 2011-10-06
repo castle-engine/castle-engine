@@ -33,6 +33,10 @@ summarizes renames done, and some reasoning.
   (even if others are converted to VRML/X3D node graph under the hood...
   but this is implementation detail, not interesting to everyone.)
 
+  Guideline: things that are *conceptually* not tied to VRML or X3D (even if their
+  current and only implementation is tied to VRML/X3D nodes graph) should *not* have
+  VRML/X3D in their names.
+
 - We don't want to add GL or OpenGL to classes (except really low-level
   stuff, that is used only by programmers who understand OpenGL).
   Reasoning: 1. our engine is directed 100% now for OpenGL
@@ -151,6 +155,7 @@ KamTimer Timer
 tkamglfontcontrol TUIControlFont
 tkambuttonimagelayout TCastleButtonImageLayout
 tkampanel TCastlePanel
+KamScript CasScript
 
 ------------------------------------------------------------------------------
 3. Renames done, unit names:

@@ -21,17 +21,17 @@ interface
 uses VectorMath, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils;
 
 type
-  TKamScriptArray = class(TKamScriptValue)
+  TCasScriptArray = class(TCasScriptValue)
   end;
 
-  TKamScriptLongIntArray = class(TKamScriptArray)
+  TCasScriptLongIntArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TLongIntList;
     procedure SetValue(const AValue: TLongIntList);
@@ -43,17 +43,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TLongIntList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptSingleArray = class(TKamScriptArray)
+  TCasScriptSingleArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TSingleList;
     procedure SetValue(const AValue: TSingleList);
@@ -65,17 +65,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TSingleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptDoubleArray = class(TKamScriptArray)
+  TCasScriptDoubleArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TDoubleList;
     procedure SetValue(const AValue: TDoubleList);
@@ -87,17 +87,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TDoubleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptBooleanArray = class(TKamScriptArray)
+  TCasScriptBooleanArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TBooleanList;
     procedure SetValue(const AValue: TBooleanList);
@@ -109,17 +109,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TBooleanList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptStringArray = class(TKamScriptArray)
+  TCasScriptStringArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TKamStringList;
     procedure SetValue(const AValue: TKamStringList);
@@ -131,17 +131,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TKamStringList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptVec2fArray = class(TKamScriptArray)
+  TCasScriptVec2fArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TVector2SingleList;
     procedure SetValue(const AValue: TVector2SingleList);
@@ -153,17 +153,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TVector2SingleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptVec3fArray = class(TKamScriptArray)
+  TCasScriptVec3fArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TVector3SingleList;
     procedure SetValue(const AValue: TVector3SingleList);
@@ -175,17 +175,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TVector3SingleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptVec4fArray = class(TKamScriptArray)
+  TCasScriptVec4fArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TVector4SingleList;
     procedure SetValue(const AValue: TVector4SingleList);
@@ -197,17 +197,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TVector4SingleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptVec2dArray = class(TKamScriptArray)
+  TCasScriptVec2dArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TVector2DoubleList;
     procedure SetValue(const AValue: TVector2DoubleList);
@@ -219,17 +219,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TVector2DoubleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptVec3dArray = class(TKamScriptArray)
+  TCasScriptVec3dArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TVector3DoubleList;
     procedure SetValue(const AValue: TVector3DoubleList);
@@ -241,17 +241,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TVector3DoubleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptVec4dArray = class(TKamScriptArray)
+  TCasScriptVec4dArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TVector4DoubleList;
     procedure SetValue(const AValue: TVector4DoubleList);
@@ -263,17 +263,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TVector4DoubleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptMatrix3fArray = class(TKamScriptArray)
+  TCasScriptMatrix3fArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TMatrix3SingleList;
     procedure SetValue(const AValue: TMatrix3SingleList);
@@ -285,17 +285,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TMatrix3SingleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptMatrix4fArray = class(TKamScriptArray)
+  TCasScriptMatrix4fArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TMatrix4SingleList;
     procedure SetValue(const AValue: TMatrix4SingleList);
@@ -307,17 +307,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TMatrix4SingleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptMatrix3dArray = class(TKamScriptArray)
+  TCasScriptMatrix3dArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TMatrix3DoubleList;
     procedure SetValue(const AValue: TMatrix3DoubleList);
@@ -329,17 +329,17 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TMatrix3DoubleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptMatrix4dArray = class(TKamScriptArray)
+  TCasScriptMatrix4dArray = class(TCasScriptArray)
   private
-    class procedure HandleArrayFun(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TMatrix4DoubleList;
     procedure SetValue(const AValue: TMatrix4DoubleList);
@@ -351,36 +351,36 @@ type
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TMatrix4DoubleList read FValue write SetValue;
 
-    procedure AssignValue(Source: TKamScriptValue); override;
+    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TKamScriptArrayFun = class(TKamScriptFunction)
+  TCasScriptArrayFun = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptArrayD = class(TKamScriptFunction)
+  TCasScriptArrayD = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptArrayGetCount = class(TKamScriptFunction)
+  TCasScriptArrayGetCount = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptArraySetCount = class(TKamScriptFunction)
+  TCasScriptArraySetCount = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
     class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
-  TKamScriptArrayGet = class(TKamScriptFunction)
+  TCasScriptArrayGet = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
   end;
 
-  TKamScriptArraySet = class(TKamScriptFunction)
+  TCasScriptArraySet = class(TCasScriptFunction)
   public
     class function ShortName: string; override;
     class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
@@ -392,149 +392,149 @@ uses SysUtils, CastleScriptCoreFunctions;
 
 { CastleScript values --------------------------------------------------------- }
 
-{$define TKamScriptXxxArray := TKamScriptLongIntArray}
+{$define TCasScriptXxxArray := TCasScriptLongIntArray}
 {$define TXxxList := TLongIntList}
-{$define TKamScriptXxxElement := TKamScriptInteger}
+{$define TCasScriptXxxElement := TCasScriptInteger}
 {$define RegisterXxxFunctions := RegisterLongIntFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptSingleArray}
+{$define TCasScriptXxxArray := TCasScriptSingleArray}
 {$define TXxxList := TSingleList}
-{$define TKamScriptXxxElement := TKamScriptFloat}
+{$define TCasScriptXxxElement := TCasScriptFloat}
 {$define RegisterXxxFunctions := RegisterSingleFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptDoubleArray}
+{$define TCasScriptXxxArray := TCasScriptDoubleArray}
 {$define TXxxList := TDoubleList}
-{$define TKamScriptXxxElement := TKamScriptFloat}
+{$define TCasScriptXxxElement := TCasScriptFloat}
 {$define RegisterXxxFunctions := RegisterDoubleFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayD}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayD}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptBooleanArray}
+{$define TCasScriptXxxArray := TCasScriptBooleanArray}
 {$define TXxxList := TBooleanList}
-{$define TKamScriptXxxElement := TKamScriptBoolean}
+{$define TCasScriptXxxElement := TCasScriptBoolean}
 {$define RegisterXxxFunctions := RegisterBooleanFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptStringArray}
+{$define TCasScriptXxxArray := TCasScriptStringArray}
 {$define TXxxList := TKamStringList}
-{$define TKamScriptXxxElement := TKamScriptString}
+{$define TCasScriptXxxElement := TCasScriptString}
 {$define RegisterXxxFunctions := RegisterStringFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptVec2fArray}
+{$define TCasScriptXxxArray := TCasScriptVec2fArray}
 {$define TXxxList := TVector2SingleList}
-{$define TKamScriptXxxElement := TKamScriptVec2f}
+{$define TCasScriptXxxElement := TCasScriptVec2f}
 {$define RegisterXxxFunctions := RegisterVec2fFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptVec3fArray}
+{$define TCasScriptXxxArray := TCasScriptVec3fArray}
 {$define TXxxList := TVector3SingleList}
-{$define TKamScriptXxxElement := TKamScriptVec3f}
+{$define TCasScriptXxxElement := TCasScriptVec3f}
 {$define RegisterXxxFunctions := RegisterVec3fFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptVec4fArray}
+{$define TCasScriptXxxArray := TCasScriptVec4fArray}
 {$define TXxxList := TVector4SingleList}
-{$define TKamScriptXxxElement := TKamScriptVec4f}
+{$define TCasScriptXxxElement := TCasScriptVec4f}
 {$define RegisterXxxFunctions := RegisterVec4fFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptVec2dArray}
+{$define TCasScriptXxxArray := TCasScriptVec2dArray}
 {$define TXxxList := TVector2DoubleList}
-{$define TKamScriptXxxElement := TKamScriptVec2d}
+{$define TCasScriptXxxElement := TCasScriptVec2d}
 {$define RegisterXxxFunctions := RegisterVec2dFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptVec3dArray}
+{$define TCasScriptXxxArray := TCasScriptVec3dArray}
 {$define TXxxList := TVector3DoubleList}
-{$define TKamScriptXxxElement := TKamScriptVec3d}
+{$define TCasScriptXxxElement := TCasScriptVec3d}
 {$define RegisterXxxFunctions := RegisterVec3dFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptVec4dArray}
+{$define TCasScriptXxxArray := TCasScriptVec4dArray}
 {$define TXxxList := TVector4DoubleList}
-{$define TKamScriptXxxElement := TKamScriptVec4d}
+{$define TCasScriptXxxElement := TCasScriptVec4d}
 {$define RegisterXxxFunctions := RegisterVec4dFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptMatrix3fArray}
+{$define TCasScriptXxxArray := TCasScriptMatrix3fArray}
 {$define TXxxList := TMatrix3SingleList}
-{$define TKamScriptXxxElement := TKamScriptMatrix3f}
+{$define TCasScriptXxxElement := TCasScriptMatrix3f}
 {$define RegisterXxxFunctions := RegisterMatrix3fFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptMatrix4fArray}
+{$define TCasScriptXxxArray := TCasScriptMatrix4fArray}
 {$define TXxxList := TMatrix4SingleList}
-{$define TKamScriptXxxElement := TKamScriptMatrix4f}
+{$define TCasScriptXxxElement := TCasScriptMatrix4f}
 {$define RegisterXxxFunctions := RegisterMatrix4fFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptMatrix3dArray}
+{$define TCasScriptXxxArray := TCasScriptMatrix3dArray}
 {$define TXxxList := TMatrix3DoubleList}
-{$define TKamScriptXxxElement := TKamScriptMatrix3d}
+{$define TCasScriptXxxElement := TCasScriptMatrix3d}
 {$define RegisterXxxFunctions := RegisterMatrix3dFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TKamScriptXxxArray := TKamScriptMatrix4dArray}
+{$define TCasScriptXxxArray := TCasScriptMatrix4dArray}
 {$define TXxxList := TMatrix4DoubleList}
-{$define TKamScriptXxxElement := TKamScriptMatrix4d}
+{$define TCasScriptXxxElement := TCasScriptMatrix4d}
 {$define RegisterXxxFunctions := RegisterMatrix4dFunctions}
-{$define TKamScriptXxxArrayFun := TKamScriptArrayFun}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
 { CastleScript functions ------------------------------------------------------ }
 
-class function TKamScriptArrayFun.ShortName: string;
+class function TCasScriptArrayFun.ShortName: string;
 begin
   Result := 'array';
 end;
 
-class function TKamScriptArrayD.ShortName: string;
+class function TCasScriptArrayD.ShortName: string;
 begin
   Result := 'array_d';
 end;
 
-class function TKamScriptArrayGetCount.ShortName: string;
+class function TCasScriptArrayGetCount.ShortName: string;
 begin
   Result := 'array_get_count';
 end;
 
-class function TKamScriptArraySetCount.ShortName: string;
+class function TCasScriptArraySetCount.ShortName: string;
 begin
   Result := 'array_set_count';
 end;
 
-class function TKamScriptArraySetCount.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptArraySetCount.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
   Result := Index = 0;
 end;
 
-class function TKamScriptArrayGet.ShortName: string;
+class function TCasScriptArrayGet.ShortName: string;
 begin
   Result := 'array_get';
 end;
 
-class function TKamScriptArraySet.ShortName: string;
+class function TCasScriptArraySet.ShortName: string;
 begin
   Result := 'array_set';
 end;
 
-class function TKamScriptArraySet.ArgumentMustBeAssignable(const Index: Integer): boolean;
+class function TCasScriptArraySet.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
   Result := Index = 0;
 end;
@@ -542,20 +542,20 @@ end;
 { Handling strings as arrays of characters ----------------------------------- }
 
 type
-  TKamScriptCharacterArray = class
-    class procedure HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+  TCasScriptCharacterArray = class
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   end;
 
-class procedure TKamScriptCharacterArray.HandleArrayGetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptInteger);
-  TKamScriptInteger(AResult).Value := Length(TKamScriptString(Arguments[0]).Value);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
+  TCasScriptInteger(AResult).Value := Length(TCasScriptString(Arguments[0]).Value);
 end;
 
-class procedure TKamScriptCharacterArray.HandleArraySetCount(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   NewCount: Int64;
   NewValue: string;
@@ -565,38 +565,38 @@ begin
   AResult := nil;
   ParentOfResult := false;
 
-  NewCount := TKamScriptInteger(Arguments[1]).Value;
+  NewCount := TCasScriptInteger(Arguments[1]).Value;
   if NewCount < 0 then
-    raise EKamScriptError.CreateFmt('Invalid count %d for array_set_count (should be non-negative)',
+    raise ECasScriptError.CreateFmt('Invalid count %d for array_set_count (should be non-negative)',
       [NewCount]);
 
-  NewValue := TKamScriptString(Arguments[0]).Value;
+  NewValue := TCasScriptString(Arguments[0]).Value;
   SetLength(NewValue, NewCount);
-  TKamScriptString(Arguments[0]).Value := NewValue;
+  TCasScriptString(Arguments[0]).Value := NewValue;
 
-  TKamScriptString(Arguments[0]).ValueAssigned := true;
+  TCasScriptString(Arguments[0]).ValueAssigned := true;
 
   AResult := Arguments[0];
 end;
 
-class procedure TKamScriptCharacterArray.HandleArrayGet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
   Arr: string;
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TKamScriptString);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
 
-  Arr := TKamScriptString(Arguments[0]).Value;
+  Arr := TCasScriptString(Arguments[0]).Value;
 
-  Index := TKamScriptInteger(Arguments[1]).Value;
+  Index := TCasScriptInteger(Arguments[1]).Value;
   if not Between(Index, 0, Length(Arr) - 1) then
-    raise EKamScriptError.CreateFmt('Invalid index %d for array_get, array count is %d',
+    raise ECasScriptError.CreateFmt('Invalid index %d for array_get, array count is %d',
       [Index, Length(Arr)]);
 
-  TKamScriptString(AResult).Value := Arr[Index+1];
+  TCasScriptString(AResult).Value := Arr[Index+1];
 end;
 
-class procedure TKamScriptCharacterArray.HandleArraySet(AFunction: TKamScriptFunction; const Arguments: array of TKamScriptValue; var AResult: TKamScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptCharacterArray.HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
   Arr: string;
@@ -606,30 +606,30 @@ begin
   AResult := nil;
   ParentOfResult := false;
 
-  Arr := TKamScriptString(Arguments[0]).Value;
+  Arr := TCasScriptString(Arguments[0]).Value;
 
-  Index := TKamScriptInteger(Arguments[1]).Value;
+  Index := TCasScriptInteger(Arguments[1]).Value;
   if not Between(Index, 0, Length(Arr) - 1) then
-    raise EKamScriptError.CreateFmt('Invalid index %d for array_set, array count is %d',
+    raise ECasScriptError.CreateFmt('Invalid index %d for array_set, array count is %d',
       [Index, Length(Arr)]);
 
-  if Length(TKamScriptString(Arguments[2]).Value) <> 1 then
-    raise EKamScriptError.CreateFmt('Invalid value as the last array_set argument: given array is a string, so value is expected to be a character (that is, a string of length exactly 1). But given value is "%s" (length %d)',
-      [ TKamScriptString(Arguments[2]).Value,
-        Length(TKamScriptString(Arguments[2]).Value) ]);
+  if Length(TCasScriptString(Arguments[2]).Value) <> 1 then
+    raise ECasScriptError.CreateFmt('Invalid value as the last array_set argument: given array is a string, so value is expected to be a character (that is, a string of length exactly 1). But given value is "%s" (length %d)',
+      [ TCasScriptString(Arguments[2]).Value,
+        Length(TCasScriptString(Arguments[2]).Value) ]);
 
-  Arr[Index+1] := TKamScriptString(Arguments[2]).Value[1];
-  TKamScriptString(Arguments[0]).Value := Arr;
+  Arr[Index+1] := TCasScriptString(Arguments[2]).Value[1];
+  TCasScriptString(Arguments[0]).Value := Arr;
 
   AResult := Arguments[0];
 end;
 
 procedure RegisterCharacterFunctions;
 begin
-  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArrayGetCount, TKamScriptArrayGetCount, [TKamScriptString], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArraySetCount, TKamScriptArraySetCount, [TKamScriptString, TKamScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArrayGet, TKamScriptArrayGet, [TKamScriptString, TKamScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TKamScriptCharacterArray(nil).HandleArraySet, TKamScriptArraySet, [TKamScriptString, TKamScriptInteger, TKamScriptString], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArrayGetCount, TCasScriptArrayGetCount, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArraySetCount, TCasScriptArraySetCount, [TCasScriptString, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArrayGet, TCasScriptArrayGet, [TCasScriptString, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArraySet, TCasScriptArraySet, [TCasScriptString, TCasScriptInteger, TCasScriptString], false);
 end;
 
 initialization

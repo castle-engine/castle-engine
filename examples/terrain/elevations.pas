@@ -73,10 +73,10 @@ type
 
     This descends from TElevationImage, so you add an image to
     your function result. }
-  TElevationKamScript = class(TElevationImage)
+  TElevationCasScript = class(TElevationImage)
   private
-    FXVariable, FYVariable: TKamScriptFloat;
-    FFunction: TKamScriptExpression;
+    FXVariable, FYVariable: TCasScriptFloat;
+    FFunction: TCasScriptExpression;
   public
     constructor Create(const FunctionExpression: string);
     destructor Destroy; override;
@@ -360,24 +360,24 @@ begin
     Result := 0;
 end;
 
-{ TElevationKamScript -------------------------------------------------------- }
+{ TElevationCasScript -------------------------------------------------------- }
 
-constructor TElevationKamScript.Create(const FunctionExpression: string);
+constructor TElevationCasScript.Create(const FunctionExpression: string);
 begin
   inherited Create;
 
-  FXVariable := TKamScriptFloat.Create(false);
+  FXVariable := TCasScriptFloat.Create(false);
   FXVariable.Name := 'x';
   FXVariable.OwnedByParentExpression := false;
 
-  FYVariable := TKamScriptFloat.Create(false);
+  FYVariable := TCasScriptFloat.Create(false);
   FYVariable.Name := 'y';
   FYVariable.OwnedByParentExpression := false;
 
   FFunction := ParseFloatExpression(FunctionExpression, [FXVariable, FYVariable]);
 end;
 
-destructor TElevationKamScript.Destroy;
+destructor TElevationCasScript.Destroy;
 begin
   FFunction.FreeByParentExpression;
   FFunction := nil;
@@ -388,12 +388,12 @@ begin
   inherited;
 end;
 
-function TElevationKamScript.Height(const X, Y: Single): Single;
+function TElevationCasScript.Height(const X, Y: Single): Single;
 begin
   Result := inherited;
   FXVariable.Value := X;
   FYVariable.Value := Y;
-  Result += (FFunction.Execute as TKamScriptFloat).Value;
+  Result += (FFunction.Execute as TCasScriptFloat).Value;
 end;
 
 { TElevationNoise ------------------------------------------------------------ }

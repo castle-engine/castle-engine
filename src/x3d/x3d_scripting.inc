@@ -27,8 +27,8 @@
 
     CompiledScriptContents: TStringList;
 
-    CastleScriptProgram: TKamScriptProgram;
-    CastleScriptVariables: TKamScriptVRMLValueList;
+    CastleScriptProgram: TCasScriptProgram;
+    CastleScriptVariables: TCasScriptVRMLValueList;
 
     procedure EventUrlReceive(
       Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
@@ -62,7 +62,7 @@
     { Clear the memory when the last events were generated from this script.
 
       @seealso TVRMLRoute.ResetLastEventTime
-        TKamScriptVRMLValuesList.ResetLastEventTimes }
+        TCasScriptVRMLValuesList.ResetLastEventTimes }
     procedure ResetLastEventTimes;
   end;
 
@@ -135,7 +135,7 @@ procedure TAbstractScriptNode.ExecuteScript(const FunctionName: string;
   ReceivedValue: TVRMLField);
 var
   I: Integer;
-  ParameterValue, ParameterTime: TKamScriptValue;
+  ParameterValue, ParameterTime: TCasScriptValue;
 begin
   if Initialized and
      (Scene <> nil) then
@@ -162,11 +162,11 @@ begin
           { ReceivedValue may be nil for initialize/shutdown calls. }
           if ReceivedValue <> nil then
           begin
-            ParameterValue := VRMLKamScriptCreateValue(ReceivedValue);
-            VRMLKamScriptBeforeExecute(ParameterValue, ReceivedValue);
+            ParameterValue := VRMLCasScriptCreateValue(ReceivedValue);
+            VRMLCasScriptBeforeExecute(ParameterValue, ReceivedValue);
           end else
             ParameterValue := nil;
-          ParameterTime := TKamScriptFloat.Create(true, Scene.GetTime.Seconds);
+          ParameterTime := TCasScriptFloat.Create(true, Scene.GetTime.Seconds);
           try
             CastleScriptVariables.BeforeExecute;
             try
@@ -176,14 +176,14 @@ begin
                 CastleScriptProgram.ExecuteFunction(FunctionName,
                   [ ParameterTime ], true);
             except
-              on E: EKamScriptError do
+              on E: ECasScriptError do
               begin
                 OnWarning(wtMajor, 'VRML/X3D', 'Error when executing CastleScript: ' + E.Message);
                 Exit;
               end;
             end;
 
-            { VRMLKamScriptAfterExecute(ParameterValue, ...) is not called,
+            { VRMLCasScriptAfterExecute(ParameterValue, ...) is not called,
               we don't want
               to propagate changes to parameter in script to ReceivedValue.
               ReceivedValue should not be even changed by event handler.
@@ -204,8 +204,8 @@ end;
 
 procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
 
-  { @raises(EKamScriptSyntaxError in case of program parsing error
-      (we just let through EKamScriptSyntaxError from ParseProgram).) }
+  { @raises(ECasScriptSyntaxError in case of program parsing error
+      (we just let through ECasScriptSyntaxError from ParseProgram).) }
   procedure CastleScriptInitialize(const ProgramContent: string);
   var
     I: Integer;
@@ -213,7 +213,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     FreeAndNil(CastleScriptProgram);
     FreeAndNil(CastleScriptVariables);
 
-    CastleScriptVariables := TKamScriptVRMLValueList.Create(true);
+    CastleScriptVariables := TCasScriptVRMLValueList.Create(true);
 
     { Add fields and output events (coming from interface decl,
       not normal Script fields/events) to CastleScriptVariables. }
@@ -260,7 +260,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         FInitializedFullUrl := Url;
       except
         { This catches exceptions from CastleScriptInitialize }
-        on E: EKamScriptSyntaxError do
+        on E: ECasScriptSyntaxError do
           OnWarning(wtMajor, 'VRML/X3D', Format(
             'Exception %s when parsing CastleScript: %s',
               [E.ClassName, E.Message ]));
@@ -283,7 +283,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
       except
         { This catches exceptions from FileToString,
           and exceptions from CastleScriptInitialize
-          (EKamScriptSyntaxError only). }
+          (ECasScriptSyntaxError only). }
         on E: Exception do
           OnWarning(wtMinor, 'VRML/X3D', Format(
             'Exception %s when loading Script from URL "%s": %s',
