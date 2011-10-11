@@ -267,7 +267,7 @@
     procedure CreateNode; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
   TDirectionalLightNode_2 = TDirectionalLightNode;
@@ -277,7 +277,7 @@
     procedure CreateNode; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
   TPointLightNode_2 = TPointLightNode;
@@ -300,7 +300,7 @@
     private FFdProjectionAngle: TSFFloat;
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
@@ -753,7 +753,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TDirectionalLightNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -774,7 +774,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TPointLightNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -822,7 +822,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TSpotLightNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;

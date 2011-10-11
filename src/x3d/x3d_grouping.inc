@@ -94,7 +94,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -152,7 +152,7 @@
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
   public
-    ForceVersion: TVRMLVersion;
+    ForceVersion: TX3DVersion;
 
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -253,7 +253,7 @@
     private FFdWhichChoice: TSFInt32;
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -282,7 +282,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -568,7 +568,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TGroupNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TGroupNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -777,7 +777,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TSwitchNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSwitchNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -837,7 +837,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TTransformNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;

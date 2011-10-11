@@ -487,7 +487,7 @@ var
   Doc: TXMLDocument;
   SceneElement: TDOMElement;
   VersionStr: string;
-  Version: TVRMLVersion;
+  Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
   Names: TVRMLNames;

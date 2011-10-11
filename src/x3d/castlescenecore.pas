@@ -529,7 +529,7 @@ type
       Changes must include chTransform, may also include other changes
       (this will be passed to shapes affected). }
     procedure TransformationChanged(TransformNode: TX3DNode;
-      Instances: TShapeTreeList; const Changes: TVRMLChanges);
+      Instances: TShapeTreeList; const Changes: TX3DChanges);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -3136,7 +3136,7 @@ type
       children) may be inactive; but we have to update all shapes,
       active or not). }
     Inactive: Cardinal;
-    Changes: TVRMLChanges;
+    Changes: TX3DChanges;
     procedure TransformChangeTraverse(
       Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
@@ -3404,7 +3404,7 @@ begin
 end;
 
 procedure T3DSceneCore.TransformationChanged(TransformNode: TX3DNode;
-  Instances: TShapeTreeList; const Changes: TVRMLChanges);
+  Instances: TShapeTreeList; const Changes: TX3DChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
@@ -3513,13 +3513,13 @@ end;
 procedure T3DSceneCore.ChangedField(Field: TVRMLField);
 var
   Node: TX3DNode;
-  Changes: TVRMLChanges;
+  Changes: TX3DChanges;
 
   procedure DoLogChanges(const Additional: string = '');
   var
     S: string;
   begin
-    S := 'ChangedField: ' + VRMLChangesToStr(Changes) +
+    S := 'ChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
       [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
     if Field <> nil then

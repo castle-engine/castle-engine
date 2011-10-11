@@ -2630,7 +2630,7 @@ begin
       { Free unused Images before freeing Effects.
         That's because image may be used inside an effect,
         and would be invalid reference after freeing effect. }
-      VRMLNodeList_FreeUnusedAndNil(Images);
+      X3DNodeList_FreeUnusedAndNil(Images);
 
       FreeAndNil(Materials);
 
@@ -2647,9 +2647,9 @@ begin
       FreeAndNil(Effects);
       FreeAndNil(Geometries);
 
-      VRMLNodeList_FreeUnusedAndNil(Lights);
-      VRMLNodeList_FreeUnusedAndNil(Cameras);
-      VRMLNodeList_FreeUnusedAndNil(VisualScenes);
+      X3DNodeList_FreeUnusedAndNil(Lights);
+      X3DNodeList_FreeUnusedAndNil(Cameras);
+      X3DNodeList_FreeUnusedAndNil(VisualScenes);
       FreeAndNil(Controllers);
     end;
     { eventually free Result *after* freeing other lists, to make sure references

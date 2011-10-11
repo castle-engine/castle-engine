@@ -156,6 +156,10 @@ tkamglfontcontrol TUIControlFont
 tkambuttonimagelayout TCastleButtonImageLayout
 tkampanel TCastlePanel
 KamScript CasScript
+KambiOSCheck OSCheck
+TVRMLChange TX3DChange
+TVRMLKeyword TX3DKeyword
+TVRMLVersion TX3DVersion
 
 ------------------------------------------------------------------------------
 3. Renames done, unit names:

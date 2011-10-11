@@ -1815,14 +1815,14 @@ type
     procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
   end;
 
-  TVRMLVersion = X3DLexer.TVRMLVersion;
+  TX3DVersion = X3DLexer.TX3DVersion;
   TX3DEncoding = X3DLexer.TX3DEncoding;
 
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
   TVRMLNames = class
   private
-    FVersion: TVRMLVersion;
+    FVersion: TX3DVersion;
     FWWWBasePath: string;
     FNodes: TX3DNodeNames;
     FPrototypes: TVRMLPrototypeNames;
@@ -1832,7 +1832,7 @@ type
   public
     constructor Create(const AAutoRemoveNodes: boolean;
       const AWWWBasePath: string;
-      const AVersion: TVRMLVersion);
+      const AVersion: TX3DVersion);
     destructor Destroy; override;
 
     { Extract names, before destructing this object.
@@ -1848,7 +1848,7 @@ type
     property WWWBasePath: string read FWWWBasePath;
 
     { VRML/X3D version number, for resolving node class names. }
-    property Version: TVRMLVersion read FVersion;
+    property Version: TX3DVersion read FVersion;
 
     { Current namespace for DEF/USE.
 
@@ -1962,7 +1962,7 @@ type
 
       Returns @nil when not found. }
     function NodeTypeNameToClass(const ANodeTypeName: string;
-      const Version: TVRMLVersion): TX3DNodeClass;
+      const Version: TX3DVersion): TX3DNodeClass;
 
     { Return class that matches given URL. This is useful for EXTERNROTOs.
       Returns @nil if not found. }
@@ -1997,7 +1997,7 @@ procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes)
 
 { Free all unused VRML/X3D nodes on the list, then free and @nil the list
   itself. }
-procedure VRMLNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
+procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
 
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
@@ -2087,10 +2087,10 @@ const
   DefaultShadowMapScale = 1.1;
   DefaultShadowMapBias = 4.0;
 
-  VRML1Version: TVRMLVersion = (Major: 1; Minor: 0);
-  VRML2Version: TVRMLVersion = (Major: 2; Minor: 0);
+  VRML1Version: TX3DVersion = (Major: 1; Minor: 0);
+  VRML2Version: TX3DVersion = (Major: 2; Minor: 0);
   { Latest X3D version supported. }
-  X3DVersion: TVRMLVersion = (Major: 3; Minor: 2);
+  X3DVersion: TX3DVersion = (Major: 3; Minor: 2);
 
   xeClassic = X3DLexer.xeClassic;
   xeXML = X3DLexer.xeXML;
@@ -2183,7 +2183,7 @@ var
   AnyNodeDestructionNotifications: TNodeDestructionNotificationList;
 
   { Cache, for all the resources not tied with renderer context. }
-  VRMLCache: TX3DNodesCache;
+  X3DCache: TX3DNodesCache;
 
 { Find a range within "key" field corresponding to given Fraction.
   Returns the index of @bold(right) range delimiter.
@@ -2326,7 +2326,7 @@ resourcestring
 {$I x3dnodes_bitmanagement.inc}
 
 function InterfaceDeclarationKeywords(
-  const AccessTypes: TVRMLAccessTypes): TVRMLKeywords;
+  const AccessTypes: TVRMLAccessTypes): TX3DKeywords;
 begin
   Result := [];
   if atInputOnly in AccessTypes then
@@ -5004,7 +5004,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     URL := CombinePaths(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
-      ReferencedPrototypeNode := VRMLCache.Load3D(URL);
+      ReferencedPrototypeNode := X3DCache.Load3D(URL);
       PrototypeNames := ReferencedPrototypeNode.PrototypeNames;
     except
       on E: Exception do
@@ -5017,7 +5017,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     FReferencedPrototype := TryFindProtoNonExternal(Anchor);
     if FReferencedPrototype = nil then
     begin
-      VRMLCache.Free3D(ReferencedPrototypeNode);
+      X3DCache.Free3D(ReferencedPrototypeNode);
       if Anchor = '' then
         ProtoWarning('No PROTO found') else
         ProtoWarning(Format('No PROTO named "%s" found', [Anchor]));
@@ -5060,7 +5060,7 @@ begin
   { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
   FReferencedPrototype := nil;
 
-  VRMLCache.Free3D(ReferencedPrototypeNode);
+  X3DCache.Free3D(ReferencedPrototypeNode);
 
   FReferencedClass := nil;
 end;
@@ -5118,7 +5118,7 @@ begin
 end;
 
 function TNodesManager.NodeTypeNameToClass(const ANodeTypeName: string;
-  const Version: TVRMLVersion): TX3DNodeClass;
+  const Version: TX3DVersion): TX3DNodeClass;
 var
   I: Integer;
 begin
@@ -5847,7 +5847,7 @@ end;
 { TVRMLNames ----------------------------------------------------------------- }
 
 constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
-  const AWWWBasePath: string; const AVersion: TVRMLVersion);
+  const AWWWBasePath: string; const AVersion: TX3DVersion);
 begin
   inherited Create;
   FWWWBasePath := AWWWBasePath;
@@ -6017,7 +6017,7 @@ procedure X3DNodesFinalization;
 begin
   TraverseState_FreeAndNilNodes(StateDefaultNodes);
   FreeAndNil(TraverseSingleStack);
-  FreeAndNil(VRMLCache);
+  FreeAndNil(X3DCache);
 
   FreeAndNil(NodesManager);
   FreeAndNil(AnyNodeDestructionNotifications);
@@ -6075,7 +6075,7 @@ initialization
   RegisterFollowersNodes;
   RegisterParticleSystemsNodes;
 
-  VRMLCache := TX3DNodesCache.Create;
+  X3DCache := TX3DNodesCache.Create;
   TraverseState_CreateNodes(StateDefaultNodes);
   TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
 finalization
@@ -6083,8 +6083,8 @@ finalization
     e.g. by CastleWindow.Application, and freed at CastleWindow finalization,
     which may be done after X3DNodes finalization) we may defer
     finalization for later. }
-  if (VRMLCache = nil) or VRMLCache.Empty then
+  if (X3DCache = nil) or X3DCache.Empty then
     X3DNodesFinalization else
-    VRMLCache.OnEmpty := @X3DNodesFinalization;
+    X3DCache.OnEmpty := @X3DNodesFinalization;
 end.
 

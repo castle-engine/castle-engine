@@ -202,7 +202,7 @@ type
   protected
     function ExposedEventsFieldClass: TVRMLFieldClass; override;
   public
-    function Changes: TVRMLChanges; override;
+    function Changes: TX3DChanges; override;
   end;
 
 function TSFStringUpdate.ExposedEventsFieldClass: TVRMLFieldClass;
@@ -210,7 +210,7 @@ begin
   Result := TSFString;
 end;
 
-function TSFStringUpdate.Changes: TVRMLChanges;
+function TSFStringUpdate.Changes: TX3DChanges;
 begin
   if Value <> 'NONE' then
     Result := [chRedisplay] else

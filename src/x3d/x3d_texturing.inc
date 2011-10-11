@@ -610,7 +610,7 @@ procedure TAbstractTexture2DNode.SetIsTextureLoaded(Value: boolean);
 
     LoadTextureData(WasCacheUsed);
     if WasCacheUsed then
-      UsedCache := VRMLCache;
+      UsedCache := X3DCache;
   end;
 
 begin
@@ -812,7 +812,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FTextureImage := VRMLCache.TextureImage_IncReference(FullUrl, FTextureDDS);
+        FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);
         WasCacheUsed := true;
         FTextureUsedFullUrl := FullUrl;
         Break;
@@ -933,7 +933,7 @@ begin
   begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
     try
-      FTextureVideo := VRMLCache.Video_IncReference(FullUrl);
+      FTextureVideo := X3DCache.Video_IncReference(FullUrl);
 
       { if loading succeded, set WasCacheUsed and others and break. }
       WasCacheUsed := true;

@@ -168,7 +168,7 @@ procedure TVRMLTokenInfoList.AssertEqual(
     begin
       Result := VRMLTokenNames[T.Token];
       case T.Token of
-        vtKeyword: result := result +' "' +VRMLKeywords[T.Keyword]+'"';
+        vtKeyword: result := result +' "' +X3DKeywords[T.Keyword]+'"';
         vtName: result := '"' +T.Name+'"';
         vtFloat: result := result +' ' +FloatToStr(T.Float);
         vtInteger: result := result +' ' +IntToStr(T.Integer);
@@ -1280,7 +1280,7 @@ procedure TTestX3DNodes.TestEmptyChanges;
 var
   I, J: Integer;
   N: TX3DNode;
-  Changes: TVRMLChanges;
+  Changes: TX3DChanges;
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin

@@ -561,7 +561,7 @@
     private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -732,7 +732,7 @@
     private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
@@ -1301,7 +1301,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TIndexedLineSetNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TIndexedLineSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1644,7 +1644,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TPointSetNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TPointSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;

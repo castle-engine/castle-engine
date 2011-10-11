@@ -77,18 +77,18 @@ type
     procedure ResetLastEventTimes;
   end;
 
-function VRMLCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
+function X3DCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
 
 { Do common things before VRML script with this variable is executed.
   This resets ValueAssigned (will be used in AfterExecute),
   and sets current variable's value from FieldOrEvent (if this is a field). }
-procedure VRMLCasScriptBeforeExecute(Value: TCasScriptValue;
+procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent);
 
 { Do common things after VRML script with this variable is executed.
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
-procedure VRMLCasScriptAfterExecute(Value: TCasScriptValue;
+procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
 
 {$undef read_interface}
@@ -108,7 +108,7 @@ type
 
 { general utils -------------------------------------------------------- }
 
-function VRMLCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
+function X3DCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
 var
   FieldClass: TVRMLFieldClass;
 begin
@@ -191,7 +191,7 @@ begin
   Result.Name := FieldOrEvent.Name;
 end;
 
-procedure VRMLCasScriptBeforeExecute(Value: TCasScriptValue;
+procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent);
 
   procedure AssignVRMLFieldValue(Field: TVRMLField);
@@ -293,7 +293,7 @@ begin
   Value.ValueAssigned := false;
 end;
 
-procedure VRMLCasScriptAfterExecute(Value: TCasScriptValue;
+procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
   FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
 
   function GetTimestamp(out Time: TX3DTime): boolean;
@@ -506,7 +506,7 @@ end;
 
 procedure TCasScriptVRMLValueList.Add(FieldOrEvent: TVRMLFieldOrEvent);
 begin
-  inherited Add(VRMLCasScriptCreateValue(FieldOrEvent));
+  inherited Add(X3DCasScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
   FLastEventTimes.Add(OldestX3DTime);
 end;
@@ -518,7 +518,7 @@ begin
   if not InsideAfterExecute then
   begin
     for I := 0 to Count - 1 do
-      VRMLCasScriptBeforeExecute(Items[I], FieldOrEvents[I]);
+      X3DCasScriptBeforeExecute(Items[I], FieldOrEvents[I]);
   end;
 end;
 
@@ -529,7 +529,7 @@ var
 begin
   if not InsideAfterExecute then
   begin
-    { Note that VRMLCasScriptAfterExecute may send events when given
+    { Note that X3DCasScriptAfterExecute may send events when given
       fields changed. These events may cause yet another execution
       of the same script. For example,
       - setting inputOutput field of the script causes another execution
@@ -570,7 +570,7 @@ begin
         begin
           if Items[I].ValueAssigned then
             WasSomeValueAssigned := true;
-          VRMLCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I]);
+          X3DCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I]);
         end;
       until not WasSomeValueAssigned;
     finally InsideAfterExecute := false end;

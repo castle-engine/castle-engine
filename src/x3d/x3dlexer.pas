@@ -29,7 +29,7 @@ uses SysUtils, Classes, CastleUtils, CastleStringUtils, CastleClassUtils,
 
 type
   { Valid keywords for all VRML / X3D versions. }
-  TVRMLKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
+  TX3DKeyword = (vkDEF, vkEXTERNPROTO, vkFALSE, vkIS, vkNULL, vkPROTO, vkROUTE,
     vkTO, vkTRUE, vkUSE, vkEventIn, vkEventOut, vkExposedField, vkField,
     { Below keywords are X3D-only as far as specification is concerned.
       However, we decide to support IMPORT/EXPORT for older VRML versions
@@ -40,12 +40,12 @@ type
     vkCOMPONENT, vkMETA, vkPROFILE,
     vkInputOnly, vkOutputOnly, vkInputOutput, vkInitializeOnly);
 
-  TVRMLKeywords = set of TVRMLKeyword;
+  TX3DKeywords = set of TX3DKeyword;
 
 const
   VRML10Keywords = [vkDEF, vkUSE, vkFALSE, vkTRUE];
   VRML20Keywords = [vkDEF .. vkIMPORT];
-  X3DKeywords = [Low(TVRMLKeyword) .. High(TVRMLKeyword)] -
+  X3DKeywords = [Low(TX3DKeyword) .. High(TX3DKeyword)] -
     [vkEventIn, vkEventOut, vkExposedField, vkField];
 
 type
@@ -100,7 +100,7 @@ const
 type
   TX3DEncoding = (xeClassic, xeXML);
 
-  TVRMLVersion = object
+  TX3DVersion = object
     Major, Minor: Integer;
     function FileExtension(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;
@@ -127,9 +127,9 @@ type
     @link(TBufferedReadStream)). }
   TX3DLexer = class
   private
-    fVersion: TVRMLVersion;
+    fVersion: TX3DVersion;
     fToken: TVRMLToken;
-    fTokenKeyword: TVRMLKeyword;
+    fTokenKeyword: TX3DKeyword;
     fTokenName: string;
     fTokenFloat: Float;
     fTokenInteger: Int64;
@@ -193,9 +193,9 @@ type
       @groupBegin }
     constructor CreateForPartialStream(
       AStream: TPeekCharStream; AOwnsStream: boolean;
-      const AVersion: TVRMLVersion); overload;
+      const AVersion: TX3DVersion); overload;
     constructor CreateForPartialStream(const S: string;
-      const AVersion: TVRMLVersion); overload;
+      const AVersion: TX3DVersion); overload;
     { @groupEnd }
 
     destructor Destroy; override;
@@ -214,7 +214,7 @@ type
       All VRML 1.0, 2.0, X3D (various 3.x) are recognized correctly.
       For Inventor 1.0 ascii, we set Version.Major to 0
       (as historically Inventor is a predecessor to VRML 1.0). }
-    property Version: TVRMLVersion read fVersion;
+    property Version: TX3DVersion read fVersion;
 
     { Token we're currently standing on.
       TokenKeyword, TokenName, TokenFloat and TokenInteger have defined
@@ -227,7 +227,7 @@ type
       in VRML10Keywords. Analogous for VRML20Keywords and X3DKeywords.
       So e.g. in VRML 1.0 "PROTO" will be treated like a normal name,
       not a start of prototype. }
-    property TokenKeyword: TVRMLKeyword read fTokenKeyword;
+    property TokenKeyword: TX3DKeyword read fTokenKeyword;
 
     { When Token = vtName, TokenName contains appropriate VRML name.
 
@@ -304,8 +304,8 @@ type
     procedure NextTokenForceVTString;
 
     { Returns if Token is vtKeyword and TokenKeyword is given Keyword. }
-    function TokenIsKeyword(const Keyword: TVRMLKeyword): boolean; overload;
-    function TokenIsKeyword(const Keywords: TVRMLKeywords): boolean; overload;
+    function TokenIsKeyword(const Keyword: TX3DKeyword): boolean; overload;
+    function TokenIsKeyword(const Keywords: TX3DKeywords): boolean; overload;
 
     { Nice textual description of current token, suitable to show to user. }
     function DescribeToken: string;
@@ -316,7 +316,7 @@ type
     procedure CheckTokenIs(Tok: TVRMLToken); overload;
     procedure CheckTokenIs(Tok: TVRMLToken; const TokDescription: string); overload;
     procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
-    procedure CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
+    procedure CheckTokenIsKeyword(const Keyword: TX3DKeyword);
   end;
 
   { Any error related to VRML/X3D. }
@@ -351,7 +351,7 @@ type
   end;
 
 const
-  VRMLKeywords: array[TVRMLKeyword]of string = (
+  X3DKeywordsName: array [TX3DKeyword] of string = (
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
     'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field',
     'AS', 'EXPORT', 'IMPORT',
@@ -408,12 +408,12 @@ const
     '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
     'float', 'integer', 'string', 'end of stream');
 
-function ArrayPosVRMLKeywords(const s: string; var Index: TVRMLKeyword): boolean;
+function ArrayPosX3DKeywords(const s: string; var Index: TX3DKeyword): boolean;
 var
-  I: TVRMLKeyword;
+  I: TX3DKeyword;
 begin
-  for I := Low(VRMLKeywords) to High(VRMLKeywords) do
-    if VRMLKeywords[I] = s then
+  for I := Low(X3DKeywords) to High(X3DKeywords) do
+    if X3DKeywordsName[I] = s then
     begin
       Index := I;
       Result := true;
@@ -422,9 +422,9 @@ begin
   Result := false;
 end;
 
-{ TVRMLVersion --------------------------------------------------------------- }
+{ TX3DVersion --------------------------------------------------------------- }
 
-function TVRMLVersion.FileExtension(const Encoding: TX3DEncoding;
+function TX3DVersion.FileExtension(const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean): string;
 begin
   if Encoding = xeXML then
@@ -434,7 +434,7 @@ begin
     Result := '.wrl';
 end;
 
-function TVRMLVersion.FileFilters(const Encoding: TX3DEncoding;
+function TX3DVersion.FileFilters(const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean): string;
 const
   SaveVRMLClassic_FileFilters =
@@ -666,7 +666,7 @@ end;
 
 constructor TX3DLexer.CreateForPartialStream(
   AStream: TPeekCharStream; AOwnsStream: boolean;
-  const AVersion: TVRMLVersion);
+  const AVersion: TX3DVersion);
 begin
   CreateCommonBegin(AStream, AOwnsStream);
   FVersion := AVersion;
@@ -674,7 +674,7 @@ begin
 end;
 
 constructor TX3DLexer.CreateForPartialStream(const S: string;
-  const AVersion: TVRMLVersion);
+  const AVersion: TX3DVersion);
 var
   StringStream: TStringStream;
 begin
@@ -743,15 +743,15 @@ function TX3DLexer.NextToken: TVRMLToken;
 
   procedure ReadNameOrKeyword(FirstLetter: char);
   {read name token. First letter has been already read.}
-  var foundKeyword: TVRMLKeyword;
+  var foundKeyword: TX3DKeyword;
   const
-    LowerCaseVKTrue = 'true' { LowerCase(VRMLKeywords[vkTRUE]) };
-    LowerCaseVKFalse = 'false' { LowerCase(VRMLKeywords[vkFALSE]) };
+    LowerCaseVKTrue = 'true' { LowerCase(X3DKeywords[vkTRUE]) };
+    LowerCaseVKFalse = 'false' { LowerCase(X3DKeywords[vkFALSE]) };
   begin
    fTokenName := FirstLetter +Stream.ReadUpto(AllChars - VRMLNameChars);
 
    { teraz zobacz czy fTokenName nie jest przypadkiem keywordem. }
-   if ArrayPosVRMLKeywords(fTokenName, foundKeyword) and
+   if ArrayPosX3DKeywords(fTokenName, foundKeyword) and
       ( ( (FVersion.Major <= 1) and (foundKeyword in VRML10Keywords) ) or
         ( (FVersion.Major  = 2) and (foundKeyword in VRML20Keywords) )  or
         ( (FVersion.Major >= 3) and (foundKeyword in X3DKeywords) )
@@ -1041,12 +1041,12 @@ begin
  CheckTokenIs(vtString);
 end;
 
-function TX3DLexer.TokenIsKeyword(const Keyword: TVRMLKeyword): boolean;
+function TX3DLexer.TokenIsKeyword(const Keyword: TX3DKeyword): boolean;
 begin
   Result := (Token = vtKeyword) and (TokenKeyword = Keyword);
 end;
 
-function TX3DLexer.TokenIsKeyword(const Keywords: TVRMLKeywords): boolean;
+function TX3DLexer.TokenIsKeyword(const Keywords: TX3DKeywords): boolean;
 begin
   Result := (Token = vtKeyword) and (TokenKeyword in Keywords);
 end;
@@ -1055,7 +1055,7 @@ function TX3DLexer.DescribeToken: string;
 begin
  result := VRMLTokenNames[Token];
  case Token of
-  vtKeyword: result := result +' "' +VRMLKeywords[TokenKeyword]+'"';
+  vtKeyword: result := result +' "' +X3DKeywordsName[TokenKeyword]+'"';
   vtName: result := '"' +TokenName+'"';
   vtFloat: result := result +' ' +FloatToStr(TokenFloat);
   vtInteger: result := result +' ' +IntToStr(TokenInteger);
@@ -1082,11 +1082,11 @@ begin
     +', got '+DescribeToken);
 end;
 
-procedure TX3DLexer.CheckTokenIsKeyword(const Keyword: TVRMLKeyword);
+procedure TX3DLexer.CheckTokenIsKeyword(const Keyword: TX3DKeyword);
 begin
   if not ( (Token = vtKeyword) and (TokenKeyword = Keyword) ) then
     raise EVRMLParserError.Create(Self,
-      Format('Expected keyword "%s", got %s', [VRMLKeywords[Keyword],
+      Format('Expected keyword "%s", got %s', [X3DKeywordsName[Keyword],
         DescribeToken]));
 end;
 

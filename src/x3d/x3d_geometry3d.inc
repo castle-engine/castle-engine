@@ -66,7 +66,7 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     private FFdTexCoord: TSFNode;
@@ -112,7 +112,7 @@
     private FFdTop: TSFBool;
     public property FdTop: TSFBool read FFdTop;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
@@ -351,7 +351,7 @@
     private FFdTexCoordIndex: TMFInt32;
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function CoordIndex: TMFLong; override;
@@ -377,7 +377,7 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     private FFdTexCoord: TSFNode;
@@ -490,7 +490,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TConeNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TConeNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -564,7 +564,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TCylinderNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TCylinderNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1202,7 +1202,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TIndexedFaceSetNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
@@ -1277,7 +1277,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TSphereNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSphereNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;

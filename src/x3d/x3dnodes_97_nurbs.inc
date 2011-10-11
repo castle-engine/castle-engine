@@ -108,7 +108,7 @@
 
     class function URNMatching(const URN: string): boolean; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -165,7 +165,7 @@
 
     class function URNMatching(const URN: string): boolean; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
   end;
 
   TNurbsSurfaceNode = class(TAbstractX3DGeometryNode)
@@ -413,7 +413,7 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
@@ -524,7 +524,7 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;

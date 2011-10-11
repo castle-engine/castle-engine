@@ -29,7 +29,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -298,7 +298,7 @@ begin
     (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
-class function TMatrixTransformNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;

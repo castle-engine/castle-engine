@@ -162,8 +162,8 @@ begin
           { ReceivedValue may be nil for initialize/shutdown calls. }
           if ReceivedValue <> nil then
           begin
-            ParameterValue := VRMLCasScriptCreateValue(ReceivedValue);
-            VRMLCasScriptBeforeExecute(ParameterValue, ReceivedValue);
+            ParameterValue := X3DCasScriptCreateValue(ReceivedValue);
+            X3DCasScriptBeforeExecute(ParameterValue, ReceivedValue);
           end else
             ParameterValue := nil;
           ParameterTime := TCasScriptFloat.Create(true, Scene.GetTime.Seconds);
@@ -183,7 +183,7 @@ begin
               end;
             end;
 
-            { VRMLCasScriptAfterExecute(ParameterValue, ...) is not called,
+            { X3DCasScriptAfterExecute(ParameterValue, ...) is not called,
               we don't want
               to propagate changes to parameter in script to ReceivedValue.
               ReceivedValue should not be even changed by event handler.

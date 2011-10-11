@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
 { Which VRML/X3D version should be used to save this 3D model. }
-function SaveVRMLVersion(Node: TX3DNode): TVRMLVersion;
+function SaveVRMLVersion(Node: TX3DNode): TX3DVersion;
 
 { Write VRML/X3D model to a file.
   Generates a complete file, with header lines (XML headers,
@@ -68,11 +68,11 @@ function SaveVRMLVersion(Node: TX3DNode): TVRMLVersion;
   @groupBegin }
 procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
-  Version: TVRMLVersion; const Encoding: TX3DEncoding;
+  Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure SaveVRML(Node: TX3DNode;
   const Filename, Generator, Source: string;
-  const Version: TVRMLVersion; const Encoding: TX3DEncoding;
+  const Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
@@ -84,7 +84,7 @@ procedure SaveVRML(Node: TX3DNode;
   const ForceConvertingToX3D: boolean = false); overload;
 { @groupEnd }
 
-function SaveVRMLWillConvertToX3D(Version: TVRMLVersion;
+function SaveVRMLWillConvertToX3D(Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean): boolean;
 
@@ -100,12 +100,12 @@ type
     NodeNames: TX3DNodeNames;
 
     constructor Create(AStream: TStream;
-      const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
+      const AVersion: TX3DVersion; const AEncoding: TX3DEncoding);
     destructor Destroy; override;
   end;
 
 constructor TX3DWriterNames.Create(AStream: TStream;
-  const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
+  const AVersion: TX3DVersion; const AEncoding: TX3DEncoding);
 begin
   inherited;
   NodeNames := TX3DNodeNames.Create(false);
@@ -121,7 +121,7 @@ const
   { Used when we have to save as X3D, but profile information is missing. }
   DefaultX3DSaveProfile = 'Interchange';
 
-function SaveVRMLVersion(Node: TX3DNode): TVRMLVersion;
+function SaveVRMLVersion(Node: TX3DNode): TX3DVersion;
 begin
   if (Node is TX3DRootNode) and
      TX3DRootNode(Node).HasForceVersion then
@@ -229,7 +229,7 @@ begin
     Node := ConvertNurbsPositionInterpolator(TNurbsPositionInterpolatorNode_2(Node));
 end;
 
-function SaveVRMLWillConvertToX3D(Version: TVRMLVersion;
+function SaveVRMLWillConvertToX3D(Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean): boolean;
 begin
@@ -239,7 +239,7 @@ end;
 
 procedure SaveVRML(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
-  Version: TVRMLVersion;
+  Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 var
@@ -444,7 +444,7 @@ begin
 end;
 
 procedure SaveVRML(Node: TX3DNode;
-  const Filename, Generator, Source: string; const Version: TVRMLVersion;
+  const Filename, Generator, Source: string; const Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 var

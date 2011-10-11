@@ -162,7 +162,7 @@
     private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     function Proxy(var State: TVRMLGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
@@ -280,7 +280,7 @@
     private FEventValue_changed: TVRMLEvent;
     public property EventValue_changed: TVRMLEvent read FEventValue_changed;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean; override;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
   end;
   TNurbsPositionInterpolatorNode_3 = TNurbsPositionInterpolatorNode;
 
@@ -717,7 +717,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNurbsCurveNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsCurveNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
@@ -1333,7 +1333,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TNurbsPositionInterpolatorNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TNurbsPositionInterpolatorNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;

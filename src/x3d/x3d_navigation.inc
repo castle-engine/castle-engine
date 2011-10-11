@@ -220,14 +220,14 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TLODNode = class(TAbstractLODNode)
   public
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     class function URNMatching(const URN: string): boolean; override;
   end;
@@ -757,7 +757,7 @@ begin
     (URN = URNVRML97Nodes + ClassNodeTypeName);
 end;
 
-class function TLODNode_2.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major = 2;
 end;
@@ -768,7 +768,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TLODNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;

@@ -66,7 +66,7 @@
     private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function Family: TVRMLFontFamily;
@@ -217,7 +217,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TFontStyleNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;

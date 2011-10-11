@@ -765,7 +765,7 @@
           we look in parent Shape's "appearance" field. So once again
           two different Sphere classes are needed.)
       ) }
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       virtual;
 
     { Enumerates all children nodes (recursively),
@@ -2662,7 +2662,7 @@ begin
   Result := false;
 end;
 
-class function TX3DNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TX3DNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := true;
 end;
@@ -3088,7 +3088,7 @@ begin
         Exit(false);
 end;
 
-procedure VRMLNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
+procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
 var
   I: Integer;
 begin

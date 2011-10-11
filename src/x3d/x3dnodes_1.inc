@@ -39,7 +39,7 @@
     is suitable at the same time for VRML 1.0 and VRML 2.0. }
   TAbstractGeometryNode_1 = class(TAbstractGeometryNode, IAbstractChildNode)
   public
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
@@ -274,7 +274,7 @@
     private FFdStyle: TSFBitMask;
     public property FdStyle: TSFBitMask read FFdStyle;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function Family: TVRMLFontFamily;
@@ -305,7 +305,7 @@
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
@@ -408,7 +408,7 @@
       which should be true for empty sets). }
     function AllMaterialsTransparent: boolean;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
@@ -578,7 +578,7 @@
       4x4 matrix is very difficult. }
     function TransformScale: Single; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
@@ -627,7 +627,7 @@
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
     function TransformScale: Single; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
@@ -692,7 +692,7 @@
   public
     procedure CreateNode; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     function Scope: TLightScope; override;
@@ -701,7 +701,7 @@
   TPointLightNode_1 = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
     function HasRadius: boolean; override;
     function Scope: TLightScope; override;
@@ -724,7 +724,7 @@
     { Not normalized spot exponent (based on dropOffRate). }
     function SpotExp: Single;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
@@ -745,7 +745,7 @@
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
@@ -780,7 +780,7 @@
     private FFdWhichChild: TSFLong;
     public property FdWhichChild: TSFLong read FFdWhichChild;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
   end;
 
@@ -830,7 +830,7 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TAbstractGeometryNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1199,7 +1199,7 @@ begin
   Result := FdStyle.Flags[FSSTYLE_ITALIC];
 end;
 
-class function TFontStyleNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TFontStyleNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1252,7 +1252,7 @@ begin
   Func(Self, VRML1Children[0]);
 end;
 
-class function TLODNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TLODNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1466,7 +1466,7 @@ begin
   end;
 end;
 
-class function TMaterialNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMaterialNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1621,7 +1621,7 @@ begin
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromWWWBasePath(FdFilename.Value);
-    FTextureImage := VRMLCache.TextureImage_IncReference(FullUrl, FTextureDDS);
+    FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
     Exit;
@@ -1832,7 +1832,7 @@ begin
   Result := FdMatrix.TransformScale;
 end;
 
-class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMatrixTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -1969,7 +1969,7 @@ begin
               FdScaleFactor.Value[2] ) / 3;
 end;
 
-class function TTransformNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2072,7 +2072,7 @@ begin
   FdAmbientIntensity.DefaultValue := -1;
 end;
 
-class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TDirectionalLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2098,7 +2098,7 @@ begin
   FdLocation.DefaultValue := Vector3Single(0, 0, 1);
 end;
 
-class function TPointLightNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TPointLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2151,7 +2151,7 @@ begin
   result := FdDropOffRate.Value * 128.0;
 end;
 
-class function TSpotLightNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSpotLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2241,7 +2241,7 @@ begin
   result := 'Group';
 end;
 
-class function TGroupNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TGroupNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;
@@ -2338,7 +2338,7 @@ begin
   end;
 end;
 
-class function TSwitchNode_1.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TSwitchNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major <= 1;
 end;

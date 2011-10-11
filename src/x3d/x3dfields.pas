@@ -42,10 +42,10 @@ type
     FStream: TStream;
   public
     { Which VRML/X3D version are we writing. Read-only after creation. }
-    Version: TVRMLVersion;
+    Version: TX3DVersion;
 
     constructor Create(AStream: TStream;
-      const AVersion: TVRMLVersion; const AEncoding: TX3DEncoding);
+      const AVersion: TX3DVersion; const AEncoding: TX3DEncoding);
     destructor Destroy; override;
 
     property Encoding: TX3DEncoding read FEncoding;
@@ -71,7 +71,7 @@ type
 
   { Possible things that happen when given field is changed.
     Used by TVRMLField.Changes. }
-  TVRMLChange = (
+  TX3DChange = (
     { Something visible in the geometry changed.
       See vcVisibleGeometry.
       This means that VisibleChangeHere with vcVisibleGeometry included should
@@ -299,7 +299,7 @@ type
 
       Don't include other flags with this. }
     chEverything);
-  TVRMLChanges = set of TVRMLChange;
+  TX3DChanges = set of TX3DChange;
 
 { ---------------------------------------------------------------------------- }
 { @section(Base fields classes) }
@@ -474,7 +474,7 @@ type
     { Return how this field should be named for given VRML version.
       In almost all cases, this simply returns current Name.
       But it can also return a name added by AddAlternativeName method. }
-    function NameForVersion(Version: TVRMLVersion): string; overload;
+    function NameForVersion(Version: TX3DVersion): string; overload;
     function NameForVersion(Writer: TX3DWriter): string; overload;
 
     { For fields contained in TVRMLInterfaceDeclaration.
@@ -537,7 +537,7 @@ type
   private
     FExposed: boolean;
     FExposedEvents: array [boolean] of TVRMLEvent;
-    FChangesAlways: TVRMLChanges;
+    FChangesAlways: TX3DChanges;
 
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TVRMLEvent;
@@ -887,13 +887,13 @@ type
       all metadata fields and nodes, all fields in event utilities,
       Script node, interpolators...
 
-      See TVRMLChange for possible values. }
-    property ChangesAlways: TVRMLChanges read FChangesAlways write FChangesAlways;
+      See TX3DChange for possible values. }
+    property ChangesAlways: TX3DChanges read FChangesAlways write FChangesAlways;
 
     { What happens when the value of this field changes.
       This will be used by T3DSceneCore.ChangedField to determine what
       must be done when we know that value of this field changed. }
-    function Changes: TVRMLChanges; virtual;
+    function Changes: TX3DChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
@@ -2554,7 +2554,7 @@ procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
 
 const
-  VRMLChangeToStr: array [TVRMLChange] of string =
+  X3DChangeToStr: array [TX3DChange] of string =
   ( 'Visible Geometry',
     'Visible Non-Geometry',
     'Camera',
@@ -2591,7 +2591,7 @@ const
     'Background',
     'Everything' );
 
-function VRMLChangesToStr(const Changes: TVRMLChanges): string;
+function X3DChangesToStr(const Changes: TX3DChanges): string;
 
 {$undef read_interface}
 
@@ -2609,7 +2609,7 @@ const
   { IndentIncrement is string or char. It's used by SaveToStream }
   IndentIncrement = CharTab;
 
-constructor TX3DWriter.Create(AStream: TStream; const AVersion: TVRMLVersion;
+constructor TX3DWriter.Create(AStream: TStream; const AVersion: TX3DVersion;
   const AEncoding: TX3DEncoding);
 begin
   inherited Create;
@@ -2768,7 +2768,7 @@ begin
 end;
 
 function TVRMLFieldOrEvent.NameForVersion(
-  Version: TVRMLVersion): string;
+  Version: TX3DVersion): string;
 begin
   Result := FAlternativeNames[Version.Major];
   if Result = '' then
@@ -2912,7 +2912,7 @@ begin
   end;
 end;
 
-function TVRMLField.Changes: TVRMLChanges;
+function TVRMLField.Changes: TX3DChanges;
 begin
   Result := ChangesAlways;
 end;
@@ -5997,16 +5997,16 @@ end;
 
 { global utilities ----------------------------------------------------------- }
 
-function VRMLChangesToStr(const Changes: TVRMLChanges): string;
+function X3DChangesToStr(const Changes: TX3DChanges): string;
 var
-  C: TVRMLChange;
+  C: TX3DChange;
 begin
   Result := '';
   for C := Low(C) to High(C) do
     if C in Changes then
     begin
       if Result <> '' then Result += ',';
-      Result += VRMLChangeToStr[C];
+      Result += X3DChangeToStr[C];
     end;
   Result := '[' + Result + ']';
 end;

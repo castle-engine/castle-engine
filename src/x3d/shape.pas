@@ -360,7 +360,7 @@ type
       of TShape.State changed (so only on fields ignored by
       EqualsNoTransform). }
     procedure Changed(const InactiveOnly: boolean;
-      const Changes: TVRMLChanges); virtual;
+      const Changes: TX3DChanges); virtual;
 
     { @exclude
       Called when local geometry changed. Internally used to communicate
@@ -1244,7 +1244,7 @@ begin
 end;
 
 procedure TShape.Changed(const InactiveOnly: boolean;
-  const Changes: TVRMLChanges);
+  const Changes: TX3DChanges);
 begin
   { Remember to code everything here to act only when some stuff
     is included inside Changed value. For example, when

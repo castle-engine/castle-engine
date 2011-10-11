@@ -338,7 +338,7 @@ type
     RenderedFrameId: Cardinal;
   public
     procedure Changed(const InactiveOnly: boolean;
-      const Changes: TVRMLChanges); override;
+      const Changes: TX3DChanges); override;
   end;
 
 type
@@ -1008,7 +1008,7 @@ end;
 { TGLShape --------------------------------------------------------------- }
 
 procedure TGLShape.Changed(const InactiveOnly: boolean;
-  const Changes: TVRMLChanges);
+  const Changes: TX3DChanges);
 var
   GLScene: T3DScene;
 begin

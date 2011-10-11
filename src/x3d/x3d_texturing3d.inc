@@ -350,7 +350,7 @@ begin
     FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
 
     try
-      FTextureImage := VRMLCache.TextureImage_IncReference(FullUrl, FTextureDDS);
+      FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);
     except
       on E: Exception do
       begin
@@ -362,20 +362,20 @@ begin
 
     if FTextureDDS = nil then
     begin
-      VRMLCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
+      X3DCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
       OnWarning(wtMinor, 'VRML/X3D', Format('Only DDS format is supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
       Continue;
     end;
 
     if FTextureDDS.DDSType <> dtVolume then
     begin
-      VRMLCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
+      X3DCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
       OnWarning(wtMinor, 'VRML/X3D', Format('DDS image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
       Continue;
     end;
 
     { Success }
-    UsedCache := VRMLCache;
+    UsedCache := X3DCache;
     Exit;
   end;
 end;

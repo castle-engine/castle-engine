@@ -240,7 +240,7 @@
     private FFdMirror: TSFFloat;
     public property FdMirror: TSFFloat read FFdMirror;
 
-    class function ForVRMLVersion(const Version: TVRMLVersion): boolean;
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
     { Opacity is just a 1 - FdTransparency.Value.
@@ -836,7 +836,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-class function TMaterialNode.ForVRMLVersion(const Version: TVRMLVersion): boolean;
+class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 2;
 end;
