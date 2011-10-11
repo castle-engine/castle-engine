@@ -19,7 +19,7 @@
 
 { Return the symlink target path. Like Libc.ReadLink or FpReadLink,
   but more comfortable, it returns a normal Pascal string.
-  @raises EKambiOSError In case of any failure (non-existing FileName etc.) }
+  @raises EOSError In case of any failure (non-existing FileName etc.) }
 function KamReadLink(const FileName: string): string;
 
 {$endif read_interface}
@@ -34,7 +34,7 @@ begin
   SetLength(Result, NewLength);
   ReadLinkResult := FpReadlink(PChar(FileName), Pointer(Result), NewLength);
 
-  KambiOSCheck( ReadLinkResult <> -1, 'readlink' );
+  OSCheck( ReadLinkResult <> -1, 'readlink' );
 
   if ReadLinkResult < NewLength then
   begin

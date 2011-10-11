@@ -83,11 +83,11 @@ type
       Windows.CreateFont will try to return something as close as possible,
       but if exact match will not be possible -- it can return something else.
       E.g. specifying FaceName = 'some non-existing font name' will not
-      cause some error (like EKambiOSError).
+      cause some error (like EOSError).
       Instead it will result in default Windows font ("MS Sans Serif" usually)
       being returned.
 
-      @raises(EKambiOSError If font cannot be created
+      @raises(EOSError If font cannot be created
         (when WinAPI CreateFont returned error)) }
     function GetHandle: HFont;
 
@@ -163,7 +163,7 @@ begin
    FWeight, BoolTo01[FItalic], BoolTo01[FUnderline], BoolTo01[FStrikeOut],
    FCharSet, FOutputPrecision, FClipPrecision, FQuality, FPitch or FFamily,
    PCharOrNil(FaceName));
- KambiOSCheck( Result <> 0, 'CreateFont' );
+ OSCheck( Result <> 0, 'CreateFont');
 end;
 
 { Windows font query ------------------------------------------------------- }
@@ -202,7 +202,7 @@ var LogFont: TLogFont;
     savedObj: HGDIOBJ;
 begin
  wynik := GetObject(Font, SizeOf(TLogFont), @LogFont);
- if wynik = 0 then RaiseLastKambiOSError('IsFontTrueType : GetObject failed') else
+ if wynik = 0 then RaiseLastOSError else
   if wynik <> SizeOf(TLogFont) then
    raise Exception.Create('IsFontTrueType function : parameter is not a font !');
  Result := false;

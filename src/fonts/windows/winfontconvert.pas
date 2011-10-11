@@ -109,7 +109,7 @@ begin
   { get GlyphDataSize }
   GlyphDataSize := GetGlyphOutline(dc, Ord(c), GGO_BITMAP, GlyphMetrics, 0,
     nil, IdentityMat2);
-  KambiOSCheck( GlyphDataSize <> GDI_ERROR, 'GlyphDataSize returned GDI_ERROR' );
+  OSCheck( GlyphDataSize <> GDI_ERROR, 'GlyphDataSize');
 
   if GlyphDataSize = 0 then
   begin
@@ -228,10 +228,10 @@ begin
    { get Buffer }
    GlyphDataSize := GetGlyphOutline(dc, Ord(c), GGO_NATIVE, GlyphMetrics, 0, nil,
      IdentityMat2);
-   KambiOSCheck( GlyphDataSize <> GDI_ERROR, 'GetGlyphOutline failed' );
+   OSCheck( GlyphDataSize <> GDI_ERROR, 'GetGlyphOutline');
    Buffer := GetMem(GlyphDataSize);
    Check( GetGlyphOutline(dc, Ord(c), GGO_NATIVE, GlyphMetrics, GlyphDataSize,
-     Buffer, identityMat2) <> GDI_ERROR, 'GetGlyphOutline failed');
+     Buffer, identityMat2) <> GDI_ERROR, 'GetGlyphOutline');
 
    { convert GlyphMetrics to ResultInfo (ResultInfo.Polygons/ItemsCount will be
      calculated later) }

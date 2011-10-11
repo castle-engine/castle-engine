@@ -536,9 +536,9 @@ function GetTempPath: string;
 var reqlen: Dword;
 begin
  reqlen := Windows.GetTempPath(0,nil);
- KambiOSCheck(reqlen>0);
+ OSCheck(reqlen>0);
  SetLength(result, reqlen-1);
- KambiOSCheck( Windows.GetTempPath(reqlen,PChar(result)) = reqlen-1 );
+ OSCheck( Windows.GetTempPath(reqlen,PChar(result)) = reqlen-1 );
  Result := InclPathDelim(result);
 {$endif MSWINDOWS}
 {$ifdef UNIX}
@@ -788,7 +788,7 @@ end;
 procedure FileCopy(const SourceFileName, DestFileName: string; CanOverwrite: boolean);
 {kopiuj plik, w razie bledu - exception}
 { pod windowsem kopiowanie moznaby tu zrobic
-  KambiOSCheck( CopyFile(PChar(filename),PChar(backFileName),not CanOverwrite);
+  OSCheck( CopyFile(PChar(filename),PChar(backFileName),not CanOverwrite) );
   Ale : po pierwsze, SafeReset/Rewrite zwracaja mi lepsze opisy bledow w E.Message
         po drugie, szybkosc tego kopiowania jest doskonala :
            testy - plik 370 MegaB,
@@ -842,7 +842,7 @@ begin
    var dwFlags: Dword;
      dwFlags := MOVEFILE_COPY_ALLOWED;
      if CanOverwrite then dwFlags := dwFlags or MOVEFILE_REPLACE_EXISTING;
-     KambiOSCheck( MoveFileEx(PChar(SourceFileName),PChar(DestFileName),dwFlags) , 'MoveFileEx');
+     OSCheck( MoveFileEx(PChar(SourceFileName),PChar(DestFileName),dwFlags) , 'MoveFileEx');
    i dzialalo. A potem przestalo dzialac - MoveFileEx zawsze wywala blad ze jest
    zaimplementowane tylko pod WinNT. ????
    W kazdym razie ponizsza wersja z MoveFile (bez "Ex") dziala zawsze.
@@ -856,10 +856,10 @@ begin
 
   { Tests:
   if not DeleteFile(DestFileName) then
-   RaiseLastKambiOSError;}
+   RaiseLastOSError;}
  end;
 
- KambiOSCheck( MoveFile(PChar(SourceFileName), PChar(DestFileName)), 'MoveFile');
+ OSCheck( MoveFile(PChar(SourceFileName), PChar(DestFileName)), 'MoveFile');
 
  { TODO: zrob jeszcze obsluge kopiowania katalogow jesli sa na innych dyskach }
 {$else}
@@ -870,7 +870,7 @@ begin
    { gdy sa na innym systemie plikow rob Copy + Delete }
    FileCopy(SourceFileName, DestFileName, CanOverwrite);
    CheckDeleteFile(SourceFileName);
-  end else RaiseLastKambiOSError;
+  end else RaiseLastOSError;
 {$endif}
 end;
 
@@ -1074,7 +1074,7 @@ begin
  try
   FExeName := KamReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
  except
-  on EKambiOSError do FExeName := '';
+  on EOSError do FExeName := '';
  end;
  {$endif}
 

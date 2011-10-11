@@ -147,6 +147,9 @@ function SCompilerDescription: string;
 function SCastleEngineProgramHelpSuffix(const DisplayProgramName: string;
   const Version: string; WrapLines: boolean): string;
 
+{ If not TrueValue then RaiseLastOSError. }
+procedure OSCheck(TrueValue: boolean); overload;
+procedure OSCheck(TrueValue: boolean; const Place: string); overload;
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -287,4 +290,21 @@ begin
     'Compiled with ' + SCompilerDescription +'.';
 end;
 
+procedure OSCheck(TrueValue: boolean);
+begin
+  if not TrueValue then RaiseLastOSError;
+end;
+
+procedure OSCheck(TrueValue: boolean; const Place: string);
+begin
+  if not TrueValue then
+  try
+    RaiseLastOSError;
+  except on E: EOSError do
+    begin
+      E.Message := Place + ': ' + E.Message;
+      raise;
+    end;
+  end;
+end;
 {$endif read_implementation}

@@ -135,7 +135,7 @@ function MakeWinapiMenuCore(Menu: TMenu;
   begin
     { I'm casting MakeWinapiMenu result (:HMenu)
       to UINT to avoid range check errors }
-    KambiOSCheck( AppendMenu(Result,
+    OSCheck( AppendMenu(Result,
       MF_STRING or MF_POPUP or EnabledFlag(Menu.Enabled and ParentAllowsEnabled),
       UINT(MakeWinapiMenuCore(Menu, false, true)),
       PChar(SMnemonicsToWin(Menu.Caption))) );
@@ -165,16 +165,16 @@ function MakeWinapiMenuCore(Menu: TMenu;
     if MenuItem.KeyString(KeyStr) then
       S := S + #9 + KeyStr;
 
-    KambiOSCheck( AppendMenu(Result, Flags, MenuItem.SmallId, PChar(S)) );
+    OSCheck( AppendMenu(Result, Flags, MenuItem.SmallId, PChar(S)) );
 
     if (MenuItem is TMenuItemRadio) and TMenuItemRadio(MenuItem).Checked then
-      KambiOSCheck( CheckMenuRadioItem(Result,
+      OSCheck( CheckMenuRadioItem(Result,
         MenuItem.SmallId, MenuItem.SmallId, MenuItem.SmallId, MF_BYCOMMAND) );
   end;
 
   procedure AppendGLMenuSeparator;
   begin
-    KambiOSCheck( AppendMenu(Result, MF_SEPARATOR, 0, nil) );
+    OSCheck( AppendMenu(Result, MF_SEPARATOR, 0, nil) );
   end;
 
 var
@@ -184,11 +184,11 @@ begin
   if MenuBar then
   begin
     Result := CreateMenu;
-    KambiOSCheck( Result <> 0, 'CreateMenu');
+    OSCheck( Result <> 0, 'CreateMenu');
   end else
   begin
     Result := CreatePopupMenu;
-    KambiOSCheck( Result <> 0, 'CreatePopupMenu');
+    OSCheck( Result <> 0, 'CreatePopupMenu');
   end;
 
   for i := 0 to Menu.EntriesCount-1 do

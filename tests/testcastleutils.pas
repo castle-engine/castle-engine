@@ -220,13 +220,13 @@ end;
 procedure TTestCastleUtils.TestKambiOSError;
 begin
  try
-  KambiOSCheck(
+  OSCheck(
     {$ifdef MSWINDOWS} Windows.MoveFile('some_not_existing_file_name', 'foo') {$endif}
     {$ifdef UNIX} FpRename('some_not_existing_file_name', 'foo') <> -1 {$endif}
     );
-  raise Exception.Create('uups ! KambiOSCheck failed !');
+  raise Exception.Create('uups ! OSCheck failed !');
  except
-  on EKambiOSError do ;
+  on EOSError do ;
  end;
 end;
 

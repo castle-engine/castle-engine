@@ -600,12 +600,12 @@ var
   Old_H_Menu: HMenu;
 begin
   Old_H_Menu := GetMenu(H_Wnd);
-  KambiOSCheck( DestroyMenu(Old_H_Menu), 'DestroyMenu(Old_H_Menu)');
+  OSCheck( DestroyMenu(Old_H_Menu), 'DestroyMenu(Old_H_Menu)');
 end;
 
 procedure TCastleWindowBase.BackendMenuInitialize;
 begin
-  KambiOSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)),
+  OSCheck( SetMenu(H_Wnd, MakeWinapiMenu(MainMenu, true)),
     'SetMenu');
 end;
 
@@ -672,7 +672,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
     PixelFormat := ChoosePixelFormat(h_Dc, pfd);
-    KambiOSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
+    OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
     { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBufferBits, StencilBufferBits i
       AccumBufferBits - to dlatego ze ChoosePixelFormat nie gwarantowalo nam ze dostaniemy
@@ -694,7 +694,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
     { skoro PixelFormat jest akceptowalny to wybierz go. Przekazywanie pfd w ponizszej
       funkcji nie jest wazne i wlasciwie moznaby z niego zrezygnowac, o ile dobrze rozumiem
       help do winapi. Wazne jest zeby przekazac wybrany PixelFormat. }
-    KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
+    OSCheck( SetPixelFormat(h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
   end;
 
   procedure SetPixelFormat_WGLChoose;
@@ -751,13 +751,13 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
           iLayerType := PFD_MAIN_PLANE;
         end;
         PixelFormat := ChoosePixelFormat(Temp_h_Dc, pfd);
-        KambiOSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
-        KambiOSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
+        SCheck( PixelFormat <> 0, 'ChoosePixelFormat');
+        OSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
 
         { create and make current Temp_h_GLRc }
         Temp_h_GLRc := wglCreateContext(Temp_h_Dc);
-        KambiOSCheck( Temp_h_GLRc <> 0, 'wglCreateContext' );
-        KambiOSCheck( wglMakeCurrent(Temp_h_Dc, Temp_h_GLRc), 'wglMakeCurrent');
+        OSCheck( Temp_h_GLRc <> 0, 'wglCreateContext' );
+        OSCheck( wglMakeCurrent(Temp_h_Dc, Temp_h_GLRc), 'wglMakeCurrent');
       except
         { make sure to finalize all partially initialized window parts }
         DestroyTemporaryWindow;
@@ -887,7 +887,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
               and we're actually perfectly satisfied with this.
 
               So, we're done now :) Just set this pixel format. }
-            KambiOSCheck( SetPixelFormat(h_Dc, PixelFormat, nil), 'SetPixelFormat');
+            OSCheck( SetPixelFormat(h_Dc, PixelFormat, nil), 'SetPixelFormat');
           end else
             raise EGLContextNotPossible.CreateFmt(
               'wglChoosePixelFormatARB: pixel format with requested attributes (%s) not found',
@@ -1028,7 +1028,7 @@ begin
 
   { create gl context and make it current }
   h_GLRc := wglCreateContext(h_Dc);
-  KambiOSCheck(h_GLRc <> 0, 'wglCreateContext');
+  OSCheck(h_GLRc <> 0, 'wglCreateContext');
   MakeCurrent;
 
   { robimy OpenWindowsAdd PRZED ShowWindow bo ShowWindow wywoluje WinProc
@@ -1055,7 +1055,7 @@ begin
     (we don't care here about ResizeAllowed, DoResize will take care of averything). }
   if FullScreen then
   begin
-    KambiOSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
+    OSCheck( GetClientRect(h_Wnd, ClientRect), 'GetClientRect');
     DoResize(ClientRect.Right-ClientRect.Left, ClientRect.Bottom-ClientRect.Top, false);
   end;
 end;
@@ -1117,7 +1117,7 @@ end;
 procedure TCastleWindowBase.BackendMakeCurrent;
 begin
   Assert(not Closed);
-  KambiOSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
+  OSCheck( wglMakeCurrent(h_Dc, h_GLRc), 'wglMakeCurrent');
 end;
 
 procedure TCastleWindowBase.SetCaption(const Value: string);
@@ -1468,12 +1468,12 @@ begin
   if WindowClass.hIcon = 0 then WindowClass.hIcon := LoadIcon(0, IDI_APPLICATION);
   WindowClass.hCursor := LoadCursor(0, IDC_ARROW);
   WindowClass.lpszClassName := PChar(WndClassName);
-  KambiOSCheck( RegisterClass(WindowClass) <> 0, 'RegisterClass');
+  OSCheck( RegisterClass(WindowClass) <> 0, 'RegisterClass');
 end;
 
 procedure TGLApplication.DestroyBackend;
 begin
-  KambiOSCheck( UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
+  OSCheck( UnregisterClass(PChar(wndClassName), hInstance), 'UnregisterClass');
 end;
 
 procedure TGLApplication.VideoReset;

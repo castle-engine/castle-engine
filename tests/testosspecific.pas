@@ -87,7 +87,7 @@ begin
     KamReadLink('/non_existing_file');
     Assert(false, 'KamReadLink must raise exception on non-existing file');
   except
-    on E: EKambiOSError do
+    on E: EOSError do
       { OK, KamReadLink for /non_existing_file should raise exception };
   end;
 end;
