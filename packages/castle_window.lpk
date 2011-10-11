@@ -40,7 +40,7 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
--dKAMBI_FROM_LAZARUS_PACKAGE
+-dCASTLE_ENGINE_LAZARUS_PACKAGE
 "/>
         <CompilerPath Value="$(CompPath)"/>
       </Other>

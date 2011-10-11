@@ -71,7 +71,7 @@
   { We do *not* define inline functions/methods when compiling from
     Lazarus package. This is to workaround FPC bug
     http://bugs.freepascal.org/view.php?id=12223 }
-  {$ifndef KAMBI_FROM_LAZARUS_PACKAGE}
+  {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
     {$define SUPPORTS_INLINE}
   {$endif}
 
