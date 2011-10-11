@@ -17,7 +17,7 @@
   that resolve collisions with such triangles (TBaseTrianglesOctree). }
 unit Triangle;
 
-{$I x3doctreeconf.inc}
+{$I octreeconf.inc}
 
 interface
 

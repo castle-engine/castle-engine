@@ -19,7 +19,7 @@ unit Shape;
 
 { $define SHAPE_ITERATOR_SOPHISTICATED}
 
-{$I x3doctreeconf.inc}
+{$I octreeconf.inc}
 
 interface
 

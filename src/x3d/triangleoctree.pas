@@ -25,7 +25,7 @@ unit TriangleOctree;
     See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.octrees_dynamic.html].
 }
 
-{$I x3doctreeconf.inc}
+{$I octreeconf.inc}
 
 interface
 

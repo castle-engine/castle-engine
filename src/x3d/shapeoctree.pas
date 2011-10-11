@@ -33,7 +33,7 @@
 
 unit ShapeOctree;
 
-{$I x3doctreeconf.inc}
+{$I octreeconf.inc}
 
 interface
 
