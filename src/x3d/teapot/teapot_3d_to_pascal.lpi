@@ -40,7 +40,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="teapot_vrml_to_pascal.lpr"/>
+        <Filename Value="teapot_3d_to_pascal.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
@@ -56,7 +56,7 @@
   <CompilerOptions>
     <Version Value="9"/>
     <Target>
-      <Filename Value="teapot_vrml_to_pascal"/>
+      <Filename Value="teapot_3d_to_pascal"/>
     </Target>
     <SearchPaths>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
