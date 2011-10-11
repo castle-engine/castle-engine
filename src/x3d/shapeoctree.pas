@@ -33,7 +33,7 @@
 
 unit ShapeOctree;
 
-{$I vrmloctreeconf.inc}
+{$I x3doctreeconf.inc}
 
 interface
 

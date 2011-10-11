@@ -2536,7 +2536,7 @@ type
     function FieldTypeNameToClass(const TypeName: string): TVRMLFieldClass;
   end;
 
-  {$I vrmlevents.inc}
+  {$I x3devents.inc}
 
 function X3DFieldsManager: TX3DFieldsManager;
 
@@ -2601,7 +2601,7 @@ uses Math, X3DNodes, CastleXMLUtils, CastleWarnings;
 
 {$define read_implementation}
 
-{$I vrmlevents.inc}
+{$I x3devents.inc}
 
 { TX3DWriter ------------------------------------------------ }
 
