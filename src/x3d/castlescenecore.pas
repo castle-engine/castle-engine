@@ -4013,13 +4013,11 @@ begin
     changes to nodes not in our graph. This is not done now, because:
 
     1. This check is not usually needed, and usually it wastes quite
-       some time (for example, profile
-       ../vrml/opengl/examples/change_vrml_by_code_2.lpr
-       when doing ChangedField (not ChangedAll)).
+       some time (for example, profile animate_3d_model_by_code_2 example).
 
        In most cases, when modifying graph by code, and always when
-       modifying graph by VRML events, the Node is known to be inside
-       our VRML graph...
+       modifying graph by VRML/X3D events, the Node is known to be inside
+       our VRML/X3D graph...
 
     2. Also, there are nodes that affect our graph but are outside
        of it: StateDefaultNodes, and also all the nodes created

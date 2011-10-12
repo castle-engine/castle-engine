@@ -621,8 +621,8 @@ type
     Allows you for much faster
     creation/destruction of TX3DGraphTraverseState instances.
     Although you can always construct / destruct TX3DGraphTraverseState
-    as normal objects, in some cases this is too slow: when traversing VRML graph
-    (e.g. profile change_vrml_by_code_2 with ChangeField), merely
+    as normal objects, in some cases this is too slow: when traversing VRML/X3D graph
+    (e.g. profile animate_3d_model_by_code_2), merely
     creating/destroying TX3DGraphTraverseState instances takes a noticeable
     amount of time.
 

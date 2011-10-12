@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f change_vrml_by_code_2.lpr ]; then cd ../../; fi
+if [ -f animate_3d_model_by_code_2.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/change_vrml_by_code_2.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/animate_3d_model_by_code_2.lpr

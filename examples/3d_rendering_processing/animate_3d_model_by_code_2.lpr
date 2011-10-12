@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ Somewhat more involved version of change_vrml_by_code.lpr,
-  this constructs VRML graph by code and then animates it by code
+{ More involved version of animate_3d_model_by_code.lpr:
+  constructs 3D model (VRML/X3D graph) by code and then animates it by code
   (showing a little more interesting animation, sin*cos displayed in 3D). }
 
 { $define LOG}
 
-program change_vrml_by_code_2;
+program animate_3d_model_by_code_2;
 
 uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, Cameras, CastleSceneManager,
@@ -52,18 +52,8 @@ begin
       Transform[I, J].FdTranslation.Value[2] := 2 *
         Sin(I / 2 + Scene.Time.Seconds) *
         Cos(J / 2 + Scene.Time.Seconds);
-      Scene.ChangedField(Transform[I, J].FdTranslation);
+      Transform[I, J].FdTranslation.Changed;
     end;
-
-  { Sometimes, for really large XCount * YCount, you may want to
-    1. call ChangedAll once here and
-    2. remove calls to ChangedField in the loop above.
-
-    The single ChangedAll call may be faster than many ChangedField calls
-    for *really* large XCount * YCount. That's because ChangedField for
-    Transform fields tries to do intelligent analysis of what was changed
-    by this transform. }
-  { Scene.ChangedAll; }
 end;
 
 function CreateVrmlGraph: TX3DRootNode;

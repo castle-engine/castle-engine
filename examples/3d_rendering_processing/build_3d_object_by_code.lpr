@@ -94,7 +94,7 @@ begin
 
       Note that you can even rebuild and change the 3D object *after*
       it's already loaded and rendered by T3DScene.
-      See demos change_vrml_by_code.lpr and change_vrml_by_code_2.lpr. }
+      See demos animate_3d_model_by_code.lpr and animate_3d_model_by_code_2.lpr. }
 
   finally FreeAndNil(Root) end;
 end.

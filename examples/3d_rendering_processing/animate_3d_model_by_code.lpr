@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is a simple example how to change the VRML graph
-  from your program, that is using Pascal code.
+{ Example how to animate (change, modify) the 3D model (it's VRML/X3D graph)
+  using ObjectPascal code.
   Run this program without any parameters in this directory
   (it opens file "models/boxes.x3dv") and watch the trivial animation.
   You can rotate/move the scene by dragging with mouse,
@@ -22,23 +22,22 @@
 
   For programmers:
 
-  Generally, you just change VRML graph (rooted in Scene.RootNode)
+  Generally, you just change VRML/X3D graph (rooted in Scene.RootNode)
   however you like, whenever you like. TX3DNode class has a lot of methods
   to find and change nodes within the graph, you can insert/delete/change
   any of their children nodes, fields, and generally do everything.
-  The only thing to keep in ming is to call one of Scene.ChangedXxx
-  methods after changes. More info about this is on
-  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene.html#section.scene_caching].
+  Remember to call "Changed" on every changed field (or change it only
+  by Send methods, see more info on
+  [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.scene.html#section.scene_caching].)
 
   Of course, in case of trivial animation in this program, we could
   also express it directly in VRML/X3D and just load the scene,
-  setting Scene.ProcessEvents := true and then constantly calling
-  Scene.IncreaseTime. This would make the scene "animate itself",
-  without the need for any Pascal code to do this. But, for example sake,
-  we animate it by code.
+  setting Scene.ProcessEvents := true. This would make the scene "animate itself",
+  without the need for any ObjectPascal code to do this. But, for example sake,
+  we animate it here by our own code.
 }
 
-program change_vrml_by_code;
+program animate_3d_model_by_code;
 
 uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, Cameras, CastleSceneManager,
@@ -60,24 +59,14 @@ begin
     below). It's most natural to just use Scene.Time property for this.
     (Scene.Time is already incremented for us by SceneManager.) }
 
-  { Note that in this simple example you could avoid calling ChangedField by using
-      TransformBox2.FdRotation.Send(Vector4Single(1, 0, 0, Scene.Time));
-    That is, changing field's value by Send automatically calls
-    appropriate ChangedField method. It also uses appropriate event,
-    in case VRML events are working and this is exposed field.
-
-    Below we show the more tedious way, by manually calling ChangedField.
-    Sometimes it's more efficient, as you can change the value many times
-    and call ChangedField only once. }
-
   TransformBox2.FdRotation.RotationRad := Scene.Time.Seconds;
-  Scene.ChangedField(TransformBox2.FdRotation);
+  TransformBox2.FdRotation.Changed;
 
   TransformBox3.FdRotation.RotationRad := Scene.Time.Seconds * 2;
-  Scene.ChangedField(TransformBox3.FdRotation);
+  TransformBox3.FdRotation.Changed;
 
   TransformBox4.FdRotation.RotationRad := Scene.Time.Seconds * 4;
-  Scene.ChangedField(TransformBox4.FdRotation);
+  TransformBox4.FdRotation.Changed;
 end;
 
 begin

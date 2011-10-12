@@ -2516,7 +2516,7 @@ begin
 
   { We know exactly how many shapes are present. So set Count once,
     calculating by ShapesCount. This will be faster than resizing
-    in each AddToList. (Confirmed e.g. by profiling change_vrml_by_code_2). }
+    in each AddToList. (Confirmed e.g. by profiling animate_3d_model_by_code_2). }
   AddedCount := 0;
   Count := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
 

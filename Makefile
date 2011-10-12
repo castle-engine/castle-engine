@@ -97,8 +97,8 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/demo_animation \
   examples/3d_rendering_processing/fog_culling \
   examples/3d_rendering_processing/plane_mirror_and_shadow \
-  examples/3d_rendering_processing/change_vrml_by_code \
-  examples/3d_rendering_processing/change_vrml_by_code_2 \
+  examples/3d_rendering_processing/animate_3d_model_by_code \
+  examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/vrml_browser_script_compiled \
   examples/3d_rendering_processing/simplest_vrml_browser \
   examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes \
