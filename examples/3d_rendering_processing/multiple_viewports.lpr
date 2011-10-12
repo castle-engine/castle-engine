@@ -273,7 +273,7 @@ end;
 
 var
   FileName: string = 'models/teapot.x3dv';
-  //  '../../../demo_models/x3d/kambi_extensions/shadows_dynamic.x3dv'
+  //  '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
 type
   TDummy = class

@@ -2893,8 +2893,7 @@ var
         object is only shadow caster (not receiver), still problems
         may arise due to glDepthFunc(GL_NEVER): imagine you have
         a transparent object casting shadow on non-transparent object
-        (see e.g.
-        demo_models/vrml_2/kambi_extensions/castle_with_shadows_tests/ghost_shadow.wrl).
+        (see e.g. demo_models/shadow_volumes/ghost_shadow.wrl).
         This means that you can look through the shadow casting
         (transp) object and see shadow receiving (opaque) object,
         that may or may not be in shadow on speciic pixel.
