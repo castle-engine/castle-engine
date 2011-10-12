@@ -667,7 +667,7 @@ uses SysUtils, CastleUtils, Images, CastleFilesUtils, CastleClassUtils,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleOnScreenMenu]);
+  RegisterComponents('Castle', [TCastleOnScreenMenu]);
 end;
 
 procedure SliderFontInit;

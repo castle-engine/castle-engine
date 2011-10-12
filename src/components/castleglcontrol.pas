@@ -435,7 +435,7 @@ uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleControlCustom, TCastleControl]);
+  RegisterComponents('Castle', [TCastleControlCustom, TCastleControl]);
 end;
 
 { TCastleControlBaseCore -------------------------------------------------- }

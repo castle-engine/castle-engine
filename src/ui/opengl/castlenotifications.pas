@@ -152,7 +152,7 @@ uses BFNT_BitstreamVeraSans_Unit, CastleLog;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleNotifications]);
+  RegisterComponents('Castle', [TCastleNotifications]);
 end;
 
 procedure TNotificationList.DeleteFirst(DelCount: Integer);

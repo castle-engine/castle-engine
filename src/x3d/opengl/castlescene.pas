@@ -1002,7 +1002,7 @@ var
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [T3DScene]);
+  RegisterComponents('Castle', [T3DScene]);
 end;
 
 { TGLShape --------------------------------------------------------------- }

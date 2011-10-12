@@ -888,7 +888,7 @@ uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLE
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleSceneManager]);
+  RegisterComponents('Castle', [TCastleSceneManager]);
 end;
 
 { TManagerRenderParams ------------------------------------------------------- }

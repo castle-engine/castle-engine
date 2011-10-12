@@ -1697,7 +1697,7 @@ uses Math, CastleStringUtils;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TExamineCamera, TWalkCamera, TUniversalCamera]);
+  RegisterComponents('Castle', [TExamineCamera, TWalkCamera, TUniversalCamera]);
 end;
 
 { Define this to have Input_RightRot/LeftRot (right / left arrow keys by default)

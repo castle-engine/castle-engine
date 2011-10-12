@@ -665,7 +665,7 @@ uses Math, X3DFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [T3DPrecalculatedAnimation]);
+  RegisterComponents('Castle', [T3DPrecalculatedAnimation]);
 end;
 
 { T3DPrecalculatedAnimationScene ------------------------------------------------------ }

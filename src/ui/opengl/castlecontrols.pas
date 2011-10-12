@@ -270,7 +270,7 @@ uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleButton, TCastleImageControl]);
+  RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
 end;
 
 const

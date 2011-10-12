@@ -116,7 +116,7 @@ uses SysUtils, CastleStringUtils, Classes;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TCastleConfig]);
+  RegisterComponents('Castle', [TCastleConfig]);
 end;
 
 { TCastleConfig -------------------------------------------------------------- }

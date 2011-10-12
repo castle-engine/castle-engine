@@ -63,7 +63,7 @@ uses SysUtils, Classes, CastleLCLUtils;
 
 procedure Register;
 begin
-  RegisterComponents('Kambi', [TLazRecentFiles]);
+  RegisterComponents('Castle', [TLazRecentFiles]);
 end;
 
 { TMenuRecentItem ------------------------------------------------------------ }
