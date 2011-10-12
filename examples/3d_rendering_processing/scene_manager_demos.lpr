@@ -30,24 +30,19 @@ uses CastleUtils, CastleWindow, VectorMath, CastleWarnings, Base3D,
   CastleSceneCore, CastleScene, CastleSceneManager, PrecalculatedAnimation, X3DNodes;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Scene, Scene2: TCastleScene;
   Animation: TCastlePrecalculatedAnimation;
   Translation: T3DTranslated;
   Scene2Transform: TTransformNode;
   Scene2NewRoot: TX3DRootNode;
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   OnWarning := @OnWarningWrite;
 
-  { initialize SceneManager }
-  SceneManager := TCastleSceneManager.Create(Window);
-  Window.Controls.Add(SceneManager);
-
   { initialize first Scene }
-  Scene := TCastleScene.Create(SceneManager);
+  Scene := TCastleScene.Create(Application);
   Scene.Load('models/bridge_final.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
@@ -60,13 +55,13 @@ begin
   { add Scene to SceneManager }
   { Add your scene to SceneManager.Items. This is essential,
     it makes the scene actually rendered, animated etc. }
-  SceneManager.Items.Add(Scene);
+  Window.SceneManager.Items.Add(Scene);
   { Set the scene as SceneManager.MainScene. This is optional
     (you do have to set SceneManager.MainScene), but usually desired.
     MainScene is used in various moments when we need a single designated 3D
     object to do some task. For example, default camera location is taken
     from Viewpoint VRML/X3D node inside the MainScene. }
-  SceneManager.MainScene := Scene;
+  Window.SceneManager.MainScene := Scene;
 
   { To have some more fun with SceneManager, let's add more 3D objects to it.
     Let's suppose we want to have SceneManager.Items to be a tree:
@@ -79,12 +74,12 @@ begin
   }
 
   { initialize Translation }
-  Translation := T3DTranslated.Create(SceneManager);
+  Translation := T3DTranslated.Create(Application);
   Translation.Translation := Vector3Single(-15, -4, 0);
-  SceneManager.Items.Add(Translation);
+  Window.SceneManager.Items.Add(Translation);
 
   { initialize a 2nd scene, just because we can }
-  Scene2 := TCastleScene.Create(SceneManager);
+  Scene2 := TCastleScene.Create(Application);
   Scene2.Load('models/castle_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
@@ -105,7 +100,7 @@ begin
   Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
 
   { initialize Animation }
-  Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
+  Animation := TCastlePrecalculatedAnimation.Create(Application);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Add(Animation);

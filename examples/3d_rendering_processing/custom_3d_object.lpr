@@ -68,24 +68,20 @@ begin
 end;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Cube: TCube;
 begin
-  Window := TCastleWindowCustom.Create(Application);
-
-  SceneManager := TCastleSceneManager.Create(Application);
-  Window.Controls.Add(SceneManager);
+  Window := TCastleWindow.Create(Application);
 
   Cube := TCube.Create(Application);
-  SceneManager.Items.Add(Cube);
+  Window.SceneManager.Items.Add(Cube);
 
   { init SceneManager.Camera.
     This is optional, if SceneManager.Camera is left unassigned, a suitable
     default camera will be created by the scene manager during ApplyProjection
     (before first rendering), see TCastleSceneManager.CreateDefaultCamera docs. }
-  SceneManager.Camera := TExamineCamera.Create(Application);
-  (SceneManager.Camera as TExamineCamera).Init(Box3D(
+  Window.SceneManager.Camera := TExamineCamera.Create(Application);
+  (Window.SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),
     Vector3Single( 1,  1,  1)), 0.1);
 

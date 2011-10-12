@@ -27,8 +27,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleStringUtils;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Scene: TCastleScene;
 
 const
@@ -84,7 +83,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Parameters.CheckHigh(0);
   OnWarning := @OnWarningWrite;
@@ -101,17 +100,15 @@ begin
     Scene.LogChanges := true;
     {$endif}
 
-    { make SceneManager with our Scene }
-    SceneManager := TCastleSceneManager.Create(Window);
-    Window.Controls.Add(SceneManager);
-    SceneManager.MainScene := Scene;
-    SceneManager.Items.Add(Scene);
+    { add Scene to SceneManager }
+    Window.SceneManager.MainScene := Scene;
+    Window.SceneManager.Items.Add(Scene);
 
     { init SceneManager.Camera }
-    SceneManager.Camera := TExamineCamera.Create(Window);
-    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
+    Window.SceneManager.Camera := TExamineCamera.Create(Window);
+    (Window.SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
     { set more interesting view by default }
-    (SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
+    (Window.SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
       Normalized(Vector3Single(1, 1, 0)), Pi/4);
 
     Window.OnIdle := @Idle;

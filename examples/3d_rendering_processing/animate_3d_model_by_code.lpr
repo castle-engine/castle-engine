@@ -44,8 +44,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleFilesUtils, CastleParameters, CastleStringUtils;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Scene: TCastleScene;
 
 var
@@ -70,7 +69,7 @@ begin
 end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Parameters.CheckHigh(0);
   OnWarning := @OnWarningWrite;
@@ -86,14 +85,12 @@ begin
       'Box4Transform', true) as TTransformNode;
 
     { init SceneManager with our Scene }
-    SceneManager := TCastleSceneManager.Create(Window);
-    Window.Controls.Add(SceneManager);
-    SceneManager.MainScene := Scene;
-    SceneManager.Items.Add(Scene);
+    Window.SceneManager.MainScene := Scene;
+    Window.SceneManager.Items.Add(Scene);
 
     { init SceneManager.Camera }
-    SceneManager.Camera := TExamineCamera.Create(Window);
-    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
+    Window.SceneManager.Camera := TExamineCamera.Create(Window);
+    (Window.SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
 
     Window.OnIdle := @Idle;
     Window.SetDemoOptions(K_F11, CharEscape, true);

@@ -298,8 +298,15 @@ type
       SceneManager.CreateDefaultCamera. So by default all the viewport's
       cameras are created the same way, by refering to the scene manager.
       If you want you can override it to specialize CreateDefaultCamera
-      for specific viewport classes. }
-    function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual; abstract;
+      for specific viewport classes.
+
+      Overloaded version without any parameters just uses Self as owner
+      of the camera.
+
+      @groupBegin }
+    function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual; abstract; overload;
+    function CreateDefaultCamera: TCamera; overload;
+    { @groupEnd }
 
     { Smoothly animate current @link(Camera) to a default camera settings.
 
@@ -1843,6 +1850,11 @@ begin
       Camera.AnimateTo(DefCamera, Time);
     finally FreeAndNil(DefCamera) end;
   end;
+end;
+
+function TCastleAbstractViewport.CreateDefaultCamera: TCamera;
+begin
+  Result := CreateDefaultCamera(Self);
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }

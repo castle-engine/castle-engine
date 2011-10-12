@@ -1358,7 +1358,7 @@ begin
   MainScene.ShapeOctreeProgressTitle := 'Building Shape octree';
 
   { just to make our Camera always non-nil }
-  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+  SceneManager.Camera := SceneManager.CreateDefaultCamera;
 end;
 
 function TCastleControl.MainScene: TCastleScene;

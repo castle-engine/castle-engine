@@ -13,18 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simplest demo of using TCastleSceneManager.
-
-  For even simpler usage, you can see at simplest_vrml_browser.lpr.
-  Program below explicitly creates SceneManager and Scene instances,
-  to make more clear what's going on. }
+{ Simplest demo of using scene manager.
+  Create and load a Scene,
+  create a Window (which automatically also creates Window.SceneManager),
+  add Scene to Window.SceneManager. }
 program scene_manager_basic;
 
 uses CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Scene: TCastleScene;
 begin
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
@@ -32,11 +30,9 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  SceneManager := TCastleSceneManager.Create(Application);
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
+  Window := TCastleWindow.Create(Application);
+  Window.SceneManager.Items.Add(Scene);
+  Window.SceneManager.MainScene := Scene;
 
-  Window := TCastleWindowCustom.Create(Application);
-  Window.Controls.Add(SceneManager);
   Window.OpenAndRun;
 end.

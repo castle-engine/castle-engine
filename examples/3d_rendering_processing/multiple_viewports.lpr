@@ -205,8 +205,7 @@ end;
 { ---------------------------------------------------------------------------- }
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
   OpenButton, QuitButton: TCastleButton;
@@ -256,7 +255,7 @@ begin
   begin
     { set different camera views for all viewports, to make it interesting }
     Viewports[I].Camera.Free;
-    Viewports[I].Camera := SceneManager.CreateDefaultCamera(SceneManager);
+    Viewports[I].Camera := Window.SceneManager.CreateDefaultCamera;
     if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
       TExamineCamera(Viewports[I].Camera).Rotations :=
         QuatFromAxisAngle(UnitVector3Single[I], Pi/2);
@@ -267,8 +266,8 @@ begin
     Right now, one camera cannot be simultaneously on scnee manager
     and viewports. So assign here new camera.
     See TODO at TCastleAbstractViewport.Camera. }
-  SceneManager.Camera.Free;
-  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+  Window.SceneManager.Camera.Free;
+  Window.SceneManager.Camera := Window.SceneManager.CreateDefaultCamera;
 end;
 
 var
@@ -325,19 +324,17 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
-  SceneManager := TCastleSceneManager.Create(Application);
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
-  SceneManager.DefaultViewport := false;
-  Window.Controls.Add(SceneManager);
+  Window.SceneManager.Items.Add(Scene);
+  Window.SceneManager.MainScene := Scene;
+  Window.SceneManager.DefaultViewport := false;
 
   {$ifdef ADD_GL_ANIMATION}
   { initialize Translation }
   Translation := T3DTranslated.Create(SceneManager);
   Translation.Translation := Vector3Single(5, 3, 60);
-  SceneManager.Items.Add(Translation);
+  Window.SceneManager.Items.Add(Translation);
 
   { initialize Animation }
   Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
@@ -357,12 +354,12 @@ begin
   begin
     if Viewports[I] = nil then
       Viewports[I] := TMyViewport.Create(Application);
-    Viewports[I].SceneManager := SceneManager;
+    Viewports[I].SceneManager := Window.SceneManager;
     Viewports[I].FullSize := false;
     { The initial Resize event will position viewports correctly }
     Window.Controls.Add(Viewports[I]);
   end;
-  Assert(SceneManager.Viewports.Count = High(Viewports) + 1);
+  Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 
   { shadow on one viewport }
   Viewports[1].ShadowVolumesPossible := true;

@@ -71,8 +71,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleSceneManager, CastleStringUtils;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Animation: TCastlePrecalculatedAnimation;
 
 procedure KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
@@ -155,7 +154,7 @@ const
   end;
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
@@ -180,11 +179,9 @@ begin
     if WasParam_AnimTimeBackwards then
       Animation.TimeBackwards := Param_AnimTimeBackwards;
 
-    { init SceneManager, with the Animation }
-    SceneManager := TCastleSceneManager.Create(Window);
-    Window.Controls.Add(SceneManager);
-    SceneManager.MainScene := Animation.FirstScene;
-    SceneManager.Items.Add(Animation);
+    { add Animation to SceneManager }
+    Window.SceneManager.MainScene := Animation.FirstScene;
+    Window.SceneManager.Items.Add(Animation);
 
     WindowProgressInterface.Window := Window;
     Progress.UserInterface := WindowProgressInterface;
@@ -198,7 +195,8 @@ begin
 
     Progress.Init(Animation.ScenesCount, 'Preparing animation');
     try
-      Animation.PrepareResources([prRender, prBoundingBox], true, SceneManager.BaseLights);
+      Animation.PrepareResources([prRender, prBoundingBox], true,
+        Window.SceneManager.BaseLights);
     finally Progress.Fini end;
 
     Application.Run;

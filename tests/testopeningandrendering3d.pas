@@ -80,7 +80,7 @@ begin
     Scene.Load(FileName);
 
   SceneManager.Camera.Free;
-  SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+  SceneManager.Camera := SceneManager.CreateDefaultCamera;
 
   { Force preparing and using OpenGL resources for the scene.
     This way we also check that next Load frees them Ok. }
