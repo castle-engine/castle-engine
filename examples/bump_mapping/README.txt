@@ -7,7 +7,7 @@ The bump_mapping demo, showing off various bump mapping techniques.
 
   You can use this bump mapping out-of-the-box in your own models,
   just add to the model appropriate normalMap declarations,
-  see http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_bump_mapping.
+  see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_bump_mapping.
   No special ObjectPascal code needed at all.
 
 - Also, implementation of some older bump mapping techniques is shown:
@@ -491,7 +491,7 @@ according to various articles these maps are OK being 2 times
 (i.e. 4 times area) smaller than original textures. Or even more smaller.
 
 I added bump mapping to VRML by inventing normalMap extension,
-see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php].
+see [http://castle-engine.sourceforge.net/x3d_extensions.php].
 Other implementations in VRML of this are X3D multitexture node
 (see [http://www.web3d.org/x3d/specifications/ISO-IEC-19775-X3DAbstractSpecification/Part01/components/texturing.html#MultiTexture]
 with DOTPRODUCT3 mode) and Cortona's BumpMap extension for VRML 97

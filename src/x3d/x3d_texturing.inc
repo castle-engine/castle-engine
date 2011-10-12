@@ -199,7 +199,7 @@
 
       Result of this is based on the value of field "alphaChannel",
       see
-      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_alpha_channel_detection]. }
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection]. }
     function DetectAlphaChannel: TDetectAlphaChannel;
   end;
 

@@ -513,7 +513,7 @@ type
     { Turn off lights that are not supposed to light in the shadow.
       This simply turns LightOn to @false if the light has
       kambiShadows = TRUE (see
-      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]).
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]).
 
       It's useful to pass this as LightRenderEvent to @link(Render)
       when you use shadow algorithm that requires
@@ -717,7 +717,7 @@ type
           for models that are not perfect 2-manifold (i.e., have some
           BorderEdges) may show some artifacts. See
           "VRML engine documentation" on
-          [http://castle-engine.sourceforge.net/vrml_engine_doc.php],
+          [http://castle-engine.sourceforge.net/engine_doc.php],
           chapter "Shadows", for description and pictures of these artifacts.
           They are quite unavoidable in any shadow volumes implementation,
           just like normal ghost shadows.

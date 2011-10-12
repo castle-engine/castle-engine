@@ -77,7 +77,7 @@
 
     private FFdProjectionNear: TSFFloat;
     { projectionNear / projectionFar / up are Kambi extensions, see
-      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_light_projective] }
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_light_projective] }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
 
     private FFdProjectionFar: TSFFloat;
@@ -102,7 +102,7 @@
 
       However, in special cases, you know that light node occurs only once
       within the scene (see
-      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadow_maps]).
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_maps]).
       Then it's useful.
 
       It is gathered during traversing. Last BeforeTraverse call for this

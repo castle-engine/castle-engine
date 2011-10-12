@@ -32,7 +32,7 @@ uses X3DNodes;
 
   @param(AllowKambiExtensions If @true we may use some of our engine specific
     extensions. For example, Material.mirror may be <> 0,
-    see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_material_mirror].) }
+    see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_material_mirror].) }
 function LoadCollada(const FileName: string;
   const AllowKambiExtensions: boolean = false): TX3DRootNode;
 

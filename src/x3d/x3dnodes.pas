@@ -130,14 +130,14 @@
 
       Every correct VRML / X3D file in classic and XML encoding should be parsed
       by this unit.
-      See [http://castle-engine.sourceforge.net/vrml_implementation_status.php]
+      See [http://castle-engine.sourceforge.net/x3d_implementation_status.php]
       for much more detailed information about supported features.)
 
     @item(
       Also many Inventor 1.0 files are correctly parsed.
       We handle Inventor 1.0 mostly like VRML 1.0, also some small
       things and nodes specific for Inventor 1.0 are implemented here, see
-      [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#ext_iv_in_vrml].)
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#ext_iv_in_vrml].)
 
     @item(
       Note that structures in this unit are @italic(not) focused
@@ -2117,7 +2117,7 @@ var
     from this module. If you want to change them inside VRML/X3D
     file (for example, to affect only part of the scene), use the
     KambiTriangulation node, see
-    [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_kambi_triangulation].
+    [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_kambi_triangulation].
 
     These variables @italic(must) always honour MinQuadricSlices,
     MinQuadricStacks, MinRectDivisions limit.

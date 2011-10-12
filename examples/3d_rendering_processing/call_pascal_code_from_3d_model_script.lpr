@@ -28,7 +28,7 @@
 
   Inside the VRML/X3D model, this is declared by "compiled:" protocol
   inside a Script node. See models/compiled_script_tests.x3dv.
-  See http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled
+  See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled
   for more information. }
 
 program call_pascal_code_from_3d_model_script;

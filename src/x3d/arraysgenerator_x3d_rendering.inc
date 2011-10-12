@@ -466,7 +466,7 @@ begin
       face normals will be incorrectly distributed among vertexes).
 
     Which means that colors mixed with per-face normals simply don't work.
-    Documented on [http://castle-engine.sourceforge.net/vrml_implementation_status.php]. }
+    Documented on [http://castle-engine.sourceforge.net/x3d_implementation_status.php]. }
   if (NorImplementation = niNone) and (Color = nil) then
     Arrays.ForceFlatShading := true else
   begin
@@ -689,7 +689,7 @@ begin
         face normals will be incorrectly distributed among vertexes).
 
       Which means that colors mixed with per-face normals simply don't work.
-      Documented on [http://castle-engine.sourceforge.net/vrml_implementation_status.php]. }
+      Documented on [http://castle-engine.sourceforge.net/x3d_implementation_status.php]. }
     if (NorImplementation = niNone) and (Color = nil) then
       Arrays.ForceFlatShading := true else
     begin

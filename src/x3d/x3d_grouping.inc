@@ -30,7 +30,7 @@
       behaves like a grouping node. If @false, this allows everything
       to "leak out" (transform changes, VRML 1.0 state changes etc.).
       Possibility useful for VRML 1.0 extension
-      http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_wwwinline_separate }
+      http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_wwwinline_separate }
     function SeparateGroup: boolean; virtual;
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;

@@ -41,7 +41,7 @@
   radianceTransfer must be animated along with it's coords), but it can
   move with respect to other shapes. But note that then self-shadowing
   takes only this shape into account... TODO: make this possible,
-  and document on kambi_vrml_extensions.
+  and document on x3d_extensions.
 
   We compute radianceTransfer in scene space (not in local shape
   space). This is important, otherwise incoming light SH (calculated
@@ -52,7 +52,7 @@
   If the same shape is instantiated many times, it will have the same
   radianceTransfer. Which is bad, since self-shadowing may be different
   on different instances...
-  TODO: move to kambi_vrml_extensions docs.
+  TODO: move to x3d_extensions docs.
 }
 
 program precompute_radiance_transfer;

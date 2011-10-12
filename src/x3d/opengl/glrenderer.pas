@@ -18,8 +18,8 @@
   rather use TCastleScene that wraps this renderer and gives you simple
   method to render whole scene.
 
-  The overview of this class can also be found in my master's thesis
-  [http://castle-engine.sourceforge.net/vrml_engine_doc.php]
+  The overview of this class can also be found in engine documentation
+  [http://castle-engine.sourceforge.net/engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
 
   @bold(Usage:)
@@ -322,7 +322,7 @@ type
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
-      field (see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_radiance_transfer])
+      field (see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_radiance_transfer])
       then this is used to calculate the color of each vertex.
 
       Note that this is evaluated when object is rendered.

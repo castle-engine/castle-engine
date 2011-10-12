@@ -69,8 +69,8 @@ type
     just a still result, i.e. resulting TCastlePrecalculatedAnimation will be just
     a wrapper around single TCastleScene instance.
 
-    For more information see the "VRML engine documentation",
-    [http://castle-engine.sourceforge.net/vrml_engine_doc/].
+    For more information see our engine documentation on
+    [http://castle-engine.sourceforge.net/engine_doc.php].
     Specifically the section
     "Non-interactive precalculated animation: TCastlePrecalculatedAnimation",
     [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
@@ -497,7 +497,7 @@ type
 
       Other value means that we used current real time as time origin,
       following VRML/X3D specification.
-      See also [http://castle-engine.sourceforge.net/vrml_time_origin_considered_uncomfortable.php] }
+      See also [http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php] }
     property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
     { Current time of the animation. Although you do not have to use it:

@@ -320,7 +320,7 @@ type
 
       By default, screen effects come from GetMainScene.ScreenEffects,
       so the effects may be defined by VRML/X3D author using ScreenEffect
-      nodes (see docs: [http://castle-engine.sourceforge.net/kambi_vrml_extensions_screen_effects.php]).
+      nodes (see docs: [http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php]).
       Descendants may override GetScreenEffects, ScreenEffectsCount,
       and ScreenEffectsNeedDepth to add screen effects by code.
       Each viewport may have it's own, different screen effects.
@@ -467,7 +467,7 @@ type
 
       For shadows to be actually used you still need a light source
       marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
-      see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows]. }
+      see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]. }
     property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
 
     { Actually draw the shadow volumes to the color buffer, for debugging.

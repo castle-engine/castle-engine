@@ -27,7 +27,7 @@ I believe everything is really good documented.
 There's also a separate documentation that describes engine usage
 from somewhat more higher-level view. It also describes some reasoning
 behind internal organization of the engine. See
-[http://castle-engine.sourceforge.net/vrml_engine_doc.php].
+[http://castle-engine.sourceforge.net/engine_doc.php].
 
 @section(1 SectionExamples Examples)
 

@@ -98,7 +98,7 @@ var
         Also, we don't honour the rule that the upper line of the text
         is exactly on Y = 0 (instead, our *row* (which is slightly higher
         than the upper text line) is on Y = 0, this is documented
-        on [http://castle-engine.sourceforge.net/vrml_implementation_status.php]
+        on [http://castle-engine.sourceforge.net/x3d_implementation_status.php]
         by failed NIST test about it.
 
         So the lacks of current Text rendering implementation

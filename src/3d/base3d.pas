@@ -176,7 +176,7 @@ type
       and currently doing the "shadowed" pass.
 
       Which means that most lights (ones with kambiShadows = TRUE)
-      should be turned off, see [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_shadows].) }
+      should be turned off, see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows].) }
     InShadow: boolean;
 
     { Value > 0 means we're inside some stencil test (like for

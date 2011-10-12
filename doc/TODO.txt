@@ -1006,7 +1006,7 @@ things that can be deferred to much later:
 Various:
 - Make cameraXxx output events available from something like CameraSensor?
   Current extensions, Viewpoint,
-  http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_viewpoint_camera_matrix
+  http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_viewpoint_camera_matrix
   are not always comfortable...
 
   Q: Maybe ProximitySensor is actually better?

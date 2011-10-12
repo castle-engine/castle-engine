@@ -3910,7 +3910,7 @@ end;
   to LongWord below may cause range check errors. Yes, we want to
   directly treat LongInt as 4 bytes here, because DecodeImageColor
   works on separate bytes. See
-  http://castle-engine.sourceforge.net/vrml_implementation_status.php
+  http://castle-engine.sourceforge.net/x3d_implementation_status.php
   comments about PixelTexture3D. }
 
 {$include norqcheckbegin.inc}
