@@ -8,8 +8,8 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
-'varying vec4 kambi_vertex_eye;' + LineEnding + 
-'varying vec3 kambi_normal_eye;' + LineEnding + 
+'varying vec4 castle_vertex_eye;' + LineEnding + 
+'varying vec3 castle_normal_eye;' + LineEnding + 
 '' + LineEnding + 
 '/* PLUG-DECLARATIONS */' + LineEnding + 
 '' + LineEnding + 
@@ -22,11 +22,11 @@
 '' + LineEnding + 
 'void main(void)' + LineEnding + 
 '{' + LineEnding + 
-'  vec3 normal_eye_fragment = normalize(kambi_normal_eye);' + LineEnding + 
+'  vec3 normal_eye_fragment = normalize(castle_normal_eye);' + LineEnding + 
 '  if (gl_FrontFacing)' + LineEnding + 
 '    /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y' + LineEnding + 
 '       Observed on fglrx (proprietary ATI Linux driver),' + LineEnding + 
-'       with ATI Mobility Radeon HD 4300 (kambi computer "czarny"),' + LineEnding + 
+'       with ATI Mobility Radeon HD 4300 (castle computer "czarny"),' + LineEnding + 
 '       since Ubuntu 11.4 (fglrx OpenGL version 3.3.10665).' + LineEnding + 
 '' + LineEnding + 
 '       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...' + LineEnding + 
@@ -35,7 +35,7 @@
 '    */ ; else' + LineEnding + 
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: fragment_eye_space (kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
+'  /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIT' + LineEnding + 
 '  vec4 fragment_color;' + LineEnding + 
@@ -43,7 +43,7 @@
 '  if (gl_FrontFacing)' + LineEnding + 
 '  {' + LineEnding + 
 '    fragment_color = gl_FrontLightModelProduct.sceneColor;' + LineEnding + 
-'    /* PLUG: add_light_contribution_front (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
+'    /* PLUG: add_light_contribution_front (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding + 
 '' + LineEnding + 
 '    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding + 
 '       and it''s always opaque.' + LineEnding + 
@@ -53,7 +53,7 @@
 '  } else' + LineEnding + 
 '  {' + LineEnding + 
 '    fragment_color = gl_BackLightModelProduct.sceneColor;' + LineEnding + 
-'    /* PLUG: add_light_contribution_back (fragment_color, kambi_vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
+'    /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding + 
 '    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding + 
 '  }' + LineEnding + 
 '' + LineEnding + 
@@ -66,7 +66,7 @@
 '  vec4 fragment_color = gl_Color;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
-'  /* PLUG: lighting_apply (fragment_color, kambi_vertex_eye, normal_eye_fragment) */' + LineEnding + 
+'  /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */' + LineEnding + 
 '' + LineEnding + 
 '  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */' + LineEnding + 
 '  /* PLUG: steep_parallax_shadow_apply (fragment_color) */' + LineEnding + 

@@ -31,7 +31,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="12">
+    <Units Count="2">
       <Unit0>
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -53,76 +53,6 @@
         <Loaded Value="True"/>
         <SyntaxHighlighter Value="Delphi"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="../alsourceallocator.pas"/>
-        <UnitName Value="ALSourceAllocator"/>
-        <CursorPos X="7" Y="85"/>
-        <TopLine Value="69"/>
-        <UsageCount Value="10"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="../openal_al.inc"/>
-        <CursorPos X="3" Y="37"/>
-        <TopLine Value="13"/>
-        <UsageCount Value="10"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="../kambiopenal.pas"/>
-        <UnitName Value="KambiOpenAL"/>
-        <CursorPos X="25" Y="106"/>
-        <TopLine Value="95"/>
-        <UsageCount Value="10"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="../../base/templates/objectslist_2.inc"/>
-        <CursorPos X="5" Y="39"/>
-        <TopLine Value="22"/>
-        <UsageCount Value="10"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="../alutils.pas"/>
-        <UnitName Value="ALUtils"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="10"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="../../packages/castle_base.pas"/>
-        <UnitName Value="castle_base"/>
-        <CursorPos X="3" Y="10"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="10"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="../../base/kambidynlib.pas"/>
-        <UnitName Value="KambiDynLib"/>
-        <CursorPos X="22" Y="210"/>
-        <TopLine Value="183"/>
-        <UsageCount Value="10"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="../../src/3d/sphericalharmonics.pas"/>
-        <UnitName Value="SphericalHarmonics"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="10"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="../../src/audio/alsoundallocator.pas"/>
-        <UnitName Value="ALSoundAllocator"/>
-        <CursorPos X="1" Y="572"/>
-        <TopLine Value="560"/>
-        <UsageCount Value="10"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="../../src/audio/alsoundengine.pas"/>
-        <UnitName Value="ALSoundEngine"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="337"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit11>
     </Units>
     <JumpHistory Count="20" HistoryIndex="19">
       <Position1>

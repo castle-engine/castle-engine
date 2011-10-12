@@ -3,11 +3,11 @@
 '/* Shader code used for adding light source contribution. */' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_HAS_RADIUS' + LineEnding + 
-'uniform float kambi_light_light_number_radius;' + LineEnding + 
+'uniform float castle_light_light_number_radius;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_HAS_BEAM_WIDTH' + LineEnding + 
-'uniform float kambi_light_light_number_beam_width;' + LineEnding + 
+'uniform float castle_light_light_number_beam_width;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 'void PLUG_add_light_contribution_side(inout vec4 color,' + LineEnding + 
@@ -50,7 +50,7 @@
 '  float cutOffAngle = radians(gl_LightSource[light_number].spotCutoff);' + LineEnding + 
 '  scale *= clamp(' + LineEnding + 
 '    (                     acos(spot_cos) - cutOffAngle) /' + LineEnding + 
-'    (kambi_light_light_number_beam_width - cutOffAngle),' + LineEnding + 
+'    (castle_light_light_number_beam_width - cutOffAngle),' + LineEnding + 
 '    0.0, 1.0);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
@@ -67,7 +67,7 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_HAS_RADIUS' + LineEnding + 
-'  if (distance_to_light >= kambi_light_light_number_radius)' + LineEnding + 
+'  if (distance_to_light >= castle_light_light_number_radius)' + LineEnding + 
 '    scale = 0.0;' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 

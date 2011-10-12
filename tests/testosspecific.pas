@@ -49,8 +49,8 @@ var
 const
   ExistingDir = {$ifdef UNIX} '/' {$endif}
                 {$ifdef MSWINDOWS} 'c:/' {$endif};
-  NotExistingDir = {$ifdef UNIX} '/not_existing_directory_kambi_test' {$endif}
-                   {$ifdef MSWINDOWS} 'c:/not_existing_directory_kambi_test' {$endif};
+  NotExistingDir = {$ifdef UNIX} '/not_existing_directory_castle_test' {$endif}
+                   {$ifdef MSWINDOWS} 'c:/not_existing_directory_castle_test' {$endif};
 begin
   PreviousDir := GetCurrentDir;
   try

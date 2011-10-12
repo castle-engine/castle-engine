@@ -15,7 +15,7 @@ If you haven't done it yet, download the engine source code with examples from .
 
 Run Lazarus, and open packages in the castle_game_engine/packages/ subdirectory. Open and compile all three packages (castle_base.lpk, castle_components.lpk, castle_window.lpk), to test that things compile OK. Then install the package <i>castle_components</i>. (Do not install castle_window --- you don't want to have this installed in Lazarus. You can install castle_base explicitly, but there's no need to: installing castle_components will also install castle_base automatically.)
 
-Once packages are successfully installed, Lazarus restarts, and you should see "Kambi" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
+Once packages are successfully installed, Lazarus restarts, and you should see "Castle" tab of components at the top (screenshot). Sorry, we don't have icons for our components yet, so it looks a little boring. Mouse over the icons to see component names.
 
 Let's quickly open and run some demos, to make sure that everything works. I suggest running ... (some LCL demo) and ... (some CastleWindow demo).
 
@@ -48,7 +48,7 @@ end.
 
 Press "Run" and behold, a window! (without any contents drawn, so you will probably see the underlying screen contents underneath).
 
-- An alternative is to use our TCastleControlCustom inside normal Lazarus form. Just pick TCastleControlCustom from the component palette (tab "Kambi") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TCastleControlCustom inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
+- An alternative is to use our TCastleControlCustom inside normal Lazarus form. Just pick TCastleControlCustom from the component palette (tab "Castle") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TCastleControlCustom inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
 
 To develop such programs you use Lazarus, period.
 

@@ -552,7 +552,7 @@ type
 
 { ---------------------------------------------------------------------------- }
 
-  { Extended TObjectList for Kambi engine. }
+  { Extended TObjectList for Castle Game Engine. }
   TCastleObjectList = class(TObjectList)
   public
     { Create and fill with the contents of given array.

@@ -16,7 +16,7 @@
 #     This compilation method uses our .lpi project files,
 #     and compiles every program by the lazbuild utility.
 #     Lazarus and FPC installation is required, and Lazarus must know
-#     about the kambi_* packages (compile them from Lazarus first).
+#     about the castle_* packages (compile them from Lazarus first).
 #
 #   clean --
 #     Delete FPC 1.0.x Windows trash (*.ppw, *.ow), FPC trash, Delphi trash,

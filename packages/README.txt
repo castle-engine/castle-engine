@@ -22,8 +22,8 @@ Usage:
      "sees" units in the package when compiling your program.
 
   3. For castle_base and castle_components: you usually want to install
-     these packages in Lazarus. This way you get Kambi components
-     in the Lazarus palette (tab "Kambi"), you can drop them on the form,
+     these packages in Lazarus. This way you get our components
+     in the Lazarus palette (tab "Castle"), you can drop them on the form,
      operate with the object inspector etc.
 
      Installing isn't really stricly required (you could just create

@@ -2142,7 +2142,7 @@ procedure TAbstractBumpMappingGenerator.PrepareAttributes(var AllowIndexed: bool
 begin
   inherited;
   if ShapeBumpMappingUsed then
-    Arrays.AddGLSLAttributeMatrix3('kambi_tangent_to_object_space', true);
+    Arrays.AddGLSLAttributeMatrix3('castle_tangent_to_object_space', true);
 end;
 
 procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
@@ -2200,7 +2200,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
     end;
 
   begin
-    Arrays.GLSLAttributeMatrix3('kambi_tangent_to_object_space',
+    Arrays.GLSLAttributeMatrix3('castle_tangent_to_object_space',
       ArrayIndexNum)^ := TangentToObjectSpace;
   end;
 

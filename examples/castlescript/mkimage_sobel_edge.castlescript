@@ -1,5 +1,5 @@
 { A simple edge-detection by calculating gradient (actually,
-  the length of the gradient vector) with Sobel operator, in KambiScript.
+  the length of the gradient vector) with Sobel operator, in CastleScript.
   See [http://en.wikipedia.org/wiki/Sobel_operator].
   Source image filename is constant below, you can change it to
   any RGB(+possibly with alpha) existing image filename.
@@ -9,12 +9,12 @@
   Hm, quite fast actually (before profiling, it was 93 seconds...).
   For other image sizes --- do the math, time is proportional to pixels count.
 
-  Take into account that KambiScript is not speed-optimal,
+  Take into account that CastleScript is not speed-optimal,
   it's image functions are comfortable but not fast (3-byte convertion
   between 3-single/float mix, for starters), we try to catch
   FP exceptions immediately (which means we don't use FP unit efficiently)
   and such. If you want optimal language, any scripting lang is bad choice,
-  rather use ObjectPascal with Kambi game engine :).
+  rather use ObjectPascal with Castle Game Engine :).
 }
 
 function main()

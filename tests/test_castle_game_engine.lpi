@@ -39,7 +39,7 @@
         <PackageName Value="FCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="1">
       <Unit0>
         <Filename Value="test_castle_game_engine.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -50,114 +50,6 @@
         <UsageCount Value="37"/>
         <Loaded Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="testkambiclassutils.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestKambiClassUtils"/>
-        <CursorPos X="3" Y="8"/>
-        <TopLine Value="89"/>
-        <UsageCount Value="37"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="testkambiutils.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestKambiUtils"/>
-        <CursorPos X="1" Y="20"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="35"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="testvectormath.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestVectorMath"/>
-        <CursorPos X="6" Y="45"/>
-        <TopLine Value="27"/>
-        <UsageCount Value="34"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="testparsingparameters.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestParsingParameters"/>
-        <CursorPos X="55" Y="35"/>
-        <TopLine Value="24"/>
-        <UsageCount Value="34"/>
-      </Unit4>
-      <Unit5>
-        <Filename Value="testbasiclists.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestBasicLists"/>
-        <CursorPos X="60" Y="72"/>
-        <TopLine Value="36"/>
-        <UsageCount Value="34"/>
-      </Unit5>
-      <Unit6>
-        <Filename Value="TestFNMatch.pas"/>
-        <IsPartOfProject Value="True"/>
-        <CursorPos X="24" Y="126"/>
-        <TopLine Value="101"/>
-        <UsageCount Value="32"/>
-      </Unit6>
-      <Unit7>
-        <Filename Value="testvrmlnodes.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UsageCount Value="32"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="testvrmlglscene.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestVRMLGLScene"/>
-        <CursorPos X="72" Y="54"/>
-        <TopLine Value="32"/>
-        <UsageCount Value="32"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="testvrmlfields.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestVRMLFields"/>
-        <CursorPos X="57" Y="35"/>
-        <TopLine Value="28"/>
-        <UsageCount Value="32"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="testintrects.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UsageCount Value="28"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="testspacefillingcurves.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UsageCount Value="28"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="testobjectslist.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UsageCount Value="28"/>
-      </Unit12>
-      <Unit13>
-        <Filename Value="testkambistringutils.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestKambiStringUtils"/>
-        <CursorPos X="3" Y="92"/>
-        <TopLine Value="64"/>
-        <UsageCount Value="25"/>
-      </Unit13>
-      <Unit14>
-        <Filename Value="../audio/kambiogg.pas"/>
-        <UnitName Value="KambiOgg"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="0"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit14>
-      <Unit15>
-        <Filename Value="../examples/shadow_fields/testshadowfields.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="TestShadowFields"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="20"/>
-      </Unit15>
     </Units>
     <JumpHistory Count="1" HistoryIndex="0">
       <Position1>

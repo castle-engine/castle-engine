@@ -35,7 +35,7 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="1">
       <Unit0>
         <Filename Value="stringoper.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -45,12 +45,6 @@
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../../src/base/kambiutils_params.inc"/>
-        <CursorPos X="1" Y="136"/>
-        <TopLine Value="125"/>
-        <UsageCount Value="10"/>
-      </Unit1>
     </Units>
     <JumpHistory Count="1" HistoryIndex="0">
       <Position1>

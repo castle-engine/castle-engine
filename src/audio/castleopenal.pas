@@ -47,8 +47,7 @@ unit CastleOpenAL;
     @item(I didn't use h2pas. OpenGL headers are clean enough to handle
       most stuff with some regexps and Emacs macros..)
 
-    @item(All original comments are preserved, sometimes they are useful.
-      Most of my comments in included files are marked with "Kambi".)
+    @item(All original comments are preserved, sometimes they are useful.)
   )
 }
 

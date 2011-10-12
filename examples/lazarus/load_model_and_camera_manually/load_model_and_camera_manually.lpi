@@ -42,7 +42,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="2">
       <Unit0>
         <Filename Value="load_model_and_camera_manually.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -64,14 +64,6 @@
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="../../../src/components/kambivrmlbrowser.pas"/>
-        <UnitName Value="KambiVRMLBrowser"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="92"/>
-        <CursorPos X="15" Y="92"/>
-        <UsageCount Value="10"/>
-      </Unit2>
     </Units>
     <JumpHistory Count="4" HistoryIndex="3">
       <Position1>

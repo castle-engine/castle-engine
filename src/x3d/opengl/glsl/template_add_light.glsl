@@ -1,11 +1,11 @@
 /* Shader code used for adding light source contribution. */
 
 #ifdef LIGHT_HAS_RADIUS
-uniform float kambi_light_light_number_radius;
+uniform float castle_light_light_number_radius;
 #endif
 
 #ifdef LIGHT_HAS_BEAM_WIDTH
-uniform float kambi_light_light_number_beam_width;
+uniform float castle_light_light_number_beam_width;
 #endif
 
 void PLUG_add_light_contribution_side(inout vec4 color,
@@ -48,7 +48,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   float cutOffAngle = radians(gl_LightSource[light_number].spotCutoff);
   scale *= clamp(
     (                     acos(spot_cos) - cutOffAngle) /
-    (kambi_light_light_number_beam_width - cutOffAngle),
+    (castle_light_light_number_beam_width - cutOffAngle),
     0.0, 1.0);
 #endif
 
@@ -65,7 +65,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #endif
 
 #ifdef LIGHT_HAS_RADIUS
-  if (distance_to_light >= kambi_light_light_number_radius)
+  if (distance_to_light >= castle_light_light_number_radius)
     scale = 0.0;
 #endif
 

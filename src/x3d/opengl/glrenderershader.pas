@@ -613,7 +613,7 @@ begin
          TSpotLightNode(Node).FdCutOffAngle.Value then
       begin
         Define(ldHasBeamWidth);
-        LightUniformName1 := 'kambi_light_%d_beam_width';
+        LightUniformName1 := 'castle_light_%d_beam_width';
         LightUniformValue1 := TSpotLightNode(Node).FdBeamWidth.Value;
         Hash.AddFloat(LightUniformValue1);
       end;
@@ -629,7 +629,7 @@ begin
       (Shader.ShapeBoundingBox.PointMaxDistance(Light^.Location, -1) > Light^.Radius) then
     begin
       Define(ldHasRadius);
-      LightUniformName2 := 'kambi_light_%d_radius';
+      LightUniformName2 := 'castle_light_%d_radius';
       LightUniformValue2 := Light^.Radius;
       { Uniform value comes from this Node's property,
         so this cannot be shared with other light nodes,
@@ -1045,7 +1045,7 @@ var
 begin
   if TextureType <> ttShader then
   begin
-    UniformName := Format('kambi_texture_%d', [TextureUnit]);
+    UniformName := Format('castle_texture_%d', [TextureUnit]);
     UniformValue := TextureUnit;
   end else
     UniformName := '';
@@ -1517,7 +1517,7 @@ var
         to *not* integrate our texture handling with ComposedShader.
 
         We also remove uniform values for textures, to avoid
-        "unused kambi_texture_%d" warning. Setting TextureUniformsSet
+        "unused castle_texture_%d" warning. Setting TextureUniformsSet
         will make it happen. }
       TextureUniformsSet := false;
     end;
@@ -1590,13 +1590,13 @@ var
   procedure EnableShaderBumpMapping;
   const
     SteepParallaxDeclarations: array [boolean] of string = ('',
-      'float kambi_bm_height;' +NL+
-      'vec2 kambi_parallax_tex_coord;' +NL
+      'float castle_bm_height;' +NL+
+      'vec2 castle_parallax_tex_coord;' +NL
     );
 
     SteepParallaxShift: array [boolean] of string = (
       { Classic parallax bump mapping }
-      'float height = (texture2D(kambi_normal_map, tex_coord).a - 1.0/2.0) * kambi_parallax_bm_scale;' +NL+
+      'float height = (texture2D(castle_normal_map, tex_coord).a - 1.0/2.0) * castle_parallax_bm_scale;' +NL+
       'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
 
       { Steep parallax bump mapping }
@@ -1611,9 +1611,9 @@ var
         shader they suggest that it doesn't really matter.
         My tests confirm this, so I leave v_to_eye.z component. }
 
-      'vec2 delta = -v_to_eye.xy * kambi_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
+      'vec2 delta = -v_to_eye.xy * castle_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
       'float height = 1.0;' +NL+
-      'kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+      'castle_bm_height = texture2D(castle_normal_map, tex_coord).a;' +NL+
 
       { It's known problem that NVidia GeForce FX 5200 fails here with
 
@@ -1623,37 +1623,37 @@ var
         I could workaround this problem (by using
           for (int i = 0; i < steep_steps_max; i++)
         loop and
-          if (! (kambi_bm_height < height)) break;
+          if (! (castle_bm_height < height)) break;
         , this is possible to unroll). But it turns out that this still
         (even with steep_steps_max = 1) works much too slow on this hardware...
         so I simply fallback to non-steep version of parallax mapping
         if this doesn't compile. TODO: we no longer retry with steep? }
 
-      'while (kambi_bm_height < height)' +NL+
+      'while (castle_bm_height < height)' +NL+
       '{' +NL+
       '  height -= step;' +NL+
       '  tex_coord += delta;' +NL+
-      '  kambi_bm_height = texture2D(kambi_normal_map, tex_coord).a;' +NL+
+      '  castle_bm_height = texture2D(castle_normal_map, tex_coord).a;' +NL+
       '}' +NL+
 
       { Save for SteepParallaxShadowing }
-      'kambi_parallax_tex_coord = tex_coord;'
+      'castle_parallax_tex_coord = tex_coord;'
     );
 
     SteepParallaxShadowing =
-      'uniform float kambi_parallax_bm_scale;' +NL+
-      'uniform sampler2D kambi_normal_map;' +NL+
-      'varying vec3 kambi_light_direction_tangent_space;' +NL+
+      'uniform float castle_parallax_bm_scale;' +NL+
+      'uniform sampler2D castle_normal_map;' +NL+
+      'varying vec3 castle_light_direction_tangent_space;' +NL+
 
-      'float kambi_bm_height;' +NL+
-      'vec2 kambi_parallax_tex_coord;' +NL+
+      'float castle_bm_height;' +NL+
+      'vec2 castle_parallax_tex_coord;' +NL+
 
       { This has to be done after PLUG_texture_coord_shift (done from PLUG_texture_apply),
-        as we depend that global kambi_bm_height/kambi_parallax_tex_coord
+        as we depend that global castle_bm_height/castle_parallax_tex_coord
         are already set correctly. }
       'void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)' +NL+
       '{' +NL+
-      '  vec3 light_dir = normalize(kambi_light_direction_tangent_space);' +NL+
+      '  vec3 light_dir = normalize(castle_light_direction_tangent_space);' +NL+
 
       '  /* We basically do the same thing as when we calculate tex_coord' +NL+
       '     with steep parallax mapping.' +NL+
@@ -1663,19 +1663,19 @@ var
 
       '  float step = 1.0 / num_steps;' +NL+
 
-      '  vec2 delta = light_dir.xy * kambi_parallax_bm_scale / (light_dir.z * num_steps);' +NL+
+      '  vec2 delta = light_dir.xy * castle_parallax_bm_scale / (light_dir.z * num_steps);' +NL+
 
       '  /* Do the 1st step always, otherwise initial height = shadow_map_height' +NL+
       '     and we would be considered in our own shadow. */' +NL+
-      '  float height = kambi_bm_height + step;' +NL+
-      '  vec2 shadow_texture_coord = kambi_parallax_tex_coord + delta;' +NL+
-      '  float shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
+      '  float height = castle_bm_height + step;' +NL+
+      '  vec2 shadow_texture_coord = castle_parallax_tex_coord + delta;' +NL+
+      '  float shadow_map_height = texture2D(castle_normal_map, shadow_texture_coord).a;' +NL+
 
       '  while (shadow_map_height < height && height < 1.0)' +NL+
       '  {' +NL+
       '    height += step;' +NL+
       '    shadow_texture_coord += delta;' +NL+
-      '    shadow_map_height = texture2D(kambi_normal_map, shadow_texture_coord).a;' +NL+
+      '    shadow_map_height = texture2D(castle_normal_map, shadow_texture_coord).a;' +NL+
       '  }' +NL+
 
       '  if (shadow_map_height >= height)' +NL+
@@ -1697,21 +1697,21 @@ var
     begin
       { parallax bump mapping }
       Plug(stFragment,
-        'uniform float kambi_parallax_bm_scale;' +NL+
-        'uniform sampler2D kambi_normal_map;' +NL+
-        'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL+
+        'uniform float castle_parallax_bm_scale;' +NL+
+        'uniform sampler2D castle_normal_map;' +NL+
+        'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL+
         SteepParallaxDeclarations[FBumpMapping >= bmSteepParallax] +
         NL+
         'void PLUG_texture_coord_shift(inout vec2 tex_coord)' +NL+
         '{' +NL+
-        { We have to normalize kambi_vertex_to_eye_in_tangent_space again, just like normal vectors. }
-        '  vec3 v_to_eye = normalize(kambi_vertex_to_eye_in_tangent_space);' +NL+
+        { We have to normalize castle_vertex_to_eye_in_tangent_space again, just like normal vectors. }
+        '  vec3 v_to_eye = normalize(castle_vertex_to_eye_in_tangent_space);' +NL+
         SteepParallaxShift[FBumpMapping >= bmSteepParallax] +
         '}');
       VertexEyeBonusDeclarations :=
-        'varying vec3 kambi_vertex_to_eye_in_tangent_space;' +NL;
+        'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL;
       VertexEyeBonusCode :=
-        'mat3 object_to_tangent_space = transpose(kambi_tangent_to_object_space);' +NL+
+        'mat3 object_to_tangent_space = transpose(castle_tangent_to_object_space);' +NL+
         'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
         '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
         '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
@@ -1720,17 +1720,17 @@ var
           assume that transpose is enough to invert this matrix. Tests proved:
           - results seem the same
           - but it's not really faster. }
-        { 'mat3 eye_to_tangent_space = transpose(kambi_tangent_to_eye_space);' +NL+ }
-        'kambi_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
+        { 'mat3 eye_to_tangent_space = transpose(castle_tangent_to_eye_space);' +NL+ }
+        'castle_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
 
-      BumpMappingUniformName2 := 'kambi_parallax_bm_scale';
+      BumpMappingUniformName2 := 'castle_parallax_bm_scale';
       BumpMappingUniformValue2 := FHeightMapScale;
 
       if FBumpMapping >= bmSteepParallaxShadowing then
       begin
         Plug(stFragment, SteepParallaxShadowing);
         VertexEyeBonusDeclarations +=
-          'varying vec3 kambi_light_direction_tangent_space;' +NL;
+          'varying vec3 castle_light_direction_tangent_space;' +NL;
         VertexEyeBonusCode +=
           { We only cast shadow from gl_LightSource[0]. }
           'vec3 light_dir = gl_LightSource[0].position.xyz;' +NL+
@@ -1739,25 +1739,25 @@ var
           '  light_dir -= vec3(vertex_eye);' +NL+
           'light_dir = normalize(light_dir);' +NL+
 
-          'kambi_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
+          'castle_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
       end;
     end;
 
     Plug(stVertex,
       '#version 120' +NL+ { version 120 needed for transpose() }
-      'attribute mat3 kambi_tangent_to_object_space;' +NL+
-      'varying mat3 kambi_tangent_to_eye_space;' +NL+
+      'attribute mat3 castle_tangent_to_object_space;' +NL+
+      'varying mat3 castle_tangent_to_eye_space;' +NL+
       VertexEyeBonusDeclarations +
       NL+
       'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
       '{' +NL+
-      '  kambi_tangent_to_eye_space = gl_NormalMatrix * kambi_tangent_to_object_space;' +NL+
+      '  castle_tangent_to_eye_space = gl_NormalMatrix * castle_tangent_to_object_space;' +NL+
       VertexEyeBonusCode +
       '}');
 
     Plug(stFragment,
-      'varying mat3 kambi_tangent_to_eye_space;' +NL+
-      'uniform sampler2D kambi_normal_map;' +NL+
+      'varying mat3 castle_tangent_to_eye_space;' +NL+
+      'uniform sampler2D castle_normal_map;' +NL+
       NL+
       'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
       '{' +NL+
@@ -1766,7 +1766,7 @@ var
       '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
       '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
       '     and such). */' +NL+
-      '  vec3 normal_tangent = texture2D(kambi_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0);' +NL+
+      '  vec3 normal_tangent = texture2D(castle_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0);' +NL+
 
       '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
       '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
@@ -1780,10 +1780,10 @@ var
       '    */ ; else' +NL+
       '    normal_tangent.z = -normal_tangent.z;' +NL+
 
-      '  normal_eye_fragment = normalize(kambi_tangent_to_eye_space * normal_tangent);' +NL+
+      '  normal_eye_fragment = normalize(castle_tangent_to_eye_space * normal_tangent);' +NL+
       '}');
 
-    BumpMappingUniformName1 := 'kambi_normal_map';
+    BumpMappingUniformName1 := 'castle_normal_map';
     BumpMappingUniformValue1 := FNormalMapTextureUnit;
   end;
 
@@ -2080,7 +2080,7 @@ begin
           { Sphere mapping in GLSL adapted from
             http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
             by Jerome Guinot aka 'JeGX', many thanks! }
-          'vec3 r = reflect( normalize(vec3(kambi_vertex_eye)), kambi_normal_eye );' + NL +
+          'vec3 r = reflect( normalize(vec3(castle_vertex_eye)), castle_normal_eye );' + NL +
           'float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0) );' + NL +
           '/* Using 1.0 / 2.0 instead of 0.5 to workaround fglrx bugs */' + NL +
           'gl_TexCoord[%d].st = r.xy / m + vec2(1.0, 1.0) / 2.0;',
@@ -2092,7 +2092,7 @@ begin
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = kambi_normal_eye;' + NL,
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = castle_normal_eye;' + NL,
           [TextureUnit]);
         FCodeHash.AddInteger(1303 * (TextureUnit + 1));
       end;
@@ -2102,7 +2102,7 @@ begin
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
-        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(kambi_vertex_eye), kambi_normal_eye);' + NL,
+        TextureCoordGen += Format('gl_TexCoord[%d].xyz = -reflect(-vec3(castle_vertex_eye), castle_normal_eye);' + NL,
           [TextureUnit]);
         FCodeHash.AddInteger(1307 * (TextureUnit + 1));
       end;
@@ -2135,7 +2135,7 @@ begin
     http://www.mail-archive.com/osg-users@lists.openscenegraph.org/msg14238.html }
 
   case Generation of
-    tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'kambi_vertex_eye'; end;
+    tgEye   : begin PlaneName := 'gl_EyePlane'   ; CoordSource := 'castle_vertex_eye'; end;
     tgObject: begin PlaneName := 'gl_ObjectPlane'; CoordSource := 'vertex_object' ; end;
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
@@ -2162,7 +2162,7 @@ begin
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
   if ClipPlane = '' then
   begin
-    ClipPlane := 'gl_ClipVertex = kambi_vertex_eye;';
+    ClipPlane := 'gl_ClipVertex = castle_vertex_eye;';
     FCodeHash.AddInteger(2003);
   end;
 end;

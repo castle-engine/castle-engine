@@ -30,7 +30,7 @@ type
     procedure TestCheckIsMemCharFilled;
     procedure TestSmallest2Exp;
     procedure TestPathDelim;
-    procedure TestKambiOSError;
+    procedure TestOSError;
     procedure TestStrings;
     procedure TestOthers;
     procedure TestIntSqrt;
@@ -217,7 +217,7 @@ begin
 {$endif}
 end;
 
-procedure TTestCastleUtils.TestKambiOSError;
+procedure TTestCastleUtils.TestOSError;
 begin
  try
   OSCheck(
