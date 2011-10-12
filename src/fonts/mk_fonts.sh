@@ -19,7 +19,7 @@ mk_4_versions --font-name 'Bitstream Vera Sans'
 mk_4_versions --font-name 'Bitstream Vera Sans Mono'
 mk_4_versions --font-name 'Bitstream Vera Serif'
 
-# Used by GLNotifications and GLProgress
+# Used by CastleNotifications and GLProgress
 do_font2pascal --font-name 'Bitstream Vera Sans' --grab-to bfnt
 
 # Used by GLWinMessages

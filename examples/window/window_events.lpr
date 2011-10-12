@@ -16,13 +16,13 @@
 { Demo numerous TCastleWindowBase events.
   Displays many OnXxx events as they happen,
   also shows Pressed and Pressed.Characters.
-  Also a demo of GLNotifications unit. }
+  Also a demo of CastleNotifications unit. }
 
 program window_events;
 
 {$apptype GUI}
 
-uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, GLNotifications, CastleWindow,
+uses SysUtils, CastleUtils, CastleGLUtils, GL, GLU, CastleNotifications, CastleWindow,
   KeysMouse, CastleStringUtils,
   OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_Bold_m15_Unit,
   Classes, CastleMessages;
