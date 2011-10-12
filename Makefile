@@ -63,7 +63,7 @@ EXAMPLES_BASE_NAMES := \
   examples/audio/efx_demo \
   examples/tools/dircleaner \
   examples/tools/stringoper \
-  examples/castlescript/kambi_calc \
+  examples/castlescript/castle_calculator \
   examples/castlescript/image_make_by_script \
   examples/images_videos/image_convert \
   examples/images_videos/dds_decompose \

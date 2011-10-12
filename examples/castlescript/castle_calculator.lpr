@@ -6,7 +6,7 @@
 
 {$apptype CONSOLE}
 
-program kambi_calc;
+program castle_calculator;
 
 uses CastleParameters, CastleScriptParser;
 

@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f kambi_calc.lpr ]; then cd ../../; fi
+if [ -f castle_calculator.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/castlescript/kambi_calc.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/castlescript/castle_calculator.lpr
