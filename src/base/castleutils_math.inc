@@ -273,7 +273,7 @@ function SmallFactorial(n: Integer): Int64;
 
   And workarounds faulty DivMod behavior with FPC 2.4.0,
   see http://bugs.freepascal.org/view.php?id=15453 }
-procedure KamDivMod(Dividend: Integer; Divisor: Word;
+procedure CastleDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
 
 { Like DivMod (return result of integer division and a remainder),
@@ -310,7 +310,7 @@ procedure MinMax(const x0, x1, x2: Single; out min, max: Single); overload;
 
 { Our version of CoTan, to workaround
   http://www.freepascal.org/mantis/view.php?id=9944. }
-function KamCoTan(const Value: Float): Float;
+function CastleCoTan(const Value: Float): Float;
 
 { Floor from Sqrt(Value). }
 function IntSqrt(const Value: Cardinal): Cardinal;
@@ -685,7 +685,7 @@ begin
  while n > 1 do begin Result := Result * n; Dec(n) end;
 end;
 
-procedure KamDivMod(Dividend: Integer; Divisor: Word;
+procedure CastleDivMod(Dividend: Integer; Divisor: Word;
   out Result, Remainder: SmallInt);
 {$ifdef VER2_4_0}
 { Workaround http://bugs.freepascal.org/view.php?id=15453.
@@ -720,7 +720,7 @@ procedure DivUnsignedMod(Dividend: Integer; Divisor: Word;
 var
   SignedRemainder: SmallInt;
 begin
-  KamDivMod(Dividend, Divisor, Result, SignedRemainder);
+  CastleDivMod(Dividend, Divisor, Result, SignedRemainder);
   if SignedRemainder < 0 then
   begin
     Dec(Result);
@@ -794,7 +794,7 @@ begin
     if x2 > max then max := x2;
 end;
 
-function KamCoTan(const Value: Float): Float;
+function CastleCoTan(const Value: Float): Float;
 var
   ASin, ACos: Float;
 begin

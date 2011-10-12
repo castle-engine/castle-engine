@@ -285,7 +285,7 @@ procedure TTestCastleUtils.TestDivMod;
     DivResult: SmallInt;
     ModResult: SmallInt;
   begin
-    KamDivMod(Divident, Divisor, DivResult, ModResult);
+    CastleDivMod(Divident, Divisor, DivResult, ModResult);
     Assert(DivResult = CorrectDivResult);
     Assert(ModResult = CorrectModResult);
 

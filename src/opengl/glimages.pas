@@ -1217,7 +1217,7 @@ end;
 
 function Texture2DClampToEdge: TTextureWrap2D;
 begin
-  Result[0] := KamGL_CLAMP_TO_EDGE;
+  Result[0] := CastleGL_CLAMP_TO_EDGE;
   Result[1] := Result[0];
 end;
 

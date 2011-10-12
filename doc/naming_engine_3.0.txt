@@ -224,6 +224,12 @@ tkamobjectstack                             TCastleObjectStack
 tkamstringlist                              TCastleStringList
 tkamviewport                                TCastleViewport
 loadfromvrmlevents                                LoadFromEvents
+KamCoTan                 CastleCoTan
+KamDivMod                CastleDivMod
+KamGLPolygonStipple      CastleGLPolygonStipple
+KamGluSphere             CastleGluSphere
+KamGL_CLAMP_TO_EDGE      CastleGL_CLAMP_TO_EDGE
+KamReadLink              CastleReadLink
 
 ------------------------------------------------------------------------------
 3. Renames done, unit names:

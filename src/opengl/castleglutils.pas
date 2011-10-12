@@ -621,7 +621,7 @@ function RandomPolyStippleBy8(const BlackChance: Extended): TPolygonStipple;
 
 var
   { Equivalent to glPolygonStipple, but takes PPolygonStipple as a parameter. }
-  KamGLPolygonStipple: procedure(mask: PPolygonStipple);
+  CastleGLPolygonStipple: procedure(mask: PPolygonStipple);
     {$ifdef OPENGL_CDECL} cdecl; {$endif}
     {$ifdef OPENGL_STDCALL} stdcall; {$endif}
 
@@ -690,7 +690,7 @@ function NewGLUQuadric(
 { Render sphere in OpenGL. Radius, Slices, Stacks have the same meaning
   as for gluSphere (in case they are not self-explanatory...).
   Other parameters set glu quadric parameters, see glu quadric documentation. }
-procedure KamGluSphere(
+procedure CastleGluSphere(
   const Radius: TGLdouble;
   const Slices, Stacks: TGLint;
   Texture: boolean = true;
@@ -918,7 +918,7 @@ procedure SetWindowPosZero;
   to work with @italic(really ancient) OpenGL versions before 1.2.
   Note that our engine officially supports only OpenGL >= 1.2,
   so don't expect everything to work smootly with such ancient OpenGL anyway! }
-function KamGL_CLAMP_TO_EDGE: TGLenum;
+function CastleGL_CLAMP_TO_EDGE: TGLenum;
 
 {$undef read_interface}
 
@@ -1581,7 +1581,7 @@ begin
   if Stipple <> nil then
   begin
     glPushAttrib(GL_POLYGON_STIPPLE_BIT or GL_POLYGON_BIT);
-      KamGLPolygonStipple(Stipple);
+      CastleGLPolygonStipple(Stipple);
       glEnable(GL_POLYGON_STIPPLE);
       DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
     glPopAttrib;
@@ -1659,7 +1659,7 @@ begin
   gluQuadricDrawStyle(result, drawStyle);
 end;
 
-procedure KamGluSphere(
+procedure CastleGluSphere(
   const Radius: TGLdouble;
   const Slices, Stacks: TGLint;
   Texture: boolean; Normals: TGLenum;
@@ -2429,7 +2429,7 @@ begin
   end;
 end;
 
-function KamGL_CLAMP_TO_EDGE: TGLenum;
+function CastleGL_CLAMP_TO_EDGE: TGLenum;
 begin
   if GL_version_1_2 then
     Result := GL_CLAMP_TO_EDGE else
@@ -2484,5 +2484,5 @@ initialization
   Set8087CW($133F);
 
   Pointer(glListIBase) := glListBase;
-  Pointer(KamGLPolygonStipple) := glPolygonStipple;
+  Pointer(CastleGLPolygonStipple) := glPolygonStipple;
 end.

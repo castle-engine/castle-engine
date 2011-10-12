@@ -3968,7 +3968,7 @@ var
   Depth, ZNear2, Cotangent: Single;
 begin
   ZNear2 := ZNear * 2;
-  Cotangent := KamCoTan(FovyRad / 2);
+  Cotangent := CastleCoTan(FovyRad / 2);
 
   Result := ZeroMatrix4Single;
   Result[0, 0] := Cotangent / Aspect;

@@ -567,7 +567,7 @@ begin
    if Mode.FPolygonStipple <> nil then
    begin
     glEnable(GL_POLYGON_STIPPLE);
-    KamGLPolygonStipple(Mode.FPolygonStipple);
+    CastleGLPolygonStipple(Mode.FPolygonStipple);
     glColor3ub(0, 0, 0);
     glRectf(0, 0, Window.Width, Window.Height);
    end;

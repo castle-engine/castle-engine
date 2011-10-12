@@ -80,7 +80,7 @@ begin
     end else
       glColor3f(LightIntensity, LightIntensity, LightIntensity);
 
-    KamGluSphere(LightRadius, 10, 10);
+    CastleGluSphere(LightRadius, 10, 10);
 
     if not ForMap then
       glDisable(GL_BLEND);

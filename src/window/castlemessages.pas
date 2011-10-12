@@ -911,7 +911,7 @@ begin
    MessagesTheme.RectBorderCol) }
  if MessagesTheme.RectStipple <> nil then
  begin
-   KamGLPolygonStipple(MessagesTheme.RectStipple);
+   CastleGLPolygonStipple(MessagesTheme.RectStipple);
    glEnable(GL_POLYGON_STIPPLE);
  end;
  if MessagesTheme.RectColor[3] <> 1.0 then

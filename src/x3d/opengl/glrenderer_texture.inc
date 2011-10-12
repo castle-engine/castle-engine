@@ -438,7 +438,7 @@ begin
       and CLAMP_TO_EDGE is available by TextureProperties.boundaryMode*.
       But until this will get implemented, it's much safer (and more sensible?)
       to use GL_CLAMP_TO_EDGE here. }
-    Result := KamGL_CLAMP_TO_EDGE;
+    Result := CastleGL_CLAMP_TO_EDGE;
 end;
 
 { TGLTextureNode ------------------------------------------------------------- }
@@ -1955,8 +1955,8 @@ begin
   { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
     (instead of standard clamp to border). Didn't see any difference
     for depth textures. }
-  TextureWrap[0] := KamGL_CLAMP_TO_EDGE;
-  TextureWrap[1] := KamGL_CLAMP_TO_EDGE;
+  TextureWrap[0] := CastleGL_CLAMP_TO_EDGE;
+  TextureWrap[1] := CastleGL_CLAMP_TO_EDGE;
 
   { calculate MinFilter, NeedsMipmaps }
   if VarianceShadowMaps and HasGenerateMipmap then

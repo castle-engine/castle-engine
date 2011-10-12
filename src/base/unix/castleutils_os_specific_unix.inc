@@ -20,13 +20,13 @@
 { Return the symlink target path. Like Libc.ReadLink or FpReadLink,
   but more comfortable, it returns a normal Pascal string.
   @raises EOSError In case of any failure (non-existing FileName etc.) }
-function KamReadLink(const FileName: string): string;
+function CastleReadLink(const FileName: string): string;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-function KamReadLink(const FileName: string): string;
+function CastleReadLink(const FileName: string): string;
 var ReadLinkResult, NewLength: Integer;
 begin
  NewLength := 100;

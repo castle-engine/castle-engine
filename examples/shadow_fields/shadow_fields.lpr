@@ -260,7 +260,7 @@ procedure Open(Window: TCastleWindowBase);
 begin
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
   glNewList(GLList_EnvLight, GL_COMPILE);
-    KamGluSphere(1, 10, 10);
+    CastleGluSphere(1, 10, 10);
   glEndList;
 end;
 

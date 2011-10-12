@@ -1072,7 +1072,7 @@ begin
    sposob polegac na tym ze jego wartosc okresla cokolwiek w jakikolwiek sposob. }
 
  try
-  FExeName := KamReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
+  FExeName := CastleReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
  except
   on EOSError do FExeName := '';
  end;

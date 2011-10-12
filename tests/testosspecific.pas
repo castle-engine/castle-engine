@@ -75,20 +75,20 @@ procedure TestIsSymLink_Proc(const FileInfo: TEnumeratedFileInfo; Data: Pointer)
 begin
   Assert(ExtractFileName(FileInfo.FullFileName) = 'symlink.txt');
   Assert(IsSymLink(FileInfo.FullFileName));
-  Assert(KamReadLink(FileInfo.FullFileName) = 'symlink_target.txt');
+  Assert(CastleReadLink(FileInfo.FullFileName) = 'symlink_target.txt');
 end;
 
-{ Test IsSymLink, EnumFiles, KamReadLink }
+{ Test IsSymLink, EnumFiles, CastleReadLink }
 procedure TTestOSSpecific.TestIsSymLink;
 begin
   EnumFiles('data/symlink.txt', faAnyFile, @TestIsSymLink_Proc, nil, [eoSymlinks]);
 
   try
-    KamReadLink('/non_existing_file');
-    Assert(false, 'KamReadLink must raise exception on non-existing file');
+    CastleReadLink('/non_existing_file');
+    Assert(false, 'CastleReadLink must raise exception on non-existing file');
   except
     on E: EOSError do
-      { OK, KamReadLink for /non_existing_file should raise exception };
+      { OK, CastleReadLink for /non_existing_file should raise exception };
   end;
 end;
 {$endif}

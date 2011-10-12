@@ -1396,7 +1396,7 @@ end;
 class procedure TCasScriptFloat.HandleCotan(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
-  TCasScriptFloat(AResult).Value := KamCoTan( TCasScriptFloat(Arguments[0]).Value );
+  TCasScriptFloat(AResult).Value := CastleCoTan( TCasScriptFloat(Arguments[0]).Value );
 end;
 
 class procedure TCasScriptFloat.HandleArcSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
