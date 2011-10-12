@@ -25,9 +25,9 @@ uses CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Scene: T3DScene;
+  Scene: TCastleScene;
 begin
-  Scene := T3DScene.Create(Application { Owner that will free the Scene });
+  Scene := TCastleScene.Create(Application { Owner that will free the Scene });
   Scene.Load('models/boxes.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;

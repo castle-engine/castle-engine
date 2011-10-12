@@ -79,7 +79,7 @@
       from ParentNode.Scene.GetTime. If ParentNode is @nil
       (which should not happen with normal fields within nodes)
       or if ParentNode.Scene is @nil (which may happen only if events
-      processing is not turned on, that is T3DSceneCore.ProcessEvents is @false)
+      processing is not turned on, that is TCastleSceneCore.ProcessEvents is @false)
       then event is not send. }
     procedure Send(Field: TX3DField; const Time: TX3DTime);
     procedure Send(Field: TX3DField);

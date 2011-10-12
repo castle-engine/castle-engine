@@ -1,4 +1,4 @@
-{ Demo of T3DPrecalculatedAnimation class. In other words, this loads and displays
+{ Demo of TCastlePrecalculatedAnimation class. In other words, this loads and displays
   animations of "Castle Game Engine".
 
   If you're looking for example animation models,
@@ -39,14 +39,14 @@
      --backwards
      --no-loop
      --no-backwards
-   For precise meaning, see T3DPrecalculatedAnimation documentation.
+   For precise meaning, see TCastlePrecalculatedAnimation documentation.
    In short, --loop causes animation to loop and --backwards causes
    animation to go backward after going forward.
    If you load from *.kanim file, then the default loop/backwards
    settings are loaded from this file. Otherwise, the default is
    --loop --no-backwards.
 
-  This is all implemented in T3DPrecalculatedAnimation class, see docs of this class
+  This is all implemented in TCastlePrecalculatedAnimation class, see docs of this class
   for precise description how things work.
 
   You can navigate in the scene using the standard arrow keys, escape exits.
@@ -59,7 +59,7 @@
   At the beginning there is some preprocessing time
   ("Preparing animation") when we create display lists,
   to make future animation run smoothly.
-  That's done by T3DPrecalculatedAnimation.PrepareResources.
+  That's done by TCastlePrecalculatedAnimation.PrepareResources.
 }
 
 program demo_animation;
@@ -73,7 +73,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Animation: T3DPrecalculatedAnimation;
+  Animation: TCastlePrecalculatedAnimation;
 
 procedure KeyDown(Window: TCastleWindowBase; Key: TKey; C: char);
 begin
@@ -81,7 +81,7 @@ begin
     Animation.ResetTime(0.0);
 end;
 
-procedure LoadAnimationFromCommandLine(Animation: T3DPrecalculatedAnimation);
+procedure LoadAnimationFromCommandLine(Animation: TCastlePrecalculatedAnimation);
 const
   { These are constants used only with "manual" method
     (even number of command-line params),
@@ -163,7 +163,7 @@ begin
   try
     OnWarning := @OnWarningWrite;
 
-    Animation := T3DPrecalculatedAnimation.Create(nil);
+    Animation := TCastlePrecalculatedAnimation.Create(nil);
 
     if Parameters.High = 1 then
     begin

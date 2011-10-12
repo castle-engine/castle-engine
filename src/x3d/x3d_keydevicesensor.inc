@@ -21,7 +21,7 @@
 
     { React to key down/up events.
 
-      This is used by T3DSceneCore to communicate with this key sensor.
+      This is used by TCastleSceneCore to communicate with this key sensor.
 
       Semantics follow TUIControl.KeyDown,
       TUIControl.KeyUp behavior which in turn follow TCastleWindowBase.OnKeyDown,

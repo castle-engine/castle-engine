@@ -84,7 +84,7 @@ begin
       (that can be later loaded by our engine). }
     SaveVRML(Root, 'test.x3d', 'build_3d_object_by_code', '', xeXML);
 
-    { You also could create a T3DSceneCore, or even T3DScene
+    { You also could create a TCastleSceneCore, or even TCastleScene
       to render this 3D object directly in OpenGL (without saving to any
       file). For example in scene_manager_basic.lpr you could replace
         Scene.Load('models/boxes.x3dv');
@@ -93,7 +93,7 @@ begin
       to render your constructed 3D object.
 
       Note that you can even rebuild and change the 3D object *after*
-      it's already loaded and rendered by T3DScene.
+      it's already loaded and rendered by TCastleScene.
       See demos animate_3d_model_by_code.lpr and animate_3d_model_by_code_2.lpr. }
 
   finally FreeAndNil(Root) end;

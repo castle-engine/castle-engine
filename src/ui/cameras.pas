@@ -2380,7 +2380,7 @@ var
   Direction, Up, GravityUp: TVector3Single;
 begin
   { Make the same view as
-    CameraViewpointForWholeScene call in T3DSceneCore.CameraFromViewpoint,
+    CameraViewpointForWholeScene call in TCastleSceneCore.CameraFromViewpoint,
     to make "Home" behavior same as going to the default viewpoint.
     Nice for user. }
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
@@ -3662,7 +3662,7 @@ var
          MouseLook may be true for a very short time.
 
          For example, consider castle, where MouseLook is usually true
-         during the game, but it's off in game menu (TCastleMenu) and start screen.
+         during the game, but it's off in game menu (TCastleOnScreenMenu) and start screen.
          So when you're in the game, and choose "End game", game menu
          closes (immediately bringing back MouseLook = true by TGLMode.Destroy
          restoring everything), but game mode immediately closes and goes
@@ -4444,7 +4444,7 @@ begin
   Walk.PreferGravityUpForMoving := true;
   IgnoreAllInputs := false;
 
-  { This follows the same logic as T3DSceneCore.CameraFromNavigationInfo }
+  { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
 
   { set NavigationClass, and eventually adjust Walk properties }
   case Value of

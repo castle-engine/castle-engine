@@ -33,10 +33,10 @@ begin
 end;
 
 var
-  Scene: T3DSceneCore;
+  Scene: TCastleSceneCore;
   SI: TShapeTreeIterator;
 begin
-  Scene := T3DSceneCore.Create(nil);
+  Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load(Parameters[1], true);
 

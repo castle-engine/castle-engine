@@ -120,11 +120,11 @@
       Joints that changed are assumed to be already traversed by TX3DNode.Traverse
       (this prepares field values for AnimateSkinPoint call).
 
-      This method is used by T3DSceneCore. Don't call this yourself.
+      This method is used by TCastleSceneCore. Don't call this yourself.
 
       Returns changed VRML/X3D coordinates field (or @nil if there is no skin).
       You should call TX3DField.Changed on it (unless you use it from some
-      T3DSceneCore initialization, when there's no point in notifying about this). }
+      TCastleSceneCore initialization, when there's no point in notifying about this). }
     function AnimateSkin: TMFVec3f;
   end;
 

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3D scenes (T3DSceneCore). }
+{ 3D scenes (TCastleSceneCore). }
 
 unit CastleSceneCore;
 
@@ -33,7 +33,7 @@ const
 type
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
 
-  { Internal helper type for T3DSceneCore.
+  { Internal helper type for TCastleSceneCore.
     @exclude }
   TSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
@@ -48,24 +48,24 @@ type
   TSceneValidities = set of TSceneValidity;
 
   { Scene edge that is between exactly two triangles.
-    It's used by @link(T3DSceneCore.ManifoldEdges),
+    It's used by @link(TCastleSceneCore.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
     { Index to get vertexes of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using T3DSceneCore.ShareManifoldAndBorderEdges with various scenes from
+      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the first triangle
       (i.e. Triangles[0]). }
     VertexIndex: Cardinal;
 
-    { Indexes to T3DSceneCore.TrianglesListShadowCasters array }
+    { Indexes to TCastleSceneCore.TrianglesListShadowCasters array }
     Triangles: array [0..1] of Cardinal;
 
     { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
       but @italic(only at generation of manifold edges time).
       Like said in VertexIndex, keeping here actual vertex info would prevent
-      T3DSceneCore.ShareManifoldAndBorderEdges. However, using these when generating
+      TCastleSceneCore.ShareManifoldAndBorderEdges. However, using these when generating
       makes a great speed-up when generating manifold edges.
 
       Memory cost is acceptable: assume we have model with 10 000 faces,
@@ -82,7 +82,7 @@ type
       implementation code is a little simplified, so I'm keeping this.
       Also, in the future, maybe it will be sensible
       to use this for actual shadow quad rendering, in cases when we know that
-      T3DSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
+      TCastleSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
     V0, V1: TVector3Single;
   end;
   PManifoldEdge = ^TManifoldEdge;
@@ -90,17 +90,17 @@ type
   TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
 
   { Scene edge that has one neighbor, i.e. border edge.
-    It's used by @link(T3DSceneCore.BorderEdges),
+    It's used by @link(TCastleSceneCore.BorderEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TBorderEdge = record
     { Index to get vertex of this edge.
       The actual edge's vertexes are not recorded here (this would prevent
-      using T3DSceneCore.ShareManifoldAndBorderEdges with various scenes from
+      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
       the same animation). You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
     VertexIndex: Cardinal;
 
-    { Index to T3DSceneCore.TrianglesListShadowCasters array. }
+    { Index to TCastleSceneCore.TrianglesListShadowCasters array. }
     TriangleIndex: Cardinal;
   end;
   PBorderEdge = ^TBorderEdge;
@@ -108,12 +108,12 @@ type
   TBorderEdgeList = specialize TGenericStructList<TBorderEdge>;
 
   { These are various features that may be freed by
-    T3DSceneCore.FreeResources.
+    TCastleSceneCore.FreeResources.
 
-    @italic(Warning): This is for experienced usage of T3DSceneCore.
+    @italic(Warning): This is for experienced usage of TCastleSceneCore.
     Everything is explained in detail below, but still  --- if you have some
     doubts, or you just don't observe any memory shortage in your program,
-    it's probably best to not use T3DSceneCore.FreeResources.
+    it's probably best to not use TCastleSceneCore.FreeResources.
 
     @unorderedList(
       @item(For frRootNode, you @italic(may) get nasty effects including crashes
@@ -138,31 +138,31 @@ type
   }
   TSceneFreeResource = (
     { Free (and set to nil) RootNode of the scene. Works only if
-      T3DSceneCore.OwnsRootNode is @true (the general assertion is that
-      T3DSceneCore will @italic(never) free RootNode when OwnsRootNode is
+      TCastleSceneCore.OwnsRootNode is @true (the general assertion is that
+      TCastleSceneCore will @italic(never) free RootNode when OwnsRootNode is
       @false).
 
       frRootNode allows you to save some memory, but may be quite dangerous.
       You have to be careful then about what methods from the scene you use.
       Usually, you will prepare appropriate things first (usually by
-      T3DScene.PrepareResources), and after that call FreeResources
+      TCastleScene.PrepareResources), and after that call FreeResources
       with frRootNode.
 
       Note that event processing is impossible without RootNode nodes and
       fields and routes, so don't ever use this if you want to set
-      T3DSceneCore.ProcessEvents to @true.
+      TCastleSceneCore.ProcessEvents to @true.
 
       Note that if you will try to use a resource that was already freed
       by frRootNode, you may even get segfault (access violation).
       So be really careful, be sure to prepare everything first by
-      T3DScene.PrepareResources or such. }
+      TCastleScene.PrepareResources or such. }
     frRootNode,
 
     { Unloads the texture images/videos allocated in VRML texture nodes.
 
       It's useful if you know that you already prepared everything
       that needed the texture images, and you will not need texture images
-      later. For T3DScene this means that you use Optimization
+      later. For TCastleScene this means that you use Optimization
       method other than roNone,
       and you already did PrepareResources (so textures are already loaded to OpenGL),
       and your code will not access TextureImage / TextureVideo anymore.
@@ -192,18 +192,18 @@ type
 
       Frees memory, but next call to ManifoldEdges and BorderEdges will
       need to calculate them again (or you will need to call
-      T3DSceneCore.ShareManifoldAndBorderEdges again).
+      TCastleSceneCore.ShareManifoldAndBorderEdges again).
       Note that using this scene as shadow caster for shadow volumes algorithm
       requires ManifoldEdges and BorderEdges. }
     frManifoldAndBorderEdges);
 
   TSceneFreeResources = set of TSceneFreeResource;
 
-  T3DSceneCore = class;
+  TCastleSceneCore = class;
 
-  TSceneNotification = procedure (Scene: T3DSceneCore) of object;
+  TSceneNotification = procedure (Scene: TCastleSceneCore) of object;
 
-  { Callback for T3DSceneCore.OnGeometryChanged.
+  { Callback for TCastleSceneCore.OnGeometryChanged.
 
     SomeLocalGeometryChanged means that octree, triangles, bounding volumes
     local to some shape changed (not just e.g. shape transformation).
@@ -211,7 +211,7 @@ type
     OnlyShapeChanged is meaningful when SomeLocalGeometryChanged = @true.
     If nil, it indicates that only the given shape geometry changed.
     If not nil, assume that every shape's geometry potentially changed. }
-  TSceneGeometryChanged = procedure (Scene: T3DSceneCore;
+  TSceneGeometryChanged = procedure (Scene: TCastleSceneCore;
     const SomeLocalGeometryChanged: boolean;
     OnlyShapeChanged: TShape) of object;
 
@@ -221,7 +221,7 @@ type
     as a list, with the last item being the top one. }
   TX3DBindableStack = class(TX3DBindableStackBasic)
   private
-    FParentScene: T3DSceneCore;
+    FParentScene: TCastleSceneCore;
     FOnBoundChanged: TSceneNotification;
     BoundChangedSchedule: Cardinal;
     BoundChangedScheduled: boolean;
@@ -261,9 +261,9 @@ type
       or at a closing EndChangesSchedule. }
     procedure DoScheduleBoundChanged;
   public
-    constructor Create(AParentScene: T3DSceneCore);
+    constructor Create(AParentScene: TCastleSceneCore);
 
-    property ParentScene: T3DSceneCore read FParentScene;
+    property ParentScene: TCastleSceneCore read FParentScene;
 
     { Returns top item on this stack, or @nil if not present. }
     function Top: TAbstractBindableNode;
@@ -323,7 +323,7 @@ type
   PGeneratedTexture = ^TGeneratedTexture;
 
   { @exclude
-    Internal for T3DSceneCore: list of generated textures
+    Internal for TCastleSceneCore: list of generated textures
     (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
     along with their shape. }
   TGeneratedTextureList = class(specialize TGenericStructList<TGeneratedTexture>)
@@ -363,23 +363,23 @@ type
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
   TCompiledScriptHandlerInfoList = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
 
-  { Possible spatial structure types that may be managed by T3DSceneCore,
-    see T3DSceneCore.Spatial. }
+  { Possible spatial structure types that may be managed by TCastleSceneCore,
+    see TCastleSceneCore.Spatial. }
   TSceneSpatialStructure = (
-    { Create and keep current the T3DSceneCore.OctreeRendering.
+    { Create and keep current the TCastleSceneCore.OctreeRendering.
       This is a dynamic octree containing all visible shapes. }
     ssRendering,
 
-    { Create and keep current the T3DSceneCore.OctreeDynamicCollisions.
+    { Create and keep current the TCastleSceneCore.OctreeDynamicCollisions.
       This is a dynamic octree containing all collidable items. }
     ssDynamicCollisions,
 
-    { Create the T3DSceneCore.OctreeVisibleTriangles.
+    { Create the TCastleSceneCore.OctreeVisibleTriangles.
       This is an octree containing all visible triangles, suitable only
       for scenes that stay static. }
     ssVisibleTriangles,
 
-    { Create the T3DSceneCore.OctreeCollidableTriangles.
+    { Create the TCastleSceneCore.OctreeCollidableTriangles.
       This is an octree containing all collidable triangles, suitable only
       for scenes that stay static. }
     ssCollidableTriangles);
@@ -433,7 +433,7 @@ type
     { Local geometry change
       happened (actual octree free is already done by
       TShape.LocalGeometryChanged, octree create will be done at next demand).
-      We should update stuff at higher (T3DSceneCore) level accordingly.
+      We should update stuff at higher (TCastleSceneCore) level accordingly.
 
       gcLocalGeometryChangedCoord means that coordinates changed.
       Compared to gcLocalGeometryChanged, this means that model edges
@@ -452,7 +452,7 @@ type
       change. }
     gcActiveShapesChanged);
 
-  { 3D scene, 3D model handling (except rendering, for which see T3DScene).
+  { 3D scene, 3D model handling (except rendering, for which see TCastleScene).
     Provides a lot of useful functionality. Simple loading of the scene (@link(Load)
     method), calculating various things (like @link(BoundingBox) method).
 
@@ -481,7 +481,7 @@ type
     cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
     that scene did not change much). }
-  T3DSceneCore = class(TX3DEventsEngine)
+  TCastleSceneCore = class(TX3DEventsEngine)
   private
     FOwnsRootNode: boolean;
     FShapes: TShapeTree;
@@ -686,11 +686,11 @@ type
       Also, in some special cases an octree may be constructed in
       some special way (not only using @link(CreateShapeOctree)
       or @link(CreateTriangleOctree)) so that it doesn't contain
-      the whole scene from some T3DSceneCore object, or it contains
-      the scene from many T3DSceneCore objects, or something else.
+      the whole scene from some TCastleSceneCore object, or it contains
+      the scene from many TCastleSceneCore objects, or something else.
 
       What I want to say is that it's generally wrong to think of
-      an octree as something that maps 1-1 to some T3DSceneCore object.
+      an octree as something that maps 1-1 to some TCastleSceneCore object.
       Octrees, as implemented here, are a lot more flexible.
 
       @groupBegin }
@@ -755,15 +755,15 @@ type
     ScreenEffectNodes: TX3DNodeList;
 
     { Create TShape (or descendant) instance suitable for this
-      T3DSceneCore descendant. In this class, this simply creates new
-      TShape instance. If you make a descendant of T3DSceneCore,
+      TCastleSceneCore descendant. In this class, this simply creates new
+      TShape instance. If you make a descendant of TCastleSceneCore,
       you may need to store some per-shape information, and then it may
       be useful to have your own TShape descendant to carry this information.
       So you can override this to create your own descendant, and then
       you're sure that all leafs within Shapes tree are created using
       this.
 
-      Example: T3DScene uses this to create TGLShape. }
+      Example: TCastleScene uses this to create TGLShape. }
     function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; virtual;
 
@@ -969,7 +969,7 @@ type
       (mark some octrees for regenerating at next access).
 
       This is public only for overloading (and for internal TShape
-      access). Do not call this yourself --- TShape and T3DSceneCore
+      access). Do not call this yourself --- TShape and TCastleSceneCore
       implementations know when and how to call this. }
     procedure DoGeometryChanged(const Change: TGeometryChange;
       LocalGeometryShape: TShape); virtual;
@@ -988,12 +988,12 @@ type
 
       Since these calls may be costly (traversing the hierarchy),
       and their results are often
-      not immediately needed by T3DSceneCore or TX3DNode hierarchy,
+      not immediately needed by TCastleSceneCore or TX3DNode hierarchy,
       it's sometimes not desirable to call them immediately
       when geometry changed / all changed.
 
       So you can use ScheduleChangedAll instead of ChangedAll.
-      All event handlers within T3DSceneCore already do this.
+      All event handlers within TCastleSceneCore already do this.
 
       When you're within Begin/EndChangesSchedule, then
       ScheduleChangedAll just sets an internal flag and actual ChangedAll
@@ -1038,7 +1038,7 @@ type
       and even to set RootNode to @nil. Be sure to call ChangedAll after this.
       Changing RootNode allows you to load
       and unload whole new VRML/X3D graph (for example from some 3D file)
-      whenever you want, and keep the same T3DSceneCore instance
+      whenever you want, and keep the same TCastleSceneCore instance
       (with the same rendering settings and such).
 
       Note that there is also a trick to conserve memory use.
@@ -1053,8 +1053,8 @@ type
       from this class. Generally, use only things that you prepared
       with PrepareResources. So e.g. calling Render or using BoundingBox.
       If all your needs are that simple, then you can use this trick
-      to save some memory. This is actually useful when using T3DPrecalculatedAnimation,
-      as it creates a lot of intermediate node structures and T3DSceneCore
+      to save some memory. This is actually useful when using TCastlePrecalculatedAnimation,
+      as it creates a lot of intermediate node structures and TCastleSceneCore
       instances. }
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
 
@@ -1063,7 +1063,7 @@ type
 
     { The dynamic octree containing all visible shapes.
       It's useful for "frustum culling", it will be automatically
-      used by T3DScene.RenderFrustum to speed up the rendering.
+      used by TCastleScene.RenderFrustum to speed up the rendering.
 
       This octree will be automatically updated on dynamic scenes
       (when e.g. animation moves some shape by changing it's transformation).
@@ -1298,7 +1298,7 @@ type
     { @groupEnd }
 
     { This allows you to "share" @link(ManifoldEdges) and
-      @link(BorderEdges) values between T3DSceneCore instances,
+      @link(BorderEdges) values between TCastleSceneCore instances,
       to conserve memory and preparation time.
       The values set here will be returned by following ManifoldEdges and
       BorderEdges calls. The values passed here will @italic(not
@@ -1307,10 +1307,10 @@ type
 
       This is handy if you know that this scene has the same
       ManifoldEdges and BorderEdges contents as some other scene. In particular,
-      this is extremely handy in cases of animations in T3DPrecalculatedAnimation,
+      this is extremely handy in cases of animations in TCastlePrecalculatedAnimation,
       where all scenes actually need only a single instance of TManifoldEdgeList
       and TBorderEdgeList,
-      this greatly speeds up T3DPrecalculatedAnimation loading and reduces memory use.
+      this greatly speeds up TCastlePrecalculatedAnimation loading and reduces memory use.
 
       Note that passing here as values the same references
       that are already returned by ManifoldEdges / BorderEdges is always
@@ -1330,12 +1330,12 @@ type
       part of a node graph and put it in some other scene.
 
       @italic(You almost never need to call this method) --- this
-      is done automatically for you when T3DSceneCore is destroyed.
+      is done automatically for you when TCastleSceneCore is destroyed.
       However, if you process RootNode graph
       and extract some node from it (that is, delete node from our
       RootNode graph, but instead of freeing it you insert it
       into some other VRML graph) you must call it to manually
-      "untie" this node (and all it's children) from this T3DSceneCore instance. }
+      "untie" this node (and all it's children) from this TCastleSceneCore instance. }
     procedure UnregisterScene(Node: TX3DNode);
 
     function KeyDown(Key: TKey; C: char): boolean; override;
@@ -1445,7 +1445,7 @@ type
       Or you can even assign here your own TInputShortcut instance.
       Then you're responsible for freeing it yourself.
       This may be comfortable e.g. to share your own TInputShortcut instance
-      among many T3DSceneCore instances. }
+      among many TCastleSceneCore instances. }
     property Input_PointingDeviceActivate: TInputShortcut
       read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
 
@@ -1746,7 +1746,7 @@ type
 
       @italic(Current implementation notes:)
 
-      Currently, this is used by T3DScene if you use
+      Currently, this is used by TCastleScene if you use
       Attributes.UseOcclusionQuery.
       Normally, occlusion query tries to reuse results from previous
       frame, using the assumption that usually camera changes slowly
@@ -1937,7 +1937,7 @@ type
   end;
 
 var
-  { Log T3DSceneCore.ChangedField and T3DSceneCore.ChangedAll occurrences.
+  { Log TCastleSceneCore.ChangedField and TCastleSceneCore.ChangedAll occurrences.
     Relevant only if CastleLog.Log is also true, that is: you still have
     to call CastleLog.InitializeLog to enable any logging.
     Useful for debugging  and optimizing VRML/X3D events engine. }
@@ -1950,7 +1950,7 @@ uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
 
 { TX3DBindableStack ----------------------------------------------------- }
 
-constructor TX3DBindableStack.Create(AParentScene: T3DSceneCore);
+constructor TX3DBindableStack.Create(AParentScene: TCastleSceneCore);
 begin
   inherited Create(false);
   FParentScene := AParentScene;
@@ -2270,9 +2270,9 @@ begin
     Add(Item);
 end;
 
-{ T3DSceneCore ----------------------------------------------------------- }
+{ TCastleSceneCore ----------------------------------------------------------- }
 
-constructor T3DSceneCore.Create(AOwner: TComponent);
+constructor TCastleSceneCore.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -2320,7 +2320,7 @@ begin
     anyway when RootNode = nil). }
 end;
 
-destructor T3DSceneCore.Destroy;
+destructor TCastleSceneCore.Destroy;
 begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
@@ -2380,7 +2380,7 @@ begin
   inherited;
 end;
 
-procedure T3DSceneCore.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
+procedure TCastleSceneCore.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
 begin
   BeforeNodesFree;
@@ -2409,7 +2409,7 @@ begin
     ResetTimeAtLoad;
 end;
 
-procedure T3DSceneCore.Load(const AFileName: string; AllowStdIn: boolean;
+procedure TCastleSceneCore.Load(const AFileName: string; AllowStdIn: boolean;
   const AResetTime: boolean);
 begin
   { Note that if LoadVRML fails, we will not change the RootNode,
@@ -2420,13 +2420,13 @@ begin
   FFileName := AFileName;
 end;
 
-procedure T3DSceneCore.SetFileName(const AValue: string);
+procedure TCastleSceneCore.SetFileName(const AValue: string);
 begin
   if AValue <> FFileName then
     Load(AValue);
 end;
 
-function T3DSceneCore.ShapesActiveCount: Cardinal;
+function TCastleSceneCore.ShapesActiveCount: Cardinal;
 begin
   if not (fvShapesActiveCount in Validities) then
   begin
@@ -2436,7 +2436,7 @@ begin
   Result := FShapesActiveCount;
 end;
 
-function T3DSceneCore.ShapesActiveVisibleCount: Cardinal;
+function TCastleSceneCore.ShapesActiveVisibleCount: Cardinal;
 begin
   if not (fvShapesActiveVisibleCount in Validities) then
   begin
@@ -2446,7 +2446,7 @@ begin
   Result := FShapesActiveVisibleCount;
 end;
 
-function T3DSceneCore.CalculateBoundingBox: TBox3D;
+function TCastleSceneCore.CalculateBoundingBox: TBox3D;
 var
   SI: TShapeTreeIterator;
 begin
@@ -2458,7 +2458,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-function T3DSceneCore.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
 var
   SI: TShapeTreeIterator;
 begin
@@ -2470,7 +2470,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-function T3DSceneCore.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
 var
   SI: TShapeTreeIterator;
 begin
@@ -2482,7 +2482,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-function T3DSceneCore.BoundingBox: TBox3D;
+function TCastleSceneCore.BoundingBox: TBox3D;
 begin
   if Exists then
   begin
@@ -2496,7 +2496,7 @@ begin
     Result := EmptyBox3D;
 end;
 
-function T3DSceneCore.VerticesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.VerticesCount(OverTriangulate: boolean): Cardinal;
 begin
   if OverTriangulate then
   begin
@@ -2516,7 +2516,7 @@ begin
   Result := FVerticesCount[OverTriangulate];
 end;
 
-function T3DSceneCore.TrianglesCount(OverTriangulate: boolean): Cardinal;
+function TCastleSceneCore.TrianglesCount(OverTriangulate: boolean): Cardinal;
 begin
   if OverTriangulate then
   begin
@@ -2536,7 +2536,7 @@ begin
   Result := FTrianglesCount[OverTriangulate];
 end;
 
-function T3DSceneCore.CreateShape(AGeometry: TAbstractGeometryNode;
+function TCastleSceneCore.CreateShape(AGeometry: TAbstractGeometryNode;
   AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TShape.Create(Self, AGeometry, AState, ParentInfo);
@@ -2548,7 +2548,7 @@ type
     recursively create other TChangedAllTraverser instances
     to create recursive groups). }
   TChangedAllTraverser = class
-    ParentScene: T3DSceneCore;
+    ParentScene: TCastleSceneCore;
     ShapesGroup: TShapeTreeGroup;
     Active: boolean;
     procedure Traverse(
@@ -2794,7 +2794,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.UpdateLODLevel(LODTree: TShapeTreeLOD);
+procedure TCastleSceneCore.UpdateLODLevel(LODTree: TShapeTreeLOD);
 var
   OldLevel, NewLevel: Cardinal;
 begin
@@ -2832,7 +2832,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleSceneCore.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Stuff that will be recalculated by ChangedAll }
   TransformInstancesList.FreeShapeTrees;
@@ -2853,14 +2853,14 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.NodeFreeRemovingFromAllParents(Node: TX3DNode);
+procedure TCastleSceneCore.NodeFreeRemovingFromAllParents(Node: TX3DNode);
 begin
   BeforeNodesFree;
   Node.FreeRemovingFromAllParents;
   ChangedAll;
 end;
 
-procedure T3DSceneCore.RemoveShapeGeometry(Shape: TShape);
+procedure TCastleSceneCore.RemoveShapeGeometry(Shape: TShape);
 begin
   { Do not use Shape.Geometry here, as it may be a temporary result
     of OriginalGeometry.Proxy.
@@ -2873,7 +2873,7 @@ begin
   NodeFreeRemovingFromAllParents(Shape.OriginalGeometry);
 end;
 
-procedure T3DSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
+procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
   if not Static then
     Node.Scene := Self;
@@ -2894,7 +2894,7 @@ begin
       (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler);
 end;
 
-procedure T3DSceneCore.ChangedAll;
+procedure TCastleSceneCore.ChangedAll;
 
   { Add where necessary lights with scope = global. }
   procedure AddGlobalLights;
@@ -3125,7 +3125,7 @@ type
     So many TransformChange traversals may run at once, so they must
     have different state variables. }
   TTransformChangeHelper = class
-    ParentScene: T3DSceneCore;
+    ParentScene: TCastleSceneCore;
     Shapes: PShapesParentInfo;
     ChangingNode: TX3DNode; {< must be also ITransformNode }
     AnythingChanged: boolean;
@@ -3354,7 +3354,7 @@ begin
         { There's no need to do anything more here.
           Fog node TransformScale was already updated by
           TAbstractBindableNode.BeforeTraverse.
-          Renderer in T3DScene will detect that TransformScale changed,
+          Renderer in TCastleScene will detect that TransformScale changed,
           and eventually destroy display lists and such when rendering next time. }
         if Inactive = 0 then
           ParentScene.VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -3403,7 +3403,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.TransformationChanged(TransformNode: TX3DNode;
+procedure TCastleSceneCore.TransformationChanged(TransformNode: TX3DNode;
   Instances: TShapeTreeList; const Changes: TX3DChanges);
 var
   TransformChangeHelper: TTransformChangeHelper;
@@ -3503,14 +3503,14 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.ChangedFields(Node: TX3DNode; Field: TX3DField);
+procedure TCastleSceneCore.ChangedFields(Node: TX3DNode; Field: TX3DField);
 begin
   Assert(Field <> nil);
   Assert(Field.ParentNode = Node);
   ChangedField(Field);
 end;
 
-procedure T3DSceneCore.ChangedField(Field: TX3DField);
+procedure TCastleSceneCore.ChangedField(Field: TX3DField);
 var
   Node: TX3DNode;
   Changes: TX3DChanges;
@@ -3991,7 +3991,7 @@ var
     SE: TScreenEffectNode;
   begin
     SE := Node as TScreenEffectNode;
-    { Just like T3DScene.CloseGLScreenEffect: no need to even
+    { Just like TCastleScene.CloseGLScreenEffect: no need to even
       communicate with renderer, just reset ShaderLoaded and Shader.
       At the nearest time, it will be recalculated. }
     SE.ShaderLoaded := false;
@@ -4072,7 +4072,7 @@ begin
   finally EndChangesSchedule end;
 end;
 
-procedure T3DSceneCore.DoGeometryChanged(const Change: TGeometryChange;
+procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 var
   SomeLocalGeometryChanged: boolean;
@@ -4145,19 +4145,19 @@ begin
       LocalGeometryShape);
 end;
 
-procedure T3DSceneCore.DoViewpointsChanged;
+procedure TCastleSceneCore.DoViewpointsChanged;
 begin
   if Assigned(OnViewpointsChanged) then
     OnViewpointsChanged(Self);
 end;
 
-procedure T3DSceneCore.DoBoundViewpointVectorsChanged;
+procedure TCastleSceneCore.DoBoundViewpointVectorsChanged;
 begin
   if Assigned(OnBoundViewpointVectorsChanged) then
     OnBoundViewpointVectorsChanged(Self);
 end;
 
-procedure T3DSceneCore.DoBoundNavigationInfoFieldsChanged;
+procedure TCastleSceneCore.DoBoundNavigationInfoFieldsChanged;
 begin
   if Assigned(OnBoundNavigationInfoFieldsChanged) then
     OnBoundNavigationInfoFieldsChanged(Self);
@@ -4173,7 +4173,7 @@ resourcestring
     'When we use over-triangulating (e.g. when we do OpenGL rendering) '+
     'scene has %d triangles and %d vertices.';
 
-function T3DSceneCore.InfoTriangleVerticesCounts: string;
+function TCastleSceneCore.InfoTriangleVerticesCounts: string;
 begin
   if (VerticesCount(false) = VerticesCount(true)) and
      (TrianglesCount(false) = TrianglesCount(true)) then
@@ -4188,7 +4188,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.InfoBoundingBox: string;
+function TCastleSceneCore.InfoBoundingBox: string;
 var
   BBox: TBox3D;
 begin
@@ -4201,14 +4201,14 @@ begin
   Result += NL;
 end;
 
-function T3DSceneCore.InfoManifoldAndBorderEdges: string;
+function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
 begin
   Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Note that for some algorithms, like shadow volumes, perfect manifold (that is, no border edges) works best.',
     [ ManifoldEdges.Count,
       BorderEdges.Count ]) + NL;
 end;
 
-function T3DSceneCore.Info(
+function TCastleSceneCore.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
   AManifoldAndBorderEdges: boolean): string;
@@ -4235,7 +4235,7 @@ end;
 
 { octrees -------------------------------------------------------------------- }
 
-function T3DSceneCore.OverrideOctreeLimits(
+function TCastleSceneCore.OverrideOctreeLimits(
   const BaseLimits: TOctreeLimits;
   const OP: TSceneOctreeProperties): TOctreeLimits;
 var
@@ -4251,17 +4251,17 @@ begin
   end;
 end;
 
-function T3DSceneCore.TriangleOctreeLimits: POctreeLimits;
+function TCastleSceneCore.TriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
 end;
 
-function T3DSceneCore.ShapeOctreeLimits: POctreeLimits;
+function TCastleSceneCore.ShapeOctreeLimits: POctreeLimits;
 begin
   Result := @FShapeOctreeLimits;
 end;
 
-procedure T3DSceneCore.AddTriangleToOctreeProgress(Shape: TObject;
+procedure TCastleSceneCore.AddTriangleToOctreeProgress(Shape: TObject;
   const Position: TTriangle3Single;
   const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
   const Face: TFaceIndex);
@@ -4270,7 +4270,7 @@ begin
   TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
 end;
 
-procedure T3DSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
+procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
 
   procedure SetShapeSpatial(const Value: TShapeSpatialStructures;
     OnlyCollidable: boolean);
@@ -4358,7 +4358,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.OctreeRendering: TShapeOctree;
+function TCastleSceneCore.OctreeRendering: TShapeOctree;
 begin
   if (ssRendering in Spatial) and (FOctreeRendering = nil) then
   begin
@@ -4373,7 +4373,7 @@ begin
   Result := FOctreeRendering;
 end;
 
-function T3DSceneCore.OctreeDynamicCollisions: TShapeOctree;
+function TCastleSceneCore.OctreeDynamicCollisions: TShapeOctree;
 begin
   if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
   begin
@@ -4388,7 +4388,7 @@ begin
   Result := FOctreeDynamicCollisions;
 end;
 
-function T3DSceneCore.OctreeVisibleTriangles: TTriangleOctree;
+function TCastleSceneCore.OctreeVisibleTriangles: TTriangleOctree;
 begin
   if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
@@ -4398,7 +4398,7 @@ begin
   Result := FOctreeVisibleTriangles;
 end;
 
-function T3DSceneCore.OctreeCollidableTriangles: TTriangleOctree;
+function TCastleSceneCore.OctreeCollidableTriangles: TTriangleOctree;
 begin
   if (ssCollidableTriangles in Spatial) and (FOctreeCollidableTriangles = nil) then
     FOctreeCollidableTriangles := CreateTriangleOctree(
@@ -4408,7 +4408,7 @@ begin
   Result := FOctreeCollidableTriangles;
 end;
 
-function T3DSceneCore.OctreeCollisions: TBaseTrianglesOctree;
+function TCastleSceneCore.OctreeCollisions: TBaseTrianglesOctree;
 begin
   if OctreeCollidableTriangles <> nil then
     Result := OctreeCollidableTriangles else
@@ -4417,7 +4417,7 @@ begin
     Result := nil;
 end;
 
-function T3DSceneCore.CreateTriangleOctree(
+function TCastleSceneCore.CreateTriangleOctree(
   const Limits: TOctreeLimits;
   const ProgressTitle: string;
   const Collidable: boolean): TTriangleOctree;
@@ -4458,7 +4458,7 @@ begin
   finally Dec(Dirty) end;
 end;
 
-function T3DSceneCore.CreateShapeOctree(
+function TCastleSceneCore.CreateShapeOctree(
   const Limits: TOctreeLimits;
   const ProgressTitle: string;
   const Collidable: boolean): TShapeOctree;
@@ -4533,7 +4533,7 @@ type
     end;
   end;
 
-function T3DSceneCore.GetViewpointCore(
+function TCastleSceneCore.GetViewpointCore(
   const OnlyPerspective: boolean;
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
@@ -4576,7 +4576,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.GetViewpoint(
+function TCastleSceneCore.GetViewpoint(
   out ProjectionType: TProjectionType;
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TAbstractViewpointNode;
@@ -4585,7 +4585,7 @@ begin
     ViewpointDescription);
 end;
 
-function T3DSceneCore.GetPerspectiveViewpoint(
+function TCastleSceneCore.GetPerspectiveViewpoint(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   const ViewpointDescription: string): TAbstractViewpointNode;
 var
@@ -4598,7 +4598,7 @@ end;
 
 { fog ---------------------------------------------------------------------- }
 
-function T3DSceneCore.FogNode: TFogNode;
+function TCastleSceneCore.FogNode: TFogNode;
 begin
   Result := FogStack.Top as TFogNode;
 end;
@@ -4623,7 +4623,7 @@ begin
     TriangleList.Add(Position);
 end;
 
-function T3DSceneCore.TrianglesListShadowCasters: TTrianglesShadowCastersList;
+function TCastleSceneCore.TrianglesListShadowCasters: TTrianglesShadowCastersList;
 
   function CreateTrianglesListShadowCasters: TTrianglesShadowCastersList;
 
@@ -4703,7 +4703,7 @@ begin
   Result := FTrianglesListShadowCasters;
 end;
 
-procedure T3DSceneCore.InvalidateTrianglesListShadowCasters;
+procedure TCastleSceneCore.InvalidateTrianglesListShadowCasters;
 begin
   Exclude(Validities, fvTrianglesListShadowCasters);
   FreeAndNil(FTrianglesListShadowCasters);
@@ -4711,7 +4711,7 @@ end;
 
 { edges lists ------------------------------------------------------------- }
 
-procedure T3DSceneCore.CalculateIfNeededManifoldAndBorderEdges;
+procedure TCastleSceneCore.CalculateIfNeededManifoldAndBorderEdges;
 
   { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
     FBorderEdges are @nil on enter. }
@@ -4852,19 +4852,19 @@ begin
   end;
 end;
 
-function T3DSceneCore.ManifoldEdges: TManifoldEdgeList;
+function TCastleSceneCore.ManifoldEdges: TManifoldEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FManifoldEdges;
 end;
 
-function T3DSceneCore.BorderEdges: TBorderEdgeList;
+function TCastleSceneCore.BorderEdges: TBorderEdgeList;
 begin
   CalculateIfNeededManifoldAndBorderEdges;
   Result := FBorderEdges;
 end;
 
-procedure T3DSceneCore.ShareManifoldAndBorderEdges(
+procedure TCastleSceneCore.ShareManifoldAndBorderEdges(
   ManifoldShared: TManifoldEdgeList;
   BorderShared: TBorderEdgeList);
 begin
@@ -4909,7 +4909,7 @@ begin
   Include(Validities, fvManifoldAndBorderEdges);
 end;
 
-procedure T3DSceneCore.InvalidateManifoldAndBorderEdges;
+procedure TCastleSceneCore.InvalidateManifoldAndBorderEdges;
 begin
   Exclude(Validities, fvManifoldAndBorderEdges);
 
@@ -4927,22 +4927,22 @@ end;
 
 { freeing resources ---------------------------------------------------------- }
 
-procedure T3DSceneCore.FreeResources_UnloadTextureData(Node: TX3DNode);
+procedure TCastleSceneCore.FreeResources_UnloadTextureData(Node: TX3DNode);
 begin
   (Node as TAbstractTexture2DNode).IsTextureLoaded := false;
 end;
 
-procedure T3DSceneCore.FreeResources_UnloadTexture3DData(Node: TX3DNode);
+procedure TCastleSceneCore.FreeResources_UnloadTexture3DData(Node: TX3DNode);
 begin
   (Node as TAbstractTexture3DNode).TextureLoaded := false;
 end;
 
-procedure T3DSceneCore.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
+procedure TCastleSceneCore.FreeResources_UnloadBackgroundImage(Node: TX3DNode);
 begin
   (Node as TBackgroundNode).BgImagesLoaded := false;
 end;
 
-procedure T3DSceneCore.FreeResources(Resources: TSceneFreeResources);
+procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
 begin
   if (frRootNode in Resources) and OwnsRootNode then
   begin
@@ -4971,12 +4971,12 @@ end;
 
 { events --------------------------------------------------------------------- }
 
-procedure T3DSceneCore.ScriptsInitializeCallback(Node: TX3DNode);
+procedure TCastleSceneCore.ScriptsInitializeCallback(Node: TX3DNode);
 begin
   TScriptNode(Node).Initialized := true;
 end;
 
-procedure T3DSceneCore.ScriptsInitialize;
+procedure TCastleSceneCore.ScriptsInitialize;
 begin
   if RootNode <> nil then
   begin
@@ -4992,12 +4992,12 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.ScriptsFinalizeCallback(Node: TX3DNode);
+procedure TCastleSceneCore.ScriptsFinalizeCallback(Node: TX3DNode);
 begin
   TScriptNode(Node).Initialized := false;
 end;
 
-procedure T3DSceneCore.ScriptsFinalize;
+procedure TCastleSceneCore.ScriptsFinalize;
 begin
   if RootNode <> nil then
   begin
@@ -5010,7 +5010,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.SetProcessEvents(const Value: boolean);
+procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
 
   { When ProcessEvents is set to @true, you want to call initial
     position/orientation_changed events.
@@ -5058,7 +5058,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.SetStatic(const Value: boolean);
+procedure TCastleSceneCore.SetStatic(const Value: boolean);
 begin
   if FStatic <> Value then
   begin
@@ -5077,7 +5077,7 @@ end;
 
 { key sensors handling ------------------------------------------------------- }
 
-function T3DSceneCore.KeyDown(Key: TKey; C: char): boolean;
+function TCastleSceneCore.KeyDown(Key: TKey; C: char): boolean;
 var
   I: Integer;
 begin
@@ -5103,7 +5103,7 @@ begin
     PointingDeviceActive := true;
 end;
 
-function T3DSceneCore.KeyUp(Key: TKey; C: char): boolean;
+function TCastleSceneCore.KeyUp(Key: TKey; C: char): boolean;
 var
   I: Integer;
 begin
@@ -5131,7 +5131,7 @@ end;
 
 { pointing device handling --------------------------------------------------- }
 
-procedure T3DSceneCore.PointingDeviceMove(
+procedure TCastleSceneCore.PointingDeviceMove(
   const RayOrigin, RayDirection: TVector3Single;
   const OverPoint: TVector3Single; const OverItem: PTriangle);
 var
@@ -5310,7 +5310,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.DoPointingDeviceSensorsChange;
+procedure TCastleSceneCore.DoPointingDeviceSensorsChange;
 begin
   { I want to keep assertion that Cursor = mcHand when
     we're over or keeping active some pointing-device sensors. }
@@ -5324,7 +5324,7 @@ begin
     OnPointingDeviceSensorsChange(Self);
 end;
 
-procedure T3DSceneCore.PointingDeviceClear;
+procedure TCastleSceneCore.PointingDeviceClear;
 var
   SensorsChanged: boolean;
 begin
@@ -5348,7 +5348,7 @@ begin
     DoPointingDeviceSensorsChange;
 end;
 
-procedure T3DSceneCore.SetPointingDeviceActive(const Value: boolean);
+procedure TCastleSceneCore.SetPointingDeviceActive(const Value: boolean);
 
   procedure AnchorActivate(Anchor: TAnchorNode);
   var
@@ -5454,14 +5454,14 @@ begin
   end;
 end;
 
-function T3DSceneCore.PointingDeviceSensors: TPointingDeviceSensorList;
+function TCastleSceneCore.PointingDeviceSensors: TPointingDeviceSensorList;
 begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
     Result := nil;
 end;
 
-procedure T3DSceneCore.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
+procedure TCastleSceneCore.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
 begin
   if FInput_PointingDeviceActivate <> Value then
   begin
@@ -5474,7 +5474,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.MouseDown(const Button: TMouseButton): boolean;
+function TCastleSceneCore.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5488,7 +5488,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.MouseUp(const Button: TMouseButton): boolean;
+function TCastleSceneCore.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -5502,7 +5502,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+function TCastleSceneCore.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 begin
   Result := inherited;
@@ -5519,7 +5519,7 @@ begin
   Result := false; }
 end;
 
-function T3DSceneCore.Dragging: boolean;
+function TCastleSceneCore.Dragging: boolean;
 
   function ActiveDraggingSensor: boolean;
   var
@@ -5542,12 +5542,12 @@ end;
 
 { Time stuff ------------------------------------------------------------ }
 
-function T3DSceneCore.GetTime: TX3DTime;
+function TCastleSceneCore.GetTime: TX3DTime;
 begin
   Result := FTime;
 end;
 
-procedure T3DSceneCore.InternalSetTime(
+procedure TCastleSceneCore.InternalSetTime(
   const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 var
   SomethingVisibleChanged: boolean;
@@ -5591,7 +5591,7 @@ begin
   FTime := NewValue;
 end;
 
-procedure T3DSceneCore.SetTime(const NewValue: TFloatTime);
+procedure TCastleSceneCore.SetTime(const NewValue: TFloatTime);
 var
   TimeIncrease: TFloatTime;
   NewCompleteValue: TX3DTime;
@@ -5603,7 +5603,7 @@ begin
     InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
-procedure T3DSceneCore.IncreaseTime(const TimeIncrease: TFloatTime);
+procedure TCastleSceneCore.IncreaseTime(const TimeIncrease: TFloatTime);
 var
   NewCompleteValue: TX3DTime;
 begin
@@ -5613,7 +5613,7 @@ begin
     InternalSetTime(NewCompleteValue, TimeIncrease, false);
 end;
 
-procedure T3DSceneCore.ResetLastEventTime(Node: TX3DNode);
+procedure TCastleSceneCore.ResetLastEventTime(Node: TX3DNode);
 var
   I: Integer;
 begin
@@ -5623,7 +5623,7 @@ begin
     TAbstractScriptNode(Node).ResetLastEventTimes;
 end;
 
-procedure T3DSceneCore.ResetTime(const NewValue: TFloatTime);
+procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
 var
   NewCompleteValue: TX3DTime;
 begin
@@ -5635,7 +5635,7 @@ begin
   InternalSetTime(NewCompleteValue, 0, true);
 end;
 
-procedure T3DSceneCore.ResetTimeAtLoad;
+procedure TCastleSceneCore.ResetTimeAtLoad;
 var
   TimeAtLoad: TFloatTime;
 begin
@@ -5648,12 +5648,12 @@ begin
   ResetTime(TimeAtLoad);
 end;
 
-procedure T3DSceneCore.IncreaseTimeTick;
+procedure TCastleSceneCore.IncreaseTimeTick;
 begin
   Inc(FTime.PlusTicks);
 end;
 
-procedure T3DSceneCore.Idle(const CompSpeed: Single);
+procedure TCastleSceneCore.Idle(const CompSpeed: Single);
 begin
   inherited;
 
@@ -5665,19 +5665,19 @@ begin
     IncreaseTime(TimePlayingSpeed * CompSpeed);
 end;
 
-procedure T3DSceneCore.ResetWorldTime(const NewValue: TFloatTime);
+procedure TCastleSceneCore.ResetWorldTime(const NewValue: TFloatTime);
 begin
   ResetTime(NewValue);
 end;
 
-function T3DSceneCore.WorldTime: TX3DTime;
+function TCastleSceneCore.WorldTime: TX3DTime;
 begin
   Result := Time;
 end;
 
 { changes schedule ----------------------------------------------------------- }
 
-procedure T3DSceneCore.BeginChangesSchedule;
+procedure TCastleSceneCore.BeginChangesSchedule;
 begin
   { ChangedAllScheduled = false always when ChangedAllSchedule = 0. }
   Assert((ChangedAllSchedule <> 0) or (not ChangedAllScheduled));
@@ -5685,14 +5685,14 @@ begin
   Inc(ChangedAllSchedule);
 end;
 
-procedure T3DSceneCore.ScheduleChangedAll;
+procedure TCastleSceneCore.ScheduleChangedAll;
 begin
   if ChangedAllSchedule = 0 then
     ChangedAll else
     ChangedAllScheduled := true;
 end;
 
-procedure T3DSceneCore.EndChangesSchedule;
+procedure TCastleSceneCore.EndChangesSchedule;
 begin
   Dec(ChangedAllSchedule);
   if (ChangedAllSchedule = 0) and ChangedAllScheduled then
@@ -5710,7 +5710,7 @@ end;
 
 { proximity sensor ----------------------------------------------------------- }
 
-procedure T3DSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
+procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
   Position, Direction, Up: TVector3Single;
   Node: TProximitySensorNode;
@@ -5791,7 +5791,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.CameraChanged(ACamera: TCamera;
+procedure TCastleSceneCore.CameraChanged(ACamera: TCamera;
   const Changes: TVisibleChanges);
 var
   I: Integer;
@@ -5836,7 +5836,7 @@ end;
 
 { compiled scripts ----------------------------------------------------------- }
 
-procedure T3DSceneCore.RegisterCompiledScript(const HandlerName: string;
+procedure TCastleSceneCore.RegisterCompiledScript(const HandlerName: string;
   Handler: TCompiledScriptHandler);
 var
   HandlerInfo: PCompiledScriptHandlerInfo;
@@ -5846,7 +5846,7 @@ begin
   HandlerInfo^.Name := HandlerName;
 end;
 
-procedure T3DSceneCore.ExecuteCompiledScript(const HandlerName: string;
+procedure TCastleSceneCore.ExecuteCompiledScript(const HandlerName: string;
   ReceivedValue: TX3DField);
 var
   I: Integer;
@@ -5861,7 +5861,7 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-procedure T3DSceneCore.CameraFromNavigationInfo(
+procedure TCastleSceneCore.CameraFromNavigationInfo(
   Camera: TCamera; const Box: TBox3D;
   const ForceNavigationType: string;
   const ForceCameraRadius: Single);
@@ -6029,7 +6029,7 @@ begin
     Also, no point in calling Examine.Init, for the same reason. }
 end;
 
-procedure T3DSceneCore.CameraFromViewpoint(ACamera: TCamera;
+procedure TCastleSceneCore.CameraFromViewpoint(ACamera: TCamera;
   const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
   Position: TVector3Single;
@@ -6070,7 +6070,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.CreateCamera(AOwner: TComponent;
+function TCastleSceneCore.CreateCamera(AOwner: TComponent;
   const Box: TBox3D;
   const ForceNavigationType: string = ''): TUniversalCamera;
 begin
@@ -6079,13 +6079,13 @@ begin
   CameraFromViewpoint(Result, false, false);
 end;
 
-function T3DSceneCore.CreateCamera(AOwner: TComponent;
+function TCastleSceneCore.CreateCamera(AOwner: TComponent;
   const ForceNavigationType: string = ''): TUniversalCamera;
 begin
   Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
 end;
 
-procedure T3DSceneCore.CameraTransition(Camera: TCamera;
+procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
   const Position, Direction, Up: TVector3Single);
 var
   NavigationNode: TNavigationInfoNode;
@@ -6130,7 +6130,7 @@ begin
     Camera.SetView(Position, Direction, Up);
 end;
 
-procedure T3DSceneCore.CameraTransition(Camera: TCamera;
+procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
   const Position, Direction, Up, GravityUp: TVector3Single);
 begin
   if Camera is TWalkCamera then
@@ -6144,22 +6144,22 @@ end;
 
 { misc ----------------------------------------------------------------------- }
 
-function T3DSceneCore.GetViewpointStack: TX3DBindableStackBasic;
+function TCastleSceneCore.GetViewpointStack: TX3DBindableStackBasic;
 begin
   Result := FViewpointStack;
 end;
 
-function T3DSceneCore.GetNavigationInfoStack: TX3DBindableStackBasic;
+function TCastleSceneCore.GetNavigationInfoStack: TX3DBindableStackBasic;
 begin
   Result := FNavigationInfoStack;
 end;
 
-function T3DSceneCore.GetBackgroundStack: TX3DBindableStackBasic;
+function TCastleSceneCore.GetBackgroundStack: TX3DBindableStackBasic;
 begin
   Result := FBackgroundStack;
 end;
 
-function T3DSceneCore.GetFogStack: TX3DBindableStackBasic;
+function TCastleSceneCore.GetFogStack: TX3DBindableStackBasic;
 begin
   Result := FFogStack;
 end;
@@ -6167,7 +6167,7 @@ end;
 type
   BreakMainLightForShadows = class(TCodeBreaker);
 
-procedure T3DSceneCore.CalculateMainLightForShadowsPosition;
+procedure TCastleSceneCore.CalculateMainLightForShadowsPosition;
 begin
   if FMainLightForShadowsNode is TAbstractPositionalLightNode then
     FMainLightForShadows := Vector4Single(
@@ -6179,12 +6179,12 @@ begin
       MatrixMultDirection(
         FMainLightForShadowsTransform,
         TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
-    raise Exception.CreateFmt('T3DSceneCore.MainLightForShadows: ' +
+    raise Exception.CreateFmt('TCastleSceneCore.MainLightForShadows: ' +
       'light node "%s" cannot be used to cast shadows, it has no position ' +
       'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
 end;
 
-procedure T3DSceneCore.SearchMainLightForShadows(
+procedure TCastleSceneCore.SearchMainLightForShadows(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
@@ -6201,7 +6201,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.ValidateMainLightForShadows;
+procedure TCastleSceneCore.ValidateMainLightForShadows;
 
   procedure CalculateMainLightForShadows;
   begin
@@ -6220,7 +6220,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.MainLightForShadows(
+function TCastleSceneCore.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 begin
   ValidateMainLightForShadows;
@@ -6229,7 +6229,7 @@ begin
     AMainLightPosition := FMainLightForShadows;
 end;
 
-procedure T3DSceneCore.SetHeadlightOn(const Value: boolean);
+procedure TCastleSceneCore.SetHeadlightOn(const Value: boolean);
 begin
   if FHeadlightOn <> Value then
   begin
@@ -6240,7 +6240,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.CustomHeadlight: TAbstractLightNode;
+function TCastleSceneCore.CustomHeadlight: TAbstractLightNode;
 var
   MaybeResult: TX3DNode;
 begin
@@ -6254,14 +6254,14 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.UpdateHeadlightOnFromNavigationInfo;
+procedure TCastleSceneCore.UpdateHeadlightOnFromNavigationInfo;
 begin
   if NavigationInfoStack.Top <> nil then
     HeadlightOn := NavigationInfoStack.Top.FdHeadlight.Value else
     HeadlightOn := DefaultNavigationInfoHeadlight;
 end;
 
-procedure T3DSceneCore.ViewChangedSuddenly;
+procedure TCastleSceneCore.ViewChangedSuddenly;
 begin
   if Log then
     WritelnLog('Scene', 'Optimizer received hint: View changed suddenly');
@@ -6269,7 +6269,7 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure T3DSceneCore.CameraChanged(RenderingCamera: TRenderingCamera);
+procedure TCastleSceneCore.CameraChanged(RenderingCamera: TRenderingCamera);
 var
   V: TAbstractViewpointNode;
 begin
@@ -6311,7 +6311,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
+procedure TCastleSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareShapesOctrees;
@@ -6346,7 +6346,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Single;
+procedure TCastleSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
@@ -6361,7 +6361,7 @@ begin
     inherited;
 end;
 
-function T3DSceneCore.MoveAllowed(
+function TCastleSceneCore.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6378,7 +6378,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.MoveAllowedSimple(
+function TCastleSceneCore.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6389,7 +6389,7 @@ begin
       CameraRadius, nil, TrianglesToIgnoreFunc);
 end;
 
-function T3DSceneCore.MoveBoxAllowedSimple(
+function TCastleSceneCore.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6400,7 +6400,7 @@ begin
       nil, TrianglesToIgnoreFunc);
 end;
 
-function T3DSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
@@ -6409,7 +6409,7 @@ begin
       nil, false, TrianglesToIgnoreFunc);
 end;
 
-function T3DSceneCore.SphereCollision(
+function TCastleSceneCore.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -6418,7 +6418,7 @@ begin
       Pos, Radius,  nil, TrianglesToIgnoreFunc);
 end;
 
-function T3DSceneCore.BoxCollision(const Box: TBox3D;
+function TCastleSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Exists and Collides and (OctreeCollisions <> nil) and
@@ -6426,7 +6426,7 @@ begin
       Box,  nil, TrianglesToIgnoreFunc);
 end;
 
-function T3DSceneCore.RayCollision(
+function TCastleSceneCore.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
@@ -6452,7 +6452,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.SetShadowMaps(const Value: boolean);
+procedure TCastleSceneCore.SetShadowMaps(const Value: boolean);
 begin
   if FShadowMaps <> Value then
   begin
@@ -6463,7 +6463,7 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.SetShadowMapsDefaultSize(const Value: Cardinal);
+procedure TCastleSceneCore.SetShadowMapsDefaultSize(const Value: Cardinal);
 begin
   if FShadowMapsDefaultSize <> Value then
   begin
@@ -6477,7 +6477,7 @@ begin
   end;
 end;
 
-function T3DSceneCore.Caption: string;
+function TCastleSceneCore.Caption: string;
 var
   WorldInfoNode: TWorldInfoNode;
 begin
@@ -6488,16 +6488,16 @@ begin
     Result := ExtractFileName(FileName);
 end;
 
-procedure T3DSceneCore.InvalidateBackground;
+procedure TCastleSceneCore.InvalidateBackground;
 begin
 end;
 
-procedure T3DSceneCore.UnregisterSceneCallback(Node: TX3DNode);
+procedure TCastleSceneCore.UnregisterSceneCallback(Node: TX3DNode);
 begin
   Node.Scene := nil;
 end;
 
-procedure T3DSceneCore.UnregisterScene(Node: TX3DNode);
+procedure TCastleSceneCore.UnregisterScene(Node: TX3DNode);
 begin
   Node.EnumerateNodes(TX3DNode, @UnregisterSceneCallback, false);
 end;

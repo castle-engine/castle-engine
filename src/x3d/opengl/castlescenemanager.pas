@@ -103,7 +103,7 @@ type
       This is automatically called at the beginning of our Render method,
       if it's needed.
 
-      @seealso T3DScene.GLProjection }
+      @seealso TCastleScene.GLProjection }
     procedure ApplyProjection; virtual;
 
     { Render one pass, from current (saved in RenderingCamera) camera view,
@@ -150,12 +150,12 @@ type
 
       Default implementation of this method in TCastleAbstractViewport
       looks at the MainScene headlight. We return if MainScene is assigned
-      and T3DSceneCore.HeadlightOn is @true.
+      and TCastleSceneCore.HeadlightOn is @true.
       (HeadlightOn in turn looks
       at information in VRML/X3D file (NavigationInfo.headlight)
       and you can also always set HeadlightOn explicitly by code.)
       The custom light node
-      is obtained from T3DSceneCore.CustomHeadlight.
+      is obtained from TCastleSceneCore.CustomHeadlight.
 
       You can override this method to determine the headlight in any other way. }
     function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; virtual;
@@ -189,7 +189,7 @@ type
       The default implementation in this class looks at
       MainScene.MainLightForShadows.
 
-      @seealso T3DSceneCore.MainLightForShadows }
+      @seealso TCastleSceneCore.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean; virtual;
 
@@ -203,7 +203,7 @@ type
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
     function GetItems: T3D; virtual; abstract;
-    function GetMainScene: T3DScene; virtual; abstract;
+    function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit3D: T3D; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
@@ -427,19 +427,19 @@ type
       some events processing for the 3D world:
 
       @unorderedList(
-        @item(You can set T3DScene.TimePlaying or T3DPrecalculatedAnimation.TimePlaying
+        @item(You can set TCastleScene.TimePlaying or TCastlePrecalculatedAnimation.TimePlaying
           to @false. This is roughly equivalent to not running their Idle methods.
           This means that time will "stand still" for them,
           so their animations will not play. Although they may
           still react and change in response to mouse clicks / key presses,
-          if T3DScene.ProcessEvents.)
+          if TCastleScene.ProcessEvents.)
 
-        @item(You can set T3DScene.ProcessEvents to @false.
+        @item(You can set TCastleScene.ProcessEvents to @false.
           This means that scene will not receive and process any
           key / mouse and other events (through VRML/X3D sensors).
           Some animations (not depending on VRML/X3D events processing)
           may still run, for example MovieTexture will still animate,
-          if only T3DScene.TimePlaying.)
+          if only TCastleScene.TimePlaying.)
 
         @item(For cameras, you can set TCamera.IgnoreAllInputs to ignore
           key / mouse clicks.)
@@ -559,7 +559,7 @@ type
 
   { Scene manager that knows about all 3D things inside your world.
 
-    Single scenes/models (like T3DScene or T3DPrecalculatedAnimation instances)
+    Single scenes/models (like TCastleScene or TCastlePrecalculatedAnimation instances)
     can be rendered directly, but it's not always comfortable.
     Scenes have to assume that they are "one of the many" inside your 3D world,
     which means that multi-pass rendering techniques have to be implemented
@@ -573,8 +573,8 @@ type
     Naturally, it also serves as container for all your visible 3D scenes.
 
     @link(Items) property keeps a tree of T3D objects.
-    All our 3D objects, like T3DSceneCore (and so also T3DScene)
-    and T3DPrecalculatedAnimationCore (and so also T3DPrecalculatedAnimation) descend from
+    All our 3D objects, like TCastleSceneCore (and so also TCastleScene)
+    and TCastlePrecalculatedAnimationCore (and so also TCastlePrecalculatedAnimation) descend from
     T3D, and you can add them to the scene manager.
     And naturally you can implement your own T3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
@@ -602,7 +602,7 @@ type
     (this allows e.g. 3D items to receive Idle events). }
   TCastleSceneManager = class(TCastleAbstractViewport)
   private
-    FMainScene: T3DScene;
+    FMainScene: TCastleScene;
     FItems: T3DList;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
@@ -624,15 +624,15 @@ type
       to make sure UpdateGeneratedTextures was done before actual drawing. }
     procedure UpdateGeneratedTexturesIfNeeded;
 
-    procedure SetMainScene(const Value: T3DScene);
+    procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
 
     procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
 
     { scene callbacks }
-    procedure SceneBoundViewpointChanged(Scene: T3DSceneCore);
-    procedure SceneBoundViewpointVectorsChanged(Scene: T3DSceneCore);
-    procedure SceneBoundNavigationInfoChanged(Scene: T3DSceneCore);
+    procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
+    procedure SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
+    procedure SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 
     procedure SetMouseRayHit3D(const Value: T3D);
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
@@ -657,7 +657,7 @@ type
     procedure CameraVisibleChange(ACamera: TObject); override;
 
     function GetItems: T3D; override;
-    function GetMainScene: T3DScene; override;
+    function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
@@ -675,7 +675,7 @@ type
 
       If DisplayProgressTitle <> '', we will display progress bar during
       loading. This is especially useful for long precalculated animations
-      (T3DPrecalculatedAnimation with a lot of ScenesCount), they show nice
+      (TCastlePrecalculatedAnimation with a lot of ScenesCount), they show nice
       linearly increasing progress bar. }
     procedure PrepareResources(const DisplayProgressTitle: string = '');
 
@@ -735,7 +735,7 @@ type
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
-      You may also set your main T3DScene (if you have any) as MainScene.
+      You may also set your main TCastleScene (if you have any) as MainScene.
 
       T3DList is also T3D instance, so yes --- this may be a tree
       of T3D, not only a flat list.
@@ -745,14 +745,14 @@ type
     property Items: T3DList read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
-      (after all, your 3D world doesn't even need to have any T3DScene
+      (after all, your 3D world doesn't even need to have any TCastleScene
       instance). This @italic(must be) also added to our @link(Items)
       (otherwise things will work strangely).
 
       When set, this is used for a couple of things:
 
       @unorderedList(
-        @item Decides what headlight is used (by T3DScene.Headlight).
+        @item Decides what headlight is used (by TCastleScene.Headlight).
 
         @item(Decides what background is rendered.
           @italic(Notes for implementing descendants of this class:)
@@ -772,9 +772,9 @@ type
           (or it's transformation) or bind camera to a viewpoint.
 
           Note that scene manager "hijacks" some Scene events:
-          T3DSceneCore.OnBoundViewpointVectorsChanged,
-          T3DSceneCore.ViewpointStack.OnBoundChanged,
-          T3DSceneCore.NavigationInfoStack.OnBoundChanged
+          TCastleSceneCore.OnBoundViewpointVectorsChanged,
+          TCastleSceneCore.ViewpointStack.OnBoundChanged,
+          TCastleSceneCore.NavigationInfoStack.OnBoundChanged
           for this purpose. If you want to know when viewpoint changes,
           you can use scene manager's event OnBoundViewpointChanged,
           OnBoundNavigationInfoChanged.)
@@ -785,14 +785,14 @@ type
       (We cannot just use every 3D object from @link(Items) for this.)
 
       Freeing MainScene will automatically set this to @nil. }
-    property MainScene: T3DScene read FMainScene write SetMainScene;
+    property MainScene: TCastleScene read FMainScene write SetMainScene;
 
     { Called on any camera change. Exactly when TCamera generates it's
       OnVisibleChange event. }
     property OnCameraChanged: TNotifyEvent read FOnCameraChanged write FOnCameraChanged;
 
     { Called when bound Viewpoint node changes.
-      Called exactly when T3DSceneCore.ViewpointStack.OnBoundChanged is called. }
+      Called exactly when TCastleSceneCore.ViewpointStack.OnBoundChanged is called. }
     property OnBoundViewpointChanged: TNotifyEvent read FOnBoundViewpointChanged write FOnBoundViewpointChanged;
 
     { Called when bound NavigationInfo changes (to a different node,
@@ -856,7 +856,7 @@ type
     procedure SetSceneManager(const Value: TCastleSceneManager);
   protected
     function GetItems: T3D; override;
-    function GetMainScene: T3DScene; override;
+    function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
@@ -1963,7 +1963,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetMainScene(const Value: T3DScene);
+procedure TCastleSceneManager.SetMainScene(const Value: TCastleScene);
 begin
   if FMainScene <> Value then
   begin
@@ -2097,7 +2097,7 @@ begin
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];
 
-    { Apply projection now, as T3DScene.GLProjection calculates
+    { Apply projection now, as TCastleScene.GLProjection calculates
       BackgroundSkySphereRadius, which is used by MainScene.Background.
       Otherwise our preparations of "prBackground" here would be useless,
       as BackgroundSkySphereRadius will change later, and MainScene.Background
@@ -2256,7 +2256,7 @@ begin
     IsAbove, AboveHeight, AboveGround);
 end;
 
-procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: T3DSceneCore);
+procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromViewpoint(Camera, false);
@@ -2268,7 +2268,7 @@ begin
     OnBoundViewpointChanged(Self);
 end;
 
-procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: T3DSceneCore);
+procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromNavigationInfo(Camera, Items.BoundingBox);
@@ -2277,7 +2277,7 @@ begin
     OnBoundNavigationInfoChanged(Self);
 end;
 
-procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: T3DSceneCore);
+procedure TCastleSceneManager.SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
     Scene.CameraFromViewpoint(Camera, true);
@@ -2288,7 +2288,7 @@ begin
   Result := Items;
 end;
 
-function TCastleSceneManager.GetMainScene: T3DScene;
+function TCastleSceneManager.GetMainScene: TCastleScene;
 begin
   Result := MainScene;
 end;
@@ -2369,7 +2369,7 @@ begin
   Result := SceneManager.Items;
 end;
 
-function TCastleViewport.GetMainScene: T3DScene;
+function TCastleViewport.GetMainScene: TCastleScene;
 begin
   Result := SceneManager.MainScene;
 end;

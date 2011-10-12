@@ -49,13 +49,13 @@ type
     of this class.
 
     Note that some properties and methods of this class may look familiar
-    to properties of T3DPrecalculatedAnimation. And indeed they are familiar
+    to properties of TCastlePrecalculatedAnimation. And indeed they are familiar
     and work in an analogous way. Since both of these classes implement
     some sort of animation loading and playing, it's most sensible that
     some ideas find use in both of them. For example the idea of
     LoadFromFile / checking Loaded / Close. For example the idea that
     the programmer interface is mainly through ImageFromTime
-    (like T3DPrecalculatedAnimation.SceneFromTime). For example the way
+    (like TCastlePrecalculatedAnimation.SceneFromTime). For example the way
     TimeLoop and TimeBackwards properties work. }
   TVideo = class
   private

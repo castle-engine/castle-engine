@@ -602,7 +602,7 @@ begin
 
     ScenesPerTime := 30;
     { Default ScenesPerTime and times are set such that one MD3
-      frame will result in one frame inside T3DPrecalculatedAnimation.
+      frame will result in one frame inside TCastlePrecalculatedAnimation.
       So don't try to merge these frames (on the assumption that
       they are not merged in MD3... so hopefully there's no need for it ?). }
     EqualityEpsilon := 0.0;

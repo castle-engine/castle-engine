@@ -46,7 +46,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Scene: T3DScene;
+  Scene: TCastleScene;
 
 var
   TransformBox2: TTransformNode;
@@ -75,7 +75,7 @@ begin
   Parameters.CheckHigh(0);
   OnWarning := @OnWarningWrite;
 
-  Scene := T3DScene.Create(nil);
+  Scene := TCastleScene.Create(nil);
   try
     Scene.Load('models' + PathDelim + 'boxes.x3dv');
     TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,

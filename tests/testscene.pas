@@ -33,7 +33,7 @@ uses X3DNodes, CastleSceneCore, CastleScene, Boxes3D, VectorMath;
 
 procedure TTestScene.TestScene;
 
-  procedure EmptySceneAsserts(EmptyScene: T3DScene);
+  procedure EmptySceneAsserts(EmptyScene: TCastleScene);
   var
     CamProjection: TProjectionType;
     CamPos, CamDir, CamUp, GravityUp: TVector3Single;
@@ -54,16 +54,16 @@ procedure TTestScene.TestScene;
    Assert(EmptyScene.Background = nil);
   end;
 
-var EmptyScene: T3DScene;
+var EmptyScene: TCastleScene;
 begin
- EmptyScene := T3DScene.Create(nil);
+ EmptyScene := TCastleScene.Create(nil);
  try
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);
  finally FreeAndNil(EmptyScene) end;
 
- EmptyScene := T3DScene.Create(nil);
+ EmptyScene := TCastleScene.Create(nil);
  try
   EmptyScene.Load(TX3DRootNode.Create('', ''), true);
   EmptySceneAsserts(EmptyScene);

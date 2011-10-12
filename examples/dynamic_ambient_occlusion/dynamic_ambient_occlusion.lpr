@@ -39,7 +39,7 @@ type
 var
   Window: TCastleWindowCustom;
 
-  Scene: T3DScene;
+  Scene: TCastleScene;
   GLSLProgram: array [0..1] of TGLSLProgram;
   DrawType: TDrawType = dtPass2;
 
@@ -659,7 +659,7 @@ type
       Shape: TShape; const VertexPosition: TVector3Single;
       VertexIndex: Integer);
 
-    class procedure SceneGeometryChanged(Scene: T3DSceneCore;
+    class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
       const SomeLocalGeometryChanged: boolean;
       OnlyShapeChanged: TShape);
   end;
@@ -695,7 +695,7 @@ begin
   end;
 end;
 
-class procedure THelper.SceneGeometryChanged(Scene: T3DSceneCore;
+class procedure THelper.SceneGeometryChanged(Scene: TCastleSceneCore;
   const SomeLocalGeometryChanged: boolean;
   OnlyShapeChanged: TShape);
 var
@@ -886,7 +886,7 @@ begin
   try
     OnWarning := @OnWarningWrite;
 
-    Scene := T3DScene.Create(Window);
+    Scene := TCastleScene.Create(Window);
     Scene.Load(Parameters[1]);
     UpdateSceneAttribs;
 

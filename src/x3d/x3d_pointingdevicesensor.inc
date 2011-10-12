@@ -42,9 +42,9 @@
     public property EventIsOver: TX3DEvent read FEventIsOver;
 
     { Activate pointing device sensor. Used by the events engine
-      (like T3DSceneCore) to notify this sensor.
+      (like TCastleSceneCore) to notify this sensor.
 
-      OverPoint indicates 3D point (in global, that is T3DSceneCore, coordinates)
+      OverPoint indicates 3D point (in global, that is TCastleSceneCore, coordinates)
       pointed by the mouse.
 
       In TAbstractPointingDeviceSensorNode class,
@@ -54,7 +54,7 @@
       const OverPoint: TVector3Single); virtual;
 
     { Deactivate pointing device sensor. Used by the events engine
-      (like T3DSceneCore) to notify this sensor.
+      (like TCastleSceneCore) to notify this sensor.
 
       In TAbstractPointingDeviceSensorNode class,
       this simply sends isActive := FALSE event. }
@@ -72,7 +72,7 @@
     private FEventTrackPoint_changed: TX3DEvent;
     public property EventTrackPoint_changed: TX3DEvent read FEventTrackPoint_changed;
 
-    { Called by events engine (like T3DSceneCore) when you move your mouse
+    { Called by events engine (like TCastleSceneCore) when you move your mouse
       over the @italic(active) drag sensor. }
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); virtual;
   end;

@@ -36,13 +36,13 @@
   2. Look at TCastleSceneManager methods and properties (you have TCastleSceneManager
      instance inside Window.SceneManager variable of this program).
 
-  3. Look at T3DScene (and it's parent, T3DSceneCore) methods and properties
-     (you have T3DScene instance inside Window.Scene
+  3. Look at TCastleScene (and it's parent, TCastleSceneCore) methods and properties
+     (you have TCastleScene instance inside Window.Scene
      variable of this program; the same thing is also available in
      Window.SceneManager.MainScene).
 
   4. Finally, often it's more comfortable to just create your own
-     TCastleSceneManager and T3DScene instances explicitly, using TCastleWindowCustom
+     TCastleSceneManager and TCastleScene instances explicitly, using TCastleWindowCustom
      (instead of TCastleWindow). This way you get a little more control
      and understanding of our scene manager, which is really the core
      of our engine since version 2.0. It's quite easy, see

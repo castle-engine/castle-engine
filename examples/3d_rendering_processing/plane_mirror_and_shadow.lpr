@@ -58,8 +58,8 @@ uses VectorMath, Boxes3D, X3DNodes, GL, GLU, GLExt, CastleWindow,
 var
   Window: TCastleWindowCustom;
 
-  Scene: T3DScene;
-  SceneForShadow: T3DScene;
+  Scene: TCastleScene;
+  SceneForShadow: TCastleScene;
   RenderParams: TBasicRenderParams;
   LightNode: TPointLightNode;
   LightInstance: TLightInstance;
@@ -611,14 +611,14 @@ begin
     { use box, just to show anything }
     RootNode := LoadVRMLClassicFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 
-  Scene := T3DScene.Create(nil);
+  Scene := TCastleScene.Create(nil);
   try
     Scene.Load(RootNode, true);
     Scene.Attributes.PreserveOpenGLState := true;
 
     { init SceneForShadow.
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
-    SceneForShadow := T3DScene.Create(nil);
+    SceneForShadow := TCastleScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
     SceneForShadow.Attributes.PureGeometry := true;
     SceneForShadow.Attributes.PreserveOpenGLState := true;

@@ -130,7 +130,7 @@ when trying to load/save files in PNG format.
 Note that libpng requires also zlib installed.
 
 CastleZLib unit (required by CastleZStream unit and used by
-VRMLNodes) requires zlib installed.
+X3DNodes) requires zlib installed.
 
 Some additional libraries are required for sound playing: OggVorbis stuff
 requires @code(@noAutoLink(vorbisfile)) library, OpenAL stuff naturally requires
@@ -265,15 +265,15 @@ units are allowed to be used by units in specific group.
 	(like a camera) or use OpenGL rendering.
 
         The controls are @italic(not tied to the windowing library),
-        for example you can use our TCastleMenu both inside CastleWindow,
+        for example you can use our TCastleOnScreenMenu both inside CastleWindow,
         as well as inside Lazarus GL area component, etc.
         Everywhere is fine, as long as you have OpenGL rendering context.)
     )
 
     We have a camera control in @link(Cameras) unit,
-    and OpenGL controls (like TCastleMenu) in @code(ui/opengl/) subdirectory.
-    Also our VRML scene (T3DScene) and animation (T3DPrecalculatedAnimation),
-    and our scene manager (TSceneManager, TODO),
+    and OpenGL controls (like TCastleOnScreenMenu) in @code(ui/opengl/) subdirectory.
+    Also our 3D scene (TCastleScene) and animation (TCastlePrecalculatedAnimation),
+    and our scene manager (TCastleSceneManager),
     are controls.
 
     @italic(Uses:) @code(base), @code(images), @code(3d).)
@@ -332,10 +332,10 @@ units are allowed to be used by units in specific group.
     VRML rendering and processing. This is the core of our engine,
     most highest-level classes to render 3D scene are here.
 
-    VRML file reading, writing and processing (VRMLLexer, VRMLFields,
-    VRMLNodes), building and using octree based on VRML model (VRMLOctree),
-    ray-tracer based on VRML model (VRMLRayTracer),
-    loading animations (VRMLAnimation),
+    VRML file reading, writing and processing (X3DLexer, X3DFields,
+    X3DNodes), building and using octree based on VRML model (VRMLOctree),
+    ray-tracer based on VRML model (RayTracer),
+    loading animations (PrecalculatedAnimationCore),
     other 3d model formats reading (Object3dGEO, Object3ds, Object3dOBJ,
     ColladaToVRML), and converting to VRML (Object3dAsVRML).
 
@@ -344,10 +344,10 @@ units are allowed to be used by units in specific group.
     @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
     that uses also @code(opengl) units.
 
-    There's VRMLGLScene unit that provides
+    There's CastleScene unit that provides
     the most final and complete class for dealing with static VRML models and
-    displaying them in OpenGL. And there's VRMLGLAnimation, that
+    displaying them in OpenGL. And there's PrecalculatedAnimation, that
     provides the same thing, but for animations (actually using
-    VRMLGLScene underneath).
+    CastleScene underneath).
   )
 )

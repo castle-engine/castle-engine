@@ -247,7 +247,7 @@ type
     @link(Controls) list for TUIControl instances.
 
     Keeps a @link(Controls) list, so you can easily add TUIControl instances
-    to this window (like TCastleMenu, TCastleSceneManager and more).
+    to this window (like TCastleOnScreenMenu, TCastleSceneManager and more).
     We will pass events to these controls, draw them etc. }
   TCastleControlCustom = class(TCastleControlBase, IUIContainer)
   private
@@ -316,7 +316,7 @@ type
 
       The tooltip is only detected when TUIControl.TooltipStyle <> dsNone.
       See TUIControl.TooltipStyle and TUIControl.DrawTooltip.
-      For simple purposes just set TKamGLFontControl.Tooltip to something
+      For simple purposes just set TUIControlFont.Tooltip to something
       non-empty.
       @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
@@ -373,13 +373,13 @@ type
       (removing other models, and resetting the camera).
 
       This is nice for simple 3D model browsers, but usually for games you
-      don't want to use this method --- it's more flexible to create T3DScene
+      don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
-    function MainScene: T3DScene;
+    function MainScene: TCastleScene;
     function Camera: TCamera;
   published
     property SceneManager: TCastleSceneManager read FSceneManager;
@@ -1349,7 +1349,7 @@ begin
   SceneManager.Items.Clear;
   SceneManager.Camera.Free;
 
-  SceneManager.MainScene := T3DScene.Create(Self);
+  SceneManager.MainScene := TCastleScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
   SceneManager.Items.Add(SceneManager.MainScene);
 
@@ -1361,7 +1361,7 @@ begin
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;
 
-function TCastleControl.MainScene: T3DScene;
+function TCastleControl.MainScene: TCastleScene;
 begin
   Result := SceneManager.MainScene;
 end;

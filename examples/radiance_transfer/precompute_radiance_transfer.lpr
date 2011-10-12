@@ -62,7 +62,7 @@ uses SysUtils, CastleUtils, VectorMath, CastleSceneCore, X3DNodes,
   SphericalHarmonics, CastleParameters, CastleTimeUtils, Shape;
 
 var
-  Scene: T3DSceneCore;
+  Scene: TCastleSceneCore;
   Normals: TVector3SingleList;
   SHBasisCount: Integer = 25;
   RaysPerVertex: Cardinal = 1000;
@@ -207,7 +207,7 @@ begin
 
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Scene := T3DSceneCore.Create(nil);
+  Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load(Parameters[1]);
     Scene.TriangleOctreeProgressTitle := 'Building octree';

@@ -17,7 +17,7 @@
   you can define your own T3D descendant.
 
   Note that most programs should be happy just using the T3D descendants
-  already implemented inside our engine. First of all there's T3DScene,
+  already implemented inside our engine. First of all there's TCastleScene,
   that allows to express virtually everything through VRML/X3D nodes,
   and has an optimized renderer, collision solver etc.
 

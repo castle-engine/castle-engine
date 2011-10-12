@@ -42,7 +42,7 @@ type
       For example, material or texture on visible surface changed. }
     vcVisibleNonGeometry,
 
-    { Camera view (the settings passed to T3DSceneCore.CameraChanged) changed. }
+    { Camera view (the settings passed to TCastleSceneCore.CameraChanged) changed. }
     vcCamera);
   TVisibleChanges = set of TVisibleChange;
 
@@ -96,7 +96,7 @@ type
 
           This may be local coord space of this shape (this is used
           by TShape.OctreeTriangles) or world coord space
-          (this is used by T3DSceneCore.OctreeTriangles).)
+          (this is used by TCastleSceneCore.OctreeTriangles).)
 
         @item(World is the geometry of Local transformed to be in world
           coordinates. Initially, World is just a copy of Local.
@@ -123,7 +123,7 @@ type
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
     prTrianglesListShadowCasters,
     prManifoldAndBorderEdges,
-    { Prepare octrees (determined by things like T3DSceneCore.Spatial). }
+    { Prepare octrees (determined by things like TCastleSceneCore.Spatial). }
     prSpatial,
     prScreenEffects);
   TPrepareResourcesOptions = set of TPrepareResourcesOption;
@@ -145,9 +145,9 @@ type
 
       For example, if your 3D tree is a list, and within
       this list is another list, and within this another list is your final
-      colliding object (for example, some T3DScene instance),
+      colliding object (for example, some TCastleScene instance),
       then Hierarchy will contain three items (in order: 1st list, 2nd list,
-      T3DScene instance).
+      TCastleScene instance).
 
       This is never an empty list. }
     Hierarchy: T3DListCore;
@@ -249,7 +249,7 @@ type
       (although, for the same of various optimizations, you should try
       to make it as tight as reasonably possible.) For now, it's also OK
       to make it a little too small (nothing bad will happen).
-      Although all currently implemented descendants (T3DSceneCore, T3DPrecalculatedAnimationCore,
+      Although all currently implemented descendants (TCastleSceneCore, TCastlePrecalculatedAnimationCore,
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 
@@ -284,7 +284,7 @@ type
       But RenderShadowVolume needs actual transformation explicitly:
       ShadowMaybeVisible needs actual box position in world coordinates,
       so bounding box has to be transformed by ParentTransform.
-      And T3DScene.RenderShadowVolumeCore needs explicit ParentTransform
+      And TCastleScene.RenderShadowVolumeCore needs explicit ParentTransform
       to correctly detect front/back sides (for silhouette edges and
       volume capping). }
     procedure RenderShadowVolume(
@@ -316,7 +316,7 @@ type
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
-        methods of T3D, T3DSceneCore or T3DScene).)
+        methods of T3D, TCastleSceneCore or TCastleScene).)
 
       @param(ProgressStep Says that we should make Progress.Step calls
         (exactly PrepareResourcesSteps times) during preparation.
@@ -609,7 +609,7 @@ type
 
     Descends from T3DList, translating all it's children.
     So it can be used to translate any T3D descendants (including
-    another T3DList, T3DScene, T3DPrecalculatedAnimation).
+    another T3DList, TCastleScene, TCastlePrecalculatedAnimation).
 
     Actual translation is defined by an abstract method GetTranslation.
     You have to create descendant of this class, and override GetTranslation.

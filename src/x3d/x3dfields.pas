@@ -164,7 +164,7 @@ type
       Exception: include also chLightInstanceProperty when appropriate. }
     chLightLocationDirection,
 
-    { T3DSceneCore.MainLightForShadows possibly changed because of this change.
+    { TCastleSceneCore.MainLightForShadows possibly changed because of this change.
 
       Caller will analyze the scene to know what this implicates,
       don't include other flags with this. }
@@ -278,7 +278,7 @@ type
       Use only for TSFBool fields within TAbstractDragSensorNode. }
     chDragSensorEnabled,
 
-    { NavigationInfo field value used in T3DSceneCore.CameraFromNavigationInfo
+    { NavigationInfo field value used in TCastleSceneCore.CameraFromNavigationInfo
       changed. }
     chNavigationInfo,
 
@@ -291,7 +291,7 @@ type
 
     { Everything changed and needs to be recalculated.
       This is needed for changes on stuff internally cached in
-      T3DSceneCore, T3DScene, TShape that cannot be expressed
+      TCastleSceneCore, TCastleScene, TShape that cannot be expressed
       as one of above flags.
 
       Use only as a last resort, as this is very costly!
@@ -891,13 +891,13 @@ type
     property ChangesAlways: TX3DChanges read FChangesAlways write FChangesAlways;
 
     { What happens when the value of this field changes.
-      This will be used by T3DSceneCore.ChangedField to determine what
+      This will be used by TCastleSceneCore.ChangedField to determine what
       must be done when we know that value of this field changed. }
     function Changes: TX3DChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
       This sets the value of this field in the nicest possible way for
-      any possible T3DSceneCore (with events on or off) containing the node
+      any possible TCastleSceneCore (with events on or off) containing the node
       with this field.
 
       Precise specification:
@@ -928,7 +928,7 @@ type
       one "in" handler sets the field value).
 
       Note that "out" event handlers are executed before Scene is notified
-      about the field value change (before T3DSceneCore.ChangedField is called).
+      about the field value change (before TCastleSceneCore.ChangedField is called).
       This is also usually exactly what you want --- you can change the scene
       graph inside the event handler (for example, load something on
       Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways

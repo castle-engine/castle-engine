@@ -119,7 +119,7 @@ type
     for documentation.
 
     Make sure that VRML2Lights in states are properly initialized if you
-    plan to render VRML 2.0 nodes. T3DSceneCore and descendants do
+    plan to render VRML 2.0 nodes. TCastleSceneCore and descendants do
     this for you automatically. }
   TClassicRayTracer = class(TRayTracer)
   public

@@ -147,7 +147,7 @@
 
     { Root node never saves/restores the traversing state.
       This means that all state changes "leak out" from a root node.
-      This is a good thing: if root node isn't used as a final T3DSceneCore.RootNode,
+      This is a good thing: if root node isn't used as a final TCastleSceneCore.RootNode,
       then it is placed inside Inline node, which will do save/restore anyway.
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
@@ -389,7 +389,7 @@ begin
     correctly...
 
     Other (rejected) approach was to add ParentGroup to TLightInstance
-    and do it as post-processing step, i.e. in T3DSceneCore in
+    and do it as post-processing step, i.e. in TCastleSceneCore in
     AddGlobalLights take this ParentGroup and add light everywhere.
     But that was 1. even slower, since it must traverse ParentGroup once again
     for each directional light, and for each shape within this ParentGroup,

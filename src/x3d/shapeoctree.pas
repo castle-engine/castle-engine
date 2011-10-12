@@ -29,7 +29,7 @@
 
   This octree is the key structure to do scene culling
   (e.g. to camera frustum) on a Shape-basis, as used
-  by @link(T3DScene). }
+  by @link(TCastleScene). }
 
 unit ShapeOctree;
 

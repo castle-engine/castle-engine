@@ -307,7 +307,7 @@ unit CastleWindow;
       and do not want popup dialog boxes. Instead you draw everything
       inside your OpenGL context, which makes your game look the same
       regardless of the platform and GUI can be styled to your game theme.
-      For example, menu may be done by TCastleMenu, and dialog boxes
+      For example, menu may be done by TCastleOnScreenMenu, and dialog boxes
       by CastleMessages.
 
       As a bonus, XLIB allows you to change screen resolution when
@@ -2536,7 +2536,7 @@ end;
 
       The tooltip is only detected when TUIControl.TooltipStyle <> dsNone.
       See TUIControl.TooltipStyle and TUIControl.DrawTooltip.
-      For simple purposes just set TKamGLFontControl.Tooltip to something
+      For simple purposes just set TUIControlFont.Tooltip to something
       non-empty.
       @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
@@ -2589,13 +2589,13 @@ end;
       (removing other models, and resetting the camera).
 
       This is nice for simple 3D model browsers, but usually for games you
-      don't want to use this method --- it's more flexible to create T3DScene
+      don't want to use this method --- it's more flexible to create TCastleScene
       yourself, and add it to scene manager yourself, see engine examples like
       scene_manager_basic.lpr. }
     procedure Load(const SceneFileName: string);
     procedure Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);
 
-    function MainScene: T3DScene;
+    function MainScene: TCastleScene;
     property SceneManager: TCastleSceneManager read FSceneManager;
 
     { Should we make shadow volumes possible.
@@ -4828,7 +4828,7 @@ begin
   SceneManager.Items.Clear;
   SceneManager.Camera.Free;
 
-  SceneManager.MainScene := T3DScene.Create(Self);
+  SceneManager.MainScene := TCastleScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
   SceneManager.Items.Add(SceneManager.MainScene);
 
@@ -4840,7 +4840,7 @@ begin
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;
 
-function TCastleWindow.MainScene: T3DScene;
+function TCastleWindow.MainScene: TCastleScene;
 begin
   Result := SceneManager.MainScene;
 end;

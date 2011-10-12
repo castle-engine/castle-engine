@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D complete scene handling and OpenGL rendering (T3DScene). }
+{ VRML/X3D complete scene handling and OpenGL rendering (TCastleScene). }
 unit CastleScene;
 
 interface
@@ -68,7 +68,7 @@ type
   TTestShapeVisibility = function (Shape: TGLShape): boolean
     of object;
 
-  T3DSceneList = class;
+  TCastleSceneList = class;
 
   { Values for TSceneRenderingAttributes.WireframeEffect.
 
@@ -148,7 +148,7 @@ type
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
-    FScenes: T3DSceneList;
+    FScenes: TCastleSceneList;
 
     FBlending: boolean;
     FBlendingSourceFactor: TGLenum;
@@ -223,7 +223,7 @@ type
     { @groupEnd }
 
     { Setting this to @false disables any modification of OpenGL
-      blending (and depth mask) state by T3DScene.
+      blending (and depth mask) state by TCastleScene.
       This makes every other @link(Blending) setting ignored,
       and is useful only if you set your own OpenGL blending parameters
       when rendering this scene. }
@@ -255,12 +255,12 @@ type
       OTOH, a lag of one frame may happen between an object should
       be rendered and it actually appears.
 
-      When you render more than once the same instance of T3DScene scene,
+      When you render more than once the same instance of TCastleScene scene,
       you should not activate it (as the occlusion query doesn't make sense
       if each following render of the scene takes place at totally different
       translation). Also, when rendering something more than just
-      one T3DScene scene (maybe many times the same T3DScene instance,
-      maybe many different T3DScene instances, maybe something totally
+      one TCastleScene scene (maybe many times the same TCastleScene instance,
+      maybe many different TCastleScene instances, maybe something totally
       independent from VRML scenes) you should try to sort rendering order
       from the most to the least possible occluder (otherwise occlusion
       query will not be as efficient at culling).
@@ -278,9 +278,9 @@ type
 
       This method doesn't impose any lag of one frame (like UseOcclusionQuery).
 
-      This requires the usage of T3DSceneCore.OctreeRendering.
+      This requires the usage of TCastleSceneCore.OctreeRendering.
       Also, it always does frustum culling (like fcBox for now),
-      regardless of T3DScene.OctreeFrustumCulling setting.
+      regardless of TCastleScene.OctreeFrustumCulling setting.
 
       The algorithm used underneath is "Coherent Hierarchical Culling",
       described in detail in "GPU Gems 2",
@@ -307,9 +307,9 @@ type
       write FDebugHierOcclusionQueryResults default false;
   end;
 
-  { TShape descendant for usage within T3DScene.
+  { TShape descendant for usage within TCastleScene.
     Basically, this is just the same thing as TShape, with some
-    internal information needed by T3DScene. }
+    internal information needed by TCastleScene. }
   TGLShape = class(TX3DRendererShape)
   private
     { Keeps track if this shape was passed to Renderer.Prepare. }
@@ -355,9 +355,9 @@ const
 type
   { Possible checks done while frustum culling.
 
-    This is used for T3DScene.FrustumCulling (what checks
+    This is used for TCastleScene.FrustumCulling (what checks
     should be done when shapes octree is not available) and
-    T3DScene.OctreeFrustumCulling (what checks
+    TCastleScene.OctreeFrustumCulling (what checks
     should be done when shapes octree is available).
 
     In the second case, checks done by TFrustumCulling are applied
@@ -376,9 +376,9 @@ type
   TFrustumCulling = (
     { No checks.
 
-      Setting this as T3DScene.FrustumCulling
+      Setting this as TCastleScene.FrustumCulling
       turns off frustum culling entirely, which is usually not a wise thing
-      to do... Setting this as T3DScene.OctreeFrustumCulling
+      to do... Setting this as TCastleScene.OctreeFrustumCulling
       let's octree do all the work, which is quite sensible actually. }
     fcNone,
 
@@ -410,7 +410,7 @@ type
   end;
 
   { Complete handling and rendering of a 3D VRML/X3D scene.
-    This is a descendant of T3DSceneCore that adds efficient rendering
+    This is a descendant of TCastleSceneCore that adds efficient rendering
     using OpenGL.
 
     This uses internal @link(TGLRenderer) instance,
@@ -426,7 +426,7 @@ type
     class with current OpenGL context. Which means that all the following
     calls should be done with the same OpenGL context set as current.
     Calling GLContextClose or the destructor removes this connection. }
-  T3DScene = class(T3DSceneCore)
+  TCastleScene = class(TCastleSceneCore)
   private
     Renderer: TGLRenderer;
 
@@ -561,10 +561,10 @@ type
 
       Once again, if you're not sure, then simply don't use this
       constructor. It's for internal use --- namely it's internally used
-      by T3DPrecalculatedAnimation, this way all scenes of the animation share
+      by TCastlePrecalculatedAnimation, this way all scenes of the animation share
       the same renderer which means that they also share the same
       information about textures and images loaded into OpenGL.
-      And this is crucial for T3DPrecalculatedAnimation, otherwise animation with
+      And this is crucial for TCastlePrecalculatedAnimation, otherwise animation with
       100 scenes would load the same texture to OpenGL 100 times. }
     constructor CreateCustomRenderer(AOwner: TComponent;
       ACustomRenderer: TGLRenderer);
@@ -604,7 +604,7 @@ type
 
         @item(Only a subset of shapes indicated by Params.Transparent is rendered.
           This is necessary if you want to mix in one 3D world many scenes
-          (like T3DScene instances), and each of them may have some opaque
+          (like TCastleScene instances), and each of them may have some opaque
           and some transparent
           parts. In such case, you want to render everything opaque
           (from every scene) first, and only then render everything transparent.
@@ -862,7 +862,7 @@ type
       that temporarily cannot be rendered.
 
       Note: this Background object is managed (automatically created/freed
-      etc.) by this T3DScene object but it is NOT used anywhere
+      etc.) by this TCastleScene object but it is NOT used anywhere
       in this class, e.g. Render does not call Background.Render. If you want to
       use this Background somehow, you have to do this yourself.
 
@@ -961,11 +961,11 @@ type
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
   end;
 
-  T3DSceneList = class(specialize TFPGObjectList<T3DScene>)
+  TCastleSceneList = class(specialize TFPGObjectList<TCastleScene>)
   private
     { Just call InvalidateBackground or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in
-      T3DScene are also private and we don't want to expose
+      TCastleScene are also private and we don't want to expose
       them here. }
     procedure InvalidateBackground;
     procedure CloseGLRenderer;
@@ -978,7 +978,7 @@ type
   end;
 
 const
-  { Options to pass to T3DScene.PrepareResources to make
+  { Options to pass to TCastleScene.PrepareResources to make
     sure that rendering with shadow volumes is as fast as possible.
 
     For now this actually could be equal to prManifoldEdges
@@ -1002,7 +1002,7 @@ var
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [T3DScene]);
+  RegisterComponents('Castle', [TCastleScene]);
 end;
 
 { TGLShape --------------------------------------------------------------- }
@@ -1010,11 +1010,11 @@ end;
 procedure TGLShape.Changed(const InactiveOnly: boolean;
   const Changes: TX3DChanges);
 var
-  GLScene: T3DScene;
+  GLScene: TCastleScene;
 begin
   inherited;
 
-  GLScene := T3DScene(ParentScene);
+  GLScene := TCastleScene(ParentScene);
 
   if Cache <> nil then
   begin
@@ -1042,7 +1042,7 @@ end;
 
 procedure TGLShape.PrepareResources;
 var
-  GLScene: T3DScene;
+  GLScene: TCastleScene;
 
   { UseBlending is used by RenderScene to decide
     is Blending used for given shape. Make sure that you called
@@ -1069,7 +1069,7 @@ var
       at TextureNode.TextureImage / TextureVidep etc.
       So it's important to initialize UseBlending before
       user has any chance to do FreeResources or to free RootNode
-      (see T3DSceneCore.RootNode docs).
+      (see TCastleSceneCore.RootNode docs).
 
       TODO: ideally, we would like to just push all our logic into
       TShape.Transparent, and write just
@@ -1096,7 +1096,7 @@ var
   end;
 
 begin
-  GLScene := T3DScene(ParentScene);
+  GLScene := TCastleScene(ParentScene);
 
   if not PreparedForRenderer then
   begin
@@ -1265,9 +1265,9 @@ begin
   Result := FBaseLights;
 end;
 
-{ T3DScene ------------------------------------------------------------ }
+{ TCastleScene ------------------------------------------------------------ }
 
-constructor T3DScene.Create(AOwner: TComponent);
+constructor TCastleScene.Create(AOwner: TComponent);
 begin
   { inherited Create *may* call some virtual things overriden here
     (although right now it doesn't): it may bind new viewpoint which
@@ -1310,7 +1310,7 @@ begin
    OctreeFrustumCulling := fcBox; { set through property setter }
 end;
 
-constructor T3DScene.CreateCustomCache(
+constructor TCastleScene.CreateCustomCache(
   AOwner: TComponent; ACache: TGLRendererContextCache);
 begin
   OwnsCache := false;
@@ -1320,7 +1320,7 @@ begin
   Create(AOwner);
 end;
 
-constructor T3DScene.CreateCustomRenderer(
+constructor TCastleScene.CreateCustomRenderer(
   AOwner: TComponent; ACustomRenderer: TGLRenderer);
 begin
   FOwnsRenderer := false;
@@ -1329,7 +1329,7 @@ begin
   CreateCustomCache(AOwner, ACustomRenderer.Cache);
 end;
 
-destructor T3DScene.Destroy;
+destructor TCastleScene.Destroy;
 begin
   GLContextClose;
 
@@ -1377,13 +1377,13 @@ begin
   inherited;
 end;
 
-function T3DScene.CreateShape(AGeometry: TAbstractGeometryNode;
+function TCastleScene.CreateShape(AGeometry: TAbstractGeometryNode;
   AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TGLShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
-procedure T3DScene.CloseGLRenderer;
+procedure TCastleScene.CloseGLRenderer;
 { This must be coded carefully, because
   - it's called by ChangedAll, and so may be called when our constructor
     didn't do it's work yet.
@@ -1436,7 +1436,7 @@ begin
       CloseGLScreenEffect(TScreenEffectNode(ScreenEffectNodes[I]));
 
   { TODO: if FOwnsRenderer then we should do something more detailed
-    then just Renderer.UnprepareAll. It's not needed for T3DPrecalculatedAnimation
+    then just Renderer.UnprepareAll. It's not needed for TCastlePrecalculatedAnimation
     right now, so it's not implemented. }
   if Renderer <> nil then Renderer.UnprepareAll;
 
@@ -1464,14 +1464,14 @@ begin
     FreeAndNil(VarianceShadowMapsProgram);
 end;
 
-procedure T3DScene.GLContextClose;
+procedure TCastleScene.GLContextClose;
 begin
   inherited;
   CloseGLRenderer;
   InvalidateBackground;
 end;
 
-function T3DScene.ShapeFog(Shape: TShape): IAbstractFogObject;
+function TCastleScene.ShapeFog(Shape: TShape): IAbstractFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then
@@ -1632,7 +1632,7 @@ begin
   glGetQueryObjectuivARB(Id, GL_QUERY_RESULT_ARB, @Result);
 end;
 
-procedure T3DScene.RenderScene(
+procedure TCastleScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams);
 var
   OcclusionBoxState: boolean;
@@ -2213,7 +2213,7 @@ begin
     glPopMatrix;
 end;
 
-procedure T3DScene.PrepareResources(
+procedure TCastleScene.PrepareResources(
   Options: TPrepareResourcesOptions; ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareAllShapes;
@@ -2285,7 +2285,7 @@ begin
   end;
 end;
 
-procedure T3DScene.Render(
+procedure TCastleScene.Render(
   TestShapeVisibility: TTestShapeVisibility;
   const Params: TRenderParams);
 
@@ -2367,14 +2367,14 @@ begin
   end;
 end;
 
-class procedure T3DScene.LightRenderInShadow(const Light: TLightInstance;
+class procedure TCastleScene.LightRenderInShadow(const Light: TLightInstance;
   var LightOn: boolean);
 begin
   if Light.Node.FdKambiShadows.Value then
     LightOn := false;
 end;
 
-procedure T3DScene.BeforeNodesFree(const InternalChangedAll: boolean);
+procedure TCastleScene.BeforeNodesFree(const InternalChangedAll: boolean);
 begin
   { Release all associations with OpenGL context before freeing the nodes.
     This means vrml nodes are still valid during GLRenderer unprepare
@@ -2422,7 +2422,7 @@ begin
   Result[3] := 0;
 end;
 
-procedure T3DScene.RenderAllShadowVolume(
+procedure TCastleScene.RenderAllShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -2674,7 +2674,7 @@ begin
   end;
 end;
 
-procedure T3DScene.RenderSilhouetteShadowVolume(
+procedure TCastleScene.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3111,7 +3111,7 @@ begin
   finally FreeAndNil(TrianglesPlaneSide) end;
 end;
 
-procedure T3DScene.RenderShadowVolumeCore(
+procedure TCastleScene.RenderShadowVolumeCore(
   const LightPos: TVector4Single;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3125,7 +3125,7 @@ begin
       LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
 end;
 
-procedure T3DScene.RenderShadowVolumeCore(
+procedure TCastleScene.RenderShadowVolumeCore(
   ShadowVolumeRenderer: TGLShadowVolumeRenderer;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3141,7 +3141,7 @@ begin
   end;
 end;
 
-procedure T3DScene.RenderShadowVolume(
+procedure TCastleScene.RenderShadowVolume(
   ShadowVolumeRenderer: TGLShadowVolumeRenderer;
   const TransformIsIdentity: boolean;
   const Transform: TMatrix4Single;
@@ -3160,7 +3160,7 @@ begin
     AllowSilhouetteOptimization);
 end;
 
-procedure T3DScene.RenderShadowVolume(
+procedure TCastleScene.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -3170,12 +3170,12 @@ begin
       ParentTransformIsIdentity, ParentTransform, true);
 end;
 
-procedure T3DScene.RenderSilhouetteEdges(
+procedure TCastleScene.RenderSilhouetteEdges(
   const ObserverPos: TVector4Single;
   const Transform: TMatrix4Single);
 
 { This is actually a modified implementation of
-  T3DScene.RenderSilhouetteShadowQuads: instead of rendering
+  TCastleScene.RenderSilhouetteShadowQuads: instead of rendering
   shadow quad for each silhouette edge, the edge is simply rendered
   as OpenGL line. }
 
@@ -3254,7 +3254,7 @@ begin
   glEnd;
 end;
 
-procedure T3DScene.RenderBorderEdges(
+procedure TCastleScene.RenderBorderEdges(
   const Transform: TMatrix4Single);
 var
   Triangles: TTriangle3SingleList;
@@ -3297,24 +3297,24 @@ end;
 
 { Frustum culling ------------------------------------------------------------ }
 
-function T3DScene.FrustumCulling_None(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_None(Shape: TGLShape): boolean;
 begin
   Result := true;
 end;
 
-function T3DScene.FrustumCulling_Sphere(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_Sphere(Shape: TGLShape): boolean;
 begin
   Result := Shape.FrustumBoundingSphereCollisionPossibleSimple(
     RenderFrustum_Frustum^);
 end;
 
-function T3DScene.FrustumCulling_Box(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_Box(Shape: TGLShape): boolean;
 begin
   Result := RenderFrustum_Frustum^.Box3DCollisionPossibleSimple(
     Shape.BoundingBox);
 end;
 
-function T3DScene.FrustumCulling_Both(Shape: TGLShape): boolean;
+function TCastleScene.FrustumCulling_Both(Shape: TGLShape): boolean;
 begin
   Result :=
     Shape.FrustumBoundingSphereCollisionPossibleSimple(
@@ -3323,7 +3323,7 @@ begin
       Shape.BoundingBox);
 end;
 
-procedure T3DScene.SetFrustumCulling(const Value: TFrustumCulling);
+procedure TCastleScene.SetFrustumCulling(const Value: TFrustumCulling);
 begin
   if Value <> FFrustumCulling then
   begin
@@ -3339,7 +3339,7 @@ begin
   end;
 end;
 
-procedure T3DScene.SetOctreeFrustumCulling(const Value: TFrustumCulling);
+procedure TCastleScene.SetOctreeFrustumCulling(const Value: TFrustumCulling);
 begin
   if Value <> FOctreeFrustumCulling then
   begin
@@ -3356,13 +3356,13 @@ end;
 
 { Render --------------------------------------------------------------------- }
 
-function T3DScene.RenderFrustumOctree_TestShape(
+function TCastleScene.RenderFrustumOctree_TestShape(
   Shape: TGLShape): boolean;
 begin
   Result := Shape.RenderFrustumOctree_Visible;
 end;
 
-procedure T3DScene.RenderFrustumOctree_EnumerateShapes(
+procedure TCastleScene.RenderFrustumOctree_EnumerateShapes(
   ShapeIndex: Integer; CollidesForSure: boolean);
 var
   Shape: TGLShape;
@@ -3375,7 +3375,7 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 end;
 
-procedure T3DScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
   { Call Render with explicit TTestShapeVisibility function
     instead of Frustum parameter. That is, choose test function
@@ -3460,14 +3460,14 @@ end;
 
 { Background-related things -------------------------------------------------- }
 
-procedure T3DScene.InvalidateBackground;
+procedure TCastleScene.InvalidateBackground;
 begin
   FreeAndNil(FBackground);
   FBackgroundNode := nil;
   FBackgroundValid := false;
 end;
 
-procedure T3DScene.SetBackgroundSkySphereRadius(const Value: Single);
+procedure TCastleScene.SetBackgroundSkySphereRadius(const Value: Single);
 begin
   if Value <> FBackgroundSkySphereRadius then
   begin
@@ -3476,7 +3476,7 @@ begin
   end;
 end;
 
-procedure T3DScene.PrepareBackground;
+procedure TCastleScene.PrepareBackground;
 { After PrepareBackground assertion FBackgroundValid is valid }
 var
   BgNode: TBackgroundNode;
@@ -3555,7 +3555,7 @@ begin
   FBackgroundValid := true;
 end;
 
-function T3DScene.Background: TBackground;
+function TCastleScene.Background: TBackground;
 var
   BackgroundNode: TAbstractBackgroundNode;
 begin
@@ -3573,12 +3573,12 @@ begin
   end;
 end;
 
-function T3DScene.Attributes: TSceneRenderingAttributes;
+function TCastleScene.Attributes: TSceneRenderingAttributes;
 begin
   Result := Renderer.Attributes as TSceneRenderingAttributes;
 end;
 
-procedure T3DScene.GLProjection(ACamera: TCamera;
+procedure TCastleScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
   const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean);
@@ -3594,7 +3594,7 @@ begin
     ProjectionNear, ProjectionFar);
 end;
 
-procedure T3DScene.GLProjection(ACamera: TCamera;
+procedure TCastleScene.GLProjection(ACamera: TCamera;
   const Box: TBox3D;
   const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   const ForceZFarInfinity: boolean;
@@ -3746,18 +3746,18 @@ begin
   case ProjectionType of
     ptPerspective: DoPerspective;
     ptOrthographic: DoOrthographic;
-    else EInternalError.Create('T3DScene.GLProjectionCore-ProjectionType?');
+    else EInternalError.Create('TCastleScene.GLProjectionCore-ProjectionType?');
   end;
 
   UpdateCameraProjectionMatrix;
 end;
 
-procedure T3DScene.LastRender_SumNext;
+procedure TCastleScene.LastRender_SumNext;
 begin
   FLastRender_SumNext := true;
 end;
 
-procedure T3DScene.UpdateGeneratedTextures(
+procedure TCastleScene.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const OriginalViewportX, OriginalViewportY: LongInt;
@@ -3795,7 +3795,7 @@ begin
                OriginalViewportWidth, OriginalViewportHeight);
 end;
 
-procedure T3DScene.ViewChangedSuddenly;
+procedure TCastleScene.ViewChangedSuddenly;
 var
   SI: TShapeTreeIterator;
 begin
@@ -3812,7 +3812,7 @@ begin
   end;
 end;
 
-procedure T3DScene.VisibleChangeNotification(const Changes: TVisibleChanges);
+procedure TCastleScene.VisibleChangeNotification(const Changes: TVisibleChanges);
 var
   I: Integer;
 begin
@@ -3845,7 +3845,7 @@ begin
   end;
 end;
 
-function T3DScene.ScreenEffectsCount: Integer;
+function TCastleScene.ScreenEffectsCount: Integer;
 var
   I: Integer;
   SE: TScreenEffectNode;
@@ -3861,7 +3861,7 @@ begin
     end;
 end;
 
-function T3DScene.ScreenEffects(Index: Integer): TGLSLProgram;
+function TCastleScene.ScreenEffects(Index: Integer): TGLSLProgram;
 var
   I: Integer;
   SE: TScreenEffectNode;
@@ -3879,10 +3879,10 @@ begin
         Dec(Index);
   end;
 
-  raise EInternalError.Create('T3DScene.ScreenEffects: Invalid index');
+  raise EInternalError.Create('TCastleScene.ScreenEffects: Invalid index');
 end;
 
-function T3DScene.ScreenEffectsNeedDepth: boolean;
+function TCastleScene.ScreenEffectsNeedDepth: boolean;
 var
   I: Integer;
 begin
@@ -3912,7 +3912,7 @@ begin
   FWireframeEffect := weNormal;
   FWireframeColor := DefaultWireframeColor;
 
-  FScenes := T3DSceneList.Create(false);
+  FScenes := TCastleSceneList.Create(false);
 end;
 
 destructor TSceneRenderingAttributes.Destroy;
@@ -3945,7 +3945,7 @@ begin
   inherited;
 
   { We have to do at least Renderer.UnprepareAll.
-    Actually, we have to do more: T3DScene must also be disconnected
+    Actually, we have to do more: TCastleScene must also be disconnected
     from OpenGL, to release screen effects (referencing renderer shaders)
     and such. So full CloseGLRenderer is needed. }
 
@@ -4026,9 +4026,9 @@ begin
   end;
 end;
 
-{ T3DSceneList ------------------------------------------------------ }
+{ TCastleSceneList ------------------------------------------------------ }
 
-procedure T3DSceneList.GLContextClose;
+procedure TCastleSceneList.GLContextClose;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4039,7 +4039,7 @@ begin
      Items[I].GLContextClose;
 end;
 
-procedure T3DSceneList.InvalidateBackground;
+procedure TCastleSceneList.InvalidateBackground;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4050,7 +4050,7 @@ begin
      Items[I].InvalidateBackground;
 end;
 
-procedure T3DSceneList.CloseGLRenderer;
+procedure TCastleSceneList.CloseGLRenderer;
 { This may be called from various destructors,
   so we are extra careful here and check Items[I] <> nil. }
 var
@@ -4061,7 +4061,7 @@ begin
      Items[I].CloseGLRenderer;
 end;
 
-procedure T3DSceneList.ViewChangedSuddenly;
+procedure TCastleSceneList.ViewChangedSuddenly;
 var
   I: Integer;
 begin

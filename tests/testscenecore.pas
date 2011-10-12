@@ -25,9 +25,9 @@ uses X3DNodes, CastleSceneCore, X3DLoad, VectorMath, Shape,
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
-  Scene: T3DSceneCore;
+  Scene: TCastleSceneCore;
 begin
-  Scene := T3DSceneCore.Create(nil);
+  Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load('data' + PathDelim + 'model_manifold.wrl');
     Assert(Scene.BorderEdges.Count = 0);
@@ -40,7 +40,7 @@ procedure TTestSceneCore.TestIteratorSpeed;
   procedure CheckIteratorSpeed(const FileName: string;
     const TestCount: Integer = 1000);
   var
-    Scene: T3DSceneCore;
+    Scene: TCastleSceneCore;
     List: TShapesList;
     SI: TShapeTreeIterator;
     OnlyActive: boolean;
@@ -49,7 +49,7 @@ procedure TTestSceneCore.TestIteratorSpeed;
   begin
     Writeln('CheckIteratorSpeed on ', FileName);
 
-    Scene := T3DSceneCore.Create(nil);
+    Scene := TCastleSceneCore.Create(nil);
     try
       Scene.Load(FileName);
       for OnlyActive := false to true do
@@ -97,13 +97,13 @@ procedure TTestSceneCore.TestIterator;
 
   procedure CheckIterator(const FileName: string);
   var
-    Scene: T3DSceneCore;
+    Scene: TCastleSceneCore;
     List: TShapeList;
     SI: TShapeTreeIterator;
     OnlyActive: boolean;
     I: Integer;
   begin
-    Scene := T3DSceneCore.Create(nil);
+    Scene := TCastleSceneCore.Create(nil);
     try
       Scene.Load(FileName);
       for OnlyActive := false to true do

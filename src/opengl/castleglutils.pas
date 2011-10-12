@@ -2468,7 +2468,7 @@ initialization
 
       Radeon open-source OpenGL driver may cause EDivByZero exceptions.
       Reported by Daniel Mantione with Radeon Mobility M7,
-      EDivByZero was raised by glCallList inside T3DScene (not used there
+      EDivByZero was raised by glCallList inside TCastleScene (not used there
       anymore).
       Disabling fp exceptions fixed the problem.
 

@@ -38,7 +38,7 @@ uses SysUtils, VectorMath, GL, GLU, CastleWindow, CastleStringUtils,
 
 var
   Window: TCastleWindowCustom;
-  Scene: T3DScene;
+  Scene: TCastleScene;
 
 type
   TMySceneManager = class(TCastleSceneManager)
@@ -118,7 +118,7 @@ begin
   SceneManager := TMySceneManager.Create(Application);
   Window.Controls.Add(SceneManager);
 
-  Scene := T3DScene.Create(Application);
+  Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;
   Scene.Load('models' + PathDelim + 'fog_culling_final.wrl');
   SceneManager.MainScene := Scene;

@@ -49,7 +49,7 @@ uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D,
 var
   Window: TCastleWindowCustom;
 
-  SceneCaster, SceneReceiver, SceneLocalLight: T3DScene;
+  SceneCaster, SceneReceiver, SceneLocalLight: TCastleScene;
   SceneManager: TCastleSceneManager;
   CasterOOF: TShadowField;
   LocalLightSRF: TShadowField;
@@ -574,13 +574,13 @@ begin
 
     RenderParams := TBasicRenderParams.Create;
 
-    SceneCaster := T3DScene.Create(nil);
+    SceneCaster := TCastleScene.Create(nil);
     SceneCaster.Load(ShadowCasterFileName);
 
-    SceneReceiver := T3DScene.Create(nil);
+    SceneReceiver := TCastleScene.Create(nil);
     SceneReceiver.Load(ShadowReceiverFileName);
 
-    SceneLocalLight := T3DScene.Create(nil);
+    SceneLocalLight := TCastleScene.Create(nil);
     SceneLocalLight.Load(LocalLightFileName);
 
     CasterOOF := TShadowField.Create;

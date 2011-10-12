@@ -29,7 +29,7 @@ type
     { Available only during Test1 }
     Window: TCastleWindowCustom;
     SceneManager: TCastleSceneManager;
-    Scene: T3DScene;
+    Scene: TCastleScene;
     RecreateSceneEachTime: boolean;
 
     { FileName empty means to load empty scene. }
@@ -64,7 +64,7 @@ begin
     Assert(SceneManager.MainScene = nil);
     Assert(SceneManager.Items.List.Count = 0);
 
-    Scene := T3DScene.Create(Window);
+    Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 
@@ -146,7 +146,7 @@ begin
 
   Window := TCastleWindowCustom.Create(nil);
   try
-    Scene := T3DScene.Create(Window);
+    Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];
     Scene.ProcessEvents := true;
 

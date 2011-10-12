@@ -41,7 +41,7 @@ uses SysUtils, ProgressUnit, ProgressConsole, CastleUtils,
   CubeMap, Boxes3D, SphericalHarmonics, CastleParameters;
 
 var
-  Scene: T3DSceneCore;
+  Scene: TCastleSceneCore;
   LightSource: boolean;
 
 procedure ComputeCubeMap(const Point: TVector3Single;
@@ -99,7 +99,7 @@ begin
 
   Progress.UserInterface := ProgressConsoleInterface;
 
-  Scene := T3DSceneCore.Create(nil);
+  Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load(InputFileName);
     Scene.TriangleOctreeProgressTitle := 'Building octree';

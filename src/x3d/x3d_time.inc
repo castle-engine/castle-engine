@@ -103,7 +103,7 @@
       implements time-dependent nodes operations.
 
       OldValue, NewValue and TimeIncrease must match, as produced
-      by T3DSceneCore.SetTime and friends.
+      by TCastleSceneCore.SetTime and friends.
 
       When ResetTime = true, this means that "TimeIncrease value is unknown"
       (you @italic(must) pass TimeIncrease = 0 in this case).

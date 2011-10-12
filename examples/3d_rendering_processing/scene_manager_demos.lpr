@@ -32,8 +32,8 @@ uses CastleUtils, CastleWindow, VectorMath, CastleWarnings, Base3D,
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Scene, Scene2: T3DScene;
-  Animation: T3DPrecalculatedAnimation;
+  Scene, Scene2: TCastleScene;
+  Animation: TCastlePrecalculatedAnimation;
   Translation: T3DTranslated;
   Scene2Transform: TTransformNode;
   Scene2NewRoot: TX3DRootNode;
@@ -47,7 +47,7 @@ begin
   Window.Controls.Add(SceneManager);
 
   { initialize first Scene }
-  Scene := T3DScene.Create(SceneManager);
+  Scene := TCastleScene.Create(SceneManager);
   Scene.Load('models/bridge_final.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
@@ -84,7 +84,7 @@ begin
   SceneManager.Items.Add(Translation);
 
   { initialize a 2nd scene, just because we can }
-  Scene2 := T3DScene.Create(SceneManager);
+  Scene2 := TCastleScene.Create(SceneManager);
   Scene2.Load('models/castle_script_particles.x3dv');
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
@@ -105,7 +105,7 @@ begin
   Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
 
   { initialize Animation }
-  Animation := T3DPrecalculatedAnimation.Create(SceneManager);
+  Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Add(Animation);

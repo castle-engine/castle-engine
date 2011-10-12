@@ -53,8 +53,8 @@
       even when they are in the inactive part of VRML graph.
 
       If you want scripts to work, you have to initialize them yourself.
-      If you use T3DSceneCore, this will be done for you automatically
-      when you change T3DSceneCore.ProcessEvents, so it's not a problem in
+      If you use TCastleSceneCore, this will be done for you automatically
+      when you change TCastleSceneCore.ProcessEvents, so it's not a problem in
       practice. }
     property Initialized: boolean read FInitialized write SetInitialized
       default false;

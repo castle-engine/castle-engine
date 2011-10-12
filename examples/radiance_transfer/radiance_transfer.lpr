@@ -36,7 +36,7 @@ type
 
 var
   Window: TCastleWindowCustom;
-  Scene: T3DScene;
+  Scene: TCastleScene;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
   LightPos: TVector3Single;
@@ -266,7 +266,7 @@ begin
 
   RenderParams := TBasicRenderParams.Create;
 
-  Scene := T3DScene.Create(Application);
+  Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;
   Scene.Load(Parameters[1]);
 

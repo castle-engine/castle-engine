@@ -82,7 +82,7 @@ type
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
-      (e.g. T3DScene.RenderFrustumOctree passes
+      (e.g. TCastleScene.RenderFrustumOctree passes
       RenderFrustumOctree_Visible.SetTrue method as callback
       that should mark visible items.)
       @groupBegin }

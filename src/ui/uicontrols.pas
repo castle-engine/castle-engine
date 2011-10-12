@@ -256,7 +256,7 @@ type
           with projection that you set yourself. Usually you should
           use TCastleSceneManager, which sets projection automatically for you
           to something suitable, see TCastleSceneManager.ApplyProjection and
-          T3DScene.GLProjection.
+          TCastleScene.GLProjection.
 
           Then all the controls with DrawStyle = ds2D are drawn.
           For them, OpenGL projection is guaranteed to be set to standard 2D
@@ -365,8 +365,8 @@ type
       time. In such case, default (when DisableContextOpenClose = 0) behavior
       will often release (only to be forced to reinitialize again) OpenGL
       resources of the control. Some controls have large OpenGL
-      resources (for example T3DScene keeps display lists, textures etc.,
-      and T3DPrecalculatedAnimation keeps all the scenes) --- so constantly
+      resources (for example TCastleScene keeps display lists, textures etc.,
+      and TCastlePrecalculatedAnimation keeps all the scenes) --- so constantly
       reinitializing them may eat a noticeable time.
 
       By using non-zero DisableContextOpenClose you can disable this behavior.
@@ -379,7 +379,7 @@ type
 
     { Design note: ExclusiveEvents is not published now, as it's too "obscure"
       (for normal usage you don't want to deal with it). Also, it's confusing
-      on T3DSceneCore, the name suggests it relates to ProcessEvents (VRML events,
+      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
       totally not related to this property that is concerned with handling
       TUIControl events.) }
 

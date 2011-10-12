@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Abstract precalculated animation (T3DPrecalculatedAnimationCore). }
+{ Abstract precalculated animation (TCastlePrecalculatedAnimationCore). }
 unit PrecalculatedAnimationCore;
 
 {$I castleconf.inc}
@@ -25,8 +25,8 @@ uses CastleUtils, DOM, Base3D, Classes;
 type
   { An abstract (cannot be rendered) precalculated animation.
     You usually want to use a descendant of this class that can be rendered
-    in OpenGL, see T3DPrecalculatedAnimation. }
-  T3DPrecalculatedAnimationCore = class(T3D)
+    in OpenGL, see TCastlePrecalculatedAnimation. }
+  TCastlePrecalculatedAnimationCore = class(T3D)
   public
     { Load animation data from a given FileName to a set of variables.
 
@@ -34,7 +34,7 @@ type
       for specification of the file format.
 
       This is a @italic(class procedure) --- it doesn't load the animation
-      data to the given T3DPrecalculatedAnimationCore instance. Instead it loads
+      data to the given TCastlePrecalculatedAnimationCore instance. Instead it loads
       the data to your variables (passed as "out" params). In case
       of RootNodes and Times, you should pass here references to
       @italic(already created and currently empty) lists.
@@ -42,13 +42,13 @@ type
       ModelFileNames returned will always contain only absolute paths.
       We will expand every path (like FileName parameter) if necessary for this.
 
-      If you seek for most comfortable way to load T3DPrecalculatedAnimation from a file,
-      you probably want to use T3DPrecalculatedAnimation.LoadFromFile.
+      If you seek for most comfortable way to load TCastlePrecalculatedAnimation from a file,
+      you probably want to use TCastlePrecalculatedAnimation.LoadFromFile.
       This procedure is more flexible --- it allows
-      you to e.g. modify parameters before creating T3DPrecalculatedAnimation
+      you to e.g. modify parameters before creating TCastlePrecalculatedAnimation
       instance, and it's usefull to implement a class like
-      T3DPrecalculatedAnimationInfo that also wants to read animation data,
-      but doesn't have an T3DPrecalculatedAnimation instance available. }
+      TCastlePrecalculatedAnimationInfo that also wants to read animation data,
+      but doesn't have an TCastlePrecalculatedAnimation instance available. }
     class procedure LoadFromFileToVars(const FileName: string;
       ModelFileNames: TStringList;
       Times: TSingleList;
@@ -79,7 +79,7 @@ implementation
 
 uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils;
 
-class procedure T3DPrecalculatedAnimationCore.LoadFromFileToVars(const FileName: string;
+class procedure TCastlePrecalculatedAnimationCore.LoadFromFileToVars(const FileName: string;
   ModelFileNames: TStringList;
   Times: TSingleList;
   out ScenesPerTime: Cardinal;
@@ -106,7 +106,7 @@ const
   DefaultKAnimLoop = false;
   DefaultKAnimBackwards = false;
 
-class procedure T3DPrecalculatedAnimationCore.LoadFromDOMElementToVars(
+class procedure TCastlePrecalculatedAnimationCore.LoadFromDOMElementToVars(
   Element: TDOMElement;
   const BasePath: string;
   ModelFileNames: TStringList;

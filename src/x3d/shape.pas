@@ -119,9 +119,9 @@ type
   public
     constructor Create(AParentScene: TObject);
 
-    { Parent T3DSceneCore instance. This cannot be declared here as
-      T3DSceneCore (this would create circular unit dependency),
-      but it always is T3DSceneCore. }
+    { Parent TCastleSceneCore instance. This cannot be declared here as
+      TCastleSceneCore (this would create circular unit dependency),
+      but it always is TCastleSceneCore. }
     property ParentScene: TObject read FParentScene write FParentScene;
 
     procedure Traverse(Func: TShapeTraverseFunc;
@@ -185,11 +185,11 @@ type
     But note that you can't change Geometry or State to different
     objects --- they are readonly properties.
 
-    Also note that if you're using @link(T3DSceneCore) class
+    Also note that if you're using @link(TCastleSceneCore) class
     then you don't have to worry about calling @link(Changed)
-    of items in @link(T3DSceneCore.Shapes).
+    of items in @link(TCastleSceneCore.Shapes).
     All you have to do is to call appropriate @code(Changed*)
-    methods of @link(T3DSceneCore). }
+    methods of @link(TCastleSceneCore). }
   TShape = class(TShapeTree)
   private
     FLocalBoundingBox: TBox3D;
@@ -346,7 +346,7 @@ type
       const Frustum: TFrustum): boolean;
 
     { Notify this shape that you changed a field inside one of it's nodes
-      (automatically done by T3DSceneCore).
+      (automatically done by TCastleSceneCore).
       This should be called when fields within Shape.Geometry,
       Shape.State.Last*, Shape.State.ShapeNode or such change.
 
@@ -364,7 +364,7 @@ type
 
     { @exclude
       Called when local geometry changed. Internally used to communicate
-      between T3DSceneCore and TShape.
+      between TCastleSceneCore and TShape.
 
       "Local" means that we're concerned here about changes visible
       in shape local coordinate system. E.g. things that only change our
@@ -385,7 +385,7 @@ type
       It contains only triangles within this shape.
 
       There is no distinction here between collidable / visible
-      (as for T3DSceneCore octrees), since the whole shape may be
+      (as for TCastleSceneCore octrees), since the whole shape may be
       visible and/or collidable.
 
       The triangles are specified in local coordinate system of this shape
@@ -394,23 +394,23 @@ type
       shape changes.
 
       This is automatically managed (initialized, updated, and used)
-      by parent T3DSceneCore. You usually don't need to know about this
+      by parent TCastleSceneCore. You usually don't need to know about this
       octree from outside.
 
       To initialize this, add ssTriangles to @link(Spatial) property,
-      otherwise it's @nil. Parent T3DSceneCore will take care of this
-      (when parent T3DSceneCore.Spatial contains ssDynamicCollisions, then
+      otherwise it's @nil. Parent TCastleSceneCore will take care of this
+      (when parent TCastleSceneCore.Spatial contains ssDynamicCollisions, then
       all shapes contain ssTriangles within their Spatial).
 
-      Parent T3DSceneCore will take care to keep this octree always updated.
+      Parent TCastleSceneCore will take care to keep this octree always updated.
 
-      Parent T3DSceneCore will also take care of actually using
-      this octree: T3DSceneCore.OctreeCollisions methods actually use the
+      Parent TCastleSceneCore will also take care of actually using
+      this octree: TCastleSceneCore.OctreeCollisions methods actually use the
       octrees of specific shapes at the bottom. }
     function OctreeTriangles: TTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
-      This works analogous to T3DSceneCore.Spatial, but this manages
+      This works analogous to TCastleSceneCore.Spatial, but this manages
       octrees within this TShape. }
     property Spatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
@@ -741,7 +741,7 @@ type
 
       Should be calculated by CalculateLevel. By default
       we simply use the first (highest-detail) LOD as active.
-      So if you never assign this (e.g. because T3DSceneCore.CameraViewKnown
+      So if you never assign this (e.g. because TCastleSceneCore.CameraViewKnown
       = @false, that is user position is never known) we'll always
       use the highest-detail children. }
     property Level: Cardinal read FLevel write FLevel default 0;
@@ -990,9 +990,9 @@ begin
   begin
     { Some PTriangles will be freed. Make sure to clear
       PointingDeviceOverItem, unless they belong to a different shape. }
-    if (T3DSceneCore(ParentScene).PointingDeviceOverItem <> nil) and
-       (T3DSceneCore(ParentScene).PointingDeviceOverItem^.Shape = Self) then
-      T3DSceneCore(ParentScene).PointingDeviceClear;
+    if (TCastleSceneCore(ParentScene).PointingDeviceOverItem <> nil) and
+       (TCastleSceneCore(ParentScene).PointingDeviceOverItem^.Shape = Self) then
+      TCastleSceneCore(ParentScene).PointingDeviceClear;
   end;
 
   FreeAndNil(FOctreeTriangles);
@@ -1273,7 +1273,7 @@ begin
     LocalGeometryChanged(false, false);
 
   if not InactiveOnly then
-    T3DSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+    TCastleSceneCore(ParentScene).VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 procedure TShape.ValidateBoundingSphere;
@@ -1462,8 +1462,8 @@ begin
   if not CalledFromParentScene then
   begin
     if ChangedOnlyCoord then
-      T3DSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self) else
-      T3DSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
+      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChangedCoord, Self) else
+      TCastleSceneCore(ParentScene).DoGeometryChanged(gcLocalGeometryChanged, Self);
   end;
 end;
 

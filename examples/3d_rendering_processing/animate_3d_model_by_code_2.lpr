@@ -29,7 +29,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Scene: T3DScene;
+  Scene: TCastleScene;
 
 const
   XCount = 15;
@@ -92,7 +92,7 @@ begin
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;
 
-  Scene := T3DScene.Create(nil);
+  Scene := TCastleScene.Create(nil);
   try
     Scene.Load(CreateVrmlGraph, true);
 

@@ -44,7 +44,7 @@ type
 
 var
   Window: TCastleWindowCustom;
-  Scene: T3DSceneCore;
+  Scene: TCastleSceneCore;
   MyShape: TShape;
   Vertexes: TVector3SingleList;
   CoordIndex: TLongIntList;
@@ -360,7 +360,7 @@ begin
   try
     OnWarning := @OnWarningWrite;
 
-    Scene := T3DSceneCore.Create(nil);
+    Scene := TCastleSceneCore.Create(nil);
     Scene.Load(Parameters[1]);
 
     if Parameters.High >= 2 then

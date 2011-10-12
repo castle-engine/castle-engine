@@ -582,7 +582,7 @@ begin
     in the middle of ChangedAll, for which we're not ready).
 
     Moreover, we need to use BeforeNodesFree. Otherwise our UnLoadInlined
-    will free items to which existing T3DSceneCore / TShape may keep
+    will free items to which existing TCastleSceneCore / TShape may keep
     references. Testcase: inline_load_control_test_1.x3dv,
     with --debug-log-vrml-changes,
     press ctrl then shift, without BeforeNodesFree will fail ->

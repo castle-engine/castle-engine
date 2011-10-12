@@ -541,7 +541,7 @@ var
   L: PLight;
   I: Integer;
 begin
-  { This is valid situation (T3DSceneCore.RootNode may be nil).
+  { This is valid situation (TCastleSceneCore.RootNode may be nil).
     Nothing to do then. }
   if Model = nil then Exit;
 

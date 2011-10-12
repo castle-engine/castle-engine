@@ -66,7 +66,7 @@ end;
 
 procedure Register;
 begin
-  RegisterPropertyEditor(TypeInfo(AnsiString), T3DSceneCore,
+  RegisterPropertyEditor(TypeInfo(AnsiString), TCastleSceneCore,
     'FileName', TSceneFileNamePropertyEditor);
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
     'FileName', TImageFileNamePropertyEditor);

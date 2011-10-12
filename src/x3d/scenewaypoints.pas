@@ -50,7 +50,7 @@ type
 
       Count of this list is enlarged, if necessary,
       to include all waypoints indicated in the Scene. }
-    procedure ExtractPositions(Scene: T3DSceneCore);
+    procedure ExtractPositions(Scene: TCastleSceneCore);
   end;
 
   TSceneSector = class
@@ -110,7 +110,7 @@ type
 
       Count of this list is enlarged, if necessary,
       to include all sectors indicated in the Scene. }
-    procedure ExtractBoundingBoxes(Scene: T3DSceneCore);
+    procedure ExtractBoundingBoxes(Scene: TCastleSceneCore);
 
     { This adds appropriate Waypoints to all sectors on this list,
       and adds appropriate Sectors to all Waypoints on given list.
@@ -176,7 +176,7 @@ end;
 
 { TSceneWaypointList -------------------------------------------------------- }
 
-procedure TSceneWaypointList.ExtractPositions(Scene: T3DSceneCore);
+procedure TSceneWaypointList.ExtractPositions(Scene: TCastleSceneCore);
 var
   NodesToRemove: TX3DNodeList;
 
@@ -282,7 +282,7 @@ end;
 
 { TSceneSectorList -------------------------------------------------------- }
 
-procedure TSceneSectorList.ExtractBoundingBoxes(Scene: T3DSceneCore);
+procedure TSceneSectorList.ExtractBoundingBoxes(Scene: TCastleSceneCore);
 var
   NodesToRemove: TX3DNodeList;
 

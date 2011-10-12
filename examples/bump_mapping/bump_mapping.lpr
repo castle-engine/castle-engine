@@ -85,7 +85,7 @@ var
   Examiner: TExamineCamera;
   Walker: TWalkCamera;
 
-  Scene: T3DScene;
+  Scene: TCastleScene;
   SceneBrightestLight: TAbstractPositionalLightNode;
   RenderParams: TBasicRenderParams;
 
@@ -1290,7 +1290,7 @@ begin
   NextButton := TNextButton.Create(Window);
   Window.Controls.Insert(0, NextButton);
 
-  Scene := T3DScene.Create(nil);
+  Scene := TCastleScene.Create(nil);
   LoadSceneCore(VrmlFileName);
   { make octree for fast RenderFrustum }
   Scene.ShapeOctreeProgressTitle := 'Building Shape octree';

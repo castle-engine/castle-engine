@@ -309,7 +309,7 @@ type
       long in such case (if our loop is totally stopped) or not relevant
       (if we do our loop, but with totally different callbacks, like
       CastleMessages). Instead, it's most sensible in such case to fake
-      that IdleSpeed is 0.0, so things such as T3DSceneCore.Time
+      that IdleSpeed is 0.0, so things such as TCastleSceneCore.Time
       should not advance wildly just because we did GUI box.
 
       This forces the IdleSpeed to zero only once, that is only on the

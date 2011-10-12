@@ -18,7 +18,7 @@ unit TriangleOctree;
 
 {
   TODO
-  - Right now, since we keep pointers to TTriangle created by T3DSceneCore,
+  - Right now, since we keep pointers to TTriangle created by TCastleSceneCore,
     the VRML scene is practically frozen while this octree lives.
 
     Eventually, I would like to fix this, and make octree more dynamic.

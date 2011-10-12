@@ -15,7 +15,7 @@
 
 { VRML low-level rendering (TGLRenderer).
   You usually don't want to use this renderer directly, you should
-  rather use T3DScene that wraps this renderer and gives you simple
+  rather use TCastleScene that wraps this renderer and gives you simple
   method to render whole scene.
 
   The overview of this class can also be found in my master's thesis
@@ -250,7 +250,7 @@ type
 
     They are collected here,
     in a class separate from @link(TGLRenderer),
-    because various things (like T3DScene and T3DPrecalculatedAnimation)
+    because various things (like TCastleScene and TCastlePrecalculatedAnimation)
     wrap @link(TGLRenderer) instances and hide it,
     but still they want to allow user to change these attributes. }
   TRenderingAttributes = class(TPersistent)
@@ -525,7 +525,7 @@ type
     { Do we have to restore OpenGL state at the end of rendering.
       If @true, then RenderEnd restores the exact OpenGL state that was
       before RenderBegin. This is comfortable if you do some other rendering
-      besides T3DScene, and depend on some state preserved.
+      besides TCastleScene, and depend on some state preserved.
       Unfortunately this is also quite expensive, and can slow down
       the rendering. }
     property PreserveOpenGLState: boolean
@@ -688,7 +688,7 @@ type
 
     { An instance of TGeometryArrays, decomposing this shape geometry.
       Used to easily render and process this geometry, if assigned.
-      This is managed by TGLRenderer and T3DScene. }
+      This is managed by TGLRenderer and TCastleScene. }
     Arrays: TGeometryArrays;
 
     { What Vbos do we need to reload.

@@ -16,8 +16,7 @@ summarizes renames done, and some reasoning.
   Components should all have TCastleXxx prefix (to not clash with
   other components, this would make our engine conflict with other
   packages you have installed in Lazarus).
-  Exceptions: T3DXxx prefix for T3D descendants,
-  TXxxCamera for TCamera descendants.
+  Exceptions: TXxxCamera for TCamera descendants.
 
   Units with common names (XxxUtils, XxxWarnings) make have Castle prefix,
   to avoid clashes with common units.
@@ -28,7 +27,7 @@ summarizes renames done, and some reasoning.
   the engine is directed at X3D anyway --- it's known that "a node"
   means "a VRML/X3D node" inside the engine).
 
-  E.g. TVRMLGLScene becomes just T3DScene. No need to emphasize "VRML"
+  E.g. TVRMLGLScene becomes just TCastleScene. No need to emphasize "VRML"
   or "X3D" in the name, since actually this is used to handle any 3D models
   (even if others are converted to VRML/X3D node graph under the hood...
   but this is implementation detail, not interesting to everyone.)
@@ -74,7 +73,10 @@ summarizes renames done, and some reasoning.
   Use it consistently, and (following above ideas) do not add
   additional "VRML", "X3D", "GL", "Kam" etc. prefixes to the name.
 
-  So e.g. TVRMLGLScene becomes just T3DScene.
+  For components, we have to use TCastleXxx prefix (since otherwise
+  Lazarus gives by default a name that isn't a valid identifier,
+  http://lists.lazarus.freepascal.org/pipermail/lazarus/2011-October/067797.html).
+  So e.g. TVRMLGLScene becomes just TCastleScene.
 
 ------------------------------------------------------------------------------
 2. Renames done, identifiers inside units:
@@ -94,7 +96,7 @@ summarizes renames done, and some reasoning.
     TKamOpenGLControl -> TCastleControlXxx.
 - Components and important classes renames:
   * 2D controls to TCastleXxx, like TCastleButton and TCastleImage and TCastleSceneManager.
-  * 3D to T3DPrecalculatedAnimation, T3DScene
+  * 3D also to TCastleXxx: TCastlePrecalculatedAnimation, TCastleScene
   * TVRMLShape -> TShape
     TVRMLTriangle -> TTriangle, and so on.
 
@@ -122,16 +124,16 @@ tglnotifications       TCastleNotifications
 tglmenu                TCastleOnScreenMenu
 tkamxmlconfig          TCastleConfig
 tkamscenemanager       TCastleSceneManager
-tvrmlanimation         T3DPrecalculatedAnimationCore
-tvrmlglanimation       T3DPrecalculatedAnimation
+tvrmlanimation         TCastlePrecalculatedAnimationCore
+tvrmlglanimation       TCastlePrecalculatedAnimation
 tvrmlscenespatialstructure  TSceneSpatialStructure
 tvrmlscenegeometrychanged   TSceneGeometryChanged
 tvrmlscenenotification      TSceneNotification
 tvrmlscenefreeresource      TSceneFreeResource
 tvrmlscenevalidit           TSceneValidit
 tvrmlscenerenderingattributes TSceneRenderingAttributes
-tvrmlscene             T3DSceneCore
-tvrmlglscene           T3DScene
+tvrmlscene             TCastleSceneCore
+tvrmlglscene           TCastleScene
 tvrmlshape             TShape
 tvrmlglshape           TGLShape
 tvrmltriangle          TTriangle

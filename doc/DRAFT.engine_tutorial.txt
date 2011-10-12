@@ -99,9 +99,9 @@ To load a level, change your code to this:
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Scene: T3DScene;
+  Scene: TCastleScene;
 begin
-  Scene := T3DScene.Create(Application);
+  Scene := TCastleScene.Create(Application);
   Scene.Load('my_scene.x3d');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
@@ -116,13 +116,13 @@ begin
 end.
 ]]
 
-At the beginning we create a new instance of T3DScene, and load it's contents from a file. Scene.Spatial determines what spatial structures (octrees for now) are created, the value [ssRendering, ssDynamicCollisions] is the most flexible one (it allows to speed up the rendering by frustum culling, detect collisions between player and level, and it adapts to a dynamic level that may have some animated parts). Scene.ProcessEvents activates animating VRML/X3D models (you can remove it if you know your level is, and always will be, static).
+At the beginning we create a new instance of TCastleScene, and load it's contents from a file. Scene.Spatial determines what spatial structures (octrees for now) are created, the value [ssRendering, ssDynamicCollisions] is the most flexible one (it allows to speed up the rendering by frustum culling, detect collisions between player and level, and it adapts to a dynamic level that may have some animated parts). Scene.ProcessEvents activates animating VRML/X3D models (you can remove it if you know your level is, and always will be, static).
 
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
 5. Adding some items
 
-For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like T3DScene or T3DPrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
+For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TCastleScene or TCastlePrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
 
 However, you usually have a lot of item instances showing the same item. For example, you may place hundreds of potions on a level, and you probably want to add/delete potions on your level quickly. At the same time, you want to load (read from disk, and optimize for OpenGL rendering) only a single potion item. Each potion visible on the level just renders the same 3D model, possibly moved/rotated in a different way.
 
@@ -130,15 +130,15 @@ This means that want to think about two concepts separately: a <b>type</b> of it
 
 Our engine allows you to do this in a flexible way. We have many 3D objects that keep only references to other 3D objects. In particular, T3DTranslated keeps a reference to other 3D object(s), and translates (moves) it.
 
-So you can create an instance of T3DScene where you load an item, like potion. Then you create as many as you like instances of T3DTranslated, where you add your potion as a children. Additionally, at T3DTranslated, you can setup the translation of your item.
+So you can create an instance of TCastleScene where you load an item, like potion. Then you create as many as you like instances of T3DTranslated, where you add your potion as a children. Additionally, at T3DTranslated, you can setup the translation of your item.
 
 [[
 var
-  PotionType: T3DScene;
+  PotionType: TCastleScene;
   PotionInstance1, PotionInstance2: T3DTranslated;
 
 { ... somewhere in begin...end block ... }
-  PotionType := T3DScene.Create(Application);
+  PotionType := TCastleScene.Create(Application);
   PotionType.Load('my_scene.x3d');
   PotionType.ProcessEvents := true; // if the item model has interactive/animated parts by VRML/X3D events
 
@@ -153,14 +153,14 @@ var
   SceneManager.Items.Add(PotionInstance2);
 ]]
 
-For more advanced uses, you may want to create your own class for TPotionType (descending from T3DScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTranslated, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
+For more advanced uses, you may want to create your own class for TPotionType (descending from TCastleScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTranslated, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
 
 [[
 type
   TPotionEffect = (peLife, peMana, peCurePoison);
 
   { A potion properties and 3D model. }
-  TPotionType = class(T3DScene)
+  TPotionType = class(TCastleScene)
     Effect: TPotionEffect;
     CreaturesMayPickItUp: boolean;
     FlameResistant: boolean;
@@ -256,16 +256,16 @@ For more advanced uses, you can use the return value of PlaySound: it's either n
 
 10. Adding an on-screen menu
 
-For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TCastleMenu class. For Lazarus: drop TCastleMenu on the form. For TCastleWindowCustom: just create TCastleMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TCastleMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
+For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TCastleOnScreenMenu class. For Lazarus: drop TCastleOnScreenMenu on the form. For TCastleWindowCustom: just create TCastleOnScreenMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TCastleOnScreenMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
 
-  Browser.Controls.Insert(0, GLMenu1);
+  Browser.Controls.Insert(0, OnScreenMenu1);
 
 You may also want to change the position, like
 
-  GLMenu1.Position := Vector2Integer(100, 100);
+  OnScreenMenu1.Position := Vector2Integer(100, 100);
   { you may also want to set PositionRelativeMenu* (through object inspector or code) }
 
-There is an example of this in vrml_with_2d_controls example in engine sources, look for GLMenu1 references in code.
+There is an example of this in vrml_with_2d_controls example in engine sources, look for OnScreenMenu1 references in code.
 
 11. Background under on-screen menu
 
@@ -276,4 +276,4 @@ In addition to previous point, you may want to change the menu FullSize to true.
 
 An alternative method to achieve (part) of 2nd choice is to set background level camera's IgnoreAllInputs to true. This also blocks user from moving in the scene (although it doesn't make input passed to menu regardless of mouse position).
 
-If you want to place a static 2D image under menu, you can use TCastleImage underneath, instead of 3D scene.
+If you want to place a static 2D image under menu, you can use TCastleImageControl underneath, instead of 3D scene.

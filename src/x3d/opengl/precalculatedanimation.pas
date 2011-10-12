@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ A precalculated 3D animation rendered in OpenGL (T3DPrecalculatedAnimation). }
+{ A precalculated 3D animation rendered in OpenGL (TCastlePrecalculatedAnimation). }
 unit PrecalculatedAnimation;
 
 interface
@@ -66,18 +66,18 @@ type
 
     A special case when you pass only one scene to this class is allowed
     (it may be handy in some situations). This will obviously produce
-    just a still result, i.e. resulting T3DPrecalculatedAnimation will be just
-    a wrapper around single T3DScene instance.
+    just a still result, i.e. resulting TCastlePrecalculatedAnimation will be just
+    a wrapper around single TCastleScene instance.
 
     For more information see the "VRML engine documentation",
     [http://castle-engine.sourceforge.net/vrml_engine_doc/].
     Specifically the section
-    "Non-interactive precalculated animation: T3DPrecalculatedAnimation",
+    "Non-interactive precalculated animation: TCastlePrecalculatedAnimation",
     [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
-  T3DPrecalculatedAnimation = class(T3DPrecalculatedAnimationCore)
+  TCastlePrecalculatedAnimation = class(TCastlePrecalculatedAnimationCore)
   private
-    FScenes: T3DSceneList;
-    function GetScenes(I: Integer): T3DScene;
+    FScenes: TCastleSceneList;
+    function GetScenes(I: Integer): TCastleScene;
   private
     Renderer: TGLRenderer;
     FCache: TGLRendererContextCache;
@@ -114,7 +114,7 @@ type
   private
     { Helpers for LoadFromEvents implementation. }
     LoadFromEvents_TimeBegin: Single;
-    LoadFromEvents_Scene: T3DSceneCore;
+    LoadFromEvents_Scene: TCastleSceneCore;
     LoadFromEvents_ScenesPerTime: Cardinal;
     procedure LoadFromEvents_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TX3DRootNode; out Time: Single);
@@ -194,7 +194,7 @@ type
         This creates a trivial animation that suddenly jumps from
         one RootNode to the next at specified times. It may be useful if you
         already have generated a lot of RootNodes, densely distributed
-        over time, and you don't need T3DPrecalculatedAnimation to insert any more
+        over time, and you don't need TCastlePrecalculatedAnimation to insert any more
         scenes.)
 
       @param(EqualityEpsilon
@@ -217,7 +217,7 @@ type
     { Load precalculated animation by playing a single VRML file with
       events (interpolators, TimeSensor and such working).
       Conceptually, this "records" interactive animation stored in VRML file
-      into T3DPrecalculatedAnimation precalculated animation.
+      into TCastlePrecalculatedAnimation precalculated animation.
 
       ATimeBegin, ATimeEnd tell what time slice should be recorded.
       They will also set @link(TimeBegin) and @link(TimeEnd) properties.
@@ -250,13 +250,13 @@ type
       )
 
       This is usefull when you know that you have a static scene,
-      but still you want to treat it as T3DPrecalculatedAnimation. }
+      but still you want to treat it as TCastlePrecalculatedAnimation. }
     procedure LoadStatic(
       RootNode: TX3DNode;
       AOwnsRootNode: boolean);
 
-    { This loads T3DPrecalculatedAnimation by loading it's parameters
-      (models to use, times to use etc.) from given file.
+    { Load animation parameters (models to use, times to use and such)
+      from given file.
 
       Various file formats are possible, everything that can be handled by
       LoadVRMLSequence, in particular simple 3D model files, MD3,
@@ -296,7 +296,7 @@ type
 
     property Loaded: boolean read FLoaded;
 
-    { Is the RootNode in first scene owned by this T3DPrecalculatedAnimation instance?
+    { Is the RootNode in first scene owned by this TCastlePrecalculatedAnimation instance?
       If yes, it will be freed at closing the animation.
       Otherwise, you are responsible for freeing it yourself
       (but you cannot do this while animation is loaded, anyway). }
@@ -307,19 +307,19 @@ type
       things: don't set their scenes Attributes properties.
       Use only our @link(Attributes).
 
-      The scenes here have T3DSceneCore.Static set to @true, which means
+      The scenes here have TCastleSceneCore.Static set to @true, which means
       we assume you will not modify their VRML nodes graph (by TX3DField.Send
       and such). Note that this doesn't prevent you from enabling
-      T3DSceneCore.ProcessEvents on the first scene (T3DSceneCore.ProcessEvents
-      will be property handled regardless of T3DSceneCore.Static value). }
-    property Scenes[I: Integer]: T3DScene read GetScenes;
+      TCastleSceneCore.ProcessEvents on the first scene (TCastleSceneCore.ProcessEvents
+      will be property handled regardless of TCastleSceneCore.Static value). }
+    property Scenes[I: Integer]: TCastleScene read GetScenes;
     function ScenesCount: Integer;
 
     { Just a shortcut for Scenes[0]. }
-    function FirstScene: T3DScene;
+    function FirstScene: TCastleScene;
 
     { Just a shortcut for Scenes[ScenesCount - 1]. }
-    function LastScene: T3DScene;
+    function LastScene: TCastleScene;
 
     { Prepare all scenes for rendering. Basically, this calls
       PrepareResources(...) for all Scenes.
@@ -341,7 +341,7 @@ type
       that you will not need some allocated resources anymore and you
       want to conserve memory use.
 
-      See T3DSceneCore.FreeResource documentation for a description of what
+      See TCastleSceneCore.FreeResource documentation for a description of what
       are possible resources to free.
 
       Note in case you pass frRootNode: the first scene has OwnsRootNode
@@ -416,12 +416,12 @@ type
           And so on.)
       )
     }
-    function SceneFromTime(const Time: Single): T3DScene;
+    function SceneFromTime(const Time: Single): TCastleScene;
 
     { Appropriate scene from @link(Scenes) based on current @link(Time).
       This is just a shortcut for SceneFromTime(@link(Time)),
       useful if you track animation time in our @link(Time) property. }
-    function CurrentScene: T3DScene;
+    function CurrentScene: TCastleScene;
 
     { Attributes controlling rendering.
       See TSceneRenderingAttributes and TRenderingAttributes
@@ -452,12 +452,12 @@ type
 
     { Call this when you changed something
       inside Scenes[] using some direct Scenes[].RootNode operations.
-      This calls T3DScene.ChangedAll on all Scenes[]
+      This calls TCastleScene.ChangedAll on all Scenes[]
       and invalidates some cached things inside this class. }
     procedure ChangedAll;
 
     { Returns some textual info about this animation.
-      Similar to T3DScene.Info. }
+      Similar to TCastleScene.Info. }
     function Info(
       ATriangleVerticesCounts,
       ABoundingBox,
@@ -467,9 +467,9 @@ type
 
       We pass key and mouse events only if there's exactly one scene
       (ScenesCount = 1), as there's no sensible way of activating
-      VRML events when T3DPrecalculatedAnimation contains more than one scene.
+      VRML events when TCastlePrecalculatedAnimation contains more than one scene.
       (Precalculated animation of this class, and interactive
-      animation by T3DSceneCore.ProcessEvents do not mix sensibly.)
+      animation by TCastleSceneCore.ProcessEvents do not mix sensibly.)
 
       So when ScenesCount = 1, we simply pass key and mouse events to
       the only Scene[0]. Be sure to turn on @code(Scene[0].ProcessEvents := true)
@@ -569,7 +569,7 @@ type
 
       Practically, this is useful only for tools like view3dscene, that want
       to have full VRML/X3D events when possible, and at the same time they want
-      to load everything as T3DPrecalculatedAnimation, for ease of coding.
+      to load everything as TCastlePrecalculatedAnimation, for ease of coding.
 
       To put it simply, just don't use this in normal programs -- it's a hack.
 
@@ -583,14 +583,14 @@ type
     { Is the animation time playing, and how fast.
 
       For exact meaning of our TimePlaying, TimePlayingSpeed, see
-      T3DSceneCore.TimePlaying, T3DSceneCore.TimePlayingSpeed.
-      Like in T3DSceneCore, these are realized by our @link(Idle) method,
+      TCastleSceneCore.TimePlaying, TCastleSceneCore.TimePlayingSpeed.
+      Like in TCastleSceneCore, these are realized by our @link(Idle) method,
       so Time is automatically increased in @link(Idle) which is called
       automatically if you added this to some TCastleWindowCustom.Controls or
       TCastleControlCustom.Controls.
 
       Note that Scenes[0].TimePlaying, Scenes[0].TimePlayingSpeed do not matter
-      when you're operating on the T3DPrecalculatedAnimation level.
+      when you're operating on the TCastlePrecalculatedAnimation level.
       They will not affect our @link(Time), or even Scenes[0].Time,
       and they will not be synchronized with our values.
 
@@ -639,7 +639,7 @@ type
       write FCollisionUseLastScene default false;
 
     { At loading, process the animation to support shadow maps.
-      See T3DSceneCore.ShadowMaps and related properties for documentation.
+      See TCastleSceneCore.ShadowMaps and related properties for documentation.
       @groupBegin }
     property ShadowMaps: boolean read FShadowMaps write SetShadowMaps default true;
     property ShadowMapsDefaultSize: Cardinal
@@ -654,7 +654,7 @@ type
       read FInitialViewpointName write FInitialViewpointName;
   end;
 
-  T3DPrecalculatedAnimationList = specialize TFPGObjectList<T3DPrecalculatedAnimation>;
+  TCastlePrecalculatedAnimationList = specialize TFPGObjectList<TCastlePrecalculatedAnimation>;
 
 procedure Register;
 
@@ -665,32 +665,32 @@ uses Math, X3DFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [T3DPrecalculatedAnimation]);
+  RegisterComponents('Castle', [TCastlePrecalculatedAnimation]);
 end;
 
-{ T3DPrecalculatedAnimationScene ------------------------------------------------------ }
+{ TAnimationScene ------------------------------------------------------ }
 
 type
-  T3DPrecalculatedAnimationScene = class(T3DScene)
+  TAnimationScene = class(TCastleScene)
   private
-    FParentAnimation: T3DPrecalculatedAnimation;
+    FParentAnimation: TCastlePrecalculatedAnimation;
   public
     constructor CreateForAnimation(
       ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       ACustomRenderer: TGLRenderer;
-      AParentAnimation: T3DPrecalculatedAnimation;
+      AParentAnimation: TCastlePrecalculatedAnimation;
       AStatic: boolean);
-    property ParentAnimation: T3DPrecalculatedAnimation read FParentAnimation;
+    property ParentAnimation: TCastlePrecalculatedAnimation read FParentAnimation;
     procedure DoGeometryChanged(const Change: TGeometryChange;
       LocalGeometryShape: TShape); override;
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
   end;
 
-constructor T3DPrecalculatedAnimationScene.CreateForAnimation(
+constructor TAnimationScene.CreateForAnimation(
   ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   ACustomRenderer: TGLRenderer;
-  AParentAnimation: T3DPrecalculatedAnimation;
+  AParentAnimation: TCastlePrecalculatedAnimation;
   AStatic: boolean);
 begin
   { ParentAnimation is used by DoGeometryChanged, which is virtual and
@@ -710,20 +710,20 @@ begin
   Load(ARootNode, AOwnsRootNode);
 end;
 
-procedure T3DPrecalculatedAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
+procedure TAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 begin
   inherited;
   ParentAnimation.ValidBoundingBox := false;
 end;
 
-procedure T3DPrecalculatedAnimationScene.VisibleChangeHere(const Changes: TVisibleChanges);
+procedure TAnimationScene.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
   inherited;
   ParentAnimation.VisibleChangeHere(Changes);
 end;
 
-procedure T3DPrecalculatedAnimationScene.CursorChange;
+procedure TAnimationScene.CursorChange;
 begin
   inherited;
 
@@ -746,20 +746,20 @@ begin
   inherited CreateFmt('Models are structurally different: ' + S, Args);
 end;
 
-{ T3DPrecalculatedAnimation ------------------------------------------------------------ }
+{ TCastlePrecalculatedAnimation ------------------------------------------------------------ }
 
 { About Create and CreateCustomCache relationship:
 
   Note that Create cannot call CreateCustomCache and depend that
   CreateCustomCache calls "inherited Create". This wouldn't be nice
-  for descendants: If some T3DPrecalculatedAnimation descendant would override "Create"
+  for descendants: If some TCastlePrecalculatedAnimation descendant would override "Create"
   to do his initialization, and we would create this descendant by
   CreateCustomCache --- we would miss executing descendant's constructor code.
 
   So only our Create may call "inherited Create".
   CreateCustomCache should always call just "Create" (virtual). }
 
-constructor T3DPrecalculatedAnimation.Create(AOwner: TComponent);
+constructor TCastlePrecalculatedAnimation.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
@@ -779,7 +779,7 @@ begin
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 end;
 
-constructor T3DPrecalculatedAnimation.CreateCustomCache(AOwner: TComponent;
+constructor TCastlePrecalculatedAnimation.CreateCustomCache(AOwner: TComponent;
   ACache: TGLRendererContextCache);
 begin
   OwnsCache := false;
@@ -788,7 +788,7 @@ begin
   Create(AOwner);
 end;
 
-destructor T3DPrecalculatedAnimation.Destroy;
+destructor TCastlePrecalculatedAnimation.Destroy;
 begin
   Close;
   FreeAndNil(Renderer);
@@ -798,7 +798,7 @@ begin
   inherited;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadCore(
+procedure TCastlePrecalculatedAnimation.LoadCore(
   GetRootNodeWithTime: TGetRootNodeWithTime;
   RootNodesCount: Cardinal;
   AOwnsFirstRootNode: boolean;
@@ -1154,9 +1154,9 @@ var
   SceneStatic: boolean;
 
   function CreateOneScene(Node: TX3DRootNode;
-    OwnsRootNode: boolean): T3DPrecalculatedAnimationScene;
+    OwnsRootNode: boolean): TAnimationScene;
   begin
-    Result := T3DPrecalculatedAnimationScene.CreateForAnimation(
+    Result := TAnimationScene.CreateForAnimation(
       Node, OwnsRootNode, Renderer, Self, SceneStatic);
   end;
 
@@ -1178,7 +1178,7 @@ begin
     it only (if and only if) occurs if RootNodesCount = 1. }
   SceneStatic := not (TryFirstSceneDynamic and (RootNodesCount = 1));
 
-  FScenes := T3DSceneList.Create(false);
+  FScenes := TCastleSceneList.Create(false);
 
   { calculate FScenes contents now }
 
@@ -1226,7 +1226,7 @@ begin
       begin
         { In this case I don't waste memory, and I'm simply reusing
           LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
-          This way I have a series of the same instances of T3DScene
+          This way I have a series of the same instances of TCastleScene
           along the way. When freeing FScenes, we will be smart and
           avoid deallocating the same pointer twice. }
         FreeAndNil(NewRootNode);
@@ -1262,14 +1262,14 @@ begin
   FLoaded := true;
 end;
 
-procedure T3DPrecalculatedAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
+procedure TCastlePrecalculatedAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
   RootNode := Load_RootNodes[Index] as TX3DRootNode;
   Time := Load_Times[Index];
 end;
 
-procedure T3DPrecalculatedAnimation.Load(
+procedure TCastlePrecalculatedAnimation.Load(
   RootNodes: TX3DNodeList;
   AOwnsFirstRootNode: boolean;
   ATimes: TSingleList;
@@ -1284,7 +1284,7 @@ begin
     AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime(
+procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime(
   const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
@@ -1299,7 +1299,7 @@ begin
   RootNode := LoadFromEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime_Progress(
+procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime_Progress(
   const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
@@ -1307,7 +1307,7 @@ begin
   Progress.Step;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromEvents(
+procedure TCastlePrecalculatedAnimation.LoadFromEvents(
   RootNode: TX3DRootNode;
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
@@ -1319,7 +1319,7 @@ var
 begin
   LoadFromEvents_ScenesPerTime := ScenesPerTime;
   LoadFromEvents_TimeBegin := ATimeBegin;
-  LoadFromEvents_Scene := T3DSceneCore.Create(nil);
+  LoadFromEvents_Scene := TCastleSceneCore.Create(nil);
   try
     LoadFromEvents_Scene.Load(RootNode, AOwnsRootNode);
 
@@ -1356,7 +1356,7 @@ begin
   finally FreeAndNil(LoadFromEvents_Scene) end;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadStatic(
+procedure TCastlePrecalculatedAnimation.LoadStatic(
   RootNode: TX3DNode;
   AOwnsRootNode: boolean);
 var
@@ -1374,7 +1374,7 @@ begin
   finally FreeAndNil(RootNodes) end;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromFile(const FileName: string;
+procedure TCastlePrecalculatedAnimation.LoadFromFile(const FileName: string;
   const AllowStdIn, LoadTime: boolean);
 var
   Times: TSingleList;
@@ -1403,7 +1403,7 @@ begin
   end;
 end;
 
-procedure T3DPrecalculatedAnimation.Close;
+procedure TCastlePrecalculatedAnimation.Close;
 var
   I: Integer;
 begin
@@ -1439,29 +1439,29 @@ begin
   FLoaded := false;
 end;
 
-function T3DPrecalculatedAnimation.GetScenes(I: Integer): T3DScene;
+function TCastlePrecalculatedAnimation.GetScenes(I: Integer): TCastleScene;
 begin
   Result := FScenes[I];
 end;
 
-function T3DPrecalculatedAnimation.ScenesCount: Integer;
+function TCastlePrecalculatedAnimation.ScenesCount: Integer;
 begin
   if Loaded then
     Result := FScenes.Count else
     Result := 0;
 end;
 
-function T3DPrecalculatedAnimation.FirstScene: T3DScene;
+function TCastlePrecalculatedAnimation.FirstScene: TCastleScene;
 begin
   Result := FScenes.First;
 end;
 
-function T3DPrecalculatedAnimation.LastScene: T3DScene;
+function TCastlePrecalculatedAnimation.LastScene: TCastleScene;
 begin
   Result := FScenes.Last;
 end;
 
-procedure T3DPrecalculatedAnimation.PrepareResources(Options: TPrepareResourcesOptions;
+procedure TCastlePrecalculatedAnimation.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
@@ -1489,12 +1489,12 @@ begin
   end;
 end;
 
-function T3DPrecalculatedAnimation.PrepareResourcesSteps: Cardinal;
+function TCastlePrecalculatedAnimation.PrepareResourcesSteps: Cardinal;
 begin
   Result := ScenesCount;
 end;
 
-procedure T3DPrecalculatedAnimation.FreeResources(Resources: TSceneFreeResources);
+procedure TCastlePrecalculatedAnimation.FreeResources(Resources: TSceneFreeResources);
 var
   I: Integer;
 begin
@@ -1502,7 +1502,7 @@ begin
     FScenes[I].FreeResources(Resources);
 end;
 
-procedure T3DPrecalculatedAnimation.GLContextClose;
+procedure TCastlePrecalculatedAnimation.GLContextClose;
 { Note that this is called from destructor, so we must be extra careful
   here and check is everything <> nil before freeing it. }
 begin
@@ -1513,19 +1513,19 @@ begin
     Renderer.UnprepareAll;
 end;
 
-function T3DPrecalculatedAnimation.TimeDuration: Single;
+function TCastlePrecalculatedAnimation.TimeDuration: Single;
 begin
   Result := TimeEnd - TimeBegin;
 end;
 
-function T3DPrecalculatedAnimation.TimeDurationWithBack: Single;
+function TCastlePrecalculatedAnimation.TimeDurationWithBack: Single;
 begin
   Result := TimeDuration;
   if TimeBackwards then
     Result *= 2;
 end;
 
-function T3DPrecalculatedAnimation.SceneFromTime(const Time: Single): T3DScene;
+function TCastlePrecalculatedAnimation.SceneFromTime(const Time: Single): TCastleScene;
 var
   SceneNumber: Integer;
   DivResult: SmallInt;
@@ -1586,12 +1586,12 @@ begin
   Result := FScenes[SceneNumber];
 end;
 
-function T3DPrecalculatedAnimation.Attributes: TSceneRenderingAttributes;
+function TCastlePrecalculatedAnimation.Attributes: TSceneRenderingAttributes;
 begin
   Result := TSceneRenderingAttributes(Renderer.Attributes);
 end;
 
-function T3DPrecalculatedAnimation.BoundingBox: TBox3D;
+function TCastlePrecalculatedAnimation.BoundingBox: TBox3D;
 
   procedure ValidateBoundingBox;
   var
@@ -1613,7 +1613,7 @@ begin
     Result := EmptyBox3D;
 end;
 
-procedure T3DPrecalculatedAnimation.BeforeNodesFree;
+procedure TCastlePrecalculatedAnimation.BeforeNodesFree;
 var
   I: Integer;
 begin
@@ -1621,7 +1621,7 @@ begin
     FScenes[I].BeforeNodesFree;
 end;
 
-procedure T3DPrecalculatedAnimation.ChangedAll;
+procedure TCastlePrecalculatedAnimation.ChangedAll;
 var
   I: Integer;
 begin
@@ -1630,7 +1630,7 @@ begin
   ValidBoundingBox := false;
 end;
 
-function T3DPrecalculatedAnimation.InfoBoundingBox: string;
+function TCastlePrecalculatedAnimation.InfoBoundingBox: string;
 var
   BBox: TBox3D;
 begin
@@ -1643,7 +1643,7 @@ begin
   Result += NL;
 end;
 
-function T3DPrecalculatedAnimation.Info(
+function TCastlePrecalculatedAnimation.Info(
   ATriangleVerticesCounts,
   ABoundingBox,
   AManifoldAndBorderEdges: boolean): string;
@@ -1670,7 +1670,7 @@ begin
   end;
 end;
 
-procedure T3DPrecalculatedAnimation.SetOwnsFirstRootNode(const Value: boolean);
+procedure TCastlePrecalculatedAnimation.SetOwnsFirstRootNode(const Value: boolean);
 var
   I: Integer;
 begin
@@ -1696,35 +1696,35 @@ begin
   end;
 end;
 
-function T3DPrecalculatedAnimation.KeyDown(Key: TKey; C: char): boolean;
+function TCastlePrecalculatedAnimation.KeyDown(Key: TKey; C: char): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].KeyDown(Key, C) else
     Result := false;
 end;
 
-function T3DPrecalculatedAnimation.KeyUp(Key: TKey; C: char): boolean;
+function TCastlePrecalculatedAnimation.KeyUp(Key: TKey; C: char): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].KeyUp(Key, C) else
     Result := false;
 end;
 
-function T3DPrecalculatedAnimation.MouseDown(const Button: TMouseButton): boolean;
+function TCastlePrecalculatedAnimation.MouseDown(const Button: TMouseButton): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].MouseDown(Button) else
     Result := false;
 end;
 
-function T3DPrecalculatedAnimation.MouseUp(const Button: TMouseButton): boolean;
+function TCastlePrecalculatedAnimation.MouseUp(const Button: TMouseButton): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].MouseUp(Button) else
     Result := false;
 end;
 
-function T3DPrecalculatedAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+function TCastlePrecalculatedAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 begin
   if ScenesCount = 1 then
@@ -1732,7 +1732,7 @@ begin
     Result := false;
 end;
 
-procedure T3DPrecalculatedAnimation.ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
+procedure TCastlePrecalculatedAnimation.ResetTimeAtLoad(const ForceTimeOrigin: boolean = false);
 
   function TimeOriginAtLoad: boolean;
   var
@@ -1761,7 +1761,7 @@ begin
   end;
 end;
 
-procedure T3DPrecalculatedAnimation.ResetTime(const NewValue: TFloatTime);
+procedure TCastlePrecalculatedAnimation.ResetTime(const NewValue: TFloatTime);
 begin
   FTime := NewValue;
 
@@ -1771,7 +1771,7 @@ begin
     Scenes[0].ResetTime(NewValue);
 end;
 
-procedure T3DPrecalculatedAnimation.Idle(const CompSpeed: Single);
+procedure TCastlePrecalculatedAnimation.Idle(const CompSpeed: Single);
 var
   OldTime: TFloatTime;
 begin
@@ -1788,7 +1788,7 @@ begin
     FTime += TimePlayingSpeed * CompSpeed;
 
     { When ScenesCount = 1, it's sensible for single scene to receive
-      events, to increase it's time. Note that T3DSceneCore.SetTime
+      events, to increase it's time. Note that TCastleSceneCore.SetTime
       will signal when redisplay will be needed (something visible changed),
       we don't have to worry about it.
 
@@ -1807,18 +1807,18 @@ begin
   end;
 end;
 
-function T3DPrecalculatedAnimation.CurrentScene: T3DScene;
+function TCastlePrecalculatedAnimation.CurrentScene: TCastleScene;
 begin
   Result := SceneFromTime(Time);
 end;
 
-procedure T3DPrecalculatedAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastlePrecalculatedAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   if Loaded and Exists then
     CurrentScene.Render(Frustum, Params);
 end;
 
-procedure T3DPrecalculatedAnimation.RenderShadowVolume(
+procedure TCastlePrecalculatedAnimation.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -1828,13 +1828,13 @@ begin
       ParentTransformIsIdentity, ParentTransform);
 end;
 
-procedure T3DPrecalculatedAnimation.GetHeightAbove(
+procedure TCastlePrecalculatedAnimation.GetHeightAbove(
   const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 
-  procedure MakeScene(Scene: T3DSceneCore);
+  procedure MakeScene(Scene: TCastleSceneCore);
   var
     NewIsAbove: boolean;
     NewAboveHeight: Single;
@@ -1863,7 +1863,7 @@ begin
   end;
 end;
 
-function T3DPrecalculatedAnimation.MoveAllowed(
+function TCastlePrecalculatedAnimation.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1889,7 +1889,7 @@ begin
   end;
 end;
 
-function T3DPrecalculatedAnimation.MoveAllowedSimple(
+function TCastlePrecalculatedAnimation.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1904,7 +1904,7 @@ begin
            CameraRadius, TrianglesToIgnoreFunc) ));
 end;
 
-function T3DPrecalculatedAnimation.MoveBoxAllowedSimple(
+function TCastlePrecalculatedAnimation.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1917,7 +1917,7 @@ begin
            TrianglesToIgnoreFunc) ));
 end;
 
-function T3DPrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Loaded and Exists and Collides and
@@ -1927,7 +1927,7 @@ begin
     );
 end;
 
-function T3DPrecalculatedAnimation.SphereCollision(
+function TCastlePrecalculatedAnimation.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1938,7 +1938,7 @@ begin
     );
 end;
 
-function T3DPrecalculatedAnimation.BoxCollision(
+function TCastlePrecalculatedAnimation.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1949,7 +1949,7 @@ begin
     );
 end;
 
-function T3DPrecalculatedAnimation.RayCollision(
+function TCastlePrecalculatedAnimation.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
@@ -1988,7 +1988,7 @@ begin
   end;
 end;
 
-procedure T3DPrecalculatedAnimation.UpdateGeneratedTextures(
+procedure TCastlePrecalculatedAnimation.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   const OriginalViewportX, OriginalViewportY: LongInt;
@@ -2002,14 +2002,14 @@ begin
       OriginalViewportWidth, OriginalViewportHeight);
 end;
 
-procedure T3DPrecalculatedAnimation.VisibleChangeNotification(const Changes: TVisibleChanges);
+procedure TCastlePrecalculatedAnimation.VisibleChangeNotification(const Changes: TVisibleChanges);
 begin
   inherited;
   if Loaded then
     CurrentScene.VisibleChangeNotification(Changes);
 end;
 
-function T3DPrecalculatedAnimation.Dragging: boolean;
+function TCastlePrecalculatedAnimation.Dragging: boolean;
 begin
   Result := inherited;
   if Result then Exit;
@@ -2018,7 +2018,7 @@ begin
     Result := CurrentScene.Dragging;
 end;
 
-procedure T3DPrecalculatedAnimation.SetShadowMaps(const Value: boolean);
+procedure TCastlePrecalculatedAnimation.SetShadowMaps(const Value: boolean);
 var
   I: Integer;
 begin
@@ -2033,7 +2033,7 @@ begin
   end;
 end;
 
-procedure T3DPrecalculatedAnimation.SetShadowMapsDefaultSize(const Value: Cardinal);
+procedure TCastlePrecalculatedAnimation.SetShadowMapsDefaultSize(const Value: Cardinal);
 var
   I: Integer;
 begin

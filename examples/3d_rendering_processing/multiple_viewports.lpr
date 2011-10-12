@@ -16,10 +16,10 @@
 { Demo of using custom viewports (TCastleViewport) to view the same 3D world
   (scene manager in TCastleSceneManager). }
 
-{ If defined, then the 3D world will contain a translated T3DPrecalculatedAnimation
+{ If defined, then the 3D world will contain a translated TCastlePrecalculatedAnimation
   with a dinosaur. It's most suitable when as the main scene you load
   models/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
-  This shows that animated T3DPrecalculatedAnimation works fully with mirrors
+  This shows that animated TCastlePrecalculatedAnimation works fully with mirrors
   by GeneratedCubeMapTexture, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
@@ -207,7 +207,7 @@ end;
 var
   Window: TCastleWindowCustom;
   SceneManager: TCastleSceneManager;
-  Scene: T3DScene;
+  Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
   OpenButton, QuitButton: TCastleButton;
 
@@ -311,7 +311,7 @@ end;
 var
   I: Integer;
   {$ifdef ADD_GL_ANIMATION}
-  Animation: T3DPrecalculatedAnimation;
+  Animation: TCastlePrecalculatedAnimation;
   Translation: T3DTranslated;
   {$endif ADD_GL_ANIMATION}
 begin
@@ -320,7 +320,7 @@ begin
 
   OnWarning := @OnWarningWrite;
 
-  Scene := T3DScene.Create(Application);
+  Scene := TCastleScene.Create(Application);
   Scene.Load(FileName);
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
@@ -340,7 +340,7 @@ begin
   SceneManager.Items.Add(Translation);
 
   { initialize Animation }
-  Animation := T3DPrecalculatedAnimation.Create(SceneManager);
+  Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
   Translation.Child := Animation;

@@ -12,7 +12,7 @@ type
   TForm1 = class(TForm)
     KamVRMLBrowser1: TCastleControl;
     WalkCamera1: TWalkCamera;
-    Scene1: T3DScene;
+    Scene1: TCastleScene;
     procedure FormCreate(Sender: TObject);
   private
     { private declarations }

@@ -21,11 +21,11 @@ begin
 end;
 
 var
-  Scene: T3DSceneCore;
+  Scene: TCastleSceneCore;
   SI: TShapeTreeIterator;
   Handler: TTriangleHandler;
 begin
-  Scene := T3DSceneCore.Create(nil);
+  Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load('models/bridge_final.x3dv');
 

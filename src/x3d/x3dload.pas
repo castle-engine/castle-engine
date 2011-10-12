@@ -210,7 +210,7 @@ procedure LoadVRMLSequence(const FileName: string;
   begin
     ModelFileNames := TStringList.Create;
     try
-      T3DPrecalculatedAnimationCore.LoadFromFileToVars(FileName, ModelFileNames, Times,
+      TCastlePrecalculatedAnimationCore.LoadFromFileToVars(FileName, ModelFileNames, Times,
         ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
 
       Assert(ModelFileNames.Count = Times.Count);

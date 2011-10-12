@@ -182,7 +182,7 @@ procedure TTestFrustum.TestCompareWithUnoptimizedPlaneCollision;
 
   { Note: I tried to optimize this function,
     since it's crucial for TOctree.EnumerateCollidingOctreeItems,
-    and this is crucial for T3DScene.RenderFrustumOctree,
+    and this is crucial for TCastleScene.RenderFrustumOctree,
     and this is crucial for overall speed of rendering. }
 
   var

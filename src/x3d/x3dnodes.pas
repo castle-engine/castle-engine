@@ -291,7 +291,7 @@ type
       expressed in world coordinates. If not, they are expressed in scene
       coordinates.
 
-      This matters if you render the scene using T3DScene,
+      This matters if you render the scene using TCastleScene,
       and transform it by T3DTranslated or direct OpenGL modelview changes.
       By default (WorldCoordinates = false) we assume that light is defined
       in scene space, so it will be transformed by the whole modelview matrix
@@ -408,7 +408,7 @@ type
       So it's guaranteed that changing some field's value of a node
       within TraverseStateLastNodesClasses affects @italic(only)
       the shapes that have given node inside State.LastNodes.
-      T3DSceneCore.ChangedField depends on that. }
+      TCastleSceneCore.ChangedField depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
     procedure SetLastNodes(const StateNode: TVRML1StateNode;
@@ -420,7 +420,7 @@ type
       which happen very often with TX3DGraphTraverseState during VRML/X3D
       traversing.
 
-      Note that VRML >= 2.0 "global" lights are added from T3DSceneCore,
+      Note that VRML >= 2.0 "global" lights are added from TCastleSceneCore,
       not during the traverse pass. }
     Lights: TLightInstancesList;
 
@@ -1688,7 +1688,7 @@ type
       say that only one event per ROUTE per timestamp is allowed.
 
       Use ResetLastEventTime when you really want to reset this memory.
-      In practice, this should be used only by T3DSceneCore.ResetTime
+      In practice, this should be used only by TCastleSceneCore.ResetTime
       implementation. }
     procedure ResetLastEventTime;
 

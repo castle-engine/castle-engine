@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TX3DEventsEngine (ancestor of T3DSceneCore, with which the nodes
+{ TX3DEventsEngine (ancestor of TCastleSceneCore, with which the nodes
   implementations interact) and related types. }
 
 {$ifdef read_interface}
@@ -47,7 +47,7 @@
   TX3DEventsEngineList = class(specialize TFPGObjectList<TX3DEventsEngine>)
   public
     { Notify listeners about a field value change.
-      See T3DSceneCore.ChangedField for exact specification. }
+      See TCastleSceneCore.ChangedField for exact specification. }
     procedure ChangedField(Field: TX3DField);
   end;
 {$endif read_interface}

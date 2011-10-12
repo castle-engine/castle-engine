@@ -1358,7 +1358,7 @@ begin
     N := NodesManager.Registered[I].Create('', '');
     try
       { if a node has field with chTransform, it must support ITransformNode.
-        T3DSceneCore.HandleChangeTransform assumes this. }
+        TCastleSceneCore.HandleChangeTransform assumes this. }
       if ContainsCHTransformField(N) then
         Assert(Supports(N, ITransformNode));
 
