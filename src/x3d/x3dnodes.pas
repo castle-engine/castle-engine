@@ -1120,7 +1120,7 @@ type
 {$I x3dnodes_inventor.inc}
 {$I x3dnodes_97_hanim.inc}
 {$I x3dnodes_97_nurbs.inc}
-{$I x3dnodes_kambi.inc}
+{$I x3dnodes_castle.inc}
 {$I x3dnodes_avalon.inc}
 {$I x3dnodes_bitmanagement.inc}
 
@@ -2321,7 +2321,7 @@ resourcestring
 {$I x3dnodes_inventor.inc}
 {$I x3dnodes_97_hanim.inc}
 {$I x3dnodes_97_nurbs.inc}
-{$I x3dnodes_kambi.inc}
+{$I x3dnodes_castle.inc}
 {$I x3dnodes_avalon.inc}
 {$I x3dnodes_bitmanagement.inc}
 

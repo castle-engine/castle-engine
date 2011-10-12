@@ -44,7 +44,7 @@
     arrows, etc.: doom like walking, see view3dscene docs
 
   1st command-line param may be filename of VRML to initially load
-  (otherwise will load default demo in vrmldata/ subdir).
+  (otherwise will load default demo in data/ subdir).
   You may run with --log to see many log messages, in particular
   the ones starting with "Bump mapping" --- they will tell you e.g.
   whether steep parallax mapping program is successfully compiled and used.
@@ -1029,7 +1029,7 @@ end;
 { glw callbacks -------------------------------------------------------------- }
 
 var
-  VrmlFileName: string = 'vrmldata/levels/fountain/fountain_final.wrl';
+  VrmlFileName: string = 'data/levels/fountain/fountain_final.wrl';
 
 procedure Open(glwin: TCastleWindowBase);
 const
