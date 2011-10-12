@@ -980,6 +980,23 @@ More shaders demos, for some day:
   - texture with night sky and large moon, casted by light (just like fancy_spot)
   - cast if through windows of a metro
   - make metro (or light source) move, thus making shadows move through.
+
+------------------------------------------------------------------------------
+Finish removal of VRML / Kambi from everything inside the engine,
+things that can be deferred to much later:
+- Some files remain with vrml / kambi inside names:
+  find \(  -iname '*vrml*' -print  \) -or \( -name .svn -type d -prune \)
+  find \(  -iname '*kambi*' -print  \) -or \( -name .svn -type d -prune \)
+  For now, they can stay.
+- Rename also VRML/X3D extensions with Kambi inside name?
+  Or just add alternatives, with Castle prefix or no prefix, to keep compatibility?
+  TKambiAppearanceNode 	X3DNodes
+  TKambiHeadLightNode 	X3DNodes
+  TKambiInlineNode 	X3DNodes
+  TKambiNavigationInfoNode 	X3DNodes
+  TKambiOctreePropertiesNode 	X3DNodes
+  TKambiTriangulationNode 	X3DNodes
+
 ------------------------------------------------------------------------------
 Various:
 - Make cameraXxx output events available from something like CameraSensor?

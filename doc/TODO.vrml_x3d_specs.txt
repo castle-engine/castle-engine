@@ -1,4 +1,4 @@
-VRML TODO items:
+Some VRML/X3D TODO items, with respect to VRML/X3D specs:
 
 - Saving to VRML known problems:
   - When saving external prototype, we save all fields, always, not only
@@ -55,11 +55,6 @@ A simple implementation can be imagined easily:
 X3D:
 X3D TMFImage field type (hm, not used for now by *any* node in X3D spec)
 
-when saving (e.g. from view3dscene), extension doesn't really matter.
-  We save x3d or vrml 1.0/2.0 content, based on what we know about the model.
-  There should be a way for user to force some version? Or just warn
-  user and eventually change extension?
-
 ------------------------------------------------------------------------------
 addChildren/removeChildren test (cannot test now, as nothing can generate
 SFNode/MFNode out events now)
@@ -74,8 +69,8 @@ test implemented events:
 - Extrusion:  set_crossSection, set_orientation, set_scale, set_spine
 - IndexedFaceSet: set_colorIndex, set_coordIndex, set_normalIndex, set_texCoordIndex
 ------------------------------------------------------------------------------
-The way of rendering Background and TextureBackground by TBackgroundGL
-is bad. It's not intergrated with rest of VRML rendering, so it cannot
+The way of rendering Background and TextureBackground by TBackground
+is bad. It's not intergrated with rest of rendering, so it cannot
 render arbitrary VRML textures, it depends on static TImage instances
 at creation time. Also it cannot use VRML renderer cache (which would
 at least speed up TBackgroundGL recreation, although this recreation
