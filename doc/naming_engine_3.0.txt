@@ -205,8 +205,8 @@ tvrmlprototypebase                          TX3DPrototypeBase
 tvrmlprototypebaselist                      TX3DPrototypeBaseList
 tvrmlprototypenames                         TX3DPrototypeNames
 tvrmlrenderershape                          TX3DRendererShape
-tvrmlrenderingattributes                    TX3DRenderingAttributes
-tvrmlrenderingattributesclass               TX3DRenderingAttributesClass
+tvrmlrenderingattributes                    TRenderingAttributes
+tvrmlrenderingattributesclass               TRenderingAttributesClass
 tvrmlroute                                  TX3DRoute
 tvrmlroutelist                              TX3DRouteList
 tvrmlsimplemultfield                        TX3DSimpleMultField

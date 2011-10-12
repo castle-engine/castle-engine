@@ -25,7 +25,7 @@ type
     RadianceTransfer: PVector3Single;
     const RadianceTransferCount: Cardinal): TVector3Single of object;
 
-  { Callback used by TX3DRenderingAttributes.OnVertexColor.
+  { Callback used by TRenderingAttributes.OnVertexColor.
     Passed here VertexPosition is in local coordinates (that is,
     local of this object, multiply by State.Transform to get scene coords).
     VertexIndex is the direct index to Node.Coordinates. }

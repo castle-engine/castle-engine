@@ -410,7 +410,7 @@
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
-    class function ClassVarianceShadowMaps(Attributes: TX3DRenderingAttributes): boolean;
+    class function ClassVarianceShadowMaps(Attributes: TRenderingAttributes): boolean;
   end;
 
   TGLShaderTexture = class(TGLSingleTextureNode)
@@ -1919,7 +1919,7 @@ begin
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
-  Attributes: TX3DRenderingAttributes): boolean;
+  Attributes: TRenderingAttributes): boolean;
 begin
   Result := Attributes.VarianceShadowMaps and
     (TGLSLProgram.ClassSupport <> gsNone) and

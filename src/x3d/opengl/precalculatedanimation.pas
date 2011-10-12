@@ -424,7 +424,7 @@ type
     function CurrentScene: T3DScene;
 
     { Attributes controlling rendering.
-      See TSceneRenderingAttributes and TX3DRenderingAttributes
+      See TSceneRenderingAttributes and TRenderingAttributes
       for documentation of properties.
 
       You can change properties of this

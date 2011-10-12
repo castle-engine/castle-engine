@@ -89,7 +89,7 @@
   @bold(OpenGL state affecting VRML rendering:)
 
   Some OpenGL state is unconditionally reset by TGLRenderer.RenderBegin.
-  See TX3DRenderingAttributes.PreserveOpenGLState.
+  See TRenderingAttributes.PreserveOpenGLState.
 
   There's also some OpenGL state that we let affect our rendering.
   This allows you to customize VRML rendering by using normal OpenGL commands.
@@ -253,7 +253,7 @@ type
     because various things (like T3DScene and T3DPrecalculatedAnimation)
     wrap @link(TGLRenderer) instances and hide it,
     but still they want to allow user to change these attributes. }
-  TX3DRenderingAttributes = class(TPersistent)
+  TRenderingAttributes = class(TPersistent)
   private
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
@@ -314,11 +314,11 @@ type
 
     procedure Assign(Source: TPersistent); override;
 
-    { Is the second TX3DRenderingAttributes instance on all fields
+    { Is the second TRenderingAttributes instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
-    function EqualForShapeCache(SecondValue: TX3DRenderingAttributes): boolean; virtual;
+    function EqualForShapeCache(SecondValue: TRenderingAttributes): boolean; virtual;
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
@@ -554,7 +554,7 @@ type
       read FVisualizeDepthMap write SetVisualizeDepthMap default false;
   end;
 
-  TX3DRenderingAttributesClass = class of TX3DRenderingAttributes;
+  TRenderingAttributesClass = class of TRenderingAttributes;
 
   TGLOutlineFontCache = record
     References: Cardinal;
@@ -677,7 +677,7 @@ type
   { Cached shape resources. }
   TShapeCache = class
   private
-    Attributes: TX3DRenderingAttributes;
+    Attributes: TRenderingAttributes;
     Geometry: TAbstractGeometryNode;
     State: TX3DGraphTraverseState;
     Fog: IAbstractFogObject;
@@ -1028,7 +1028,7 @@ type
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
 
-    FAttributes: TX3DRenderingAttributes;
+    FAttributes: TRenderingAttributes;
 
     FCache: TGLRendererContextCache;
 
@@ -1115,7 +1115,7 @@ type
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(AttributesClass: TX3DRenderingAttributesClass;
+    constructor Create(AttributesClass: TRenderingAttributesClass;
       ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
@@ -1123,7 +1123,7 @@ type
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
-    property Attributes: TX3DRenderingAttributes read FAttributes;
+    property Attributes: TRenderingAttributes read FAttributes;
 
     property Cache: TGLRendererContextCache read FCache;
 
@@ -2112,28 +2112,28 @@ begin
     'TGLRendererContextCache.Program_DecReference: no reference found');
 end;
 
-{ TX3DRenderingAttributes --------------------------------------------------- }
+{ TRenderingAttributes --------------------------------------------------- }
 
-procedure TX3DRenderingAttributes.Assign(Source: TPersistent);
+procedure TRenderingAttributes.Assign(Source: TPersistent);
 begin
-  if Source is TX3DRenderingAttributes then
+  if Source is TRenderingAttributes then
   begin
-    OnRadianceTransfer := TX3DRenderingAttributes(Source).OnRadianceTransfer;
-    OnVertexColor := TX3DRenderingAttributes(Source).OnVertexColor;
-    Lighting := TX3DRenderingAttributes(Source).Lighting;
-    UseSceneLights := TX3DRenderingAttributes(Source).UseSceneLights;
-    Opacity := TX3DRenderingAttributes(Source).Opacity;
-    EnableTextures := TX3DRenderingAttributes(Source).EnableTextures;
-    TextureMinFilter := TX3DRenderingAttributes(Source).TextureMinFilter;
-    TextureMagFilter := TX3DRenderingAttributes(Source).TextureMagFilter;
-    PointSize := TX3DRenderingAttributes(Source).PointSize;
-    LineWidth := TX3DRenderingAttributes(Source).LineWidth;
+    OnRadianceTransfer := TRenderingAttributes(Source).OnRadianceTransfer;
+    OnVertexColor := TRenderingAttributes(Source).OnVertexColor;
+    Lighting := TRenderingAttributes(Source).Lighting;
+    UseSceneLights := TRenderingAttributes(Source).UseSceneLights;
+    Opacity := TRenderingAttributes(Source).Opacity;
+    EnableTextures := TRenderingAttributes(Source).EnableTextures;
+    TextureMinFilter := TRenderingAttributes(Source).TextureMinFilter;
+    TextureMagFilter := TRenderingAttributes(Source).TextureMagFilter;
+    PointSize := TRenderingAttributes(Source).PointSize;
+    LineWidth := TRenderingAttributes(Source).LineWidth;
   end else
     inherited;
 end;
 
-function TX3DRenderingAttributes.EqualForShapeCache(
-  SecondValue: TX3DRenderingAttributes): boolean;
+function TRenderingAttributes.EqualForShapeCache(
+  SecondValue: TRenderingAttributes): boolean;
 begin
   Result :=
     (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
@@ -2141,7 +2141,7 @@ begin
     (SecondValue.EnableTextures = EnableTextures);
 end;
 
-constructor TX3DRenderingAttributes.Create;
+constructor TRenderingAttributes.Create;
 begin
   inherited;
 
@@ -2163,12 +2163,12 @@ begin
   FPercentageCloserFiltering := DefaultPercentageCloserFiltering;
 end;
 
-procedure TX3DRenderingAttributes.ReleaseCachedResources;
+procedure TRenderingAttributes.ReleaseCachedResources;
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TX3DRenderingAttributes.SetOnRadianceTransfer(
+procedure TRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
   if OnRadianceTransfer <> Value then
@@ -2178,7 +2178,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetOnVertexColor(
+procedure TRenderingAttributes.SetOnVertexColor(
   const Value: TVertexColorFunction);
 begin
   if OnVertexColor <> Value then
@@ -2188,7 +2188,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetEnableTextures(const Value: boolean);
+procedure TRenderingAttributes.SetEnableTextures(const Value: boolean);
 begin
   if EnableTextures <> Value then
   begin
@@ -2197,7 +2197,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
+procedure TRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
 begin
   if TextureMinFilter <> Value then
   begin
@@ -2206,7 +2206,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
+procedure TRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
 begin
   if TextureMagFilter <> Value then
   begin
@@ -2215,7 +2215,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
+procedure TRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
 begin
   if BumpMapping <> Value then
   begin
@@ -2224,7 +2224,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetPureGeometry(const Value: boolean);
+procedure TRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
   if PureGeometry <> Value then
   begin
@@ -2233,17 +2233,17 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
+procedure TRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
 begin
   FTextureModeGrayscale := Value;
 end;
 
-procedure TX3DRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
+procedure TRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
 begin
   FTextureModeRGB := Value;
 end;
 
-procedure TX3DRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
+procedure TRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
 begin
   if VarianceShadowMaps <> Value then
   begin
@@ -2252,7 +2252,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetVertexBufferObject(const Value: boolean);
+procedure TRenderingAttributes.SetVertexBufferObject(const Value: boolean);
 begin
   if VertexBufferObject <> Value then
   begin
@@ -2261,7 +2261,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetVisualizeDepthMap(const Value: boolean);
+procedure TRenderingAttributes.SetVisualizeDepthMap(const Value: boolean);
 begin
   if VisualizeDepthMap <> Value then
   begin
@@ -2270,7 +2270,7 @@ begin
   end;
 end;
 
-procedure TX3DRenderingAttributes.SetShaders(const Value: TShadersRendering);
+procedure TRenderingAttributes.SetShaders(const Value: TShadersRendering);
 begin
   FShaders := Value;
 end;
@@ -2278,7 +2278,7 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  AttributesClass: TX3DRenderingAttributesClass;
+  AttributesClass: TRenderingAttributesClass;
   ACache: TGLRendererContextCache);
 begin
   inherited Create;

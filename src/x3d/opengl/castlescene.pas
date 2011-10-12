@@ -145,7 +145,7 @@ type
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
-  TSceneRenderingAttributes = class(TX3DRenderingAttributes)
+  TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
     FScenes: T3DSceneList;
@@ -585,7 +585,7 @@ type
 
     { Render for OpenGL. The rendering parameters are configurable
       by @link(Attributes), see TSceneRenderingAttributes and
-      TX3DRenderingAttributes.
+      TRenderingAttributes.
 
       For more details about rendering, see @link(GLRenderer) unit comments.
       This method internally uses TGLRenderer instance, additionally
@@ -882,7 +882,7 @@ type
 
       You are free to change them all at any time.
       Although note that changing some attributes (the ones defined
-      in base TX3DRenderingAttributes class) may be a costly operation
+      in base TRenderingAttributes class) may be a costly operation
       (next PrepareResources with prRender, or Render call, may need
       to recalculate some things). }
     function Attributes: TSceneRenderingAttributes;

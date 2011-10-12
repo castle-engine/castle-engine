@@ -44,7 +44,7 @@ type
     FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
     FState: TX3DGraphTraverseState;
-    FAttributes: TX3DRenderingAttributes;
+    FAttributes: TRenderingAttributes;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
@@ -52,7 +52,7 @@ type
     property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
     property State: TX3DGraphTraverseState read FState;
-    property Attributes: TX3DRenderingAttributes read FAttributes;
+    property Attributes: TRenderingAttributes read FAttributes;
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
