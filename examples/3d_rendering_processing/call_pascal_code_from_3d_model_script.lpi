@@ -41,7 +41,7 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Filename Value="call_pascal_code_from_3d_model_script.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
@@ -59,19 +59,19 @@
     </Units>
     <JumpHistory Count="4" HistoryIndex="3">
       <Position1>
-        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Filename Value="call_pascal_code_from_3d_model_script.lpr"/>
         <Caret Line="16" Column="14" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Filename Value="call_pascal_code_from_3d_model_script.lpr"/>
         <Caret Line="28" Column="65" TopLine="12"/>
       </Position2>
       <Position3>
-        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Filename Value="call_pascal_code_from_3d_model_script.lpr"/>
         <Caret Line="44" Column="14" TopLine="33"/>
       </Position3>
       <Position4>
-        <Filename Value="vrml_browser_script_compiled.lpr"/>
+        <Filename Value="call_pascal_code_from_3d_model_script.lpr"/>
         <Caret Line="28" Column="61" TopLine="24"/>
       </Position4>
     </JumpHistory>

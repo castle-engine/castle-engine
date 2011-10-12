@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2010 Michalis Kamburelis.
+  Copyright 2003-2011 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,10 +13,25 @@
   ----------------------------------------------------------------------------
 }
 
-{ A simple extension of simplest_vrml_browser.lpr,
-  registers handles for compiled: Script protocol. }
+{ You can enable the scripts inside VRML/X3D 3D model to call a particular
+  ObjectPascal function.
 
-program vrml_browser_script_compiled;
+  This is one way to enable your 3D models to do something
+  that is usually outside the scope (and security) of a normal VRML/X3D browser.
+  This way you can enable VRML/X3D models to interact with
+  some database, or desktop task, or... well, do anything
+  that native ObjectPascal code can do.
+  This approach gives the whole control of when the given operation
+  is executed to the author of VRML/X3D 3D model. The ObjectPascal code
+  only implements and registers methods, that may be then called at any time
+  while the VRML/X3D is loaded.
+
+  Inside the VRML/X3D model, this is declared by "compiled:" protocol
+  inside a Script node. See models/compiled_script_tests.x3dv.
+  See http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled
+  for more information. }
+
+program call_pascal_code_from_3d_model_script;
 
 {$apptype CONSOLE}
 
@@ -33,9 +48,6 @@ type
     class procedure ScriptTouch(Value: TX3DField; const Time: TX3DTime);
   end;
 
-{ THelperObj.Script* methods below are only to demonstrate using
-  "compiled:" Script protocol, see
-  [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
 class procedure THelperObj.ScriptTouchInitialize(Value: TX3DField; const Time: TX3DTime);
 begin
   Writeln(Format('Script is initialized (timestamp: %f)', [Time.Seconds]));
