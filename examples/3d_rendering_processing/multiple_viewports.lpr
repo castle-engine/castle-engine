@@ -24,7 +24,7 @@
 { $define ADD_GL_ANIMATION}
 
 uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
-  UIControls, Cameras, Quaternions, VectorMath, GLControls, CastleWarnings,
+  UIControls, Cameras, Quaternions, VectorMath, CastleControls, CastleWarnings,
   CastleUtils, CastleGLUtils, OpenGLFonts, X3DLoad, GLShaders, CastleParameters,
   CastleStringUtils;
 

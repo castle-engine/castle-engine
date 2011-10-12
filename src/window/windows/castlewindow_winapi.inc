@@ -751,7 +751,7 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
           iLayerType := PFD_MAIN_PLANE;
         end;
         PixelFormat := ChoosePixelFormat(Temp_h_Dc, pfd);
-        SCheck( PixelFormat <> 0, 'ChoosePixelFormat');
+        OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
         OSCheck( SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd), 'SetPixelFormat');
 
         { create and make current Temp_h_GLRc }

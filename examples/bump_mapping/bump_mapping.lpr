@@ -58,7 +58,7 @@ uses CastleWindow, GL, GLU, GLExt, CastleGLUtils,
   NormalizationCubeMap, GLImages, GLVersionUnit, X3DNodes,
   CastleParameters, CastleLog, RaysWindow, UIControls, Classes, CastleWarnings,
   CastleSceneCore, CastleScene, X3DLoad, ProgressUnit, Background,
-  GLRenderer, CastleSceneManager, RenderingCameraUnit, GLControls;
+  GLRenderer, CastleSceneManager, RenderingCameraUnit, CastleControls;
 
 const
   SceneBoundingBox: TBox3D = ( Data: (
