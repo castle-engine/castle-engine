@@ -23,10 +23,8 @@ interface
 uses CastleUtils, VectorMath, Boxes3D, X3DNodes;
 
 type
-  { VRML/X3D major version for X3DCameraUtils: either VRML 1.0 or 2.0.
-    For Inventor you should treat it like VRML 1.0.
-    For X3D, like VRML 2.0. }
-  TX3DCameraVersion = 1..2;
+  { Version of VRML/X3D camera definition. }
+  TX3DCameraVersion = (cvVrml1_Inventor, cvVrml2_X3d);
 
 const
   { Standard camera settings. These values are defined by VRML specification,
@@ -215,8 +213,8 @@ begin
     { Then GravityUp is parallel to DefaultVRMLGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
-      1: ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
-      2: ViewpointNode := TViewpointNode.Create('', WWWBasePath);
+      cvVrml1_Inventor: ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
+      cvVrml2_X3d     : ViewpointNode := TViewpointNode.Create('', WWWBasePath);
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
     ViewpointNode.Position.Value := Position;
@@ -242,35 +240,37 @@ begin
       RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
       RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity));
     case Version of
-      1: begin
-           Transform_1 := TTransformNode_1.Create('', WWWBasePath);
-           Transform_1.FdTranslation.Value := Position;
-           Transform_1.FdRotation.Value := Rotation;
+      cvVrml1_Inventor:
+        begin
+          Transform_1 := TTransformNode_1.Create('', WWWBasePath);
+          Transform_1.FdTranslation.Value := Position;
+          Transform_1.FdRotation.Value := Rotation;
 
-           ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
-           ViewpointNode.Position.Value := ZeroVector3Single;
-           ViewpointNode.FdOrientation.Value := Orientation;
+          ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
+          ViewpointNode.Position.Value := ZeroVector3Single;
+          ViewpointNode.FdOrientation.Value := Orientation;
 
-           Separator := TSeparatorNode_1.Create('', WWWBasePath);
-           Separator.VRML1ChildAdd(Transform_1);
-           Separator.VRML1ChildAdd(ViewpointNode);
+          Separator := TSeparatorNode_1.Create('', WWWBasePath);
+          Separator.VRML1ChildAdd(Transform_1);
+          Separator.VRML1ChildAdd(ViewpointNode);
 
-           Result := Separator;
-         end;
+          Result := Separator;
+        end;
 
-      2: begin
-           Transform_2 := TTransformNode.Create('', WWWBasePath);
-           Transform_2.FdTranslation.Value := Position;
-           Transform_2.FdRotation.Value := Rotation;
+      cvVrml2_X3d:
+        begin
+          Transform_2 := TTransformNode.Create('', WWWBasePath);
+          Transform_2.FdTranslation.Value := Position;
+          Transform_2.FdRotation.Value := Rotation;
 
-           ViewpointNode := TViewpointNode.Create('', WWWBasePath);
-           ViewpointNode.Position.Value := ZeroVector3Single;
-           ViewpointNode.FdOrientation.Value := Orientation;
+          ViewpointNode := TViewpointNode.Create('', WWWBasePath);
+          ViewpointNode.Position.Value := ZeroVector3Single;
+          ViewpointNode.FdOrientation.Value := Orientation;
 
-           Transform_2.FdChildren.Add(ViewpointNode);
+          Transform_2.FdChildren.Add(ViewpointNode);
 
-           Result := Transform_2;
-         end;
+          Result := Transform_2;
+        end;
       else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
     end;
   end;

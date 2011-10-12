@@ -4570,7 +4570,7 @@ begin
   end else
   begin
     { use default camera settings }
-    CamPos := DefaultVRMLCameraPosition[1];
+    CamPos := DefaultVRMLCameraPosition[cvVrml2_X3d];
     CamDir := DefaultVRMLCameraDirection;
     CamUp := DefaultVRMLCameraUp;
     GravityUp := DefaultVRMLGravityUp;

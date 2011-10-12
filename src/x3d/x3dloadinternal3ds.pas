@@ -997,7 +997,7 @@ var
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
     begin
-      Viewpoint := MakeVRMLCameraNode(2, WWWBasePath,
+      Viewpoint := MakeVRMLCameraNode(cvVrml2_X3d, WWWBasePath,
         O3ds.Cameras[I].Position,
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,
