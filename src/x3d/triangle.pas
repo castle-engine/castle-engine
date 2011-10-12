@@ -80,7 +80,7 @@ type
 
     { State of this shape, containing various information about 3D shape.
       This is a shortcut of TShape(Shape).State. }
-    function State: TVRMLGraphTraverseState;
+    function State: TX3DGraphTraverseState;
 
     { Check collisions between TTriangle and ray/segment.
 
@@ -108,14 +108,14 @@ type
     { @groupEnd }
 
     { Create material information instance for material of this triangle.
-      See TVRMLMaterialInfoAbstract for usage description.
+      See TX3DMaterialInfoAbstract for usage description.
 
       Returns @nil when no Material node is defined, this can happen
       only for VRML >= 2.0.
 
-      Returned TVRMLMaterialInfoAbstract is valid only as long as the Material
+      Returned TX3DMaterialInfoAbstract is valid only as long as the Material
       node (for VRML 1.0 or 2.0) on which it was based. }
-    function MaterialInfo: TVRMLMaterialInfoAbstract;
+    function MaterialInfo: TX3DMaterialInfoAbstract;
 
     { Return transparency of this triangle's material.
       Equivalent to MaterialInfo.Transparency, although a little faster. }
@@ -655,7 +655,7 @@ type
     triangles, and, additionally, one chosen triangle.
     Useful for TrianglesToIgnoreFunc parameters of various
     TBaseTrianglesOctree methods. }
-  TVRMLOctreeIgnoreForShadowRaysAndOneItem = class
+  TOctreeIgnoreForShadowRaysAndOneItem = class
   public
     OneItem: PTriangle;
     function IgnoreItem(
@@ -687,7 +687,7 @@ begin
   {$endif}
 end;
 
-function TTriangle.State: TVRMLGraphTraverseState;
+function TTriangle.State: TX3DGraphTraverseState;
 begin
   Result := TShape(Shape).State;
 end;
@@ -781,7 +781,7 @@ begin
   {$endif}
 end;
 
-function TTriangle.MaterialInfo: TVRMLMaterialInfoAbstract;
+function TTriangle.MaterialInfo: TX3DMaterialInfoAbstract;
 var
   M2: TMaterialNode;
 begin
@@ -816,7 +816,7 @@ end;
 
 function TTriangle.IgnoreForShadowRays: boolean;
 
-  function NonShadowCaster(State: TVRMLGraphTraverseState): boolean;
+  function NonShadowCaster(State: TX3DGraphTraverseState): boolean;
   var
     Shape: TAbstractShapeNode;
   begin
@@ -1506,9 +1506,9 @@ begin
      = nil);
 end;
 
-{ TVRMLOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }
+{ TOctreeIgnoreForShadowRaysAndOneItem -------------------------------------- }
 
-function TVRMLOctreeIgnoreForShadowRaysAndOneItem.IgnoreItem(
+function TOctreeIgnoreForShadowRaysAndOneItem.IgnoreItem(
   const Sender: TObject;
   const Triangle: P3DTriangle): boolean;
 begin
@@ -1516,7 +1516,7 @@ begin
     PTriangle(Triangle)^.IgnoreForShadowRays;
 end;
 
-constructor TVRMLOctreeIgnoreForShadowRaysAndOneItem.Create(
+constructor TOctreeIgnoreForShadowRaysAndOneItem.Create(
   AOneItem: PTriangle);
 begin
   inherited Create;

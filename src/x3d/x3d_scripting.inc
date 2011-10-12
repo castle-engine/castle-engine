@@ -31,10 +31,10 @@
     CastleScriptVariables: TCasScriptVRMLValueList;
 
     procedure EventUrlReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
     procedure ExecuteScript(const FunctionName: string;
-      ReceivedValue: TVRMLField);
+      ReceivedValue: TX3DField);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -61,7 +61,7 @@
 
     { Clear the memory when the last events were generated from this script.
 
-      @seealso TVRMLRoute.ResetLastEventTime
+      @seealso TX3DRoute.ResetLastEventTime
         TCasScriptVRMLValuesList.ResetLastEventTimes }
     procedure ResetLastEventTimes;
   end;
@@ -69,7 +69,7 @@
   TScriptNode = class(TAbstractScriptNode)
   private
     procedure IDeclEventReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -81,7 +81,7 @@
     private FFdMustEvaluate: TSFBool;
     public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
 
-    procedure PostAddInterfaceDeclaration(IDecl: TVRMLInterfaceDeclaration); override;
+    procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); override;
   end;
 
 {$endif read_interface}
@@ -124,7 +124,7 @@ begin
 end;
 
 procedure TAbstractScriptNode.EventUrlReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   { Simply shutdown + initialize from new URL }
   Initialized := false;
@@ -132,7 +132,7 @@ begin
 end;
 
 procedure TAbstractScriptNode.ExecuteScript(const FunctionName: string;
-  ReceivedValue: TVRMLField);
+  ReceivedValue: TX3DField);
 var
   I: Integer;
   ParameterValue, ParameterTime: TCasScriptValue;
@@ -387,7 +387,7 @@ begin
 end;
 
 procedure TScriptNode.PostAddInterfaceDeclaration(
-  IDecl: TVRMLInterfaceDeclaration);
+  IDecl: TX3DInterfaceDeclaration);
 begin
   inherited;
 
@@ -398,7 +398,7 @@ begin
 end;
 
 procedure TScriptNode.IDeclEventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   FunctionName: string;
 begin

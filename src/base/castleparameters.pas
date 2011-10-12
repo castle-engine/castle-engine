@@ -220,7 +220,7 @@ type
     See [http://castle-engine.sourceforge.net/common_options.php]
     for a user description how short and long options are expected to be given
     on the command-line. }
-  TParameters = class(TKamStringList)
+  TParameters = class(TCastleStringList)
   public
     function High: Integer;
 
@@ -326,8 +326,8 @@ var
   { Command-line parameters. Initialized from standard
     ParamStr(0) ... ParamStr(ParamCount). Can be later modified,
     which is good --- you can remove handled parameters.
-    You also have all the methods of TKamStringList class
-    (e.g. you can assign to another TKamStringList instance). }
+    You also have all the methods of TCastleStringList class
+    (e.g. you can assign to another TCastleStringList instance). }
   Parameters: TParameters;
 
 implementation

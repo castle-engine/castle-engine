@@ -102,12 +102,12 @@
 
     class function URNMatching(const URN: string): boolean; override;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
       is nil or if it's not TFontStyleNode. }
@@ -277,7 +277,7 @@
   private
     FShader: TObject;
     FShaderLoaded: boolean;
-    FStateForShaderPrepare: TVRMLGraphTraverseState;
+    FStateForShaderPrepare: TX3DGraphTraverseState;
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
@@ -304,7 +304,7 @@
       @groupBegin }
     property Shader: TObject read FShader write FShader;
     property ShaderLoaded: boolean read FShaderLoaded write FShaderLoaded;
-    property StateForShaderPrepare: TVRMLGraphTraverseState
+    property StateForShaderPrepare: TX3DGraphTraverseState
       read FStateForShaderPrepare;
     { @groupEnd }
   end;
@@ -871,7 +871,7 @@ begin
    FdNeedsDepth.ChangesAlways := [];
   Fields.Add(FFdNeedsDepth);
 
-  FStateForShaderPrepare := TVRMLGraphTraverseState.Create;
+  FStateForShaderPrepare := TX3DGraphTraverseState.Create;
 end;
 
 destructor TScreenEffectNode.Destroy;

@@ -89,7 +89,7 @@
   @bold(OpenGL state affecting VRML rendering:)
 
   Some OpenGL state is unconditionally reset by TGLRenderer.RenderBegin.
-  See TVRMLRenderingAttributes.PreserveOpenGLState.
+  See TX3DRenderingAttributes.PreserveOpenGLState.
 
   There's also some OpenGL state that we let affect our rendering.
   This allows you to customize VRML rendering by using normal OpenGL commands.
@@ -253,7 +253,7 @@ type
     because various things (like T3DScene and T3DPrecalculatedAnimation)
     wrap @link(TGLRenderer) instances and hide it,
     but still they want to allow user to change these attributes. }
-  TVRMLRenderingAttributes = class(TPersistent)
+  TX3DRenderingAttributes = class(TPersistent)
   private
     FOnRadianceTransfer: TRadianceTransferFunction;
     FOnVertexColor: TVertexColorFunction;
@@ -314,11 +314,11 @@ type
 
     procedure Assign(Source: TPersistent); override;
 
-    { Is the second TVRMLRenderingAttributes instance on all fields
+    { Is the second TX3DRenderingAttributes instance on all fields
       that affect TShapeCache, that is things that affect generated geometry
       arrays or vbo. This compares the subset of variables that call
       ReleaseCachedResources --- only the ones that affect TShapeCache. }
-    function EqualForShapeCache(SecondValue: TVRMLRenderingAttributes): boolean; virtual;
+    function EqualForShapeCache(SecondValue: TX3DRenderingAttributes): boolean; virtual;
 
     { Calculate vertex color from radiance transfer.
       If this is assigned, and geometry object has radianceTransfer
@@ -554,7 +554,7 @@ type
       read FVisualizeDepthMap write SetVisualizeDepthMap default false;
   end;
 
-  TVRMLRenderingAttributesClass = class of TVRMLRenderingAttributes;
+  TX3DRenderingAttributesClass = class of TX3DRenderingAttributes;
 
   TGLOutlineFontCache = record
     References: Cardinal;
@@ -669,7 +669,7 @@ type
   end;
   TTextureDepthOrFloatCacheList = specialize TFPGObjectList<TTextureDepthOrFloatCache>;
 
-  TVRMLRendererShape = class;
+  TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
   TVboTypes = set of TVboType;
   TVboArrays = array [TVboType] of TGLuint;
@@ -677,9 +677,9 @@ type
   { Cached shape resources. }
   TShapeCache = class
   private
-    Attributes: TVRMLRenderingAttributes;
+    Attributes: TX3DRenderingAttributes;
     Geometry: TAbstractGeometryNode;
-    State: TVRMLGraphTraverseState;
+    State: TX3DGraphTraverseState;
     Fog: IAbstractFogObject;
     FogVolumetric: boolean;
     FogVolumetricDirection: TVector3Single;
@@ -701,7 +701,7 @@ type
     VboAllocatedUsage: TGLenum;
     VboAllocatedSize: array [TVboType] of Cardinal;
 
-    { Like TVRMLRendererShape.LoadArraysToVbo,
+    { Like TX3DRendererShape.LoadArraysToVbo,
       but takes explicit DynamicGeometry. }
     procedure LoadArraysToVbo(DynamicGeometry: boolean);
     procedure FreeVBO;
@@ -713,7 +713,7 @@ type
 
   TShapeCacheList = specialize TFPGObjectList<TShapeCache>;
 
-  TVRMLGLSLProgram = class;
+  TX3DGLSLProgram = class;
 
   TShaderProgramCache = class
   public
@@ -723,7 +723,7 @@ type
     Hash: TShaderCodeHash;
 
     { Actual GLSL program. May be @nil (if it failed to link). }
-    ShaderProgram: TVRMLGLSLProgram;
+    ShaderProgram: TX3DGLSLProgram;
 
     References: Cardinal;
 
@@ -747,7 +747,7 @@ type
     tied to that OpenGL context. }
   TGLRendererContextCache = class
   private
-    Fonts: array[TVRMLFontFamily, boolean, boolean] of TGLOutlineFontCache;
+    Fonts: array[TX3DFontFamily, boolean, boolean] of TGLOutlineFontCache;
     TextureImageCaches: TTextureImageCacheList;
     TextureVideoCaches: TTextureVideoCacheList;
     TextureCubeMapCaches: TTextureCubeMapCacheList;
@@ -848,17 +848,17 @@ type
     destructor Destroy; override;
 
     function Fonts_IncReference(
-      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
+      fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
       TTF_Font: PTrueTypeFont): TGLOutlineFont;
 
     procedure Fonts_DecReference(
-      fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
+      fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean);
 
     { Shape cache. We return TShapeCache, either taking an existing
       instance from cache or creating and adding a new one.
       Caller is responsible for checking are Arrays / Vbo zero and
       eventually initializing and setting. }
-    function Shape_IncReference(Shape: TVRMLRendererShape;
+    function Shape_IncReference(Shape: TX3DRendererShape;
       Fog: IAbstractFogObject; ARenderer: TGLRenderer): TShapeCache;
 
     procedure Shape_DecReference(var ShapeCache: TShapeCache);
@@ -866,7 +866,7 @@ type
     { Shader program cache. We return TShaderProgramCache,
       either taking an existing instance from cache or creating and adding
       a new one. If we create a new one, we will use Shader to initialize
-      program hash and to create and link actual TVRMLGLSLProgram instance. }
+      program hash and to create and link actual TX3DGLSLProgram instance. }
     function Program_IncReference(ARenderer: TGLRenderer;
       Shader: TShader; const ShapeNiceName: string): TShaderProgramCache;
 
@@ -879,7 +879,7 @@ type
   {$I glrenderer_glsl.inc}
 
   { VRML shape that can be rendered. }
-  TVRMLRendererShape = class(TShape)
+  TX3DRendererShape = class(TShape)
   private
     { Generate VBO if needed, and reload VBO contents.
       Assumes (GL_ARB_vertex_buffer_object and not BuggyVBO) is true.
@@ -925,7 +925,7 @@ type
     ScreenEffectPrograms: TGLSLProgramList;
 
     { To which fonts we made a reference in the cache ? }
-    FontsReferences: array [TVRMLFontFamily, boolean, boolean] of boolean;
+    FontsReferences: array [TX3DFontFamily, boolean, boolean] of boolean;
 
     { ------------------------------------------------------------------------ }
 
@@ -1028,7 +1028,7 @@ type
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
 
-    FAttributes: TVRMLRenderingAttributes;
+    FAttributes: TX3DRenderingAttributes;
 
     FCache: TGLRendererContextCache;
 
@@ -1065,37 +1065,37 @@ type
     procedure DisableTexture(const TextureUnit: Cardinal);
     procedure DisableCurrentTexture;
 
-    procedure RenderShapeLineProperties(Shape: TVRMLRendererShape;
+    procedure RenderShapeLineProperties(Shape: TX3DRendererShape;
       Fog: IAbstractFogObject; Shader: TShader);
-    procedure RenderShapeMaterials(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeMaterials(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader);
-    procedure RenderShapeLights(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeLights(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeFog(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeFog(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeTextureTransform(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeTextureTransform(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeClipPlanes(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeClipPlanes(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean);
-    procedure RenderShapeShaders(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeShaders(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TArraysGeneratorClass;
       ExposedMeshRenderer: TObject);
-    procedure RenderShapeTextures(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeTextures(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TArraysGeneratorClass;
       ExposedMeshRenderer: TObject;
       UsedGLSLTexCoordsNeeded: Cardinal);
-    procedure RenderShapeInside(Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+    procedure RenderShapeInside(Shape: TX3DRendererShape; Fog: IAbstractFogObject;
       Shader: TShader;
       const MaterialOpacity: Single; const Lighting: boolean;
       GeneratorClass: TArraysGeneratorClass;
@@ -1106,8 +1106,8 @@ type
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
 
-    procedure PrepareIDecls(Nodes: TMFNode; State: TVRMLGraphTraverseState);
-    procedure PrepareIDecls(Nodes: TX3DNodeList; State: TVRMLGraphTraverseState);
+    procedure PrepareIDecls(Nodes: TMFNode; State: TX3DGraphTraverseState);
+    procedure PrepareIDecls(Nodes: TX3DNodeList; State: TX3DGraphTraverseState);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -1115,7 +1115,7 @@ type
 
     { Constructor. Always pass a cache instance --- preferably,
       something created and used by many scenes. }
-    constructor Create(AttributesClass: TVRMLRenderingAttributesClass;
+    constructor Create(AttributesClass: TX3DRenderingAttributesClass;
       ACache: TGLRendererContextCache);
 
     destructor Destroy; override;
@@ -1123,14 +1123,14 @@ type
     { Rendering attributes. You can change them only when renderer
       is not tied to the current OpenGL context, so only after construction
       or after UnprepareAll call (before any Prepare or Render* calls). }
-    property Attributes: TVRMLRenderingAttributes read FAttributes;
+    property Attributes: TX3DRenderingAttributes read FAttributes;
 
     property Cache: TGLRendererContextCache read FCache;
 
     { Prepare given State, to be able to render shapes with it.
       Between preparing and unpreparing, nodes passed here are "frozen":
       do not change, do not free them. }
-    procedure Prepare(State: TVRMLGraphTraverseState);
+    procedure Prepare(State: TX3DGraphTraverseState);
 
     { Release resources for this texture. }
     procedure UnprepareTexture(Node: TAbstractTextureNode);
@@ -1151,7 +1151,7 @@ type
       LightRenderEvent: TVRMLLightRenderEvent; const APass: TRenderingPass);
     procedure RenderEnd;
 
-    procedure RenderShape(Shape: TVRMLRendererShape; Fog: IAbstractFogObject);
+    procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
 
     { Get calculated TImage.AlphaChannelType for a prepared texture.
 
@@ -1265,7 +1265,7 @@ destructor TGLRendererContextCache.Destroy;
 {$endif}
 
 var
-  fsfam: TVRMLFontFamily;
+  fsfam: TX3DFontFamily;
   fsbold , fsitalic: boolean;
 begin
   for fsfam := Low(fsfam) to High(fsfam) do
@@ -1333,7 +1333,7 @@ begin
 end;
 
 function TGLRendererContextCache.Fonts_IncReference(
-  fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean;
+  fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean;
   TTF_Font: PTrueTypeFont): TGLOutlineFont;
 begin
   Inc(Fonts[fsfam, fsbold, fsitalic].References);
@@ -1345,7 +1345,7 @@ begin
 end;
 
 procedure TGLRendererContextCache.Fonts_DecReference(
-  fsfam: TVRMLFontFamily; fsbold: boolean; fsitalic: boolean);
+  fsfam: TX3DFontFamily; fsbold: boolean; fsitalic: boolean);
 begin
   Dec(Fonts[fsfam, fsbold, fsitalic].References);
   if Fonts[fsfam, fsbold, fsitalic].References = 0 then
@@ -1945,7 +1945,7 @@ begin
 end;
 
 function TGLRendererContextCache.Shape_IncReference(
-  Shape: TVRMLRendererShape; Fog: IAbstractFogObject;
+  Shape: TX3DRendererShape; Fog: IAbstractFogObject;
   ARenderer: TGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
@@ -2074,7 +2074,7 @@ begin
   Result.Hash := Shader.CodeHash;
 
   try
-    Result.ShaderProgram := TVRMLGLSLProgram.Create(ARenderer);
+    Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
     Shader.LinkProgram(Result.ShaderProgram);
   except on E: EGLSLError do
     begin
@@ -2112,28 +2112,28 @@ begin
     'TGLRendererContextCache.Program_DecReference: no reference found');
 end;
 
-{ TVRMLRenderingAttributes --------------------------------------------------- }
+{ TX3DRenderingAttributes --------------------------------------------------- }
 
-procedure TVRMLRenderingAttributes.Assign(Source: TPersistent);
+procedure TX3DRenderingAttributes.Assign(Source: TPersistent);
 begin
-  if Source is TVRMLRenderingAttributes then
+  if Source is TX3DRenderingAttributes then
   begin
-    OnRadianceTransfer := TVRMLRenderingAttributes(Source).OnRadianceTransfer;
-    OnVertexColor := TVRMLRenderingAttributes(Source).OnVertexColor;
-    Lighting := TVRMLRenderingAttributes(Source).Lighting;
-    UseSceneLights := TVRMLRenderingAttributes(Source).UseSceneLights;
-    Opacity := TVRMLRenderingAttributes(Source).Opacity;
-    EnableTextures := TVRMLRenderingAttributes(Source).EnableTextures;
-    TextureMinFilter := TVRMLRenderingAttributes(Source).TextureMinFilter;
-    TextureMagFilter := TVRMLRenderingAttributes(Source).TextureMagFilter;
-    PointSize := TVRMLRenderingAttributes(Source).PointSize;
-    LineWidth := TVRMLRenderingAttributes(Source).LineWidth;
+    OnRadianceTransfer := TX3DRenderingAttributes(Source).OnRadianceTransfer;
+    OnVertexColor := TX3DRenderingAttributes(Source).OnVertexColor;
+    Lighting := TX3DRenderingAttributes(Source).Lighting;
+    UseSceneLights := TX3DRenderingAttributes(Source).UseSceneLights;
+    Opacity := TX3DRenderingAttributes(Source).Opacity;
+    EnableTextures := TX3DRenderingAttributes(Source).EnableTextures;
+    TextureMinFilter := TX3DRenderingAttributes(Source).TextureMinFilter;
+    TextureMagFilter := TX3DRenderingAttributes(Source).TextureMagFilter;
+    PointSize := TX3DRenderingAttributes(Source).PointSize;
+    LineWidth := TX3DRenderingAttributes(Source).LineWidth;
   end else
     inherited;
 end;
 
-function TVRMLRenderingAttributes.EqualForShapeCache(
-  SecondValue: TVRMLRenderingAttributes): boolean;
+function TX3DRenderingAttributes.EqualForShapeCache(
+  SecondValue: TX3DRenderingAttributes): boolean;
 begin
   Result :=
     (SecondValue.OnRadianceTransfer = OnRadianceTransfer) and
@@ -2141,7 +2141,7 @@ begin
     (SecondValue.EnableTextures = EnableTextures);
 end;
 
-constructor TVRMLRenderingAttributes.Create;
+constructor TX3DRenderingAttributes.Create;
 begin
   inherited;
 
@@ -2163,12 +2163,12 @@ begin
   FPercentageCloserFiltering := DefaultPercentageCloserFiltering;
 end;
 
-procedure TVRMLRenderingAttributes.ReleaseCachedResources;
+procedure TX3DRenderingAttributes.ReleaseCachedResources;
 begin
   { Nothing to do in this class. }
 end;
 
-procedure TVRMLRenderingAttributes.SetOnRadianceTransfer(
+procedure TX3DRenderingAttributes.SetOnRadianceTransfer(
   const Value: TRadianceTransferFunction);
 begin
   if OnRadianceTransfer <> Value then
@@ -2178,7 +2178,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetOnVertexColor(
+procedure TX3DRenderingAttributes.SetOnVertexColor(
   const Value: TVertexColorFunction);
 begin
   if OnVertexColor <> Value then
@@ -2188,7 +2188,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetEnableTextures(const Value: boolean);
+procedure TX3DRenderingAttributes.SetEnableTextures(const Value: boolean);
 begin
   if EnableTextures <> Value then
   begin
@@ -2197,7 +2197,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
+procedure TX3DRenderingAttributes.SetTextureMinFilter(const Value: TGLint);
 begin
   if TextureMinFilter <> Value then
   begin
@@ -2206,7 +2206,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
+procedure TX3DRenderingAttributes.SetTextureMagFilter(const Value: TGLint);
 begin
   if TextureMagFilter <> Value then
   begin
@@ -2215,7 +2215,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
+procedure TX3DRenderingAttributes.SetBumpMapping(const Value: TBumpMapping);
 begin
   if BumpMapping <> Value then
   begin
@@ -2224,7 +2224,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetPureGeometry(const Value: boolean);
+procedure TX3DRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
   if PureGeometry <> Value then
   begin
@@ -2233,17 +2233,17 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
+procedure TX3DRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
 begin
   FTextureModeGrayscale := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
+procedure TX3DRenderingAttributes.SetTextureModeRGB(const Value: TGLenum);
 begin
   FTextureModeRGB := Value;
 end;
 
-procedure TVRMLRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
+procedure TX3DRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
 begin
   if VarianceShadowMaps <> Value then
   begin
@@ -2252,7 +2252,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetVertexBufferObject(const Value: boolean);
+procedure TX3DRenderingAttributes.SetVertexBufferObject(const Value: boolean);
 begin
   if VertexBufferObject <> Value then
   begin
@@ -2261,7 +2261,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetVisualizeDepthMap(const Value: boolean);
+procedure TX3DRenderingAttributes.SetVisualizeDepthMap(const Value: boolean);
 begin
   if VisualizeDepthMap <> Value then
   begin
@@ -2270,7 +2270,7 @@ begin
   end;
 end;
 
-procedure TVRMLRenderingAttributes.SetShaders(const Value: TShadersRendering);
+procedure TX3DRenderingAttributes.SetShaders(const Value: TShadersRendering);
 begin
   FShaders := Value;
 end;
@@ -2278,7 +2278,7 @@ end;
 { TGLRenderer ---------------------------------------------------------- }
 
 constructor TGLRenderer.Create(
-  AttributesClass: TVRMLRenderingAttributesClass;
+  AttributesClass: TX3DRenderingAttributesClass;
   ACache: TGLRendererContextCache);
 begin
   inherited Create;
@@ -2454,9 +2454,9 @@ begin
   inherited;
 end;
 
-{ TVRMLRendererShape --------------------------------------------------------- }
+{ TX3DRendererShape --------------------------------------------------------- }
 
-procedure TVRMLRendererShape.LoadArraysToVbo;
+procedure TX3DRendererShape.LoadArraysToVbo;
 begin
   Assert(Cache <> nil);
   Cache.LoadArraysToVbo(DynamicGeometry);
@@ -2465,13 +2465,13 @@ end;
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
 procedure TGLRenderer.PrepareIDecls(Nodes: TMFNode;
-  State: TVRMLGraphTraverseState);
+  State: TX3DGraphTraverseState);
 begin
   PrepareIDecls(Nodes.Items, State);
 end;
 
 procedure TGLRenderer.PrepareIDecls(Nodes: TX3DNodeList;
-  State: TVRMLGraphTraverseState);
+  State: TX3DGraphTraverseState);
 var
   I: Integer;
 begin
@@ -2479,10 +2479,10 @@ begin
     GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
 end;
 
-procedure TGLRenderer.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLRenderer.Prepare(State: TX3DGraphTraverseState);
 
   procedure PrepareFont(
-    fsfam: TVRMLFontFamily;
+    fsfam: TX3DFontFamily;
     fsbold, fsitalic: boolean;
     TTF_Font: PTrueTypeFont);
   begin
@@ -2583,7 +2583,7 @@ end;
 procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
 var
   Shader: TShader;
-  ShaderProgram: TVRMLGLSLProgram;
+  ShaderProgram: TX3DGLSLProgram;
   ShaderNode: TComposedShaderNode;
 begin
   if not Node.ShaderLoaded then
@@ -2601,7 +2601,7 @@ begin
           Rendering with default TShader shader makes no sense. }
         if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
         try
-          ShaderProgram := TVRMLGLSLProgram.Create(Self);
+          ShaderProgram := TX3DGLSLProgram.Create(Self);
           Shader.LinkProgram(ShaderProgram);
 
           { We have to ignore invalid uniforms, as it's normal that when
@@ -2630,7 +2630,7 @@ end;
 
 procedure TGLRenderer.UnprepareAll;
 var
-  fsfam: TVRMLFontFamily;
+  fsfam: TX3DFontFamily;
   fsbold , fsitalic: boolean;
 begin
   { release fonts }
@@ -2913,7 +2913,7 @@ begin
 end;
 {$endif USE_VRML_TRIANGULATION}
 
-procedure TGLRenderer.RenderShape(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShape(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject);
 var
   Shader: TShader;
@@ -2928,7 +2928,7 @@ begin
   RenderShapeLineProperties(Shape, Fog, Shader);
 end;
 
-procedure TGLRenderer.RenderShapeLineProperties(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeLineProperties(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader);
 var
   LP: TLinePropertiesNode;
@@ -2950,7 +2950,7 @@ begin
   RenderShapeMaterials(Shape, Fog, Shader);
 end;
 
-procedure TGLRenderer.RenderShapeMaterials(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeMaterials(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader);
 
   {$I glrenderer_materials.inc}
@@ -2960,7 +2960,7 @@ begin
   RenderShapeLights(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeLights(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeLights(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
@@ -2988,7 +2988,7 @@ begin
   RenderShapeFog(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeFog(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeFog(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
@@ -3074,7 +3074,7 @@ begin
   RenderShapeTextureTransform(Shape, Fog, Shader, MaterialOpacity, Lighting);
 end;
 
-procedure TGLRenderer.RenderShapeTextureTransform(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeTextureTransform(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 
@@ -3109,7 +3109,7 @@ var
   Child: TX3DNode;
   Transforms: TMFNode;
   I: Integer;
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
 begin
   State := Shape.State;
 
@@ -3228,7 +3228,7 @@ begin
   end;
 end;
 
-procedure TGLRenderer.RenderShapeClipPlanes(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeClipPlanes(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
@@ -3308,7 +3308,7 @@ begin
   ClipPlanesEnd;
 end;
 
-procedure TGLRenderer.RenderShapeCreateMeshRenderer(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
@@ -3374,7 +3374,7 @@ end;
 
 {$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
 
-procedure TGLRenderer.RenderShapeShaders(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeShaders(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TArraysGeneratorClass;
@@ -3411,8 +3411,8 @@ var
 
   var
     I, J: Integer;
-    UniformField: TVRMLField;
-    IDecls: TVRMLInterfaceDeclarationList;
+    UniformField: TX3DField;
+    IDecls: TX3DInterfaceDeclarationList;
   begin
     IDecls := Node.InterfaceDeclarations;
     Result := 0;
@@ -3469,7 +3469,7 @@ begin
     GeneratorClass, MeshRenderer, UsedGLSLTexCoordsNeeded);
 end;
 
-procedure TGLRenderer.RenderShapeTextures(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TArraysGeneratorClass;
@@ -3576,7 +3576,7 @@ begin
   finally RenderTexturesEnd end;
 end;
 
-procedure TGLRenderer.RenderShapeInside(Shape: TVRMLRendererShape;
+procedure TGLRenderer.RenderShapeInside(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;
   const MaterialOpacity: Single; const Lighting: boolean;
   GeneratorClass: TArraysGeneratorClass;

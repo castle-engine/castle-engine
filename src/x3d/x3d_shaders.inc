@@ -20,16 +20,16 @@
     procedure CreateNode; override;
 
     { Event: SFBool, in } { }
-    private FEventActivate: TVRMLEvent;
-    public property EventActivate: TVRMLEvent read FEventActivate;
+    private FEventActivate: TX3DEvent;
+    public property EventActivate: TX3DEvent read FEventActivate;
 
     { Event: SFBool, out } { }
-    private FEventIsSelected: TVRMLEvent;
-    public property EventIsSelected: TVRMLEvent read FEventIsSelected;
+    private FEventIsSelected: TX3DEvent;
+    public property EventIsSelected: TX3DEvent read FEventIsSelected;
 
     { Event: SFBool, out } { }
-    private FEventIsValid: TVRMLEvent;
-    public property EventIsValid: TVRMLEvent read FEventIsValid;
+    private FEventIsValid: TX3DEvent;
+    public property EventIsValid: TX3DEvent read FEventIsValid;
 
     private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
@@ -122,7 +122,7 @@
   private
     UpperCaseChecked, WarningInvalidValueDone: boolean;
   protected
-    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+    function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     function GetValue(out AValue: TShaderType): boolean;
   end;
@@ -177,13 +177,13 @@ procedure TAbstractShaderNode.CreateNode;
 begin
   inherited;
 
-  FEventActivate := TVRMLEvent.Create(Self, 'activate', TSFBool, true);
+  FEventActivate := TX3DEvent.Create(Self, 'activate', TSFBool, true);
   Events.Add(FEventActivate);
 
-  FEventIsSelected := TVRMLEvent.Create(Self, 'isSelected', TSFBool, false);
+  FEventIsSelected := TX3DEvent.Create(Self, 'isSelected', TSFBool, false);
   Events.Add(FEventIsSelected);
 
-  FEventIsValid := TVRMLEvent.Create(Self, 'isValid', TSFBool, false);
+  FEventIsValid := TX3DEvent.Create(Self, 'isValid', TSFBool, false);
   Events.Add(FEventIsValid);
 
   FFdLanguage := TSFString.Create(Self, 'language', '');
@@ -357,7 +357,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TSFStringShaderType.ExposedEventsFieldClass: TVRMLFieldClass;
+function TSFStringShaderType.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFString;
 end;

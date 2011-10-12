@@ -38,8 +38,8 @@
     public property FdDescription: TSFString read FFdDescription;
 
     { Event: SFBool, out } { }
-    private FEventIsOver: TVRMLEvent;
-    public property EventIsOver: TVRMLEvent read FEventIsOver;
+    private FEventIsOver: TX3DEvent;
+    public property EventIsOver: TX3DEvent read FEventIsOver;
 
     { Activate pointing device sensor. Used by the events engine
       (like T3DSceneCore) to notify this sensor.
@@ -69,8 +69,8 @@
     public property FdAutoOffset: TSFBool read FFdAutoOffset;
 
     { Event: SFVec3f, out } { }
-    private FEventTrackPoint_changed: TVRMLEvent;
-    public property EventTrackPoint_changed: TVRMLEvent read FEventTrackPoint_changed;
+    private FEventTrackPoint_changed: TX3DEvent;
+    public property EventTrackPoint_changed: TX3DEvent read FEventTrackPoint_changed;
 
     { Called by events engine (like T3DSceneCore) when you move your mouse
       over the @italic(active) drag sensor. }
@@ -82,8 +82,8 @@
     procedure CreateNode; override;
 
     { Event: SFTime, out } { }
-    private FEventTouchTime: TVRMLEvent;
-    public property EventTouchTime: TVRMLEvent read FEventTouchTime;
+    private FEventTouchTime: TX3DEvent;
+    public property EventTouchTime: TX3DEvent read FEventTouchTime;
   end;
 
   TCylinderSensorNode = class(TAbstractDragSensorNode)
@@ -131,8 +131,8 @@
     public property FdOffset: TSFFloat read FFdOffset;
 
     { Event: SFRotation, out } { }
-    private FEventRotation_changed: TVRMLEvent;
-    public property EventRotation_changed: TVRMLEvent read FEventRotation_changed;
+    private FEventRotation_changed: TX3DEvent;
+    public property EventRotation_changed: TX3DEvent read FEventRotation_changed;
 
     procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -178,8 +178,8 @@
     public property FdOffset: TSFVec3f read FFdOffset;
 
     { Event: SFVec3f, out } { }
-    private FEventTranslation_changed: TVRMLEvent;
-    public property EventTranslation_changed: TVRMLEvent read FEventTranslation_changed;
+    private FEventTranslation_changed: TX3DEvent;
+    public property EventTranslation_changed: TX3DEvent read FEventTranslation_changed;
 
     procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -212,8 +212,8 @@
     public property FdOffset: TSFRotation read FFdOffset;
 
     { Event: SFRotation, out } { }
-    private FEventRotation_changed: TVRMLEvent;
-    public property EventRotation_changed: TVRMLEvent read FEventRotation_changed;
+    private FEventRotation_changed: TX3DEvent;
+    public property EventRotation_changed: TX3DEvent read FEventRotation_changed;
 
     procedure Activate(const Time: TX3DTime;
       const ATransform, AInvertedTransform: TMatrix4Single;
@@ -229,16 +229,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, out } { }
-    private FEventHitNormal_changed: TVRMLEvent;
-    public property EventHitNormal_changed: TVRMLEvent read FEventHitNormal_changed;
+    private FEventHitNormal_changed: TX3DEvent;
+    public property EventHitNormal_changed: TX3DEvent read FEventHitNormal_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventHitPoint_changed: TVRMLEvent;
-    public property EventHitPoint_changed: TVRMLEvent read FEventHitPoint_changed;
+    private FEventHitPoint_changed: TX3DEvent;
+    public property EventHitPoint_changed: TX3DEvent read FEventHitPoint_changed;
 
     { Event: SFVec2f, out } { }
-    private FEventHitTexCoord_changed: TVRMLEvent;
-    public property EventHitTexCoord_changed: TVRMLEvent read FEventHitTexCoord_changed;
+    private FEventHitTexCoord_changed: TX3DEvent;
+    public property EventHitTexCoord_changed: TX3DEvent read FEventHitTexCoord_changed;
   end;
 
 {$endif read_interface}
@@ -279,7 +279,7 @@ begin
   FFdDescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFdDescription);
 
-  FEventIsOver := TVRMLEvent.Create(Self, 'isOver', TSFBool, false);
+  FEventIsOver := TX3DEvent.Create(Self, 'isOver', TSFBool, false);
   Events.Add(FEventIsOver);
 end;
 
@@ -302,7 +302,7 @@ begin
   FFdAutoOffset := TSFBool.Create(Self, 'autoOffset', true);
   Fields.Add(FFdAutoOffset);
 
-  FEventTrackPoint_changed := TVRMLEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
+  FEventTrackPoint_changed := TX3DEvent.Create(Self, 'trackPoint_changed', TSFVec3f, false);
   Events.Add(FEventTrackPoint_changed);
 
   Fdenabled.ChangesAlways := FdEnabled.ChangesAlways + [chDragSensorEnabled];
@@ -317,7 +317,7 @@ procedure TAbstractTouchSensorNode.CreateNode;
 begin
   inherited;
 
-  FEventTouchTime := TVRMLEvent.Create(Self, 'touchTime', TSFTime, false);
+  FEventTouchTime := TX3DEvent.Create(Self, 'touchTime', TSFTime, false);
   Events.Add(FEventTouchTime);
 end;
 
@@ -344,7 +344,7 @@ begin
   Fields.Add(FFdOffset);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventRotation_changed := TVRMLEvent.Create(Self, 'rotation_changed', TSFRotation, false);
+  FEventRotation_changed := TX3DEvent.Create(Self, 'rotation_changed', TSFRotation, false);
   Events.Add(FEventRotation_changed);
 
   DefaultContainerField := 'children';
@@ -479,7 +479,7 @@ begin
   Fields.Add(FFdOffset);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventTranslation_changed := TVRMLEvent.Create(Self, 'translation_changed', TSFVec3f, false);
+  FEventTranslation_changed := TX3DEvent.Create(Self, 'translation_changed', TSFVec3f, false);
   Events.Add(FEventTranslation_changed);
 
   DefaultContainerField := 'children';
@@ -632,7 +632,7 @@ begin
   Fields.Add(FFdOffset);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 
-  FEventRotation_changed := TVRMLEvent.Create(Self, 'rotation_changed', TSFRotation, false);
+  FEventRotation_changed := TX3DEvent.Create(Self, 'rotation_changed', TSFRotation, false);
   Events.Add(FEventRotation_changed);
 
   DefaultContainerField := 'children';
@@ -723,13 +723,13 @@ procedure TTouchSensorNode.CreateNode;
 begin
   inherited;
 
-  FEventHitNormal_changed := TVRMLEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
+  FEventHitNormal_changed := TX3DEvent.Create(Self, 'hitNormal_changed', TSFVec3f, false);
   Events.Add(FEventHitNormal_changed);
 
-  FEventHitPoint_changed := TVRMLEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
+  FEventHitPoint_changed := TX3DEvent.Create(Self, 'hitPoint_changed', TSFVec3f, false);
   Events.Add(FEventHitPoint_changed);
 
-  FEventHitTexCoord_changed := TVRMLEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
+  FEventHitTexCoord_changed := TX3DEvent.Create(Self, 'hitTexCoord_changed', TSFVec2f, false);
   Events.Add(FEventHitTexCoord_changed);
 
   DefaultContainerField := 'children';

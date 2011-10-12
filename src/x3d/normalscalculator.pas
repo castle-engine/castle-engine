@@ -90,7 +90,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
   but "coord" field is not present), we return @nil. }
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   const FromCCW: boolean): TVector3SingleList;
 
 implementation
@@ -372,7 +372,7 @@ end;
 
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   const FromCCW: boolean): TVector3SingleList;
 var
   Calculator: TCoordinateNormalsCalculator;

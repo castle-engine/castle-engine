@@ -255,7 +255,7 @@ type
   TColladaSource = class
     Name: string;
     Floats: TFloatList;
-    Params: TKamStringList;
+    Params: TCastleStringList;
     { Collada <accessor> description of vectors inside Floats.
       Note that Count here refers to count of whole vectors (so it's usually
       < than Floats.Count). }
@@ -294,7 +294,7 @@ type
 constructor TColladaSource.Create;
 begin
   inherited;
-  Params := TKamStringList.Create;
+  Params := TCastleStringList.Create;
   Floats := TFloatList.Create;
 end;
 

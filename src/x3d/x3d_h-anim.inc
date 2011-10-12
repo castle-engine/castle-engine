@@ -52,9 +52,9 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure ParseAfter(Names: TVRMLNames); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure ParseAfter(Names: TX3DNames); override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -120,11 +120,11 @@
       Joints that changed are assumed to be already traversed by TX3DNode.Traverse
       (this prepares field values for AnimateSkinPoint call).
 
-      This method is used by TVRMLScene. Don't call this yourself.
+      This method is used by T3DSceneCore. Don't call this yourself.
 
       Returns changed VRML/X3D coordinates field (or @nil if there is no skin).
-      You should call TVRMLField.Changed on it (unless you use it from some
-      TVRMLScene initialization, when there's no point in notifying about this). }
+      You should call TX3DField.Changed on it (unless you use it from some
+      T3DSceneCore initialization, when there's no point in notifying about this). }
     function AnimateSkin: TMFVec3f;
   end;
 
@@ -150,8 +150,8 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
-    procedure ParseAfter(Names: TVRMLNames); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
+    procedure ParseAfter(Names: TX3DNames); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -202,7 +202,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -247,7 +247,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -452,7 +452,7 @@ begin
     only one using this approach. }
 end;
 
-procedure THAnimHumanoidNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure THAnimHumanoidNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Push;
@@ -504,14 +504,14 @@ begin
     SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
 end;
 
-procedure THAnimHumanoidNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure THAnimHumanoidNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   AnimateSkin;
   StateStack.Pop;
   inherited;
 end;
 
-procedure THAnimHumanoidNode.ParseAfter(Names: TVRMLNames);
+procedure THAnimHumanoidNode.ParseAfter(Names: TX3DNames);
 
   procedure CalculateVertexJoints;
   var
@@ -655,13 +655,13 @@ begin
   Result := MatrixMultPoint(AnimateSkinTransform, Point);
 end;
 
-procedure THAnimJointNode.ParseAfter(Names: TVRMLNames);
+procedure THAnimJointNode.ParseAfter(Names: TX3DNames);
 begin
   inherited;
   RestCenter := FdCenter.Value;
 end;
 
-procedure THAnimJointNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure THAnimJointNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
   IgnoreHumanoidTransformScale: Single;
   I: Integer;
@@ -790,7 +790,7 @@ begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure THAnimSegmentNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure THAnimSegmentNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
   inherited;
   TransformState(State, ZeroVector3Single, Fdrotation.Value,
@@ -853,7 +853,7 @@ begin
   FdChildren.EnumerateValid(Func);
 end;
 
-procedure THAnimSiteNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure THAnimSiteNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,

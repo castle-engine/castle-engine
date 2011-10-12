@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Utilities specifically for VRML cameras.
+{ Utilities specifically for VRML/X3D cameras.
   @seealso(Cameras @link(Cameras) unit has our general classes and utilities
     for camera handling.) }
 unit X3DCameraUtils;
@@ -23,9 +23,10 @@ interface
 uses CastleUtils, VectorMath, Boxes3D, X3DNodes;
 
 type
-  { VRML major version for X3DCameraUtils: either VRML 1.0 or 2.0.
-    For Inventor you should treat it like VRML 1.0. }
-  TVRMLCameraVersion = 1..2;
+  { VRML/X3D major version for X3DCameraUtils: either VRML 1.0 or 2.0.
+    For Inventor you should treat it like VRML 1.0.
+    For X3D, like VRML 2.0. }
+  TX3DCameraVersion = 1..2;
 
 const
   { Standard camera settings. These values are defined by VRML specification,
@@ -35,11 +36,11 @@ const
     For VRML 97 spec part "4.4.5 Standard units and coordinate system"
     and default values for Viewpoint determines these values.
 
-    Note that DefaultVRMLCameraPosition is indexed by TVRMLCameraVersion, since
+    Note that DefaultVRMLCameraPosition is indexed by TX3DCameraVersion, since
     it's different for VRML 1.0 and 2.0.
 
     @groupBegin }
-  DefaultVRMLCameraPosition: array [TVRMLCameraVersion] of TVector3Single =
+  DefaultVRMLCameraPosition: array [TX3DCameraVersion] of TVector3Single =
     ( (0, 0, 1), (0, 0, 10) );
   DefaultVRMLCameraDirection: TVector3Single = (0, 0, -1);
   DefaultVRMLCameraUp: TVector3Single = (0, 1, 0);
@@ -48,18 +49,18 @@ const
 
 { Constructs string with VRML node defining camera with given
   properties. }
-function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
+function MakeVRMLCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 
 { Constructs TX3DNode defining camera with given properties. }
-function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
+function MakeVRMLCameraNode(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 
 { Make camera node (like MakeVRMLCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
-function CameraNodeForWholeScene(const Version: TVRMLCameraVersion;
+function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
@@ -69,7 +70,7 @@ implementation
 
 uses SysUtils, Cameras;
 
-function MakeVRMLCameraStr(const Version: TVRMLCameraVersion;
+function MakeVRMLCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 const
@@ -84,7 +85,7 @@ const
     '  up %s' +nl+
     '  gravityUp %s -->' + nl);
 
-  UntransformedViewpoint: array [TVRMLCameraVersion, boolean] of string = (
+  UntransformedViewpoint: array [TX3DCameraVersion, boolean] of string = (
     ('PerspectiveCamera {' +nl+
      '  position %s' +nl+
      '  orientation %s' +nl+
@@ -105,7 +106,7 @@ const
      '  orientation="%s"' +nl+
      '/>')
   );
-  TransformedViewpoint: array [TVRMLCameraVersion, boolean] of string = (
+  TransformedViewpoint: array [TX3DCameraVersion, boolean] of string = (
     ('Separator {' +nl+
      '  Transform {' +nl+
      '    translation %s' +nl+
@@ -196,7 +197,7 @@ begin
   end;
 end;
 
-function MakeVRMLCameraNode(const Version: TVRMLCameraVersion;
+function MakeVRMLCameraNode(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 var
@@ -275,7 +276,7 @@ begin
   end;
 end;
 
-function CameraNodeForWholeScene(const Version: TVRMLCameraVersion;
+function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;

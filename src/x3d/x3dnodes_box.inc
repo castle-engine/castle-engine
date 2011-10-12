@@ -143,7 +143,7 @@ begin
   MakeRect(2,  Sizes[2], -Sizes[0], -Sizes[1], 0, 0, 0);
 end;
 
-function TBoxNode.Proxy(var State: TVRMLGraphTraverseState;
+function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
@@ -185,7 +185,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TCubeNode_1.Proxy(var State: TVRMLGraphTraverseState;
+function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -200,7 +200,7 @@ begin
   IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
   try
     { we have to modify State, so make a copy of it }
-    State := TVRMLGraphTraverseState.CreateCopy(State);
+    State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);

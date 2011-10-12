@@ -39,7 +39,7 @@
       convert them to OnWarning and make Unprepare to undo the preparations.
       So Prepare-Unprepare work like constructor-destructor, with Unprepare
       having to be prepared to finilizing incomplete instance. }
-    procedure PrepareCore(State: TVRMLGraphTraverseState); virtual; abstract;
+    procedure PrepareCore(State: TX3DGraphTraverseState); virtual; abstract;
   public
     { ANode must be TAbstractTextureNode }
     constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
@@ -59,7 +59,7 @@
 
     { Do the time-consuming preparations before rendering this texture.
       Calls PrepareCore. }
-    procedure Prepare(State: TVRMLGraphTraverseState);
+    procedure Prepare(State: TX3DGraphTraverseState);
   public
     { This is the alpha channel of this texture.
       Used by TGLRenderer.PreparedTextureAlphaChannelType and bump mapping.
@@ -168,7 +168,7 @@
 
       Returns @nil if Node not suitable for TGLTextureNode (not handled,
       or not really a texture node at all). }
-    function Prepare(State: TVRMLGraphTraverseState;
+    function Prepare(State: TX3DGraphTraverseState;
       ANode: TAbstractTextureNode;
       ARenderer: TGLRenderer): TGLTextureNode;
 
@@ -188,7 +188,7 @@
     { Prepare / unprepare all textures inside Node.InterfaceDeclarations
       SFNode / MFNode fields. }
     procedure PrepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
-      const State: TVRMLGraphTraverseState;
+      const State: TX3DGraphTraverseState;
       const Renderer: TGLRenderer);
     procedure UnprepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
       const Renderer: TGLRenderer);
@@ -222,7 +222,7 @@
     PreparedTextureChildren: TX3DNodeList;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { ANode must be TMultiTextureNode }
     constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
@@ -242,7 +242,7 @@
   TGLImageTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLName: TGLuint;
     NormalMap, HeightMap: TGLuint;
@@ -259,7 +259,7 @@
   TGLMovieTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLVideo: TGLVideo;
 
@@ -276,7 +276,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLName: TGLuint;
 
@@ -321,7 +321,7 @@
   TGLComposedCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     function TextureNode: TComposedCubeMapTextureNode;
   end;
@@ -329,7 +329,7 @@
   TGLImageCubeMapTextureNode = class(TGLCubeMapTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     function TextureNode: TImageCubeMapTextureNode;
   end;
@@ -339,7 +339,7 @@
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     { The right size of the texture,
       that satisfies all OpenGL cube map sizes requirements
@@ -363,7 +363,7 @@
   TGL3DTextureNode = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLName: TGLuint;
 
@@ -383,7 +383,7 @@
     NeedsMipmaps: boolean;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLName: TGLuint;
 
@@ -410,13 +410,13 @@
 
     { Check would we use Variance Shadow Maps with current ARenderer
       attributes and OpenGL version/extensions. }
-    class function ClassVarianceShadowMaps(Attributes: TVRMLRenderingAttributes): boolean;
+    class function ClassVarianceShadowMaps(Attributes: TX3DRenderingAttributes): boolean;
   end;
 
   TGLShaderTexture = class(TGLSingleTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
-    procedure PrepareCore(State: TVRMLGraphTraverseState); override;
+    procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     procedure Unprepare; override;
     function Bind(const TextureUnit: Cardinal): boolean; override;
@@ -570,7 +570,7 @@ begin
     Result := nil;
 end;
 
-procedure TGLTextureNode.Prepare(State: TVRMLGraphTraverseState);
+procedure TGLTextureNode.Prepare(State: TX3DGraphTraverseState);
 begin
   try
     PrepareCore(State);
@@ -612,7 +612,7 @@ begin
   Result := TGLTextureNode(inherited Items[Index]);
 end;
 
-function TGLTextureNodes.Prepare(State: TVRMLGraphTraverseState;
+function TGLTextureNodes.Prepare(State: TX3DGraphTraverseState;
   ANode: TAbstractTextureNode;
   ARenderer: TGLRenderer): TGLTextureNode;
 var
@@ -663,7 +663,7 @@ end;
 
 procedure TGLTextureNodes.PrepareInterfaceDeclarationsTextures(
   const ANode: TX3DNode;
-  const State: TVRMLGraphTraverseState; const Renderer: TGLRenderer);
+  const State: TX3DGraphTraverseState; const Renderer: TGLRenderer);
 
   { If TextureNode <> @nil and is a texture node, prepare it. }
   procedure PrepareTexture(TextureNode: TX3DNode);
@@ -675,8 +675,8 @@ procedure TGLTextureNodes.PrepareInterfaceDeclarationsTextures(
 
 var
   I, J: Integer;
-  UniformField: TVRMLField;
-  IDecls: TVRMLInterfaceDeclarationList;
+  UniformField: TX3DField;
+  IDecls: TX3DInterfaceDeclarationList;
 begin
   IDecls := ANode.InterfaceDeclarations;
   if IDecls = nil then Exit; { ignore nodes without interface declararations }
@@ -713,8 +713,8 @@ procedure TGLTextureNodes.UnprepareInterfaceDeclarationsTextures(
 
 var
   I, J: Integer;
-  UniformField: TVRMLField;
-  IDecls: TVRMLInterfaceDeclarationList;
+  UniformField: TX3DField;
+  IDecls: TX3DInterfaceDeclarationList;
 begin
   IDecls := ANode.InterfaceDeclarations;
   if IDecls = nil then Exit; { ignore nodes without interface declararations }
@@ -799,7 +799,7 @@ begin
   Result := TMultiTextureNode(inherited TextureNode);
 end;
 
-procedure TGLMultiTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLMultiTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 
   procedure MaxTo1st(var A: TAlphaChannelType; const B: TAlphaChannelType);
   begin
@@ -1019,7 +1019,7 @@ begin
   Result := TAbstractTexture2DNode(inherited TextureNode);
 end;
 
-procedure TGLImageTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLImageTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1098,7 +1098,7 @@ begin
   Result := TMovieTextureNode(inherited TextureNode);
 end;
 
-procedure TGLMovieTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLMovieTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1180,7 +1180,7 @@ begin
   Result := TRenderedTextureNode(inherited TextureNode);
 end;
 
-procedure TGLRenderedTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLRenderedTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   InitialImage: TImage;
   MinFilter, MagFilter: TGLint;
@@ -1455,7 +1455,7 @@ var
 var
   CameraMatrix, CameraRotationMatrix, ProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
-  Scene: TVRMLEventsEngine;
+  Scene: TX3DEventsEngine;
 begin
   if GLName = 0 then Exit;
 
@@ -1561,7 +1561,7 @@ begin
   Result := TComposedCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 
   { Checks is given side has non-nil valid node class,
     and then if image there can be loaded. }
@@ -1654,7 +1654,7 @@ begin
   Result := TImageCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGLImageCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLImageCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1715,7 +1715,7 @@ begin
   Result := TGeneratedCubeMapTextureNode(inherited TextureNode);
 end;
 
-procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1844,7 +1844,7 @@ begin
   Result := TAbstractTexture3DNode(inherited TextureNode);
 end;
 
-procedure TGL3DTextureNode.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGL3DTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
@@ -1919,14 +1919,14 @@ begin
 end;
 
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
-  Attributes: TVRMLRenderingAttributes): boolean;
+  Attributes: TX3DRenderingAttributes): boolean;
 begin
   Result := Attributes.VarianceShadowMaps and
     (TGLSLProgram.ClassSupport <> gsNone) and
     (GL_ATI_texture_float or GL_ARB_texture_float);
 end;
 
-procedure TGLGeneratedShadowMap.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLGeneratedShadowMap.PrepareCore(State: TX3DGraphTraverseState);
 var
   TextureWrap: TTextureWrap2D;
   MinFilter: TGLint;
@@ -2089,7 +2089,7 @@ begin
   Result := ANode is TShaderTextureNode;
 end;
 
-procedure TGLShaderTexture.PrepareCore(State: TVRMLGraphTraverseState);
+procedure TGLShaderTexture.PrepareCore(State: TX3DGraphTraverseState);
 begin
   { no need to do anything }
 end;

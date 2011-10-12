@@ -219,7 +219,7 @@ type
     This keeps a stack of TAbstractBindableNode, with comfortable routines
     to examine top and push/pop from top. The stack is actually stored
     as a list, with the last item being the top one. }
-  TVRMLBindableStack = class(TVRMLBindableStackBasic)
+  TX3DBindableStack = class(TX3DBindableStackBasic)
   private
     FParentScene: T3DSceneCore;
     FOnBoundChanged: TSceneNotification;
@@ -298,14 +298,14 @@ type
       read FOnBoundChanged write FOnBoundChanged;
   end;
 
-  TViewpointStack = class(TVRMLBindableStack)
+  TViewpointStack = class(TX3DBindableStack)
   protected
     procedure DoBoundChanged; override;
   public
     function Top: TAbstractViewpointNode;
   end;
 
-  TNavigationInfoStack = class(TVRMLBindableStack)
+  TNavigationInfoStack = class(TX3DBindableStack)
   protected
     procedure DoBoundChanged; override;
   public
@@ -353,7 +353,7 @@ type
   end;
 
   TCompiledScriptHandler = procedure (
-    Value: TVRMLField; const Time: TX3DTime) of object;
+    Value: TX3DField; const Time: TX3DTime) of object;
 
   { @exclude }
   TCompiledScriptHandlerInfo = record
@@ -468,8 +468,8 @@ type
     The actual VRML/X3D nodes graph is stored in the RootNode property.
     Remember that if you directly change the fields/nodes within the RootNode,
     this scene object must be notified about this.
-    The simplest way to do this is to use only TVRMLField.Send to change
-    the fields' values. Or you can call TVRMLField.Changed after each change.
+    The simplest way to do this is to use only TX3DField.Send to change
+    the fields' values. Or you can call TX3DField.Changed after each change.
     Or you will have to call ChangedField or ChangedAll method
     of this class.
     If the scene is changed by VRML events, all changes are automagically
@@ -481,7 +481,7 @@ type
     cache their results so after the first call to @link(TrianglesCount)
     next calls to the same method will return instantly (assuming
     that scene did not change much). }
-  T3DSceneCore = class(TVRMLEventsEngine)
+  T3DSceneCore = class(TX3DEventsEngine)
   private
     FOwnsRootNode: boolean;
     FShapes: TShapeTree;
@@ -603,8 +603,8 @@ type
     procedure ResetLastEventTime(Node: TX3DNode);
   private
     { Bindable nodes helpers }
-    FBackgroundStack: TVRMLBindableStack;
-    FFogStack: TVRMLBindableStack;
+    FBackgroundStack: TX3DBindableStack;
+    FFogStack: TX3DBindableStack;
     FNavigationInfoStack: TNavigationInfoStack;
     FViewpointStack: TViewpointStack;
 
@@ -727,7 +727,7 @@ type
     FMainLightForShadowsNode: TAbstractLightNode;
     FMainLightForShadowsTransform: TMatrix4Single;
     procedure SearchMainLightForShadows(
-      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
@@ -765,7 +765,7 @@ type
 
       Example: T3DScene uses this to create TGLShape. }
     function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape; virtual;
+      AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; virtual;
 
     procedure UpdateHeadlightOnFromNavigationInfo;
 
@@ -780,7 +780,7 @@ type
       OnPointingDeviceSensorsChange. }
     procedure DoPointingDeviceSensorsChange; virtual;
 
-    procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TVRMLField); override;
+    procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -904,7 +904,7 @@ type
       Field must not be @nil.
 
       @deprecated }
-    procedure ChangedFields(Node: TX3DNode; Field: TVRMLField);
+    procedure ChangedFields(Node: TX3DNode; Field: TX3DField);
 
     { Notify scene that you changed the value of given field.
 
@@ -913,7 +913,7 @@ type
       internal information where needed.
 
       Every change you do directly to the VRML/X3D nodes inside RootNode
-      (using directly the methods of TX3DNode or TVRMLField) must be
+      (using directly the methods of TX3DNode or TX3DField) must be
       reported to scene by calling this method. This includes changes
       to the inactive graph part (e.g. in inactive Switch child),
       because our shapes have to track it also.
@@ -923,7 +923,7 @@ type
       that don't belong to our RootNode --- nothing bad will happen.
       We always try to intelligently
       detect what this change implicates for this VRML scene. }
-    procedure ChangedField(Field: TVRMLField); override;
+    procedure ChangedField(Field: TX3DField); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -945,7 +945,7 @@ type
       bound viewpoint changed (although it could).
       If you only want to get notified when currently @italic(bound)
       viewpoint changes, then what you seek is rather
-      @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged). }
+      @link(TX3DBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged). }
     property OnViewpointsChanged: TSceneNotification
       read FOnViewpointsChanged write FOnViewpointsChanged;
 
@@ -958,7 +958,7 @@ type
       It cannot be called when ViewpointStack.Top = @nil.
       Note that this also doesn't notify you about changes to
       currently bound viewpoint, for this you rather want to use
-      @link(TVRMLBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged).
+      @link(TX3DBindableStack.OnBoundChanged ViewpointStack.OnBoundChanged).
       This is called only when @italic(currently bound viewpoint stays
       the same, only it's vectors change). }
     property OnBoundViewpointVectorsChanged: TSceneNotification
@@ -1029,10 +1029,10 @@ type
 
       It is allowed to change contents of RootNode. Just make sure
       the scene is notified about these changes --- you should assign
-      fields using methods like TVRMLField.Send or (if you assign field
+      fields using methods like TX3DField.Send or (if you assign field
       values directly, like @code(TSFVec3f.Value := ...))
-      call TVRMLField.Changed. Eventually, you can call our ChangedField method
-      (but it's usually nicer to use TVRMLField.Changed).
+      call TX3DField.Changed. Eventually, you can call our ChangedField method
+      (but it's usually nicer to use TX3DField.Changed).
 
       It is also allowed to change the value of RootNode
       and even to set RootNode to @nil. Be sure to call ChangedAll after this.
@@ -1528,11 +1528,11 @@ type
 
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TAbstractBackgroundNode class. }
-    property BackgroundStack: TVRMLBindableStack read FBackgroundStack;
+    property BackgroundStack: TX3DBindableStack read FBackgroundStack;
 
     { Binding stack of Fog nodes.
       All descend from TFogNode class. }
-    property FogStack: TVRMLBindableStack read FFogStack;
+    property FogStack: TX3DBindableStack read FFogStack;
 
     { Binding stack of NavigatinInfo nodes.
       All descend from TNavigationInfoNode class. }
@@ -1544,10 +1544,10 @@ type
       this stack.) }
     property ViewpointStack: TViewpointStack read FViewpointStack;
 
-    function GetViewpointStack: TVRMLBindableStackBasic; override;
-    function GetNavigationInfoStack: TVRMLBindableStackBasic; override;
-    function GetBackgroundStack: TVRMLBindableStackBasic; override;
-    function GetFogStack: TVRMLBindableStackBasic; override;
+    function GetViewpointStack: TX3DBindableStackBasic; override;
+    function GetNavigationInfoStack: TX3DBindableStackBasic; override;
+    function GetBackgroundStack: TX3DBindableStackBasic; override;
+    function GetFogStack: TX3DBindableStackBasic; override;
 
     { Camera position/direction/up known for this scene.
 
@@ -1704,7 +1704,7 @@ type
       AMainLightPosition[3] is always set to 1
       (positional light) or 0 (indicates that this is a directional light).
 
-      @seealso TKamAbstractViewport.MainLightForShadows }
+      @seealso TCastleAbstractViewport.MainLightForShadows }
     function MainLightForShadows(
       out AMainLightPosition: TVector4Single): boolean;
 
@@ -1788,8 +1788,8 @@ type
     function Dragging: boolean; override;
 
     { Static scene will not be automatically notified about the changes
-      to the field values. This means that TVRMLField.Send and
-      TVRMLField.Changed will not notify this scene. This makes a
+      to the field values. This means that TX3DField.Send and
+      TX3DField.Changed will not notify this scene. This makes a
       small optimization when you know you will not modify scene's VRML graph
       besides loading (or you're prepared to do it by manually calling
       Scene.ChangedField etc.).
@@ -1948,15 +1948,15 @@ implementation
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
   X3DLoad;
 
-{ TVRMLBindableStack ----------------------------------------------------- }
+{ TX3DBindableStack ----------------------------------------------------- }
 
-constructor TVRMLBindableStack.Create(AParentScene: T3DSceneCore);
+constructor TX3DBindableStack.Create(AParentScene: T3DSceneCore);
 begin
   inherited Create(false);
   FParentScene := AParentScene;
 end;
 
-procedure TVRMLBindableStack.SendIsBound(Node: TAbstractBindableNode;
+procedure TX3DBindableStack.SendIsBound(Node: TAbstractBindableNode;
   const Value: boolean);
 begin
   if Node <> nil then
@@ -1966,19 +1966,19 @@ begin
   end;
 end;
 
-function TVRMLBindableStack.Top: TAbstractBindableNode;
+function TX3DBindableStack.Top: TAbstractBindableNode;
 begin
   if Count <> 0 then
     Result := Last as TAbstractBindableNode else
     Result := nil;
 end;
 
-procedure TVRMLBindableStack.Push(Node: TAbstractBindableNode);
+procedure TX3DBindableStack.Push(Node: TAbstractBindableNode);
 begin
   Add(Node);
 end;
 
-procedure TVRMLBindableStack.PushIfEmpty(Node: TAbstractBindableNode;
+procedure TX3DBindableStack.PushIfEmpty(Node: TAbstractBindableNode;
   SendEvents: boolean);
 begin
   if Count = 0 then
@@ -1990,7 +1990,7 @@ begin
   end;
 end;
 
-function TVRMLBindableStack.Pop: TAbstractBindableNode;
+function TX3DBindableStack.Pop: TAbstractBindableNode;
 begin
   if Count <> 0 then
   begin
@@ -2000,7 +2000,7 @@ begin
     Result := nil;
 end;
 
-procedure TVRMLBindableStack.CheckForDeletedNodes(RootNode: TX3DNode;
+procedure TX3DBindableStack.CheckForDeletedNodes(RootNode: TX3DNode;
   SendEvents: boolean);
 var
   I: Integer;
@@ -2039,7 +2039,7 @@ begin
   end;
 end;
 
-procedure TVRMLBindableStack.Set_Bind(Node: TAbstractBindableNode;
+procedure TX3DBindableStack.Set_Bind(Node: TAbstractBindableNode;
   const Value: boolean);
 var
   NodeIndex: Integer;
@@ -2083,13 +2083,13 @@ begin
   end;
 end;
 
-procedure TVRMLBindableStack.DoBoundChanged;
+procedure TX3DBindableStack.DoBoundChanged;
 begin
   if Assigned(OnBoundChanged) then
     OnBoundChanged(ParentScene);
 end;
 
-procedure TVRMLBindableStack.BeginChangesSchedule;
+procedure TX3DBindableStack.BeginChangesSchedule;
 begin
   { BoundChangedScheduled = false always when BoundChangedSchedule = 0. }
   Assert((BoundChangedSchedule <> 0) or (not BoundChangedScheduled));
@@ -2097,14 +2097,14 @@ begin
   Inc(BoundChangedSchedule);
 end;
 
-procedure TVRMLBindableStack.DoScheduleBoundChanged;
+procedure TX3DBindableStack.DoScheduleBoundChanged;
 begin
   if BoundChangedSchedule = 0 then
     DoBoundChanged else
     BoundChangedScheduled := true;
 end;
 
-procedure TVRMLBindableStack.EndChangesSchedule;
+procedure TX3DBindableStack.EndChangesSchedule;
 begin
   Dec(BoundChangedSchedule);
   if (BoundChangedSchedule = 0) and BoundChangedScheduled then
@@ -2286,8 +2286,8 @@ begin
   ShapeLODs := TObjectList.Create(false);
   FGlobalLights := TLightInstancesList.Create;
 
-  FBackgroundStack := TVRMLBindableStack.Create(Self);
-  FFogStack := TVRMLBindableStack.Create(Self);
+  FBackgroundStack := TX3DBindableStack.Create(Self);
+  FFogStack := TX3DBindableStack.Create(Self);
   FNavigationInfoStack := TNavigationInfoStack.Create(Self);
   FViewpointStack := TViewpointStack.Create(Self);
 
@@ -2537,7 +2537,7 @@ begin
 end;
 
 function T3DSceneCore.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
+  AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
@@ -2552,12 +2552,12 @@ type
     ShapesGroup: TShapeTreeGroup;
     Active: boolean;
     procedure Traverse(
-      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
 procedure TChangedAllTraverser.Traverse(
-  Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+  Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
   { Handle ITransformNode node }
@@ -2701,7 +2701,7 @@ begin
   begin
     { Add shape to Shapes }
     Shape := ParentScene.CreateShape(Node as TAbstractGeometryNode,
-      TVRMLGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
+      TX3DGraphTraverseState.CreateCopy(StateStack.Top), ParentInfo);
     ShapesGroup.Children.Add(Shape);
 
     { When Spatial contain ssDynamicCollisions, then each collidable
@@ -3138,12 +3138,12 @@ type
     Inactive: Cardinal;
     Changes: TX3DChanges;
     procedure TransformChangeTraverse(
-      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
 procedure TTransformChangeHelper.TransformChangeTraverse(
-  Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+  Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 
   { Handle ITransformNode }
@@ -3276,7 +3276,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     many times then only some occurrences should be updated, not all.
 
     TODO: for global lights, limited by radius field,
-    we should also add / remove this light from some TVRMLGraphTraverseState.Lights. }
+    we should also add / remove this light from some TX3DGraphTraverseState.Lights. }
 
     procedure HandleLightsList(List: TLightInstancesList);
     var
@@ -3408,7 +3408,7 @@ procedure T3DSceneCore.TransformationChanged(TransformNode: TX3DNode;
 var
   TransformChangeHelper: TTransformChangeHelper;
   TransformShapesParentInfo: TShapesParentInfo;
-  TraverseStack: TVRMLGraphTraverseStateStack;
+  TraverseStack: TX3DGraphTraverseStateStack;
   I: Integer;
   TransformShapeTree: TShapeTreeTransform;
   DoVisibleChanged: boolean;
@@ -3418,7 +3418,7 @@ begin
     also some HAnim nodes like Joint and Humanoid have this behavior.).
 
     In the simple cases, Transform node simply changes
-    TVRMLGraphTraverseState.Transform for children nodes.
+    TX3DGraphTraverseState.Transform for children nodes.
 
     So we have to re-traverse from this Transform node, and change
     states of affected children. Our TransformNodesInfo gives us
@@ -3443,7 +3443,7 @@ begin
     TraverseStack := nil;
     TransformChangeHelper := nil;
     try
-      TraverseStack := TVRMLGraphTraverseStateStack.Create;
+      TraverseStack := TX3DGraphTraverseStateStack.Create;
 
       { initialize TransformChangeHelper, set before the loop properties
         that cannot change }
@@ -3503,14 +3503,14 @@ begin
   end;
 end;
 
-procedure T3DSceneCore.ChangedFields(Node: TX3DNode; Field: TVRMLField);
+procedure T3DSceneCore.ChangedFields(Node: TX3DNode; Field: TX3DField);
 begin
   Assert(Field <> nil);
   Assert(Field.ParentNode = Node);
   ChangedField(Field);
 end;
 
-procedure T3DSceneCore.ChangedField(Field: TVRMLField);
+procedure T3DSceneCore.ChangedField(Field: TX3DField);
 var
   Node: TX3DNode;
   Changes: TX3DChanges;
@@ -3620,12 +3620,12 @@ var
 
     { Update all TLightInstance records with LightNode = this Node.
 
-      TODO: what if some TVRMLGraphTraverseState.Lights need to be updated?
+      TODO: what if some TX3DGraphTraverseState.Lights need to be updated?
       Code below fails for this.
 
       To be fixed (at the same time taking into account that in X3D
       "global" is exposed field and so may change during execution) by
-      constructing TVRMLGraphTraverseState.Lights always with global = TRUE assumption.
+      constructing TX3DGraphTraverseState.Lights always with global = TRUE assumption.
       RenderShapeLights will have to take care of eventual "radius"
       constraints. Or not --- this will hurt performance, global = FALSE
       is a good optimization for local lights, we don't want long lights list. }
@@ -4513,12 +4513,12 @@ type
     ViewpointDescription: string;
     FoundNode: TAbstractViewpointNode;
     procedure Seek(
-      Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+      Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   end;
 
   procedure TFirstViewpointSeeker.Seek(
-    Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+    Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
     ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
   var
     V: TAbstractViewpointNode;
@@ -5849,7 +5849,7 @@ begin
 end;
 
 procedure T3DSceneCore.ExecuteCompiledScript(const HandlerName: string;
-  ReceivedValue: TVRMLField);
+  ReceivedValue: TX3DField);
 var
   I: Integer;
 begin
@@ -6146,22 +6146,22 @@ end;
 
 { misc ----------------------------------------------------------------------- }
 
-function T3DSceneCore.GetViewpointStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetViewpointStack: TX3DBindableStackBasic;
 begin
   Result := FViewpointStack;
 end;
 
-function T3DSceneCore.GetNavigationInfoStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetNavigationInfoStack: TX3DBindableStackBasic;
 begin
   Result := FNavigationInfoStack;
 end;
 
-function T3DSceneCore.GetBackgroundStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetBackgroundStack: TX3DBindableStackBasic;
 begin
   Result := FBackgroundStack;
 end;
 
-function T3DSceneCore.GetFogStack: TVRMLBindableStackBasic;
+function T3DSceneCore.GetFogStack: TX3DBindableStackBasic;
 begin
   Result := FFogStack;
 end;
@@ -6187,7 +6187,7 @@ begin
 end;
 
 procedure T3DSceneCore.SearchMainLightForShadows(
-  Node: TX3DNode; StateStack: TVRMLGraphTraverseStateStack;
+  Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
   ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
 var
   L: TAbstractLightNode absolute Node;

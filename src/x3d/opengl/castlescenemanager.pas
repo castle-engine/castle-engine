@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Scene manager (TCastleSceneManager) and viewport (TKamViewport) classes. }
+{ Scene manager (TCastleSceneManager) and viewport (TCastleViewport) classes. }
 unit CastleSceneManager;
 
 interface
@@ -25,9 +25,9 @@ uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  TKamAbstractViewport = class;
+  TCastleAbstractViewport = class;
 
-  TRender3DEvent = procedure (Viewport: TKamAbstractViewport;
+  TRender3DEvent = procedure (Viewport: TCastleAbstractViewport;
     const Params: TRenderParams) of object;
 
   { Internal, special TRenderParams descendant that can return different
@@ -45,8 +45,8 @@ type
   end;
 
   { Common abstract class for things that may act as a viewport:
-    TCastleSceneManager and TKamViewport. }
-  TKamAbstractViewport = class(TUIControlPos)
+    TCastleSceneManager and TCastleViewport. }
+  TCastleAbstractViewport = class(TUIControlPos)
   private
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
@@ -148,7 +148,7 @@ type
       and CustomHeadlight is set to @nil,
       we simply use default directional light for a headlight.
 
-      Default implementation of this method in TKamAbstractViewport
+      Default implementation of this method in TCastleAbstractViewport
       looks at the MainScene headlight. We return if MainScene is assigned
       and T3DSceneCore.HeadlightOn is @true.
       (HeadlightOn in turn looks
@@ -200,7 +200,7 @@ type
 
     { Information about the 3D world.
       For scene maager, these methods simply return it's own properties.
-      For TKamViewport, these methods refer to scene manager.
+      For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
     function GetItems: T3D; virtual; abstract;
     function GetMainScene: T3DScene; virtual; abstract;
@@ -294,7 +294,7 @@ type
       If MainScene is not assigned, we will just create a simple
       TExamineCamera.
 
-      The implementation in TKamViewport simply calls
+      The implementation in TCastleViewport simply calls
       SceneManager.CreateDefaultCamera. So by default all the viewport's
       cameras are created the same way, by refering to the scene manager.
       If you want you can override it to specialize CreateDefaultCamera
@@ -385,8 +385,8 @@ type
       TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
       We will handle them in a proper way.
 
-      @italic(For TKamViewport only:)
-      The TKamViewport's camera is slightly less important than
+      @italic(For TCastleViewport only:)
+      The TCastleViewport's camera is slightly less important than
       TCastleSceneManager.Camera, because TCastleSceneManager.Camera may be treated
       as a "central" camera. Viewport's camera may not (because you may
       have many viewports and they all deserve fair treatment).
@@ -494,13 +494,13 @@ type
       read FBackgroundWireframe write FBackgroundWireframe default false;
 
     { When @true then headlight is always rendered from custom viewport's
-      (TKamViewport) camera, not from central camera (the one in scene manager).
+      (TCastleViewport) camera, not from central camera (the one in scene manager).
       This is meaningless in TCastleSceneManager.
 
       By default this is @false, which means that when rendering
-      custom viewport (TKamViewport) we render headlight from
-      TKamViewport.SceneManager.Camera (not from current viewport's
-      TKamViewport.Camera). On one hand, this is sensible: there is exactly one
+      custom viewport (TCastleViewport) we render headlight from
+      TCastleViewport.SceneManager.Camera (not from current viewport's
+      TCastleViewport.Camera). On one hand, this is sensible: there is exactly one
       headlight in your 3D world, and it shines from a central camera
       in SceneManager.Camera. When SceneManager.Camera is @nil (which
       may happen if you set SceneManager.DefaultViewport := false and you
@@ -551,7 +551,7 @@ type
       read FUseGlobalLights write FUseGlobalLights default false;
   end;
 
-  TKamAbstractViewportList = class(specialize TFPGObjectList<TKamAbstractViewport>)
+  TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
   public
     { Does any viewport on the list has shadow volumes all set up? }
     function UsesShadowVolumes: boolean;
@@ -597,15 +597,15 @@ type
     is to add this to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
     This passes relevant TUIControl events to all the T3D objects inside.
     Note that even when you set DefaultViewport = @false
-    (and use custom viewports, by TKamViewport class, to render your 3D world),
+    (and use custom viewports, by TCastleViewport class, to render your 3D world),
     you still should add scene manager to the controls list
     (this allows e.g. 3D items to receive Idle events). }
-  TCastleSceneManager = class(TKamAbstractViewport)
+  TCastleSceneManager = class(TCastleAbstractViewport)
   private
     FMainScene: T3DScene;
     FItems: T3DList;
     FDefaultViewport: boolean;
-    FViewports: TKamAbstractViewportList;
+    FViewports: TCastleAbstractViewportList;
 
     FOnCameraChanged: TNotifyEvent;
     FOnBoundViewpointChanged, FOnBoundNavigationInfoChanged: TNotifyEvent;
@@ -617,7 +617,7 @@ type
     FMouseRayHit3D: T3D;
 
     { calculated by every PrepareResources }
-    ChosenViewport: TKamAbstractViewport;
+    ChosenViewport: TCastleAbstractViewport;
     NeedsUpdateGeneratedTextures: boolean;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
@@ -721,17 +721,17 @@ type
     property MouseRayHit: T3DCollision read FMouseRayHit;
 
     { List of viewports connected to this scene manager.
-      This contains all TKamViewport instances that have
-      TKamViewport.SceneManager set to us. Also it contains Self
+      This contains all TCastleViewport instances that have
+      TCastleViewport.SceneManager set to us. Also it contains Self
       (this very scene manager) if and only if DefaultViewport = @true
       (because when DefaultViewport, scene manager acts as an
       additional viewport too).
 
       This list is read-only from the outside! It's automatically managed
-      in this unit (when you change TKamViewport.SceneManager
+      in this unit (when you change TCastleViewport.SceneManager
       or TCastleSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
-    property Viewports: TKamAbstractViewportList read FViewports;
+    property Viewports: TCastleAbstractViewportList read FViewports;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -801,8 +801,8 @@ type
 
     { Should we render the 3D world in a default viewport that covers
       the whole window. This is usually what you want. For more complicated
-      uses, you can turn this off, and use explicit TKamViewport
-      (connected to this scene manager by TKamViewport.SceneManager property)
+      uses, you can turn this off, and use explicit TCastleViewport
+      (connected to this scene manager by TCastleViewport.SceneManager property)
       for making your world visible. }
     property DefaultViewport: boolean
       read FDefaultViewport write SetDefaultViewport default true;
@@ -850,7 +850,7 @@ type
     And additionally you can place a small viewport
     (with FullSize = @false and small @link(Width) / @link(Height))
     in the upper-right corner that displays view from last fired rocket. }
-  TKamViewport = class(TKamAbstractViewport)
+  TCastleViewport = class(TCastleAbstractViewport)
   private
     FSceneManager: TCastleSceneManager;
     procedure SetSceneManager(const Value: TCastleSceneManager);
@@ -912,9 +912,9 @@ begin
   Result := FBaseLights[Scene = MainScene];
 end;
 
-{ TKamAbstractViewport ------------------------------------------------------- }
+{ TCastleAbstractViewport ------------------------------------------------------- }
 
-constructor TKamAbstractViewport.Create(AOwner: TComponent);
+constructor TCastleAbstractViewport.Create(AOwner: TComponent);
 begin
   inherited;
   FFullSize := true;
@@ -922,7 +922,7 @@ begin
   FRenderParams := TManagerRenderParams.Create;
 end;
 
-destructor TKamAbstractViewport.Destroy;
+destructor TCastleAbstractViewport.Destroy;
 begin
   { unregister self from Camera callbacs, etc.
 
@@ -951,7 +951,7 @@ begin
   inherited;
 end;
 
-procedure TKamAbstractViewport.SetCamera(const Value: TCamera);
+procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
 begin
   if FCamera <> Value then
   begin
@@ -1007,7 +1007,7 @@ begin
   end;
 end;
 
-procedure TKamAbstractViewport.SetContainer(const Value: IUIContainer);
+procedure TCastleAbstractViewport.SetContainer(const Value: IUIContainer);
 begin
   inherited;
 
@@ -1016,7 +1016,7 @@ begin
     Camera.Container := Container;
 end;
 
-procedure TKamAbstractViewport.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleAbstractViewport.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 
@@ -1032,7 +1032,7 @@ begin
   end;
 end;
 
-procedure TKamAbstractViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleAbstractViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
   inherited;
 
@@ -1042,7 +1042,7 @@ begin
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
 end;
 
-function TKamAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
+function TCastleAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not Exists) then Exit;
@@ -1056,7 +1056,7 @@ begin
   Result := GetItems.KeyDown(Key, C);
 end;
 
-function TKamAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
+function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not Exists) then Exit;
@@ -1070,7 +1070,7 @@ begin
   Result := GetItems.KeyUp(Key, C);
 end;
 
-function TKamAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
+function TCastleAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not Exists) then Exit;
@@ -1084,7 +1084,7 @@ begin
   Result := GetItems.MouseDown(Button);
 end;
 
-function TKamAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
+function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not Exists) then Exit;
@@ -1098,7 +1098,7 @@ begin
   Result := GetItems.MouseUp(Button);
 end;
 
-function TKamAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+function TCastleAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 var
   RayOrigin, RayDirection: TVector3Single;
 begin
@@ -1120,7 +1120,7 @@ begin
 
   { update the cursor, since 3D object under the cursor possibly changed.
 
-    Accidentaly, this also workarounds the problem of TKamViewport:
+    Accidentaly, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.OnCursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing ItemsAndCameraCursorChange below, this isn't
@@ -1129,7 +1129,7 @@ begin
   ItemsAndCameraCursorChange(Self);
 end;
 
-function TKamAbstractViewport.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
+function TCastleAbstractViewport.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
   if Result or Paused or (not Exists) then Exit;
@@ -1143,7 +1143,7 @@ begin
   // Implement when needed: Result := GetItems.MouseWheel(Scroll, Vertical);
 end;
 
-procedure TKamAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
+procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
 begin
   { We have to treat Camera.Cursor specially:
     - mcNone because of mouse look means result in unconditionally mcNone.
@@ -1167,7 +1167,7 @@ begin
     Cursor := mcDefault;
 end;
 
-procedure TKamAbstractViewport.Idle(const CompSpeed: Single;
+procedure TCastleAbstractViewport.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
@@ -1199,32 +1199,32 @@ begin
     LetOthersHandleMouseAndKeys := true;
 end;
 
-function TKamAbstractViewport.AllowSuspendForInput: boolean;
+function TCastleAbstractViewport.AllowSuspendForInput: boolean;
 begin
   Result := (Camera = nil) or Paused or (not Exists) or Camera.AllowSuspendForInput;
 end;
 
-function TKamAbstractViewport.CorrectLeft: Integer;
+function TCastleAbstractViewport.CorrectLeft: Integer;
 begin
   if FullSize then Result := 0 else Result := Left;
 end;
 
-function TKamAbstractViewport.CorrectBottom: Integer;
+function TCastleAbstractViewport.CorrectBottom: Integer;
 begin
   if FullSize then Result := 0 else Result := Bottom;
 end;
 
-function TKamAbstractViewport.CorrectWidth: Cardinal;
+function TCastleAbstractViewport.CorrectWidth: Cardinal;
 begin
   if FullSize then Result := ContainerWidth else Result := Width;
 end;
 
-function TKamAbstractViewport.CorrectHeight: Cardinal;
+function TCastleAbstractViewport.CorrectHeight: Cardinal;
 begin
   if FullSize then Result := ContainerHeight else Result := Height;
 end;
 
-function TKamAbstractViewport.PositionInside(const X, Y: Integer): boolean;
+function TCastleAbstractViewport.PositionInside(const X, Y: Integer): boolean;
 begin
   Result :=
     FullSize or
@@ -1234,7 +1234,7 @@ begin
       (ContainerHeight - Y  < Bottom + Height) );
 end;
 
-procedure TKamAbstractViewport.ApplyProjection;
+procedure TCastleAbstractViewport.ApplyProjection;
 var
   Box: TBox3D;
 
@@ -1282,7 +1282,7 @@ begin
   end;
 end;
 
-procedure TKamAbstractViewport.SetShadowVolumesPossible(const Value: boolean);
+procedure TCastleAbstractViewport.SetShadowVolumesPossible(const Value: boolean);
 begin
   if ShadowVolumesPossible <> Value then
   begin
@@ -1291,14 +1291,14 @@ begin
   end;
 end;
 
-function TKamAbstractViewport.Background: TBackground;
+function TCastleAbstractViewport.Background: TBackground;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.Background else
     Result := nil;
 end;
 
-function TKamAbstractViewport.MainLightForShadows(
+function TCastleAbstractViewport.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 begin
   if GetMainScene <> nil then
@@ -1306,19 +1306,19 @@ begin
     Result := false;
 end;
 
-procedure TKamAbstractViewport.Render3D(const Params: TRenderParams);
+procedure TCastleAbstractViewport.Render3D(const Params: TRenderParams);
 begin
   GetItems.Render(RenderingCamera.Frustum, Params);
   if Assigned(OnRender3D) then
     OnRender3D(Self, Params);
 end;
 
-procedure TKamAbstractViewport.RenderShadowVolume;
+procedure TCastleAbstractViewport.RenderShadowVolume;
 begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-function TKamAbstractViewport.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
+function TCastleAbstractViewport.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
 begin
   Result := (GetMainScene <> nil) and GetMainScene.HeadlightOn;
   if Result then
@@ -1326,7 +1326,7 @@ begin
     CustomHeadlight := nil;
 end;
 
-function TKamAbstractViewport.HeadlightInstance(var Instance: TLightInstance): boolean;
+function TCastleAbstractViewport.HeadlightInstance(var Instance: TLightInstance): boolean;
 var
   CustomHeadlight: TAbstractLightNode;
   HC: TCamera;
@@ -1406,7 +1406,7 @@ begin
   end;
 end;
 
-procedure TKamAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
+procedure TCastleAbstractViewport.InitializeLights(const Lights: TLightInstancesList);
 var
   HI: TLightInstance;
 begin
@@ -1414,7 +1414,7 @@ begin
     Lights.Add(HI);
 end;
 
-function TKamAbstractViewport.BaseLights: TLightInstancesList;
+function TCastleAbstractViewport.BaseLights: TLightInstancesList;
 begin
   { We just reuse FRenderParams.FBaseLights[false] below as a temporary
     TLightInstancesList that we already have created. }
@@ -1423,12 +1423,12 @@ begin
   InitializeLights(Result);
 end;
 
-procedure TKamAbstractViewport.RenderNeverShadowed(const Params: TRenderParams);
+procedure TCastleAbstractViewport.RenderNeverShadowed(const Params: TRenderParams);
 begin
   { Nothing to do in this class }
 end;
 
-procedure TKamAbstractViewport.RenderFromView3D(const Params: TRenderParams);
+procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
 { Inside this method we control (always set correctly) Params.InShadow
   and Params.Transparent. }
@@ -1468,7 +1468,7 @@ begin
     RenderNoShadows;
 end;
 
-procedure TKamAbstractViewport.RenderFromViewEverything;
+procedure TCastleAbstractViewport.RenderFromViewEverything;
 var
   ClearBuffers: TGLbitfield;
   UsedBackground: TBackground;
@@ -1555,7 +1555,7 @@ end;
 
 procedure RenderScreenEffect(ViewportPtr: Pointer);
 var
-  Viewport: TKamAbstractViewport absolute ViewportPtr;
+  Viewport: TCastleAbstractViewport absolute ViewportPtr;
 
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
@@ -1636,7 +1636,7 @@ begin
   end;
 end;
 
-procedure TKamAbstractViewport.RenderOnScreen(ACamera: TCamera);
+procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
 
   { Create and setup new OpenGL texture rectangle for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
@@ -1795,12 +1795,12 @@ begin
   end;
 end;
 
-function TKamAbstractViewport.DrawStyle: TUIControlDrawStyle;
+function TCastleAbstractViewport.DrawStyle: TUIControlDrawStyle;
 begin
   Result := ds3D;
 end;
 
-function TKamAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
+function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffects(Index) else
@@ -1808,21 +1808,21 @@ begin
     Result := nil;
 end;
 
-function TKamAbstractViewport.ScreenEffectsCount: Integer;
+function TCastleAbstractViewport.ScreenEffectsCount: Integer;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffectsCount else
     Result := 0;
 end;
 
-function TKamAbstractViewport.ScreenEffectsNeedDepth: boolean;
+function TCastleAbstractViewport.ScreenEffectsNeedDepth: boolean;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffectsNeedDepth else
     Result := false;
 end;
 
-procedure TKamAbstractViewport.GLContextClose;
+procedure TCastleAbstractViewport.GLContextClose;
 begin
   glFreeTexture(ScreenEffectTextureDest);
   glFreeTexture(ScreenEffectTextureSrc);
@@ -1831,7 +1831,7 @@ begin
   inherited;
 end;
 
-procedure TKamAbstractViewport.CameraAnimateToDefault(const Time: TFloatTime);
+procedure TCastleAbstractViewport.CameraAnimateToDefault(const Time: TFloatTime);
 var
   DefCamera: TCamera;
 begin
@@ -1845,13 +1845,13 @@ begin
   end;
 end;
 
-{ TKamAbstractViewportList -------------------------------------------------- }
+{ TCastleAbstractViewportList -------------------------------------------------- }
 
-function TKamAbstractViewportList.UsesShadowVolumes: boolean;
+function TCastleAbstractViewportList.UsesShadowVolumes: boolean;
 var
   I: Integer;
   MainLightPosition: TVector4Single; { ignored }
-  V: TKamAbstractViewport;
+  V: TCastleAbstractViewport;
 begin
   for I := 0 to Count - 1 do
   begin
@@ -1883,7 +1883,7 @@ begin
   FDefaultViewport := true;
   FAlwaysApplyProjection := false;
 
-  FViewports := TKamAbstractViewportList.Create(false);
+  FViewports := TCastleAbstractViewportList.Create(false);
   if DefaultViewport then FViewports.Add(Self);
 end;
 
@@ -1904,13 +1904,13 @@ begin
   if FViewports <> nil then
   begin
     for I := 0 to FViewports.Count - 1 do
-      if FViewports[I] is TKamViewport then
+      if FViewports[I] is TCastleViewport then
       begin
-        Assert(TKamViewport(FViewports[I]).SceneManager = Self);
+        Assert(TCastleViewport(FViewports[I]).SceneManager = Self);
         { Set SceneManager by direct field (FSceneManager),
-          otherwise TKamViewport.SetSceneManager would try to update
+          otherwise TCastleViewport.SetSceneManager would try to update
           our Viewports list, that we iterate over right now... }
-        TKamViewport(FViewports[I]).FSceneManager := nil;
+        TCastleViewport(FViewports[I]).FSceneManager := nil;
       end;
     FreeAndNil(FViewports);
   end;
@@ -2319,20 +2319,20 @@ begin
   end;
 end;
 
-{ TKamViewport --------------------------------------------------------------- }
+{ TCastleViewport --------------------------------------------------------------- }
 
-destructor TKamViewport.Destroy;
+destructor TCastleViewport.Destroy;
 begin
   SceneManager := nil; { remove Self from SceneManager.Viewports }
   inherited;
 end;
 
-procedure TKamViewport.CameraVisibleChange(ACamera: TObject);
+procedure TCastleViewport.CameraVisibleChange(ACamera: TObject);
 begin
   VisibleChange;
 end;
 
-function TKamViewport.CameraMoveAllowed(ACamera: TWalkCamera;
+function TCastleViewport.CameraMoveAllowed(ACamera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
@@ -2345,7 +2345,7 @@ begin
   end;
 end;
 
-procedure TKamViewport.CameraGetHeight(ACamera: TWalkCamera;
+procedure TCastleViewport.CameraGetHeight(ACamera: TWalkCamera;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 begin
@@ -2359,37 +2359,37 @@ begin
   end;
 end;
 
-function TKamViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
+function TCastleViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
 begin
   Result := SceneManager.CreateDefaultCamera(AOwner);
 end;
 
-function TKamViewport.GetItems: T3D;
+function TCastleViewport.GetItems: T3D;
 begin
   Result := SceneManager.Items;
 end;
 
-function TKamViewport.GetMainScene: T3DScene;
+function TCastleViewport.GetMainScene: T3DScene;
 begin
   Result := SceneManager.MainScene;
 end;
 
-function TKamViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
+function TCastleViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
   Result := SceneManager.ShadowVolumeRenderer;
 end;
 
-function TKamViewport.GetMouseRayHit3D: T3D;
+function TCastleViewport.GetMouseRayHit3D: T3D;
 begin
   Result := SceneManager.MouseRayHit3D;
 end;
 
-function TKamViewport.GetHeadlightCamera: TCamera;
+function TCastleViewport.GetHeadlightCamera: TCamera;
 begin
   Result := SceneManager.Camera;
 end;
 
-procedure TKamViewport.Draw;
+procedure TCastleViewport.Draw;
 begin
   if not Exists then Exit;
 
@@ -2400,13 +2400,13 @@ begin
   RenderOnScreen(Camera);
 end;
 
-procedure TKamViewport.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
+procedure TCastleViewport.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
 begin
   if SceneManager <> nil then
     SceneManager.MouseMove3D(RayOrigin, RayDirection);
 end;
 
-procedure TKamViewport.SetSceneManager(const Value: TCastleSceneManager);
+procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);
 begin
   if Value <> FSceneManager then
   begin

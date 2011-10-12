@@ -212,13 +212,13 @@ type
   TAbstractTexture2DNode = class;
   TBlendModeNode = class;
   TAbstractTextureNode = class;
-  TVRMLEventsEngine = class;
+  TX3DEventsEngine = class;
   TClipPlaneNode = class;
   THAnimHumanoidNode = class;
   TLocalFogNode = class;
   TEffectNode = class;
   TX3DRootNode = class;
-  TVRMLGraphTraverseState = class;
+  TX3DGraphTraverseState = class;
 
   TX3DNodeClass = class of TX3DNode;
 
@@ -238,7 +238,7 @@ type
     vsKambiTriangulation
   );
 
-  { Nodes that will be saved inside TVRMLGraphTraverseState.LastNodes.
+  { Nodes that will be saved inside TX3DGraphTraverseState.LastNodes.
     These are nodes that affect how following nodes are rendered,
     mostly for VRML 1.0 "state". }
   TTraverseStateLastNodes = record
@@ -307,7 +307,7 @@ type
     { Light contribution to the specified vertex color.
       This can be used by software renderers (ray-tracers etc.)
       to calculate pixel color following VRML/X3D specifications.
-      TVRMLGraphTraverseState.Emission should be added to
+      TX3DGraphTraverseState.Emission should be added to
       TLightInstance.Contribution (for each light),
       and resulting color should be processed by TFogNode.ApplyFog.
 
@@ -317,7 +317,7 @@ type
       during calculations. OpenGL also clamps only at the end. }
     function Contribution(
       const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
-      State: TVRMLGraphTraverseState;
+      State: TX3DGraphTraverseState;
       const CamPosition: TVector3Single): TVector3Single;
 
     { Light contribution, without knowing the camera or full material.
@@ -367,7 +367,7 @@ type
     to keep track for example of the @link(LastNodes).
     But we want to still handle VRML 1.0, 100% correctly, so here we are:
     this class contains whole state needed for any VRML/X3D version. }
-  TVRMLGraphTraverseState = class
+  TX3DGraphTraverseState = class
   private
     FLastNodes: TTraverseStateLastNodes;
     FOwnedLastNodes: array [TVRML1StateNode] of boolean;
@@ -393,7 +393,7 @@ type
       They are never @nil (traversing code must always take care to initialize
       them to default nodes at the beginning).
 
-      Note that TVRMLGraphTraverseState instance doesn't have to own
+      Note that TX3DGraphTraverseState instance doesn't have to own
       these nodes (doesn't free them, and doesn't track of when they are
       freed). E.g. nodes' TX3DNode.ParentsCount doesn't take into account
       that they are owned by this state.
@@ -417,7 +417,7 @@ type
     { Lights active in this state.
 
       May be @nil if empty. This way we optimize creation / assignment time,
-      which happen very often with TVRMLGraphTraverseState during VRML/X3D
+      which happen very often with TX3DGraphTraverseState during VRML/X3D
       traversing.
 
       Note that VRML >= 2.0 "global" lights are added from T3DSceneCore,
@@ -462,7 +462,7 @@ type
       like InvertedTransform and TransformScale.
       Copies also the @link(ClipPlanes) list, as it contains the transformation
       information. }
-    procedure AssignTransform(Source: TVRMLGraphTraverseState);
+    procedure AssignTransform(Source: TX3DGraphTraverseState);
 
   public
     { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
@@ -471,7 +471,7 @@ type
 
     ShapeNode: TAbstractShapeNode;
 
-    constructor CreateCopy(Source: TVRMLGraphTraverseState);
+    constructor CreateCopy(Source: TX3DGraphTraverseState);
 
     { Standard constructor.
       Uses global StateDefaultNodes as default nodes for VRML 1.0 state.
@@ -480,19 +480,19 @@ type
 
     destructor Destroy; override;
 
-    procedure Assign(Source: TVRMLGraphTraverseState);
+    procedure Assign(Source: TX3DGraphTraverseState);
 
-    { Clear the whole state, just like this TVRMLGraphTraverseState instance
+    { Clear the whole state, just like this TX3DGraphTraverseState instance
       would be just constructed. }
     procedure Clear;
 
-    { Compare with other TVRMLGraphTraverseState instance.
+    { Compare with other TX3DGraphTraverseState instance.
       True if these two states, when applied to the same geometry,
       result in the same TGeometryArrays output.
       If IgnoreTransform then we should ignore transformation during comparison
       (it means that renderer is absolutely sure that different transformation
       of geometry doesn't affect the generated arrays). }
-    function Equals(SecondValue: TVRMLGraphTraverseState;
+    function Equals(SecondValue: TX3DGraphTraverseState;
       const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
 
     { Returns texture node that should be used for nodes within this State.
@@ -588,7 +588,7 @@ type
       So, following the X3D specification, we should consider the first
       clip planes on this list more important.
 
-      Always @nil if empty. This allows us to optimize TVRMLGraphTraverseState
+      Always @nil if empty. This allows us to optimize TX3DGraphTraverseState
       processing. }
     ClipPlanes: TClipPlaneList;
 
@@ -616,14 +616,14 @@ type
     function Emission(LightingCalculationOn: boolean): TVector3Single;
   end;
 
-  { Stack of TVRMLGraphTraverseState.
+  { Stack of TX3DGraphTraverseState.
 
     Allows you for much faster
-    creation/destruction of TVRMLGraphTraverseState instances.
-    Although you can always construct / destruct TVRMLGraphTraverseState
+    creation/destruction of TX3DGraphTraverseState instances.
+    Although you can always construct / destruct TX3DGraphTraverseState
     as normal objects, in some cases this is too slow: when traversing VRML graph
     (e.g. profile change_vrml_by_code_2 with ChangeField), merely
-    creating/destroying TVRMLGraphTraverseState instances takes a noticeable
+    creating/destroying TX3DGraphTraverseState instances takes a noticeable
     amount of time.
 
     This stack allows you to do this faster, first of all by
@@ -641,16 +641,16 @@ type
 
     Note that for speed purposes all Traverse calls actually
     share a single stack. That is,
-    to avoid creating TVRMLGraphTraverseStateStack instance each time
-    (because even creating TVRMLGraphTraverseStateStack
-    takes some time (as it prepares a pool of TVRMLGraphTraverseState
+    to avoid creating TX3DGraphTraverseStateStack instance each time
+    (because even creating TX3DGraphTraverseStateStack
+    takes some time (as it prepares a pool of TX3DGraphTraverseState
     instances, to allow fast push/pop)), TX3DNode simply reuses a single
-    global TVRMLGraphTraverseStateStack instance. This means that,
+    global TX3DGraphTraverseStateStack instance. This means that,
     if you execute Traverse while being inside other Traverse, you
     must first finish innermost Traverse before continuing with the outer. }
-  TVRMLGraphTraverseStateStack = class
+  TX3DGraphTraverseStateStack = class
   private
-    Items: array of TVRMLGraphTraverseState;
+    Items: array of TX3DGraphTraverseState;
     ItemsAllocated: Cardinal;
     procedure GrowItems;
   public
@@ -661,18 +661,18 @@ type
     procedure Clear;
 
     { Push a clear state on the stack. Clear state has everything set
-      like a TVRMLGraphTraverseState right after creating. }
+      like a TX3DGraphTraverseState right after creating. }
     procedure PushClear;
     { Push a copy of current top on the stack. }
     procedure Push;
     { Push a copy of given Item on the stack.
-      We copy by TVRMLGraphTraverseState.Assign, we don't copy the reference. }
-    procedure Push(const Item: TVRMLGraphTraverseState);
+      We copy by TX3DGraphTraverseState.Assign, we don't copy the reference. }
+    procedure Push(const Item: TX3DGraphTraverseState);
     procedure Pop;
 
     { Peek at the top of the stack. }
-    function Top: TVRMLGraphTraverseState;
-    function PreviousTop: TVRMLGraphTraverseState;
+    function Top: TX3DGraphTraverseState;
+    function PreviousTop: TX3DGraphTraverseState;
   end;
 
   PTraversingInfo = ^TTraversingInfo;
@@ -683,12 +683,12 @@ type
 
   { Used as a callback by TX3DNode.Traverse. }
   TTraversingFunc = procedure (Node: TX3DNode;
-    StateStack: TVRMLGraphTraverseStateStack;
+    StateStack: TX3DGraphTraverseStateStack;
     ParentInfo: PTraversingInfo;
     var TraverseIntoChildren: boolean) of object;
 
   TTraversingAfterFunc = procedure (Node: TX3DNode;
-    StateStack: TVRMLGraphTraverseStateStack;
+    StateStack: TX3DGraphTraverseStateStack;
     ParentInfo: PTraversingInfo) of object;
 
   TEnumerateChildrenFunction =
@@ -700,17 +700,17 @@ type
   TSFNode = class;
   TMFNode = class;
   TX3DPrototypeNode = class;
-  TVRMLPrototypeBaseList = class;
-  TVRMLRouteList = class;
-  TVRMLInterfaceDeclaration = class;
-  TVRMLNames = class;
+  TX3DPrototypeBaseList = class;
+  TX3DRouteList = class;
+  TX3DInterfaceDeclaration = class;
+  TX3DNames = class;
   TX3DNodeNames = class;
-  TVRMLPrototypeNames = class;
+  TX3DPrototypeNames = class;
 
-  TVRMLAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
-  TVRMLAccessTypes = set of TVRMLAccessType;
+  TX3DAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
+  TX3DAccessTypes = set of TX3DAccessType;
 
-  TVRMLInterfaceDeclarationList = class;
+  TX3DInterfaceDeclarationList = class;
 
   TNodeDestructionNotification = procedure (Node: TX3DNode) of object;
 
@@ -816,7 +816,7 @@ type
     because we want operation "read from VRML file + write to VRML file"
     to be as non-destructible as possible. So if user wrote
     invalid class hierarchy, we will output this invalid class hierarchy. }
-  TSFNode = class(TVRMLSingleField)
+  TSFNode = class(TX3DSingleField)
   private
     FValue: TX3DNode;
     FParentNode: TX3DNode;
@@ -837,7 +837,7 @@ type
       Suitable only for special cases. For example, in instantiated prototypes,
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
     constructor Create(AParentNode: TX3DNode; const AName: string;
       const AAllowedChildrenClasses: array of TX3DNodeClass;
@@ -883,18 +883,18 @@ type
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     { VRML node containing this field. May be @nil if unknown, in special
       cases.
 
       Note that this property is exactly the same as
-      TVRMLFieldOrEvent.ParentNode,
+      TX3DFieldOrEvent.ParentNode,
       contains always the same value. But this is declared as TX3DNode,
       so it's more comfortable. }
     property ParentNode: TX3DNode read FParentNode;
@@ -932,11 +932,11 @@ type
     Note that items of MFNode @italic(cannot) be nil (i.e. VRML/X3D doesn't
     allow to use NULL inside MFNode), contrary to SFNode.
 
-    Note that TMFNode implementation doesn't use TVRMLSimpleMultField.
+    Note that TMFNode implementation doesn't use TX3DSimpleMultField.
     One reason is that we don't want to parse MFNode items
     by SFNode parser, because MFNode doesn't allow NULL items.
     (In the past, another argument was that we want to use TX3DNodeList
-    and it wasn't compatible with TVRMLSimpleMultField.
+    and it wasn't compatible with TX3DSimpleMultField.
     But now TX3DNodeList descends from TFPSList, so it isn't a problem.)
 
     Just like for TSFNode:
@@ -945,7 +945,7 @@ type
     But this is used only to produce warnings for a user.
     You should never assert that every item actually is one the requested
     classes.  }
-  TMFNode = class(TVRMLMultField)
+  TMFNode = class(TX3DMultField)
   private
     FItems: TX3DNodeList;
     FDefaultItems: TX3DNodeList;
@@ -975,7 +975,7 @@ type
       Suitable only for special cases. For example, in instantiated prototypes,
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
     constructor Create(AParentNode: TX3DNode; const AName: string;
       const AAllowedChildrenClasses: array of TX3DNodeClass); overload;
@@ -1026,11 +1026,11 @@ type
     procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     property ParentNode: TX3DNode read FParentNode;
@@ -1144,7 +1144,7 @@ type
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     function NodeTypeName: string; override;
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1152,7 +1152,7 @@ type
     constructor CreateUnknown(const ANodeName, AWWWBasePath: string; const ANodeTypeName :string);
   end;
 
-{ TVRMLInterfaceDeclaration -------------------------------------------------- }
+{ TX3DInterfaceDeclaration -------------------------------------------------- }
 
   { Interface declaration, used in VRML (exposed) prototypes and
     for nodes with dynamic fields (Script, ComposedShader).
@@ -1173,15 +1173,15 @@ type
     the information is contained within FieldOrEvent
     instance, like Name, field class type, out or in (in case of event),
     exposed or not (in case of field), IsClauseNames. }
-  TVRMLInterfaceDeclaration = class(TVRMLFileItem)
+  TX3DInterfaceDeclaration = class(TX3DFileItem)
   private
-    FFieldOrEvent: TVRMLFieldOrEvent;
+    FFieldOrEvent: TX3DFieldOrEvent;
 
     { kept in synch with FFieldOrEvent by SetFieldOrEvent }
-    FField: TVRMLField;
-    FEvent: TVRMLEvent;
+    FField: TX3DField;
+    FEvent: TX3DEvent;
 
-    procedure SetFieldOrEvent(const Value: TVRMLFieldOrEvent);
+    procedure SetFieldOrEvent(const Value: TX3DFieldOrEvent);
   private
     FParentNode: TX3DNode;
   public
@@ -1201,15 +1201,15 @@ type
       (e.g. this is used X3D XML reader). Just be careful, and remember
       that this object owns FieldOrEvent (that is, will free it
       at destruction). }
-    property FieldOrEvent: TVRMLFieldOrEvent
+    property FieldOrEvent: TX3DFieldOrEvent
       read FFieldOrEvent write SetFieldOrEvent;
 
     { Create a copy of current FieldOrEvent.
       Sets NewParentNode as Result.ParentNode.
       Note the new copy will not have ParentIntefaceDeclaration set
-      (as the idea is that you own created copy, not this TVRMLInterfaceDeclaration
+      (as the idea is that you own created copy, not this TX3DInterfaceDeclaration
       instance). }
-    function CopyFieldOrEvent(NewParentNode: TX3DNode): TVRMLFieldOrEvent;
+    function CopyFieldOrEvent(NewParentNode: TX3DNode): TX3DFieldOrEvent;
 
     { Create a copy of current FieldOrEvent, and add it to Node.Fields
       or Node.Events. }
@@ -1223,11 +1223,11 @@ type
       @nil if such cast is not possible, for example when
       FieldOrEvent is an event and you try to use Field method.
       @groupBegin }
-    property Field: TVRMLField read FField;
-    property Event: TVRMLEvent read FEvent;
+    property Field: TX3DField read FField;
+    property Event: TX3DEvent read FEvent;
     { @groupEnd }
 
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames;
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames;
       FieldValue, IsClauseAllowed: boolean);
 
     { Parse interface declaration encoded in XML.
@@ -1240,7 +1240,7 @@ type
       the X3D XML encoding spec) the <IS> element inside node body may
       point from nodeField to any interface field of this node, including
       InterfaceDeclarations. So ParseISStatement handles this. }
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames;
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames;
       FieldValue: boolean);
 
     { Save this interface declaration to stream.
@@ -1271,31 +1271,31 @@ type
       and Field are @nil (which may happen when it's not initialized
       (e.g. parsed) yet) or when both are non-nil (which should never
       happen). }
-    function AccessType: TVRMLAccessType;
+    function AccessType: TX3DAccessType;
 
     function DeepCopy(NewParentNode: TX3DNode;
-      CopyState: TX3DNodeDeepCopyState): TVRMLInterfaceDeclaration;
+      CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
   end;
 
-  TVRMLInterfaceDeclarationList = class(specialize TFPGObjectList<TVRMLInterfaceDeclaration>)
+  TX3DInterfaceDeclarationList = class(specialize TFPGObjectList<TX3DInterfaceDeclaration>)
   public
     { Find field or event with given Name.
       @nil if not found. }
-    function TryFindName(const Name: string): TVRMLFieldOrEvent;
+    function TryFindName(const Name: string): TX3DFieldOrEvent;
 
     { Find field with given Name.
       @nil if not found. }
-    function TryFindFieldName(const Name: string): TVRMLField;
+    function TryFindFieldName(const Name: string): TX3DField;
 
     { Find event with given Name.
       @nil if not found. }
-    function TryFindEventName(const Name: string): TVRMLEvent;
+    function TryFindEventName(const Name: string): TX3DEvent;
   end;
 
-{ TVRMLPrototype ------------------------------------------------------------- }
+{ TX3DPrototype ------------------------------------------------------------- }
 
   { }
-  TVRMLPrototypeBase = class;
+  TX3DPrototypeBase = class;
 
   EVRMLPrototypeInstantiateError = class(Exception);
 
@@ -1316,7 +1316,7 @@ type
     always use CreatePrototypeNode. }
   TX3DPrototypeNode = class(TX3DNode)
   private
-    FPrototype: TVRMLPrototypeBase;
+    FPrototype: TX3DPrototypeBase;
 
     procedure PrepareInstantiateIsClause(Node, Child: TX3DNode);
 
@@ -1381,8 +1381,8 @@ type
       internal route (is internal route still necessary? for exposedFields?
       seems so, I'm not sure...). }
     procedure FieldOrEventHandleIsClause(
-      Destination, Source: TVRMLFieldOrEvent;
-      NewIsClauseNames: TKamStringList);
+      Destination, Source: TX3DFieldOrEvent;
+      NewIsClauseNames: TCastleStringList);
   protected
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
@@ -1390,10 +1390,10 @@ type
       Always use CreatePrototypeNode for this node class. }
     constructor Create(const ANodeName, AWWWBasePath: string); override;
     constructor CreatePrototypeNode(const ANodeName, AWWWBasePath: string;
-      APrototype: TVRMLPrototypeBase);
+      APrototype: TX3DPrototypeBase);
     function NodeTypeName: string; override;
 
-    property Prototype: TVRMLPrototypeBase read FPrototype;
+    property Prototype: TX3DPrototypeBase read FPrototype;
 
     { Instantiate the prototype, that is create new VRML node
       (of "normal" classs, not TX3DPrototypeNode) using prototype description.
@@ -1446,17 +1446,17 @@ type
     function Instantiate: TX3DNode;
   end;
 
-  TVRMLPrototypeBase = class(TVRMLFileItem)
+  TX3DPrototypeBase = class(TX3DFileItem)
   private
     FName: string;
-    FInterfaceDeclarations: TVRMLInterfaceDeclarationList;
+    FInterfaceDeclarations: TX3DInterfaceDeclarationList;
 
     FWWWBasePath: string;
 
     { Parses InterfaceDeclarations. Also inits WWWBasePath from
       Names.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
-      Lexer: TX3DLexer; Names: TVRMLNames);
+      Lexer: TX3DLexer; Names: TX3DNames);
 
     { Parse interface declarations in XML encoding.
       Handle sequence of <field> elements.
@@ -1466,7 +1466,7 @@ type
       you do not have 'ProtoInterface', so you would have to do it yourself
       anyway). }
     procedure ParseInterfaceDeclarationsXML(ExternalProto: boolean;
-      Element: TDOMElement; Names: TVRMLNames);
+      Element: TDOMElement; Names: TX3DNames);
 
     { Saves interface declarations of the prototype.
       For classic encoding, they are already enclosed in [ ]. }
@@ -1476,14 +1476,14 @@ type
     constructor Create;
     destructor Destroy; override;
     property Name: string read FName write FName;
-    property InterfaceDeclarations: TVRMLInterfaceDeclarationList
+    property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
     { Parse prototype, and add it to Names.Prototypes.
       Adds to @code(Names) by @code(Names.Prototypes.Bind(Self)).
       @groupBegin }
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); virtual; abstract;
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); virtual; abstract;
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); virtual; abstract;
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames); virtual; abstract;
     { @groupEnd }
 
     { The base URL path used to resolve urls inside.
@@ -1492,23 +1492,23 @@ type
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
   end;
 
-  TVRMLPrototypeBaseList = class(specialize TFPGObjectList<TVRMLPrototypeBase>);
+  TX3DPrototypeBaseList = class(specialize TFPGObjectList<TX3DPrototypeBase>);
 
-  TVRMLPrototype = class(TVRMLPrototypeBase)
+  TX3DPrototype = class(TX3DPrototypeBase)
   private
     FNode: TX3DRootNode;
   public
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
     { Prototype contents: all nodes, prototypes, routes defined inside. }
     property Node: TX3DRootNode read FNode;
   end;
 
-  TVRMLExternalPrototype = class(TVRMLPrototypeBase)
+  TX3DExternalPrototype = class(TX3DPrototypeBase)
   private
     FURLList: TMFString;
 
@@ -1521,7 +1521,7 @@ type
       that contained this prototype) loaded. }
     ReferencedPrototypeNode: TX3DRootNode;
 
-    FReferencedPrototype: TVRMLPrototype;
+    FReferencedPrototype: TX3DPrototype;
 
     FReferencedClass: TX3DNodeClass;
   public
@@ -1529,11 +1529,11 @@ type
     destructor Destroy; override;
     property URLList: TMFString read FURLList;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
-    property ReferencedPrototype: TVRMLPrototype read FReferencedPrototype;
+    property ReferencedPrototype: TX3DPrototype read FReferencedPrototype;
     property ReferencedClass: TX3DNodeClass read FReferencedClass;
 
     { Loads URL, until the first success. Sets either ReferencedClass to non-nil
@@ -1543,16 +1543,16 @@ type
     procedure UnloadReferenced;
   end;
 
-{ TVRMLRoute ----------------------------------------------------------------- }
+{ TX3DRoute ----------------------------------------------------------------- }
 
   { }
-  TVRMLRoute = class(TVRMLFileItem)
+  TX3DRoute = class(TX3DFileItem)
   private
     FSourceNode: TX3DNode;
-    FSourceEvent: TVRMLEvent;
+    FSourceEvent: TX3DEvent;
 
     FDestinationNode: TX3DNode;
-    FDestinationEvent: TVRMLEvent;
+    FDestinationEvent: TX3DEvent;
 
     LastEventTime: TX3DTime;
     FInternal: boolean;
@@ -1560,29 +1560,29 @@ type
     procedure DestructionNotification(Node: TX3DNode);
 
     procedure UnsetEnding(
-      var Node: TX3DNode; var Event: TVRMLEvent;
+      var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean;
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
-      Names: TVRMLNames;
-      var Node: TX3DNode; var Event: TVRMLEvent;
+      Names: TX3DNames;
+      var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean);
 
     { Set Event, based on FieldOrEvent (may be actual event,
       or exposed field containing it) and DestEnding.
       Assumes that Event is clear on enter (cleared by UnsetEnding). }
     procedure SetEndingInternal(
-      const Node: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent;
-      var Event: TVRMLEvent;
+      const Node: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent;
+      var Event: TX3DEvent;
       const DestEnding: boolean);
 
     procedure SetEndingDirectly(
-      const NewNode: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent;
-      var Node: TX3DNode; var Event: TVRMLEvent;
+      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent;
+      var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean);
 
-    procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     constructor Create;
@@ -1604,7 +1604,7 @@ type
 
       @groupBegin }
     property SourceNode: TX3DNode read FSourceNode;
-    property SourceEvent: TVRMLEvent read FSourceEvent;
+    property SourceEvent: TX3DEvent read FSourceEvent;
     { @groupEnd }
 
     { Destination event properties.
@@ -1612,7 +1612,7 @@ type
 
       @groupBegin }
     property DestinationNode: TX3DNode read FDestinationNode;
-    property DestinationEvent: TVRMLEvent read FDestinationEvent;
+    property DestinationEvent: TX3DEvent read FDestinationEvent;
     { @groupEnd }
 
     { Set source/destination of the route.
@@ -1629,11 +1629,11 @@ type
       @groupBegin }
     procedure SetSource(
       const SourceNodeName, SourceFieldOrEventName: string;
-      Names: TVRMLNames);
+      Names: TX3DNames);
 
     procedure SetDestination(
       const DestinationNodeName, DestinationFieldOrEventName: string;
-      Names: TVRMLNames);
+      Names: TX3DNames);
     { @groupEnd }
 
     { These set source/destination of the route in more direct way.
@@ -1654,23 +1654,23 @@ type
 
       @groupBegin }
     procedure SetSourceDirectly(
-      const NewNode: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent);
+      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent);
 
     procedure SetDestinationDirectly(
-      const NewNode: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent);
+      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent);
 
-    procedure SetSourceDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
-    procedure SetDestinationDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
+    procedure SetSourceDirectly(const FieldOrEvent: TX3DFieldOrEvent);
+    procedure SetDestinationDirectly(const FieldOrEvent: TX3DFieldOrEvent);
     { @groupEnd }
 
     { Parse the route (classic VRML encoding).
       Implementation should be able to safely assume that current token
       is ROUTE. }
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames);
 
     { Parse the route (XML encoding).
       Given Element here must have TagName = 'ROUTE'. }
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
 
     { Save a ROUTE to VRML file.
 
@@ -1705,37 +1705,37 @@ type
     }
     property Internal: boolean read FInternal write FInternal default false;
 
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLRoute;
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
 
-  TVRMLRouteList = class(specialize TFPGObjectList<TVRMLRoute>);
+  TX3DRouteList = class(specialize TFPGObjectList<TX3DRoute>);
 
-  TVRMLImport = class(TVRMLFileItem)
+  TX3DImport = class(TX3DFileItem)
   public
     InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames);
 
     { Parse the IMPORT declaration (XML encoding).
       Given Element here must have TagName = 'IMPORT'. }
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLImport;
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DImport;
   end;
 
-  TVRMLExport = class(TVRMLFileItem)
+  TX3DExport = class(TX3DFileItem)
   public
     ExportedNodeName, ExportedNodeAlias: string;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames);
 
     { Parse the EXPORT declaration (XML encoding).
       Given Element here must have TagName = 'EXPORT'. }
-    procedure ParseXML(Element: TDOMElement; Names: TVRMLNames);
+    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
-    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLExport;
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DExport;
   end;
 
 {$I x3dnodes_eventsengine.inc}
@@ -1797,20 +1797,20 @@ type
     function Bound(Node: TX3DNode): boolean;
   end;
 
-  TVRMLPrototypeNames = class(TStringListCaseSens)
+  TX3DPrototypeNames = class(TStringListCaseSens)
   public
-    procedure Bind(Proto: TVRMLPrototypeBase);
+    procedure Bind(Proto: TX3DPrototypeBase);
 
     { Find proto bound to given name. @nil if none. }
-    function Bound(const Name: string): TVRMLPrototypeBase;
+    function Bound(const Name: string): TX3DPrototypeBase;
   end;
 
-  TVRMLImportableNames = class(TStringListCaseSens)
+  TX3DImportableNames = class(TStringListCaseSens)
   public
     destructor Destroy; override;
 
     { Bind Exported names to given Inline node name.
-      Exported instance becomes owner by this TVRMLImportableNames instance.
+      Exported instance becomes owner by this TX3DImportableNames instance.
       InlineName must be <> '' here. }
     procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
   end;
@@ -1820,15 +1820,15 @@ type
 
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
-  TVRMLNames = class
+  TX3DNames = class
   private
     FVersion: TX3DVersion;
     FWWWBasePath: string;
     FNodes: TX3DNodeNames;
-    FPrototypes: TVRMLPrototypeNames;
+    FPrototypes: TX3DPrototypeNames;
     FImported: TX3DNodeNames;
     FExported: TX3DNodeNames;
-    FImportable: TVRMLImportableNames;
+    FImportable: TX3DImportableNames;
   public
     constructor Create(const AAutoRemoveNodes: boolean;
       const AWWWBasePath: string;
@@ -1840,7 +1840,7 @@ type
       It copies the prototype and exported names list (names visible
       from the outside), and sets them to @nil (to avoid releasing them
       at destruction). }
-    procedure ExtractNames(out APrototypes: TVRMLPrototypeNames;
+    procedure ExtractNames(out APrototypes: TX3DPrototypeNames;
       out AExported: TX3DNodeNames);
 
     { Base path for resolving URLs from nodes in this namespace.
@@ -1863,7 +1863,7 @@ type
     property Nodes: TX3DNodeNames read FNodes;
 
     { Current namespace of PROTO names. }
-    property Prototypes: TVRMLPrototypeNames read FPrototypes;
+    property Prototypes: TX3DPrototypeNames read FPrototypes;
 
     { Currently IMPORTed nodes.
 
@@ -1894,10 +1894,10 @@ type
       (there's no way to IMPORT from unnamed Inline nodes).
       Objects[] of this list are instances of TX3DNodeNames
       corresponding to exported names within the inline. }
-    property Importable: TVRMLImportableNames read FImportable;
+    property Importable: TX3DImportableNames read FImportable;
 
-    procedure DoExport(E: TVRMLExport);
-    procedure DoImport(I: TVRMLImport);
+    procedure DoExport(E: TX3DExport);
+    procedure DoImport(I: TX3DImport);
   end;
 
 { TraverseStateLastNodesClasses ---------------------------------------------- }
@@ -2250,20 +2250,20 @@ resourcestring
   SDataURILoadError = 'Exception %s occurred when trying to load %s from data URI starting with "%s": %s';
 
 {$define GeometryNotImplemented :=
-  function TGeometryNotImplemented.LocalBoundingBox(State: TVRMLGraphTraverseState;
-    ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+  function TGeometryNotImplemented.LocalBoundingBox(State: TX3DGraphTraverseState;
+    ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
   begin
     Result := EmptyBox3D;
   end;
 
-  function TGeometryNotImplemented.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-    ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+  function TGeometryNotImplemented.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
   begin
     Result := 0;
   end;
 
-  function TGeometryNotImplemented.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-    ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+  function TGeometryNotImplemented.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+    ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
   begin
     Result := 0;
   end;
@@ -2326,7 +2326,7 @@ resourcestring
 {$I x3dnodes_bitmanagement.inc}
 
 function InterfaceDeclarationKeywords(
-  const AccessTypes: TVRMLAccessTypes): TX3DKeywords;
+  const AccessTypes: TX3DAccessTypes): TX3DKeywords;
 begin
   Result := [];
   if atInputOnly in AccessTypes then
@@ -2343,7 +2343,7 @@ end;
 
 function TLightInstance.Contribution(
   const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   const CamPosition: TVector3Single): TVector3Single;
 {$I x3dnodes_lightcontribution.inc}
 
@@ -2446,25 +2446,25 @@ begin
         Exit(false);
 end;
 
-{ TVRMLGraphTraverseState ---------------------------------------------------- }
+{ TX3DGraphTraverseState ---------------------------------------------------- }
 
 var
-  { Starting state nodes for TVRMLGraphTraverseState.Create. }
+  { Starting state nodes for TX3DGraphTraverseState.Create. }
   StateDefaultNodes: TTraverseStateLastNodes;
 
-procedure TVRMLGraphTraverseState.CommonCreate;
+procedure TX3DGraphTraverseState.CommonCreate;
 begin
   inherited Create;
   PointingDeviceSensors := TPointingDeviceSensorList.Create(false);
 end;
 
-constructor TVRMLGraphTraverseState.CreateCopy(Source: TVRMLGraphTraverseState);
+constructor TX3DGraphTraverseState.CreateCopy(Source: TX3DGraphTraverseState);
 begin
   CommonCreate;
   Assign(Source);
 end;
 
-constructor TVRMLGraphTraverseState.Create;
+constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
 
@@ -2476,7 +2476,7 @@ begin
   AssignLastNodes(StateDefaultNodes);
 end;
 
-destructor TVRMLGraphTraverseState.Destroy;
+destructor TX3DGraphTraverseState.Destroy;
 var
   SN: TVRML1StateNode;
 begin
@@ -2494,7 +2494,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLGraphTraverseState.Clear;
+procedure TX3DGraphTraverseState.Clear;
 begin
   Transform := IdentityMatrix4Single;
   TransformScale := 1.0;
@@ -2515,21 +2515,21 @@ begin
   FreeAndNil(Effects);
 end;
 
-procedure TVRMLGraphTraverseState.AddLight(const Light: TLightInstance);
+procedure TX3DGraphTraverseState.AddLight(const Light: TLightInstance);
 begin
   if Lights = nil then
     Lights := TLightInstancesList.Create;
   Lights.Add(Light);
 end;
 
-function TVRMLGraphTraverseState.AddClipPlane: PClipPlane;
+function TX3DGraphTraverseState.AddClipPlane: PClipPlane;
 begin
   if ClipPlanes = nil then
     ClipPlanes := TClipPlaneList.Create;
   Result := ClipPlanes.Add();
 end;
 
-procedure TVRMLGraphTraverseState.Assign(Source: TVRMLGraphTraverseState);
+procedure TX3DGraphTraverseState.Assign(Source: TX3DGraphTraverseState);
 begin
   AssignTransform(Source);
 
@@ -2554,8 +2554,8 @@ begin
     FreeAndNil(Lights);
 end;
 
-procedure TVRMLGraphTraverseState.AssignTransform(
-  Source: TVRMLGraphTraverseState);
+procedure TX3DGraphTraverseState.AssignTransform(
+  Source: TX3DGraphTraverseState);
 begin
   Transform := Source.Transform;
   TransformScale := Source.TransformScale;
@@ -2586,7 +2586,7 @@ begin
     FreeAndNil(Effects);
 end;
 
-function TVRMLGraphTraverseState.Equals(SecondValue: TVRMLGraphTraverseState;
+function TX3DGraphTraverseState.Equals(SecondValue: TX3DGraphTraverseState;
   const IgnoreTransform: boolean): boolean;
 var
   SN: TVRML1StateNode;
@@ -2609,14 +2609,14 @@ begin
   end;
 end;
 
-function TVRMLGraphTraverseState.Texture: TAbstractTextureNode;
+function TX3DGraphTraverseState.Texture: TAbstractTextureNode;
 begin
   if ShapeNode = nil then
     Result := LastNodes.Texture2 else
     Result := ShapeNode.Texture;
 end;
 
-function TVRMLGraphTraverseState.BlendMode: TBlendModeNode;
+function TX3DGraphTraverseState.BlendMode: TBlendModeNode;
 var
   Node: TX3DNode;
 begin
@@ -2633,7 +2633,7 @@ begin
   end;
 end;
 
-procedure TVRMLGraphTraverseState.SetLastNodes(const StateNode: TVRML1StateNode;
+procedure TX3DGraphTraverseState.SetLastNodes(const StateNode: TVRML1StateNode;
   const Node: TX3DNode; const OwnNode: boolean);
 begin
   if FLastNodes.Nodes[StateNode] <> Node then
@@ -2648,7 +2648,7 @@ begin
   end;
 end;
 
-procedure TVRMLGraphTraverseState.AssignLastNodes(
+procedure TX3DGraphTraverseState.AssignLastNodes(
   const NewLastNodes: TTraverseStateLastNodes);
 var
   SN: TVRML1StateNode;
@@ -2662,7 +2662,7 @@ begin
     end;
 end;
 
-function TVRMLGraphTraverseState.Emission(LightingCalculationOn: boolean): TVector3Single;
+function TX3DGraphTraverseState.Emission(LightingCalculationOn: boolean): TVector3Single;
 var
   M1: TMaterialNode_1;
   M2: TMaterialNode;
@@ -2692,14 +2692,14 @@ begin
   end;
 end;
 
-{ TVRMLGraphTraverseStateStack --------------------------------------------- }
+{ TX3DGraphTraverseStateStack --------------------------------------------- }
 
-constructor TVRMLGraphTraverseStateStack.Create;
+constructor TX3DGraphTraverseStateStack.Create;
 begin
   inherited;
 end;
 
-destructor TVRMLGraphTraverseStateStack.Destroy;
+destructor TX3DGraphTraverseStateStack.Destroy;
 var
   I: Integer;
 begin
@@ -2708,7 +2708,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLGraphTraverseStateStack.GrowItems;
+procedure TX3DGraphTraverseStateStack.GrowItems;
 var
   I, OldLen: Integer;
 begin
@@ -2718,11 +2718,11 @@ begin
     Items[I] := nil;
 end;
 
-procedure TVRMLGraphTraverseStateStack.PushClear;
+procedure TX3DGraphTraverseStateStack.PushClear;
 begin
   if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
   if Items[ItemsAllocated] = nil then
-    Items[ItemsAllocated] := TVRMLGraphTraverseState.Create;
+    Items[ItemsAllocated] := TX3DGraphTraverseState.Create;
 
   { We could instead do Clear in Pop, and then we would know that all
     non allocated instances are always clear.
@@ -2738,42 +2738,42 @@ begin
   Inc(ItemsAllocated);
 end;
 
-procedure TVRMLGraphTraverseStateStack.Push;
+procedure TX3DGraphTraverseStateStack.Push;
 begin
   if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
   if Items[ItemsAllocated] = nil then
-    Items[ItemsAllocated] := TVRMLGraphTraverseState.Create;
+    Items[ItemsAllocated] := TX3DGraphTraverseState.Create;
 
   Items[ItemsAllocated].Assign(Items[ItemsAllocated - 1]);
   Inc(ItemsAllocated);
 end;
 
-procedure TVRMLGraphTraverseStateStack.Push(const Item: TVRMLGraphTraverseState);
+procedure TX3DGraphTraverseStateStack.Push(const Item: TX3DGraphTraverseState);
 begin
   if ItemsAllocated = Cardinal(Length(Items)) then GrowItems;
   if Items[ItemsAllocated] = nil then
-    Items[ItemsAllocated] := TVRMLGraphTraverseState.Create;
+    Items[ItemsAllocated] := TX3DGraphTraverseState.Create;
 
   Items[ItemsAllocated].Assign(Item);
   Inc(ItemsAllocated);
 end;
 
-procedure TVRMLGraphTraverseStateStack.Pop;
+procedure TX3DGraphTraverseStateStack.Pop;
 begin
   Dec(ItemsAllocated);
 end;
 
-function TVRMLGraphTraverseStateStack.Top: TVRMLGraphTraverseState;
+function TX3DGraphTraverseStateStack.Top: TX3DGraphTraverseState;
 begin
   Result := Items[ItemsAllocated - 1];
 end;
 
-function TVRMLGraphTraverseStateStack.PreviousTop: TVRMLGraphTraverseState;
+function TX3DGraphTraverseStateStack.PreviousTop: TX3DGraphTraverseState;
 begin
   Result := Items[ItemsAllocated - 2];
 end;
 
-procedure TVRMLGraphTraverseStateStack.Clear;
+procedure TX3DGraphTraverseStateStack.Clear;
 begin
   ItemsAllocated := 0;
 end;
@@ -2936,7 +2936,7 @@ end;
 
 { TSFNode --------------------------------------------------------------------- }
 
-constructor TSFNode.CreateUndefined(AParentNode: TVRMLFileItem;
+constructor TSFNode.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
@@ -2955,7 +2955,7 @@ constructor TSFNode.Create(AParentNode: TX3DNode; const AName: string;
 begin
   inherited Create(AParentNode, AName);
 
-  { FParentNode is just a copy of inherited (TVRMLFieldOrEvent) FParentNode,
+  { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
   FParentNode := AParentNode;
 
@@ -2985,7 +2985,7 @@ constructor TSFNode.Create(AParentNode: TX3DNode; const AName: string;
 begin
   inherited Create(AParentNode, AName);
 
-  { FParentNode is just a copy of inherited (TVRMLFieldOrEvent) FParentNode,
+  { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
   FParentNode := AParentNode;
 
@@ -3048,7 +3048,7 @@ begin
   end else
   begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
-    Value := ParseNode(Lexer, Names as TVRMLNames, true);
+    Value := ParseNode(Lexer, Names as TX3DNames, true);
     if Value <> nil then
       WarningIfChildNotAllowed(Value);
   end;
@@ -3066,7 +3066,7 @@ begin
     (other values for SFNode / MFNode cannot be expressed inside
     the attribute). }
 
-  V := (Names as TVRMLNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  V := (Names as TX3DNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
@@ -3096,7 +3096,7 @@ begin
     if I.GetNext then
     begin
       Child := ParseXMLNode(I.Current,
-        ContainerFieldDummy { ignore containerField }, Names as TVRMLNames, true);
+        ContainerFieldDummy { ignore containerField }, Names as TX3DNames, true);
       if Child <> nil then
       begin
         Value := Child;
@@ -3143,7 +3143,7 @@ begin
   Result := DefaultValueExists and (Value = DefaultValue);
 end;
 
-function TSFNode.Equals(SecondValue: TVRMLField;
+function TSFNode.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -3160,12 +3160,12 @@ begin
     Value              := TSFNode(Source).Value;
     DefaultValue       := TSFNode(Source).DefaultValue;
     DefaultValueExists := TSFNode(Source).DefaultValueExists;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFNode.AssignValue(Source: TVRMLField);
+procedure TSFNode.AssignValue(Source: TX3DField);
 begin
   if Source is TSFNode then
   begin
@@ -3228,7 +3228,7 @@ end;
 
 { TMFNode -------------------------------------------------------------------- }
 
-constructor TMFNode.CreateUndefined(AParentNode: TVRMLFileItem;
+constructor TMFNode.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
@@ -3485,7 +3485,7 @@ procedure TMFNode.ParseValue(Lexer: TX3DLexer; Names: TObject);
   var
     Node: TX3DNode;
   begin
-    Node := ParseNode(Lexer, Names as TVRMLNames, false);
+    Node := ParseNode(Lexer, Names as TX3DNames, false);
     Add(Node);
     WarningIfChildNotAllowed(Node);
   end;
@@ -3514,7 +3514,7 @@ var
   Node: TX3DNode;
   UsedNodeFinished: boolean;
 begin
-  Node := (Names as TVRMLNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  Node := (Names as TX3DNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }
@@ -3541,7 +3541,7 @@ begin
     while I.GetNext do
     begin
       Child := ParseXMLNode(I.Current,
-        ContainerFieldDummy { ignore containerField }, Names as TVRMLNames, true);
+        ContainerFieldDummy { ignore containerField }, Names as TX3DNames, true);
       if Child <> nil then
       begin
         Add(Child);
@@ -3556,7 +3556,7 @@ begin
   Result := DefaultValueExists and DefaultItems.Equals(Items);
 end;
 
-function TMFNode.Equals(SecondValue: TVRMLField;
+function TMFNode.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -3571,12 +3571,12 @@ begin
     AssignItems(TMFNode(Source).Items);
     AssignDefaultItems(TMFNode(Source).DefaultItems);
     DefaultValueExists := TMFNode(Source).DefaultValueExists;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TMFNode.AssignValue(Source: TVRMLField);
+procedure TMFNode.AssignValue(Source: TX3DField);
 begin
   if Source is TMFNode then
   begin
@@ -3619,7 +3619,7 @@ begin
  result := fNodeTypeName;
 end;
 
-procedure TX3DUnknownNode.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DUnknownNode.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 
 (*TODO: use "fields" and "isA" VRML 1.0 extensibility features here.
 
@@ -3679,15 +3679,15 @@ begin
   Result := TX3DUnknownNode.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
 end;
 
-{ TVRMLInterfaceDeclaration -------------------------------------------------- }
+{ TX3DInterfaceDeclaration -------------------------------------------------- }
 
-constructor TVRMLInterfaceDeclaration.Create(AParentNode: TX3DNode);
+constructor TX3DInterfaceDeclaration.Create(AParentNode: TX3DNode);
 begin
   inherited Create;
   FParentNode := AParentNode;
 end;
 
-destructor TVRMLInterfaceDeclaration.Destroy;
+destructor TX3DInterfaceDeclaration.Destroy;
 begin
   FreeAndNil(FFieldOrEvent);
   FField := nil;
@@ -3696,8 +3696,8 @@ begin
   inherited;
 end;
 
-procedure TVRMLInterfaceDeclaration.SetFieldOrEvent(
-  const Value: TVRMLFieldOrEvent);
+procedure TX3DInterfaceDeclaration.SetFieldOrEvent(
+  const Value: TX3DFieldOrEvent);
 begin
   FFieldOrEvent := Value;
 
@@ -3707,24 +3707,24 @@ begin
     FField := nil;
     FEvent := nil;
   end else
-  if FFieldOrEvent is TVRMLField then
+  if FFieldOrEvent is TX3DField then
   begin
-    FField := TVRMLField(FFieldOrEvent);
+    FField := TX3DField(FFieldOrEvent);
     FEvent := nil;
   end else
   begin
-    Assert(FFieldOrEvent is TVRMLEvent);
+    Assert(FFieldOrEvent is TX3DEvent);
     FField := nil;
-    FEvent := TVRMLEvent(FFieldOrEvent);
+    FEvent := TX3DEvent(FFieldOrEvent);
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.Parse(Lexer: TX3DLexer; Names: TVRMLNames;
+procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Names: TX3DNames;
   FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
-  Access: TVRMLAccessType;
-  FieldType: TVRMLFieldClass;
+  Access: TX3DAccessType;
+  FieldType: TX3DFieldClass;
   Name: string;
 begin
   { clear instance before parsing }
@@ -3760,13 +3760,13 @@ begin
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
+      FieldOrEvent := TX3DEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
         FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name,
           { exposed } Access = atInputOutput);
       end;
-    else raise EInternalError.Create('Access ? in TVRMLInterfaceDeclaration.Parse');
+    else raise EInternalError.Create('Access ? in TX3DInterfaceDeclaration.Parse');
   end;
 
   Lexer.NextToken;
@@ -3786,14 +3786,14 @@ begin
   FieldOrEvent.ParentInterfaceDeclaration := Self;
 end;
 
-procedure TVRMLInterfaceDeclaration.ParseXML(
-  Element: TDOMElement; Names: TVRMLNames; FieldValue: boolean);
+procedure TX3DInterfaceDeclaration.ParseXML(
+  Element: TDOMElement; Names: TX3DNames; FieldValue: boolean);
 var
-  Access: TVRMLAccessType;
+  Access: TX3DAccessType;
   AccessIndex: Integer;
   AccessName: string;
   FieldTypeName: string;
-  FieldType: TVRMLFieldClass;
+  FieldType: TX3DFieldClass;
   Name, FieldActualValue: string;
 begin
   { clear instance before parsing }
@@ -3806,7 +3806,7 @@ begin
     AccessIndex := ArrayPosStr(AccessName,
       ['inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput']);
     if AccessIndex <> -1 then
-      Access := TVRMLAccessType(AccessIndex) else
+      Access := TX3DAccessType(AccessIndex) else
       raise EX3DXmlError.CreateFmt('Access type "%s" unknown', [AccessName]);
   end else
     raise EX3DXmlError.Create('Missing access type in X3D interface declaration');
@@ -3826,7 +3826,7 @@ begin
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := TVRMLEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
+      FieldOrEvent := TX3DEvent.Create(ParentNode, Name, FieldType, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
       begin
         FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name,
@@ -3857,16 +3857,16 @@ begin
   FieldOrEvent.ParentInterfaceDeclaration := Self;
 end;
 
-function TVRMLInterfaceDeclaration.CopyFieldOrEvent(
-  NewParentNode: TX3DNode): TVRMLFieldOrEvent;
+function TX3DInterfaceDeclaration.CopyFieldOrEvent(
+  NewParentNode: TX3DNode): TX3DFieldOrEvent;
 var
-  F: TVRMLField absolute Result;
-  E: TVRMLEvent absolute Result;
+  F: TX3DField absolute Result;
+  E: TX3DEvent absolute Result;
 begin
   if Field <> nil then
   begin
     { F := copy of Field }
-    F := TVRMLFieldClass(Field.ClassType).CreateUndefined(NewParentNode,
+    F := TX3DFieldClass(Field.ClassType).CreateUndefined(NewParentNode,
       Field.Name, Field.Exposed);
     F.Assign(Field);
 
@@ -3893,7 +3893,7 @@ begin
   if Event <> nil then
   begin
     { E := copy of Event }
-    E := TVRMLEvent.Create(NewParentNode,
+    E := TX3DEvent.Create(NewParentNode,
       Event.Name, Event.FieldClass, Event.InEvent);
     { Although above constructor already copied most event properties,
       some were omitted (like IsClauseNames --- important for Script with
@@ -3906,7 +3906,7 @@ begin
   Result.ParentInterfaceDeclaration := nil;
 end;
 
-procedure TVRMLInterfaceDeclaration.AddFieldOrEvent(
+procedure TX3DInterfaceDeclaration.AddFieldOrEvent(
   Node: TX3DNode);
 begin
   if Field <> nil then
@@ -3917,28 +3917,28 @@ begin
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.CopyAndAddFieldOrEvent(
+procedure TX3DInterfaceDeclaration.CopyAndAddFieldOrEvent(
   Node: TX3DNode);
 var
-  Copy: TVRMLFieldOrEvent;
+  Copy: TX3DFieldOrEvent;
 begin
   Copy := CopyFieldOrEvent(Node);
-  if Copy is TVRMLField then
-    Node.Fields.Add(TVRMLField(Copy)) else
+  if Copy is TX3DField then
+    Node.Fields.Add(TX3DField(Copy)) else
   begin
-    Assert(Copy is TVRMLEvent);
-    Node.Events.Add(TVRMLEvent(Copy));
+    Assert(Copy is TX3DEvent);
+    Node.Events.Add(TX3DEvent(Copy));
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.IDeclSaveToStream(
+procedure TX3DInterfaceDeclaration.IDeclSaveToStream(
   Writer: TX3DWriter; FieldValue: boolean);
 
-  function ATName(const AccessType: TVRMLAccessType): string;
+  function ATName(const AccessType: TX3DAccessType): string;
   const
     Names: array
       [ boolean { is it X3D or XML encoding ? },
-        TVRMLAccessType] of string =
+        TX3DAccessType] of string =
       ( ('eventIn', 'eventOut', 'field', 'exposedField'),
         ('inputOnly', 'outputOnly', 'initializeOnly', 'inputOutput') );
   begin
@@ -4050,16 +4050,16 @@ begin
           Writer.Writeln(' />');
       end;
 
-    else raise EInternalError.Create('TVRMLInterfaceDeclaration.IDeclSaveToStream Encoding?');
+    else raise EInternalError.Create('TX3DInterfaceDeclaration.IDeclSaveToStream Encoding?');
   end;
 end;
 
-procedure TVRMLInterfaceDeclaration.SaveToStream(Writer: TX3DWriter);
+procedure TX3DInterfaceDeclaration.SaveToStream(Writer: TX3DWriter);
 begin
   IDeclSaveToStream(Writer, true);
 end;
 
-function TVRMLInterfaceDeclaration.AccessType: TVRMLAccessType;
+function TX3DInterfaceDeclaration.AccessType: TX3DAccessType;
 begin
   if Event <> nil then
   begin
@@ -4077,19 +4077,19 @@ begin
     Result := atInitializeOnly
 end;
 
-function TVRMLInterfaceDeclaration.DeepCopy(
+function TX3DInterfaceDeclaration.DeepCopy(
   NewParentNode: TX3DNode;
-  CopyState: TX3DNodeDeepCopyState): TVRMLInterfaceDeclaration;
+  CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
 begin
-  Result := TVRMLInterfaceDeclaration.Create(NewParentNode);
+  Result := TX3DInterfaceDeclaration.Create(NewParentNode);
   Result.FieldOrEvent := CopyFieldOrEvent(NewParentNode);
   Result.FieldOrEvent.ParentInterfaceDeclaration := Result;
 end;
 
-{ TVRMLInterfaceDeclarationList --------------------------------------------- }
+{ TX3DInterfaceDeclarationList --------------------------------------------- }
 
-function TVRMLInterfaceDeclarationList.TryFindName(
-  const Name: string): TVRMLFieldOrEvent;
+function TX3DInterfaceDeclarationList.TryFindName(
+  const Name: string): TX3DFieldOrEvent;
 var
   I: Integer;
 begin
@@ -4102,12 +4102,12 @@ begin
   Result := nil;
 end;
 
-function TVRMLInterfaceDeclarationList.TryFindFieldName(const Name: string): TVRMLField;
+function TX3DInterfaceDeclarationList.TryFindFieldName(const Name: string): TX3DField;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].FieldOrEvent is TVRMLField then
+    if Items[I].FieldOrEvent is TX3DField then
     begin
       Result := Items[I].Field;
       if Result.Name = Name then
@@ -4116,12 +4116,12 @@ begin
   Result := nil;
 end;
 
-function TVRMLInterfaceDeclarationList.TryFindEventName(const Name: string): TVRMLEvent;
+function TX3DInterfaceDeclarationList.TryFindEventName(const Name: string): TX3DEvent;
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].FieldOrEvent is TVRMLEvent then
+    if Items[I].FieldOrEvent is TX3DEvent then
     begin
       Result := Items[I].Event;
       if Result.Name = Name then
@@ -4140,29 +4140,29 @@ end;
 
 constructor TX3DPrototypeNode.CreatePrototypeNode(
   const ANodeName, AWWWBasePath: string;
-  APrototype: TVRMLPrototypeBase);
+  APrototype: TX3DPrototypeBase);
 var
-  I: TVRMLInterfaceDeclaration;
+  I: TX3DInterfaceDeclaration;
   Index: Integer;
-  ProtoInitial: TVRMLPrototypeBase;
+  ProtoInitial: TX3DPrototypeBase;
 begin
   inherited Create(ANodeName, AWWWBasePath);
   FPrototype := APrototype;
 
   ProtoInitial := Prototype;
 
-  if (ProtoInitial is TVRMLExternalPrototype) and
-     (TVRMLExternalPrototype(ProtoInitial).ReferencedPrototype <> nil) then
+  if (ProtoInitial is TX3DExternalPrototype) and
+     (TX3DExternalPrototype(ProtoInitial).ReferencedPrototype <> nil) then
     { It's important to use ReferencedPrototype, not just current
       Prototype, in this case. That's because field's default values
       should be set by constructor (before parsing the specified
-      fields), and TVRMLExternalPrototype doesn't have default values
+      fields), and TX3DExternalPrototype doesn't have default values
       available.
 
       If ReferencedPrototype = nil (e.g. because couldn't
       be loaded) then Instantiate will not be able to instantiate
       it anyway (and will produce appropriate OnWarning). }
-    ProtoInitial := TVRMLExternalPrototype(ProtoInitial).ReferencedPrototype;
+    ProtoInitial := TX3DExternalPrototype(ProtoInitial).ReferencedPrototype;
 
   for Index := 0 to ProtoInitial.InterfaceDeclarations.Count - 1 do
   begin
@@ -4185,12 +4185,12 @@ begin
 end;
 
 procedure TX3DPrototypeNode.FieldOrEventHandleIsClause(
-  Destination, Source: TVRMLFieldOrEvent;
-  NewIsClauseNames: TKamStringList);
+  Destination, Source: TX3DFieldOrEvent;
+  NewIsClauseNames: TCastleStringList);
 var
-  DestinationField, SourceField: TVRMLField;
-  DestinationEvent, SourceEvent: TVRMLEvent;
-  Route: TVRMLRoute;
+  DestinationField, SourceField: TX3DField;
+  DestinationEvent, SourceEvent: TX3DEvent;
+  Route: TX3DRoute;
 const
   InEventName: array [boolean] of string = ( 'output', 'input' );
 begin
@@ -4205,11 +4205,11 @@ begin
 
   NewIsClauseNames.AddStrings(Source.IsClauseNames);
 
-  if Source is TVRMLField then
+  if Source is TX3DField then
   begin
-    Assert(Destination is TVRMLField);
-    SourceField := Source as TVRMLField;
-    DestinationField := Destination as TVRMLField;
+    Assert(Destination is TX3DField);
+    SourceField := Source as TX3DField;
+    DestinationField := Destination as TX3DField;
 
     try
       DestinationField.AssignValue(SourceField);
@@ -4233,11 +4233,11 @@ begin
       end;
     end;
   end else
-  if Source is TVRMLEvent then
+  if Source is TX3DEvent then
   begin
-    Assert(Destination is TVRMLEvent);
-    SourceEvent := Source as TVRMLEvent;
-    DestinationEvent := Destination as TVRMLEvent;
+    Assert(Destination is TX3DEvent);
+    SourceEvent := Source as TX3DEvent;
+    DestinationEvent := Destination as TX3DEvent;
 
     if SourceEvent.InEvent <> DestinationEvent.InEvent then
     begin
@@ -4257,7 +4257,7 @@ begin
       Exit;
     end;
 
-    Route := TVRMLRoute.Create;
+    Route := TX3DRoute.Create;
     Route.Internal := true;
 
     try
@@ -4291,20 +4291,20 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
     declarations to node instances" in specifications about
     "PROTO definition semantics". }
 
-  procedure ExpandEvent(InstanceEvent: TVRMLEvent); forward;
+  procedure ExpandEvent(InstanceEvent: TX3DEvent); forward;
 
-  procedure ExpandField(InstanceField: TVRMLField);
+  procedure ExpandField(InstanceField: TX3DField);
   var
-    OurField: TVRMLField;
-    OurEvent: TVRMLEvent;
+    OurField: TX3DField;
+    OurEvent: TX3DEvent;
     OurFieldIndex: Integer;
     I: Integer;
     IsClauseName: string;
-    NewIsClauseNames: TKamStringList;
+    NewIsClauseNames: TCastleStringList;
   begin
     if InstanceField.IsClauseNames.Count <> 0 then
     begin
-      NewIsClauseNames := TKamStringList.Create;
+      NewIsClauseNames := TCastleStringList.Create;
       try
         for I := 0 to InstanceField.IsClauseNames.Count - 1 do
         begin
@@ -4393,17 +4393,17 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
     end;
   end;
 
-  procedure ExpandEvent(InstanceEvent: TVRMLEvent);
+  procedure ExpandEvent(InstanceEvent: TX3DEvent);
   var
-    OurEvent: TVRMLEvent;
+    OurEvent: TX3DEvent;
     OurEventIndex: Integer;
     I: Integer;
     IsClauseName: string;
-    NewIsClauseNames: TKamStringList;
+    NewIsClauseNames: TCastleStringList;
   begin
     if InstanceEvent.IsClauseNames.Count <> 0 then
     begin
-      NewIsClauseNames := TKamStringList.Create;
+      NewIsClauseNames := TCastleStringList.Create;
       try
         for I := 0 to InstanceEvent.IsClauseNames.Count - 1 do
         begin
@@ -4481,7 +4481,7 @@ end;
 
 function TX3DPrototypeNode.Instantiate: TX3DNode;
 
-  procedure InstantiateNonExternalPrototype(Proto: TVRMLPrototype);
+  procedure InstantiateNonExternalPrototype(Proto: TX3DPrototype);
   var
     NodeCopy, NewPrototypeInstanceHelpers: TX3DRootNode;
   begin
@@ -4594,7 +4594,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
     Result.FPrototypeInstanceHelpers := NewPrototypeInstanceHelpers;
   end;
 
-  procedure InstantiateExternalPrototype(Proto: TVRMLExternalPrototype);
+  procedure InstantiateExternalPrototype(Proto: TX3DExternalPrototype);
   begin
     if Proto.ReferencedPrototype = nil then
       raise EVRMLPrototypeInstantiateError.CreateFmt(
@@ -4611,37 +4611,37 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
   end;
 
 begin
-  if Prototype is TVRMLPrototype then
-    InstantiateNonExternalPrototype(Prototype as TVRMLPrototype) else
-  if Prototype is TVRMLExternalPrototype then
-    InstantiateExternalPrototype(Prototype as TVRMLExternalPrototype) else
+  if Prototype is TX3DPrototype then
+    InstantiateNonExternalPrototype(Prototype as TX3DPrototype) else
+  if Prototype is TX3DExternalPrototype then
+    InstantiateExternalPrototype(Prototype as TX3DExternalPrototype) else
     raise EVRMLPrototypeInstantiateError.CreateFmt(
       'Cannot instantiate prototype "%s": '+
       'unknown prototype class %s', [Prototype.Name, Prototype.ClassName]);
 end;
 
-{ TVRMLPrototypeBase --------------------------------------------------------- }
+{ TX3DPrototypeBase --------------------------------------------------------- }
 
-constructor TVRMLPrototypeBase.Create;
+constructor TX3DPrototypeBase.Create;
 begin
   inherited;
-  FInterfaceDeclarations := TVRMLInterfaceDeclarationList.Create(true);
+  FInterfaceDeclarations := TX3DInterfaceDeclarationList.Create(true);
 end;
 
-destructor TVRMLPrototypeBase.Destroy;
+destructor TX3DPrototypeBase.Destroy;
 begin
   FreeAndNil(FInterfaceDeclarations);
   inherited;
 end;
 
-procedure TVRMLPrototypeBase.ParseInterfaceDeclarations(ExternalProto: boolean;
-  Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DPrototypeBase.ParseInterfaceDeclarations(ExternalProto: boolean;
+  Lexer: TX3DLexer; Names: TX3DNames);
 var
-  I: TVRMLInterfaceDeclaration;
+  I: TX3DInterfaceDeclaration;
 begin
   while Lexer.Token <> vtCloseSqBracket do
   begin
-    I := TVRMLInterfaceDeclaration.Create(nil);
+    I := TX3DInterfaceDeclaration.Create(nil);
     InterfaceDeclarations.Add(I);
 
     if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords(AllAccessTypes)) then
@@ -4658,10 +4658,10 @@ begin
   FWWWBasePath := Names.WWWBasePath;
 end;
 
-procedure TVRMLPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: boolean;
-  Element: TDOMElement; Names: TVRMLNames);
+procedure TX3DPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: boolean;
+  Element: TDOMElement; Names: TX3DNames);
 var
-  I: TVRMLInterfaceDeclaration;
+  I: TX3DInterfaceDeclaration;
   Iter: TXMLElementIterator;
 begin
   Iter := TXMLElementIterator.Create(Element);
@@ -4670,7 +4670,7 @@ begin
     begin
       if Iter.Current.TagName = 'field' then
       begin
-        I := TVRMLInterfaceDeclaration.Create(nil);
+        I := TX3DInterfaceDeclaration.Create(nil);
         InterfaceDeclarations.Add(I);
         I.ParseXML(Iter.Current, Names, not ExternalProto);
       end else
@@ -4679,7 +4679,7 @@ begin
   finally FreeAndNil(Iter) end;
 end;
 
-procedure TVRMLPrototypeBase.SaveInterfaceDeclarationsToStream(
+procedure TX3DPrototypeBase.SaveInterfaceDeclarationsToStream(
   Writer: TX3DWriter; ExternalProto: boolean);
 var
   I: Integer;
@@ -4692,17 +4692,17 @@ begin
   if Writer.Encoding = xeClassic then Writer.WritelnIndent(']');
 end;
 
-{ TVRMLPrototype ------------------------------------------------------------- }
+{ TX3DPrototype ------------------------------------------------------------- }
 
-destructor TVRMLPrototype.Destroy;
+destructor TX3DPrototype.Destroy;
 begin
   FreeAndNil(FNode);
   inherited;
 end;
 
-procedure TVRMLPrototype.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DPrototype.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 var
-  OldNames: TVRMLNames;
+  OldNames: TX3DNames;
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -4728,7 +4728,7 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldNames := Names;
-  Names := TVRMLNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
+  Names := TX3DNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     FNode := ParseVRMLStatements(Lexer, Names, vtCloseCurlyBracket, false);
@@ -4743,9 +4743,9 @@ begin
   Names.Prototypes.Bind(Self);
 end;
 
-procedure TVRMLPrototype.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+procedure TX3DPrototype.ParseXML(Element: TDOMElement; Names: TX3DNames);
 var
-  OldNames: TVRMLNames;
+  OldNames: TX3DNames;
   NewName: string;
   E: TDOMElement;
 begin
@@ -4774,7 +4774,7 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldNames := Names;
-  Names := TVRMLNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
+  Names := TX3DNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
   try
     Names.Prototypes.Assign(OldNames.Prototypes);
     FNode := ParseVRMLStatements(E, false, nil, Names);
@@ -4786,7 +4786,7 @@ begin
   Names.Prototypes.Bind(Self);
 end;
 
-procedure TVRMLPrototype.SaveToStream(Writer: TX3DWriter);
+procedure TX3DPrototype.SaveToStream(Writer: TX3DWriter);
 var
   OldNodeNames: TX3DNodeNames;
   WriterNames: TX3DWriterNames;
@@ -4794,7 +4794,7 @@ begin
   case Writer.Encoding of
     xeClassic: Writer.WriteIndent('PROTO ' + Name + ' ');
     xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(Name) + '>');
-    else raise EInternalError.Create('TVRMLPrototype.SaveToStream Encoding?');
+    else raise EInternalError.Create('TX3DPrototype.SaveToStream Encoding?');
   end;
 
   if Writer.Encoding = xeXML then
@@ -4821,7 +4821,7 @@ begin
     case Writer.Encoding of
       xeClassic: Writer.WritelnIndent('{');
       xeXML    : Writer.WritelnIndent('<ProtoBody>');
-      else raise EInternalError.Create('TVRMLPrototype.SaveToStream 2 Encoding?');
+      else raise EInternalError.Create('TX3DPrototype.SaveToStream 2 Encoding?');
     end;
     { Node may be TX3DRootNode here, that's OK,
       TX3DRootNode.SaveToStream will magically handle this right. }
@@ -4831,7 +4831,7 @@ begin
     case Writer.Encoding of
       xeClassic: Writer.WritelnIndent('}');
       xeXML    : Writer.WritelnIndent('</ProtoBody>');
-      else raise EInternalError.Create('TVRMLPrototype.SaveToStream 3 Encoding?');
+      else raise EInternalError.Create('TX3DPrototype.SaveToStream 3 Encoding?');
     end;
   finally
     FreeAndNil(WriterNames.NodeNames);
@@ -4845,22 +4845,22 @@ begin
   end;
 end;
 
-{ TVRMLExternalPrototype ----------------------------------------------------- }
+{ TX3DExternalPrototype ----------------------------------------------------- }
 
-constructor TVRMLExternalPrototype.Create;
+constructor TX3DExternalPrototype.Create;
 begin
   inherited;
   FURLList := TMFString.Create(nil, '', []);
 end;
 
-destructor TVRMLExternalPrototype.Destroy;
+destructor TX3DExternalPrototype.Destroy;
 begin
   UnloadReferenced;
   FreeAndNil(FURLList);
   inherited;
 end;
 
-procedure TVRMLExternalPrototype.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DExternalPrototype.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -4879,7 +4879,7 @@ begin
   LoadReferenced;
 end;
 
-procedure TVRMLExternalPrototype.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Names: TX3DNames);
 var
   NewName, URLListValue: string;
 begin
@@ -4900,7 +4900,7 @@ begin
   LoadReferenced;
 end;
 
-procedure TVRMLExternalPrototype.SaveToStream(Writer: TX3DWriter);
+procedure TX3DExternalPrototype.SaveToStream(Writer: TX3DWriter);
 begin
   case Writer.Encoding of
     xeClassic:
@@ -4925,17 +4925,17 @@ begin
 
         Writer.WritelnIndent('</ExternProtoDeclare>');
       end;
-    else raise EInternalError.Create('TVRMLExternalPrototype.SaveToStream Encoding?');
+    else raise EInternalError.Create('TX3DExternalPrototype.SaveToStream Encoding?');
   end;
 end;
 
-procedure TVRMLExternalPrototype.LoadReferenced;
+procedure TX3DExternalPrototype.LoadReferenced;
 
   procedure LoadInterfaceDeclarationsValues;
   var
     IIndex: Integer;
-    I: TVRMLInterfaceDeclaration;
-    ReferencedField: TVRMLField;
+    I: TX3DInterfaceDeclaration;
+    ReferencedField: TX3DField;
   begin
     { We should load default values for our fields now,
       since InterfaceDeclaration of external prototype doesn't
@@ -4970,7 +4970,7 @@ procedure TVRMLExternalPrototype.LoadReferenced;
   function LoadFromExternalVRML(const RelativeURL: string): boolean;
   var
     URL: string;
-    PrototypeNames: TVRMLPrototypeNames;
+    PrototypeNames: TX3DPrototypeNames;
 
     procedure ProtoWarning(const S: string);
     begin
@@ -4981,15 +4981,15 @@ procedure TVRMLExternalPrototype.LoadReferenced;
     { Find PROTO (but not EXTERNPROTO) with matching Name.
       Name is ignored if ''.
       @nil if not found. }
-    function TryFindProtoNonExternal(const Name: string): TVRMLPrototype;
+    function TryFindProtoNonExternal(const Name: string): TX3DPrototype;
     var
       I: Integer;
     begin
       if PrototypeNames <> nil then
         for I := 0 to PrototypeNames.Count - 1 do
-          if PrototypeNames.Objects[I] is TVRMLPrototype then
+          if PrototypeNames.Objects[I] is TX3DPrototype then
           begin
-            Result := TVRMLPrototype(PrototypeNames.Objects[I]);
+            Result := TX3DPrototype(PrototypeNames.Objects[I]);
             if (Name = '') or (Result.Name = Name) then
               Exit;
           end;
@@ -5055,7 +5055,7 @@ begin
   end;
 end;
 
-procedure TVRMLExternalPrototype.UnloadReferenced;
+procedure TX3DExternalPrototype.UnloadReferenced;
 begin
   { FReferencedPrototype will be freed as part of ReferencedPrototypeNode }
   FReferencedPrototype := nil;
@@ -5155,15 +5155,15 @@ begin
   Result := FRegistered.Count;
 end;
 
-{ TVRMLRoute ----------------------------------------------------------------- }
+{ TX3DRoute ----------------------------------------------------------------- }
 
-constructor TVRMLRoute.Create;
+constructor TX3DRoute.Create;
 begin
   inherited;
   ResetLastEventTime;
 end;
 
-destructor TVRMLRoute.Destroy;
+destructor TX3DRoute.Destroy;
 begin
   { We have to unset, to call
     DestructionNotifications.DeleteFirstEqual(...) on our nodes before
@@ -5175,7 +5175,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLRoute.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DRoute.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 var
   SourceNodeName, SourceEventName: string;
   DestinationNodeName, DestinationEventName: string;
@@ -5215,7 +5215,7 @@ begin
   SetDestination(DestinationNodeName, DestinationEventName, Names);
 end;
 
-procedure TVRMLRoute.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+procedure TX3DRoute.ParseXML(Element: TDOMElement; Names: TX3DNames);
 
   function RequiredAttrib(const AttrName: string): string;
   begin
@@ -5239,8 +5239,8 @@ begin
   SetDestination(DestinationNodeName, DestinationEventName, Names);
 end;
 
-procedure TVRMLRoute.UnsetEnding(
-  var Node: TX3DNode; var Event: TVRMLEvent;
+procedure TX3DRoute.UnsetEnding(
+  var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: boolean;
   RemoveFromDestructionNotification: boolean);
 begin
@@ -5257,8 +5257,8 @@ begin
   Event := nil;
 end;
 
-procedure TVRMLRoute.EventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+procedure TX3DRoute.EventReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   Assert(Event = SourceEvent);
 
@@ -5277,7 +5277,7 @@ begin
         Time.Seconds, LastEventTime.Seconds ]));
 end;
 
-procedure TVRMLRoute.ResetLastEventTime;
+procedure TX3DRoute.ResetLastEventTime;
 begin
   LastEventTime := OldestX3DTime;
 end;
@@ -5289,25 +5289,25 @@ const
   DestEndingNames: array [boolean] of string =
   ('source', 'destination');
 
-procedure TVRMLRoute.SetEndingInternal(
+procedure TX3DRoute.SetEndingInternal(
   const Node: TX3DNode;
-  const FieldOrEvent: TVRMLFieldOrEvent;
-  var Event: TVRMLEvent;
+  const FieldOrEvent: TX3DFieldOrEvent;
+  var Event: TX3DEvent;
   const DestEnding: boolean);
 var
-  ExposedField: TVRMLField;
+  ExposedField: TX3DField;
 begin
-  if FieldOrEvent is TVRMLField then
+  if FieldOrEvent is TX3DField then
   begin
-    ExposedField := TVRMLField(FieldOrEvent);
+    ExposedField := TX3DField(FieldOrEvent);
     if not ExposedField.Exposed then
       raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
         [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.NodeName ]);
     Event := ExposedField.ExposedEvents[DestEnding];
   end else
   begin
-    Assert(FieldOrEvent is TVRMLEvent);
-    Event := TVRMLEvent(FieldOrEvent);
+    Assert(FieldOrEvent is TX3DEvent);
+    Event := TX3DEvent(FieldOrEvent);
   end;
 
   if (not Internal) and (Event.InEvent <> DestEnding) then
@@ -5323,7 +5323,7 @@ begin
      (DestinationEvent <> nil) and
      (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
      { destination field can be XFAny (for some Avalon nodes) as an exception. }
-     (not (DestinationEvent.FieldClass = TVRMLField)) then
+     (not (DestinationEvent.FieldClass = TX3DField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
       [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
         DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
@@ -5332,13 +5332,13 @@ begin
     Event.OnReceive.Add(@EventReceive);
 end;
 
-procedure TVRMLRoute.SetEnding(const NodeName, FieldOrEventName: string;
-  Names: TVRMLNames;
-  var Node: TX3DNode; var Event: TVRMLEvent;
+procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
+  Names: TX3DNames;
+  var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: boolean);
 var
   N: TX3DNode;
-  FieldOrEvent: TVRMLFieldOrEvent;
+  FieldOrEvent: TX3DFieldOrEvent;
   IgnoreNodeFinished: boolean;
 begin
   UnsetEnding(Node, Event, DestEnding);
@@ -5379,25 +5379,25 @@ begin
   end;
 end;
 
-procedure TVRMLRoute.SetSource(
+procedure TX3DRoute.SetSource(
   const SourceNodeName, SourceFieldOrEventName: string;
-  Names: TVRMLNames);
+  Names: TX3DNames);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
     Names, FSourceNode, FSourceEvent, false);
 end;
 
-procedure TVRMLRoute.SetDestination(
+procedure TX3DRoute.SetDestination(
   const DestinationNodeName, DestinationFieldOrEventName: string;
-  Names: TVRMLNames);
+  Names: TX3DNames);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
     Names, FDestinationNode, FDestinationEvent, true);
 end;
 
-procedure TVRMLRoute.SetEndingDirectly(
-  const NewNode: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent;
-  var Node: TX3DNode; var Event: TVRMLEvent;
+procedure TX3DRoute.SetEndingDirectly(
+  const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent;
+  var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: boolean);
 begin
   UnsetEnding(Node, Event, DestEnding);
@@ -5416,29 +5416,29 @@ begin
   end;
 end;
 
-procedure TVRMLRoute.SetSourceDirectly(
-  const NewNode: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent);
+procedure TX3DRoute.SetSourceDirectly(
+  const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent);
 begin
   SetEndingDirectly(NewNode, FieldOrEvent,
     FSourceNode, FSourceEvent,
     false);
 end;
 
-procedure TVRMLRoute.SetDestinationDirectly(
-  const NewNode: TX3DNode; const FieldOrEvent: TVRMLFieldOrEvent);
+procedure TX3DRoute.SetDestinationDirectly(
+  const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent);
 begin
   SetEndingDirectly(NewNode, FieldOrEvent,
     FDestinationNode, FDestinationEvent,
     true);
 end;
 
-procedure TVRMLRoute.SetSourceDirectly(const FieldOrEvent: TVRMLFieldOrEvent);
+procedure TX3DRoute.SetSourceDirectly(const FieldOrEvent: TX3DFieldOrEvent);
 begin
   SetSourceDirectly(FieldOrEvent.ParentNode as TX3DNode, FieldOrEvent);
 end;
 
-procedure TVRMLRoute.SetDestinationDirectly(
-  const FieldOrEvent: TVRMLFieldOrEvent);
+procedure TX3DRoute.SetDestinationDirectly(
+  const FieldOrEvent: TX3DFieldOrEvent);
 begin
   SetDestinationDirectly(FieldOrEvent.ParentNode as TX3DNode, FieldOrEvent);
 end;
@@ -5446,9 +5446,9 @@ end;
 type
   EVRMLRouteSaveError = class(EVRMLError);
 
-procedure TVRMLRoute.SaveToStream(Writer: TX3DWriter);
+procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
 
-  procedure Ending(Node: TX3DNode; Event: TVRMLEvent; const S: string;
+  procedure Ending(Node: TX3DNode; Event: TX3DEvent; const S: string;
     out NodeName, EventName: string);
   var
     BoundNode: TX3DNode;
@@ -5465,7 +5465,7 @@ procedure TVRMLRoute.SaveToStream(Writer: TX3DWriter);
       raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
         [S, Node.NodeName]);
 
-    { Just like when setting node by TVRMLRoute.SetEnding:
+    { Just like when setting node by TX3DRoute.SetEnding:
       we actually keep the Node that contains the route, which is
       sometimes TX3DPrototypeNode hidden inside PrototypeInstanceSourceNode. }
     if BoundNode.PrototypeInstanceSourceNode <> nil then
@@ -5504,7 +5504,7 @@ begin
         Writer.WritelnIndent(Format('<ROUTE fromNode=%s fromField=%s toNode=%s toField=%s />',
           [StringToX3DXml(SourceNodeName)     , StringToX3DXml(SourceEventName),
            StringToX3DXml(DestinationNodeName), StringToX3DXml(DestinationEventName)]));
-      else raise EInternalError.Create('TVRMLRoute.SaveToStream Encoding?');
+      else raise EInternalError.Create('TX3DRoute.SaveToStream Encoding?');
     end;
   except
     on E: EVRMLRouteSaveError do
@@ -5512,7 +5512,7 @@ begin
   end;
 end;
 
-procedure TVRMLRoute.DestructionNotification(Node: TX3DNode);
+procedure TX3DRoute.DestructionNotification(Node: TX3DNode);
 begin
   { UnsetEnding is called with RemoveFromDestructionNotification = false.
     Reason:
@@ -5530,12 +5530,12 @@ begin
     UnsetEnding(FDestinationNode, FDestinationEvent, true , false);
 end;
 
-function TVRMLRoute.DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLRoute;
+function TX3DRoute.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
 var
   NewSourceNode, NewDestinationNode: TX3DNode;
-  NewSourceEvent, NewDestinationEvent: TVRMLEvent;
+  NewSourceEvent, NewDestinationEvent: TX3DEvent;
 begin
-  Result := TVRMLRoute.Create;
+  Result := TX3DRoute.Create;
   Result.Internal := Internal;
 
   if (SourceNode <> nil) and
@@ -5563,9 +5563,9 @@ begin
   end;
 end;
 
-{ TVRMLImport ---------------------------------------------------------------- }
+{ TX3DImport ---------------------------------------------------------------- }
 
-procedure TVRMLImport.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DImport.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'Inline node name');
@@ -5592,7 +5592,7 @@ begin
   Names.DoImport(Self);
 end;
 
-procedure TVRMLImport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+procedure TX3DImport.ParseXML(Element: TDOMElement; Names: TX3DNames);
 begin
   if not DOMGetAttribute(Element, 'inlineDEF', InlineNodeName) then
   begin
@@ -5616,7 +5616,7 @@ begin
   Names.DoImport(Self);
 end;
 
-procedure TVRMLImport.SaveToStream(Writer: TX3DWriter);
+procedure TX3DImport.SaveToStream(Writer: TX3DWriter);
 begin
   case Writer.Encoding of
     xeClassic:
@@ -5635,21 +5635,21 @@ begin
           Writer.Write(' AS=' + StringToX3DXml(ImportedNodeAlias));
         Writer.Writeln(' />');
       end;
-    else raise EInternalError.Create('TVRMLImport.SaveToStream Encoding?');
+    else raise EInternalError.Create('TX3DImport.SaveToStream Encoding?');
   end;
 end;
 
-function TVRMLImport.DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLImport;
+function TX3DImport.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DImport;
 begin
-  Result := TVRMLImport.Create;
+  Result := TX3DImport.Create;
   Result.InlineNodeName := InlineNodeName;
   Result.ImportedNodeName := ImportedNodeName;
   Result.ImportedNodeAlias := ImportedNodeAlias;
 end;
 
-{ TVRMLExport ---------------------------------------------------------------- }
+{ TX3DExport ---------------------------------------------------------------- }
 
-procedure TVRMLExport.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TX3DExport.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'exported node name');
@@ -5669,7 +5669,7 @@ begin
   Names.DoExport(Self);
 end;
 
-procedure TVRMLExport.ParseXML(Element: TDOMElement; Names: TVRMLNames);
+procedure TX3DExport.ParseXML(Element: TDOMElement; Names: TX3DNames);
 begin
   if not DOMGetAttribute(Element, 'localDEF', ExportedNodeName) then
   begin
@@ -5683,7 +5683,7 @@ begin
   Names.DoExport(Self);
 end;
 
-procedure TVRMLExport.SaveToStream(Writer: TX3DWriter);
+procedure TX3DExport.SaveToStream(Writer: TX3DWriter);
 begin
   case Writer.Encoding of
     xeClassic:
@@ -5700,13 +5700,13 @@ begin
           Writer.Write(' AS=' + StringToX3DXml(ExportedNodeAlias));
         Writer.Writeln(' />');
       end;
-    else raise EInternalError.Create('TVRMLExport.SaveToStream Encoding?');
+    else raise EInternalError.Create('TX3DExport.SaveToStream Encoding?');
   end;
 end;
 
-function TVRMLExport.DeepCopy(CopyState: TX3DNodeDeepCopyState): TVRMLExport;
+function TX3DExport.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DExport;
 begin
-  Result := TVRMLExport.Create;
+  Result := TX3DExport.Create;
   Result.ExportedNodeName := ExportedNodeName;
   Result.ExportedNodeAlias := ExportedNodeAlias;
 end;
@@ -5798,9 +5798,9 @@ begin
   Result := IndexOfNode(Node) <> -1;
 end;
 
-{ TVRMLPrototypeNames -------------------------------------------------------- }
+{ TX3DPrototypeNames -------------------------------------------------------- }
 
-procedure TVRMLPrototypeNames.Bind(Proto: TVRMLPrototypeBase);
+procedure TX3DPrototypeNames.Bind(Proto: TX3DPrototypeBase);
 var
   I: Integer;
 begin
@@ -5810,19 +5810,19 @@ begin
     AddObject(Proto.Name, Proto);
 end;
 
-function TVRMLPrototypeNames.Bound(const Name: string): TVRMLPrototypeBase;
+function TX3DPrototypeNames.Bound(const Name: string): TX3DPrototypeBase;
 var
   I: Integer;
 begin
   I := IndexOf(Name);
   if I <> -1 then
-    Result := Objects[I] as TVRMLPrototypeBase else
+    Result := Objects[I] as TX3DPrototypeBase else
     Result := nil;
 end;
 
-{ TVRMLImportableNames ------------------------------------------------------- }
+{ TX3DImportableNames ------------------------------------------------------- }
 
-destructor TVRMLImportableNames.Destroy;
+destructor TX3DImportableNames.Destroy;
 var
   I: Integer;
 begin
@@ -5831,7 +5831,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLImportableNames.Bind(const InlineName: string; Exported: TX3DNodeNames);
+procedure TX3DImportableNames.Bind(const InlineName: string; Exported: TX3DNodeNames);
 var
   I: Integer;
 begin
@@ -5844,22 +5844,22 @@ begin
   end;
 end;
 
-{ TVRMLNames ----------------------------------------------------------------- }
+{ TX3DNames ----------------------------------------------------------------- }
 
-constructor TVRMLNames.Create(const AAutoRemoveNodes: boolean;
+constructor TX3DNames.Create(const AAutoRemoveNodes: boolean;
   const AWWWBasePath: string; const AVersion: TX3DVersion);
 begin
   inherited Create;
   FWWWBasePath := AWWWBasePath;
   FVersion := AVersion;
   FNodes := TX3DNodeNames.Create(AAutoRemoveNodes);
-  FPrototypes := TVRMLPrototypeNames.Create;
+  FPrototypes := TX3DPrototypeNames.Create;
   FImported := TX3DNodeNames.Create(AAutoRemoveNodes);
   FExported := TX3DNodeNames.Create(AAutoRemoveNodes);
-  FImportable := TVRMLImportableNames.Create;
+  FImportable := TX3DImportableNames.Create;
 end;
 
-destructor TVRMLNames.Destroy;
+destructor TX3DNames.Destroy;
 begin
   FreeAndNil(FNodes);
   FreeAndNil(FPrototypes);
@@ -5869,7 +5869,7 @@ begin
   inherited;
 end;
 
-procedure TVRMLNames.ExtractNames(out APrototypes: TVRMLPrototypeNames;
+procedure TX3DNames.ExtractNames(out APrototypes: TX3DPrototypeNames;
   out AExported: TX3DNodeNames);
 begin
   APrototypes := FPrototypes;
@@ -5879,7 +5879,7 @@ begin
   FExported := nil;
 end;
 
-procedure TVRMLNames.DoExport(E: TVRMLExport);
+procedure TX3DNames.DoExport(E: TX3DExport);
 var
   ExportedNode: TX3DNode;
   IgnoreNodeFinished: boolean;
@@ -5894,7 +5894,7 @@ begin
   Exported.Bind(ExportedNode, true, E.ExportedNodeAlias);
 end;
 
-procedure TVRMLNames.DoImport(I: TVRMLImport);
+procedure TX3DNames.DoImport(I: TX3DImport);
 var
   ImportedNames: TX3DNodeNames;
   ImportedNamesIndex: Integer;
@@ -6077,7 +6077,7 @@ initialization
 
   X3DCache := TX3DNodesCache.Create;
   TraverseState_CreateNodes(StateDefaultNodes);
-  TraverseSingleStack := TVRMLGraphTraverseStateStack.Create;
+  TraverseSingleStack := TX3DGraphTraverseStateStack.Create;
 finalization
   { Because of various finalization order (some stuff may be owned
     e.g. by CastleWindow.Application, and freed at CastleWindow finalization,

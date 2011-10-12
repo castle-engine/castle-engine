@@ -34,8 +34,8 @@ type
     procedure TestCompressWhiteSpace;
     procedure TestFormatIndexedName;
     procedure TestIntToStr64;
-    procedure TestKamStringList;
-    procedure TestKamStringListNewlinesInside;
+    procedure TestCastleStringList;
+    procedure TestCastleStringListNewlinesInside;
   end;
 
 implementation
@@ -214,10 +214,10 @@ begin
   Assert(IntToStr16(A6) = 'FFEE000000000000');
 end;
 
-procedure TTestCastleStringUtils.TestKamStringList;
+procedure TTestCastleStringUtils.TestCastleStringList;
 
 { Useful to debug state in the middle:
-  procedure WritelnList(const S: TKamStringList);
+  procedure WritelnList(const S: TCastleStringList);
   var
     I: Integer;
   begin
@@ -227,13 +227,13 @@ procedure TTestCastleStringUtils.TestKamStringList;
   end;
 }
 
-var sarr, sarr2: TKamStringList;
+var sarr, sarr2: TCastleStringList;
     i, j: integer;
 const twoStrings: array[0..1]of string = ('raz','dwa');
 begin
  for i := 1 to 100 do
  begin
-  sarr := TKamStringList.Create;
+  sarr := TCastleStringList.Create;
   try
    sarr.Count := 4;
    Assert(sarr.Count = 4);
@@ -249,7 +249,7 @@ begin
    sarr.Reverse;
    Assert(sarr.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
-   sarr2 := TKamStringList.Create;
+   sarr2 := TCastleStringList.Create;
    try
     sarr2.Add('blah');
     Assert(sarr2.Equal(['blah']));
@@ -273,7 +273,7 @@ begin
   finally sarr.Free end;
  end;
 
- sarr := TKamStringList.Create;
+ sarr := TCastleStringList.Create;
  try
   { na tablicy o 0 liczbie elementow tez wszystko powinno isc ok }
   Assert(sarr.Count = 0);
@@ -282,11 +282,11 @@ begin
  finally sarr.Free end;
 end;
 
-procedure TTestCastleStringUtils.TestKamStringListNewlinesInside;
+procedure TTestCastleStringUtils.TestCastleStringListNewlinesInside;
 var
-  SL: TKamStringList;
+  SL: TCastleStringList;
 begin
-  SL := TKamStringList.Create;
+  SL := TCastleStringList.Create;
   try
     SL.Add('');
     SL.Add(NL + 'foo' + NL + 'bar' + NL);

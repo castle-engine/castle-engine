@@ -2,7 +2,7 @@
 
   { GLSL program integrated with VRML renderer. Adds ability to bind
     VRML textures to uniform variables of GLSL shader. }
-  TVRMLGLSLProgram = class(TX3DShaderProgram)
+  TX3DGLSLProgram = class(TX3DShaderProgram)
   private
     Renderer: TGLRenderer;
   public
@@ -14,21 +14,21 @@
 
 {$ifdef read_implementation}
 
-{ TVRMLGLSLProgram ----------------------------------------------------------- }
+{ TX3DGLSLProgram ----------------------------------------------------------- }
 
-constructor TVRMLGLSLProgram.Create(ARenderer: TGLRenderer);
+constructor TX3DGLSLProgram.Create(ARenderer: TGLRenderer);
 begin
   inherited Create;
   Renderer := ARenderer;
 end;
 
-function TVRMLGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
+function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
 
   { Bind texture node to a uniform value.
     Returns false if setting this texture node resulted in GLSL error
     (invalid name or type in shader code)
     and it should be removed from UniformsTextures. }
-  function BindTextureUniform(TextureField: TVRMLField): boolean;
+  function BindTextureUniform(TextureField: TX3DField): boolean;
 
     { If TextureNode <> @nil and is a texture node, prepare it.
       Returns bound texture number (or -1 if failed).

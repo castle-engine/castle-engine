@@ -71,7 +71,7 @@ procedure SaveVRMLClassic(Node: TX3DNode;
 { Internal for ParseIgnoreToMatchingSqBracket and
   ParseIgnoreToMatchingCurlyBracket }
 procedure ParseIgnoreToMatchingBracket(
-  Lexer: TX3DLexer; Names: TVRMLNames;
+  Lexer: TX3DLexer; Names: TX3DNames;
   LevelSqBracket, LevelCurlyBracket: integer);
 begin
   while (LevelSqBracket > 0) or
@@ -92,14 +92,14 @@ end;
    Read everything up to (and including) matching "]".
    This is a hack to omit (not really parse) interface sections
    of prototypes. *)
-procedure ParseIgnoreToMatchingSqBracket(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure ParseIgnoreToMatchingSqBracket(Lexer: TX3DLexer; Names: TX3DNames);
 begin
   ParseIgnoreToMatchingBracket(Lexer, Names, 1, 0);
 end;
 
 (* Just like ParseIgnoreToMatchingSqBracket, but here for "{" and "}" brackets.
    This is a hack to omit (not really parse) unknown VRML nodes. *)
-procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TX3DLexer; Names: TX3DNames);
 begin
   ParseIgnoreToMatchingBracket(Lexer, Names, 0, 1);
 end;
@@ -120,14 +120,14 @@ end;
 
   @raises(EVRMLParserError On various parsing errors.)
 *)
-function ParseNode(Lexer: TX3DLexer; Names: TVRMLNames;
+function ParseNode(Lexer: TX3DLexer; Names: TX3DNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const nodename: string);
   var
     NodeClass: TX3DNodeClass;
     NodeTypeName: string;
-    Proto: TVRMLPrototypeBase;
+    Proto: TX3DPrototypeBase;
   begin
     Lexer.CheckTokenIs(vtName, 'node type');
     NodeTypeName := Lexer.TokenName;
@@ -152,9 +152,9 @@ function ParseNode(Lexer: TX3DLexer; Names: TVRMLNames;
     Proto := Names.Prototypes.Bound(NodeTypeName);
     if Proto <> nil then
     begin
-      if (Proto is TVRMLExternalPrototype) and
-         (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
+      if (Proto is TX3DExternalPrototype) and
+         (TX3DExternalPrototype(Proto).ReferencedClass <> nil) then
+        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
         Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
     end else
     begin
@@ -291,8 +291,8 @@ end;
   This is good to use to parse whole VRML file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false). }
 function ParseVRMLStatements(
-  Lexer: TX3DLexer; Names: TVRMLNames;
-  const EndToken: TVRMLToken;
+  Lexer: TX3DLexer; Names: TX3DNames;
+  const EndToken: TX3DToken;
   FileTopLevel: boolean): TX3DRootNode;
 var
   PositionInParent: Integer;
@@ -367,11 +367,11 @@ var
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
     procedure ParseProtoStatement;
     var
-      Proto: TVRMLPrototypeBase;
+      Proto: TX3DPrototypeBase;
     begin
       if Lexer.TokenKeyword = vkPROTO then
-        Proto := TVRMLPrototype.Create else
-        Proto := TVRMLExternalPrototype.Create;
+        Proto := TX3DPrototype.Create else
+        Proto := TX3DExternalPrototype.Create;
       try
         Proto.Parse(Lexer, Names);
         Proto.PositionInParent := PositionInParent;
@@ -384,9 +384,9 @@ var
 
     procedure ParseRouteStatement;
     var
-      Route: TVRMLRoute;
+      Route: TX3DRoute;
     begin
-      Route := TVRMLRoute.Create;
+      Route := TX3DRoute.Create;
       try
         Route.Parse(Lexer, Names);
         Route.PositionInParent := PositionInParent;
@@ -399,9 +399,9 @@ var
 
     procedure ParseImportStatement;
     var
-      Import: TVRMLImport;
+      Import: TX3DImport;
     begin
-      Import := TVRMLImport.Create;
+      Import := TX3DImport.Create;
       try
         Import.Parse(Lexer, Names);
         Import.PositionInParent := PositionInParent;
@@ -414,9 +414,9 @@ var
 
     procedure ParseExportStatement;
     var
-      Export: TVRMLExport;
+      Export: TX3DExport;
     begin
-      Export := TVRMLExport.Create;
+      Export := TX3DExport.Create;
       try
         Export.Parse(Lexer, Names);
         Export.PositionInParent := PositionInParent;
@@ -520,11 +520,11 @@ function LoadVRMLClassic(Stream: TPeekCharStream;
   const WWWBasePath: string): TX3DRootNode;
 var
   Lexer: TX3DLexer;
-  Names: TVRMLNames;
+  Names: TX3DNames;
 begin
   Lexer := TX3DLexer.Create(Stream, false);
   try
-    Names := TVRMLNames.Create(false, WWWBasePath, Lexer.Version);
+    Names := TX3DNames.Create(false, WWWBasePath, Lexer.Version);
     try
       Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
       Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);

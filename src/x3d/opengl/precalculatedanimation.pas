@@ -31,7 +31,7 @@ type
     interpolating between any number of model states.
 
     After constructing an object of this class, you must actually
-    load it's animation by calling Load or LoadFromFile or LoadFromVRMLEvents
+    load it's animation by calling Load or LoadFromFile or LoadFromEvents
     etc.
 
     When loading you must provide one or more VRML models with
@@ -112,13 +112,13 @@ type
     procedure Load_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TX3DRootNode; out Time: Single);
   private
-    { Helpers for LoadFromVRMLEvents implementation. }
-    LoadFromVRMLEvents_TimeBegin: Single;
-    LoadFromVRMLEvents_Scene: T3DSceneCore;
-    LoadFromVRMLEvents_ScenesPerTime: Cardinal;
-    procedure LoadFromVRMLEvents_GetRootNodeWithTime(const Index: Cardinal;
+    { Helpers for LoadFromEvents implementation. }
+    LoadFromEvents_TimeBegin: Single;
+    LoadFromEvents_Scene: T3DSceneCore;
+    LoadFromEvents_ScenesPerTime: Cardinal;
+    procedure LoadFromEvents_GetRootNodeWithTime(const Index: Cardinal;
       out RootNode: TX3DRootNode; out Time: Single);
-    procedure LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
+    procedure LoadFromEvents_GetRootNodeWithTime_Progress(
       const Index: Cardinal;
       out RootNode: TX3DRootNode; out Time: Single);
 
@@ -200,7 +200,7 @@ type
       @param(EqualityEpsilon
         This will be used for comparing fields, to decide if two fields
         (and, consequently, nodes) are equal. It will be simply
-        passed to TVRMLField.Equals.
+        passed to TX3DField.Equals.
 
         You can pass here 0 to use exact comparison, but it's
         advised to use here something > 0. Otherwise we could waste
@@ -230,7 +230,7 @@ type
 
       @param(ProgressTitle When <> '' we will use Progress.Init, Step, Fini
         to display nice progress of operation.) }
-    procedure LoadFromVRMLEvents(
+    procedure LoadFromEvents(
       RootNode: TX3DRootNode;
       AOwnsRootNode: boolean;
       const ATimeBegin, ATimeEnd: Single;
@@ -308,7 +308,7 @@ type
       Use only our @link(Attributes).
 
       The scenes here have T3DSceneCore.Static set to @true, which means
-      we assume you will not modify their VRML nodes graph (by TVRMLField.Send
+      we assume you will not modify their VRML nodes graph (by TX3DField.Send
       and such). Note that this doesn't prevent you from enabling
       T3DSceneCore.ProcessEvents on the first scene (T3DSceneCore.ProcessEvents
       will be property handled regardless of T3DSceneCore.Static value). }
@@ -424,7 +424,7 @@ type
     function CurrentScene: T3DScene;
 
     { Attributes controlling rendering.
-      See TSceneRenderingAttributes and TVRMLRenderingAttributes
+      See TSceneRenderingAttributes and TX3DRenderingAttributes
       for documentation of properties.
 
       You can change properties of this
@@ -897,14 +897,14 @@ procedure T3DPrecalculatedAnimation.LoadCore(
           TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I])) else
       if Model1.Fields[I].CanAssignLerp then
       begin
-        if Model1.Fields[I] is TVRMLMultField then
+        if Model1.Fields[I] is TX3DMultField then
         begin
           try
-            (Model1.Fields[I] as TVRMLMultField).CheckCountEqual
-              (Model2.Fields[I] as TVRMLMultField);
+            (Model1.Fields[I] as TX3DMultField).CheckCountEqual
+              (Model2.Fields[I] as TX3DMultField);
           except
             (* Translate EVRMLMultFieldDifferentCount exception
-               (may be raised by TVRMLMultField.CheckCountEqual above)
+               (may be raised by TX3DMultField.CheckCountEqual above)
                to EModelsStructureDifferent. *)
             on E: EVRMLMultFieldDifferentCount do
               raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
@@ -1284,30 +1284,30 @@ begin
     AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents_GetRootNodeWithTime(
+procedure T3DPrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime(
   const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
-  Time := LoadFromVRMLEvents_TimeBegin;
-  if LoadFromVRMLEvents_ScenesPerTime <> 0 then
-    Time += Index / LoadFromVRMLEvents_ScenesPerTime;
+  Time := LoadFromEvents_TimeBegin;
+  if LoadFromEvents_ScenesPerTime <> 0 then
+    Time += Index / LoadFromEvents_ScenesPerTime;
 
   if Index = 0 then
-    LoadFromVRMLEvents_Scene.ResetTime(Time) else
-    LoadFromVRMLEvents_Scene.SetTime(Time);
+    LoadFromEvents_Scene.ResetTime(Time) else
+    LoadFromEvents_Scene.SetTime(Time);
 
-  RootNode := LoadFromVRMLEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
+  RootNode := LoadFromEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents_GetRootNodeWithTime_Progress(
+procedure T3DPrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime_Progress(
   const Index: Cardinal;
   out RootNode: TX3DRootNode; out Time: Single);
 begin
-  LoadFromVRMLEvents_GetRootNodeWithTime(Index, RootNode, Time);
+  LoadFromEvents_GetRootNodeWithTime(Index, RootNode, Time);
   Progress.Step;
 end;
 
-procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents(
+procedure T3DPrecalculatedAnimation.LoadFromEvents(
   RootNode: TX3DRootNode;
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
@@ -1317,43 +1317,43 @@ procedure T3DPrecalculatedAnimation.LoadFromVRMLEvents(
 var
   Count: Cardinal;
 begin
-  LoadFromVRMLEvents_ScenesPerTime := ScenesPerTime;
-  LoadFromVRMLEvents_TimeBegin := ATimeBegin;
-  LoadFromVRMLEvents_Scene := T3DSceneCore.Create(nil);
+  LoadFromEvents_ScenesPerTime := ScenesPerTime;
+  LoadFromEvents_TimeBegin := ATimeBegin;
+  LoadFromEvents_Scene := T3DSceneCore.Create(nil);
   try
-    LoadFromVRMLEvents_Scene.Load(RootNode, AOwnsRootNode);
+    LoadFromEvents_Scene.Load(RootNode, AOwnsRootNode);
 
     Count := Max(1, Round((ATimeEnd - ATimeBegin) * ScenesPerTime));
 
-    LoadFromVRMLEvents_Scene.ProcessEvents := true;
+    LoadFromEvents_Scene.ProcessEvents := true;
 
     if ProgressTitle <> '' then
     begin
       Progress.Init(Count, ProgressTitle);
       try
-        LoadCore(@LoadFromVRMLEvents_GetRootNodeWithTime_Progress, Count,
+        LoadCore(@LoadFromEvents_GetRootNodeWithTime_Progress, Count,
           true, 0, EqualityEpsilon);
       finally
         Progress.Fini;
       end;
     end else
     begin
-      LoadCore(@LoadFromVRMLEvents_GetRootNodeWithTime, Count,
+      LoadCore(@LoadFromEvents_GetRootNodeWithTime, Count,
         true, 0, EqualityEpsilon);
     end;
 
     { Although LoadCore sets FTimeEnd already, it may be a little
       smaller than ATimeEnd if ScenesPerTime is very small.
-      Last scene generated by LoadFromVRMLEvents_GetRootNodeWithTime
+      Last scene generated by LoadFromEvents_GetRootNodeWithTime
       will not necessarily "hit" exactly TimeEnd.
       In particular, when ScenesPerTime = 0, LoadCore will just set
       FTimeEnd to TimeBegin...
 
       Since we guarantee in the interface that FTimeEnd will be exactly
-      equal to ATimeEnd after LoadFromVRMLEvents, we fix it here. }
+      equal to ATimeEnd after LoadFromEvents, we fix it here. }
 
     FTimeEnd := ATimeEnd;
-  finally FreeAndNil(LoadFromVRMLEvents_Scene) end;
+  finally FreeAndNil(LoadFromEvents_Scene) end;
 end;
 
 procedure T3DPrecalculatedAnimation.LoadStatic(

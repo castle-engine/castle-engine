@@ -100,8 +100,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventSet_index: TVRMLEvent;
-    public property EventSet_index: TVRMLEvent read FEventSet_index;
+    private FEventSet_index: TX3DEvent;
+    public property EventSet_index: TX3DEvent read FEventSet_index;
 
     private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
@@ -109,11 +109,11 @@
     function CoordIndex: TMFLong; override;
 
     procedure CoordPolygons(
-      State: TVRMLGraphTraverseState;
+      State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TQuadSetNode = class(TAbstractComposedGeometryNode)
@@ -123,11 +123,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     procedure CoordPolygons(
-      State: TVRMLGraphTraverseState;
+      State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
 {$endif read_interface}
@@ -264,7 +264,7 @@ procedure TIndexedQuadSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_index := TVRMLEvent.Create(Self, 'set_index', TMFInt32, true);
+  FEventSet_index := TX3DEvent.Create(Self, 'set_index', TMFInt32, true);
   Events.Add(FEventSet_index);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);

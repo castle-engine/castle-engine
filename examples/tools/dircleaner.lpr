@@ -84,10 +84,10 @@ var
     you want from -h option to write proper default DefaultDirsToClean,
     not (already extended) DirsToClean.
     Same for FilesToClean and DefaultFilesToClean. }
-  FilesToClean: TKamStringList;
-  DefaultFilesToClean: TKamStringList;
-  DirsToClean: TKamStringList;
-  DefaultDirsToClean: TKamStringList;
+  FilesToClean: TCastleStringList;
+  DefaultFilesToClean: TCastleStringList;
+  DirsToClean: TCastleStringList;
+  DefaultDirsToClean: TCastleStringList;
 
 { funcs ------------------------------------------------------------ }
 
@@ -262,10 +262,10 @@ var
   i: Integer;
 begin
   try
-    FilesToClean := TKamStringList.Create;
-    DefaultFilesToClean := TKamStringList.Create;
-    DirsToClean := TKamStringList.Create;
-    DefaultDirsToClean := TKamStringList.Create;
+    FilesToClean := TCastleStringList.Create;
+    DefaultFilesToClean := TCastleStringList.Create;
+    DirsToClean := TCastleStringList.Create;
+    DefaultDirsToClean := TCastleStringList.Create;
 
     DefaultFilesToCleanInit;
     DefaultDirsToCleanInit;

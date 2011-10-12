@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML fields (TVRMLField and many descendants). }
+{ VRML fields (TX3DField and many descendants). }
 unit X3DFields;
 
 interface
@@ -31,7 +31,7 @@ type
   EVRMLFieldAssign = class(Exception);
   EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
 
-  TVRMLEvent = class;
+  TX3DEvent = class;
 
   { Writer of VRML/X3D to stream. }
   TX3DWriter = {abstact} class
@@ -70,7 +70,7 @@ type
   TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
 
   { Possible things that happen when given field is changed.
-    Used by TVRMLField.Changes. }
+    Used by TX3DField.Changes. }
   TX3DChange = (
     { Something visible in the geometry changed.
       See vcVisibleGeometry.
@@ -111,7 +111,7 @@ type
     chCoordinate,
 
     { Something visible in VRML 1.0 state node (that may be present
-      in TVRMLGraphTraverseState.LastNodes) changed, but not geometry.
+      in TX3DGraphTraverseState.LastNodes) changed, but not geometry.
       Excluding Coordinate node change (this one should go through chCoordinate
       only).
 
@@ -308,12 +308,12 @@ type
     a prototype etc. We need a common base class for all such things
     to store PositionInParent.
 
-    About ancestry: TVRMLFieldOrEvent make use of Assign mechanism
+    About ancestry: TX3DFieldOrEvent make use of Assign mechanism
     and so need to descend from TPersistent. TX3DNode make use
     of interfaces and so must descend from something like
     TNonRefCountedInterfacedXxx. These are the only reasons, for now,
     why this descends from TNonRefCountedInterfacedPersistent. }
-  TVRMLFileItem = class(TNonRefCountedInterfacedPersistent)
+  TX3DFileItem = class(TNonRefCountedInterfacedPersistent)
   private
     FPositionInParent: Integer;
 
@@ -323,7 +323,7 @@ type
       (because QuickSort is not stable), so using this to preserve order
       may be helpful.
 
-      TVRMLFileItemList.Add sets this, which allows to preserve
+      TX3DFileItemList.Add sets this, which allows to preserve
       order when saving. }
     PositionOnList: Integer;
   public
@@ -348,7 +348,7 @@ type
       when appropriate node names are bound.
 
       This is a relative position, relative to other PositionInParent
-      value of other TVRMLFileItem items. So it's not necessary
+      value of other TX3DFileItem items. So it's not necessary
       to keep all PositionInParent different or successive within some
       parent. When saving, we will sort everything according to
       PositionInParent.
@@ -369,18 +369,18 @@ type
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TVRMLFileItemList = class(specialize TFPGObjectList<TVRMLFileItem>)
+  TX3DFileItemList = class(specialize TFPGObjectList<TX3DFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
     procedure SaveToStream(Writer: TX3DWriter);
-    procedure Add(Item: TVRMLFileItem);
+    procedure Add(Item: TX3DFileItem);
   end;
 
   { Common class for VRML field or event. }
-  TVRMLFieldOrEvent = class(TVRMLFileItem)
+  TX3DFieldOrEvent = class(TX3DFileItem)
   private
-    FIsClauseNames: TKamStringList;
+    FIsClauseNames: TCastleStringList;
 
     FName: string;
 
@@ -391,12 +391,12 @@ type
       - alt name is never '' ('' means that alt name doesn't exist) }
     FAlternativeNames: array [0..3] of string;
 
-    FParentNode: TVRMLFileItem;
-    FParentInterfaceDeclaration: TVRMLFileItem;
+    FParentNode: TX3DFileItem;
+    FParentInterfaceDeclaration: TX3DFileItem;
   protected
-    procedure FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
+    procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
-    constructor Create(AParentNode: TVRMLFileItem; const AName: string);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string);
     destructor Destroy; override;
 
     { Name of the field or event.
@@ -407,7 +407,7 @@ type
 
       Note that you cannot change this after object creation, since
       Name is used for various purposes (like to generate names for
-      TVRMLField.ExposedEvents). }
+      TX3DField.ExposedEvents). }
     property Name: string read FName;
 
     { VRML node containing this field/event.
@@ -416,7 +416,7 @@ type
       unit cannot depend on X3DNodes interface).
 
       It may be @nil for special fields/events when parent node is unknown. }
-    property ParentNode: TVRMLFileItem read FParentNode;
+    property ParentNode: TX3DFileItem read FParentNode;
 
     { "IS" clauses of this field/event, used when this field/event
       is inside prototype definition.
@@ -433,12 +433,12 @@ type
       as an exposed field may have an "IS" clause, but linking it to an event,
       and thus such field has it's value (default value, if not specified
       in the file), event though it also has an "IS" clause.
-      Although there is TVRMLField.ValueFromIsClause, which indicates
+      Although there is TX3DField.ValueFromIsClause, which indicates
       whether current value was obtained from "IS" clause. }
-    property IsClauseNames: TKamStringList read FIsClauseNames;
+    property IsClauseNames: TCastleStringList read FIsClauseNames;
 
     { Parse only "IS" clause, if it's not present --- don't do nothing.
-      For example, for the TVRMLField descendant, this does not try to parse
+      For example, for the TX3DField descendant, this does not try to parse
       field value. }
     procedure ParseIsClause(Lexer: TX3DLexer);
 
@@ -460,7 +460,7 @@ type
       name. Example: Switch node's children/choice, LOD node's children/level,
       Polyline2D lineSegments/point.
 
-      Note that this also works for ExposedEvents with exposed TVRMLField:
+      Note that this also works for ExposedEvents with exposed TX3DField:
       if a field has alternative names, then it's exposed events always also
       have appropriate alternative names. }
     procedure AddAlternativeName(const AlternativeName: string;
@@ -477,13 +477,13 @@ type
     function NameForVersion(Version: TX3DVersion): string; overload;
     function NameForVersion(Writer: TX3DWriter): string; overload;
 
-    { For fields contained in TVRMLInterfaceDeclaration.
+    { For fields contained in TX3DInterfaceDeclaration.
 
       This should always be @nil (if the field is normal, standard field,
       not coming from interface declaration in VRML file) or an instance of
-      TVRMLInterfaceDeclaration. (But it cannot be declared such,
-      since TVRMLInterfaceDeclaration is not known in this unit). }
-    property ParentInterfaceDeclaration: TVRMLFileItem
+      TX3DInterfaceDeclaration. (But it cannot be declared such,
+      since TX3DInterfaceDeclaration is not known in this unit). }
+    property ParentInterfaceDeclaration: TX3DFileItem
       read FParentInterfaceDeclaration write FParentInterfaceDeclaration;
 
     { Nice and concise field description for user.
@@ -497,11 +497,11 @@ type
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TVRMLFieldOrEventList = specialize TFPGObjectList<TVRMLFieldOrEvent>;
+  TX3DFieldOrEventList = specialize TFPGObjectList<TX3DFieldOrEvent>;
 
-  TVRMLFieldClass = class of TVRMLField;
+  TX3DFieldClass = class of TX3DField;
 
-  TVRMLEventReceiveList = class;
+  TX3DEventReceiveList = class;
 
   { Base class for all VRML fields.
 
@@ -516,7 +516,7 @@ type
     you usually want.
 
     Some notes about @code(Assign) method (inherited from TPersistent and
-    overridied appropriately in TVRMLField descendants):
+    overridied appropriately in TX3DField descendants):
 
     @orderedList(
       @item(There are some exceptions, but usually
@@ -533,14 +533,14 @@ type
         If you want to copy only the current value, use AssignValue
         (or AssignLerp, where available).))
   }
-  TVRMLField = class(TVRMLFieldOrEvent)
+  TX3DField = class(TX3DFieldOrEvent)
   private
     FExposed: boolean;
-    FExposedEvents: array [boolean] of TVRMLEvent;
+    FExposedEvents: array [boolean] of TX3DEvent;
     FChangesAlways: TX3DChanges;
 
     procedure SetExposed(Value: boolean);
-    function GetExposedEvents(InEvent: boolean): TVRMLEvent;
+    function GetExposedEvents(InEvent: boolean): TX3DEvent;
   private
     FValueFromIsClause: boolean;
 
@@ -569,25 +569,25 @@ type
     function SaveToXmlValue: TSaveToXmlMethod; virtual;
 
     { Call this inside overriden Assign methods.
-      I don't want to place this inside TVRMLField.Assign, since I want
+      I don't want to place this inside TX3DField.Assign, since I want
       "inherited" in Assign methods to cause exception. }
-    procedure VRMLFieldAssignCommon(Source: TVRMLField);
+    procedure VRMLFieldAssignCommon(Source: TX3DField);
 
-    procedure AssignValueRaiseInvalidClass(Source: TVRMLField);
+    procedure AssignValueRaiseInvalidClass(Source: TX3DField);
 
     { Class of the fields allowed in the exposed events of this field.
       This should usually be using ClassType of this object,
-      and this is the default implementation of this method in TVRMLField.
+      and this is the default implementation of this method in TX3DField.
 
       You can override this to return some ancestor (from which, and to which,
-      you can assign) if your TVRMLField descendant
+      you can assign) if your TX3DField descendant
       doesn't change how the @code(Assign) method works.
       E.g. TSFStringUpdate class, that is defined only to override
       @link(Changes) method and wants to be fully compatible with normal
       TSFString. }
-    function ExposedEventsFieldClass: TVRMLFieldClass; virtual;
+    function ExposedEventsFieldClass: TX3DFieldClass; virtual;
 
-    { Handle exposed input event. In TVRMLField class, this does everything
+    { Handle exposed input event. In TX3DField class, this does everything
       usually needed --- assigns value, sends an output event, notifies
       @link(Changed).
 
@@ -595,7 +595,7 @@ type
       you do not even need to call @code(inherited) in overriden versions.
       This is suitable e.g. for cases when TimeSensor.set_startTime or such
       must be ignored. }
-    procedure ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime); virtual;
   public
     { Normal constructor.
@@ -612,17 +612,17 @@ type
       The Create constructor should be just a comfortable extension of
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
 
       The idea is that in some cases, you need to create fields using
-      variable like FieldClass: TVRMLFieldClass. See e.g. TVRMLInterfaceDeclaration,
+      variable like FieldClass: TX3DFieldClass. See e.g. TX3DInterfaceDeclaration,
       VRML 2.0 feature that simply requires this ability, also
-      implementation of TVRMLSimpleMultField.Parse and
-      TVRMLSimpleMultField.CreateItemBeforeParse.
+      implementation of TX3DSimpleMultField.Parse and
+      TX3DSimpleMultField.CreateItemBeforeParse.
 
       Later you can initialize such instance from string using it's Parse method.
 
@@ -632,7 +632,7 @@ type
       TSFBitMask.FlagNames + TSFBitMask.NoneString + TSFBitMask.AllString
       before they can be parsed. I guess that's one of the reasons why these
       field types were entirely removed from VRML 2.0. }
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); virtual;
 
     destructor Destroy; override;
@@ -730,7 +730,7 @@ type
       parsing (like names for TSFEnum and TSFBitMask) or allowed
       future values (like TSFFloat.MustBeNonnegative).
     }
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; virtual; reintroduce;
 
     { Compare value of this field, with other field, fast.
@@ -747,7 +747,7 @@ type
       it actually doesn't know.
 
       Default implementation in this class (@classname) just returns @false. }
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; virtual;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; virtual;
 
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
@@ -755,15 +755,15 @@ type
 
     { These are the set_xxx and xxx_changed events exposed by this field.
       @nil if Exposed is @false. }
-    property ExposedEvents [InEvent: boolean]: TVRMLEvent
+    property ExposedEvents [InEvent: boolean]: TX3DEvent
       read GetExposedEvents;
 
     { Exposed events of this field. @nil if this field is not exposed.
       EventIn is always equivalent to ExposedEvents[true],
       EventOut is always equivalent to ExposedEvents[false].
       @groupBegin }
-    function EventIn: TVRMLEvent;
-    function EventOut: TVRMLEvent;
+    function EventIn: TX3DEvent;
+    function EventOut: TX3DEvent;
     { @groupEnd }
 
     { When @true (default) we will automatically handle exposed events
@@ -819,7 +819,7 @@ type
           AssignValueRaiseInvalidClass(Source);
       #)
     }
-    procedure AssignValue(Source: TVRMLField); virtual;
+    procedure AssignValue(Source: TX3DField); virtual;
 
     { Set field's default value from the current value.
 
@@ -861,7 +861,7 @@ type
       @raises(EVRMLMultFieldDifferentCount When field is multiple-value
         VRML field and Value1.Count <> Value2.Count.)
     }
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); virtual;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); virtual;
 
     { @abstract(Is AssignLerp usable on this field type?)
 
@@ -914,12 +914,12 @@ type
         @item(Otherwise, we will just set the fields value.
           And then notify the scenes (including events engine).)
       ) }
-    procedure Send(Value: TVRMLField);
+    procedure Send(Value: TX3DField);
 
     { Notifications when exposed field received new value through VRML/X3D event.
       Only for exposed fields (@nil for not exposed fields).
       This is simply a shortcut for @code(EventOut.OnReceive),
-      see TVRMLEvent.OnReceive for details how does this work.
+      see TX3DEvent.OnReceive for details how does this work.
 
       Note that this observes the "out" event (not the "in" event).
       This way you know inside the handler that the field value is already
@@ -931,18 +931,18 @@ type
       about the field value change (before T3DSceneCore.ChangedField is called).
       This is also usually exactly what you want --- you can change the scene
       graph inside the event handler (for example, load something on
-      Inline.load or Inline.url changes), and let the TVRMLField.ChangesAlways
+      Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways
       cause appropriate action on this change. }
-    function OnReceive: TVRMLEventReceiveList;
+    function OnReceive: TX3DEventReceiveList;
   end;
 
-  TVRMLFieldList = class(specialize TFPGObjectList<TVRMLField>)
+  TX3DFieldList = class(specialize TFPGObjectList<TX3DField>)
   private
-    function GetByName(const AName: string): TVRMLField;
+    function GetByName(const AName: string): TX3DField;
   public
     { This is a comfortable property that allows you to access fields by name.
       Exception will be raised if the given Name doesn't exist. }
-    property ByName[const AName: string]:TVRMLField read GetByName;
+    property ByName[const AName: string]:TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
     function IndexOf(const AName: string): integer;
@@ -953,18 +953,18 @@ type
       (so always @code(Fields[ReturnedIndex].ExposedEvent[ReturnedEvent.InEvent]
       = ReturnedEvent)). Otherwise, returns -1. }
     function IndexOfExposedEvent(const EventName: string;
-      out Event: TVRMLEvent): Integer;
+      out Event: TX3DEvent): Integer;
   end;
 
-  TVRMLSingleField = class(TVRMLField)
+  TX3DSingleField = class(TX3DField)
   end;
-  TVRMLSingleFieldClass = class of TVRMLSingleField;
+  TX3DSingleFieldClass = class of TX3DSingleField;
 
-  TVRMLSingleFieldList = specialize TFPGObjectList<TVRMLSingleField>;
+  TX3DSingleFieldList = specialize TFPGObjectList<TX3DSingleField>;
 
   EVRMLMultFieldDifferentCount = class(Exception);
 
-  TVRMLMultField = class(TVRMLField)
+  TX3DMultField = class(TX3DField)
   protected
     { Get or set the number of items, see @link(Count).
       @groupBegin }
@@ -980,18 +980,18 @@ type
     property Count: Integer read GetCount write SetCount;
 
     { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
-    procedure CheckCountEqual(SecondValue: TVRMLMultField);
+    procedure CheckCountEqual(SecondValue: TX3DMultField);
   end;
 
   { Multiple values VRML field. Remember that such field may always have
     any number of items, including zero.
 
-    Note that we keep MF fields contents in TFPSList or TKamStringList instances
+    Note that we keep MF fields contents in TFPSList or TCastleStringList instances
     (RawItems in this class, also accessible as Items (with more concrete
     class) in descendants). This means that they are in compact form,
     easy for reading, or even for feeding the list into OpenGL.
     That's the main reason why I did not simply implement
-    TVRMLSimpleMultField as a descendant of TVRMLSingleFieldsList:
+    TX3DSimpleMultField as a descendant of TX3DSingleFieldsList:
     A long list of vertexes, MFVec3f, would be kept as a list of pointers
     to a lot of TSFVec3f instances. This would be quite memory-consuming,
     and very uncomfortable for access. On the contrary, current implementation
@@ -1018,23 +1018,23 @@ type
         a constructor that allows you to init default field value
         from some "array of TXxx".)
     ) }
-  TVRMLSimpleMultField = class(TVRMLMultField)
+  TX3DSimpleMultField = class(TX3DMultField)
   private
     InvalidIndexWarnings: Cardinal;
   protected
-    fItemClass: TVRMLSingleFieldClass;
+    fItemClass: TX3DSingleFieldClass;
 
     { This creates new instance of class ItemClass. It doesn't have to
       have initialized value (in other words, it can be created by
       CreateUndefined), since we'll call his Parse method immediately.
       Default implementation in this class uses simply ItemClass.CreateUndefined. }
-    function CreateItemBeforeParse: TVRMLSingleField; virtual;
+    function CreateItemBeforeParse: TX3DSingleField; virtual;
 
     { Add Item at the end of RawItems. It's guaranteed that Item
       passes here will be of class ItemClass. You should copy
       Item contents as appropriate (remember that Item instance itself
       may be freed soon, so copy contents, not only some reference). }
-    procedure RawItemsAdd(Item: TVRMLSingleField); virtual abstract;
+    procedure RawItemsAdd(Item: TX3DSingleField); virtual abstract;
 
     procedure OnWarning_InvalidIndex(const Index, ACount: Integer);
   protected
@@ -1054,7 +1054,7 @@ type
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
 
     { Get or set the number of items.
-      In TVRMLSimpleMultField descendants, these simply get/set RawItems.Count
+      In TX3DSimpleMultField descendants, these simply get/set RawItems.Count
       (you could do it directly as well, since operating on RawItems directly
       is Ok).
       @groupBegin }
@@ -1064,7 +1064,7 @@ type
 
     procedure Clear;
   public
-    { Items of this field. Either TFPSList or TKamStringList.
+    { Items of this field. Either TFPSList or TCastleStringList.
 
       @italic(Descendants implementors notes): You have to initialize this field
       in descendants' constructor, it will be always freed in our
@@ -1073,7 +1073,7 @@ type
 
     { A corresponding SF field class. All items that will be passed
       to RawItemsAdd will be of this class. }
-    property ItemClass: TVRMLSingleFieldClass read fItemClass;
+    property ItemClass: TX3DSingleFieldClass read fItemClass;
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses ItemClass.Parse method. }
@@ -1085,7 +1085,7 @@ type
       In addition to inherited(Equals), this also checks that
       Count and ItemClass are equal. All descendants must check
       for equality every item on SecondValue.Items[I] and Items[I]. }
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure ParseXMLAttributeLexer(Lexer: TX3DLexer); override;
@@ -1099,7 +1099,7 @@ type
     TSFBitMask is one of the exceptional field types that cannot
     be 100% correctly initialized by CreateUndefined, since
     EnumNames will be left undefined. }
-  TSFBitMask = class(TVRMLSingleField)
+  TSFBitMask = class(TX3DSingleField)
   private
     fAllString, fNoneString: string;
     fFlagNames: TStringList;
@@ -1145,26 +1145,26 @@ type
       Remember that arrays AFFlagNames and AFlags
       (AFlags is initial value of Flags) must have equal length.
       Eventually, AFlags may be longer (excessive items will be ignored). }
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AFlagNames: array of string;
       const ANoneString, AAllString: string; const AFlags: array of boolean);
 
     destructor Destroy; override;
 
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
 
     class function VRMLTypeName: string; override;
   end;
 
-  TSFBool = class(TVRMLSingleField)
+  TSFBool = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: boolean);
 
   public
@@ -1175,12 +1175,12 @@ type
 
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1193,14 +1193,14 @@ type
     TSFEnum is one of the exceptional field types that cannot
     be 100% correctly initialized by CreateUndefined, since
     EnumNames will be left undefined. }
-  TSFEnum = class(TVRMLSingleField)
+  TSFEnum = class(TX3DSingleField)
   private
     fEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
@@ -1217,17 +1217,17 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
   end;
 
-  TSFFloat = class(TVRMLSingleField)
+  TSFFloat = class(TX3DSingleField)
   private
     FMustBeNonnegative: boolean;
     FValue: Single;
@@ -1235,9 +1235,9 @@ type
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: Single); overload;
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: Single;
       AMustBeNonnegative: boolean); overload;
 
@@ -1256,14 +1256,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1272,14 +1272,14 @@ type
   end;
 
   { SFDouble VRML field. }
-  TSFDouble = class(TVRMLSingleField)
+  TSFDouble = class(TX3DSingleField)
   private
     FValue: Double;
     procedure SetValue(const AValue: Double);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: Double);
 
     property Value: Double read FValue write SetValue;
@@ -1291,14 +1291,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1310,7 +1310,7 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  TSFImage = class(TVRMLSingleField)
+  TSFImage = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
@@ -1331,25 +1331,25 @@ type
         our Value field)).
         You can pass AValue = nil, then Value will be inited to null image
         TRGBImage.Create.) }
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TImage);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     destructor Destroy; override;
 
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
 
     class function VRMLTypeName: string; override;
   end;
 
-  TSFLong = class(TVRMLSingleField)
+  TSFLong = class(TX3DSingleField)
   private
     FMustBeNonnegative: boolean;
     FValue: Longint;
@@ -1357,9 +1357,9 @@ type
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: Longint); overload;
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: Longint;
       AMustBeNonnegative: boolean); overload;
 
@@ -1374,12 +1374,12 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1393,7 +1393,7 @@ type
     procedure Send(const AValue: LongInt); override;
   end;
 
-  TSFMatrix3f = class(TVRMLSingleField)
+  TSFMatrix3f = class(TX3DSingleField)
   private
     FValue: TMatrix3Single;
     DefaultValue: TMatrix3Single;
@@ -1401,7 +1401,7 @@ type
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TMatrix3Single);
 
     property Value: TMatrix3Single read FValue write FValue;
@@ -1409,14 +1409,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1424,7 +1424,7 @@ type
     procedure Send(const AValue: TMatrix3Single); overload;
   end;
 
-  TSFMatrix3d = class(TVRMLSingleField)
+  TSFMatrix3d = class(TX3DSingleField)
   private
     FValue: TMatrix3Double;
     DefaultValue: TMatrix3Double;
@@ -1432,7 +1432,7 @@ type
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TMatrix3Double);
 
     property Value: TMatrix3Double read FValue write FValue;
@@ -1440,14 +1440,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1455,7 +1455,7 @@ type
     procedure Send(const AValue: TMatrix3Double); overload;
   end;
 
-  TSFMatrix4f = class(TVRMLSingleField)
+  TSFMatrix4f = class(TX3DSingleField)
   private
     FValue: TMatrix4Single;
     DefaultValue: TMatrix4Single;
@@ -1463,7 +1463,7 @@ type
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TMatrix4Single);
 
     property Value: TMatrix4Single read FValue write FValue;
@@ -1471,14 +1471,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     { Return average scale for current matrix Value.
@@ -1501,7 +1501,7 @@ type
     procedure Send(const AValue: TMatrix4Single); override;
   end;
 
-  TSFMatrix4d = class(TVRMLSingleField)
+  TSFMatrix4d = class(TX3DSingleField)
   private
     FValue: TMatrix4Double;
     DefaultValue: TMatrix4Double;
@@ -1509,7 +1509,7 @@ type
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TMatrix4Double);
 
     property Value: TMatrix4Double read FValue write FValue;
@@ -1517,14 +1517,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1532,7 +1532,7 @@ type
     procedure Send(const AValue: TMatrix4Double); overload;
   end;
 
-  TSFRotation = class(TVRMLSingleField)
+  TSFRotation = class(TX3DSingleField)
   private
     DefaultAxis: TVector3Single;
     DefaultRotationRad: Single;
@@ -1544,10 +1544,10 @@ type
     function GetValueDeg: TVector4Single;
     procedure SetValueDeg(const AValue: TVector4Single);
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const AnAxis: TVector3Single; const ARotationRad: Single); overload;
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const AValue: TVector4Single); overload;
 
@@ -1572,15 +1572,15 @@ type
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
     function EqualsDefaultValue: boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1588,11 +1588,11 @@ type
     procedure Send(const AValue: TVector4Single); overload;
   end;
 
-  TSFString = class(TVRMLSingleField)
+  TSFString = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: string);
 
   public
@@ -1604,12 +1604,12 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1620,11 +1620,11 @@ type
     procedure Send(const AValue: string); overload;
   end;
 
-  TSFVec2f = class(TVRMLSingleField)
+  TSFVec2f = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TVector2Single);
 
   public
@@ -1636,14 +1636,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1651,11 +1651,11 @@ type
     procedure Send(const AValue: TVector2Single); overload;
   end;
 
-  TSFVec3f = class(TVRMLSingleField)
+  TSFVec3f = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TVector3Single);
 
   public
@@ -1667,14 +1667,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1688,11 +1688,11 @@ type
     procedure Send(const AValue: TVector3Single); override;
   end;
 
-  TSFVec4f = class(TVRMLSingleField)
+  TSFVec4f = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TVector4Single);
 
   public
@@ -1704,14 +1704,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1725,11 +1725,11 @@ type
     procedure Send(const AValue: TVector4Single); override;
   end;
 
-  TSFVec2d = class(TVRMLSingleField)
+  TSFVec2d = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TVector2Double);
 
   public
@@ -1741,14 +1741,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1756,11 +1756,11 @@ type
     procedure Send(const AValue: TVector2Double); overload;
   end;
 
-  TSFVec3d = class(TVRMLSingleField)
+  TSFVec3d = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TVector3Double);
 
   public
@@ -1772,14 +1772,14 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1787,11 +1787,11 @@ type
     procedure Send(const AValue: TVector3Double); overload;
   end;
 
-  TSFVec4d = class(TVRMLSingleField)
+  TSFVec4d = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TVector4Double);
 
   public
@@ -1802,14 +1802,14 @@ type
 
     procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TVRMLField): boolean; override;
+    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1837,7 +1837,7 @@ type
 }
 
   { }
-  TMFBool = class(TVRMLSimpleMultField)
+  TMFBool = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: Integer;
     DefaultValue: boolean;
@@ -1849,19 +1849,19 @@ type
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TBooleanList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const InitialContent: array of boolean);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1875,7 +1875,7 @@ type
     procedure Send(const AValue: array of boolean); overload;
   end;
 
-  TMFLong = class(TVRMLSimpleMultField)
+  TMFLong = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Longint;
@@ -1897,18 +1897,18 @@ type
       default false;
 
     property Items: TLongintList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of Longint);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1950,7 +1950,7 @@ type
     procedure Send(const AValue: array of LongInt); override;
   end;
 
-  TMFMatrix3f = class(TVRMLSimpleMultField)
+  TMFMatrix3f = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Single;
@@ -1962,20 +1962,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix3SingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TMatrix3Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -1989,7 +1989,7 @@ type
     procedure Send(const AValue: array of TMatrix3Single); overload;
   end;
 
-  TMFMatrix3d = class(TVRMLSimpleMultField)
+  TMFMatrix3d = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Double;
@@ -2001,20 +2001,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix3DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TMatrix3Double);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2028,7 +2028,7 @@ type
     procedure Send(const AValue: array of TMatrix3Double); overload;
   end;
 
-  TMFMatrix4f = class(TVRMLSimpleMultField)
+  TMFMatrix4f = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Single;
@@ -2040,20 +2040,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix4SingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TMatrix4Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2067,7 +2067,7 @@ type
     procedure Send(const AValue: array of TMatrix4Single); overload;
   end;
 
-  TMFMatrix4d = class(TVRMLSimpleMultField)
+  TMFMatrix4d = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Double;
@@ -2079,20 +2079,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix4DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TMatrix4Double);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2106,7 +2106,7 @@ type
     procedure Send(const AValue: array of TMatrix4Double); overload;
   end;
 
-  TMFVec2f = class(TVRMLSimpleMultField)
+  TMFVec2f = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector2Single;
@@ -2118,20 +2118,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector2SingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TVector2Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2145,7 +2145,7 @@ type
     procedure Send(const AValue: array of TVector2Single); overload;
   end;
 
-  TMFVec3f = class(TVRMLSimpleMultField)
+  TMFVec3f = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Single;
@@ -2157,20 +2157,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector3SingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TVector3Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2190,7 +2190,7 @@ type
     procedure Send(const AValue: array of TVector3Single); override;
   end;
 
-  TMFVec4f = class(TVRMLSimpleMultField)
+  TMFVec4f = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector4Single;
@@ -2202,20 +2202,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector4SingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TVector4Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2234,7 +2234,7 @@ type
     procedure Send(const AValue: array of TVector4Single); override;
   end;
 
-  TMFVec2d = class(TVRMLSimpleMultField)
+  TMFVec2d = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector2Double;
@@ -2246,20 +2246,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector2DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TVector2Double);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2273,7 +2273,7 @@ type
     procedure Send(const AValue: array of TVector2Double); overload;
   end;
 
-  TMFVec3d = class(TVRMLSimpleMultField)
+  TMFVec3d = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector3Double;
@@ -2285,20 +2285,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector3DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TVector3Double);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2312,7 +2312,7 @@ type
     procedure Send(const AValue: array of TVector3Double); overload;
   end;
 
-  TMFVec4d = class(TVRMLSimpleMultField)
+  TMFVec4d = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: TVector4Double;
@@ -2324,20 +2324,20 @@ type
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector4DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of TVector4Double);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2351,7 +2351,7 @@ type
     procedure Send(const AValue: array of TVector4Double); overload;
   end;
 
-  TMFRotation = class(TVRMLSimpleMultField)
+  TMFRotation = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: Integer;
     DefaultValue: TVector4Single;
@@ -2363,21 +2363,21 @@ type
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector4SingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const InitialContent: array of TVector4Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2391,7 +2391,7 @@ type
     procedure Send(const AValue: array of TVector4Single); overload;
   end;
 
-  TMFFloat = class(TVRMLSimpleMultField)
+  TMFFloat = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Single;
@@ -2404,21 +2404,21 @@ type
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     property Items: TSingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const InitialContent: array of Single);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2432,7 +2432,7 @@ type
     procedure Send(const AValue: array of Single); overload;
   end;
 
-  TMFDouble = class(TVRMLSimpleMultField)
+  TMFDouble = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: integer;
     DefaultValue: Double;
@@ -2445,21 +2445,21 @@ type
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
     property Items: TDoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const InitialContent: array of Double);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure AssignLerp(const A: Double; Value1, Value2: TVRMLField); override;
+    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
     function CanAssignLerp: boolean; override;
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2478,31 +2478,31 @@ type
     class function VRMLTypeName: string; override;
   end;
 
-  TMFString = class(TVRMLSimpleMultField)
+  TMFString = class(TX3DSimpleMultField)
   private
     DefaultValuesCount: Integer;
     DefaultValue: string;
-    function GetItems: TKamStringList;
-    procedure SetItems(const Value: TKamStringList);
+    function GetItems: TCastleStringList;
+    procedure SetItems(const Value: TCastleStringList);
     function GetItemsSafe(Index: Integer): string;
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    property Items: TKamStringList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TVRMLSingleField); override;
-    constructor Create(AParentNode: TVRMLFileItem;
+    property Items: TCastleStringList read GetItems write SetItems;
+    procedure RawItemsAdd(Item: TX3DSingleField); override;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const InitialContent: array of string);
-    constructor CreateUndefined(AParentNode: TVRMLFileItem;
+    constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TVRMLField;
+    function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TVRMLField); override;
+    procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
     class function VRMLTypeName: string; override;
@@ -2529,11 +2529,11 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure RegisterClass(AClass: TVRMLFieldClass);
-    procedure RegisterClasses(const Classes: array of TVRMLFieldClass);
+    procedure RegisterClass(AClass: TX3DFieldClass);
+    procedure RegisterClasses(const Classes: array of TX3DFieldClass);
 
     { Return field class for given name. Returns @nil if not found. }
-    function FieldTypeNameToClass(const TypeName: string): TVRMLFieldClass;
+    function FieldTypeNameToClass(const TypeName: string): TX3DFieldClass;
   end;
 
   {$I x3devents.inc}
@@ -2672,34 +2672,34 @@ begin
   DoDiscardNextIndent := true;
 end;
 
-{ TVRMLFileItem -------------------------------------------------------------- }
+{ TX3DFileItem -------------------------------------------------------------- }
 
-constructor TVRMLFileItem.Create;
+constructor TX3DFileItem.Create;
 begin
   inherited;
   FPositionInParent := -1;
 end;
 
-function TVRMLFileItem.SaveToXml: TSaveToXmlMethod;
+function TX3DFileItem.SaveToXml: TSaveToXmlMethod;
 begin
   Result := sxChildElement;
 end;
 
-{ TVRMLFileItemList --------------------------------------------------------- }
+{ TX3DFileItemList --------------------------------------------------------- }
 
-function IsSmallerPositionInParent(const A, B: TVRMLFileItem): Integer;
+function IsSmallerPositionInParent(const A, B: TX3DFileItem): Integer;
 begin
   Result := A.PositionInParent - B.PositionInParent;
   if Result = 0 then
     Result := A.PositionOnList - B.PositionOnList;
 end;
 
-procedure TVRMLFileItemList.SortPositionInParent;
+procedure TX3DFileItemList.SortPositionInParent;
 begin
   Sort(@IsSmallerPositionInParent);
 end;
 
-procedure TVRMLFileItemList.SaveToStream(Writer: TX3DWriter);
+procedure TX3DFileItemList.SaveToStream(Writer: TX3DWriter);
 var
   I: Integer;
 begin
@@ -2708,30 +2708,30 @@ begin
     Items[I].SaveToStream(Writer);
 end;
 
-procedure TVRMLFileItemList.Add(Item: TVRMLFileItem);
+procedure TX3DFileItemList.Add(Item: TX3DFileItem);
 begin
   Item.PositionOnList := Count;
   inherited Add(Item);
 end;
 
-{ TVRMLFieldOrEvent ---------------------------------------------------------- }
+{ TX3DFieldOrEvent ---------------------------------------------------------- }
 
-constructor TVRMLFieldOrEvent.Create(AParentNode: TVRMLFileItem;
+constructor TX3DFieldOrEvent.Create(AParentNode: TX3DFileItem;
   const AName: string);
 begin
   inherited Create;
-  FIsClauseNames := TKamStringList.Create;
+  FIsClauseNames := TCastleStringList.Create;
   FParentNode := AParentNode;
   FName := AName;
 end;
 
-destructor TVRMLFieldOrEvent.Destroy;
+destructor TX3DFieldOrEvent.Destroy;
 begin
   FreeAndNil(FIsClauseNames);
   inherited;
 end;
 
-procedure TVRMLFieldOrEvent.ParseIsClause(Lexer: TX3DLexer);
+procedure TX3DFieldOrEvent.ParseIsClause(Lexer: TX3DLexer);
 begin
   if Lexer.TokenIsKeyword(vkIS) then
   begin
@@ -2741,13 +2741,13 @@ begin
   end;
 end;
 
-procedure TVRMLFieldOrEvent.AddAlternativeName(const AlternativeName: string;
+procedure TX3DFieldOrEvent.AddAlternativeName(const AlternativeName: string;
   VrmlMajorVersion: Integer);
 begin
   FAlternativeNames[VrmlMajorVersion] := AlternativeName;
 end;
 
-function TVRMLFieldOrEvent.IsName(const S: string): boolean;
+function TX3DFieldOrEvent.IsName(const S: string): boolean;
 var
   I: Integer;
 begin
@@ -2767,7 +2767,7 @@ begin
   Result := Name = S;
 end;
 
-function TVRMLFieldOrEvent.NameForVersion(
+function TX3DFieldOrEvent.NameForVersion(
   Version: TX3DVersion): string;
 begin
   Result := FAlternativeNames[Version.Major];
@@ -2775,13 +2775,13 @@ begin
     Result := Name;
 end;
 
-function TVRMLFieldOrEvent.NameForVersion(
+function TX3DFieldOrEvent.NameForVersion(
   Writer: TX3DWriter): string;
 begin
   Result := NameForVersion(Writer.Version);
 end;
 
-procedure TVRMLFieldOrEvent.FieldOrEventAssignCommon(Source: TVRMLFieldOrEvent);
+procedure TX3DFieldOrEvent.FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
 begin
   FName := Source.Name;
 
@@ -2792,7 +2792,7 @@ begin
   FAlternativeNames := Source.FAlternativeNames;
 end;
 
-function TVRMLFieldOrEvent.NiceName: string;
+function TX3DFieldOrEvent.NiceName: string;
 begin
   Result := '';
 
@@ -2804,12 +2804,12 @@ begin
     Result += '<not named field>';
 end;
 
-function TVRMLFieldOrEvent.FullName: string;
+function TX3DFieldOrEvent.FullName: string;
 begin
   Result := NiceName;
 end;
 
-procedure TVRMLFieldOrEvent.SaveToStreamClassicIsClauses(Writer: TX3DWriter);
+procedure TX3DFieldOrEvent.SaveToStreamClassicIsClauses(Writer: TX3DWriter);
 var
   N: string;
   I: Integer;
@@ -2826,16 +2826,16 @@ begin
   end;
 end;
 
-{ TVRMLField ------------------------------------------------------------- }
+{ TX3DField ------------------------------------------------------------- }
 
-constructor TVRMLField.Create(AParentNode: TVRMLFileItem;
+constructor TX3DField.Create(AParentNode: TX3DFileItem;
   const AName: string);
 begin
   CreateUndefined(AParentNode, AName,
     true { default Exposed = true for normal constructor });
 end;
 
-constructor TVRMLField.CreateUndefined(AParentNode: TVRMLFileItem;
+constructor TX3DField.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited Create(AParentNode, AName);
@@ -2847,29 +2847,29 @@ begin
   Exposed := AExposed;
 end;
 
-destructor TVRMLField.Destroy;
+destructor TX3DField.Destroy;
 begin
   FreeAndNil(FExposedEvents[false]);
   FreeAndNil(FExposedEvents[true]);
   inherited;
 end;
 
-function TVRMLField.GetExposedEvents(InEvent: boolean): TVRMLEvent;
+function TX3DField.GetExposedEvents(InEvent: boolean): TX3DEvent;
 begin
   Result := FExposedEvents[InEvent];
 end;
 
-function TVRMLField.EventIn: TVRMLEvent;
+function TX3DField.EventIn: TX3DEvent;
 begin
   Result := FExposedEvents[true];
 end;
 
-function TVRMLField.EventOut: TVRMLEvent;
+function TX3DField.EventOut: TX3DEvent;
 begin
   Result := FExposedEvents[false];
 end;
 
-procedure TVRMLField.ExposedEventReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TX3DField.ExposedEventReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
   ValuePossiblyChanged: boolean;
@@ -2900,7 +2900,7 @@ begin
     Changed;
 end;
 
-procedure TVRMLField.Changed;
+procedure TX3DField.Changed;
 var
   Parent: TX3DNode;
 begin
@@ -2912,12 +2912,12 @@ begin
   end;
 end;
 
-function TVRMLField.Changes: TX3DChanges;
+function TX3DField.Changes: TX3DChanges;
 begin
   Result := ChangesAlways;
 end;
 
-procedure TVRMLField.Send(Value: TVRMLField);
+procedure TX3DField.Send(Value: TX3DField);
 var
   ValuePossiblyChanged: boolean;
 begin
@@ -2939,7 +2939,7 @@ const
   SetPrefix = 'set_';
   ChangedSuffix = '_changed';
 
-procedure TVRMLField.SetExposedEventsLinked(const Value: boolean);
+procedure TX3DField.SetExposedEventsLinked(const Value: boolean);
 begin
   if FExposedEventsLinked <> Value then
   begin
@@ -2953,12 +2953,12 @@ begin
   end;
 end;
 
-function TVRMLField.ExposedEventsFieldClass: TVRMLFieldClass;
+function TX3DField.ExposedEventsFieldClass: TX3DFieldClass;
 begin
-  Result := TVRMLFieldClass(ClassType);
+  Result := TX3DFieldClass(ClassType);
 end;
 
-procedure TVRMLField.SetExposed(Value: boolean);
+procedure TX3DField.SetExposed(Value: boolean);
 var
   I: Integer;
 begin
@@ -2967,9 +2967,9 @@ begin
     FExposed := Value;
     if Exposed then
     begin
-      FExposedEvents[false] := TVRMLEvent.Create(ParentNode,
+      FExposedEvents[false] := TX3DEvent.Create(ParentNode,
         Name + ChangedSuffix, ExposedEventsFieldClass, false);
-      FExposedEvents[true] := TVRMLEvent.Create(ParentNode,
+      FExposedEvents[true] := TX3DEvent.Create(ParentNode,
         SetPrefix + Name, ExposedEventsFieldClass, true);
 
       FExposedEvents[false].ParentExposedField := Self;
@@ -2997,7 +2997,7 @@ begin
   end;
 end;
 
-procedure TVRMLField.FieldSaveToStream(Writer: TX3DWriter;
+procedure TX3DField.FieldSaveToStream(Writer: TX3DWriter;
   FieldSaveWhenDefault, XmlAvoidSavingNameBeforeValue: boolean);
 var
   N: string;
@@ -3030,21 +3030,21 @@ begin
         if SaveToXml = sxAttribute then
           Writer.Write('"');
       end;
-    else raise EInternalError.Create('TVRMLField.FieldSaveToStream Encoding?');
+    else raise EInternalError.Create('TX3DField.FieldSaveToStream Encoding?');
   end;
 end;
 
-procedure TVRMLField.SaveToStream(Writer: TX3DWriter);
+procedure TX3DField.SaveToStream(Writer: TX3DWriter);
 begin
   FieldSaveToStream(Writer);
 end;
 
-function TVRMLField.SaveToXmlValue: TSaveToXmlMethod;
+function TX3DField.SaveToXmlValue: TSaveToXmlMethod;
 begin
   Result := sxAttribute;
 end;
 
-function TVRMLField.SaveToXml: TSaveToXmlMethod;
+function TX3DField.SaveToXml: TSaveToXmlMethod;
 begin
   { Detect sxNone for XML encoding, this allows better output in many cases,
     also avoids <fieldValue> inside <ProtoInstance> when the field value actually
@@ -3061,40 +3061,40 @@ begin
     Result := sxNone;
 end;
 
-function TVRMLField.EqualsDefaultValue: boolean;
+function TX3DField.EqualsDefaultValue: boolean;
 begin
   Result := false;
 end;
 
-function TVRMLField.Equals(SecondValue: TVRMLField;
+function TX3DField.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := SecondValue.Name = Name;
 end;
 
-function TVRMLField.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TX3DField.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := false;
 end;
 
-procedure TVRMLField.Parse(Lexer: TX3DLexer; Names: TObject; IsClauseAllowed: boolean);
+procedure TX3DField.Parse(Lexer: TX3DLexer; Names: TObject; IsClauseAllowed: boolean);
 begin
   if IsClauseAllowed and Lexer.TokenIsKeyword(vkIS) then
     ParseIsClause(Lexer) else
     ParseValue(Lexer, Names);
 end;
 
-procedure TVRMLField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
+procedure TX3DField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
 begin
   ParseValue(Lexer, nil);
 end;
 
-procedure TVRMLField.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+procedure TX3DField.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
 var
   Lexer: TX3DLexer;
 begin
   Lexer := TX3DLexer.CreateForPartialStream(AttributeValue,
-    (Names as TVRMLNames).Version);
+    (Names as TX3DNames).Version);
   try
     try
       ParseXMLAttributeLexer(Lexer);
@@ -3105,7 +3105,7 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-procedure TVRMLField.ParseXMLElement(Element: TDOMElement; Names: TObject);
+procedure TX3DField.ParseXMLElement(Element: TDOMElement; Names: TObject);
 var
   I: TXMLElementIterator;
 begin
@@ -3117,7 +3117,7 @@ begin
   finally FreeAndNil(I) end;
 end;
 
-procedure TVRMLField.VRMLFieldAssignCommon(Source: TVRMLField);
+procedure TX3DField.VRMLFieldAssignCommon(Source: TX3DField);
 var
   NameChanges, ExposedChanges: boolean;
   I: Integer;
@@ -3173,7 +3173,7 @@ begin
   end;
 end;
 
-procedure TVRMLField.AssignValueRaiseInvalidClass(Source: TVRMLField);
+procedure TX3DField.AssignValueRaiseInvalidClass(Source: TX3DField);
 begin
   raise EVRMLFieldAssignInvalidClass.CreateFmt('Cannot assign VRML field ' +
     '%s (%s) from %s (%s)',
@@ -3181,27 +3181,27 @@ begin
       Source.Name, Source.VRMLTypeName]);
 end;
 
-procedure TVRMLField.AssignValue(Source: TVRMLField);
+procedure TX3DField.AssignValue(Source: TX3DField);
 begin
   ValueFromIsClause := false;
 end;
 
-procedure TVRMLField.AssignDefaultValueFromValue;
+procedure TX3DField.AssignDefaultValueFromValue;
 begin
   { do nothing in this class }
 end;
 
-procedure TVRMLField.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TX3DField.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   { do nothing, CanAssignLerp is false }
 end;
 
-function TVRMLField.CanAssignLerp: boolean;
+function TX3DField.CanAssignLerp: boolean;
 begin
   Result := false;
 end;
 
-procedure TVRMLField.AddAlternativeName(const AlternativeName: string;
+procedure TX3DField.AddAlternativeName(const AlternativeName: string;
   VrmlMajorVersion: Integer);
 begin
   inherited;
@@ -3218,31 +3218,31 @@ begin
   end;
 end;
 
-{ Note that TVRMLField.VRMLTypeName cannot be abstract:
+{ Note that TX3DField.VRMLTypeName cannot be abstract:
   it may be used if source event is of XFAny type in warning message
-  in TVRMLRoute.SetEndingInternal }
-class function TVRMLField.VRMLTypeName: string;
+  in TX3DRoute.SetEndingInternal }
+class function TX3DField.VRMLTypeName: string;
 begin
   Result := 'XFAny';
 end;
 
-function TVRMLField.OnReceive: TVRMLEventReceiveList;
+function TX3DField.OnReceive: TX3DEventReceiveList;
 begin
   if FExposedEvents[false] <> nil then
     Result := FExposedEvents[false].OnReceive else
     Result := nil;
 end;
 
-{ TVRMLFieldList ------------------------------------------------------------- }
+{ TX3DFieldList ------------------------------------------------------------- }
 
-function TVRMLFieldList.IndexOf(const AName: string): integer;
+function TX3DFieldList.IndexOf(const AName: string): integer;
 begin
   for result := 0 to Count-1 do
     if Items[result].IsName(AName) then exit;
   result := -1;
 end;
 
-function TVRMLFieldList.GetByName(const AName: string): TVRMLField;
+function TX3DFieldList.GetByName(const AName: string): TX3DField;
 var i: integer;
 begin
   i := IndexOf(AName);
@@ -3251,8 +3251,8 @@ begin
     raise Exception.Create('Field name '+AName+' not found');
 end;
 
-function TVRMLFieldList.IndexOfExposedEvent(const EventName: string;
-  out Event: TVRMLEvent): Integer;
+function TX3DFieldList.IndexOfExposedEvent(const EventName: string;
+  out Event: TX3DEvent): Integer;
 var
   InEvent: boolean;
 begin
@@ -3288,9 +3288,9 @@ begin
   end;
 end;
 
-{ TVRMLMultField ------------------------------------------------------------- }
+{ TX3DMultField ------------------------------------------------------------- }
 
-procedure TVRMLMultField.CheckCountEqual(SecondValue: TVRMLMultField);
+procedure TX3DMultField.CheckCountEqual(SecondValue: TX3DMultField);
 begin
   if SecondValue.Count <> Count then
     raise EVRMLMultFieldDifferentCount.CreateFmt(
@@ -3301,43 +3301,43 @@ begin
         SecondValue.Count ]);
 end;
 
-{ TVRMLSimpleMultField ------------------------------------------------------- }
+{ TX3DSimpleMultField ------------------------------------------------------- }
 
-destructor TVRMLSimpleMultField.Destroy;
+destructor TX3DSimpleMultField.Destroy;
 begin
   RawItems.Free;
   inherited;
 end;
 
-function TVRMLSimpleMultField.GetCount: Integer;
+function TX3DSimpleMultField.GetCount: Integer;
 begin
   if RawItems is TFPSList then
     Result := TFPSList(RawItems).Count else
-    Result := TKamStringList(RawItems).Count;
+    Result := TCastleStringList(RawItems).Count;
 end;
 
-procedure TVRMLSimpleMultField.SetCount(const Value: Integer);
+procedure TX3DSimpleMultField.SetCount(const Value: Integer);
 begin
   if RawItems is TFPSList then
     TFPSList(RawItems).Count := Value else
-    TKamStringList(RawItems).Count := Value;
+    TCastleStringList(RawItems).Count := Value;
 end;
 
-procedure TVRMLSimpleMultField.Clear;
+procedure TX3DSimpleMultField.Clear;
 begin
   if RawItems is TFPSList then
     TFPSList(RawItems).Clear else
-    TKamStringList(RawItems).Clear;
+    TCastleStringList(RawItems).Clear;
 end;
 
-function TVRMLSimpleMultField.CreateItemBeforeParse: TVRMLSingleField;
+function TX3DSimpleMultField.CreateItemBeforeParse: TX3DSingleField;
 begin
   result := ItemClass.CreateUndefined(ParentNode, '', false);
 end;
 
-procedure TVRMLSimpleMultField.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Names: TObject);
 var
-  SingleItem: TVRMLSingleField;
+  SingleItem: TX3DSingleField;
 begin
   Clear;
 
@@ -3382,9 +3382,9 @@ begin
   finally FreeAndNil(SingleItem) end;
 end;
 
-procedure TVRMLSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
+procedure TX3DSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
 var
-  SingleItem: TVRMLSingleField;
+  SingleItem: TX3DSingleField;
 begin
   { This is much easier and simpler in XML encoding than it was
     in classic encoding. We don't have to check for [ and ] tokens,
@@ -3403,7 +3403,7 @@ begin
   finally FreeAndNil(SingleItem) end;
 end;
 
-procedure TVRMLSimpleMultField.SaveToStreamValue(Writer: TX3DWriter);
+procedure TX3DSimpleMultField.SaveToStreamValue(Writer: TX3DWriter);
 var
   i: integer;
   WriteIndentNextTime: boolean;
@@ -3451,25 +3451,25 @@ begin
         if I <> Count - 1 then
           Writer.Write(' ');
       end;
-    else raise EInternalError.Create('TVRMLSimpleMultField.SaveToStreamValue Encoding?');
+    else raise EInternalError.Create('TX3DSimpleMultField.SaveToStreamValue Encoding?');
   end;
 end;
 
-function TVRMLSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
+function TX3DSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
 begin
   result := true;
 end;
 
-function TVRMLSimpleMultField.Equals(SecondValue: TVRMLField;
+function TX3DSimpleMultField.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-    (SecondValue is TVRMLSimpleMultField) and
-    (TVRMLSimpleMultField(SecondValue).Count = Count) and
-    (TVRMLSimpleMultField(SecondValue).ItemClass = ItemClass);
+    (SecondValue is TX3DSimpleMultField) and
+    (TX3DSimpleMultField(SecondValue).Count = Count) and
+    (TX3DSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
-procedure TVRMLSimpleMultField.OnWarning_InvalidIndex(
+procedure TX3DSimpleMultField.OnWarning_InvalidIndex(
   const Index, ACount: Integer);
 const
   MaxInvalidIndexWarnings = 10;
@@ -3517,7 +3517,7 @@ end;
 
 { TSFBool -------------------------------------------------------------------- }
 
-constructor TSFBool.Create(AParentNode: TVRMLFileItem;
+constructor TSFBool.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: boolean);
 begin
   inherited Create(AParentNode, AName);
@@ -3577,7 +3577,7 @@ begin
   result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFBool.Equals(SecondValue: TVRMLField;
+function TSFBool.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -3585,7 +3585,7 @@ begin
     (TSFBool(SecondValue).Value = Value);
 end;
 
-function TSFBool.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSFBool.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFBool) and
     (TSFBool(SecondValue).Value = Value);
@@ -3598,12 +3598,12 @@ begin
     DefaultValue       := TSFBool(Source).DefaultValue;
     DefaultValueExists := TSFBool(Source).DefaultValueExists;
     Value              := TSFBool(Source).Value;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFBool.AssignValue(Source: TVRMLField);
+procedure TSFBool.AssignValue(Source: TX3DField);
 begin
   if Source is TSFBool then
   begin
@@ -3627,7 +3627,7 @@ end;
 
 procedure TSFBool.Send(const AValue: Boolean);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFBool.Create(ParentNode, Name, AValue);
   try
@@ -3644,13 +3644,13 @@ begin
     FValue := AValue;
 end;
 
-constructor TSFFloat.Create(AParentNode: TVRMLFileItem;
+constructor TSFFloat.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: Single);
 begin
   Create(AParentNode, AName, AValue, false);
 end;
 
-constructor TSFFloat.Create(AParentNode: TVRMLFileItem;
+constructor TSFFloat.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
 begin
   inherited Create(AParentNode, AName);
@@ -3675,7 +3675,7 @@ begin
   result := DefaultValueExists and (DefaultValue = Value)
 end;
 
-function TSFFloat.Equals(SecondValue: TVRMLField;
+function TSFFloat.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -3684,13 +3684,13 @@ begin
     FloatsEqual(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-function TSFFloat.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSFFloat.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFFloat) and
     (TSFFloat(SecondValue).Value = Value);
 end;
 
-procedure TSFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TSFFloat.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Value := Lerp(A, (Value1 as TSFFloat).Value, (Value2 as TSFFloat).Value);
 end;
@@ -3708,12 +3708,12 @@ begin
     DefaultValueExists := TSFFloat(Source).DefaultValueExists;
     FValue             := TSFFloat(Source).Value;
     FMustBeNonnegative := TSFFloat(Source).MustBeNonnegative;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFFloat.AssignValue(Source: TVRMLField);
+procedure TSFFloat.AssignValue(Source: TX3DField);
 begin
   if Source is TSFFloat then
   begin
@@ -3737,7 +3737,7 @@ end;
 
 procedure TSFFloat.Send(const AValue: Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFFloat.Create(ParentNode, Name, AValue);
   try
@@ -3747,7 +3747,7 @@ end;
 
 { TSFDouble -------------------------------------------------------------------- }
 
-constructor TSFDouble.Create(AParentNode: TVRMLFileItem;
+constructor TSFDouble.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: Double);
 begin
   inherited Create(AParentNode, AName);
@@ -3776,7 +3776,7 @@ begin
   Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFDouble.Equals(SecondValue: TVRMLField;
+function TSFDouble.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -3784,13 +3784,13 @@ begin
     FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-function TSFDouble.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSFDouble.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFDouble) and
     (TSFDouble(SecondValue).Value = Value);
 end;
 
-procedure TSFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TSFDouble.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Value := Lerp(A, (Value1 as TSFDouble).Value, (Value2 as TSFDouble).Value);
 end;
@@ -3807,12 +3807,12 @@ begin
     DefaultValue       := TSFDouble(Source).DefaultValue;
     DefaultValueExists := TSFDouble(Source).DefaultValueExists;
     FValue             := TSFDouble(Source).Value;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFDouble.AssignValue(Source: TVRMLField);
+procedure TSFDouble.AssignValue(Source: TX3DField);
 begin
   if Source is TSFDouble then
   begin
@@ -3836,7 +3836,7 @@ end;
 
 procedure TSFDouble.Send(const AValue: Double);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFDouble.Create(ParentNode, Name, AValue);
   try
@@ -3853,7 +3853,7 @@ end;
 
 { TSFImage ------------------------------------------------------------------- }
 
-constructor TSFImage.Create(AParentNode: TVRMLFileItem;
+constructor TSFImage.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: TImage);
 begin
   inherited Create(AParentNode, AName);
@@ -3865,7 +3865,7 @@ begin
   end;
 end;
 
-constructor TSFImage.CreateUndefined(AParentNode: TVRMLFileItem;
+constructor TSFImage.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
@@ -4068,7 +4068,7 @@ begin
   end;
 end;
 
-function TSFImage.Equals(SecondValue: TVRMLField;
+function TSFImage.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -4083,12 +4083,12 @@ begin
   begin
     FreeAndNil(Value);
     Value := TSFImage(Source).Value.MakeCopy;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFImage.AssignValue(Source: TVRMLField);
+procedure TSFImage.AssignValue(Source: TX3DField);
 begin
   if Source is TSFImage then
   begin
@@ -4113,13 +4113,13 @@ begin
     FValue := AValue;
 end;
 
-constructor TSFLong.Create(AParentNode: TVRMLFileItem;
+constructor TSFLong.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: Longint);
 begin
   Create(AParentNode, AName, AValue, false);
 end;
 
-constructor TSFLong.Create(AParentNode: TVRMLFileItem;
+constructor TSFLong.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
 begin
   inherited Create(AParentNode, AName);
@@ -4158,7 +4158,7 @@ begin
   result := DefaultValueExists and (DefaultValue = Value)
 end;
 
-function TSFLong.Equals(SecondValue: TVRMLField;
+function TSFLong.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   { Note that this means that SFInt32 and SFLong will actually be considered
@@ -4169,7 +4169,7 @@ begin
     (TSFLong(SecondValue).Value = Value);
 end;
 
-function TSFLong.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSFLong.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFLong) and
     (TSFLong(SecondValue).Value = Value);
@@ -4183,12 +4183,12 @@ begin
     DefaultValueExists := TSFLong(Source).DefaultValueExists;
     FValue             := TSFLong(Source).Value;
     FMustBeNonnegative := TSFLong(Source).MustBeNonnegative;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFLong.AssignValue(Source: TVRMLField);
+procedure TSFLong.AssignValue(Source: TX3DField);
 begin
   if Source is TSFLong then
   begin
@@ -4212,7 +4212,7 @@ end;
 
 procedure TSFLong.Send(const AValue: LongInt);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFLong.Create(ParentNode, Name, AValue);
   try
@@ -4229,7 +4229,7 @@ end;
 
 procedure TSFInt32.Send(const AValue: LongInt);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFInt32.Create(ParentNode, Name, AValue);
   try
@@ -4241,7 +4241,7 @@ end;
   Common SF fields based on matrices implementation }
 
 {$define IMPLEMENT_SF_CLASS_USING_MATRICES :=
-constructor TSF_CLASS.Create(AParentNode: TVRMLFileItem;
+constructor TSF_CLASS.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
   inherited Create(AParentNode, AName);
@@ -4269,7 +4269,7 @@ begin
   Writer.DecIndent;
 end;
 
-function TSF_CLASS.Equals(SecondValue: TVRMLField;
+function TSF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -4277,13 +4277,13 @@ begin
    MatricesEqual(TSF_CLASS(SecondValue).FValue, FValue, EqualityEpsilon);
 end;
 
-function TSF_CLASS.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSF_CLASS.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSF_CLASS) and
     MatricesPerfectlyEqual(TSF_CLASS(SecondValue).Value, Value);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 var
   Column: integer;
   M1, M2: PSF_STATIC_ITEM;
@@ -4304,12 +4304,12 @@ begin
   if Source is TSF_CLASS then
   begin
     FValue := TSF_CLASS(Source).FValue;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSF_CLASS.AssignValue(Source: TVRMLField);
+procedure TSF_CLASS.AssignValue(Source: TX3DField);
 begin
   if Source is TSF_CLASS then
   begin
@@ -4334,7 +4334,7 @@ end;
 
 procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSF_CLASS.Create(ParentNode, Name, AValue);
   try
@@ -4419,7 +4419,7 @@ end;
 
 procedure TSFMatrix.Send(const AValue: TMatrix4Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFMatrix.Create(ParentNode, Name, AValue);
   try
@@ -4429,7 +4429,7 @@ end;
 
 { TSFRotation ---------------------------------------------------------------- }
 
-constructor TSFRotation.Create(AParentNode: TVRMLFileItem;
+constructor TSFRotation.Create(AParentNode: TX3DFileItem;
   const AName: string;
   const AnAxis: TVector3Single; const ARotationRad: Single);
 begin
@@ -4441,7 +4441,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-constructor TSFRotation.Create(AParentNode: TVRMLFileItem;
+constructor TSFRotation.Create(AParentNode: TX3DFileItem;
   const AName: string;
   const AValue: TVector4Single);
 var
@@ -4507,7 +4507,7 @@ begin
   end;
 end;
 
-function TSFRotation.Equals(SecondValue: TVRMLField;
+function TSFRotation.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -4516,7 +4516,7 @@ begin
    FloatsEqual(TSFRotation(SecondValue).RotationRad, RotationRad, EqualityEpsilon);
 end;
 
-function TSFRotation.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSFRotation.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFRotation) and
     VectorsPerfectlyEqual(TSFRotation(SecondValue).Axis, Axis) and
@@ -4530,7 +4530,7 @@ begin
     (DefaultRotationRad = RotationRad);
 end;
 
-procedure TSFRotation.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TSFRotation.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
  Axis        := Lerp(A, (Value1 as TSFRotation).Axis       , (Value2 as TSFRotation).Axis);
  RotationRad := Lerp(A, (Value1 as TSFRotation).RotationRad, (Value2 as TSFRotation).RotationRad);
@@ -4547,12 +4547,12 @@ begin
  begin
   Axis        := TSFRotation(Source).Axis;
   RotationRad := TSFRotation(Source).RotationRad;
-  VRMLFieldAssignCommon(TVRMLField(Source));
+  VRMLFieldAssignCommon(TX3DField(Source));
  end else
   inherited;
 end;
 
-procedure TSFRotation.AssignValue(Source: TVRMLField);
+procedure TSFRotation.AssignValue(Source: TX3DField);
 begin
   if Source is TSFRotation then
   begin
@@ -4578,7 +4578,7 @@ end;
 
 procedure TSFRotation.Send(const AValue: Tvector4Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFRotation.Create(ParentNode, Name, AValue);
   try
@@ -4588,7 +4588,7 @@ end;
 
 { TSFString ------------------------------------------------------------------ }
 
-constructor TSFString.Create(AParentNode: TVRMLFileItem;
+constructor TSFString.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: string);
 begin
   inherited Create(AParentNode, AName);
@@ -4618,7 +4618,7 @@ begin
  result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFString.Equals(SecondValue: TVRMLField;
+function TSFString.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -4626,7 +4626,7 @@ begin
    (TSFString(SecondValue).Value = Value);
 end;
 
-function TSFString.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSFString.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFString) and
     (TSFString(SecondValue).Value = Value);
@@ -4639,12 +4639,12 @@ begin
   DefaultValue       := TSFString(Source).DefaultValue;
   DefaultValueExists := TSFString(Source).DefaultValueExists;
   Value              := TSFString(Source).Value;
-  VRMLFieldAssignCommon(TVRMLField(Source));
+  VRMLFieldAssignCommon(TX3DField(Source));
  end else
   inherited;
 end;
 
-procedure TSFString.AssignValue(Source: TVRMLField);
+procedure TSFString.AssignValue(Source: TX3DField);
 begin
   if Source is TSFString then
   begin
@@ -4690,7 +4690,7 @@ end;
 
 procedure TSFString.Send(const AValue: AnsiString);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFString.Create(ParentNode, Name, AValue);
   try
@@ -4707,7 +4707,7 @@ end;
   Common SF fields based on vectors implementation }
 
 {$define IMPLEMENT_SF_CLASS_USING_VECTORS :=
-constructor TSF_CLASS.Create(AParentNode: TVRMLFileItem;
+constructor TSF_CLASS.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
   inherited Create(AParentNode, AName);
@@ -4731,7 +4731,7 @@ begin
   result := DefaultValueExists and VectorsPerfectlyEqual(DefaultValue, Value);
 end;
 
-function TSF_CLASS.Equals(SecondValue: TVRMLField;
+function TSF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -4739,13 +4739,13 @@ begin
     VectorsEqual(TSF_CLASS(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
-function TSF_CLASS.FastEqualsValue(SecondValue: TVRMLField): boolean;
+function TSF_CLASS.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSF_CLASS) and
     VectorsPerfectlyEqual(TSF_CLASS(SecondValue).Value, Value);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
   Value := Lerp(A, (Value1 as TSF_CLASS).Value, (Value2 as TSF_CLASS).Value);
 end;
@@ -4762,12 +4762,12 @@ begin
     DefaultValue       := TSF_CLASS(Source).DefaultValue;
     DefaultValueExists := TSF_CLASS(Source).DefaultValueExists;
     Value              := TSF_CLASS(Source).Value;
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSF_CLASS.AssignValue(Source: TVRMLField);
+procedure TSF_CLASS.AssignValue(Source: TX3DField);
 begin
   if Source is TSF_CLASS then
   begin
@@ -4786,7 +4786,7 @@ end;
 
 procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSF_CLASS.Create(ParentNode, Name, AValue);
   try
@@ -4848,7 +4848,7 @@ end;
 
 procedure TSFColor.Send(const AValue: TVector3Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFColor.Create(ParentNode, Name, AValue);
   try
@@ -4872,7 +4872,7 @@ end;
 
 procedure TSFColorRGBA.Send(const AValue: TVector4Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TSFColorRGBA.Create(ParentNode, Name, AValue);
   try
@@ -4903,7 +4903,7 @@ end;
 
 { TSFBitMask ------------------------------------------------------------ }
 
-constructor TSFBitMask.Create(AParentNode: TVRMLFileItem;
+constructor TSFBitMask.Create(AParentNode: TX3DFileItem;
   const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of boolean);
 var
@@ -5021,7 +5021,7 @@ begin
   end;
 end;
 
-function TSFBitMask.Equals(SecondValue: TVRMLField;
+function TSFBitMask.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -5040,12 +5040,12 @@ begin
     FNoneString := TSFBitMask(Source).NoneString;
     FFlags      := TSFBitMask(Source).FFlags;
     FFlagNames.Assign(TSFBitMask(Source).FFlagNames);
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFBitMask.AssignValue(Source: TVRMLField);
+procedure TSFBitMask.AssignValue(Source: TX3DField);
 begin
   if Source is TSFBitMask then
   begin
@@ -5062,7 +5062,7 @@ end;
 
 { TSFEnum ----------------------------------------------------------------- }
 
-constructor TSFEnum.Create(AParentNode: TVRMLFileItem;
+constructor TSFEnum.Create(AParentNode: TX3DFileItem;
   const AName: string; const AEnumNames: array of string; const AValue: integer);
 begin
   inherited Create(AParentNode, AName);
@@ -5112,7 +5112,7 @@ begin
   result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFEnum.Equals(SecondValue: TVRMLField;
+function TSFEnum.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
@@ -5129,12 +5129,12 @@ begin
     DefaultValueExists := TSFEnum(Source).DefaultValueExists;
     Value              := TSFEnum(Source).Value;
     FEnumNames.Assign(TSFEnum(Source).FEnumNames);
-    VRMLFieldAssignCommon(TVRMLField(Source));
+    VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSFEnum.AssignValue(Source: TVRMLField);
+procedure TSFEnum.AssignValue(Source: TX3DField);
 begin
   if Source is TSFEnum then
   begin
@@ -5173,7 +5173,7 @@ end;
 {$endif}
 
 {$define IMPLEMENT_MF_CLASS:=
-constructor TMF_CLASS.Create(AParentNode: TVRMLFileItem;
+constructor TMF_CLASS.Create(AParentNode: TX3DFileItem;
   const AName: string;
   const InitialContent: array of TMF_STATIC_ITEM);
 begin
@@ -5184,7 +5184,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-constructor TMF_CLASS.CreateUndefined(AParentNode: TVRMLFileItem;
+constructor TMF_CLASS.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
@@ -5208,7 +5208,7 @@ begin
   TMF_DYN_STATIC_ITEM_ARRAY(RawItems).Assign(Value);
 end;
 
-procedure TMF_CLASS.RawItemsAdd(Item: TVRMLSingleField);
+procedure TMF_CLASS.RawItemsAdd(Item: TX3DSingleField);
 begin
  Items.Add(TMF_CLASS_ITEM(Item).Value);
 end;
@@ -5220,12 +5220,12 @@ begin
   DefaultValuesCount := TMF_CLASS(Source).DefaultValuesCount;
   DefaultValue       := TMF_CLASS(Source).DefaultValue;
   Items.Assign(TMF_CLASS(Source).Items);
-  VRMLFieldAssignCommon(TVRMLField(Source));
+  VRMLFieldAssignCommon(TX3DField(Source));
  end else
   inherited;
 end;
 
-procedure TMF_CLASS.AssignValue(Source: TVRMLField);
+procedure TMF_CLASS.AssignValue(Source: TX3DField);
 begin
   if Source is TMF_CLASS then
   begin
@@ -5253,7 +5253,7 @@ end;
 
 procedure TMF_CLASS.Send(const AValue: array of TMF_STATIC_ITEM);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TMF_CLASS.Create(ParentNode, Name, AValue);
   try
@@ -5310,7 +5310,7 @@ begin
      (DefaultValue = Items.L[0]));
 end;
 
-function TMF_CLASS.Equals(SecondValue: TVRMLField;
+function TMF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
@@ -5334,7 +5334,7 @@ begin
       CompareMem(@DefaultValue, Items.Pointers[0], SizeOf(TMF_STATIC_ITEM)) );
 end;
 
-function TMF_CLASS.Equals(SecondValue: TVRMLField;
+function TMF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
@@ -5359,7 +5359,7 @@ begin
       VectorsPerfectlyEqual(DefaultValue, Items.L[0]) );
 end;
 
-function TMF_CLASS.Equals(SecondValue: TVRMLField;
+function TMF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
@@ -5379,7 +5379,7 @@ begin
   Result := VectorToRawStr(Items.L[ItemNum])
 end;
 
-procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 var
   I: Integer;
   Val1, Val2: TMF_CLASS;
@@ -5413,7 +5413,7 @@ begin
       MatricesPerfectlyEqual(DefaultValue, Items.L[0]) );
 end;
 
-function TMF_CLASS.Equals(SecondValue: TVRMLField;
+function TMF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
@@ -5437,7 +5437,7 @@ begin
     Result += ' ' + VectorToRawStr(Items.L[ItemNum][Column]);
 end;
 
-procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 var
   I: Integer;
   Val1, Val2: TMF_CLASS;
@@ -5471,7 +5471,7 @@ begin
      (DefaultValue = Items.L[0]) );
 end;
 
-function TMF_CLASS.Equals(SecondValue: TVRMLField;
+function TMF_CLASS.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 var
   I: Integer;
@@ -5585,7 +5585,7 @@ IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
 {$define TMF_CLASS := TMFString}
 {$define TMF_STATIC_ITEM := string}
 {$define TMF_CLASS_ITEM := TSFString}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TKamStringList}
+{$define TMF_DYN_STATIC_ITEM_ARRAY := TCastleStringList}
 {$define TMF_DYN_DEFAULT_SAFE_VALUE := ''}
 IMPLEMENT_MF_CLASS
 IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
@@ -5683,7 +5683,7 @@ end;
 
 procedure TMFInt32.Send(const AValue: array of LongInt);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TMFInt32.Create(ParentNode, Name, AValue);
   try
@@ -5742,7 +5742,7 @@ end;
 
 procedure TMFColor.Send(const AValue: array of TVector3Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TMFColor.Create(ParentNode, Name, AValue);
   try
@@ -5766,7 +5766,7 @@ end;
 
 procedure TMFColorRGBA.Send(const AValue: array of TVector4Single);
 var
-  FieldValue: TVRMLField;
+  FieldValue: TX3DField;
 begin
   FieldValue := TMFColorRGBA.Create(ParentNode, Name, AValue);
   try
@@ -5814,7 +5814,7 @@ begin
   Result := FloatToRawStr(Items[ItemNum]);
 end;
 
-procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 var
   I: Integer;
   Val1, Val2: TMFFloat;
@@ -5851,7 +5851,7 @@ begin
   Result := FloatToRawStr(Items[ItemNum]);
 end;
 
-procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TVRMLField);
+procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 var
   I: Integer;
   Val1, Val2: TMFDouble;
@@ -5912,7 +5912,7 @@ begin
     we handle this as a single string (producing a warning). }
 
   Lexer := TX3DLexer.CreateForPartialStream(AttributeValue,
-    (Names as TVRMLNames).Version);
+    (Names as TX3DNames).Version);
   try
     try
       ParseXMLAttributeLexer(Lexer);
@@ -5956,13 +5956,13 @@ begin
   inherited;
 end;
 
-procedure TX3DFieldsManager.RegisterClass(AClass: TVRMLFieldClass);
+procedure TX3DFieldsManager.RegisterClass(AClass: TX3DFieldClass);
 begin
   Registered.AddObject(AClass.VRMLTypeName, TObject(AClass));
 end;
 
 procedure TX3DFieldsManager.RegisterClasses(
-  const Classes: array of TVRMLFieldClass);
+  const Classes: array of TX3DFieldClass);
 var
   I: Integer;
 begin
@@ -5971,13 +5971,13 @@ begin
 end;
 
 function TX3DFieldsManager.FieldTypeNameToClass(
-  const TypeName: string): TVRMLFieldClass;
+  const TypeName: string): TX3DFieldClass;
 var
   I: Integer;
 begin
   I := Registered.IndexOf(TypeName);
   if I <> -1 then
-    Result := TVRMLFieldClass(Registered.Objects[I]) else
+    Result := TX3DFieldClass(Registered.Objects[I]) else
     Result := nil;
 end;
 

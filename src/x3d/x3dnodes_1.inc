@@ -61,14 +61,14 @@
     private FFdWidth: TMFFloat;
     public property FdWidth: TMFFloat read FFdWidth;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function Justify: TVRMLFontJustify;
+    function Justify: TX3DFontJustify;
   end;
 
   TConeNode_1 = class(TAbstractGeometryNode_1)
@@ -84,15 +84,15 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
@@ -110,15 +110,15 @@
     private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
@@ -136,15 +136,15 @@
     private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
@@ -167,7 +167,7 @@
     private FFdTextureCoordIndex: TMFLong;
     public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
 
-    function Coord(State: TVRMLGraphTraverseState;
+    function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndex: TMFLong; override;
   end;
@@ -175,8 +175,8 @@
   { Common base class for VRML 1.0 indexed polygon nodes
     (IndexedFaceSet and IndexedTriangleMesh). }
   TIndexedFacesOrTrianglesNode_1 = class(TAbstractIndexedNode_1)
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TIndexedFaceSetNode_1 = class(TIndexedFacesOrTrianglesNode_1)
@@ -186,28 +186,28 @@
     class function ClassNodeTypeName: string; override;
 
     procedure CoordPolygons(
-      State: TVRMLGraphTraverseState;
+      State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
     private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
-    function TexCoord(State: TVRMLGraphTraverseState;
+    function TexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
   end;
 
   TIndexedLineSetNode_1 = class(TAbstractIndexedNode_1)
     class function ClassNodeTypeName: string; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function TexCoord(State: TVRMLGraphTraverseState;
+    function TexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
 
     { Do we have enough normals information to render this node lit.
       VRML 1.0 specification explicitly mentions that IndexedLineSet is treated
       specially: it's unlit if there are not enough normals specified. }
-    function Lit(State: TVRMLGraphTraverseState): boolean; override;
+    function Lit(State: TX3DGraphTraverseState): boolean; override;
   end;
 
   TPointSetNode_1 = class(TAbstractGeometryNode_1)
@@ -224,12 +224,12 @@
     private FFdNumPoints: TSFLong;
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
-    function Coord(State: TVRMLGraphTraverseState;
+    function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function Lit(State: TVRMLGraphTraverseState): boolean; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function Lit(State: TX3DGraphTraverseState): boolean; override;
   end;
 
   TSphereNode_1 = class(TAbstractGeometryNode_1)
@@ -239,15 +239,15 @@
     private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     function AutoGenerate3DTexCoords: boolean; override;
   end;
@@ -277,7 +277,7 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function Family: TVRMLFontFamily;
+    function Family: TX3DFontFamily;
     function Bold: boolean;
     function Italic: boolean;
     function TTF_Font: PTrueTypeFont;
@@ -309,7 +309,7 @@
       override;
   end;
 
-  TVRMLMaterialInfo_1 = class;
+  TX3DMaterialInfo_1 = class;
 
   TMaterialNode_1 = class(TAbstractChildNode)
     procedure CreateNode; override;
@@ -411,10 +411,10 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
+    function MaterialInfo(const Index: Integer): TX3DMaterialInfo_1;
   end;
 
-  TVRMLMaterialInfo_1 = class(TVRMLMaterialInfoAbstract)
+  TX3DMaterialInfo_1 = class(TX3DMaterialInfoAbstract)
   private
     FNode: TMaterialNode_1;
     FIndex: Integer;
@@ -494,7 +494,7 @@
 
   TTexture2TransformNode_1 = class(TAbstractChildNode)
   protected
-    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -524,7 +524,7 @@
 
   TShapeHintsNode_1 = class(TAbstractChildNode)
   protected
-    function ParseNodeBodyElement(Lexer: TX3DLexer; Names: TVRMLNames;
+    function ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
       const APositionInParent: Integer): boolean; override;
   public
     procedure CreateNode; override;
@@ -547,7 +547,7 @@
     In descendants you only have to override the MatrixTransform method. }
   TAbstractTransformationNode_1 = class(TAbstractChildNode)
   protected
-    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); virtual; abstract;
     function TransformScale: Single; virtual; abstract;
@@ -754,8 +754,8 @@
     Also WWWInline does the same work, when it's "separate" field is true. }
   TAbstractSeparatorNode_1 = class(TAbstractChildNode)
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
   end;
@@ -789,8 +789,8 @@
     OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
     OriginalTransformScale: Single;
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -861,9 +861,9 @@ begin
   result := 'AsciiText';
 end;
 
-function TAsciiTextNode_1.Justify: TVRMLFontJustify;
+function TAsciiTextNode_1.Justify: TX3DFontJustify;
 begin
-  Result := TVRMLFontJustify(FdJustification.Value);
+  Result := TX3DFontJustify(FdJustification.Value);
 end;
 
 procedure TConeNode_1.CreateNode;
@@ -970,7 +970,7 @@ begin
   Fields.Add(FFdTextureCoordIndex);
 end;
 
-function TAbstractIndexedNode_1.Coord(State: TVRMLGraphTraverseState;
+function TAbstractIndexedNode_1.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -996,7 +996,7 @@ begin
   result := 'IndexedFaceSet';
 end;
 
-function TIndexedFaceSetNode_1.TexCoord(State: TVRMLGraphTraverseState;
+function TIndexedFaceSetNode_1.TexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
@@ -1008,14 +1008,14 @@ begin
   result := 'IndexedLineSet';
 end;
 
-function TIndexedLineSetNode_1.TexCoord(State: TVRMLGraphTraverseState;
+function TIndexedLineSetNode_1.TexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
   ATexCoord := State.LastNodes.TextureCoordinate2;
 end;
 
-function TIndexedLineSetNode_1.Lit(State: TVRMLGraphTraverseState): boolean;
+function TIndexedLineSetNode_1.Lit(State: TX3DGraphTraverseState): boolean;
 begin
   { This somewhat follows the logic of
     TAbstractNormalGenerator.NorImplementationFromVRML1Binding,
@@ -1064,7 +1064,7 @@ begin
   result := 'PointSet';
 end;
 
-function TPointSetNode_1.Coord(State: TVRMLGraphTraverseState;
+function TPointSetNode_1.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 
   procedure CalculateRange(CoordsCount: Cardinal;
@@ -1119,7 +1119,7 @@ begin
   end;
 end;
 
-function TPointSetNode_1.Lit(State: TVRMLGraphTraverseState): boolean;
+function TPointSetNode_1.Lit(State: TX3DGraphTraverseState): boolean;
 begin
   Result := false;
 end;
@@ -1184,9 +1184,9 @@ begin
   Result := TTF_Font_Results[Family, Bold, Italic];
 end;
 
-function TFontStyleNode_1.Family: TVRMLFontFamily;
+function TFontStyleNode_1.Family: TX3DFontFamily;
 begin
-  Result := TVRMLFontFamily(FdFamily.Value);
+  Result := TX3DFontFamily(FdFamily.Value);
 end;
 
 function TFontStyleNode_1.Bold: boolean;
@@ -1471,34 +1471,34 @@ begin
   Result := Version.Major <= 1;
 end;
 
-function TMaterialNode_1.MaterialInfo(const Index: Integer): TVRMLMaterialInfo_1;
+function TMaterialNode_1.MaterialInfo(const Index: Integer): TX3DMaterialInfo_1;
 begin
-  Result := TVRMLMaterialInfo_1.Create(Self, Index);
+  Result := TX3DMaterialInfo_1.Create(Self, Index);
 end;
 
-constructor TVRMLMaterialInfo_1.Create(Node: TMaterialNode_1; const Index: Integer);
+constructor TX3DMaterialInfo_1.Create(Node: TMaterialNode_1; const Index: Integer);
 begin
   inherited Create;
   FNode := Node;
   FIndex := Index;
 end;
 
-function TVRMLMaterialInfo_1.DiffuseColor: TVector3Single;
+function TX3DMaterialInfo_1.DiffuseColor: TVector3Single;
 begin
   Result := FNode.DiffuseColor3Single(FIndex);
 end;
 
-function TVRMLMaterialInfo_1.Mirror: Single;
+function TX3DMaterialInfo_1.Mirror: Single;
 begin
   Result := FNode.Mirror(FIndex);
 end;
 
-function TVRMLMaterialInfo_1.Transparency: Single;
+function TX3DMaterialInfo_1.Transparency: Single;
 begin
   Result := FNode.Transparency(FIndex);
 end;
 
-function TVRMLMaterialInfo_1.ReflSpecular: TVector3Single;
+function TX3DMaterialInfo_1.ReflSpecular: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1508,7 +1508,7 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TVRMLMaterialInfo_1.ReflDiffuse: TVector3Single;
+function TX3DMaterialInfo_1.ReflDiffuse: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1518,7 +1518,7 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TVRMLMaterialInfo_1.TransSpecular: TVector3Single;
+function TX3DMaterialInfo_1.TransSpecular: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1528,7 +1528,7 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TVRMLMaterialInfo_1.TransDiffuse: TVector3Single;
+function TX3DMaterialInfo_1.TransDiffuse: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1538,12 +1538,12 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TVRMLMaterialInfo_1.ReflSpecularExp: Single;
+function TX3DMaterialInfo_1.ReflSpecularExp: Single;
 begin
   Result := FNode.ReflSpecularExp(FIndex);
 end;
 
-function TVRMLMaterialInfo_1.TransSpecularExp: Single;
+function TX3DMaterialInfo_1.TransSpecularExp: Single;
 begin
   Result := FNode.TransSpecularExp(FIndex);
 end;
@@ -1705,7 +1705,7 @@ begin
     Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
 end;
 
-procedure TTexture2TransformNode_1.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTexture2TransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   StateStack.Top.TextureTransform := MatrixMult(StateStack.Top.TextureTransform,
@@ -1752,7 +1752,7 @@ begin
   result := 'ShapeHints';
 end;
 
-function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TVRMLNames;
+function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
   const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
@@ -1786,7 +1786,7 @@ begin
   end;
 end;
 
-procedure TAbstractTransformationNode_1.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractTransformationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 var
   M, IM: TMatrix4Single;
 begin
@@ -2255,7 +2255,7 @@ end;
 
 type
   TVRML1SeparatorEnumerator = class
-    State: TVRMLGraphTraverseState;
+    State: TX3DGraphTraverseState;
     procedure Enumerate(Node, Child: TX3DNode);
   end;
 
@@ -2265,7 +2265,7 @@ begin
     State.LocalFog := TLocalFogNode(Child);
 end;
 
-procedure TAbstractSeparatorNode_1.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractSeparatorNode_1.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 var
   Enumerator: TVRML1SeparatorEnumerator;
 begin
@@ -2282,7 +2282,7 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TAbstractSeparatorNode_1.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractSeparatorNode_1.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   StateStack.Pop;
   inherited;
@@ -2355,7 +2355,7 @@ begin
   result := 'TransformSeparator';
 end;
 
-procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
 
@@ -2366,7 +2366,7 @@ begin
   OriginalTransformScale := StateStack.Top.TransformScale;
 end;
 
-procedure TTransformSeparatorNode_1.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TTransformSeparatorNode_1.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   StateStack.Top.Transform := OriginalTransform;
   StateStack.Top.InvertedTransform := OriginalInvertedTransform;

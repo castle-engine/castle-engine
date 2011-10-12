@@ -48,21 +48,21 @@ type
     FTransform: TMatrix4Single;
     FTransformScale: Single;
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
 
     { Event: SFBool, in } { }
-    private FEventSet_bind: TVRMLEvent;
-    public property EventSet_bind: TVRMLEvent read FEventSet_bind;
+    private FEventSet_bind: TX3DEvent;
+    public property EventSet_bind: TX3DEvent read FEventSet_bind;
 
     { Event: SFTime, out } { }
-    private FEventBindTime: TVRMLEvent;
-    public property EventBindTime: TVRMLEvent read FEventBindTime;
+    private FEventBindTime: TX3DEvent;
+    public property EventBindTime: TX3DEvent read FEventBindTime;
 
     { Event: SFBool, out } { }
-    private FEventIsBound: TVRMLEvent;
-    public property EventIsBound: TVRMLEvent read FEventIsBound;
+    private FEventIsBound: TX3DEvent;
+    public property EventIsBound: TX3DEvent read FEventIsBound;
 
     { Transformation of this bindable node.
 
@@ -109,7 +109,7 @@ type
     property FdEnabled: TSFBool;
 
     { Event: SFBool, out } { }
-    property EventIsActive: TVRMLEvent;
+    property EventIsActive: TX3DEvent;
   end;
 
   TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
@@ -120,8 +120,8 @@ type
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
   end;
 
   TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataObject)
@@ -244,13 +244,13 @@ procedure TAbstractBindableNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_bind := TVRMLEvent.Create(Self, 'set_bind', TSFBool, true);
+  FEventSet_bind := TX3DEvent.Create(Self, 'set_bind', TSFBool, true);
   Events.Add(FEventSet_bind);
 
-  FEventBindTime := TVRMLEvent.Create(Self, 'bindTime', TSFTime, false);
+  FEventBindTime := TX3DEvent.Create(Self, 'bindTime', TSFTime, false);
   Events.Add(FEventBindTime);
 
-  FEventIsBound := TVRMLEvent.Create(Self, 'isBound', TSFBool, false);
+  FEventIsBound := TX3DEvent.Create(Self, 'isBound', TSFBool, false);
   Events.Add(FEventIsBound);
 
   FTransform := IdentityMatrix4Single;
@@ -258,7 +258,7 @@ begin
 end;
 
 procedure TAbstractBindableNode.BeforeTraverse(
-  StateStack: TVRMLGraphTraverseStateStack);
+  StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
 
@@ -273,7 +273,7 @@ begin
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdEnabled);
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 end;
 

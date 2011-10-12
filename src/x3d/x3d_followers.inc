@@ -20,8 +20,8 @@
     procedure CreateNode; override;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
   end;
 
   TAbstractDamperNode = class(TAbstractFollowerNode)
@@ -53,16 +53,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFColor, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFColor, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFColor, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFColor;
     public property FdInitialDestination: TSFColor read FFdInitialDestination;
@@ -78,16 +78,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec3f, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: MFVec3f, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: MFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TMFVec3f;
     public property FdInitialDestination: TMFVec3f read FFdInitialDestination;
@@ -103,16 +103,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFRotation, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFRotation, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFRotation, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFRotation;
     public property FdInitialDestination: TSFRotation read FFdInitialDestination;
@@ -128,16 +128,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFRotation, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFRotation, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFRotation, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFRotation;
     public property FdInitialDestination: TSFRotation read FFdInitialDestination;
@@ -153,16 +153,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFVec3f, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFVec3f;
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
@@ -178,16 +178,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec2f, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFVec2f, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFVec2f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFVec2f;
     public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
@@ -203,16 +203,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec3f, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFVec3f, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFVec3f;
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
@@ -228,16 +228,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec2f, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFVec2f, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFVec2f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFVec2f;
     public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
@@ -253,16 +253,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: SFFloat, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: SFFloat, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TSFFloat;
     public property FdInitialDestination: TSFFloat read FFdInitialDestination;
@@ -278,16 +278,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec2f, in } { }
-    private FEventSet_destination: TVRMLEvent;
-    public property EventSet_destination: TVRMLEvent read FEventSet_destination;
+    private FEventSet_destination: TX3DEvent;
+    public property EventSet_destination: TX3DEvent read FEventSet_destination;
 
     { Event: MFVec2f, in } { }
-    private FEventSet_value: TVRMLEvent;
-    public property EventSet_value: TVRMLEvent read FEventSet_value;
+    private FEventSet_value: TX3DEvent;
+    public property EventSet_value: TX3DEvent read FEventSet_value;
 
     { Event: MFVec2f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     private FFdInitialDestination: TMFVec2f;
     public property FdInitialDestination: TMFVec2f read FFdInitialDestination;
@@ -303,7 +303,7 @@ procedure TAbstractFollowerNode.CreateNode;
 begin
   inherited;
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
   DefaultContainerField := 'children';
@@ -345,13 +345,13 @@ procedure TColorDamperNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFColor, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFColor, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFColor, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFColor, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFColor, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFColor, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFColor.Create(Self, 'initialDestination', Vector3Single(0.8, 0.8, 0.8));
@@ -380,13 +380,13 @@ procedure TCoordinateDamperNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TMFVec3f, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TMFVec3f, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TMFVec3f, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TMFVec3f, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec3f, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TMFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
@@ -415,13 +415,13 @@ procedure TOrientationChaserNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFRotation, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFRotation, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFRotation, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFRotation, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3Single(0, 1, 0), 0);
@@ -450,13 +450,13 @@ procedure TOrientationDamperNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFRotation, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFRotation, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFRotation, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFRotation, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3Single(0, 1, 0), 0);
@@ -485,13 +485,13 @@ procedure TPositionChaserNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec3f, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFVec3f, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec3f, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFVec3f, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
@@ -520,13 +520,13 @@ procedure TPositionChaser2DNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec2f, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFVec2f, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec2f, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFVec2f, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec2f, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2Single(0, 0));
@@ -557,13 +557,13 @@ procedure TPositionDamperNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec3f, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFVec3f, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec3f, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFVec3f, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3Single(0, 0, 0));
@@ -592,13 +592,13 @@ procedure TPositionDamper2DNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFVec2f, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFVec2f, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFVec2f, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFVec2f, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec2f, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2Single(0, 0));
@@ -627,13 +627,13 @@ procedure TScalarChaserNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TSFFloat, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TSFFloat, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TSFFloat, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TSFFloat, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFFloat, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TSFFloat.Create(Self, 'initialDestination', 0);
@@ -662,13 +662,13 @@ procedure TTexCoordDamper2DNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_destination := TVRMLEvent.Create(Self, 'set_destination', TMFVec2f, true);
+  FEventSet_destination := TX3DEvent.Create(Self, 'set_destination', TMFVec2f, true);
   Events.Add(FEventSet_destination);
 
-  FEventSet_value := TVRMLEvent.Create(Self, 'set_value', TMFVec2f, true);
+  FEventSet_value := TX3DEvent.Create(Self, 'set_value', TMFVec2f, true);
   Events.Add(FEventSet_value);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec2f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec2f, false);
   Events.Add(FEventValue_changed);
 
   FFdInitialDestination := TMFVec2f.Create(Self, 'initialDestination', []);

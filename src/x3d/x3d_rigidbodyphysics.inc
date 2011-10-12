@@ -73,12 +73,12 @@
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody1AnchorPoint: TVRMLEvent;
-    public property EventBody1AnchorPoint: TVRMLEvent read FEventBody1AnchorPoint;
+    private FEventBody1AnchorPoint: TX3DEvent;
+    public property EventBody1AnchorPoint: TX3DEvent read FEventBody1AnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody2AnchorPoint: TVRMLEvent;
-    public property EventBody2AnchorPoint: TVRMLEvent read FEventBody2AnchorPoint;
+    private FEventBody2AnchorPoint: TX3DEvent;
+    public property EventBody2AnchorPoint: TX3DEvent read FEventBody2AnchorPoint;
   end;
 
   TCollidableOffsetNode = class(TAbstractNBodyCollidableNode)
@@ -148,12 +148,12 @@
     public property FdCollider: TSFNode read FFdCollider;
 
     { Event: MFNode, out } { }
-    private FEventIntersections: TVRMLEvent;
-    public property EventIntersections: TVRMLEvent read FEventIntersections;
+    private FEventIntersections: TX3DEvent;
+    public property EventIntersections: TX3DEvent read FEventIntersections;
 
     { Event: MFNode, out } { }
-    private FEventContacts: TVRMLEvent;
-    public property EventContacts: TVRMLEvent read FEventContacts;
+    private FEventContacts: TX3DEvent;
+    public property EventContacts: TX3DEvent read FEventContacts;
   end;
 
   TCollisionSpaceNode = class(TAbstractNBodyCollisionSpaceNode)
@@ -273,36 +273,36 @@
     public property FdSuspensionForce: TSFFloat read FFdSuspensionForce;
 
     { Event: SFVec3f, out } { }
-    private FEventBody1AnchorPoint: TVRMLEvent;
-    public property EventBody1AnchorPoint: TVRMLEvent read FEventBody1AnchorPoint;
+    private FEventBody1AnchorPoint: TX3DEvent;
+    public property EventBody1AnchorPoint: TX3DEvent read FEventBody1AnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody1Axis: TVRMLEvent;
-    public property EventBody1Axis: TVRMLEvent read FEventBody1Axis;
+    private FEventBody1Axis: TX3DEvent;
+    public property EventBody1Axis: TX3DEvent read FEventBody1Axis;
 
     { Event: SFVec3f, out } { }
-    private FEventBody2AnchorPoint: TVRMLEvent;
-    public property EventBody2AnchorPoint: TVRMLEvent read FEventBody2AnchorPoint;
+    private FEventBody2AnchorPoint: TX3DEvent;
+    public property EventBody2AnchorPoint: TX3DEvent read FEventBody2AnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody2Axis: TVRMLEvent;
-    public property EventBody2Axis: TVRMLEvent read FEventBody2Axis;
+    private FEventBody2Axis: TX3DEvent;
+    public property EventBody2Axis: TX3DEvent read FEventBody2Axis;
 
     { Event: SFFloat, out } { }
-    private FEventHinge1Angle: TVRMLEvent;
-    public property EventHinge1Angle: TVRMLEvent read FEventHinge1Angle;
+    private FEventHinge1Angle: TX3DEvent;
+    public property EventHinge1Angle: TX3DEvent read FEventHinge1Angle;
 
     { Event: SFFloat, out } { }
-    private FEventHinge1AngleRate: TVRMLEvent;
-    public property EventHinge1AngleRate: TVRMLEvent read FEventHinge1AngleRate;
+    private FEventHinge1AngleRate: TX3DEvent;
+    public property EventHinge1AngleRate: TX3DEvent read FEventHinge1AngleRate;
 
     { Event: SFFloat, out } { }
-    private FEventHinge2Angle: TVRMLEvent;
-    public property EventHinge2Angle: TVRMLEvent read FEventHinge2Angle;
+    private FEventHinge2Angle: TX3DEvent;
+    public property EventHinge2Angle: TX3DEvent read FEventHinge2Angle;
 
     { Event: SFFloat, out } { }
-    private FEventHinge2AngleRate: TVRMLEvent;
-    public property EventHinge2AngleRate: TVRMLEvent read FEventHinge2AngleRate;
+    private FEventHinge2AngleRate: TX3DEvent;
+    public property EventHinge2AngleRate: TX3DEvent read FEventHinge2AngleRate;
   end;
 
   TMotorJointNode = class(TAbstractRigidJointNode)
@@ -360,28 +360,28 @@
     public property FdStop3ErrorCorrection: TSFFloat read FFdStop3ErrorCorrection;
 
     { Event: SFFloat, out } { }
-    private FEventMotor1Angle: TVRMLEvent;
-    public property EventMotor1Angle: TVRMLEvent read FEventMotor1Angle;
+    private FEventMotor1Angle: TX3DEvent;
+    public property EventMotor1Angle: TX3DEvent read FEventMotor1Angle;
 
     { Event: SFFloat, out } { }
-    private FEventMotor1AngleRate: TVRMLEvent;
-    public property EventMotor1AngleRate: TVRMLEvent read FEventMotor1AngleRate;
+    private FEventMotor1AngleRate: TX3DEvent;
+    public property EventMotor1AngleRate: TX3DEvent read FEventMotor1AngleRate;
 
     { Event: SFFloat, out } { }
-    private FEventMotor2Angle: TVRMLEvent;
-    public property EventMotor2Angle: TVRMLEvent read FEventMotor2Angle;
+    private FEventMotor2Angle: TX3DEvent;
+    public property EventMotor2Angle: TX3DEvent read FEventMotor2Angle;
 
     { Event: SFFloat, out } { }
-    private FEventMotor2AngleRate: TVRMLEvent;
-    public property EventMotor2AngleRate: TVRMLEvent read FEventMotor2AngleRate;
+    private FEventMotor2AngleRate: TX3DEvent;
+    public property EventMotor2AngleRate: TX3DEvent read FEventMotor2AngleRate;
 
     { Event: SFFloat, out } { }
-    private FEventMotor3Angle: TVRMLEvent;
-    public property EventMotor3Angle: TVRMLEvent read FEventMotor3Angle;
+    private FEventMotor3Angle: TX3DEvent;
+    public property EventMotor3Angle: TX3DEvent read FEventMotor3Angle;
 
     { Event: SFFloat, out } { }
-    private FEventMotor3AngleRate: TVRMLEvent;
-    public property EventMotor3AngleRate: TVRMLEvent read FEventMotor3AngleRate;
+    private FEventMotor3AngleRate: TX3DEvent;
+    public property EventMotor3AngleRate: TX3DEvent read FEventMotor3AngleRate;
 
     private FFdAutoCalc: TSFBool;
     public property FdAutoCalc: TSFBool read FFdAutoCalc;
@@ -470,8 +470,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventSet_contacts: TVRMLEvent;
-    public property EventSet_contacts: TVRMLEvent read FEventSet_contacts;
+    private FEventSet_contacts: TX3DEvent;
+    public property EventSet_contacts: TX3DEvent read FEventSet_contacts;
 
     private FFdAutoDisable: TSFBool;
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
@@ -544,20 +544,20 @@
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
 
     { Event: SFFloat, out } { }
-    private FEventAngle: TVRMLEvent;
-    public property EventAngle: TVRMLEvent read FEventAngle;
+    private FEventAngle: TX3DEvent;
+    public property EventAngle: TX3DEvent read FEventAngle;
 
     { Event: SFFloat, out } { }
-    private FEventAngleRate: TVRMLEvent;
-    public property EventAngleRate: TVRMLEvent read FEventAngleRate;
+    private FEventAngleRate: TX3DEvent;
+    public property EventAngleRate: TX3DEvent read FEventAngleRate;
 
     { Event: SFVec3f, out } { }
-    private FEventBody1AnchorPoint: TVRMLEvent;
-    public property EventBody1AnchorPoint: TVRMLEvent read FEventBody1AnchorPoint;
+    private FEventBody1AnchorPoint: TX3DEvent;
+    public property EventBody1AnchorPoint: TX3DEvent read FEventBody1AnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody2AnchorPoint: TVRMLEvent;
-    public property EventBody2AnchorPoint: TVRMLEvent read FEventBody2AnchorPoint;
+    private FEventBody2AnchorPoint: TX3DEvent;
+    public property EventBody2AnchorPoint: TX3DEvent read FEventBody2AnchorPoint;
   end;
 
   TSliderJointNode = class(TAbstractRigidJointNode)
@@ -582,12 +582,12 @@
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
 
     { Event: SFFloat, out } { }
-    private FEventSeparation: TVRMLEvent;
-    public property EventSeparation: TVRMLEvent read FEventSeparation;
+    private FEventSeparation: TX3DEvent;
+    public property EventSeparation: TX3DEvent read FEventSeparation;
 
     { Event: SFFloat, out } { }
-    private FEventSeparationRate: TVRMLEvent;
-    public property EventSeparationRate: TVRMLEvent read FEventSeparationRate;
+    private FEventSeparationRate: TX3DEvent;
+    public property EventSeparationRate: TX3DEvent read FEventSeparationRate;
   end;
 
   TUniversalJointNode = class(TAbstractRigidJointNode)
@@ -618,20 +618,20 @@
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
 
     { Event: SFVec3f, out } { }
-    private FEventBody1AnchorPoint: TVRMLEvent;
-    public property EventBody1AnchorPoint: TVRMLEvent read FEventBody1AnchorPoint;
+    private FEventBody1AnchorPoint: TX3DEvent;
+    public property EventBody1AnchorPoint: TX3DEvent read FEventBody1AnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody1Axis: TVRMLEvent;
-    public property EventBody1Axis: TVRMLEvent read FEventBody1Axis;
+    private FEventBody1Axis: TX3DEvent;
+    public property EventBody1Axis: TX3DEvent read FEventBody1Axis;
 
     { Event: SFVec3f, out } { }
-    private FEventBody2AnchorPoint: TVRMLEvent;
-    public property EventBody2AnchorPoint: TVRMLEvent read FEventBody2AnchorPoint;
+    private FEventBody2AnchorPoint: TX3DEvent;
+    public property EventBody2AnchorPoint: TX3DEvent read FEventBody2AnchorPoint;
 
     { Event: SFVec3f, out } { }
-    private FEventBody2Axis: TVRMLEvent;
-    public property EventBody2Axis: TVRMLEvent read FEventBody2Axis;
+    private FEventBody2Axis: TX3DEvent;
+    public property EventBody2Axis: TX3DEvent read FEventBody2Axis;
   end;
 
 {$endif read_interface}
@@ -705,10 +705,10 @@ begin
   FFdAnchorPoint := TSFVec3f.Create(Self, 'anchorPoint', Vector3Single(0, 0, 0));
   Fields.Add(FFdAnchorPoint);
 
-  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  FEventBody1AnchorPoint := TX3DEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody1AnchorPoint);
 
-  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  FEventBody2AnchorPoint := TX3DEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody2AnchorPoint);
 end;
 
@@ -824,10 +824,10 @@ begin
   FFdCollider := TSFNode.Create(Self, 'collider', [TCollisionCollectionNode]);
   Fields.Add(FFdCollider);
 
-  FEventIntersections := TVRMLEvent.Create(Self, 'intersections', TMFNode, false);
+  FEventIntersections := TX3DEvent.Create(Self, 'intersections', TMFNode, false);
   Events.Add(FEventIntersections);
 
-  FEventContacts := TVRMLEvent.Create(Self, 'contacts', TMFNode, false);
+  FEventContacts := TX3DEvent.Create(Self, 'contacts', TMFNode, false);
   Events.Add(FEventContacts);
 end;
 
@@ -1001,28 +1001,28 @@ begin
   Fields.Add(FFdSuspensionForce);
   { X3D specification comment: [0,Inf) }
 
-  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  FEventBody1AnchorPoint := TX3DEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody1AnchorPoint);
 
-  FEventBody1Axis := TVRMLEvent.Create(Self, 'body1Axis', TSFVec3f, false);
+  FEventBody1Axis := TX3DEvent.Create(Self, 'body1Axis', TSFVec3f, false);
   Events.Add(FEventBody1Axis);
 
-  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  FEventBody2AnchorPoint := TX3DEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody2AnchorPoint);
 
-  FEventBody2Axis := TVRMLEvent.Create(Self, 'body2Axis', TSFVec3f, false);
+  FEventBody2Axis := TX3DEvent.Create(Self, 'body2Axis', TSFVec3f, false);
   Events.Add(FEventBody2Axis);
 
-  FEventHinge1Angle := TVRMLEvent.Create(Self, 'hinge1Angle', TSFFloat, false);
+  FEventHinge1Angle := TX3DEvent.Create(Self, 'hinge1Angle', TSFFloat, false);
   Events.Add(FEventHinge1Angle);
 
-  FEventHinge1AngleRate := TVRMLEvent.Create(Self, 'hinge1AngleRate', TSFFloat, false);
+  FEventHinge1AngleRate := TX3DEvent.Create(Self, 'hinge1AngleRate', TSFFloat, false);
   Events.Add(FEventHinge1AngleRate);
 
-  FEventHinge2Angle := TVRMLEvent.Create(Self, 'hinge2Angle', TSFFloat, false);
+  FEventHinge2Angle := TX3DEvent.Create(Self, 'hinge2Angle', TSFFloat, false);
   Events.Add(FEventHinge2Angle);
 
-  FEventHinge2AngleRate := TVRMLEvent.Create(Self, 'hinge2AngleRate', TSFFloat, false);
+  FEventHinge2AngleRate := TX3DEvent.Create(Self, 'hinge2AngleRate', TSFFloat, false);
   Events.Add(FEventHinge2AngleRate);
 end;
 
@@ -1102,22 +1102,22 @@ begin
   Fields.Add(FFdStop3ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventMotor1Angle := TVRMLEvent.Create(Self, 'motor1Angle', TSFFloat, false);
+  FEventMotor1Angle := TX3DEvent.Create(Self, 'motor1Angle', TSFFloat, false);
   Events.Add(FEventMotor1Angle);
 
-  FEventMotor1AngleRate := TVRMLEvent.Create(Self, 'motor1AngleRate', TSFFloat, false);
+  FEventMotor1AngleRate := TX3DEvent.Create(Self, 'motor1AngleRate', TSFFloat, false);
   Events.Add(FEventMotor1AngleRate);
 
-  FEventMotor2Angle := TVRMLEvent.Create(Self, 'motor2Angle', TSFFloat, false);
+  FEventMotor2Angle := TX3DEvent.Create(Self, 'motor2Angle', TSFFloat, false);
   Events.Add(FEventMotor2Angle);
 
-  FEventMotor2AngleRate := TVRMLEvent.Create(Self, 'motor2AngleRate', TSFFloat, false);
+  FEventMotor2AngleRate := TX3DEvent.Create(Self, 'motor2AngleRate', TSFFloat, false);
   Events.Add(FEventMotor2AngleRate);
 
-  FEventMotor3Angle := TVRMLEvent.Create(Self, 'motor3Angle', TSFFloat, false);
+  FEventMotor3Angle := TX3DEvent.Create(Self, 'motor3Angle', TSFFloat, false);
   Events.Add(FEventMotor3Angle);
 
-  FEventMotor3AngleRate := TVRMLEvent.Create(Self, 'motor3AngleRate', TSFFloat, false);
+  FEventMotor3AngleRate := TX3DEvent.Create(Self, 'motor3AngleRate', TSFFloat, false);
   Events.Add(FEventMotor3AngleRate);
 
   FFdAutoCalc := TSFBool.Create(Self, 'autoCalc', false);
@@ -1239,7 +1239,7 @@ procedure TRigidBodyCollectionNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_contacts := TVRMLEvent.Create(Self, 'set_contacts', TMFNode, true);
+  FEventSet_contacts := TX3DEvent.Create(Self, 'set_contacts', TMFNode, true);
   Events.Add(FEventSet_contacts);
 
   FFdAutoDisable := TSFBool.Create(Self, 'autoDisable', false);
@@ -1332,16 +1332,16 @@ begin
   Fields.Add(FFdStopErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventAngle := TVRMLEvent.Create(Self, 'angle', TSFFloat, false);
+  FEventAngle := TX3DEvent.Create(Self, 'angle', TSFFloat, false);
   Events.Add(FEventAngle);
 
-  FEventAngleRate := TVRMLEvent.Create(Self, 'angleRate', TSFFloat, false);
+  FEventAngleRate := TX3DEvent.Create(Self, 'angleRate', TSFFloat, false);
   Events.Add(FEventAngleRate);
 
-  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  FEventBody1AnchorPoint := TX3DEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody1AnchorPoint);
 
-  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  FEventBody2AnchorPoint := TX3DEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody2AnchorPoint);
 end;
 
@@ -1379,10 +1379,10 @@ begin
   Fields.Add(FFdStopErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventSeparation := TVRMLEvent.Create(Self, 'separation', TSFFloat, false);
+  FEventSeparation := TX3DEvent.Create(Self, 'separation', TSFFloat, false);
   Events.Add(FEventSeparation);
 
-  FEventSeparationRate := TVRMLEvent.Create(Self, 'separationRate', TSFFloat, false);
+  FEventSeparationRate := TX3DEvent.Create(Self, 'separationRate', TSFFloat, false);
   Events.Add(FEventSeparationRate);
 end;
 
@@ -1426,16 +1426,16 @@ begin
   Fields.Add(FFdStop2ErrorCorrection);
   { X3D specification comment: [0,1] }
 
-  FEventBody1AnchorPoint := TVRMLEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
+  FEventBody1AnchorPoint := TX3DEvent.Create(Self, 'body1AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody1AnchorPoint);
 
-  FEventBody1Axis := TVRMLEvent.Create(Self, 'body1Axis', TSFVec3f, false);
+  FEventBody1Axis := TX3DEvent.Create(Self, 'body1Axis', TSFVec3f, false);
   Events.Add(FEventBody1Axis);
 
-  FEventBody2AnchorPoint := TVRMLEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
+  FEventBody2AnchorPoint := TX3DEvent.Create(Self, 'body2AnchorPoint', TSFVec3f, false);
   Events.Add(FEventBody2AnchorPoint);
 
-  FEventBody2Axis := TVRMLEvent.Create(Self, 'body2Axis', TSFVec3f, false);
+  FEventBody2Axis := TX3DEvent.Create(Self, 'body2Axis', TSFVec3f, false);
   Events.Add(FEventBody2Axis);
 end;
 

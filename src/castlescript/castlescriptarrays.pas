@@ -121,15 +121,15 @@ type
     class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
-    FValue: TKamStringList;
-    procedure SetValue(const AValue: TKamStringList);
+    FValue: TCastleStringList;
+    procedure SetValue(const AValue: TCastleStringList);
   public
-    constructor Create(const AWriteable: boolean; const AValue: TKamStringList);
+    constructor Create(const AWriteable: boolean; const AValue: TCastleStringList);
     constructor Create(const AWriteable: boolean); override;
     destructor Destroy; override;
 
     { Array value. Assigning here makes a @italic(copy) of the array. }
-    property Value: TKamStringList read FValue write SetValue;
+    property Value: TCastleStringList read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -421,7 +421,7 @@ uses SysUtils, CastleScriptCoreFunctions;
 {$I castlescriptarrays_implement.inc}
 
 {$define TCasScriptXxxArray := TCasScriptStringArray}
-{$define TXxxList := TKamStringList}
+{$define TXxxList := TCastleStringList}
 {$define TCasScriptXxxElement := TCasScriptString}
 {$define RegisterXxxFunctions := RegisterStringFunctions}
 {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}

@@ -27,12 +27,12 @@ type
   protected
     procedure RenderText(
       const Size, Spacing: Single;
-      const Justify: TVRMLFontJustify;
-      const Strings: TKamStringList;
+      const Justify: TX3DFontJustify;
+      const Strings: TCastleStringList;
       CurrentFont: TGLOutlineFont;
       const Depth: Single;
       const CullBackFaces: boolean;
-      const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
+      const EventLineBounds, EventOrigin, EventTextBounds: TX3DEvent);
   end;
 
   TAsciiTextRenderer = class(TAbstractTextRenderer)
@@ -54,12 +54,12 @@ type
 
 procedure TAbstractTextRenderer.RenderText(
   const Size, Spacing: Single;
-  const Justify: TVRMLFontJustify;
-  const Strings: TKamStringList;
+  const Justify: TX3DFontJustify;
+  const Strings: TCastleStringList;
   CurrentFont: TGLOutlineFont;
   const Depth: Single;
   const CullBackFaces: boolean;
-  const EventLineBounds, EventOrigin, EventTextBounds: TVRMLEvent);
+  const EventLineBounds, EventOrigin, EventTextBounds: TX3DEvent);
 
 var
   TextWidths: TSingleList;
@@ -290,7 +290,7 @@ procedure TTextRenderer.Render;
 var
   Node: TTextNode;
   Size, Spacing: Single;
-  Justify: TVRMLFontJustify;
+  Justify: TX3DFontJustify;
   CurrentFont: TGLOutlineFont;
 begin
   Node := Geometry as TTextNode;
@@ -325,7 +325,7 @@ end;
 procedure TText3DRenderer.Render;
 var
   Size, Spacing: Single;
-  Justify: TVRMLFontJustify;
+  Justify: TX3DFontJustify;
   CurrentFont: TGLOutlineFont;
   Node: TText3DNode;
 begin

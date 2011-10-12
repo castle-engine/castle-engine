@@ -29,19 +29,19 @@ var
 
 type
   THelperObj = class
-    class procedure ScriptTouchInitialize(Value: TVRMLField; const Time: TX3DTime);
-    class procedure ScriptTouch(Value: TVRMLField; const Time: TX3DTime);
+    class procedure ScriptTouchInitialize(Value: TX3DField; const Time: TX3DTime);
+    class procedure ScriptTouch(Value: TX3DField; const Time: TX3DTime);
   end;
 
 { THelperObj.Script* methods below are only to demonstrate using
   "compiled:" Script protocol, see
   [http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_script_compiled]. }
-class procedure THelperObj.ScriptTouchInitialize(Value: TVRMLField; const Time: TX3DTime);
+class procedure THelperObj.ScriptTouchInitialize(Value: TX3DField; const Time: TX3DTime);
 begin
   Writeln(Format('Script is initialized (timestamp: %f)', [Time.Seconds]));
 end;
 
-class procedure THelperObj.ScriptTouch(Value: TVRMLField; const Time: TX3DTime);
+class procedure THelperObj.ScriptTouch(Value: TX3DField; const Time: TX3DTime);
 begin
   Writeln(Format('Touch! (timestamp: %f)', [Time.Seconds]));
 end;

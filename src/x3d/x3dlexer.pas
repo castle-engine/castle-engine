@@ -50,7 +50,7 @@ const
 
 type
   { VRML lexer token. }
-  TVRMLToken = (
+  TX3DToken = (
     vtKeyword,
     vtName,
 
@@ -90,12 +90,12 @@ type
       From this point, further reads using NextToken from stream will
       always result in vtEnd (they will not raise an error). }
     vtEnd);
-  TVRMLTokens = set of TVRMLToken;
+  TX3DTokens = set of TX3DToken;
 
   EVRMLGzipCompressed = class(Exception);
 
 const
-  TokenNumbers : TVRMLTokens = [vtFloat, vtInteger];
+  TokenNumbers : TX3DTokens = [vtFloat, vtInteger];
 
 type
   TX3DEncoding = (xeClassic, xeXML);
@@ -128,7 +128,7 @@ type
   TX3DLexer = class
   private
     fVersion: TX3DVersion;
-    fToken: TVRMLToken;
+    fToken: TX3DToken;
     fTokenKeyword: TX3DKeyword;
     fTokenName: string;
     fTokenFloat: Float;
@@ -219,7 +219,7 @@ type
     { Token we're currently standing on.
       TokenKeyword, TokenName, TokenFloat and TokenInteger have defined
       values only when token type is appropriate. }
-    property Token: TVRMLToken read fToken;
+    property Token: TX3DToken read fToken;
 
     { When Token = vtKeyword, TokenKeyword points to appropriate keyword.
 
@@ -257,7 +257,7 @@ type
     { NextToken reads next token from stream, initializing appropriately
       all Token* properties. For comfort, this returs the new value of
       @link(Token) property. }
-    function NextToken: TVRMLToken;
+    function NextToken: TX3DToken;
 
     { Read the next token, knowing that it @italic(must) be vtName token.
       This is basically a dirty hack to read some incorrect VRML files,
@@ -313,9 +313,9 @@ type
     { Check is token = Tok, if not -> parser error "expected token 'tok'".
       You can provide your own description for Tok or default desciption
       for token will be used. }
-    procedure CheckTokenIs(Tok: TVRMLToken); overload;
-    procedure CheckTokenIs(Tok: TVRMLToken; const TokDescription: string); overload;
-    procedure CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string); overload;
+    procedure CheckTokenIs(Tok: TX3DToken); overload;
+    procedure CheckTokenIs(Tok: TX3DToken; const TokDescription: string); overload;
+    procedure CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: string); overload;
     procedure CheckTokenIsKeyword(const Keyword: TX3DKeyword);
   end;
 
@@ -398,12 +398,12 @@ function StringToX3DXmlMulti(const s: string): string;
 implementation
 
 const
-  VRMLFirstLineTerm = [#10, #13];
+  X3DFirstLineTerm = [#10, #13];
 
   { utf8 specific constants below }
-  VRMLLineTerm = [#10, #13];
+  X3DLineTerm = [#10, #13];
 
-  VRMLTokenNames: array[TVRMLToken]of string = (
+  X3DTokenNames: array [TX3DToken] of string = (
     'keyword', 'name',
     '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
     'float', 'integer', 'string', 'end of stream');
@@ -592,9 +592,9 @@ begin
   CreateCommonBegin(AStream, AOwnsStream);
 
   { Read first line = signature. }
-  Line := Stream.ReadUpto(VRMLLineTerm);
+  Line := Stream.ReadUpto(X3DLineTerm);
 
-  { Conveniently, GzipHeader doesn't contain VRMLLineTerm.
+  { Conveniently, GzipHeader doesn't contain X3DLineTerm.
     So if Line starts with GzipHeader, we know 100% it's gzip file,
     otherwise we know 100% it's not. }
   if Copy(Line, 1, Length(GzipHeader)) = GzipHeader then
@@ -700,14 +700,12 @@ begin
 
   { ignore comments }
   if FirstBlack = Ord('#') then
-   Stream.ReadUpto(VRMLLineTerm) else
+   Stream.ReadUpto(X3DLineTerm) else
    break;
  until false;
 end;
 
 procedure TX3DLexer.ReadString;
-{ String in encoded using the form
-  "char*" where char is either not " or \" sequence. }
 var
   endingChar: Integer;
   NextChar: Integer;
@@ -739,7 +737,7 @@ begin
  until endingChar = Ord('"');
 end;
 
-function TX3DLexer.NextToken: TVRMLToken;
+function TX3DLexer.NextToken: TX3DToken;
 
   procedure ReadNameOrKeyword(FirstLetter: char);
   {read name token. First letter has been already read.}
@@ -1053,7 +1051,7 @@ end;
 
 function TX3DLexer.DescribeToken: string;
 begin
- result := VRMLTokenNames[Token];
+ result := X3DTokenNames[Token];
  case Token of
   vtKeyword: result := result +' "' +X3DKeywordsName[TokenKeyword]+'"';
   vtName: result := '"' +TokenName+'"';
@@ -1063,19 +1061,19 @@ begin
  end;
 end;
 
-procedure TX3DLexer.CheckTokenIs(Tok: TVRMLToken);
+procedure TX3DLexer.CheckTokenIs(Tok: TX3DToken);
 begin
- CheckTokenIs(Tok, VRMLTokenNames[Tok]);
+ CheckTokenIs(Tok, X3DTokenNames[Tok]);
 end;
 
-procedure TX3DLexer.CheckTokenIs(Tok: TVRMLToken; const TokDescription: string);
+procedure TX3DLexer.CheckTokenIs(Tok: TX3DToken; const TokDescription: string);
 begin
  if Token <> Tok then
   raise EVRMLParserError.Create(Self, 'Expected '+TokDescription
     +', got '+DescribeToken);
 end;
 
-procedure TX3DLexer.CheckTokenIs(const Toks: TVRMLTokens; const ToksDescription: string);
+procedure TX3DLexer.CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: string);
 begin
  if not (Token in Toks) then
   raise EVRMLParserError.Create(Self, 'Expected '+ToksDescription

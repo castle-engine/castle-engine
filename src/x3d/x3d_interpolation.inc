@@ -22,8 +22,8 @@
     procedure CreateNode; override;
 
     { Event: SFFloat, in } { }
-    private FEventSet_fraction: TVRMLEvent;
-    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
+    private FEventSet_fraction: TX3DEvent;
+    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
 
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
@@ -31,7 +31,7 @@
 
   TColorInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -42,13 +42,13 @@
     public property FdKeyValue: TMFColor read FFdKeyValue;
 
     { Event: SFColor, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TColorSetInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -59,13 +59,13 @@
     public property FdKeyValue: TMFColor read FFdKeyValue;
 
     { Event: MFColor, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TCoordinateInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -76,13 +76,13 @@
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event: MFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TCoordinateInterpolator2DNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -93,8 +93,8 @@
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
     { Event: MFVec2f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TEaseInEaseOutNode = class(TAbstractNode)
@@ -104,8 +104,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventSet_fraction: TVRMLEvent;
-    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
+    private FEventSet_fraction: TX3DEvent;
+    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
 
     private FFdEaseInEaseOut: TMFVec2f;
     public property FdEaseInEaseOut: TMFVec2f read FFdEaseInEaseOut;
@@ -114,13 +114,13 @@
     public property FdKey: TMFFloat read FFdKey;
 
     { Event: SFFloat, out } { }
-    private FEventModifiedFraction_changed: TVRMLEvent;
-    public property EventModifiedFraction_changed: TVRMLEvent read FEventModifiedFraction_changed;
+    private FEventModifiedFraction_changed: TX3DEvent;
+    public property EventModifiedFraction_changed: TX3DEvent read FEventModifiedFraction_changed;
   end;
 
   TNormalInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -131,13 +131,13 @@
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event: MFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -148,13 +148,13 @@
     public property FdKeyValue: TMFRotation read FFdKeyValue;
 
     { Event: SFRotation, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TPositionInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -165,13 +165,13 @@
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event: SFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TPositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -182,13 +182,13 @@
     public property FdKeyValue: TMFVec2f read FFdKeyValue;
 
     { Event: SFVec2f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -199,8 +199,8 @@
     public property FdKeyValue: TMFFloat read FFdKeyValue;
 
     { Event: SFFloat, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -222,8 +222,8 @@
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
@@ -245,8 +245,8 @@
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFVec2f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -268,8 +268,8 @@
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFFloat, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -285,13 +285,13 @@
     public property FdNormalizeVelocity: TSFBool read FFdNormalizeVelocity;
 
     { Event: SFRotation, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TVectorInterpolatorNode = class(TAbstractInterpolatorNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -302,8 +302,8 @@
     public property FdKeyValue: TMFFloat read FFdKeyValue;
 
     { Event: MFFloat, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
 {$endif read_interface}
@@ -426,7 +426,7 @@ procedure TAbstractInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
   FFdKey := TMFFloat.Create(Self, 'key', []);
@@ -450,7 +450,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: [0,1] }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFColor, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFColor, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -471,7 +471,7 @@ begin
 end;
 
 procedure TColorInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 {$define SingleInterpolatorLerp := Lerp}
@@ -485,7 +485,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFColor, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFColor, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -508,7 +508,7 @@ begin
 end;
 
 procedure TColorSetInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFColor}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
@@ -521,7 +521,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec3f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -542,7 +542,7 @@ begin
 end;
 
 procedure TCoordinateInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
@@ -555,7 +555,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec2f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec2f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -575,7 +575,7 @@ begin
 end;
 
 procedure TCoordinateInterpolator2DNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFVec2f}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator
@@ -584,7 +584,7 @@ procedure TEaseInEaseOutNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
   FFdEaseInEaseOut := TMFVec2f.Create(Self, 'easeInEaseOut', []);
@@ -595,7 +595,7 @@ begin
   Fields.Add(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventModifiedFraction_changed := TVRMLEvent.Create(Self, 'modifiedFraction_changed', TSFFloat, false);
+  FEventModifiedFraction_changed := TX3DEvent.Create(Self, 'modifiedFraction_changed', TSFFloat, false);
   Events.Add(FEventModifiedFraction_changed);
 
   DefaultContainerField := 'children';
@@ -620,7 +620,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFVec3f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -641,7 +641,7 @@ begin
 end;
 
 procedure TNormalInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
 {$define MultipleInterpolatorFieldTypePostprocess := OutputValue.Items.Normalize;}
 MultipleInterpolator
@@ -654,7 +654,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -675,7 +675,7 @@ begin
 end;
 
 procedure TOrientationInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define SingleInterpolatorType := TVector4Single}
 {$define SingleInterpolatorDefault := ZeroVector4Single}
 
@@ -695,7 +695,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -716,7 +716,7 @@ begin
 end;
 
 procedure TPositionInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
 {$define SingleInterpolatorLerp := Lerp}
@@ -730,7 +730,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec2f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -750,7 +750,7 @@ begin
 end;
 
 procedure TPositionInterpolator2DNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define SingleInterpolatorType := TVector2Single}
 {$define SingleInterpolatorDefault := ZeroVector2Single}
 {$define SingleInterpolatorLerp := Lerp}
@@ -764,7 +764,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFFloat, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -785,7 +785,7 @@ begin
 end;
 
 procedure TScalarInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define SingleInterpolatorType := Single}
 {$define SingleInterpolatorDefault := 0}
 {$define SingleInterpolatorLerp := Lerp}
@@ -809,7 +809,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -844,7 +844,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec2f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec2f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -879,7 +879,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFFloat, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFFloat, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -907,7 +907,7 @@ begin
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
   Fields.Add(FFdNormalizeVelocity);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -932,7 +932,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TMFFloat, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TMFFloat, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -955,7 +955,7 @@ begin
 end;
 
 procedure TVectorInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFFloat}
 {$define MultipleInterpolatorFieldTypePostprocess := }
 MultipleInterpolator

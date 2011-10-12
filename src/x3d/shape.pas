@@ -112,7 +112,7 @@ type
 
     So we process VRML tree to this tree, which is much simpler tree with
     all the geometry nodes (TAbstractGeometryNode) along with their state
-    (TVRMLGraphTraverseState) as leafs (TShape). }
+    (TX3DGraphTraverseState) as leafs (TShape). }
   TShapeTree = class
   private
     FParentScene: TObject;
@@ -199,11 +199,11 @@ type
     FBoundingSphereCenter: TVector3Single;
     FBoundingSphereRadiusSqr: Single;
     FOriginalGeometry: TAbstractGeometryNode;
-    FOriginalState: TVRMLGraphTraverseState;
+    FOriginalState: TX3DGraphTraverseState;
     { FGeometry[false] should be nil exactly when FState[false] is nil.
       Same for FGeometry[true] and FState[true]. }
     FGeometry: array [boolean] of TAbstractGeometryNode;
-    FState: array [boolean] of TVRMLGraphTraverseState;
+    FState: array [boolean] of TX3DGraphTraverseState;
 
     FBlenderObjectNode: TX3DNode;
     FBlenderObjectName: string;
@@ -215,7 +215,7 @@ type
       (when Geometry would return the same thing as OriginalGeometry).
       @groupBegin }
     function ProxyGeometry(const OverTriangulate: boolean): TAbstractGeometryNode;
-    function ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+    function ProxyState(const OverTriangulate: boolean): TX3DGraphTraverseState;
     { @groupEnd }
 
     procedure ValidateBoundingSphere;
@@ -273,7 +273,7 @@ type
     procedure FreeOctreeTriangles;
   public
     constructor Create(AParentScene: TObject;
-      AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TVRMLGraphTraverseState;
+      AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TX3DGraphTraverseState;
       ParentInfo: PTraversingInfo);
     destructor Destroy; override;
 
@@ -281,7 +281,7 @@ type
     property OriginalGeometry: TAbstractGeometryNode read FOriginalGeometry;
 
     { Original state, that you get from a VRML/X3D graph. }
-    property OriginalState: TVRMLGraphTraverseState read FOriginalState;
+    property OriginalState: TX3DGraphTraverseState read FOriginalState;
 
     { Geometry of this shape.
       This may come from initial VRML/X3D node graph (see OriginalGeometry),
@@ -295,7 +295,7 @@ type
       for easier handling.
 
       Owned by this TShape class. }
-    function State(const OverTriangulate: boolean = true): TVRMLGraphTraverseState;
+    function State(const OverTriangulate: boolean = true): TX3DGraphTraverseState;
 
     { Calculate bounding box and vertices/triangles count,
       see TAbstractGeometryNode methods.
@@ -686,7 +686,7 @@ type
   TShapeTreeTransform = class(TShapeTreeGroup)
   private
     FTransformNode: TX3DNode;
-    FTransformState: TVRMLGraphTraverseState;
+    FTransformState: TX3DGraphTraverseState;
   public
     constructor Create(AParentScene: TObject);
     destructor Destroy; override;
@@ -701,7 +701,7 @@ type
     { State right before traversing the TransformNode.
       Owned by this TShapeTreeTransform instance. You should assign
       to it when you set TransformNode. }
-    property TransformState: TVRMLGraphTraverseState read FTransformState;
+    property TransformState: TX3DGraphTraverseState read FTransformState;
   end;
 
   { Node of the TShapeTree representing the LOD (level of detail) VRML
@@ -900,7 +900,7 @@ end;
 { TShape -------------------------------------------------------------- }
 
 constructor TShape.Create(AParentScene: TObject;
-  AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TVRMLGraphTraverseState;
+  AOriginalGeometry: TAbstractGeometryNode; AOriginalState: TX3DGraphTraverseState;
   ParentInfo: PTraversingInfo);
 
   procedure CalculateBlender;
@@ -1101,7 +1101,7 @@ end;
 function TShape.GeometryArrays(OverTriangulate: boolean): TGeometryArrays;
 var
   G: TAbstractGeometryNode;
-  S: TVRMLGraphTraverseState;
+  S: TX3DGraphTraverseState;
 
   function MaterialOpacity: Single;
   begin
@@ -1608,7 +1608,7 @@ end;
 function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
 var
   G: TAbstractGeometryNode;
-  S: TVRMLGraphTraverseState;
+  S: TX3DGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
           (FNormalsOverTriangulate = OverTriangulate) and
@@ -1636,7 +1636,7 @@ end;
 function TShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
 var
   G: TAbstractGeometryNode;
-  S: TVRMLGraphTraverseState;
+  S: TX3DGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
           (FNormalsOverTriangulate = OverTriangulate) and
@@ -1666,7 +1666,7 @@ function TShape.NormalsCreaseAngle(OverTriangulate: boolean;
   const CreaseAngle: Single): TVector3SingleList;
 var
   G: TAbstractGeometryNode;
-  S: TVRMLGraphTraverseState;
+  S: TX3DGraphTraverseState;
 begin
   if not ((svNormals in Validities) and
           (FNormalsCached = ncCreaseAngle) and
@@ -1718,10 +1718,10 @@ procedure TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
   end;
 
   { Scan IDecls for SFNode and MFNode fields, handling texture nodes inside. }
-  procedure HandleShaderFields(IDecls: TVRMLInterfaceDeclarationList);
+  procedure HandleShaderFields(IDecls: TX3DInterfaceDeclarationList);
   var
     I, J: Integer;
-    UniformField: TVRMLField;
+    UniformField: TX3DField;
   begin
     for I := 0 to IDecls.Count - 1 do
     begin
@@ -1854,7 +1854,7 @@ begin
   Result := FGeometry[OverTriangulate];
 end;
 
-function TShape.State(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+function TShape.State(const OverTriangulate: boolean): TX3DGraphTraverseState;
 begin
   ValidateGeometryState(OverTriangulate);
   Result := FState[OverTriangulate];
@@ -1866,7 +1866,7 @@ begin
   if Result = OriginalGeometry then Result := nil;
 end;
 
-function TShape.ProxyState(const OverTriangulate: boolean): TVRMLGraphTraverseState;
+function TShape.ProxyState(const OverTriangulate: boolean): TX3DGraphTraverseState;
 begin
   if Geometry(OverTriangulate) <> OriginalGeometry then
     Result := State(OverTriangulate) else
@@ -2195,7 +2195,7 @@ end;
 constructor TShapeTreeTransform.Create(AParentScene: TObject);
 begin
   inherited;
-  FTransformState := TVRMLGraphTraverseState.Create;
+  FTransformState := TX3DGraphTraverseState.Create;
 end;
 
 destructor TShapeTreeTransform.Destroy;

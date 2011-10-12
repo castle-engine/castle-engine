@@ -161,7 +161,7 @@ begin
   finally Progress.Fini end;
 end;
 
-function DiffuseColor(State: TVRMLGraphTraverseState): TVector3Single;
+function DiffuseColor(State: TX3DGraphTraverseState): TVector3Single;
 var
   M1: TMaterialNode_1;
   M2: TMaterialNode;
@@ -198,7 +198,7 @@ const
 var
   SI: TShapeTreeIterator;
   Geometry: TAbstractGeometryNode;
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   RadianceTransfer: TVector3SingleList;
   S: string;
 begin

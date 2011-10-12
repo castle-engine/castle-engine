@@ -138,37 +138,37 @@ begin
  end;
 end;
 
-{ TVRMLTokenInfo and TVRMLTokenInfoList ---------------------------------- }
+{ TX3DTokenInfo and TX3DTokenInfoList ---------------------------------- }
 
 type
-  TVRMLTokenInfo = class
-    Token: TVRMLToken;
+  TX3DTokenInfo = class
+    Token: TX3DToken;
     Float: Float; //< for both vtFloat and vtInteger
     Name: string; //< for vtName
     AString: string; //< for vtString
-    Keyword: TVRMLKeyword; //< for vtKeyword
+    Keyword: TX3DKeyword; //< for vtKeyword
     Integer: Int64; //< for vtInteger
   end;
-  TVRMLTokenInfoList = class(specialize TFPGObjectList<TVRMLTokenInfo>)
-    procedure AssertEqual(SecondValue: TVRMLTokenInfoList);
+  TX3DTokenInfoList = class(specialize TFPGObjectList<TX3DTokenInfo>)
+    procedure AssertEqual(SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TVRMLTokenInfoList.AssertEqual(
-  SecondValue: TVRMLTokenInfoList);
+procedure TX3DTokenInfoList.AssertEqual(
+  SecondValue: TX3DTokenInfoList);
 
-  procedure AssertEqualTokens(const T1, T2: TVRMLTokenInfo);
+  procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
 
-    function DescribeTokenInfo(const T: TVRMLTokenInfo): string;
+    function DescribeTokenInfo(const T: TX3DTokenInfo): string;
     const
-      VRMLTokenNames: array[TVRMLToken]of string = (
+      VRMLTokenNames: array[TX3DToken]of string = (
         'keyword', 'name',
         '"{"', '"}"', '"["', '"]"', '"("', '")"', '"|"', '","', '"."', '":"',
         'float', 'integer', 'string', 'end of stream');
     begin
       Result := VRMLTokenNames[T.Token];
       case T.Token of
-        vtKeyword: result := result +' "' +X3DKeywords[T.Keyword]+'"';
+        vtKeyword: result := result +' "' +X3DKeywordsName[T.Keyword]+'"';
         vtName: result := '"' +T.Name+'"';
         vtFloat: result := result +' ' +FloatToStr(T.Float);
         vtInteger: result := result +' ' +IntToStr(T.Integer);
@@ -200,7 +200,7 @@ var
   I: Integer;
 begin
   Assert(Count = SecondValue.Count, Format(
-    'TVRMLTokenInfoList.Equal: different counts %d and %d',
+    'TX3DTokenInfoList.Equal: different counts %d and %d',
     [Count, SecondValue.Count]));
   for I := 0 to Count - 1 do
     AssertEqualTokens(Items[I], SecondValue[I]);
@@ -212,11 +212,11 @@ end;
   methods because of unfortunately
   1. invalid VRML files (that use some funny node names)
   2. VRML 1.0 ugly feature that string doesn't have to be enclosed in "" }
-procedure TVRMLTokenInfoList.ReadFromFile(const FileName: string);
+procedure TX3DTokenInfoList.ReadFromFile(const FileName: string);
 var
   Lexer: TX3DLexer;
 
-  function CurrentToken: TVRMLTokenInfo;
+  function CurrentToken: TX3DTokenInfo;
   begin
     Result.Token := Lexer.Token;
     Result.Keyword := Lexer.TokenKeyword;
@@ -245,7 +245,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
 
   procedure TestReadWrite(const FileName: string);
   var
-    First, Second: TVRMLTokenInfoList;
+    First, Second: TX3DTokenInfoList;
     Node: TX3DNode;
     S: TMemoryStream;
     SPeek: TPeekCharStream;
@@ -255,14 +255,14 @@ procedure TTestX3DNodes.TestParseSaveToFile;
     Second := nil;
     Node := nil;
     try
-      First := TVRMLTokenInfoList.Create;
+      First := TX3DTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
       Node := LoadVRMLClassic(FileName, false);
       NewFile := GetTempPath + 'test_castle_game_engine.wrl';
       SaveVRML(Node, NewFile, ProgramName, '', xeClassic, false);
 
-      Second := TVRMLTokenInfoList.Create;
+      Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
 
       First.AssertEqual(Second);
@@ -931,9 +931,9 @@ var
   I: Integer;
   N: TX3DNode;
   G, ProxyGeometry: TAbstractGeometryNode;
-  State, ProxyState: TVRMLGraphTraverseState;
+  State, ProxyState: TX3DGraphTraverseState;
 begin
-  State := TVRMLGraphTraverseState.Create;
+  State := TX3DGraphTraverseState.Create;
   try
     for I := 0 to NodesManager.RegisteredCount - 1 do
     begin
@@ -1116,9 +1116,9 @@ end;
 procedure TTestX3DNodes.TestEmptyChanges;
 
   { Confirmed fiels that may have Changes = []. }
-  function ConfirmedEmptyChanges(Field: TVRMLField): boolean;
+  function ConfirmedEmptyChanges(Field: TX3DField): boolean;
 
-    function FieldIs(Field: TVRMLField;
+    function FieldIs(Field: TX3DField;
       const NodeClass: TX3DNodeClass; const FieldName: string): boolean;
     begin
       Result := (Field.ParentNode is NodeClass) and (Field.Name = FieldName);
@@ -1291,7 +1291,7 @@ begin
         Changes := N.Fields[J].Changes;
         Assert((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
       except
-        Writeln('Empty TVRMLField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
+        Writeln('Empty TX3DField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
         raise;
       end;
     finally FreeAndNil(N) end;
@@ -1377,7 +1377,7 @@ end;
 
 procedure TTestX3DNodes.TestSortPositionInParent;
 var
-  List: TVRMLFileItemList;
+  List: TX3DFileItemList;
   I0, I1, I2, I3, I4, I5: TTimeSensorNode;
 begin
   I0 := nil;
@@ -1396,7 +1396,7 @@ begin
     I4.PositionInParent := -10;
     I5 := TTimeSensorNode.Create('', '');
     I5.PositionInParent := 10;
-    List := TVRMLFileItemList.Create(false);
+    List := TX3DFileItemList.Create(false);
 
     { QuickSort, used underneath SortPositionInParent, is not stable.
       Which means that items with equal PositionInParent (default -1

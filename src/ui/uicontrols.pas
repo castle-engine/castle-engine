@@ -179,7 +179,7 @@ type
       is @true) usually means @false. This reflects the fact that "normal"
       UI controls, that actually take screen space implied by PositionInside,
       want to block controls underneath from handling keys/mouse.
-      For example, when pressing key "left" over TCastleMenu, you do not
+      For example, when pressing key "left" over TCastleOnScreenMenu, you do not
       want to let the Camera to also capture this left key down.
 
       @italic(More reasoning behind HandleMouseAndKeys:)
@@ -446,7 +446,7 @@ type
     property Bottom: Integer read FBottom write SetBottom default 0;
   end;
 
-  TUIControlList = class(TKamObjectList)
+  TUIControlList = class(TCastleObjectList)
   private
     function GetItem(const I: Integer): TUIControl;
     procedure SetItem(const I: Integer; const Item: TUIControl);

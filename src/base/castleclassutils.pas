@@ -534,7 +534,7 @@ var
 
 type
   { }
-  TKamObjectStack = class(TObjectStack)
+  TCastleObjectStack = class(TObjectStack)
   private
     function GetCapacity: Integer;
     procedure SetCapacity(const Value: Integer);
@@ -542,7 +542,7 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
   end;
 
-  TKamObjectQueue = class(TObjectQueue)
+  TCastleObjectQueue = class(TObjectQueue)
   private
     function GetCapacity: Integer;
     procedure SetCapacity(const Value: Integer);
@@ -553,13 +553,13 @@ type
 { ---------------------------------------------------------------------------- }
 
   { Extended TObjectList for Kambi engine. }
-  TKamObjectList = class(TObjectList)
+  TCastleObjectList = class(TObjectList)
   public
     { Create and fill with the contents of given array.
 
       Since in ObjectPascal you can create open array parameter on the fly,
       this constructor is often comfortable to use, for example you can
-      write @code(List := TKamObjectList.Create(..., [Item1, Item2]);). }
+      write @code(List := TCastleObjectList.Create(..., [Item1, Item2]);). }
     constructor CreateFromArray(const FreeObjects: boolean;
       const AItems: array of TObject);
 
@@ -586,11 +586,11 @@ type
       ReplaceClass descendant on the list.
       For example, you have UI controls list (like
       TCastleWindowBase.Controls), and you want your NewItem to be the only instance
-      of TCastleMenu class inside.
+      of TCastleOnScreenMenu class inside.
       Moreover, in case order on the list is important (for example on
       TCastleWindowBase.Controls order corresponds to screen depth --- what control
       is under / above each other), you want to place NewItem at the same
-      position as previous TCastleMenu instance, if any. }
+      position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
       AddBeginning: boolean = false): TObject;
 
@@ -1422,40 +1422,40 @@ begin
   FreeAndNil(StdInReader);
 end;
 
-{ TKamObjectStack ------------------------------------------------------------ }
+{ TCastleObjectStack ------------------------------------------------------------ }
 
-function TKamObjectStack.GetCapacity: Integer;
+function TCastleObjectStack.GetCapacity: Integer;
 begin
   Result := List.Capacity;
 end;
 
-procedure TKamObjectStack.SetCapacity(const Value: Integer);
+procedure TCastleObjectStack.SetCapacity(const Value: Integer);
 begin
   List.Capacity := Value;
 end;
 
-{ TKamObjectQueue ------------------------------------------------------------ }
+{ TCastleObjectQueue ------------------------------------------------------------ }
 
-function TKamObjectQueue.GetCapacity: Integer;
+function TCastleObjectQueue.GetCapacity: Integer;
 begin
   Result := List.Capacity;
 end;
 
-procedure TKamObjectQueue.SetCapacity(const Value: Integer);
+procedure TCastleObjectQueue.SetCapacity(const Value: Integer);
 begin
   List.Capacity := Value;
 end;
 
-{ TKamObjectList ------------------------------------------------------------- }
+{ TCastleObjectList ------------------------------------------------------------- }
 
-constructor TKamObjectList.CreateFromArray(const FreeObjects: boolean;
+constructor TCastleObjectList.CreateFromArray(const FreeObjects: boolean;
   const AItems: array of TObject);
 begin
   Create(FreeObjects);
   AddArray(AItems);
 end;
 
-procedure TKamObjectList.AddArray(const A: array of TObject);
+procedure TCastleObjectList.AddArray(const A: array of TObject);
 var
   I: Integer;
 begin
@@ -1464,7 +1464,7 @@ begin
     Add(A[I]);
 end;
 
-procedure TKamObjectList.AddList(AList: TObjectList);
+procedure TCastleObjectList.AddList(AList: TObjectList);
 var
   I: Integer;
 begin
@@ -1477,7 +1477,7 @@ begin
       Notify(AList[I], lnAdded);
 end;
 
-function TKamObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
+function TCastleObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
   AddBeginning: boolean): TObject;
 var
   I: Integer;
@@ -1510,7 +1510,7 @@ begin
     Insert(Count, NewItem);
 end;
 
-function TKamObjectList.Extract(Index: Integer): TObject;
+function TCastleObjectList.Extract(Index: Integer): TObject;
 begin
   Result := TObject(List^[Index]);
 
@@ -1523,7 +1523,7 @@ begin
   if Assigned(Result) then Notify(Result, lnExtracted);
 end;
 
-function TKamObjectList.Extract(RemoveClass: TClass): TObject;
+function TCastleObjectList.Extract(RemoveClass: TClass): TObject;
 var
   I: Integer;
 begin
@@ -1537,7 +1537,7 @@ begin
   Result := nil;
 end;
 
-function TKamObjectList.DeleteAll(Item: TObject): Cardinal;
+function TCastleObjectList.DeleteAll(Item: TObject): Cardinal;
 var
   I: Integer;
 begin
@@ -1551,23 +1551,23 @@ begin
   end;
 end;
 
-function TKamObjectList.IsFirst(Value: TObject): boolean;
+function TCastleObjectList.IsFirst(Value: TObject): boolean;
 begin
   Result := (Count > 0) and (Items[0] = Value);
 end;
 
-function TKamObjectList.IsLast(Value: TObject): boolean;
+function TCastleObjectList.IsLast(Value: TObject): boolean;
 begin
   Result := (Count > 0) and (Items[Count - 1] = Value);
 end;
 
-procedure TKamObjectList.InsertIfNotExists(Index: Integer; Value: TObject);
+procedure TCastleObjectList.InsertIfNotExists(Index: Integer; Value: TObject);
 begin
   if IndexOf(Value) = -1 then
     Insert(Index, Value);
 end;
 
-procedure TKamObjectList.AddIfNotExists(Value: TObject);
+procedure TCastleObjectList.AddIfNotExists(Value: TObject);
 begin
   if IndexOf(Value) = -1 then
     Add(Value);

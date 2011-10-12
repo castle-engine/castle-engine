@@ -57,7 +57,7 @@ type
   TX3DShaderProgram = class(TGLSLProgram)
   private
     { Events where we registered our EventReceive method. }
-    EventsObserved: TVRMLEventList;
+    EventsObserved: TX3DEventList;
 
     { Set uniform variable from VRML/X3D field value.
       Uniform name is contained in UniformName. UniformValue indicates
@@ -80,20 +80,20 @@ type
         So invalid uniform names should be always catched.
         We also catch type mismatches.) }
     procedure SetUniformFromField(const UniformName: string;
-      const UniformValue: TVRMLField; const EnableDisable: boolean);
+      const UniformValue: TX3DField; const EnableDisable: boolean);
 
-    procedure EventReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
 
     { Set uniform shader variable from VRML/X3D field (exposed or not).
       We also start observing an exposed field or eventIn,
       and will automatically update uniform value when we receive an event. }
     procedure BindNonTextureUniform(
-      const FieldOrEvent: TVRMLInterfaceDeclaration;
+      const FieldOrEvent: TX3DInterfaceDeclaration;
       const EnableDisable: boolean);
   protected
     { Nodes that have interface declarations with textures for this shader. }
-    UniformsTextures: TVRMLFieldList;
+    UniformsTextures: TX3DFieldList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -104,7 +104,7 @@ type
       Non-texture fields and events are then observed by this shader,
       and automatically updated when changed.
 
-      Texture fields have to be updated by descendant (like TVRMLGLSLProgram),
+      Texture fields have to be updated by descendant (like TX3DGLSLProgram),
       using the UniformsTextures list. These methods add fields to this list.
       @groupBegin }
     procedure BindUniforms(const Node: TX3DNode; const EnableDisable: boolean);
@@ -116,12 +116,12 @@ type
 
   TShaderSource = class
   private
-    FSource: array [TShaderType] of TKamStringList;
-    function GetSource(const AType: TShaderType): TKamStringList;
+    FSource: array [TShaderType] of TCastleStringList;
+    function GetSource(const AType: TShaderType): TCastleStringList;
   public
     constructor Create;
     destructor Destroy; override;
-    property Source [AType: TShaderType]: TKamStringList read GetSource; default;
+    property Source [AType: TShaderType]: TCastleStringList read GetSource; default;
 
     { Append AppendCode to our code.
       Has some special features:
@@ -273,7 +273,7 @@ type
 
       Returns if plug code was inserted (always @true when
       InsertAtBeginIfNotFound). }
-    function PlugDirectly(Code: TKamStringList;
+    function PlugDirectly(Code: TCastleStringList;
       const CodeIndex: Cardinal;
       const PlugName, PlugValue: string;
       const InsertAtBeginIfNotFound: boolean): boolean;
@@ -532,7 +532,7 @@ var
 begin
   inherited;
   for SourceType := Low(SourceType) to High(SourceType) do
-    FSource[SourceType] := TKamStringList.Create;
+    FSource[SourceType] := TCastleStringList.Create;
 end;
 
 destructor TShaderSource.Destroy;
@@ -544,7 +544,7 @@ begin
   inherited;
 end;
 
-function TShaderSource.GetSource(const AType: TShaderType): TKamStringList;
+function TShaderSource.GetSource(const AType: TShaderType): TCastleStringList;
 begin
   Result := FSource[AType];
 end;
@@ -698,8 +698,8 @@ end;
 constructor TX3DShaderProgram.Create;
 begin
   inherited;
-  EventsObserved := TVRMLEventList.Create(false);
-  UniformsTextures := TVRMLFieldList.Create(false);
+  EventsObserved := TX3DEventList.Create(false);
+  UniformsTextures := TX3DFieldList.Create(false);
 end;
 
 destructor TX3DShaderProgram.Destroy;
@@ -717,11 +717,11 @@ begin
 end;
 
 procedure TX3DShaderProgram.BindNonTextureUniform(
-  const FieldOrEvent: TVRMLInterfaceDeclaration;
+  const FieldOrEvent: TX3DInterfaceDeclaration;
   const EnableDisable: boolean);
 var
-  UniformField: TVRMLField;
-  UniformEvent, ObservedEvent: TVRMLEvent;
+  UniformField: TX3DField;
+  UniformEvent, ObservedEvent: TX3DEvent;
 begin
   UniformField := FieldOrEvent.Field;
   UniformEvent := FieldOrEvent.Event;
@@ -763,7 +763,7 @@ begin
 end;
 
 procedure TX3DShaderProgram.SetUniformFromField(
-  const UniformName: string; const UniformValue: TVRMLField;
+  const UniformName: string; const UniformValue: TX3DField;
   const EnableDisable: boolean);
 var
   TempF: TSingleList;
@@ -917,10 +917,10 @@ begin
 end;
 
 procedure TX3DShaderProgram.EventReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   UniformName: string;
-  Scene: TVRMLEventsEngine;
+  Scene: TX3DEventsEngine;
 begin
   if Event.ParentExposedField = nil then
     UniformName := Event.Name else
@@ -958,7 +958,7 @@ procedure TX3DShaderProgram.BindUniforms(const Node: TX3DNode;
   const EnableDisable: boolean);
 var
   I: Integer;
-  IDecl: TVRMLInterfaceDeclaration;
+  IDecl: TX3DInterfaceDeclaration;
 begin
   Assert(Node.HasInterfaceDeclarations <> []);
   Assert(Node.InterfaceDeclarations <> nil);
@@ -1282,7 +1282,7 @@ const
   end;
 
 var
-  Code: TKamStringList;
+  Code: TCastleStringList;
 
   procedure InsertIntoCode(const CodeIndex, P: Integer; const S: string);
   begin
@@ -1309,7 +1309,7 @@ var
   Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
     PlugForwardDeclaration: string;
   CompleteCodeForPlugValue: TShaderSource;
-  CodeForPlugValue: TKamStringList;
+  CodeForPlugValue: TCastleStringList;
   AnyOccurences, AnyOccurencesInThisCodeIndex: boolean;
 begin
   CompleteCodeForPlugValue := Source;
@@ -1384,7 +1384,7 @@ begin
   CodeForPlugValue.Add(PlugValue);
 end;
 
-function TShader.PlugDirectly(Code: TKamStringList;
+function TShader.PlugDirectly(Code: TCastleStringList;
   const CodeIndex: Cardinal;
   const PlugName, PlugValue: string;
   const InsertAtBeginIfNotFound: boolean): boolean;

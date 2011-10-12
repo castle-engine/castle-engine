@@ -31,15 +31,15 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
 
@@ -73,15 +73,15 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
   TConeNode_2 = TConeNode;
@@ -115,19 +115,19 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
   TCylinderNode_2 = TCylinderNode;
@@ -135,15 +135,15 @@
   TElevationGridNode = class(TAbstractX3DGeometryNode)
   private
     procedure EventSet_HeightReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFFloat, in } { }
-    private FEventSet_height: TVRMLEvent;
-    public property EventSet_height: TVRMLEvent read FEventSet_height;
+    private FEventSet_height: TX3DEvent;
+    public property EventSet_height: TX3DEvent read FEventSet_height;
 
     private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
@@ -202,48 +202,48 @@
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TExtrusionNode = class(TAbstractX3DGeometryNode)
   private
     procedure Eventset_crossSectionReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_orientationReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_scaleReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_spineReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFVec2f, in } { }
-    private FEventSet_crossSection: TVRMLEvent;
-    public property EventSet_crossSection: TVRMLEvent read FEventSet_crossSection;
+    private FEventSet_crossSection: TX3DEvent;
+    public property EventSet_crossSection: TX3DEvent read FEventSet_crossSection;
 
     { Event: MFRotation, in } { }
-    private FEventSet_orientation: TVRMLEvent;
-    public property EventSet_orientation: TVRMLEvent read FEventSet_orientation;
+    private FEventSet_orientation: TX3DEvent;
+    public property EventSet_orientation: TX3DEvent read FEventSet_orientation;
 
     { Event: MFVec2f, in } { }
-    private FEventSet_scale: TVRMLEvent;
-    public property EventSet_scale: TVRMLEvent read FEventSet_scale;
+    private FEventSet_scale: TX3DEvent;
+    public property EventSet_scale: TX3DEvent read FEventSet_scale;
 
     { Event: MFVec3f, in } { }
-    private FEventSet_spine: TVRMLEvent;
-    public property EventSet_spine: TVRMLEvent read FEventSet_spine;
+    private FEventSet_spine: TX3DEvent;
+    public property EventSet_spine: TX3DEvent read FEventSet_spine;
 
     private FFdBeginCap: TSFBool;
     public property FdBeginCap: TSFBool read FFdBeginCap;
@@ -289,48 +289,48 @@
       field is non-empty and it's first and last points are equal. }
     function CrossSectionClosed: boolean;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure Eventset_colorIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_coordIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_normalIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_texCoordIndexReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFInt32, in } { }
-    private FEventSet_colorIndex: TVRMLEvent;
-    public property EventSet_colorIndex: TVRMLEvent read FEventSet_colorIndex;
+    private FEventSet_colorIndex: TX3DEvent;
+    public property EventSet_colorIndex: TX3DEvent read FEventSet_colorIndex;
 
     { Event: MFInt32, in } { }
-    private FEventSet_coordIndex: TVRMLEvent;
-    public property EventSet_coordIndex: TVRMLEvent read FEventSet_coordIndex;
+    private FEventSet_coordIndex: TX3DEvent;
+    public property EventSet_coordIndex: TX3DEvent read FEventSet_coordIndex;
 
     { Event: MFInt32, in } { }
-    private FEventSet_normalIndex: TVRMLEvent;
-    public property EventSet_normalIndex: TVRMLEvent read FEventSet_normalIndex;
+    private FEventSet_normalIndex: TX3DEvent;
+    public property EventSet_normalIndex: TX3DEvent read FEventSet_normalIndex;
 
     { Event: MFInt32, in } { }
-    private FEventSet_texCoordIndex: TVRMLEvent;
-    public property EventSet_texCoordIndex: TVRMLEvent read FEventSet_texCoordIndex;
+    private FEventSet_texCoordIndex: TX3DEvent;
+    public property EventSet_texCoordIndex: TX3DEvent read FEventSet_texCoordIndex;
 
     private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
@@ -357,11 +357,11 @@
     function CoordIndex: TMFLong; override;
 
     procedure CoordPolygons(
-      State: TVRMLGraphTraverseState;
+      State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
   TIndexedFaceSetNode_2 = TIndexedFaceSetNode;
 
@@ -384,15 +384,15 @@
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
   end;
   TSphereNode_2 = TSphereNode;
@@ -589,7 +589,7 @@ procedure TElevationGridNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_height := TVRMLEvent.Create(Self, 'set_height', TMFFloat, true);
+  FEventSet_height := TX3DEvent.Create(Self, 'set_height', TMFFloat, true);
   Events.Add(FEventSet_height);
   Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
 
@@ -725,7 +725,7 @@ begin
 end;
 
 procedure TElevationGridNode.EventSet_HeightReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   FdHeight.Assign(Value);
   FdHeight.Changed;
@@ -735,19 +735,19 @@ procedure TExtrusionNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_crossSection := TVRMLEvent.Create(Self, 'set_crossSection', TMFVec2f, true);
+  FEventSet_crossSection := TX3DEvent.Create(Self, 'set_crossSection', TMFVec2f, true);
   Events.Add(FEventSet_crossSection);
   Eventset_crossSection.OnReceive.Add(@EventSet_crossSectionReceive);
 
-  FEventSet_orientation := TVRMLEvent.Create(Self, 'set_orientation', TMFRotation, true);
+  FEventSet_orientation := TX3DEvent.Create(Self, 'set_orientation', TMFRotation, true);
   Events.Add(FEventSet_orientation);
   Eventset_orientation.OnReceive.Add(@EventSet_orientationReceive);
 
-  FEventSet_scale := TVRMLEvent.Create(Self, 'set_scale', TMFVec2f, true);
+  FEventSet_scale := TX3DEvent.Create(Self, 'set_scale', TMFVec2f, true);
   Events.Add(FEventSet_scale);
   Eventset_scale.OnReceive.Add(@EventSet_scaleReceive);
 
-  FEventSet_spine := TVRMLEvent.Create(Self, 'set_spine', TMFVec3f, true);
+  FEventSet_spine := TX3DEvent.Create(Self, 'set_spine', TMFVec3f, true);
   Events.Add(FEventSet_spine);
   Eventset_spine.OnReceive.Add(@EventSet_spineReceive);
 
@@ -846,7 +846,7 @@ begin
                           CrossSectionPoints.First);
 end;
 
-function TExtrusionNode.Proxy(var State: TVRMLGraphTraverseState;
+function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 
 { Some of the things that are non-optimal when you will render
@@ -1098,28 +1098,28 @@ begin
 end;
 
 procedure TExtrusionNode.EventSet_crossSectionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   FdcrossSection.Assign(Value);
   FdcrossSection.Changed;
 end;
 
 procedure TExtrusionNode.EventSet_orientationReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   Fdorientation.Assign(Value);
   Fdorientation.Changed;
 end;
 
 procedure TExtrusionNode.EventSet_scaleReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   Fdscale.Assign(Value);
   Fdscale.Changed;
 end;
 
 procedure TExtrusionNode.EventSet_spineReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   Fdspine.Assign(Value);
   Fdspine.Changed;
@@ -1134,19 +1134,19 @@ procedure TIndexedFaceSetNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_colorIndex := TVRMLEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
+  FEventSet_colorIndex := TX3DEvent.Create(Self, 'set_colorIndex', TMFInt32, true);
   Events.Add(FEventSet_colorIndex);
   Eventset_colorIndex.OnReceive.Add(@EventSet_colorIndexReceive);
 
-  FEventSet_coordIndex := TVRMLEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
+  FEventSet_coordIndex := TX3DEvent.Create(Self, 'set_coordIndex', TMFInt32, true);
   Events.Add(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_coordIndexReceive);
 
-  FEventSet_normalIndex := TVRMLEvent.Create(Self, 'set_normalIndex', TMFInt32, true);
+  FEventSet_normalIndex := TX3DEvent.Create(Self, 'set_normalIndex', TMFInt32, true);
   Events.Add(FEventSet_normalIndex);
   Eventset_normalIndex.OnReceive.Add(@EventSet_normalIndexReceive);
 
-  FEventSet_texCoordIndex := TVRMLEvent.Create(Self, 'set_texCoordIndex', TMFInt32, true);
+  FEventSet_texCoordIndex := TX3DEvent.Create(Self, 'set_texCoordIndex', TMFInt32, true);
   Events.Add(FEventSet_texCoordIndex);
   Eventset_texCoordIndex.OnReceive.Add(@EventSet_texCoordIndexReceive);
 
@@ -1213,28 +1213,28 @@ begin
 end;
 
 procedure TIndexedFaceSetNode.EventSet_colorIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   FdcolorIndex.Assign(Value);
   FdcolorIndex.Changed;
 end;
 
 procedure TIndexedFaceSetNode.EventSet_coordIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   FdcoordIndex.Assign(Value);
   FdcoordIndex.Changed;
 end;
 
 procedure TIndexedFaceSetNode.EventSet_normalIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   FdnormalIndex.Assign(Value);
   FdnormalIndex.Changed;
 end;
 
 procedure TIndexedFaceSetNode.EventSet_texCoordIndexReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   FdtexCoordIndex.Assign(Value);
   FdtexCoordIndex.Changed;

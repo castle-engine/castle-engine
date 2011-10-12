@@ -174,7 +174,7 @@ begin
   end;
 end;
 
-function TSphereNode.Proxy(var State: TVRMLGraphTraverseState;
+function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
@@ -216,7 +216,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TSphereNode_1.Proxy(var State: TVRMLGraphTraverseState;
+function TSphereNode_1.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -230,7 +230,7 @@ begin
   IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
   try
     { we have to modify State, so make a copy of it }
-    State := TVRMLGraphTraverseState.CreateCopy(State);
+    State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);

@@ -25,7 +25,7 @@ type
     RadianceTransfer: PVector3Single;
     const RadianceTransferCount: Cardinal): TVector3Single of object;
 
-  { Callback used by TVRMLRenderingAttributes.OnVertexColor.
+  { Callback used by TX3DRenderingAttributes.OnVertexColor.
     Passed here VertexPosition is in local coordinates (that is,
     local of this object, multiply by State.Transform to get scene coords).
     VertexIndex is the direct index to Node.Coordinates. }
@@ -42,7 +42,7 @@ type
   TArraysGenerator = class
   private
     FShape: TShape;
-    FState: TVRMLGraphTraverseState;
+    FState: TX3DGraphTraverseState;
     FGeometry: TAbstractGeometryNode;
 
     FCurrentRangeNumber: Cardinal;
@@ -96,7 +96,7 @@ type
       lifetime of the generator, set in constructor.
       @groupBegin }
     property Shape: TShape read FShape;
-    property State: TVRMLGraphTraverseState read FState;
+    property State: TX3DGraphTraverseState read FState;
     property Geometry: TAbstractGeometryNode read FGeometry;
     { @groupEnd }
 

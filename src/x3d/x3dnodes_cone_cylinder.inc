@@ -452,7 +452,7 @@ end;
 
 { VRML 2 proxy --------------------------------------------------------------- }
 
-function TCylinderNode.Proxy(var State: TVRMLGraphTraverseState;
+function TCylinderNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
@@ -495,7 +495,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TConeNode.Proxy(var State: TVRMLGraphTraverseState;
+function TConeNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinateNode;
@@ -540,7 +540,7 @@ end;
 
 { VRML 1 proxy --------------------------------------------------------------- }
 
-function TCylinderNode_1.Proxy(var State: TVRMLGraphTraverseState;
+function TCylinderNode_1.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -555,7 +555,7 @@ begin
   IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
   try
     { we have to modify State, so make a copy of it }
-    State := TVRMLGraphTraverseState.CreateCopy(State);
+    State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
@@ -611,7 +611,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function TConeNode_1.Proxy(var State: TVRMLGraphTraverseState;
+function TConeNode_1.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   CoordNode: TCoordinate3Node_1;
@@ -626,7 +626,7 @@ begin
   IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
   try
     { we have to modify State, so make a copy of it }
-    State := TVRMLGraphTraverseState.CreateCopy(State);
+    State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);

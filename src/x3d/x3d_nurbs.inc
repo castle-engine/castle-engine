@@ -97,23 +97,23 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventAddChildren: TVRMLEvent;
-    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
+    private FEventAddChildren: TX3DEvent;
+    public property EventAddChildren: TX3DEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventRemoveChildren: TVRMLEvent;
-    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
+    private FEventRemoveChildren: TX3DEvent;
+    public property EventRemoveChildren: TX3DEvent read FEventRemoveChildren;
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TContourPolyline2DNode = class(TAbstractNurbsControlCurveNode)
@@ -164,15 +164,15 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
   TNurbsCurveNode_3 = TNurbsCurveNode;
 
@@ -200,7 +200,7 @@
 
   TNurbsOrientationInterpolatorNode = class(TAbstractChildNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
     procedure DirectEnumerateActive(
@@ -211,8 +211,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventSet_fraction: TVRMLEvent;
-    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
+    private FEventSet_fraction: TX3DEvent;
+    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -227,8 +227,8 @@
     public property FdWeight: TMFDouble read FFdWeight;
 
     { Event: SFRotation, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TNurbsPatchSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
@@ -237,20 +237,20 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function BoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function BoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
     procedure DirectEnumerateActive(
@@ -261,8 +261,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventSet_fraction: TVRMLEvent;
-    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
+    private FEventSet_fraction: TX3DEvent;
+    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -277,8 +277,8 @@
     public property FdWeight: TMFDouble read FFdWeight;
 
     { Event: SFVec3f, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
   end;
@@ -291,12 +291,12 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventAddGeometry: TVRMLEvent;
-    public property EventAddGeometry: TVRMLEvent read FEventAddGeometry;
+    private FEventAddGeometry: TX3DEvent;
+    public property EventAddGeometry: TX3DEvent read FEventAddGeometry;
 
     { Event: MFNode, in } { }
-    private FEventRemoveGeometry: TVRMLEvent;
-    public property EventRemoveGeometry: TVRMLEvent read FEventRemoveGeometry;
+    private FEventRemoveGeometry: TX3DEvent;
+    public property EventRemoveGeometry: TX3DEvent read FEventRemoveGeometry;
 
     { Implementation note: Fdgeometry is not enumerated in DirectEnumerateActive,
       as it's not actually rendered from NurbsSet node.
@@ -318,7 +318,7 @@
 
   TNurbsSurfaceInterpolatorNode = class(TAbstractChildNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
     procedure DirectEnumerateActive(
@@ -329,8 +329,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFVec2f, in } { }
-    private FEventSet_fraction: TVRMLEvent;
-    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
+    private FEventSet_fraction: TX3DEvent;
+    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
 
     private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
@@ -339,12 +339,12 @@
     public property FdWeight: TMFDouble read FFdWeight;
 
     { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TVRMLEvent;
-    public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
+    private FEventPosition_changed: TX3DEvent;
+    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventNormal_changed: TVRMLEvent;
-    public property EventNormal_changed: TVRMLEvent read FEventNormal_changed;
+    private FEventNormal_changed: TX3DEvent;
+    public property EventNormal_changed: TX3DEvent read FEventNormal_changed;
 
     private FFdUDimension: TSFInt32;
     public property FdUDimension: TSFInt32 read FFdUDimension;
@@ -387,12 +387,12 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TNurbsSwungSurfaceNode = class(TAbstractParametricGeometryNode)
@@ -417,12 +417,12 @@
     public property FdSolid: TSFBool read FFdSolid;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
   TNurbsTextureCoordinateNode = class(TAbstractNode)
@@ -466,23 +466,23 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventAddTrimmingContour: TVRMLEvent;
-    public property EventAddTrimmingContour: TVRMLEvent read FEventAddTrimmingContour;
+    private FEventAddTrimmingContour: TX3DEvent;
+    public property EventAddTrimmingContour: TX3DEvent read FEventAddTrimmingContour;
 
     { Event: MFNode, in } { }
-    private FEventRemoveTrimmingContour: TVRMLEvent;
-    public property EventRemoveTrimmingContour: TVRMLEvent read FEventRemoveTrimmingContour;
+    private FEventRemoveTrimmingContour: TX3DEvent;
+    public property EventRemoveTrimmingContour: TX3DEvent read FEventRemoveTrimmingContour;
 
     private FFdTrimmingContour: TMFNode;
     public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
 
     { Geometry node not implemented } { }
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
 {$endif read_interface}
@@ -589,10 +589,10 @@ procedure TContour2DNode.CreateNode;
 begin
   inherited;
 
-  FEventAddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
+  FEventAddChildren := TX3DEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventAddChildren);
 
-  FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
+  FEventRemoveChildren := TX3DEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
   FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
@@ -780,7 +780,7 @@ begin
   FreeAndNil(Knot);
 end;
 
-function TNurbsCurveNode.Proxy(var State: TVRMLGraphTraverseState;
+function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   ControlPoint: TVector3SingleList;
@@ -805,8 +805,8 @@ end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNurbsCurveNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsCurveNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TCoordinateNode) then
@@ -816,8 +816,8 @@ end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNurbsCurveNode.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsCurveNode.BoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TCoordinateNode) then
@@ -825,8 +825,8 @@ begin
     Result := EmptyBox3D;
 end;
 
-function TNurbsCurveNode.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+function TNurbsCurveNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := 0;
 end;
@@ -876,7 +876,7 @@ procedure TNurbsOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
@@ -894,7 +894,7 @@ begin
   Fields.Add(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFRotation, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFRotation, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -920,7 +920,7 @@ begin
 end;
 
 procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   ControlPoint: TVector3SingleList;
   Knot: TDoubleList;
@@ -1215,7 +1215,7 @@ begin
   FreeAndNil(VKnot);
 end;
 
-function TNurbsPatchSurfaceNode.Proxy(var State: TVRMLGraphTraverseState;
+function TNurbsPatchSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
   ControlPoint: TVector3SingleList;
@@ -1257,8 +1257,8 @@ end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNurbsPatchSurfaceNode.LocalBoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsPatchSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TCoordinateNode) then
@@ -1268,8 +1268,8 @@ end;
 
 { We cannot simply override Coord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
-function TNurbsPatchSurfaceNode.BoundingBox(State: TVRMLGraphTraverseState;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D;
+function TNurbsPatchSurfaceNode.BoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   if (FdControlPoint.Value <> nil) and
      (FdControlPoint.Value is TCoordinateNode) then
@@ -1277,8 +1277,8 @@ begin
     Result := EmptyBox3D;
 end;
 
-function TNurbsPatchSurfaceNode.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-  ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal;
+function TNurbsPatchSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 var
   UTess, VTess: Cardinal;
 begin
@@ -1296,7 +1296,7 @@ procedure TNurbsPositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
@@ -1314,7 +1314,7 @@ begin
   Fields.Add(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFVec3f, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFVec3f, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -1345,7 +1345,7 @@ begin
 end;
 
 procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   ControlPoint: TVector3SingleList;
   Knot: TDoubleList;
@@ -1387,10 +1387,10 @@ procedure TNurbsSetNode.CreateNode;
 begin
   inherited;
 
-  FEventAddGeometry := TVRMLEvent.Create(Self, 'addGeometry', TMFNode, true);
+  FEventAddGeometry := TX3DEvent.Create(Self, 'addGeometry', TMFNode, true);
   Events.Add(FEventAddGeometry);
 
-  FEventRemoveGeometry := TVRMLEvent.Create(Self, 'removeGeometry', TMFNode, true);
+  FEventRemoveGeometry := TX3DEvent.Create(Self, 'removeGeometry', TMFNode, true);
   Events.Add(FEventRemoveGeometry);
 
   FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractParametricGeometryNode]);
@@ -1428,7 +1428,7 @@ procedure TNurbsSurfaceInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFVec2f, true);
+  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFVec2f, true);
   Events.Add(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
@@ -1438,10 +1438,10 @@ begin
   Fields.Add(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventPosition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
   Events.Add(FEventPosition_changed);
 
-  FEventNormal_changed := TVRMLEvent.Create(Self, 'normal_changed', TSFVec3f, false);
+  FEventNormal_changed := TX3DEvent.Create(Self, 'normal_changed', TSFVec3f, false);
   Events.Add(FEventNormal_changed);
 
   FFdUDimension := TSFInt32.Create(Self, 'uDimension', 0);
@@ -1497,7 +1497,7 @@ begin
 end;
 
 procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   ControlPoint: TVector3SingleList;
   OutputNormal: TVector3Single;
@@ -1721,10 +1721,10 @@ procedure TNurbsTrimmedSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FEventAddTrimmingContour := TVRMLEvent.Create(Self, 'addTrimmingContour', TMFNode, true);
+  FEventAddTrimmingContour := TX3DEvent.Create(Self, 'addTrimmingContour', TMFNode, true);
   Events.Add(FEventAddTrimmingContour);
 
-  FEventRemoveTrimmingContour := TVRMLEvent.Create(Self, 'removeTrimmingContour', TMFNode, true);
+  FEventRemoveTrimmingContour := TX3DEvent.Create(Self, 'removeTrimmingContour', TMFNode, true);
   Events.Add(FEventRemoveTrimmingContour);
 
   FFdTrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode]);

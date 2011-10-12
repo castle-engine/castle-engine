@@ -145,7 +145,7 @@ type
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
-  TSceneRenderingAttributes = class(TVRMLRenderingAttributes)
+  TSceneRenderingAttributes = class(TX3DRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
     FScenes: T3DSceneList;
@@ -310,7 +310,7 @@ type
   { TShape descendant for usage within T3DScene.
     Basically, this is just the same thing as TShape, with some
     internal information needed by T3DScene. }
-  TGLShape = class(TVRMLRendererShape)
+  TGLShape = class(TX3DRendererShape)
   private
     { Keeps track if this shape was passed to Renderer.Prepare. }
     PreparedForRenderer: boolean;
@@ -540,7 +540,7 @@ type
     FrameId: Cardinal;
   protected
     function CreateShape(AGeometry: TAbstractGeometryNode;
-      AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
+      AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -585,7 +585,7 @@ type
 
     { Render for OpenGL. The rendering parameters are configurable
       by @link(Attributes), see TSceneRenderingAttributes and
-      TVRMLRenderingAttributes.
+      TX3DRenderingAttributes.
 
       For more details about rendering, see @link(GLRenderer) unit comments.
       This method internally uses TGLRenderer instance, additionally
@@ -882,7 +882,7 @@ type
 
       You are free to change them all at any time.
       Although note that changing some attributes (the ones defined
-      in base TVRMLRenderingAttributes class) may be a costly operation
+      in base TX3DRenderingAttributes class) may be a costly operation
       (next PrepareResources with prRender, or Render call, may need
       to recalculate some things). }
     function Attributes: TSceneRenderingAttributes;
@@ -928,7 +928,7 @@ type
 
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
 
-    { Screen effects information, used by TKamAbstractViewport.ScreenEffects.
+    { Screen effects information, used by TCastleAbstractViewport.ScreenEffects.
       @groupBegin }
     function ScreenEffects(Index: Integer): TGLSLProgram;
     function ScreenEffectsCount: Integer;
@@ -1378,7 +1378,7 @@ begin
 end;
 
 function T3DScene.CreateShape(AGeometry: TAbstractGeometryNode;
-  AState: TVRMLGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
+  AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape;
 begin
   Result := TGLShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
@@ -1867,7 +1867,7 @@ var
       The idea is that it should try to keep front-to-back order,
       assuming that Node.PushChildren* keeps this order.
       Stack gives more chance to process front shapes first. }
-    TraversalStack: TKamObjectStack;
+    TraversalStack: TCastleObjectStack;
 
     procedure TraverseNode(Node: TShapeOctreeNode);
     var
@@ -1956,7 +1956,7 @@ var
   {$endif}
   var
     { queue of TOcclusionQuery }
-    QueryQueue: TKamObjectQueue;
+    QueryQueue: TCastleObjectQueue;
     Q: TOcclusionQuery;
     Node: TShapeOctreeNode;
     WasVisible, LeafOrWasInvisible: boolean;
@@ -1965,10 +1965,10 @@ var
     Inc(FrameId);
     {$include norqcheckend.inc}
 
-    TraversalStack := TKamObjectStack.Create;
+    TraversalStack := TCastleObjectStack.Create;
     TraversalStack.Capacity := OctreeRendering.ShapesList.Count;
 
-    QueryQueue := TKamObjectQueue.Create;
+    QueryQueue := TCastleObjectQueue.Create;
     QueryQueue.Capacity := OctreeRendering.ShapesList.Count;
 
     try

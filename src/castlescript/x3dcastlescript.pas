@@ -25,7 +25,7 @@ uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;
 type
   TCasScriptVRMLValueList = class(TCasScriptValueList)
   private
-    FFieldOrEvents: TVRMLFieldOrEventList;
+    FFieldOrEvents: TX3DFieldOrEventList;
     FLastEventTimes: TX3DTimeList;
     InsideAfterExecute: boolean;
   public
@@ -35,13 +35,13 @@ type
     { List of field/events associated with this list's CasScript variables.
       This list is read-only (use @link(Add) to add here).
       It always has the same Count as our own count. }
-    property FieldOrEvents: TVRMLFieldOrEventList read FFieldOrEvents;
+    property FieldOrEvents: TX3DFieldOrEventList read FFieldOrEvents;
 
     { Create TCasScriptValue descendant suitable to hold FieldOrEvent
       value, and add it to Items.
       FieldOrEvent is added to FieldOrEvents list, so we keep
       all information. }
-    procedure Add(FieldOrEvent: TVRMLFieldOrEvent);
+    procedure Add(FieldOrEvent: TX3DFieldOrEvent);
 
     procedure BeforeExecute;
     procedure AfterExecute;
@@ -59,7 +59,7 @@ type
       one event per field per timestamp. [...] This also applies to scripts.
 
       "[...]" above talks about ROUTE breaking rule, we handle this
-      generally in TVRMLRoute. The trouble with script is that it can
+      generally in TX3DRoute. The trouble with script is that it can
       make loops even without the help of ROUTEs: script receives it's inputs,
       and sends it's outputs, so when you send an output that causes your own
       input you made a loop... The most trivial example of this
@@ -77,19 +77,19 @@ type
     procedure ResetLastEventTimes;
   end;
 
-function X3DCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
+function X3DCasScriptCreateValue(FieldOrEvent: TX3DFieldOrEvent): TCasScriptValue;
 
 { Do common things before VRML script with this variable is executed.
   This resets ValueAssigned (will be used in AfterExecute),
   and sets current variable's value from FieldOrEvent (if this is a field). }
 procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent);
+  FieldOrEvent: TX3DFieldOrEvent);
 
 { Do common things after VRML script with this variable is executed.
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
 procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
+  FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime);
 
 {$undef read_interface}
 
@@ -108,13 +108,13 @@ type
 
 { general utils -------------------------------------------------------- }
 
-function X3DCasScriptCreateValue(FieldOrEvent: TVRMLFieldOrEvent): TCasScriptValue;
+function X3DCasScriptCreateValue(FieldOrEvent: TX3DFieldOrEvent): TCasScriptValue;
 var
-  FieldClass: TVRMLFieldClass;
+  FieldClass: TX3DFieldClass;
 begin
-  if FieldOrEvent is TVRMLEvent then
-    FieldClass := TVRMLEvent(FieldOrEvent).FieldClass else
-    FieldClass := TVRMLFieldClass(FieldOrEvent.ClassType);
+  if FieldOrEvent is TX3DEvent then
+    FieldClass := TX3DEvent(FieldOrEvent).FieldClass else
+    FieldClass := TX3DFieldClass(FieldOrEvent.ClassType);
 
   if FieldClass.InheritsFrom(TSFEnum) or
      FieldClass.InheritsFrom(TSFLong) then
@@ -192,9 +192,9 @@ begin
 end;
 
 procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent);
+  FieldOrEvent: TX3DFieldOrEvent);
 
-  procedure AssignVRMLFieldValue(Field: TVRMLField);
+  procedure AssignVRMLFieldValue(Field: TX3DField);
   begin
     if Field is TSFEnum then
       TCasScriptInteger(Value).Value := TSFEnum(Field).Value else
@@ -287,14 +287,14 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
   end;
 
 begin
-  if FieldOrEvent is TVRMLField then
-    AssignVRMLFieldValue(TVRMLField(FieldOrEvent));
+  if FieldOrEvent is TX3DField then
+    AssignVRMLFieldValue(TX3DField(FieldOrEvent));
 
   Value.ValueAssigned := false;
 end;
 
 procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
-  FieldOrEvent: TVRMLFieldOrEvent; var LastEventTime: TX3DTime);
+  FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime);
 
   function GetTimestamp(out Time: TX3DTime): boolean;
   begin
@@ -315,14 +315,14 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
     end;
   end;
 
-  function CreateTempField(Event: TVRMLEvent): TVRMLField;
+  function CreateTempField(Event: TX3DEvent): TX3DField;
   begin
     { We have to create temporary field to send.
-      This is Ok, TVRMLEvent.Send shortcuts would do the same thing
+      This is Ok, TX3DEvent.Send shortcuts would do the same thing
       after all.
 
       We use Event.ParentNode, Event.Name for this temporary field
-      for the same reasons TVRMLEvent.Send shortcuts do this:
+      for the same reasons TX3DEvent.Send shortcuts do this:
       to get nice information in Logger node reports. }
 
     Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.Name, false);
@@ -330,30 +330,30 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
 
 var
   AbortSending: boolean;
-  Field: TVRMLField;
+  Field: TX3DField;
   Time: TX3DTime;
-  SendToEvent: TVRMLEvent;
+  SendToEvent: TX3DEvent;
 begin
   if Value.ValueAssigned then
   begin
     { calculate Field, will be set based on our current Value }
 
-    if FieldOrEvent is TVRMLEvent then
+    if FieldOrEvent is TX3DEvent then
     begin
-      SendToEvent := TVRMLEvent(FieldOrEvent);
+      SendToEvent := TX3DEvent(FieldOrEvent);
       Field := CreateTempField(SendToEvent);
     end else
-    if (FieldOrEvent as TVRMLField).Exposed then
+    if (FieldOrEvent as TX3DField).Exposed then
     begin
-      SendToEvent := TVRMLField(FieldOrEvent).EventIn;
+      SendToEvent := TX3DField(FieldOrEvent).EventIn;
       Field := CreateTempField(SendToEvent);
     end else
     begin
       SendToEvent := nil;
-      Assert(FieldOrEvent is TVRMLField);
-      Assert(not TVRMLField(FieldOrEvent).Exposed);
+      Assert(FieldOrEvent is TX3DField);
+      Assert(not TX3DField(FieldOrEvent).Exposed);
       { For initializeOnly fields, we will set them directly. }
-      Field := TVRMLField(FieldOrEvent);
+      Field := TX3DField(FieldOrEvent);
     end;
 
     AbortSending := false;
@@ -493,7 +493,7 @@ end;
 constructor TCasScriptVRMLValueList.Create(AFreeObjects: boolean);
 begin
   inherited;
-  FFieldOrEvents := TVRMLFieldOrEventList.Create(false);
+  FFieldOrEvents := TX3DFieldOrEventList.Create(false);
   FLastEventTimes := TX3DTimeList.Create;
 end;
 
@@ -504,7 +504,7 @@ begin
   inherited;
 end;
 
-procedure TCasScriptVRMLValueList.Add(FieldOrEvent: TVRMLFieldOrEvent);
+procedure TCasScriptVRMLValueList.Add(FieldOrEvent: TX3DFieldOrEvent);
 begin
   inherited Add(X3DCasScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);

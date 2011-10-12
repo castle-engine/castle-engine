@@ -200,12 +200,12 @@ type
     If value is 'NONE', nothing needs to be done. }
   TSFStringUpdate = class(TSFString)
   protected
-    function ExposedEventsFieldClass: TVRMLFieldClass; override;
+    function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     function Changes: TX3DChanges; override;
   end;
 
-function TSFStringUpdate.ExposedEventsFieldClass: TVRMLFieldClass;
+function TSFStringUpdate.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFString;
 end;

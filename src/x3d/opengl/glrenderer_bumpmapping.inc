@@ -13,7 +13,7 @@
     function Node: TAppearanceNode;
 
     { Prepare normalMap, heightMap (if exist) for rendering. }
-    procedure Prepare(State: TVRMLGraphTraverseState);
+    procedure Prepare(State: TX3DGraphTraverseState);
 
     { Release things initialized by Prepare. }
     procedure Unprepare; override;
@@ -40,7 +40,7 @@
     { If this State contains appropriate TAppearanceNode,
       this will create and prepare TBumpMappingRenderer instance for it
       (if one doesn't exist already). }
-    procedure Prepare(State: TVRMLGraphTraverseState;
+    procedure Prepare(State: TX3DGraphTraverseState;
       ARenderer: TGLRenderer);
 
     { If this State contains appropriate TAppearanceNode,
@@ -49,7 +49,7 @@
 
       We return the TBumpMappingRenderer instance only if it existed
       and it's Enable method returned @true. Otherwise, we return @nil. }
-    function Enable(State: TVRMLGraphTraverseState;
+    function Enable(State: TX3DGraphTraverseState;
       var BoundTextureUnits: Cardinal;
       Shader: TShader): TBumpMappingRenderer;
   end;
@@ -85,7 +85,7 @@ begin
     (TGLImageTextureNode(GLNode).GLName <> 0);
 end;
 
-procedure TBumpMappingRenderer.Prepare(State: TVRMLGraphTraverseState);
+procedure TBumpMappingRenderer.Prepare(State: TX3DGraphTraverseState);
 begin
   { don't bother loading textures for bump mapping if not enabled }
   if Renderer.BumpMapping = bmNone then Exit;
@@ -181,7 +181,7 @@ begin
   Result := TBumpMappingRenderer(inherited Items[Index]);
 end;
 
-procedure TBumpMappingRendererList.Prepare(State: TVRMLGraphTraverseState;
+procedure TBumpMappingRendererList.Prepare(State: TX3DGraphTraverseState;
   ARenderer: TGLRenderer);
 var
   ANode: TAppearanceNode;
@@ -200,7 +200,7 @@ begin
   end;
 end;
 
-function TBumpMappingRendererList.Enable(State: TVRMLGraphTraverseState;
+function TBumpMappingRendererList.Enable(State: TX3DGraphTraverseState;
   var BoundTextureUnits: Cardinal;
   Shader: TShader): TBumpMappingRenderer;
 var

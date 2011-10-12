@@ -17,38 +17,38 @@
 {$ifdef read_interface}
 
   { }
-  TVRMLEventReceive = procedure (Event: TVRMLEvent; Value: TVRMLField;
+  TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
     const Time: TX3DTime) of object;
 
-  TVRMLEventReceiveList = class(specialize TGenericStructList<TVRMLEventReceive>)
+  TX3DEventReceiveList = class(specialize TGenericStructList<TX3DEventReceive>)
   public
     { Call all functions. }
-    procedure ExecuteAll(Event: TVRMLEvent; Value: TVRMLField;
+    procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   end;
 
   { VRML event. }
-  TVRMLEvent = class(TVRMLFieldOrEvent)
+  TX3DEvent = class(TX3DFieldOrEvent)
   private
-    FFieldClass: TVRMLFieldClass;
+    FFieldClass: TX3DFieldClass;
     FInEvent: boolean;
-    FOnReceive: TVRMLEventReceiveList;
-    FParentExposedField: TVRMLField;
-    Temp: TVRMLField;
+    FOnReceive: TX3DEventReceiveList;
+    FParentExposedField: TX3DField;
+    Temp: TX3DField;
     TempUsed: boolean;
 
     SendLevel: Cardinal;
-    HandlersToRemove: TVRMLEventReceiveList;
+    HandlersToRemove: TX3DEventReceiveList;
 
-    function CreateTemp: TVRMLField;
-    procedure FreeTemp(const Field: TVRMLField);
+    function CreateTemp: TX3DField;
+    procedure FreeTemp(const Field: TX3DField);
   public
-    constructor Create(AParentNode: TVRMLFileItem;
+    constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
-      const AFieldClass: TVRMLFieldClass; const AInEvent: boolean);
+      const AFieldClass: TX3DFieldClass; const AInEvent: boolean);
     destructor Destroy; override;
 
-    property FieldClass: TVRMLFieldClass read FFieldClass;
+    property FieldClass: TX3DFieldClass read FFieldClass;
 
     { @abstract(Is it "in" or "out" event ?) }
     property InEvent: boolean read FInEvent;
@@ -62,7 +62,7 @@
 
     { If this event is an exposed event belonging to some field,
       this references parent field. Otherwise it's @nil. }
-    property ParentExposedField: TVRMLField
+    property ParentExposedField: TX3DField
       read FParentExposedField write FParentExposedField;
 
     { Send a value to event. For input fields, this is used by routes, scripts
@@ -71,7 +71,7 @@
 
       Field must be non-nil, of class FieldClass.
 
-      The Field instance doesn't become owned in any way by the TVRMLEvent.
+      The Field instance doesn't become owned in any way by the TX3DEvent.
       That is, it's the caller responsibility to free the Field instance
       at any comfortable time, possibly right after calling Send.
 
@@ -81,14 +81,14 @@
       or if ParentNode.Scene is @nil (which may happen only if events
       processing is not turned on, that is T3DSceneCore.ProcessEvents is @false)
       then event is not send. }
-    procedure Send(Field: TVRMLField; const Time: TX3DTime);
-    procedure Send(Field: TVRMLField);
+    procedure Send(Field: TX3DField; const Time: TX3DTime);
+    procedure Send(Field: TX3DField);
 
     { Send a value to event.
 
-      See the @link(Send Send(TVRMLField, TX3DTime)) method.
-      These shortcuts just create temporary appropriate TVRMLField instance,
-      and call Send(TVRMLField) method.
+      See the @link(Send Send(TX3DField, TX3DTime)) method.
+      These shortcuts just create temporary appropriate TX3DField instance,
+      and call Send(TX3DField) method.
 
       The temporary field instance has Name initialized from this event Name,
       to ease debugging (you can see e.g. by Logger node the originating
@@ -143,7 +143,7 @@
       to events occuring.
 
       All callbacks here are simply called by @link(Send) method. }
-    property OnReceive: TVRMLEventReceiveList read FOnReceive;
+    property OnReceive: TX3DEventReceiveList read FOnReceive;
 
     { Safely remove a callback from OnReceive list.
 
@@ -151,7 +151,7 @@
       even if we're right now in the middle of this event's processing.
       In the latter case, the handler will be actually removed with some delay
       (when it's safe). }
-    procedure RemoveHandler(Handler: TVRMLEventReceive);
+    procedure RemoveHandler(Handler: TX3DEventReceive);
 
     { @abstract(Is anything actually listening on this events @link(Send)?)
 
@@ -178,7 +178,7 @@
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TVRMLEventList = class(specialize TFPGObjectList<TVRMLEvent>)
+  TX3DEventList = class(specialize TFPGObjectList<TX3DEvent>)
   public
     function IndexOf(const Name: string): Integer;
   end;
@@ -187,10 +187,10 @@
 
 {$ifdef read_implementation}
 
-{ TVRMLEventReceiveList -------------------------------------------------- }
+{ TX3DEventReceiveList -------------------------------------------------- }
 
-procedure TVRMLEventReceiveList.ExecuteAll(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+procedure TX3DEventReceiveList.ExecuteAll(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   I: Integer;
 begin
@@ -198,20 +198,20 @@ begin
     L[I](Event, Value, Time);
 end;
 
-{ TVRMLEvent ----------------------------------------------------------------- }
+{ TX3DEvent ----------------------------------------------------------------- }
 
-constructor TVRMLEvent.Create(AParentNode: TVRMLFileItem;
-  const AName: string; const AFieldClass: TVRMLFieldClass;
+constructor TX3DEvent.Create(AParentNode: TX3DFileItem;
+  const AName: string; const AFieldClass: TX3DFieldClass;
   const AInEvent: boolean);
 begin
   inherited Create(AParentNode, AName);
 
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
-  FOnReceive := TVRMLEventReceiveList.Create;
+  FOnReceive := TX3DEventReceiveList.Create;
 end;
 
-destructor TVRMLEvent.Destroy;
+destructor TX3DEvent.Destroy;
 begin
   FreeAndNil(Temp);
   FreeAndNil(HandlersToRemove);
@@ -219,22 +219,22 @@ begin
   inherited;
 end;
 
-procedure TVRMLEvent.Parse(Lexer: TX3DLexer);
+procedure TX3DEvent.Parse(Lexer: TX3DLexer);
 begin
   ParseIsClause(Lexer);
 end;
 
-procedure TVRMLEvent.SaveToStream(Writer: TX3DWriter);
+procedure TX3DEvent.SaveToStream(Writer: TX3DWriter);
 begin
   { saves nothing. IS clauses are saved separately by SaveToStreamIsClauses }
 end;
 
-function TVRMLEvent.SaveToXml: TSaveToXmlMethod;
+function TX3DEvent.SaveToXml: TSaveToXmlMethod;
 begin
   Result := sxNone;
 end;
 
-procedure TVRMLEvent.Send(Field: TVRMLField; const Time: TX3DTime);
+procedure TX3DEvent.Send(Field: TX3DField; const Time: TX3DTime);
 
   procedure RemoveHandlers;
   var
@@ -261,9 +261,9 @@ begin
   end;
 end;
 
-procedure TVRMLEvent.Send(const Value: LongInt; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: LongInt; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFLong).Value := Value; // handles also SFInt32
@@ -272,9 +272,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: boolean; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: boolean; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFBool).Value := Value;
@@ -283,9 +283,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: string; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: string; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFString).Value := Value;
@@ -294,9 +294,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector2Single; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TVector2Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFVec2f).Value := Value;
@@ -305,9 +305,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector3Single; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TVector3Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFVec3f).Value := Value; // handles also SFColor
@@ -316,9 +316,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector4Single; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TVector4Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   if FieldClass = TSFRotation then
@@ -329,9 +329,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Single; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFFloat).Value := Value;
@@ -340,9 +340,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: Double; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: Double; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFDouble).Value := Value; // handles also SFTime
@@ -351,9 +351,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix3Single; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TMatrix3Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFMatrix3f).Value := Value;
@@ -362,9 +362,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix4Single; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TMatrix4Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFMatrix4f).Value := Value;
@@ -373,9 +373,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix3Double; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TMatrix3Double; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFMatrix3d).Value := Value;
@@ -384,9 +384,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix4Double; const Time: TX3DTime);
+procedure TX3DEvent.Send(const Value: TMatrix4Double; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TSFMatrix4d).Value := Value;
@@ -395,9 +395,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of string; const Time: TX3DTime);
+procedure TX3DEvent.SendArray(const Value: array of string; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TMFString).Items.AssignArray(Value);
@@ -406,9 +406,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector2Single; const Time: TX3DTime);
+procedure TX3DEvent.SendArray(const Value: array of TVector2Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TMFVec2f).Items.AssignArray(Value);
@@ -417,9 +417,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector3Single; const Time: TX3DTime);
+procedure TX3DEvent.SendArray(const Value: array of TVector3Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   (Field as TMFVec3f).Items.AssignArray(Value); // handles also MFColor
@@ -428,9 +428,9 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector4Single; const Time: TX3DTime);
+procedure TX3DEvent.SendArray(const Value: array of TVector4Single; const Time: TX3DTime);
 var
-  Field: TVRMLField;
+  Field: TX3DField;
 begin
   Field := CreateTemp;
   if FieldClass = TMFRotation then
@@ -441,142 +441,142 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TVRMLEvent.Send(Field: TVRMLField);
+procedure TX3DEvent.Send(Field: TX3DField);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Field, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: LongInt);
+procedure TX3DEvent.Send(const Value: LongInt);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: boolean);
+procedure TX3DEvent.Send(const Value: boolean);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: string);
+procedure TX3DEvent.Send(const Value: string);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector2Single);
+procedure TX3DEvent.Send(const Value: TVector2Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector3Single);
+procedure TX3DEvent.Send(const Value: TVector3Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TVector4Single);
+procedure TX3DEvent.Send(const Value: TVector4Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: Single);
+procedure TX3DEvent.Send(const Value: Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: Double);
+procedure TX3DEvent.Send(const Value: Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix3Single);
+procedure TX3DEvent.Send(const Value: TMatrix3Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix4Single);
+procedure TX3DEvent.Send(const Value: TMatrix4Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix3Double);
+procedure TX3DEvent.Send(const Value: TMatrix3Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.Send(const Value: TMatrix4Double);
+procedure TX3DEvent.Send(const Value: TMatrix4Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     Send(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of string);
+procedure TX3DEvent.SendArray(const Value: array of string);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector2Single);
+procedure TX3DEvent.SendArray(const Value: array of TVector2Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector3Single);
+procedure TX3DEvent.SendArray(const Value: array of TVector3Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-procedure TVRMLEvent.SendArray(const Value: array of TVector4Single);
+procedure TX3DEvent.SendArray(const Value: array of TVector4Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
     SendArray(Value, TX3DNode(ParentNode).Scene.GetTime);
 end;
 
-function TVRMLEvent.SendNeeded: boolean;
+function TX3DEvent.SendNeeded: boolean;
 begin
   Result := OnReceive.Count <> 0;
 end;
 
-procedure TVRMLEvent.Assign(Source: TPersistent);
+procedure TX3DEvent.Assign(Source: TPersistent);
 begin
-  if Source is TVRMLEvent then
+  if Source is TX3DEvent then
   begin
-    FieldOrEventAssignCommon(TVRMLEvent(Source));
+    FieldOrEventAssignCommon(TX3DEvent(Source));
 
-    FFieldClass := TVRMLEvent(Source).FieldClass;
-    FInEvent := TVRMLEvent(Source).InEvent;
+    FFieldClass := TX3DEvent(Source).FieldClass;
+    FInEvent := TX3DEvent(Source).InEvent;
   end;
 end;
 
-function TVRMLEvent.CreateTemp: TVRMLField;
+function TX3DEvent.CreateTemp: TX3DField;
 begin
   if not TempUsed then
   begin
@@ -588,27 +588,27 @@ begin
     Result := FieldClass.CreateUndefined(ParentNode, Name, false);
 end;
 
-procedure TVRMLEvent.FreeTemp(const Field: TVRMLField);
+procedure TX3DEvent.FreeTemp(const Field: TX3DField);
 begin
   if Field = Temp then
     TempUsed := false else
     Field.Free;
 end;
 
-procedure TVRMLEvent.RemoveHandler(Handler: TVRMLEventReceive);
+procedure TX3DEvent.RemoveHandler(Handler: TX3DEventReceive);
 begin
   if SendLevel = 0 then
     OnReceive.Remove(Handler) else
   begin
     if HandlersToRemove = nil then
-      HandlersToRemove := TVRMLEventReceiveList.Create;
+      HandlersToRemove := TX3DEventReceiveList.Create;
     HandlersToRemove.Add(Handler);
   end;
 end;
 
-{ TVRMLEventList ------------------------------------------------------------ }
+{ TX3DEventList ------------------------------------------------------------ }
 
-function TVRMLEventList.IndexOf(const Name: string): Integer;
+function TX3DEventList.IndexOf(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;

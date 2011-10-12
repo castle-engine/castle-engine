@@ -65,12 +65,12 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, in } { }
-    private FEventAddChildren: TVRMLEvent;
-    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
+    private FEventAddChildren: TX3DEvent;
+    public property EventAddChildren: TX3DEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventRemoveChildren: TVRMLEvent;
-    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
+    private FEventRemoveChildren: TX3DEvent;
+    public property EventRemoveChildren: TX3DEvent read FEventRemoveChildren;
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
@@ -200,10 +200,10 @@ procedure TLayoutLayerNode.CreateNode;
 begin
   inherited;
 
-  FEventAddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
+  FEventAddChildren := TX3DEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventAddChildren);
 
-  FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
+  FEventRemoveChildren := TX3DEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
 
   FFdChildren := TMFNode.Create(Self, 'children', [TAbstractChildNode]);

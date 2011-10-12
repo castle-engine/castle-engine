@@ -111,8 +111,8 @@
     public property FdParticleSize: TSFVec2f read FFdParticleSize;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
 
     private FFdColorRamp: TSFNode;
     public property FdColorRamp: TSFNode read FFdColorRamp;
@@ -156,8 +156,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, in } { }
-    private FEventSet_coordinate: TVRMLEvent;
-    public property EventSet_coordinate: TVRMLEvent read FEventSet_coordinate;
+    private FEventSet_coordinate: TX3DEvent;
+    public property EventSet_coordinate: TX3DEvent read FEventSet_coordinate;
 
     private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
@@ -176,8 +176,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, in } { }
-    private FEventSet_coordinate: TVRMLEvent;
-    public property EventSet_coordinate: TVRMLEvent read FEventSet_coordinate;
+    private FEventSet_coordinate: TX3DEvent;
+    public property EventSet_coordinate: TX3DEvent read FEventSet_coordinate;
 
     private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
@@ -193,8 +193,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFInt32, in } { }
-    private FEventSet_coordinate: TVRMLEvent;
-    public property EventSet_coordinate: TVRMLEvent read FEventSet_coordinate;
+    private FEventSet_coordinate: TX3DEvent;
+    public property EventSet_coordinate: TX3DEvent read FEventSet_coordinate;
 
     private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
@@ -376,7 +376,7 @@ begin
   Fields.Add(FFdParticleSize);
   { X3D specification comment: [0,Inf) }
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
   FFdColorRamp := TSFNode.Create(Self, 'colorRamp', [TAbstractColorNode]);
@@ -448,7 +448,7 @@ procedure TPolylineEmitterNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
+  FEventSet_coordinate := TX3DEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
@@ -479,7 +479,7 @@ procedure TSurfaceEmitterNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
+  FEventSet_coordinate := TX3DEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
   FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
@@ -507,7 +507,7 @@ procedure TVolumeEmitterNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_coordinate := TVRMLEvent.Create(Self, 'set_coordinate', TSFInt32, true);
+  FEventSet_coordinate := TX3DEvent.Create(Self, 'set_coordinate', TSFInt32, true);
   Events.Add(FEventSet_coordinate);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);

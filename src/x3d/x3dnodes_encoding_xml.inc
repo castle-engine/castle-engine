@@ -46,11 +46,11 @@ const
   SAttrDEF = 'DEF';
 
 function ParseXMLNode(Element: TDOMElement;
-  out ContainerField: string; Names: TVRMLNames;
+  out ContainerField: string; Names: TX3DNames;
   NilIfUnresolvedUSE: boolean): TX3DNode; forward;
 function ParseVRMLStatements(Element: TDOMElement;
   FileTopLevel: boolean;
-  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TX3DRootNode; forward;
+  X3DHeaderElement: TDOMElement; Names: TX3DNames): TX3DRootNode; forward;
 
 { Checks is Element a correct <connect> element, extracting
   nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -86,7 +86,7 @@ procedure ParseISStatement(Node: TX3DNode; ISElement: TDOMElement;
 var
   I: TXMLElementIterator;
   NodeField, ProtoField: string;
-  NodeFieldOrEvent: TVRMLFieldOrEvent;
+  NodeFieldOrEvent: TX3DFieldOrEvent;
 begin
   I := TXMLElementIterator.Create(ISElement);
   try
@@ -132,7 +132,7 @@ end;
     be better.)
 *)
 function ParseXMLNode(Element: TDOMElement;
-  out ContainerField: string; Names: TVRMLNames;
+  out ContainerField: string; Names: TX3DNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const NodeName: string);
@@ -140,7 +140,7 @@ function ParseXMLNode(Element: TDOMElement;
     NodeClass: TX3DNodeClass;
     NodeTypeName: string;
     ProtoName: string;
-    Proto: TVRMLPrototypeBase;
+    Proto: TX3DPrototypeBase;
     ProtoIter: TXMLElementIterator;
     FieldActualValue, FieldName: string;
     FieldIndex: Integer;
@@ -157,9 +157,9 @@ function ParseXMLNode(Element: TDOMElement;
       if Proto = nil then
         raise EX3DXmlError.CreateFmt('<ProtoInstance> specifies unknown prototype name "%s"', [ProtoName]);
 
-      if (Proto is TVRMLExternalPrototype) and
-         (TVRMLExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TVRMLExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
+      if (Proto is TX3DExternalPrototype) and
+         (TX3DExternalPrototype(Proto).ReferencedClass <> nil) then
+        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
         Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
 
       Names.Nodes.Bind(Result, false);
@@ -299,7 +299,7 @@ end;
   classic ParseVRMLStatements :) ). }
 function ParseVRMLStatements(Element: TDOMElement;
   FileTopLevel: boolean;
-  X3DHeaderElement: TDOMElement; Names: TVRMLNames): TX3DRootNode;
+  X3DHeaderElement: TDOMElement; Names: TX3DNames): TX3DRootNode;
 var
   PositionInParent: Integer;
 
@@ -371,11 +371,11 @@ var
       indicates proto or externproto. }
     procedure ParseProtoStatement;
     var
-      Proto: TVRMLPrototypeBase;
+      Proto: TX3DPrototypeBase;
     begin
       if Element.TagName = 'ProtoDeclare' then
-        Proto := TVRMLPrototype.Create else
-        Proto := TVRMLExternalPrototype.Create;
+        Proto := TX3DPrototype.Create else
+        Proto := TX3DExternalPrototype.Create;
 
       Proto.PositionInParent := PositionInParent;
 
@@ -386,9 +386,9 @@ var
 
     procedure ParseRouteStatement;
     var
-      Route: TVRMLRoute;
+      Route: TX3DRoute;
     begin
-      Route := TVRMLRoute.Create;
+      Route := TX3DRoute.Create;
       Route.PositionInParent := PositionInParent;
       Result.Routes.Add(Route);
       Route.ParseXML(Element, Names);
@@ -396,9 +396,9 @@ var
 
     procedure ParseImportStatement;
     var
-      Import: TVRMLImport;
+      Import: TX3DImport;
     begin
-      Import := TVRMLImport.Create;
+      Import := TX3DImport.Create;
       Import.PositionInParent := PositionInParent;
       Result.ImportsList.Add(Import);
       Import.ParseXML(Element, Names);
@@ -406,9 +406,9 @@ var
 
     procedure ParseExportStatement;
     var
-      ExportItem: TVRMLExport;
+      ExportItem: TX3DExport;
     begin
-      ExportItem := TVRMLExport.Create;
+      ExportItem := TX3DExport.Create;
       ExportItem.PositionInParent := PositionInParent;
       Result.ExportsList.Add(ExportItem);
       ExportItem.ParseXML(Element, Names);
@@ -490,7 +490,7 @@ var
   Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
-  Names: TVRMLNames;
+  Names: TX3DNames;
   FileName: string;
 begin
   Doc := nil;
@@ -526,7 +526,7 @@ begin
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
     { X3D XML requires AutoRemove = true below }
-    Names := TVRMLNames.Create(true, WWWBasePath, Version);
+    Names := TX3DNames.Create(true, WWWBasePath, Version);
     try
       Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
       Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);

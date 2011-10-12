@@ -17,11 +17,11 @@
   { }
   TAbstractSequencerNode = class(TAbstractChildNode)
   private
-    procedure EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
-    procedure EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventNextReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
-    procedure EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventPreviousReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   private
     FCurrentKeyRange: Integer;
@@ -56,16 +56,16 @@
     procedure CreateNode; override;
 
     { Event: SFBool, in } { }
-    private FEventNext: TVRMLEvent;
-    public property EventNext: TVRMLEvent read FEventNext;
+    private FEventNext: TX3DEvent;
+    public property EventNext: TX3DEvent read FEventNext;
 
     { Event: SFBool, in } { }
-    private FEventPrevious: TVRMLEvent;
-    public property EventPrevious: TVRMLEvent read FEventPrevious;
+    private FEventPrevious: TX3DEvent;
+    public property EventPrevious: TX3DEvent read FEventPrevious;
 
     { Event: SFFloat, in } { }
-    private FEventSet_fraction: TVRMLEvent;
-    public property EventSet_fraction: TVRMLEvent read FEventSet_fraction;
+    private FEventSet_fraction: TX3DEvent;
+    public property EventSet_fraction: TX3DEvent read FEventSet_fraction;
 
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
@@ -78,7 +78,7 @@
 
   TBooleanFilterNode = class(TAbstractChildNode)
   private
-    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -86,20 +86,20 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventSet_boolean: TVRMLEvent;
-    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
+    private FEventSet_boolean: TX3DEvent;
+    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
 
     { Event: SFBool, out } { }
-    private FEventInputFalse: TVRMLEvent;
-    public property EventInputFalse: TVRMLEvent read FEventInputFalse;
+    private FEventInputFalse: TX3DEvent;
+    public property EventInputFalse: TX3DEvent read FEventInputFalse;
 
     { Event: SFBool, out } { }
-    private FEventInputNegate: TVRMLEvent;
-    public property EventInputNegate: TVRMLEvent read FEventInputNegate;
+    private FEventInputNegate: TX3DEvent;
+    public property EventInputNegate: TX3DEvent read FEventInputNegate;
 
     { Event: SFBool, out } { }
-    private FEventInputTrue: TVRMLEvent;
-    public property EventInputTrue: TVRMLEvent read FEventInputTrue;
+    private FEventInputTrue: TX3DEvent;
+    public property EventInputTrue: TX3DEvent read FEventInputTrue;
   end;
 
   TBooleanSequencerNode = class(TAbstractSequencerNode)
@@ -115,13 +115,13 @@
     public property FdKeyValue: TMFBool read FFdKeyValue;
 
     { Event: SFBool, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TBooleanToggleNode = class(TAbstractChildNode)
   private
-    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -129,8 +129,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventSet_boolean: TVRMLEvent;
-    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
+    private FEventSet_boolean: TX3DEvent;
+    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
 
     private FFdToggle: TSFBool;
     public property FdToggle: TSFBool read FFdToggle;
@@ -138,7 +138,7 @@
 
   TBooleanTriggerNode = class(TAbstractTriggerNode)
   private
-    procedure EventSet_triggerTimeReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_triggerTimeReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -146,12 +146,12 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFTime, in } { }
-    private FEventSet_triggerTime: TVRMLEvent;
-    public property EventSet_triggerTime: TVRMLEvent read FEventSet_triggerTime;
+    private FEventSet_triggerTime: TX3DEvent;
+    public property EventSet_triggerTime: TX3DEvent read FEventSet_triggerTime;
 
     { Event: SFBool, out } { }
-    private FEventTriggerTrue: TVRMLEvent;
-    public property EventTriggerTrue: TVRMLEvent read FEventTriggerTrue;
+    private FEventTriggerTrue: TX3DEvent;
+    public property EventTriggerTrue: TX3DEvent read FEventTriggerTrue;
   end;
 
   TIntegerSequencerNode = class(TAbstractSequencerNode)
@@ -167,13 +167,13 @@
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
 
     { Event: SFInt32, out } { }
-    private FEventValue_changed: TVRMLEvent;
-    public property EventValue_changed: TVRMLEvent read FEventValue_changed;
+    private FEventValue_changed: TX3DEvent;
+    public property EventValue_changed: TX3DEvent read FEventValue_changed;
   end;
 
   TIntegerTriggerNode = class(TAbstractTriggerNode)
   private
-    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -181,20 +181,20 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventSet_boolean: TVRMLEvent;
-    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
+    private FEventSet_boolean: TX3DEvent;
+    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
 
     private FFdIntegerKey: TSFInt32;
     public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
 
     { Event: SFInt32, out } { }
-    private FEventTriggerValue: TVRMLEvent;
-    public property EventTriggerValue: TVRMLEvent read FEventTriggerValue;
+    private FEventTriggerValue: TX3DEvent;
+    public property EventTriggerValue: TX3DEvent read FEventTriggerValue;
   end;
 
   TTimeTriggerNode = class(TAbstractTriggerNode)
   private
-    procedure EventSet_BooleanReceive(Event: TVRMLEvent; Value: TVRMLField;
+    procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
@@ -202,12 +202,12 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFBool, in } { }
-    private FEventSet_boolean: TVRMLEvent;
-    public property EventSet_boolean: TVRMLEvent read FEventSet_boolean;
+    private FEventSet_boolean: TX3DEvent;
+    public property EventSet_boolean: TX3DEvent read FEventSet_boolean;
 
     { Event: SFTime, out } { }
-    private FEventTriggerTime: TVRMLEvent;
-    public property EventTriggerTime: TVRMLEvent read FEventTriggerTime;
+    private FEventTriggerTime: TX3DEvent;
+    public property EventTriggerTime: TX3DEvent read FEventTriggerTime;
   end;
 
 {$endif read_interface}
@@ -219,15 +219,15 @@ begin
 
   FCurrentKeyRange := -1;
 
-  FEventNext := TVRMLEvent.Create(Self, 'next', TSFBool, true);
+  FEventNext := TX3DEvent.Create(Self, 'next', TSFBool, true);
   Events.Add(FEventNext);
   EventNext.OnReceive.Add(@EventNextReceive);
 
-  FEventPrevious := TVRMLEvent.Create(Self, 'previous', TSFBool, true);
+  FEventPrevious := TX3DEvent.Create(Self, 'previous', TSFBool, true);
   Events.Add(FEventPrevious);
   EventPrevious.OnReceive.Add(@EventPreviousReceive);
 
-  FEventSet_fraction := TVRMLEvent.Create(Self, 'set_fraction', TSFFloat, true);
+  FEventSet_fraction := TX3DEvent.Create(Self, 'set_fraction', TSFFloat, true);
   Events.Add(FEventSet_fraction);
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 
@@ -262,7 +262,7 @@ begin
   end;
 end;
 
-procedure TAbstractSequencerNode.EventSet_FractionReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractSequencerNode.EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
   KeyCount: Integer;
@@ -287,7 +287,7 @@ begin
   end;
 end;
 
-procedure TAbstractSequencerNode.EventNextReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractSequencerNode.EventNextReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -309,7 +309,7 @@ begin
   end;
 end;
 
-procedure TAbstractSequencerNode.EventPreviousReceive(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAbstractSequencerNode.EventPreviousReceive(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 var
   KeyCount, NewKeyRange: Integer;
@@ -342,24 +342,24 @@ procedure TBooleanFilterNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FEventInputFalse := TVRMLEvent.Create(Self, 'inputFalse', TSFBool, false);
+  FEventInputFalse := TX3DEvent.Create(Self, 'inputFalse', TSFBool, false);
   Events.Add(FEventInputFalse);
 
-  FEventInputNegate := TVRMLEvent.Create(Self, 'inputNegate', TSFBool, false);
+  FEventInputNegate := TX3DEvent.Create(Self, 'inputNegate', TSFBool, false);
   Events.Add(FEventInputNegate);
 
-  FEventInputTrue := TVRMLEvent.Create(Self, 'inputTrue', TSFBool, false);
+  FEventInputTrue := TX3DEvent.Create(Self, 'inputTrue', TSFBool, false);
   Events.Add(FEventInputTrue);
 
   DefaultContainerField := 'children';
 end;
 
 procedure TBooleanFilterNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   B: boolean;
 begin
@@ -388,7 +388,7 @@ begin
   FFdKeyValue := TMFBool.Create(Self, 'keyValue', []);
   Fields.Add(FFdKeyValue);
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFBool, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFBool, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -418,7 +418,7 @@ procedure TBooleanToggleNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
@@ -429,7 +429,7 @@ begin
 end;
 
 procedure TBooleanToggleNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   B: boolean;
 begin
@@ -453,18 +453,18 @@ procedure TBooleanTriggerNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_triggerTime := TVRMLEvent.Create(Self, 'set_triggerTime', TSFTime, true);
+  FEventSet_triggerTime := TX3DEvent.Create(Self, 'set_triggerTime', TSFTime, true);
   Events.Add(FEventSet_triggerTime);
   FEventSet_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
 
-  FEventTriggerTrue := TVRMLEvent.Create(Self, 'triggerTrue', TSFBool, false);
+  FEventTriggerTrue := TX3DEvent.Create(Self, 'triggerTrue', TSFBool, false);
   Events.Add(FEventTriggerTrue);
 
   DefaultContainerField := 'children';
 end;
 
 procedure TBooleanTriggerNode.EventSet_triggerTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   EventTriggerTrue.Send(true, Time);
 end;
@@ -488,7 +488,7 @@ begin
   Fields.Add(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventValue_changed := TVRMLEvent.Create(Self, 'value_changed', TSFInt32, false);
+  FEventValue_changed := TX3DEvent.Create(Self, 'value_changed', TSFInt32, false);
   Events.Add(FEventValue_changed);
 
   DefaultContainerField := 'children';
@@ -518,7 +518,7 @@ procedure TIntegerTriggerNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_booleanReceive);
 
@@ -528,14 +528,14 @@ begin
   Fields.Add(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventTriggerValue := TVRMLEvent.Create(Self, 'triggerValue', TSFInt32, false);
+  FEventTriggerValue := TX3DEvent.Create(Self, 'triggerValue', TSFInt32, false);
   Events.Add(FEventTriggerValue);
 
   DefaultContainerField := 'children';
 end;
 
 procedure TIntegerTriggerNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   EventtriggerValue.Send(FdintegerKey.Value, Time);
 end;
@@ -555,11 +555,11 @@ procedure TTimeTriggerNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_boolean := TVRMLEvent.Create(Self, 'set_boolean', TSFBool, true);
+  FEventSet_boolean := TX3DEvent.Create(Self, 'set_boolean', TSFBool, true);
   Events.Add(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
-  FEventTriggerTime := TVRMLEvent.Create(Self, 'triggerTime', TSFTime, false);
+  FEventTriggerTime := TX3DEvent.Create(Self, 'triggerTime', TSFTime, false);
   Events.Add(FEventTriggerTime);
 
   DefaultContainerField := 'children';
@@ -577,7 +577,7 @@ begin
 end;
 
 procedure TTimeTriggerNode.EventSet_BooleanReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   EventTriggerTime.Send(Time.Seconds, Time);
 end;

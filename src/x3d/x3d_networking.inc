@@ -110,9 +110,9 @@
   TInlineNode = class(TAbstractGroupingNode, IAbstractBoundedObject, IAbstractUrlObject)
   private
     procedure EventLoadReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventUrlReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   private
     { Is the inline currently loaded. This means "loaded",
       not "successfully loaded": when Loaded := true,
@@ -122,15 +122,15 @@
     Loaded: boolean;
     FInlined: TX3DNode;
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     { You can override this to do anything after the Inline children were
       loaded. It's called only after actual loading occurred, e.g. it's not
       called when LoadInlined was called on the already-loaded node with
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
-    procedure ParseAfter(Names: TVRMLNames); override;
+    procedure ParseAfter(Names: TX3DNames); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -204,8 +204,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: MFNode, out } { }
-    private FEventChildren: TVRMLEvent;
-    public property EventChildren: TVRMLEvent read FEventChildren;
+    private FEventChildren: TX3DEvent;
+    public property EventChildren: TX3DEvent read FEventChildren;
   end;
 
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
@@ -221,16 +221,16 @@
     public property FdWatchList: TMFNode read FFdWatchList;
 
     { Event: SFBool, out } { }
-    private FEventIsLoaded: TVRMLEvent;
-    public property EventIsLoaded: TVRMLEvent read FEventIsLoaded;
+    private FEventIsLoaded: TX3DEvent;
+    public property EventIsLoaded: TX3DEvent read FEventIsLoaded;
 
     { Event: SFTime, out } { }
-    private FEventLoadTime: TVRMLEvent;
-    public property EventLoadTime: TVRMLEvent read FEventLoadTime;
+    private FEventLoadTime: TX3DEvent;
+    public property EventLoadTime: TX3DEvent read FEventLoadTime;
 
     { Event: SFFloat, out } { }
-    private FEventProgress: TVRMLEvent;
-    public property EventProgress: TVRMLEvent read FEventProgress;
+    private FEventProgress: TX3DEvent;
+    public property EventProgress: TX3DEvent read FEventProgress;
   end;
 
 {$endif read_interface}
@@ -412,7 +412,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TInlineNode.ParseAfter(Names: TVRMLNames);
+procedure TInlineNode.ParseAfter(Names: TX3DNames);
 var
   Exported: TX3DNodeNames;
 begin
@@ -540,7 +540,7 @@ begin
   { Nothing to do in this class. }
 end;
 
-procedure TInlineNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TInlineNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
 
@@ -557,7 +557,7 @@ begin
   Inc(StateStack.Top.InsideInline);
 end;
 
-procedure TInlineNode.AfterTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TInlineNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   Dec(StateStack.Top.InsideInline);
   inherited;
@@ -569,7 +569,7 @@ begin
 end;
 
 procedure TInlineNode.EventLoadReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   { Changing the "load" and "url" fields causes LoadInlined or UnLoadInlined,
     so the VRML graph changes, so they deserve ChangedAll.
@@ -598,7 +598,7 @@ begin
 end;
 
 procedure TInlineNode.EventUrlReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdLoad.Value then
   begin
@@ -613,7 +613,7 @@ procedure TInlineLoadControlNode.CreateNode;
 begin
   inherited;
 
-  FEventChildren := TVRMLEvent.Create(Self, 'children', TMFNode, false);
+  FEventChildren := TX3DEvent.Create(Self, 'children', TMFNode, false);
   Events.Add(FEventChildren);
 
   FInlined := nil;
@@ -661,13 +661,13 @@ begin
   FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractUrlObject);
   Fields.Add(FFdWatchList);
 
-  FEventIsLoaded := TVRMLEvent.Create(Self, 'isLoaded', TSFBool, false);
+  FEventIsLoaded := TX3DEvent.Create(Self, 'isLoaded', TSFBool, false);
   Events.Add(FEventIsLoaded);
 
-  FEventLoadTime := TVRMLEvent.Create(Self, 'loadTime', TSFTime, false);
+  FEventLoadTime := TX3DEvent.Create(Self, 'loadTime', TSFTime, false);
   Events.Add(FEventLoadTime);
 
-  FEventProgress := TVRMLEvent.Create(Self, 'progress', TSFFloat, false);
+  FEventProgress := TX3DEvent.Create(Self, 'progress', TSFFloat, false);
   Events.Add(FEventProgress);
 
   DefaultContainerField := 'children';

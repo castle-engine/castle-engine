@@ -22,7 +22,7 @@
   TAbstractViewpointNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -39,17 +39,17 @@
     private FFdGravityUp: TSFVec3f;
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
 
-    private FEventCameraMatrix: TVRMLEvent;
-    public property EventCameraMatrix: TVRMLEvent read FEventCameraMatrix;
+    private FEventCameraMatrix: TX3DEvent;
+    public property EventCameraMatrix: TX3DEvent read FEventCameraMatrix;
 
-    private FEventCameraInverseMatrix: TVRMLEvent;
-    public property EventCameraInverseMatrix: TVRMLEvent read FEventCameraInverseMatrix;
+    private FEventCameraInverseMatrix: TX3DEvent;
+    public property EventCameraInverseMatrix: TX3DEvent read FEventCameraInverseMatrix;
 
-    private FEventCameraRotationMatrix: TVRMLEvent;
-    public property EventCameraRotationMatrix: TVRMLEvent read FEventCameraRotationMatrix;
+    private FEventCameraRotationMatrix: TX3DEvent;
+    public property EventCameraRotationMatrix: TX3DEvent read FEventCameraRotationMatrix;
 
-    private FEventCameraRotationInverseMatrix: TVRMLEvent;
-    public property EventCameraRotationInverseMatrix: TVRMLEvent read FEventCameraRotationInverseMatrix;
+    private FEventCameraRotationInverseMatrix: TX3DEvent;
+    public property EventCameraRotationInverseMatrix: TX3DEvent read FEventCameraRotationInverseMatrix;
 
     private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
@@ -88,7 +88,7 @@
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
   end;
 
-  TVRMLViewpointClassNode = class of TAbstractViewpointNode;
+  TX3DViewpointClassNode = class of TAbstractViewpointNode;
 
   TAbstractX3DViewpointNode = class(TAbstractViewpointNode)
   public
@@ -124,7 +124,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -148,7 +148,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
-      StateStack: TVRMLGraphTraverseStateStack); override;
+      StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -158,12 +158,12 @@
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: SFTime, out } { }
-    private FEventCollideTime: TVRMLEvent;
-    public property EventCollideTime: TVRMLEvent read FEventCollideTime;
+    private FEventCollideTime: TX3DEvent;
+    public property EventCollideTime: TX3DEvent read FEventCollideTime;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
 
     private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
@@ -210,8 +210,8 @@
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
 
     { Event: SFInt32, out } { }
-    private FEventLevel_changed: TVRMLEvent;
-    public property EventLevel_changed: TVRMLEvent read FEventLevel_changed;
+    private FEventLevel_changed: TX3DEvent;
+    public property EventLevel_changed: TX3DEvent read FEventLevel_changed;
 
     function TransformationChange: TNodeTransformationChange; override;
   end;
@@ -236,7 +236,7 @@
   TNavigationInfoNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -264,8 +264,8 @@
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
 
     { Event: SFBool, out } { }
-    private FEventTransitionComplete: TVRMLEvent;
-    public property EventTransitionComplete: TVRMLEvent read FEventTransitionComplete;
+    private FEventTransitionComplete: TX3DEvent;
+    public property EventTransitionComplete: TX3DEvent read FEventTransitionComplete;
   end;
 
   TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
@@ -389,16 +389,16 @@ begin
    FdGravityUp.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdGravityUp);
 
-  FEventCameraMatrix := TVRMLEvent.Create(Self, 'cameraMatrix', TSFMatrix4f, false);
+  FEventCameraMatrix := TX3DEvent.Create(Self, 'cameraMatrix', TSFMatrix4f, false);
   Events.Add(FEventCameraMatrix);
 
-  FEventCameraInverseMatrix := TVRMLEvent.Create(Self, 'cameraInverseMatrix', TSFMatrix4f, false);
+  FEventCameraInverseMatrix := TX3DEvent.Create(Self, 'cameraInverseMatrix', TSFMatrix4f, false);
   Events.Add(FEventCameraInverseMatrix);
 
-  FEventCameraRotationMatrix := TVRMLEvent.Create(Self, 'cameraRotationMatrix', TSFMatrix3f, false);
+  FEventCameraRotationMatrix := TX3DEvent.Create(Self, 'cameraRotationMatrix', TSFMatrix3f, false);
   Events.Add(FEventCameraRotationMatrix);
 
-  FEventCameraRotationInverseMatrix := TVRMLEvent.Create(Self, 'cameraRotationInverseMatrix', TSFMatrix3f, false);
+  FEventCameraRotationInverseMatrix := TX3DEvent.Create(Self, 'cameraRotationInverseMatrix', TSFMatrix3f, false);
   Events.Add(FEventCameraRotationInverseMatrix);
 
   FFdCameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
@@ -452,7 +452,7 @@ begin
 end;
 
 procedure TAbstractViewpointNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetViewpointStack.Set_Bind(Self, (Value as TSFBool).Value);
@@ -532,7 +532,7 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-procedure TBillboardNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TBillboardNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
   NewX, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3Single;
   Angle: Single;
@@ -618,10 +618,10 @@ begin
    FdEnabled.ChangesAlways := [chEverything];
   Fields.Add(FFdEnabled);
 
-  FEventCollideTime := TVRMLEvent.Create(Self, 'collideTime', TSFTime, false);
+  FEventCollideTime := TX3DEvent.Create(Self, 'collideTime', TSFTime, false);
   Events.Add(FEventCollideTime);
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
   FFdProxy := TSFNode.Create(Self, 'proxy', IAbstractChildNode);
@@ -655,7 +655,7 @@ end;
 
 procedure TCollisionNode.DirectEnumerateActiveForTraverse(
   Func: TEnumerateChildrenFunction;
-  StateStack: TVRMLGraphTraverseStateStack);
+  StateStack: TX3DGraphTraverseStateStack);
 
   procedure EnumChildren;
   var
@@ -720,7 +720,7 @@ begin
   FFdForceTransitions.Exposed := false;
   Fields.Add(FFdForceTransitions);
 
-  FEventLevel_changed := TVRMLEvent.Create(Self, 'level_changed', TSFInt32, false);
+  FEventLevel_changed := TX3DEvent.Create(Self, 'level_changed', TSFInt32, false);
   Events.Add(FEventLevel_changed);
 
   DefaultContainerField := 'children';
@@ -810,7 +810,7 @@ begin
   Fields.Add(FFdVisibilityLimit);
   { X3D specification comment: [0,Inf) }
 
-  FEventTransitionComplete := TVRMLEvent.Create(Self, 'transitionComplete', TSFBool, false);
+  FEventTransitionComplete := TX3DEvent.Create(Self, 'transitionComplete', TSFBool, false);
   Events.Add(FEventTransitionComplete);
 
   DefaultContainerField := 'children';
@@ -831,7 +831,7 @@ begin
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
     Scene.GetNavigationInfoStack.Set_Bind(Self, (Value as TSFBool).Value);

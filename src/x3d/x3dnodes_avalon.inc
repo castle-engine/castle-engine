@@ -24,7 +24,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -59,7 +59,7 @@
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
 
@@ -72,7 +72,7 @@
     OwnsWriteStream: boolean;
     WriteStreamInitialized: boolean;
     procedure EventWriteReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -89,14 +89,14 @@
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: XFAny, in } { }
-    private FEventWrite: TVRMLEvent;
-    public property EventWrite: TVRMLEvent read FEventWrite;
+    private FEventWrite: TX3DEvent;
+    public property EventWrite: TX3DEvent read FEventWrite;
   end;
 
   TConverterNode = class(TAbstractChildNode)
   private
     procedure EventInReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -106,12 +106,12 @@
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event: XFAny, in } { }
-    private FEventIn: TVRMLEvent;
-    public property EventIn: TVRMLEvent read FEventIn;
+    private FEventIn: TX3DEvent;
+    public property EventIn: TX3DEvent read FEventIn;
 
     { Event: XFAny, out } { }
-    private FEventOut: TVRMLEvent;
-    public property EventOut: TVRMLEvent read FEventOut;
+    private FEventOut: TX3DEvent;
+    public property EventOut: TX3DEvent read FEventOut;
   end;
 
   TRenderedTextureNode = class(TAbstractTextureNode)
@@ -161,12 +161,12 @@
     public property FdDescription: TSFString read FFdDescription;
 
     { Event: SFMatrix4f, out } { }
-    private FEventViewing: TVRMLEvent;
-    public property EventViewing: TVRMLEvent read FEventViewing;
+    private FEventViewing: TX3DEvent;
+    public property EventViewing: TX3DEvent read FEventViewing;
 
     { Event: SFMatrix4f, out } { }
-    private FEventProjection: TVRMLEvent;
-    public property EventProjection: TVRMLEvent read FEventProjection;
+    private FEventProjection: TX3DEvent;
+    public property EventProjection: TX3DEvent read FEventProjection;
 
     private FFdUpdate: TSFString;
     public property FdUpdate: TSFString read FFdUpdate;
@@ -181,12 +181,12 @@
     public property FdTriggerName: TSFString read FFdTriggerName;
 
     { Event: SFTime, in } { }
-    private FEventTriggerSlot: TVRMLEvent;
-    public property EventTriggerSlot: TVRMLEvent read FEventTriggerSlot;
+    private FEventTriggerSlot: TX3DEvent;
+    public property EventTriggerSlot: TX3DEvent read FEventTriggerSlot;
 
     { Event: SFImage, out } { }
-    private FEventImage_changed: TVRMLEvent;
-    public property EventImage_changed: TVRMLEvent read FEventImage_changed;
+    private FEventImage_changed: TX3DEvent;
+    public property EventImage_changed: TX3DEvent read FEventImage_changed;
 
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
@@ -201,8 +201,8 @@
     public property FdRepeatR: TSFBool read FFdRepeatR;
 
     { Event: SFBool, out } { }
-    private FEventRendering: TVRMLEvent;
-    public property EventRendering: TVRMLEvent read FEventRendering;
+    private FEventRendering: TX3DEvent;
+    public property EventRendering: TX3DEvent read FEventRendering;
   end;
 
   TPlaneNode = class(TAbstractX3DGeometryNode)
@@ -217,7 +217,7 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
   end;
@@ -225,15 +225,15 @@
   TTogglerNode = class(TAbstractChildNode)
   private
     procedure EventStatusReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventNotStatusReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventToggleReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventSetReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventResetReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -246,28 +246,28 @@
     public property FdNotStatus: TSFBool read FFdNotStatus;
 
     { Event: XFAny, in } { }
-    private FEventToggle: TVRMLEvent;
-    public property EventToggle: TVRMLEvent read FEventToggle;
+    private FEventToggle: TX3DEvent;
+    public property EventToggle: TX3DEvent read FEventToggle;
 
     { Event: XFAny, in } { }
-    private FEventSet: TVRMLEvent;
-    public property EventSet: TVRMLEvent read FEventSet;
+    private FEventSet: TX3DEvent;
+    public property EventSet: TX3DEvent read FEventSet;
 
     { Event: XFAny, in } { }
-    private FEventReset: TVRMLEvent;
-    public property EventReset: TVRMLEvent read FEventReset;
+    private FEventReset: TX3DEvent;
+    public property EventReset: TX3DEvent read FEventReset;
 
     { Event: SFBool, out } { }
-    private FEventChanged: TVRMLEvent;
-    public property EventChanged: TVRMLEvent read FEventChanged;
+    private FEventChanged: TX3DEvent;
+    public property EventChanged: TX3DEvent read FEventChanged;
 
     { Event: SFBool, out } { }
-    private FEventOn: TVRMLEvent;
-    public property EventOn: TVRMLEvent read FEventOn;
+    private FEventOn: TX3DEvent;
+    public property EventOn: TX3DEvent read FEventOn;
 
     { Event: SFBool, out } { }
-    private FEventOff: TVRMLEvent;
-    public property EventOff: TVRMLEvent read FEventOff;
+    private FEventOff: TX3DEvent;
+    public property EventOff: TX3DEvent read FEventOff;
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -311,7 +311,7 @@ begin
     Func(Self, FdChildren[I]);
 end;
 
-procedure TMatrixTransformNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TMatrixTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
   InvertedMatrix: TMatrix4Single;
 begin
@@ -380,7 +380,7 @@ begin
     (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
-function TTeapotNode.Proxy(var State: TVRMLGraphTraverseState;
+function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 const
 { TeapotCoord: array [0..0] of TVector3Single = ((0, 0, 0));
@@ -455,7 +455,7 @@ begin
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdEnabled);
 
-  FEventWrite := TVRMLEvent.Create(Self, 'write', TVRMLField, true);
+  FEventWrite := TX3DEvent.Create(Self, 'write', TX3DField, true);
   Events.Add(FEventWrite);
   FEventWrite.OnReceive.Add(@EventWriteReceive);
 end;
@@ -472,7 +472,7 @@ begin
 end;
 
 procedure TLoggerNode.EventWriteReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 
   procedure StdOutNotAvail;
   begin
@@ -594,16 +594,16 @@ begin
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
   Fields.Add(FFdEnabled);
 
-  FEventIn := TVRMLEvent.Create(Self, 'in', TVRMLField, true);
+  FEventIn := TX3DEvent.Create(Self, 'in', TX3DField, true);
   Events.Add(FEventIn);
   FEventIn.OnReceive.Add(@EventInReceive);
 
-  FEventOut := TVRMLEvent.Create(Self, 'out', TVRMLField, true);
+  FEventOut := TX3DEvent.Create(Self, 'out', TX3DField, true);
   Events.Add(FEventOut);
 end;
 
 procedure TConverterNode.EventInReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should
@@ -673,10 +673,10 @@ begin
   FFdDescription := TSFString.Create(Self, 'description', '');
   Fields.Add(FFdDescription);
 
-  FEventViewing := TVRMLEvent.Create(Self, 'viewing', TSFMatrix4f, false);
+  FEventViewing := TX3DEvent.Create(Self, 'viewing', TSFMatrix4f, false);
   Events.Add(FEventViewing);
 
-  FEventProjection := TVRMLEvent.Create(Self, 'projection', TSFMatrix4f, false);
+  FEventProjection := TX3DEvent.Create(Self, 'projection', TSFMatrix4f, false);
   Events.Add(FEventProjection);
 
   FFdUpdate := TSFStringUpdate.Create(Self, 'update', 'NONE');
@@ -695,10 +695,10 @@ begin
    FdTriggerName.Exposed := false;
   Fields.Add(FFdTriggerName);
 
-  FEventTriggerSlot := TVRMLEvent.Create(Self, 'triggerSlot', TSFTime, true);
+  FEventTriggerSlot := TX3DEvent.Create(Self, 'triggerSlot', TSFTime, true);
   Events.Add(FEventTriggerSlot);
 
-  FEventImage_changed := TVRMLEvent.Create(Self, 'image_changed', TSFImage, false);
+  FEventImage_changed := TX3DEvent.Create(Self, 'image_changed', TSFImage, false);
   Events.Add(FEventImage_changed);
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
@@ -721,7 +721,7 @@ begin
    FdRepeatR.ChangesAlways := [chTextureRendererProperties];
   Fields.Add(FFdRepeatR);
 
-  FEventRendering := TVRMLEvent.Create(Self, 'rendering', TSFBool, false);
+  FEventRendering := TX3DEvent.Create(Self, 'rendering', TSFBool, false);
   Events.Add(FEventRendering);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
@@ -774,7 +774,7 @@ begin
     (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
-function TPlaneNode.Proxy(var State: TVRMLGraphTraverseState;
+function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := Rectangle2DProxy(Self, FdSize.Value, FdSolid.Value);
@@ -788,17 +788,17 @@ end;
 type
   TSFBoolIgnorable = class(TSFBool)
   protected
-    function ExposedEventsFieldClass: TVRMLFieldClass; override;
-    procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
   end;
 
-function TSFBoolIgnorable.ExposedEventsFieldClass: TVRMLFieldClass;
+function TSFBoolIgnorable.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFBool;
 end;
 
-procedure TSFBoolIgnorable.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+procedure TSFBoolIgnorable.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
   const Time: TX3DTime);
 begin
   { This makes status and notStatus input events ignored,
@@ -821,25 +821,25 @@ begin
    FdNotstatus.OnReceive.Add(@EventNotStatusReceive);
   Fields.Add(FFdNotStatus);
 
-  FEventToggle := TVRMLEvent.Create(Self, 'toggle', TVRMLField, true);
+  FEventToggle := TX3DEvent.Create(Self, 'toggle', TX3DField, true);
   FEventToggle.OnReceive.Add(@EventToggleReceive);
   Events.Add(FEventToggle);
 
-  FEventSet := TVRMLEvent.Create(Self, 'set', TVRMLField, true);
+  FEventSet := TX3DEvent.Create(Self, 'set', TX3DField, true);
    EventSet.OnReceive.Add(@EventSetReceive);
   Events.Add(FEventSet);
 
-  FEventReset := TVRMLEvent.Create(Self, 'reset', TVRMLField, true);
+  FEventReset := TX3DEvent.Create(Self, 'reset', TX3DField, true);
    EventReset.OnReceive.Add(@EventResetReceive);
   Events.Add(FEventReset);
 
-  FEventChanged := TVRMLEvent.Create(Self, 'changed', TSFBool, false);
+  FEventChanged := TX3DEvent.Create(Self, 'changed', TSFBool, false);
   Events.Add(FEventChanged);
 
-  FEventOn := TVRMLEvent.Create(Self, 'on', TSFBool, false);
+  FEventOn := TX3DEvent.Create(Self, 'on', TSFBool, false);
   Events.Add(FEventOn);
 
-  FEventOff := TVRMLEvent.Create(Self, 'off', TSFBool, false);
+  FEventOff := TX3DEvent.Create(Self, 'off', TSFBool, false);
   Events.Add(FEventOff);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
@@ -859,7 +859,7 @@ begin
 end;
 
 procedure TTogglerNode.EventStatusReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   { Do not send event to notStatus, if it already has correct value
     (so our own value didn't actually changed).
@@ -876,7 +876,7 @@ begin
 end;
 
 procedure TTogglerNode.EventNotStatusReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   { Do not send event to status, if it already has correct value
     (so our own value didn't actually changed).
@@ -893,21 +893,21 @@ begin
 end;
 
 procedure TTogglerNode.EventToggleReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(not FdStatus.Value, Time);
 end;
 
 procedure TTogglerNode.EventSetReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(true, Time);
 end;
 
 procedure TTogglerNode.EventResetReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if FdEnabled.Value then
     FdStatus.EventIn.Send(false, Time);

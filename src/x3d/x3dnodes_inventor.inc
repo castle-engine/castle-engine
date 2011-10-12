@@ -21,10 +21,10 @@
     class function ClassNodeTypeName: string; override;
 
     procedure CoordPolygons(
-      State: TVRMLGraphTraverseState;
+      State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TexCoord(State: TVRMLGraphTraverseState;
+    function TexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
   end;
 
@@ -52,7 +52,7 @@ begin
   result := 'IndexedTriangleMesh';
 end;
 
-function TIndexedTriangleMeshNode_1.TexCoord(State: TVRMLGraphTraverseState;
+function TIndexedTriangleMeshNode_1.TexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;

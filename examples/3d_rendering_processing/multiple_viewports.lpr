@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of using custom viewports (TKamViewport) to view the same 3D world
+{ Demo of using custom viewports (TCastleViewport) to view the same 3D world
   (scene manager in TCastleSceneManager). }
 
 { If defined, then the 3D world will contain a translated T3DPrecalculatedAnimation
@@ -54,8 +54,8 @@ end;
 { TMyViewport ---------------------------------------------------------------- }
 
 type
-  { Derive our own TKamViewport descendants, just to demo that we can. }
-  TMyViewport = class(TKamViewport)
+  { Derive our own TCastleViewport descendants, just to demo that we can. }
+  TMyViewport = class(TCastleViewport)
   public
     Caption: string;
     Font: TGLBitmapFont_Abstract;
@@ -266,7 +266,7 @@ begin
 
     Right now, one camera cannot be simultaneously on scnee manager
     and viewports. So assign here new camera.
-    See TODO at TKamAbstractViewport.Camera. }
+    See TODO at TCastleAbstractViewport.Camera. }
   SceneManager.Camera.Free;
   SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 end;

@@ -663,7 +663,7 @@ const
   { TODO: transparent objects should scale light color instead of just
     letting it pass }
   var
-    OctreeIgnorer: TVRMLOctreeIgnoreForShadowRaysAndOneItem;
+    OctreeIgnorer: TOctreeIgnoreForShadowRaysAndOneItem;
     Shadower: PTriangle;
   {$ifdef PATHTR_USES_SHADOW_CACHE}
     CachedShadower: PTriangle;
@@ -692,7 +692,7 @@ const
     {$endif}
 
     { oblicz przeciecie uzywajac Octree }
-    OctreeIgnorer := TVRMLOctreeIgnoreForShadowRaysAndOneItem.Create(
+    OctreeIgnorer := TOctreeIgnoreForShadowRaysAndOneItem.Create(
       LightItems.Items[LightSourceIndiceIndex]);
     try
       Shadower := Octree.SegmentCollision(ItemPoint, LightSourcePoint, false,
@@ -713,7 +713,7 @@ const
   var
     Intersection: TVector3Single;
     IntersectNode: PTriangle;
-    MaterialInfo: TVRMLMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
+    MaterialInfo: TX3DMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
     IntersectNormalInRay0Dir: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;

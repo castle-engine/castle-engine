@@ -44,55 +44,55 @@ type
   ENastyProxy = class(Exception);
 
   TNastyProxy = class(TAbstractGeometryNode)
-    function BoundingBox(State: TVRMLGraphTraverseState;
+    function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode;
-      ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
+      ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode;
-      ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode;
-      ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+      ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode;
-      ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function Proxy(var State: TVRMLGraphTraverseState;
+      ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
-function TNastyProxy.BoundingBox(State: TVRMLGraphTraverseState;
+function TNastyProxy.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode;
-  ProxyState: TVRMLGraphTraverseState): TBox3D;
+  ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized BoundingBox');
   Result := EmptyBox3D; { silence compiler warnings }
 end;
 
-function TNastyProxy.LocalBoundingBox(State: TVRMLGraphTraverseState;
+function TNastyProxy.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode;
-  ProxyState: TVRMLGraphTraverseState): TBox3D;
+  ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized LocalBoundingBox');
   Result := EmptyBox3D; { silence compiler warnings }
 end;
 
-function TNastyProxy.VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNastyProxy.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode;
-  ProxyState: TVRMLGraphTraverseState): Cardinal;
+  ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized VerticesCount');
   Result := 0; { silence compiler warnings }
 end;
 
-function TNastyProxy.TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
+function TNastyProxy.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode;
-  ProxyState: TVRMLGraphTraverseState): Cardinal;
+  ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized TrianglesCount');
   Result := 0; { silence compiler warnings }
 end;
 
-function TNastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TNastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   raise ENastyProxy.Create('Something tried to use Proxy on TNastyProxy');
@@ -103,88 +103,88 @@ end;
 
 type
   TConeNode_1_NastyProxy = class(TConeNode_1)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TConeNode_2_NastyProxy = class(TConeNode_2)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TCylinderNode_1_NastyProxy = class(TCylinderNode_1)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TCylinderNode_2_NastyProxy = class(TCylinderNode_2)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TBoxNode_NastyProxy = class(TBoxNode)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TCubeNode_1_NastyProxy = class(TCubeNode_1)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TSphereNode_1_NastyProxy = class(TSphereNode_1)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
   TSphereNode_2_NastyProxy = class(TSphereNode_2)
-    function Proxy(var State: TVRMLGraphTraverseState;
+    function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
   end;
 
-function TConeNode_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TConeNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TConeNode_2_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TConeNode_2_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TCylinderNode_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TCylinderNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TCylinderNode_2_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TCylinderNode_2_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TBoxNode_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TBoxNode_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TCubeNode_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TCubeNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TSphereNode_1_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TSphereNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
 end;
 
-function TSphereNode_2_NastyProxy.Proxy(var State: TVRMLGraphTraverseState;
+function TSphereNode_2_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
   Result := TNastyProxy.Create(NodeName, WWWBasePath);
@@ -197,7 +197,7 @@ var
   { Suffix O means OverTriangulate,
            NO means not OverTriangulate }
   NastyGeometry, GoodGeometry, ProxyGeometryO, ProxyGeometryNO: TAbstractGeometryNode;
-  State, ProxyStateO, ProxyStateNO: TVRMLGraphTraverseState;
+  State, ProxyStateO, ProxyStateNO: TX3DGraphTraverseState;
   NastyShape, ProxyShapeO, ProxyShapeNO: TShape;
 
   procedure FinalizeNode;
@@ -225,7 +225,7 @@ var
   begin
     FinalizeNode;
     NastyGeometry := (NodeClass.Create('', '')) as TAbstractGeometryNode;
-    NastyShape := TShape.Create(nil, NastyGeometry, TVRMLGraphTraverseState.CreateCopy(State), nil);
+    NastyShape := TShape.Create(nil, NastyGeometry, TX3DGraphTraverseState.CreateCopy(State), nil);
 
     { create also proxy, inside it's own shape.
       This can be used to test that proxy results, *if* they would be used,
@@ -235,13 +235,13 @@ var
     ProxyStateO := State;
     ProxyGeometryO := GoodGeometry.Proxy(ProxyStateO, true);
     if ProxyGeometryO <> nil then
-      ProxyShapeO := TShape.Create(nil, ProxyGeometryO, TVRMLGraphTraverseState.CreateCopy(ProxyStateO), nil) else
+      ProxyShapeO := TShape.Create(nil, ProxyGeometryO, TX3DGraphTraverseState.CreateCopy(ProxyStateO), nil) else
       ProxyShapeO := nil;
 
     ProxyStateNO := State;
     ProxyGeometryNO := GoodGeometry.Proxy(ProxyStateNO, false);
     if ProxyGeometryNO <> nil then
-      ProxyShapeNO := TShape.Create(nil, ProxyGeometryNO, TVRMLGraphTraverseState.CreateCopy(ProxyStateNO), nil) else
+      ProxyShapeNO := TShape.Create(nil, ProxyGeometryNO, TX3DGraphTraverseState.CreateCopy(ProxyStateNO), nil) else
       ProxyShapeNO := nil;
   end;
 
@@ -278,7 +278,7 @@ begin
   ProxyStateNO := nil;
   ProxyGeometryO := nil;
   ProxyGeometryNO := nil;
-  State := TVRMLGraphTraverseState.Create;
+  State := TX3DGraphTraverseState.Create;
   try
 
     { create each node, and try to call the methods that should

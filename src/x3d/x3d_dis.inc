@@ -37,12 +37,12 @@
     public property FdSiteID: TSFInt32 read FFdSiteID;
 
     { Event: MFNode, out } { }
-    private FEventAddedEntities: TVRMLEvent;
-    public property EventAddedEntities: TVRMLEvent read FEventAddedEntities;
+    private FEventAddedEntities: TX3DEvent;
+    public property EventAddedEntities: TX3DEvent read FEventAddedEntities;
 
     { Event: MFNode, out } { }
-    private FEventRemovedEntities: TVRMLEvent;
-    public property EventRemovedEntities: TVRMLEvent read FEventRemovedEntities;
+    private FEventRemovedEntities: TX3DEvent;
+    public property EventRemovedEntities: TX3DEvent read FEventRemovedEntities;
   end;
 
   TDISEntityTypeMappingNode = class(TAbstractInfoNode)
@@ -83,36 +83,36 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue0: TVRMLEvent;
-    public property EventSet_articulationParameterValue0: TVRMLEvent read FEventSet_articulationParameterValue0;
+    private FEventSet_articulationParameterValue0: TX3DEvent;
+    public property EventSet_articulationParameterValue0: TX3DEvent read FEventSet_articulationParameterValue0;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue1: TVRMLEvent;
-    public property EventSet_articulationParameterValue1: TVRMLEvent read FEventSet_articulationParameterValue1;
+    private FEventSet_articulationParameterValue1: TX3DEvent;
+    public property EventSet_articulationParameterValue1: TX3DEvent read FEventSet_articulationParameterValue1;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue2: TVRMLEvent;
-    public property EventSet_articulationParameterValue2: TVRMLEvent read FEventSet_articulationParameterValue2;
+    private FEventSet_articulationParameterValue2: TX3DEvent;
+    public property EventSet_articulationParameterValue2: TX3DEvent read FEventSet_articulationParameterValue2;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue3: TVRMLEvent;
-    public property EventSet_articulationParameterValue3: TVRMLEvent read FEventSet_articulationParameterValue3;
+    private FEventSet_articulationParameterValue3: TX3DEvent;
+    public property EventSet_articulationParameterValue3: TX3DEvent read FEventSet_articulationParameterValue3;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue4: TVRMLEvent;
-    public property EventSet_articulationParameterValue4: TVRMLEvent read FEventSet_articulationParameterValue4;
+    private FEventSet_articulationParameterValue4: TX3DEvent;
+    public property EventSet_articulationParameterValue4: TX3DEvent read FEventSet_articulationParameterValue4;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue5: TVRMLEvent;
-    public property EventSet_articulationParameterValue5: TVRMLEvent read FEventSet_articulationParameterValue5;
+    private FEventSet_articulationParameterValue5: TX3DEvent;
+    public property EventSet_articulationParameterValue5: TX3DEvent read FEventSet_articulationParameterValue5;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue6: TVRMLEvent;
-    public property EventSet_articulationParameterValue6: TVRMLEvent read FEventSet_articulationParameterValue6;
+    private FEventSet_articulationParameterValue6: TX3DEvent;
+    public property EventSet_articulationParameterValue6: TX3DEvent read FEventSet_articulationParameterValue6;
 
     { Event: SFFloat, in } { }
-    private FEventSet_articulationParameterValue7: TVRMLEvent;
-    public property EventSet_articulationParameterValue7: TVRMLEvent read FEventSet_articulationParameterValue7;
+    private FEventSet_articulationParameterValue7: TX3DEvent;
+    public property EventSet_articulationParameterValue7: TX3DEvent read FEventSet_articulationParameterValue7;
 
     private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
@@ -280,80 +280,80 @@
     public property FdWriteInterval: TSFTime read FFdWriteInterval;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue0_changed: TVRMLEvent;
-    public property EventArticulationParameterValue0_changed: TVRMLEvent read FEventArticulationParameterValue0_changed;
+    private FEventArticulationParameterValue0_changed: TX3DEvent;
+    public property EventArticulationParameterValue0_changed: TX3DEvent read FEventArticulationParameterValue0_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue1_changed: TVRMLEvent;
-    public property EventArticulationParameterValue1_changed: TVRMLEvent read FEventArticulationParameterValue1_changed;
+    private FEventArticulationParameterValue1_changed: TX3DEvent;
+    public property EventArticulationParameterValue1_changed: TX3DEvent read FEventArticulationParameterValue1_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue2_changed: TVRMLEvent;
-    public property EventArticulationParameterValue2_changed: TVRMLEvent read FEventArticulationParameterValue2_changed;
+    private FEventArticulationParameterValue2_changed: TX3DEvent;
+    public property EventArticulationParameterValue2_changed: TX3DEvent read FEventArticulationParameterValue2_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue3_changed: TVRMLEvent;
-    public property EventArticulationParameterValue3_changed: TVRMLEvent read FEventArticulationParameterValue3_changed;
+    private FEventArticulationParameterValue3_changed: TX3DEvent;
+    public property EventArticulationParameterValue3_changed: TX3DEvent read FEventArticulationParameterValue3_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue4_changed: TVRMLEvent;
-    public property EventArticulationParameterValue4_changed: TVRMLEvent read FEventArticulationParameterValue4_changed;
+    private FEventArticulationParameterValue4_changed: TX3DEvent;
+    public property EventArticulationParameterValue4_changed: TX3DEvent read FEventArticulationParameterValue4_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue5_changed: TVRMLEvent;
-    public property EventArticulationParameterValue5_changed: TVRMLEvent read FEventArticulationParameterValue5_changed;
+    private FEventArticulationParameterValue5_changed: TX3DEvent;
+    public property EventArticulationParameterValue5_changed: TX3DEvent read FEventArticulationParameterValue5_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue6_changed: TVRMLEvent;
-    public property EventArticulationParameterValue6_changed: TVRMLEvent read FEventArticulationParameterValue6_changed;
+    private FEventArticulationParameterValue6_changed: TX3DEvent;
+    public property EventArticulationParameterValue6_changed: TX3DEvent read FEventArticulationParameterValue6_changed;
 
     { Event: SFFloat, out } { }
-    private FEventArticulationParameterValue7_changed: TVRMLEvent;
-    public property EventArticulationParameterValue7_changed: TVRMLEvent read FEventArticulationParameterValue7_changed;
+    private FEventArticulationParameterValue7_changed: TX3DEvent;
+    public property EventArticulationParameterValue7_changed: TX3DEvent read FEventArticulationParameterValue7_changed;
 
     { Event: SFTime, out } { }
-    private FEventCollideTime: TVRMLEvent;
-    public property EventCollideTime: TVRMLEvent read FEventCollideTime;
+    private FEventCollideTime: TX3DEvent;
+    public property EventCollideTime: TX3DEvent read FEventCollideTime;
 
     { Event: SFTime, out } { }
-    private FEventDetonateTime: TVRMLEvent;
-    public property EventDetonateTime: TVRMLEvent read FEventDetonateTime;
+    private FEventDetonateTime: TX3DEvent;
+    public property EventDetonateTime: TX3DEvent read FEventDetonateTime;
 
     { Event: SFTime, out } { }
-    private FEventFiredTime: TVRMLEvent;
-    public property EventFiredTime: TVRMLEvent read FEventFiredTime;
+    private FEventFiredTime: TX3DEvent;
+    public property EventFiredTime: TX3DEvent read FEventFiredTime;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
 
     { Event: SFBool, out } { }
-    private FEventIsCollided: TVRMLEvent;
-    public property EventIsCollided: TVRMLEvent read FEventIsCollided;
+    private FEventIsCollided: TX3DEvent;
+    public property EventIsCollided: TX3DEvent read FEventIsCollided;
 
     { Event: SFBool, out } { }
-    private FEventIsDetonated: TVRMLEvent;
-    public property EventIsDetonated: TVRMLEvent read FEventIsDetonated;
+    private FEventIsDetonated: TX3DEvent;
+    public property EventIsDetonated: TX3DEvent read FEventIsDetonated;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkReader: TVRMLEvent;
-    public property EventIsNetworkReader: TVRMLEvent read FEventIsNetworkReader;
+    private FEventIsNetworkReader: TX3DEvent;
+    public property EventIsNetworkReader: TX3DEvent read FEventIsNetworkReader;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkWriter: TVRMLEvent;
-    public property EventIsNetworkWriter: TVRMLEvent read FEventIsNetworkWriter;
+    private FEventIsNetworkWriter: TX3DEvent;
+    public property EventIsNetworkWriter: TX3DEvent read FEventIsNetworkWriter;
 
     { Event: SFBool, out } { }
-    private FEventIsRtpHeaderHeard: TVRMLEvent;
-    public property EventIsRtpHeaderHeard: TVRMLEvent read FEventIsRtpHeaderHeard;
+    private FEventIsRtpHeaderHeard: TX3DEvent;
+    public property EventIsRtpHeaderHeard: TX3DEvent read FEventIsRtpHeaderHeard;
 
     { Event: SFBool, out } { }
-    private FEventIsStandAlone: TVRMLEvent;
-    public property EventIsStandAlone: TVRMLEvent read FEventIsStandAlone;
+    private FEventIsStandAlone: TX3DEvent;
+    public property EventIsStandAlone: TX3DEvent read FEventIsStandAlone;
 
     { Event: SFTime, out } { }
-    private FEventTimestamp: TVRMLEvent;
-    public property EventTimestamp: TVRMLEvent read FEventTimestamp;
+    private FEventTimestamp: TX3DEvent;
+    public property EventTimestamp: TX3DEvent read FEventTimestamp;
 
     private FFdRtpHeaderExpected: TSFBool;
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
@@ -423,24 +423,24 @@
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkReader: TVRMLEvent;
-    public property EventIsNetworkReader: TVRMLEvent read FEventIsNetworkReader;
+    private FEventIsNetworkReader: TX3DEvent;
+    public property EventIsNetworkReader: TX3DEvent read FEventIsNetworkReader;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkWriter: TVRMLEvent;
-    public property EventIsNetworkWriter: TVRMLEvent read FEventIsNetworkWriter;
+    private FEventIsNetworkWriter: TX3DEvent;
+    public property EventIsNetworkWriter: TX3DEvent read FEventIsNetworkWriter;
 
     { Event: SFBool, out } { }
-    private FEventIsRtpHeaderHeard: TVRMLEvent;
-    public property EventIsRtpHeaderHeard: TVRMLEvent read FEventIsRtpHeaderHeard;
+    private FEventIsRtpHeaderHeard: TX3DEvent;
+    public property EventIsRtpHeaderHeard: TX3DEvent read FEventIsRtpHeaderHeard;
 
     { Event: SFBool, out } { }
-    private FEventIsStandAlone: TVRMLEvent;
-    public property EventIsStandAlone: TVRMLEvent read FEventIsStandAlone;
+    private FEventIsStandAlone: TX3DEvent;
+    public property EventIsStandAlone: TX3DEvent read FEventIsStandAlone;
 
     { Event: SFTime, out } { }
-    private FEventTimestamp: TVRMLEvent;
-    public property EventTimestamp: TVRMLEvent read FEventTimestamp;
+    private FEventTimestamp: TX3DEvent;
+    public property EventTimestamp: TX3DEvent read FEventTimestamp;
 
     private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
@@ -513,24 +513,24 @@
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkReader: TVRMLEvent;
-    public property EventIsNetworkReader: TVRMLEvent read FEventIsNetworkReader;
+    private FEventIsNetworkReader: TX3DEvent;
+    public property EventIsNetworkReader: TX3DEvent read FEventIsNetworkReader;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkWriter: TVRMLEvent;
-    public property EventIsNetworkWriter: TVRMLEvent read FEventIsNetworkWriter;
+    private FEventIsNetworkWriter: TX3DEvent;
+    public property EventIsNetworkWriter: TX3DEvent read FEventIsNetworkWriter;
 
     { Event: SFBool, out } { }
-    private FEventIsRtpHeaderHeard: TVRMLEvent;
-    public property EventIsRtpHeaderHeard: TVRMLEvent read FEventIsRtpHeaderHeard;
+    private FEventIsRtpHeaderHeard: TX3DEvent;
+    public property EventIsRtpHeaderHeard: TX3DEvent read FEventIsRtpHeaderHeard;
 
     { Event: SFBool, out } { }
-    private FEventIsStandAlone: TVRMLEvent;
-    public property EventIsStandAlone: TVRMLEvent read FEventIsStandAlone;
+    private FEventIsStandAlone: TX3DEvent;
+    public property EventIsStandAlone: TX3DEvent read FEventIsStandAlone;
 
     { Event: SFTime, out } { }
-    private FEventTimestamp: TVRMLEvent;
-    public property EventTimestamp: TVRMLEvent read FEventTimestamp;
+    private FEventTimestamp: TX3DEvent;
+    public property EventTimestamp: TX3DEvent read FEventTimestamp;
 
     private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
@@ -651,24 +651,24 @@
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkReader: TVRMLEvent;
-    public property EventIsNetworkReader: TVRMLEvent read FEventIsNetworkReader;
+    private FEventIsNetworkReader: TX3DEvent;
+    public property EventIsNetworkReader: TX3DEvent read FEventIsNetworkReader;
 
     { Event: SFBool, out } { }
-    private FEventIsNetworkWriter: TVRMLEvent;
-    public property EventIsNetworkWriter: TVRMLEvent read FEventIsNetworkWriter;
+    private FEventIsNetworkWriter: TX3DEvent;
+    public property EventIsNetworkWriter: TX3DEvent read FEventIsNetworkWriter;
 
     { Event: SFBool, out } { }
-    private FEventIsRtpHeaderHeard: TVRMLEvent;
-    public property EventIsRtpHeaderHeard: TVRMLEvent read FEventIsRtpHeaderHeard;
+    private FEventIsRtpHeaderHeard: TX3DEvent;
+    public property EventIsRtpHeaderHeard: TX3DEvent read FEventIsRtpHeaderHeard;
 
     { Event: SFBool, out } { }
-    private FEventIsStandAlone: TVRMLEvent;
-    public property EventIsStandAlone: TVRMLEvent read FEventIsStandAlone;
+    private FEventIsStandAlone: TX3DEvent;
+    public property EventIsStandAlone: TX3DEvent read FEventIsStandAlone;
 
     { Event: SFTime, out } { }
-    private FEventTimestamp: TVRMLEvent;
-    public property EventTimestamp: TVRMLEvent read FEventTimestamp;
+    private FEventTimestamp: TX3DEvent;
+    public property EventTimestamp: TX3DEvent read FEventTimestamp;
 
     private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
@@ -702,10 +702,10 @@ begin
   Fields.Add(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
-  FEventAddedEntities := TVRMLEvent.Create(Self, 'addedEntities', TMFNode, false);
+  FEventAddedEntities := TX3DEvent.Create(Self, 'addedEntities', TMFNode, false);
   Events.Add(FEventAddedEntities);
 
-  FEventRemovedEntities := TVRMLEvent.Create(Self, 'removedEntities', TMFNode, false);
+  FEventRemovedEntities := TX3DEvent.Create(Self, 'removedEntities', TMFNode, false);
   Events.Add(FEventRemovedEntities);
 
   DefaultContainerField := 'children';
@@ -783,28 +783,28 @@ procedure TEspduTransformNode.CreateNode;
 begin
   inherited;
 
-  FEventSet_articulationParameterValue0 := TVRMLEvent.Create(Self, 'set_articulationParameterValue0', TSFFloat, true);
+  FEventSet_articulationParameterValue0 := TX3DEvent.Create(Self, 'set_articulationParameterValue0', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue0);
 
-  FEventSet_articulationParameterValue1 := TVRMLEvent.Create(Self, 'set_articulationParameterValue1', TSFFloat, true);
+  FEventSet_articulationParameterValue1 := TX3DEvent.Create(Self, 'set_articulationParameterValue1', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue1);
 
-  FEventSet_articulationParameterValue2 := TVRMLEvent.Create(Self, 'set_articulationParameterValue2', TSFFloat, true);
+  FEventSet_articulationParameterValue2 := TX3DEvent.Create(Self, 'set_articulationParameterValue2', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue2);
 
-  FEventSet_articulationParameterValue3 := TVRMLEvent.Create(Self, 'set_articulationParameterValue3', TSFFloat, true);
+  FEventSet_articulationParameterValue3 := TX3DEvent.Create(Self, 'set_articulationParameterValue3', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue3);
 
-  FEventSet_articulationParameterValue4 := TVRMLEvent.Create(Self, 'set_articulationParameterValue4', TSFFloat, true);
+  FEventSet_articulationParameterValue4 := TX3DEvent.Create(Self, 'set_articulationParameterValue4', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue4);
 
-  FEventSet_articulationParameterValue5 := TVRMLEvent.Create(Self, 'set_articulationParameterValue5', TSFFloat, true);
+  FEventSet_articulationParameterValue5 := TX3DEvent.Create(Self, 'set_articulationParameterValue5', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue5);
 
-  FEventSet_articulationParameterValue6 := TVRMLEvent.Create(Self, 'set_articulationParameterValue6', TSFFloat, true);
+  FEventSet_articulationParameterValue6 := TX3DEvent.Create(Self, 'set_articulationParameterValue6', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue6);
 
-  FEventSet_articulationParameterValue7 := TVRMLEvent.Create(Self, 'set_articulationParameterValue7', TSFFloat, true);
+  FEventSet_articulationParameterValue7 := TX3DEvent.Create(Self, 'set_articulationParameterValue7', TSFFloat, true);
   Events.Add(FEventSet_articulationParameterValue7);
 
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
@@ -1019,61 +1019,61 @@ begin
   Fields.Add(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
-  FEventArticulationParameterValue0_changed := TVRMLEvent.Create(Self, 'articulationParameterValue0_changed', TSFFloat, false);
+  FEventArticulationParameterValue0_changed := TX3DEvent.Create(Self, 'articulationParameterValue0_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue0_changed);
 
-  FEventArticulationParameterValue1_changed := TVRMLEvent.Create(Self, 'articulationParameterValue1_changed', TSFFloat, false);
+  FEventArticulationParameterValue1_changed := TX3DEvent.Create(Self, 'articulationParameterValue1_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue1_changed);
 
-  FEventArticulationParameterValue2_changed := TVRMLEvent.Create(Self, 'articulationParameterValue2_changed', TSFFloat, false);
+  FEventArticulationParameterValue2_changed := TX3DEvent.Create(Self, 'articulationParameterValue2_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue2_changed);
 
-  FEventArticulationParameterValue3_changed := TVRMLEvent.Create(Self, 'articulationParameterValue3_changed', TSFFloat, false);
+  FEventArticulationParameterValue3_changed := TX3DEvent.Create(Self, 'articulationParameterValue3_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue3_changed);
 
-  FEventArticulationParameterValue4_changed := TVRMLEvent.Create(Self, 'articulationParameterValue4_changed', TSFFloat, false);
+  FEventArticulationParameterValue4_changed := TX3DEvent.Create(Self, 'articulationParameterValue4_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue4_changed);
 
-  FEventArticulationParameterValue5_changed := TVRMLEvent.Create(Self, 'articulationParameterValue5_changed', TSFFloat, false);
+  FEventArticulationParameterValue5_changed := TX3DEvent.Create(Self, 'articulationParameterValue5_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue5_changed);
 
-  FEventArticulationParameterValue6_changed := TVRMLEvent.Create(Self, 'articulationParameterValue6_changed', TSFFloat, false);
+  FEventArticulationParameterValue6_changed := TX3DEvent.Create(Self, 'articulationParameterValue6_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue6_changed);
 
-  FEventArticulationParameterValue7_changed := TVRMLEvent.Create(Self, 'articulationParameterValue7_changed', TSFFloat, false);
+  FEventArticulationParameterValue7_changed := TX3DEvent.Create(Self, 'articulationParameterValue7_changed', TSFFloat, false);
   Events.Add(FEventArticulationParameterValue7_changed);
 
-  FEventCollideTime := TVRMLEvent.Create(Self, 'collideTime', TSFTime, false);
+  FEventCollideTime := TX3DEvent.Create(Self, 'collideTime', TSFTime, false);
   Events.Add(FEventCollideTime);
 
-  FEventDetonateTime := TVRMLEvent.Create(Self, 'detonateTime', TSFTime, false);
+  FEventDetonateTime := TX3DEvent.Create(Self, 'detonateTime', TSFTime, false);
   Events.Add(FEventDetonateTime);
 
-  FEventFiredTime := TVRMLEvent.Create(Self, 'firedTime', TSFTime, false);
+  FEventFiredTime := TX3DEvent.Create(Self, 'firedTime', TSFTime, false);
   Events.Add(FEventFiredTime);
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FEventIsCollided := TVRMLEvent.Create(Self, 'isCollided', TSFBool, false);
+  FEventIsCollided := TX3DEvent.Create(Self, 'isCollided', TSFBool, false);
   Events.Add(FEventIsCollided);
 
-  FEventIsDetonated := TVRMLEvent.Create(Self, 'isDetonated', TSFBool, false);
+  FEventIsDetonated := TX3DEvent.Create(Self, 'isDetonated', TSFBool, false);
   Events.Add(FEventIsDetonated);
 
-  FEventIsNetworkReader := TVRMLEvent.Create(Self, 'isNetworkReader', TSFBool, false);
+  FEventIsNetworkReader := TX3DEvent.Create(Self, 'isNetworkReader', TSFBool, false);
   Events.Add(FEventIsNetworkReader);
 
-  FEventIsNetworkWriter := TVRMLEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
+  FEventIsNetworkWriter := TX3DEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
   Events.Add(FEventIsNetworkWriter);
 
-  FEventIsRtpHeaderHeard := TVRMLEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
+  FEventIsRtpHeaderHeard := TX3DEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
   Events.Add(FEventIsRtpHeaderHeard);
 
-  FEventIsStandAlone := TVRMLEvent.Create(Self, 'isStandAlone', TSFBool, false);
+  FEventIsStandAlone := TX3DEvent.Create(Self, 'isStandAlone', TSFBool, false);
   Events.Add(FEventIsStandAlone);
 
-  FEventTimestamp := TVRMLEvent.Create(Self, 'timestamp', TSFTime, false);
+  FEventTimestamp := TX3DEvent.Create(Self, 'timestamp', TSFTime, false);
   Events.Add(FEventTimestamp);
 
   FFdRtpHeaderExpected := TSFBool.Create(Self, 'rtpHeaderExpected', false);
@@ -1170,19 +1170,19 @@ begin
   Fields.Add(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
-  FEventIsNetworkReader := TVRMLEvent.Create(Self, 'isNetworkReader', TSFBool, false);
+  FEventIsNetworkReader := TX3DEvent.Create(Self, 'isNetworkReader', TSFBool, false);
   Events.Add(FEventIsNetworkReader);
 
-  FEventIsNetworkWriter := TVRMLEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
+  FEventIsNetworkWriter := TX3DEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
   Events.Add(FEventIsNetworkWriter);
 
-  FEventIsRtpHeaderHeard := TVRMLEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
+  FEventIsRtpHeaderHeard := TX3DEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
   Events.Add(FEventIsRtpHeaderHeard);
 
-  FEventIsStandAlone := TVRMLEvent.Create(Self, 'isStandAlone', TSFBool, false);
+  FEventIsStandAlone := TX3DEvent.Create(Self, 'isStandAlone', TSFBool, false);
   Events.Add(FEventIsStandAlone);
 
-  FEventTimestamp := TVRMLEvent.Create(Self, 'timestamp', TSFTime, false);
+  FEventTimestamp := TX3DEvent.Create(Self, 'timestamp', TSFTime, false);
   Events.Add(FEventTimestamp);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -1285,19 +1285,19 @@ begin
   Fields.Add(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
-  FEventIsNetworkReader := TVRMLEvent.Create(Self, 'isNetworkReader', TSFBool, false);
+  FEventIsNetworkReader := TX3DEvent.Create(Self, 'isNetworkReader', TSFBool, false);
   Events.Add(FEventIsNetworkReader);
 
-  FEventIsNetworkWriter := TVRMLEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
+  FEventIsNetworkWriter := TX3DEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
   Events.Add(FEventIsNetworkWriter);
 
-  FEventIsRtpHeaderHeard := TVRMLEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
+  FEventIsRtpHeaderHeard := TX3DEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
   Events.Add(FEventIsRtpHeaderHeard);
 
-  FEventIsStandAlone := TVRMLEvent.Create(Self, 'isStandAlone', TSFBool, false);
+  FEventIsStandAlone := TX3DEvent.Create(Self, 'isStandAlone', TSFBool, false);
   Events.Add(FEventIsStandAlone);
 
-  FEventTimestamp := TVRMLEvent.Create(Self, 'timestamp', TSFTime, false);
+  FEventTimestamp := TX3DEvent.Create(Self, 'timestamp', TSFTime, false);
   Events.Add(FEventTimestamp);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
@@ -1463,19 +1463,19 @@ begin
   Fields.Add(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
-  FEventIsNetworkReader := TVRMLEvent.Create(Self, 'isNetworkReader', TSFBool, false);
+  FEventIsNetworkReader := TX3DEvent.Create(Self, 'isNetworkReader', TSFBool, false);
   Events.Add(FEventIsNetworkReader);
 
-  FEventIsNetworkWriter := TVRMLEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
+  FEventIsNetworkWriter := TX3DEvent.Create(Self, 'isNetworkWriter', TSFBool, false);
   Events.Add(FEventIsNetworkWriter);
 
-  FEventIsRtpHeaderHeard := TVRMLEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
+  FEventIsRtpHeaderHeard := TX3DEvent.Create(Self, 'isRtpHeaderHeard', TSFBool, false);
   Events.Add(FEventIsRtpHeaderHeard);
 
-  FEventIsStandAlone := TVRMLEvent.Create(Self, 'isStandAlone', TSFBool, false);
+  FEventIsStandAlone := TX3DEvent.Create(Self, 'isStandAlone', TSFBool, false);
   Events.Add(FEventIsStandAlone);
 
-  FEventTimestamp := TVRMLEvent.Create(Self, 'timestamp', TSFTime, false);
+  FEventTimestamp := TX3DEvent.Create(Self, 'timestamp', TSFTime, false);
   Events.Add(FEventTimestamp);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));

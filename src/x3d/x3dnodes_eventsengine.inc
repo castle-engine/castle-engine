@@ -13,13 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ TVRMLEventsEngine (ancestor of T3DSceneCore, with which the nodes
+{ TX3DEventsEngine (ancestor of T3DSceneCore, with which the nodes
   implementations interact) and related types. }
 
 {$ifdef read_interface}
 
   { }
-  TVRMLBindableStackBasic = class(TX3DNodeList)
+  TX3DBindableStackBasic = class(TX3DNodeList)
   public
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
@@ -28,33 +28,33 @@
 
   { Abstract 3D object handling VRML/X3D events.
     Is also notified about changes to VRML/X3D nodes/fields. }
-  TVRMLEventsEngine = class(T3D)
+  TX3DEventsEngine = class(T3D)
   protected
-    procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TVRMLField); virtual; abstract;
+    procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
   public
     function GetTime: TX3DTime; virtual; abstract;
-    function GetViewpointStack: TVRMLBindableStackBasic; virtual; abstract;
-    function GetNavigationInfoStack: TVRMLBindableStackBasic; virtual; abstract;
-    function GetBackgroundStack: TVRMLBindableStackBasic; virtual; abstract;
-    function GetFogStack: TVRMLBindableStackBasic; virtual; abstract;
+    function GetViewpointStack: TX3DBindableStackBasic; virtual; abstract;
+    function GetNavigationInfoStack: TX3DBindableStackBasic; virtual; abstract;
+    function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
+    function GetFogStack: TX3DBindableStackBasic; virtual; abstract;
 
     procedure ChangedAll; virtual; abstract;
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
-    procedure ChangedField(Field: TVRMLField); virtual; abstract;
+    procedure ChangedField(Field: TX3DField); virtual; abstract;
     procedure IncreaseTimeTick; virtual; abstract;
   end;
 
-  TVRMLEventsEngineList = class(specialize TFPGObjectList<TVRMLEventsEngine>)
+  TX3DEventsEngineList = class(specialize TFPGObjectList<TX3DEventsEngine>)
   public
     { Notify listeners about a field value change.
       See T3DSceneCore.ChangedField for exact specification. }
-    procedure ChangedField(Field: TVRMLField);
+    procedure ChangedField(Field: TX3DField);
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-procedure TVRMLEventsEngineList.ChangedField(Field: TVRMLField);
+procedure TX3DEventsEngineList.ChangedField(Field: TX3DField);
 var
   I: Integer;
 begin

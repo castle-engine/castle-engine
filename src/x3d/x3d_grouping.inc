@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { This is a VRML >= 2.0 grouping node.
-    This will push/pop full TVRMLGraphTraverseState in Before/AfterTraverse.
+    This will push/pop full TX3DGraphTraverseState in Before/AfterTraverse.
     It also propagates DirectionalLights in any child to all children
     in VRML2ActiceLights.
 
@@ -33,8 +33,8 @@
       http://castle-engine.sourceforge.net/kambi_vrml_extensions.php#section_ext_wwwinline_separate }
     function SeparateGroup: boolean; virtual;
 
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure AfterTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
     { Change State.Transform for children nodes.
 
@@ -44,7 +44,7 @@
       And we also do StateStack.Push inside TAbstractGroupingNode.BeforeTraverse
       implementation... So ApplyTransform must happen in the middle of
       TAbstractGroupingNode.BeforeTraverse call. }
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); virtual;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); virtual;
   end;
 
   IAbstractBoundedObject = interface(IX3DNode)
@@ -56,19 +56,19 @@
   TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   private
     procedure EventAddChildrenReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventRemoveChildrenReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
 
     { Event: MFNode, in } { }
-    private FEventAddChildren: TVRMLEvent;
-    public property EventAddChildren: TVRMLEvent read FEventAddChildren;
+    private FEventAddChildren: TX3DEvent;
+    public property EventAddChildren: TX3DEvent read FEventAddChildren;
 
     { Event: MFNode, in } { }
-    private FEventRemoveChildren: TVRMLEvent;
-    public property EventRemoveChildren: TVRMLEvent read FEventRemoveChildren;
+    private FEventRemoveChildren: TX3DEvent;
+    public property EventRemoveChildren: TX3DEvent read FEventRemoveChildren;
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
@@ -139,7 +139,7 @@
     FProfile: string;
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
-    FPrototypeNames: TVRMLPrototypeNames;
+    FPrototypeNames: TX3DPrototypeNames;
     FExportedNames: TX3DNodeNames;
     procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
@@ -207,7 +207,7 @@
 
     { Global prototype namespace at the end of parsing the file.
       Useful for things like EXTERNPROTO implementation. }
-    property PrototypeNames: TVRMLPrototypeNames read FPrototypeNames;
+    property PrototypeNames: TX3DPrototypeNames read FPrototypeNames;
 
     { Node names exported from the file by EXPORT keyword.
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
@@ -238,7 +238,7 @@
     Compatibility node: this class is used for both VRML 97 and X3D.
     Although field name changed for X3D (in VRML 97, "children"
     was called "choice"), this is handled seamlessly using our
-    TVRMLFieldOrEvent.AddAlternativeField mechanism. In other words,
+    TX3DFieldOrEvent.AddAlternativeField mechanism. In other words,
     programmer simply works with FdChildren field, and when reading/writing
     VRML file we take care to actually use either "children" or "choice" name,
     depending on used VRML version. }
@@ -266,7 +266,7 @@
     These nodes transform all their children (the ones enumerated
     by traversing, so all active children).
 
-    The transformation change may be signalled by TVRMLField.Changes
+    The transformation change may be signalled by TX3DField.Changes
     including chTransform flag. For some special nodes, like Billboard,
     the transformation changes are automatically managed. }
   ITransformNode = interface(IX3DNode)
@@ -277,7 +277,7 @@
   protected
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
-    procedure ApplyTransform(State: TVRMLGraphTraverseState); override;
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -308,7 +308,7 @@
 {$ifdef read_implementation}
 type
   TGeneralGroupingEnumerator = class
-    State: TVRMLGraphTraverseState;
+    State: TX3DGraphTraverseState;
     WasPointingDeviceSensor: boolean;
     procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
   end;
@@ -367,7 +367,7 @@ begin
 end;
 
 procedure TAbstractGroupingNode.BeforeTraverse(
-  StateStack: TVRMLGraphTraverseStateStack);
+  StateStack: TX3DGraphTraverseStateStack);
 var
   Enumerator: TGeneralGroupingEnumerator;
 begin
@@ -457,12 +457,12 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TAbstractGroupingNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TAbstractGroupingNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
 end;
 
 procedure TAbstractGroupingNode.AfterTraverse(
-  StateStack: TVRMLGraphTraverseStateStack);
+  StateStack: TX3DGraphTraverseStateStack);
 begin
   if BeforeTraversePushedState then
     StateStack.Pop;
@@ -474,11 +474,11 @@ procedure TAbstractX3DGroupingNode.CreateNode;
 begin
   inherited;
 
-  FEventAddChildren := TVRMLEvent.Create(Self, 'addChildren', TMFNode, true);
+  FEventAddChildren := TX3DEvent.Create(Self, 'addChildren', TMFNode, true);
   Events.Add(FEventAddChildren);
   EventaddChildren.OnReceive.Add(@EventAddChildrenReceive);
 
-  FEventRemoveChildren := TVRMLEvent.Create(Self, 'removeChildren', TMFNode, true);
+  FEventRemoveChildren := TX3DEvent.Create(Self, 'removeChildren', TMFNode, true);
   Events.Add(FEventRemoveChildren);
   EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
@@ -503,7 +503,7 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   MF: TMFNode;
   I: Integer;
@@ -529,7 +529,7 @@ begin
 end;
 
 procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   MF: TMFNode;
   I: Integer;
@@ -622,7 +622,7 @@ end;
 procedure TX3DRootNode.SaveToStream(Writer: TX3DWriter);
 var
   I: integer;
-  FileItems: TVRMLFileItemList;
+  FileItems: TX3DFileItemList;
 begin
   if SaveAsRootNode then
   begin
@@ -633,7 +633,7 @@ begin
         It's output in a special way, without writing "children [...]" around.
         Other fields are ignored (should never have any meaning). }
 
-    FileItems := TVRMLFileItemList.Create(false);
+    FileItems := TX3DFileItemList.Create(false);
     try
       for I := 0 to Prototypes.Count - 1 do
         FileItems.Add(Prototypes[I]);
@@ -855,7 +855,7 @@ begin
   Result := ntcTransform;
 end;
 
-{ Apply transformation to a TVRMLGraphTraverseState.
+{ Apply transformation to a TX3DGraphTraverseState.
   Useful for various classes that behave like Transform node. }
 procedure TransformMatrices(var Transform, InvertedTransform: TMatrix4Single;
   var TransformScale: Single;
@@ -924,7 +924,7 @@ begin
   MultMatricesTranslation(Transform, InvertedTransform, VectorNegate(Center));
 end;
 
-procedure TransformState(State: TVRMLGraphTraverseState;
+procedure TransformState(State: TX3DGraphTraverseState;
   center: TVector3Single;
   rotation: TVector4Single;
   scale: TVector3Single;
@@ -936,7 +936,7 @@ begin
     center, rotation, scale, scaleOrientation, translation);
 end;
 
-procedure TTransformNode.ApplyTransform(State: TVRMLGraphTraverseState);
+procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,

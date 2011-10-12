@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-function TElevationGridNode.Proxy(var State: TVRMLGraphTraverseState;
+function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 
 { I initially rendered ElevationGrid directly, by GL_QUAD_STRIP

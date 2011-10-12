@@ -34,7 +34,7 @@ begin
 end;
 
 procedure TIndexedTriangleFanSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TTriangleFanSetPolygonizer;
@@ -47,7 +47,7 @@ begin
 end;
 
 procedure TTriangleFanSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TTriangleFanSetPolygonizer;
@@ -86,7 +86,7 @@ begin
 end;
 
 procedure TIndexedTriangleStripSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TTriangleStripSetPolygonizer;
@@ -99,7 +99,7 @@ begin
 end;
 
 procedure TTriangleStripSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TTriangleStripSetPolygonizer;
@@ -112,7 +112,7 @@ begin
 end;
 
 procedure TIndexedTriangleMeshNode_1.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TTriangleStripSetPolygonizer;
@@ -141,7 +141,7 @@ begin
 end;
 
 procedure TIndexedTriangleSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
   if Coordinates(State) <> nil then
@@ -149,7 +149,7 @@ begin
 end;
 
 procedure TTriangleSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   ACoord: TMFVec3f;
@@ -176,7 +176,7 @@ begin
 end;
 
 procedure TIndexedQuadSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
   if Coordinates(State) <> nil then
@@ -184,7 +184,7 @@ begin
 end;
 
 procedure TQuadSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   ACoord: TMFVec3f;
@@ -216,7 +216,7 @@ begin
 end;
 
 procedure TIndexedFaceSetNode_1.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TIndexedFaceSetPolygonizer;
@@ -229,7 +229,7 @@ begin
 end;
 
 procedure TIndexedFaceSetNode.CoordPolygons(
-  State: TVRMLGraphTraverseState;
+  State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   Polygonizer: TIndexedFaceSetPolygonizer;

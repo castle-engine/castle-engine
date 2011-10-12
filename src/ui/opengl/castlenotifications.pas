@@ -69,7 +69,7 @@ type
     FMaxMessages: integer;
     FTimeout: TMilisecTime;
     FHorizontalMargin, FVerticalMargin: Integer;
-    FHistory: TKamStringList;
+    FHistory: TCastleStringList;
     FCollectHistory: boolean;
   public
     constructor Create(AOwner: TComponent); override;
@@ -106,7 +106,7 @@ type
 
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }
-    property History: TKamStringList read FHistory;
+    property History: TCastleStringList read FHistory;
   published
     { How many message lines should be visible on the screen, at maximum.  }
     property MaxMessages: integer
@@ -171,7 +171,7 @@ constructor TCastleNotifications.Create(AOwner: TComponent);
 begin
   inherited;
   Messages := TNotificationList.Create;
-  FHistory := TKamStringList.Create;
+  FHistory := TCastleStringList.Create;
 
   MaxMessages := DefaultMaxMessages;
   Timeout := DefaultMessagesTimeout;

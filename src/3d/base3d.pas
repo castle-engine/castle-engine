@@ -501,11 +501,11 @@ type
     descendant (for example, to translate many 3D objects by a single
     T3DCustomTranslated.Child).
 
-    This inherits from TKamObjectList, getting many
+    This inherits from TCastleObjectList, getting many
     features like TList notification mechanism (useful in some situations).
     Usually you want to use T3DList instead, which is a wrapper around
     this class. }
-  T3DListCore = class(TKamObjectList)
+  T3DListCore = class(TCastleObjectList)
   private
     FOwner: T3DList;
 

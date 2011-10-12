@@ -25,9 +25,9 @@
     property FdResumeTime: TSFTime { read FFdResumeTime } { };
     property FdStartTime: TSFTime { read FFdStartTime } { };
     property FdStopTime: TSFTime { read FFdStopTime } { };
-    property EventElapsedTime: TVRMLEvent { read FEventElapsedTime } { };
-    property EventIsActive: TVRMLEvent { read FEventIsActive } { };
-    property EventIsPaused: TVRMLEvent { read FEventIsPaused } { };
+    property EventElapsedTime: TX3DEvent { read FEventElapsedTime } { };
+    property EventIsActive: TX3DEvent { read FEventIsActive } { };
+    property EventIsPaused: TX3DEvent { read FEventIsPaused } { };
   *)
 
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
@@ -87,11 +87,11 @@
     { May be @nil if node doesn't have an "enabled" field. }
     Fdenabled: TSFBool;
 
-    EventelapsedTime: TVRMLEvent;
-    EventisActive: TVRMLEvent;
-    EventisPaused: TVRMLEvent;
+    EventelapsedTime: TX3DEvent;
+    EventisActive: TX3DEvent;
+    EventisPaused: TX3DEvent;
     { May be @nil if node doesn't have a "cycleTime" event. }
-    EventcycleTime: TVRMLEvent;
+    EventcycleTime: TX3DEvent;
 
     { Like ElapsedTime, but spent in the current cycle.
       When cycleInterval = 0, this is always 0.
@@ -150,16 +150,16 @@
     public property FdStopTime: TSFTime read FFdStopTime;
 
     { Event: SFTime, out } { }
-    private FEventElapsedTime: TVRMLEvent;
-    public property EventElapsedTime: TVRMLEvent read FEventElapsedTime;
+    private FEventElapsedTime: TX3DEvent;
+    public property EventElapsedTime: TX3DEvent read FEventElapsedTime;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
 
     { Event: SFBool, out } { }
-    private FEventIsPaused: TVRMLEvent;
-    public property EventIsPaused: TVRMLEvent read FEventIsPaused;
+    private FEventIsPaused: TX3DEvent;
+    public property EventIsPaused: TX3DEvent read FEventIsPaused;
 
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read FTimeDependentNodeHandler;
@@ -168,7 +168,7 @@
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
   private
     procedure EventElapsedTimeReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
     function CycleInterval: TFloatTime; override;
   public
@@ -181,16 +181,16 @@
     public property FdCycleInterval: TSFTime read FFdCycleInterval;
 
     { Event: SFTime, out } { }
-    private FEventCycleTime: TVRMLEvent;
-    public property EventCycleTime: TVRMLEvent read FEventCycleTime;
+    private FEventCycleTime: TX3DEvent;
+    public property EventCycleTime: TX3DEvent read FEventCycleTime;
 
     { Event: SFFloat, out } { }
-    private FEventFraction_changed: TVRMLEvent;
-    public property EventFraction_changed: TVRMLEvent read FEventFraction_changed;
+    private FEventFraction_changed: TX3DEvent;
+    public property EventFraction_changed: TX3DEvent read FEventFraction_changed;
 
     { Event: SFTime, out } { }
-    private FEventTime: TVRMLEvent;
-    public property EventTime: TVRMLEvent read FEventTime;
+    private FEventTime: TX3DEvent;
+    public property EventTime: TX3DEvent read FEventTime;
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
@@ -207,25 +207,25 @@ type
     is active. }
   TSFTimeIgnoreWhenActive = class(TSFTime)
   protected
-    function ExposedEventsFieldClass: TVRMLFieldClass; override;
-    procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
   end;
 
   TSFStopTime = class(TSFTime)
   protected
-    function ExposedEventsFieldClass: TVRMLFieldClass; override;
-    procedure ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+    function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
   end;
 
-function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TVRMLFieldClass;
+function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFTime;
 end;
 
 procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
-  Event: TVRMLEvent; AValue: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; AValue: TX3DField; const Time: TX3DTime);
 
   { Is parent node an active X3DTimeDependentNode.
 
@@ -243,12 +243,12 @@ begin
   inherited;
 end;
 
-function TSFStopTime.ExposedEventsFieldClass: TVRMLFieldClass;
+function TSFStopTime.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFTime;
 end;
 
-procedure TSFStopTime.ExposedEventReceive(Event: TVRMLEvent; AValue: TVRMLField;
+procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
   const Time: TX3DTime);
 
   { Is parent node an active X3DTimeDependentNode, and AValue <= startTime.
@@ -591,13 +591,13 @@ begin
   Fields.Add(FFdStopTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventElapsedTime := TVRMLEvent.Create(Self, 'elapsedTime', TSFTime, false);
+  FEventElapsedTime := TX3DEvent.Create(Self, 'elapsedTime', TSFTime, false);
   Events.Add(FEventElapsedTime);
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FEventIsPaused := TVRMLEvent.Create(Self, 'isPaused', TSFBool, false);
+  FEventIsPaused := TX3DEvent.Create(Self, 'isPaused', TSFBool, false);
   Events.Add(FEventIsPaused);
 
   DefaultContainerField := 'children';
@@ -637,16 +637,16 @@ begin
   Fields.Add(FFdCycleInterval);
   { X3D specification comment: (0,Inf) }
 
-  FEventCycleTime := TVRMLEvent.Create(Self, 'cycleTime', TSFTime, false);
+  FEventCycleTime := TX3DEvent.Create(Self, 'cycleTime', TSFTime, false);
   Events.Add(FEventCycleTime);
   { cycleTime_changed name is used e.g. by
     www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }
   FEventCycleTime.AddAlternativeName('cycleTime_changed', 0);
 
-  FEventFraction_changed := TVRMLEvent.Create(Self, 'fraction_changed', TSFFloat, false);
+  FEventFraction_changed := TX3DEvent.Create(Self, 'fraction_changed', TSFFloat, false);
   Events.Add(FEventFraction_changed);
 
-  FEventTime := TVRMLEvent.Create(Self, 'time', TSFTime, false);
+  FEventTime := TX3DEvent.Create(Self, 'time', TSFTime, false);
   Events.Add(FEventTime);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
@@ -680,7 +680,7 @@ begin
 end;
 
 procedure TTimeSensorNode.EventElapsedTimeReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   Fraction: Single;
 begin

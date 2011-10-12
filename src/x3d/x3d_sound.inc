@@ -24,7 +24,7 @@
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
     property FdDescription: TSFString { read FFdDescription } { };
     property FdPitch: TSFFloat { read FFdPitch } { };
-    property EventDuration_changed: TVRMLEvent { read FEventDuration_changed } { };
+    property EventDuration_changed: TX3DEvent { read FEventDuration_changed } { };
   end;
 
   TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractSoundSourceNode)
@@ -38,8 +38,8 @@
     public property FdPitch: TSFFloat read FFdPitch;
 
     { Event: SFTime, out } { }
-    private FEventDuration_changed: TVRMLEvent;
-    public property EventDuration_changed: TVRMLEvent read FEventDuration_changed;
+    private FEventDuration_changed: TX3DEvent;
+    public property EventDuration_changed: TX3DEvent read FEventDuration_changed;
 
     { Pitch, corrected to always be > 0. }
     function Pitch: Single;
@@ -54,7 +54,7 @@
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
     procedure SoundUsingEnd(ASound: TALSound);
-    procedure UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
+    procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
     procedure ALOpenClose(Sender: TObject);
@@ -80,9 +80,9 @@
     FTransformScale: Single;
     procedure UpdateSourcePosition;
     procedure EventLocationReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -140,7 +140,7 @@ begin
   Fields.Add(FFdPitch);
   { X3D specification comment: (0,Inf) }
 
-  FEventDuration_changed := TVRMLEvent.Create(Self, 'duration_changed', TSFTime, false);
+  FEventDuration_changed := TX3DEvent.Create(Self, 'duration_changed', TSFTime, false);
   Events.Add(FEventDuration_changed);
 
   DefaultContainerField := 'children';
@@ -213,7 +213,7 @@ begin
   Sound := nil;
 end;
 
-procedure TAudioClipNode.UpdatePlayingEvent(Event: TVRMLEvent; Value: TVRMLField;
+procedure TAudioClipNode.UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
   const Time: TX3DTime);
 begin
   UpdatePlaying;
@@ -405,7 +405,7 @@ begin
   end;
 end;
 
-procedure TSoundNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TSoundNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   FTransform := StateStack.Top.Transform;
@@ -414,7 +414,7 @@ begin
 end;
 
 procedure TSoundNode.EventLocationReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   UpdateSourcePosition;
 end;

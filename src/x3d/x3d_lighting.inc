@@ -44,8 +44,8 @@
     SavedDefaultShadowMapBias: Single;
     SavedDefaultShadowMapCompareMode: string;
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
-    procedure MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
 
@@ -152,7 +152,7 @@
 
     { Create TLightInstance record describing this light node under given
       State. }
-    function CreateLightInstance(State: TVRMLGraphTraverseState): TLightInstance;
+    function CreateLightInstance(State: TX3DGraphTraverseState): TLightInstance;
 
     { Update TLightInstance record when lighting State changes.
       Assumes that LightInstance.Node = Self.
@@ -161,7 +161,7 @@
       all LightInstance properties based on Transform. }
     procedure UpdateLightInstanceState(
       var LightInstance: TLightInstance;
-      State: TVRMLGraphTraverseState);
+      State: TX3DGraphTraverseState);
 
     { Update TLightInstance record when lighting location/direction (and other
       properties precalculated on TLightInstance) change.
@@ -171,9 +171,9 @@
 
     function TransformationChange: TNodeTransformationChange; override;
 
-    { Internal, to workaround small VRMLShadowMaps problem. @exclude }
+    { Internal, to workaround small X3DShadowMaps problem. @exclude }
     procedure DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
-    { Internal, to workaround small VRMLShadowMaps problem. @exclude }
+    { Internal, to workaround small X3DShadowMaps problem. @exclude }
     function DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
 
     { Light scope. Default implementation returns lsGlobal or lsLocal,
@@ -400,7 +400,7 @@ begin
 end;
 
 procedure TAbstractLightNode.BeforeTraverse(
-  StateStack: TVRMLGraphTraverseStateStack);
+  StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
 
@@ -468,7 +468,7 @@ begin
 end;
 
 function TAbstractLightNode.CreateLightInstance(
-  State: TVRMLGraphTraverseState): TLightInstance;
+  State: TX3DGraphTraverseState): TLightInstance;
 begin
   Result.Node := Self;
   Result.WorldCoordinates := false;
@@ -477,7 +477,7 @@ end;
 
 procedure TAbstractLightNode.UpdateLightInstanceState(
   var LightInstance: TLightInstance;
-  State: TVRMLGraphTraverseState);
+  State: TX3DGraphTraverseState);
 begin
   LightInstance.Transform := State.Transform;
   LightInstance.TransformScale := State.TransformScale;
@@ -491,7 +491,7 @@ begin
   Assert(LightInstance.Node = Self);
 end;
 
-procedure TAbstractLightNode.MiddleTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TAbstractLightNode.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   if Scope = lsLocalVRML1 then
@@ -574,7 +574,7 @@ var
   N, F: Single;
   R: TVector4Single;
 begin
-  { If author didn't provide and VRMLShadowMaps unit didn't calculate
+  { If author didn't provide and X3DShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
   N := FdProjectionNear.Value;
@@ -839,7 +839,7 @@ function TSpotLightNode.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
-  { If author didn't provide and VRMLShadowMaps unit didn't calculate
+  { If author didn't provide and X3DShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
   if FdprojectionAngle.Value <= 0 then

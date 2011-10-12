@@ -18,7 +18,7 @@
   TAbstractBackgroundNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -119,7 +119,7 @@
     private FFdTopUrl: TMFString;
     public property FdTopUrl: TMFString read FFdTopUrl;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TVRMLNames); override;
+    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
 
     { Pierwsze uzycie BgImages (albo pierwsze uzycie BgImages po Parse)
       automatycznie zaladuje obrazki z URLi
@@ -160,7 +160,7 @@
     function GetFdvolumetricVisibilityStart: TSFFloat;
     function GetTransformScale: Single;
     procedure EventSet_BindReceive(
-      Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+      Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -204,7 +204,7 @@
 
       This can be used by software renderers (ray-tracers etc.)
       to calculate pixel color following VRML/X3D specifications.
-      After all the lighting is summed up (see TVRMLGraphTraverseState.Emission and
+      After all the lighting is summed up (see TX3DGraphTraverseState.Emission and
       TLightInstance.Contribution), process color by this method to apply fog.
 
       Does nothing if AFogType = ftNone. In this special case, it's also
@@ -234,7 +234,7 @@
     function GetFdvolumetricVisibilityStart: TSFFloat;
     function GetTransformScale: Single;
   protected
-    procedure BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack); override;
+    procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -332,7 +332,7 @@ begin
 end;
 
 procedure TAbstractBackgroundNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
   begin
@@ -500,7 +500,7 @@ begin
   end;
 end;
 
-procedure TBackgroundNode.Parse(Lexer: TX3DLexer; Names: TVRMLNames);
+procedure TBackgroundNode.Parse(Lexer: TX3DLexer; Names: TX3DNames);
 begin
   inherited;
   { Force reload on next BgImages use, since our fields are different now }
@@ -567,7 +567,7 @@ begin
 end;
 
 procedure TFogNode.EventSet_BindReceive(
-  Event: TVRMLEvent; Value: TVRMLField; const Time: TX3DTime);
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 begin
   if Scene <> nil then
   begin
@@ -763,7 +763,7 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TLocalFogNode.BeforeTraverse(StateStack: TVRMLGraphTraverseStateStack);
+procedure TLocalFogNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
   FTransformScale := StateStack.Top.TransformScale;

@@ -47,7 +47,7 @@ uses
 type
   { List of strings. This is a slightly extended version of standard TStringList.
     The default CaseSensitive value is @true. }
-  TKamStringList = class(TStringList)
+  TCastleStringList = class(TStringList)
   private
     procedure SetCount(const Value: Integer);
     function GetL(const Index: Integer): string;
@@ -61,7 +61,7 @@ type
     procedure AddList(const Source: TStringList);
     procedure AddArray(const A: array of string);
     procedure AssignArray(const A: array of string);
-    function Equal(List: TKamStringList): boolean; overload;
+    function Equal(List: TCastleStringList): boolean; overload;
     function Equal(const A: array of string): boolean; overload;
 
     { Reverse the order of items on the array. }
@@ -69,7 +69,7 @@ type
 
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
-      to work for both TGenericStructList and for TKamStringList. }
+      to work for both TGenericStructList and for TCastleStringList. }
     property L[Index: Integer]: string read GetL write SetL;
   end;
 
@@ -286,13 +286,13 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
   const TokenDelims: TSetOfChars = WhiteSpaces): string;
   overload;
 
-{ Returns TKamStringList with tokens extracted from S.
+{ Returns TCastleStringList with tokens extracted from S.
   Token is something delimited by TokenDelims.
   TokenDelims are not contained in resulting items.
-  E.g. CreateTokens('foo, bar', [' ', ',']) returns TKamStringList
+  E.g. CreateTokens('foo, bar', [' ', ',']) returns TCastleStringList
   with 2 items: 'foo' and 'bar'. }
 function CreateTokens(const s: string;
-  const TokenDelims: TSetOfChars = WhiteSpaces): TKamStringList;
+  const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
 { Advanced version of NextToken, that avoids splitting string inside
   pairs of "restricted" characters, like quotes.
@@ -912,15 +912,15 @@ implementation
 
 uses CastleFilesUtils;
 
-{ TKamStringList ------------------------------------------------------------- }
+{ TCastleStringList ------------------------------------------------------------- }
 
-constructor TKamStringList.Create;
+constructor TCastleStringList.Create;
 begin
   inherited;
   CaseSensitive := true;
 end;
 
-procedure TKamStringList.SetCount(const Value: Integer);
+procedure TCastleStringList.SetCount(const Value: Integer);
 var
   I: Integer;
 begin
@@ -936,12 +936,12 @@ begin
   end;
 end;
 
-procedure TKamStringList.AddList(const Source: TStringList);
+procedure TCastleStringList.AddList(const Source: TStringList);
 begin
   AddStrings(Source);
 end;
 
-procedure TKamStringList.AddArray(const A: array of string);
+procedure TCastleStringList.AddArray(const A: array of string);
 var
   I: Integer;
 begin
@@ -949,13 +949,13 @@ begin
     Add(A[I]);
 end;
 
-procedure TKamStringList.AssignArray(const A: array of string);
+procedure TCastleStringList.AssignArray(const A: array of string);
 begin
   Clear;
   AddArray(A);
 end;
 
-procedure TKamStringList.Reverse;
+procedure TCastleStringList.Reverse;
 var
   I: Integer;
 begin
@@ -966,7 +966,7 @@ begin
     Exchange(I, Count - 1 - I);
 end;
 
-function TKamStringList.Equal(List: TKamStringList): boolean;
+function TCastleStringList.Equal(List: TCastleStringList): boolean;
 var
   I: Integer;
 begin
@@ -977,7 +977,7 @@ begin
   Result := true;
 end;
 
-function TKamStringList.Equal(const A: array of string): boolean;
+function TCastleStringList.Equal(const A: array of string): boolean;
 var
   I: Integer;
 begin
@@ -988,12 +988,12 @@ begin
   Result := true;
 end;
 
-function TKamStringList.GetL(const Index: Integer): string;
+function TCastleStringList.GetL(const Index: Integer): string;
 begin
   Result := Strings[Index];
 end;
 
-procedure TKamStringList.SetL(const Index: Integer; const S: string);
+procedure TCastleStringList.SetL(const Index: Integer; const S: string);
 begin
   Strings[Index] := S;
 end;
@@ -1293,11 +1293,11 @@ begin
 end;
 
 function CreateTokens(const s: string;
-  const TokenDelims: TSetOfChars): TKamStringList;
+  const TokenDelims: TSetOfChars): TCastleStringList;
 var SeekPos: Integer;
     Token: string;
 begin
- Result := TKamStringList.Create;
+ Result := TCastleStringList.Create;
  try
   SeekPos := 1;
   repeat

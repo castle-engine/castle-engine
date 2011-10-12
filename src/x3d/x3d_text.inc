@@ -23,12 +23,12 @@
   { Font family that can be specified by FontStyle node in family
     field. First three fields are equal (after casting by Ord) to
     three values of FSFAMILY_* constants. }
-  TVRMLFontFamily = (ffSerif, ffSans, ffTypeWriter);
+  TX3DFontFamily = (ffSerif, ffSans, ffTypeWriter);
 
   { Font justification that can be specified by FontStyle in
     justify/justification field. First three fields are equal
     (after casting by Ord) to JUSTIFICATION_* constants. }
-  TVRMLFontJustify = (fjBegin, fjMiddle, fjEnd);
+  TX3DFontJustify = (fjBegin, fjMiddle, fjEnd);
 
   TFontStyleNode = class(TAbstractFontStyleNode)
   private
@@ -69,21 +69,21 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function Family: TVRMLFontFamily;
+    function Family: TX3DFontFamily;
     function Bold: boolean;
     function Italic: boolean;
-    function Justify: TVRMLFontJustify;
+    function Justify: TX3DFontJustify;
     function TTF_Font: PTrueTypeFont;
 
     class function DefaultSize: Single;
     class function DefaultSpacing: Single;
-    class function DefaultFamily: TVRMLFontFamily;
+    class function DefaultFamily: TX3DFontFamily;
     class function DefaultBold: boolean;
     class function DefaultItalic: boolean;
-    class function DefaultJustify: TVRMLFontJustify;
+    class function DefaultJustify: TX3DFontJustify;
     class function DefaultTTF_Font: PTrueTypeFont;
 
-    class function ClassTTF_Font(AFamily: TVRMLFontFamily;
+    class function ClassTTF_Font(AFamily: TX3DFontFamily;
       const ABold, AItalic: boolean): PTrueTypeFont;
   end;
   TFontStyleNode_2 = TFontStyleNode;
@@ -107,26 +107,26 @@
     public property FdString: TMFString read FFdString;
 
     { Event: MFVec2f, out } { }
-    private FEventLineBounds: TVRMLEvent;
-    public property EventLineBounds: TVRMLEvent read FEventLineBounds;
+    private FEventLineBounds: TX3DEvent;
+    public property EventLineBounds: TX3DEvent read FEventLineBounds;
 
     { Event: SFVec3f, out } { }
-    private FEventOrigin: TVRMLEvent;
-    public property EventOrigin: TVRMLEvent read FEventOrigin;
+    private FEventOrigin: TX3DEvent;
+    public property EventOrigin: TX3DEvent read FEventOrigin;
 
     { Event: SFVec2f, out } { }
-    private FEventTextBounds: TVRMLEvent;
-    public property EventTextBounds: TVRMLEvent read FEventTextBounds;
+    private FEventTextBounds: TX3DEvent;
+    public property EventTextBounds: TX3DEvent read FEventTextBounds;
 
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    function LocalBoundingBox(State: TVRMLGraphTraverseState;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): TBox3D; override;
-    function VerticesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
-    function TrianglesCount(State: TVRMLGraphTraverseState; OverTriangulate: boolean;
-      ProxyGeometry: TAbstractGeometryNode; ProxyState: TVRMLGraphTraverseState): Cardinal; override;
+    function LocalBoundingBox(State: TX3DGraphTraverseState;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
+    function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+    function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+      ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
     { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
       is nil or if it's not TFontStyleNode. }
@@ -144,7 +144,7 @@ begin
 end;
 
 const
-  TTF_Font_Results: array[TVRMLFontFamily, boolean, boolean]of PTrueTypeFont =
+  TTF_Font_Results: array[TX3DFontFamily, boolean, boolean]of PTrueTypeFont =
   (              {   [],                          [italic],                            [bold],                      [italic, bold] }
     {serif}      ( ((@TTF_BitstreamVeraSerif),   (@TTF_BitstreamVeraSerif_Italic)),    ((@TTF_BitstreamVeraSerif_Bold),    (@TTF_BitstreamVeraSerif_Bold_Italic)) ),
     {sans}       ( ((@TTF_BitstreamVeraSans),    (@TTF_BitstreamVeraSans_Italic)),     ((@TTF_BitstreamVeraSans_Bold),     (@TTF_BitstreamVeraSans_Bold_Italic)) ),
@@ -228,12 +228,12 @@ begin
 end;
 
 class function TFontStyleNode.ClassTTF_Font(
-  AFamily: TVRMLFontFamily; const ABold, AItalic: boolean): PTrueTypeFont;
+  AFamily: TX3DFontFamily; const ABold, AItalic: boolean): PTrueTypeFont;
 begin
   Result := TTF_Font_Results[AFamily, ABold, AItalic];
 end;
 
-function TFontStyleNode.Family: TVRMLFontFamily;
+function TFontStyleNode.Family: TX3DFontFamily;
 var
   I: Integer;
 begin
@@ -296,7 +296,7 @@ begin
   end;
 end;
 
-function TFontStyleNode.Justify: TVRMLFontJustify;
+function TFontStyleNode.Justify: TX3DFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
 var
@@ -373,7 +373,7 @@ begin
   Result := 1;
 end;
 
-class function TFontStyleNode.DefaultFamily: TVRMLFontFamily;
+class function TFontStyleNode.DefaultFamily: TX3DFontFamily;
 begin
   Result := ffSerif;
 end;
@@ -388,7 +388,7 @@ begin
   Result := false;
 end;
 
-class function TFontStyleNode.DefaultJustify: TVRMLFontJustify;
+class function TFontStyleNode.DefaultJustify: TX3DFontJustify;
 begin
   Result := fjBegin;
 end;
@@ -420,13 +420,13 @@ begin
    FdString.ChangesAlways := [chGeometry];
   Fields.Add(FFdString);
 
-  FEventLineBounds := TVRMLEvent.Create(Self, 'lineBounds', TMFVec2f, false);
+  FEventLineBounds := TX3DEvent.Create(Self, 'lineBounds', TMFVec2f, false);
   Events.Add(FEventLineBounds);
 
-  FEventOrigin := TVRMLEvent.Create(Self, 'origin', TSFVec3f, false);
+  FEventOrigin := TX3DEvent.Create(Self, 'origin', TSFVec3f, false);
   Events.Add(FEventOrigin);
 
-  FEventTextBounds := TVRMLEvent.Create(Self, 'textBounds', TSFVec2f, false);
+  FEventTextBounds := TX3DEvent.Create(Self, 'textBounds', TSFVec2f, false);
   Events.Add(FEventTextBounds);
 
   FFdSolid := TSFBool.Create(Self, 'solid', false);

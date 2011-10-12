@@ -284,20 +284,20 @@
     public property FdUrl: TMFString read FFdUrl;
 
     { Event: SFTime, out } { }
-    private FEventDuration_changed: TVRMLEvent;
-    public property EventDuration_changed: TVRMLEvent read FEventDuration_changed;
+    private FEventDuration_changed: TX3DEvent;
+    public property EventDuration_changed: TX3DEvent read FEventDuration_changed;
 
     { Event: SFTime, out } { }
-    private FEventElapsedTime: TVRMLEvent;
-    public property EventElapsedTime: TVRMLEvent read FEventElapsedTime;
+    private FEventElapsedTime: TX3DEvent;
+    public property EventElapsedTime: TX3DEvent read FEventElapsedTime;
 
     { Event: SFBool, out } { }
-    private FEventIsActive: TVRMLEvent;
-    public property EventIsActive: TVRMLEvent read FEventIsActive;
+    private FEventIsActive: TX3DEvent;
+    public property EventIsActive: TX3DEvent read FEventIsActive;
 
     { Event: SFBool, out } { }
-    private FEventIsPaused: TVRMLEvent;
-    public property EventIsPaused: TVRMLEvent read FEventIsPaused;
+    private FEventIsPaused: TX3DEvent;
+    public property EventIsPaused: TX3DEvent read FEventIsPaused;
 
     function TextureDescription: string; override;
 
@@ -871,16 +871,16 @@ begin
   Fields.Add(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FEventDuration_changed := TVRMLEvent.Create(Self, 'duration_changed', TSFTime, false);
+  FEventDuration_changed := TX3DEvent.Create(Self, 'duration_changed', TSFTime, false);
   Events.Add(FEventDuration_changed);
 
-  FEventElapsedTime := TVRMLEvent.Create(Self, 'elapsedTime', TSFTime, false);
+  FEventElapsedTime := TX3DEvent.Create(Self, 'elapsedTime', TSFTime, false);
   Events.Add(FEventElapsedTime);
 
-  FEventIsActive := TVRMLEvent.Create(Self, 'isActive', TSFBool, false);
+  FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
 
-  FEventIsPaused := TVRMLEvent.Create(Self, 'isPaused', TSFBool, false);
+  FEventIsPaused := TX3DEvent.Create(Self, 'isPaused', TSFBool, false);
   Events.Add(FEventIsPaused);
 
   FDuration := -1;

@@ -41,24 +41,24 @@ type
   TVRMLMeshRenderer = class
   private
     FRenderer: TGLRenderer;
-    FShape: TVRMLRendererShape;
+    FShape: TX3DRendererShape;
     FGeometry: TAbstractGeometryNode;
-    FState: TVRMLGraphTraverseState;
-    FAttributes: TVRMLRenderingAttributes;
+    FState: TX3DGraphTraverseState;
+    FAttributes: TX3DRenderingAttributes;
   protected
     { Current rendering properties, constant for the whole
       lifetime of the renderer, set in constructor. }
     property Renderer: TGLRenderer read FRenderer;
-    property Shape: TVRMLRendererShape read FShape;
+    property Shape: TX3DRendererShape read FShape;
     property Geometry: TAbstractGeometryNode read FGeometry;
-    property State: TVRMLGraphTraverseState read FState;
-    property Attributes: TVRMLRenderingAttributes read FAttributes;
+    property State: TX3DGraphTraverseState read FState;
+    property Attributes: TX3DRenderingAttributes read FAttributes;
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
     PrepareRenderShape: Cardinal;
 
-    constructor Create(ARenderer: TGLRenderer; AShape: TVRMLRendererShape);
+    constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
 
@@ -146,7 +146,7 @@ type
 { TVRMLMeshRenderer ---------------------------------------------------------- }
 
 constructor TVRMLMeshRenderer.Create(ARenderer: TGLRenderer;
-  AShape: TVRMLRendererShape);
+  AShape: TX3DRendererShape);
 begin
   inherited Create;
 

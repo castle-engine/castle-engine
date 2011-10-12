@@ -26,12 +26,12 @@
     public property FdSize: TSFVec3f read FFdSize;
 
     { Event: SFTime, out } { }
-    private FEventEnterTime: TVRMLEvent;
-    public property EventEnterTime: TVRMLEvent read FEventEnterTime;
+    private FEventEnterTime: TX3DEvent;
+    public property EventEnterTime: TX3DEvent read FEventEnterTime;
 
     { Event: SFTime, out } { }
-    private FEventExitTime: TVRMLEvent;
-    public property EventExitTime: TVRMLEvent read FEventExitTime;
+    private FEventExitTime: TX3DEvent;
+    public property EventExitTime: TX3DEvent read FEventExitTime;
   end;
 
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -42,16 +42,16 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     { Event: SFVec3f, out } { }
-    private FEventCenterOfRotation_changed: TVRMLEvent;
-    public property EventCenterOfRotation_changed: TVRMLEvent read FEventCenterOfRotation_changed;
+    private FEventCenterOfRotation_changed: TX3DEvent;
+    public property EventCenterOfRotation_changed: TX3DEvent read FEventCenterOfRotation_changed;
 
     { Event: SFRotation, out } { }
-    private FEventOrientation_changed: TVRMLEvent;
-    public property EventOrientation_changed: TVRMLEvent read FEventOrientation_changed;
+    private FEventOrientation_changed: TX3DEvent;
+    public property EventOrientation_changed: TX3DEvent read FEventOrientation_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TVRMLEvent;
-    public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
+    private FEventPosition_changed: TX3DEvent;
+    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
   end;
 
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -64,12 +64,12 @@
     public property FdTargetObject: TSFNode read FFdTargetObject;
 
     { Event: SFRotation, out } { }
-    private FEventOrientation_changed: TVRMLEvent;
-    public property EventOrientation_changed: TVRMLEvent read FEventOrientation_changed;
+    private FEventOrientation_changed: TX3DEvent;
+    public property EventOrientation_changed: TX3DEvent read FEventOrientation_changed;
 
     { Event: SFVec3f, out } { }
-    private FEventPosition_changed: TVRMLEvent;
-    public property EventPosition_changed: TVRMLEvent read FEventPosition_changed;
+    private FEventPosition_changed: TX3DEvent;
+    public property EventPosition_changed: TX3DEvent read FEventPosition_changed;
   end;
 
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -96,10 +96,10 @@ begin
   Fields.Add(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 
-  FEventEnterTime := TVRMLEvent.Create(Self, 'enterTime', TSFTime, false);
+  FEventEnterTime := TX3DEvent.Create(Self, 'enterTime', TSFTime, false);
   Events.Add(FEventEnterTime);
 
-  FEventExitTime := TVRMLEvent.Create(Self, 'exitTime', TSFTime, false);
+  FEventExitTime := TX3DEvent.Create(Self, 'exitTime', TSFTime, false);
   Events.Add(FEventExitTime);
 
   DefaultContainerField := 'children';
@@ -109,13 +109,13 @@ procedure TProximitySensorNode.CreateNode;
 begin
   inherited;
 
-  FEventCenterOfRotation_changed := TVRMLEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
+  FEventCenterOfRotation_changed := TX3DEvent.Create(Self, 'centerOfRotation_changed', TSFVec3f, false);
   Events.Add(FEventCenterOfRotation_changed);
 
-  FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  FEventOrientation_changed := TX3DEvent.Create(Self, 'orientation_changed', TSFRotation, false);
   Events.Add(FEventOrientation_changed);
 
-  FEventPosition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
   Events.Add(FEventPosition_changed);
 
   DefaultContainerField := 'children';
@@ -145,10 +145,10 @@ begin
   FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
   Fields.Add(FFdTargetObject);
 
-  FEventOrientation_changed := TVRMLEvent.Create(Self, 'orientation_changed', TSFRotation, false);
+  FEventOrientation_changed := TX3DEvent.Create(Self, 'orientation_changed', TSFRotation, false);
   Events.Add(FEventOrientation_changed);
 
-  FEventPosition_changed := TVRMLEvent.Create(Self, 'position_changed', TSFVec3f, false);
+  FEventPosition_changed := TX3DEvent.Create(Self, 'position_changed', TSFVec3f, false);
   Events.Add(FEventPosition_changed);
 
   DefaultContainerField := 'children';
