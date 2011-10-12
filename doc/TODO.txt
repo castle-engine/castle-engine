@@ -984,10 +984,12 @@ More shaders demos, for some day:
 ------------------------------------------------------------------------------
 Finish removal of VRML / Kambi from everything inside the engine,
 things that can be deferred to much later:
-- Some files remain with vrml / kambi inside names:
-  find \(  -iname '*vrml*' -print  \) -or \( -name .svn -type d -prune \)
-  find \(  -iname '*kambi*' -print  \) -or \( -name .svn -type d -prune \)
-  For now, they can stay.
+- Maybe rename vrml_engine_doc and files inside to avoid "vrml" inside name?
+  But not now --- it's centered on vrml anyway now.
+
+  Together with this, also rename ./demo_models/vrml_engine_doc_simple_examples,
+  also rename www/htdocs/vrml_engine_doc dir
+
 - Rename also VRML/X3D extensions with Kambi inside name?
   Or just add alternatives, with Castle prefix or no prefix, to keep compatibility?
   TKambiAppearanceNode 	X3DNodes
@@ -996,6 +998,9 @@ things that can be deferred to much later:
   TKambiNavigationInfoNode 	X3DNodes
   TKambiOctreePropertiesNode 	X3DNodes
   TKambiTriangulationNode 	X3DNodes
+
+  Also rename our VRML/X3D extensions fields, like kambiShadows, kambiShadowsMain.
+  (Hm, but these are already deprecated anyway... Too much useless work to rename them?)
 
 ------------------------------------------------------------------------------
 Various:
