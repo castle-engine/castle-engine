@@ -258,9 +258,9 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       First := TX3DTokenInfoList.Create;
       First.ReadFromFile(FileName);
 
-      Node := LoadVRMLClassic(FileName, false);
+      Node := LoadX3DClassic(FileName, false);
       NewFile := GetTempPath + 'test_castle_game_engine.wrl';
-      SaveVRML(Node, NewFile, ProgramName, '', xeClassic, false);
+      Save3D(Node, NewFile, ProgramName, '', xeClassic, false);
 
       Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
@@ -1445,13 +1445,13 @@ begin
   end;
 end;
 
-function LoadVRMLClassicStream(Stream: TStream): TX3DRootNode;
+function LoadX3DClassicStream(Stream: TStream): TX3DRootNode;
 var
   BS: TBufferedReadStream;
 begin
   BS := TBufferedReadStream.Create(Stream, false);
   try
-    Result := LoadVRMLClassic(BS , '');
+    Result := LoadX3DClassic(BS , '');
   finally FreeAndNil(BS) end;
 end;
 
@@ -1468,7 +1468,7 @@ begin
   try
     TempStream := TMemoryStream.Create;
 
-    Node := LoadVRMLClassicFromString('#X3D V3.1 utf8' +NL+
+    Node := LoadX3DClassicFromString('#X3D V3.1 utf8' +NL+
       'PROFILE Immersive' +NL+
       'COMPONENT NURBS:2' +NL+
       'COMPONENT Shaders:1' +NL+
@@ -1488,10 +1488,10 @@ begin
     Assert(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
-    SaveVRML(Node, TempStream, '', '', xeClassic, false);
+    Save3D(Node, TempStream, '', '', xeClassic, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
-    Node := LoadVRMLClassicStream(TempStream);
+    Node := LoadX3DClassicStream(TempStream);
 
     { make sure saved and loaded back Ok }
     Assert(Node.HasForceVersion);
@@ -1519,12 +1519,12 @@ begin
     Node.Meta['testkey2'] := 'evennewervalue2';
     Node.Meta['testkey3'] := 'newvalue3';
 
-    { save and load again. During SaveVRML tweak meta generator and source }
+    { save and load again. During Save3D tweak meta generator and source }
     TempStream.Position := 0;
-    SaveVRML(Node, TempStream, 'newgenerator', 'newsource', xeClassic, false);
+    Save3D(Node, TempStream, 'newgenerator', 'newsource', xeClassic, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
-    Node := LoadVRMLClassicStream(TempStream);
+    Node := LoadX3DClassicStream(TempStream);
 
     { make sure saved and loaded back Ok }
     Assert(Node.HasForceVersion);
@@ -1542,9 +1542,9 @@ begin
     Assert(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
     Assert(Node.Meta['source'] = 'newsource');
 
-    { save and load again, this time going though XML }
+    { save and load again, this time going through XML }
     TempStream.Position := 0;
-    SaveVRML(Node, TempStream, '', '', xeXML, false);
+    Save3D(Node, TempStream, '', '', xeXML, false);
     FreeAndNil(Node);
     TempStream.Position := 0;
     Node := LoadX3DXml(TempStream, '');
@@ -1583,7 +1583,7 @@ begin
     TempStream := TMemoryStream.Create;
 
     { load X3D 3.1 }
-    Node := LoadVRMLClassicFromString('#X3D V3.1 utf8' +NL+
+    Node := LoadX3DClassicFromString('#X3D V3.1 utf8' +NL+
       'PROFILE Immersive', '');
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 3);
@@ -1592,7 +1592,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeXML, true);
+    Save3D(Node, TempStream, '', '', xeXML, true);
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
@@ -1605,19 +1605,19 @@ begin
     { save to clasic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeClassic, true);
+    Save3D(Node, TempStream, '', '', xeClassic, true);
     FreeAndNil(Node);
 
     { check that loading it back results in 3.1 }
     TempStream.Position := 0;
-    Node := LoadVRMLClassicStream(TempStream);
+    Node := LoadX3DClassicStream(TempStream);
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 3);
     Assert(Node.ForceVersion.Minor = 1);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
-    Node := LoadVRMLClassicFromString('#VRML V2.0 utf8' + NL, '');
+    Node := LoadX3DClassicFromString('#VRML V2.0 utf8' + NL, '');
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 2);
     Assert(Node.ForceVersion.Minor = 0);
@@ -1625,7 +1625,7 @@ begin
     { save to XML }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeXML, false);
+    Save3D(Node, TempStream, '', '', xeXML, false);
     FreeAndNil(Node);
 
     { check that loading it back results in 3.0
@@ -1638,7 +1638,7 @@ begin
     FreeAndNil(Node);
 
     { load VRML 2.0 }
-    Node := LoadVRMLClassicFromString('#VRML V2.0 utf8' + NL, '');
+    Node := LoadX3DClassicFromString('#VRML V2.0 utf8' + NL, '');
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 2);
     Assert(Node.ForceVersion.Minor = 0);
@@ -1646,20 +1646,20 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeClassic, false);
+    Save3D(Node, TempStream, '', '', xeClassic, false);
     FreeAndNil(Node);
 
     { check that loading it back results in 2.0
       (convertion not done, since this is classic and convertion not forced) }
     TempStream.Position := 0;
-    Node := LoadVRMLClassicStream(TempStream);
+    Node := LoadX3DClassicStream(TempStream);
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 2);
     Assert(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
-    Node := LoadVRMLClassicFromString('#VRML V2.0 utf8' + NL, '');
+    Node := LoadX3DClassicFromString('#VRML V2.0 utf8' + NL, '');
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 2);
     Assert(Node.ForceVersion.Minor = 0);
@@ -1667,13 +1667,13 @@ begin
     { save to classic }
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeClassic, true);
+    Save3D(Node, TempStream, '', '', xeClassic, true);
     FreeAndNil(Node);
 
     { check that loading it back results in 3.0
       (convertion done, since forced = true) }
     TempStream.Position := 0;
-    Node := LoadVRMLClassicStream(TempStream);
+    Node := LoadX3DClassicStream(TempStream);
     Assert(Node.HasForceVersion = true);
     Assert(Node.ForceVersion.Major = 3);
     Assert(Node.ForceVersion.Minor = 0);
@@ -1736,16 +1736,16 @@ begin
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeClassic, true);
+    Save3D(Node, TempStream, '', '', xeClassic, true);
     FreeAndNil(Node);
 
     TempStream.Position := 0;
-    Node := LoadVRMLClassicStream(TempStream);
+    Node := LoadX3DClassicStream(TempStream);
     Assertions(Node);
 
     TempStream.Position := 0;
     TempStream.Size := 0;
-    SaveVRML(Node, TempStream, '', '', xeXML, true);
+    Save3D(Node, TempStream, '', '', xeXML, true);
     FreeAndNil(Node);
 
     TempStream.Position := 0;

@@ -567,7 +567,7 @@ procedure MenuCommand(Glwin: TCastleWindowBase; Item: TMenuItem);
         Part.FdUrl.Items.Add('elevation.vs');
       end;
 
-      SaveVRML(Root, FileName, 'terrain', '', xeClassic);
+      Save3D(Root, FileName, 'terrain', '', xeClassic);
     finally FreeAndNil(Root) end;
   end;
 

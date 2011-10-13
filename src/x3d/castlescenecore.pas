@@ -795,8 +795,8 @@ type
 
     { Load the 3D model from given AFileName.
 
-      Model is loaded by LoadVRML, so this supports all
-      3D model formats that LoadVRML handles
+      Model is loaded by Load3D, so this supports all
+      3D model formats that Load3D handles
       (VRML, X3D, Wavefront OBJ, 3DS, Collada and more).
 
       @param(AllowStdIn If AllowStdIn and AFileName = '-' then we will load
@@ -2406,10 +2406,10 @@ end;
 procedure TCastleSceneCore.Load(const AFileName: string; AllowStdIn: boolean;
   const AResetTime: boolean);
 begin
-  { Note that if LoadVRML fails, we will not change the RootNode,
+  { Note that if Load3D fails, we will not change the RootNode,
     so currently loaded scene will remain valid. }
 
-  Load(LoadVRML(AFileName, AllowStdIn), true, AResetTime);
+  Load(Load3D(AFileName, AllowStdIn), true, AResetTime);
 
   FFileName := AFileName;
 end;

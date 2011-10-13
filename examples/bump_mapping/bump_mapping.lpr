@@ -1186,8 +1186,7 @@ begin
     500: NormalizedDot3First := not NormalizedDot3First;
     600: begin
            S := ExtractFilePath(VrmlFileName);
-           if Glwin.FileDialog('Open VRML model', S, true,
-             LoadVRML_FileFilters) then
+           if Glwin.FileDialog('Open VRML model', S, true, Load3D_FileFilters) then
            begin
              LoadScene(S);
              VrmlFileName := S;

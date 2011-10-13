@@ -41,7 +41,7 @@ var
   S: string;
 begin
   S := ExtractFilePath(FileName);
-  if Window.FileDialog('Open 3D model', S, true, LoadVRML_FileFilters) then
+  if Window.FileDialog('Open 3D model', S, true, Load3D_FileFilters) then
   begin
     FileName := S;
     Scene.Load(FileName);

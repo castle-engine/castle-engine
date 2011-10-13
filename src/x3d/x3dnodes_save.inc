@@ -18,7 +18,7 @@
 {$ifdef read_interface}
 
 { Which VRML/X3D version should be used to save this 3D model. }
-function SaveVRMLVersion(Node: TX3DNode): TX3DVersion;
+function Save3DVersion(Node: TX3DNode): TX3DVersion;
 
 { Write VRML/X3D model to a file.
   Generates a complete file, with header lines (XML headers,
@@ -38,15 +38,15 @@ function SaveVRMLVersion(Node: TX3DNode): TX3DVersion;
   VRML 1.0/Inventor are really old).
 
   Note that converting to X3D will change the nodes graph, possibly
-  removing some nodes. If you use TVRMLScene, you should call
-  TVRMLScene.BeforeNodesFree before and TVRMLScene.ChangedAll
+  removing some nodes. If you use TCastleSceneCore, you should call
+  TCastleSceneCore.BeforeNodesFree before and TCastleSceneCore.ChangedAll
   when such convertion occcurs (you can easily test whether it may
-  happen by SaveVRMLWillConvertToX3D). If you use Encoding=xeClassic
+  happen by Save3DWillConvertToX3D). If you use Encoding=xeClassic
   and ForceConvertingToX3D=false, you're safe: convertion will not happen.
 
   @param(Version Which VRML/X3D specification version should be used
-    to encode. It should be calculated by SaveVRMLVersion(Node).
-    You often want to calculate it yourself, before calling SaveVRML,
+    to encode. It should be calculated by Save3DVersion(Node).
+    You often want to calculate it yourself, before calling Save3D,
     this way you can propose a sensible saved model extension for user
     (.wrl for VRML <= 2.0 in classic encoding, .x3dv for X3D in classic encoding).
 
@@ -60,31 +60,31 @@ function SaveVRMLVersion(Node: TX3DNode): TX3DVersion;
     Which means that you would not generate correct X3D file.
 
     So this should really be calculated based on model contents,
-    usually by SaveVRMLVersion(Node).
+    usually by Save3DVersion(Node).
 
     A limited VRML 2.0 convertion is possible by ForceConvertingToX3D = true.
     In this case, Version will be automatically changed to X3D anyway.)
 
   @groupBegin }
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   const Filename, Generator, Source: string;
   const Version: TX3DVersion; const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   const Filename, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
 { @groupEnd }
 
-function SaveVRMLWillConvertToX3D(Version: TX3DVersion;
+function Save3DWillConvertToX3D(Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean): boolean;
 
@@ -121,7 +121,7 @@ const
   { Used when we have to save as X3D, but profile information is missing. }
   DefaultX3DSaveProfile = 'Interchange';
 
-function SaveVRMLVersion(Node: TX3DNode): TX3DVersion;
+function Save3DVersion(Node: TX3DNode): TX3DVersion;
 begin
   if (Node is TX3DRootNode) and
      TX3DRootNode(Node).HasForceVersion then
@@ -229,7 +229,7 @@ begin
     Node := ConvertNurbsPositionInterpolator(TNurbsPositionInterpolatorNode_2(Node));
 end;
 
-function SaveVRMLWillConvertToX3D(Version: TX3DVersion;
+function Save3DWillConvertToX3D(Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean): boolean;
 begin
@@ -237,7 +237,7 @@ begin
     (ForceConvertingToX3D or (Encoding <> xeClassic));
 end;
 
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   Version: TX3DVersion;
   const Encoding: TX3DEncoding;
@@ -258,7 +258,7 @@ var
 
     { Since we convert in-place (replacing nodes inside),
       then Node must be a TX3DRootNode to replace in it the version.
-      Fortunately, our SaveVRMLVersion already guarantees it:
+      Fortunately, our Save3DVersion already guarantees it:
       if a node isn't TX3DRootNode, it's always treated as X3D already,
       so a convertion will not happen. }
     Assert(Node is TX3DRootNode, 'Nodes must be TX3DRootNode to convert to X3D, to mark new version.');
@@ -430,7 +430,7 @@ var
   end;
 
 begin
-  if SaveVRMLWillConvertToX3D(Version, Encoding, ForceConvertingToX3D) then
+  if Save3DWillConvertToX3D(Version, Encoding, ForceConvertingToX3D) then
     ConvertToX3D;
 
   Writer := TX3DWriterNames.Create(Stream, Version, Encoding);
@@ -443,7 +443,7 @@ begin
   finally FreeAndNil(Writer) end;
 end;
 
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   const Filename, Generator, Source: string; const Version: TX3DVersion;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
@@ -452,26 +452,26 @@ var
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveVRML(Node, Stream, Generator, Source, Version,
+    Save3D(Node, Stream, Generator, Source, Version,
       Encoding, ForceConvertingToX3D);
   finally Stream.Free end;
 end;
 
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   Stream: TStream; const Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin
-  SaveVRML(Node, Stream, Generator, Source, SaveVRMLVersion(Node),
+  Save3D(Node, Stream, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
 end;
 
-procedure SaveVRML(Node: TX3DNode;
+procedure Save3D(Node: TX3DNode;
   const FileName, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean);
 begin
-  SaveVRML(Node, FileName, Generator, Source, SaveVRMLVersion(Node),
+  Save3D(Node, FileName, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
 end;
 

@@ -335,7 +335,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FullUrl);
       try
-        NewRootNode := LoadVRML(FullUrl, false);
+        NewRootNode := Load3D(FullUrl, false);
       except
         on E: Exception do
         begin
@@ -485,7 +485,7 @@ begin
     begin
       FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
       try
-        FInlined := LoadVRML(FullUrl, false);
+        FInlined := Load3D(FullUrl, false);
         if (Exported <> nil) and
            (TX3DRootNode(FInlined).ExportedNames <> nil) then
           Exported.Assign(TX3DRootNode(FInlined).ExportedNames);

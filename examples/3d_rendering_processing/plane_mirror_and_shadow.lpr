@@ -521,7 +521,7 @@ begin
       begin
         S := ExtractFilePath(SceneFileName);
         if Window.FileDialog('Open 3d model (VRML etc.) file', S, true,
-          LoadVRML_FileFilters) then
+          Load3D_FileFilters) then
         begin
           SceneForShadow.BeforeNodesFree; { loading Scene will free also SceneForShadow.RootNode }
 
@@ -607,9 +607,9 @@ begin
 
   { calculate RootNode }
   if SceneFileName <> '' then
-    RootNode := LoadVRML(SceneFileName, true) else
+    RootNode := Load3D(SceneFileName, true) else
     { use box, just to show anything }
-    RootNode := LoadVRMLClassicFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
+    RootNode := LoadX3DClassicFromString('#VRML V1.0 ascii' + LineEnding +  'Cube { }', '');
 
   Scene := TCastleScene.Create(nil);
   try

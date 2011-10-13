@@ -105,7 +105,7 @@ type
     function FileExtension(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;
     { File filters for TCastleWindowBase.FileDialog if you want to save a file using
-      SaveVRML. }
+      Save3D. }
     function FileFilters(const Encoding: TX3DEncoding;
       const ForceConvertingToX3D: boolean = false): string;
   end;
@@ -323,7 +323,7 @@ type
   EVRMLError = class(Exception);
 
   { Error when reading VRML/X3D classic encoding. }
-  EVRMLClassicReadError = class(EVRMLError)
+  EX3DClassicReadError = class(EVRMLError)
   protected
     function MessagePositionPrefix(Lexer: TX3DLexer): string; virtual; abstract;
   public
@@ -335,17 +335,17 @@ type
     constructor Create(Lexer: TX3DLexer; const s: string);
   end;
 
-  { Error when reading VRML/X3D. For now, just equal to EVRMLClassicReadError,
-    later may be an ancestor to EVRMLClassicReadError.
+  { Error when reading VRML/X3D. For now, just equal to EX3DClassicReadError,
+    later may be an ancestor to EX3DClassicReadError.
     Problems in other encodings (XML) are for now always turned into warnings. }
-  EVRMLReadError = EVRMLClassicReadError;
+  EVRMLReadError = EX3DClassicReadError;
 
-  EX3DLexerError = class(EVRMLClassicReadError)
+  EX3DLexerError = class(EX3DClassicReadError)
   protected
     function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
   end;
 
-  EVRMLParserError = class(EVRMLClassicReadError)
+  EVRMLParserError = class(EX3DClassicReadError)
   protected
     function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
   end;
@@ -1090,7 +1090,7 @@ end;
 
 { Exceptions ----------------------------------------------------------------- }
 
-constructor EVRMLClassicReadError.Create(Lexer: TX3DLexer; const s: string);
+constructor EX3DClassicReadError.Create(Lexer: TX3DLexer; const s: string);
 begin
   inherited Create(MessagePositionPrefix(Lexer) + S);
 end;

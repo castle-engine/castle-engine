@@ -49,8 +49,8 @@ var
   LCLFilter: string;
   FilterIndex: Integer;
 begin
-  { TODO: use LoadVRML_FileFilters without "All Files" part. }
-  FileFiltersToOpenDialog(LoadVRML_FileFilters, LCLFilter, FilterIndex);
+  { TODO: use Load3D_FileFilters without "All Files" part. }
+  FileFiltersToOpenDialog(Load3D_FileFilters, LCLFilter, FilterIndex);
   Result := LCLFilter + (inherited GetFilter);
 end;
 

@@ -1338,7 +1338,7 @@ end;
 
 procedure TCastleControl.Load(const SceneFileName: string);
 begin
-  Load(LoadVRML(SceneFileName, false), true);
+  Load(Load3D(SceneFileName, false), true);
 end;
 
 procedure TCastleControl.Load(ARootNode: TX3DRootNode; const OwnsRootNode: boolean);

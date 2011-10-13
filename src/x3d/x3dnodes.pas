@@ -749,7 +749,7 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Load 3D model, just like LoadVRML but with a cache.
+    { Load 3D model, just like Load3D but with a cache.
       URL must be absolute (not relative) filename.
 
       Note that this should not be used if you plan to modify the model graph
@@ -2809,11 +2809,11 @@ begin
   end;
 
   { Initialize Result first, before calling CachedNodes.Add.
-    That's because in case LoadVRML raises exception,
+    That's because in case Load3D raises exception,
     we don't want to add image to cache (because caller would have
     no way to call Free3D later). }
 
-  Result := LoadVRML(URL, false);
+  Result := X3DLoad.Load3D(URL, false);
 
   C := TCachedNode.Create;
   CachedNodes.Add(C);

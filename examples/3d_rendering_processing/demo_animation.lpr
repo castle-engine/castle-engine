@@ -112,7 +112,7 @@ begin
 
     for I := 0 to Parameters.High div 2 - 1 do
     begin
-      AnimRootNodes[I] := LoadVRML(Parameters[(I+1) * 2 - 1], false);
+      AnimRootNodes[I] := Load3D(Parameters[(I+1) * 2 - 1], false);
       AnimTimes[I] := StrToFloat(Parameters[(I+1) * 2]);
     end;
 

@@ -259,7 +259,7 @@ type
       from given file.
 
       Various file formats are possible, everything that can be handled by
-      LoadVRMLSequence, in particular simple 3D model files, MD3,
+      Load3DSequence, in particular simple 3D model files, MD3,
       kanim (described on
       [http://castle-engine.sourceforge.net/kanim_format.php]).
 
@@ -268,7 +268,7 @@ type
       and EqualityEpsilon of kanim files), you should use
       more flexible (and less comfortable to use)
       LoadFromFileToVars class procedure (specialized for kanim files)
-      or LoadVRMLSequence (if you want to handle any files).
+      or Load3DSequence (if you want to handle any files).
 
       @link(Loaded) property changes to @true after calling this.
 
@@ -1386,7 +1386,7 @@ begin
   Times := TSingleList.Create;
   RootNodes := TX3DNodeList.Create(false);
   try
-    LoadVRMLSequence(FileName, AllowStdIn,
+    Load3DSequence(FileName, AllowStdIn,
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 

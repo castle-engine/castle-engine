@@ -63,7 +63,7 @@ var
   end;
 
 begin
-  Model := LoadVRMLClassic('teapot.wrl', false);
+  Model := LoadX3DClassic('teapot.wrl', false);
   try
     HandleCoords('TeapotManifold', 'Manifold');
     HandleCoords('Teapot', '');

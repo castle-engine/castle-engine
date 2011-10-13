@@ -29,7 +29,7 @@
       this unit's implementation, may be done --- report if needed.)
 
     @item(3D formats are also listed in the file filters constants:
-      see LoadVRML_FileFilters and LoadVRMLSequence_FileFilters.
+      see Load3D_FileFilters and Load3DSequence_FileFilters.
       Each format has a file filter to specifically choose this format,
       and also is added to the "All 3D models" filter.)
 
@@ -64,19 +64,20 @@ interface
 uses VectorMath, SysUtils, X3DNodes, X3DLoadInternalMD3,
   CastleUtils, Classes;
 
-{ This guesses model format basing on ExtractFileExt(filename),
-  then loads model converting it to VRML.
+{ Load 3D model. Guesses model format basing on ExtractFileExt(filename).
+  VRML/X3D formats are loaded directly,
+  other model formats are converted under the hood to VRML/X3D.
 
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
-    a VRML file from StdInStream (using GetCurrentDir as WWWBasePath).) }
-function LoadVRML(const filename: string;
+    a VRML/X3D file from StdInStream (using GetCurrentDir as WWWBasePath).) }
+function Load3D(const filename: string;
   AllowStdIn: boolean = false): TX3DRootNode;
 
 const
-  { File filters for files loaded by LoadVRML, suitable
+  { File filters for files loaded by Load3D, suitable
     for TFileFilterList.AddFiltersFromString and
     TCastleWindowBase.FileDialog. }
-  LoadVRML_FileFilters =
+  Load3D_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
@@ -92,20 +93,24 @@ const
   'Wavefront (*.obj)|*.obj|' +
   'Videoscape (*.geo)|*.geo';
 
-{ Load various model formats as animation expressed by VRML sequence.
+{ Load various model formats as animation expressed by VRML/X3D sequence.
 
   For model formats that cannot express animations (like GEO or Wavefront OBJ)
-  or that express animations in a single VRML file (like VRML >= 2.0)
-  this just loads them like LoadVRML, adding exactly one item
+  or that express animations in a single file (like VRML/X3D >= 2.0)
+  we load them exactly like Load3D, adding exactly one item
   to RootNodes.
-  This guarantees that this function handles @italic(at least)
-  the same model formats as LoadVRML --- but actually it may
-  handle more.
+  So this function handles @italic(at least) the same model formats as Load3D.
 
-  And indeed, it currently handles kanim, that
-  is completely unrecognized by LoadVRML.
+  Additionally:
 
-  This handles animations in kanim and MD3 formats.
+  @unorderedList(
+    @item(We load kanim format. It can only be loaded to a sequence of files,
+      so Load3D cannot deal with it at all.)
+
+    @item(We load MD3 format in a little different (usually more efficient)
+      way: to a sequence of frames. In comparison, Load3D loads MD3
+      into an interpolated animation.)
+  )
 
   @param(RootNodes Sequence of root nodes will be stored there.
     Pass here some created and empty instance of TX3DNodeList.)
@@ -113,7 +118,7 @@ const
   @param(ATimes Sequence of time values.
     Pass here some created and empty instance of TSingleList.)
 }
-procedure LoadVRMLSequence(
+procedure Load3DSequence(
   const FileName: string;
   AllowStdIn: boolean;
   RootNodes: TX3DNodeList;
@@ -123,10 +128,10 @@ procedure LoadVRMLSequence(
   out TimeLoop, TimeBackwards: boolean);
 
 const
-  { File filters for files loaded by LoadVRMLSequence, suitable
+  { File filters for files loaded by Load3DSequence, suitable
     for TFileFilterList.AddFiltersFromString and
     TCastleWindowBase.FileDialog. }
-  LoadVRMLSequence_FileFilters =
+  Load3DSequence_FileFilters =
   'All Files|*|' +
   '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
@@ -149,7 +154,7 @@ uses PrecalculatedAnimationCore, CastleClassUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
   X3DLoadInternalCollada;
 
-function LoadVRML(const filename: string;
+function Load3D(const filename: string;
   AllowStdIn: boolean): TX3DRootNode;
 const
   GzExt = '.gz';
@@ -164,7 +169,7 @@ var
   Ext: string;
 begin
   if AllowStdIn and (FileName = '-') then
-    result := LoadVRMLClassic('-', true) else
+    result := LoadX3DClassic('-', true) else
   begin
     Ext := ExtractFileExt(filename);
     if Ext = '.gz' then
@@ -173,7 +178,7 @@ begin
       0: result := LoadGEO(filename);
       1: result := Load3DS(filename);
       2: result := LoadWavefrontOBJ(filename);
-      3..9: result := LoadVRMLClassic(filename, false);
+      3..9: result := LoadX3DClassic(filename, false);
       10: Result := LoadMD3(FileName);
       11: Result := LoadCollada(FileName);
       12: Result := LoadX3DXml(FileName, false);
@@ -188,10 +193,10 @@ end;
 function LoadAsVRML(const filename: string;
   AllowStdIn: boolean): TX3DRootNode;
 begin
-  Result := LoadVRML(FileName, AllowStdIn);
+  Result := Load3D(FileName, AllowStdIn);
 end;
 
-procedure LoadVRMLSequence(const FileName: string;
+procedure Load3DSequence(const FileName: string;
   AllowStdIn: boolean;
   RootNodes: TX3DNodeList;
   Times: TSingleList;
@@ -216,7 +221,7 @@ procedure LoadVRMLSequence(const FileName: string;
       RootNodes.Count := ModelFileNames.Count;
       for I := 0 to ModelFileNames.Count - 1 do
       try
-        RootNodes[I] := LoadVRML(ModelFileNames[I]);
+        RootNodes[I] := Load3D(ModelFileNames[I]);
       except
         for J := 0 to I - 1 do
           FPGObjectList_FreeAndNilItem(RootNodes, J);
@@ -247,7 +252,7 @@ begin
   if SameText(Ext, '.md3') then
     LoadMD3Sequence(FileName, RootNodes, Times, ScenesPerTime,
       EqualityEpsilon, TimeLoop, TimeBackwards) else
-    LoadSingle(LoadVRML(FileName, AllowStdIn));
+    LoadSingle(Load3D(FileName, AllowStdIn));
 end;
 
 end.

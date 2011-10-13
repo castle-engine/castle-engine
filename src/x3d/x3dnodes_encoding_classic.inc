@@ -19,9 +19,9 @@
 
 const
   { File filters for TCastleWindowBase.FileDialog if you want to open a file and then
-    pass it to LoadVRMLClassic. Note that only LoadVRMLClassic that takes a FileName
+    pass it to LoadX3DClassic. Note that only LoadX3DClassic that takes a FileName
     parameter (as a string) can deal with gzip compressed files. }
-  LoadVRMLClassic_FileFilters =
+  LoadX3DClassic_FileFilters =
   'All files|*|' +
   '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';
 
@@ -31,7 +31,7 @@ const
   generic TStream class. But it's not a problem, really, because
   you can wrap any class inside TPeekCharStream descendant. E.g. do
   @longcode(#
-    LoadVRMLClassic(TBufferedReadStream.Create(MyStream, false), WWWBasePath)
+    LoadX3DClassic(TBufferedReadStream.Create(MyStream, false), WWWBasePath)
   #)
 
   Note that this function can't handle compressed data (VRML files are
@@ -39,10 +39,10 @@ const
   with uncompressed text data.
 
   @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
-function LoadVRMLClassic(Stream: TPeekCharStream;
+function LoadX3DClassic(Stream: TPeekCharStream;
   const WWWBasePath: string): TX3DRootNode; overload;
 
-function LoadVRMLClassicFromString(const VRMLContents: string;
+function LoadX3DClassicFromString(const VRMLContents: string;
   const WWWBasePath: string): TX3DRootNode; overload;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
@@ -53,7 +53,7 @@ function LoadVRMLClassicFromString(const VRMLContents: string;
 
   If AllowStdIn then FileName = '-' is understood as "standard input"
   (StdInStream). Base path for resolving URLs in this case is GetCurrentDir. }
-function LoadVRMLClassic(const FileName: string;
+function LoadX3DClassic(const FileName: string;
   AllowStdIn: boolean): TX3DRootNode; overload;
 
 {$endif read_interface}
@@ -490,7 +490,7 @@ begin
     end else
     begin
       { Somewhat more involved version of the loop, the idea is to catch
-        EVRMLClassicReadError happening in the ParseVRMLStatement
+        EX3DClassicReadError happening in the ParseVRMLStatement
         and convert it to OnWarning (then merely stop reading VRML file,
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
@@ -498,7 +498,7 @@ begin
         ParseVRMLStatement;
         Inc(PositionInParent);
       except
-        on E: EVRMLClassicReadError do
+        on E: EX3DClassicReadError do
         begin
           OnWarning(wtMajor, 'VRML/X3D', Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
           Break;
@@ -508,7 +508,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadVRMLClassic(Stream: TPeekCharStream;
+function LoadX3DClassic(Stream: TPeekCharStream;
   const WWWBasePath: string): TX3DRootNode;
 var
   Lexer: TX3DLexer;
@@ -524,7 +524,7 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-function LoadVRMLClassic(const FileName: string;
+function LoadX3DClassic(const FileName: string;
   AllowStdIn: boolean): TX3DRootNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
@@ -534,7 +534,7 @@ function LoadVRMLClassic(const FileName: string;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadVRMLClassic(Stream, WWWBasePath);
+      Result := LoadX3DClassic(Stream, WWWBasePath);
     finally Stream.Free end;
   end;
 
@@ -594,7 +594,7 @@ begin
   end;
 end;
 
-function LoadVRMLClassicFromString(const VRMLContents: string;
+function LoadX3DClassicFromString(const VRMLContents: string;
   const WWWBasePath: string): TX3DRootNode; overload;
 var
   Stream: TPeekCharStream;
@@ -602,22 +602,8 @@ begin
   Stream := TSimplePeekCharStream.Create(
     TStringStream.Create(VRMLContents), true);
   try
-    Result := LoadVRMLClassic(Stream, WWWBasePath);
+    Result := LoadX3DClassic(Stream, WWWBasePath);
   finally FreeAndNil(Stream) end;
-end;
-
-function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean): TX3DRootNode;
-begin
-  Result := LoadVRMLClassic(FileName, AllowStdIn);
-end;
-
-{ saving --------------------------------------------------------------------- }
-
-procedure SaveVRMLClassic(Node: TX3DNode;
-  const FileName, PrecedingComment: string);
-begin
-  SaveVRML(Node, FileName, PrecedingComment, '', xeClassic, false);
 end;
 
 {$endif read_implementation}

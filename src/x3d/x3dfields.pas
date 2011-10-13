@@ -3092,7 +3092,7 @@ begin
     try
       ParseXMLAttributeLexer(Lexer);
     except
-      on E: EVRMLClassicReadError do
+      on E: EX3DClassicReadError do
         OnWarning(wtMajor, 'VRML/X3D', 'Error when reading field "' + Name + '" value: ' + E.Message);
     end;
   finally FreeAndNil(Lexer) end;
@@ -5910,7 +5910,7 @@ begin
     try
       ParseXMLAttributeLexer(Lexer);
     except
-      on E: EVRMLClassicReadError do
+      on E: EX3DClassicReadError do
       begin
         OnWarning(wtMajor, 'VRML/X3D', 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
         Items.Count := 0;

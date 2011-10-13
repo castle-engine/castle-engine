@@ -48,7 +48,7 @@ var
 begin
   Stream := TFileStream.Create(Filename, fmCreate);
   try
-    SaveVRML(Node, Stream, 'kanim_to_interpolators', '', xeClassic);
+    Save3D(Node, Stream, 'kanim_to_interpolators', '', xeClassic);
     WritelnStr(Stream, StringReplace(SceneSuffix, '$(CoordinateNodeName)',
       CoordinateNodeName, [rfReplaceAll, rfIgnoreCase]));
   finally Stream.Free end;
