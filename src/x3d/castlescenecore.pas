@@ -2382,7 +2382,12 @@ end;
 
 procedure TCastleSceneCore.Load(ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
   const AResetTime: boolean);
+var
+  RestoreProcessEvents: boolean;
 begin
+  { temporarily turn off events, to later initialize and turn them on }
+  RestoreProcessEvents := ProcessEvents;
+  ProcessEvents := false;
   BeforeNodesFree;
   PointingDeviceClear;
   if OwnsRootNode then FreeAndNil(FRootNode);
@@ -2407,6 +2412,9 @@ begin
 
   if AResetTime then
     ResetTimeAtLoad;
+
+  { restore events processing, initialize new scripts and such }
+  ProcessEvents := RestoreProcessEvents;
 end;
 
 procedure TCastleSceneCore.Load(const AFileName: string; AllowStdIn: boolean;
