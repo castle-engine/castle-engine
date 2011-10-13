@@ -235,6 +235,7 @@ KamReadLink              CastleReadLink
 LoadVRMLClassic LoadX3DClassic
 loadvrml Load3D
 savevrml Save3D
+EVRML EX3D
 
 ------------------------------------------------------------------------------
 3. Renames done, unit names:

@@ -21,7 +21,7 @@
   TIndexedPolygonHandler = procedure (const Indexes: array of Cardinal)
     of object;
 
-  ENotCoordinateBasedNode = class(EVRMLError);
+  ENotCoordinateBasedNode = class(EX3DError);
 
   { Geometry nodes are the only nodes that produces some visible results
     during rendering. Much of the VRML language is just

@@ -28,8 +28,8 @@ const
   DefaultRotation: TVector4Single = (0, 0, 1, 0);
 
 type
-  EVRMLFieldAssign = class(Exception);
-  EVRMLFieldAssignInvalidClass = class(EVRMLFieldAssign);
+  EX3DFieldAssign = class(Exception);
+  EX3DFieldAssignInvalidClass = class(EX3DFieldAssign);
 
   TX3DEvent = class;
 
@@ -789,17 +789,17 @@ type
       You can manually change it to @true, if this copy indeed was done
       following "IS" clause.
 
-      @raises(EVRMLFieldAssignInvalidClass
+      @raises(EX3DFieldAssignInvalidClass
         Usually it's required the Source class to be equal to our class,
-        if Source classes cannot be assigned we raise EVRMLFieldCannotAssignClass.)
+        if Source classes cannot be assigned we raise EX3DFieldCannotAssignClass.)
 
-      @raises(EVRMLFieldAssign
+      @raises(EX3DFieldAssign
         Raised in case of any field assignment problem. It's guaranteed that
         in case of such problem, our value will not be modified before
         raising the exception.
 
-        EVRMLFieldAssignInvalidClass inherits from EVRMLFieldAssign,
-        so actually EVRMLFieldAssignInvalidClass is just a special case of this
+        EX3DFieldAssignInvalidClass inherits from EX3DFieldAssign,
+        so actually EX3DFieldAssignInvalidClass is just a special case of this
         exceptiion.)
 
       @italic(Descendants implementors notes):
@@ -853,10 +853,10 @@ type
           are equal or descendant of target (Self) class.)
 
         @item(For multiple-value fields, counts of Value1 and Value2
-          must be equal, or EVRMLMultFieldDifferentCount will be raised.)
+          must be equal, or EX3DMultFieldDifferentCount will be raised.)
       )
 
-      @raises(EVRMLMultFieldDifferentCount When field is multiple-value
+      @raises(EX3DMultFieldDifferentCount When field is multiple-value
         VRML field and Value1.Count <> Value2.Count.)
     }
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); virtual;
@@ -960,7 +960,7 @@ type
 
   TX3DSingleFieldList = specialize TFPGObjectList<TX3DSingleField>;
 
-  EVRMLMultFieldDifferentCount = class(Exception);
+  EX3DMultFieldDifferentCount = class(Exception);
 
   TX3DMultField = class(TX3DField)
   protected
@@ -977,7 +977,7 @@ type
       So you usually want to initialize them afterwards to something correct. }
     property Count: Integer read GetCount write SetCount;
 
-    { If SecondValue.Count <> Count, raises EVRMLMultFieldDifferentCount }
+    { If SecondValue.Count <> Count, raises EX3DMultFieldDifferentCount }
     procedure CheckCountEqual(SecondValue: TX3DMultField);
   end;
 
@@ -3168,7 +3168,7 @@ end;
 
 procedure TX3DField.AssignValueRaiseInvalidClass(Source: TX3DField);
 begin
-  raise EVRMLFieldAssignInvalidClass.CreateFmt('Cannot assign VRML field ' +
+  raise EX3DFieldAssignInvalidClass.CreateFmt('Cannot assign VRML field ' +
     '%s (%s) from %s (%s)',
     [        Name,        VRMLTypeName,
       Source.Name, Source.VRMLTypeName]);
@@ -3286,7 +3286,7 @@ end;
 procedure TX3DMultField.CheckCountEqual(SecondValue: TX3DMultField);
 begin
   if SecondValue.Count <> Count then
-    raise EVRMLMultFieldDifferentCount.CreateFmt(
+    raise EX3DMultFieldDifferentCount.CreateFmt(
       'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
       [ Name,
         SecondValue.Name,
@@ -3536,7 +3536,7 @@ begin
   begin
     if Lexer.TokenKeyword = vkTrue then Value := true else
       if Lexer.TokenKeyword = vkFalse then Value := false else
-        raise EVRMLParserError.Create(Lexer,
+        raise EX3DParserError.Create(Lexer,
           'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
   end else
   begin
@@ -3550,7 +3550,7 @@ begin
       Value := false;
       VRML2BooleanIntegerWarning;
     end else
-      raise EVRMLParserError.Create(Lexer,
+      raise EX3DParserError.Create(Lexer,
         'Expected '+SBoolExpected+', got '+Lexer.DescribeToken);
   end;
   Lexer.NextToken;
@@ -3998,7 +3998,7 @@ begin
           for i := 0 to w*h-1 do
             DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
         end;
-      else raise EVRMLParserError.Create(Lexer, Format('Invalid components count'+
+      else raise EX3DParserError.Create(Lexer, Format('Invalid components count'+
              ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));
     end;
   end;
@@ -4954,7 +4954,7 @@ procedure TSFBitMask.ParseValue(Lexer: TX3DLexer; Names: TObject);
     if Lexer.TokenName = fNoneString then
       { Don't set anything. Note that this doesn't clear other flags,
         so e.g. "( FLAG_1 | NONE )" equals just "FLAG_1". } else
-      raise EVRMLParserError.Create(Lexer,
+      raise EX3DParserError.Create(Lexer,
         'Expected bit mask constant, got '+Lexer.DescribeToken);
   end;
 
@@ -5089,7 +5089,7 @@ begin
   Lexer.CheckTokenIs(vtName, 'enumerated type constant');
   val := fEnumNames.IndexOf(Lexer.TokenName);
   if val = -1 then
-   raise EVRMLParserError.Create(Lexer,
+   raise EX3DParserError.Create(Lexer,
      'Expected enumerated type constant, got '+Lexer.DescribeToken);
   Value := val;
   Lexer.NextToken;

@@ -1247,7 +1247,7 @@ begin
       zapamietywanie takiego BoundingBoxa nie jest poprawne.
   }
   if VRML1ChildrenCount = 0 then
-    raise EVRMLError.Create('LOD node must have at least one child');
+    raise EX3DError.Create('LOD node must have at least one child');
 
   Func(Self, VRML1Children[0]);
 end;

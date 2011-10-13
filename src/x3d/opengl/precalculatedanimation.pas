@@ -903,10 +903,10 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
             (Model1.Fields[I] as TX3DMultField).CheckCountEqual
               (Model2.Fields[I] as TX3DMultField);
           except
-            (* Translate EVRMLMultFieldDifferentCount exception
+            (* Translate EX3DMultFieldDifferentCount exception
                (may be raised by TX3DMultField.CheckCountEqual above)
                to EModelsStructureDifferent. *)
-            on E: EVRMLMultFieldDifferentCount do
+            on E: EX3DMultFieldDifferentCount do
               raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
           end;
         end;

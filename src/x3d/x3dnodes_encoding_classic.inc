@@ -38,7 +38,7 @@ const
   sometimes compressed with gzip). You should already pass here a stream
   with uncompressed text data.
 
-  @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
+  @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
 function LoadX3DClassic(Stream: TPeekCharStream;
   const WWWBasePath: string): TX3DRootNode; overload;
 
@@ -74,7 +74,7 @@ begin
       vtCloseCurlyBracket: Dec(LevelCurlyBracket);
       vtOpenSqBracket: Inc(LevelSqBracket);
       vtCloseSqBracket: Dec(LevelSqBracket);
-      vtEnd: raise EVRMLParserError.Create(Lexer, 'Unexpected end of stream');
+      vtEnd: raise EX3DParserError.Create(Lexer, 'Unexpected end of stream');
     end;
     Lexer.NextToken;
   end;
@@ -104,13 +104,13 @@ end;
 
   If we will find USE clause but node name will be unknown, the normal
   behavior (when NilIfUnresolvedUSE = @false, default) is to raise
-  EVRMLParserError (just like in case of many other errors).
+  EX3DParserError (just like in case of many other errors).
   However, this is a particular parsing error, because we can probably
   pretty safely continue parsing, ignoring this error.
   So if you pass NilIfUnresolvedUSE = @true, this function will do
   OnWarning and simply return @nil.
 
-  @raises(EVRMLParserError On various parsing errors.)
+  @raises(EX3DParserError On various parsing errors.)
 *)
 function ParseNode(Lexer: TX3DLexer; Names: TX3DNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
@@ -168,7 +168,7 @@ function ParseNode(Lexer: TX3DLexer; Names: TX3DNames;
     try
       Result := TX3DPrototypeNode(Result).Instantiate;
     except
-      on E: EVRMLPrototypeInstantiateError do
+      on E: EX3DPrototypeInstantiateError do
         { Just write E.Message and silence the exception.
           Result will simply remain as TX3DPrototypeNode instance in this case. }
         OnWarning(wtMajor, 'VRML/X3D', E.Message);
@@ -263,16 +263,16 @@ begin
              end;
              if NilIfUnresolvedUSE then
                OnWarning(wtMajor, 'VRML/X3D', S) else
-               raise EVRMLParserError.Create(Lexer, S);
+               raise EX3DParserError.Create(Lexer, S);
            end;
 
            Lexer.NextToken;
           end;
-        else raise EVRMLParserError.Create(Lexer,
+        else raise EX3DParserError.Create(Lexer,
                'Expected node type or DEF or USE, got '+Lexer.DescribeToken);
        end;
      vtName: ParseNamedNode('');
-     else raise EVRMLParserError.Create(Lexer,
+     else raise EX3DParserError.Create(Lexer,
             'Expected node type or DEF or USE, got '+Lexer.DescribeToken);
     end;
   except FreeAndNil(Result); raise end;
@@ -587,7 +587,7 @@ begin
 
           2. TDecompressionStream doesn't handle gzip compressed data for now
              (it handles zlib-compressed streams, which is not the same thing). }
-        on EVRMLGzipCompressed do
+        on EX3DGzipCompressed do
           Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true, WWWBasePath);
       end;
     end;

@@ -1290,7 +1290,7 @@ type
   { }
   TX3DPrototypeBase = class;
 
-  EVRMLPrototypeInstantiateError = class(Exception);
+  EX3DPrototypeInstantiateError = class(Exception);
 
   { VRML node related to a given prototype.
 
@@ -1354,7 +1354,7 @@ type
       from Source.
 
       For fields basically does Destination.AssignValue(Source).
-      In case of EVRMLFieldAssign, make OnWarning with clear message.
+      In case of EX3DFieldAssign, make OnWarning with clear message.
 
       For events establishes internal route.
 
@@ -1432,7 +1432,7 @@ type
           to correctly save using PrototypeInstanceSourceNode, instead
           of writing actual node contents.))
 
-      @raises(EVRMLPrototypeInstantiateError if for some reason
+      @raises(EX3DPrototypeInstantiateError if for some reason
         the prototype cannot be instantiated.
         You can catch this and replace with OnWarning, if possible.)
     }
@@ -1911,7 +1911,7 @@ const
 
 type
   { }
-  ENodesManagerError = class(EVRMLError);
+  ENodesManagerError = class(EX3DError);
   ENodeClassRegisterError = class(ENodesManagerError);
   TNodesManager = class
   private
@@ -3716,11 +3716,11 @@ begin
       vkEventOut, vkOutputOnly: Access := atOutputOnly;
       vkField, vkInitializeOnly: Access := atInitializeOnly;
       vkExposedField, vkInputOutput: Access := atInputOutput;
-      else raise EVRMLParserError.Create(
+      else raise EX3DParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
     end;
   end else
-    raise EVRMLParserError.Create(
+    raise EX3DParserError.Create(
       Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
 
   Lexer.NextToken;
@@ -3728,7 +3728,7 @@ begin
   FieldTypeName := Lexer.TokenName;
   FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
   if FieldType = nil then
-    raise EVRMLParserError.Create(
+    raise EX3DParserError.Create(
       Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
 
   Lexer.NextToken;
@@ -4193,7 +4193,7 @@ begin
       DestinationField.AssignValue(SourceField);
       DestinationField.ValueFromIsClause := true;
     except
-      on E: EVRMLFieldAssignInvalidClass do
+      on E: EX3DFieldAssignInvalidClass do
       begin
         OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", ' +
           'field of type %s (named "%s") references ' +
@@ -4204,7 +4204,7 @@ begin
            SourceField.VRMLTypeName,
            Source.Name]));
       end;
-      on E: EVRMLFieldAssign do
+      on E: EX3DFieldAssign do
       begin
         OnWarning(wtMajor, 'VRML/X3D', Format('Error when expanding prototype "%s": ',
           [Prototype.Name]) + E.Message);
@@ -4492,7 +4492,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
       { If exception occurs before NodeCopy is connected to Result,
         NodeCopy should be simply freed. }
       FreeAndNil(NodeCopy);
-      raise EVRMLPrototypeInstantiateError.CreateFmt(
+      raise EX3DPrototypeInstantiateError.CreateFmt(
         'Prototype "%s" has no nodes, cannot instantiate',
         [Proto.Name]);
     end;
@@ -4575,7 +4575,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
   procedure InstantiateExternalPrototype(Proto: TX3DExternalPrototype);
   begin
     if Proto.ReferencedPrototype = nil then
-      raise EVRMLPrototypeInstantiateError.CreateFmt(
+      raise EX3DPrototypeInstantiateError.CreateFmt(
         'External prototype "%s" cannot be loaded, so cannot instantiate nodes using it',
         [Proto.Name]);
 
@@ -4593,7 +4593,7 @@ begin
     InstantiateNonExternalPrototype(Prototype as TX3DPrototype) else
   if Prototype is TX3DExternalPrototype then
     InstantiateExternalPrototype(Prototype as TX3DExternalPrototype) else
-    raise EVRMLPrototypeInstantiateError.CreateFmt(
+    raise EX3DPrototypeInstantiateError.CreateFmt(
       'Cannot instantiate prototype "%s": '+
       'unknown prototype class %s', [Prototype.Name, Prototype.ClassName]);
 end;
@@ -4626,7 +4626,7 @@ begin
     begin
       I.Parse(Lexer, Names, not ExternalProto, false);
     end else
-      raise EVRMLParserError.Create(
+      raise EX3DParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
   end;
 
@@ -4930,7 +4930,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
           try
             I.Field.AssignValue(ReferencedField);
           except
-            on E: EVRMLFieldAssign do
+            on E: EX3DFieldAssign do
             begin
               OnWarning(wtMajor, 'VRML/X3D', Format(
                 'Error when linking external prototype "%s" with prototype "%s": ',
@@ -5261,7 +5261,7 @@ begin
 end;
 
 type
-  ERouteSetEndingError = class(EVRMLError);
+  ERouteSetEndingError = class(EX3DError);
 
 const
   DestEndingNames: array [boolean] of string =
@@ -5422,7 +5422,7 @@ begin
 end;
 
 type
-  EVRMLRouteSaveError = class(EVRMLError);
+  EX3DRouteSaveError = class(EX3DError);
 
 procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
 
@@ -5434,13 +5434,13 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
   begin
     { Check Node }
     if Node = nil then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
     if Node.NodeName = '' then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
     BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.NodeName, IgnoreNodeFinished);
     if BoundNode = nil then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
+      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
         [S, Node.NodeName]);
 
     { Just like when setting node by TX3DRoute.SetEnding:
@@ -5449,18 +5449,18 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
     if BoundNode.PrototypeInstanceSourceNode <> nil then
       BoundNode := BoundNode.PrototypeInstanceSourceNode;
     if BoundNode <> Node then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
+      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
         [S, Node.NodeName]);
 
     NodeName := Node.NodeName;
 
     { Check Event }
     if Event = nil then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not assigned', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s event not assigned', [S]);
 
     { Check we have a name. }
     if Event.Name = '' then
-      raise EVRMLRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
+      raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
     EventName := Event.Name;
   end;
 
@@ -5485,7 +5485,7 @@ begin
       else raise EInternalError.Create('TX3DRoute.SaveToStream Encoding?');
     end;
   except
-    on E: EVRMLRouteSaveError do
+    on E: EX3DRouteSaveError do
       OnWarning(wtMajor, 'VRML/X3D', E.Message);
   end;
 end;

@@ -37,7 +37,7 @@ function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
 {$ifdef read_implementation}
 
 type
-  EX3DXmlError = class(EVRMLError);
+  EX3DXmlError = class(EX3DError);
   EX3DXmlNotAllowedError = class(EX3DXmlError);
   EX3DXmlUnknownNodeNotAllowed = class(EX3DXmlError);
 
@@ -210,7 +210,7 @@ function ParseXMLNode(Element: TDOMElement;
       try
         Result := TX3DPrototypeNode(Result).Instantiate;
       except
-        on E: EVRMLPrototypeInstantiateError do
+        on E: EX3DPrototypeInstantiateError do
           { Just write E.Message and silence the exception.
             Result will simply remain as TX3DPrototypeNode instance in this case. }
           OnWarning(wtMajor, 'VRML/X3D', E.Message);

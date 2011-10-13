@@ -1203,7 +1203,7 @@ type
     procedure PrepareScreenEffect(Node: TScreenEffectNode);
   end;
 
-  EGLRendererror = class(EVRMLError);
+  EGLRendererror = class(EX3DError);
 
 const
   AllVboTypes = [Low(TVboType) .. High(TVboType)];

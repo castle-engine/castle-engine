@@ -1539,7 +1539,7 @@ begin
         VRML1ChildAdd(ChildNode);
       end else
       begin
-        raise EVRMLParserError.Create(Lexer,
+        raise EX3DParserError.Create(Lexer,
           Format('Invalid VRML node content (probably unknown or not allowed' +
             ' field, prototype or VRML 1.0-style children) inside "%s": got %s',
             [NodeTypeName, Lexer.DescribeToken]));
@@ -1570,7 +1570,7 @@ function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
       FieldTypeName := Lexer.TokenName;
       FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
       if FieldType = nil then
-        raise EVRMLParserError.Create(
+        raise EX3DParserError.Create(
           Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
 
       Lexer.NextToken;

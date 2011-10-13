@@ -92,7 +92,7 @@ type
     vtEnd);
   TX3DTokens = set of TX3DToken;
 
-  EVRMLGzipCompressed = class(Exception);
+  EX3DGzipCompressed = class(Exception);
 
 const
   TokenNumbers : TX3DTokens = [vtFloat, vtInteger];
@@ -169,7 +169,7 @@ type
       After constructor call, @link(Version) is already set,
       it's checked that file is not compressed by gzip, and the first
       Token is already read.
-      @raises(EVRMLGzipCompressed If the Stream starts with gzip file header.) }
+      @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
     constructor Create(AStream: TPeekCharStream; AOwnsStream: boolean);
 
     constructor CreateFromFile(const FileName: string);
@@ -270,7 +270,7 @@ type
       I found sample VRML models with node name @code("Crab!") (yes,
       with exclamation mark and double quotes as part of the node name).
 
-      @raises(EVRMLParserError When we really really cannot interpret contents
+      @raises(EX3DParserError When we really really cannot interpret contents
         as vtName token here --- currently this may happen only if end of
         stream is reached. Note that this is reported as a parsing error.) }
     procedure NextTokenForceVTName;
@@ -320,10 +320,10 @@ type
   end;
 
   { Any error related to VRML/X3D. }
-  EVRMLError = class(Exception);
+  EX3DError = class(Exception);
 
   { Error when reading VRML/X3D classic encoding. }
-  EX3DClassicReadError = class(EVRMLError)
+  EX3DClassicReadError = class(EX3DError)
   protected
     function MessagePositionPrefix(Lexer: TX3DLexer): string; virtual; abstract;
   public
@@ -338,14 +338,14 @@ type
   { Error when reading VRML/X3D. For now, just equal to EX3DClassicReadError,
     later may be an ancestor to EX3DClassicReadError.
     Problems in other encodings (XML) are for now always turned into warnings. }
-  EVRMLReadError = EX3DClassicReadError;
+  EX3DReadError = EX3DClassicReadError;
 
   EX3DLexerError = class(EX3DClassicReadError)
   protected
     function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
   end;
 
-  EVRMLParserError = class(EX3DClassicReadError)
+  EX3DParserError = class(EX3DClassicReadError)
   protected
     function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
   end;
@@ -599,7 +599,7 @@ begin
     otherwise we know 100% it's not. }
   if Copy(Line, 1, Length(GzipHeader)) = GzipHeader then
   begin
-    raise EVRMLGzipCompressed.Create('Stream is compressed by gzip');
+    raise EX3DGzipCompressed.Create('Stream is compressed by gzip');
   end;
 
   { Normal (uncompressed) VRML file, continue reading ... }
@@ -1069,21 +1069,21 @@ end;
 procedure TX3DLexer.CheckTokenIs(Tok: TX3DToken; const TokDescription: string);
 begin
  if Token <> Tok then
-  raise EVRMLParserError.Create(Self, 'Expected '+TokDescription
+  raise EX3DParserError.Create(Self, 'Expected '+TokDescription
     +', got '+DescribeToken);
 end;
 
 procedure TX3DLexer.CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: string);
 begin
  if not (Token in Toks) then
-  raise EVRMLParserError.Create(Self, 'Expected '+ToksDescription
+  raise EX3DParserError.Create(Self, 'Expected '+ToksDescription
     +', got '+DescribeToken);
 end;
 
 procedure TX3DLexer.CheckTokenIsKeyword(const Keyword: TX3DKeyword);
 begin
   if not ( (Token = vtKeyword) and (TokenKeyword = Keyword) ) then
-    raise EVRMLParserError.Create(Self,
+    raise EX3DParserError.Create(Self,
       Format('Expected keyword "%s", got %s', [X3DKeywordsName[Keyword],
         DescribeToken]));
 end;
@@ -1100,7 +1100,7 @@ begin
   Result := Format('VRML/X3D lexical error at position %d: ', [Lexer.Stream.Position]);
 end;
 
-function EVRMLParserError.MessagePositionPrefix(Lexer: TX3DLexer): string;
+function EX3DParserError.MessagePositionPrefix(Lexer: TX3DLexer): string;
 begin
   Result := Format('VRML/X3D parse error at position %d: ', [Lexer.Stream.Position]);
 end;
