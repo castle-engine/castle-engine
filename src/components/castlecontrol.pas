@@ -1333,6 +1333,11 @@ begin
   inherited;
 
   FSceneManager := TCastleSceneManager.Create(Self);
+  { SetSubComponent and Name setting (must be unique only within TCastleControl,
+    so no troubles) are necessary to store it in LFM and display in object inspector
+    nicely. }
+  FSceneManager.SetSubComponent(true);
+  FSceneManager.Name := 'SceneManager';
   Controls.Add(SceneManager);
 end;
 

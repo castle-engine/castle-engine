@@ -4812,6 +4812,11 @@ begin
   inherited;
 
   FSceneManager := TCastleSceneManager.Create(Self);
+  { SetSubComponent and Name setting below are not really necessary,
+    but since TCastleWindow is a TComponent descendant, *maybe* in the future
+    we'll make use of it. }
+  FSceneManager.SetSubComponent(true);
+  FSceneManager.Name := 'SceneManager';
   Controls.Add(SceneManager);
 end;
 

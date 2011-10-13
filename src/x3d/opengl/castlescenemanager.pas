@@ -1887,7 +1887,8 @@ begin
   FItems.OnCursorChange := @ItemsAndCameraCursorChange;
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
-    so set some sensible Name. }
+    so make it a correct sub-component. }
+  FItems.SetSubComponent(true);
   FItems.Name := 'Items';
 
   FCameraBox := EmptyBox3D;
