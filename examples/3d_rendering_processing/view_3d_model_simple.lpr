@@ -28,14 +28,14 @@
   detection and generally with *everything* working. }
 program view_3d_model_simple;
 
-uses CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
+uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
 var
   Window: TCastleWindow;
   Scene: TCastleScene;
 begin
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('models' + PathDelim + 'boxes.x3dv');
+  Scene.Load('models' + PathDelim + 'bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
