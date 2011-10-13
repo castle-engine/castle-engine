@@ -301,9 +301,6 @@ type
       Useful for example for headlight. }
     WorldCoordinates: boolean;
 
-    { Deprecated name for Node. @exclude @deprecated }
-    function LightNode: TAbstractLightNode;
-
     { Light contribution to the specified vertex color.
       This can be used by software renderers (ray-tracers etc.)
       to calculate pixel color following VRML/X3D specifications.
@@ -1007,10 +1004,6 @@ type
 
     procedure Add(Node: TX3DNode); overload;
     procedure Add(Position: Integer; Node: TX3DNode); overload;
-
-    { @deprecated Deprecated names for @link(Add). }
-    procedure AddItem(Node: TX3DNode); overload;
-    procedure AddItem(Position: Integer; Node: TX3DNode); overload;
 
     procedure Delete(Index: Integer);
     { Remove child with given Index, and return it, @italic(never freeing it).
@@ -2354,11 +2347,6 @@ function TLightInstance.ContributionCameraIndependent(
 {$I x3dnodes_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
-function TLightInstance.LightNode: TAbstractLightNode;
-begin
-  Result := Node;
-end;
-
 { TLightInstancesList ----------------------------------------------------- }
 
 function TLightInstancesList.IndexOfNode(Node: TAbstractLightNode): integer;
@@ -3368,16 +3356,6 @@ procedure TMFNode.Add(Position: Integer; Node: TX3DNode);
 begin
   Items.Insert(Position, Node);
   Node.AddParentField(Self);
-end;
-
-procedure TMFNode.AddItem(Node: TX3DNode);
-begin
-  Add(Node);
-end;
-
-procedure TMFNode.AddItem(Position: Integer; Node: TX3DNode); overload;
-begin
-  Add(Position, Node);
 end;
 
 procedure TMFNode.Delete(Index: Integer);

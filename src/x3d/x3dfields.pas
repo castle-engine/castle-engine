@@ -489,8 +489,6 @@ type
     { Nice and concise field description for user.
       Describes parent node type, name and field/event's name. }
     function NiceName: string;
-    { @deprecated Deprecated name for NiceName. }
-    function FullName: string;
 
     { Save IS clauses to stream, only for classic encoding.
       For each IS clause, writeln field/event name followed by "IS" clause. }
@@ -2802,11 +2800,6 @@ begin
   if Name <> '' then
     Result += Name else
     Result += '<not named field>';
-end;
-
-function TX3DFieldOrEvent.FullName: string;
-begin
-  Result := NiceName;
 end;
 
 procedure TX3DFieldOrEvent.SaveToStreamClassicIsClauses(Writer: TX3DWriter);

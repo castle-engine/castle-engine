@@ -897,15 +897,6 @@ type
       actually depends on it, see implementation comments). }
     procedure ChangedAll; override;
 
-    { @italic(Deprecated) way to notify scene that you changed given Field value.
-
-      @italic(Deprecated, use ChangedField instead.)
-      Node @italic(must) be equal to Field.ParentNode.
-      Field must not be @nil.
-
-      @deprecated }
-    procedure ChangedFields(Node: TX3DNode; Field: TX3DField);
-
     { Notify scene that you changed the value of given field.
 
       This does relatively intelligent discovery what could be possibly
@@ -1520,11 +1511,6 @@ type
       and our extension
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
-
-    { @deprecated Deprecated name for ResetTime. }
-    procedure ResetWorldTime(const NewValue: TFloatTime);
-    { @deprecated Deprecated name for Time. }
-    function WorldTime: TX3DTime;
 
     { Binding stack of X3DBackgroundNode nodes.
       All descend from TAbstractBackgroundNode class. }
@@ -3509,13 +3495,6 @@ begin
       Exit;
     end;
   end;
-end;
-
-procedure TCastleSceneCore.ChangedFields(Node: TX3DNode; Field: TX3DField);
-begin
-  Assert(Field <> nil);
-  Assert(Field.ParentNode = Node);
-  ChangedField(Field);
 end;
 
 procedure TCastleSceneCore.ChangedField(Field: TX3DField);
@@ -5671,16 +5650,6 @@ begin
     will not do anything anyway. }
   if TimePlaying and (CompSpeed <> 0) then
     IncreaseTime(TimePlayingSpeed * CompSpeed);
-end;
-
-procedure TCastleSceneCore.ResetWorldTime(const NewValue: TFloatTime);
-begin
-  ResetTime(NewValue);
-end;
-
-function TCastleSceneCore.WorldTime: TX3DTime;
-begin
-  Result := Time;
 end;
 
 { changes schedule ----------------------------------------------------------- }

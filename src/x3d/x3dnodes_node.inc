@@ -992,9 +992,6 @@
   end;
 
   TX3DNodeList = class(specialize TFPGObjectList<TX3DNode>)
-    { @deprecated Deprecated name for FindName. }
-    function FindNodeName(const Name: string): Integer;
-
     { Find node by name, @nil if not found.
 
       For empty node name, always returns @nil. This follows the definition
@@ -3034,11 +3031,6 @@ begin
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }
-
-function TX3DNodeList.FindNodeName(const Name: string): Integer;
-begin
-  Result := IndexOfName(Name);
-end;
 
 function TX3DNodeList.FindName(const Name: string): TX3DNode;
 var

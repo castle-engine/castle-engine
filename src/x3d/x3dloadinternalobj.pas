@@ -549,10 +549,10 @@ begin
 
         if FacesWithMaterial <> nil then
         begin
-          { We find appearance by name, using FindNodeByName. We're sure
+          { We find appearance by name, using FindName. We're sure
             that we will find it --- because we added them all to Appearances. }
-          Shape.Appearance := Appearances[Appearances.FindNodeName(
-            MatOBJNameToVRMLName(FacesWithMaterial.Name))] as TAppearanceNode;
+          Shape.Appearance := Appearances.FindName(
+            MatOBJNameToVRMLName(FacesWithMaterial.Name)) as TAppearanceNode;
         end else
           Shape.Material := TMaterialNode.Create('', WWWBasePath);
 

@@ -56,14 +56,6 @@ function LoadVRMLClassicFromString(const VRMLContents: string;
 function LoadVRMLClassic(const FileName: string;
   AllowStdIn: boolean): TX3DRootNode; overload;
 
-{ Deprecated name for LoadVRMLClassic. @deprecated }
-function ParseVRMLFile(const FileName: string;
-  AllowStdIn: boolean): TX3DRootNode;
-
-{ @deprecated Deprecated save routine, use SaveVRML instead. }
-procedure SaveVRMLClassic(Node: TX3DNode;
-  const FileName, PrecedingComment: string); overload;
-
 {$endif read_interface}
 
 {$ifdef read_implementation}

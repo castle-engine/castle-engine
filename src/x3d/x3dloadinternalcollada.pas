@@ -2153,7 +2153,7 @@ var
     var
       InstanceVisualScene: TDOMElement;
       VisualSceneId: string;
-      VisualSceneIndex: Integer;
+      VisualScene: TX3DNode;
     begin
       InstanceVisualScene := DOMGetChildElement(SceneElement,
         'instance_visual_scene', false);
@@ -2163,15 +2163,11 @@ var
            SCharIs(VisualSceneId, 1, '#') then
         begin
           Delete(VisualSceneId, 1, 1);
-          VisualSceneIndex := VisualScenes.FindNodeName(VisualSceneId);
-          if VisualSceneIndex = -1 then
-          begin
+          VisualScene := VisualScenes.FindName(VisualSceneId);
+          if VisualScene = nil then
             OnWarning(wtMinor, 'Collada', Format('<instance_visual_scene> instantiates non-existing ' +
-              '<visual_scene> element "%s"', [VisualSceneId]));
-          end else
-          begin
-            ResultModel.FdChildren.Add(VisualScenes[VisualSceneIndex]);
-          end;
+              '<visual_scene> element "%s"', [VisualSceneId])) else
+            ResultModel.FdChildren.Add(VisualScene);
         end;
       end;
     end;

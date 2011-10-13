@@ -72,10 +72,6 @@ uses VectorMath, SysUtils, X3DNodes, X3DLoadInternalMD3,
 function LoadVRML(const filename: string;
   AllowStdIn: boolean = false): TX3DRootNode;
 
-{ Deprecated name for LoadVRML. @deprecated }
-function LoadAsVRML(const filename: string;
-  AllowStdIn: boolean = false): TX3DRootNode;
-
 const
   { File filters for files loaded by LoadVRML, suitable
     for TFileFilterList.AddFiltersFromString and
