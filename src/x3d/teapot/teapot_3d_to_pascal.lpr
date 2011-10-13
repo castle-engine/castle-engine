@@ -17,7 +17,7 @@
   with 4 Teapot constants.
   This way we get Utah teapot coordinate data in Pascal. }
 
-uses SysUtils, X3DNodes;
+uses SysUtils, X3DNodes, X3DLoad;
 
 var
   Model: TX3DNode;
@@ -63,7 +63,7 @@ var
   end;
 
 begin
-  Model := LoadX3DClassic('teapot.wrl', false);
+  Model := Load3D('teapot.wrl');
   try
     HandleCoords('TeapotManifold', 'Manifold');
     HandleCoords('Teapot', '');
