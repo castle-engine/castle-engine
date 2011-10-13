@@ -23,15 +23,15 @@ Make sure you have installed the necessary libraries first, or some of the demos
 
 Now we'll start creating our own game from scratch.
 
-2. Creating OpenGL context --- a window (TCastleWindowCustom) or a Lazarus component (TCastleControlCustom)
+2. Creating OpenGL context --- a window (TCastleWindow) or a Lazarus component (TCastleControl)
 
 First of all, you need to initialize a rectangular area on the screen that will be able to display 3D content. This is called OpenGL context. There are two ways of doing this:
 
-- You can use our own CastleWindow unit, that defines window class TCastleWindowCustom. This gives you the most OpenGL capabilities (our TCastleWindowCustom allows to request some funny stuff from OpenGL, not possible otherwise) and is usually best for 3D games.
+- You can use our own CastleWindow unit, that defines window class TCastleWindow. This gives you the most OpenGL capabilities (our TCastleWindow allows to request some funny stuff from OpenGL, not possible otherwise) and is usually best for 3D games.
 
 You can develop such programs using Lazarus, or any other text editor. The only real requirement is having a FreePascal installed.
 
-In this tutorial, we'll follow this way. We'll still be using Lazarus to compile our program, simply because it's the easiest and most popular method. But we will not use Lazarus form designer. As far as Lazarus is concerned, we're creating a "Custom Application" project.
+The left column of this tutorial will follow this way. We'll still be using Lazarus to compile our program, simply because it's the easiest and most popular method. But we will not use Lazarus form designer. As far as Lazarus is concerned, we're creating a "Custom Application" project.
 
 -> Create new project using Lazarus "New Project" menu item. Choose "Custom Application".
 
@@ -39,49 +39,36 @@ Place this source code in your program file (lpr).
 
 [[
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindow;
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Window.OpenAndRun;
 end.
 ]]
 
 Press "Run" and behold, a window! (without any contents drawn, so you will probably see the underlying screen contents underneath).
 
-- An alternative is to use our TCastleControlCustom inside normal Lazarus form. Just pick TCastleControlCustom from the component palette (tab "Castle") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TCastleControlCustom inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
+As you see, we give Application (this is defined in our CastleWindow unit) as the owner (first constructor parameter) of Window. This way we don't have to care about freeing it later. When the Application is freed (which is done automatically by CastleWindow unit finalization), the Window will be freed too. You can pass "nil" instead of "Application" if you really want to avoid this automatic memory management, and free things yourself. This whole "owner" mechanism is actually a normal behavior of ObjectPascal components.
+
+- Alternative is to use our TCastleControl inside normal Lazarus form. Just pick TCastleControl from the component palette (tab "Castle") and drop it on a regular Lazarus form. This allows for seamless integration with the normal application design using Lazarus, as you have a normal Lazarus form where you can place normal buttons and such. The downside is that our TCastleControl inherits from Lazarus TOpenGLComponent, and it has some limitations (not all OpenGL features can be requested, sometimes mouse look may stutter a little because of Lazarus event loop processing).
 
 To develop such programs you use Lazarus, period.
 
-This tutorial suggests using the 1st method, CastleWindow, not TCastleControlCustom. But it's really your choice, for TCastleControlCustom you only start differently: instead of creating a TCastleWindowCustom instance, you add TCastleControlCustom to a form. Everything else goes *almost* the same, as TCastleControlCustom is designed specifically to resemble TCastleWindowCustom, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
+This tutorial doesn't suggest any particular method (TCastleWindow or TCastleControl). Both approaches make sense, really, and it's your choice. You should choose Lazarus method (TCastleControl) if you want to integrate game context with normal GUI (Lazarus forms, controls) or if you're just more comfortable with dropping components of a Lazarus form. If you want best OpenGL features, or if you're just more comfortable working outside of Lazarus (like with custom editor and only calling FPC through a script) then probably you want to choose TCastleWindow method. The difference is only how you start: create a TCastleWindow instance by code, or drop TCastleControl on a Lazarus form. Everything else goes *almost* the same, as the TCastleControl and TCastleWindow are designed specifically to resemble each other, so they both share similar methods and properties (like "Controls", where we add our engine 2D and 3D stuff).
 
 In case of using Lazarus forms, you will usually want to place the initialization code inside your form's methods. In the simplest case, just place it inside the form's OnCreate event.
 
--> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TCastleControlCustom on your form and resize it to fit the window. Press "Run" and behold :) Then follow the rest of the tutorial, with minimal adjustments.
+-> Create new project using Lazarus "New Project" menu item. Choose "Application". Drop TCastleControl on your form and resize it to fit the window. Press "Run" and behold :)
 
 3. Creating 3D world --- scene manager
 
-Scene manager is a single TCastleSceneManager class instance that knows literally everything about your 3D world. It is essential to create it, and add all your 3D stuff to it.
+Actually, this step of the tutorial is already done for you: scene manager is already created and ready for use, in SceneManager property of the TCastleControl or TCastleWindow instance. But let's stop for a second to understand what scene manager <b>is</b>, as it's quite central idea to how you work with the engine.
 
-In the simple scenario, by default TCastleSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window, but we'll not dive there in this tutorial (see <a href="http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">Custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources, if you're interested in this).
+Scene manager is a single TCastleSceneManager class instance that knows literally everything about your 3D world. It is essential to have it, and add all your 3D stuff to it.
 
-Change your code to initialize scene manager:
+In the simple scenario, by default TCastleSceneManager also acts as a viewport filling the whole window. So the whole OpenGL context is drawn to show your 3D world. In more complex scenarios you can have many smaller viewports inside your window using TCastleViewport controls (we'll not discuss it in this tutorial, see <a href="http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.custom_viewports.html">custom viewports notes</a>, and <tt>multiple_viewports</tt> example in engine sources). You can also turn off scene manager from being a viewport (DefaultViewport := false), and then scene manager is really <b>only</b> something that keeps track of 3D world, and nothing more.
 
-[[
-var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
-begin
-  SceneManager := TCastleSceneManager.Create(Application);
-
-  Window := TCastleWindowCustom.Create(Application);
-  Window.Controls.Add(SceneManager);
-  Window.InitAndRun;
-end.
-]]
-
-As you see, we give Application (this is defined in our CastleWindow unit) as the owner (first constructor parameter) of both SceneManager and Window. This way we don't have to care about freeing them later. When the Application is freed (which is done automatically by CastleWindow finalization), the SceneManager and Window will be freed too. You can pass "nil" instead of "Application" if you really want to avoid this automatic memory management, and free things yourself. This whole "owner" mechanism is actually a normal behavior of ObjectPascal components.
-
-The important new line is the Window.Controls.Add call. This way the scene manager (it's viewport) is visible on the window, which in turn means that all the 3D stuff we will add next is visible too.
+As I said, you actually already have SceneManager property of your window/control, so the work is done for you. If more advanced scenarios, you may want to create and manager scene managed yourself, see <a link to vrml_engine_doc about</a>.
 
 4. Adding your game level
 
@@ -97,8 +84,7 @@ To load a level, change your code to this:
 
 [[
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TCastleSceneManager;
+  Window: TCastleWindow;
   Scene: TCastleScene;
 begin
   Scene := TCastleScene.Create(Application);
@@ -106,13 +92,11 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
-  SceneManager := TCastleSceneManager.Create(Application);
-  SceneManager.Items.Add(Scene);
-  SceneManager.MainScene := Scene;
+  Window := TCastleWindow.Create(Application);
+  Window.SceneManager.Items.Add(Scene);
+  Window.SceneManager.MainScene := Scene;
 
-  Window := TCastleWindowCustom.Create(Application);
-  Window.Controls.Add(SceneManager);
-  Window.InitAndRun;
+  Window.OpenAndRun;
 end.
 ]]
 
@@ -256,7 +240,11 @@ For more advanced uses, you can use the return value of PlaySound: it's either n
 
 10. Adding an on-screen menu
 
-For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TCastleOnScreenMenu class. For Lazarus: drop TCastleOnScreenMenu on the form. For TCastleWindowCustom: just create TCastleOnScreenMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TCastleOnScreenMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
+Our TCastleWindow or TCastleControl have a list of 2D controls visible of the screen. By default, the only thing present there is a scene manager (since scene manager acts as a 2D viewport through which you see the 3D world; that's right --- the 3D stuff is "within" the 2D stuff). This way the scene manager (it's viewport) is visible on the window, which in turn means that all the 3D stuff we will add next is visible too.
+
+You can add your own 2D controls using the Window.Controls.Add call. There are many predefined GUI controls available in our engine, look for TUIControl descendants, for example in CastleControls unit. You can also derive your own controls with ease.
+
+For a simple on-screen menu, where all the menu items are displayed vertically on the screen, use the TCastleOnScreenMenu control. For Lazarus: drop TCastleOnScreenMenu on the form. For TCastleWindow: just create TCastleOnScreenMenu instance. Fill it's Items property (each line is a menu entry), and assign a handler for the OnClick event (to react when user chose menu item, by clicking or pressing enter key). Inside OnClick event, the CurrentItem property of your TCastleOnScreenMenu instance tells you which item was clicked. You still have to add a code to TForm.OnCreate to add this to controls list, like
 
   Browser.Controls.Insert(0, OnScreenMenu1);
 
@@ -265,7 +253,7 @@ You may also want to change the position, like
   OnScreenMenu1.Position := Vector2Integer(100, 100);
   { you may also want to set PositionRelativeMenu* (through object inspector or code) }
 
-There is an example of this in vrml_with_2d_controls example in engine sources, look for OnScreenMenu1 references in code.
+There is an example of this in model_3d_with_2d_controls example in engine sources, look for OnScreenMenu1 references in code.
 
 11. Background under on-screen menu
 
