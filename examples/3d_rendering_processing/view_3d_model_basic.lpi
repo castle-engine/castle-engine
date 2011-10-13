@@ -40,9 +40,9 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="view_3d_model_simple.lpr"/>
+        <Filename Value="view_3d_model_basic.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="view_3d_model_simple"/>
+        <UnitName Value="view_3d_model_basic"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="0"/>

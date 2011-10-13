@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f view_3d_model_simple.lpr ]; then cd ../../; fi
+if [ -f view_3d_model_basic.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/view_3d_model_simple.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/view_3d_model_basic.lpr

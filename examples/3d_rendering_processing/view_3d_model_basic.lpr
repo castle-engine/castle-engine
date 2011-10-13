@@ -26,7 +26,7 @@
   for keys/mouse to control Walk/Examine navigation
   [http://castle-engine.sourceforge.net/view3dscene.php]), with collision
   detection and generally with *everything* working. }
-program view_3d_model_simple;
+program view_3d_model_basic;
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
