@@ -126,8 +126,8 @@ const
   begin
     Orientation := CamDirUp2OrientQuat(Dir, Up).Conjugate;
     try
-      Assert(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultVRMLCameraDirection, 0.01));
-      Assert(VectorsEqual(Orientation.Rotate(Normalized(Up )), DefaultVRMLCameraUp       , 0.01));
+      Assert(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultX3DCameraDirection, 0.01));
+      Assert(VectorsEqual(Orientation.Rotate(Normalized(Up )), DefaultX3DCameraUp       , 0.01));
     except
       Writeln('Failed on ', TestName, '. Resulting dir is ',
         VectorToNiceStr(Orientation.Rotate(Normalized(Dir))),
