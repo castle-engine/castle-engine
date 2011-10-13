@@ -208,7 +208,10 @@ Scene manager / controls / better Lazarus integration:
   positions. This is trivial to implement and should be enough?
 
 - Make XML .x3d format, loaded to any T3D (list, translated, anim, scene...)
-  Make TCastleSceneManager.Load, loading this.
+  Make a load method to load this.
+    It should also be capable of loading any TCastleScene, TCastlePrecalculatedAnimation
+    (so it has to be somewhere depending on OpenGL).
+    Maybe just in TCastleSceneManager.Load?
 
 - some more free notifications could be useful:
   - FreeAndNil(FMouseRayHit) when it's triangle is destroyed (e.g. octree rebuild)
