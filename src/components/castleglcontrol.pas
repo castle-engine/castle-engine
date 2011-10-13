@@ -1355,7 +1355,7 @@ begin
 
   { initialize octrees titles }
   MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  MainScene.ShapeOctreeProgressTitle := 'Building Shape octree';
+  MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
   { just to make our Camera always non-nil }
   SceneManager.Camera := SceneManager.CreateDefaultCamera;
