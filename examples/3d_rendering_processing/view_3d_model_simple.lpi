@@ -40,9 +40,9 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="scene_manager_basic.lpr"/>
+        <Filename Value="view_3d_model_simple.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="scene_manager_basic"/>
+        <UnitName Value="view_3d_model_simple"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="0"/>

@@ -104,7 +104,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes \
   examples/3d_rendering_processing/gl_primitive_performance \
   examples/3d_rendering_processing/scene_manager_demos \
-  examples/3d_rendering_processing/scene_manager_basic \
+  examples/3d_rendering_processing/view_3d_model_simple \
   examples/3d_rendering_processing/build_3d_object_by_code \
   src/x3d/teapot/teapot_3d_to_pascal
 

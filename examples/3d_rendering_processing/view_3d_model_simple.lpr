@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2010 Michalis Kamburelis.
+  Copyright 2010-2011 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,11 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simplest demo of using scene manager.
+{ Simplest demo of using our engine to load and render 3D model.
   Create and load a Scene,
   create a Window (which automatically also creates Window.SceneManager),
-  add Scene to Window.SceneManager. }
-program scene_manager_basic;
+  add Scene to Window.SceneManager.
+
+  This trivial program is a fully-capable VRML/X3D browser and viewer
+  for all 3D models. "VRML/X3D browser" means that it not only renders
+  the scene, it also animates it, allows you to interact with it
+  (if a scene uses mouse/key sensors), allows you to navigate within it
+  (with navigation mode adjusted to NavigationInfo.type, see view3dscene docs
+  for keys/mouse to control Walk/Examine navigation
+  [http://castle-engine.sourceforge.net/view3dscene.php]), with collision
+  detection and generally with *everything* working. }
+program view_3d_model_simple;
 
 uses CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
 
@@ -26,7 +35,7 @@ var
   Scene: TCastleScene;
 begin
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('models/boxes.x3dv');
+  Scene.Load('models' + PathDelim + 'boxes.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 
