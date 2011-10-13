@@ -251,7 +251,7 @@ kambiopenal                            castleopenal
 kambiurlutils                          castleurlutils
 kambipng                               castlepng
 kambipropedits                         castlepropedits
-kambiglcontrol                         castleglcontrol
+kambiglcontrol                         castlecontrol
 kambilclutils                          castlelclutils
 kambiglutils                           castleglutils
 kambiglut                              castleglut

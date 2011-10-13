@@ -33,9 +33,9 @@
     <Version Major="1"/>
     <Files Count="5">
       <Item1>
-        <Filename Value="../src/components/castleglcontrol.pas"/>
+        <Filename Value="../src/components/castlecontrol.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="CastleGLControl"/>
+        <UnitName Value="CastleControl"/>
       </Item1>
       <Item2>
         <Filename Value="../src/components/castlelclutils.pas"/>

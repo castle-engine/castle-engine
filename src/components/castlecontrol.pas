@@ -15,7 +15,7 @@
 
 { Component with OpenGL context suitable for 2D and 3D rendering
   of "Castle Game Engine". }
-unit CastleGLControl;
+unit CastleControl;
 
 {$mode objfpc}{$H+}
 

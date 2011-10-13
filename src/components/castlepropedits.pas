@@ -28,7 +28,7 @@ procedure Register;
 implementation
 
 uses CastleSceneCore, PropEdits, CastleLCLUtils, X3DLoad, UIControls,
-  CastleGLControl, CastleControls, Images, LResources;
+  CastleControl, CastleControls, Images, LResources;
 
 type
   TSceneFileNamePropertyEditor = class(TFileNamePropertyEditor)

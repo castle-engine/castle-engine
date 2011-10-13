@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, CastleScene, Cameras, CastleGLControl, CastleWarnings,
+  OpenGLContext, Menus, CastleScene, Cameras, CastleControl, CastleWarnings,
   LCLRecentFiles, CastleXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles;
 
 type

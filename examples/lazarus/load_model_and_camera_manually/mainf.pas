@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  CastleGLControl, Cameras, CastleScene;
+  CastleControl, Cameras, CastleScene;
 
 type
   TForm1 = class(TForm)
