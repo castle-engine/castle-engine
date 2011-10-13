@@ -215,7 +215,7 @@ type
     const SomeLocalGeometryChanged: boolean;
     OnlyShapeChanged: TShape) of object;
 
-  { VRML bindable nodes stack.
+  { Stack of bindable nodes (only the top, bound, node is used for rendering/navigation).
     This keeps a stack of TAbstractBindableNode, with comfortable routines
     to examine top and push/pop from top. The stack is actually stored
     as a list, with the last item being the top one. }
@@ -4555,10 +4555,10 @@ begin
   end else
   begin
     { use default camera settings }
-    CamPos := DefaultVRMLCameraPosition[cvVrml2_X3d];
-    CamDir := DefaultVRMLCameraDirection;
-    CamUp := DefaultVRMLCameraUp;
-    GravityUp := DefaultVRMLGravityUp;
+    CamPos := DefaultX3DCameraPosition[cvVrml2_X3d];
+    CamDir := DefaultX3DCameraDirection;
+    CamUp := DefaultX3DCameraUp;
+    GravityUp := DefaultX3DGravityUp;
     ProjectionType := ptPerspective;
   end;
 end;

@@ -27,7 +27,7 @@
       const Time: TX3DTime);
   end;
 
-  { VRML event. }
+  { X3D event. }
   TX3DEvent = class(TX3DFieldOrEvent)
   private
     FFieldClass: TX3DFieldClass;

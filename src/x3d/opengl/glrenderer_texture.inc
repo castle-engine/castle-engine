@@ -5,7 +5,7 @@
 
   TGLTextureNodeClass = class of TGLTextureNode;
 
-  { OpenGL handling for VRML texture node. }
+  { OpenGL handling for VRML/X3D texture node. }
   TGLTextureNode = class(TResourceRenderer)
   protected
     { Calculate things from TextureProperties node.
@@ -1435,9 +1435,9 @@ var
       begin
         { If all else fails (no viewpoint node bound, not known current
           camera settings) then use defaults. }
-        Pos := DefaultVRMLCameraPosition[cvVrml2_X3d];
-        Dir := DefaultVRMLCameraDirection;
-        Up  := DefaultVRMLCameraUp;
+        Pos := DefaultX3DCameraPosition[cvVrml2_X3d];
+        Dir := DefaultX3DCameraDirection;
+        Up  := DefaultX3DCameraUp;
       end;
     end;
 

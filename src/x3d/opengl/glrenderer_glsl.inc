@@ -1,7 +1,7 @@
 {$ifdef read_interface}
 
-  { GLSL program integrated with VRML renderer. Adds ability to bind
-    VRML textures to uniform variables of GLSL shader. }
+  { GLSL program integrated with VRML/X3D renderer. Adds ability to bind
+    VRML/X3D textures to uniform variables of GLSL shader. }
   TX3DGLSLProgram = class(TX3DShaderProgram)
   private
     Renderer: TGLRenderer;

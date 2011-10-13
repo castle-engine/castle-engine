@@ -17,7 +17,7 @@
   { }
   TProjectionType = (ptOrthographic, ptPerspective);
 
-  { A common class for both VRML 1.0 camera nodes and VRML >= 2.0 viewpoints
+  { Common ancestor for both VRML 1.0 camera nodes and VRML/X3D >= 2.0 viewpoint
     nodes. }
   TAbstractViewpointNode = class(TAbstractBindableNode)
   private
@@ -169,7 +169,7 @@
     public property FdProxy: TSFNode read FFdProxy;
   end;
 
-  { LOD node for VRML >= 2.0. This is not for VRML <= 1.0 LOD node.
+  { LOD node for VRML/X3D >= 2.0. This is not for VRML <= 1.0 LOD node.
 
     It's a common ancestor for VRML 2.0 LOD (TLODNode_2) and X3D LOD (TLODNode).
     Unfortunately, we cannot have a simple common class for both VRML 97
@@ -385,7 +385,7 @@ begin
    FdUp.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdUp);
 
-  FFdGravityUp := TSFVec3f.Create(Self, 'gravityUp', DefaultVRMLGravityUp);
+  FFdGravityUp := TSFVec3f.Create(Self, 'gravityUp', DefaultX3DGravityUp);
    FdGravityUp.ChangesAlways := [chViewpointVectors];
   Fields.Add(FFdGravityUp);
 
@@ -418,10 +418,10 @@ begin
     if ZeroVector(CamDir) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
-      CamDir := FdOrientation.RotatedPoint( DefaultVRMLCameraDirection );
+      CamDir := FdOrientation.RotatedPoint( DefaultX3DCameraDirection );
     end;
   end else
-    CamDir := FdOrientation.RotatedPoint( DefaultVRMLCameraDirection );
+    CamDir := FdOrientation.RotatedPoint( DefaultX3DCameraDirection );
 
   if FdUp.Items.Count > 0 then
   begin
@@ -429,17 +429,17 @@ begin
     if ZeroVector(CamUp) then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
-      CamUp := FdOrientation.RotatedPoint( DefaultVRMLCameraUp );
+      CamUp := FdOrientation.RotatedPoint( DefaultX3DCameraUp );
     end;
   end else
-    CamUp := FdOrientation.RotatedPoint( DefaultVRMLCameraUp );
+    CamUp := FdOrientation.RotatedPoint( DefaultX3DCameraUp );
 
   GravityUp := FdGravityUp.Value;
   if ZeroVector(GravityUp) then
-    GravityUp := DefaultVRMLGravityUp;
+    GravityUp := DefaultX3DGravityUp;
 
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
-    uzylismy FdOrientation.RotatedPoint( DefaultVRMLCameraDirection/Up ) i wiemy ze CamDir/Up
+    uzylismy FdOrientation.RotatedPoint( DefaultX3DCameraDirection/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
     TODO: byloby dobrze uzyc tutaj czegos jak MatrixMultDirectionNoScale }
   CamPos    := MatrixMultPoint(Transform, CamPos);

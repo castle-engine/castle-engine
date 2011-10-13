@@ -23,7 +23,7 @@ uses VectorMath, X3DNodes;
 const
   NiceCreaseAngle = DefaultVRML1CreaseAngle;
 
-function ToVRMLName(const S: string): string;
+function ToX3DName(const S: string): string;
 
 { Calculate best possible ambientIntensity. This is a float that tries to
   satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
@@ -45,7 +45,7 @@ implementation
 
 uses SysUtils, CastleStringUtils, EnumerateFiles, CastleWarnings;
 
-function ToVRMLName(const s: string): string;
+function ToX3DName(const s: string): string;
 const
   { moglibysmy tu uzyc X3DLexer.VRMLNameChars ktore podaje naprawde
     wszystkie dozwolone znaki w nazwie VRMLa. Ale, dla czytelnosci,

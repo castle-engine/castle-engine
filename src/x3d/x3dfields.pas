@@ -304,7 +304,7 @@ type
 { ---------------------------------------------------------------------------- }
 { @section(Base fields classes) }
 
-  { Base class for any item within VRML file: a node, a field, a route,
+  { Base class for any item within VRML/X3D file: a node, a field, a route,
     a prototype etc. We need a common base class for all such things
     to store PositionInParent.
 
@@ -377,7 +377,7 @@ type
     procedure Add(Item: TX3DFileItem);
   end;
 
-  { Common class for VRML field or event. }
+  { Base class for VRML/X3D field or event. }
   TX3DFieldOrEvent = class(TX3DFileItem)
   private
     FIsClauseNames: TCastleStringList;
@@ -501,7 +501,7 @@ type
 
   TX3DEventReceiveList = class;
 
-  { Base class for all VRML fields.
+  { Base class for all VRML/X3D fields.
 
     Common notes for all descendants: most of them expose field or property
     "Value", this is (surprise, surprise!) the value of the field.
@@ -981,7 +981,7 @@ type
     procedure CheckCountEqual(SecondValue: TX3DMultField);
   end;
 
-  { Multiple values VRML field. Remember that such field may always have
+  { Field holding multiple values. Remember that such field may always have
     any number of items, including zero.
 
     Note that we keep MF fields contents in TFPSList or TCastleStringList instances
@@ -1092,7 +1092,7 @@ type
 { ---------------------------------------------------------------------------- }
 { @section(Single value (SF) VRML fields) }
 
-  { SFBitMask VRML field.
+  { SFBitMask VRML 1.0 field.
 
     TSFBitMask is one of the exceptional field types that cannot
     be 100% correctly initialized by CreateUndefined, since
@@ -1140,7 +1140,7 @@ type
 
     { Constructor.
 
-      Remember that arrays AFFlagNames and AFlags
+      Remember that arrays AFlagNames and AFlags
       (AFlags is initial value of Flags) must have equal length.
       Eventually, AFlags may be longer (excessive items will be ignored). }
     constructor Create(AParentNode: TX3DFileItem;
@@ -1186,7 +1186,7 @@ type
     procedure Send(const AValue: boolean); overload;
   end;
 
-  { SFEnum VRML field.
+  { SFEnum VRML 1.0 field.
 
     TSFEnum is one of the exceptional field types that cannot
     be 100% correctly initialized by CreateUndefined, since
@@ -1269,7 +1269,7 @@ type
     procedure Send(const AValue: Single); overload;
   end;
 
-  { SFDouble VRML field. }
+  { VRML/X3D field holding a double-precision floating point value. }
   TSFDouble = class(TX3DSingleField)
   private
     FValue: Double;
@@ -2517,9 +2517,9 @@ type
     procedure Send(const AValue: array of string); overload;
   end;
 
-  { Stores information about available VRML field classes.
-    The only use for now is to make a mapping from VRML field name to
-    actual class (needed by VRML interface declarations). }
+  { Stores information about available VRML/X3D field classes.
+    The only use for now is to make a mapping from VRML/X3D field name to
+    actual class (needed by VRML/X3D interface declarations). }
   TX3DFieldsManager = class
   private
     Registered: TStringList;
@@ -2538,7 +2538,7 @@ type
 
 function X3DFieldsManager: TX3DFieldsManager;
 
-{ Decode color from integer value, following VRML SFImage specification.
+{ Decode color from integer value, following VRML/X3D SFImage specification.
   @groupBegin }
 procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
 procedure DecodeImageColor(const Pixel: LongWord; var GA: TVector2Byte);

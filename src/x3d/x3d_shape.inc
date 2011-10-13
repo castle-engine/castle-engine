@@ -279,11 +279,11 @@
   end;
   TMaterialNode_2 = TMaterialNode;
 
-  { VRML material information, usable for all VRML versions.
+  { Material information, usable for all VRML/X3D versions.
 
-    VRML 1.0 and VRML >= 2.0 materials work a little differently:
+    VRML 1.0 and VRML/X3D >= 2.0 materials work a little differently:
     VRML 1.0 has arrays of values, e.g. an array of diffuse color,
-    while VRML >= 2.0 is really a single material, e.g. one diffuse color.
+    while VRML/X3D >= 2.0 is really a single material, e.g. one diffuse color.
     This class is designed to hide these differences as much as possible:
     it provides a simple common interface for getting material properties.
 

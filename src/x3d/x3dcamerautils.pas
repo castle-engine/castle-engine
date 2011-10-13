@@ -27,36 +27,27 @@ type
   TX3DCameraVersion = (cvVrml1_Inventor, cvVrml2_X3d);
 
 const
-  { Standard camera settings. These values are defined by VRML specification,
-    so you really shouldn't change these constants ever.
-
-    For VRML 1.0 spec of PerspectiveCamera node determines these values.
-    For VRML 97 spec part "4.4.5 Standard units and coordinate system"
-    and default values for Viewpoint determines these values.
-
-    Note that DefaultVRMLCameraPosition is indexed by TX3DCameraVersion, since
-    it's different for VRML 1.0 and 2.0.
-
+  { Standard camera settings given by VRML/X3D specifications.
     @groupBegin }
-  DefaultVRMLCameraPosition: array [TX3DCameraVersion] of TVector3Single =
+  DefaultX3DCameraPosition: array [TX3DCameraVersion] of TVector3Single =
     ( (0, 0, 1), (0, 0, 10) );
-  DefaultVRMLCameraDirection: TVector3Single = (0, 0, -1);
-  DefaultVRMLCameraUp: TVector3Single = (0, 1, 0);
-  DefaultVRMLGravityUp: TVector3Single = (0, 1, 0);
+  DefaultX3DCameraDirection: TVector3Single = (0, 0, -1);
+  DefaultX3DCameraUp: TVector3Single = (0, 1, 0);
+  DefaultX3DGravityUp: TVector3Single = (0, 1, 0);
   { @groupEnd }
 
-{ Constructs string with VRML node defining camera with given
+{ Construct string with VRML/X3D node defining camera with given
   properties. }
-function MakeVRMLCameraStr(const Version: TX3DCameraVersion;
+function MakeCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 
-{ Constructs TX3DNode defining camera with given properties. }
-function MakeVRMLCameraNode(const Version: TX3DCameraVersion;
+{ Construct TX3DNode defining camera with given properties. }
+function MakeCameraNode(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 
-{ Make camera node (like MakeVRMLCameraNode) that makes the whole box
+{ Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
@@ -68,7 +59,7 @@ implementation
 
 uses SysUtils, Cameras;
 
-function MakeVRMLCameraStr(const Version: TX3DCameraVersion;
+function MakeCameraStr(const Version: TX3DCameraVersion;
   const Xml: boolean;
   const Position, Direction, Up, GravityUp: TVector3Single): string;
 const
@@ -157,10 +148,10 @@ begin
       VectorToRawStr(Up),
       VectorToRawStr(GravityUp) ]);
 
-  RotationVectorForGravity := VectorProduct(DefaultVRMLGravityUp, GravityUp);
+  RotationVectorForGravity := VectorProduct(DefaultX3DGravityUp, GravityUp);
   if ZeroVector(RotationVectorForGravity) then
   begin
-    { Then GravityUp is parallel to DefaultVRMLGravityUp, which means that it's
+    { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     Result := Result +
       Format(
@@ -170,9 +161,9 @@ begin
   end else
   begin
     { Then we must transform Viewpoint node, in such way that
-      DefaultVRMLGravityUp affected by this transformation will give
+      DefaultX3DGravityUp affected by this transformation will give
       desired GravityUp. }
-    AngleForGravity := AngleRadBetweenVectors(DefaultVRMLGravityUp, GravityUp);
+    AngleForGravity := AngleRadBetweenVectors(DefaultX3DGravityUp, GravityUp);
     Result := Result +
       Format(
         TransformedViewpoint[Version, Xml],
@@ -180,7 +171,7 @@ begin
           VectorToRawStr(RotationVectorForGravity),
           FloatToRawStr(AngleForGravity),
           { I want
-            1. standard VRML dir/up vectors
+            1. standard VRML/X3D dir/up vectors
             2. rotated by orientation
             3. rotated around RotationVectorForGravity
             will give MatrixWalker.Direction/Up.
@@ -195,7 +186,7 @@ begin
   end;
 end;
 
-function MakeVRMLCameraNode(const Version: TX3DCameraVersion;
+function MakeCameraNode(const Version: TX3DCameraVersion;
   const WWWBasePath: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 var
@@ -207,15 +198,15 @@ var
   Transform_2: TTransformNode;
   Rotation, Orientation: TVector4Single;
 begin
-  RotationVectorForGravity := VectorProduct(DefaultVRMLGravityUp, GravityUp);
+  RotationVectorForGravity := VectorProduct(DefaultX3DGravityUp, GravityUp);
   if ZeroVector(RotationVectorForGravity) then
   begin
-    { Then GravityUp is parallel to DefaultVRMLGravityUp, which means that it's
+    { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
       cvVrml1_Inventor: ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
       cvVrml2_X3d     : ViewpointNode := TViewpointNode.Create('', WWWBasePath);
-      else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
+      else raise EInternalError.Create('MakeCameraNode Version incorrect');
     end;
     ViewpointNode.Position.Value := Position;
     ViewpointNode.FdOrientation.Value := CamDirUp2Orient(Direction, Up);
@@ -223,12 +214,12 @@ begin
   end else
   begin
     { Then we must transform Viewpoint node, in such way that
-      DefaultVRMLGravityUp affected by this transformation will give
+      DefaultX3DGravityUp affected by this transformation will give
       desired GravityUp. }
-    AngleForGravity := AngleRadBetweenVectors(DefaultVRMLGravityUp, GravityUp);
+    AngleForGravity := AngleRadBetweenVectors(DefaultX3DGravityUp, GravityUp);
     Rotation := Vector4Single(RotationVectorForGravity, AngleForGravity);
     { I want
-      1. standard VRML dir/up vectors
+      1. standard VRML/X3D dir/up vectors
       2. rotated by orientation
       3. rotated around RotationVectorForGravity
       will give MatrixWalker.Direction/Up.
@@ -271,7 +262,7 @@ begin
 
           Result := Transform_2;
         end;
-      else raise EInternalError.Create('MakeVRMLCameraNode Version incorrect');
+      else raise EInternalError.Create('MakeCameraNode Version incorrect');
     end;
   end;
 end;
@@ -286,7 +277,7 @@ var
 begin
   CameraViewpointForWholeScene(Box, WantedDirection, WantedUp,
     WantedDirectionPositive, WantedUpPositive, Position, Direction, Up, GravityUp);
-  Result := MakeVRMLCameraNode(Version, WWWBasePath,
+  Result := MakeCameraNode(Version, WWWBasePath,
     Position, Direction, Up, GravityUp);
 end;
 

@@ -23,7 +23,7 @@ uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;
 {$define read_interface}
 
 type
-  TCasScriptVRMLValueList = class(TCasScriptValueList)
+  TCasScriptX3DValueList = class(TCasScriptValueList)
   private
     FFieldOrEvents: TX3DFieldOrEventList;
     FLastEventTimes: TX3DTimeList;
@@ -79,13 +79,13 @@ type
 
 function X3DCasScriptCreateValue(FieldOrEvent: TX3DFieldOrEvent): TCasScriptValue;
 
-{ Do common things before VRML script with this variable is executed.
+{ Do common things before VRML/X3D script with this variable is executed.
   This resets ValueAssigned (will be used in AfterExecute),
   and sets current variable's value from FieldOrEvent (if this is a field). }
 procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
   FieldOrEvent: TX3DFieldOrEvent);
 
-{ Do common things after VRML script with this variable is executed.
+{ Do common things after VRML/X3D script with this variable is executed.
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
 procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
@@ -482,36 +482,36 @@ begin
       But in this case, we know FieldOrEvent comes from a Script node,
       and in this situation ChangedField doesn't do anything anyway. }
 
-    { This is needed for TCasScriptVRMLValueList.AfterExecute trick.
+    { This is needed for TCasScriptX3DValueList.AfterExecute trick.
       We handled this change, so we mark it by ValueAssigned = false. }
     Value.ValueAssigned := false;
   end;
 end;
 
-{ TCasScriptVRMLValueList -------------------------------------------------- }
+{ TCasScriptX3DValueList -------------------------------------------------- }
 
-constructor TCasScriptVRMLValueList.Create(AFreeObjects: boolean);
+constructor TCasScriptX3DValueList.Create(AFreeObjects: boolean);
 begin
   inherited;
   FFieldOrEvents := TX3DFieldOrEventList.Create(false);
   FLastEventTimes := TX3DTimeList.Create;
 end;
 
-destructor TCasScriptVRMLValueList.Destroy;
+destructor TCasScriptX3DValueList.Destroy;
 begin
   SysUtils.FreeAndNil(FFieldOrEvents);
   SysUtils.FreeAndNil(FLastEventTimes);
   inherited;
 end;
 
-procedure TCasScriptVRMLValueList.Add(FieldOrEvent: TX3DFieldOrEvent);
+procedure TCasScriptX3DValueList.Add(FieldOrEvent: TX3DFieldOrEvent);
 begin
   inherited Add(X3DCasScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
   FLastEventTimes.Add(OldestX3DTime);
 end;
 
-procedure TCasScriptVRMLValueList.BeforeExecute;
+procedure TCasScriptX3DValueList.BeforeExecute;
 var
   I: Integer;
 begin
@@ -522,7 +522,7 @@ begin
   end;
 end;
 
-procedure TCasScriptVRMLValueList.AfterExecute;
+procedure TCasScriptX3DValueList.AfterExecute;
 var
   I: Integer;
   WasSomeValueAssigned: boolean;
@@ -577,7 +577,7 @@ begin
   end;
 end;
 
-procedure TCasScriptVRMLValueList.ResetLastEventTimes;
+procedure TCasScriptX3DValueList.ResetLastEventTimes;
 var
   I: Integer;
 begin

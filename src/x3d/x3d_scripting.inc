@@ -28,7 +28,7 @@
     CompiledScriptContents: TStringList;
 
     CastleScriptProgram: TCasScriptProgram;
-    CastleScriptVariables: TCasScriptVRMLValueList;
+    CastleScriptVariables: TCasScriptX3DValueList;
 
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -213,7 +213,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     FreeAndNil(CastleScriptProgram);
     FreeAndNil(CastleScriptVariables);
 
-    CastleScriptVariables := TCasScriptVRMLValueList.Create(true);
+    CastleScriptVariables := TCasScriptX3DValueList.Create(true);
 
     { Add fields and output events (coming from interface decl,
       not normal Script fields/events) to CastleScriptVariables. }

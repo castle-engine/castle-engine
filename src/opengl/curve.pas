@@ -24,39 +24,35 @@ uses VectorMath, Boxes3D, CastleUtils, CastleScript,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 type
-  { "Curve" is, in the sense of this class, some 3d object that
-    @unorderedList(
-      @itemSpacing compact
-      @item can be seen as a set of points Point(t) for t in [TBegin, TEnd]
-      @item more or less "fits" inside his BoundingBox
-    )
+  { 3D curve, a set of points defined by a continous function @link(Point)
+    for arguments within [TBegin, TEnd].
 
-      Note for BoundingBox method: Curve should fit inside this BoundingBox.
-      For now, this does not have to be a "perfect fit", it may be smaller than
-      it should be and it may be larger than it could be.
-      This should be treated as something like a "good hint".
-      (Maybe at some time I'll make this conditions more rigorous).
-  }
+    Note that some descendants return only an approximate BoundingBox result,
+    it may be too small or too large sometimes.
+    (Maybe at some time I'll make this more rigorous, as some code may require
+    that it's a proper bounding box, maybe too large but never too small.) }
   TCurve = class(T3D)
   private
     FTBegin, FTEnd: Float;
     FDefaultSegments: Cardinal;
   public
-    { TBegin/End determine the valid range of t.
-      Must be TBegin <= TEnd.
+    { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
     property TBegin: Float read FTBegin;
     property TEnd: Float read FTEnd;
     { @groupEnd }
 
-    { This is the most important method that must be defined in subclasses.
-      This determines the exact shape of the curve. }
+    { Curve function, for each parameter value determine the 3D point.
+      This determines the actual shape of the curve. }
     function Point(const t: Float): TVector3Single; virtual; abstract;
 
-    { Here t is specified as @code(TBegin + i/Segments* (TEnd-TBegin)) }
+    { Curve function to work with rendered line segments begin/end points.
+      This is simply a more specialized version of @link(Point),
+      it scales the argument such that you get Point(TBegin) for I = 0
+      and you get Point(TEnd) for I = Segments. }
     function PointOfSegment(i, Segments: Cardinal): TVector3Single;
 
-    { This function renders a curve by dividing it to Segments line segments.
+    { Render curve by dividing it into a given number of line segments.
       So actually @italic(every) curve will be rendered as a set of straight lines.
       You should just give some large number for Segments to have something
       that will be really smooth.
@@ -84,8 +80,8 @@ type
 
   TCurveList = specialize TFPGObjectList<TCurve>;
 
-  { @abstract(This is a curve defined by explicitly giving functions for
-    Point(t) = x(t), y(t), z(t) as CastleScript expressions.) }
+  { Curve defined by explicitly giving functions for
+    Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
   protected
     FTVariable: TCasScriptFloat;
@@ -105,7 +101,7 @@ type
       XFunction, YFunction, ZFunction. }
     property TVariable: TCasScriptFloat read FTVariable;
 
-    { This class provides simple implementation for BoundingBox: it is simply
+    { Simple bounding box. It is simply
       a BoundingBox of Point(i, SegmentsForBoundingBox)
       for i in [0 .. SegmentsForBoundingBox].
       Subclasses may override this to calculate something more accurate. }
@@ -121,8 +117,7 @@ type
     destructor Destroy; override;
   end;
 
-  { @abstract(This is a basic abstract class for curves determined my some
-    set of ControlPoints.)
+  { A basic abstract class for curves determined my some set of ControlPoints.
     Note: it is @italic(not) defined in this class any correspondence between
     values of T (argument for Point function) and ControlPoints. }
   TControlPointsCurve = class(TCurve)
@@ -191,8 +186,7 @@ type
 
   TControlPointsCurveList = specialize TFPGObjectList<TControlPointsCurve>;
 
-  { @abstract(This is a class for curves that pass exactly through
-    ControlPoints.)
+  { Curve that passes exactly through it's ControlPoints.x
     I.e. for each ControlPoint[i] there exists some value Ti
     that Point(Ti) = ControlPoint[i] and
     TBegin = T0 <= .. Ti-1 <= Ti <= Ti+1 ... <= Tn = TEnd
@@ -207,7 +201,7 @@ type
     function ControlPointT(i: Integer): Float; virtual;
   end;
 
-  { This is a curve defined as [Lx(t), Ly(t), Lz(t)] where
+  { Curve defined as [Lx(t), Ly(t), Lz(t)] where
     L?(t) are Lagrange's interpolation polynomials.
     Lx(t) crosses points (ti, xi) (i = 0..ControlPoints.Count-1)
     where ti = TBegin + i/(ControlPoints.Count-1) * (TEnd-TBegin)

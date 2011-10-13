@@ -77,7 +77,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
   vertices: TVector3SingleList;
   const FromCCW, Convex: boolean): TVector3SingleList;
 
-{ Calculate always smooth normals per-vertex, for VRML coordinate-based
+{ Calculate always smooth normals per-vertex, for VRML/X3D coordinate-based
   node. We use TAbstractGeometryNode.CoordPolygons for this, so the node class
   must implement it.
 

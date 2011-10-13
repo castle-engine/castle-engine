@@ -523,7 +523,7 @@ var
     IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
     IFS.FdTexCoord.Value := MakeTextureCoordinates(Surface.TextureCoords);
 
-    Result := TShapeNode.Create(ToVRMLName(Surface.Name), WWWBasePath);
+    Result := TShapeNode.Create(ToX3DName(Surface.Name), WWWBasePath);
     Result.FdGeometry.Value := IFS;
     Result.Material := TMaterialNode.Create('', WWWBasePath);
     Result.Texture := Texture;
@@ -533,7 +533,7 @@ var
   I: Integer;
 begin
   Result := TX3DRootNode.Create(
-    ToVRMLName(Md3.Name
+    ToX3DName(Md3.Name
       { Although adding here FrameNumber is not a bad idea, but PrecalculatedAnimation
         requires for now that sequence of VRML models have the same node names }
       { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);

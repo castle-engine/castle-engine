@@ -357,10 +357,9 @@ type
 
   TPointingDeviceSensorList = class;
 
-  { Current "state" (current transformation and such)
-    when traversing VRML graph.
+  { Current state (transformation and such) when traversing VRML/X3D graph.
 
-    For VRML >= 2.0 this could be simpler, as VRML >= 2.0 doesn't need
+    For VRML/X3D >= 2.0 this could be simpler, as VRML/X3D >= 2.0 doesn't need
     to keep track for example of the @link(LastNodes).
     But we want to still handle VRML 1.0, 100% correctly, so here we are:
     this class contains whole state needed for any VRML/X3D version. }
@@ -739,7 +738,7 @@ type
   end;
   TCachedNodeList = specialize TFPGObjectList<TCachedNode>;
 
-  { Cache for VRML resources not specific to renderer (OpenGL).
+  { Cache for resources not specific to renderer (OpenGL).
     Includes all TTexturesImagesVideosCache resources (image, texture, movie
     data) and adds cache for 3D models. }
   TX3DNodesCache = class(TTexturesImagesVideosCache)
@@ -1147,9 +1146,9 @@ type
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
 
-  { Interface declaration, used in VRML (exposed) prototypes and
+  { Interface declaration, used in VRML/X3D (exposed) prototypes and
     for nodes with dynamic fields (Script, ComposedShader).
-    See VRML 2.0 spec.
+    See VRML 2.0 and X3D specs.
 
     Each interface specification is a field or an event, stored
     in FieldOrEvent. FieldOrEvent is @nil before parsing.
@@ -1292,7 +1291,7 @@ type
 
   EX3DPrototypeInstantiateError = class(Exception);
 
-  { VRML node related to a given prototype.
+  { Node with information about a VRML/X3D prototype.
 
     This node will have fields
     initialized according to associated Prototype.InterfaceDeclarations.
@@ -1741,9 +1740,9 @@ type
     Name: string;
     Finished: boolean;
   end;
-  PVRMLNodeNameRec = ^TX3DNodeNameRec;
+  PX3DNodeNameRec = ^TX3DNodeNameRec;
 
-  { List to keep VRML/X3D node names while parsing VRML file. }
+  { List to track node names while parsing VRML/X3D file. }
   TX3DNodeNames = class(specialize TGenericStructList<TX3DNodeNameRec>)
   private
     FAutoRemove: boolean;
@@ -5739,7 +5738,7 @@ end;
 procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean; const BindToName: string);
 var
   I: Integer;
-  P: PVRMLNodeNameRec;
+  P: PX3DNodeNameRec;
 begin
   if BindToName <> '' then
   begin

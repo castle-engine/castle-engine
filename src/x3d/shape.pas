@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML shape (TShape class) and a simple tree of shapes
-  (TShapeTree class). }
+{ Shape (TShape class) and a simple tree of shapes (TShapeTree class). }
 unit Shape;
 
 { $define SHAPE_ITERATOR_SOPHISTICATED}
@@ -102,15 +101,15 @@ type
     const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
     const Face: TFaceIndex) of object;
 
-  { Tree of VRML shapes.
+  { Tree of shapes.
 
-    Although VRML model already provides the tree (graph of VRML nodes),
+    Although VRML/X3D model already provides the tree (graph of VRML/X3D nodes),
     it's a little too complicated to be used at each render call.
     It's especially true for VRML <= 1.0 (where properties may "leak out"
-    from one node to the next), VRML >= 2.0 cleaned a lot here but still
+    from one node to the next), VRML/X3D >= 2.0 cleaned a lot here but still
     some work must be done when traversing (like accumulating transformations).
 
-    So we process VRML tree to this tree, which is much simpler tree with
+    So we process VRML/X3D tree to this tree, which is much simpler with
     all the geometry nodes (TAbstractGeometryNode) along with their state
     (TX3DGraphTraverseState) as leafs (TShape). }
   TShapeTree = class
@@ -702,8 +701,8 @@ type
     property TransformState: TX3DGraphTraverseState read FTransformState;
   end;
 
-  { Node of the TShapeTree representing the LOD (level of detail) VRML
-    concept. It chooses one child from it's children list as active.
+  { Node of the TShapeTree representing the LOD (level of detail) alternative.
+    It chooses one child from it's children list as active.
     Represents the VRML >= 2.0 LOD node
     (not possible for VRML 1.0 LOD node, as it may affect also other
     nodes after LOD).

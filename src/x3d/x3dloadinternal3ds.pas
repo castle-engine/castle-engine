@@ -979,16 +979,16 @@ var
     if they were unique in 3DS. }
 
   function MaterialVRMLName(const Mat3dsName: string): string;
-  begin Result := 'Material_' + ToVRMLName(Mat3dsName) end;
+  begin Result := 'Material_' + ToX3DName(Mat3dsName) end;
 
   function TrimeshVRMLName(const Tri3dsName: string): string;
-  begin Result := 'Trimesh_' + ToVRMLName(Tri3dsName) end;
+  begin Result := 'Trimesh_' + ToX3DName(Tri3dsName) end;
 
   function ViewpointVRMLName(const Camera3dsName: string): string;
-  begin Result := 'Camera_' + ToVRMLName(Camera3dsName) end;
+  begin Result := 'Camera_' + ToX3DName(Camera3dsName) end;
 
   function LightVRMLName(const Light3dsName: string): string;
-  begin Result := 'Light_' + ToVRMLName(Light3dsName) end;
+  begin Result := 'Light_' + ToX3DName(Light3dsName) end;
 
   procedure AddViewpoints;
   var
@@ -997,7 +997,7 @@ var
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
     begin
-      Viewpoint := MakeVRMLCameraNode(cvVrml2_X3d, WWWBasePath,
+      Viewpoint := MakeCameraNode(cvVrml2_X3d, WWWBasePath,
         O3ds.Cameras[I].Position,
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,

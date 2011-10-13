@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML lexer (TX3DLexer). }
+{ VRML/X3D classic lexer (TX3DLexer). }
 unit X3DLexer;
 
 { Every newly read token will be reported with LogWrite.
@@ -49,7 +49,7 @@ const
     [vkEventIn, vkEventOut, vkExposedField, vkField];
 
 type
-  { VRML lexer token. }
+  { Lexer token. }
   TX3DToken = (
     vtKeyword,
     vtName,
@@ -110,14 +110,14 @@ type
       const ForceConvertingToX3D: boolean = false): string;
   end;
 
-  { VRML unified lexer.
+  { VRML/X3D (classic encoding) lexer.
 
     The lexer always "looks" (i.e. contains in Token and TokenXxx fields)
     at the next not yet interpreted token.
 
     Remember that VRML is case-sensitive, so TokenName and TokenString
     should be compared in case-sensitive manner. Also note that
-    for VRML >= 2.0 these fields contain UTF-8 encoded strings.
+    for VRML/X3D >= 2.0 these fields contain UTF-8 encoded strings.
 
     Note that this lexer can read only from @link(TPeekCharStream), not just
     from any TStream. You may have to wrap your stream in some

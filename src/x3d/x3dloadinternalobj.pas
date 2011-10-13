@@ -465,9 +465,9 @@ const
 var
   WWWBasePath: string;
 
-  function MatOBJNameToVRMLName(const MatOBJName: string): string;
+  function MatOBJNameToX3DName(const MatOBJName: string): string;
   begin
-    Result := 'Material_' + ToVRMLName(MatOBJName);
+    Result := 'Material_' + ToX3DName(MatOBJName);
   end;
 
   function MaterialToVRML(const Material: TWavefrontMaterial): TAppearanceNode;
@@ -476,7 +476,7 @@ var
     Texture: TImageTextureNode;
   begin
     Result := TAppearanceNode.Create(
-      MatOBJNameToVRMLName(Material.Name), WWWBasePath);
+      MatOBJNameToX3DName(Material.Name), WWWBasePath);
 
     Mat := TMaterialNode.Create('', WWWBasePath);
     Result.FdMaterial.Value := Mat;
@@ -552,7 +552,7 @@ begin
           { We find appearance by name, using FindName. We're sure
             that we will find it --- because we added them all to Appearances. }
           Shape.Appearance := Appearances.FindName(
-            MatOBJNameToVRMLName(FacesWithMaterial.Name)) as TAppearanceNode;
+            MatOBJNameToX3DName(FacesWithMaterial.Name)) as TAppearanceNode;
         end else
           Shape.Material := TMaterialNode.Create('', WWWBasePath);
 

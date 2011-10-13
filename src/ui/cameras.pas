@@ -1642,7 +1642,7 @@ const
   DefaultCameraUp: TVector3Single = (0, 1, 0);
   { @groupEnd }
 
-{ Convert camera direction and up vectors into VRML "orientation" vector.
+{ Convert camera direction and up vectors into VRML/X3D "orientation" vector.
 
   Orientation expresses CamDir and CamUp as 4-item vector
   (SFRotation). First three items are the Axis (normalized) and the
@@ -1661,7 +1661,7 @@ procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
 { @groupEnd }
 
 { Convert camera direction and up vectors into "rotation quaternion" of
-  VRML "orientation".
+  VRML/X3D "orientation".
 
   VRML orientation expresses camera direction and up as a rotation.
   This means that you should rotate the standard

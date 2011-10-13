@@ -27,8 +27,8 @@ type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
     out RootNode: TX3DRootNode; out Time: Single) of object;
 
-  { A "precalculated" animation of VRML model done by
-    interpolating between any number of model states.
+  { A "precalculated" animation done by
+    interpolating between a number of 3D model states.
 
     After constructing an object of this class, you must actually
     load it's animation by calling Load or LoadFromFile or LoadFromEvents

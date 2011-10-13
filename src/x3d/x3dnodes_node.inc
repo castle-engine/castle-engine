@@ -36,13 +36,13 @@
     function DeepCopy(OriginalNode: TX3DNode): TX3DNode;
   end;
 
-  { Basic VRML node interface class.
-    All other interfaces for VRML nodes descend from this. }
+  { X3D node interface.
+    All other interfaces for X3D nodes descend from this. }
   IX3DNode = interface
   ['{5BD33327-430F-47EC-9241-AD899F072BF8}']
   end;
 
-  { VRML node. Every VRML node class descends from this. }
+  { X3D node. Every VRML/X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem, IX3DNode)
   private
     fNodeName: string;

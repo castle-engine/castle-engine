@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { This is a VRML >= 2.0 grouping node.
+  { This is a VRML/X3D >= 2.0 grouping node.
     This will push/pop full TX3DGraphTraverseState in Before/AfterTraverse.
     It also propagates DirectionalLights in any child to all children
     in VRML2ActiceLights.
@@ -116,16 +116,16 @@
     procedure PutPreserve(const Name, Content: string);
   end;
 
-  { A top-level VRML node. This is what you get by parsing 3D model from file.
+  { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
 
-    It is declared as a descendant of VRML >= 2.0 Group node,
-    but it's used with all VRML versions (including VRML 1.0 and Inventor).
+    It is declared as a descendant of VRML/X3D >= 2.0 Group node,
+    but it's used with all VRML/X3D versions (including VRML 1.0 and Inventor).
     This makes things simple (previously we had two separate TX3DRootNode_1
     and TX3DRootNode, which was complicating stuff).
     Children (for all VRML/X3D versions) are inside FdChildren field.
 
     This way VRML/X3D files may have many nodes at the top level
-    (which is a standard feature of VRML >= 2.0, but we also allow it for
+    (which is a standard feature of VRML/X3D >= 2.0, but we also allow it for
     VRML 1.0 as a commonly used extension). It may also have prototypes,
     routes etc. at the root level.
 

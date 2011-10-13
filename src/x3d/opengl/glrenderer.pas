@@ -878,7 +878,7 @@ type
   {$I glrenderer_bumpmapping.inc}
   {$I glrenderer_glsl.inc}
 
-  { VRML shape that can be rendered. }
+  { Shape that can be rendered. }
   TX3DRendererShape = class(TShape)
   private
     { Generate VBO if needed, and reload VBO contents.
