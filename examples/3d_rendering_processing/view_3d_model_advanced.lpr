@@ -20,7 +20,7 @@ program view_3d_model_advanced;
 
 {$apptype CONSOLE}
 
-uses SysUtils, CastleUtils, CastleWindow, ProgressUnit, ProgressConsole,
+uses SysUtils, CastleUtils, CastleWindow, ProgressUnit, CastleProgress,
   CastleSceneCore, CastleWarnings, CastleParameters, CastleScene, X3DLoad,
   CastleControls;
 
@@ -68,9 +68,8 @@ begin
   if Parameters.High = 1 then
     FileName := Parameters[1];
 
-  { Output warnings and progress bars on a console. }
+  { Output warnings on a console. }
   OnWarning := @OnWarningWrite;
-  Progress.UserInterface := ProgressConsoleInterface;
 
   Window := TCastleWindow.Create(Application);
 
@@ -87,6 +86,11 @@ begin
     on (really really old) GPUs that don't support stencil buffer. }
   Window.ShadowVolumesPossible := true;
   Window.ShadowVolumes := true;
+  Window.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
+
+  { Show progress bar in our window }
+  WindowProgressInterface.Window := Window;
+  Progress.UserInterface := WindowProgressInterface;
 
   { load a Scene and add it to Window.SceneManager, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
@@ -103,6 +107,9 @@ begin
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
 
+  { force recreating camera suitable for new Scene (after it's added to SceneManager) }
+  Window.SceneManager.Camera.Free;
+
   { Output some information about the loaded scene }
   Writeln(Scene.Info(true, true, false));
 
@@ -117,6 +124,5 @@ begin
   OpenButton.Height := 75;
   Window.Controls.Insert(0, OpenButton);
 
-  Window.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
   Application.Run;
 end.
