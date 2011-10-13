@@ -40,24 +40,19 @@ class procedure THelper.OpenButtonClick(Sender: TObject);
 var
   S: string;
 begin
-  { We could now manually reload the Scene and reset the camera.
-    But actually TCastleWindow has already a comfortable shortcut
-    for reloading scene (inside Window.SceneManager.MainScene,
-    which is equal to our Scene) and reloading camera.
-    This releases previous SceneManager.MainScene and SceneManager.Camera,
-    reloads SceneManager.MainScene from given file and
-    creates new camera suitable for new scene. }
   S := ExtractFilePath(FileName);
   if Window.FileDialog('Open 3D model', S, true, LoadVRML_FileFilters) then
   begin
     FileName := S;
-    Window.Load(FileName);
+    Scene.Load(FileName);
 
-    { previous Scene value is destroyed now, use new loaded value }
-    Scene := Window.SceneManager.MainScene;
-
-    Scene.Spatial := [ssRendering, ssDynamicCollisions];
-    Scene.ProcessEvents := true;
+    { camera is separate from the 3D world, and so it is *not* reinitialized
+      by simple reloading of the scene. In this demo, we want to move camera
+      to most suitable place for the *new* scene (ignoring previous camera
+      mode and position). The simplest way to do it is to just free the previous
+      camera. SceneManager will automatically create new, suitable camera
+      before next render. }
+    Window.SceneManager.Camera.Free;
   end;
 end;
 
