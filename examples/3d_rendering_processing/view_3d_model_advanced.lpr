@@ -113,8 +113,8 @@ begin
   OpenButton.Left := 10;
   OpenButton.Bottom := 10;
   OpenButton.AutoSize := false;
-  OpenButton.Width := 200;
-  OpenButton.Height := 100;
+  OpenButton.Width := 250;
+  OpenButton.Height := 75;
   Window.Controls.Insert(0, OpenButton);
 
   Window.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
