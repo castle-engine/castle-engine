@@ -1033,6 +1033,12 @@ Various:
   position.
   A: Yes, this could be useful.
 
+- Also add to above CameraSensor events that return:
+  - current calculated field of view horizontal/vertical
+  - window width/height
+  - near/far values (how to pass far = infinity? Possibly as 0 or -1?)
+  Notify VAmat.
+
 - Display warnings about unused attribute only *once*, not every frame
   (e.g. replace attr name to invalid inside demo_models/shaders/attributes.x3dv).
 
@@ -1182,3 +1188,16 @@ Various:
   In 3.9.0 (fpc 2.4.0), 3.10.0 (fpc 2.4.4), and current 3.10.1 (fpc 2.4.4).
   At least it doesn't seem like FPC bug.
   This is seen on kocury. Not present on chantal? Check. Maybe some nvidia bug?
+
+------------------------------------------------------------------------------
+Shaders:
+
+- Geometry shaders add.
+  InstantReality already has them implemented as an extension, and their additions seem sensible, so my implementation will probably follow them. Basically, using type="GEOMETRY" inside ShaderPart should be enough. You can see them at the bottom of http://doc.instantreality.org/tutorial/shader-programs/
+  Notify VAmat.
+
+- Allow shadow map generation plugs.
+  I would like to also develop a solution that can be applied to both non-VSM and VSM shadow maps. For example, I would like to transform objects by GLSL in such way that their shadow is also transformed (which means that the transformations must work also when rendering to the shadow map texture), regardless if you use VSM or not.
+  So user-supplied shaders have to be combined with browser-internal shaders (at least for VSM), so probably enhancing my idea of http://castle-engine.sourceforge.net/compositing_shaders.php will be good here.
+  Also, it should be possible to override value stored in shadow map.
+  Notify VAmat.
