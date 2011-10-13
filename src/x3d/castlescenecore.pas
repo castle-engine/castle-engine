@@ -1442,8 +1442,8 @@ type
 
     procedure Idle(const CompSpeed: Single); override;
 
-    { These change current scene time, setting @link(Time).
-      It is crucial that you call this continously to have some VRML
+    { Change current scene time, setting @link(Time).
+      It is crucial that you call this continously to have some VRML/X3D
       time-dependent features working, like TimeSensor and MovieTexture.
       See @link(Time) for details what is affected by this.
 
@@ -1466,10 +1466,10 @@ type
       For resetting the time (when you don't necessarily want to grow @link(Time))
       see ResetTime.
 
-      If a change of Time will produce some visible change in VRML model
+      If a change of Time will produce some visible change in the VRML/X3D model
       (for example, MovieTexture will change, or TimeSensor change will be
-      routed by interpolator to coordinates of some visible node) this
-      will be notified by usual method, that is VisibleChangeHere.
+      routed by interpolator to coordinates of some visible node) it
+      will be reported by usual method, that is VisibleChangeHere.
 
       @groupBegin }
     procedure SetTime(const NewValue: TFloatTime);
