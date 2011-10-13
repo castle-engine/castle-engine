@@ -113,10 +113,13 @@ begin
 
   { add an "Open" button to the window controls }
   OpenButton := TCastleButton.Create(Application);
-  OpenButton.Caption := 'Open';
+  OpenButton.Caption := 'Open 3D model';
   OpenButton.OnClick := @THelper(nil).OpenButtonClick;
   OpenButton.Left := 10;
   OpenButton.Bottom := 10;
+  OpenButton.AutoSize := false;
+  OpenButton.Width := 200;
+  OpenButton.Height := 100;
   Window.Controls.Insert(0, OpenButton);
 
   Window.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
