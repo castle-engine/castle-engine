@@ -10,7 +10,7 @@ uses
 
 type
   TForm1 = class(TForm)
-    KamVRMLBrowser1: TCastleControl;
+    Control1: TCastleControl;
     WalkCamera1: TWalkCamera;
     Scene1: TCastleScene;
     procedure FormCreate(Sender: TObject);
@@ -33,7 +33,7 @@ uses VectorMath, CastleSceneCore;
   relevant properties. Some of the properties below could be also 
   set in the Object Inspector, showing them here just for clarity.
   
-  Note that you could also use directly KamVRMLBrowser1.Load,
+  Note that you could also use directly Control1.Load,
   this would recreate both MainScene and Camera (setting camera
   most suitable for the scene, following it's NavigationInfo and Viewpoint
   nodes). }
@@ -44,14 +44,14 @@ begin
   Scene1.Spatial := [ssRendering, ssDynamicCollisions]; // if you want collisions, and faster rendering
   Scene1.ProcessEvents := true; // if you use VRML/X3D events
 
-  KamVRMLBrowser1.SceneManager.MainScene := Scene1;
-  KamVRMLBrowser1.SceneManager.Items.Add(Scene1);
+  Control1.SceneManager.MainScene := Scene1;
+  Control1.SceneManager.Items.Add(Scene1);
 
   WalkCamera1.Init(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0),
     Vector3Single(0, 1, 0), Vector3Single(0, 1, 0), 1, 0.1);
   WalkCamera1.MoveSpeed := 10.0; // default is 1
   WalkCamera1.Gravity := true; // if you want gravity, of course
-  KamVRMLBrowser1.SceneManager.Camera := WalkCamera1;
+  Control1.SceneManager.Camera := WalkCamera1;
 end;
 
 end.

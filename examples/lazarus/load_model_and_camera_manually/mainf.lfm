@@ -8,7 +8,7 @@ object Form1: TForm1
   ClientWidth = 505
   OnCreate = FormCreate
   LCLVersion = '0.9.30'
-  object KamVRMLBrowser1: TCastleControl
+  object Control1: TCastleControl
     Left = 0
     Height = 428
     Top = 0
