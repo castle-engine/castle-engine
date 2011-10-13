@@ -100,8 +100,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
-  examples/3d_rendering_processing/simplest_vrml_browser \
-  examples/3d_rendering_processing/simplest_vrml_browser_with_shadow_volumes \
+  examples/3d_rendering_processing/view_3d_model_advanced \
   examples/3d_rendering_processing/gl_primitive_performance \
   examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/view_3d_model_simple \

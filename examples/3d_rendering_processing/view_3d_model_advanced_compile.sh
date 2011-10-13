@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f simplest_vrml_browser.lpr ]; then cd ../../; fi
+if [ -f view_3d_model_advanced.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/simplest_vrml_browser.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/view_3d_model_advanced.lpr

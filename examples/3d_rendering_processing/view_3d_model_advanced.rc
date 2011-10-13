@@ -3,5 +3,5 @@
 #define ISOLATIONAWARE_MANIFEST_RESOURCE_ID 2
 #define ISOLATIONAWARE_NOSTATICIMPORT_MANIFEST_RESOURCE_ID 3
 
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "simplest_vrml_browser_with_shadow_volumes.manifest"
-MAINICON ICON "simplest_vrml_browser_with_shadow_volumes.ico"
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "view_3d_model_advanced.manifest"
+MAINICON ICON "view_3d_model_advanced.ico"
