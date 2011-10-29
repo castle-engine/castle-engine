@@ -134,6 +134,10 @@ Mirrors:
   probably the Collada->VRML convertion should be fixed,
   to include "mirror" (as it will be useful then) but allow
   "Save To VRML (without Kambi extensions)" option.
+
+- RenderedTexture: some way for MRT? Notify VAmat.
+
+- RenderedTexture: use non-square texture rectangles. Notify VAmat.
 ------------------------------------------------------------------------------
 Primitives by Proxy more improvements:
 - Avoid incremental count +=, set count once in sphere/cone/cylinder/box
