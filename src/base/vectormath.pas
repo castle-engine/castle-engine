@@ -2239,7 +2239,7 @@ const
   @longCode(#
     (R * GrayscaleValuesByte[0] +
      G * GrayscaleValuesByte[1] +
-     G * GrayscaleValuesByte[2]) div 256
+     B * GrayscaleValuesByte[2]) div 256
   #)
 
     GrayscaleValuesByte[] are declared as Word type to force implicit convertion
