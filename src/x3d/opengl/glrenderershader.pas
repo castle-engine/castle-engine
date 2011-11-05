@@ -288,18 +288,22 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Detect defined PLUG_xxx functions within PlugValue,
-      insert calls to them into given Code,
-      insert forward declarations of their calls into Code too
-      (this allows to work with separate compilation units, and also makes
-      procedure declaration order less important),
-      insert the PlugValue (which should be variable and functions declarations)
-      into code of final shader (determined by EffectPartType).
+    { Detect defined PLUG_xxx functions within PlugValue, and insert it into
+      CompleteCode.
 
-      When Code = nil then we assume code of final shader.
-      So we insert a call to plugged_x function, and PlugValue (defining this
-      plugged_x function) into the same final shader source
-      (determined by EffectPartType).
+      @unorderedList(
+        @item(insert calls to them into given CompleteCode,)
+        @item(insert forward declarations of their calls into CompleteCode too
+          (this allows to work with separate compilation units, and also makes
+          procedure declaration order less important),)
+        @item(insert the PlugValue (which should be variable and functions
+          declarations) as the new part of CompleteCode.)
+      )
+
+      EffectPartType determines which type of CompleteCode is used.
+
+      When CompleteCode = nil then we assume code of the final shader
+      (private Source field).
 
       ForwardDeclareInFinalShader should be used only when Code is not nil.
       It means that forward declarations for Code[0] will be inserted
@@ -1308,21 +1312,15 @@ var
   PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
   Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
     PlugForwardDeclaration: string;
-  CompleteCodeForPlugValue: TShaderSource;
-  CodeForPlugValue: TCastleStringList;
   AnyOccurences, AnyOccurencesInThisCodeIndex: boolean;
 begin
-  CompleteCodeForPlugValue := Source;
-
   if CompleteCode = nil then
-    CompleteCode := CompleteCodeForPlugValue;
-
+    CompleteCode := Source;
   Code := CompleteCode[EffectPartType];
-  CodeForPlugValue := CompleteCodeForPlugValue[EffectPartType];
 
   { if the final shader code is empty (on this type) then don't insert anything
     (avoid creating shader without main()). }
-  if CodeForPlugValue.Count = 0 then
+  if Source[EffectPartType].Count = 0 then
     Exit;
 
   repeat
@@ -1370,8 +1368,8 @@ begin
           Otherwise it could be defined after it is needed, or inside different
           compilation unit. }
         if ForwardDeclareInFinalShader and (CodeIndex = 0) then
-          PlugDirectly(CodeForPlugValue, CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true) else
-          PlugDirectly(Code            , CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true);
+          PlugDirectly(Source[EffectPartType], CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true) else
+          PlugDirectly(Code                  , CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true);
       end;
     end;
 
@@ -1380,8 +1378,8 @@ begin
   until false;
 
   { regardless if any (and how many) plug points were found,
-    always insert PlugValue into CodeForPlugValue }
-  CodeForPlugValue.Add(PlugValue);
+    always insert PlugValue into Code }
+  Code.Add(PlugValue);
 end;
 
 function TShader.PlugDirectly(Code: TCastleStringList;
