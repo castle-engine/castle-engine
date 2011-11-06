@@ -642,7 +642,7 @@
       ("active" as defined by @link(Traverse)), otherwise all nodes.
 
       These functions are quite like EnumerateNodes, except
-      they stop at the first occurence and return it.
+      they stop at the first occurrence and return it.
 
       TryFindNodeByName and TryFindNode return @nil if such node
       is not found. FindNodeByName and FindNode raise exception

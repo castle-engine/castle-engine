@@ -165,12 +165,12 @@ function LoCase(c: char): char;
 
 function CharPos(c: char; const s: string; Offset: Integer = 1): integer;
 
-{ Find first occurence of any character in Chars in string S.
+{ Find first occurrence of any character in Chars in string S.
   This is quite like FirstDelimiter but it takes parameter as TSetOfChars
   and has much more sensible name.
 
   BackCharsPos does the same, but from
-  the end of the string (i.e. finds the last occurence).
+  the end of the string (i.e. finds the last occurrence).
 
   CharsPosEx searches starting from Offset char.
 
@@ -183,13 +183,13 @@ function CharsPosEx(const chars: TSetOfChars; const s: string;
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 { @groupEnd }
 
-{ Find @bold(last) occurence of SubString within S.
+{ Find @bold(last) occurrence of SubString within S.
   0 if not found. Overloaded version is optimized for searching for
   single character. }
 function BackPos(const SubString, S: string): Integer; overload;
 function BackPos(const SubString: char; const S: string): Integer; overload;
 
-{ Find first occurence of character in Delimiters. Name is analogous to
+{ Find first occurrence of character in Delimiters. Name is analogous to
   LastDelimiter. Returns 0 if not found. }
 function FirstDelimiter(const Delimiters, S: string): Integer;
 
@@ -349,11 +349,11 @@ function NextTokenRestr(const s: string; var SeekPos: integer;
         but the mere beginning/end of the searching range (StartPosition, Count)
         is not a word border.
         For example FindPos('cat', 'foocat dog', 4, MaxInt, [soWholeWord])
-        will answer 0 (not found), because the only 'cat' occurence is not
+        will answer 0 (not found), because the only 'cat' occurrence is not
         surrounded by default word borders.)
 
       @item(soBackwards: search from the end, that is return rightmost
-        found occurence.)
+        found occurrence.)
     )
   ) }
 function FindPos(const SubText, Text: string; StartPosition, Count: integer;
@@ -570,7 +570,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 #)
 
   But the above fails badly when inserting some Values[] creates
-  an occurence of Pattern checked later. For example, when Values[0]
+  an occurrence of Pattern checked later. For example, when Values[0]
   contains inside whole Patterns[1]. More exotic situations involve
   when some Values[] glues with previous string contents to make
   a pattern detected later. This means that you could replace the same

@@ -1286,7 +1286,7 @@ const
     end;
   end;
 
-  function FindPlugOccurence(const CommentBegin, Code: string;
+  function FindPlugOccurrence(const CommentBegin, Code: string;
     const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): boolean;
   begin
     Result := false;
@@ -1312,7 +1312,7 @@ var
 
   function LookForPlugDeclaration(CodeForPlugDeclaration: TCastleStringList): boolean;
   var
-    AnyOccurencesInThisCodeIndex: boolean;
+    AnyOccurrencesInThisCodeIndex: boolean;
     PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
     CommentBegin, Parameter: string;
   begin
@@ -1321,21 +1321,21 @@ var
     for CodeIndex := 0 to CodeForPlugDeclaration.Count - 1 do
     begin
       CodeSearchBegin := 1;
-      AnyOccurencesInThisCodeIndex := false;
-      while FindPlugOccurence(CommentBegin, CodeForPlugDeclaration[CodeIndex],
+      AnyOccurrencesInThisCodeIndex := false;
+      while FindPlugOccurrence(CommentBegin, CodeForPlugDeclaration[CodeIndex],
         CodeSearchBegin, PBegin, PEnd) do
       begin
         Parameter := Trim(CopyPos(CodeForPlugDeclaration[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
         InsertIntoCode(CodeForPlugDeclaration, CodeIndex, PBegin, ProcedureName + Parameter + ';' + NL);
 
-        { do not find again the same plug comment by FindPlugOccurence }
+        { do not find again the same plug comment by FindPlugOccurrence }
         CodeSearchBegin := PEnd;
 
-        AnyOccurencesInThisCodeIndex := true;
+        AnyOccurrencesInThisCodeIndex := true;
         Result := true;
       end;
 
-      if AnyOccurencesInThisCodeIndex then
+      if AnyOccurrencesInThisCodeIndex then
       begin
         { added "plugged_x" function must be forward declared first.
           Otherwise it could be defined after it is needed, or inside different
@@ -1350,7 +1350,7 @@ var
 var
   Code: TCastleStringList;
   PlugDeclaredParameters: string;
-  AnyOccurences: boolean;
+  AnyOccurrences: boolean;
 begin
   if CompleteCode = nil then
     CompleteCode := Source;
@@ -1379,17 +1379,17 @@ begin
 
     PlugForwardDeclaration := 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;
 
-    AnyOccurences := LookForPlugDeclaration(Code);
+    AnyOccurrences := LookForPlugDeclaration(Code);
     { If the plug declaration not found in Code, then try to find it in
       the final shader. This happens if your Code is special for given
       light/texture effect, and you try to use a plug that
       is not special to the light/texture effect. For example,
       using PLUG_vertex_object_space inside a X3DTextureNode.effects. }
-    if (not AnyOccurences) and
+    if (not AnyOccurrences) and
        (Code <> Source[EffectPartType]) then
-      AnyOccurences := LookForPlugDeclaration(Source[EffectPartType]);
+      AnyOccurrences := LookForPlugDeclaration(Source[EffectPartType]);
 
-    if (not AnyOccurences) and WarnMissingPlugs then
+    if (not AnyOccurrences) and WarnMissingPlugs then
       OnWarning(wtMinor, 'VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
   until false;
 

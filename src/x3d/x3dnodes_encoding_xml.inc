@@ -280,7 +280,7 @@ begin
       We either use DefaultContainerField, or explicit containerField value.
       Note that containerField doesn't have to be preserved
       (see demo_models/x3d/container_field_def_use.x3d).
-      Each USE occurence must specify suitable containerField or use class default. }
+      Each USE occurrence must specify suitable containerField or use class default. }
     if Result <> nil then
       ContainerField := Result.DefaultContainerField else
       ContainerField := ''; { will not be used anyway }

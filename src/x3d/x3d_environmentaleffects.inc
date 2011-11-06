@@ -812,7 +812,7 @@ end;
 
 function TLocalFogNode.GetTransformScale: Single;
 begin
-  { TODO: this is actually bad, each LocalFog occurence may have
+  { TODO: this is actually bad, each LocalFog occurrence may have
     different scale, depending on parent transform node.
     We should keep LocalFogScale in State, and pass it along
     to RenderShape. This method should not exist. }
