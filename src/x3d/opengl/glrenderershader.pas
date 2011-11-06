@@ -288,17 +288,18 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Detect defined PLUG_xxx functions within PlugValue, and insert it into
-      CompleteCode.
+    { Detect PLUG_xxx functions within PlugValue,
+      look for matching @code(/* PLUG: xxx ...*/) declarations in both CompleteCode
+      and the final shader source.
 
+      For every plug declaration,
       @unorderedList(
-        @item(insert calls to them into given CompleteCode,)
-        @item(insert forward declarations of their calls into CompleteCode too
-          (this allows to work with separate compilation units, and also makes
-          procedure declaration order less important),)
-        @item(insert the PlugValue (which should be variable and functions
-          declarations) as the new part of CompleteCode.)
+        @item(insert the appropriate call to the plug function,)
+        @item(and insert forward declaration of the plug function.)
       )
+
+      Also, always insert the PlugValue (which should be variable and functions
+      declarations) as another part of the CompleteCode.
 
       EffectPartType determines which type of CompleteCode is used.
 
@@ -1285,14 +1286,6 @@ const
     end;
   end;
 
-var
-  Code: TCastleStringList;
-
-  procedure InsertIntoCode(const CodeIndex, P: Integer; const S: string);
-  begin
-    Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, S);
-  end;
-
   function FindPlugOccurence(const CommentBegin, Code: string;
     const CodeSearchBegin: Integer; out PBegin, PEnd: Integer): boolean;
   begin
@@ -1308,11 +1301,56 @@ var
     end;
   end;
 
+  procedure InsertIntoCode(Code: TCastleStringList;
+    const CodeIndex, P: Integer; const S: string);
+  begin
+    Code[CodeIndex] := InsertIntoString(Code[CodeIndex], P, S);
+  end;
+
 var
-  PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
-  Parameter, PlugName, ProcedureName, CommentBegin, PlugDeclaredParameters,
-    PlugForwardDeclaration: string;
-  AnyOccurences, AnyOccurencesInThisCodeIndex: boolean;
+  PlugName, ProcedureName, PlugForwardDeclaration: string;
+
+  function LookForPlugDeclaration(CodeForPlugDeclaration: TCastleStringList): boolean;
+  var
+    AnyOccurencesInThisCodeIndex: boolean;
+    PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
+    CommentBegin, Parameter: string;
+  begin
+    CommentBegin := '/* PLUG: ' + PlugName + ' ';
+    Result := false;
+    for CodeIndex := 0 to CodeForPlugDeclaration.Count - 1 do
+    begin
+      CodeSearchBegin := 1;
+      AnyOccurencesInThisCodeIndex := false;
+      while FindPlugOccurence(CommentBegin, CodeForPlugDeclaration[CodeIndex],
+        CodeSearchBegin, PBegin, PEnd) do
+      begin
+        Parameter := Trim(CopyPos(CodeForPlugDeclaration[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
+        InsertIntoCode(CodeForPlugDeclaration, CodeIndex, PBegin, ProcedureName + Parameter + ';' + NL);
+
+        { do not find again the same plug comment by FindPlugOccurence }
+        CodeSearchBegin := PEnd;
+
+        AnyOccurencesInThisCodeIndex := true;
+        Result := true;
+      end;
+
+      if AnyOccurencesInThisCodeIndex then
+      begin
+        { added "plugged_x" function must be forward declared first.
+          Otherwise it could be defined after it is needed, or inside different
+          compilation unit. }
+        if ForwardDeclareInFinalShader and (CodeIndex = 0) then
+          PlugDirectly(Source[EffectPartType], CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true) else
+          PlugDirectly(CodeForPlugDeclaration, CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true);
+      end;
+    end;
+  end;
+
+var
+  Code: TCastleStringList;
+  PlugDeclaredParameters: string;
+  AnyOccurences: boolean;
 begin
   if CompleteCode = nil then
     CompleteCode := Source;
@@ -1328,16 +1366,12 @@ begin
     if PlugName = '' then Break;
 
     { When using some special plugs, we need to do define some symbols. }
-    if (PlugName = 'vertex_object_space_change') and
-       (Code = Source[stVertex]) then
+    if PlugName = 'vertex_object_space_change' then
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
         '#define VERTEX_OBJECT_SPACE_CHANGED', false) else
-    if (PlugName = 'texture_coord_shift') and
-       (Code = Source[stFragment]) then
+    if PlugName = 'texture_coord_shift' then
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         '#define HAS_TEXTURE_COORD_SHIFT', false);
-
-    CommentBegin := '/* PLUG: ' + PlugName + ' ';
 
     ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
     StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
@@ -1345,33 +1379,15 @@ begin
 
     PlugForwardDeclaration := 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;
 
-    AnyOccurences := false;
-    for CodeIndex := 0 to Code.Count - 1 do
-    begin
-      CodeSearchBegin := 1;
-      AnyOccurencesInThisCodeIndex := false;
-      while FindPlugOccurence(CommentBegin, Code[CodeIndex], CodeSearchBegin, PBegin, PEnd) do
-      begin
-        Parameter := Trim(CopyPos(Code[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
-        InsertIntoCode(CodeIndex, PBegin, ProcedureName + Parameter + ';' + NL);
-
-        { do not find again the same plug comment by FindPlugOccurence }
-        CodeSearchBegin := PEnd;
-
-        AnyOccurencesInThisCodeIndex := true;
-        AnyOccurences := true;
-      end;
-
-      if AnyOccurencesInThisCodeIndex then
-      begin
-        { added "plugged_x" function must be forward declared first.
-          Otherwise it could be defined after it is needed, or inside different
-          compilation unit. }
-        if ForwardDeclareInFinalShader and (CodeIndex = 0) then
-          PlugDirectly(Source[EffectPartType], CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true) else
-          PlugDirectly(Code                  , CodeIndex, '/* PLUG-DECLARATIONS */', PlugForwardDeclaration, true);
-      end;
-    end;
+    AnyOccurences := LookForPlugDeclaration(Code);
+    { If the plug declaration not found in Code, then try to find it in
+      the final shader. This happens if your Code is special for given
+      light/texture effect, and you try to use a plug that
+      is not special to the light/texture effect. For example,
+      using PLUG_vertex_object_space inside a X3DTextureNode.effects. }
+    if (not AnyOccurences) and
+       (Code <> Source[EffectPartType]) then
+      AnyOccurences := LookForPlugDeclaration(Source[EffectPartType]);
 
     if (not AnyOccurences) and WarnMissingPlugs then
       OnWarning(wtMinor, 'VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
