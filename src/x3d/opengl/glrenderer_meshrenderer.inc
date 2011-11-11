@@ -117,6 +117,8 @@ type
   end;
 
   TTextureCoordinateRenderer = class(TBaseCoordinateRenderer)
+  private
+    RestoreDefaultTexCoord: boolean;
   protected
     procedure RenderCoordinateBegin; override;
     procedure RenderCoordinateEnd; override;
@@ -373,22 +375,22 @@ end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
 
+{ If multitexturing available, sets texture coordinate for texture
+  unit TextureUnit (by appropriate glMultiTexCoord).
+  Otherwise (when no multitexturing), sets texture coordinate for
+  the only texture unit (glTexCoord).
+
+  The only thing that you have to care about is to specify TextureUnit <
+  GLMaxTextureUnits. Everything else (whether multitexturing
+  available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
+procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
+begin
+  if GLUseMultiTexturing then
+    glMultiTexCoordv(GL_TEXTURE0 + TextureUnit, TexCoord) else
+    glTexCoordv(TexCoord);
+end;
+
 procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
-
-  { If multitexturing available, sets texture coordinate for texture
-    unit TextureUnit (by appropriate glMultiTexCoord).
-    Otherwise (when no multitexturing), sets texture coordinate for
-    the only texture unit (glTexCoord).
-
-    The only thing that you have to care about is to specify TextureUnit <
-    FreeGLTexturesCount. Everything else (whether multitexturing
-    available, and shifting TextureUnit by GL_TEXTURE0) is taken care of inside here. }
-  procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
-  begin
-    if GLUseMultiTexturing then
-      glMultiTexCoordv(GL_TEXTURE0 + TextureUnit, TexCoord) else
-      glTexCoordv(TexCoord);
-  end;
 
   { Enable and set parameters of texture generation,
     for texture units where TexCoords[].Generation[] <> tgExplicit. }
@@ -407,6 +409,20 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         (in homogeneous coords, this means that vector represents
         a direction and will be accordingly transformed). }
       MultiTexCoord(TexUnit, ZeroVector4Single);
+
+      { Remember to set default tex coord 4th component back to 1
+        at the end. Otherwise rendering normal textures (not cube maps)
+        could be incorrect --- as the 4th texture component is 0,
+        GPU doesn't know how to sample 2D or 3D texture data.
+        See Barna29.x3dv from Victor Amat bugreport.
+
+        Note that we don't remember that we need to reset it only
+        on TexUnit. So RenderCoordinateEnd will just have to reset
+        it on all units possibly touched by EnableTextureGen.
+        It's a little unoptimal. OTOH, setting up an array to remember
+        a list of TexUnit in this case would be an overkill, as in 99% cases
+        you only have 1 or 2 texture units where you generate tex coords. }
+      RestoreDefaultTexCoord := true;
 
       glMatrixMode(GL_TEXTURE);
       Renderer.PushTextureUnit(TexUnit);
@@ -593,14 +609,21 @@ begin
 end;
 
 procedure TTextureCoordinateRenderer.RenderCoordinateEnd;
+const
+  DefaultTexCoord: TVector4Single = (0, 0, 0, 1);
 var
   I: Integer;
 begin
-  { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
-    enabled by RenderCoordinateBegin. }
   for I := 0 to Arrays.TexCoords.Count - 1 do
     if Arrays.TexCoords[I].Generation <> tgExplicit then
+    begin
+      { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
+        enabled by RenderCoordinateBegin. }
       Shader.DisableTexGen(I);
+      { DisableTexGen already set glActiveTexture }
+      if RestoreDefaultTexCoord then
+        MultiTexCoord(I, DefaultTexCoord);
+    end;
 
   inherited;
 end;

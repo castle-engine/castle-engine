@@ -348,6 +348,9 @@ type
       const Generation: TTexGenerationComponent; const Component: TTexComponent);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComplete);
+    { Disable fixed-function texgen of given texture unit.
+      Guarantees to also set active texture unit to TexUnit (if multi-texturing
+      available at all). }
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
