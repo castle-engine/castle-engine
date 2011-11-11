@@ -116,8 +116,6 @@
     public property FdPrograms: TMFNode read FFdPrograms;
   end;
 
-  TShaderType = (stVertex, stFragment);
-
   TSFStringShaderType = class(TSFString)
   private
     UpperCaseChecked, WarningInvalidValueDone: boolean;
@@ -378,6 +376,11 @@ begin
   if UpperValue = 'VERTEX' then
   begin
     AValue := stVertex;
+    Result := true;
+  end else
+  if UpperValue = 'GEOMETRY' then
+  begin
+    AValue := stGeometry;
     Result := true;
   end else
   if UpperValue = 'FRAGMENT' then

@@ -41,7 +41,7 @@ unit GLShaders;
 interface
 
 uses SysUtils, Classes, GL, GLU, GLExt, CastleGLUtils, CastleUtils, VectorMath,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Shaders;
 
 type
   { Abstract class for both ARB vertex and fragment programs. }
@@ -149,7 +149,7 @@ type
     procedure UniformNotFound(const Name: string; const ForceException: boolean);
     procedure SetUniformEnd(const UniformName: string; const ForceException: boolean);
 
-    procedure AttachShader(AType: TGLenum; const S: string);
+    procedure AttachShaderCore(AType: TGLenum; const S: string);
 
     { Wrapper over glGetAttribLocationARB (use only if gsExtension) }
     function GetAttribLocationARB(const Name: string): TGLint;
@@ -164,9 +164,9 @@ type
 
     { Create shader from given string, compile it and attach to current program.
 
-      You can attach more than one vertex or fragment shader, just
-      make sure that only one main() function is among vertex shaders and
-      only one among fragment shaders (otherwise Link error will be raised).
+      You can attach more than one  shader of given type, just
+      make sure that only one main() function is among each type
+      (otherwise link error will be raised later).
 
       If you want to explicitly get rid of old shaders, use DetachAllShaders.
 
@@ -176,7 +176,9 @@ type
 
       @groupBegin }
     procedure AttachVertexShader(const S: string);
+    procedure AttachGeometryShader(const S: string);
     procedure AttachFragmentShader(const S: string);
+    procedure AttachShader(const ShaderType: TShaderType; const S: string);
     { @groupEnd }
 
     procedure DetachAllShaders;
@@ -958,7 +960,7 @@ begin
     BoolToStr[RunningInHardware];
 end;
 
-procedure TGLSLProgram.AttachShader(AType: TGLenum; const S: string);
+procedure TGLSLProgram.AttachShaderCore(AType: TGLenum; const S: string);
 
   function CreateShaderARB(const S: string): TGLuint;
   var
@@ -1021,16 +1023,35 @@ end;
 procedure TGLSLProgram.AttachVertexShader(const S: string);
 begin
   case Support of
-    gsExtension: AttachShader(GL_VERTEX_SHADER_ARB, S);
-    gsStandard : AttachShader(GL_VERTEX_SHADER    , S);
+    gsExtension: AttachShaderCore(GL_VERTEX_SHADER_ARB, S);
+    gsStandard : AttachShaderCore(GL_VERTEX_SHADER    , S);
   end;
 end;
 
 procedure TGLSLProgram.AttachFragmentShader(const S: string);
 begin
   case Support of
-    gsExtension: AttachShader(GL_FRAGMENT_SHADER_ARB, S);
-    gsStandard : AttachShader(GL_FRAGMENT_SHADER    , S);
+    gsExtension: AttachShaderCore(GL_FRAGMENT_SHADER_ARB, S);
+    gsStandard : AttachShaderCore(GL_FRAGMENT_SHADER    , S);
+  end;
+end;
+
+procedure TGLSLProgram.AttachGeometryShader(const S: string);
+const
+  { FPC < 2.4.4 doesn't have it defined }
+  GL_GEOMETRY_SHADER = $8DD9;
+begin
+  if GLVersion.AtLeast(3, 2) and (Support = gsStandard) then
+    AttachShaderCore(GL_GEOMETRY_SHADER, S);
+end;
+
+procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);
+begin
+  case ShaderType of
+    stVertex  : AttachVertexShader  (S);
+    stGeometry: AttachGeometryShader(S);
+    stFragment: AttachFragmentShader(S);
+    else raise EInternalError.Create('TGLSLProgram.AttachShader ShaderType?');
   end;
 end;
 

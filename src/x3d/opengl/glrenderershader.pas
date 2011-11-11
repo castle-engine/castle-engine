@@ -22,7 +22,7 @@ interface
 
 uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, Boxes3D,
-  GLRendererTextureEnv, CastleStringUtils;
+  GLRendererTextureEnv, CastleStringUtils, Shaders;
 
 type
   TTextureType = (tt2D, tt2DShadow, ttCubeMap, tt3D, ttShader);
@@ -1212,7 +1212,7 @@ begin
   Source[stVertex][0] := DefaultVertexShader;
   Source[stFragment].Count := 1;
   Source[stFragment][0] := DefaultFragmentShader;
-  { TODO: Source[stGeometry].Count := 0; }
+  Source[stGeometry].Count := 0;
   WarnMissingPlugs := true;
 
   { the rest of fields just restored to default clear state }
@@ -1360,8 +1360,13 @@ begin
   Code := CompleteCode[EffectPartType];
 
   { if the final shader code is empty (on this type) then don't insert anything
-    (avoid creating shader without main()). }
-  if Source[EffectPartType].Count = 0 then
+    (avoid creating shader without main()).
+
+    Currently, geometry shaders are an exception to this check:
+    we expect X3D author to add the main() himself there.
+    If (s)he does not, (s)he will get an error. }
+  if (Source[EffectPartType].Count = 0) and
+     (EffectPartType <> stGeometry) then
     Exit;
 
   repeat
@@ -1929,6 +1934,7 @@ var
   end;
 
 var
+  ShaderType: TShaderType;
   I: Integer;
 begin
   EnableTextures;
@@ -1957,10 +1963,9 @@ begin
        (Source[stFragment].Count = 0) then
       raise EGLSLError.Create('No vertex and no fragment shader for GLSL program');
 
-    for I := 0 to Source[stVertex].Count - 1 do
-      AProgram.AttachVertexShader(Source[stVertex][I]);
-    for I := 0 to Source[stFragment].Count - 1 do
-      AProgram.AttachFragmentShader(Source[stFragment][I]);
+    for ShaderType := Low(ShaderType) to High(ShaderType) do
+      for I := 0 to Source[ShaderType].Count - 1 do
+        AProgram.AttachShader(ShaderType, Source[ShaderType][I]);
     AProgram.Link(true);
 
     if SelectedNode <> nil then
