@@ -64,6 +64,7 @@
     function ProxyUsesOverTriangulate: boolean; override;
 
     function TexCoordField: TSFNode; override;
+    function AutoGenerate3DTexCoords: boolean; override;
   end;
 
   TLoggerNode = class(TAbstractChildNode)
@@ -439,6 +440,11 @@ end;
 function TTeapotNode.TexCoordField: TSFNode;
 begin
   Result := FdTexCoord;
+end;
+
+function TTeapotNode.AutoGenerate3DTexCoords: boolean;
+begin
+  Result := (FdTexCoord.Value = nil) or not FdTexCoord.CurrentChildAllowed;
 end;
 
 procedure TLoggerNode.CreateNode;
