@@ -149,8 +149,6 @@ type
     procedure UniformNotFound(const Name: string; const ForceException: boolean);
     procedure SetUniformEnd(const UniformName: string; const ForceException: boolean);
 
-    procedure AttachShaderCore(AType: TGLenum; const S: string);
-
     { Wrapper over glGetAttribLocationARB (use only if gsExtension) }
     function GetAttribLocationARB(const Name: string): TGLint;
 
@@ -960,7 +958,9 @@ begin
     BoolToStr[RunningInHardware];
 end;
 
-procedure TGLSLProgram.AttachShaderCore(AType: TGLenum; const S: string);
+procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);
+var
+  AType: TGLenum;
 
   function CreateShaderARB(const S: string): TGLuint;
   var
@@ -975,8 +975,8 @@ procedure TGLSLProgram.AttachShaderCore(AType: TGLenum; const S: string);
     glCompileShaderARB(Result);
     glGetObjectParameterivARB(Result, GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
     if Compiled <> 1 then
-      raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
-        [GetInfoLogARB(Result)]);
+      raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
+        [ShaderTypeName[ShaderType], GetInfoLogARB(Result)]);
   end;
 
   { Based on Dean Ellis BasicShader.dpr }
@@ -997,13 +997,37 @@ procedure TGLSLProgram.AttachShaderCore(AType: TGLenum; const S: string);
       couple of error messages) and it's best presented with line breaks.
       So a line break right before ShaderGetInfoLog contents looks good. }
     if Compiled <> GL_TRUE then
-      raise EGLSLShaderCompileError.CreateFmt('Shader not compiled:' + NL + '%s',
-        [GetShaderInfoLog(Result)]);
+      raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
+        [ShaderTypeName[ShaderType], GetShaderInfoLog(Result)]);
   end;
 
+const
+  { FPC < 2.4.4 doesn't have it defined }
+  GL_GEOMETRY_SHADER = $8DD9;
 var
   ShaderId: TGLuint;
 begin
+  { calculate AType }
+  case ShaderType of
+    stVertex:
+      case Support of
+        gsExtension: AType := GL_VERTEX_SHADER_ARB;
+        gsStandard : AType := GL_VERTEX_SHADER    ;
+        else Exit;
+      end;
+    stGeometry:
+      if GLVersion.AtLeast(3, 2) and (Support = gsStandard) then
+        AType := GL_GEOMETRY_SHADER else
+        Exit;
+    stFragment:
+      case Support of
+        gsExtension: AType := GL_FRAGMENT_SHADER_ARB;
+        gsStandard : AType := GL_FRAGMENT_SHADER    ;
+        else Exit;
+      end;
+    else raise EInternalError.Create('TGLSLProgram.AttachShader ShaderType?');
+  end;
+
   case Support of
     gsExtension:
       begin
@@ -1022,37 +1046,17 @@ end;
 
 procedure TGLSLProgram.AttachVertexShader(const S: string);
 begin
-  case Support of
-    gsExtension: AttachShaderCore(GL_VERTEX_SHADER_ARB, S);
-    gsStandard : AttachShaderCore(GL_VERTEX_SHADER    , S);
-  end;
+  AttachShader(stVertex, S);
 end;
 
 procedure TGLSLProgram.AttachFragmentShader(const S: string);
 begin
-  case Support of
-    gsExtension: AttachShaderCore(GL_FRAGMENT_SHADER_ARB, S);
-    gsStandard : AttachShaderCore(GL_FRAGMENT_SHADER    , S);
-  end;
+  AttachShader(stFragment, S);
 end;
 
 procedure TGLSLProgram.AttachGeometryShader(const S: string);
-const
-  { FPC < 2.4.4 doesn't have it defined }
-  GL_GEOMETRY_SHADER = $8DD9;
 begin
-  if GLVersion.AtLeast(3, 2) and (Support = gsStandard) then
-    AttachShaderCore(GL_GEOMETRY_SHADER, S);
-end;
-
-procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);
-begin
-  case ShaderType of
-    stVertex  : AttachVertexShader  (S);
-    stGeometry: AttachGeometryShader(S);
-    stFragment: AttachFragmentShader(S);
-    else raise EInternalError.Create('TGLSLProgram.AttachShader ShaderType?');
-  end;
+  AttachShader(stGeometry, S);
 end;
 
 procedure TGLSLProgram.DetachAllShaders;
