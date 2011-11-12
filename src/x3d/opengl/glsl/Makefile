@@ -4,7 +4,7 @@
 ALL_OUTPUT := shadow_map_common.fs.inc \
   variance_shadow_map_common.fs.inc \
   variance_shadow_map_generate.fs.inc \
-  template.vs.inc template.fs.inc \
+  template.vs.inc template.fs.inc template.gs.inc \
   template_add_light.glsl.inc
 
 .PHONY: all

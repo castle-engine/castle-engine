@@ -199,7 +199,8 @@ type
     { Update Hash for this light shader. }
     procedure Prepare(var Hash: TShaderCodeHash);
     procedure Enable(var TextureApply, TextureColorDeclare,
-      TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
+      TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare,
+      GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
   end;
 
   TTextureShaders = specialize TFPGObjectList<TTextureShader>;
@@ -238,6 +239,7 @@ type
     FFogEnabled: boolean;
     FFogType: TFogType;
     FFogCoordinateSource: TFogCoordinateSource;
+    HasGeometryMain: boolean;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -1041,7 +1043,8 @@ begin
 end;
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
-  TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare: string);
+  TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare,
+  GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 const
   SamplerFromTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
@@ -1065,6 +1068,13 @@ begin
   if not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
     TextureCoordMatrix += Format('%s = gl_TextureMatrix[%d] * %0:s;' + NL,
       [TexCoordName, TextureUnit]);
+
+  GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
+  GeometryVertexZero += Format('%s  = vec4(0.0);' + NL, [TexCoordName]);
+  { NVidia will warn here "... might be used before being initialized".
+    Which is of course true --- but we depend that author will always call
+    geometryVertexZero() before geometryVertexAdd(). }
+  GeometryVertexAdd  += Format('%s += gl_in[index].%0:s * scale;' + NL, [TexCoordName]);
 
   if (TextureType = tt2DShadow) and
       ShadowVisualizeDepth then
@@ -1181,6 +1191,28 @@ end;
 const
   DefaultVertexShader = {$I template.vs.inc};
   DefaultFragmentShader = {$I template.fs.inc};
+  DefaultGeometryShader = {$I template.gs.inc};
+
+  GeometryShaderPassColors =
+    '#version 150 compatibility' +NL+
+
+    'void PLUG_geometry_vertex_set(const int index)' +NL+
+    '{' +NL+
+    '  gl_FrontColor = gl_in[index].gl_FrontColor;' +NL+
+    '  gl_BackColor  = gl_in[index].gl_BackColor;' +NL+
+    '}' +NL+
+
+    'void PLUG_geometry_vertex_zero()' +NL+
+    '{' +NL+
+    '  gl_FrontColor = vec4(0.0);' +NL+
+    '  gl_BackColor  = vec4(0.0);' +NL+
+    '}' +NL+
+
+    'void PLUG_geometry_vertex_add(const int index, const float scale)' +NL+
+    '{' +NL+
+    '  gl_FrontColor += gl_in[index].gl_FrontColor * scale;' +NL+
+    '  gl_BackColor  += gl_in[index].gl_BackColor  * scale;' +NL+
+    '}' +NL;
 
 constructor TShader.Create;
 begin
@@ -1189,6 +1221,7 @@ begin
   Source := TShaderSource.Create;
   Source[stVertex].Add(DefaultVertexShader);
   Source[stFragment].Add(DefaultFragmentShader);
+  Source[stGeometry].Add(DefaultGeometryShader);
 
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureShaders.Create;
@@ -1212,8 +1245,10 @@ begin
   Source[stVertex][0] := DefaultVertexShader;
   Source[stFragment].Count := 1;
   Source[stFragment][0] := DefaultFragmentShader;
-  Source[stGeometry].Count := 0;
+  Source[stGeometry].Count := 1;
+  Source[stGeometry][0] := DefaultGeometryShader;
   WarnMissingPlugs := true;
+  HasGeometryMain := false;
 
   { the rest of fields just restored to default clear state }
   UniformsNodes.Clear;
@@ -1362,12 +1397,14 @@ begin
   { if the final shader code is empty (on this type) then don't insert anything
     (avoid creating shader without main()).
 
-    Currently, geometry shaders are an exception to this check:
-    we expect X3D author to add the main() himself there.
-    If (s)he does not, (s)he will get an error. }
-  if (Source[EffectPartType].Count = 0) and
-     (EffectPartType <> stGeometry) then
+    For geometry shaders (EffectPartType = stGeometry),
+    this check actually does nothing. Geometry shaders always have at least
+    our code defining geometry_xxx functions, so they are never empty. }
+  if Source[EffectPartType].Count = 0 then
     Exit;
+
+  HasGeometryMain := HasGeometryMain or
+    ( (EffectPartType = stGeometry) and (Pos('main()', PlugValue) <> 0) );
 
   repeat
     PlugName := FindPlugName(PlugValue, PlugDeclaredParameters);
@@ -1493,7 +1530,8 @@ end;
 procedure TShader.LinkProgram(AProgram: TX3DShaderProgram);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize,
-    TextureCoordMatrix, TextureUniformsDeclare: string;
+    TextureCoordMatrix, TextureUniformsDeclare,
+    GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
   TextureUniformsSet: boolean;
 
   procedure EnableTextures;
@@ -1505,11 +1543,15 @@ var
     TextureCoordInitialize := '';
     TextureCoordMatrix := '';
     TextureUniformsDeclare := '';
+    GeometryVertexSet := '';
+    GeometryVertexZero := '';
+    GeometryVertexAdd := '';
     TextureUniformsSet := true;
 
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
-        TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare);
+        TextureCoordInitialize, TextureCoordMatrix, TextureUniformsDeclare,
+        GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
   end;
 
   { Applies effects from various strings here.
@@ -1526,6 +1568,10 @@ var
     PlugDirectly(Source[stFragment], 0, '/* PLUG: texture_apply',
       TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
+
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_set' , GeometryVertexSet , false);
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_zero', GeometryVertexZero, false);
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_add' , GeometryVertexAdd , false);
 
     if not PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
       TextureUniformsDeclare + NL +
@@ -1600,7 +1646,8 @@ var
 
         Source.Append(LightShaders[I].Code);
       end;
-    end;
+    end else
+      Plug(stGeometry, GeometryShaderPassColors);
   end;
 
 var
@@ -1820,6 +1867,8 @@ var
         '  gl_BackColor = gl_Color;' +NL+
         '}');
 
+      Plug(stGeometry, GeometryShaderPassColors);
+
         { Sidenote: What happens without this? That is, what's in OpenGL
           gl_Front/BackLightProducts (used by normal shader code) when
           glEnable(GL_COLOR_MATERIAL) was called
@@ -1948,14 +1997,15 @@ begin
   if GroupEffects <> nil then
     EnableEffects(GroupEffects);
 
+  if not HasGeometryMain then
+    Source[stGeometry].Clear;
+
   if Log and LogShaders then
   begin
-    for I := 0 to Source[stVertex].Count - 1 do
-      WritelnLogMultiline(Format('Generated GLSL vertex shader[%d]', [I]),
-        Source[stVertex][I]);
-    for I := 0 to Source[stFragment].Count - 1 do
-      WritelnLogMultiline(Format('Generated GLSL fragment shader[%d]', [I]),
-        Source[stFragment][I]);
+    for ShaderType := Low(ShaderType) to High(ShaderType) do
+      for I := 0 to Source[ShaderType].Count - 1 do
+        WritelnLogMultiline(Format('Generated GLSL %s shader[%d]',
+          [ShaderTypeName[ShaderType], I]), Source[ShaderType][I]);
   end;
 
   try
@@ -2185,6 +2235,23 @@ begin
   if ClipPlane = '' then
   begin
     ClipPlane := 'gl_ClipVertex = castle_vertex_eye;';
+
+    (* TODO: make this work: (instead of 0, add each index)
+    ClipPlaneGeometryPlug :=
+      '#version 150 compatibility' +NL+
+      'void PLUG_geometry_vertex_set(const int index)' +NL+
+      '{' +NL+
+      '  gl_ClipDistance[0] = gl_in[index].gl_ClipDistance[0];' +NL+
+      '}' +NL+
+      'void PLUG_geometry_vertex_zero()' +NL+
+      '{' +NL+
+      '  gl_ClipDistance[0] = 0.0;' +NL+
+      '}' +NL+
+      'void PLUG_geometry_vertex_add(const int index, const float scale)' +NL+
+      '{' +NL+
+      '  gl_ClipDistance[0] += gl_in[index].gl_ClipDistance[0] * scale;' +NL+
+      '}' +NL;
+    *)
     FCodeHash.AddInteger(2003);
   end;
 end;
@@ -2275,7 +2342,8 @@ begin
 
       { Clear whole Source }
       for SourceType := Low(SourceType) to High(SourceType) do
-        Source[SourceType].Count := 0;
+        if SourceType <> stGeometry then
+          Source[SourceType].Count := 0;
 
       { Iterate over Node.FdParts, looking for vertex shaders
         and fragment shaders. }
@@ -2285,7 +2353,11 @@ begin
           Part := TShaderPartNode(Node.FdParts[J]);
           PartSource := Part.LoadContents;
           if (PartSource <> '') and Part.FdType.GetValue(PartType) then
+          begin
             Source[PartType].Add(PartSource);
+            if PartType = stGeometry then
+              HasGeometryMain := true;
+          end;
         end;
 
       Node.EventIsSelected.Send(true);
