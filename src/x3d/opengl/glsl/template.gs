@@ -1,8 +1,11 @@
-/* Basic geometry shader.
-   It doesn't contain main() --- it will have to be provided by user.
-   This only defines geometryVertexXxx functions,
-   to be called by user, and respective geometry_vertex_xxx plugs,
-   to be extended by user (and internal) effects. */
+/* Default geometry shader code.
+   Defines geometryVertexXxx functions,
+   to be called from user code, and respective geometry_vertex_xxx plugs,
+   to be extended by user (and internal) effects.
+
+   It does not define the main() entry point for geometry shaders.
+   User will have to provide it (in ComposedShader or Effect),
+   or we will discard partial geometry shader code. */
 
 /* Our implementation supports only geometry shaders for GLSL >= 1.50.
    Add "compatibility" profile, as (for now) we want to be able to pass

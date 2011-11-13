@@ -1,5 +1,5 @@
 /* Generic GLSL fragment shader.
-   Used by vrmlshader.pas to construct the final shader.
+   Used by glrenderershader.pas to construct the final shader.
 
    This is converted to template.fs.inc, and is then compiled
    in program's binary.

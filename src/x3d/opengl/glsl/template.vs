@@ -1,5 +1,5 @@
 /* Generic GLSL vertex shader.
-   Used by vrmlshader.pas to construct the final shader.
+   Used by glrenderershader.pas to construct the final shader.
 
    This is converted to template.vs.inc, and is then compiled
    in program's binary.

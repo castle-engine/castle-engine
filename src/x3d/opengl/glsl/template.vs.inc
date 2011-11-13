@@ -1,7 +1,7 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "template.vs" }
 '/* Generic GLSL vertex shader.' + LineEnding + 
-'   Used by vrmlshader.pas to construct the final shader.' + LineEnding + 
+'   Used by glrenderershader.pas to construct the final shader.' + LineEnding + 
 '' + LineEnding + 
 '   This is converted to template.vs.inc, and is then compiled' + LineEnding + 
 '   in program''s binary.' + LineEnding + 
