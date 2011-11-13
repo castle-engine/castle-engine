@@ -1018,6 +1018,10 @@ begin
     stGeometry:
       if GLVersion.AtLeast(3, 2) and (Support = gsStandard) then
         AType := GL_GEOMETRY_SHADER else
+      { otherwise, raise an error --- but only if Support <> gsNone.
+        When Support = gsNone, everything should be silent NO-OP. }
+      if Support <> gsNone then
+        raise EGLSLShaderCompileError.Create('Geometry shaders not supported by your OpenGL version') else
         Exit;
     stFragment:
       case Support of
