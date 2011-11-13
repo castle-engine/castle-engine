@@ -1997,7 +1997,12 @@ begin
   if GroupEffects <> nil then
     EnableEffects(GroupEffects);
 
-  if not HasGeometryMain then
+  if HasGeometryMain then
+  begin
+    for I := 0 to Source[stFragment].Count - 1 do
+      Source[stFragment][I] := '#define HAS_GEOMETRY_SHADER' + NL +
+        Source[stFragment][I];
+  end else
     Source[stGeometry].Clear;
 
   if Log and LogShaders then
