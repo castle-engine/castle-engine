@@ -1196,12 +1196,18 @@ Various:
 ------------------------------------------------------------------------------
 Shaders:
 
-- Geometry shaders add.
-  InstantReality already has them implemented as an extension, and their additions seem sensible, so my implementation will probably follow them. Basically, using type="GEOMETRY" inside ShaderPart should be enough. You can see them at the bottom of http://doc.instantreality.org/tutorial/shader-programs/
-  Notify VAmat.
-
 - Allow shadow map generation plugs.
   I would like to also develop a solution that can be applied to both non-VSM and VSM shadow maps. For example, I would like to transform objects by GLSL in such way that their shadow is also transformed (which means that the transformations must work also when rendering to the shadow map texture), regardless if you use VSM or not.
   So user-supplied shaders have to be combined with browser-internal shaders (at least for VSM), so probably enhancing my idea of http://castle-engine.sourceforge.net/compositing_shaders.php will be good here.
   Also, it should be possible to override value stored in shadow map.
   Notify VAmat.
+
+- Implement passing the rest of coords through geometry shader, to make
+  our "robust" geometry shaders (by geometryVertexXxx function) really work
+  with every normal X3D rendering feature.
+  Most important stuff is passed now:
+  - tex coords are passed
+  - colors are passed, for color from material or unlit case
+  - castle_vertex/normal_eye is passed, lighting works
+  But some minor (seldom used) stuff is left not passed.
+  Grep "varying" in glrenderershader.pas, see also TODO in template_add_light.glsl.
