@@ -2,7 +2,8 @@
 { DON'T EDIT -- this file was automatically generated from "template_add_light.glsl" }
 '/* Shader code used for adding light source contribution. */' + LineEnding + 
 '' + LineEnding + 
-'/* TODO: use this (define PLUG_geometry_*) for light source */' + LineEnding + 
+'/* TODO: use this, i.e. define PLUG_geometry_vertex_*' + LineEnding + 
+'   for every light source to pass these */' + LineEnding + 
 '#ifdef HAS_GEOMETRY_SHADER' + LineEnding + 
 '  #define castle_light_light_number_radius castle_light_light_number_radius_geoshader' + LineEnding + 
 '  #define castle_light_light_number_beam_width castle_light_light_number_beam_width_geoshader' + LineEnding + 
