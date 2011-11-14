@@ -8,6 +8,11 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding + 
 '*/' + LineEnding + 
 '' + LineEnding + 
+'#ifdef HAS_GEOMETRY_SHADER' + LineEnding + 
+'  #define castle_vertex_eye castle_vertex_eye_geoshader' + LineEnding + 
+'  #define castle_normal_eye castle_normal_eye_geoshader' + LineEnding + 
+'#endif' + LineEnding + 
+'' + LineEnding + 
 'varying vec4 castle_vertex_eye;' + LineEnding + 
 'varying vec3 castle_normal_eye;' + LineEnding + 
 '' + LineEnding + 

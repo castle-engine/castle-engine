@@ -16,18 +16,30 @@
 '' + LineEnding + 
 '/* PLUG-DECLARATIONS */' + LineEnding + 
 '' + LineEnding + 
+'/* Standard varying, always used by our shaders */' + LineEnding + 
+'in vec4[] castle_vertex_eye;' + LineEnding + 
+'out vec4 castle_vertex_eye_geoshader;' + LineEnding + 
+'in vec3[] castle_normal_eye;' + LineEnding + 
+'out vec3 castle_normal_eye_geoshader;' + LineEnding + 
+'' + LineEnding + 
 'void geometryVertexSet(const int index)' + LineEnding + 
 '{' + LineEnding + 
+'  castle_vertex_eye_geoshader = castle_vertex_eye[index];' + LineEnding + 
+'  castle_normal_eye_geoshader = castle_normal_eye[index];' + LineEnding + 
 '  /* PLUG: geometry_vertex_set (index) */' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 
 'void geometryVertexZero()' + LineEnding + 
 '{' + LineEnding + 
+'  castle_vertex_eye_geoshader = vec4(0.0);' + LineEnding + 
+'  castle_normal_eye_geoshader = vec3(0.0);' + LineEnding + 
 '  /* PLUG: geometry_vertex_zero () */' + LineEnding + 
 '}' + LineEnding + 
 '' + LineEnding + 
 'void geometryVertexAdd(const int index, const float scale)' + LineEnding + 
 '{' + LineEnding + 
+'  castle_vertex_eye_geoshader += castle_vertex_eye[index] * scale;' + LineEnding + 
+'  castle_normal_eye_geoshader += castle_normal_eye[index] * scale;' + LineEnding + 
 '  /* PLUG: geometry_vertex_add (index, scale) */' + LineEnding + 
 '}' + LineEnding + 
 ''

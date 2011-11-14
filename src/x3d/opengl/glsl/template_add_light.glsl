@@ -1,5 +1,11 @@
 /* Shader code used for adding light source contribution. */
 
+/* TODO: use this (define PLUG_geometry_*) for light source */
+#ifdef HAS_GEOMETRY_SHADER
+  #define castle_light_light_number_radius castle_light_light_number_radius_geoshader
+  #define castle_light_light_number_beam_width castle_light_light_number_beam_width_geoshader
+#endif
+
 #ifdef LIGHT_HAS_RADIUS
 uniform float castle_light_light_number_radius;
 #endif
