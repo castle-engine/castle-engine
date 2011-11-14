@@ -407,6 +407,11 @@ uses SysUtils, GL, GLExt, CastleGLUtils, CastleWarnings,
 
 { String helpers ------------------------------------------------------------- }
 
+{ MoveTo do not warn about incorrect PLUG_ declarations, only return @false
+  on them. That's because FindPlugName should just ignore them.
+  But we log them --- maybe they will be useful
+  in case there's some problem with FindPlugName. }
+
 function MoveToOpeningParen(const S: string; var P: Integer): boolean;
 begin
   Result := true;
@@ -415,14 +420,14 @@ begin
 
     if P > Length(S) then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(")');
+      if Log then WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no opening parenthesis "(")');
       Exit(false);
     end;
 
     if (S[P] <> '(') and
        not (S[P] in WhiteSpaces) then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
+      if Log then WritelnLog('VRML/X3D', Format('PLUG declaration unexpected character "%s" (expected opening parenthesis "(")',
         [S[P]]));
       Exit(false);
     end;
@@ -440,7 +445,7 @@ begin
     Inc(P);
     if P > Length(S) then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
+      if Log then WritelnLog('VRML/X3D', 'PLUG declaration unexpected end (no closing parenthesis ")")');
       Exit(false);
     end;
 
@@ -1293,35 +1298,42 @@ const
   const
     IdentifierChars = ['0'..'9', 'a'..'z', 'A'..'Z', '_'];
   var
-    P, PBegin, DPBegin, DPEnd: Integer;
+    P, PBegin, DPBegin, DPEnd, SearchStart: Integer;
   begin
-    Result := ''; { assume failure }
-    P := Pos(PlugPrefix, PlugValue);
-    if P <> 0 then
-    begin
+    SearchStart := 1;
+    repeat
+      P := PosEx(PlugPrefix, PlugValue, SearchStart);
+      if P = 0 then Exit('');
+
+      { if code below will decide that it's an incorrect PLUG_ definition,
+        it will do Continue, and we will search again from the next position. }
+      SearchStart := P + Length(PlugPrefix);
+
       { There must be whitespace before PLUG_ }
-      if (P > 1) and (not (PlugValue[P - 1] in WhiteSpaces)) then Exit;
+      if (P > 1) and (not (PlugValue[P - 1] in WhiteSpaces)) then Continue;
       P += Length(PlugPrefix);
       PBegin := P;
       { There must be at least one identifier char after PLUG_ }
       if (P > Length(PlugValue)) or
-         (not (PlugValue[P] in IdentifierChars)) then Exit;
+         (not (PlugValue[P] in IdentifierChars)) then Continue;
       repeat
         Inc(P);
       until (P > Length(PlugValue)) or (not (PlugValue[P] in IdentifierChars));
       { There must be a whitespace or ( after PLUG_xxx }
       if (P > Length(PlugValue)) or (not (PlugValue[P] in (WhiteSpaces + ['(']))) then
-        Exit;
+        Continue;
 
       Result := CopyPos(PlugValue, PBegin, P - 1);
 
       DPBegin := P - 1;
-      if not MoveToOpeningParen(PlugValue, DPBegin) then Exit('');
+      if not MoveToOpeningParen(PlugValue, DPBegin) then Continue;
       DPEnd := DPBegin;
-      if not MoveToMatchingParen(PlugValue, DPEnd) then Exit('');
+      if not MoveToMatchingParen(PlugValue, DPEnd) then Continue;
 
       DeclaredParameters := CopyPos(PlugValue, DPBegin, DPEnd);
-    end;
+      { if you managed to get here, then we have correct Result and DeclaredParameters }
+      Exit;
+    until false;
   end;
 
   function FindPlugOccurrence(const CommentBegin, Code: string;
