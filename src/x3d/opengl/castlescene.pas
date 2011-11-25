@@ -109,7 +109,7 @@ type
       WireframeColor and LineWidth are used as wireframe
       line color/width (regardless of current @link(Mode) value).
 
-      This usually gives best results when Mode is rmPureGeometry.
+      This usually gives best results when Mode = rmPureGeometry.
       Then current glColor sets the color of the solid model
       (and, like said before, WireframeColor sets wireframe color). }
     weSolidWireframe,
@@ -121,9 +121,9 @@ type
       only the silhouette is visible from the wireframe rendering.
 
       WireframeColor and LineWidth are used as silhouette
-      line color/width (regardless of current PureGeometry value).
+      line color/width (regardless of current Mode value).
 
-      This is sometimes sensible to use with PureGeometry = @true.
+      This is sometimes sensible to use with Mode = rmPureGeometry.
       Then current glColor sets the color of the solid model
       (and, like said before, WireframeColor sets wireframe color). }
     weSilhouette);
@@ -222,6 +222,9 @@ type
       done, which means that model polygons are simply passed to OpenGL.
       Whether this results in filled or wireframe, depends on OpenGL
       glPolygonMode setting, filled by default.
+
+      How the wireframe effects work when Mode = rmDepth is undefined now.
+      Just don't use Mode = rmDepth if you're unsure.
 
       See description of TWireframeEffect for what other modes do. }
     property WireframeEffect: TWireframeEffect
@@ -2109,9 +2112,9 @@ begin
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
     LightRenderEvent, Params.Pass);
   try
-    if Attributes.PureGeometry then
+    if Attributes.Mode <> rmFull then
     begin
-      { When PureGeometry, we don't want to do anything with glDepthMask
+      { When not rmFull, we don't want to do anything with glDepthMask
         or GL_BLEND enable state. Just render everything. }
       RenderAllAsOpaque;
 
@@ -2281,7 +2284,7 @@ procedure TCastleScene.Render(
 
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
-    SavedPureGeometry: boolean;
+    SavedMode: TRenderingMode;
   begin
     glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
@@ -2291,14 +2294,14 @@ procedure TCastleScene.Render(
         glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
         glDisable(GL_TEXTURE_2D); { saved by GL_CURRENT_BIT }
         glDisable(GL_LIGHTING); { saved by GL_CURRENT_BIT }
-        SavedPureGeometry := Attributes.PureGeometry;
-        Attributes.PureGeometry := true;
+        SavedMode := Attributes.Mode;
+        Attributes.Mode := rmPureGeometry;
       end;
 
       RenderNormal;
 
       if UseWireframeColor then
-        Attributes.PureGeometry := SavedPureGeometry;
+        Attributes.Mode := SavedMode;
     glPopAttrib;
   end;
 
@@ -2322,7 +2325,7 @@ begin
 
   case Attributes.WireframeEffect of
     weNormal: RenderNormal;
-    weWireframeOnly: RenderWireframe(Attributes.PureGeometry);
+    weWireframeOnly: RenderWireframe(Attributes.Mode = rmPureGeometry);
     weSolidWireframe:
       begin
         glPushAttrib(GL_POLYGON_BIT);
@@ -2341,16 +2344,16 @@ begin
         glPushAttrib(GL_POLYGON_BIT);
           glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
           glPolygonOffset(5, 5); { saved by GL_POLYGON_BIT }
-          { PureGeometry still does backface culling.
-            This is very good in this case. When PureGeometry and weSilhouette,
+          { rmPureGeometry still does backface culling.
+            This is very good in this case. When rmPureGeometry and weSilhouette,
             and objects are solid (so backface culling is used) we can
             significantly improve the effect by reverting glFrontFace,
             this way we will cull *front* faces. This will not be noticed
-            in case of PureGeometry will single solid color, and it will
+            in case of rmPureGeometry will single solid color, and it will
             improve the silhouette look, since front-face edges will not be
             rendered at all (no need to even hide them by glPolygonOffset,
             which is somewhat sloppy). }
-          if Attributes.PureGeometry then
+          if Attributes.Mode = rmPureGeometry then
             glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
           RenderWireframe(true);
         glPopAttrib;
@@ -2977,7 +2980,7 @@ var
 
     if Attributes.ControlBlending and
        Attributes.Blending and
-       (not Attributes.PureGeometry) then
+       (Attributes.Mode = rmFull) then
       OpaqueCount := Triangles.OpaqueCount else
       OpaqueCount := Triangles.Count; { everything is opaque in this case }
 

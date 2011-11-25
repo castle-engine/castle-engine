@@ -245,6 +245,45 @@ const
   DefaultBumpMapping = bmBasic;
 
 type
+  { TRenderingAttributes.Mode possible values. }
+  TRenderingMode = (
+    { Normal rendering features. Everything is enabled
+      (as long as other TRenderingAttributes settings allow them). }
+    rmFull,
+
+    { Pure geometry is rendered, without any colors, materials,
+      lights, textures. Only the geometry primitives
+      are rendered. We still set correct modelview matrix transformations,
+      control face culling and depth test and such.
+      The idea is that we "hit" the same pixels as normal rendering
+      (with the exception of alpha test textures, that are not used for
+      pure geometry rendering --- for now).
+      But we do absolutely nothing to set a particular pixel color.
+      Which means that the caller controls the color (by default,
+      if lighting and everything else is disabled, you just get solid look
+      with color from last glColor).
+
+      For example, Renderer will not set any color (no glColor calls),
+      will not set any material
+      (no glMaterial calls), will not set any texture coordinates and
+      will not bind any texture, fog and such.
+
+      This is useful for special tricks, in particular to draw the geometry
+      into stencil buffer.
+      Another example of use is to render plane-projected shadows,
+      see castle_game_engine/examples/vrml/plane_projected_shadow_demo.lpr,
+      where you have to draw the model with pure black color. }
+    rmPureGeometry,
+
+    { Only the rendering fetures that affect depth buffer work reliably,
+      everything else is undefined (and works as fast as possible).
+      This is suitable if you render only to depth buffer, like for shadow maps.
+
+      It's quite similar to rmPureGeometry, except alpha testing must work,
+      so (at least some) textures must be applied over the model. }
+    rmDepth
+  );
+
   { Various properties that control rendering done
     with @link(TGLRenderer).
 
@@ -268,7 +307,7 @@ type
     FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
     FCustomShader: TGLSLProgram;
-    FPureGeometry: boolean;
+    FMode: TRenderingMode;
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
     FVarianceShadowMaps: boolean;
@@ -286,7 +325,7 @@ type
     procedure SetTextureMinFilter(const Value: TGLint); virtual;
     procedure SetTextureMagFilter(const Value: TGLint); virtual;
     procedure SetBumpMapping(const Value: TBumpMapping); virtual;
-    procedure SetPureGeometry(const Value: boolean); virtual;
+    procedure SetMode(const Value: TRenderingMode); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
     procedure SetVarianceShadowMaps(const Value: boolean); virtual;
@@ -444,8 +483,8 @@ type
           but rendering may be slower.)
       )
 
-      Note that PureGeometry = @true also disables all shaders.
-      That is, when PureGeometry = @true, the value of this property
+      Note that Mode <> rmFull also disables all shaders.
+      That is, when Mode <> rmFull, the value of this property
       doesn't matter, it's always treated like srDisable. }
     property Shaders: TShadersRendering read FShaders write FShaders
       default DefaultShaders;
@@ -454,30 +493,8 @@ type
       When this is assigned, @link(Shaders) value is ignored. }
     property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
 
-    { Use this to render pure geometry, without any colors, materials,
-      lights, textures. If this is @true, only the geometry primitives
-      are rendered. We still set correct modelview matrix transformations,
-      control face culling and depth test and such.
-      The idea is that we "hit" the same pixels as normal rendering
-      (with the exception of alpha test textures, that are not used for
-      pure geometry rendering --- for now).
-      But we do absolutely nothing to set a particular pixel color.
-      Which means that the caller controls the color (by default,
-      if lighting and everything else is disabled, you just get solid look
-      with color from last glColor).
-
-      For example, Renderer will not set any color (no glColor calls),
-      will not set any material
-      (no glMaterial calls), will not set any texture coordinates and
-      will not bind any texture, fog and such.
-
-      This is useful for special tricks, in particular to draw the geometry
-      into stencil buffer.
-      Another example of use is to render plane-projected shadows,
-      see castle_game_engine/examples/vrml/plane_projected_shadow_demo.lpr,
-      where you have to draw the model with pure black color. }
-    property PureGeometry: boolean
-      read FPureGeometry write SetPureGeometry default false;
+    { Rendering mode, can be used to disable many rendering features at once. }
+    property Mode: TRenderingMode read FMode write SetMode default rmFull;
 
     { Default texture mode for single texturing.
       For X3D MultiTexture nodes, they are always explicitly given
@@ -2224,9 +2241,9 @@ begin
   end;
 end;
 
-procedure TRenderingAttributes.SetPureGeometry(const Value: boolean);
+procedure TRenderingAttributes.SetMode(const Value: TRenderingMode);
 begin
-  FPureGeometry := Value;
+  FMode := Value;
 end;
 
 procedure TRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
@@ -2648,7 +2665,7 @@ function TGLRenderer.BumpMapping: TBumpMapping;
 begin
   if (Attributes.BumpMapping <> bmNone) and
     Attributes.EnableTextures and
-    (not Attributes.PureGeometry) and
+    (Attributes.Mode = rmFull) and
     GLUseMultiTexturing and
     (TGLSLProgram.ClassSupport <> gsNone) then
     Result := Attributes.BumpMapping else
@@ -2699,7 +2716,7 @@ procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
   out VolumetricDirection: TVector3Single;
   out VolumetricVisibilityStart: Single);
 begin
-  Enabled := (not Attributes.PureGeometry) and
+  Enabled := (Attributes.Mode = rmFull) and
     (Node <> nil) and (Node.FdVisibilityRange.Value <> 0.0);
   Volumetric := Enabled and Node.FdVolumetric.Value and GL_EXT_fog_coord;
 
@@ -2763,13 +2780,23 @@ begin
 
   SetGLEnabled(GL_DEPTH_TEST, Beginning);
 
-  if not Attributes.PureGeometry then
+  if Attributes.Mode in [rmDepth, rmFull] then
   begin
-    glDisable(GL_COLOR_MATERIAL);
     glDisable(GL_TEXTURE_GEN_S);
     glDisable(GL_TEXTURE_GEN_T);
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
+
+    glDisable(GL_ALPHA_TEST);
+    { We only use glAlphaFunc for textures, and there this value is suitable.
+      We never change glAlphaFunc during rendering, so no need to call this in RenderEnd. }
+    if Beginning then
+      glAlphaFunc(GL_GEQUAL, 0.5);
+  end;
+
+  if Attributes.Mode = rmFull then
+  begin
+    glDisable(GL_COLOR_MATERIAL);
 
     { We don't really need to enable GL_NORMALIZE.
       We always provide normalized normals (that's how arraysgenerator.pas
@@ -2789,12 +2816,6 @@ begin
       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE) else
     if Log then
       WritelnLog('Lighting', GLVersion.BuggyLightModelTwoSideMessage);
-
-    glDisable(GL_ALPHA_TEST);
-    { We only use glAlphaFunc for textures, and there this value is suitable.
-      We never change glAlphaFunc during rendering, so no need to call this in RenderEnd. }
-    if Beginning then
-      glAlphaFunc(GL_GEQUAL, 0.5);
 
     { Initialize FSmoothShading, make sure OpenGL state is appropriate }
     FSmoothShading := true;
@@ -3488,7 +3509,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
 
-    if Attributes.PureGeometry then
+    if Attributes.Mode = rmPureGeometry then
       Exit;
 
     AlphaTest := false;

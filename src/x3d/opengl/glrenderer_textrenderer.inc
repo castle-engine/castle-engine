@@ -179,7 +179,7 @@ begin
         Renderer.CullFace := cfNone;
 
       { Make sure Renderer.SmoothShading is suitable }
-      if not Renderer.Attributes.PureGeometry then
+      if Renderer.Attributes.Mode = rmFull then
         Renderer.SmoothShading := true;
 
       { Normal pointing from CCW. }
@@ -235,7 +235,7 @@ begin
           that's why I render extrusions after rendering all front and back caps.
           For now, normals for extrusions are suitable only for flat shading,
           so we set flat shading. }
-        if not Renderer.Attributes.PureGeometry then
+        if Renderer.Attributes.Mode = rmFull then
           Renderer.SmoothShading := false;
 
         for I := 0 to Strings.Count - 1 do

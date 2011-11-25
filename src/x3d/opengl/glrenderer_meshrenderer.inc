@@ -208,7 +208,7 @@ var
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
-    if not Attributes.PureGeometry then
+    if Attributes.Mode = rmFull then
       glDisableClientState(GL_COLOR_ARRAY);
 
     if Arrays.HasFogCoord and GL_EXT_fog_coord then
@@ -359,7 +359,7 @@ begin
   end else
     Renderer.CullFace := cfNone;
 
-  if not Renderer.Attributes.PureGeometry then
+  if Renderer.Attributes.Mode = rmFull then
     Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;
 
@@ -369,7 +369,7 @@ end;
 
 function TBaseCoordinateRenderer.HasColor: boolean;
 begin
-  Result := (not Attributes.PureGeometry) and
+  Result := (Attributes.Mode = rmFull) and
     (Arrays.HasColor or Arrays.HasDefaultColor);
 end;
 
@@ -709,7 +709,7 @@ begin
     if Shape.State.Effects <> nil then
       Shader.EnableGroupEffects(Shape.State.Effects);
 
-    UseShaderRendering := (not Attributes.PureGeometry) and
+    UseShaderRendering := (Attributes.Mode = rmFull) and
       ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
          (Attributes.Shaders = srAlways) );
 

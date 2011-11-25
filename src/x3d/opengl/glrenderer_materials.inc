@@ -27,7 +27,7 @@ procedure RenderMaterialsBegin;
     const UnLitColor: TVector3Single;
     const ShininessExp, ShapeOpacity: Single);
   begin
-    if Attributes.PureGeometry then Exit;
+    if Attributes.Mode <> rmFull then Exit;
 
     Shader.MaterialSpecularColor := SpecularColor;
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
@@ -155,7 +155,7 @@ begin
 
   { calculate and apply Lighting }
   Lighting := Attributes.Lighting and MaterialAndShapeLit;
-  if not Attributes.PureGeometry then
+  if Attributes.Mode = rmFull then
     FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;

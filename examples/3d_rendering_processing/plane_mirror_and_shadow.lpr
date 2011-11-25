@@ -199,9 +199,9 @@ var
         glPushMatrix();
           glRotatef(RotationAngle, 1, 1, 1);
           { Render scene for shadow.
-            SceneForShadow is a normal VRML model and it's rendered
+            SceneForShadow is a normal 3D model and it's rendered
             almost exactly like Scene (the same set of glVertex etc.),
-            but it's rendered with Attributes.PureGeometry = @true
+            but it's rendered with Attributes.Mode = rmPureGeometry
             (we want it's color to be consistently black). }
           glPushAttrib(GL_DEPTH_BUFFER_BIT);
             { we want it to always pass depth test, stencil protects us from drawing
@@ -620,7 +620,7 @@ begin
       It doesn't own RootNode, and always has RootNode = Scene.RootNode }
     SceneForShadow := TCastleScene.Create(nil);
     SceneForShadow.Load(RootNode, false);
-    SceneForShadow.Attributes.PureGeometry := true;
+    SceneForShadow.Attributes.Mode := rmPureGeometry;
     SceneForShadow.Attributes.PreserveOpenGLState := true;
 
     { init light that we'll control }
