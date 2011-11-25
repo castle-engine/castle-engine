@@ -620,12 +620,7 @@ var
 begin
   Result := nil;
 
-  { Conditions below describing when the texture is added to the cache
-    (more precisely, just "not Attributes.PureGeometry" for now)
-    are reflected in PreparedTextureAlphaChannelType documentation. }
-
-  if (not ARenderer.Attributes.PureGeometry) and
-     (ANode <> nil) then
+  if ANode <> nil then
   begin
     GLTextureNodeClass := TGLTextureNodeClass.ClassForTextureNode(ANode);
 

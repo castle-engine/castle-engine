@@ -278,7 +278,7 @@ type
     FVisualizeDepthMap: boolean;
   protected
     { These methods just set the value on given property,
-      eventually calling ReleaseCachedResources.
+      eventually (some of them) calling ReleaseCachedResources.
       @groupBegin }
     procedure SetOnRadianceTransfer(const Value: TRadianceTransferFunction); virtual;
     procedure SetOnVertexColor(const Value: TVertexColorFunction); virtual;
@@ -1169,7 +1169,7 @@ type
           it's AlphaChannelType was calculated looking at AlphaChannelType
           of children.
         )
-        @item(Attributes.PureGeometry = @false,)
+
         @item(and node must have some texture data
           (for TAbstractTexture2DNode, check TextureNode.IsTextureImage or
           TextureNode.IsTextureVideo))
@@ -2226,11 +2226,7 @@ end;
 
 procedure TRenderingAttributes.SetPureGeometry(const Value: boolean);
 begin
-  if PureGeometry <> Value then
-  begin
-    ReleaseCachedResources;
-    FPureGeometry := Value;
-  end;
+  FPureGeometry := Value;
 end;
 
 procedure TRenderingAttributes.SetTextureModeGrayscale(const Value: TGLenum);
