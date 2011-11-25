@@ -3406,50 +3406,41 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   end;
 
 var
-  SavedShaders: TShadersRendering;
+  SavedMode: TRenderingMode;
   SavedCustomShader: TGLSLProgram;
 begin
   if Exists and (Dirty = 0) then
   begin
-    case RenderingCamera.Target of
-      rtVarianceShadowMap:
-        { When rendering to Variance Shadow Map, we need special shader. }
-        begin
-          { create VarianceShadowMapsProgram if needed }
-          if VarianceShadowMapsProgram = nil then
-          begin
-            VarianceShadowMapsProgram := TGLSLProgram.Create;
-            VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-            VarianceShadowMapsProgram.Link(true);
-          end;
+    { For shadow maps, speed up rendering by using only features that affect
+      depth output. This also disables user shaders (for both classic
+      and VSM shadow maps, consistently). }
+    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+    begin
+      SavedMode := Attributes.Mode;
+      Attributes.Mode := rmDepth;
+    end;
 
-          SavedCustomShader := Attributes.CustomShader;
-          Attributes.CustomShader := VarianceShadowMapsProgram;
-        end;
-      rtShadowMap:
-        { When rendering to classic Shadow Map, disable shaders.
-          This makes rendering faster, and avoids problems with GLSL program using
-          the shadow map and writing to depth based on it.
-          It's also consistent with VSM. }
-        begin
-          Inc(TemporaryAttributeChange);
-          SavedShaders := Attributes.Shaders;
-          Attributes.Shaders := srDisable;
-          Dec(TemporaryAttributeChange);
-        end;
+    { When rendering to Variance Shadow Map, we need special shader. }
+    if RenderingCamera.Target = rtVarianceShadowMap then
+    begin
+      { create VarianceShadowMapsProgram if needed }
+      if VarianceShadowMapsProgram = nil then
+      begin
+        VarianceShadowMapsProgram := TGLSLProgram.Create;
+        VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
+        VarianceShadowMapsProgram.Link(true);
+      end;
+
+      SavedCustomShader := Attributes.CustomShader;
+      Attributes.CustomShader := VarianceShadowMapsProgram;
     end;
 
     RenderFrustum;
 
-    case RenderingCamera.Target of
-      rtVarianceShadowMap: Attributes.CustomShader := SavedCustomShader;
-      rtShadowMap        :
-        begin
-          Inc(TemporaryAttributeChange);
-          Attributes.Shaders := SavedShaders;
-          Dec(TemporaryAttributeChange);
-        end;
-    end;
+    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+      Attributes.Mode := SavedMode;
+    if RenderingCamera.Target = rtVarianceShadowMap then
+      Attributes.CustomShader := SavedCustomShader;
   end;
 end;
 
