@@ -84,15 +84,16 @@ type
 
     { The model is rendered in wireframe mode.
 
-      LineWidth is used as wireframe line width (regardless of PureGeometry).
+      LineWidth is used as wireframe line width (regardless of
+      TSceneRenderingAttributes.Mode).
 
-      Depending on TSceneRenderingAttributes.PureGeometry value:
+      Depending on TSceneRenderingAttributes.Mode value:
 
       @unorderedList(
-        @item(If PureGeometry then WireframeColor is used as wireframe
+        @item(If <> rmFull then WireframeColor is used as wireframe
           line color.)
 
-        @item(If not PureGeometry, then lines are colored
+        @item(If rmFull, then lines are colored
           and potentially lighted and textured just like their corresponding
           triangles would be colored. So you can control lighting using
           Lighting, UseSceneLights etc. attributes, and you
@@ -106,23 +107,11 @@ type
       solid (e.g. filled polygons with depth test).
 
       WireframeColor and LineWidth are used as wireframe
-      line color/width (regardless of current PureGeometry value).
+      line color/width (regardless of current @link(Mode) value).
 
-      This usually gives best results when PureGeometry is on.
+      This usually gives best results when Mode is rmPureGeometry.
       Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color).
-
-      TODO: Note that for PureGeometry = @false, the wireframe will still
-      be textured if original model were textured. Also wireframe color
-      will be affected by GLSL shaders, if model defined any.
-      (Wireframe will never be lighted, this is taken care of properly).
-      This is bad, as I would like to never texture or shade the wireframe,
-      regardless of PureGeometry. Basically, the wireframe part should behave
-      always like PureGeometry = @true, regardless of the filled model
-      PureGeometry setting.
-      For now, avoid using weSolidWireframe with PureGeometry = @false if
-      your model may have textures or shaders.
-      This should be fixed with new vbo renderer? }
+      (and, like said before, WireframeColor sets wireframe color). }
     weSolidWireframe,
 
     { The model is rendered as normal, with silhouette outlined around it.
@@ -136,11 +125,7 @@ type
 
       This is sometimes sensible to use with PureGeometry = @true.
       Then current glColor sets the color of the solid model
-      (and, like said before, WireframeColor sets wireframe color)
-
-      TODO: Note that for PureGeometry = @false, the wireframe will still
-      be textured/shaded if original model were textured or used GLSL shaders.
-      See weSolidWireframe TODO notes. }
+      (and, like said before, WireframeColor sets wireframe color). }
     weSilhouette);
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
@@ -2295,18 +2280,25 @@ procedure TCastleScene.Render(
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
+  var
+    SavedPureGeometry: boolean;
   begin
     glPushAttrib(GL_POLYGON_BIT or GL_CURRENT_BIT or GL_ENABLE_BIT);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
+
       if UseWireframeColor then
       begin
         glColorv(Attributes.WireframeColor); { saved by GL_CURRENT_BIT }
         glDisable(GL_TEXTURE_2D); { saved by GL_CURRENT_BIT }
         glDisable(GL_LIGHTING); { saved by GL_CURRENT_BIT }
+        SavedPureGeometry := Attributes.PureGeometry;
+        Attributes.PureGeometry := true;
       end;
-      { TODO: glDisable(GL_LIGHTING) above is ignored now.
-        EnableLighting should be used (and restored). }
+
       RenderNormal;
+
+      if UseWireframeColor then
+        Attributes.PureGeometry := SavedPureGeometry;
     glPopAttrib;
   end;
 
