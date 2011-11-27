@@ -152,20 +152,23 @@ Primitives by Proxy more improvements:
 
 ------------------------------------------------------------------------------
 VSM:
-- ATI problems on chantal:
+- ATI problems on chantal seem unsolvable. We should have some way to blacklist
+  VSM on particular GPUs?
+
+  ATI problems on chantal, for the result:
+  - Very very slow initialization (huge delay, couple of minutes even,
+    when you turn on VSM).
+
   - Result on sunny_street is a little nonsense, doesn't really work.
     Debugging gen textures: they are already wrong.
     So the trouble happens at generating VSM to float textures.
-
-  - Very slow initialization.
 
   - Done: Check: generate to normal 8-bit textures?
     Also wrong. And also slow initialization? WTF?
     Looks like writing from shader gl_FragCoord.z isn't really working on my radeon?
 
-  - Done: check on radeon czarny.
-    No problems there! So I can really blame it on my Radeon.
-    TODO: how to check from code? What's the main difference?
+  Works fine on Radeon czarny, and NVidia kocury.
+  So this is really a problem of old Radeon GPU on chantal.
 
 - Unclean implementation, introduces some exceptions to normal work:
   - Using special RenderingCamera.Target = rtVarianceShadowMap feels unclean.
