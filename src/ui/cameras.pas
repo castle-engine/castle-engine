@@ -4555,7 +4555,10 @@ begin
     which one? (To make the rotation around it in correct direction.)
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
-  if ZeroVector(Rot2Axis) then
+  { we need larger epsilon for ZeroVector below, in case
+    StdCamUpAfterRot1 is = -CamUp.
+    testcameras.pas contains testcases that require it. }
+  if ZeroVector(Rot2Axis, 0.001) then
     Rot2Axis := CamDir else
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
@@ -4563,6 +4566,9 @@ begin
     NormalizeTo1st(Rot2Axis);
   Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
   Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
+
+  Assert( VectorsEqual(Rot2Axis,  CamDir, 0.001) or
+          VectorsEqual(Rot2Axis, -CamDir, 0.001));
 
   { calculate Result = combine Rot1 and Rot2 (yes, the order
     for QuatMultiply is reversed) }

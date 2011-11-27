@@ -127,6 +127,9 @@ const
   var
     Orientation: TQuaternion;
   begin
+    Assert(Zero(VectorDotProduct(Dir, Up), 0.001),
+      TestName + ': Given test dir/up not orthogonal, CamDirUp2OrientQuat assumes it');
+
     Orientation := CamDirUp2OrientQuat(Dir, Up).Conjugate;
     try
       Assert(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultX3DCameraDirection, 0.01));
