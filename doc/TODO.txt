@@ -65,11 +65,6 @@ Details during 2.6.0 release:
 - Add a way to limit FPS, to not burn CPU without need.
   There's a bugreport about this in tracker too.
 
-- Maybe rename various units and classes to X3D, not VRML.
-  Generally, focus docs on VRML/X3D or X3D, never just VRML.
-  Maybe also T3DGLScene instead of TCastleScene?
-  Maybe also TX3DSceneManager instead of TCastleSceneManager --- I don't use prefix Kam consistently.
-
 - Move castle creature animations outside of XML, to separate kanim files.
 - Merge PrecalculatedAnimationInfo functionality into PrecalculatedAnimation class?
 - T3DTransformed, with fields like VRML/X3D Transform.
