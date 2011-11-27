@@ -1,0 +1,34 @@
+#VRML V2.0 utf8
+
+NavigationInfo {
+	headlight TRUE
+	visibilityLimit 9.7382536
+	type ["EXAMINE", "ANY"]
+	avatarSize [0.25, 1.75, 0.75]
+} 
+ 
+Background {
+	groundColor [ 0.1 0.1 0.1, 	0.0922368 0.3600824 0.6522775 ]
+	groundAngle [ 1.57 ]
+	skyColor [ 0.1 0.1 0.1, 	0.0922368 0.3600824 0.6522775 ]
+	skyAngle [ 1.57 ]
+}
+
+DEF OB_Camera_001 Transform {
+	translation 0.742600 -0.141920 1.045564
+	rotation 0.997280 -0.042998 -0.059862 1.248363
+	scale 0.249600 0.249600 0.249600
+	children [
+		DEF Camera_001 Viewpoint {
+			description "Camera.001" 
+			position 0.0 0.0 0.0
+			fieldOfView 0.484
+		}
+		
+	]
+}
+
+Transform {
+  scale 1.5 1.5 1.5
+  children Inline { url "scene.wrl" }
+}

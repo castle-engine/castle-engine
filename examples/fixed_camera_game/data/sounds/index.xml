@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<!--
+  Configuration of game sounds.
+
+  See ../../../castle_game_engine/examples/audio/sample_sounds.xml
+  for explanations and comments how this file works.
+-->
+
+<sounds>
+  <sound name="intro_music" file_name="music/among_us.wav" />
+  <sound name="main_menu_music" file_name="music/cool_grove.wav" />
+
+  <sound name="menu_current_item_changed"
+    default_importance="minor_non_spatial"/>
+  <sound name="menu_current_item_selected"
+    default_importance="minor_non_spatial"/>
+</sounds>

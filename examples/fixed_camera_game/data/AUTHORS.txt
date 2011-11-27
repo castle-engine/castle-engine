@@ -1,0 +1,48 @@
+Source of images:
+
+main_menu_original.jpg
+from http://www.flickr.com/photos/97663393@N00/120973620/
+(license: CC Attribution-ShareAlike 2.0)
+
+train_crash_original.jpg
+from http://www.flickr.com/photos/dvdmerwe/104898475/
+(license: CC Attribution 2.0)
+
+water_ducks_original.jpg
+from http://www.flickr.com/photos/cygnusx1/22688395/
+(license: CC Attribution 2.0)
+
+human_beach_original.jpg
+from http://www.flickr.com/photos/exfordy/386002036/
+(license: CC Attribution 2.0)
+
+wild_road_original.jpg
+from http://www.flickr.com/photos/odalaigh/365952674/
+(license: CC Attribution 2.0)
+
+morning_buildings_original.jpg
+from http://www.flickr.com/photos/terenceong/306320460/
+(license: CC Attribution-ShareAlike 2.0)
+
+locations/home/forest.jpg
+from http://www.flickr.com/photos/garibaldi/522196113/
+(license: CC Attribution-ShareAlike 2.0)
+
+nany textures named lemog_xxx
+from http://lemog.fr/
+("xxx" in the filename is actual texture name on lemog).
+
+--------------------
+Editing:
+
+The "corroded" versions were done by GIMP
+"Script-Fu -> Ornaments -> Old photography" trick,
+with border = 0 width (I didn't like border effect in this case).
+
+The corroded version of wild_road also used
+"Script-Fu -> Ornaments -> Coffe stains" effect
+(with accidentaly nicely positioned stain).
+
+The corroded version of human_beach was first (before oldphotography)
+processed by "Filters -> Glass effects -> Glass tiles" effect
+(on "photo" layer).
