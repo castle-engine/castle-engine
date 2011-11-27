@@ -1,4 +1,7 @@
-This is my first shot at implementing isometric game view.
+Demo of an isometric game view, using Castle Game Engine.
+
+Quite simple, as everything is just drawn as 2D.
+We use our CastleWindow and GLImages to draw 2D graphics on the window.
 
 ----------------------------------------
 Keybindings:

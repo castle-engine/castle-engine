@@ -105,7 +105,9 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
-  src/x3d/teapot/teapot_3d_to_pascal
+  src/x3d/teapot/teapot_3d_to_pascal \
+  examples/fixed_camera_game/rift \
+  examples/isometric_game/sandbox
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
