@@ -4525,47 +4525,48 @@ function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
     Result := QuatFromAxisAngle(Axis, ArcCos(Clamped(AngleRadCos, -1.0, 1.0)));
   end;
 
-var Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
-    Rot1Quat, Rot2Quat: TQuaternion;
-    Rot1CosAngle, Rot2CosAngle: Single;
+var
+  Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
+  Rot1Quat, Rot2Quat: TQuaternion;
+  Rot1CosAngle, Rot2CosAngle: Single;
 begin
- NormalizeTo1st(CamDir);
- NormalizeTo1st(CamUp);
+  NormalizeTo1st(CamDir);
+  NormalizeTo1st(CamUp);
 
- { calculate Rot1Quat }
- Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
- { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
-   When they point in the same direction, then it doesn't matter
-   (rotation will be by 0 angle anyway), but when they are in opposite
-   direction we want to do some rotation, so we need some non-zero
-   sensible Rot1Axis. }
- if ZeroVector(Rot1Axis) then
-   Rot1Axis := DefaultCameraUp else
-   { Normalize *after* checking ZeroVector, otherwise normalization
-     could change some almost-zero vector into a (practically random)
-     vector of length 1. }
-   NormalizeTo1st(Rot1Axis);
- Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
- Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
+  { calculate Rot1Quat }
+  Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
+  { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
+    When they point in the same direction, then it doesn't matter
+    (rotation will be by 0 angle anyway), but when they are in opposite
+    direction we want to do some rotation, so we need some non-zero
+    sensible Rot1Axis. }
+  if ZeroVector(Rot1Axis) then
+    Rot1Axis := DefaultCameraUp else
+    { Normalize *after* checking ZeroVector, otherwise normalization
+      could change some almost-zero vector into a (practically random)
+      vector of length 1. }
+    NormalizeTo1st(Rot1Axis);
+  Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
+  Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
- { calculate Rot2Quat }
- StdCamUpAfterRot1 := Rot1Quat.Rotate(DefaultCameraUp);
- { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
-   which one? (To make the rotation around it in correct direction.)
-   Calculating Rot2Axis below is a solution. }
- Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
- if ZeroVector(Rot2Axis) then
-   Rot2Axis := CamDir else
-   { Normalize *after* checking ZeroVector, otherwise normalization
-     could change some almost-zero vector into a (practically random)
-     vector of length 1. }
-   NormalizeTo1st(Rot2Axis);
- Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
- Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
+  { calculate Rot2Quat }
+  StdCamUpAfterRot1 := Rot1Quat.Rotate(DefaultCameraUp);
+  { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
+    which one? (To make the rotation around it in correct direction.)
+    Calculating Rot2Axis below is a solution. }
+  Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
+  if ZeroVector(Rot2Axis) then
+    Rot2Axis := CamDir else
+    { Normalize *after* checking ZeroVector, otherwise normalization
+      could change some almost-zero vector into a (practically random)
+      vector of length 1. }
+    NormalizeTo1st(Rot2Axis);
+  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
+  Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
- { calculate Result = combine Rot1 and Rot2 (yes, the order
-   for QuatMultiply is reversed) }
- Result := Rot2Quat * Rot1Quat;
+  { calculate Result = combine Rot1 and Rot2 (yes, the order
+    for QuatMultiply is reversed) }
+  Result := Rot2Quat * Rot1Quat;
 end;
 
 procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
@@ -4577,11 +4578,12 @@ begin
 end;
 
 function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
-var OrientAxis: TVector3Single;
-    OrientAngle: Single;
+var
+  OrientAxis: TVector3Single;
+  OrientAngle: Single;
 begin
- CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
- result := Vector4Single(OrientAxis, OrientAngle);
+  CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
+  result := Vector4Single(OrientAxis, OrientAngle);
 end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
