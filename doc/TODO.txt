@@ -182,8 +182,6 @@ VSM:
 
 - Allow to set anisotropic filtering for shadow maps, makes sense for VSM.
 
-- Make "Variance Shadow Maps" a radio item alt to PCF in view3dscene
-
 - try VSM with multisampling on FBO - GL_EXT_framebuffer_multisample, czarny supports it, chantal too
 
 ------------------------------------------------------------------------------

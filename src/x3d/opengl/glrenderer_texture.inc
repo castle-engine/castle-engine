@@ -1916,7 +1916,8 @@ end;
 class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
   Attributes: TRenderingAttributes): boolean;
 begin
-  Result := Attributes.VarianceShadowMaps and
+  Result :=
+    (Attributes.ShadowSampling = ssVarianceShadowMaps) and
     (TGLSLProgram.ClassSupport <> gsNone) and
     (GL_ATI_texture_float or GL_ARB_texture_float);
 end;
@@ -1934,9 +1935,9 @@ begin
   VarianceShadowMaps := ClassVarianceShadowMaps(Renderer.Attributes);
 
   if Log then
-    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.VarianceShadowMaps = %s, GLSL support = %s, ATI_texture_float = %s, ARB_texture_float = %s)',
+    WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, ATI_texture_float = %s, ARB_texture_float = %s)',
       [ BoolToStr[VarianceShadowMaps],
-        BoolToStr[Renderer.Attributes.VarianceShadowMaps],
+        ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
         GLSupportNames[TGLSLProgram.ClassSupport],
         BoolToStr[GL_ATI_texture_float],
         BoolToStr[GL_ARB_texture_float] ]));

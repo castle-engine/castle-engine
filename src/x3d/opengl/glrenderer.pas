@@ -240,7 +240,6 @@ type
 const
   DefaultPointSize = 3.0;
   DefaultLineWidth = 2.0;
-  DefaultVarianceShadowMaps = false;
   DefaultShaders = srWhenRequired;
   DefaultBumpMapping = bmBasic;
 
@@ -310,10 +309,9 @@ type
     FMode: TRenderingMode;
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
-    FVarianceShadowMaps: boolean;
     FVertexBufferObject: boolean;
     FPreserveOpenGLState: boolean;
-    FPercentageCloserFiltering: TPercentageCloserFiltering;
+    FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
   protected
     { These methods just set the value on given property,
@@ -328,7 +326,7 @@ type
     procedure SetMode(const Value: TRenderingMode); virtual;
     procedure SetTextureModeGrayscale(const Value: TGLenum); virtual;
     procedure SetTextureModeRGB(const Value: TGLenum); virtual;
-    procedure SetVarianceShadowMaps(const Value: boolean); virtual;
+    procedure SetShadowSampling(const Value: TShadowSampling); virtual;
     procedure SetVertexBufferObject(const Value: boolean); virtual;
     procedure SetVisualizeDepthMap(const Value: boolean); virtual;
     procedure SetShaders(const Value: TShadersRendering); virtual;
@@ -492,10 +490,10 @@ type
     { Custom GLSL shader to use for the whole scene.
       When this is assigned, @link(Shaders) value is ignored. }
     property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
-    
+
     { Alternative custom GLSL shader used when alpha test is necessary.
       Relevant only if CustomShader <> nil.
-      
+
       @italic(Do not use this.) This is a temporary hack to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else. }
     property CustomShaderAlphaTest: TGLSLProgram read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
@@ -528,18 +526,6 @@ type
       read FTextureModeRGB write SetTextureModeRGB default GL_MODULATE;
     { @groupEnd }
 
-    { Try to use variance shadow maps.
-      See http://www.punkuser.net/vsm/ . This may generally produce superior
-      results, as shadow maps can be then filtered like normal textures
-      (bilinear, mipmaps, anisotropic filtering). So shadows look much nicer
-      from very close and very far distances.
-
-      TODO: It requires, for now, that your scene doesn't use any
-      GLSL shaders (otherwise they will disable the default VSM shader
-      that generates proper depths). }
-    property VarianceShadowMaps: boolean read FVarianceShadowMaps
-      write SetVarianceShadowMaps default DefaultVarianceShadowMaps;
-
     { Use OpenGL vertex buffer object.
       This is always a good idea. You can set this to @false
       for debug purposes, e.g. to check how much speedup you get from VBO. }
@@ -555,11 +541,10 @@ type
     property PreserveOpenGLState: boolean
       read FPreserveOpenGLState write FPreserveOpenGLState default false;
 
-    { Use Percentage Closer Filtering to improve shadow maps look.
-      This decides the sampling method of all depth textures. }
-    property PercentageCloserFiltering: TPercentageCloserFiltering
-      read FPercentageCloserFiltering write FPercentageCloserFiltering
-      default DefaultPercentageCloserFiltering;
+    { Shadow maps sampling. Various approaches result in various quality and speed. }
+    property ShadowSampling: TShadowSampling
+      read FShadowSampling write SetShadowSampling
+      default DefaultShadowSampling;
 
     { Visualize depths stored in the shadow maps, instead of using them to
       actually make shadow.
@@ -2185,10 +2170,9 @@ begin
   FShaders := DefaultShaders;
   FTextureModeGrayscale := GL_MODULATE;
   FTextureModeRGB := GL_MODULATE;
-  FVarianceShadowMaps := DefaultVarianceShadowMaps;
   FVertexBufferObject := true;
   FPreserveOpenGLState := false;
-  FPercentageCloserFiltering := DefaultPercentageCloserFiltering;
+  FShadowSampling := DefaultShadowSampling;
 end;
 
 procedure TRenderingAttributes.ReleaseCachedResources;
@@ -2267,12 +2251,17 @@ begin
   FTextureModeRGB := Value;
 end;
 
-procedure TRenderingAttributes.SetVarianceShadowMaps(const Value: boolean);
+procedure TRenderingAttributes.SetShadowSampling(const Value: TShadowSampling);
 begin
-  if VarianceShadowMaps <> Value then
+  if FShadowSampling <> Value then
   begin
-    ReleaseCachedResources;
-    FVarianceShadowMaps := Value;
+    { When swithing between VSM and non-VSM sampling methods,
+      we need to ReleaseCachedResources, since shadow maps must be regenerated. }
+    if (FShadowSampling = ssVarianceShadowMaps) <>
+       (Value           = ssVarianceShadowMaps) then
+      ReleaseCachedResources;
+
+    FShadowSampling := Value;
   end;
 end;
 
@@ -2954,8 +2943,7 @@ begin
   Shader.Clear;
 
   Shader.ShapeBoundingBox := Shape.BoundingBox;
-  Shader.PercentageCloserFiltering := Attributes.PercentageCloserFiltering;
-  Shader.VarianceShadowMaps := Attributes.VarianceShadowMaps;
+  Shader.ShadowSampling := Attributes.ShadowSampling;
   RenderShapeLineProperties(Shape, Fog, Shader);
 end;
 

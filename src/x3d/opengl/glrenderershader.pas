@@ -221,8 +221,7 @@ type
     { List of effect nodes that determine uniforms of our program. }
     UniformsNodes: TX3DNodeList;
     TextureCoordGen, ClipPlane, FragmentEnd: string;
-    FPercentageCloserFiltering: TPercentageCloserFiltering;
-    FVarianceShadowMaps: boolean;
+    FShadowSampling: TShadowSampling;
     Source: TShaderSource;
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
@@ -375,12 +374,8 @@ type
     procedure EnableLighting;
     procedure EnableMaterialFromColor;
 
-    property PercentageCloserFiltering: TPercentageCloserFiltering
-      read FPercentageCloserFiltering write FPercentageCloserFiltering;
-
-    property VarianceShadowMaps: boolean read FVarianceShadowMaps
-      write FVarianceShadowMaps;
-
+    property ShadowSampling: TShadowSampling
+      read FShadowSampling write FShadowSampling;
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
 
@@ -1102,7 +1097,8 @@ begin
   begin
     SamplerType := SamplerFromTextureType[TextureType];
     { For variance shadow maps, use normal sampler2D, not sampler2DShadow }
-    if Shader.VarianceShadowMaps and (TextureType = tt2DShadow) then
+    if (Shader.ShadowSampling = ssVarianceShadowMaps) and
+       (TextureType = tt2DShadow) then
       SamplerType := 'sampler2D';
 
     if (TextureType = tt2DShadow) and
@@ -1260,8 +1256,7 @@ begin
   TextureCoordGen := '';
   ClipPlane := '';
   FragmentEnd := '';
-  FPercentageCloserFiltering := Low(TPercentageCloserFiltering);
-  FVarianceShadowMaps := false;
+  FShadowSampling := Low(TShadowSampling);
   PlugIdentifiers := 0;
   LightShaders.Count := 0;
   TextureShaders.Count := 0;
@@ -1570,10 +1565,12 @@ var
     This also finalizes applying textures. }
   procedure EnableInternalEffects;
   const
-    PCFDefine: array [TPercentageCloserFiltering] of string =
-    ( '', '#define PCF4', '#define PCF4_BILINEAR', '#define PCF16' );
-    ShadowMapsFunctions: array [boolean { vsm? }] of string =
-    ({$I shadow_map_common.fs.inc}, {$I variance_shadow_map_common.fs.inc});
+    ShadowMapsFunctions: array [TShadowSampling] of string =
+    (                               {$I shadow_map_common.fs.inc},
+     '#define PCF4'          + NL + {$I shadow_map_common.fs.inc},
+     '#define PCF4_BILINEAR' + NL + {$I shadow_map_common.fs.inc},
+     '#define PCF16'         + NL + {$I shadow_map_common.fs.inc},
+     {$I variance_shadow_map_common.fs.inc});
   begin
     PlugDirectly(Source[stVertex], 0, '/* PLUG: vertex_eye_space',
       TextureCoordInitialize + TextureCoordGen + TextureCoordMatrix + ClipPlane, false);
@@ -1605,8 +1602,7 @@ var
     { Don't add to empty Source[stFragment], in case ComposedShader
       doesn't want any fragment shader }
     if Source[stFragment].Count <> 0 then
-      Source[stFragment].Add(PCFDefine[PercentageCloserFiltering] + NL +
-        ShadowMapsFunctions[VarianceShadowMaps]);
+      Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
   end;
 
 var
@@ -2076,8 +2072,7 @@ function TShader.CodeHash: TShaderCodeHash;
     lifetime. }
   procedure CodeHashFinalize;
   begin
-    FCodeHash.AddInteger(Ord(PercentageCloserFiltering) * 1009);
-    FCodeHash.AddInteger(Ord(VarianceShadowMaps) * 1823);
+    FCodeHash.AddInteger(Ord(ShadowSampling) * 1009);
   end;
 
 begin
@@ -2449,7 +2444,7 @@ const
   ShadowDepthDeclare =
    'float shadow_depth(sampler2D shadowMap, const vec4 shadowMapCoord);';
 begin
-  Result := ShadowDeclare[VarianceShadowMaps] + NL + ShadowDepthDeclare;
+  Result := ShadowDeclare[ShadowSampling = ssVarianceShadowMaps] + NL + ShadowDepthDeclare;
 end;
 
 end.
