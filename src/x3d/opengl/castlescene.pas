@@ -475,7 +475,7 @@ type
     AvoidNonShadowCasterRendering: boolean;
 
     RenderPrepared: boolean;
-    VarianceShadowMapsProgram: TGLSLProgram;
+    VarianceShadowMapsProgram: array [boolean] of TGLSLProgram;
 
     { Private things for RenderFrustum --------------------------------------- }
 
@@ -1448,8 +1448,10 @@ begin
     finally FreeAndNil(SI) end;
   end;
 
-  if VarianceShadowMapsProgram <> nil then
-    FreeAndNil(VarianceShadowMapsProgram);
+  if VarianceShadowMapsProgram[false] <> nil then
+    FreeAndNil(VarianceShadowMapsProgram[false]);
+  if VarianceShadowMapsProgram[true] <> nil then
+    FreeAndNil(VarianceShadowMapsProgram[true]);
 end;
 
 procedure TCastleScene.GLContextClose;
@@ -3407,7 +3409,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
 
 var
   SavedMode: TRenderingMode;
-  SavedCustomShader: TGLSLProgram;
+  SavedCustomShader, SavedCustomShaderAlphaTest: TGLSLProgram;
 begin
   if Exists and (Dirty = 0) then
   begin
@@ -3424,15 +3426,25 @@ begin
     if RenderingCamera.Target = rtVarianceShadowMap then
     begin
       { create VarianceShadowMapsProgram if needed }
-      if VarianceShadowMapsProgram = nil then
+      if VarianceShadowMapsProgram[false] = nil then
       begin
-        VarianceShadowMapsProgram := TGLSLProgram.Create;
-        VarianceShadowMapsProgram.AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram.Link(true);
+        VarianceShadowMapsProgram[false] := TGLSLProgram.Create;
+        VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
+        VarianceShadowMapsProgram[false].Link(true);
       end;
 
-      SavedCustomShader := Attributes.CustomShader;
-      Attributes.CustomShader := VarianceShadowMapsProgram;
+      if VarianceShadowMapsProgram[true] = nil then
+      begin
+        VarianceShadowMapsProgram[true] := TGLSLProgram.Create;
+        VarianceShadowMapsProgram[true].AttachFragmentShader(
+          '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
+        VarianceShadowMapsProgram[true].Link(true);
+      end;
+
+      SavedCustomShader          := Attributes.CustomShader;
+      SavedCustomShaderAlphaTest := Attributes.CustomShaderAlphaTest;
+      Attributes.CustomShader          := VarianceShadowMapsProgram[false];
+      Attributes.CustomShaderAlphaTest := VarianceShadowMapsProgram[true];
     end;
 
     RenderFrustum;
@@ -3440,7 +3452,10 @@ begin
     if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
       Attributes.Mode := SavedMode;
     if RenderingCamera.Target = rtVarianceShadowMap then
-      Attributes.CustomShader := SavedCustomShader;
+    begin
+      Attributes.CustomShader          := SavedCustomShader;
+      Attributes.CustomShaderAlphaTest := SavedCustomShaderAlphaTest;
+    end;
   end;
 end;
 

@@ -306,7 +306,7 @@ type
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
-    FCustomShader: TGLSLProgram;
+    FCustomShader, FCustomShaderAlphaTest: TGLSLProgram;
     FMode: TRenderingMode;
     FTextureModeGrayscale: TGLenum;
     FTextureModeRGB: TGLenum;
@@ -492,6 +492,13 @@ type
     { Custom GLSL shader to use for the whole scene.
       When this is assigned, @link(Shaders) value is ignored. }
     property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
+    
+    { Alternative custom GLSL shader used when alpha test is necessary.
+      Relevant only if CustomShader <> nil.
+      
+      @italic(Do not use this.) This is a temporary hack to enable VSM working
+      with alpha test. It's not clean, and should not be used for anything else. }
+    property CustomShaderAlphaTest: TGLSLProgram read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -995,6 +1002,7 @@ type
     FCullFace: TCullFace;
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
+    FFixedFunctionAlphaTest: boolean;
     FLineWidth: Single;
     FLineType: TLineType;
 
@@ -1019,6 +1027,7 @@ type
     procedure SetCullFace(const Value: TCullFace);
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
+    procedure SetFixedFunctionAlphaTest(const Value: boolean);
     procedure SetLineWidth(const Value: Single);
     procedure SetLineType(const Value: TLineType);
 
@@ -1029,6 +1038,8 @@ type
     property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
     property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
+    { Change GL_ALPHA_TEST enabled by this property. }
+    property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
     property LineWidth: Single read FLineWidth write SetLineWidth;
     property LineType: TLineType read FLineType write SetLineType;
   private
@@ -2787,7 +2798,10 @@ begin
     glDisable(GL_TEXTURE_GEN_R);
     glDisable(GL_TEXTURE_GEN_Q);
 
+    { Initialize FFixedFunctionAlphaTest, make sure OpenGL state is appropriate }
+    FFixedFunctionAlphaTest := false;
     glDisable(GL_ALPHA_TEST);
+
     { We only use glAlphaFunc for textures, and there this value is suitable.
       We never change glAlphaFunc during rendering, so no need to call this in RenderEnd. }
     if Beginning then
@@ -3545,27 +3559,22 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         BumpMappingRenderers.Enable(Shape.State, BoundTextureUnits, Shader);
     end;
 
-    { Set ALPHA_TEST enabled state.
+    { Set alpha test enabled state for OpenGL (shader and fixed-function).
+      We handle here textures with simple (yes/no) alpha channel.
 
-      This is not necessarily perfect for multitexturing,
-      but there's really no way to set it automatically correct for
-      multitexturing, as various operations may effectively flatten
-      alpha anyway.
-      So we only care to make it correct for a single texture case.
+      This is not necessarily perfect, as OpenGL will test the
+      final alpha := material alpha mixed with all multi-textures alpha.
+      So anything using blending (material using transparency,
+      or other texture will full-range alpha channel) will modify the actual
+      alpha tested. This isn't really correct --- we would prefer to only
+      test the alpha of textures with yes/no alpha channel.
+      But there's no way to fix it in fixed-function pipeline.
+      May be handled better in shader pipeline someday (alpha test should
+      be done for texture colors). }
 
-      Note that if GL_MODULATE is combined with ALPHA_TEST and material
-      has some transparency (non-1 alpha) too, then the alpha
-      actually tested will not be the alpha of the texture alone ---
-      it will be the alpha of the texture mixed with the alpha of the material.
-      (Alpha of the light source isn't multiplied here, AFAIK,
-      I don't really know where light source alpha is used,
-      and VRML author cannot set it anyway.)
-      I don't see any sensible way to solve this with fixed-function OpenGL
-      pipeline, that's just how GL_MODULATE with GL_ALPHA_TEST work. }
-
+    FixedFunctionAlphaTest := AlphaTest;
     if AlphaTest then
-      Shader.EnableAlphaTest else
-      glDisable(GL_ALPHA_TEST);
+      Shader.EnableAlphaTest;
 
     { Make active texture 0. This is helpful for rendering code of
       some primitives that do not support multitexturing now
@@ -3877,6 +3886,15 @@ begin
   begin
     FFixedFunctionLighting := Value;
     SetGLEnabled(GL_LIGHTING, FixedFunctionLighting);
+  end;
+end;
+
+procedure TGLRenderer.SetFixedFunctionAlphaTest(const Value: boolean);
+begin
+  if FFixedFunctionAlphaTest <> Value then
+  begin
+    FFixedFunctionAlphaTest := Value;
+    SetGLEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
   end;
 end;
 

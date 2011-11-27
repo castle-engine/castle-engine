@@ -2280,9 +2280,6 @@ end;
 
 procedure TShader.EnableAlphaTest;
 begin
-  { Enable for fixed-function pipeline }
-  glEnable(GL_ALPHA_TEST);
-
   { Enable for shader pipeline. We know alpha comparison is always < 0.5 }
   FragmentEnd +=
     '/* Do the trick with 1.0 / 2.0, instead of comparing with 0.5, to avoid fglrx bugs */' + NL +

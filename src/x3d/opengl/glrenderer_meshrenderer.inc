@@ -701,7 +701,12 @@ begin
   inherited;
 
   if Attributes.CustomShader <> nil then
-    CurrentProgram := Attributes.CustomShader else
+  begin
+    if (Attributes.CustomShaderAlphaTest <> nil) and
+       Renderer.FixedFunctionAlphaTest then
+      CurrentProgram := Attributes.CustomShaderAlphaTest else
+      CurrentProgram := Attributes.CustomShader;
+  end else
   begin
     if (Shape.Node <> nil) and
        (Shape.Node.Appearance <> nil) then

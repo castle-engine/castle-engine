@@ -167,17 +167,16 @@ VSM:
     No problems there! So I can really blame it on my Radeon.
     TODO: how to check from code? What's the main difference?
 
-  - Cannot check on nvidia on kocury (no float textures).
-
-    Check do kocury support NV_float_buffer? Seems GL_FLOAT_RGB16_NV as "internal format", and that's it.
-    Done: kocury support NV_float_buffer, but it's a usable texture format for VSM.
-
-    TODO: Check on nvidia on hal.
-
-- Using special RenderingCamera.Target = rtVarianceShadowMap feels unclean.
-  It would be better to pass to Render() something like [dsDoNotControlShaders]?
+- Unclean implementation, introduces some exceptions to normal work:
+  - Using special RenderingCamera.Target = rtVarianceShadowMap feels unclean.
+    It would be better to pass to Render() something like [dsDoNotControlShaders]?
+  - Inventing special CustomShaderAlphaTest is unclean,
+    and it means that VSM only really works when the 0th texture has alpha channel.
 
 - Eventually, in the future, make DefaultVarianceShadowMaps as true.
+  But this waits for VSM improvements, otherwise projected_spotlight clearly
+  shows that VSM has problems with accuracy. See papers improving VSM.
+
 - Allow to set anisotropic filtering for shadow maps, makes sense for VSM.
 
 - Make "Variance Shadow Maps" a radio item alt to PCF in view3dscene
