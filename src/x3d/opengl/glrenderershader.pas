@@ -2008,8 +2008,7 @@ begin
   if HasGeometryMain then
   begin
     for I := 0 to Source[stFragment].Count - 1 do
-      Source[stFragment][I] := '#define HAS_GEOMETRY_SHADER' + NL +
-        Source[stFragment][I];
+      PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define HAS_GEOMETRY_SHADER', true);
   end else
     Source[stGeometry].Clear;
 
