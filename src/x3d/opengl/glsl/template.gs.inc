@@ -17,9 +17,9 @@
 '/* PLUG-DECLARATIONS */' + LineEnding + 
 '' + LineEnding + 
 '/* Standard varying, always used by our shaders */' + LineEnding + 
-'in vec4[] castle_vertex_eye;' + LineEnding + 
+'in vec4 castle_vertex_eye[CASTLE_GEOMETRY_INPUT_SIZE];' + LineEnding + 
 'out vec4 castle_vertex_eye_geoshader;' + LineEnding + 
-'in vec3[] castle_normal_eye;' + LineEnding + 
+'in vec3 castle_normal_eye[CASTLE_GEOMETRY_INPUT_SIZE];' + LineEnding + 
 'out vec3 castle_normal_eye_geoshader;' + LineEnding + 
 '' + LineEnding + 
 'void geometryVertexSet(const int index)' + LineEnding + 

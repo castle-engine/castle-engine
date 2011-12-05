@@ -15,9 +15,9 @@
 /* PLUG-DECLARATIONS */
 
 /* Standard varying, always used by our shaders */
-in vec4[] castle_vertex_eye;
+in vec4 castle_vertex_eye[CASTLE_GEOMETRY_INPUT_SIZE];
 out vec4 castle_vertex_eye_geoshader;
-in vec3[] castle_normal_eye;
+in vec3 castle_normal_eye[CASTLE_GEOMETRY_INPUT_SIZE];
 out vec3 castle_normal_eye_geoshader;
 
 void geometryVertexSet(const int index)
