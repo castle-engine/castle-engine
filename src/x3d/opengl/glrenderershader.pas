@@ -1993,6 +1993,7 @@ var
 var
   ShaderType: TShaderType;
   I: Integer;
+  GeometryInputSize: string;
 begin
   EnableTextures;
   EnableInternalEffects;
@@ -2009,6 +2010,13 @@ begin
   begin
     for I := 0 to Source[stFragment].Count - 1 do
       PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define HAS_GEOMETRY_SHADER', true);
+    if GLVersion.IsVendorATI then
+      GeometryInputSize := 'gl_in.length()' else
+      GeometryInputSize := '';
+    { Replace CASTLE_GEOMETRY_INPUT_SIZE }
+    for I := 0 to Source[stGeometry].Count - 1 do
+      Source[stGeometry][I] := StringReplace(Source[stGeometry][I],
+        'CASTLE_GEOMETRY_INPUT_SIZE', GeometryInputSize, [rfReplaceAll]);
   end else
     Source[stGeometry].Clear;
 
