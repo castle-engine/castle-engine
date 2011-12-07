@@ -97,6 +97,8 @@ function CNormalized(const Z: complex_single): complex_single;
 function CMod(const Z: complex_single): Single;
 function CNorm(const Z: complex_single): Single;
 
+operator* (const Z: Complex_Single; const X: Single): Complex_Single;
+
 implementation
 
 uses VectorMath, CastleUtils, FftwUtils;
@@ -253,6 +255,12 @@ end;
 function CNorm(const Z: complex_single): Single;
 begin
   Result := Sqr(Z.Re) + Sqr(Z.Im);
+end;
+
+operator* (const Z: Complex_Single; const X: Single): Complex_Single;
+begin
+  Result.Re := Z.Re * X;
+  Result.Im := Z.Im * X;
 end;
 
 end.

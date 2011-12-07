@@ -70,6 +70,7 @@ type
     opScaleRe, opMulMNSqr,
     opZeroOutsideSquare, opZeroInsideSquare,
     opZeroOutsideCircle, opZeroInsideCircle,
+    { opDarkGaussianInsideCircle, }
     opMulMinus1, opShift);
 
 var
@@ -77,32 +78,44 @@ var
   Fft: TImageFftw;
   Operation: TOperation;
   Alpha: Single = 0.5;
+  Beta: Single = 10.0;
 
 { Remake Freq.Image and Output.Image, using Fft }
 procedure MakeFft;
+var
+  W, H: Integer;
 
   { Is X, Y inside square with waves of lowest frequency. }
   function InsideSquare(const X, Y: Integer): boolean;
-  const
-    SquareSize = 20;
-    SquareSize2 = SquareSize div 2;
   begin
     Result :=
-      ( (X <=                    SquareSize2) and ( (Y <= SquareSize2) or (Y >= Freq.Image.Height - SquareSize2) ) ) or
-      ( (X >= Freq.Image.Width - SquareSize2) and ( (Y <= SquareSize2) or (Y >= Freq.Image.Height - SquareSize2) ) );
+      ( (X <=     Beta) and ( (Y <= Beta) or (Y >= H - Beta) ) ) or
+      ( (X >= W - Beta) and ( (Y <= Beta) or (Y >= H - Beta) ) );
   end;
 
   { Is X, Y inside circle with waves of lowest frequency. }
   function InsideCircle(const X, Y: Integer): boolean;
-  const
-    Radius = 10;
   begin
     Result :=
-      (Sqr(                       X) + Sqr(                        Y) < Sqr(Radius)) or
-      (Sqr(Freq.Image.Width - 1 - X) + Sqr(                        Y) < Sqr(Radius)) or
-      (Sqr(Freq.Image.Width - 1 - X) + Sqr(Freq.Image.Height - 1 - Y) < Sqr(Radius)) or
-      (Sqr(                       X) + Sqr(Freq.Image.Height - 1 - Y) < Sqr(Radius));
+      (Sqr(    X) + Sqr(    Y) < Sqr(Beta)) or
+      (Sqr(W - X) + Sqr(    Y) < Sqr(Beta)) or
+      (Sqr(W - X) + Sqr(H - Y) < Sqr(Beta)) or
+      (Sqr(    X) + Sqr(H - Y) < Sqr(Beta));
   end;
+
+{ Works, but not interesting, Gaussian is too spread out:
+
+  procedure DarkGaussianInsideCircle(const X, Y: Integer; var Value: Complex_Single);
+  var
+    StdDev: Single;
+  begin
+    StdDev := RadiusToStdDev(Beta);
+    if Sqr(    X) + Sqr(    Y) < Sqr(Beta) then Value *= 1- Gaussian2D(    X,     Y, StdDev) else
+    if Sqr(W - X) + Sqr(    Y) < Sqr(Beta) then Value *= 1- Gaussian2D(W - X,     Y, StdDev) else
+    if Sqr(W - X) + Sqr(H - Y) < Sqr(Beta) then Value *= 1- Gaussian2D(W - X, H - Y, StdDev) else
+    if Sqr(    X) + Sqr(H - Y) < Sqr(Beta) then Value *= 1- Gaussian2D(    X, H - Y, StdDev);
+  end;
+}
 
 var
   X, Y, Color: Integer;
@@ -115,14 +128,17 @@ begin
   Fft.DFT;
   Writeln('Making DFT: ', ProcessTimerEnd:1:2, ' secs');
 
+  W := Freq.Image.Width;
+  H := Freq.Image.Height;
+
   { Now perform the Operation on image in frequency domain.
     Lameness warning: yes, it's ultra lame to perform "case Operation..."
     check in every loop, but this allowed me to write this very shortly. }
   for Color := 0 to 2 do
   begin
     Ptr := Fft.ImageF[Color];
-    for Y := 0 to Freq.Image.Height - 1 do
-      for X := 0 to Freq.Image.Width - 1 do
+    for Y := 0 to H - 1 do
+      for X := 0 to W - 1 do
       begin
         case Operation of
           opNone: ;
@@ -134,8 +150,8 @@ begin
           opScaleRe: Ptr^.Re *= Alpha;
           opMulMNSqr:
             begin
-              Tmp := (Sqr(X {- Freq.Image.Width  div 2}) +
-                      Sqr(Y {- Freq.Image.Height div 2})) / 100000.0;
+              Tmp := (Sqr(X {- W  div 2}) +
+                      Sqr(Y {- H div 2})) / 100000.0;
               Ptr^.Re *= Tmp;
               Ptr^.Im *= Tmp;
             end;
@@ -143,6 +159,7 @@ begin
           opZeroInsideSquare : if     InsideSquare(X, Y) then Ptr^ := CZero;
           opZeroOutsideCircle: if not InsideCircle(X, Y) then Ptr^ := CZero;
           opZeroInsideCircle : if     InsideCircle(X, Y) then Ptr^ := CZero;
+          { opDarkGaussianInsideCircle: DarkGaussianInsideCircle(X, Y, Ptr^); }
           opMulMinus1:
             if Odd(X + Y) then
             begin
@@ -185,18 +202,10 @@ begin
         Operation := TOperation(Item.IntData - 100);
         MakeFft;
       end;
-    200:
-      begin
-        Alpha -= 0.1;
-        MakeFft;
-        Writeln('Alpha = ', Alpha:1:10);
-      end;
-    201:
-      begin
-        Alpha += 0.1;
-        MakeFft;
-        Writeln('Alpha = ', Alpha:1:10);
-      end;
+    200: begin Alpha -= 0.1; MakeFft; Writeln('Alpha = ', Alpha:1:10); end;
+    201: begin Alpha += 0.1; MakeFft; Writeln('Alpha = ', Alpha:1:10); end;
+    205: begin  Beta -= 0.5; MakeFft; Writeln('Beta = ' , Beta:1:10);  end;
+    206: begin  Beta += 0.5; MakeFft; Writeln('Beta = ', Beta:1:10);   end;
   end;
 end;
 
@@ -213,10 +222,11 @@ function CreateMainMenu: TMenu;
      'Conjugate',
      'Re *= Alpha',
      'Multiply by m^2+n^2',
-     'Zero outside the square',
-     'Zero inside the square',
-     'Zero outside the circle',
-     'Zero inside the circle',
+     'Zero outside the square (size = 2 * Beta)',
+     'Zero inside the square (size = 2 * Beta)',
+     'Zero outside the circle (radius = Beta)',
+     'Zero inside the circle (radius = Beta)',
+     { 'Dark Gaussian inside the circle (radius = Beta)', }
      'Multiply by (-1)^(m+n)',
      'Phase += Alpha (shift image)');
   var
@@ -246,6 +256,8 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Alpha -= 0.1' , 200, CtrlA));
     M.Append(TMenuItem.Create('Alpha += 0.1' , 201, CtrlD));
+    M.Append(TMenuItem.Create('Beta -= 0.5' , 205, CtrlS));
+    M.Append(TMenuItem.Create('Beta += 0.5' , 206, CtrlW));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Quit', 10, CharEscape));
     Result.Append(M);
