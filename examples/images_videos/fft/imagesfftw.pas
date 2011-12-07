@@ -199,23 +199,26 @@ end;
 procedure TImageFftw.ImageFModulusAsRGB(Img: TRGBImage; const Scale: Single);
 var
   Ptr: PVector3Byte;
-  Color, I: Integer;
+  Color, ComplexIndex, X, Y: Integer;
   Complex: TImageComplex;
 begin
   Ptr := Img.RGBPixels;
   Complex := FImageF;
 
-  for I := 0 to Size - 1 do
-  begin
-    for Color := 0 to 2 do
+  for Y := 0 to Img.Height - 1 do
+    for X := 0 to Img.Width - 1 do
     begin
-      Ptr^[Color] := Clamped(Round(CMod(Complex[Color]^) * Scale),
-        Low(Byte), High(Byte));
-      Inc(Complex[Color]);
-    end;
+      { We shift complex image by (width/2,height/2) here.
+        This is how FFT results on 2D images are usually shown, since
+        the interesting stuff happens this way in the middle. }
+      ComplexIndex := (X + Img.Width  div 2) mod Img.Width +
+         Img.Width * ((Y + Img.Height div 2) mod Img.Height);
 
-    Inc(Ptr);
-  end;
+      for Color := 0 to 2 do
+        Ptr^[Color] := Clamped(Round(CMod(Complex[Color][ComplexIndex])
+          * Scale), Low(Byte), High(Byte));
+      Inc(Ptr);
+    end;
 end;
 
 procedure TImageFftw.IDFT;
