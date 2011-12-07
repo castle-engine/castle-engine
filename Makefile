@@ -107,7 +107,8 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/build_3d_object_by_code \
   src/x3d/teapot/teapot_3d_to_pascal \
   examples/fixed_camera_game/rift \
-  examples/isometric_game/sandbox
+  examples/isometric_game/sandbox \
+  examples/images_videos/fft/gaussian_write
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
