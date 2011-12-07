@@ -67,7 +67,9 @@ end;
 
 type
   TOperation = (opNone, opRe, opIm, opModulus, opNormalize, opConjugate,
-    opScaleRe, opMulMNSqr, opZeroOutsideSquare, opZeroInsideSquare,
+    opScaleRe, opMulMNSqr,
+    opZeroOutsideSquare, opZeroInsideSquare,
+    opZeroOutsideCircle, opZeroInsideCircle,
     opMulMinus1, opShift);
 
 var
@@ -79,15 +81,27 @@ var
 { Remake Freq.Image and Output.Image, using Fft }
 procedure MakeFft;
 
-  { Is X, Y inside square (with size SquareSize with waves of lowest frequency). }
+  { Is X, Y inside square with waves of lowest frequency. }
   function InsideSquare(const X, Y: Integer): boolean;
   const
-    SquareSize = 50;
+    SquareSize = 20;
     SquareSize2 = SquareSize div 2;
   begin
     Result :=
       ( (X <=                    SquareSize2) and ( (Y <= SquareSize2) or (Y >= Freq.Image.Height - SquareSize2) ) ) or
       ( (X >= Freq.Image.Width - SquareSize2) and ( (Y <= SquareSize2) or (Y >= Freq.Image.Height - SquareSize2) ) );
+  end;
+
+  { Is X, Y inside circle with waves of lowest frequency. }
+  function InsideCircle(const X, Y: Integer): boolean;
+  const
+    Radius = 10;
+  begin
+    Result :=
+      (Sqr(                       X) + Sqr(                        Y) < Sqr(Radius)) or
+      (Sqr(Freq.Image.Width - 1 - X) + Sqr(                        Y) < Sqr(Radius)) or
+      (Sqr(Freq.Image.Width - 1 - X) + Sqr(Freq.Image.Height - 1 - Y) < Sqr(Radius)) or
+      (Sqr(                       X) + Sqr(Freq.Image.Height - 1 - Y) < Sqr(Radius));
   end;
 
 var
@@ -127,6 +141,8 @@ begin
             end;
           opZeroOutsideSquare: if not InsideSquare(X, Y) then Ptr^ := CZero;
           opZeroInsideSquare : if     InsideSquare(X, Y) then Ptr^ := CZero;
+          opZeroOutsideCircle: if not InsideCircle(X, Y) then Ptr^ := CZero;
+          opZeroInsideCircle : if     InsideCircle(X, Y) then Ptr^ := CZero;
           opMulMinus1:
             if Odd(X + Y) then
             begin
@@ -199,6 +215,8 @@ function CreateMainMenu: TMenu;
      'Multiply by m^2+n^2',
      'Zero outside the square',
      'Zero inside the square',
+     'Zero outside the circle',
+     'Zero inside the circle',
      'Multiply by (-1)^(m+n)',
      'Phase += Alpha (shift image)');
   var
