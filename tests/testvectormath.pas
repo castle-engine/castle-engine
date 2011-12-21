@@ -623,7 +623,7 @@ begin
         RGB[0] := R * 5;
         RGB[1] := G * 5;
         RGB[2] := B * 5;
-        Assert(VectorsPerfectlyEqual(RGB, HsvToRgb(RgbToHsv(RGB))));
+        Assert(VectorsPerfectlyEqual(RGB, HsvToRgbByte(RgbToHsv(RGB))));
       end;
   Operations := 255 div 5 + 1;
   Operations := Sqr(Operations) * Operations;

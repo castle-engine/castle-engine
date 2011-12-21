@@ -2327,10 +2327,14 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 
 { Converting between RGB and HSV.
   For HSV, we keep components as floating-point values,
-  with hue in 0..360 range, saturation and value in 0..1.
+  with hue in 0..6 range, saturation and value in 0..1.
+  For RGB, one version keeps components as bytes (0..255 range),
+  and the other as floating-point values (0..1 range).
   @groupBegin }
+function HsvToRgb(const Value: TVector3Single): TVector3Single;
+function RgbToHsv(const Value: TVector3Single): TVector3Single;
 function RgbToHsv(const Value: TVector3Byte): TVector3Single;
-function HsvToRgb(const Value: TVector3Single): TVector3Byte;
+function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
 { @groupEnd }
 
 {$I vectormath_operators.inc}
@@ -4260,14 +4264,16 @@ function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_S
 function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single; COL_MOD_STRIP
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
 
-function RgbToHsv(const Value: TVector3Byte): TVector3Single;
+function RgbToHsv(const Value: TVector3Single): TVector3Single;
 var
-  Chroma, V: Byte;
+  Chroma, V: Single;
 begin
   V := Max(Value[0], Value[1], Value[2]);
+  Result[2] := V;
   Chroma := V - Min(Value[0], Value[1], Value[2]);
 
-  { Careful: Chroma and V are now in [0..255], like RGB. }
+  { Chroma and V are now in the same range as RGB components.
+    Which means 0..1 right now, so already Ok. }
 
   if Chroma = 0 then
   begin
@@ -4278,37 +4284,31 @@ begin
     { calculate hue }
     if V = Value[0] then
     begin
-      Result[0] := LongInt(Value[1] - Value[2]) * 60.0 / Chroma;
-      if Result[0] < 0 then Result[0] += 360.0;
+      Result[0] := (Value[1] - Value[2]) / Chroma;
+      if Result[0] < 0 then Result[0] += 6.0;
     end else
     if V = Value[1] then
-      Result[0] := LongInt(Value[2] - Value[0]) * 60.0 / Chroma + 120.0 else
-      Result[0] := LongInt(Value[0] - Value[1]) * 60.0 / Chroma + 240.0;
+      Result[0] := (Value[2] - Value[0]) / Chroma + 2.0 else
+      Result[0] := (Value[0] - Value[1]) / Chroma + 4.0;
 
     { calculate saturation }
     Result[1] := Chroma / V;
   end;
-
-  { calculate value in 0..1 range }
-  Result[2] := V / 255.0;
 end;
 
-function HsvToRgb(const Value: TVector3Single): TVector3Byte;
+function HsvToRgb(const Value: TVector3Single): TVector3Single;
 var
-  Hue, VV, F: Single;
-  P, Q, T, V: Byte;
+  VV, F, P, Q, T, V: Single;
 begin
-  Hue := Value[0] / 60.0;
-  F := Frac(Hue);
+  F := Frac(Value[0]);
 
-  { RGB component candidates, already scaled to [0..255] }
-  VV := Value[2] * 255.0;
-  V := RoundClamp255(VV);
-  P := RoundClamp255(VV * (1 -  Value[1]));
-  Q := RoundClamp255(VV * (1 - (Value[1] * F)));
-  T := RoundClamp255(VV * (1 - (Value[1] * (1 - F))));
+  { RGB component candidates }
+  V := Value[2];
+  P := Value[2] * (1 -  Value[1]);
+  Q := Value[2] * (1 - (Value[1] * F));
+  T := Value[2] * (1 - (Value[1] * (1 - F)));
 
-  case Floor(Hue) of
+  case Floor(Value[0]) of
     0:   begin Result[0] := V; Result[1] := T; Result[2] := P; end;
     1:   begin Result[0] := Q; Result[1] := V; Result[2] := P; end;
     2:   begin Result[0] := P; Result[1] := V; Result[2] := T; end;
@@ -4316,6 +4316,26 @@ begin
     4:   begin Result[0] := T; Result[1] := P; Result[2] := V; end;
     else begin Result[0] := V; Result[1] := P; Result[2] := Q; end;
   end;
+end;
+
+function RgbToHsv(const Value: TVector3Byte): TVector3Single;
+var
+  ValueFloat: TVector3Single;
+begin
+  ValueFloat[0] := Value[0] / 255.0;
+  ValueFloat[1] := Value[1] / 255.0;
+  ValueFloat[2] := Value[2] / 255.0;
+  Result := RgbToHsv(ValueFloat);
+end;
+
+function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
+var
+  ResultFloat: TVector3Single;
+begin
+  ResultFloat := HsvToRgb(Value);
+  Result[0] := RoundClamp255(ResultFloat[0] * 255.0);
+  Result[1] := RoundClamp255(ResultFloat[1] * 255.0);
+  Result[2] := RoundClamp255(ResultFloat[2] * 255.0);
 end;
 
 end.
