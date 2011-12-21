@@ -20,80 +20,80 @@
 
 { Swap variables values.
   @groupBegin }
-procedure SwapValues(var a, b: Byte); overload;
-procedure SwapValues(var a, b: Int64); overload;
-procedure SwapValues(var a, b: Integer); overload;
-procedure SwapValues(var a, b: Cardinal); overload;
-procedure SwapValues(var a, b: Single); overload;
-procedure SwapValues(var a, b: Double); overload;
+procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure SwapValues(var a, b: Extended); overload;
+procedure SwapValues(var a, b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
-procedure SwapValues(var a, b: char); overload;
-procedure SwapValues(var a, b: Pointer); overload;
+procedure SwapValues(var a, b: char    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: Pointer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 { Make sure the Smaller value is <= than the Larger value,
   by eventually swapping them.
   @groupBegin }
-procedure OrderUp(var Smaller, Larger: Int64   ); overload;
-procedure OrderUp(var Smaller, Larger: Integer ); overload;
-procedure OrderUp(var Smaller, Larger: Cardinal); overload;
-procedure OrderUp(var Smaller, Larger: Single  ); overload;
-procedure OrderUp(var Smaller, Larger: Double  ); overload;
+procedure OrderUp(var Smaller, Larger: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(var Smaller, Larger: Extended); overload;
+procedure OrderUp(var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
 { Assign the smaller value from X, Y to Smaller variable, the other one
   to Larger variable.
   @groupBegin }
-procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer ); overload;
-procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); overload;
-procedure OrderUp(x, y: Single;   var Smaller, Larger: Single  ); overload;
-procedure OrderUp(x, y: Double;   var Smaller, Larger: Double  ); overload;
+procedure OrderUp(x, y: Integer;  var Smaller, Larger: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Cardinal; var Smaller, Larger: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Single;   var Smaller, Larger: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure OrderUp(x, y: Double;   var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload;
+procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
 { Return minimum / maximum from 2 / 3 items.
   @groupBegin }
-function min(const a, b: Int64): Int64; overload;
-function min(const a, b: integer): integer; overload;
-function min(const a, b: cardinal): cardinal; overload;
-function min(const a, b: Single): Single; overload;
-function min(const a, b: Double): Double; overload;
+function min(const a, b: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b: Extended): Extended; overload;
+function min(const a, b: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-function min(const a, b, c: Int64): Int64; overload;
-function min(const a, b, c: integer): integer; overload;
-function min(const a, b, c: cardinal): cardinal; overload;
-function min(const a, b, c: Single): Single; overload;
-function min(const a, b, c: Double): Double; overload;
+function min(const a, b, c: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b, c: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b, c: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b, c: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function min(const a, b, c: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b, c: Extended): Extended; overload;
+function min(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-function max(const a, b: Int64): Int64; overload;
-function max(const a, b: integer): integer; overload;
-function max(const a, b: cardinal): cardinal; overload;
-function max(const a, b: Single): Single; overload;
-function max(const a, b: Double): Double; overload;
+function max(const a, b: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function max(const a, b: Extended): Extended; overload;
+function max(const a, b: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-function max(const a, b, c: Int64): Int64; overload;
-function max(const a, b, c: integer): integer; overload;
-function max(const a, b, c: cardinal): cardinal; overload;
-function max(const a, b, c: Single): Single; overload;
-function max(const a, b, c: Double): Double; overload;
+function max(const a, b, c: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b, c: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b, c: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b, c: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function max(const a, b, c: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function max(const a, b, c: Extended): Extended; overload;
+function max(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
@@ -101,13 +101,13 @@ function max(const a, b, c: Extended): Extended; overload;
   Works like @code(A := Min(A, B)), but is marginally faster,
   since you don't have to do anything when A is already smaller.
   @groupBegin }
-procedure MinTo1st(var a: Int64   ; const b: Int64   ); overload;
-procedure MinTo1st(var a: Integer ; const b: Integer ); overload;
-procedure MinTo1st(var a: Cardinal; const b: Cardinal); overload;
-procedure MinTo1st(var a: Single  ; const b: Single  ); overload;
-procedure MinTo1st(var a: Double  ; const b: Double  ); overload;
+procedure MinTo1st(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinTo1st(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinTo1st(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinTo1st(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinTo1st(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure MinTo1st(var a: Extended; const b: Extended); overload;
+procedure MinTo1st(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
@@ -115,44 +115,46 @@ procedure MinTo1st(var a: Extended; const b: Extended); overload;
   Works like @code(A := Max(A, B)), but is marginally faster,
   since you don't have to do anything when A is already larger.
   @groupBegin }
-procedure MaxTo1st(var a: Int64   ; const b: Int64   ); overload;
-procedure MaxTo1st(var a: Integer ; const b: Integer ); overload;
-procedure MaxTo1st(var a: Cardinal; const b: Cardinal); overload;
-procedure MaxTo1st(var a: Single  ; const b: Single  ); overload;
-procedure MaxTo1st(var a: Double  ; const b: Double  ); overload;
+procedure MaxTo1st(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxTo1st(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxTo1st(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxTo1st(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxTo1st(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure MaxTo1st(var a: Extended; const b: Extended); overload;
+procedure MaxTo1st(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
 { Index (0, 1 or 2) of maximum / minimum of 3 numbers.
   @groupBegin }
-function IndexMax(const a0, a1, a2: Double): Integer; overload;
-function IndexMin(const a0, a1, a2: Double): Integer; overload;
+function IndexMax(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function IndexMin(const a0, a1, a2: Double): Integer; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
-function Between(const a, vBegin, vEnd: Int64): boolean; overload;
-function Between(const a, vBegin, vEnd: integer): boolean; overload;
-function Between(const a, vBegin, vEnd: cardinal): boolean; overload;
-function Between(const a, vBegin, vEnd: Float): boolean; overload;
-function Between(const a, vBegin, vEnd: Char): boolean; overload;
+function Between(const a, vBegin, vEnd: Int64   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: integer ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: cardinal): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Float   ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
-function Clamped(const a, vBegin, vEnd: Int64): Int64; overload;
-function Clamped(const a, vBegin, vEnd: integer): integer; overload;
-function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload;
-function Clamped(const a, vBegin, vEnd: Single): Single; overload;
-function Clamped(const a, vBegin, vEnd: Double): Double; overload;
+function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+
+function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-function Clamped(const a, vBegin, vEnd: Extended): Extended; overload;
+function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-procedure Clamp(var a: Int64; const vBegin, vEnd: Int64); overload;
-procedure Clamp(var a: integer; const vBegin, vEnd: integer); overload;
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload;
-procedure Clamp(var a: Single; const vBegin, vEnd: Single); overload;
-procedure Clamp(var a: Double; const vBegin, vEnd: Double); overload;
+procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure Clamp(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload;
+procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
 { 3D coordinates (0, 1 or 2) except the given coordinate.
@@ -168,12 +170,12 @@ function ChangeIntCycle(value, change, maxValue: integer): integer;
 
 { Linear interpolation between two values. Returns @code((1-A)*L + A*H).
   @groupBegin }
-function Lerp(const a: Single; const l, h: Integer): Single; overload;
-function Lerp(const a: Single; const l, h: Cardinal): Single; overload;
-function Lerp(const a, l, h: Single): Single; overload;
-function Lerp(const a: Double; const l, h: Integer): Double; overload;
-function Lerp(const a: Double; const l, h: Cardinal): Double; overload;
-function Lerp(const a, l, h: Double): Double; overload;
+function Lerp(const a: Single; const l, h: Integer): Single;  overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Single; const l, h: Cardinal): Single; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a, l, h: Single): Single;                 overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Double; const l, h: Integer): Double;  overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a: Double; const l, h: Cardinal): Double; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Lerp(const a, l, h: Double): Double;                 overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 const
@@ -429,6 +431,18 @@ function Between(const a, vBegin, vEnd: integer): boolean;  begin Result := (vBe
 function Between(const a, vBegin, vEnd: cardinal): boolean; begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Float): boolean;    begin Result := (vBegin <= a) and (a <= vend) end;
 function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBegin <= a) and (a <= vend) end;
+
+function RoundClamp255(const A: Single): Byte;
+var
+  I: Integer;
+begin
+  I := Round(A);
+  if I < Low(Byte) then
+    Exit(Low(Byte)) else
+  if I > High(Byte) then
+    Exit(High(Byte)) else
+    Exit(I);
+end;
 
 function Clamped(const a, vBegin, vEnd: Int64): Int64;
 begin
