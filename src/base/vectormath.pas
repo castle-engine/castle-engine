@@ -16,7 +16,7 @@
 { @abstract(Vector and matrix types and operations.
   Includes operations on basic geometric objects (2D and 3D),
   like collision-checking routines.
-  Includes also basic color operarions.)
+  Includes also color operarions (like conversion from/to HSV).)
 
   Representation of geometric objects in this unit :
 
@@ -1247,6 +1247,7 @@ function VectorsPerfectlyEqual(const V1, V2: TVector3Single): boolean; overload;
 function VectorsPerfectlyEqual(const V1, V2: TVector3Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const V1, V2: TVector4Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const V1, V2: TVector4Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector3Byte  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 function MatricesEqual(const M1, M2: TMatrix3Single; const EqualityEpsilon: Single): boolean; overload;
@@ -2324,6 +2325,14 @@ function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single;
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 { @groupEnd }
 
+{ Converting between RGB and HSV.
+  For HSV, we keep components as floating-point values,
+  with hue in 0..360 range, saturation and value in 0..1.
+  @groupBegin }
+function RgbToHsv(const Value: TVector3Byte): TVector3Single;
+function HsvToRgb(const Value: TVector3Single): TVector3Byte;
+{ @groupEnd }
+
 {$I vectormath_operators.inc}
 
 {$undef read_interface}
@@ -3279,6 +3288,13 @@ begin
 end;
 
 { some math on vectors ------------------------------------------------------- }
+
+function VectorsPerfectlyEqual(const V1, V2: TVector3Byte): boolean;
+begin
+  Result := (V1[0] = V2[0]) and
+            (V1[1] = V2[1]) and
+            (V1[2] = V2[2]);
+end;
 
 function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte;
 begin
@@ -4243,5 +4259,63 @@ function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_S
 {$define COL_MOD_STRIP_NUM := 2}
 function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single; COL_MOD_STRIP
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
+
+function RgbToHsv(const Value: TVector3Byte): TVector3Single;
+var
+  Chroma, V: Byte;
+begin
+  V := Max(Value[0], Value[1], Value[2]);
+  Chroma := V - Min(Value[0], Value[1], Value[2]);
+
+  { Careful: Chroma and V are now in [0..255], like RGB. }
+
+  if Chroma = 0 then
+  begin
+    Result[0] := 0;
+    Result[1] := 0;
+  end else
+  begin
+    { calculate hue }
+    if V = Value[0] then
+    begin
+      Result[0] := LongInt(Value[1] - Value[2]) * 60.0 / Chroma;
+      if Result[0] < 0 then Result[0] += 360.0;
+    end else
+    if V = Value[1] then
+      Result[0] := LongInt(Value[2] - Value[0]) * 60.0 / Chroma + 120.0 else
+      Result[0] := LongInt(Value[0] - Value[1]) * 60.0 / Chroma + 240.0;
+
+    { calculate saturation }
+    Result[1] := Chroma / V;
+  end;
+
+  { calculate value in 0..1 range }
+  Result[2] := V / 255.0;
+end;
+
+function HsvToRgb(const Value: TVector3Single): TVector3Byte;
+var
+  Hue, VV, F: Single;
+  P, Q, T, V: Byte;
+begin
+  Hue := Value[0] / 60.0;
+  F := Frac(Hue);
+
+  { RGB component candidates, already scaled to [0..255] }
+  VV := Value[2] * 255.0;
+  V := RoundClamp255(VV);
+  P := RoundClamp255(VV * (1 -  Value[1]));
+  Q := RoundClamp255(VV * (1 - (Value[1] * F)));
+  T := RoundClamp255(VV * (1 - (Value[1] * (1 - F))));
+
+  case Floor(Hue) of
+    0:   begin Result[0] := V; Result[1] := T; Result[2] := P; end;
+    1:   begin Result[0] := Q; Result[1] := V; Result[2] := P; end;
+    2:   begin Result[0] := P; Result[1] := V; Result[2] := T; end;
+    3:   begin Result[0] := P; Result[1] := Q; Result[2] := V; end;
+    4:   begin Result[0] := T; Result[1] := P; Result[2] := V; end;
+    else begin Result[0] := V; Result[1] := P; Result[2] := Q; end;
+  end;
+end;
 
 end.
