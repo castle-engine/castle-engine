@@ -236,42 +236,49 @@ begin
   Result := Grayscale(Color);
 end;
 
-{$define COL_MOD_CONVERT:=
-var
-  i: integer;
+function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  for i := 0 to 2 do
-    if i = COL_MOD_CONVERT_NUM then
-      Result[i] := GrayscaleValue(Color) else
-      Result[i] := 0;
-end;}
+  Result[0] := GrayscaleValue(Color);
+  Result[1] := 0;
+  Result[2] := 0;
+end;
 
-{$define COL_MOD_CONVERT_NUM := 0}
-function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_CONVERT
-
-{$define COL_MOD_CONVERT_NUM := 1}
-function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_CONVERT
-
-{$define COL_MOD_CONVERT_NUM := 2}
-function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_CONVERT
-
-{$define COL_MOD_STRIP:=
-var i: integer;
+function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
- for i := 0 to 2 do
-  if i = COL_MOD_STRIP_NUM then
-   Result[i] := Color[i] else
-   Result[i] := 0;
-end;}
+  Result[1] := GrayscaleValue(Color);
+  Result[0] := 0;
+  Result[2] := 0;
+end;
 
-{$define COL_MOD_STRIP_NUM := 0}
-function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
+function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
+begin
+  Result[2] := GrayscaleValue(Color);
+  Result[0] := 0;
+  Result[1] := 0;
+end;
 
-{$define COL_MOD_STRIP_NUM := 1}
-function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
+function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte;
+begin
+  Result[0] := Color[0];
+  Result[1] := 0;
+  Result[2] := 0;
+end;
 
-{$define COL_MOD_STRIP_NUM := 2}
-function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
+function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
+begin
+  Result[0] := 0;
+  Result[1] := Color[1];
+  Result[2] := 0;
+end;
+
+function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
+begin
+  Result[0] := 0;
+  Result[1] := 0;
+  Result[2] := Color[2];
+end;
+
+{ HSV stuff ------------------------------------------------------------------ }
 
 function RgbToHsv(const Value: TVector3Single): TVector3Single;
 var
