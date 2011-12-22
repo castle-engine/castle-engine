@@ -474,7 +474,7 @@ procedure TColorInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define SingleInterpolatorType := TVector3Single}
 {$define SingleInterpolatorDefault := ZeroVector3Single}
-{$define SingleInterpolatorLerp := Lerp}
+{$define SingleInterpolatorLerp := LerpRgbInHsv}
 SingleInterpolator
 
 procedure TColorSetInterpolatorNode.CreateNode;

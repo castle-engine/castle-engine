@@ -2224,7 +2224,7 @@ uses
   TTF_BitstreamVeraSerif_Italic_Unit,
   TTF_BitstreamVeraSerif_Bold_Italic_Unit,
 
-  Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings,
+  Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
   CastleFilesUtils, RaysWindow, StrUtils, CastleURLUtils,
   CastleLog, CastleScriptParser, DataURI, URIParser,
   NURBS, Quaternions, Cameras, CastleXMLUtils;
