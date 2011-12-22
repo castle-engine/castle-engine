@@ -381,6 +381,18 @@ type
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
 
+    { Assign linear interpolation between two other vector arrays,
+      and normalize resulting vectors.
+      @seealso AssignLerp }
+    procedure AssignLerpNormalize(const Fraction: Single;
+      V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+
+    { Assign linear interpolation between two other vector arrays,
+      treating vectors as RGB colors and interpolating in HSV space.
+      @seealso AssignLerp }
+    procedure AssignLerpRgbInHsv(const Fraction: Single;
+      V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+
     procedure AddList(Source: TVector3SingleList);
     procedure AddListRange(Source: TVector3SingleList; Index, AddCount: Integer);
     procedure AddArray(const A: array of TVector3Single);
@@ -2154,7 +2166,7 @@ function InverseFastLookDirMatrix(const Direction, Up: TVector3Double): TMatrix4
 
 implementation
 
-uses Math, CastleStringUtils;
+uses Math, CastleStringUtils, CastleColors;
 
 {$define read_implementation}
 
@@ -2248,6 +2260,29 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+end;
+
+procedure TVector3SingleList.AssignLerpNormalize(const Fraction: Single;
+  V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+  begin
+    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+    NormalizeTo1st(L[I]);
+  end;
+end;
+
+procedure TVector3SingleList.AssignLerpRgbInHsv(const Fraction: Single;
+  V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+    L[I] := LerpRgbInHsv(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
 function TVector3SingleList.ToVector4Single(const W: Single): TVector4SingleList;

@@ -381,7 +381,8 @@ var
 
     if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
-      Result.Items.AssignLerp(T, FdKeyValue.Items, FdKeyValue.Items,
+      Result.Items.MultipleInterpolatorAssignLerp(
+        T, FdKeyValue.Items, FdKeyValue.Items,
         Index1 * FrameValues, Index2 * FrameValues, FrameValues);
     end else
       OnWarning(wtMajor, 'VRML/X3D', Format('Not enough keyValue items for %s interpolator',
@@ -410,10 +411,7 @@ begin
       OutputValue := KeyValue(0) else
     if Range = KeyCount then
       OutputValue := KeyValue(KeyCount - 1) else
-    begin
       OutputValue := KeyValueLerp(T, Range - 1, Range);
-      MultipleInterpolatorFieldTypePostprocess
-    end;
   end;
   try
     EventValue_Changed.Send(OutputValue, Time);
@@ -510,7 +508,7 @@ end;
 procedure TColorSetInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFColor}
-{$define MultipleInterpolatorFieldTypePostprocess := }
+{$define MultipleInterpolatorAssignLerp := AssignLerpRgbInHsv}
 MultipleInterpolator
 
 procedure TCoordinateInterpolatorNode.CreateNode;
@@ -544,7 +542,7 @@ end;
 procedure TCoordinateInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
-{$define MultipleInterpolatorFieldTypePostprocess := }
+{$define MultipleInterpolatorAssignLerp := AssignLerp}
 MultipleInterpolator
 
 procedure TCoordinateInterpolator2DNode.CreateNode;
@@ -577,7 +575,7 @@ end;
 procedure TCoordinateInterpolator2DNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFVec2f}
-{$define MultipleInterpolatorFieldTypePostprocess := }
+{$define MultipleInterpolatorAssignLerp := AssignLerp}
 MultipleInterpolator
 
 procedure TEaseInEaseOutNode.CreateNode;
@@ -643,7 +641,7 @@ end;
 procedure TNormalInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFVec3f}
-{$define MultipleInterpolatorFieldTypePostprocess := OutputValue.Items.Normalize;}
+{$define MultipleInterpolatorAssignLerp := AssignLerpNormalize}
 MultipleInterpolator
 
 procedure TOrientationInterpolatorNode.CreateNode;
@@ -957,7 +955,7 @@ end;
 procedure TVectorInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 {$define MultipleInterpolatorFieldType := TMFFloat}
-{$define MultipleInterpolatorFieldTypePostprocess := }
+{$define MultipleInterpolatorAssignLerp := AssignLerp}
 MultipleInterpolator
 
 procedure RegisterInterpolationNodes;
