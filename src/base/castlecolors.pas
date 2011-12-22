@@ -160,15 +160,14 @@ uses CastleUtils;
 const
   { Weights to change RGB color to grayscale.
 
-    Explanation: Grayscale color is just a color with red = green = blue.
+    Grayscale color is just a color with red = green = blue.
     So the simplest convertion of RGB to grayscale is just to set
     all three R, G, B components to the average (R + G + B) / 3.
     But, since human eye is most sensitive to green, then to red,
     and least sensitive to blue, it's better to calculate this
-    with some non-uniform weights. GrayscaleValuesXxx constants specify
-    these weights.
+    with some non-uniform weights.
 
-    Taken from libpng manual (so there for further references).
+    These weights copied from libpng manual.
 
     For GrayscaleByte, they should be used like
 
