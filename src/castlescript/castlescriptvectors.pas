@@ -416,7 +416,8 @@ type
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleUtils, CastleWarnings, Cameras, Quaternions;
+uses CastleScriptCoreFunctions, CastleUtils, CastleWarnings, Cameras, Quaternions,
+  CastleColors;
 
 { Single-precision vectors --------------------------------------------------- }
 

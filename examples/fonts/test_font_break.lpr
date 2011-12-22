@@ -23,7 +23,7 @@ program test_font_break;
 
 uses CastleWindow, GL, GLU, CastleGLUtils, OpenGLFonts, SysUtils, Classes,
   CastleUtils, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath,
-  CastleStringUtils;
+  CastleStringUtils, CastleColors;
 
 var
   Window: TCastleWindowDemo;

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML low-level rendering (TGLRenderer).
+{ VRML/X3D low-level rendering (TGLRenderer).
   You usually don't want to use this renderer directly, you should
   rather use TCastleScene that wraps this renderer and gives you simple
   method to render whole scene.
@@ -1240,7 +1240,7 @@ var
 implementation
 
 uses Math, CastleStringUtils, GLVersionUnit, CastleLog, CastleWarnings,
-  RenderingCameraUnit, X3DCameraUtils, RaysWindow;
+  RenderingCameraUnit, X3DCameraUtils, RaysWindow, CastleColors;
 
 {$define read_implementation}
 

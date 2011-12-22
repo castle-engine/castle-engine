@@ -19,7 +19,8 @@ program animate_surface;
 
 uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
-  CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters;
+  CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters,
+  CastleColors;
 
 var
   Window: TCastleWindowCustom;

@@ -927,7 +927,7 @@ implementation
 {$define read_implementation}
 
 uses CastleFilesUtils, CastleStringUtils, GLVersionUnit, GLShaders, GLImages,
-  CastleLog, CastleWarnings;
+  CastleLog, CastleWarnings, CastleColors;
 
 {$I glext_packed_depth_stencil.inc}
 {$I glext_arb_framebuffer_object.inc}

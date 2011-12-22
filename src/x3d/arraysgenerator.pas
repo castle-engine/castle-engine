@@ -224,7 +224,8 @@ function GetArraysGenerator(AGeometry: TAbstractGeometryNode): TArraysGeneratorC
 implementation
 
 uses SysUtils, CastleLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  Boxes3D, Triangulator, CastleStringUtils, FaceIndex, CastleWarnings;
+  Boxes3D, Triangulator, CastleStringUtils, FaceIndex, CastleWarnings,
+  CastleColors;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 

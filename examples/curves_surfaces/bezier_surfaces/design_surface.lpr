@@ -23,7 +23,7 @@ program design_surface;
 uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
   CastleStringUtils, Math, CastleMessages, CastleFilesUtils,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts;
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors;
 
 type
   TShow = (shNone, shWire, shFill);

@@ -65,7 +65,7 @@ unit Images;
 interface
 
 uses SysUtils, Classes, Math, CastleUtils, VectorMath,
-  CastlePng, FileFilters, CastleClassUtils,
+  CastlePng, FileFilters, CastleClassUtils, CastleColors,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   FPImage, FPReadPCX, 
   {$ifndef VER2_2} FPReadGIF, FPReadPSD, {$endif} FPReadTGA, FPReadTiff, FPReadXPM,

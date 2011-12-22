@@ -19,7 +19,7 @@ unit OnScreenMenu;
 interface
 
 uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Rectangles,
-  GL, CastleGLUtils, UIControls, KeysMouse;
+  GL, CastleGLUtils, UIControls, KeysMouse, CastleColors;
 
 const
   DefaultMenuKeyNextItem = K_Down;

@@ -127,6 +127,7 @@ begin
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
     P.Targets.AddUnit('castleclassutils.pas');
+    P.Targets.AddUnit('castlecolors.pas');
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castleinterfaces.pas');

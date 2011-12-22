@@ -28,7 +28,7 @@ interface
 uses PrecalculatedAnimation, CastleUtils, CastleClassUtils, Classes, CastleScene,
   SysUtils, Cameras, VectorMath, Boxes3D, Base3D, Frustum,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, CastleColors;
 
 type
   TCreatureState = (csStand, csBored, csWalk);

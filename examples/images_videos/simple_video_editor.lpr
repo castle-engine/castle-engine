@@ -24,7 +24,7 @@ program simple_video_editor;
 {$apptype CONSOLE}
 
 uses CastleUtils, SysUtils, CastleWindow, GL, GLU, GLImages,
-  ImagesCache, Videos, CastleStringUtils, CastleMessages,
+  ImagesCache, Videos, CastleStringUtils, CastleMessages, CastleColors,
   BFNT_BitstreamVeraSansMono_Bold_m15_Unit, OpenGLBmpFonts, CastleParameters,
   CastleGLUtils, VectorMath, Classes, ProgressUnit, CastleProgress, CastleTimeUtils;
 
