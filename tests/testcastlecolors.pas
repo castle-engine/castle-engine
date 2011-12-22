@@ -26,6 +26,7 @@ type
   TTestCastleColors = class(TTestCase)
   published
     procedure TestHSV;
+    procedure TestLerpInHsv;
   end;
 
 implementation
@@ -69,6 +70,51 @@ begin
 
   Writeln(Format('HSV trip (RGB and back): average time is %f secs per 1 operation (total %f secs for %d operations)', [Time / Operations, Time, Operations]));
   {$endif}
+end;
+
+procedure TTestCastleColors.TestLerpInHsv;
+const
+  PureRed: TVector3Single = (1, 0, 0);
+  PureBlue: TVector3Single = (0, 0, 1);
+var
+  I: Integer;
+  C: TVector3Single;
+  H: Single;
+begin
+  for I := 1 to 10 do
+  begin
+    C := LerpRgbInHsv(I / 10, Black3Single, PureBlue);
+    { interpolating from pure black to blue,
+      all colors along the way should keep hue = blue }
+    H := RgbToHsv(C)[0];
+    Assert(RgbToHsv(PureBlue)[0] = H);
+//    Writeln(VectorToNiceStr(C), ' ', VectorToNiceStr(RgbToHsv(C)));
+  end;
+
+  for I := 0 to 10 do
+  begin
+    C := LerpRgbInHsv(I / 10, PureRed, PureBlue);
+    { interpolate from hue 0 to hue 4 --- go down through 0 }
+    H := RgbToHsv(C)[0];
+    Assert((H = 0.0) or Between(H, 4, 6));
+//    Writeln(VectorToNiceStr(C), ' ', VectorToNiceStr(RgbToHsv(C)));
+  end;
+
+  for I := 0 to 10 do
+  begin
+    C := LerpRgbInHsv(I / 10, PureBlue, PureRed);
+    { interpolate from hue 4 to hue 0 --- go up through 6 }
+    H := RgbToHsv(C)[0];
+    Assert((H = 0.0) or Between(H, 4, 6));
+//    Writeln(VectorToNiceStr(C), ' ', VectorToNiceStr(RgbToHsv(C)));
+  end;
+
+  Assert(VectorsEqual(LerpRgbInHsv(0, PureBlue, PureRed), PureBlue));
+  Assert(VectorsEqual(LerpRgbInHsv(1, PureBlue, PureRed), PureRed));
+  Assert(VectorsEqual(LerpRgbInHsv(0, PureRed, PureBlue), PureRed));
+  Assert(VectorsEqual(LerpRgbInHsv(1, PureRed, PureBlue), PureBlue));
+  Assert(VectorsEqual(LerpRgbInHsv(0, Black3Single, PureRed), Black3Single));
+  Assert(VectorsEqual(LerpRgbInHsv(1, Black3Single, PureRed), PureRed));
 end;
 
 initialization

@@ -148,6 +148,9 @@ function RgbToHsv(const Value: TVector3Byte): TVector3Single;
 function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
 { @groupEnd }
 
+{ Given two colors in RGB, interpolate them in HSV space. }
+function LerpRgbInHsv(const A: Single; const V1, V2: TVector3Single): TVector3Single;
+
 implementation
 
 uses CastleUtils;
@@ -325,7 +328,7 @@ begin
   T := V * (1 - (Value[1] * (1 - F)));
 
   case Floor(Value[0]) of
-    0:   begin Result[0] := V; Result[1] := T; Result[2] := P; end;
+    0, 6:begin Result[0] := V; Result[1] := T; Result[2] := P; end;
     1:   begin Result[0] := Q; Result[1] := V; Result[2] := P; end;
     2:   begin Result[0] := P; Result[1] := V; Result[2] := T; end;
     3:   begin Result[0] := P; Result[1] := Q; Result[2] := V; end;
@@ -352,6 +355,50 @@ begin
   Result[0] := RoundClamp255(ResultFloat[0] * 255.0);
   Result[1] := RoundClamp255(ResultFloat[1] * 255.0);
   Result[2] := RoundClamp255(ResultFloat[2] * 255.0);
+end;
+
+function LerpRgbInHsv(const A: Single; const V1, V2: TVector3Single): TVector3Single;
+var
+  H1, H2, HOut: TVector3Single;
+  HueDiff: Single;
+begin
+  H1 := RgbToHsv(V1);
+  H2 := RgbToHsv(V2);
+
+  { if one of the colors has saturation = 0, then resulting hue is copied
+    from the other color, not interpolated. Otherwise,
+    colors with saturation = 0 get hue = 0, which causes
+    interpolation from something colorful (like blue) to black go through
+    weird hue. }
+  if H1[1] = 0 then
+    HOut[0] := H2[0] else
+  if H2[1] = 0 then
+    HOut[0] := H1[0] else
+  begin
+    HueDiff := H2[0] - H1[0];
+    if HueDiff > 3 then
+    begin
+      { from hue 1 to hue 2 go down through 0.0 }
+      H2[0] -= 6;
+      HOut[0] := H1[0] + A * (H2[0] - H1[0]);
+      if HOut[0] < 0 then HOut[0] += 6;
+    end else
+    if HueDiff < -3 then
+    begin
+      { from hue 1 to hue 2 go up through 6.0 }
+      H2[0] += 6;
+      HOut[0] := H1[0] + A * (H2[0] - H1[0]);
+      if HOut[0] > 6 then HOut[0] -= 6;
+    end else
+      { normal lerp when HueDiff inside [-3, 3] }
+      HOut[0] := H1[0] + A * (H2[0] - H1[0]);
+  end;
+
+  { lerp on saturation and value is normal }
+  HOut[1] := H1[1] + A * (H2[1] - H1[1]);
+  HOut[2] := H1[2] + A * (H2[2] - H1[2]);
+
+  Result := HsvToRgb(HOut);
 end;
 
 end.
