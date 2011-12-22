@@ -91,6 +91,75 @@ const
   White4Single        : TVector4Single = (   1,    1,    1, 1);
   { @groupEnd }
 
+{ Calculate color intensity, as for converting color to grayscale.
+  @groupBegin }
+function GrayscaleValue(const v: TVector3Single): Single; overload;
+function GrayscaleValue(const v: TVector3Double): Double; overload;
+function GrayscaleValue(const v: TVector3Byte): Byte; overload;
+{ @groupEnd }
+
+procedure Grayscale3SinglevTo1st(v: PVector3Single);
+procedure Grayscale3BytevTo1st(v: PVector3Byte);
+
+procedure GrayscaleTo1st(var v: TVector3Byte); overload;
+
+function Grayscale(const v: TVector3Single): TVector3Single; overload;
+function Grayscale(const v: TVector4Single): Tvector4Single; overload;
+function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
+
+type
+  { Function that processes RGB colors.
+    These are used in Images.ImageModulate. }
+  TColorModulatorSingleFunc = function (const Color: TVector3Single): TVector3Single;
+  TColorModulatorByteFunc = function (const Color: TVector3Byte): TVector3Byte;
+
+{ below are some functions that can be used as above
+  TColorModulatorSingleFunc or TColorModulatorByteFunc values. }
+{ }
+
+{ Convert color to grayscale.
+  @groupBegin }
+function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
+
+{ Place color intensity (calculated like for grayscale)
+  into the given color component. Set the other components zero.
+  @groupBegin }
+function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
+function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte;
+function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
+
+{ Set color values for two other channels to 0.
+  Note that it's something entirely different than
+  ImageConvertToChannelTo1st: here we preserve original channel values,
+  and remove values on two other channels.
+
+  @groupBegin }
+function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte;
+function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
+function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
+{ @groupEnd }
+
+{ Converting between RGB and HSV.
+  For HSV, we keep components as floating-point values,
+  with hue in 0..6 range, saturation and value in 0..1.
+  For RGB, one version keeps components as bytes (0..255 range),
+  and the other as floating-point values (0..1 range).
+  @groupBegin }
+function HsvToRgb(const Value: TVector3Single): TVector3Single;
+function RgbToHsv(const Value: TVector3Single): TVector3Single;
+function RgbToHsv(const Value: TVector3Byte): TVector3Single;
+function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
+{ @groupEnd }
+
+implementation
+
+uses CastleUtils;
+
+{ grayscale ------------------------------------------------------------------ }
+
+const
   { Weights to change RGB color to grayscale.
 
     Explanation: Grayscale color is just a color with red = green = blue.
@@ -119,97 +188,6 @@ const
   GrayscaleValuesFloat: array [0..2] of Float = (0.212671, 0.715160, 0.072169);
   GrayscaleValuesByte: array [0..2] of Word = (54, 183, 19);
   { @groupEnd }
-
-{ Calculate color intensity, as for converting color to grayscale.
-  @groupBegin }
-function GrayscaleValue(const v: TVector3Single): Single; overload;
-function GrayscaleValue(const v: TVector3Double): Double; overload;
-function GrayscaleValue(const v: TVector3Byte): Byte; overload;
-{ @groupEnd }
-
-procedure Grayscale3SinglevTo1st(v: PVector3Single);
-procedure Grayscale3BytevTo1st(v: PVector3Byte);
-
-procedure GrayscaleTo1st(var v: TVector3Byte); overload;
-
-function Grayscale(const v: TVector3Single): TVector3Single; overload;
-function Grayscale(const v: TVector4Single): Tvector4Single; overload;
-function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
-
-{ color changing ------------------------------------------------------------ }
-
-type
-  { Function that process RGB colors.
-    These are used in Images.ImageModulate. }
-  TColorModulatorSingleFunc = function (const Color: TVector3Single): TVector3Single;
-  TColorModulatorByteFunc = function (const Color: TVector3Byte): TVector3Byte;
-
-{ below are some functions that can be used as above
-  TColorModulatorSingleFunc or TColorModulatorByteFunc values. }
-{ }
-
-function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
-function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
-
-{ Convert color to grayscale.
-  @groupBegin }
-function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
-function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
-{ @groupEnd }
-
-{ Convert color to grayscale and then invert.
-  That is, Red becomes @code(1 - Red), Green := @code(1 - Green) and such.
-  @groupBegin }
-function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
-function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
-{ @groupEnd }
-
-{ Place color intensity (calculated like for grayscale)
-  into the given color component. Set the other components zero.
-  @groupBegin }
-function ColorRedConvertSingle(const Color: TVector3Single): TVector3Single;
-function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
-
-function ColorGreenConvertSingle(const Color: TVector3Single): TVector3Single;
-function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte;
-
-function ColorBlueConvertSingle(const Color: TVector3Single): TVector3Single;
-function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
-{ @groupEnd }
-
-{ Set color values for two other channels to 0.
-  Note that it's something entirely different than
-  ImageConvertToChannelTo1st: here we preserve original channel values,
-  and remove values on two other channels.
-
-  @groupBegin }
-function ColorRedStripSingle(const Color: TVector3Single): TVector3Single;
-function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte;
-
-function ColorGreenStripSingle(const Color: TVector3Single): TVector3Single;
-function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
-
-function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single;
-function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
-{ @groupEnd }
-
-{ Converting between RGB and HSV.
-  For HSV, we keep components as floating-point values,
-  with hue in 0..6 range, saturation and value in 0..1.
-  For RGB, one version keeps components as bytes (0..255 range),
-  and the other as floating-point values (0..1 range).
-  @groupBegin }
-function HsvToRgb(const Value: TVector3Single): TVector3Single;
-function RgbToHsv(const Value: TVector3Single): TVector3Single;
-function RgbToHsv(const Value: TVector3Byte): TVector3Single;
-function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
-{ @groupEnd }
-
-implementation
-
-uses CastleUtils;
-
-{ grayscale ------------------------------------------------------------------ }
 
 function GrayscaleValue(const v: TVector3Single): Single;
 begin
@@ -273,42 +251,9 @@ end;
 
 { color changing ------------------------------------------------------------ }
 
-function ColorNegativeSingle(const Color: TVector3Single): TVector3Single;
-begin
-  Result[0] := 1 - Color[0];
-  Result[1] := 1 - Color[1];
-  Result[2] := 1 - Color[2];
-end;
-
-function ColorNegativeByte(const Color: TVector3Byte): TVector3Byte;
-begin
-  Result[0] := 255 - Color[0];
-  Result[1] := 255 - Color[1];
-  Result[2] := 255 - Color[2];
-end;
-
-function ColorGrayscaleSingle(const Color: TVector3Single): TVector3Single;
-begin
-  Result := Grayscale(Color)
-end;
-
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
 begin
   Result := Grayscale(Color)
-end;
-
-function ColorGrayscaleNegativeSingle(const Color: TVector3Single): TVector3Single;
-begin
-  Result[0] := 1 - GrayscaleValue(Color);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
-end;
-
-function ColorGrayscaleNegativeByte(const Color: TVector3Byte): TVector3Byte;
-begin
-  Result[0] := 255 - GrayscaleValue(Color);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
 end;
 
 {$define COL_MOD_CONVERT:=
@@ -322,15 +267,12 @@ begin
 end;}
 
 {$define COL_MOD_CONVERT_NUM := 0}
-function ColorRedConvertSingle(const Color: TVector3Single): TVector3Single; COL_MOD_CONVERT
 function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_CONVERT
 
 {$define COL_MOD_CONVERT_NUM := 1}
-function ColorGreenConvertSingle(const Color: TVector3Single): TVector3Single; COL_MOD_CONVERT
 function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_CONVERT
 
 {$define COL_MOD_CONVERT_NUM := 2}
-function ColorBlueConvertSingle(const Color: TVector3Single): TVector3Single; COL_MOD_CONVERT
 function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_CONVERT
 
 {$define COL_MOD_STRIP:=
@@ -343,15 +285,12 @@ begin
 end;}
 
 {$define COL_MOD_STRIP_NUM := 0}
-function ColorRedStripSingle(const Color: TVector3Single): TVector3Single; COL_MOD_STRIP
 function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
 
 {$define COL_MOD_STRIP_NUM := 1}
-function ColorGreenStripSingle(const Color: TVector3Single): TVector3Single; COL_MOD_STRIP
 function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
 
 {$define COL_MOD_STRIP_NUM := 2}
-function ColorBlueStripSingle(const Color: TVector3Single): TVector3Single; COL_MOD_STRIP
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte; COL_MOD_STRIP
 
 function RgbToHsv(const Value: TVector3Single): TVector3Single;
