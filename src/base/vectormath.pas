@@ -4298,15 +4298,15 @@ end;
 
 function HsvToRgb(const Value: TVector3Single): TVector3Single;
 var
-  VV, F, P, Q, T, V: Single;
+  F, P, Q, T, V: Single;
 begin
   F := Frac(Value[0]);
 
   { RGB component candidates }
   V := Value[2];
-  P := Value[2] * (1 -  Value[1]);
-  Q := Value[2] * (1 - (Value[1] * F));
-  T := Value[2] * (1 - (Value[1] * (1 - F)));
+  P := V * (1 -  Value[1]);
+  Q := V * (1 - (Value[1] * F));
+  T := V * (1 - (Value[1] * (1 - F)));
 
   case Floor(Value[0]) of
     0:   begin Result[0] := V; Result[1] := T; Result[2] := P; end;
