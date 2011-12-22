@@ -36,6 +36,7 @@ uses CastleUtils, CastleStringUtils, CastleTimeUtils;
 procedure TTestCastleColors.TestHSV;
 var
   RGB: TVector3Byte;
+  HSV: TVector3Single;
   R, G, B: Integer;
   {$ifdef SPEED_TESTS}
   Operations: Integer;
@@ -53,7 +54,13 @@ begin
         RGB[0] := R * 5;
         RGB[1] := G * 5;
         RGB[2] := B * 5;
-        Assert(VectorsPerfectlyEqual(RGB, HsvToRgbByte(RgbToHsv(RGB))));
+        HSV := RgbToHsv(RGB);
+        { test trip to HSV and back returns the same }
+        Assert(VectorsPerfectlyEqual(RGB, HsvToRgbByte(HSV)));
+        { test HSV components are in appropriate ranges }
+        Assert(Between(HSV[0], 0, 6));
+        Assert(Between(HSV[1], 0, 1));
+        Assert(Between(HSV[2], 0, 1));
       end;
 
   {$ifdef SPEED_TESTS}
