@@ -22,6 +22,7 @@ uses
   TestBasicLists,
   TestCastleClassUtils,
   TestVectorMath,
+  TestCastleColors,
   TestFPImage,
   TestImages,
   TestOldFPCBugs,

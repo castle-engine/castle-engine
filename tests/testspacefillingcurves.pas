@@ -28,7 +28,7 @@ type
 
 implementation
 
-uses VectorMath, Images, SpaceFillingCurves, CastleUtils;
+uses VectorMath, Images, SpaceFillingCurves, CastleUtils, CastleColors;
 
 procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
 
