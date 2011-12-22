@@ -98,11 +98,6 @@ function GrayscaleValue(const v: TVector3Double): Double; overload;
 function GrayscaleValue(const v: TVector3Byte): Byte; overload;
 { @groupEnd }
 
-procedure Grayscale3SinglevTo1st(v: PVector3Single);
-procedure Grayscale3BytevTo1st(v: PVector3Byte);
-
-procedure GrayscaleTo1st(var v: TVector3Byte); overload;
-
 function Grayscale(const v: TVector3Single): TVector3Single; overload;
 function Grayscale(const v: TVector4Single): Tvector4Single; overload;
 function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
@@ -210,50 +205,35 @@ begin
              GrayscaleValuesByte[2]*v[2]) div 256;
 end;
 
-procedure Grayscale3SinglevTo1st(v: PVector3Single);
-begin
-  v^[0] := GrayscaleValue(v^);
-  v^[1] := v^[0];
-  v^[2] := v^[0];
-end;
-
-procedure Grayscale3BytevTo1st(v: PVector3Byte);
-begin
-  v^[0] := GrayscaleValue(v^);
-  v^[1] := v^[0];
-  v^[2] := v^[0];
-end;
-
-procedure GrayscaleTo1st(var v: TVector3Byte);
-begin
-  v[0] := GrayscaleValue(v);
-  v[1] := v[0];
-  v[2] := v[0];
-end;
-
 function Grayscale(const v: TVector3Single): TVector3Single;
 begin
-  result := v;
-  Grayscale3SinglevTo1st(@result);
+  Result[0] := GrayscaleValue(V);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
 end;
 
 function Grayscale(const v: TVector4Single): TVector4Single;
+var
+  V3: TVector3Single absolute V;
 begin
-  result := v;
-  Grayscale3SinglevTo1st(@result);
+  Result[0] := GrayscaleValue(V3);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
+  Result[3] := V[3];
 end;
 
 function Grayscale(const v: TVector3Byte): TVector3Byte;
 begin
-  result := v;
-  Grayscale3BytevTo1st(@result);
+  Result[0] := GrayscaleValue(V);
+  Result[1] := Result[0];
+  Result[2] := Result[0];
 end;
 
 { color changing ------------------------------------------------------------ }
 
 function ColorGrayscaleByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result := Grayscale(Color)
+  Result := Grayscale(Color);
 end;
 
 {$define COL_MOD_CONVERT:=
