@@ -151,8 +151,8 @@ begin
       { Error_action = 1 means "silently do the conversion" }
       1,
       { Negative weights means "use the default weight" (matches my
-	GrayscaleValuesByte weights, actually my GrayscaleValuesByte
-	was copied from libpng documentation...) }
+        GrayscaleValuesByte weights, actually my GrayscaleValuesByte
+        was copied from libpng documentation...) }
       -1, -1);
     ColorType := ColorType and (not PNG_COLOR_MASK_COLOR);
   end;
