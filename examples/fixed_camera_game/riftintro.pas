@@ -121,8 +121,9 @@ procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
 begin
   if C = CharEscape then
     UserQuit := true else
-  { Don't let player skip to next part before watching the corrode animation }
-  if IntroPartTime > IntroParts[IntroPart].CorrodeDuration then
+  { Don't let player skip to next part before watching the corrode animation.
+    Later: this was bothersome, just let player advance to next part always. }
+  { if IntroPartTime > IntroParts[IntroPart].CorrodeDuration then }
     NextIntroPart;
 end;
 
