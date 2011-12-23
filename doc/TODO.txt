@@ -1,11 +1,7 @@
 The central TODO file. There are also some TODOs scattered elsewhere,
 do "find -iname TODO*" to find them.
-In paricular, ../../www/TODO contains "next-release" stuff,
-usually has a list of blockers typically worked upon right before release.
 
 ------------------------------------------------------------------------------
-Make news item around ~end of July about next engine progress and plans.
-
 3.11.0:
 - Blender exporter fixes.
 - Make CastleMessages buttons clickable, reported for castle many times.
@@ -31,39 +27,10 @@ Details during 2.6.0 release:
 
 - castle: use everything as T3D inside scene manager,
   do not call special TCastleScene.Render methods.
-- Test on castle using OcclusionQuery.
-- optimize fields send() with direct value, no need for temp field usually?
-
-- make TLightInstance a normal class, and TLightInstancesList only keeps
-  references to instances.
-  This would simplify some code (like light renderer comparisons),
-  and make copying it simpler.
-  But it would also create a need to store and free references
-  --- at TNodeX3DLightNode?
-
-- Eliminate remaining glLight usage. Allow using TVRMLGLLightsRenderer
-  for all objects, following vrml_engine_doc promises.
-  Remaining only three cases:
-
-  ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:325:    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
-  ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:329:  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
-
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:148:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:788:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
-  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
-
-- Make lifetime of lights renderer longer. At least, for whole rendering
-  from a scene manager (so 1 lights renderer for 1 TCastleSceneManager.Draw call).
-
-  Then: maybe even make it global,
-  and just track all light for the GL context lifetime? But this is more difficult,
-  we currently assume that equal transform and equal node reference
-  means nothing changed. What if light node contents changed? We would have
-  to invalidate it from CastleSceneCore changes.
 
 - Add a way to limit FPS, to not burn CPU without need.
-  There's a bugreport about this in tracker too.
+  There's a bugreport about this in tracker too (in old vrmlengine project).
+  Also notify Jens, I think he reported it too?
 
 - Move castle creature animations outside of XML, to separate kanim files.
 - Merge PrecalculatedAnimationInfo functionality into PrecalculatedAnimation class?
@@ -504,6 +471,8 @@ Handle CgFX format, that allows to express multiple techniques and rendering pas
 ------------------------------------------------------------------------------
 Occlusion culling:
 
+- Test on castle using OcclusionQuery.
+
 - make TRenderParams.StencilTest be used also to pause (not update visibility) in hierarch oq, it would be a waste of temporal conh to not pause there.
 
 - if tests show hierarchical is much better than UseOcclusionQuery,
@@ -796,6 +765,8 @@ in a way that is fast AND preserves current VRML graph:
 
 ------------------------------------------------------------------------------
 X3DNodes:
+- optimize fields send() with direct value, no need for temp field usually?
+
 - Eventually, moving all non-abstract nodes out of this unit
   could be nice. But
   1. for now, stuff that is inside TX3DGraphTraverseState.LastNodes
@@ -1206,3 +1177,34 @@ Shaders:
   - castle_vertex/normal_eye is passed, lighting works
   But some minor (seldom used) stuff is left not passed.
   Grep "varying" in glrenderershader.pas, see also TODO in template_add_light.glsl.
+
+------------------------------------------------------------------------------
+Lights rendering:
+
+- make TLightInstance a normal class, and TLightInstancesList only keeps
+  references to instances.
+  This would simplify some code (like light renderer comparisons),
+  and make copying it simpler.
+  But it would also create a need to store and free references
+  --- at TNodeX3DLightNode?
+
+- Eliminate remaining glLight usage. Allow using TVRMLGLLightsRenderer
+  for all objects, following vrml_engine_doc promises.
+  Remaining only three cases:
+
+  ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:325:    fixed-function pipeline rendering (by glLight, used by DrawFloor). }
+  ./castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr:329:  glLightv(GL_LIGHT0, GL_POSITION, LightPosition);
+
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:148:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1))
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:788:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.2, 0.2, 0.2, 1.0));
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:797:    glLightv(GL_LIGHT0, GL_POSITION, Vector4Single(LightPosition, 1));
+  ./castle_game_engine/examples/vrml/bump_mapping/bump_mapping.lpr:799:    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(0.5, 0.5, 0.5, 1.0));
+
+- Make lifetime of lights renderer longer. At least, for whole rendering
+  from a scene manager (so 1 lights renderer for 1 TCastleSceneManager.Draw call).
+
+  Then: maybe even make it global,
+  and just track all light for the GL context lifetime? But this is more difficult,
+  we currently assume that equal transform and equal node reference
+  means nothing changed. What if light node contents changed? We would have
+  to invalidate it from CastleSceneCore changes.
