@@ -3474,8 +3474,12 @@ begin
         if TransformChangeHelper.AnythingChanged then
           DoVisibleChanged := true;
 
-        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is animated }
-        if TransformNode is THAnimJointNode then
+        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+          animated. Secure from Humanoid = nil (may happen if Joint
+          is outside Humanoid node, see VRML 97 test
+          ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+        if (TransformNode is THAnimJointNode) and
+           (TransformShapeTree.TransformState.Humanoid <> nil) then
           ScheduledHumanoidAnimateSkin.AddIfNotExists(
             TransformShapeTree.TransformState.Humanoid);
       end;

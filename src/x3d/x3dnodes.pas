@@ -2459,6 +2459,15 @@ begin
   TransformScale := 1.0;
   InvertedTransform := IdentityMatrix4Single;
 
+  { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
+    But set it also here, just in case we have Joint without surrounding
+    Humanoid node. (Otherwise MatrixMultPoint may raise errors in
+    THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
+    testcase is
+    view3dscene ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
+  HumanoidTransform := IdentityMatrix4Single;
+  HumanoidInvertedTransform := IdentityMatrix4Single;
+
   TextureTransform := IdentityMatrix4Single;
   AssignLastNodes(StateDefaultNodes);
 end;
@@ -2486,6 +2495,9 @@ begin
   Transform := IdentityMatrix4Single;
   TransformScale := 1.0;
   InvertedTransform := IdentityMatrix4Single;
+
+  HumanoidTransform := IdentityMatrix4Single;
+  HumanoidInvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
   AssignLastNodes(StateDefaultNodes);
