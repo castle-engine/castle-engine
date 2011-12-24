@@ -4555,20 +4555,38 @@ begin
     which one? (To make the rotation around it in correct direction.)
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
-  { we need larger epsilon for ZeroVector below, in case
-    StdCamUpAfterRot1 is = -CamUp.
-    testcameras.pas contains testcases that require it. }
-  if ZeroVector(Rot2Axis, 0.001) then
-    Rot2Axis := CamDir else
-    { Normalize *after* checking ZeroVector, otherwise normalization
-      could change some almost-zero vector into a (practically random)
-      vector of length 1. }
-    NormalizeTo1st(Rot2Axis);
+
+  (*We could now do NormalizeTo1st(Rot2Axis),
+    after making sure it's not zero. Like
+
+    { we need larger epsilon for ZeroVector below, in case
+      StdCamUpAfterRot1 is = -CamUp.
+      testcameras.pas contains testcases that require it. }
+    if ZeroVector(Rot2Axis, 0.001) then
+      Rot2Axis := CamDir else
+      { Normalize *after* checking ZeroVector, otherwise normalization
+        could change some almost-zero vector into a (practically random)
+        vector of length 1. }
+      NormalizeTo1st(Rot2Axis);
+
+    And later do
+
+      { epsilon for VectorsEqual 0.001 is too small }
+      Assert( VectorsEqual(Rot2Axis,  CamDir, 0.01) or
+              VectorsEqual(Rot2Axis, -CamDir, 0.01),
+        Format('CamDirUp2OrientQuat failed for CamDir, CamUp: (%s), (%s)',
+          [ VectorToRawStr(CamDir), VectorToRawStr(CamUp) ]));
+
+    However, as can be seen in above comments, this requires some careful
+    adjustments of epsilons, so it's somewhat numerically unstable.
+    It's better to just use now the knowledge that Rot2Axis
+    is either CamDir or -CamDir, and choose one of them. *)
+  if AreParallelVectorsSameDirection(Rot2Axis, CamDir) then
+    Rot2Axis :=  CamDir else
+    Rot2Axis := -CamDir;
+
   Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
   Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
-
-  Assert( VectorsEqual(Rot2Axis,  CamDir, 0.001) or
-          VectorsEqual(Rot2Axis, -CamDir, 0.001));
 
   { calculate Result = combine Rot1 and Rot2 (yes, the order
     for QuatMultiply is reversed) }
