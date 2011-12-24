@@ -279,7 +279,10 @@ type
       This is suitable if you render only to depth buffer, like for shadow maps.
 
       It's quite similar to rmPureGeometry, except alpha testing must work,
-      so (at least some) textures must be applied over the model. }
+      so (at least some) textures must be applied over the model.
+      Also, contrary to rmPureGeometry, various features (like fixed-function
+      lighting state) are simply forcibly disabled (instead of letting caller
+      to set OpenGL state for them). }
     rmDepth
   );
 

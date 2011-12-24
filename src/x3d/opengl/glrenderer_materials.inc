@@ -150,12 +150,14 @@ begin
     MaterialLit := M2 <> nil;
   end;
 
-  { calculate MaterialAndShapeLit (like Lighting, but ignores Attributes.Lighting) }
+  { calculate MaterialAndShapeLit (like Lighting, but ignores things
+    outside this shape and material) }
   MaterialAndShapeLit := MaterialLit and Shape.Geometry.Lit(Shape.State);
 
   { calculate and apply Lighting }
-  Lighting := Attributes.Lighting and MaterialAndShapeLit;
-  if Attributes.Mode = rmFull then
+  Lighting := Attributes.Lighting and MaterialAndShapeLit and
+    (Attributes.Mode <> rmDepth);
+  if Attributes.Mode <> rmPureGeometry then
     FixedFunctionLighting := Lighting;
   if Lighting then
     Shader.EnableLighting;
