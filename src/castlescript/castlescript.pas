@@ -805,12 +805,12 @@ type
   ECasScriptFunctionArgumentsError = class(ECasScriptError);
   ECasScriptFunctionNoHandler = class(ECasScriptError);
 
-  { CastleScript function definition.
+  { CastleScript user function definition.
 
     Not to be confused with TCasScriptFunction: TCasScriptFunction is
     an internal, built-in function or operator. This class represents
     functions defined by user. }
-  TCasScriptFunctionDefinition = class
+  TCasScriptUserFunction = class
   private
     FName: string;
     FParameters: TCasScriptValueList;
@@ -838,7 +838,7 @@ type
     property Body: TCasScriptExpression read FBody write FBody;
   end;
 
-  TCasScriptFunctionDefinitionList = class(specialize TFPGObjectList<TCasScriptFunctionDefinition>)
+  TCasScriptUserFunctionList = class(specialize TFPGObjectList<TCasScriptUserFunction>)
     function IndexOf(const FunctionName: string): Integer;
   end;
 
@@ -846,13 +846,13 @@ type
 
   TCasScriptProgram = class
   private
-    FFunctions: TCasScriptFunctionDefinitionList;
+    FFunctions: TCasScriptUserFunctionList;
     FEnvironment: TCasScriptEnvironment;
   public
     constructor Create;
     destructor Destroy; override;
 
-    property Functions: TCasScriptFunctionDefinitionList read FFunctions;
+    property Functions: TCasScriptUserFunctionList read FFunctions;
 
     { Execute a user-defined function (from Functions list of this program).
 
@@ -2524,15 +2524,15 @@ begin
   Result := nil;
 end;
 
-{ TCasScriptFunctionDefinition ----------------------------------------------- }
+{ TCasScriptUserFunction ----------------------------------------------- }
 
-constructor TCasScriptFunctionDefinition.Create;
+constructor TCasScriptUserFunction.Create;
 begin
   inherited;
   FParameters := TCasScriptValueList.Create(true);
 end;
 
-destructor TCasScriptFunctionDefinition.Destroy;
+destructor TCasScriptUserFunction.Destroy;
 begin
   if Body <> nil then
     Body.FreeByParentExpression;
@@ -2540,9 +2540,9 @@ begin
   inherited;
 end;
 
-{ TCasScriptFunctionDefinitionList ------------------------------------------ }
+{ TCasScriptUserFunctionList ------------------------------------------ }
 
-function TCasScriptFunctionDefinitionList.IndexOf(
+function TCasScriptUserFunctionList.IndexOf(
   const FunctionName: string): Integer;
 begin
   for Result := 0 to Count - 1 do
@@ -2556,7 +2556,7 @@ end;
 constructor TCasScriptProgram.Create;
 begin
   inherited;
-  FFunctions := TCasScriptFunctionDefinitionList.Create(true);
+  FFunctions := TCasScriptUserFunctionList.Create(true);
   FEnvironment := TCasScriptEnvironment.Create;
 end;
 
@@ -2571,7 +2571,7 @@ procedure TCasScriptProgram.ExecuteFunction(const FunctionName: string;
   const Parameters: array of TCasScriptValue;
   const IgnoreMissingFunction: boolean);
 var
-  Func: TCasScriptFunctionDefinition;
+  Func: TCasScriptUserFunction;
   FuncIndex, I: Integer;
 begin
   FuncIndex := Functions.IndexOf(FunctionName);

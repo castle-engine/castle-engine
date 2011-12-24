@@ -389,12 +389,12 @@ function AProgram(
 var
   Environment: TCasScriptEnvironment;
 
-  function AFunction: TCasScriptFunctionDefinition;
+  function AFunction: TCasScriptUserFunction;
   var
     BodyVariables: TCasScriptValueList;
     Parameter: TCasScriptValue;
   begin
-    Result := TCasScriptFunctionDefinition.Create;
+    Result := TCasScriptUserFunction.Create;
     try
       Lexer.CheckTokenIs(tokIdentifier);
       Result.Name := Lexer.TokenString;
