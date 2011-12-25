@@ -181,6 +181,7 @@ begin
       { Make sure Renderer.SmoothShading is suitable }
       if Renderer.Attributes.Mode = rmFull then
         Renderer.SmoothShading := true;
+      { TODO: for rmDepth, set SmoothShading := false always }
 
       { Normal pointing from CCW. }
       glNormal3f(0, 0, -1);
