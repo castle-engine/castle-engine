@@ -6,6 +6,8 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
+/* PLUG-DECLARATIONS */
+
 #ifdef HAS_GEOMETRY_SHADER
   #define castle_vertex_eye castle_vertex_eye_geoshader
   #define castle_normal_eye castle_normal_eye_geoshader
@@ -13,8 +15,6 @@
 
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
-
-/* PLUG-DECLARATIONS */
 
 /* Wrapper for calling PLUG texture_coord_shift */
 vec2 texture_coord_shifted(in vec2 tex_coord)
