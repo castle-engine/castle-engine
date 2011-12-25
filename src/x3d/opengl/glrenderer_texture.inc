@@ -2055,7 +2055,12 @@ begin
       glMatrixMode(GL_MODELVIEW);
 
       glPushAttrib(GL_POLYGON_BIT);
-        { enable polygon offset for everything (whole scene) }
+        { enable polygon offset for everything (whole scene).
+
+          VarianceShadowMaps notes: can offset be avoided in this case?
+          Practice (on "ATI Mobility Radeon HD 4300 Series") shows that
+          offset is still needed for VSM. Without offset, VSM has some noise,
+          and sunny_street demos have noise on walls. With offset, VSM is perfect. }
         glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
         glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
         glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
