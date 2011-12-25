@@ -3335,9 +3335,9 @@ procedure TGLRenderer.RenderShapeCreateMeshRenderer(Shape: TX3DRendererShape;
   const MaterialOpacity: Single; const Lighting: boolean);
 var
   GeneratorClass: TArraysGeneratorClass;
-  MeshRenderer: TVRMLMeshRenderer;
+  MeshRenderer: TMeshRenderer;
 
-  { If Shape.Geometry should be rendered using one of TVRMLMeshRenderer
+  { If Shape.Geometry should be rendered using one of TMeshRenderer
     classes, then create appropriate MeshRenderer and return @true.
     Otherwise return @false and doesn't set MeshRenderer.
 
@@ -3394,7 +3394,7 @@ begin
   end;
 end;
 
-{$define MeshRenderer := TVRMLMeshRenderer(ExposedMeshRenderer) }
+{$define MeshRenderer := TMeshRenderer(ExposedMeshRenderer) }
 
 procedure TGLRenderer.RenderShapeShaders(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject; Shader: TShader;

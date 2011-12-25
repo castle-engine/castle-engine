@@ -23,7 +23,7 @@ type
     follow other nodes, and create triangles arrays in
     GenerateCoordinate, and let normal rendering through TGeometryArrays
     handle it. }
-  TAbstractTextRenderer = class(TVRMLMeshRenderer)
+  TAbstractTextRenderer = class(TMeshRenderer)
   protected
     procedure RenderText(
       const Size, Spacing: Single;

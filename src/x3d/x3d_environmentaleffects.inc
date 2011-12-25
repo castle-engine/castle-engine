@@ -669,9 +669,8 @@ begin
     begin
       FogVolumetricVisibilityStart := FdVolumetricVisibilityStart.Value * TransformScale;
 
-      { Calculation of Distance for volumetric fog
-        below is analogous to TVRMLMeshRenderer.DoBeforeGLVertex
-        caculation. }
+      { Calculation of Distance for volumetric fog below is analogous to
+        GetFogVolumetric inside ArraysGenerator. }
 
       VertProjected := PointOnLineClosestToPoint(
         ZeroVector3Single, FdVolumetricDirection.Value, VertexPos);

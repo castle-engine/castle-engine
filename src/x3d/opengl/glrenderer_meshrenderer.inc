@@ -20,7 +20,7 @@
 
   - GLRenderer unit, and TGLRenderer class are already
     large and complicated. The idea of this file is to take some tasks
-    from their hands. TVRMLMeshRenderer and descendants are created
+    from their hands. TMeshRenderer and descendants are created
     only for the time of one RenderShape call, and are used
     to render specific non-trivial VRML mesh nodes.
 
@@ -38,7 +38,7 @@
 }
 
 type
-  TVRMLMeshRenderer = class
+  TMeshRenderer = class
   private
     FRenderer: TGLRenderer;
     FShape: TX3DRendererShape;
@@ -81,7 +81,7 @@ type
   { Base abstract class for rendering nodes with explicit "coord" field.
     (Both IndexedXxx and not indexed). Uses TArraysGenerator
     instance to generate TGeometryArrays contents, then renders them. }
-  TBaseCoordinateRenderer = class(TVRMLMeshRenderer)
+  TBaseCoordinateRenderer = class(TMeshRenderer)
   private
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
@@ -145,9 +145,9 @@ type
 
   TCompleteCoordinateRenderer = TShaderCoordinateRenderer;
 
-{ TVRMLMeshRenderer ---------------------------------------------------------- }
+{ TMeshRenderer ---------------------------------------------------------- }
 
-constructor TVRMLMeshRenderer.Create(ARenderer: TGLRenderer;
+constructor TMeshRenderer.Create(ARenderer: TGLRenderer;
   AShape: TX3DRendererShape);
 begin
   inherited Create;
