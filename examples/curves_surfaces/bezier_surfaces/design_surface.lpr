@@ -74,12 +74,12 @@ begin
     S := 'Unsaved surface';
   S := S + ' - design Bezier surface';
 
-  { This may be called from SurfaceNew when Fps.Active is not yet set.
+  { This may be called from SurfaceNew when window is not yet open.
     In this case it's best to set Window.Caption instead of Window.FpsBaseCaption.
     We shouldn't set here Window.FpsBaseCaption, because Window.FpsBaseCaption
-    will be initialized later (when Fps.Active is set true) from Window.Caption... }
+    will be initialized later (when window is open) from Window.Caption... }
 
-  if Window.Fps.Active then
+  if Window.Open then
     Window.FpsBaseCaption := S else
     Window.Caption := S;
 end;

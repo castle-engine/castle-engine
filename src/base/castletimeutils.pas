@@ -234,7 +234,6 @@ type
     controlled by the user of TCastleWindowBase / TCastleControlCustom. }
   TFramesPerSecond = class
   private
-    FActive: boolean;
     FFrameTime: Double;
     FRealTime: Double;
     FIdleSpeed: Single;
@@ -252,10 +251,6 @@ type
     procedure _RenderBegin;
     procedure _RenderEnd;
     procedure _IdleBegin;
-
-    { Turn on/off frames per second measuring.
-      Before using FrameTime or RealTime you must set Active to @true. }
-    property Active: boolean read FActive write FActive;
 
     { Rendering speed in frames per second. This tells FPS,
       if we would only call Draw (EventDraw, OnDraw) all the time.
@@ -291,9 +286,7 @@ type
       So this really measures your whole loop time (unlike previous DrawSpeed
       that measured only EventDraw (OnDraw) speed).
 
-      You can sanely use this only within EventIdle (OnIdle).
-
-      This is independent from @link(Active) setting, it works always. }
+      You can sanely use this only within EventIdle (OnIdle). }
     property IdleSpeed: Single read FIdleSpeed;
 
     { Forces IdleSpeed within the next EventIdle (onIdle) call to be
@@ -514,7 +507,6 @@ end;
 
 procedure TFramesPerSecond._RenderBegin;
 begin
-  if not Active then Exit;
   RenderStartTime := Timer;
 end;
 
@@ -524,8 +516,6 @@ const
 var
   NowTime: TMilisecTime;
 begin
-  if not Active then Exit;
-
   Inc(FramesRendered);
   FrameTimePassed += Timer - RenderStartTime;
 

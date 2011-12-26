@@ -1073,7 +1073,7 @@ begin
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
    {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
    {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose, true);
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
 
  { FakeMouseDown must be @false.
    Otherwise closing dialog box with MouseDown will then cause MouseDown

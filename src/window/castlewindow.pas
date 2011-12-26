@@ -2131,7 +2131,7 @@ end;
 
     { Fps -------------------------------------------------------------------- }
 
-    { }
+    { Frames per second measuring. }
     property Fps: TFramesPerSecond read FFps;
 
     { Set Caption to WindowTitle with description of
@@ -2309,11 +2309,7 @@ end;
     and such).
 
     Call SetDemoOptions method to be forced to configure all "demo" options.
-    By default they are all off.
-
-    It also always turns on FPS calculation (Fps.Active), regardless
-    of "demo" options. FPS calculation is used for various, also non-debugging,
-    features (like time-based animation) so it's generally always wanted. }
+    By default they are all off. }
   TCastleWindowDemo = class(TCastleWindowBase)
   private
     wLeft, wTop, wWidth, wHeight: integer;
@@ -4130,85 +4126,77 @@ procedure TCastleWindowDemo.SwapFullScreen;
 
   procedure SaveRect;
   begin
-   wLeft := Left;
-   wTop := Top;
-   wWidth := Width;
-   wHeight := Height;
+    wLeft := Left;
+    wTop := Top;
+    wWidth := Width;
+    wHeight := Height;
   end;
 
 begin
- DuringSwapFullScreen := true;
- try
-  Close(false);
-  if not FFullScreen then SaveRect; { save window rect }
-  FFullScreen := not FFullScreen;
-  if not FFullScreen then
-  begin
-   Left := wLeft;
-   Top := wTop;
-   Width := wWidth;
-   Height := wHeight;
-  end;
-  Open;
- finally DuringSwapFullScreen := false end;
+  DuringSwapFullScreen := true;
+  try
+    Close(false);
+    if not FFullScreen then SaveRect; { save window rect }
+    FFullScreen := not FFullScreen;
+    if not FFullScreen then
+    begin
+      Left := wLeft;
+      Top := wTop;
+      Width := wWidth;
+      Height := wHeight;
+    end;
+    Open;
+  finally DuringSwapFullScreen := false end;
 end;
 
 procedure TCastleWindowDemo.EventIdle;
 begin
- inherited;
- {ponizej udalo mi sie zaimplementowac cos jak timer, a jednak nie uzylem
-  zadnego callbacka, w szczegolnosci OnTimer okienka ! A wiec sukces -
-  ten timer moze sobie dzialac w sposob zupelnie przezroczysty dla okienka,
-  ktore moze swobodnie modyfikowac swoje OnTimer, Application.OnTimer,
-  Application.TimerMilisec. }
- if FpsShowOnCaption and
-    ((lastFpsOutputTick = 0) or
-     (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
- begin
-  lastFpsOutputTick := GetTickCount;
-  FpsToCaption(FFpsBaseCaption);
- end;
+  inherited;
+  { show FPS on caption once FpsCaptionUpdateInterval passed }
+  if FpsShowOnCaption and
+     ((lastFpsOutputTick = 0) or
+      (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
+  begin
+    lastFpsOutputTick := GetTickCount;
+    FpsToCaption(FFpsBaseCaption);
+  end;
 end;
 
 function TCastleWindowDemo.AllowSuspendForInput: boolean;
 begin
- result := (inherited AllowSuspendForInput) and (not FpsShowOnCaption);
+  result := (inherited AllowSuspendForInput) and (not FpsShowOnCaption);
 end;
 
 procedure TCastleWindowDemo.EventOpen;
 begin
- if not DuringSwapFullScreen then
- begin
-  if FpsShowOnCaption then
+  if not DuringSwapFullScreen then
   begin
-   { init frames per second write in timer }
-   Fps.Active := true;
-   FFpsBaseCaption := Caption;
+    if FpsShowOnCaption then
+      FFpsBaseCaption := Caption;
+
+    { set initial window rect (wLeft/top/width/height) if fullscreen = true }
+    if FFullScreen then
+    begin
+      wWidth  := WindowDefaultSize;
+      wHeight := WindowDefaultSize;
+      wLeft   := WindowPositionCenter;
+      wTop    := WindowPositionCenter;
+    end;
   end;
 
-  { set initial window rect (wLeft/top/width/height) if fullscreen = true }
-  if FFullScreen then
-  begin
-   wWidth  := WindowDefaultSize;
-   wHeight := WindowDefaultSize;
-   wLeft   := WindowPositionCenter;
-   wTop    := WindowPositionCenter;
-  end;
- end;
-
- inherited;
+  inherited;
 end;
 
 procedure TCastleWindowDemo.EventKeyDown(Key: TKey; c: char);
 begin
- if (c <> #0) and (c = Close_CharKey) then
-   Close else
- if (Key <> K_None) and (Key = SwapFullScreen_Key) then
-   SwapFullScreen else
-   inherited;
-   { nie wywoluj inherited jesli to byl klawisz Close_CharKey lub
-     SwapFullScreen_Key bo te klawisze zmienily okienko na tyle ze mozna
-     podejrzewac ze wcisniecie klawisza mozna juz uznac za nieaktualne. }
+  if (c <> #0) and (c = Close_CharKey) then
+    Close else
+  if (Key <> K_None) and (Key = SwapFullScreen_Key) then
+    SwapFullScreen else
+    inherited;
+    { nie wywoluj inherited jesli to byl klawisz Close_CharKey lub
+      SwapFullScreen_Key bo te klawisze zmienily okienko na tyle ze mozna
+      podejrzewac ze wcisniecie klawisza mozna juz uznac za nieaktualne. }
 end;
 
 procedure TCastleWindowDemo.SetDemoOptions(ASwapFullScreen_Key: TKey;

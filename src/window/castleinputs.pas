@@ -164,7 +164,7 @@ begin
 
   SavedMode := TGLMode.CreateReset(Window, 0, false,
     {$ifdef FPC_OBJFPC} @ {$endif} DrawGL, nil,
-    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
+    {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
   try
     Window.UserData := @Data;
     Window.OnKeyDown := @KeyDown;
@@ -210,7 +210,7 @@ var
 begin
  SavedMode := TGLMode.CreateReset(Window, GL_COLOR_BUFFER_BIT, false,
    {$ifdef FPC_OBJFPC} @ {$endif} DrawGLAnyKey, nil,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose, false);
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
  try
   glDisable(GL_ALPHA_TEST);
 

@@ -44,7 +44,6 @@ type
     oldCaption: string;
     oldUserdata: Pointer;
     oldAutoRedisplay: boolean;
-    oldFPSActive: boolean;
     oldMainMenu: TMenu;
     { This is saved value of oldMainMenu.Enabled.
       So that you can change MainMenu.Enabled without changing MainMenu
@@ -129,8 +128,7 @@ type
       to close the window by window manager
       (usually using "close" button in some window corner or Alt+F4). }
     class procedure SetStandardState(Window: TCastleWindowBase;
-      NewDraw, NewResize, NewCloseQuery: TWindowFunc;
-      NewFPSActive: boolean);
+      NewDraw, NewResize, NewCloseQuery: TWindowFunc);
   end;
 
   { Enter / exit modal box on a TCastleWindowBase. Saves/restores the state
@@ -224,8 +222,7 @@ type
       of parameters. }
     constructor CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
       APushPopMessagesTheme: boolean;
-      NewDraw, NewResize, NewCloseQuery: TWindowFunc;
-      NewFPSActive: boolean);
+      NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 
     destructor Destroy; override;
 
@@ -299,7 +296,6 @@ begin
   oldCaption := Window.Caption;
   oldUserdata := Window.Userdata;
   oldAutoRedisplay := Window.AutoRedisplay;
-  oldFPSActive := Window.Fps.Active;
   oldMainMenu := Window.MainMenu;
   if Window.MainMenu <> nil then
     oldMainMenuEnabled := Window.MainMenu.Enabled;
@@ -327,7 +323,6 @@ begin
   Window.Caption := oldCaption;
   Window.Userdata := oldUserdata;
   Window.AutoRedisplay := oldAutoRedisplay;
-  Window.Fps.Active := oldFPSActive;
   Window.MainMenu := oldMainMenu;
   if Window.MainMenu <> nil then
     Window.MainMenu.Enabled := OldMainMenuEnabled;
@@ -350,8 +345,7 @@ begin
 end;
 
 class procedure TWindowState.SetStandardState(Window: TCastleWindowBase;
-  NewDraw, NewResize, NewCloseQuery: TWindowFunc;
-  NewFPSActive: boolean);
+  NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 begin
   Window.SetCallbacksState(DefaultCallbacksState);
   Window.OnDraw := NewDraw;
@@ -360,7 +354,6 @@ begin
   {Window.Caption := leave current value}
   Window.Userdata := nil;
   Window.AutoRedisplay := false;
-  Window.Fps.Active := NewFPSActive;
   if Window.MainMenu <> nil then
     Window.MainMenu.Enabled := false;
   {Window.MainMenu := leave current value}
@@ -459,12 +452,10 @@ end;
 
 constructor TGLMode.CreateReset(AWindow: TCastleWindowBase; AttribsToPush: TGLbitfield;
   APushPopMessagesTheme: boolean;
-  NewDraw, NewResize, NewCloseQuery: TWindowFunc;
-  NewFPSActive: boolean);
+  NewDraw, NewResize, NewCloseQuery: TWindowFunc);
 begin
   Create(AWindow, AttribsToPush, APushPopMessagesTheme);
-  TWindowState.SetStandardState(AWindow,
-    NewDraw, NewResize, NewCloseQuery, NewFPSActive);
+  TWindowState.SetStandardState(AWindow, NewDraw, NewResize, NewCloseQuery);
 end;
 
 destructor TGLMode.Destroy;
@@ -592,8 +583,7 @@ begin
  TWindowState.SetStandardState(AWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
    {$ifdef FPC_OBJFPC} @ {$endif} Resize2D,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose,
-   AWindow.Fps.Active);
+   {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
  AWindow.UserData := Self;
 
  { setup our 2d projection. We must do it before SaveScreen }

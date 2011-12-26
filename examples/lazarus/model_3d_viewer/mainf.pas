@@ -211,8 +211,6 @@ begin
   RecentFiles.LoadFromConfig(Config, 'recent_files');
   RecentFiles.NextMenuItem := MenuSep1;
 
-  Browser.Fps.Active := true;
-
   UpdateCaption;
 
   { Uncomment these to enable shadow volumes (your model must have appropriate

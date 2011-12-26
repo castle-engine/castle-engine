@@ -277,7 +277,7 @@ procedure Game;
 var
   SavedMode: TGLMode;
 begin
-  SavedMode := TGLMode.CreateReset(Window, 0, true, @Draw, @Resize2D, nil, true);
+  SavedMode := TGLMode.CreateReset(Window, 0, true, @Draw, @Resize2D, nil);
   try
     Window.AutoRedisplay := true;
     Window.OnKeyDown := @KeyDown;

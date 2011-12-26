@@ -136,7 +136,7 @@ begin
   SavedMode := TGLMode.CreateReset(Window,
     GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false,
     {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil,
-    {$ifdef FPC_OBJFPC} @ {$endif} NoClose, Window.Fps.Active);
+    {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
 
   {init our state}
   Window.UserData := Progress;
