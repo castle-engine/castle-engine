@@ -699,7 +699,7 @@ const
   DefaultTooltipDelay = 1000;
   DefaultTooltipDistance = 10;
 
-  DefaultLimitFPS = 0.0;
+  DefaultLimitFPS = 100.0;
 
 type
   TCastleWindowBase = class;
