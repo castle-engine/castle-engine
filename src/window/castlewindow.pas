@@ -2810,8 +2810,10 @@ end;
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
       mouse events, redraws and everything else.
-      Messages are processed and appropriate callbacks are called,
-      like OnDraw, OnIdle, OnKeyPress and many others.
+      Messages are processed and appropriate window callbacks are called,
+      like TCastleWindowBase.OnDraw,
+      TCastleWindowBase.OnIdle,
+      TCastleWindowBase.OnKeyPress and many others.
 
       For simple programs calling the @link(Run) method is usually
       the best solution, @link(Run) just calls ProcessMessage in a loop.
