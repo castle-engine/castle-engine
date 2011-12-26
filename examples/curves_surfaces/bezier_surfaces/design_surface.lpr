@@ -79,7 +79,7 @@ begin
     We shouldn't set here Window.FpsBaseCaption, because Window.FpsBaseCaption
     will be initialized later (when window is open) from Window.Caption... }
 
-  if Window.Open then
+  if not Window.Closed then
     Window.FpsBaseCaption := S else
     Window.Caption := S;
 end;

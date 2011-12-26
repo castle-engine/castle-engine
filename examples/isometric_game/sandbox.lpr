@@ -286,7 +286,7 @@ begin
 
     Quit := false;
     repeat
-      if not Application.ProcessMessage(true) then Quit := true;
+      if not Application.ProcessMessage(true, true) then Quit := true;
     until Quit;
 
   finally FreeAndNil(SavedMode); end;

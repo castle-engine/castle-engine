@@ -169,7 +169,7 @@ begin
     Window.UserData := @Data;
     Window.OnKeyDown := @KeyDown;
 
-    repeat Application.ProcessMessage(true) until Data.Answered;
+    repeat Application.ProcessMessage(true, true) until Data.Answered;
 
     result := Data.Answer;
   finally SavedMode.Free end;
@@ -223,7 +223,7 @@ begin
   Window.OnKeyDown := @KeyDownAnyKey;
 
   glRasterPos2i(RasterX, RasterY);
-  repeat Application.ProcessMessage(true) until Data.KeyPressed;
+  repeat Application.ProcessMessage(true, true) until Data.KeyPressed;
  finally SavedMode.Free end;
 end;
 

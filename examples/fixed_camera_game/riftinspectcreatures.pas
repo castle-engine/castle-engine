@@ -135,7 +135,7 @@ begin
 
       UserQuit := false;
       repeat
-        Application.ProcessMessage(true);
+        Application.ProcessMessage(true, true);
       until UserQuit;
 
     finally FreeAndNil(SavedMode); end;
