@@ -1924,7 +1924,6 @@ begin
            else
              return TRUE;
 
-
      and note that main_loops is set only by gtk_main.
      So a program that doesn't call gtk_main at all has
      main_loops = nil always.
@@ -1955,6 +1954,9 @@ begin
 
   gtk_main_iteration_do(AllowSuspend);
   Result := not QuitPosted;
+
+  if Result and not AllowSuspend then
+    DoLimitFPS;
 end;
 
 procedure TGLApplication.QuitWhenNoOpenWindows;
