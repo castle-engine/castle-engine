@@ -1160,6 +1160,18 @@ Various:
   This is seen on kocury. Not present on chantal? Check. Maybe some nvidia bug?
 
 - port fully to win64, I have czerwony laptop
+
+- try do limit fps by vsync, like ogre does
+  http://www.ogre3d.org/docs/api/html/classOgre_1_1Root.html#Ogre_1_1Roota34 :
+
+    displayFrequency 	Refresh rate in Hertz (e.g. 60, 75, 100) 	Desktop vsync rate 	Display frequency rate, for fullscreen mode
+    vsync 	        true, false 	                                false 	                Synchronize buffer swaps to monitor vsync, eliminating tearing at the expense of a fixed frame rate
+    vsyncInterval 	1, 2, 3, 4 	                                1 	                If vsync is enabled, the minimum number of vertical blanks that should occur between renders. For example if vsync is enabled, the refresh rate is 60 and this is set to 2, then the frame rate will be locked at 30.
+
+  Looks like implementation is trivial, just use
+    http://www.opengl.org/registry/specs/SGI/swap_control.txt
+    http://www.opengl.org/registry/specs/EXT/wgl_swap_control.txt
+
 ------------------------------------------------------------------------------
 Shaders:
 
