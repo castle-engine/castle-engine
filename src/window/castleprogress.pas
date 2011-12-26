@@ -155,7 +155,7 @@ begin
   Window.PostRedisplay;
   Window.FlushRedisplay;
 
-  Application.ProcessMessage(false);
+  Application.ProcessMessage(false, false);
 end;
 
 procedure TWindowProgressInterface.Update(Progress: TProgress);

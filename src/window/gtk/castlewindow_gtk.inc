@@ -1463,7 +1463,7 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
-    while not Data.Answered do Application.ProcessMessage(true);
+    while not Data.Answered do Application.ProcessMessage(true, true);
   finally Mode.Free end;
 
   Result := Data.Answer = GTK_RESPONSE_ACCEPT;
@@ -1494,7 +1494,7 @@ begin
   Mode := TGLModeFrozenScreen.Create(Self, 0, false, nil);
   try
     gtk_widget_show(GTK_WIDGET(ADialog));
-    while not Data.Answered do Application.ProcessMessage(true);
+    while not Data.Answered do Application.ProcessMessage(true, true);
   finally Mode.Free end;
 
   { Disconnect these signal handlers. gtk_dialog_run also does this.
@@ -1859,7 +1859,7 @@ procedure TGLApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
 
-  while ProcessMessage(true) do ;
+  while ProcessMessage(true, true) do ;
 
   { Do not replace this with gtk_main().
     We need to use our ProcessMessage to call our ProcessUpdates. }
@@ -1879,7 +1879,7 @@ begin
 
   while Result and (gtk_events_pending() <> 0) do
   begin
-    Result := ProcessMessage(true);
+    Result := ProcessMessage(true, true);
   end;
 
   if Result then
@@ -1893,7 +1893,7 @@ begin
   end;
 end;
 
-function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
   function SomeRedisplayPosted: boolean;
   var
@@ -1905,11 +1905,13 @@ function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
     Result := false;
   end;
 
+var
+  WasAnyMessage: boolean;
 begin
   (* Note that gtk_main_iteration_do result is not useful to us.
      That is, we can't just call here
 
-       Result := not GBoolToPas(gtk_main_iteration_do(AllowSuspend))
+       Result := not GBoolToPas(gtk_main_iteration_do(WaitForMessage))
 
      because gtk_main_iteration_do always returns true if the program
      doesn't use gtk_main call at all (i.e. does it's whole loop manually,
@@ -1935,7 +1937,7 @@ begin
   if QuitPosted then Exit(false);
 
   { Only allow yourself a ProcessUpdates call when no events are pending.
-    This is done regardless of AllowSuspend mechanism.
+    This is done regardless of WaitForMessage mechanism.
 
     This follows castlewindow_winsystem.inc approach, and works very good
     to prevent doing Idle / Draw when we're clogged with events
@@ -1949,13 +1951,21 @@ begin
 
   { Once we had below condition "and (not QuitPosted)",
     but it's pointless, we know QuitPosted is false now. }
-  AllowSuspend := AllowSuspend and Application.AllowSuspendForInput and
+  WaitForMessage := WaitForMessage and Application.AllowSuspendForInput and
     (not SomeRedisplayPosted);
 
-  gtk_main_iteration_do(AllowSuspend);
+  { we could probably not call gtk_main_iteration_do when WasAnyMessage = false,
+    and simplify this code a little. But let's keep it this way, to be similar
+    to castlewindow_winsystem.inc, that should do the same approach. }
+  WasAnyMessage := (gtk_events_pending() <> 0) or WaitForMessage;
+
+  gtk_main_iteration_do(WaitForMessage);
   Result := not QuitPosted;
 
-  if Result and not AllowSuspend then
+  if (not WasAnyMessage) and
+     (not QuitPosted) and
+     (not WaitForMessage) and
+     WaitToLimitFPS then
     DoLimitFPS;
 end;
 

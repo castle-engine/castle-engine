@@ -173,7 +173,7 @@ begin
   { TODO }
 end;
 
-function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
   { TODO }
 end;
@@ -189,8 +189,9 @@ begin
 
   { Implementing Run by calling ProcessMessage in a loop (like below)
     is a valid and good implementation. Make sure your ProcessMessage
-    honours AllowSuspend = true, to avoid wasting CPU on "busy waiting". }
-  while ProcessMessage(true) do ;
+    honours WaitForMessage and WaitToLimitFPS = true,
+    to avoid wasting CPU on "busy waiting". }
+  while ProcessMessage(true, true) do ;
 end;
 
 procedure TGLApplication.QuitWhenNoOpenWindows;

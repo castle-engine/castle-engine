@@ -2807,64 +2807,77 @@ end;
     property TimerMilisec: Cardinal read FTimerMilisec write FTimerMilisec default 1000;
     { @groupEnd }
 
-    { Process some messages from the window system.
-      During this, messages are processed and passed
-      to the appropriate TCastleWindowBase windows, calling appropriate methods
-      and callbacks like TCastleWindowBase.OnDraw, TCastleWindowBase.OnIdle and many others.
+    { Process messages from the window system.
+      You have to call this repeatedly to process key presses,
+      mouse events, redraws and everything else.
+      Messages are processed and appropriate callbacks are called,
+      like OnDraw, OnIdle, OnKeyPress and many others.
 
-      This method is crucial for implementing modal dialog boxes and such,
-      generally any kind of "display something until something happens".
-      You want to control then yourself the event loop, like
+      For simple programs calling the @link(Run) method is usually
+      the best solution, @link(Run) just calls ProcessMessage in a loop.
+      Manually using the ProcessMessage method allows you to implement
+      modal dialog boxes (generally any kind of "display something
+      until something happens" behavior). Make your own event loop like this:
 
 @longCode(#
-  while not SomethingHappened do Application.ProcessMessages;
+  while not SomethingHappened do
+    Application.ProcessMessages(...);
 #)
 
-      Commonly this is used together with TCastleWindowBase state push / pop
-      routines in WindowModes. They allow you to temporary replace
-      all TCastleWindowBase callbacks with new ones, and later restore the old ones.
+      Often this is used together with TGLMode, TGLModeFrozenScreen
+      and similar utilities from WindowModes unit.
+      They allow you to temporarily replace window callbacks with new ones,
+      and later restore the original ones.
+      This is useful for behavior similar to modal dialog boxes.
 
-      ProcessMessages returns @true if we should continue, that is
+      Returns @true if we should continue, that is
       if @link(Quit) method was not called (directly or by closing
-      the last window). If you want to check it (if your state
-      allows the user at all to close the application during modal box or such)
+      the last window). If you want to check it (if you
+      allow the user at all to close the application during modal box or such)
       you can do:
 
 @longCode(#
   while not SomethingHappened do
-    if not Application.ProcessMessage then break;
+    if not Application.ProcessMessage(...) then
+      Break;
 #)
 
-      Notes:
-      @unorderedList(
-        @item(Not all ProcessMessage calls cause redraw, even if redraw
-          is requested by PostRedisplay. When we have messages to process,
-          we generally don't call redraw or OnIdle.)
+      Do not assume too much about message processing internals.
+      For example, not all ProcessMessage calls cause redraw, even if redraw
+      is requested by PostRedisplay. When we have messages to process,
+      we generally don't call redraw or even OnIdle.
 
-        @item(ProcessMessage may hang, waiting for an event,
-          if AllowSuspend and if OnIdle is not assigned and some other
-          conditions. This way we wait for the next window system message
-          in a nice way, without eating CPU just for a loop that continously
-          tests for new event (such bad loop is called "busy waiting").
+      @param(WaitForMessage If @true (and some other conditions are met,
+        for example we do not have to call OnIdle continuosly)
+        then we can block, waiting for an event to process.
 
-          If you make some processing in your event loop, for example
-          you load some resources or you raytrace some image
-          (examples used by CastleProgress or RaytraceToWindow units),
-          then you surely want to pass AllowSuspend = false.
-          You want in such case to make ProcessMessage quickly return
-          control to your code, so you can continue whatever you're doing.
+        Set this to @true whenever you can, that is whenever your program
+        only responds to user inputs (as opposed to making some operations,
+        like animation or loading or ray-tracing something).
+        Generally, when @code(SomethingHappened) from the example pseudo-code
+        above can only be changed by user events (e.g. user has to click
+        something; nothing happens if user doesn't click for 5 minutes or 5 hours).
+        This allows to let OS and CPU have some rest, and spend time
+        on other applications, or just sleep and conserve laptop battery power.
+      )
 
-          If your event loop simply waits for some condition,
-          for example @code(repeat ProcessMessage(AllowSuspend) until B)
-          then you can give AllowSuspend = true if the condition B may
-          only be changed by some event (for example, you wait until
-          user presses a key). If the condition B may be changed
-          without a window system event (for example, you wait until
-          5 minutes pass) then AllowSuspend must be false.
-        )
+      @param(WaitToLimitFPS If @true, then we have backup mechanism for
+        limiting CPU usage. When WaitForMessage mechanism cannot be used
+        (becasue WaitForMessage is @false or some other conditions disallow it),
+        and user doesn't throw events at us (we don't want to sleep when user
+        produces many events e.g. by mouse move),
+        then we can do a small sleep to stabilize number of ProcessMessage
+        calls at LimitFPS per second.
+
+        Set this to @true whenever you can, that is whenever you don't need
+        ProcessMessage to return as fast as it can. For example,
+        when you're displaying some animation, then displaying LimitFPS frames
+        should be enough. OTOH, if you really do something that should be done
+        as fast as possible (like loading some file or ray-tracing) you probably
+        have to set this to @false.
       )
     }
-    function ProcessMessage(AllowSuspend: boolean): boolean;
+    function ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
     { Processes @italic(all) pending messages.
 

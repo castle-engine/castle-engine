@@ -64,20 +64,14 @@ private
   LastDoTimerTime: TMilisecTime;
   quitPosted: boolean;
 
-  { This implements the same function as Result := ProcessMessage(AllowSuspend);
+  { Same as ProcessMessage(WaitForMessage, WaitToLimitFPS),
     but additionally returns under WasAnyMessage was there any message
     processed.
-
-    If AllowSuspend then always WasAnyMessage = true (but no, you should
-    not depend on it as long as possible; however, it's still private
-    inside castlewindow_winsystem so if you HAVE to you can depend on it).
-    So value WasAnyMessage is really usable to you only when you pass
-    AllowSuspend = false.
 
     This ProcessMessage2 is useful to implement ProcessAllMessages.
     ActuallyProcessMessage is implemented using ProcessMessage2
     (and simply ignoring WasAnyMessage). }
-  function ProcessMessage2(AllowSuspend: boolean; var WasAnyMessage: boolean): boolean;
+  function ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean; var WasAnyMessage: boolean): boolean;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -138,19 +132,19 @@ var
   WasAnyMessage: boolean;
 begin
   repeat
-    Result := ProcessMessage2(false, WasAnyMessage);
+    Result := ProcessMessage2(false, false, WasAnyMessage);
     if (not Result) or (not WasAnyMessage) then break;
   until false;
 end;
 
-function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 var
   Dummy: boolean;
 begin
-  Result := ProcessMessage2(AllowSuspend, dummy);
+  Result := ProcessMessage2(WaitForMessage, WaitToLimitFPS, Dummy);
 end;
 
-function TGLApplication.ProcessMessage2(AllowSuspend: boolean;
+function TGLApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean;
   var WasAnyMessage: boolean): boolean;
 
   { CheckMessage sprawdza czy jest jakis message w naszej queue,
@@ -274,91 +268,82 @@ var
 begin
   WasAnyMessage := false;
   try
-    if OpenWindowsCount <> 0 then
+    if (OpenWindowsCount <> 0) and (not CheckMessage) then
     begin
-      if not CheckMessage then
+      { no messages to us - call DoSelfIdle now.
+        Wywolujemy OnIdle teraz bo :
+         - gbybysmy wywolywali OnIdle w kazdym wywolaniu ProcessMessage
+           to doprowadzalisbysmy do tego ze np. ruch mysza powoduje
+           pozorne przyspieszenie rysowania - bo gdy user rusza mysza
+           nasza petla jest zajeta przetwarzaniem messagy i w zwiazku z tym
+           nie wykonuje zadnych OnDraw ktore sa przeciez najbardziej
+           opozniajaca czescia programu. W rezultacie wykonywanych jest
+           mnostwo razy OnIdle ktore, mimo ze zmieniaja jakas zmienna
+           i wywoluja PostRedisplay to jednak czekaja sporo na
+           spowodowane przez siebie redisplay (bo ciagle zamiast redisplay'a
+           przetwarzamy ruchy myszka). Wiec aby OnIdle byly wywolywane
+           mniej wiecej z taka sama czestotliwoscia co OnDraw'y
+           musimy umiescic wywolanie OnIdle tutaj - tuz przed wywolywaniem
+           samych OnDraw'ow.
+         - gdybysmy wywolywali OnIdle dopiero do ponizszych drawach
+           jezeli not WasAnyDrawing to z kolei zdarzenia OnDraw
+           (ktore np. same sobie juz wywoluja PostRedisplay) moglyby
+           hamowac wywolywanie zdarzen OnIdle.
+           A tego nie chcemy - patrz komentarze w interfejsie,
+           nadrzednym celem jest by OnIdle bylo wykonywane mniej
+           wiecej tak czesto co OnDraw.  }
+      DoSelfIdle;
+
+      { redraw some windows; we do it only if our event queue is empty.
+        Przy okazji robimy DoIdle okien, majac nadzieje ze gromadzac
+          blisko siebie callbacki tych samych okien zminimalizujemy koszty
+          ciaglego zmieniania aktywnego kontekstu OpenGL'a.
+        Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
+          ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnIdle
+          i OnDraw. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
+          na poczatku OpenWindows[i] do Window. }
+      WasAnyDrawing := false;
+      I := 0;
+      while I < OpenWindowsCount do
       begin
-        { no messages to us - call DoSelfIdle now.
-          Wywolujemy OnIdle teraz bo :
-           - gbybysmy wywolywali OnIdle w kazdym wywolaniu ProcessMessage
-             to doprowadzalisbysmy do tego ze np. ruch mysza powoduje
-             pozorne przyspieszenie rysowania - bo gdy user rusza mysza
-             nasza petla jest zajeta przetwarzaniem messagy i w zwiazku z tym
-             nie wykonuje zadnych OnDraw ktore sa przeciez najbardziej
-             opozniajaca czescia programu. W rezultacie wykonywanych jest
-             mnostwo razy OnIdle ktore, mimo ze zmieniaja jakas zmienna
-             i wywoluja PostRedisplay to jednak czekaja sporo na
-             spowodowane przez siebie redisplay (bo ciagle zamiast redisplay'a
-             przetwarzamy ruchy myszka). Wiec aby OnIdle byly wywolywane
-             mniej wiecej z taka sama czestotliwoscia co OnDraw'y
-             musimy umiescic wywolanie OnIdle tutaj - tuz przed wywolywaniem
-             samych OnDraw'ow.
-           - gdybysmy wywolywali OnIdle dopiero do ponizszych drawach
-             jezeli not WasAnyDrawing to z kolei zdarzenia OnDraw
-             (ktore np. same sobie juz wywoluja PostRedisplay) moglyby
-             hamowac wywolywanie zdarzen OnIdle.
-             A tego nie chcemy - patrz komentarze w interfejsie,
-             nadrzednym celem jest by OnIdle bylo wykonywane mniej
-             wiecej tak czesto co OnDraw.  }
-        DoSelfIdle;
-
-        { redraw some windows; we do it only if our event queue is empty.
-          Przy okazji robimy DoIdle okien, majac nadzieje ze gromadzac
-            blisko siebie callbacki tych samych okien zminimalizujemy koszty
-            ciaglego zmieniania aktywnego kontekstu OpenGL'a.
-          Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
-            ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnIdle
-            i OnDraw. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
-            na poczatku OpenWindows[i] do Window. }
-        WasAnyDrawing := false;
-        I := 0;
-        while I < OpenWindowsCount do
-        begin
-          Window := OpenWindows[I];
-          Window.DoIdle;
-          if Window.Closed then Continue {don't Inc(I)};
-          { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
-            FlushRedisplay2, nawet jesli WasAnyDrawing juz jest = true }
-          WasAnyDrawing := Window.FlushRedisplay2 or WasAnyDrawing;
-          if Window.Closed then Continue {don't Inc(I)};
-          Inc(I);
-        end;
-
-        { If we do not do anything in any idle/timer
-          (this is checked by AllowSuspendForInput),
-          and there's no reason to redisplay,
-          and we're not during quit process (started by Application.Quit),
-          => then there's no need to finish ProcessMessage.
-
-          ProcessMessage may assume in this case it works like
-            while ProcessMessage do ;
-          so returning with @true means that the next ProcessMessage will have
-          the same state (since no callbacks assigned etc., there's nothing
-          to change our state). And we'll do "busy waiting", wasting CPU cycles
-          on a loop that does nothing.
-
-          In this case it's much better to do blocking call for next input
-          event, by GetMessage / XNextMesage etc. This way we explicitly say
-          that we want to wait, doing nothing, and our process should be
-          suspended by OS until some event is received. Looking at any
-          system monitor, you'll see we do not use CPU then. }
-        if AllowSuspend and Application.AllowSuspendForInput and
-           not (WasAnyDrawing or QuitPosted) then
-          WaitMessage else
-          NoMessageProcessed;
+        Window := OpenWindows[I];
+        Window.DoIdle;
+        if Window.Closed then Continue {don't Inc(I)};
+        { Kolejnosc w OR ponizej MA ZNACZENIE : zawsze chemy wywolac
+          FlushRedisplay2, nawet jesli WasAnyDrawing juz jest = true }
+        WasAnyDrawing := Window.FlushRedisplay2 or WasAnyDrawing;
+        if Window.Closed then Continue {don't Inc(I)};
+        Inc(I);
       end;
 
+      { If we do not do anything in any idle/timer
+        (this is checked by AllowSuspendForInput),
+        and there's no reason to redisplay,
+        and we're not during quit process (started by Application.Quit),
+        => then we can wait, giving OS/CPU some rest (as opposed to doing
+        "busy waiting"). }
+      WaitForMessage := WaitForMessage and Application.AllowSuspendForInput and
+        not (WasAnyDrawing or QuitPosted);
+      if WaitForMessage then
+        WaitMessage else
+        NoMessageProcessed;
     end;
 
     if QuitPosted then Exit(false);
 
     MaybeDoTimer(LastDoTimerTime);
 
+    if (not WasAnyMessage) and
+       (not QuitPosted) and
+       (not WaitForMessage) and
+       WaitToLimitFPS then
+      DoLimitFPS;
+
     Result := true;
   except
     { call Quit (silencing any further exceptions) + reraise }
     try Quit; except end;
-    raise
+    raise;
   end;
 end;
 
@@ -367,7 +352,7 @@ begin
   if OpenWindowsCount = 0 then Exit;
 
   QuitPosted := false;
-  while ProcessMessage(true) do ;
+  while ProcessMessage(true, true) do ;
 end;
 
 procedure TGLApplication.QuitWhenNoOpenWindows;

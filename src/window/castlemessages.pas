@@ -1165,7 +1165,7 @@ begin
 
   {6 faza :
     Robimy wlasna petle, az do messageData.answered. }
-  repeat Application.ProcessMessage(true) until messageData.answered;
+  repeat Application.ProcessMessage(true, true) until messageData.answered;
 
  { zwolnij zainicjowane messageData }
  finally

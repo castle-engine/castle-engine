@@ -520,7 +520,7 @@ begin
   glutMainLoop;
 end;
 
-function TGLApplication.ProcessMessage(AllowSuspend: boolean): boolean;
+function TGLApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 begin
   Result := true;
   if Assigned(glutMainLoopEvent) then
