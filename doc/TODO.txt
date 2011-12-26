@@ -28,10 +28,6 @@ Details during 2.6.0 release:
 - castle: use everything as T3D inside scene manager,
   do not call special TCastleScene.Render methods.
 
-- Add a way to limit FPS, to not burn CPU without need.
-  There's a bugreport about this in tracker too (in old vrmlengine project).
-  Also notify Jens, I think he reported it too?
-
 - Move castle creature animations outside of XML, to separate kanim files.
 - Merge PrecalculatedAnimationInfo functionality into PrecalculatedAnimation class?
 - T3DTransformed, with fields like VRML/X3D Transform.
