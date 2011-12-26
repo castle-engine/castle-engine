@@ -2,37 +2,31 @@ The central TODO file. There are also some TODOs scattered elsewhere,
 do "find -iname TODO*" to find them.
 
 ------------------------------------------------------------------------------
-3.11.0:
-- Blender exporter fixes.
-- Make CastleMessages buttons clickable, reported for castle many times.
-  In fact, use there our buttons in CastleControls, this would be best.
+Next release plans:
 
-engine 2.6.0: engine improvements, allow making FPS-like as easily as possible:
+Definitely:
+engine improvements, allow making FPS-like as easily as possible:
 - Move as much as possible castle code to engine. Prepare for new game.
   In particular: adding creatures / items to game (like in castle)
   must be much easier using only the engine units.
   Also, creature AI must be added there.
-- Move castle lights editor to view3dscene.
-  BTW: maybe allow configuring shadow maps params,
-  checkbox to switch "Shadows" and to change shadow map size would be very cool!
 - DRAFT.engine_tutorial.txt finish, make prominent links from
   http://castle-engine.sourceforge.net/engine.php (on sidebar,
   near download links, mention in news etc.)
-
-------------------------------------------------------------------------------
-Details during 2.6.0 release:
-- 100% test castle, lets_take_a_walk work with and without shader pipeline forced.
-  make sure castle results are all Ok now, like with last released version
-  --- nothing broken, all lights look the same?
-
 - castle: use everything as T3D inside scene manager,
   do not call special TCastleScene.Render methods.
-
 - Move castle creature animations outside of XML, to separate kanim files.
-- Merge PrecalculatedAnimationInfo functionality into PrecalculatedAnimation class?
 - T3DTransformed, with fields like VRML/X3D Transform.
   Transform frustum (with far plane possibly in infinity) by arbitrary matrix?
 
+Maybe:
+- Blender exporter fixes.
+- Make CastleMessages buttons clickable, reported for castle many times.
+  In fact, use there our buttons in CastleControls, this would be best.
+- Move castle lights editor to view3dscene.
+  BTW: maybe allow configuring shadow maps params,
+  checkbox to switch "Shadows" and to change shadow map size would be very cool!
+- Merge PrecalculatedAnimationInfo functionality into PrecalculatedAnimation class?
 - Should we disallow placing TCamera directly on TCastleWindowCustom / TCastleControlCustom?
   See todo below. Maybe do it for 2.6.0.
 ------------------------------------------------------------------------------
