@@ -477,10 +477,8 @@ var
 begin
   FpGettimeofday(@tv, nil);
 
-  { w Int64 zmiesci sie cale TTimeval bez obcinania.
-    Robie tylko odpowiednie casty na zapas zeby na pewno liczyl wszystko
-    od poczatku jako Int64}
-  Result := Int64(tv.tv_sec)*1000000 + Int64(tv.tv_usec);
+  { We can fit whole TTimeval inside Int64, no problem. }
+  Result := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
 end;
 {$endif UNIX}
 
