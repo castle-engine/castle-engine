@@ -192,7 +192,7 @@ procedure OpenALFinalization; forward;
 procedure OpenALRestart;
 begin
   OpenALFinalization;
-  Delay(500);
+  Sleep(500);
   OpenALInitialization;
 end;
 

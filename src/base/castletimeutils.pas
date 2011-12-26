@@ -63,9 +63,6 @@ type
 const
   OldestTime = -MaxDouble;
 
-{ Hang the program for the specified number of miliseconds. }
-procedure Delay(MiliSec: Word);
-
 type
   TMilisecTime = LongWord;
 
@@ -323,30 +320,22 @@ type
 
 implementation
 
-procedure Delay (MiliSec: Word);
-begin
- SysUtils.Sleep(MiliSec);
-end;
-
 function TimeTickSecondLater(firstTime, secondTime, timeDelay: TMilisecTime): boolean;
-{ trzeba uwazac na typy w tej procedurze.
-  Dword to 32 bit unsigned int,
-  Int64 to 64 bit signed int.
-  I tak musi byc.
-  Uwaga ! W Delphi 3, o ile dobrze pamietam, bylo Dword = longint ! tak nie moze byc ! }
-var bigint: Int64;
+var
+  bigint: Int64;
 begin
- bigint := secondTime-timeDelay;
- if bigint < 0 then
- begin
-  bigint := bigint+High(TMilisecTime);
-  result:=(firstTime > secondTime) and (firstTime <= bigint);
- end else result := firstTime <= bigint;
+  { Need 64 bit signed int to hold the result of LongWord - LongWord }
+  bigint := secondTime-timeDelay;
+  if bigint < 0 then
+  begin
+    bigint := bigint+High(TMilisecTime);
+    result := (firstTime > secondTime) and (firstTime <= bigint);
+  end else result := firstTime <= bigint;
 end;
 
 function TimeTickDiff(firstTime, secondTime: TMilisecTime): TMilisecTime;
 begin
- result := MilisecTimesSubtract(secondTime, firstTime);
+  result := MilisecTimesSubtract(secondTime, firstTime);
 {old implementation :
 
  if firstTime <= secondTime then
@@ -367,36 +356,30 @@ begin result := t1-t2 end;
 
 {$I norqcheckbegin.inc}
 function GetTickCount: TMilisecTime;
-var timeval: TTimeVal;
+var
+  timeval: TTimeVal;
 begin
- FpGettimeofday(@timeval, nil);
+  FpGettimeofday(@timeval, nil);
 
- { Odrzucamy najbardziej znaczace cyfry z x -- i dobrze, bo w
-   timeval.tv_sec najbardziej znaczace cyfry sa najmniej wazne bo najrzadziej
-   sie zmieniaja.
-   x*1000 jednoczesnie ma puste miejsca na trzech najmniej znaczaych cyfrach
-   dziesietnych (mowiac po ludzku, po prostu x*1000 ma trzy zera na koncu).
-   Wykorzystujemy te trzy miejsca na tv_usec div 1000 ktore na pewno zawiera
-   sie w 0..999 bo tv_usec zawiera sie w 0..milion-1.
+  { By doing tv_sec * 1000, we reject 3 most significant digits from tv_sec.
+    That's Ok, since these digits change least often.
+    And this way we get the 3 least significant digits to fill
+    with tv_usec div 1000 (which must be < 1000, because tv_usec must be < 1 million).
 
-   W ten sposob zamenilismy timeval na jedna 32-bitowa liczbe w taki sposob
-   ze odrzucilismy tylko najbardziej znaczace cyfry - a wiec lepiej
-   sie nie da. W rezultacie otrzymana cyfra mierzy czas w milisekundach a wiec
-   przewinie sie, podobnie jak Windowsowe GetTickCount, co jakies 49 dni
-   (49 dni = 49* 24* 60* 60 *1000 milisekund = 4 233 600 000 a wiec okolice
-   High(LongWord)). Tyle ze ponizsze GetTickCount nie liczy czasu poczawszy
-   od startu windowsa wiec moze sie przewinac w kazdej chwili.
+    This is the way to pack time into 32-bit in miliseconds.
+    It will wrap in about 49 days (49 days = 49* 24* 60* 60 *1000 milisekund
+    = 4 233 600 000 =~ High(LongWord)).
 
-   Note: I used to have here some old code that instead of
-     LongWord(timeval.tv_sec) * 1000
-   was doing
-     ( LongWord(timeval.tv_sec) mod (Int64(High(LongWord)) div 1000 + 1) ) * 1000
-   but I longer think it's necessary. After all, I'm inside
-   norqcheck begin/end so I don't have to care about such things,
-   and everything should work OK.
- }
+    Note: I used to have here some old code that instead of
+      LongWord(timeval.tv_sec) * 1000
+    was doing
+      ( LongWord(timeval.tv_sec) mod (Int64(High(LongWord)) div 1000 + 1) ) * 1000
+    but I longer think it's necessary. After all, I'm inside
+    norqcheck begin/end so I don't have to care about such things,
+    and everything should work OK.
+  }
 
- Result := LongWord(timeval.tv_sec) * 1000 + Longword(timeval.tv_usec) div 1000;
+  Result := LongWord(timeval.tv_sec) * 1000 + Longword(timeval.tv_usec) div 1000;
 end;
 {$I norqcheckend.inc}
 
@@ -404,30 +387,28 @@ end;
 
 function DateTimeToAtStr(DateTime: TDateTime): string;
 begin
- result := FormatDateTime('yyyy"-"mm"-"dd" at "tt', DateTime);
+  Result := FormatDateTime('yyyy"-"mm"-"dd" at "tt', DateTime);
 end;
 
-{ cross-platform process timery ---------------------------------------------- }
+{ cross-platform process timers ---------------------------------------------- }
 
 {$ifdef UNIX}
 function ProcessTimerNow: TProcessTimerResult;
-var Dummy: tms;
+var
+  Dummy: tms;
 begin
- { See /c/mojepasy/console.testy/test_times/RESULTS,
-   it occurs that (at least on my Linux ? Debian, Linux 2.4.20, libc-2.3.2)
-   the only reliable way is to use return value from times
-   (from Libc or FpTimes).
+  { See console.tests/test_times/RESULTS,
+    it seems that (at least on my Linux? Debian, Linux 2.4.20, libc-2.3.2)
+    the only reliable way is to use return value from times (from Libc or FpTimes).
+    tms.tms_utime, tms.tms_stime, clock() values are nonsense!
+    This is not FPC bug as I tested this with C program too. }
 
-   tms.tms_utime, tms.tms_stime, clock() values are nonsense !
-
-   This is not FPC bug as I tested this with C program too. }
-
- Result := FpTimes(Dummy);
+  Result := FpTimes(Dummy);
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 begin
- Result := a - b;
+  Result := a - b;
 end;
 {$endif UNIX}
 

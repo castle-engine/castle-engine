@@ -184,7 +184,7 @@ begin
 
     alSourcePlay(Sound.ALSource);
     CheckAL('starting playing sound');
-    while alGetSource1i(Sound.ALSource, AL_SOURCE_STATE) = AL_PLAYING do Delay(100);
+    while alGetSource1i(Sound.ALSource, AL_SOURCE_STATE) = AL_PLAYING do Sleep(100);
     CheckAL('playing sound');
 
     if SoundEngine.EFXSupported then

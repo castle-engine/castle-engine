@@ -870,7 +870,7 @@ begin
           Otherwise the loop would hang. }
         CheckAL('PlaySound');
         while ALBuffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
-          Delay(10);
+          Sleep(10);
       end;
 
       alSourcePlay(Result.ALSource);

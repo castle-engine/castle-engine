@@ -83,7 +83,7 @@ begin
       alSourcei(Source, AL_BUFFER, Buffer);
       alSourcePlay(Source);
       CheckAL('starting playing sound');
-      while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Delay(1000);
+      while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Sleep(1000);
       CheckAL('playing sound');
     finally
       alDeleteSources(1, @Source);

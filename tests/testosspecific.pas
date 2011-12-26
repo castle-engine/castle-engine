@@ -116,9 +116,9 @@ begin
 
   ProcessTimerBegin;
   TimerStart := Timer;
-  Delay(5000);
+  Sleep(5000);
   Writeln( Format(
-    'Delay(5 seconds) done,' +nl+
+    'Sleep(5 seconds) done,' +nl+
     'ProcessTimer reports that %f seconds elapsed,'+nl+
     'Timer reports that %f seconds elapsed.',
     [ ProcessTimerEnd, (Timer - TimerStart) / TimerFrequency ])); }
