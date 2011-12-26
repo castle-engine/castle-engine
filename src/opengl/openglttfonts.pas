@@ -308,13 +308,20 @@ begin
   gluTessCallback(tobj, GLU_TESS_BEGIN, TCallBack(glBegin));
   gluTessCallback(tobj, GLU_TESS_END, TCallBack(glEnd));
 
-  { Workaround for Mesa3D bug. Testcase:
+  { Avoid Mesa3D bug. Testcase:
       $ view3dscene cones.wrl
       view3dscene: tnl/t_save_api.c:1605: _tnl_EndList: Assertion `((TNLcontext *)((ctx)->swtnl_context))->save.vertex_size == 0' failed.
     Mesa version: bug confirmed with Mesa 6.5.1 and 6.5.2,
     not observed on Mesa 5.1 and 6.4.2.
-    See ../../doc/old_mesa_normals_edge_flag_bug.txt in SVN for details. }
-  if not GLVersion.IsMesa then
+    See ../../doc/old_mesa_normals_edge_flag_bug.txt in SVN for details.
+
+    Avoid fglrx bug. Testcase:
+      $ view3dscene demo_models/shaders/geometry_shader_fun_smoothing.x3dv
+    causes segmentation fault inside /usr/lib/fglrx/dri/fglrx_dri.so
+    on Ubuntu 10.04 32-bit, with fglrx coming from Ubuntu 10.04 package
+    (version 2:8.840-0ubuntu4, see http://packages.ubuntu.com/natty/fglrx).
+    See https://sourceforge.net/p/castle-engine/tickets/2/ . }
+  if not (GLVersion.IsMesa or GLVersion.IsFglrx) then
     gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
 
   gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@ReportGLError));
