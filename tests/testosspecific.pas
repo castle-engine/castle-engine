@@ -29,6 +29,8 @@ uses
 
 type
   TTestOSSpecific = class(TTestCase)
+  private
+    SymlinkName, SymlinkFullName, SymlinkTarget: string;
   published
     procedure TestChangeDir;
     {$ifdef UNIX} procedure TestIsSymLink; {$endif}
@@ -41,7 +43,7 @@ type
 
 implementation
 
-uses CastleUtils, EnumerateFiles, CastleFilesUtils, CastleTimeUtils;
+uses CastleUtils, EnumerateFiles, CastleFilesUtils, CastleTimeUtils, BaseUnix;
 
 procedure TTestOSSpecific.TestChangeDir;
 var
@@ -73,15 +75,28 @@ end;
 {$ifdef UNIX}
 procedure TestIsSymLink_Proc(const FileInfo: TEnumeratedFileInfo; Data: Pointer);
 begin
-  Assert(ExtractFileName(FileInfo.FullFileName) = 'symlink.txt');
-  Assert(IsSymLink(FileInfo.FullFileName));
-  Assert(CastleReadLink(FileInfo.FullFileName) = 'symlink_target.txt');
+  with TTestOSSpecific(Data) do
+  begin
+    Assert(ExtractFileName(FileInfo.FullFileName) = SymlinkName);
+    Assert(IsSymLink(FileInfo.FullFileName));
+    Assert(CastleReadLink(FileInfo.FullFileName) = SymlinkTarget);
+  end;
 end;
 
 { Test IsSymLink, EnumFiles, CastleReadLink }
 procedure TTestOSSpecific.TestIsSymLink;
 begin
-  EnumFiles('data/symlink.txt', faAnyFile, @TestIsSymLink_Proc, nil, [eoSymlinks]);
+  SymlinkName :=  'castle_game_engine_test_symlink_' + IntToStr(Random(100000));
+  SymlinkFullName := GetTempPath + SymlinkName;
+  // Writeln('Using ', SymlinkFullName);
+  SymlinkTarget := InclPathDelim(GetCurrentDir) + 'data/symlink_target.txt';
+
+  FpSymlink(PChar(SymlinkTarget), PChar(SymlinkFullName));
+
+  EnumFiles(SymlinkFullName, faAnyFile, @TestIsSymLink_Proc, Self, [eoSymlinks]);
+
+  if not DeleteFile(SymlinkFullName) then
+    raise Exception.CreateFmt('Failed to remove symlink file %s', [SymlinkFullName]);
 
   try
     CastleReadLink('/non_existing_file');
