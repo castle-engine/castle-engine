@@ -8,7 +8,7 @@ default: html pdf
 
 html:
 	./mk_docs.sh html
-	cp ../../../www/htdocs/images/castle_game_engine_icon.png html/
+	cp $(CASTLE_ENGINE_PATH)www/htdocs/images/castle_game_engine_icon.png html/
 
 # Just some shortcuts to "Helpful targets" below
 pdf: latex/docs.pdf
