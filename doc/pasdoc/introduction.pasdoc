@@ -281,7 +281,7 @@ units are allowed to be used by units in specific group.
     with nice ObjectPascal interface and countless improvements over
     the simple glut.
 
-    This directory also contais various user-interface stuff usable only
+    This directory also contains various user-interface stuff usable only
     together with CastleWindow, like progress bar display in OpenGL window
     (CastleProgress), messages (CastleMessages, CastleNotifications, CastleInputs).
 
