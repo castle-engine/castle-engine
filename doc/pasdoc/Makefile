@@ -1,6 +1,6 @@
 # Main targets to gen final docs ----------------------------------------
 
-.PHONY: default html htmlhelp pdf ps rtf latex
+.PHONY: default html pdf ps rtf latex
 
 # html and pdf are two most useful versions of documentation,
 # shown on [http://castle-engine.sourceforge.net/reference.php]
@@ -8,16 +8,13 @@ default: html pdf
 
 html:
 	./mk_docs.sh html
+	cp ../../../www/htdocs/images/castle_game_engine_icon.png html/
 
 # Just some shortcuts to "Helpful targets" below
 pdf: latex/docs.pdf
 ps: latex/docs.ps
 rtf: latex2rtf/docs.rtf
 latex: latex/docs.tex
-
-# This is just for testing for now
-htmlhelp:
-	./mk_docs.sh htmlhelp
 
 # Helpful targets to gen docs ----------------------------------------
 
@@ -57,9 +54,8 @@ latex/docs.ps: latex/docs.dvi
 clean-cache:
 	rm -fR cache/
 
-# docs.hhc docs.hhp docs.hhk are created when doing htmlhelp format
 clean: clean-cache
-	rm -Rf html/ latex/ latex2rtf/ htmlhelp/
+	rm -Rf html/ latex/ latex2rtf/
 
 # upload ---------------------------------------------------------------------
 

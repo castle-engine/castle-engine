@@ -1,0 +1,42 @@
+------------------------------------------------------------------------------
+This obsolete information about possibility to compile *some* of the base
+engine units with Delphi/Kylix is not relevant anymore.
+Since engine 3.0.0, we use heavily FPC generics,
+and so probably even the base units will not compile with Delphi.
+
+(Unless someone interested comes and tests with Delphi and provides patches
+to fix it. Michalis uses and loves open-source FPC, but if someone
+else will provide patches for Delphi compatibility --- they will be accepted,
+as long as code stays clean.)
+
+------------------------------------------------------------------------------
+@section(2 SectionCompilingDelphi Compiling these units with Delphi)
+
+Long, long time ago some parts of the engine could be compiled by
+Delphi 7 for Windows (all versions, even Delphi 7 Personal).
+This concerned most of the units in @code(base/) subdirectory,
+all units in @code(images/) and @code(fonts/).
+Also, some parts used to be compileable with Kylix (Delphi for Linux).
+
+This is all probably not possible now. I don't use Delphi anymore,
+I don't have it installed, and I don't plan to support Delphi in my engine.
+Some parts may still compile with Delphi, but this would be mostly
+"by accident". Let's be serious and use FPC/Lazarus.
+
+@italic(If you really really need to try Delphi compilation),
+you can still try. Required Delphi compiler configuration:
+@unorderedList(
+  @itemSpacing Compact
+  @item Complete boolean eval: off,
+  @item Extended syntax: on,
+  @item Typed @ operator: off,
+  @item Huge strings: on,
+  @item IO checking: on.
+)
+
+This is rather standard Delphi configuration, so it should not be any
+problem. Other configuration settings do not matter, i.e. my code should
+compile and work properly with any values of other configuration settings.
+
+As usual you can turn on Range checking, Overflow checking and Assertions
+for debugging purposes.
