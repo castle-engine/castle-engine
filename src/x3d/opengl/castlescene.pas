@@ -107,9 +107,11 @@ type
       solid (e.g. filled polygons with depth test).
 
       WireframeColor and LineWidth are used as wireframe
-      line color/width (regardless of current @link(Mode) value).
+      line color/width (regardless of current scene
+      @link(TRenderingAttributes.Mode Attributes.Mode) value).
 
-      This usually gives best results when Mode = rmPureGeometry.
+      This usually gives best results when
+      @link(TRenderingAttributes.Mode Attributes.Mode) = rmPureGeometry.
       Then current glColor sets the color of the solid model
       (and, like said before, WireframeColor sets wireframe color). }
     weSolidWireframe,
@@ -121,9 +123,11 @@ type
       only the silhouette is visible from the wireframe rendering.
 
       WireframeColor and LineWidth are used as silhouette
-      line color/width (regardless of current Mode value).
+      line color/width (regardless of current scene
+      @link(TRenderingAttributes.Mode Attributes.Mode) value).
 
-      This is sometimes sensible to use with Mode = rmPureGeometry.
+      This is sometimes sensible to use with
+      @link(TRenderingAttributes.Mode Attributes.Mode) = rmPureGeometry.
       Then current glColor sets the color of the solid model
       (and, like said before, WireframeColor sets wireframe color). }
     weSilhouette);
@@ -192,8 +196,9 @@ type
       See also DefaultBlendingDestinationFactor for comments about
       GL_ONE and GL_ONE_MINUS_SRC_ALPHA.
 
-      Note that this is only a default, VRML model can override this
+      Note that this is only a default, VRML/X3D model can override this
       for specific shapes by using our extension BlendMode node.
+      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending].
 
       @groupBegin }
     property BlendingSourceFactor: TGLenum
