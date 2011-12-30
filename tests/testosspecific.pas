@@ -43,16 +43,16 @@ type
 
 implementation
 
-uses CastleUtils, EnumerateFiles, CastleFilesUtils, CastleTimeUtils, BaseUnix;
+uses CastleUtils, EnumerateFiles, CastleFilesUtils, CastleTimeUtils {$ifdef UNIX}, BaseUnix {$endif};
 
 procedure TTestOSSpecific.TestChangeDir;
 var
   PreviousDir: string;
 const
   ExistingDir = {$ifdef UNIX} '/' {$endif}
-                {$ifdef MSWINDOWS} 'c:/' {$endif};
+                {$ifdef MSWINDOWS} 'c:\' {$endif};
   NotExistingDir = {$ifdef UNIX} '/not_existing_directory_castle_test' {$endif}
-                   {$ifdef MSWINDOWS} 'c:/not_existing_directory_castle_test' {$endif};
+                   {$ifdef MSWINDOWS} 'c:\not_existing_directory_castle_test' {$endif};
 begin
   PreviousDir := GetCurrentDir;
   try
