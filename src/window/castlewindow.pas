@@ -2924,7 +2924,13 @@ end;
     destructor Destroy; override;
   published
     { Limit the number of (real) frames per second, to not hog the CPU.
-      Set to zero to not limit. }
+      Set to zero to not limit.
+
+      To be more precise, this limits the number of TGLApplication.ProcessMessage
+      calls per second, in situations when we do not have to process any user input.
+      So we limit not only rendering (TCastleWindowBase.OnDraw)
+      but also other animation processing (TCastleWindowBase.OnIdle) calls per second.
+      See TGLApplication.ProcessMessage. }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
   end;
 
