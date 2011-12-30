@@ -435,7 +435,16 @@ uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad;
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleControlCustom, TCastleControl]);
+  RegisterComponents('Castle', [
+    { For engine 3.0.0, TCastleControlCustom is not registered on palette,
+      as the suggested usage for everyone is to take TCastleControl with
+      scene manager instance already created.
+      In engine 2.x, I was getting questions about which one to use,
+      and it seems  that noone grokked the difference between the two.
+      Final decision about it (should it be visible on palette for advanced uses,
+      and risk confusing novice users?) will be at engine 3.1.0. }
+    { TCastleControlCustom, }
+    TCastleControl]);
 end;
 
 { TCastleControlBaseCore -------------------------------------------------- }

@@ -895,7 +895,11 @@ uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLE
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleSceneManager]);
+  { For engine 3.0.0, TCastleSceneManager is not registered on palette,
+    as the suggested usage for everyone is to take TCastleControl with
+    scene manager instance already created.
+    See castlecontrol.pas comments in Register. }
+  { RegisterComponents('Castle', [TCastleSceneManager]); }
 end;
 
 { TManagerRenderParams ------------------------------------------------------- }
