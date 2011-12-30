@@ -1162,6 +1162,17 @@ Various:
     http://www.opengl.org/registry/specs/SGI/swap_control.txt
     http://www.opengl.org/registry/specs/EXT/wgl_swap_control.txt
 
+- When an EXTERNPROTO cannot be loaded, we still read it's fields.
+  But when saving, looks like we assume that SFBool default is false etc.
+  In such case (when an EXTERNPROTO cannot be loaded) we should instead
+  remember that default value isn't known, and every field that has it's value
+  set in input VRML/X3D should be saved back.
+
+  *But do not save other fields*, i.e. if field is not explicitly set in VRML/X3D
+  file then it cannot be saved back (as the class will then have boolean at default
+  false, but we actually do not know the value of this field --- only that it's
+  equal VRML/X3D proto default).
+
 ------------------------------------------------------------------------------
 Shaders:
 
