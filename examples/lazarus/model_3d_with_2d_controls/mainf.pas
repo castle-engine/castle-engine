@@ -43,8 +43,8 @@ uses CastleSceneCore, CastleUtils, Images, VectorMath;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  { For simplicity, we just load VRML/X3D from hardcoded path. }
-  Browser.Load('../../vrml/models/bridge_final.x3dv');
+  { For simplicity, we just load 3D model from hardcoded path. }
+  Browser.Load('../../3d_rendering_processing/models/bridge_final.x3dv');
   Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.MainScene.ProcessEvents := true;
 
