@@ -41,12 +41,13 @@ implementation
 
 {$ifdef UNIX}
 
-{ Based on
-  /win/docs/fpc/kambi_fpc_bugs/fnmatch_test/fnmatch_test.pas
-}
+uses UnixUtil;
 
-uses
-  UnixUtil, Libc;
+{ Under Linux i386, we could just use Libc unit to get fnmatch definition.
+  Unfortunately, Libc unit is only maintained by FPC team for Linux i386,
+  e.g. it will not work for Linux x86_64 or other Unixes. }
+function LibcFnmatch(__pattern:Pchar; __name:Pchar; __flags:longint):longint;
+  cdecl;external 'c' name 'fnmatch';
 
 procedure TTestFNMatch.TestFNMatch;
 
@@ -54,7 +55,7 @@ procedure TTestFNMatch.TestFNMatch;
   var UnixUtilResult, LibcResult: boolean;
   begin
    UnixUtilResult := UnixUtil.FNMatch(Pattern, Name);
-   LibcResult := Libc.FNMatch(PChar(Pattern), PChar(Name), 0) = 0;
+   LibcResult := LibcFnmatch(PChar(Pattern), PChar(Name), 0) = 0;
 
    { We have 3 results. All should be equal. }
    Assert(UnixUtilResult = LibcResult);
