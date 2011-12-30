@@ -56,7 +56,7 @@ begin
     P.HomepageURL
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
-    P.Version := '2.5.1';
+    P.Version := '3.0.0';
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('base3d.pas');
