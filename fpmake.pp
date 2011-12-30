@@ -36,6 +36,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
+    P.Dependencies.Add('pasjpeg');
     if Defaults.OS in AllUnixOSes then
     begin
       P.Dependencies.Add('x11');
