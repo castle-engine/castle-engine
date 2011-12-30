@@ -268,7 +268,10 @@ begin
    for j := 0 to 20 do
     sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort;
-   for j := 0 to sarr.Count-2 do Assert(sarr[j] <= sarr[j+1]);
+   for j := 0 to sarr.Count-2 do Assert(
+     { sarr[j] <= sarr[j+1] }
+     { Sort may use AnsiCompareStr that takes into account locale }
+     AnsiCompareStr(sarr[j], sarr[j+1]) <= 0);
 
   finally sarr.Free end;
  end;
