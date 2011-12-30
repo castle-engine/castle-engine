@@ -1898,7 +1898,7 @@ type
       If you later want to bind another viewpoint, just send set_bind := true
       to it. }
     property InitialViewpointIndex: Cardinal
-      read FInitialViewpointIndex write FInitialViewpointIndex;
+      read FInitialViewpointIndex write FInitialViewpointIndex default 0;
 
     { When loading new model and looking for initial viewpoint,
       consider only viewpoints with this node name.
