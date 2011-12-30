@@ -193,11 +193,13 @@ var PointsFX: PArray_PointFX;
 
   procedure ResultItemsAdd(Kind: TPolygonKind; Count: Cardinal{ = 0}); overload;
   { use only with Kind <> pkPoint }
+  var
+    Item: PTTFCharItem;
   begin
-    ResultItems.IncLength;
+    Item := ResultItems.Add;
     Assert(Kind <> pkPoint);
-    ResultItems.L[ResultItems.High].Kind := Kind;
-    ResultItems.L[ResultItems.High].Count := Count;
+    Item^.Kind := Kind;
+    Item^.Count := Count;
   end;
 
   procedure ResultItemsAdd(Kind: TPolygonKind {Count: Cardinal = 0 }); overload;
@@ -206,11 +208,13 @@ var PointsFX: PArray_PointFX;
   end;
 
   procedure ResultItemsAdd(x, y: Single); overload;
+  var
+    Item: PTTFCharItem;
   begin
-    ResultItems.IncLength;
-    ResultItems.L[ResultItems.High].Kind := pkPoint;
-    ResultItems.L[ResultItems.High].x := x;
-    ResultItems.L[ResultItems.High].y := y;
+    Item := ResultItems.Add;
+    Item^.Kind := pkPoint;
+    Item^.x := x;
+    Item^.y := y;
   end;
 
   function ToFloat(const Val: TFixed): Extended;
@@ -283,12 +287,12 @@ begin
   finally FreeMemNiling(Buffer) end;
 
   { calculate "Count" fields for items with Kind <> pkPoint in ResultItems }
-  for i := 0 to ResultItems.High do
+  for i := 0 to ResultItems.Count - 1 do
      case ResultItems.L[i].Kind of
      pkNewPolygon:
        begin
         dlug := 0;
-        for j := i+1 to ResultItems.High do
+        for j := i+1 to ResultItems.Count - 1 do
          case ResultItems.L[j].Kind of
           pkLines, pkBezier : Inc(dlug);
           pkNewPolygon : break;
@@ -298,7 +302,7 @@ begin
      pkLines, pkBezier:
        begin
         dlug := 0;
-        for j := i+1 to ResultItems.High do
+        for j := i+1 to ResultItems.Count - 1 do
          if ResultItems.L[j].Kind = pkPoint then Inc(dlug) else break;
         ResultItems.L[i].Count := dlug;
        end;
@@ -307,7 +311,7 @@ begin
   { calculate Result^.Info.PolygonsCount/ItemsCount }
   ResultInfo.ItemsCount := ResultItems.Count;
   ResultInfo.PolygonsCount := 0;
-  for i := 0 to ResultItems.High do
+  for i := 0 to ResultItems.Count - 1 do
    if ResultItems.L[i].Kind = pkNewPolygon then Inc(ResultInfo.PolygonsCount);
 
   { get mem for Result and fill Result^ with calculated data }
