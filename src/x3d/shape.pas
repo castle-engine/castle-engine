@@ -1987,7 +1987,8 @@ var
   end;
 
 var
-  I, Count: Cardinal;
+  Count: Cardinal;
+  I: Integer;
 begin
   Arrays := GeometryArrays(OverTriangulate);
   try
