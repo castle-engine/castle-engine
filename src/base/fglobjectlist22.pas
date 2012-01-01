@@ -25,9 +25,8 @@ type
     function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
-  var private
-    FreeObjects: boolean;
   public
+    FreeObjects: boolean;
     constructor Create(AFreeObjects: boolean = true);
     destructor Destroy; override;
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
