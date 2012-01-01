@@ -47,7 +47,7 @@ implementation
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} Unix, BaseUnix, {$endif}
-  CastleUtils, Math, CastleTimeUtils, VectorMath;
+  Math, CastleUtils, CastleTimeUtils, VectorMath;
 
 {$I macspeedtest.inc}
 
