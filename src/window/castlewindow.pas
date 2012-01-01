@@ -364,6 +364,23 @@ unit CastleWindow;
     See file CASTLE_WINDOW_backend_template.inc.
 }
 
+{ Define CASTLE_WINDOW_BEST_NOGUI to choose the best backend for programs
+  that do not use native gui (like native dialog boxes in TCastleWindow.MessageOK
+  or native menu bar in TCastleWindow.Menu). On Unix, this will choose Xlib,
+  that allows you to resize the screen and has less dependencies than GtkGlExt
+  backend. }
+{$ifdef CASTLE_WINDOW_BEST_NOGUI}
+  {$ifdef UNIX}
+    {$define CASTLE_WINDOW_XLIB}
+  {$else}
+    {$ifdef MSWINDOWS}
+      {$define CASTLE_WINDOW_WINAPI}
+    {$else}
+      {$fatal CASTLE_WINDOW_BEST_NOGUI is unknown for this operating system.}
+    {$endif}
+  {$endif}
+{$endif}
+
 { If CastleWindow backend is not choosen at this point, choose
   default (best, most functional and stable) for a given OS.
 
