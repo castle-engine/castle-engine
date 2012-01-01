@@ -213,10 +213,3 @@ begin
     SoundEngine.ALContextClose;
   end;
 end.
-
-{
-  Local Variables:
-  kam-compile-release-command-unix:    "./compile_unix.sh && mv -fv rift ~/bin/"
-  kam-compile-release-command-windows: "./compile_windows.sh"
-  End:
-}

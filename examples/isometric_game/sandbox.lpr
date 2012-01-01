@@ -310,10 +310,3 @@ begin
   FreeAndNil(Player);
   FreeAndNil(Map);
 end.
-
-{
-  Local Variables:
-  kam-compile-release-command-windows: "clean_castle_window_unit; fpcrelease"
-  kam-compile-release-command-unix:    "clean_castle_window_unit; fpcrelease"
-  End:
-}
