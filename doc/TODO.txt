@@ -1051,43 +1051,6 @@ Various:
   as we save time on avoiding texture lookup in many cases.
   Depends on GPU. Test, see if / where it's worth.
 
-- castle compiled with -dRELEASE (not with -dDEBUG),
-  at least by "make build-unix" (after ./clean_everything),
-  on kocury,
-  fails at the with segfault
-  if you run the game + enter credits + break with enter key + quit.
-  actually, no need to enter credits: just run, and quit.
-  - As compiled with FPC 2.4.0. Also with FPC 2.4.4.
-    On chantal, FPC 2.4.2, no bug. Also with FPC 2.4.4.
-    So FPC version -> doesn't matter.
-  - Copying castle binary from chantal to kocury -> still bug.
-    Copying castle binary from k to c -> still no bug.
-    So compilation environment (some linker etc. versions between kocury/chantal) doesn't matter.
-  - Running with ./castle --no-sound on kocury -> still bug.
-    But we still initialize OpenAL in this case... so it doesn't decide anything.
-    Disabling OpenAL (setting "ALLibrary := nil;" explicitly)
-    changes segfault to message
-    ./castle: symbol lookup error: /usr/lib/libstdc++.so.6: undefined symbol: _ZNSt14error_categoryD2Ev, version GLIBCXX_3.4.15
-    This was previously printed by gdb.
-    So maybe this is the *real* problem, and segfault was just some after-effect?
-    GDB will not tell me much where this occurs...
-    inserting writelns, this happens after everything in castle (main program, all units)
-    and after CastleWindow finalization.
-  - So it seems it's something external?
-    Some messages:
-    https://bugs.archlinux.org/task/23879?getfile=6862
-    https://bugs.archlinux.org/task/23879
-    http://us.generation-nt.com/answer/bug-623827-moc-symbol-lookup-error-help-203033572.html
-    gcc-libs? https://bbs.archlinux.org/viewtopic.php?pid=921999
-    Upgrading kocury. Let's see.
-    Still bug.
-    But then, engine-2.4.fixes version always has this. So this isn't new.
-    And for sure it was triggered by some Debian upgrade --- it wasn't previously.
-
-  Defer for later, we'll see on other systems does it occur.
-  Looks like some Debian problem, quite specific to kocury libs versions?
-  Doesn't occur with view3dscene, so not a blocker for 2.5.0.
-
 - normal fog doesn't work on kocury nvidia (volumetric and explicit fog is Ok)
   with shader pipeline.
   Replacing gl_FogFragCoord with custom kambi_fog_frag_coord doesn't help.
