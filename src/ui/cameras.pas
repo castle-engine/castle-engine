@@ -2476,6 +2476,56 @@ function TExamineCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolea
 var
   Size: Single;
   ModsDown: TModifierKeys;
+
+  function DragRotation: TQuaternion;
+
+    function XYRotation(const Scale: Single): TQuaternion;
+    var
+      XRot, YRot: TQuaternion;
+    begin
+      XRot := QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100);
+      YRot := QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100);
+      Result := YRot * XRot;
+    end;
+
+  var
+    XYRot, ZRot: TQuaternion;
+    AvgX, AvgY, W2, H2: Cardinal;
+    BorderV, BorderH, ZRotAngle: Single;
+  begin
+    if not ContainerSizeKnown then
+    begin
+      Result := XYRotation(1);
+    end else
+    begin
+      { When the cursor is close to the window edge, make rotation around Z axis.
+        This is called "virtual trackball" on
+        http://audilab.bme.mcgill.ca/~funnell/graphics/graphics3dview.html . }
+      { clamp, since mouse positions may be wild }
+      AvgX := Clamped((NewX + OldX) div 2, 0, ContainerWidth  - 1);
+      AvgY := Clamped((NewY + OldY) div 2, 0, ContainerHeight - 1);
+      W2 := ContainerWidth  div 2;
+      H2 := ContainerHeight div 2;
+      { how close to window horizontal and vertical border are we, in 0..1 }
+      BorderV := Abs(AvgX - W2) / W2;
+      BorderH := Abs(AvgY - H2) / H2;
+      if BorderH > BorderV then
+      begin
+        ZRotAngle := (NewX - OldX) / 100;
+        if AvgY < H2 then ZRotAngle := -ZRotAngle;
+        ZRot := QuatFromAxisAngle(Vector3Single(0, 0, 1), BorderH * ZRotAngle);
+        XYRot := XYRotation(1 - BorderH);
+      end else
+      begin
+        ZRotAngle := (NewY - OldY) / 100;
+        if AvgX > W2 then ZRotAngle := -ZRotAngle;
+        ZRot := QuatFromAxisAngle(Vector3Single(0, 0, 1), BorderV * ZRotAngle);
+        XYRot := XYRotation(1 - BorderV);
+      end;
+      Result := XYRot * ZRot;
+    end;
+  end;
+
 begin
   Result := inherited;
   if Result or (not Exists) then Exit;
@@ -2538,10 +2588,7 @@ begin
   { Rotating }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
   begin
-    FRotations := QuatFromAxisAngle(Vector3Single(0, 1, 0), (NewX - OldX) / 100)
-      * FRotations;
-    FRotations := QuatFromAxisAngle(Vector3Single(1, 0, 0), (NewY - OldY) / 100)
-      * FRotations;
+    FRotations := DragRotation * FRotations;
     VisibleChange;
     Result := ExclusiveEvents;
   end else
