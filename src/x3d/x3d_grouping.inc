@@ -310,7 +310,24 @@ type
   TGeneralGroupingEnumerator = class
     State: TX3DGraphTraverseState;
     WasPointingDeviceSensor: boolean;
+    { Add pointing device sensor (including Anchor) node. }
+    procedure AddPointingDeviceSensor(Child:TX3DNode);
     procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
+  end;
+
+  procedure TGeneralGroupingEnumerator.AddPointingDeviceSensor(Child:TX3DNode);
+  begin
+    { Testing for WasPointingDeviceSensor guarantees that multiple
+      pointing devices within the same grouping node will all work. }
+    if not WasPointingDeviceSensor then
+    begin
+      State.PointingDeviceSensors.Clear;
+      State.PointingDeviceSensors.Transform := State.Transform;
+      State.PointingDeviceSensors.InvertedTransform := State.InvertedTransform;
+      WasPointingDeviceSensor := true;
+    end;
+
+    State.PointingDeviceSensors.Add(Child);
   end;
 
   procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
@@ -333,17 +350,7 @@ type
         TAbstractLightNode(Child).CreateLightInstance(State)) else
     if Child is TAbstractPointingDeviceSensorNode then
     begin
-      { Testing for WasPointingDeviceSensor guarantees that multiple
-        pointing devices within the same grouping node will all work. }
-      if not WasPointingDeviceSensor then
-      begin
-        State.PointingDeviceSensors.Clear;
-        State.PointingDeviceSensors.Transform := State.Transform;
-        State.PointingDeviceSensors.InvertedTransform := State.InvertedTransform;
-        WasPointingDeviceSensor := true;
-      end;
-
-      State.PointingDeviceSensors.Add(Child);
+      AddPointingDeviceSensor(Child);
     end else
     if Child is TClipPlaneNode then
     begin
@@ -432,25 +439,23 @@ begin
 
   Enumerator := TGeneralGroupingEnumerator.Create;
   try
+    Enumerator.State := StateStack.Top;
+    Enumerator.WasPointingDeviceSensor := false;
+
     { It's a little unclean to test "Self is ...", usually virtual
       methods should replace such constructs. But in this case, this is
       just the simplest solution. Anchor node serves as a pointing device
       for all it's children, so it just places itself in
-      State.PointingDeviceSensors. }
-    if Self is TAnchorNode then
-    begin
-      StateStack.Top.PointingDeviceSensors.Clear;
-      StateStack.Top.PointingDeviceSensors.Transform := StateStack.Top.Transform;
-      StateStack.Top.PointingDeviceSensors.InvertedTransform := StateStack.Top.InvertedTransform;
-      StateStack.Top.PointingDeviceSensors.Add(Self);
-      { If Anchor node itself has other pointing device sensors
-        directly inside, they can be siblings of Anchor.
-        Tested with InstantReality and g3l_stapes_dbg.wrl from Robert Funnell.
-        That's why we set Enumerator.WasPointingDeviceSensor below. }
-      Enumerator.WasPointingDeviceSensor := true;
-    end;
+      State.PointingDeviceSensors.
 
-    Enumerator.State := StateStack.Top;
+      Note that if Anchor node itself has other pointing device sensors
+      directly inside, they can be siblings of Anchor.
+      Tested with InstantReality and g3l_stapes_dbg.wrl from Robert Funnell.
+      So it's correct to just call AddPointingDeviceSensor that wil set
+      WasPointingDeviceSensor := true. }
+    if Self is TAnchorNode then
+      Enumerator.AddPointingDeviceSensor(Self);
+
     DirectEnumerateActive(@Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
 end;
