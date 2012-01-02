@@ -13,14 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef DARWIN}
-  {$linklib gdkglext-x11-1.0}
-  {$linklib gtkglext-x11-1.0}
-{$endif DARWIN}
-
-{ This contains two very similar CastleWindow backends, both based on GTK.
-  One based on GTK 1.x and GtkGLArea,
-  the other one based on GTK 2.x and GtkGLExt. }
+{ CastleWindow backend based on GTK 2 and GtkGLExt. }
 
 {$ifdef read_interface_types}
   { @exclude }
@@ -216,7 +209,12 @@ public
 
 {$ifdef read_implementation}
 
-{ gboolean type stuff.
+{$ifdef DARWIN}
+  {$linklib gdkglext-x11-1.0}
+  {$linklib gtkglext-x11-1.0}
+{$endif DARWIN}
+
+{ gboolean type stuff --------------------------------------------------------
 
   Remember that under FPC >= 2.4.0 Pascal's "true" is $FFFFFFFF,
   not equal to GTK's "true" (equal to int 1). Some GTK routines treat
@@ -231,7 +229,10 @@ public
 
   Also, GTK's unit constants gfalse/gtrue are ints, while gboolean is LongBool,
   so they are not assigment-compatible. So use our g_false/g_true
-  (with underscore) for best results. }
+  (with underscore) for best results.
+
+  In FPC 2.6.0 this is fixed by gboolean = boolean32,
+  but for FPC 2.4.x we have to keep this code. }
 const
   g_true = LongBool(gtrue);
   g_false = LongBool(gfalse);
@@ -248,6 +249,8 @@ begin
   Result := B <> g_false;
 end;
 
+{ various helpers ------------------------------------------------------------ }
+
 {$I castlewindow_gtk_menu.inc}
 
 { This is mispelled in FPC gtk bindings, see
@@ -256,15 +259,11 @@ function gdk_display_open(display_name:Pgchar):PGdkDisplay;
   cdecl; external gdklib;
 
 { Some functions missing from FPC gtk bindings }
-
 function gdk_cursor_new_for_display(Display: PGdkDisplay;
   cursor_type: TGdkCursorType): PGdkCursor;
   cdecl; external gdklib name 'gdk_cursor_new_for_display';
-
 function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
-
-{ gtk, gdk helpers ------------------------------------------------------------ }
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
@@ -724,7 +723,7 @@ begin
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
       0, 0, 0, 0, NewMouseX, NewMouseY);
   {$else}
-  raise Exception.Create('TCastleWindowBase.SetMousePosition not implemented with GTK 1');
+  raise Exception.Create('TCastleWindowBase.SetMousePosition not implemented with GTK under something else than Unix');
   {$endif}
 end;
 
@@ -748,16 +747,9 @@ begin
     DoDraw;
   end;
 
-  { Without our own RedisplayPosted tracking:
-
-    - under GTK 2 this would be easy:
-      gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true);
-
-    - but under GTK 1 this isn't possible AFAIK, I would have to just
-      always call DoDraw here (which is valid but non-optimal behavior
-      of FlushRedisplay)
-
-  }
+  { Without our own RedisplayPosted tracking, under GTK 2 we could also easily
+    do this by
+    gdk_window_process_updates(GTK_WIDGET(WindowGtk)^.Window, g_true); }
 end;
 
 procedure TCastleWindowBase.SetCaption(const Value: string);
