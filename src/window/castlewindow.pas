@@ -597,7 +597,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$endif}
   {$ifdef CASTLE_WINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
-  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} X, Xlib, {$endif}
+  {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, Images, KeysMouse,
@@ -2226,9 +2226,10 @@ end;
       Returned help text conforms to rules in
       @code(castle_game_engine/doc/various/kambi_command_line_params.txt).
 
-      If AddHeader then it adds text @code('Window options:' +nl).
-      at the beginning. This is just a small thing that allows you
-      to comfortably use the output of this function as a whole
+      If AddHeader then it adds line saying @code('Window options:')
+      (and showing backend name, for debug purposes)
+      at the beginning. This allows you to comfortably use
+      the output of this function as a whole
       paragraph (separated from the rest of your "--help" text
       by e.g. empty lines around). }
     class function ParseParametersHelp(
@@ -4018,7 +4019,7 @@ const
 var ParamKind: TWindowParseOption;
 begin
  if AddHeader then
-  result := 'Window options:' else
+  result := 'Window options (backend ' + Application.BackendName + '):' else
   result := '';
 
  for ParamKind := Low(ParamKind) to High(ParamKind) do

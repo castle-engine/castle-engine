@@ -282,20 +282,6 @@ end;
   {$endif}
 {$endif}
 
-{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-function gdk_x11_drawable_get_xid(Drawable: PGdkDrawable): X.TXID;
-  cdecl; external gdklib name 'gdk_x11_drawable_get_xid';
-
-function gdk_x11_drawable_get_xdisplay(Drawable: PGdkDrawable): Xlib.PDisplay;
-  cdecl; external gdklib name 'gdk_x11_drawable_get_xdisplay';
-
-function gdk_x11_get_default_screen(): Gint;
-  cdecl; external gdklib name 'gdk_x11_get_default_screen';
-
-function gdk_x11_get_default_xdisplay(): Xlib.PDisplay;
-  cdecl; external gdklib name 'gdk_x11_get_default_xdisplay';
-{$endif}
-
 {$ifdef CASTLE_WINDOW_GTK_2}
 { This is mispelled in FPC gtk bindings, see
   [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
@@ -2100,13 +2086,14 @@ end;
 {$ifdef CASTLE_WINDOW_USE_XF86VMODE}
 function TGLApplication.XDisplay: Xlib.PDisplay;
 begin
-  { TODO: should be synched with XDisplayName property }
-  Result := gdk_x11_get_default_xdisplay();
+  InitializeXDisplay;
+  Result := gdk_x11_display_get_xdisplay(XDisplayGdk);
 end;
 
 function TGLApplication.XScreen: Integer;
 begin
-  Result := gdk_x11_get_default_screen();
+  InitializeXDisplay;
+  Result := gdk_x11_screen_get_screen_number(XScreenGdk);
 end;
 {$endif}
 
