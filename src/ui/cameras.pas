@@ -2480,18 +2480,15 @@ var
   function DragRotation: TQuaternion;
 
     function XYRotation(const Scale: Single): TQuaternion;
-    var
-      XRot, YRot: TQuaternion;
     begin
-      XRot := QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100);
-      YRot := QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100);
-      Result := YRot * XRot;
+      Result :=
+        QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
+        QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100);
     end;
 
   var
-    XYRot, ZRot: TQuaternion;
     AvgX, AvgY, W2, H2: Cardinal;
-    BorderV, BorderH, ZRotAngle: Single;
+    ZRotAngle, ZRotRatio: Single;
   begin
     if not ContainerSizeKnown then
     begin
@@ -2506,23 +2503,22 @@ var
       AvgY := Clamped((NewY + OldY) div 2, 0, ContainerHeight - 1);
       W2 := ContainerWidth  div 2;
       H2 := ContainerHeight div 2;
-      { how close to window horizontal and vertical border are we, in 0..1 }
-      BorderV := Abs(AvgX - W2) / W2;
-      BorderH := Abs(AvgY - H2) / H2;
-      if BorderH > BorderV then
-      begin
-        ZRotAngle := (NewX - OldX) / 100;
-        if AvgY < H2 then ZRotAngle := -ZRotAngle;
-        ZRot := QuatFromAxisAngle(Vector3Single(0, 0, 1), BorderH * ZRotAngle);
-        XYRot := XYRotation(1 - BorderH);
-      end else
-      begin
-        ZRotAngle := (NewY - OldY) / 100;
-        if AvgX > W2 then ZRotAngle := -ZRotAngle;
-        ZRot := QuatFromAxisAngle(Vector3Single(0, 0, 1), BorderV * ZRotAngle);
-        XYRot := XYRotation(1 - BorderV);
-      end;
-      Result := XYRot * ZRot;
+      { calculate rotation around Z }
+      ZRotAngle :=
+        ArcTan2((NewY - H2) / H2, (NewX - W2) / W2) -
+        ArcTan2((OldY - H2) / H2, (OldX - W2) / W2);
+      { ArcTan2 is in [-pi,pi]. When the mouse passes the border
+        of this range, we have to be secure. }
+      if ZRotAngle > Pi then
+        ZRotAngle := 2 * Pi - ZRotAngle else
+      if ZRotAngle < -Pi then
+        ZRotAngle := 2 * Pi + ZRotAngle;
+      { how much do we want Z rotation, i.e. how far are we from window middle,
+        in 0..1 }
+      ZRotRatio := Min(1.0, Sqrt(Sqr((AvgX - W2) / W2) + Sqr((AvgY - H2) / H2)));
+      Result :=
+        QuatFromAxisAngle(Vector3Single(0, 0, -1), ZRotRatio * ZRotAngle) *
+        XYRotation(1 - ZRotRatio);
     end;
   end;
 
