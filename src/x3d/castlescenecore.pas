@@ -5341,13 +5341,18 @@ end;
 
 procedure TCastleSceneCore.SetPointingDeviceActive(const Value: boolean);
 
-  procedure AnchorActivate(Anchor: TAnchorNode);
+  function AnchorActivate(Anchor: TAnchorNode): boolean;
   var
     NewRootNode: TX3DRootNode;
     NewViewpoint: TAbstractViewpointNode;
   begin
-    if Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode) then
+    Result := Anchor.LoadAnchor(NewRootNode, NewViewpoint, RootNode);
+    if Result then
     begin
+      { activating Anchor clears other sensors, since Anchor
+        loads completely different scene. }
+      FPointingDeviceActiveSensors.Count := 0;
+
       if NewRootNode <> nil then
         Load(NewRootNode, true, { do not reset Time } false);
 
@@ -5405,12 +5410,11 @@ begin
             end else
             if ToActivate is TAnchorNode then
             begin
-              { activating Anchor clears other sensors, since Anchor
-                loads completely different scene. }
-              FPointingDeviceActiveSensors.Count := 0;
-              AnchorActivate(TAnchorNode(ToActivate));
-              ActiveChanged := true;
-              Break;
+              if AnchorActivate(TAnchorNode(ToActivate)) then
+              begin
+                ActiveChanged := true;
+                Break;
+              end;
             end;
           end;
           if ActiveChanged then DoPointingDeviceSensorsChange;
