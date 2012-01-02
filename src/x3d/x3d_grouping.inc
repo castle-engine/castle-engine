@@ -430,29 +430,27 @@ begin
     so this doesn't slow down the code.
   }
 
-  { It's a little unclean to test "Self is ...", since usually virtual
-    methods should replace this. But in this case, this is (for now)
-    the simplest solution. Anchor node serves as a pointing device
-    for all it's children, so it just places itself in
-    State.PointingDeviceSensors.
-
-    Note that if Anchor node itself has other pointing device sensors
-    inside, they will override the Anchor --- as far as I know, this
-    is what VRML specificaion expects? (if not, we should just set
-    Enumerator.WasPointingDeviceSensor := true when inside Anchor,
-    so the solution will be trivial). }
-  if Self is TAnchorNode then
-  begin
-    StateStack.Top.PointingDeviceSensors.Clear;
-    StateStack.Top.PointingDeviceSensors.Transform := StateStack.Top.Transform;
-    StateStack.Top.PointingDeviceSensors.InvertedTransform := StateStack.Top.InvertedTransform;
-    StateStack.Top.PointingDeviceSensors.Add(Self);
-  end;
-
   Enumerator := TGeneralGroupingEnumerator.Create;
   try
+    { It's a little unclean to test "Self is ...", usually virtual
+      methods should replace such constructs. But in this case, this is
+      just the simplest solution. Anchor node serves as a pointing device
+      for all it's children, so it just places itself in
+      State.PointingDeviceSensors. }
+    if Self is TAnchorNode then
+    begin
+      StateStack.Top.PointingDeviceSensors.Clear;
+      StateStack.Top.PointingDeviceSensors.Transform := StateStack.Top.Transform;
+      StateStack.Top.PointingDeviceSensors.InvertedTransform := StateStack.Top.InvertedTransform;
+      StateStack.Top.PointingDeviceSensors.Add(Self);
+      { If Anchor node itself has other pointing device sensors
+        directly inside, they can be siblings of Anchor.
+        Tested with InstantReality and g3l_stapes_dbg.wrl from Robert Funnell.
+        That's why we set Enumerator.WasPointingDeviceSensor below. }
+      Enumerator.WasPointingDeviceSensor := true;
+    end;
+
     Enumerator.State := StateStack.Top;
-    Enumerator.WasPointingDeviceSensor := false;
     DirectEnumerateActive(@Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
 end;
