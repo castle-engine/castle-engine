@@ -164,7 +164,7 @@
       various descendants of TMenuEntry class.
       Then you have to assign such menu structure
       to TCastleWindowBase.MainMenu property. When CastleWindow is implemented on top
-      of GTK_1 or GTK_2 or WINAPI or GLUT we will show this menu and call
+      of GTK_2 or WINAPI or GLUT we will show this menu and call
       TCastleWindowBase.EventMenuCommand (TCastleWindowBase.OnMenuCommand) when user clicks some menu item.
       Other backends (XLIB for now) ignore MainMenu.
 
@@ -202,7 +202,7 @@ unit CastleWindow;
 
 { Choose CastleWindow backend ------------------------------------------ }
 
-{ You must define one of the symbols CASTLE_WINDOW_GTK_1, CASTLE_WINDOW_GTK_2,
+{ You must define one of the symbols CASTLE_WINDOW_GTK_2,
   CASTLE_WINDOW_WINAPI (only under Windows),  CASTLE_WINDOW_XLIB (only where X11
   and Xlib are available, which usually means "only under UNIX"),
   CASTLE_WINDOW_GLUT.
@@ -213,68 +213,34 @@ unit CastleWindow;
 
   Here are short descriptions for each backend:
 
-  CASTLE_WINDOW_GTK_1 and CASTLE_WINDOW_GTK_2
-    CASTLE_WINDOW_GTK_1 is based on GTK 1.x (>= 1.2) using GtkGLArea widget.
-    Made around beginning of march 2004. Historically the first,
-    it is now by all means superseded by GTK 2 version.
-    Saying it clearly: @bold(do not use GTK_1, use GTK_2 instead).
-
-    CASTLE_WINDOW_GTK_2 is based on GTK 2.x, using GtkGLExt extension.
-    Made 2005-02.
-
+  CASTLE_WINDOW_GTK_2
+    Based on GTK 2.x, using GtkGLExt extension. Made 2005-02.
     MainMenu is implemented as a nice-looking GTK menu bar.
     Dialog windows implemented using GTK dialog windows.
     Generally, has a nice native look of GTK application.
 
-    Backends on top of GTK should work under any OS where GTK works.
-    Currently both GTK_1 and GTK_2 are tested under Linux, FreeBSD and Windows.
-    GTK_2 is also tested on Mac OS X.
+    Should work under any OS where GTK works.
+    Currently tested under Linux, FreeBSD, Mac OS X and Windows.
 
-    CASTLE_WINDOW_GTK_1:
-    Known problems of only CASTLE_WINDOW_GTK_1 (fixed in GTK_2):
-    - Some keys simply cannot work as menu item shortcuts:
-      Delete, BackSpace, '?' key, Tab. For CASTLE_WINDOW_GTK_2 version,
-      only Tab key cannot work as menu item shortcut (it's always only
-      for switching focus). This is an issue with GTK 1/2,
-      that simply can't be fixed in CastleWindow.
-    - When FullScreen = true and MainMenu <> nil, result is not perfect
-      because things like gnome-panel may cover your fullscreen window.
-      Solved in CASTLE_WINDOW_GTK_2, can't be cleanly solved with GTK_1.
-    - Under Windows be warned that GTK 1.3 has somewhat buggy
-      key events handling - sometimes I don't get keyup events for
-      appropriate keys, sometimes keydown events for some keys
-      are temporarily blocked. A little code in CASTLE_WINDOW_gtk.inc
-      was added to workaround some problems, but definitely
-      this still does not work as smoothly as it should.
-    - Menu mnemonics are not implemented (I don't know how to *easily*
-      do them in GTK_1, and I don't really care since GTK_2 version
-      is completely stable now). They are simply removed when Caption
-      is displayed.
-    - File filters are not implemented. This is fixed in GTK_2 by
-      using newer GtkFileChooser.
-    - TCastleWindowBase.Message*, TCastleWindowBase.SetMousePosition are not implemented
-      with GTK 1 backend (raise "not implemented" exceptions).
-      They probably could be implemented, but (since GTK 1 is obsolete now)
-      I didn't feel the need.
-
-    CASTLE_WINDOW_GTK_2:
-    This is now stable and tested and is much better than GTK_1.
-    At some point, this may be renamed to simply CASTLE_WINDOW_GTK
-    and compatilibity with GTK 1.x may be dropped.
-
-    Also FullScreen is cleanly implemented in GTK_2,
-    never using override_redirect,
+    FullScreen is cleanly implemented in GTK_2, never using override_redirect,
     so Alt+Tab always works (even when your window is fullscreen),
     and things like gnome-panel will never cover your fullscreen window.
 
     Known problems:
-    - TryVideoChange is not implemented, i.e. always returns false.
-      I don't know how to cleanly implement it using GTK.
+    - Tab key cannot work as menu item shortcut (it's always only
+      for switching focus). This is an issue with GTK 1/2,
+      that simply can't be fixed in CastleWindow.
+    - TryVideoChange is not finished, i.e. always returns false.
+      See TODOs near CASTLE_WINDOW_USE_XF86VMODE definition.
     - Under Windows, window will be always resizeable by user, even if
       you set ResizeAllowed <> raAllowed.
       This is masked in our unit (so your OnResize callback will not get
       to know such thing), so it's harmless for correctness of your programs,
-      but, anyway, user can do it.
+      but user can do it.
+
+    Historically, we also had CASTLE_WINDOW_GTK_1, based on GTK 1.x (>= 1.2)
+    using GtkGLArea widget. Was made around beginning of march 2004.
+    Removed 2011-12 (commit r10674), ancient and obsoleted by GTK 2.
 
   CASTLE_WINDOW_WINAPI
     Based on Windows API.
@@ -291,7 +257,7 @@ unit CastleWindow;
     And it's not a good idea to implement it yourself (without any standard
     GUI toolkit) --- this makes many Xlib programs ugly, because every single one
     uses his own GUI. In other words:
-    if you want to have MainMenu then just use CASTLE_WINDOW_GTK_1/2.
+    if you want to have MainMenu then just use CASTLE_WINDOW_GTK_2.
 
     Dialog boxes are implemented using CastleMessages.MessageXxx.
     So they are not very comfortable to user, but they work.
@@ -389,22 +355,18 @@ unit CastleWindow;
 {$ifndef CASTLE_WINDOW_WINAPI}
  {$ifndef CASTLE_WINDOW_XLIB}
   {$ifndef CASTLE_WINDOW_GLUT}
-   {$ifndef CASTLE_WINDOW_GTK_1}
-    {$ifndef CASTLE_WINDOW_GTK_2}
-     {$ifdef MSWINDOWS}
-       {$define CASTLE_WINDOW_WINAPI}
-       { $define CASTLE_WINDOW_GTK_2}
-       { $define CASTLE_WINDOW_GTK_1}
-       { $define CASTLE_WINDOW_GLUT}
-       { $define CASTLE_WINDOW_TEMPLATE}
-     {$endif}
-     {$ifdef UNIX}
-       {$define CASTLE_WINDOW_GTK_2}
-       { $define CASTLE_WINDOW_GTK_1}
-       { $define CASTLE_WINDOW_XLIB}
-       { $define CASTLE_WINDOW_GLUT}
-       { $define CASTLE_WINDOW_TEMPLATE}
-     {$endif}
+   {$ifndef CASTLE_WINDOW_GTK_2}
+    {$ifdef MSWINDOWS}
+      {$define CASTLE_WINDOW_WINAPI}
+      { $define CASTLE_WINDOW_GTK_2}
+      { $define CASTLE_WINDOW_GLUT}
+      { $define CASTLE_WINDOW_TEMPLATE}
+    {$endif}
+    {$ifdef UNIX}
+      {$define CASTLE_WINDOW_GTK_2}
+      { $define CASTLE_WINDOW_XLIB}
+      { $define CASTLE_WINDOW_GLUT}
+      { $define CASTLE_WINDOW_TEMPLATE}
     {$endif}
    {$endif}
   {$endif}
@@ -467,41 +429,17 @@ unit CastleWindow;
 
 { Configure internal things -------------------------------------------------- }
 
-{$ifdef CASTLE_WINDOW_GTK_1} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
 {$ifdef CASTLE_WINDOW_GTK_2} {$define CASTLE_WINDOW_GTK_ANY} {$endif}
 
-{ Two reasons why sometimes GTK backend call some X-specific things:
-
-  1. Grrrr. Implementing TCastleWindowBase.SetMousePosition is a real hack for GTK.
-
-     First of all, there is no GDK or GTK function for this.
+{ Sometimes GTK backend needs to call some X-specific things:
+  1. Implementing TCastleWindowBase.SetMousePosition.
+     There is no GDK or GTK function for this.
      (confirmed by google, e.g. see here
      [http://mail.gnome.org/archives/gtk-list/2001-January/msg00035.html]).
      You have to bypass GTK and use things like Xlib's XWarpPointer or
-     Windows' SetCursorPos. So this is getting very dirty already ---
-     suddenly CastleWindow's GTK backend stops to be portable.
-
-     Moreover, to use XWarpPointer, you have to get Xlib parameters
-     (X window id and display pointer) from GTK window. And here comes
-     another surprise, this time caused by FPC bindings: GTK 1 bindings
-     don't include macro GDK_WINDOW_XID. They include macro
-     GDK_WINDOW_XDISPLAY but it seems incorrectly defined
-     (should take GdkWindow not PGdkWindowPrivate?).
-     GTK 2 bindings don't include these macros too, but GTK 2 library contains
-     functions gdk_x11_drawable_get_xid/xdisplay and I can get to them.
-
-     All in all, right now I implemented TCastleWindowBase.SetMousePosition
-     only for GTK 2 under Unix. It's possible to do this for GTK 1 under Unix,
-     but more hacking is needed (hint: fix GTK 1 bindings in this regard).
-     It's possible to do this for Windows, you have to use SetCursorPos
-     (see the real Windows backend TCastleWindowBase.SetMousePosition implementation).
-
-  2. Screen resizing.
-
-     I have to use there XF86VidMode extension, just like for CASTLE_WINDOW_XLIB
-     backend. And, just like for TCastleWindowBase.SetMousePosition, I'll need
-     for this some functions available only in GTK 2 library that
-     "uncover" X11 internals related to GTK for me. }
+     Windows' SetCursorPos.
+  2. Screen resizing. I have to use there XF86VidMode extension,
+     just like for CASTLE_WINDOW_XLIB backend. }
 {$ifdef CASTLE_WINDOW_GTK_2}
   {$ifdef UNIX}
     {$define CASTLE_WINDOW_GTK_WITH_XLIB}
@@ -555,20 +493,18 @@ unit CastleWindow;
   - ReleaseAllKeysAndMouse: call this when user switches to another window
     or activates a menu.
 
-  Only CASTLE_WINDOW_GTK_1/2:
+  Only CASTLE_WINDOW_GTK_2:
   - in OpenBackend implement MaxWidth/Height
     (Or maybe these properties should be removed?
     They are made for symmetry with MinWidth/Height. Are they really useful?)
-
-  - with GTK 2:
-    - Implement better fullscreen toggle now (that doesn't need
-      recreating window).
-      Update docs about capabilities of GTK_2 backend.
-    - Value of propery FullScreen should change at runtime,
-      and parts of things that I'm doing now in OpenBackend
-      should be done on such changes.
-      This way I should be able to react to fullscreen changes
-      forced by user (using window manager, not F11) really cleanly.
+  - Implement better fullscreen toggle now (that doesn't need
+    recreating window).
+    Update docs about capabilities of GTK_2 backend.
+  - Value of propery FullScreen should change at runtime,
+    and parts of things that I'm doing now in OpenBackend
+    should be done on such changes.
+    This way I should be able to react to fullscreen changes
+    forced by user (using window manager, not F11) really cleanly.
 
   General:
   - Allow changing Width, Height, Left, Top from code after the window
@@ -591,14 +527,10 @@ interface
 
 uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} CastleGlut, {$endif} {$endif}
-  {$ifdef CASTLE_WINDOW_WINAPI} Windows,
-    { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
-    {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
-  {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI} Windows, {$endif}
   {$ifdef CASTLE_WINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
-  {$ifdef CASTLE_WINDOW_GTK_1} Glib, Gdk, Gtk, GtkGLArea, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, Images, KeysMouse,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,

@@ -21,7 +21,6 @@ end;
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl; forward;
 
-{$ifdef CASTLE_WINDOW_GTK_2}
 procedure gtk_check_menu_item_set_draw_as_radio(
   check_menu_item:PGtkCheckMenuItem; draw_as_radio:gboolean);
   cdecl; external gtklib;
@@ -29,7 +28,6 @@ procedure gtk_check_menu_item_set_draw_as_radio(
 function gtk_check_menu_item_get_draw_as_radio(
   check_menu_item:PGtkCheckMenuItem):gboolean;
   cdecl; external gtklib;
-{$endif}
 
 function signal_menu_bar_activation(AGtkMenuBar: PGtkMenuBar;
   Event: PGdkEventButton; UserData: gpointer): gboolean; cdecl;
@@ -114,28 +112,16 @@ end;
   no warnings are displayed and everything works OK. }
 procedure MenuItemBlock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
 begin
- {$ifdef CASTLE_WINDOW_GTK_2}
- g_signal_handlers_block_by_func
- {$else}
- gtk_signal_handler_block_by_func
- {$endif}
- ( GTK_OBJECT(MenuItemGtk),
-   {$ifndef CASTLE_WINDOW_GTK_2} TGtkSignalFunc {$endif} (@signal_menu_item_activate),
-   Pointer(PtrUInt(MenuItem.SmallId)));
+ g_signal_handlers_block_by_func( GTK_OBJECT(MenuItemGtk),
+   @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
 { Unblock signal_menu_item_activate from this menu item.
   Useful inside signal_menu_item_activate, see there for comments. }
 procedure MenuItemUnblock(MenuItemGtk: PGtkMenuItem; MenuItem: TMenuItem);
 begin
- {$ifdef CASTLE_WINDOW_GTK_2}
- g_signal_handlers_unblock_by_func
- {$else}
- gtk_signal_handler_unblock_by_func
- {$endif}
- ( GTK_OBJECT(MenuItemGtk),
-   {$ifndef CASTLE_WINDOW_GTK_2} TGtkSignalFunc {$endif} (@signal_menu_item_activate),
-   Pointer(PtrUInt(MenuItem.SmallId)));
+ g_signal_handlers_unblock_by_func( GTK_OBJECT(MenuItemGtk),
+   @signal_menu_item_activate, Pointer(PtrUInt(MenuItem.SmallId)));
 end;
 
 { Initialize MainMenu.Handle (to GtkMenuBar) and insert it to window_vbox.
@@ -263,24 +249,8 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
        Tearoff := gtk_tearoff_menu_item_new();
        gtk_widget_show(Tearoff);
-       gtk_menu_append(
-         {$ifdef CASTLE_WINDOW_GTK_2} GTK_WIDGET {$endif} (Result),
-         Tearoff);
+       gtk_menu_append(GTK_WIDGET(Result), Tearoff);
       end;
-
-      {$ifdef CASTLE_WINDOW_GTK_1}
-      function gtk_check_menu_item_new_with_mnemonic(Caption: PChar): PGtkWidget;
-      begin
-       Result := gtk_check_menu_item_new_with_label(
-         PChar(SRemoveMnemonics(Caption)));
-      end;
-
-      function gtk_menu_item_new_with_mnemonic(Caption: PChar): PGtkWidget;
-      begin
-       Result := gtk_menu_item_new_with_label(
-         PChar(SRemoveMnemonics(Caption)));
-      end;
-      {$endif}
 
     var SubMenu: PGtkMenu;
         i: Integer;
@@ -308,10 +278,8 @@ procedure TCastleWindowBase.BackendMenuInitialize;
 
          So it's easier for me just to use normal check menu items
          and only make them look like radios. }
-       {$ifdef CASTLE_WINDOW_GTK_2}
        gtk_check_menu_item_set_draw_as_radio(
          PGtkCheckMenuItem(Result), Entry is TMenuItemRadio);
-       {$endif}
       end else
        Result := PGtkMenuItem(gtk_menu_item_new_with_mnemonic(
          PChar(TMenuItem(Entry).Caption)));
@@ -338,8 +306,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
       SubMenu := NewGtkMenu();
 
       for i := 0 to TMenu(Entry).EntriesCount - 1 do
-       gtk_menu_append(
-         {$ifdef CASTLE_WINDOW_GTK_2} GTK_WIDGET {$endif} (SubMenu),
+       gtk_menu_append(GTK_WIDGET(SubMenu),
          GTK_WIDGET( MenuEntryToGtkMenuItem(TMenu(Entry).Entries[i]) ));
 
       gtk_menu_item_set_submenu(Result, GTK_WIDGET(SubMenu));
@@ -367,8 +334,7 @@ procedure TCastleWindowBase.BackendMenuInitialize;
    for i := 0 to MainMenu.EntriesCount - 1 do
     { Don't put TMenuSeparator in menu bar because that would look ugly. }
     if not (MainMenu.Entries[i] is TMenuSeparator) then
-     gtk_menu_bar_append(
-       {$ifdef CASTLE_WINDOW_GTK_2} GTK_WIDGET {$endif} (MainMenu.Handle),
+     gtk_menu_bar_append(GTK_WIDGET(MainMenu.Handle),
        GTK_WIDGET( MenuEntryToGtkMenuItem(MainMenu.Entries[i]) ));
 
    { How to catch the moment when the menu bar is opened/selected/clicked

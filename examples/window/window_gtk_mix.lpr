@@ -17,9 +17,7 @@
   to put some GTK widgets in window that is still managed
   as simple TCastleWindowBase object from CastleWindow unit.
   CastleWindow must be implemented on top of GTK
-  (CASTLE_WINDOW_GTK_1 or CASTLE_WINDOW_GTK_2) to be able to compile this.
-  You must also define GTK_1 when compiling this unit
-  if CastleWindow is implemented on top of GTK 1.x (CASTLE_WINDOW_GTK_1).
+  (CASTLE_WINDOW_GTK_2) to be able to compile this.
 
   This demo inserts GtkEntry widget into TCastleWindowBase window.
   When user changes text of this entry, OpenGL area displays it.
@@ -28,14 +26,11 @@
   class from OpenGLTTFonts.
 }
 
-{ $define GTK_1}
-
 program window_gtk_mix;
 
 uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, OpenGLFonts, SysUtils,
   VectorMath, CastleUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
-  {$ifdef GTK_1} Gtk, Gdk, Glib {$else} Gtk2, Gdk2, Glib2 {$endif},
-  CastleStringUtils;
+  Gtk2, Gdk2, Glib2, CastleStringUtils;
 
 type
   TMyWindow = class(TCastleWindowDemo)

@@ -13,12 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef CASTLE_WINDOW_GTK_2}
-  {$ifdef DARWIN}
-    {$linklib gdkglext-x11-1.0}
-    {$linklib gtkglext-x11-1.0}
-  {$endif DARWIN}
-{$endif CASTLE_WINDOW_GTK_2}
+{$ifdef DARWIN}
+  {$linklib gdkglext-x11-1.0}
+  {$linklib gtkglext-x11-1.0}
+{$endif DARWIN}
 
 { This contains two very similar CastleWindow backends, both based on GTK.
   One based on GTK 1.x and GtkGLArea,
@@ -26,14 +24,9 @@
 
 {$ifdef read_interface_types}
   { @exclude }
-  PGtkGLArea =
-    {$ifdef CASTLE_WINDOW_GTK_2}
-    { For now I use GtkDrawingArea when CASTLE_WINDOW_GTK_2.
-      But, really, GLAreaGtk could be any gtk widget with CASTLE_WINDOW_GTK_2. }
-    PGtkWidget
-    {$else}
-    GtkGLArea.PGtkGLArea
-    {$endif};
+  { For now I use GtkDrawingArea when CASTLE_WINDOW_GTK_2.
+    But, really, GLAreaGtk could be any gtk widget with CASTLE_WINDOW_GTK_2. }
+  PGtkGLArea = PGtkWidget;
 {$endif read_interface_types}
 
 {$ifdef read_window_interface}
@@ -43,7 +36,6 @@ private
   WindowGtk: PGtkWindow;
   GLAreaGtk: PGtkGLArea;
 
-  {$ifdef CASTLE_WINDOW_GTK_2}
   { These should be always equivalent to
     gtk_widget_get_gl_config(GLAreaGtk),
     gtk_widget_get_gl_context(GLAreaGtk),
@@ -52,13 +44,6 @@ private
   GLConfig: PGdkGLConfig;
   GLContext: PGdkGLContext;
   GLDrawable: PGdkGLDrawable;
-  {$endif}
-
-  {$ifdef CASTLE_WINDOW_GTK_1}
-  { look at implementation of OpenBackend.
-    Value of this is meaningfull only if FullScreen = true. }
-  FullScreenUsingOverrideRedirect: boolean;
-  {$endif}
 
   { These things are inited only when (MainMenu <> nil) and (not Closed). }
   window_vbox: PGtkVBox;
@@ -175,7 +160,6 @@ private
   { Used by SetCursor, each item may be nil if not initialized. }
   Cursors: array [TMouseCursor] of PGdkCursor;
 
-  {$ifdef CASTLE_WINDOW_GTK_2}
   FXDisplayName: string;
 
   InitializeXDisplayDone: boolean;
@@ -195,14 +179,12 @@ private
     TODO: actually, gtk initializes x display at gtk_init time already.
     It looks like --display works only because GTK parses this command-line option too? }
   procedure InitializeXDisplay;
-  {$endif}
 
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE}
   function XDisplay: Xlib.PDisplay;
   function XScreen: Integer;
   {$endif}
 private
-  {$ifdef CASTLE_WINDOW_GTK_2}
   { These functions are only in GTK >= 2.8. For example fink (stable) has only
     GTK 2.6 for now, so we have to be careful and use them only if they can be
     loaded from GTK lib.
@@ -223,16 +205,13 @@ private
     const name: PGChar); cdecl;
 
   LibGtk: TDynLib;
-  {$endif CASTLE_WINDOW_GTK_2}
 public
-  {$ifdef CASTLE_WINDOW_GTK_2}
   { Set XDisplay name, this will be used for all TCastleWindowBase
     that will be subsequently initialized by TCastleWindowBase.Open.
 
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
   property XDisplayName: string read FXDisplayName write FXDisplayName;
-  {$endif}
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -254,10 +233,6 @@ public
   so they are not assigment-compatible. So use our g_false/g_true
   (with underscore) for best results. }
 const
-  {$ifdef CASTLE_WINDOW_GTK_1}
-  gtrue = 1;
-  gfalse = 0;
-  {$endif}
   g_true = LongBool(gtrue);
   g_false = LongBool(gfalse);
 
@@ -273,16 +248,8 @@ begin
   Result := B <> g_false;
 end;
 
-{$ifndef CASTLE_WINDOW_GTK_2} {$I gtk_1_keysyms.inc} {$endif}
 {$I castlewindow_gtk_menu.inc}
 
-{$ifdef MSWINDOWS}
-  {$ifdef CASTLE_WINDOW_GTK_1}
-    {$define CASTLE_WINDOW_GTK_1_MSWINDOWS}
-  {$endif}
-{$endif}
-
-{$ifdef CASTLE_WINDOW_GTK_2}
 { This is mispelled in FPC gtk bindings, see
   [http://www.freepascal.org/bugs/showrec.php3?ID=5112] }
 function gdk_display_open(display_name:Pgchar):PGdkDisplay;
@@ -296,22 +263,8 @@ function gdk_cursor_new_for_display(Display: PGdkDisplay;
 
 function gdk_display_get_default: PGdkDisplay;
   cdecl; external gdklib name 'gdk_display_get_default';
-{$endif}
 
 { gtk, gdk helpers ------------------------------------------------------------ }
-
-{$ifndef CASTLE_WINDOW_GTK_2}
-const
-  { missing from FPC's gdktypes.pp (present in
-    /usr/include/gtk-1.2/gdk/gdktypes.h) }
-  GDK_CURRENT_TIME = 0;
-
-  { Not used in GTK 1, but we use these even for some GTK 1 helpers. }
-  GTK_RESPONSE_NONE = -1;
-  GTK_RESPONSE_REJECT = -2;
-  GTK_RESPONSE_ACCEPT = -3;
-  GTK_RESPONSE_DELETE_EVENT = -4;
-{$endif}
 
 { Converts GDK keysym (from gdkkeysyms.pp, or gdk/gdkkeysym.h) to
   K_Xxx constant (from Keys unit). Returns K_None if no conversion is possible
@@ -338,25 +291,6 @@ begin
   GDK_KEY_BracketLeft: Result := K_LeftBracket;
   GDK_KEY_BracketRight: Result := K_RightBracket;
 
-  (*
-    It seems that Windows gtk (at least GTK 1.3) uses other consts for
-    numpad plus and minus.
-
-    Note: I *cannot* convert here two GDK_xxx codes to one K_xxx
-    code (e.g. write
-      GDK_plus_key, GDK_KP_Add: Result := K_Numpad_Plus;
-    ), this would lead to similiar problems as those described in
-    castlewindow_private_modifiers_down.inc.
-
-    For some time I had here this code:
-      {$ifdef CASTLE_WINDOW_GTK_1_MSWINDOWS} GDK_KEY_plus_key {$else} GDK_KEY_KP_Add {$endif}:
-         Result := K_Numpad_Plus;
-      {$ifdef CASTLE_WINDOW_GTK_1_MSWINDOWS} GDK_KEY_minus {$else} GDK_KEY_KP_Subtract {$endif}:
-         Result := K_Numpad_Minus;
-    but that's a hack only for GTK 1 under Windows
-    (and it collides with checking for K_Minus below),
-    so I removed it.
-  *)
   GDK_KEY_KP_Add: Result := K_Numpad_Plus;
   GDK_KEY_KP_Subtract: Result := K_Numpad_Minus;
 
@@ -558,19 +492,17 @@ SIGNAL_WINDOW_BEGIN
    if Key = K_Enter then
     CharKey := CharEnter else
    {$endif}
-   {$ifdef CASTLE_WINDOW_GTK_2}
    { It seems that GTK 2 doesn't translate backspace and tab to
      appropriate chars. So I'm fixing it here. }
    if Key = K_Tab then
     CharKey := CharTab else
    if Key = K_BackSpace then
     CharKey := CharBackSpace else
-   {$endif}
    { note: testing is Event.Length = 1 not only makes sure that we can
      safely take Event.TheString[0] as a whole CharKey,
      but it also makes sure that this is not something MBCS encoded. }
    if Event^.Length = 1 then
-    CharKey := Event^.{$ifdef CASTLE_WINDOW_GTK_2} _string {$else} TheString {$endif} [0] else
+    CharKey := Event^._string[0] else
     CharKey := #0;
 
    if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
@@ -618,9 +550,7 @@ function signal_button_press_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButto
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
-  Result := PasToGbool(
-    (Event^.{$ifdef CASTLE_WINDOW_GTK_2} _type {$else} TheType {$endif}
-    = GDK_BUTTON_PRESS) and
+  Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
     DoMouseDown(Round(Event^.x), Round(Event^.y), mb);
@@ -630,9 +560,7 @@ function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventBut
   data: gpointer): gboolean; cdecl;
 var mb: TMouseButton;
 SIGNAL_GLAREA_BEGIN
-  Result := PasToGbool(
-    (Event^.{$ifdef CASTLE_WINDOW_GTK_2} _type {$else} TheType {$endif}
-    = GDK_BUTTON_RELEASE) and
+  Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
     DoMouseUp(Round(Event^.x), Round(Event^.y), mb);
@@ -660,16 +588,6 @@ SIGNAL_GLAREA_END;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
-
-  {$ifndef CASTLE_WINDOW_GTK_2}
-  { GTK 2 already defines this function. }
-  function gtk_check_menu_item_get_active(
-    check_menu_item: PGtkCheckMenuItem): gboolean;
-  begin
-    Result := active(PGtkCheckMenuItem(check_menu_item)^) <> 0;
-  end;
-  {$endif}
-
 var MenuItem: TMenuItem;
     Window: TCastleWindowBase;
 begin
@@ -751,7 +669,7 @@ procedure TCastleWindowBase.UpdateCursor;
 
   function CreateNoneCursor: PGdkCursor;
   const
-    Bits: array[0..0] of Guchar = ({$ifdef CASTLE_WINDOW_GTK_2} 0 {$else} #0 {$endif});
+    Bits: array[0..0] of Guchar = (0);
     Color: TGdkColor = (Pixel: 0; Red: 0; Green: 0; Blue: 0);
   var
     Pixmap: PGdkPixmap;
@@ -788,15 +706,8 @@ begin
       mcNone: Application.Cursors[Cursor] := CreateNoneCursor;
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
-      begin
-        Application.Cursors[Cursor] :=
-          {$ifdef CASTLE_WINDOW_GTK_2}
-          gdk_cursor_new_for_display(Application.XDisplayGdk,
-          {$else}
-          gdk_cursor_new(
-          {$endif}
-            GdkCursorTypeFromMy[Cursor]);
-      end;
+        Application.Cursors[Cursor] := gdk_cursor_new_for_display(
+          Application.XDisplayGdk, GdkCursorTypeFromMy[Cursor]);
     end;
   end;
 
@@ -819,11 +730,7 @@ end;
 
 procedure TCastleWindowBase.SwapBuffers;
 begin
- {$ifdef CASTLE_WINDOW_GTK_2}
  gdk_gl_drawable_swap_buffers(GLDrawable);
- {$else}
- gtk_gl_area_swapbuffers(GLAreaGtk);
- {$endif}
 end;
 
 procedure TCastleWindowBase.PostRedisplay;
@@ -864,8 +771,6 @@ procedure TCastleWindowBase.BackendMakeCurrent;
 begin
  Assert(not Closed);
 
- {$ifdef CASTLE_WINDOW_GTK_2}
-
  { When GLAreaGtk is implemented by gdkglwindow-x11 or
    gdkglpixmap-x11 or gdkglwindow-win32:
    gdk_gl_drawable_gl_begin simply calls
@@ -886,9 +791,6 @@ begin
  }
 
  gdk_gl_drawable_gl_begin(GLDrawable, GLContext);
- {$else}
- gtk_gl_area_make_current(GLAreaGtk);
- {$endif}
 end;
 
 function TCastleWindowBase.MakeGLAreaContainer(GLArea: PGtkGLArea): PGtkWidget;
@@ -898,41 +800,7 @@ end;
 
 procedure TCastleWindowBase.OpenBackend;
 
-{ Notes about FullScreen implementation with GTK_1:
-  1) Note that Left/Top and Width/Height will already be initialized before
-     OpenBackend to appropriate values (i.e., the window will cover
-     whole screen).
-
-  2) When FullScreenUsingOverrideRedirect = true
-     I'm implementing FullScreen window the same way as I do it in XLIB
-     implementation: I'm doing override_redirect (using
-     gtk_window_new(GTK_WINDOW_POPUP)) and I'm grabbing keyboard (after
-     gtk_widget_show(WindowGtk), because this requires GDK window
-     "GTK_WIDGET(WindowGtk).Window" initialized ).
-
-     Unfortunately this makes implementing MainMenu impossible.
-     Activating menu bar switches user to new window in X and makes impossible
-     to go back to our window. Our program must be then killed.
-     This is a typical problem with using override_redirect.
-     So we simply cannot give user any menu when we're in FullScreen
-     and FullScreenUsingOverrideRedirect.
-
-  3) If FullScreenUsingOverrideRedirect = false I will use
-       gdk_window_set_decorations(GTK_WIDGET(WindowGtk).Window, 0);
-     instead of using GTK_WINDOW_POPUP and gdk_keyboard_grab.
-     But that is not producing satisfactory results -- things like
-     gnome-panel are covering our fullscreen window. So our "fullscreen window"
-     is not really fullscreen.
-
-     On the other hand,
-     advantage of this is that we're avoiding using override_redirect
-     and so we can show MainMenu.
-
-  So I have two possible implementations for FullScreen. And both of them
-  wrong. In OpenBackend I'm deciding which one to use:
-    FullScreenUsingOverrideRedirect := MainMenu = nil
-
-  How about GTK_2 ?
+{ Notes about FullScreen implementation for GTK_2:
 
   I'm doing fullscreen using gtk_window_fullscreen,
   this tells window manager that I want to be fullscreen
@@ -942,19 +810,6 @@ procedure TCastleWindowBase.OpenBackend;
   with our fullscreen window) and at the same time window is on top
   (it should not be covered by things like gnome-panel).
 }
-
-  {$ifndef CASTLE_WINDOW_GTK_2}
-  { This is already present in GTK 2.x }
-  procedure gtk_window_set_resizable(Window: PGtkWindow; Resizable: gboolean);
-  begin
-   if Resizable then
-    gtk_window_set_policy(Window, 0, 1, 0) else
-    gtk_window_set_policy(Window, 0, 0, 1);
-  end;
-
-  const
-    GDK_GL_ATTRIB_LIST_NONE = GDK_GL_NONE;
-  {$endif}
 
 const
   VBoxSpacing = 2;
@@ -999,23 +854,13 @@ var
 begin
  RedisplayPosted := false; { reset to default value }
 
- {$ifdef CASTLE_WINDOW_GTK_2}
  Application.InitializeXDisplay;
- {$endif}
 
- {$ifdef CASTLE_WINDOW_GTK_1}
- FullScreenUsingOverrideRedirect := MainMenu = nil;
- WindowGtk := PGtkWindow(gtk_window_new(
-   Iff(FullScreen and FullScreenUsingOverrideRedirect,
-     GTK_WINDOW_POPUP, GTK_WINDOW_TOPLEVEL)
-   ) );
- {$else}
  WindowGtk := PGtkWindow(gtk_window_new(GTK_WINDOW_TOPLEVEL));
 
  if (GtkIconName <> '') and
     Assigned(Application.gtk_window_set_icon_name) then
    Application.gtk_window_set_icon_name(WindowGtk, PCharOrNil(GtkIconName));
- {$endif}
 
  gtk_window_set_title(GTK_WINDOW(WindowGtk), PChar(Caption));
  gtk_container_set_border_width(GTK_CONTAINER(WindowGtk), BorderWidth);
@@ -1053,23 +898,14 @@ begin
     GDK_GL_ACCUM_ALPHA_SIZE, AccumBufferBits[3] ]);
 
   if MultiSampling > 1 then
-  begin
-    {$ifdef CASTLE_WINDOW_GTK_2}
     { I guess that gtkglext should internally check for
       glXQueryExtensionsString and GLX_ARB_multisample availability. }
     VisualAttr.AddArray([
       GDK_GL_SAMPLE_BUFFERS, 1,
       GDK_GL_SAMPLES, MultiSampling ]);
-    {$else}
-    { Look like multisampling control is not available with old Gtk GLArea. }
-    ContextNotPossible
-    {$endif}
-  end;
 
   { end of VisualAttr list }
   VisualAttr.Add(GDK_GL_ATTRIB_LIST_NONE);
-
-  {$ifdef CASTLE_WINDOW_GTK_2}
 
   GLConfig := gdk_gl_config_new(PInteger(VisualAttr.List));
   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
@@ -1081,14 +917,6 @@ begin
   if not GboolToPas(gtk_widget_set_gl_capability(GLAreaGtk, GLConfig, nil,
     g_true, GDK_GL_RGBA_TYPE)) then
    ContextNotPossible;
-
-  {$else}
-
-  GLAreaGtk := PGtkGLArea( gtk_gl_area_new(PInteger(VisualAttr.List)) );
-  if GLAreaGtk = nil then
-   ContextNotPossible;
-
-  {$endif}
  finally FreeAndNil(VisualAttr) end;
 
  gtk_widget_show(GTK_WIDGET(GLAreaGtk));
@@ -1114,10 +942,8 @@ begin
    GTK_SIGNAL_FUNC(@signal_button_release_event), nil);
  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'motion_notify_event',
    GTK_SIGNAL_FUNC(@signal_motion_notify_event), nil);
- {$ifdef CASTLE_WINDOW_GTK_2}
  gtk_signal_connect(GTK_OBJECT(GLAreaGtk), 'scroll_event',
    GTK_SIGNAL_FUNC(@signal_scroll_event), nil);
- {$endif}
 
  { connect signal handlers to WindowGtk }
  gtk_widget_set_events(GTK_WIDGET(WindowGtk),
@@ -1175,55 +1001,13 @@ begin
                  set_default_glarea_size
 
     If FullScreen, Width/Height here should be equal to
-    Application.ScreenWidth/Height. But maybe later I will change this in TCastleWindowBase.Open
-    implementation, so I do not want to depend on this. }
+    Application.ScreenWidth/Height. But maybe later I will change this
+    in TCastleWindowBase.Open implementation, so I do not want to depend on this. }
 
-  gtk_widget_set_usize(GTK_WIDGET(WindowGtk),
-    { The correct things to say here are MinWidth, MinHeight.
-      After all, it's gtk_window_set_default_size that should specify
-      full window size. Also, I should take here into account
-      that the fullscreen state of my window may be changed by user
-      using window-manager keys that add or remove decorations from
-      my window and resize it. It means that I can't think of
-      a fullscreen window like "a window that can't be resized".
-      A fulscreen window is a window that merely
-      "initially has fullscreen size and no decorations",
-      but it CAN be changed at runtime by user.
-
-      Unfortunately, I can't express this with GTK_1, with GTK_1
-      I must say here Application.ScreenWidth, Application.ScreenHeight, otherwise
-      GTK_1 seems to just ignore gtk_window_set_default_size and
-      opens fullscreen window with no decorations but
-      with MinWidth, MinHeight size (instead of screen size). }
-    {$ifdef CASTLE_WINDOW_GTK_2} MinWidth, MinHeight
-    {$else} Application.ScreenWidth, Application.ScreenHeight
-    {$endif} );
+  gtk_widget_set_usize(GTK_WIDGET(WindowGtk), MinWidth, MinHeight);
   gtk_window_set_default_size(WindowGtk, Application.ScreenWidth, Application.ScreenHeight);
 
-  {$ifdef CASTLE_WINDOW_GTK_2}
   gtk_window_fullscreen(WindowGtk);
-  {$else}
-
-  { I'm trying to make window non-resizeable when FullScreen
-    (again, no matter what value has ResizeAllowed). This is (probably) not
-    important when I'm implementing FullScreen using override_redirect
-    (it is important when I'm using gdk_window_set_decorations
-    or gtk_window_fullscreen),
-    since override_redirect blocks any interactions between our window
-    and window manager.
-
-    I'm not setting whether window is resizeable
-    when I'm doing FullScreen by gtk_window_fullscreen.
-    In this case window manager should anyway treat my window like that.
-    I should not interfere with this, as such behaviour would
-    make my program beave poorly when user switches fullscreen
-    at runtime *using window manager* (I'm not talking about
-    switching fullscreen using Ctrl+F from my programs but using
-    window manager specific functions, like Alt+BackSpace on my metacity
-    configuration). }
-  gtk_window_set_resizable(WindowGtk, g_false);
-
-  {$endif}
  end else
  begin
   if ResizeAllowed <> raAllowed then
@@ -1233,11 +1017,9 @@ begin
   gtk_window_set_resizable(WindowGtk, ResizeAllowed = raAllowed);
  end;
 
- {$ifdef CASTLE_WINDOW_GTK_2}
  { Honour display (XScreenGdk is default screen on chosen display)
    chosen by user. }
  gtk_window_set_screen(WindowGtk, Application.XScreenGdk);
- {$endif}
 
  if Visible then
  begin
@@ -1271,48 +1053,18 @@ begin
  if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
   raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
 
- {$ifdef CASTLE_WINDOW_GTK_2}
  { These must be inited only when I'm sure that window is realized.
    I checked this even in gtkglext sources:
    yes, gtk_widget_get_gl_drawable and gtk_widget_get_gl_context check
    and always return nil if their widget is not realized. }
  GLDrawable := gtk_widget_get_gl_drawable(GLAreaGtk);
  GLContext := gtk_widget_get_gl_context(GLAreaGtk);
- {$endif}
-
- if FullScreen then
- begin
-  { Note: gtk_window_fullscreen may actually not make our window fullscreen,
-    just like gdk_window_set_decorations is not guaranteed to work
-    under GTK 1, as they both assume that window manager will honour our
-    request. Dummy window managers, or smart window managers that are
-    forced by user to do something, may ignore our requests, or may
-    change our window's decorations/fullscreen state while our program works.
-
-    But that's not a problem for us.
-    We will anyway behave like we are fullscreen,
-    and our DoResize is already prepared for cases where window may
-    be forced to have different size than requested. }
-
-  {$ifdef CASTLE_WINDOW_GTK_1}
-  if FullScreenUsingOverrideRedirect then
-   Check(gdk_keyboard_grab(GTK_WIDGET(WindowGtk)^.Window, 0, GDK_CURRENT_TIME) = 0,
-     'gdk_keyboard_grab was not successful. Try to run this program in windowed '+
-     '(not fullscreen) mode.') else
-   gdk_window_set_decorations(GTK_WIDGET(WindowGtk)^.Window, 0);
-  {$endif}
- end;
 
  UpdateCursor;
 end;
 
 procedure TCastleWindowBase.CloseBackend;
 begin
- {$ifdef CASTLE_WINDOW_GTK_1}
- if FullScreen and FullScreenUsingOverrideRedirect then
-  gdk_keyboard_ungrab(GDK_CURRENT_TIME);
- {$endif}
-
  { Do not unref here GLAreaGtk.
    GLAreaGtk is placed inside WindowGtk when we do
    gtk_container_add(WindowGtk, GLAreaGtk). During gtk_container_add
@@ -1325,18 +1077,12 @@ begin
 
  window_vbox := nil;
 
- {$ifdef CASTLE_WINDOW_GTK_2}
  GLDrawable := nil; { TODO -- unref it ? }
  GLConfig := nil; { TODO -- unref it ? }
- {$endif}
 
  if window_accel_group <> nil then
  begin
-  {$ifdef CASTLE_WINDOW_GTK_2}
   g_object_unref(G_OBJECT(window_accel_group));
-  {$else}
-  gtk_accel_group_unref(window_accel_group);
-  {$endif}
   window_accel_group := nil;
  end;
 
@@ -1511,13 +1257,11 @@ end;
 function TCastleWindowBase.FileDialog(const Title: string; var FileName: string;
   OpenDialog: boolean; FileFilters: TFileFilterList): boolean;
 
-{$ifndef CASTLE_WINDOW_GTK_1}
-  { FileChooser is available only in GTK >= 2.4.
-    We assume that everyone with GTK 2 has also newer GTK 2, >= 2.4. }
-  {$define USE_FILE_CHOOSER}
-{$endif CASTLE_WINDOW_GTK_1}
+{ FileChooser is available only in GTK >= 2.4.
+  We assume that everyone with GTK 2 has also newer GTK 2, >= 2.4.
+  So we just always use GtkFileChooser, old implementation using
+  GtkFileSelection is removed.  }
 
-{$ifdef USE_FILE_CHOOSER}
 var
   HasDefaultFilter: boolean;
 
@@ -1679,22 +1423,6 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-{$else}
-{ Use older GtkFileSelection }
-var
-  Dialog: PGtkFileSelection;
-begin
-  Dialog := PGtkFileSelection(gtk_file_selection_new(PChar(Title)));
-  try
-    gtk_file_selection_set_filename(Dialog, PChar(FileName));
-    Result := GtkDialogRun(PGtkWindow(Dialog),
-      Dialog^.ok_button, Dialog^.cancel_button);
-    if Result then
-      FileName := gtk_file_selection_get_filename(Dialog);
-  finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
-end;
-{$endif}
-
 function TCastleWindowBase.ColorDialog(var Color: TVector3Single): boolean;
 var
   Dialog: PGtkColorSelectionDialog;
@@ -1717,7 +1445,6 @@ begin
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
 end;
 
-{$ifdef CASTLE_WINDOW_GTK_2}
 const
   MessageTypeToGtk: array [TWindowMessageType] of TGtkMessageType =
   ( GTK_MESSAGE_INFO,
@@ -1725,10 +1452,8 @@ const
     GTK_MESSAGE_QUESTION,
     GTK_MESSAGE_ERROR,
     { GTK_MESSAGE_OTHER, missing from FPC bindings } TGtkMessageType(4) );
-{$endif CASTLE_WINDOW_GTK_2}
 
 procedure TCastleWindowBase.MessageOK(const S: string; const MessageType: TWindowMessageType);
-{$ifdef CASTLE_WINDOW_GTK_2}
 var
   Dialog: PGtkMessageDialog;
 begin
@@ -1737,14 +1462,9 @@ begin
   try
     GtkDialogRun(GTK_DIALOG(Dialog));
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
-{$else}
-begin
-  raise Exception.Create('TCastleWindowBase.MessageOK not implemented with GTK 1');
-{$endif}
 end;
 
 function TCastleWindowBase.MessageYesNo(const S: string; const MessageType: TWindowMessageType): boolean;
-{$ifdef CASTLE_WINDOW_GTK_2}
 var
   Dialog: PGtkMessageDialog;
 begin
@@ -1753,11 +1473,6 @@ begin
   try
     Result := GtkDialogRun(GTK_DIALOG(Dialog)) = GTK_RESPONSE_YES;
   finally gtk_widget_destroy(GTK_WIDGET(Dialog)); end;
-{$else}
-begin
-  Result := false;
-  raise Exception.Create('TCastleWindowBase.MessageYesNo not implemented with GTK 1');
-{$endif}
 end;
 
 { TGLApplication ------------------------------------------------------------- }
@@ -2002,13 +1717,9 @@ begin
   gtk_init(@argc, @argv);
   {$endif}
 
-  {$ifdef CASTLE_WINDOW_GTK_2}
   gtk_gl_init(@argc, @argv);
-  {$endif}
 
   QuitPosted := false;
-
-{$ifdef CASTLE_WINDOW_GTK_2}
 
   { These are available only in GTK 2.8.
     We want to cooperate even with GTK 2.6 (in Mac OS X fink stable),
@@ -2027,8 +1738,6 @@ begin
     Pointer(gtk_window_set_icon_name) := LibGtk.Symbol('gtk_window_set_icon_name');
     Pointer(gtk_window_set_default_icon_name) := LibGtk.Symbol('gtk_window_set_default_icon_name');
   end;
-
-{$endif CASTLE_WINDOW_GTK_2}
 end;
 
 procedure TGLApplication.DestroyBackend;
@@ -2039,19 +1748,15 @@ begin
   for C := Low(C) to High(C) do
     if Cursors[C] <> nil then
     begin
-      {$ifdef CASTLE_WINDOW_GTK_2}
       gdk_cursor_unref(Cursors[C]);
-      {$endif}
       Cursors[C] := nil;
     end;
 
-{$ifdef CASTLE_WINDOW_GTK_2}
   FreeAndNil(LibGtk);
   gtk_file_chooser_get_do_overwrite_confirmation := nil;
   gtk_file_chooser_set_do_overwrite_confirmation := nil;
   gtk_window_set_icon_name := nil;
   gtk_window_set_default_icon_name := nil;
-{$endif CASTLE_WINDOW_GTK_2}
 end;
 
 { When CASTLE_WINDOW_USE_XF86VMODE, then castlewindow_xf86vmode.inc
@@ -2059,28 +1764,20 @@ end;
 {$ifndef CASTLE_WINDOW_USE_XF86VMODE}
 function TGLApplication.ScreenWidth: integer;
 begin
-  {$ifdef CASTLE_WINDOW_GTK_2}
   InitializeXDisplay;
   Result := gdk_screen_get_width(XScreenGdk);
-  {$else}
-  Result := gdk_screen_width();
-  {$endif}
 end;
 
 function TGLApplication.ScreenHeight: integer;
 begin
-  {$ifdef CASTLE_WINDOW_GTK_2}
   InitializeXDisplay;
   Result := gdk_screen_get_height(XScreenGdk);
-  {$else}
-  Result := gdk_screen_height();
-  {$endif}
 end;
 {$endif CASTLE_WINDOW_USE_XF86VMODE}
 
 function TGLApplication.BackendName: string;
 begin
-  Result := {$ifdef CASTLE_WINDOW_GTK_2} 'GTK+' {$else} 'GTK+ 1.x' {$endif};
+  Result := 'GTK+';
 end;
 
 {$ifdef CASTLE_WINDOW_USE_XF86VMODE}
@@ -2097,7 +1794,6 @@ begin
 end;
 {$endif}
 
-{$ifdef CASTLE_WINDOW_GTK_2}
 procedure TGLApplication.InitializeXDisplay;
 begin
   if not InitializeXDisplayDone then
@@ -2111,6 +1807,5 @@ begin
     InitializeXDisplayDone := true;
   end;
 end;
-{$endif CASTLE_WINDOW_GTK_2}
 
 {$endif read_implementation}
