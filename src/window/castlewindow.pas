@@ -527,7 +527,10 @@ interface
 
 uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_GLUT} {$ifdef FPC_GLUT_UNIT} FreeGlut, Glut, {$else} CastleGlut, {$endif} {$endif}
-  {$ifdef CASTLE_WINDOW_WINAPI} Windows, {$endif}
+  {$ifdef CASTLE_WINDOW_WINAPI} Windows,
+    { In FPC < 2.2.2, CommDlg stuff was inside Windows unit. }
+    {$ifndef VER2_2_0} {$ifndef VER2_0_0} CommDlg, {$endif} {$endif}
+  {$endif}
   {$ifdef CASTLE_WINDOW_XLIB} Xlib, XlibUtils, XUtil, X, KeySym, CursorFont, CastleGlx, {$endif}
   {$ifdef CASTLE_WINDOW_USE_XF86VMODE} CastleXF86VMode, {$endif}
   {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB} Gdk2X, X, Xlib, {$endif}
