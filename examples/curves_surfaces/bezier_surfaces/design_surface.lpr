@@ -194,7 +194,7 @@ begin
   StatusFont.PrintStrings(
     [ Format('Surface X segments: %d', [SurfaceXSegments]),
       Format('Surface Y segments: %d', [SurfaceYSegments]) ],
-    5, 10, 10);
+    false, 5, 10, 10);
 end;
 
 procedure Draw(Window: TCastleWindowBase);

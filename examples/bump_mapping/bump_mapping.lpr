@@ -979,7 +979,7 @@ begin
     S.Append(Format('Emboss alpha multiply by blending: %s',
       [BoolToStr[EmbossAlphaMultiplyByBlending]]));
 
-    Font.PrintStrings(S, 0, 5, 5);
+    Font.PrintStrings(S, false, 0, 5, 5);
 
     FreeAndNil(S);
   glPopAttrib;

@@ -105,7 +105,15 @@ type
     { @groupEnd }
 
     { Largest width of the line of text in given list.
-      Tags has the same meaning as for PrintStrings. }
+
+      @param(Tags Indicates that strings inside SList use HTML-like
+        tags, the same as interpreted by PrintStrings.
+        If your SList uses these tags (for example, you plan to call later
+        PrintStrings with the same SList and Tags = @true) then make
+        sure you pass Tags = @true to this method.
+        Otherwise, MaxTextWidth will treat tags text (like @code(<font ...>))
+        like a normal text, usually making the width incorrectly large.)
+    }
     function MaxTextWidth(SList: TStringList; const Tags: boolean = false): integer;
 
     { Print all strings from the list.

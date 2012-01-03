@@ -71,7 +71,7 @@ const
         Strs.Append('Video not loaded');
 
       glColorv(Yellow3Single);
-      StatusFont.PrintStrings(Strs, 0, 10,
+      StatusFont.PrintStrings(Strs, false, 0, 10,
         Window.Height - StatusFont.RowHeight * Strs.Count - TimeBarHeight - 4);
     finally FreeAndNil(Strs) end;
   end;
