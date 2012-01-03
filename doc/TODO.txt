@@ -1112,7 +1112,12 @@ Various:
   At least it doesn't seem like FPC bug.
   This is seen on kocury. Not present on chantal? Check. Maybe some nvidia bug?
 
-- port fully to win64, I have czerwony laptop
+- Release binaries for win64 some day?
+  All our binaries tested and work on win64, snapshots done for win64.
+  It remains to get external libs (libpng, zlib etc.) for win64 and package them.
+  For now, postponed --- no need to, as our 32-bit releases work on win64
+  flawlessly too, with the same speed?
+  Unless someone wants it (speak up on forum!).
 
 - try do limit fps by vsync, like ogre does
   http://www.ogre3d.org/docs/api/html/classOgre_1_1Root.html#Ogre_1_1Roota34 :
