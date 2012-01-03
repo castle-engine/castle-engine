@@ -62,7 +62,7 @@ begin
     S.Append(Format('Creature state : %s', [CreatureStateName[Creature.State]]));
 
     StatusFont.PrintStringsBox(S, 0,
-      Black4Single, Green4Single, Yellow4Single, nil, 5);
+      Black4Single, Green4Single, Yellow4Single, 5);
   finally S.Free end;
 end;
 

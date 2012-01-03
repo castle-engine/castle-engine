@@ -332,7 +332,7 @@ begin
   Font.PrintStringsBox([Tooltip], 0,
     Vector4Single(TooltipInsideColor, 255),
     Vector4Single(TooltipBorderColor, 255),
-    Vector4Single(TooltipTextColor, 255), nil, 5);
+    Vector4Single(TooltipTextColor, 255), 5);
 end;
 
 procedure TUIControlFont.GLContextOpen;

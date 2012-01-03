@@ -174,8 +174,7 @@ type
       the lines to be more tightly squeezed (if negative). Always make
       sure that (RowHeight + BonusVerticalSpace) > 0.
 
-      The box background inside has color InsideCol and stipple (pattern)
-      given by the Stipple parameter (or no stipple, if @nil). The box frame
+      The box background inside has color InsideCol. The box frame
       has color BorderCol. The text has color TextCol.
 
       BoxPixelMargin is the distance (in pixels) between text and the box
@@ -191,10 +190,10 @@ type
 
       @groupBegin }
     procedure PrintStringsBox(const strs: array of string; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
+      const InsideCol, BorderCol, TextCol: TVector4f;
       BoxPixelMargin: integer); overload;
     procedure PrintStringsBox(strs: TStringList; BonusVerticalSpace: TGLint;
-      const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
+      const InsideCol, BorderCol, TextCol: TVector4f;
       BoxPixelMargin: integer); overload;
     { @groupEnd }
   end;
@@ -404,19 +403,19 @@ end;
 
 procedure TGLBitmapFont_Abstract.PrintStringsBox(
   strs: TStringList; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
+  const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 begin
   DrawGLBorderedRectangle(0, 0, MaxTextWidth(Strs) + 2 * BoxPixelMargin,
     (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
-    InsideCol, BorderCol, Stipple);
+    InsideCol, BorderCol);
   glColorv(TextCol);
   PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
 end;
 
 procedure TGLBitmapFont_Abstract.PrintStringsBox(
   const strs: array of string; BonusVerticalSpace: TGLint;
-  const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
+  const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 var
   slist: TStringList;
@@ -425,7 +424,7 @@ begin
   try
     AddStrArrayToStrings(strs, slist);
     PrintStringsBox(slist, BonusVerticalSpace,
-      InsideCol, BorderCol, TextCol, Stipple, BoxPixelMargin);
+      InsideCol, BorderCol, TextCol, BoxPixelMargin);
   finally slist.Free end;
 end;
 
