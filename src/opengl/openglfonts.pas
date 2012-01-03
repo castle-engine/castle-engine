@@ -181,9 +181,9 @@ type
       BoxPixelMargin is the distance (in pixels) between text and the box
       frame.
 
-      XPixelsRes say how many pixels correspond to moving by 1 unit
-      (in modelview matrix). Analogous for YPixelsRes. Usually these are
-      just 1.
+      We assume that moving by 1 in modelview matrix is equal to moving 1 pixel.
+      In other words, we assume you have normal 2D orthographic projection with
+      the dimensions equal to pixel dimensions.
 
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
@@ -192,10 +192,10 @@ type
       @groupBegin }
     procedure PrintStringsBox(const strs: array of string; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
-      BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
+      BoxPixelMargin: integer); overload;
     procedure PrintStringsBox(strs: TStringList; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
-      BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat); overload;
+      BoxPixelMargin: integer); overload;
     { @groupEnd }
   end;
 
@@ -405,19 +405,10 @@ end;
 procedure TGLBitmapFont_Abstract.PrintStringsBox(
   strs: TStringList; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
-  BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat);
-var
-  Y2: Integer;
+  BoxPixelMargin: integer);
 begin
-  { You can't calculate full Y2 / YPixelsRes in one expression,
-    FPC 2.2.0 under x86_64 will calculate something random then.
-    Submittted as
-    [http://www.freepascal.org/mantis/view.php?id=9893] }
-  Y2 := (RowHeight + BonusVerticalSpace) * Strs.Count +
-    2 * BoxPixelMargin + Descend;
-  DrawGLBorderedRectangle(0, 0,
-    (MaxTextWidth(Strs) + 2 * BoxPixelMargin) / XPixelsRes,
-    Y2 / YPixelsRes,
+  DrawGLBorderedRectangle(0, 0, MaxTextWidth(Strs) + 2 * BoxPixelMargin,
+    (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
     InsideCol, BorderCol, Stipple);
   glColorv(TextCol);
   PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
@@ -426,7 +417,7 @@ end;
 procedure TGLBitmapFont_Abstract.PrintStringsBox(
   const strs: array of string; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f; Stipple: PPolygonStipple;
-  BoxPixelMargin: integer; const XPixelsRes, YPixelsRes: TGLfloat);
+  BoxPixelMargin: integer);
 var
   slist: TStringList;
 begin
@@ -434,8 +425,7 @@ begin
   try
     AddStrArrayToStrings(strs, slist);
     PrintStringsBox(slist, BonusVerticalSpace,
-      InsideCol, BorderCol, TextCol, Stipple,
-      BoxPixelMargin, XPixelsRes, YPixelsRes);
+      InsideCol, BorderCol, TextCol, Stipple, BoxPixelMargin);
   finally slist.Free end;
 end;
 

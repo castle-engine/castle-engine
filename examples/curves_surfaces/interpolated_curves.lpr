@@ -184,7 +184,7 @@ begin
       S.Append(Format('  Control points count = %d', [ApproxCurveControlPointsCount]));
       S.Append(Format('Rendering segments = %d', [CurvesRenderSegments]));
       StatusFont.PrintStringsBox(S, 0, Vector4Single(0.2, 0.2, 0.2, 1),
-        Black4Single, Yellow4Single, @HalftoneStipple, 5, 1, 1);
+        Black4Single, Yellow4Single, @HalftoneStipple, 5);
     finally S.Free end;
   end;
 end;
