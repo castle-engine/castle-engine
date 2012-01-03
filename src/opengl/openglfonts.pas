@@ -122,12 +122,28 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position.
+
+      @param(Tags Enable some HTML-like tags to mark font changes inside the text.
+        For now, these can only be used to surround whole lines
+        (so you have to place opening tag at the beginnig of line,
+        and closing tag at the end of line).
+        And for now, the only tag handled is @code(<font color="#rrggbb">)
+        that changes line color to specified RGB.
+        Close with @code(</font>).
+
+        This functionality may be enhanced in the future (feature requests
+        and patches welcome). Don't expect full HTML implementation inside,
+        but some small set of useful tags may be doable and comfortable to use.
+        Not necessarily replicating some (old version of) HTML standard.
+      )
+
       @groupBegin }
     procedure PrintStrings(strs: TStrings;
-      BonusVerticalSpace: TGLint;
+      const Tags: boolean; BonusVerticalSpace: TGLint;
       const RasterX0: Integer = 0;
       const RasterY0: Integer = 0); overload;
     procedure PrintStrings(const strs: array of string;
+      const Tags: boolean;
       BonusVerticalSpace: TGLint;
       const RasterX0: Integer = 0;
       const RasterY0: Integer = 0); overload;
@@ -138,7 +154,9 @@ type
       so the original newlines insides are correctly used,
       and the length of lines fits inside MaxLineWidth.
 
-      The strings are printed on the string, just like by PrintStrings.
+      The strings are printed on the screen, just like by PrintStrings
+      (with Tags = always false for now, since our string breaking cannot
+      omit tags).
       If RasterPositionsFirst then the RasterX0, RasterY0 determine
       the position of the first (top) line, otherwise they determine
       the position of the last (bottom) line.
@@ -189,10 +207,12 @@ type
       Doesn't modify any OpenGL state or matrix, except it modifies the raster position.
 
       @groupBegin }
-    procedure PrintStringsBox(const strs: array of string; BonusVerticalSpace: TGLint;
+    procedure PrintStringsBox(const strs: array of string;
+      const Tags: boolean; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f;
       BoxPixelMargin: integer); overload;
-    procedure PrintStringsBox(strs: TStringList; BonusVerticalSpace: TGLint;
+    procedure PrintStringsBox(strs: TStringList;
+      const Tags: boolean; BonusVerticalSpace: TGLint;
       const InsideCol, BorderCol, TextCol: TVector4f;
       BoxPixelMargin: integer); overload;
     { @groupEnd }
@@ -239,7 +259,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleClassUtils, CastleStringUtils;
+uses CastleUtils, CastleClassUtils, CastleStringUtils, VectorMath;
 
 { TGLBitmapFont_Abstract ------------------------------------------------------}
 
@@ -357,31 +377,110 @@ begin
   end;
 end;
 
-procedure TGLBitmapFont_Abstract.PrintStrings(const strs: array of string;
-  BonusVerticalSpace: TGLint;
+procedure TGLBitmapFont_Abstract.PrintStrings(const Strs: array of string;
+  const Tags: boolean; BonusVerticalSpace: TGLint;
   const RasterX0: Integer = 0; const RasterY0: Integer = 0);
 var
-  I, H: integer;
+  SList: TStringList;
 begin
-  H := High(strs);
-  for i := 0 to High(strs) do
-  begin
-    glRasterPos2i(RasterX0, (H-i) * (RowHeight + BonusVerticalSpace) + RasterY0);
-    PrintAndMove(strs[i]);
-  end;
+  SList := TStringList.Create;
+  try
+    AddStrArrayToStrings(Strs, SList);
+    PrintStrings(SList, Tags, BonusVerticalSpace, RasterX0, RasterY0);
+  finally SList.Free end;
 end;
 
 procedure TGLBitmapFont_Abstract.PrintStrings(strs: TStrings;
-  BonusVerticalSpace: TGLint;
+  const Tags: boolean; BonusVerticalSpace: TGLint;
   const RasterX0: Integer = 0; const RasterY0: Integer = 0);
 var
-  I, H: integer;
-begin
-  H := strs.Count-1;
-  for i := 0 to H do
+  Line: Integer;
+
+  procedure SetRaster;
   begin
-    glRasterPos2i(RasterX0, (H-i) * (RowHeight + BonusVerticalSpace) + RasterY0);
-    PrintAndMove(strs[i]);
+    glRasterPos2i(RasterX0,
+      (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + RasterY0);
+  end;
+
+  procedure HandleTags(const S: string);
+
+    function ExtractColor(const S: string; P: Integer; out Color: TVector3Single): boolean;
+    const
+      HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
+    begin
+      Result := (S[P    ] in HexDigits) and
+                (S[P + 1] in HexDigits) and
+                (S[P + 2] in HexDigits) and
+                (S[P + 3] in HexDigits) and
+                (S[P + 4] in HexDigits) and
+                (S[P + 5] in HexDigits);
+      if Result then
+      begin
+        Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
+        Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
+        Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
+      end;
+    end;
+
+    { Is SubText present inside Text on position P.
+      Secure for all lengths and values of position (that is, will answer
+      false if P is <= 0 or P is too large and some part of SubText would
+      be outside S). }
+    function SubStringMatch(const SubText, Text: string; P: Integer): boolean;
+    var
+      I: Integer;
+    begin
+      Result := (P >= 1) and
+                (P <= { signed } Integer(Length(Text)) - Length(SubText) + 1);
+      if Result then
+        for I := 1 to Length(SubText) do
+        begin
+          if SubText[I] <> Text[P] then Exit(false);
+          Inc(P);
+        end;
+    end;
+
+  const
+    SFontColorBegin1 = '<font color="#';
+    SFontColorBegin2 = '">';
+    SFontEnd = '</font>';
+  var
+    Color: TVector3Single;
+  begin
+    if { first check something most likely to fail, for speed }
+       SCharIs(S, 1, '<') and
+       SubStringMatch(SFontColorBegin1, S, 1) and
+       ExtractColor(S, Length(SFontColorBegin1) + 1, Color) and
+       SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + 7) and
+       SubStringMatch(SFontEnd, S, Length(S) - Length(SFontEnd) + 1) then
+    begin
+      glPushAttrib(GL_CURRENT_BIT);
+        { glColor must be before glRasterPos to have proper effect.
+          It will be correctly saved/restored by glPush/PopAttrib,
+          as docs say that GL_CURRENT_BIT saves
+          "RGBA color associated with current raster position". }
+        glColorv(Color);
+        SetRaster;
+        PrintAndMove(CopyPos(S,
+          Length(SFontColorBegin1) + Length(SFontColorBegin2) + 7,
+          Length(S) - Length(SFontEnd)));
+      glPopAttrib;
+    end else
+    begin
+      SetRaster;
+      PrintAndMove(S);
+    end;
+  end;
+
+begin
+  for Line := 0 to Strs.Count - 1 do
+  begin
+    if Tags then
+      HandleTags(Strs[Line]) else
+    begin
+      SetRaster;
+      PrintAndMove(Strs[Line]);
+    end;
   end;
 end;
 
@@ -396,13 +495,13 @@ begin
     BreakLines(s, broken, MaxLineWidth);
     if RasterPositionsFirst then
       RasterY0 -= (broken.Count-1)*(RowHeight + BonusVerticalSpace);
-    PrintStrings(broken, BonusVerticalSpace, RasterX0, RasterY0);
+    PrintStrings(broken, false, BonusVerticalSpace, RasterX0, RasterY0);
     result := broken.Count;
   finally broken.Free end;
 end;
 
 procedure TGLBitmapFont_Abstract.PrintStringsBox(
-  strs: TStringList; BonusVerticalSpace: TGLint;
+  strs: TStringList; const Tags: boolean; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 begin
@@ -410,11 +509,11 @@ begin
     (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
     InsideCol, BorderCol);
   glColorv(TextCol);
-  PrintStrings(strs, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
+  PrintStrings(strs, Tags, BonusVerticalSpace, BoxPixelMargin, BoxPixelMargin + Descend);
 end;
 
 procedure TGLBitmapFont_Abstract.PrintStringsBox(
-  const strs: array of string; BonusVerticalSpace: TGLint;
+  const strs: array of string; const Tags: boolean; BonusVerticalSpace: TGLint;
   const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 var
@@ -423,7 +522,7 @@ begin
   slist := TStringList.Create;
   try
     AddStrArrayToStrings(strs, slist);
-    PrintStringsBox(slist, BonusVerticalSpace,
+    PrintStringsBox(slist, Tags, BonusVerticalSpace,
       InsideCol, BorderCol, TextCol, BoxPixelMargin);
   finally slist.Free end;
 end;

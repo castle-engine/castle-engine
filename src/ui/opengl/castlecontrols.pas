@@ -329,7 +329,7 @@ begin
   MaxTo1st(Y, 0);
 
   glTranslatef(X, Y, 0);
-  Font.PrintStringsBox([Tooltip], 0,
+  Font.PrintStringsBox([Tooltip], false, 0,
     Vector4Single(TooltipInsideColor, 255),
     Vector4Single(TooltipBorderColor, 255),
     Vector4Single(TooltipTextColor, 255), 5);

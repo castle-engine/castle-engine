@@ -175,15 +175,16 @@ begin
 
     S := TStringList.Create;
     try
+      { TODO: ToString not implemented yet.
       S.Append('Precise curve:');
-      S.Append(Format('  x(t) = %s', ['(ToString not impl)'{PreciseCurve.XFunction.ToString}]));
-      S.Append(Format('  y(t) = %s', ['(ToString not impl)'{PreciseCurve.YFunction.ToString}]));
-      S.Append(Format('  z(t) = %s', ['(ToString not impl)'{PreciseCurve.ZFunction.ToString}]));
+      S.Append(Format('  x(t) = %s', [PreciseCurve.XFunction.ToString]));
+      S.Append(Format('  y(t) = %s', [PreciseCurve.YFunction.ToString]));
+      S.Append(Format('  z(t) = %s', [PreciseCurve.ZFunction.ToString])); }
       S.Append('Approximating curve:');
       S.Append(Format('  Class = %s', [ApproxCurveClass.NiceClassName]));
       S.Append(Format('  Control points count = %d', [ApproxCurveControlPointsCount]));
       S.Append(Format('Rendering segments = %d', [CurvesRenderSegments]));
-      StatusFont.PrintStringsBox(S, 0, Vector4Single(0.1, 0.1, 0.1, 1),
+      StatusFont.PrintStringsBox(S, false, 0, Vector4Single(0.1, 0.1, 0.1, 1),
         Black4Single, Yellow4Single, 5);
     finally S.Free end;
   end;
