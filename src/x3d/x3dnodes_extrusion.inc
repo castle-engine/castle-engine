@@ -26,6 +26,7 @@ type
     FHigh: Integer;
     FNode: TExtrusionNode;
     FSpineClosed, FCrossSectionClosed: boolean;
+    FCrossSectionOmit: Cardinal;
     FBeginEndCapsMatching: boolean;
     procedure SetNode(Value: TExtrusionNode);
   public
@@ -50,6 +51,13 @@ type
     property SpineClosed: boolean read FSpineClosed;
     property CrossSectionClosed: boolean read FCrossSectionClosed;
     { @groupEnd }
+
+    { If we should omit a first (or last) vertex when rendering caps,
+      this is 1, otherwise it is 0.
+      When crossSection is closed, we really should do it,
+      otherwise our concave triangulation may get confused ---
+      see extrusion_concave_cap.wrl testcase. }
+    property CrossSectionOmit: Cardinal read FCrossSectionOmit;
 
     { Are begin and end caps at the same place.
 
@@ -123,6 +131,10 @@ begin
 
   FSpineClosed := Node.SpineClosed;
   FCrossSectionClosed := Node.CrossSectionClosed;
+
+  if FCrossSectionClosed then
+    FCrossSectionOmit := 1 else
+    FCrossSectionOmit := 0;
 
   if SpineClosed then
   begin

@@ -289,9 +289,9 @@ begin
     if FdCrossSection.Count >= 2 then
     begin
       if FdBeginCap.Value then
-        Result += Cardinal(FdCrossSection.Count) - 2;
+        Result += Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0);
       if FdEndCap.Value then
-        Result += Cardinal(FdCrossSection.Count) - 2;
+        Result += Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0);
     end;
   finally FreeAndNil(E) end;
 end;

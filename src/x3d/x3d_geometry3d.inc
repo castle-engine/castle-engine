@@ -1033,9 +1033,9 @@ begin
 
       Len := 5 * E.High * (FdCrossSection.Count - 1);
       if FdBeginCap.Value then
-        Len += FdCrossSection.Count + 1;
-      if FdEndCap  .Value then
-        Len += FdCrossSection.Count + 1;
+        Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
+      if FdEndCap.Value then
+        Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
       IFS.FdCoordIndex.Items.Count := Len;
       IFS.FdTexCoordIndex.Items.Count := Len;
 
@@ -1068,14 +1068,14 @@ begin
       begin
         { "downto" order, to match the ordering of sides, this makes
           things such a "solid TRUE" work Ok. }
-        for J := FdCrossSection.Count - 1 downto 0 do
+        for J := FdCrossSection.Count - 1 downto E.CrossSectionOmit do
           NextIndex(0, J, true, SidesCount + J);
         NextIndexFaceDelimiter;
       end;
 
       if FdEndCap.Value then
       begin
-        for J := 0 to FdCrossSection.Count - 1 do
+        for J := E.CrossSectionOmit to FdCrossSection.Count - 1 do
           NextIndex(E.High, J, true, SidesCount + J);
         NextIndexFaceDelimiter;
       end;
