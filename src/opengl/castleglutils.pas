@@ -646,19 +646,9 @@ procedure HorizontalGLLine(x1, x2, y: TGLfloat);
   Requires one attrib stack place, because it makes sure
   that polygon mode FRONT_AND_BACK is GL_FILL.
 
-  Changes OpenGL current color.
-
-  Overloaded version with a Stipple parameter sets this stipple.
-  If Stipple <> nil, then GL_POLYGON_STIPPLE will be enabled
-  and set by glPolygonStipple. If Stipple = nil, then GL_POLYGON_STIPPLE
-  will be disabled. Requires one more attrib stack place.
-
-  @groupBegin }
+  Changes OpenGL current color. }
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
-  const InsideCol, BorderCol: TVector4f); overload;
-procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
-  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple); overload;
-{ @groupEnd }
+  const InsideCol, BorderCol: TVector4f);
 
 { Draw rectangle border.
   The vertex order is the same as for glRectf.
@@ -1559,39 +1549,16 @@ begin
   glBegin(GL_LINES); glVertex2f(x1, y); glVertex2f(x2, y); glEnd;
 end;
 
-{$define DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION:=
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); (* this changes GL_POLYGON_BIT attrib *)
-  glColorv(InsideCol);
-  glRectf(x1, y1, x2, y2);
-  glColorv(BorderCol);
-  DrawGLRectBorder(x1, y1, x2, y2);
-}
-
 procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
   const InsideCol, BorderCol: TVector4f);
 begin
   glPushAttrib(GL_POLYGON_BIT);
-    DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // saved by GL_POLYGON_BIT attrib
+    glColorv(InsideCol);
+    glRectf(x1, y1, x2, y2);
+    glColorv(BorderCol);
+    DrawGLRectBorder(x1, y1, x2, y2);
   glPopAttrib;
-end;
-
-procedure DrawGLBorderedRectangle(const x1, y1, x2, y2: TGLfloat;
-  const InsideCol, BorderCol: TVector4f; Stipple: PPolygonStipple);
-begin
-  if Stipple <> nil then
-  begin
-    glPushAttrib(GL_POLYGON_STIPPLE_BIT or GL_POLYGON_BIT);
-      CastleGLPolygonStipple(Stipple);
-      glEnable(GL_POLYGON_STIPPLE);
-      DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
-    glPopAttrib;
-  end else
-  begin
-    glPushAttrib(GL_POLYGON_BIT);
-      glDisable(GL_POLYGON_STIPPLE);
-      DRAW_GL_BORD_RECT_NO_PUSHPOP_IMPLEMENTATION
-    glPopAttrib;
-  end;
 end;
 
 procedure DrawGLRectBorder(const x1, y1, x2, y2: TGLfloat);
