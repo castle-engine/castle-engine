@@ -104,8 +104,9 @@ type
     procedure BreakLines(broken: TStrings; maxLineWidth: integer; FirstToBreak: integer); overload;
     { @groupEnd }
 
-    { Largest width of the line of text in given list. }
-    function MaxTextWidth(slist: TStringList): integer;
+    { Largest width of the line of text in given list.
+      Tags has the same meaning as for PrintStrings. }
+    function MaxTextWidth(SList: TStringList; const Tags: boolean = false): integer;
 
     { Print all strings from the list.
       glRasterPos2i(RasterX0, RasterY0) is the position of the last string,
@@ -261,6 +262,67 @@ implementation
 
 uses CastleUtils, CastleClassUtils, CastleStringUtils, VectorMath;
 
+function HandleTags(const S: string;
+  out ColorChange: boolean; out Color: TVector3Single): string;
+
+  function ExtractColor(const S: string; P: Integer; out Color: TVector3Single): boolean;
+  const
+    HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
+  begin
+    Result := (S[P    ] in HexDigits) and
+              (S[P + 1] in HexDigits) and
+              (S[P + 2] in HexDigits) and
+              (S[P + 3] in HexDigits) and
+              (S[P + 4] in HexDigits) and
+              (S[P + 5] in HexDigits);
+    if Result then
+    begin
+      Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
+      Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
+      Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
+    end;
+  end;
+
+  { Is SubText present inside Text on position P.
+    Secure for all lengths and values of position (that is, will answer
+    false if P is <= 0 or P is too large and some part of SubText would
+    be outside S). }
+  function SubStringMatch(const SubText, Text: string; P: Integer): boolean;
+  var
+    I: Integer;
+  begin
+    Result := (P >= 1) and
+              (P <= { signed } Integer(Length(Text)) - Length(SubText) + 1);
+    if Result then
+      for I := 1 to Length(SubText) do
+      begin
+        if SubText[I] <> Text[P] then Exit(false);
+        Inc(P);
+      end;
+  end;
+
+const
+  SFontColorBegin1 = '<font color="#';
+  SFontColorBegin2 = '">';
+  SFontEnd = '</font>';
+begin
+  ColorChange :=
+    { first check something most likely to fail, for speed }
+    SCharIs(S, 1, '<') and
+    SubStringMatch(SFontColorBegin1, S, 1) and
+    ExtractColor(S, Length(SFontColorBegin1) + 1, Color) and
+    SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + 7) and
+    SubStringMatch(SFontEnd, S, Length(S) - Length(SFontEnd) + 1);
+
+  if ColorChange then
+  begin
+    Result := CopyPos(S,
+      Length(SFontColorBegin1) + Length(SFontColorBegin2) + 7,
+      Length(S) - Length(SFontEnd));
+  end else
+    Result := S;
+end;
+
 { TGLBitmapFont_Abstract ------------------------------------------------------}
 
 procedure TGLBitmapFont_Abstract.Print(const s: string);
@@ -365,15 +427,22 @@ begin
   end;
 end;
 
-function TGLBitmapFont_Abstract.MaxTextWidth(slist: TStringList): integer;
+function TGLBitmapFont_Abstract.MaxTextWidth(SList: TStringList;
+  const Tags: boolean): Integer;
 var
-  i, linew: integer;
+  I, LineW: integer;
+  DummyColorChange: boolean;
+  DummyColor: TVector3Single;
+  S: string;
 begin
   result := 0;
   for i := 0 to slist.Count-1 do
   begin
-    linew := TextWidth(slist[i]);
-    if linew > result then result := linew;
+    S := SList[i];
+    if Tags then
+      S := HandleTags(S, DummyColorChange, DummyColor);
+    LineW := TextWidth(S);
+    if LineW > result then result := LineW;
   end;
 end;
 
@@ -402,84 +471,37 @@ var
       (Strs.Count - 1 - Line) * (RowHeight + BonusVerticalSpace) + RasterY0);
   end;
 
-  procedure HandleTags(const S: string);
-
-    function ExtractColor(const S: string; P: Integer; out Color: TVector3Single): boolean;
-    const
-      HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
-    begin
-      Result := (S[P    ] in HexDigits) and
-                (S[P + 1] in HexDigits) and
-                (S[P + 2] in HexDigits) and
-                (S[P + 3] in HexDigits) and
-                (S[P + 4] in HexDigits) and
-                (S[P + 5] in HexDigits);
-      if Result then
-      begin
-        Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
-        Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
-        Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
-      end;
-    end;
-
-    { Is SubText present inside Text on position P.
-      Secure for all lengths and values of position (that is, will answer
-      false if P is <= 0 or P is too large and some part of SubText would
-      be outside S). }
-    function SubStringMatch(const SubText, Text: string; P: Integer): boolean;
-    var
-      I: Integer;
-    begin
-      Result := (P >= 1) and
-                (P <= { signed } Integer(Length(Text)) - Length(SubText) + 1);
-      if Result then
-        for I := 1 to Length(SubText) do
-        begin
-          if SubText[I] <> Text[P] then Exit(false);
-          Inc(P);
-        end;
-    end;
-
-  const
-    SFontColorBegin1 = '<font color="#';
-    SFontColorBegin2 = '">';
-    SFontEnd = '</font>';
-  var
-    Color: TVector3Single;
+var
+  S: string;
+  ColorChange: boolean;
+  Color: TVector3Single;
+begin
+  for Line := 0 to Strs.Count - 1 do
   begin
-    if { first check something most likely to fail, for speed }
-       SCharIs(S, 1, '<') and
-       SubStringMatch(SFontColorBegin1, S, 1) and
-       ExtractColor(S, Length(SFontColorBegin1) + 1, Color) and
-       SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + 7) and
-       SubStringMatch(SFontEnd, S, Length(S) - Length(SFontEnd) + 1) then
+    S := Strs[Line];
+    if Tags then
     begin
-      glPushAttrib(GL_CURRENT_BIT);
-        { glColor must be before glRasterPos to have proper effect.
-          It will be correctly saved/restored by glPush/PopAttrib,
-          as docs say that GL_CURRENT_BIT saves
-          "RGBA color associated with current raster position". }
-        glColorv(Color);
+      S := HandleTags(S, ColorChange, Color);
+      if ColorChange then
+      begin
+        glPushAttrib(GL_CURRENT_BIT);
+          { glColor must be before glRasterPos to have proper effect.
+            It will be correctly saved/restored by glPush/PopAttrib,
+            as docs say that GL_CURRENT_BIT saves
+            "RGBA color associated with current raster position". }
+          glColorv(Color);
+          SetRaster;
+          PrintAndMove(S);
+        glPopAttrib;
+      end else
+      begin
         SetRaster;
-        PrintAndMove(CopyPos(S,
-          Length(SFontColorBegin1) + Length(SFontColorBegin2) + 7,
-          Length(S) - Length(SFontEnd)));
-      glPopAttrib;
+        PrintAndMove(S);
+      end;
     end else
     begin
       SetRaster;
       PrintAndMove(S);
-    end;
-  end;
-
-begin
-  for Line := 0 to Strs.Count - 1 do
-  begin
-    if Tags then
-      HandleTags(Strs[Line]) else
-    begin
-      SetRaster;
-      PrintAndMove(Strs[Line]);
     end;
   end;
 end;
@@ -505,7 +527,7 @@ procedure TGLBitmapFont_Abstract.PrintStringsBox(
   const InsideCol, BorderCol, TextCol: TVector4f;
   BoxPixelMargin: integer);
 begin
-  DrawGLBorderedRectangle(0, 0, MaxTextWidth(Strs) + 2 * BoxPixelMargin,
+  DrawGLBorderedRectangle(0, 0, MaxTextWidth(Strs, Tags) + 2 * BoxPixelMargin,
     (RowHeight + BonusVerticalSpace) * Strs.Count + 2 * BoxPixelMargin + Descend,
     InsideCol, BorderCol);
   glColorv(TextCol);

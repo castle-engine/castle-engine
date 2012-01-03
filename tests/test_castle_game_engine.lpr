@@ -55,7 +55,8 @@ uses
     2. are allowed only when window system (so not when NO_WINDOW_SYSTEM,
        e.g. do not do them when running inside non-X ssh session or cron) }
   TestCastleWindow,
-  TestOpeningAndRendering3D
+  TestOpeningAndRendering3D,
+  TestOpenGLFonts
   {$endif} {$endif};
 
 {var
