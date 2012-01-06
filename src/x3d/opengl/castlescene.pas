@@ -3167,7 +3167,7 @@ procedure TCastleScene.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  if Exists and CastsShadow then
+  if Exists and CastsShadowVolumes then
     RenderShadowVolume(ShadowVolumeRenderer as TGLShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform, true);
 end;

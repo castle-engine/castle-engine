@@ -204,7 +204,7 @@ type
     insert them into the TCastleSceneManager. }
   T3D = class(TComponent)
   private
-    FCastsShadow: boolean;
+    FCastsShadowVolumes: boolean;
     FExists: boolean;
     FCollides: boolean;
     FOnVisibleChangeHere: TVisibleChangeEvent;
@@ -263,11 +263,11 @@ type
     }
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); virtual;
 
-    property CastsShadow: boolean read FCastsShadow write FCastsShadow
-      default true;
+    property CastsShadowVolumes: boolean
+      read FCastsShadowVolumes write FCastsShadowVolumes default true;
 
     { Render shadow quads for all the things rendered by @link(Render).
-      This is done only if @link(Exists) and @link(CastsShadow).
+      This is done only if @link(Exists) and @link(CastsShadowVolumes).
 
       It does shadow volumes culling inside (so ShadowVolumeRenderer should
       have FrustumCullingInit already initialized).
@@ -712,7 +712,7 @@ end;
 constructor T3D.Create(AOwner: TComponent);
 begin
   inherited;
-  FCastsShadow := true;
+  FCastsShadowVolumes := true;
   FExists := true;
   FCollides := true;
   FCursor := mcDefault;
@@ -1011,7 +1011,7 @@ var
   I: Integer;
 begin
   inherited;
-  if Exists and CastsShadow then
+  if Exists and CastsShadowVolumes then
     for I := 0 to List.Count - 1 do
       List[I].RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform);
