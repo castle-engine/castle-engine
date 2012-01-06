@@ -253,7 +253,8 @@ type
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 
-    { Render given object. Done only if @link(Exists).
+    { Render given object.
+      Should check and immediately exit when @link(Exists) is @false.
 
       @param(Frustum May be used to optimize rendering, to not
         render the parts outside the Frustum.)
