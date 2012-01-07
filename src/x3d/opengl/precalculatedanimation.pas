@@ -1823,7 +1823,7 @@ procedure TCastlePrecalculatedAnimation.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  if Loaded and Exists and CastsShadowVolumes then
+  if Loaded and Exists and CastShadowVolumes then
     CurrentScene.RenderShadowVolume(ShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform);
 end;
