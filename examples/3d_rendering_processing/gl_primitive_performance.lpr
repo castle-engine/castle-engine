@@ -63,64 +63,66 @@ procedure TMySceneManager.Render3D(const Params: TRenderParams);
 var
   I: Integer;
 begin
-  if Params.Transparent then Exit;
+  inherited;
+  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  begin
+    glMultMatrix(MyShape.State.Transform);
 
-  glMultMatrix(MyShape.State.Transform);
-
-  { render scene }
-  case Mode of
-    rmDirectManyPolygons:
-      begin
-        glBegin(GL_POLYGON);
-          for I := 0 to CoordIndex.Count - 1 do
-          begin
-            if CoordIndex.L[I] < 0 then
+    { render scene }
+    case Mode of
+      rmDirectManyPolygons:
+        begin
+          glBegin(GL_POLYGON);
+            for I := 0 to CoordIndex.Count - 1 do
             begin
-              glEnd;
-              glBegin(GL_POLYGON);
-            end else
-              glVertexv(Vertexes.L[CoordIndex.L[I]]);
-          end;
-        glEnd;
-      end;
-    rmDirectManyFans:
-      begin
-        glBegin(GL_TRIANGLE_FAN);
-          for I := 0 to CoordIndex.Count - 1 do
-          begin
-            if CoordIndex.L[I] < 0 then
+              if CoordIndex.L[I] < 0 then
+              begin
+                glEnd;
+                glBegin(GL_POLYGON);
+              end else
+                glVertexv(Vertexes.L[CoordIndex.L[I]]);
+            end;
+          glEnd;
+        end;
+      rmDirectManyFans:
+        begin
+          glBegin(GL_TRIANGLE_FAN);
+            for I := 0 to CoordIndex.Count - 1 do
             begin
-              glEnd;
-              glBegin(GL_TRIANGLE_FAN);
-            end else
-              glVertexv(Vertexes.L[CoordIndex.L[I]]);
-          end;
-        glEnd;
-      end;
-    rmDirectOnceTriangles:
-      begin
-        glBegin(GL_TRIANGLES);
-          for I := 0 to TrianglesCoordIndex.Count - 1 do
-            glVertexv(Vertexes.L[TrianglesCoordIndex.L[I]]);
-        glEnd;
-      end;
-    rmVARTrianglesByVertex,
-    rmVARLockedTrianglesByVertex,
-    rmVBOTrianglesByVertex:
-      begin
-        glBegin(GL_TRIANGLES);
-          for I := 0 to TrianglesCoordIndex.Count - 1 do
-            glArrayElement(TrianglesCoordIndex.L[I]);
-        glEnd;
-      end;
-    rmVARTriangles,
-    rmVARLockedTriangles,
-    rmVBOTriangles:
-      begin
-        glDrawElements(GL_TRIANGLES, TrianglesCoordIndex.Count, GL_UNSIGNED_INT,
-          TrianglesCoordIndex.List);
-      end;
+              if CoordIndex.L[I] < 0 then
+              begin
+                glEnd;
+                glBegin(GL_TRIANGLE_FAN);
+              end else
+                glVertexv(Vertexes.L[CoordIndex.L[I]]);
+            end;
+          glEnd;
+        end;
+      rmDirectOnceTriangles:
+        begin
+          glBegin(GL_TRIANGLES);
+            for I := 0 to TrianglesCoordIndex.Count - 1 do
+              glVertexv(Vertexes.L[TrianglesCoordIndex.L[I]]);
+          glEnd;
+        end;
+      rmVARTrianglesByVertex,
+      rmVARLockedTrianglesByVertex,
+      rmVBOTrianglesByVertex:
+        begin
+          glBegin(GL_TRIANGLES);
+            for I := 0 to TrianglesCoordIndex.Count - 1 do
+              glArrayElement(TrianglesCoordIndex.L[I]);
+          glEnd;
+        end;
+      rmVARTriangles,
+      rmVARLockedTriangles,
+      rmVBOTriangles:
+        begin
+          glDrawElements(GL_TRIANGLES, TrianglesCoordIndex.Count, GL_UNSIGNED_INT,
+            TrianglesCoordIndex.List);
+        end;
 
+    end;
   end;
 end;
 

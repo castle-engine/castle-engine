@@ -40,24 +40,24 @@ type
 
 procedure TCube.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  if not Params.RenderTransformIdentity then
+  if Exists and (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    glPushMatrix;
-    glMultMatrix(Params.RenderTransform);
-  end;
+    if not Params.RenderTransformIdentity then
+    begin
+      glPushMatrix;
+      glMultMatrix(Params.RenderTransform);
+    end;
 
-  if not Params.Transparent then
-  begin
     glPushAttrib(GL_ENABLE_BIT);
       glEnable(GL_LIGHTING);
       glEnable(GL_LIGHT0);
       glEnable(GL_DEPTH_TEST);
       DrawGLBox(-1, -1, -1, 1, 1, 1, 0, 0, 0, true, false);
     glPopAttrib;
-  end;
 
-  if not Params.RenderTransformIdentity then
-    glPopMatrix;
+    if not Params.RenderTransformIdentity then
+      glPopMatrix;
+  end;
 end;
 
 function TCube.BoundingBox: TBox3D;

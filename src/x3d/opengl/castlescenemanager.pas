@@ -106,21 +106,22 @@ type
       @seealso TCastleScene.GLProjection }
     procedure ApplyProjection; virtual;
 
-    { Render one pass, from current (saved in RenderingCamera) camera view,
-      for specific lights setup, for given Params.Transparent.
+    { Render one pass, with current camera and parameters.
+      All current camera settings are saved in RenderingCamera,
+      and the camera matrix is already loaded to OpenGL.
 
-      If you want to add something 3D to your scene during rendering,
+      If you want to display something 3D during rendering,
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
-      Just pass to OpenGL your 3D geometry here. }
-    procedure Render3D(const Params: TRenderParams); virtual;
+      Alternatively, you can create new T3D descendant and add it to @link(Items)
+      list --- but for simple (not collidable) stuff, using this method may
+      be simpler.
 
-    { Render 3D items that are never in shadows (are not shadow receivers).
-      This will always be called once with
-      Params.Transparent = @false, and once with
-      Params.Transparent = @true argument, from RenderFromView.
-      Always Params.InShadow = false. }
-    procedure RenderNeverShadowed(const Params: TRenderParams); virtual;
+      @param(Params Parameters specify what lights should be used
+        (Params.BaseLights, Params.InShadow), and which parts of the 3D scene
+        should be rendered (Params.Transparent, Params.ShadowVolumesReceivers
+        --- only matching 3D objects should be rendered by this method).) }
+    procedure Render3D(const Params: TRenderParams); virtual;
 
     { Render shadow quads for all the things rendered by @link(Render3D).
       You can use here ShadowVolumeRenderer instance, which is guaranteed
@@ -164,7 +165,7 @@ type
       when everything (clearing, background, headlight, loading camera
       matrix) is done and all that remains is to pass to OpenGL actual 3D world.
 
-      This will change Params.Transparent and Params.InShadow,
+      This will change Params.Transparent, Params.InShadow and Params.ShadowVolumesReceivers
       as needed. Their previous values do not matter. }
     procedure RenderFromView3D(const Params: TRenderParams); virtual;
 
@@ -1434,15 +1435,7 @@ begin
   InitializeLights(Result);
 end;
 
-procedure TCastleAbstractViewport.RenderNeverShadowed(const Params: TRenderParams);
-begin
-  { Nothing to do in this class }
-end;
-
 procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
-
-{ Inside this method we control (always set correctly) Params.InShadow
-  and Params.Transparent. }
 
   procedure RenderNoShadows;
   begin
@@ -1454,19 +1447,16 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
     Params.InShadow := false;
 
-    Params.Transparent := false;
-    RenderNeverShadowed(Params);
-    Render3D(Params);
-
-    Params.Transparent := true;
-    Render3D(Params);
-    RenderNeverShadowed(Params);
+    Params.Transparent := false; Params.ShadowVolumesReceivers := false; Render3D(Params);
+    Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Render3D(Params);
+    Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Render3D(Params);
+    Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Render3D(Params);
   end;
 
   procedure RenderWithShadows(const MainLightPosition: TVector4Single);
   begin
     GetShadowVolumeRenderer.InitFrustumAndLight(RenderingCamera.Frustum, MainLightPosition);
-    GetShadowVolumeRenderer.Render(Params, @RenderNeverShadowed, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
+    GetShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesDraw);
   end;
 
 var

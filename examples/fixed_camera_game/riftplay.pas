@@ -66,53 +66,57 @@ begin
 
     TODO: player model should actually be splitted into opaque/trasparent
     parts here. Doesn't matter for now, as current player is fully
-    opaque. }
-  if Params.Transparent then Exit;
+    opaque.
 
-  { If DebugScene3DDisplay = 0, render scene only to depth buffer. }
-  if DebugScene3DDisplay = 0 then
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
-  CurrentLocation.Scene.Render(nil, Params);
-
-  if DebugScene3DDisplay = 0 then
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-  SetWindowPosZero;
-
-  if DebugScene3DDisplay <> 2 then
+    TODO: we should do something better with ShadowVolumesReceivers here?
+    Make Player not receiver? }
+  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      if DebugScene3DDisplay = 1 then
-      begin
-        { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
-          as standard. glBlendColor is available since 1.2 as standard. }
-        if (GL_version_1_2 and GL_ARB_imaging) or GL_version_1_4 then
+    { If DebugScene3DDisplay = 0, render scene only to depth buffer. }
+    if DebugScene3DDisplay = 0 then
+      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    CurrentLocation.Scene.Render(nil, Params);
+
+    if DebugScene3DDisplay = 0 then
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    SetWindowPosZero;
+
+    if DebugScene3DDisplay <> 2 then
+    begin
+      glPushAttrib(GL_ENABLE_BIT);
+        glDisable(GL_LIGHTING);
+        if DebugScene3DDisplay = 1 then
         begin
-          glBlendColor(0, 0, 0, 0.5);
-          glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-          glEnable(GL_BLEND);
+          { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
+            as standard. glBlendColor is available since 1.2 as standard. }
+          if (GL_version_1_2 and GL_ARB_imaging) or GL_version_1_4 then
+          begin
+            glBlendColor(0, 0, 0, 0.5);
+            glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+            glEnable(GL_BLEND);
+          end;
         end;
-      end;
-      if Params.InShadow then
-        glCallList(CurrentLocation.GLList_ShadowedImage) else
-        glCallList(CurrentLocation.GLList_Image);
-    glPopAttrib;
-  end;
-
-  if not DebugNoCreatures then
-  begin
-    if Params.InShadow and HeadlightInstance(H) then
-    begin
-      H.Node.FdAmbientIntensity.Send(1);
-      H.Node.FdColor.Send(Vector3Single(0.2, 0.2, 0.2));
+        if Params.InShadow then
+          glCallList(CurrentLocation.GLList_ShadowedImage) else
+          glCallList(CurrentLocation.GLList_Image);
+      glPopAttrib;
     end;
-    Player.Render(RenderingCamera.Frustum, Params);
-    if Params.InShadow and HeadlightInstance(H) then
+
+    if not DebugNoCreatures then
     begin
-      H.Node.FdAmbientIntensity.Send(H.Node.FdAmbientIntensity.DefaultValue);
-      H.Node.FdColor.Send(H.Node.FdColor.DefaultValue);
+      if Params.InShadow and HeadlightInstance(H) then
+      begin
+        H.Node.FdAmbientIntensity.Send(1);
+        H.Node.FdColor.Send(Vector3Single(0.2, 0.2, 0.2));
+      end;
+      Player.Render(RenderingCamera.Frustum, Params);
+      if Params.InShadow and HeadlightInstance(H) then
+      begin
+        H.Node.FdAmbientIntensity.Send(H.Node.FdAmbientIntensity.DefaultValue);
+        H.Node.FdColor.Send(H.Node.FdColor.DefaultValue);
+      end;
     end;
   end;
 end;

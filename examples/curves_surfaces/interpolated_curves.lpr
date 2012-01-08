@@ -94,26 +94,27 @@ var
 
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
-  if Params.Transparent then Exit;
-
   { Do not call "inherited", i.e. do not let default PreciseCurve, ApproxCurve
     rendering, because we want to take into account our variables
     (PreciseCurveVisible, CurvesRenderSegments, our colors etc.) }
 
-  if PreciseCurveVisible then
+  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    glColorv(White3Single);
-    PreciseCurve.Render(CurvesRenderSegments);
-  end;
-  if ApproxCurveVisible then
-  begin
-    glColorv(Yellow3Single);
-    ApproxCurve.Render(CurvesRenderSegments);
-  end;
-  if ApproxCurveControlPointsVisible then
-  begin
-    glColorv(LightBlue3Single);
-    ApproxCurve.RenderControlPoints;
+    if PreciseCurveVisible then
+    begin
+      glColorv(White3Single);
+      PreciseCurve.Render(CurvesRenderSegments);
+    end;
+    if ApproxCurveVisible then
+    begin
+      glColorv(Yellow3Single);
+      ApproxCurve.Render(CurvesRenderSegments);
+    end;
+    if ApproxCurveControlPointsVisible then
+    begin
+      glColorv(LightBlue3Single);
+      ApproxCurve.RenderControlPoints;
+    end;
   end;
 end;
 

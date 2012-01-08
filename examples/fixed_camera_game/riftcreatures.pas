@@ -524,7 +524,8 @@ begin
     better in the future. }
   Scene.Render(nil, Params);
 
-  if DebugRenderBoundingGeometry then
+  if DebugRenderBoundingGeometry and
+    (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
     if not Params.RenderTransformIdentity then
     begin

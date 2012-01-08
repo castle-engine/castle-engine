@@ -205,24 +205,28 @@ type
       You have to provide the appropriate callbacks that render given
       scene parts.
 
-      Params.Transparent and Params.InShadow are changed here
-      (their previous values are ignored). They cannot be modified
-      by our callbacks.
+      Params.Transparent and Params.ShadowVolumesReceivers and Params.InShadow
+      are changed here (their previous values are ignored).
+      They cannot be modified by our callbacks.
 
-      RenderNeverShadowed should render scene parts
-      that are never in the shadow (in other words, are not shadow receivers).
-      You probably want to turn all normal scene lights for them.
-      Look at Params.Transparent to know which parts should be rendered.
-      Params.InShadow will always be false.
+      Render3D renders part of the scene.
 
-      RenderShadowReceivers renders the parts
-      of the scene that may be in the shadow. It will be called with
-      InShadow parameter, you should use this to either display the version
-      of the scene in the shadows (so probably darker, probably with some
-      OpenGL lights off) or the version that is currently lighted
-      (so probably is ligher, with normal scene lights on).
+      @unorderedList(
+        @item(
+          With Params.ShadowVolumesReceivers = @true, renders only things that
+          may be in the shadow.
+          You should use Params.InShadow to either display the version
+          of the scene in the shadows (so probably darker, probably with some
+          lights off) or the version that is currently lighted
+          (probably brighter, with normal scene lights on).)
 
-      RenderShadowReceivers must also honour Params.Transparent,
+        @item(
+          With Params.ShadowVolumesReceivers = @false, renders only things that
+          must never be considered in shadow (are not shadow receivers).
+          Params.InShadow is always @false when Params.ShadowVolumesReceivers = @false.)
+      )
+
+      Render3D must also honour Params.Transparent,
       rendering only opaque or only transparent parts.
       For Transparent = @true, always Params.InShadow = @false.
       Shadow volumes simply don't allow transparent object
@@ -239,8 +243,7 @@ type
       shadow volumes. }
     procedure Render(
       const Params: TRenderParams;
-      const RenderNeverShadowed: TSVRenderParamsProc;
-      const RenderShadowReceivers: TSVRenderParamsProc;
+      const Render3D: TSVRenderParamsProc;
       const RenderShadowVolumes: TSVRenderProc;
       const DrawShadowVolumes: boolean);
   end;
@@ -643,8 +646,7 @@ end;
 
 procedure TGLShadowVolumeRenderer.Render(
   const Params: TRenderParams;
-  const RenderNeverShadowed: TSVRenderParamsProc;
-  const RenderShadowReceivers: TSVRenderParamsProc;
+  const Render3D: TSVRenderParamsProc;
   const RenderShadowVolumes: TSVRenderProc;
   const DrawShadowVolumes: boolean);
 const
@@ -670,16 +672,15 @@ const
 var
   OldCount: boolean;
 begin
-  if Assigned(RenderNeverShadowed) then
-  begin
-    Params.InShadow := false;
-    Params.Transparent := false;
-    RenderNeverShadowed(Params);
-  end;
+  Params.InShadow := false;
+  Params.Transparent := false;
+  Params.ShadowVolumesReceivers := false;
+  Render3D(Params);
 
   Params.InShadow := true;
   Params.Transparent := false;
-  RenderShadowReceivers(Params);
+  Params.ShadowVolumesReceivers := true;
+  Render3D(Params);
 
   glEnable(GL_STENCIL_TEST);
     { Note that stencil buffer is set to all 0 now. }
@@ -742,9 +743,9 @@ begin
        non-shadowed level parts.
 
     This is easy doable for opaque parts. But what about transparent
-    things? In other words, where should the
-    calls RenderNeverShadowed(tgTransparent)
-    and RenderShadowReceivers(InShadow=false, tgTransparent) be done?
+    things? In other words, where should we call
+    Render3D(Transparent=true, ShadowVolumesReceivers=false)
+    and Render3D(Transparent=true, InShadow=false, ShadowVolumesReceivers=true)?
     They should be rendered but they don't affect depth buffer.
     Well, clearly, they have to be rendered
     before glClear(GL_DEPTH_BUFFER_BIT) (for the same reason that
@@ -791,7 +792,8 @@ begin
       Inc(Params.StencilTest);
       Params.InShadow := false;
       Params.Transparent := false;
-      RenderShadowReceivers(Params);
+      Params.ShadowVolumesReceivers := true;
+      Render3D(Params);
       Dec(Params.StencilTest);
     glDisable(GL_STENCIL_TEST);
   glPopAttrib();
@@ -814,14 +816,13 @@ begin
 
   Params.InShadow := false;
   Params.Transparent := true;
-  RenderShadowReceivers(Params);
+  Params.ShadowVolumesReceivers := true;
+  Render3D(Params);
 
-  if Assigned(RenderNeverShadowed) then
-  begin
-    Params.InShadow := false;
-    Params.Transparent := true;
-    RenderNeverShadowed(Params);
-  end;
+  Params.InShadow := false;
+  Params.Transparent := true;
+  Params.ShadowVolumesReceivers := false;
+  Render3D(Params);
 end;
 
 end.

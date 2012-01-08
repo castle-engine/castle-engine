@@ -322,17 +322,19 @@ end;
 procedure TCurve.Render(const Frustum: TFrustum;
   const Params: TRenderParams);
 begin
-  if not Params.RenderTransformIdentity then
+  if Exists and (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    glPushMatrix;
-    glMultMatrix(Params.RenderTransform);
-  end;
+    if not Params.RenderTransformIdentity then
+    begin
+      glPushMatrix;
+      glMultMatrix(Params.RenderTransform);
+    end;
 
-  if not Params.Transparent then
     Render(DefaultSegments);
 
-  if not Params.RenderTransformIdentity then
-    glPopMatrix;
+    if not Params.RenderTransformIdentity then
+      glPopMatrix;
+  end;
 end;
 
 constructor TCurve.Create(const ATBegin, ATEnd: Float);

@@ -61,9 +61,6 @@ var
 
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 
-  { This was brutally copied from x3dnodes_triangulating.inc
-    (Sphere_LocalTriangulate), then adjusted. See there for comments. }
-
   procedure RenderSphere;
   const
     RadiusValue = 1;
@@ -187,7 +184,7 @@ end;}
 
 begin
   inherited;
-  if not Params.Transparent then
+  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
     MinSHValue :=  MaxFloat;
     MaxSHValue := -MaxFloat;

@@ -617,10 +617,10 @@ begin
   case DrawType of
     dtNormalGL:
       begin
-        Params.Transparent := false;
-        Scene.Render(RenderingCamera.Frustum, Params);
-        Params.Transparent := true;
-        Scene.Render(RenderingCamera.Frustum, Params);
+        Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
+        Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
+        Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
+        Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
       end;
     dtElements:
       begin
@@ -644,10 +644,10 @@ begin
         FullRenderIntensityTex := CaptureAORect(false);
         try
           FullRenderShape := nil;
-          Params.Transparent := false;
-          Scene.Render(RenderingCamera.Frustum, Params);
-          Params.Transparent := true;
-          Scene.Render(RenderingCamera.Frustum, Params);
+          Params.Transparent := false; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
+          Params.Transparent := false; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
+          Params.Transparent := true ; Params.ShadowVolumesReceivers := false; Scene.Render(RenderingCamera.Frustum, Params);
+          Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Scene.Render(RenderingCamera.Frustum, Params);
         finally FreeAndNil(FullRenderIntensityTex) end;
       end;
   end;

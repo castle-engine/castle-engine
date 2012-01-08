@@ -1244,6 +1244,12 @@ begin
   inherited;
   FBaseLights := TLightInstancesList.Create;
   InShadow := false;
+  { Transparent and ShadowVolumesReceivers do not have good default values.
+    User of TBasicRenderParams should call Render method with
+    all 4 combinations of them, to really render everything correctly.
+    We just set them here to capture most 3D objects
+    (as using TBasicRenderParams for anything is a discouraged hack anyway). }
+  ShadowVolumesReceivers := true;
   Transparent := false;
 end;
 
@@ -2321,7 +2327,7 @@ begin
     at the beginning of each RenderShape and such).
 
     After a while, it turns out this was a useless complication of code
-    logic. They are things that *have* to be prepared before whole
+    logic. There are many things that *have* to be prepared before whole
     rendering, for example
     - UseBlending must be calculated for all shapes.
     - Occlusion query id must be generated (as we may start occlusion query
@@ -3416,7 +3422,9 @@ var
   SavedMode: TRenderingMode;
   SavedCustomShader, SavedCustomShaderAlphaTest: TGLSLProgram;
 begin
-  if Exists and (Dirty = 0) then
+  if Exists and
+     (Dirty = 0) and
+     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { For shadow maps, speed up rendering by using only features that affect
       depth output. This also disables user shaders (for both classic
