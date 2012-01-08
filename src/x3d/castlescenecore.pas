@@ -5073,7 +5073,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   if ProcessEvents then
   begin
@@ -5099,7 +5099,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   if ProcessEvents then
   begin
@@ -5472,7 +5472,7 @@ end;
 function TCastleSceneCore.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   if Input_PointingDeviceActivate.IsMouseButton(Button) then
   begin
@@ -5486,7 +5486,7 @@ end;
 function TCastleSceneCore.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   if Input_PointingDeviceActivate.IsMouseButton(Button) then
   begin
@@ -5501,7 +5501,7 @@ function TCastleSceneCore.MouseMove(const RayOrigin, RayDirection: TVector3Singl
   RayHit: T3DCollision): boolean;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   if (RayHit = nil) or (not RayHit.Hierarchy.IsLast(Self)) then
     { If ray hit outside this scene (other 3D object, or empty space)
@@ -5651,6 +5651,7 @@ end;
 procedure TCastleSceneCore.Idle(const CompSpeed: Single);
 begin
   inherited;
+  if not GetExists then Exit;
 
   { Ignore Idle calls when CompSpeed is precisely zero
     (this may happen, and is correct, see TCastleWindowBase.IgnoreNextIdleSpeed).

@@ -1061,7 +1061,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   for I := 0 to List.Count - 1 do
     if List[I].KeyDown(Key, C) then Exit(true);
@@ -1072,7 +1072,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   for I := 0 to List.Count - 1 do
     if List[I].KeyUp(Key, C) then Exit(true);
@@ -1083,7 +1083,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   for I := 0 to List.Count - 1 do
     if List[I].MouseDown(Button) then Exit(true);
@@ -1094,7 +1094,7 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   for I := 0 to List.Count - 1 do
     if List[I].MouseUp(Button) then Exit(true);
@@ -1106,10 +1106,11 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if Result then Exit;
+  if Result or (not GetExists) then Exit;
 
   for I := 0 to List.Count - 1 do
-    if List[I].MouseMove(RayOrigin, RayDirection, RayHit) then Exit(true);
+    if List[I].MouseMove(RayOrigin, RayDirection, RayHit) then
+      Exit(true);
 end;
 
 procedure T3DList.Idle(const CompSpeed: Single);
@@ -1117,9 +1118,9 @@ var
   I: Integer;
 begin
   inherited;
-
-  for I := 0 to List.Count - 1 do
-    List[I].Idle(CompSpeed);
+  if GetExists then
+    for I := 0 to List.Count - 1 do
+      List[I].Idle(CompSpeed);
 end;
 
 procedure T3DList.ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);
