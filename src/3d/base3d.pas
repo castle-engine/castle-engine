@@ -172,7 +172,7 @@ type
     Transparent: boolean;
 
     { Should we render parts that may receive shadow volumes, or ones that don't.
-      During rendering, simply check does it match TBase3D.ReceiveShadowVolumes. }
+      During rendering, simply check does it match TCastleScene.ReceiveShadowVolumes. }
     ShadowVolumesReceivers: boolean;
 
     { If @true, means that we're using multi-pass
@@ -208,7 +208,7 @@ type
     insert them into the TCastleSceneManager. }
   T3D = class(TComponent)
   private
-    FCastShadowVolumes, FReceiveShadowVolumes: boolean;
+    FCastShadowVolumes: boolean;
     FExists: boolean;
     FCollides: boolean;
     FOnVisibleChangeHere: TVisibleChangeEvent;
@@ -276,11 +276,10 @@ type
     }
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); virtual;
 
+    { Does the 3D object cast shadows by shadow volumes.
+      See also TCastleScene.ReceiveShadowVolumes. }
     property CastShadowVolumes: boolean
       read FCastShadowVolumes write FCastShadowVolumes default true;
-
-    property ReceiveShadowVolumes: boolean
-      read FReceiveShadowVolumes write FReceiveShadowVolumes default true;
 
     { Render shadow quads for all the things rendered by @link(Render).
       This is done only if @link(Exists) and @link(CastShadowVolumes).
@@ -729,7 +728,6 @@ constructor T3D.Create(AOwner: TComponent);
 begin
   inherited;
   FCastShadowVolumes := true;
-  FReceiveShadowVolumes := true;
   FExists := true;
   FCollides := true;
   FCursor := mcDefault;

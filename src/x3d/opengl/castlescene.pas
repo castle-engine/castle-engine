@@ -424,6 +424,7 @@ type
   TCastleScene = class(TCastleSceneCore)
   private
     Renderer: TGLRenderer;
+    FReceiveShadowVolumes: boolean;
 
     { Cache used by this scene. Always initialized to non-nil by constructor. }
     Cache: TGLRendererContextCache;
@@ -954,6 +955,9 @@ type
       See TFrustumCulling. }
     property OctreeFrustumCulling: TFrustumCulling
       read FOctreeFrustumCulling write SetOctreeFrustumCulling default fcBox;
+
+    property ReceiveShadowVolumes: boolean
+      read FReceiveShadowVolumes write FReceiveShadowVolumes default true;
   end;
 
   TCastleSceneList = class(specialize TFPGObjectList<TCastleScene>)
@@ -1309,6 +1313,8 @@ begin
 
   FOctreeFrustumCulling := fcBoth;
    OctreeFrustumCulling := fcBox; { set through property setter }
+
+  FReceiveShadowVolumes := true;
 end;
 
 constructor TCastleScene.CreateCustomCache(
