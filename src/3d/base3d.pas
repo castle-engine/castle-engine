@@ -1565,7 +1565,7 @@ begin
   if Result then
   begin
     { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
-      use "inherited BoxCollsion" with Translation. }
+      use "inherited BoxCollision" with Translation. }
 
     Result := inherited BoxCollision(
       Box.AntiTranslate(GetTranslation), TrianglesToIgnoreFunc);
