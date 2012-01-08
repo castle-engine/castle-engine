@@ -251,9 +251,7 @@ type
 
       This is usefull when you know that you have a static scene,
       but still you want to treat it as TCastlePrecalculatedAnimation. }
-    procedure LoadStatic(
-      RootNode: TX3DNode;
-      AOwnsRootNode: boolean);
+    procedure LoadStatic(RootNode: TX3DNode; AOwnsRootNode: boolean);
 
     { Load animation parameters (models to use, times to use and such)
       from given file.
