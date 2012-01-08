@@ -1,12 +1,11 @@
 { Compile Castle Game Engine by fpmake.
-
-  This is an alternative (to Makefile) way to compile (and install if you want)
+  This can be used to compile (and install if you want)
   all engine units. Simple instructions:
 
-  export FPCDIR=..../lib/fpc/2.4.4/ # not needed if FPC installed in std location on Unix
+  export FPCDIR=..../lib/fpc/2.6.0/  # not needed if FPC installed in stands location
   fpc fpmake.pp
-  ./fpmake compile # with -v to get more info
-  ./fpmake install # with -v to get more info
+  ./fpmake compile  # use -v to get more info
+  ./fpmake install  # use -v to get more info
 }
 
 program fpmake;
