@@ -1982,7 +1982,7 @@ end;
 
 function TCamera.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := Exists; { always inside }
+  Result := GetExists; { always inside }
 end;
 
 procedure TCamera.Ray(const WindowX, WindowY: Integer;
@@ -2035,7 +2035,7 @@ procedure TCamera.Idle(const CompSpeed: Single;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  if Exists and Animation then
+  if GetExists and Animation then
   begin
     AnimationCurrentTime += CompSpeed;
     if AnimationCurrentTime > AnimationEndTime then
@@ -2253,7 +2253,7 @@ begin
   inherited;
 
   { Do not handle keys or rotations etc. }
-  if IsAnimation or (not Exists) then Exit;
+  if IsAnimation or (not GetExists) then Exit;
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
@@ -2426,7 +2426,7 @@ end;
 function TExamineCamera.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   if ModifiersDown(Container.Pressed) <> [] then Exit;
 
@@ -2436,7 +2436,7 @@ end;
 function TExamineCamera.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := EventDown(K_None, #0, true, Button, mwNone);
 end;
@@ -2524,7 +2524,7 @@ var
 
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   { Shortcuts: I'll try to make them intelligent, which means
     "mostly matching shortcuts in other programs" (like Blender) and
@@ -2621,7 +2621,7 @@ end;
 function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) or
+  if Result or (not GetExists) or
     (not MouseNavigation) or IgnoreAllInputs or IsAnimation or
     (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) then
     Exit;
@@ -3749,7 +3749,7 @@ begin
   PositionMouseLook;
 
   { Do not handle keys or gravity etc. }
-  if IsAnimation or (not Exists) then Exit;
+  if IsAnimation or (not GetExists) then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -3929,7 +3929,7 @@ end;
 function TWalkCamera.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   if (not CheckModsDown) or
      (ModifiersDown(Container.Pressed) - [mkShift] = []) then
@@ -3941,7 +3941,7 @@ end;
 function TWalkCamera.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := EventDown(K_None, #0, true, Button, mwNone);
 end;
@@ -3949,7 +3949,7 @@ end;
 function TWalkCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := EventDown(K_None, #0, false, mbLeft,
     MouseWheelDirection(Scroll, Vertical));
@@ -4076,7 +4076,7 @@ var
   MiddleHeight: Integer;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown and
     (not IsAnimation) then
@@ -4369,7 +4369,7 @@ end;
 function TUniversalCamera.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := Current.KeyDown(Key, C);
 end;
@@ -4377,7 +4377,7 @@ end;
 function TUniversalCamera.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := Current.KeyUp(Key, C);
 end;
@@ -4385,7 +4385,7 @@ end;
 function TUniversalCamera.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := Current.MouseDown(Button);
 end;
@@ -4393,7 +4393,7 @@ end;
 function TUniversalCamera.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := Current.MouseUp(Button);
 end;
@@ -4401,7 +4401,7 @@ end;
 function TUniversalCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := Current.MouseMove(OldX, OldY, NewX, NewY);
 end;
@@ -4409,7 +4409,7 @@ end;
 function TUniversalCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := Current.MouseWheel(Scroll, Vertical);
 end;

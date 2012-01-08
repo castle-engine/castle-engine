@@ -1341,7 +1341,7 @@ end;
 
 function TCastleOnScreenMenu.DrawStyle: TUIControlDrawStyle;
 begin
-  if Exists then
+  if GetExists then
     Result := ds2D else
     Result := dsNone;
 end;
@@ -1365,7 +1365,7 @@ var
   I: Integer;
   CurrentItemBorderColor: TVector3Single;
 begin
-  if not Exists then Exit;
+  if not GetExists then Exit;
 
   if DrawBackgroundRectangle then
   begin
@@ -1486,7 +1486,7 @@ const
 
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   if Key = KeyPreviousItem then
   begin
@@ -1562,7 +1562,7 @@ var
   NewItemIndex: Integer;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   { For TCastleOnScreenMenu, we like MouseY going higher from the bottom to the top. }
   MX := NewX;
@@ -1596,7 +1596,7 @@ var
   MX, MY: Integer;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   { For TCastleOnScreenMenu, we like MouseY going higher from the bottom to the top. }
   MX := Container.MouseX;
@@ -1628,7 +1628,7 @@ end;
 function TCastleOnScreenMenu.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   { This is actually not needed, smart check for
     (MousePressed - [Button] = []) inside MouseDown handles everything,

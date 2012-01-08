@@ -2417,7 +2417,7 @@ begin
   { This is usually called by Render(Frustum, Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if Exists and (Dirty = 0) and
+  if GetExists and (Dirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
@@ -3237,7 +3237,7 @@ procedure TCastleScene.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  if Exists and CastShadowVolumes then
+  if GetExists and CastShadowVolumes then
     RenderShadowVolume(ShadowVolumeRenderer as TGLShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform, true);
 end;
@@ -3474,7 +3474,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   end;
 
 begin
-  if Exists and (Dirty = 0) and
+  if GetExists and (Dirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;

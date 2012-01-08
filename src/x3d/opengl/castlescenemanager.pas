@@ -1057,7 +1057,7 @@ end;
 function TCastleAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not Exists) then Exit;
+  if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1071,7 +1071,7 @@ end;
 function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not Exists) then Exit;
+  if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1085,7 +1085,7 @@ end;
 function TCastleAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not Exists) then Exit;
+  if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1099,7 +1099,7 @@ end;
 function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not Exists) then Exit;
+  if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1115,7 +1115,7 @@ var
   RayOrigin, RayDirection: TVector3Single;
 begin
   Result := inherited;
-  if (not Result) and (not Paused) and Exists and (Camera <> nil) then
+  if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
   begin
     Result :=
       (not (Camera.PreventsComfortableDragging and GetItems.Dragging)) and
@@ -1144,7 +1144,7 @@ end;
 function TCastleAbstractViewport.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
 begin
   Result := inherited;
-  if Result or Paused or (not Exists) then Exit;
+  if Result or Paused or (not GetExists) then Exit;
 
   if Camera <> nil then
   begin
@@ -1185,7 +1185,7 @@ procedure TCastleAbstractViewport.Idle(const CompSpeed: Single;
 begin
   inherited;
 
-  if Paused or (not Exists) then
+  if Paused or (not GetExists) then
   begin
     LetOthersHandleMouseAndKeys := true;
     Exit;
@@ -1213,7 +1213,7 @@ end;
 
 function TCastleAbstractViewport.AllowSuspendForInput: boolean;
 begin
-  Result := (Camera = nil) or Paused or (not Exists) or Camera.AllowSuspendForInput;
+  Result := (Camera = nil) or Paused or (not GetExists) or Camera.AllowSuspendForInput;
 end;
 
 function TCastleAbstractViewport.CorrectLeft: Integer;
@@ -2132,7 +2132,7 @@ end;
 procedure TCastleSceneManager.BeforeDraw;
 begin
   inherited;
-  if not Exists then Exit;
+  if not GetExists then Exit;
   PrepareResources;
 end;
 
@@ -2171,7 +2171,7 @@ end;
 
 procedure TCastleSceneManager.Draw;
 begin
-  if not Exists then Exit;
+  if not GetExists then Exit;
 
   UpdateGeneratedTexturesIfNeeded;
 
@@ -2209,7 +2209,7 @@ procedure TCastleSceneManager.Idle(const CompSpeed: Single;
 begin
   inherited;
 
-  if (not Paused) and Exists then
+  if (not Paused) and GetExists then
     Items.Idle(CompSpeed);
 end;
 
@@ -2398,7 +2398,7 @@ end;
 
 procedure TCastleViewport.Draw;
 begin
-  if not Exists then Exit;
+  if not GetExists then Exit;
 
   SceneManager.UpdateGeneratedTexturesIfNeeded;
 

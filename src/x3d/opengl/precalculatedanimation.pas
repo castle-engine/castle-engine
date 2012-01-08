@@ -1604,7 +1604,7 @@ function TCastlePrecalculatedAnimation.BoundingBox: TBox3D;
   end;
 
 begin
-  if Loaded and Exists then
+  if Loaded and GetExists then
   begin
     if not ValidBoundingBox then
       ValidateBoundingBox;
@@ -1814,7 +1814,7 @@ end;
 
 procedure TCastlePrecalculatedAnimation.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  if Loaded and Exists then
+  if Loaded and GetExists then
     CurrentScene.Render(Frustum, Params);
 end;
 
@@ -1823,7 +1823,7 @@ procedure TCastlePrecalculatedAnimation.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 begin
-  if Loaded and Exists and CastShadowVolumes then
+  if Loaded and GetExists and CastShadowVolumes then
     CurrentScene.RenderShadowVolume(ShadowVolumeRenderer,
       ParentTransformIsIdentity, ParentTransform);
 end;
@@ -1855,7 +1855,7 @@ procedure TCastlePrecalculatedAnimation.GetHeightAbove(
 begin
   inherited;
 
-  if Loaded and Exists and Collides then
+  if Loaded and GetExists and Collides then
   begin
     MakeScene(FirstScene);
     if CollisionUseLastScene then
@@ -1868,7 +1868,7 @@ function TCastlePrecalculatedAnimation.MoveAllowed(
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if Loaded and Exists and Collides then
+  if Loaded and GetExists and Collides then
   begin
     Result := FirstScene.MoveAllowed(OldPos, ProposedNewPos, NewPos,
       CameraRadius, TrianglesToIgnoreFunc);
@@ -1894,7 +1894,7 @@ function TCastlePrecalculatedAnimation.MoveAllowedSimple(
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Loaded) or (not Exists) or (not Collides) or
+  Result := (not Loaded) or (not GetExists) or (not Collides) or
     (FirstScene.MoveAllowedSimple(
        OldPos, ProposedNewPos,
        CameraRadius, TrianglesToIgnoreFunc) and
@@ -1909,7 +1909,7 @@ function TCastlePrecalculatedAnimation.MoveBoxAllowedSimple(
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Loaded) or (not Exists) or (not Collides) or
+  Result := (not Loaded) or (not GetExists) or (not Collides) or
     (FirstScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos, ProposedNewBox,
        TrianglesToIgnoreFunc) and
        ( (not CollisionUseLastScene) or
@@ -1920,7 +1920,7 @@ end;
 function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Loaded and Exists and Collides and
+  Result := Loaded and GetExists and Collides and
     ( FirstScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc)))
@@ -1931,7 +1931,7 @@ function TCastlePrecalculatedAnimation.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Loaded and Exists and Collides and
+  Result := Loaded and GetExists and Collides and
     ( FirstScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc)))
@@ -1942,7 +1942,7 @@ function TCastlePrecalculatedAnimation.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Loaded and Exists and Collides and
+  Result := Loaded and GetExists and Collides and
     ( FirstScene.BoxCollision(Box, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.BoxCollision(Box, TrianglesToIgnoreFunc)))
@@ -1960,7 +1960,7 @@ begin
   Result := nil;
   IntersectionDistance := 0; { Only to silence compiler warning }
 
-  if Loaded and Exists and Collides then
+  if Loaded and GetExists and Collides then
   begin
     Result := FirstScene.RayCollision(IntersectionDistance,
       Ray0, RayVector, TrianglesToIgnoreFunc);

@@ -127,6 +127,10 @@ type
     { Called when @link(Cursor) changed.
       In TUIControl class, just calls OnCursorChange. }
     procedure DoCursorChange; virtual;
+    { Return whether item really exists, see @link(Exists).
+      It TUIControl class, returns @link(Exists) value.
+      May be modified in subclasses, to return something more complicated. }
+    function GetExists: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -139,7 +143,7 @@ type
 
       @longCode(#
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
   { ... And do the job here.
     In other words, the handling of keys in inherited
     class should have a priority. }
@@ -283,7 +287,7 @@ type
           If you require anything else, set this yourself.)
       )
 
-      When @link(Exists) is @false, remember to do nothing in Draw,
+      When @link(GetExists) is @false, remember to do nothing in Draw,
       and return dsNone in DrawStyle.
 
       @groupBegin }
@@ -572,6 +576,11 @@ end;
 procedure TUIControl.GLContextClose;
 begin
   FGLInitialized := false;
+end;
+
+function TUIControl.GetExists: boolean;
+begin
+  Result := FExists;
 end;
 
 procedure TUIControl.SetCursor(const Value: TMouseCursor);

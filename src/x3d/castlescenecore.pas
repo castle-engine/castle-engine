@@ -2478,7 +2478,7 @@ end;
 
 function TCastleSceneCore.BoundingBox: TBox3D;
 begin
-  if Exists then
+  if GetExists then
   begin
     if not (fvBoundingBox in Validities) then
     begin
@@ -6336,7 +6336,7 @@ procedure TCastleSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Sin
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 begin
-  if Exists and Collides and (OctreeCollisions <> nil) then
+  if GetExists and Collides and (OctreeCollisions <> nil) then
   begin
     OctreeCollisions.GetHeightAbove(
       Position, GravityUp,
@@ -6351,7 +6351,7 @@ function TCastleSceneCore.MoveAllowed(
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if Exists and Collides and (OctreeCollisions <> nil) then
+  if GetExists and Collides and (OctreeCollisions <> nil) then
   begin
     Result := OctreeCollisions.MoveAllowed(
       OldPos, ProposedNewPos, NewPos,
@@ -6368,7 +6368,7 @@ function TCastleSceneCore.MoveAllowedSimple(
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Exists) or (not Collides) or (OctreeCollisions = nil) or
+  Result := (not GetExists) or (not Collides) or (OctreeCollisions = nil) or
     OctreeCollisions.MoveAllowedSimple(
       OldPos, ProposedNewPos,
       CameraRadius, nil, TrianglesToIgnoreFunc);
@@ -6379,7 +6379,7 @@ function TCastleSceneCore.MoveBoxAllowedSimple(
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Exists) or (not Collides) or (OctreeCollisions = nil) or
+  Result := (not GetExists) or (not Collides) or (OctreeCollisions = nil) or
     OctreeCollisions.MoveBoxAllowedSimple(
       OldPos, ProposedNewPos, ProposedNewBox,
       nil, TrianglesToIgnoreFunc);
@@ -6388,7 +6388,7 @@ end;
 function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides and (OctreeCollisions <> nil) and
+  Result := GetExists and Collides and (OctreeCollisions <> nil) and
     OctreeCollisions.IsSegmentCollision(
       Pos1, Pos2,
       nil, false, TrianglesToIgnoreFunc);
@@ -6398,7 +6398,7 @@ function TCastleSceneCore.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides and (OctreeCollisions <> nil) and
+  Result := GetExists and Collides and (OctreeCollisions <> nil) and
     OctreeCollisions.IsSphereCollision(
       Pos, Radius,  nil, TrianglesToIgnoreFunc);
 end;
@@ -6406,7 +6406,7 @@ end;
 function TCastleSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides and (OctreeCollisions <> nil) and
+  Result := GetExists and Collides and (OctreeCollisions <> nil) and
     OctreeCollisions.IsBoxCollision(
       Box,  nil, TrianglesToIgnoreFunc);
 end;
@@ -6420,7 +6420,7 @@ var
   Intersection: TVector3Single;
 begin
   Result := nil;
-  if Exists and Collides and (OctreeCollisions <> nil) then
+  if GetExists and Collides and (OctreeCollisions <> nil) then
   begin
     Triangle := OctreeCollisions.RayCollision(
       Intersection, IntersectionDistance, Ray0, RayVector,

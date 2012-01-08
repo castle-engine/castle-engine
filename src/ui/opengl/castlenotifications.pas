@@ -298,7 +298,7 @@ end;
 
 function TCastleNotifications.DrawStyle: TUIControlDrawStyle;
 begin
-  if Exists and (Messages.Count <> 0) then
+  if GetExists and (Messages.Count <> 0) then
     Result := ds2D else
     Result := dsNone;
 end;

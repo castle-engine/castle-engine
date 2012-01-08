@@ -218,6 +218,10 @@ type
   protected
     { In T3D class, just calls OnCursorChange event. }
     procedure CursorChange; virtual;
+    { Return whether item really exists, see @link(Exists).
+      It T3D class, returns @link(Exists) value.
+      May be modified in subclasses, to return something more complicated. }
+    function GetExists: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -229,6 +233,8 @@ type
       the level when something happens. You could just as well remove
       this object from TCastleSceneManager.Items tree, but sometimes it's more
       comfortable to simply turn this property to @false.
+
+      Descendants may also override GetExists method.
 
       @noAutoLinkHere }
     property Exists: boolean read FExists write FExists default true;
@@ -888,6 +894,11 @@ begin
   Result := false;
 end;
 
+function T3D.GetExists: boolean;
+begin
+  Result := FExists;
+end;
+
 { T3DListCore ------------------------------------------------------------ }
 
 constructor T3DListCore.Create(const FreeObjects: boolean; const AOwner: T3DList);
@@ -999,7 +1010,7 @@ var
   I: Integer;
 begin
   Result := EmptyBox3D;
-  if Exists then
+  if GetExists then
     for I := 0 to List.Count - 1 do
       Result.Add(List[I].BoundingBox);
 end;
@@ -1009,7 +1020,7 @@ var
   I: Integer;
 begin
   inherited;
-  if Exists then
+  if GetExists then
     for I := 0 to List.Count - 1 do
       List[I].Render(Frustum, Params);
 end;
@@ -1022,7 +1033,7 @@ var
   I: Integer;
 begin
   inherited;
-  if Exists and CastShadowVolumes then
+  if GetExists and CastShadowVolumes then
     for I := 0 to List.Count - 1 do
       List[I].RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform);
@@ -1182,7 +1193,7 @@ var
 begin
   inherited;
 
-  if Exists and Collides then
+  if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
       List[I].GetHeightAbove(Position, GravityUp, TrianglesToIgnoreFunc,
@@ -1204,7 +1215,7 @@ function T3DList.MoveAllowed(
 var
   I: Integer;
 begin
-  if Exists and Collides and (List.Count <> 0) then
+  if GetExists and Collides and (List.Count <> 0) then
   begin
     { We call MoveAllowed only one time, on the first scene.
       This means that only first scene collisions provide wall sliding.
@@ -1245,7 +1256,7 @@ var
 begin
   Result := true;
 
-  if Exists and Collides then
+  if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].MoveAllowedSimple(OldPos, ProposedNewPos,
@@ -1263,7 +1274,7 @@ var
 begin
   Result := true;
 
-  if Exists and Collides then
+  if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].MoveBoxAllowedSimple(OldPos, ProposedNewPos,
@@ -1279,7 +1290,7 @@ var
 begin
   Result := false;
 
-  if Exists and Collides then
+  if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc);
@@ -1294,7 +1305,7 @@ var
 begin
   Result := false;
 
-  if Exists and Collides then
+  if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
@@ -1309,7 +1320,7 @@ var
 begin
   Result := false;
 
-  if Exists and Collides then
+  if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].BoxCollision(Box, TrianglesToIgnoreFunc);
@@ -1329,7 +1340,7 @@ begin
   Result := nil;
   IntersectionDistance := 0; { Only to silence compiler warning }
 
-  if Exists and Collides then
+  if GetExists and Collides then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -1545,10 +1556,10 @@ function T3DCustomTranslated.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Exists and Collides;
+  Result := GetExists and Collides;
 
   { We could just call inherited. But, for optimization, check
-    Exists and Collides first, to avoid calling Box3DAntiTranslate
+    GetExists and Collides first, to avoid calling Box3DAntiTranslate
     when not necessary. }
 
   if Result then

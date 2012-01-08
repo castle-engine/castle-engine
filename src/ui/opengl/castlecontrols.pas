@@ -372,7 +372,7 @@ end;
 
 function TCastleButton.DrawStyle: TUIControlDrawStyle;
 begin
-  if Exists then
+  if GetExists then
     Result := ds2D else
     Result := dsNone;
 end;
@@ -400,7 +400,7 @@ procedure TCastleButton.Draw;
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
 begin
-  if not Exists then Exit;
+  if not GetExists then Exit;
 
   if Opacity < 1 then
   begin
@@ -482,7 +482,7 @@ end;
 
 function TCastleButton.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := Exists and
+  Result := GetExists and
     (X >= Left) and
     (X  < Left + Width) and
     (ContainerHeight - Y >= Bottom) and
@@ -506,7 +506,7 @@ end;
 function TCastleButton.MouseDown(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   Result := ExclusiveEvents;
   if not Toggle then FPressed := true;
@@ -518,7 +518,7 @@ end;
 function TCastleButton.MouseUp(const Button: KeysMouse.TMouseButton): boolean;
 begin
   Result := inherited;
-  if Result or (not Exists) then Exit;
+  if Result or (not GetExists) then Exit;
 
   if ClickStarted then
   begin
@@ -737,7 +737,7 @@ end;
 
 function TCastlePanel.DrawStyle: TUIControlDrawStyle;
 begin
-  if Exists then
+  if GetExists then
     Result := ds2D else
     Result := dsNone;
 end;
@@ -758,7 +758,7 @@ const
 var
   I: Integer;
 begin
-  if not Exists then Exit;
+  if not GetExists then Exit;
 
   if Opacity < 1 then
   begin
@@ -804,7 +804,7 @@ end;
 
 function TCastlePanel.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := Exists and
+  Result := GetExists and
     (X >= Left) and
     (X  < Left + Width) and
     (ContainerHeight - Y >= Bottom) and
@@ -873,14 +873,14 @@ end;
 
 function TCastleImageControl.DrawStyle: TUIControlDrawStyle;
 begin
-  if Exists and (FGLImage <> 0) then
+  if GetExists and (FGLImage <> 0) then
     Result := ds2D else
     Result := dsNone;
 end;
 
 procedure TCastleImageControl.Draw;
 begin
-  if not (Exists and (FGLImage <> 0)) then Exit;
+  if not (GetExists and (FGLImage <> 0)) then Exit;
 
   if Blending then
   begin
@@ -898,7 +898,7 @@ end;
 
 function TCastleImageControl.PositionInside(const X, Y: Integer): boolean;
 begin
-  Result := Exists and
+  Result := GetExists and
     (FImage <> nil) and
     (X >= Left) and
     (X  < Left + FImage.Width) and

@@ -40,7 +40,7 @@ type
 
 procedure TCube.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  if Exists and (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  if GetExists and (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
     if not Params.RenderTransformIdentity then
     begin
