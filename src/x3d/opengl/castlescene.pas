@@ -371,8 +371,10 @@ type
 
       Setting this as TCastleScene.FrustumCulling
       turns off frustum culling entirely, which is usually not a wise thing
-      to do... Setting this as TCastleScene.OctreeFrustumCulling
-      let's octree do all the work, which is quite sensible actually. }
+      to do. Setting this as TCastleScene.OctreeFrustumCulling
+      means that frustum culling is only done during octree traversal
+      (we only visit octree nodes possibly colliding with frustum),
+      this is also not optimal. }
     fcNone,
 
     { Check shape's bounding sphere for collision with frustum. }
@@ -2318,60 +2320,122 @@ procedure TCastleScene.Render(
     glPopAttrib;
   end;
 
-begin
-  if Dirty <> 0 then Exit;
-
-  { I used to make here more complex "prepare" mechanism, that was trying
-    to prepare for particular shapes only right before they are rendered
-    (so instead of calling PrepareResources below, I was calling PrepareShape
-    at the beginning of each RenderShape and such).
-
-    After a while, it turns out this was a useless complication of code
-    logic. There are many things that *have* to be prepared before whole
-    rendering, for example
-    - UseBlending must be calculated for all shapes.
-    - Occlusion query id must be generated (as we may start occlusion query
-      before actually rendering the shape).
-
-    It's much simpler to just call PrepareResources at the beginning. }
-  PrepareResources([prRender], false, Params.BaseLights(Self));
-
-  case Attributes.WireframeEffect of
-    weNormal: RenderNormal;
-    weWireframeOnly: RenderWireframe(Attributes.Mode = rmPureGeometry);
-    weSolidWireframe:
-      begin
-        glPushAttrib(GL_POLYGON_BIT);
-          { enable polygon offset for everything (whole scene) }
-          glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
-          glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-          glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
-          glPolygonOffset(1, 1); { saved by GL_POLYGON_BIT }
-          RenderNormal;
-        glPopAttrib;
-        RenderWireframe(true);
-      end;
-    weSilhouette:
-      begin
-        RenderNormal;
-        glPushAttrib(GL_POLYGON_BIT);
-          glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
-          glPolygonOffset(5, 5); { saved by GL_POLYGON_BIT }
-          { rmPureGeometry still does backface culling.
-            This is very good in this case. When rmPureGeometry and weSilhouette,
-            and objects are solid (so backface culling is used) we can
-            significantly improve the effect by reverting glFrontFace,
-            this way we will cull *front* faces. This will not be noticed
-            in case of rmPureGeometry will single solid color, and it will
-            improve the silhouette look, since front-face edges will not be
-            rendered at all (no need to even hide them by glPolygonOffset,
-            which is somewhat sloppy). }
-          if Attributes.Mode = rmPureGeometry then
-            glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
+  { Render taking Attributes.WireframeEffect into account. }
+  procedure RenderWithWireframeEffect;
+  begin
+    case Attributes.WireframeEffect of
+      weNormal: RenderNormal;
+      weWireframeOnly: RenderWireframe(Attributes.Mode = rmPureGeometry);
+      weSolidWireframe:
+        begin
+          glPushAttrib(GL_POLYGON_BIT);
+            { enable polygon offset for everything (whole scene) }
+            glEnable(GL_POLYGON_OFFSET_FILL); { saved by GL_POLYGON_BIT }
+            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+            glEnable(GL_POLYGON_OFFSET_POINT); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(1, 1); { saved by GL_POLYGON_BIT }
+            RenderNormal;
+          glPopAttrib;
           RenderWireframe(true);
-        glPopAttrib;
+        end;
+      weSilhouette:
+        begin
+          RenderNormal;
+          glPushAttrib(GL_POLYGON_BIT);
+            glEnable(GL_POLYGON_OFFSET_LINE); { saved by GL_POLYGON_BIT }
+            glPolygonOffset(5, 5); { saved by GL_POLYGON_BIT }
+            { rmPureGeometry still does backface culling.
+              This is very good in this case. When rmPureGeometry and weSilhouette,
+              and objects are solid (so backface culling is used) we can
+              significantly improve the effect by reverting glFrontFace,
+              this way we will cull *front* faces. This will not be noticed
+              in case of rmPureGeometry will single solid color, and it will
+              improve the silhouette look, since front-face edges will not be
+              rendered at all (no need to even hide them by glPolygonOffset,
+              which is somewhat sloppy). }
+            if Attributes.Mode = rmPureGeometry then
+              glFrontFace(GL_CW); { saved by GL_POLYGON_BIT }
+            RenderWireframe(true);
+          glPopAttrib;
+        end;
+      else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
+    end;
+  end;
+
+  { Render, doing some special tricks when rendering to shadow maps. }
+  procedure RenderWithShadowMaps;
+  var
+    SavedMode: TRenderingMode;
+    SavedCustomShader, SavedCustomShaderAlphaTest: TGLSLProgram;
+  begin
+    { For shadow maps, speed up rendering by using only features that affect
+      depth output. This also disables user shaders (for both classic
+      and VSM shadow maps, consistently). }
+    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+    begin
+      SavedMode := Attributes.Mode;
+      Attributes.Mode := rmDepth;
+    end;
+
+    { When rendering to Variance Shadow Map, we need special shader. }
+    if RenderingCamera.Target = rtVarianceShadowMap then
+    begin
+      { create VarianceShadowMapsProgram if needed }
+      if VarianceShadowMapsProgram[false] = nil then
+      begin
+        VarianceShadowMapsProgram[false] := TGLSLProgram.Create;
+        VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
+        VarianceShadowMapsProgram[false].Link(true);
       end;
-    else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
+
+      if VarianceShadowMapsProgram[true] = nil then
+      begin
+        VarianceShadowMapsProgram[true] := TGLSLProgram.Create;
+        VarianceShadowMapsProgram[true].AttachFragmentShader(
+          '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
+        VarianceShadowMapsProgram[true].Link(true);
+      end;
+
+      SavedCustomShader          := Attributes.CustomShader;
+      SavedCustomShaderAlphaTest := Attributes.CustomShaderAlphaTest;
+      Attributes.CustomShader          := VarianceShadowMapsProgram[false];
+      Attributes.CustomShaderAlphaTest := VarianceShadowMapsProgram[true];
+    end;
+
+    RenderWithWireframeEffect;
+
+    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
+      Attributes.Mode := SavedMode;
+    if RenderingCamera.Target = rtVarianceShadowMap then
+    begin
+      Attributes.CustomShader          := SavedCustomShader;
+      Attributes.CustomShaderAlphaTest := SavedCustomShaderAlphaTest;
+    end;
+  end;
+
+begin
+  { This is usually called by Render(Frustum, Params) that probably
+    already did tests below. But it may also be called directly,
+    so do the checks below anyway. (The checks are trivial, so no speed harm.) }
+  if Exists and (Dirty = 0) and
+     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
+  begin
+    { I used to make here more complex "prepare" mechanism, that was trying
+      to prepare for particular shapes only right before they are rendered
+      (so instead of calling PrepareResources below, I was calling PrepareShape
+      at the beginning of each RenderShape and such).
+
+      After a while, it turns out this was a useless complication of code
+      logic. There are many things that *have* to be prepared before whole
+      rendering, for example
+      - UseBlending must be calculated for all shapes.
+      - Occlusion query id must be generated (as we may start occlusion query
+        before actually rendering the shape).
+
+      It's much simpler to just call PrepareResources at the beginning. }
+    PrepareResources([prRender], false, Params.BaseLights(Self));
+
+    RenderWithShadowMaps;
   end;
 end;
 
@@ -3385,90 +3449,39 @@ end;
 
 procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
-  { Call Render with explicit TTestShapeVisibility function
-    instead of Frustum parameter. That is, choose test function
-    suitable for our Frustum, octrees and some settings.
+{ Call Render with explicit TTestShapeVisibility function
+  instead of Frustum parameter. That is, choose test function
+  suitable for our Frustum, octrees and some settings.
 
-    If OctreeRendering is initialized (so be sure to include
-    ssRendering in @link(Spatial)), this octree will be used to quickly
-    find visible Shape. Otherwise, we will just enumerate all
-    Shapes (which may be slower if you really have a lot of Shapes). }
-  procedure RenderFrustum;
+  If OctreeRendering is initialized (so be sure to include
+  ssRendering in @link(Spatial)), this octree will be used to quickly
+  find visible Shape. Otherwise, we will just enumerate all
+  Shapes (which may be slower if you really have a lot of Shapes). }
 
-    procedure RenderFrustumOctree(Octree: TShapeOctree);
-    var
-      SI: TShapeTreeIterator;
-    begin
-      SI := TShapeTreeIterator.Create(Shapes, false, true);
-      try
-        while SI.GetNext do
-          TGLShape(SI.Current).RenderFrustumOctree_Visible := false;
-      finally FreeAndNil(SI) end;
+  procedure RenderFrustumOctree(Octree: TShapeOctree);
+  var
+    SI: TShapeTreeIterator;
+  begin
+    SI := TShapeTreeIterator.Create(Shapes, false, true);
+    try
+      while SI.GetNext do
+        TGLShape(SI.Current).RenderFrustumOctree_Visible := false;
+    finally FreeAndNil(SI) end;
 
-      Octree.EnumerateCollidingOctreeItems(Frustum,
-        @RenderFrustumOctree_EnumerateShapes);
-      Render(@RenderFrustumOctree_TestShape, Params);
-    end;
+    Octree.EnumerateCollidingOctreeItems(Frustum,
+      @RenderFrustumOctree_EnumerateShapes);
+    Render(@RenderFrustumOctree_TestShape, Params);
+  end;
 
+begin
+  if Exists and (Dirty = 0) and
+     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;
 
     if OctreeRendering <> nil then
       RenderFrustumOctree(OctreeRendering) else
       Render(FrustumCullingFunc, Params);
-  end;
-
-var
-  SavedMode: TRenderingMode;
-  SavedCustomShader, SavedCustomShaderAlphaTest: TGLSLProgram;
-begin
-  if Exists and
-     (Dirty = 0) and
-     (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
-  begin
-    { For shadow maps, speed up rendering by using only features that affect
-      depth output. This also disables user shaders (for both classic
-      and VSM shadow maps, consistently). }
-    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
-    begin
-      SavedMode := Attributes.Mode;
-      Attributes.Mode := rmDepth;
-    end;
-
-    { When rendering to Variance Shadow Map, we need special shader. }
-    if RenderingCamera.Target = rtVarianceShadowMap then
-    begin
-      { create VarianceShadowMapsProgram if needed }
-      if VarianceShadowMapsProgram[false] = nil then
-      begin
-        VarianceShadowMapsProgram[false] := TGLSLProgram.Create;
-        VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[false].Link(true);
-      end;
-
-      if VarianceShadowMapsProgram[true] = nil then
-      begin
-        VarianceShadowMapsProgram[true] := TGLSLProgram.Create;
-        VarianceShadowMapsProgram[true].AttachFragmentShader(
-          '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[true].Link(true);
-      end;
-
-      SavedCustomShader          := Attributes.CustomShader;
-      SavedCustomShaderAlphaTest := Attributes.CustomShaderAlphaTest;
-      Attributes.CustomShader          := VarianceShadowMapsProgram[false];
-      Attributes.CustomShaderAlphaTest := VarianceShadowMapsProgram[true];
-    end;
-
-    RenderFrustum;
-
-    if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
-      Attributes.Mode := SavedMode;
-    if RenderingCamera.Target = rtVarianceShadowMap then
-    begin
-      Attributes.CustomShader          := SavedCustomShader;
-      Attributes.CustomShaderAlphaTest := SavedCustomShaderAlphaTest;
-    end;
   end;
 end;
 
