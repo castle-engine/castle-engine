@@ -435,7 +435,7 @@ var
 begin
   B := (Value as TSFBool).Value;
   if B then
-    FdToggle.ExposedEvents[true].Send(not FdToggle.Value, Time);
+    FdToggle.EventIn.Send(not FdToggle.Value, Time);
 end;
 
 class function TBooleanToggleNode.ClassNodeTypeName: string;
