@@ -515,7 +515,7 @@ type
   { List of base 3D objects (T3D instances).
     This allows you to group many 3D objects, and treat them as one T3D
     descendant (for example, to translate many 3D objects by a single
-    T3DCustomTranslated.Child).
+    T3DCustomTransform.Child).
 
     This inherits from TCastleObjectList, getting many
     features like TList notification mechanism (useful in some situations).
@@ -621,18 +621,13 @@ type
     property List: T3DListCore read FList;
   end;
 
-  { Translates other T3D objects.
+  { Transform (move, rotate, scale) other T3D objects.
+    Descends from T3DList, transforming all it's children.
 
-    Descends from T3DList, translating all it's children.
-    So it can be used to translate any T3D descendants (including
-    another T3DList, TCastleScene, TCastlePrecalculatedAnimation).
-
-    Actual translation is defined by an abstract method GetTranslation.
-    You have to create descendant of this class, and override GetTranslation.
-    Alternatively, you can use T3DTranslated that overrides GetTranslation
-    for you, and gives you a simple
-    T3DTranslated.Translation property that you can use. }
-  T3DCustomTranslated = class(T3DList)
+    Actual transformation is defined by abstract methods like GetTranslation,
+    GetRotation and such.
+    Use T3DTransform to have simple T3DTransform.Translation and such properties. }
+  T3DCustomTransform = class(T3DList)
   public
     function GetTranslation: TVector3Single; virtual; abstract;
 
@@ -672,15 +667,22 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   end;
 
-  { Translates other T3D objects. Acts as a list of T3D instances,
-    and gives you simple @link(Translation) property to move your children. }
-  T3DTranslated = class(T3DCustomTranslated)
+  { Transform (move, rotate, scale) other T3D objects.
+    Descends from T3DList, transforming all it's children.
+    Defines simple properties like @link(Translation). }
+  T3DTransform = class(T3DCustomTransform)
   private
     FTranslation: TVector3Single;
   public
     function GetTranslation: TVector3Single; override;
     property Translation: TVector3Single read GetTranslation write FTranslation;
   end;
+
+  { Deprecated name for T3DCustomTransform. @deprecated @exclude }
+  T3DCustomTranslated = T3DCustomTransform;
+
+  { Deprecated name for T3DTransform. @deprecated @exclude }
+  T3DTranslated = T3DTransform;
 
 const
   MaxSingle = Math.MaxSingle;
@@ -1401,14 +1403,14 @@ begin
   end;
 end;
 
-{ T3DCustomTranslated -------------------------------------------------------- }
+{ T3DCustomTransform -------------------------------------------------------- }
 
-function T3DCustomTranslated.BoundingBox: TBox3D;
+function T3DCustomTransform.BoundingBox: TBox3D;
 begin
   Result := (inherited BoundingBox).Translate(GetTranslation);
 end;
 
-procedure T3DCustomTranslated.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure T3DCustomTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   T: TVector3Single;
   OldRenderTransform: TMatrix4Single;
@@ -1441,7 +1443,7 @@ begin
     end;
 end;
 
-procedure T3DCustomTranslated.RenderShadowVolume(
+procedure T3DCustomTransform.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
@@ -1463,14 +1465,14 @@ begin
       false, MatrixMult(TranslationMatrix(T), ParentTransform));
 end;
 
-function T3DCustomTranslated.MouseMove(const RayOrigin, RayDirection: TVector3Single;
+function T3DCustomTransform.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 begin
   Result := inherited MouseMove(RayOrigin - GetTranslation,
     RayDirection, RayHit);
 end;
 
-procedure T3DCustomTranslated.GetHeightAbove(const Position, GravityUp: TVector3Single;
+procedure T3DCustomTransform.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
@@ -1480,7 +1482,7 @@ begin
     IsAbove, AboveHeight, AboveGround);
 end;
 
-function T3DCustomTranslated.MoveAllowed(
+function T3DCustomTransform.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1495,7 +1497,7 @@ begin
     NewPos += T;
 end;
 
-function T3DCustomTranslated.MoveAllowedSimple(
+function T3DCustomTransform.MoveAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const CameraRadius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1513,7 +1515,7 @@ begin
     OldPos - T, ProposedNewPos - T, CameraRadius, TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTranslated.MoveBoxAllowedSimple(
+function T3DCustomTransform.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
   const ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1534,7 +1536,7 @@ begin
     OldPos - T, ProposedNewPos - T, B, TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTranslated.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DCustomTransform.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
@@ -1543,7 +1545,7 @@ begin
   Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTranslated.SphereCollision(
+function T3DCustomTransform.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1551,7 +1553,7 @@ begin
     Pos - GetTranslation, Radius, TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTranslated.BoxCollision(
+function T3DCustomTransform.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -1563,7 +1565,7 @@ begin
 
   if Result then
   begin
-    { We use the same trick as in T3DCustomTranslated.MoveAllowedSimple to
+    { We use the same trick as in T3DCustomTransform.MoveAllowedSimple to
       use "inherited BoxCollision" with Translation. }
 
     Result := inherited BoxCollision(
@@ -1571,7 +1573,7 @@ begin
   end;
 end;
 
-function T3DCustomTranslated.RayCollision(
+function T3DCustomTransform.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
@@ -1581,9 +1583,9 @@ begin
     RayVector, TrianglesToIgnoreFunc);
 end;
 
-{ T3DTranslated -------------------------------------------------------------- }
+{ T3DTransform -------------------------------------------------------------- }
 
-function T3DTranslated.GetTranslation: TVector3Single;
+function T3DTransform.GetTranslation: TVector3Single;
 begin
   Result := FTranslation;
 end;

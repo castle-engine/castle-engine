@@ -33,7 +33,7 @@ var
   Window: TCastleWindow;
   Scene, Scene2: TCastleScene;
   Animation: TCastlePrecalculatedAnimation;
-  Translation: T3DTranslated;
+  Transform: T3DTransform;
   Scene2Transform: TTransformNode;
   Scene2NewRoot: TX3DRootNode;
 begin
@@ -68,15 +68,15 @@ begin
 
     SceneManager.Items
     |- Scene
-    |- Translation
+    |- Transform
        |- Scene2
        |- Animation
   }
 
-  { initialize Translation }
-  Translation := T3DTranslated.Create(Application);
-  Translation.Translation := Vector3Single(-15, -4, 0);
-  Window.SceneManager.Items.Add(Translation);
+  { initialize Transform }
+  Transform := T3DTransform.Create(Application);
+  Transform.Translation := Vector3Single(-15, -4, 0);
+  Window.SceneManager.Items.Add(Transform);
 
   { initialize a 2nd scene, just because we can }
   Scene2 := TCastleScene.Create(Application);
@@ -84,10 +84,12 @@ begin
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
 {  Scene2.Attributes.WireframeEffect := weWireframeOnly;} { render this as wireframe }
-  Translation.Add(Scene2);
+  Transform.Add(Scene2);
 
   { let's now show that you can process 3D model graph after loading:
-    let's add a rotation inside VRML model in Scene2 }
+    let's add a rotation inside X3D model in Scene2.
+    Note that you can also achieve transformation using T3DTransform.
+    In this case, using T3DTransform would probably be simpler. }
   Scene2Transform := TTransformNode.Create('', '');
   Scene2Transform.FdRotation.Axis := Vector3Single(1, 0, 0);
   Scene2Transform.FdRotation.RotationRad := -Pi/2;
@@ -103,7 +105,7 @@ begin
   Animation := TCastlePrecalculatedAnimation.Create(Application);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
-  Translation.Add(Animation);
+  Transform.Add(Animation);
 
   Window.OpenAndRun;
 end.

@@ -310,7 +310,7 @@ var
   I: Integer;
   {$ifdef ADD_GL_ANIMATION}
   Animation: TCastlePrecalculatedAnimation;
-  Translation: T3DTranslated;
+  Transform: T3DTransform;
   {$endif ADD_GL_ANIMATION}
 begin
   if Parameters.High = 1 then
@@ -330,16 +330,16 @@ begin
   Window.SceneManager.DefaultViewport := false;
 
   {$ifdef ADD_GL_ANIMATION}
-  { initialize Translation }
-  Translation := T3DTranslated.Create(SceneManager);
-  Translation.Translation := Vector3Single(5, 3, 60);
-  Window.SceneManager.Items.Add(Translation);
+  { initialize Transform }
+  Transform := T3DTransform.Create(SceneManager);
+  Transform.Translation := Vector3Single(5, 3, 60);
+  Window.SceneManager.Items.Add(Transform);
 
   { initialize Animation }
   Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
-  Translation.Child := Animation;
+  Transform.Child := Animation;
   {$endif ADD_GL_ANIMATION}
 
   { one viewport shows only wireframe }
