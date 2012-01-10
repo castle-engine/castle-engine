@@ -624,13 +624,22 @@ type
   { Transform (move, rotate, scale) other T3D objects.
     Descends from T3DList, transforming all it's children.
 
-    Actual transformation is defined by abstract methods like GetTranslation,
-    GetRotation and such.
+    Actual transformation is defined by virtual methods like GetTranslation,
+    GetRotation and such. In this class they return zeros, and in practice
+    (at least some of them) have to be overridden for this class to make sense.
     Use T3DTransform to have simple T3DTransform.Translation and such properties. }
   T3DCustomTransform = class(T3DList)
+  protected
+    function GetTranslation: TVector3Single; virtual;
+    function GetCenter: TVector3Single; virtual;
+    function GetRotation: TVector4Single; virtual;
+    function GetScale: TVector3Single; virtual;
+    function GetScaleOrientation: TVector4Single; virtual;
+    function OnlyTranslation: boolean; virtual;
+    function TransformMatrix: TMatrix4Single;
+    function TransformInverseMatrix: TMatrix4Single;
+    procedure TransformMatrices(var Transform, TransformInverse: TMatrix4Single);
   public
-    function GetTranslation: TVector3Single; virtual; abstract;
-
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure RenderShadowVolume(
@@ -672,10 +681,44 @@ type
     Defines simple properties like @link(Translation). }
   T3DTransform = class(T3DCustomTransform)
   private
+    FCenter: TVector3Single;
+    FRotation: TVector4Single;
+    FScale: TVector3Single;
+    FScaleOrientation: TVector4Single;
     FTranslation: TVector3Single;
-  public
+    FOnlyTranslation: boolean;
+  protected
+    procedure SetCenter(const Value: TVector3Single);
+    procedure SetRotation(const Value: TVector4Single);
+    procedure SetScale(const Value: TVector3Single);
+    procedure SetScaleOrientation(const Value: TVector4Single);
+
+    function OnlyTranslation: boolean; override;
+
+    function GetCenter: TVector3Single; override;
+    function GetRotation: TVector4Single; override;
+    function GetScale: TVector3Single; override;
+    function GetScaleOrientation: TVector4Single; override;
     function GetTranslation: TVector3Single; override;
-    property Translation: TVector3Single read GetTranslation write FTranslation;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    { Transformation is a combined Translation, and Rotation around Center point,
+      and Scale around Center and with orientation given by ScaleOrientation.
+      For precise meaning, see X3D Transform node.
+
+      Default values of these fields indicate no transformation.
+      So everything is zero, except Scale which is (1,1,1).
+      Scale must always have all components > 1 (some operations depend
+      that scale here is invertible and doesn't flip sides).
+
+      @groupBegin }
+    property Center: TVector3Single read FCenter write SetCenter;
+    property Rotation: TVector4Single read FRotation write SetRotation;
+    property Scale: TVector3Single read FScale write SetScale;
+    property ScaleOrientation: TVector4Single read FScaleOrientation write SetScaleOrientation;
+    property Translation: TVector3Single read FTranslation write FTranslation;
+    { @groupEnd }
   end;
 
   { Deprecated name for T3DCustomTransform. @deprecated @exclude }
@@ -686,6 +729,16 @@ type
 
 const
   MaxSingle = Math.MaxSingle;
+
+{ Apply X3D transformation to a matrix.
+  Useful for various classes that behave like Transform node,
+  and for T3DTransform. }
+procedure TransformMatrices(var Transform, TransformInverse: TMatrix4Single;
+  const Center: TVector3Single;
+  const Rotation: TVector4Single;
+  const Scale: TVector3Single;
+  const ScaleOrientation: TVector4Single;
+  const Translation: TVector3Single);
 
 implementation
 
@@ -1403,7 +1456,130 @@ begin
   end;
 end;
 
+{ TransformMatrices ---------------------------------------------------------- }
+
+procedure TransformMatrices(var Transform, TransformInverse: TMatrix4Single;
+  const Center: TVector3Single;
+  const Rotation: TVector4Single;
+  const Scale: TVector3Single;
+  const ScaleOrientation: TVector4Single;
+  const Translation: TVector3Single);
+var
+  M, IM: TMatrix4Single;
+  MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
+begin
+  { To make TransformInverse, we multiply inverted matrices in inverted order
+    below. }
+
+  MultMatricesTranslation(Transform, TransformInverse,
+    VectorAdd(Translation, Center));
+
+  { We avoid using RotationMatricesRad when angle = 0, since this
+    is often the case, and it makes TransformState much faster
+    (which is important --- TransformState is important for traversing state). }
+  if Rotation[3] <> 0 then
+  begin
+    { Note that even rotation Axis = zero is OK, both M and IM will be
+      identity in this case. }
+    RotationMatricesRad(Rotation, M, IM);
+    Transform := MatrixMult(Transform, M);
+    TransformInverse := MatrixMult(IM, TransformInverse);
+  end;
+
+  if (Scale[0] <> 1) or
+     (Scale[1] <> 1) or
+     (Scale[2] <> 1) then
+  begin
+    if ScaleOrientation[3] <> 0 then
+    begin
+      RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
+      Transform := MatrixMult(Transform, MRotateScaleOrient);
+      TransformInverse := MatrixMult(IMRotateScaleOrient, TransformInverse);
+    end;
+
+    { For scaling, we explicitly request that if ScalingFactor contains
+      zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
+      is "true"). That's because VRML allows
+      scaling factor to have 0 components (we need TransformInverse only
+      for special tricks). }
+
+    ScalingMatrices(Scale, true, M, IM);
+    Transform := MatrixMult(Transform, M);
+    TransformInverse := MatrixMult(IM, TransformInverse);
+
+    if ScaleOrientation[3] <> 0 then
+    begin
+      { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
+        matrices below. Since we want to reverse them now, so normal
+        Transform is multiplied by IM and TransformInverse is multiplied by M. }
+      Transform := MatrixMult(Transform, IMRotateScaleOrient);
+      TransformInverse := MatrixMult(MRotateScaleOrient, TransformInverse);
+    end;
+  end;
+
+  MultMatricesTranslation(Transform, TransformInverse, VectorNegate(Center));
+end;
+
 { T3DCustomTransform -------------------------------------------------------- }
+
+function T3DCustomTransform.GetTranslation: TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+function T3DCustomTransform.GetCenter: TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+function T3DCustomTransform.GetRotation: TVector4Single;
+begin
+  Result := ZeroVector4Single;
+end;
+
+const
+  NoScale: TVector3Single = (1, 1, 1);
+
+function T3DCustomTransform.GetScale: TVector3Single;
+begin
+  Result := NoScale;
+end;
+
+function T3DCustomTransform.GetScaleOrientation: TVector4Single;
+begin
+  Result := ZeroVector4Single;
+end;
+
+function T3DCustomTransform.OnlyTranslation: boolean;
+begin
+  Result := false; { safer but slower default }
+end;
+
+function T3DCustomTransform.TransformMatrix: TMatrix4Single;
+var
+  Dummy: TMatrix4Single;
+begin
+  TransformMatrices(Result, Dummy); // TODO: optimize
+end;
+
+function T3DCustomTransform.TransformInverseMatrix: TMatrix4Single;
+var
+  Dummy: TMatrix4Single;
+begin
+  TransformMatrices(Dummy, Result); // TODO: optimize
+end;
+
+procedure T3DCustomTransform.TransformMatrices(
+  var Transform, TransformInverse: TMatrix4Single);
+begin
+  Base3D.TransformMatrices(Transform, TransformInverse,
+    GetCenter, GetRotation, GetScale, GetScaleOrientation, GetTranslation);
+end;
+
+{ TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+  It remains to actually use OnlyTranslation and TransformMatrices
+  inside all T3DCustomTransform below.
+}
 
 function T3DCustomTransform.BoundingBox: TBox3D;
 begin
@@ -1585,9 +1761,71 @@ end;
 
 { T3DTransform -------------------------------------------------------------- }
 
+constructor T3DTransform.Create(AOwner: TComponent);
+begin
+  inherited;
+  FOnlyTranslation := true;
+  FScale := NoScale;
+end;
+
+function T3DTransform.GetCenter: TVector3Single;
+begin
+  Result := FCenter;
+end;
+
+function T3DTransform.GetRotation: TVector4Single;
+begin
+  Result := FRotation;
+end;
+
+function T3DTransform.GetScale: TVector3Single;
+begin
+  Result := FScale;
+end;
+
+function T3DTransform.GetScaleOrientation: TVector4Single;
+begin
+  Result := FScaleOrientation;
+end;
+
 function T3DTransform.GetTranslation: TVector3Single;
 begin
   Result := FTranslation;
+end;
+
+{ We try hard to keep OnlyTranslation return fast, and return with true.
+  This will allow T3DCustomTransform to be optimized and accurate
+  for often case of pure translation. }
+
+procedure T3DTransform.SetCenter(const Value: TVector3Single);
+begin
+  FCenter := Value;
+  FOnlyTranslation := FOnlyTranslation and
+    (Value[0] = 0) or (Value[1] = 0) or (Value[2] = 0);
+end;
+
+procedure T3DTransform.SetRotation(const Value: TVector4Single);
+begin
+  FRotation := Value;
+  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+end;
+
+procedure T3DTransform.SetScale(const Value: TVector3Single);
+begin
+  FScale := Value;
+  FOnlyTranslation := FOnlyTranslation and
+    (Value[0] = 1) or (Value[1] = 1) or (Value[2] = 1);
+end;
+
+procedure T3DTransform.SetScaleOrientation(const Value: TVector4Single);
+begin
+  FScaleOrientation := Value;
+  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+end;
+
+function T3DTransform.OnlyTranslation: boolean;
+begin
+  Result := FOnlyTranslation;
 end;
 
 end.

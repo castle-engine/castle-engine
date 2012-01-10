@@ -663,7 +663,6 @@ end;
 
 procedure THAnimJointNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
-  IgnoreHumanoidTransformScale: Single;
   I: Integer;
   ChildJoint: THAnimJointNode;
   LocalCenter, NewChildCenter: TVector3Single;
@@ -685,9 +684,7 @@ begin
 
   { update State.HumanoidTransform, State.HumanoidInvertedTransform
     for child joints. }
-  IgnoreHumanoidTransformScale := 1;
   TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
-    IgnoreHumanoidTransformScale,
     LocalCenter, Fdrotation.Value, Fdscale.Value,
     FdscaleOrientation.Value, Fdtranslation.Value);
 
