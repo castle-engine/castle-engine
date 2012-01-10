@@ -72,12 +72,13 @@ type
     fcInsideFrustum );
 
   { Viewing frustum, defined as 6 plane equations.
-    This object allows you to calculate and operate on frustum.
+    Calculating and operating on such frustum.
     Frustums with far plane in infinity (typically used in conjunction
-    with shadow volumes) are fully supported.
+    with shadow volumes) are fully supported by all methods (we just have
+    5 frustum planes then).
 
-    We define this using old-style "object", to have comfort and low-overhead
-    at the same time. }
+    We define this using ObjectPascal old-style "object", to have comfort
+    and low-overhead at the same time. }
   TFrustum = object
   private
     procedure NormalizePlanes;
@@ -105,53 +106,56 @@ type
 
     ZFarInfinity: boolean;
 
-    { This calculates 8 points of Frustum. These points are simply
+    { Calculate 8 points of frustum. These points are simply
       calculated doing ThreePlanesIntersectionPoint on appropriate planes.
 
       Using these points you can easily draw given frustum on screen.
       Use FrustumPointsQuadsIndexes to obtain indexes to FrustumPoints.
       E.g. using OpenGL use code like this:
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-          glVertexPointer(4, GL_FLOAT / GL_DOUBLE, 0, @@FrustumPoints);
+@longCode(#
+  glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(4, GL_FLOAT / GL_DOUBLE, 0, @@FrustumPoints);
 
-          glDrawElements(GL_QUADS,
-            SizeOf(FrustumPointsQuadsIndexes) div SizeOf(LongWord),
-            GL_UNSIGNED_INT, @@FrustumPointsQuadsIndexes);
-          or
-          glDrawElements(GL_LiNES,
-            SizeOf(FrustumPointsLinesIndexes) div SizeOf(LongWord),
-            GL_UNSIGNED_INT, @@FrustumPointsLinesIndexes);
+    glDrawElements(GL_QUADS,
+      SizeOf(FrustumPointsQuadsIndexes) div SizeOf(LongWord),
+      GL_UNSIGNED_INT, @@FrustumPointsQuadsIndexes);
+    // or
+    glDrawElements(GL_LINES,
+      SizeOf(FrustumPointsLinesIndexes) div SizeOf(LongWord),
+      GL_UNSIGNED_INT, @@FrustumPointsLinesIndexes);
 
-        glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_VERTEX_ARRAY);
+#)
 
-      This works with Ok with far plane in infinity.
+      This example rendering code will even work Ok with far plane in infinity.
       Then the 4 points of the far plane will be "in infinity",
       that is will have 4th component set to zero. Or, equivalently,
       they will be directions. Homogeneous coordinates allow us for this,
       and in fact you can just render such points without any problems
       in OpenGL.
 
-      @italic(Question:) Should I use TFrustumPointsSingle or TFrustumPointsDouble ?
-      Short answer: use Double. Tests show that while keeping type TFrustum
-      based on Single type is sufficient, calculating FrustumPoints
-      on Single type is *not* sufficient, practical example: run
-      @preformatted(
-        view3dscene demo_models/vrml_2/cones.wrl
-      )
-      and jump to viewpoint named "Frustum needs double-precision".
+      For good precision, always use TFrustumPointsDouble.
+      Tests show that, while storing the plane equations
+      with Single precision is sufficient, calculating FrustumPoints
+      using Single precision is *not* sufficient.
 
-      Turn "Show viewing frustum" on and you will see that frustum
-      looks good. But when you change implementation of view3dscene.lpr
-      to use TFrustumPointsSingle (and change GL_DOUBLE at glVertexPointer
-      to GL_FLOAT) then frustum will look bad (both near and far quads
-      will look obviously slightly assymetrical).
+      (Testcase that the Double precision is needed:
+      run @code(view3dscene demo_models/vrml_2/cones.wrl).
+      Jump to viewpoint named "Frustum needs double-precision".
+      Turn "Show viewing frustum" on. When view3dscene.lpr uses Single precision
+      with CalculatePoints (use TFrustumPointsSingle, and GL_FLOAT
+      at glVertexPointer) the result is incorrect, near and far quads
+      are visibly asymetrical.)
 
       @raises(EPlanesParallel If Frustum doesn't have planes of any
         valid frustum.)
+
+      @groupBegin
     }
     procedure CalculatePoints(out FrustumPoints: TFrustumPointsSingle); overload;
     procedure CalculatePoints(out FrustumPoints: TFrustumPointsDouble); overload;
+    { @groupEnd }
 
     { Checks for collision between frustum and sphere.
 
@@ -194,41 +198,51 @@ type
       const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
       TFrustumCollisionPossible;
 
-    { This is like @link(TFrustum.SphereCollisionPossible)
-      but it only returns true (when TFrustum.SphereCollisionPossible
+    { Checks for collision between frustum and sphere, faster.
+      Like @link(TFrustum.SphereCollisionPossible),
+      but this only returns true (when TFrustum.SphereCollisionPossible
       would return fcSomeCollisionPossible or fcInsideFrustum)
       or false (when TFrustum.SphereCollisionPossible
       would return fcNoCollision).
 
-      Consequently, it runs a (very little) faster.
-      Just use this if you don't need to distinct between
+      Consequently, it runs (very slightly) faster.
+      Use this if you don't need to differentiate between
       fcSomeCollisionPossible or fcInsideFrustum cases. }
     function SphereCollisionPossibleSimple(
       const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
       boolean;
 
-    { This is equivalent to @link(SphereCollisionPossible),
-      but here it takes a box instead of a sphere. }
+    { Checks for collision between frustum and box.
+      Meaning of return value like @link(SphereCollisionPossible). }
     function Box3DCollisionPossible(
       const Box: TBox3D): TFrustumCollisionPossible;
 
-    { This is like @link(Box3DCollisionPossible)
-      but it returns true when Box3DCollisionPossible
-      would return fcSomeCollisionPossible or fcInsideFrustum.
-      Otherwise (when Box3DCollisionPossible would return
-      fcNoCollision) this returns false.
-
-      So this returns less detailed result, but is a little faster. }
+    { Checks for collision between frustum and box, faster.
+      Meaning of return value like @link(SphereCollisionPossibleSimple). }
     function Box3DCollisionPossibleSimple(
       const Box: TBox3D): boolean;
 
     function Move(const M: TVector3Single): TFrustum;
     procedure MoveTo1st(const M: TVector3Single);
 
-    { Is Direction (you can think of it as a "point infinitely away in direction
-      Direction", e.g. the sun) within a frustum ? Note that this ignores
+    { Is Direction within a frustum. You can think of
+      direction it as a "point infinitely away in given Direction",
+      like the direction to the sun. Note that this ignores
       near/far planes of the frustum, only checking the 4 side planes. }
     function DirectionInside(const Direction: TVector3Single): boolean;
+
+    { Transform frustum by a matrix.
+
+      @param(M Transformation matrix.
+        This matrix must be "sane": it must transform homogeneous positions
+        into homogeneous positions, and homogeneous directions into
+        homogeneous directions. Also, it must not invert or do other weird stuff
+        (like shear) with directions. To be safe just make sure it's a matrix
+        composed only from translations, rotations, and scale (with all
+        scale parameters being > 0).)
+
+      @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
+//    function Transform(const M: TMatrix4Single): TFrustum;
   end;
   PFrustum = ^TFrustum;
 
@@ -619,5 +633,12 @@ begin
               Planes[fpBottom][1] * Direction[1] +
               Planes[fpBottom][2] * Direction[2] >= 0 );
 end;
+
+(*function TFrustum.Transform(const M: TMatrix4Single): TFrustum;
+begin
+  { TODO }
+  Result.Planes := Planes;
+  Result.ZFarInfinity := ZFarInfinity;
+end;*)
 
 end.
