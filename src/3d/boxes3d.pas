@@ -403,9 +403,11 @@ type
 { Various comfortable functions to construct TBox3D value.
   @groupBegin }
 function Box3D(const p0, p1: TVector3Single): TBox3D;
-function Box3DOrderUp(const p0, p1: TVector3Single): TBox3D;
-function Box3DCubeAroundPoint(const pt: TVector3Single; CubeSize: Single): TBox3D;
+function Box3DAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
 { @groupEnd }
+
+{ @deprecated @exclude Deprecated name for Box3DAroundPoint. }
+function Box3DCubeAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
 
 { Calculate bounding box of a set of 3D points.
   This calculates the smallest possible box enclosing all given points.
@@ -1638,21 +1640,23 @@ end;
 
 function Box3D(const p0, p1: TVector3Single): TBox3D;
 begin
- result.Data[0] := p0;
- result.Data[1] := p1;
+  result.Data[0] := p0;
+  result.Data[1] := p1;
 end;
 
-function Box3DOrderUp(const p0, p1: TVector3Single): TBox3D;
+function Box3DAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
 begin
- OrderUp(p0[0], p1[0], result.Data[0, 0], result.Data[1, 0]);
- OrderUp(p0[1], p1[1], result.Data[0, 1], result.Data[1, 1]);
- OrderUp(p0[2], p1[2], result.Data[0, 2], result.Data[1, 2]);
+  result.Data[0][0] := Pt[0] - CubeSize;
+  result.Data[0][1] := Pt[1] - CubeSize;
+  result.Data[0][2] := Pt[2] - CubeSize;
+  result.Data[1][0] := Pt[0] + CubeSize;
+  result.Data[1][1] := Pt[1] + CubeSize;
+  result.Data[1][2] := Pt[2] + CubeSize;
 end;
 
-function Box3DCubeAroundPoint(const pt: TVector3Single; cubeSize: Single): TBox3D;
+function Box3DCubeAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
 begin
- result.Data[0] := VectorSubtract(pt, Vector3Single(-cubeSize, -cubeSize, -cubeSize));
- result.Data[1] := VectorAdd(pt, Vector3Single(cubeSize, cubeSize, cubeSize));
+  Result := Box3DAroundPoint(pt, CubeSize);
 end;
 
 { MinSingleTo1st i MaxSingleTo1st will be useful for CalculateBoundingBox }
@@ -1696,7 +1700,7 @@ begin
 end;
 
 type
-  {klasa do wewnetrznego uzytku w CalculateBoundingBox}
+  { Internal helper for CalculateBoundingBox }
   TBBox_Calculator = class
     Verts: PVector3Single;
     VertsStride: Cardinal; { tutaj VertsStride juz nie moze byc = 0 }
@@ -1718,32 +1722,34 @@ type
 
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal): TBox3D;
-var Calculator: TBBox_Calculator;
+var
+  Calculator: TBBox_Calculator;
 begin
- if VertsStride = 0 then VertsStride := SizeOf(TVector3Single);
- Calculator := TBBox_Calculator.Create;
- try
-  Calculator.VertsStride := VertsStride;
-  Calculator.Verts := Verts;
-  result := CalculateBoundingBox(
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
- finally Calculator.Free end;
+  if VertsStride = 0 then VertsStride := SizeOf(TVector3Single);
+  Calculator := TBBox_Calculator.Create;
+  try
+    Calculator.VertsStride := VertsStride;
+    Calculator.Verts := Verts;
+    result := CalculateBoundingBox(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
+  finally Calculator.Free end;
 end;
 
 function CalculateBoundingBox(
   Verts: PVector3Single; VertsCount: Cardinal; VertsStride: Cardinal;
   const Transform: TMatrix4Single): TBox3D;
-var Calculator: TBBox_Calculator;
+var
+  Calculator: TBBox_Calculator;
 begin
- if VertsStride = 0 then VertsStride := SizeOf(TVector3Single);
- Calculator := TBBox_Calculator.Create;
- try
-  Calculator.VertsStride := VertsStride;
-  Calculator.Verts := Verts;
-  Calculator.PMatrix := @Transform;
-  result := CalculateBoundingBox(
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
- finally Calculator.Free end;
+  if VertsStride = 0 then VertsStride := SizeOf(TVector3Single);
+  Calculator := TBBox_Calculator.Create;
+  try
+    Calculator.VertsStride := VertsStride;
+    Calculator.Verts := Verts;
+    Calculator.PMatrix := @Transform;
+    result := CalculateBoundingBox(
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
+  finally Calculator.Free end;
 end;
 
 function CalculateBoundingBox(Verts: TVector3SingleList): TBox3D;
@@ -1763,46 +1769,46 @@ var
   IndexNum, Index: integer;
   ThisVertex: TVector3Single;
 begin
- {seek for firstIndex}
- firstIndexNum := 0;
- while (firstIndexNum < VertsIndicesCount) and (GetVertIndex(firstIndexNum) < 0) do
-  Inc(firstIndexNum);
+  {seek for firstIndex}
+  firstIndexNum := 0;
+  while (firstIndexNum < VertsIndicesCount) and (GetVertIndex(firstIndexNum) < 0) do
+    Inc(firstIndexNum);
 
- if firstIndexNum = VertsIndicesCount then {firstIndex not found ?}
- begin
-  result := EmptyBox3D;
-  exit;
- end;
+  if firstIndexNum = VertsIndicesCount then {firstIndex not found ?}
+  begin
+    result := EmptyBox3D;
+    exit;
+  end;
 
- { Note that I do only one pass, getting all vertexes.
+  { Note that I do only one pass, getting all vertexes.
 
-   This is important, because GetVertex may be quite expensive
-   operation (in case of e.g. TVertTransform_Calculator.GetTransformed,
-   this is MatrixMultPoint for every vertex). At the beginning
-   I implemented this by caling 6 time find_extremum function,
-   and each call to find_extremum was iterating over every vertex.
-   This was obviously wrong, because this caused calling GetVertex
-   6 times more often than necessary. In some cases (like preparing
-   TCastlePrecalculatedAnimation in "The Castle") this can cause really significant
-   slowdown. }
+    This is important, because GetVertex may be quite expensive
+    operation (in case of e.g. TVertTransform_Calculator.GetTransformed,
+    this is MatrixMultPoint for every vertex). At the beginning
+    I implemented this by caling 6 time find_extremum function,
+    and each call to find_extremum was iterating over every vertex.
+    This was obviously wrong, because this caused calling GetVertex
+    6 times more often than necessary. In some cases (like preparing
+    TCastlePrecalculatedAnimation in "The Castle") this can cause really significant
+    slowdown. }
 
- ThisVertex := GetVertex(GetVertIndex(firstIndexNum));
- Result.Data[0] := ThisVertex;
- Result.Data[1] := ThisVertex;
- for IndexNum := FirstIndexNum+1 to VertsIndicesCount - 1 do
- begin
-   Index := GetVertIndex(IndexNum);
-   if Index >= 0 then
-   begin
-     ThisVertex := GetVertex(Index);
-     if ThisVertex[0] < Result.Data[0, 0] then Result.Data[0, 0] := ThisVertex[0];
-     if ThisVertex[1] < Result.Data[0, 1] then Result.Data[0, 1] := ThisVertex[1];
-     if ThisVertex[2] < Result.Data[0, 2] then Result.Data[0, 2] := ThisVertex[2];
-     if ThisVertex[0] > Result.Data[1, 0] then Result.Data[1, 0] := ThisVertex[0];
-     if ThisVertex[1] > Result.Data[1, 1] then Result.Data[1, 1] := ThisVertex[1];
-     if ThisVertex[2] > Result.Data[1, 2] then Result.Data[1, 2] := ThisVertex[2];
-   end;
- end;
+  ThisVertex := GetVertex(GetVertIndex(firstIndexNum));
+  Result.Data[0] := ThisVertex;
+  Result.Data[1] := ThisVertex;
+  for IndexNum := FirstIndexNum+1 to VertsIndicesCount - 1 do
+  begin
+    Index := GetVertIndex(IndexNum);
+    if Index >= 0 then
+    begin
+      ThisVertex := GetVertex(Index);
+      if ThisVertex[0] < Result.Data[0, 0] then Result.Data[0, 0] := ThisVertex[0];
+      if ThisVertex[1] < Result.Data[0, 1] then Result.Data[0, 1] := ThisVertex[1];
+      if ThisVertex[2] < Result.Data[0, 2] then Result.Data[0, 2] := ThisVertex[2];
+      if ThisVertex[0] > Result.Data[1, 0] then Result.Data[1, 0] := ThisVertex[0];
+      if ThisVertex[1] > Result.Data[1, 1] then Result.Data[1, 1] := ThisVertex[1];
+      if ThisVertex[2] > Result.Data[1, 2] then Result.Data[1, 2] := ThisVertex[2];
+    end;
+  end;
 end;
 
 type
@@ -1813,7 +1819,7 @@ type
   end;
   function TVertTransform_Calculator.GetTransformed(index: integer): TVector3Single;
   begin
-   result := MatrixMultPoint(PTransform^, GetNotTransformed(index));
+    result := MatrixMultPoint(PTransform^, GetNotTransformed(index));
   end;
 
 function CalculateBoundingBoxFromIndices(
@@ -1821,17 +1827,18 @@ function CalculateBoundingBoxFromIndices(
   VertsIndicesCount: integer;
   GetVertex: TGetVertexFromIndexFunc;
   const Transform: TMatrix4Single): TBox3D;
-var Calculator: TVertTransform_Calculator;
+var
+  Calculator: TVertTransform_Calculator;
 begin
- Calculator := TVertTransform_Calculator.Create;
- try
-  Calculator.PTransform := @Transform;
-  Calculator.GetNotTransformed := GetVertex;
-  result := CalculateBoundingBoxFromIndices(
-    GetVertIndex,
-    VertsIndicesCount,
-    {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetTransformed);
- finally Calculator.Free end;
+  Calculator := TVertTransform_Calculator.Create;
+  try
+    Calculator.PTransform := @Transform;
+    Calculator.GetNotTransformed := GetVertex;
+    result := CalculateBoundingBoxFromIndices(
+      GetVertIndex,
+      VertsIndicesCount,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetTransformed);
+  finally Calculator.Free end;
 end;
 
 operator+ (const box1, box2: TBox3D): TBox3D;
