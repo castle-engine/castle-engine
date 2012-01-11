@@ -403,11 +403,8 @@ type
 { Various comfortable functions to construct TBox3D value.
   @groupBegin }
 function Box3D(const p0, p1: TVector3Single): TBox3D;
-function Box3DAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
+function Box3DAroundPoint(const Pt: TVector3Single; Size: Single): TBox3D;
 { @groupEnd }
-
-{ @deprecated @exclude Deprecated name for Box3DAroundPoint. }
-function Box3DCubeAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
 
 { Calculate bounding box of a set of 3D points.
   This calculates the smallest possible box enclosing all given points.
@@ -1644,19 +1641,15 @@ begin
   result.Data[1] := p1;
 end;
 
-function Box3DAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
+function Box3DAroundPoint(const Pt: TVector3Single; Size: Single): TBox3D;
 begin
-  result.Data[0][0] := Pt[0] - CubeSize;
-  result.Data[0][1] := Pt[1] - CubeSize;
-  result.Data[0][2] := Pt[2] - CubeSize;
-  result.Data[1][0] := Pt[0] + CubeSize;
-  result.Data[1][1] := Pt[1] + CubeSize;
-  result.Data[1][2] := Pt[2] + CubeSize;
-end;
-
-function Box3DCubeAroundPoint(const pt: TVector3Single; const CubeSize: Single): TBox3D;
-begin
-  Result := Box3DAroundPoint(pt, CubeSize);
+  Size /= 2;
+  Result.Data[0][0] := Pt[0] - Size;
+  Result.Data[0][1] := Pt[1] - Size;
+  Result.Data[0][2] := Pt[2] - Size;
+  Result.Data[1][0] := Pt[0] + Size;
+  Result.Data[1][1] := Pt[1] + Size;
+  Result.Data[1][2] := Pt[2] + Size;
 end;
 
 { MinSingleTo1st i MaxSingleTo1st will be useful for CalculateBoundingBox }
