@@ -22,8 +22,6 @@ uses
 
 type
   TTestBase3D = class(TTestCase)
-  private
-    procedure Test3DTransformTranslatedCustom(const Rotate: boolean);
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -31,8 +29,7 @@ type
     procedure Test3DTransform;
     procedure Test3DTransformNotExists;
     procedure Test3DTransformNotCollides;
-    procedure Test3DTransformTranslated;
-    procedure Test3DTransformTranslatedRotated;
+    procedure Test3DTransformReal;
   end;
 
 implementation
@@ -622,29 +619,18 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformTranslatedCustom(const Rotate: boolean);
-var
-  M: TMy3DTransform;
-  IsAbove: boolean;
-  AboveHeight: Single;
-  AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
-  Collision: T3DCollision;
-  CollisionDistance: Single;
-begin
-  M := TMy3DTransform.Create(nil);
-  try
-    M.Add(TMy3D.Create(M));
-    M.Translation := Vector3Single(20, 0, 0);
-    if Rotate then
-    begin
-      { just a trick to force current T3DTransform implementation to use
-        OnlyTranslation = false.
-        For MyBox, this rotation results in the same box. }
-      M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
-    end;
-    Assert(M.OnlyTranslation = not Rotate);
+procedure TTestBase3D.Test3DTransformReal;
 
+  { Perform test on M, assuming that it results in box MyBox moved by (20,0,0). }
+  procedure DoTests(M: TMy3DTransform);
+  var
+    IsAbove: boolean;
+    AboveHeight: Single;
+    AboveGround: P3DTriangle;
+    NewPos: TVector3Single;
+    Collision: T3DCollision;
+    CollisionDistance: Single;
+  begin
     Assert(M.BoundingBox.Equal(MyBox.Translate(Vector3Single(20, 0, 0))));
 
     M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
@@ -707,17 +693,27 @@ begin
     Assert(FloatsEqual(CollisionDistance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(21, 0, 0)));
     FreeAndNil(Collision);
+  end;
+
+var
+  M: TMy3DTransform;
+begin
+  M := TMy3DTransform.Create(nil);
+  try
+    M.Add(TMy3D.Create(M));
+    M.Translation := Vector3Single(20, 0, 0);
+    Assert(M.OnlyTranslation);
+    DoTests(M);
   finally FreeAndNil(M) end;
-end;
 
-procedure TTestBase3D.Test3DTransformTranslated;
-begin
-  Test3DTransformTranslatedCustom(true);
-end;
-
-procedure TTestBase3D.Test3DTransformTranslatedRotated;
-begin
-  Test3DTransformTranslatedCustom(false);
+  M := TMy3DTransform.Create(nil);
+  try
+    M.Add(TMy3D.Create(M));
+    M.Translation := Vector3Single(20, 0, 0);
+    M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
+    Assert(not M.OnlyTranslation);
+    DoTests(M);
+  finally FreeAndNil(M) end;
 end;
 
 initialization
