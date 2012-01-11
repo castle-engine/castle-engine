@@ -448,8 +448,13 @@ type
         That is, if you turn gravity on, the player will fall down forever,
         as far as this 3D scene is concerned.)
 
-      @param(AboveHeight Height above the ground. Must be MaxSingle
-        if IsAbove was set to @false (this guarantee simplifies some code).)
+      @param(AboveHeight Height above the ground.
+        @italic(One height unit equals one GravityUp vector).
+        Always use normalized GravityUp vector if you expect
+        to receive here a normal distance.
+
+        Must be MaxSingle if IsAbove was set to @false
+        (this guarantee simplifies some code).)
 
       @param(AboveGround Pointer to P3DTriangle representing the ground.
         Must be @nil if IsAbove was set to @false.
@@ -490,6 +495,10 @@ type
       Returns a collision as T3DCollision instance, or @nil if no collision.
       Caller is responsible for freeing the returned T3DCollision instance.
 
+      IntersectionDistance is the distance to the collision point,
+      @italic(where one RayVector equals one unit).
+      Always use normalized RayVector if you expect to get here a normal distance.
+
       This always returns the first collision with the 3D world, that is
       the one with smallest IntersectionDistance. For example, when
       implemented in T3DList, this checks collisions for all list items,
@@ -522,8 +531,7 @@ type
 
   { List of base 3D objects (T3D instances).
     This allows you to group many 3D objects, and treat them as one T3D
-    descendant (for example, to translate many 3D objects by a single
-    T3DCustomTransform.Child).
+    descendant.
 
     This inherits from TCastleObjectList, getting many
     features like TList notification mechanism (useful in some situations).
@@ -1732,9 +1740,9 @@ begin
       MatrixMultPoint(MInverse, Position),
       MatrixMultDirection(MInverse, GravityUp), TrianglesToIgnoreFunc,
         IsAbove, AboveHeight, AboveGround);
-{ TODO: why this is invalid? why passes tests without it?
-    if IsAbove then
-      AboveHeight *= AverageScale;}
+    { Note that we should not scale resulting AboveHeight by AverageScale.
+      That is because AboveHeight is relative to GravityUp length,
+      so it's automatically correct. }
   end;
 end;
 
@@ -1923,11 +1931,10 @@ begin
       MatrixMultPoint(MInverse, Ray0),
       MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
     if Result <> nil then
-    begin
-{ TODO: why this is invalid? why passes tests without it?
-      IntersectionDistance *= AverageScale; }
       Result.Point := MatrixMultPoint(M, Result.Point);
-    end;
+    { Note that we should not scale resulting IntersectionDistance by AverageScale.
+      That is because IntersectionDistance is relative to RayVector length,
+      so it's automatically correct. }
   end;
 end;
 
