@@ -1660,19 +1660,28 @@ end;
 function T3DCustomTransform.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
 var
+  T, OldRayHitPoint: TVector3Single;
   Inverse: TMatrix4Single;
 begin
   if OnlyTranslation then
-    Result := inherited MouseMove(RayOrigin - GetTranslation,
-      RayDirection, RayHit) else
+  begin
+    T := GetTranslation;
+    { we save and restore RayHit.Point, to always provide RayHit.Point
+      in local coordinates to MouseMove call. }
+    OldRayHitPoint := RayHit.Point;
+    RayHit.Point -= T;
+    Result := inherited MouseMove(RayOrigin - T, RayDirection, RayHit);
+    RayHit.Point := OldRayHitPoint;
+  end else
   begin
     Inverse := TransformInverse;
+    OldRayHitPoint := RayHit.Point;
+    RayHit.Point := MatrixMultPoint(Inverse, RayHit.Point);
     Result := inherited MouseMove(
       MatrixMultPoint(Inverse, RayOrigin),
       MatrixMultDirection(Inverse, RayDirection), RayHit);
+    RayHit.Point := OldRayHitPoint;
   end;
-
-  { TODO: RayHit things (like Point) should not be transformed back? }
 end;
 
 { TODO: when scale is not 1, some things should be corrected: CameraRadius,
@@ -1869,21 +1878,28 @@ function T3DCustomTransform.RayCollision(
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
-  MInverse: TMatrix4Single;
+  T: TVector3Single;
+  M, MInverse: TMatrix4Single;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not (GetExists and Collides) then Exit(nil);
 
   if OnlyTranslation then
-    Result := inherited RayCollision(IntersectionDistance,
-      Ray0 - GetTranslation,
-      RayVector, TrianglesToIgnoreFunc) else
   begin
-    MInverse := TransformInverse;
+    T := GetTranslation;
+    Result := inherited RayCollision(IntersectionDistance,
+      Ray0 - T, RayVector, TrianglesToIgnoreFunc);
+    if Result <> nil then
+      Result.Point += T;
+  end else
+  begin
+    TransformMatrices(M, MInverse);
     Result := inherited RayCollision(IntersectionDistance,
       MatrixMultPoint(MInverse, Ray0),
       MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
+    if Result <> nil then
+      Result.Point := MatrixMultPoint(M, Result.Point);
   end;
 end;
 
