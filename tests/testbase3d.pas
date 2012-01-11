@@ -23,7 +23,7 @@ uses
 type
   TTestBase3D = class(TTestCase)
   private
-    procedure Test3DTransformTranslated(const LetOnlyTranslation: boolean);
+    procedure Test3DTransformTranslatedCustom(const Rotate: boolean);
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -31,8 +31,8 @@ type
     procedure Test3DTransform;
     procedure Test3DTransformNotExists;
     procedure Test3DTransformNotCollides;
-    procedure Test3DTransformTranslatedOnly;
-    procedure Test3DTransformTranslatedNotOnly;
+    procedure Test3DTransformTranslated;
+    procedure Test3DTransformTranslatedRotated;
   end;
 
 implementation
@@ -622,7 +622,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformTranslated(const LetOnlyTranslation: boolean);
+procedure TTestBase3D.Test3DTransformTranslatedCustom(const Rotate: boolean);
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -636,14 +636,14 @@ begin
   try
     M.Add(TMy3D.Create(M));
     M.Translation := Vector3Single(20, 0, 0);
-    if not LetOnlyTranslation then
+    if Rotate then
     begin
       { just a trick to force current T3DTransform implementation to use
-        OnlyTranslation = false }
-      M.Rotation := Vector4Single(1, 1, 1, 1);
-      M.Rotation := Vector4Single(0, 0, 0, 0);
+        OnlyTranslation = false.
+        For MyBox, this rotation results in the same box. }
+      M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
     end;
-    Assert(M.OnlyTranslation = LetOnlyTranslation);
+    Assert(M.OnlyTranslation = not Rotate);
 
     Assert(M.BoundingBox.Equal(MyBox.Translate(Vector3Single(20, 0, 0))));
 
@@ -710,14 +710,14 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformTranslatedOnly;
+procedure TTestBase3D.Test3DTransformTranslated;
 begin
-  Test3DTransformTranslated(true);
+  Test3DTransformTranslatedCustom(true);
 end;
 
-procedure TTestBase3D.Test3DTransformTranslatedNotOnly;
+procedure TTestBase3D.Test3DTransformTranslatedRotated;
 begin
-  Test3DTransformTranslated(false);
+  Test3DTransformTranslatedCustom(false);
 end;
 
 initialization
