@@ -22,6 +22,8 @@ uses
 
 type
   TTestBase3D = class(TTestCase)
+  private
+    procedure Test3DTransformTranslated(const LetOnlyTranslation: boolean);
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -29,7 +31,8 @@ type
     procedure Test3DTransform;
     procedure Test3DTransformNotExists;
     procedure Test3DTransformNotCollides;
-    procedure Test3DTransformTranslated;
+    procedure Test3DTransformTranslatedOnly;
+    procedure Test3DTransformTranslatedNotOnly;
   end;
 
 implementation
@@ -619,7 +622,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestBase3D.Test3DTransformTranslated;
+procedure TTestBase3D.Test3DTransformTranslated(const LetOnlyTranslation: boolean);
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -633,7 +636,14 @@ begin
   try
     M.Add(TMy3D.Create(M));
     M.Translation := Vector3Single(20, 0, 0);
-    Assert(M.OnlyTranslation);
+    if not LetOnlyTranslation then
+    begin
+      { just a trick to force current T3DTransform implementation to use
+        OnlyTranslation = false }
+      M.Rotation := Vector4Single(1, 1, 1, 1);
+      M.Rotation := Vector4Single(0, 0, 0, 0);
+    end;
+    Assert(M.OnlyTranslation = LetOnlyTranslation);
 
     Assert(M.BoundingBox.Equal(MyBox.Translate(Vector3Single(20, 0, 0))));
 
@@ -698,6 +708,16 @@ begin
     Assert(VectorsEqual(Collision.Point, Vector3Single(21, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
+end;
+
+procedure TTestBase3D.Test3DTransformTranslatedOnly;
+begin
+  Test3DTransformTranslated(true);
+end;
+
+procedure TTestBase3D.Test3DTransformTranslatedNotOnly;
+begin
+  Test3DTransformTranslated(false);
 end;
 
 initialization
