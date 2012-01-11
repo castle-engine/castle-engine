@@ -242,7 +242,7 @@ type
         scale parameters being > 0).)
 
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
-//    function Transform(const M: TMatrix4Single): TFrustum;
+    function Transform(const M: TMatrix4Single): TFrustum;
   end;
   PFrustum = ^TFrustum;
 
@@ -634,11 +634,21 @@ begin
               Planes[fpBottom][2] * Direction[2] >= 0 );
 end;
 
-(*function TFrustum.Transform(const M: TMatrix4Single): TFrustum;
+function TFrustum.Transform(const M: TMatrix4Single): TFrustum;
+var
+  I: TFrustumPlane;
 begin
-  { TODO }
-  Result.Planes := Planes;
+  if ZFarInfinity then
+  begin
+    Assert(High(I) = fpFar);
+    for I := Low(I) to Pred(High(I)) do
+      Result.Planes[I] := PlaneTransform(Planes[I], M);
+    Result.Planes[fpFar] := ZeroVector4Single;
+  end else
+    for I := Low(I) to High(I) do
+      Result.Planes[I] := PlaneTransform(Planes[I], M);
+
   Result.ZFarInfinity := ZFarInfinity;
-end;*)
+end;
 
 end.
