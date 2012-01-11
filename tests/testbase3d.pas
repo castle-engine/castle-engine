@@ -752,6 +752,18 @@ begin
     FreeAndNil(M);
     FreeAndNil(M2);
   end;
+
+  M := TMy3DTransform.Create(nil);
+  try
+    { use scaling in T3DTransform }
+    M.Add(TMy3D.Create(M, Box3D(
+      Vector3Single(-0.25, -0.25, -0.25),
+      Vector3Single( 0.25,  0.25,  0.25))));
+    M.Translation := Vector3Single(20, 0, 0);
+    M.Scale := Vector3Single(4, 4, 4);
+    Assert(not M.OnlyTranslation);
+    DoTests(M);
+  finally FreeAndNil(M) end;
 end;
 
 initialization
