@@ -26,6 +26,9 @@ type
     procedure TestMy3D;
     procedure TestMy3DNotExists;
     procedure TestMy3DNotCollides;
+    procedure Test3DTransform;
+    procedure Test3DTransformNotExists;
+    procedure Test3DTransformNotCollides;
   end;
 
 implementation
@@ -333,6 +336,231 @@ begin
   M := TMy3D.Create(nil);
   try
     M.Collides := false;
+
+    Assert(M.BoundingBox.Equal(MyBox));
+
+    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
+      0.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      1.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      0.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      0.5, nil));
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      1.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      0.5, nil));
+
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
+
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+  finally FreeAndNil(M) end;
+end;
+
+type
+  { Define my own T3DTransform descendant, only to expose OnlyTranslation
+    value for testing. }
+  TMy3DTransform = class(T3DTransform)
+  end;
+
+procedure TTestBase3D.Test3DTransform;
+var
+  M: TMy3DTransform;
+  IsAbove: boolean;
+  AboveHeight: Single;
+  AboveGround: P3DTriangle;
+  NewPos: TVector3Single;
+  Collision: T3DCollision;
+  CollisionDistance: Single;
+begin
+  M := TMy3DTransform.Create(nil);
+  try
+    M.Add(TMy3D.Create(M));
+    Assert(M.OnlyTranslation);
+
+    Assert(M.BoundingBox.Equal(MyBox));
+
+    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(IsAbove);
+    Assert(FloatsEqual(AboveHeight, 1));
+
+    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
+      0.5, nil));
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      1.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      0.5, nil));
+    Assert(VectorsEqual(Vector3Single(-2, -1.5, 0), NewPos));
+
+    Assert(not M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      0.5, nil));
+    Assert(not M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      1.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      0.5, nil));
+
+    Assert(not M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(not M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
+    Assert(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
+
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
+    Assert(M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
+    Assert(M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision <> nil);
+    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    FreeAndNil(Collision);
+  finally FreeAndNil(M) end;
+end;
+
+procedure TTestBase3D.Test3DTransformNotExists;
+var
+  M: TMy3DTransform;
+  IsAbove: boolean;
+  AboveHeight: Single;
+  AboveGround: P3DTriangle;
+  NewPos: TVector3Single;
+  Collision: T3DCollision;
+  CollisionDistance: Single;
+begin
+  M := TMy3DTransform.Create(nil);
+  try
+    M.Add(TMy3D.Create(M));
+    M.Exists := false;
+    Assert(M.OnlyTranslation);
+
+    Assert(M.BoundingBox.IsEmpty);
+
+    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
+      0.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      1.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      0.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      0.5, nil));
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      1.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      0.5, nil));
+
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
+
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+  finally FreeAndNil(M) end;
+end;
+
+procedure TTestBase3D.Test3DTransformNotCollides;
+var
+  M: TMy3DTransform;
+  IsAbove: boolean;
+  AboveHeight: Single;
+  AboveGround: P3DTriangle;
+  NewPos: TVector3Single;
+  Collision: T3DCollision;
+  CollisionDistance: Single;
+begin
+  M := TMy3DTransform.Create(nil);
+  try
+    M.Add(TMy3D.Create(M));
+    M.Collides := false;
+    Assert(M.OnlyTranslation);
 
     Assert(M.BoundingBox.Equal(MyBox));
 
