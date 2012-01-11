@@ -152,7 +152,15 @@ type
       This is never an empty list. }
     Hierarchy: T3DListCore;
 
-    { The 3D point of collision. }
+    { The 3D point of collision.
+
+      Always given in the local coordinate system of
+      the T3D object that deals with this T3DCollision tree.
+      That is, T3D.RayCollision returns this in coordinates of given T3D object,
+      and T3D.MouseMove expects this in coordinates of given T3D object.
+      This means that coordinate system changes, and this point is recalculated
+      to appropriate coordinate systems, as this structure is passed
+      through the T3DTransform class in the hierarchy. }
     Point: TVector3Single;
 
     { The triangle that collides. This triangle is always a part of the last
