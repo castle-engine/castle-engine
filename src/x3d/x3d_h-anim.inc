@@ -684,7 +684,7 @@ begin
 
   { update State.HumanoidTransform, State.HumanoidInvertedTransform
     for child joints. }
-  TransformMatrices(State.HumanoidTransform, State.HumanoidInvertedTransform,
+  TransformMatricesMult(State.HumanoidTransform, State.HumanoidInvertedTransform,
     LocalCenter, Fdrotation.Value, Fdscale.Value,
     FdscaleOrientation.Value, Fdtranslation.Value);
 

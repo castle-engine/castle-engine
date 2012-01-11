@@ -636,9 +636,10 @@ type
     function GetScale: TVector3Single; virtual;
     function GetScaleOrientation: TVector4Single; virtual;
     function OnlyTranslation: boolean; virtual;
-    function TransformMatrix: TMatrix4Single;
-    function TransformInverseMatrix: TMatrix4Single;
-    procedure TransformMatrices(var Transform, TransformInverse: TMatrix4Single);
+    function Transform: TMatrix4Single;
+    function TransformInverse: TMatrix4Single;
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4Single);
+    procedure TransformMatrices(out M, MInverse: TMatrix4Single);
   public
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -730,10 +731,12 @@ type
 const
   MaxSingle = Math.MaxSingle;
 
-{ Apply X3D transformation to a matrix.
-  Useful for various classes that behave like Transform node,
-  and for T3DTransform. }
-procedure TransformMatrices(var Transform, TransformInverse: TMatrix4Single;
+{ Apply transformation to a matrix.
+  Calculates at the same time transformation matrix, and it's inverse,
+  and multiplies given Transform, TransformInverse appropriately.
+  The precise meaning of Center, Translation and such parameters
+  follows exactly the X3D Transform node definition. }
+procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
   const Center: TVector3Single;
   const Rotation: TVector4Single;
   const Scale: TVector3Single;
@@ -1456,9 +1459,9 @@ begin
   end;
 end;
 
-{ TransformMatrices ---------------------------------------------------------- }
+{ TransformMatricesMult ------------------------------------------------------ }
 
-procedure TransformMatrices(var Transform, TransformInverse: TMatrix4Single;
+procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
   const Center: TVector3Single;
   const Rotation: TVector4Single;
   const Scale: TVector3Single;
@@ -1555,64 +1558,79 @@ begin
   Result := false; { safer but slower default }
 end;
 
-function T3DCustomTransform.TransformMatrix: TMatrix4Single;
+function T3DCustomTransform.Transform: TMatrix4Single;
 var
   Dummy: TMatrix4Single;
 begin
-  TransformMatrices(Result, Dummy); // TODO: optimize
+  TransformMatrices(Result, Dummy); // TODO: optimize, if needed?
 end;
 
-function T3DCustomTransform.TransformInverseMatrix: TMatrix4Single;
+function T3DCustomTransform.TransformInverse: TMatrix4Single;
 var
   Dummy: TMatrix4Single;
 begin
-  TransformMatrices(Dummy, Result); // TODO: optimize
+  TransformMatrices(Dummy, Result); // TODO: optimize, if needed?
 end;
 
-procedure T3DCustomTransform.TransformMatrices(
-  var Transform, TransformInverse: TMatrix4Single);
+procedure T3DCustomTransform.TransformMatricesMult(
+  var M, MInverse: TMatrix4Single);
 begin
-  Base3D.TransformMatrices(Transform, TransformInverse,
+  Base3D.TransformMatricesMult(M, MInverse,
     GetCenter, GetRotation, GetScale, GetScaleOrientation, GetTranslation);
 end;
 
-{ TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-  It remains to actually use OnlyTranslation and TransformMatrices
-  inside all T3DCustomTransform below.
-}
+procedure T3DCustomTransform.TransformMatrices(
+  out M, MInverse: TMatrix4Single);
+begin
+  M := IdentityMatrix4Single;
+  MInverse := IdentityMatrix4Single;
+  TransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
+end;
+
+{ We assume in all methods below that OnlyTranslation is the most common case,
+  and then that GetTranslation = 0,0,0 is the most common case.
+  This is true for many 3D objects. And for only translation,
+  we can calculate result much faster (and for translation = zero,
+  we don't have to do anything besides calling inherited).
+
+  For some simplest operations, we do not check for GetTranslation = 0,0,0
+  case --- if applying GetTranslation is very fast, then checking for
+  zero translation would be a waste of time. }
 
 function T3DCustomTransform.BoundingBox: TBox3D;
 begin
-  Result := (inherited BoundingBox).Translate(GetTranslation);
+  if OnlyTranslation then
+    Result := (inherited BoundingBox).Translate(GetTranslation) else
+    Result := (inherited BoundingBox).Transform(Transform);
 end;
 
 procedure T3DCustomTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   T: TVector3Single;
-  OldRenderTransform: TMatrix4Single;
+  OldRenderTransform, Inverse: TMatrix4Single;
   OldRenderTransformIdentity: boolean;
 begin
   T := GetTranslation;
-
-  { We assume that Translation = 0,0,0 is the most common case
-    (this is true e.g. for TDoomLevelDoor,
-    since all doors close automatically, and initially all are closed...).
-
-    In this case we can avoid Frustum.Move (although I didn't do any tests,
-    maybe this check is not worth the effort and we don't need to worry
-    about Frustum.Move time so much ?). }
-
-  if ZeroVector(T) then
+  if OnlyTranslation and ZeroVector(T) then
     inherited Render(Frustum, Params) else
     begin
+      { inherited Render expects Frustum in local coordinates (without
+        transformation),  so we subtract transformation here. }
+
       OldRenderTransform         := Params.RenderTransform;
       OldRenderTransformIdentity := Params.RenderTransformIdentity;
-      MultMatrixTranslation(Params.RenderTransform, T);
       Params.RenderTransformIdentity := false;
 
-      { Child.Render expects Frustum in it's local coordinates,
-        that's why we subtract Translation here. }
-      inherited Render(Frustum.Move(-T), Params);
+      if OnlyTranslation then
+      begin
+        MultMatrixTranslation(Params.RenderTransform, T);
+        inherited Render(Frustum.Move(-T), Params);
+      end else
+      begin
+        Inverse := IdentityMatrix4Single;
+        TransformMatricesMult(Params.RenderTransform, Inverse);
+        inherited Render(Frustum.Transform(Inverse), Params);
+      end;
 
       Params.RenderTransform         := OldRenderTransform;
       Params.RenderTransformIdentity := OldRenderTransformIdentity;
@@ -1626,36 +1644,68 @@ procedure T3DCustomTransform.RenderShadowVolume(
 var
   T: TVector3Single;
 begin
-  T := GetTranslation;
-
-  { We assume that Translation = 0,0,0 is the most common case
-    (this is true e.g. for TDoomLevelDoor,
-    since all doors close automatically, and initially all are closed...).
-
-    In this case we can avoid matrix multiplication. }
-
-  if ZeroVector(T) then
+  if OnlyTranslation then
+  begin
+    T := GetTranslation;
+    if ZeroVector(T) then
+      inherited RenderShadowVolume(ShadowVolumeRenderer,
+        ParentTransformIsIdentity, ParentTransform) else
+      inherited RenderShadowVolume(ShadowVolumeRenderer,
+        false, MatrixMult(TranslationMatrix(T), ParentTransform));
+  end else
     inherited RenderShadowVolume(ShadowVolumeRenderer,
-      ParentTransformIsIdentity, ParentTransform) else
-    inherited RenderShadowVolume(ShadowVolumeRenderer,
-      false, MatrixMult(TranslationMatrix(T), ParentTransform));
+      false, MatrixMult(Transform, ParentTransform));
 end;
 
 function T3DCustomTransform.MouseMove(const RayOrigin, RayDirection: TVector3Single;
   RayHit: T3DCollision): boolean;
+var
+  Inverse: TMatrix4Single;
 begin
-  Result := inherited MouseMove(RayOrigin - GetTranslation,
-    RayDirection, RayHit);
+  if OnlyTranslation then
+    Result := inherited MouseMove(RayOrigin - GetTranslation,
+      RayDirection, RayHit) else
+  begin
+    Inverse := TransformInverse;
+    Result := inherited MouseMove(
+      MatrixMultPoint(Inverse, RayOrigin),
+      MatrixMultDirection(Inverse, RayDirection), RayHit);
+  end;
+
+  { TODO: RayHit things (like Point) should not be transformed back? }
 end;
+
+{ TODO: when scale is not 1, some things should be corrected: CameraRadius,
+  AboveHeight, sphere Radius, IntersectionDistance etc. }
 
 procedure T3DCustomTransform.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
+var
+  MInverse: TMatrix4Single;
 begin
-  inherited GetHeightAbove(
-    Position - GetTranslation, GravityUp, TrianglesToIgnoreFunc,
-    IsAbove, AboveHeight, AboveGround);
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then
+  begin
+    IsAbove := false;
+    AboveHeight := MaxSingle;
+    AboveGround := nil;
+    Exit;
+  end;
+
+  if OnlyTranslation then
+    inherited GetHeightAbove(
+      Position - GetTranslation, GravityUp, TrianglesToIgnoreFunc,
+      IsAbove, AboveHeight, AboveGround) else
+  begin
+    MInverse := TransformInverse;
+    inherited GetHeightAbove(
+      MatrixMultPoint(MInverse, Position),
+      MatrixMultDirection(MInverse, GravityUp), TrianglesToIgnoreFunc,
+        IsAbove, AboveHeight, AboveGround);
+  end;
 end;
 
 function T3DCustomTransform.MoveAllowed(
@@ -1664,13 +1714,35 @@ function T3DCustomTransform.MoveAllowed(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
+  M, MInverse: TMatrix4Single;
 begin
-  T := GetTranslation;
-  Result := inherited MoveAllowed(OldPos - T, ProposedNewPos - T, NewPos,
-    CameraRadius, TrianglesToIgnoreFunc);
-  { translate calculated NewPos back }
-  if Result then
-    NewPos += T;
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then
+  begin
+    NewPos := ProposedNewPos;
+    Exit(true);
+  end;
+
+  if OnlyTranslation then
+  begin
+    T := GetTranslation;
+    Result := inherited MoveAllowed(OldPos - T, ProposedNewPos - T, NewPos,
+      CameraRadius, TrianglesToIgnoreFunc);
+    { translate calculated NewPos back }
+    if Result then
+      NewPos += T;
+  end else
+  begin
+    TransformMatrices(M, MInverse);
+    Result := inherited MoveAllowed(
+      MatrixMultPoint(MInverse, OldPos),
+      MatrixMultPoint(MInverse, ProposedNewPos),
+      NewPos, CameraRadius, TrianglesToIgnoreFunc);
+    { transform calculated NewPos back }
+    if Result then
+      NewPos := MatrixMultPoint(M, NewPos);
+  end;
 end;
 
 function T3DCustomTransform.MoveAllowedSimple(
@@ -1679,16 +1751,30 @@ function T3DCustomTransform.MoveAllowedSimple(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
+  MInverse: TMatrix4Single;
 begin
-  { I have to check collision between
-      Items + Translation and (OldPos, ProposedNewPos).
-    So it's equivalent to checking for collision between
-      Items and (OldPos, ProposedNewPos) - Translation
-    And this way I can use Child.MoveAllowedSimple. }
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then Exit(true);
 
-  T := GetTranslation;
-  Result := inherited MoveAllowedSimple(
-    OldPos - T, ProposedNewPos - T, CameraRadius, TrianglesToIgnoreFunc);
+  if OnlyTranslation then
+  begin
+    { I have to check collision between
+        Items + Translation and (OldPos, ProposedNewPos).
+      So it's equivalent to checking for collision between
+        Items and (OldPos, ProposedNewPos) - Translation
+      And this way I can use inherited MoveAllowedSimple. }
+    T := GetTranslation;
+    Result := inherited MoveAllowedSimple(
+      OldPos - T, ProposedNewPos - T, CameraRadius, TrianglesToIgnoreFunc);
+  end else
+  begin
+    MInverse := TransformInverse;
+    Result := inherited MoveAllowedSimple(
+      MatrixMultPoint(MInverse, OldPos),
+      MatrixMultPoint(MInverse, ProposedNewPos),
+      CameraRadius, TrianglesToIgnoreFunc);
+  end;
 end;
 
 function T3DCustomTransform.MoveBoxAllowedSimple(
@@ -1698,65 +1784,107 @@ function T3DCustomTransform.MoveBoxAllowedSimple(
 var
   T: TVector3Single;
   B: TBox3D;
+  MInverse: TMatrix4Single;
 begin
-  { I have to check collision between
-      Items + Translation and (OldPos, ProposedNewPos).
-    So it's equivalent to checking for collision between
-      Items and (OldPos, ProposedNewPos) - Translation
-    And this way I can use "inherited MoveBoxAllowedSimple". }
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then Exit(true);
 
-  T := GetTranslation;
-  B.Data[0] := ProposedNewBox.Data[0] - T;
-  B.Data[1] := ProposedNewBox.Data[1] - T;
-  Result := inherited MoveBoxAllowedSimple(
-    OldPos - T, ProposedNewPos - T, B, TrianglesToIgnoreFunc);
+  if OnlyTranslation then
+  begin
+    { I have to check collision between
+        Items + Translation and (OldPos, ProposedNewPos).
+      So it's equivalent to checking for collision between
+        Items and (OldPos, ProposedNewPos) - Translation
+      And this way I can use "inherited MoveBoxAllowedSimple". }
+    T := GetTranslation;
+    B := ProposedNewBox.AntiTranslate(T);
+    Result := inherited MoveBoxAllowedSimple(
+      OldPos - T, ProposedNewPos - T, B, TrianglesToIgnoreFunc);
+  end else
+  begin
+    MInverse := TransformInverse;
+    B := ProposedNewBox.Transform(MInverse);
+    Result := inherited MoveBoxAllowedSimple(
+      MatrixMultPoint(MInverse, OldPos),
+      MatrixMultPoint(MInverse, ProposedNewPos), B, TrianglesToIgnoreFunc);
+  end;
 end;
 
 function T3DCustomTransform.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
+  MInverse: TMatrix4Single;
 begin
-  T := GetTranslation;
-  Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc);
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then Exit(false);
+
+  if OnlyTranslation then
+  begin
+    T := GetTranslation;
+    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc);
+  end else
+  begin
+    MInverse := TransformInverse;
+    Result := inherited SegmentCollision(
+      MatrixMultPoint(MInverse, Pos1),
+      MatrixMultPoint(MInverse, Pos2), TrianglesToIgnoreFunc);
+  end;
 end;
 
 function T3DCustomTransform.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := inherited SphereCollision(
-    Pos - GetTranslation, Radius, TrianglesToIgnoreFunc);
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then Exit(false);
+
+  if OnlyTranslation then
+    Result := inherited SphereCollision(
+      Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
+    Result := inherited SphereCollision(
+      MatrixMultPoint(TransformInverse, Pos), Radius, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := GetExists and Collides;
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then Exit(false);
 
-  { We could just call inherited. But, for optimization, check
-    GetExists and Collides first, to avoid calling Box3DAntiTranslate
-    when not necessary. }
-
-  if Result then
-  begin
-    { We use the same trick as in T3DCustomTransform.MoveAllowedSimple to
-      use "inherited BoxCollision" with Translation. }
-
+  if OnlyTranslation then
     Result := inherited BoxCollision(
-      Box.AntiTranslate(GetTranslation), TrianglesToIgnoreFunc);
-  end;
+      Box.AntiTranslate(GetTranslation), TrianglesToIgnoreFunc) else
+    Result := inherited BoxCollision(
+      Box.Transform(TransformInverse), TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.RayCollision(
   out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+var
+  MInverse: TMatrix4Single;
 begin
-  Result := inherited RayCollision(IntersectionDistance,
-    Ray0 - GetTranslation,
-    RayVector, TrianglesToIgnoreFunc);
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not (GetExists and Collides) then Exit(nil);
+
+  if OnlyTranslation then
+    Result := inherited RayCollision(IntersectionDistance,
+      Ray0 - GetTranslation,
+      RayVector, TrianglesToIgnoreFunc) else
+  begin
+    MInverse := TransformInverse;
+    Result := inherited RayCollision(IntersectionDistance,
+      MatrixMultPoint(MInverse, Ray0),
+      MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
+  end;
 end;
 
 { T3DTransform -------------------------------------------------------------- }

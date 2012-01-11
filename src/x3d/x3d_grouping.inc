@@ -865,7 +865,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
   const ScaleOrientation: TVector4Single;
   const Translation: TVector3Single);
 begin
-  TransformMatrices(State.Transform, State.InvertedTransform,
+  TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
   State.TransformScale *= (Scale[0] + Scale[1] + Scale[2]) / 3;
 end;
