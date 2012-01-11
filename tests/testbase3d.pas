@@ -36,12 +36,18 @@ implementation
 
 uses VectorMath, Boxes3D, Base3D;
 
+{ TMy3D ---------------------------------------------------------------------- }
+
 type
   { Simple invisible 3D axis-aligned box.
     Probably the simplest possible complete T3D descendant implementation,
     to test various T3D methods. }
   TMy3D = class(T3D)
+  private
+    MyBox: TBox3D;
   public
+    constructor Create(AOwner: TComponent; const AMyBox: TBox3D); reintroduce;
+
     function BoundingBox: TBox3D; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -71,8 +77,11 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   end;
 
-const
-  MyBox: TBox3D = (Data: ((-1, -1, -1), (1, 1, 1)));
+constructor TMy3D.Create(AOwner: TComponent; const AMyBox: TBox3D);
+begin
+  inherited Create(AOwner);
+  MyBox := AMyBox;
+end;
 
 function TMy3D.BoundingBox: TBox3D;
 begin
@@ -182,6 +191,14 @@ begin
     Result := nil;
 end;
 
+{ Helper box values ---------------------------------------------------------- }
+
+const
+  Box0: TBox3D = (Data: ((-1, -1, -1), (1, 1, 1)));
+  Box20: TBox3D = (Data: ((19, -1, -1), (21, 1, 1)));
+
+{ TTestBase3D ---------------------------------------------------------------- }
+
 procedure TTestBase3D.TestMy3D;
 var
   M: TMy3D;
@@ -192,9 +209,9 @@ var
   Collision: T3DCollision;
   CollisionDistance: Single;
 begin
-  M := TMy3D.Create(nil);
+  M := TMy3D.Create(nil, Box0);
   try
-    Assert(M.BoundingBox.Equal(MyBox));
+    Assert(M.BoundingBox.Equal(Box0));
 
     M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, IsAbove, AboveHeight, AboveGround);
@@ -264,7 +281,7 @@ var
   Collision: T3DCollision;
   CollisionDistance: Single;
 begin
-  M := TMy3D.Create(nil);
+  M := TMy3D.Create(nil, Box0);
   try
     M.Exists := false;
 
@@ -334,11 +351,11 @@ var
   Collision: T3DCollision;
   CollisionDistance: Single;
 begin
-  M := TMy3D.Create(nil);
+  M := TMy3D.Create(nil, Box0);
   try
     M.Collides := false;
 
-    Assert(M.BoundingBox.Equal(MyBox));
+    Assert(M.BoundingBox.Equal(Box0));
 
     M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, IsAbove, AboveHeight, AboveGround);
@@ -412,10 +429,10 @@ var
 begin
   M := TMy3DTransform.Create(nil);
   try
-    M.Add(TMy3D.Create(M));
+    M.Add(TMy3D.Create(M, Box0));
     Assert(M.OnlyTranslation);
 
-    Assert(M.BoundingBox.Equal(MyBox));
+    Assert(M.BoundingBox.Equal(Box0));
 
     M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, IsAbove, AboveHeight, AboveGround);
@@ -487,7 +504,7 @@ var
 begin
   M := TMy3DTransform.Create(nil);
   try
-    M.Add(TMy3D.Create(M));
+    M.Add(TMy3D.Create(M, Box0));
     M.Exists := false;
     Assert(M.OnlyTranslation);
 
@@ -559,11 +576,11 @@ var
 begin
   M := TMy3DTransform.Create(nil);
   try
-    M.Add(TMy3D.Create(M));
+    M.Add(TMy3D.Create(M, Box0));
     M.Collides := false;
     Assert(M.OnlyTranslation);
 
-    Assert(M.BoundingBox.Equal(MyBox));
+    Assert(M.BoundingBox.Equal(Box0));
 
     M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, IsAbove, AboveHeight, AboveGround);
@@ -621,7 +638,7 @@ end;
 
 procedure TTestBase3D.Test3DTransformReal;
 
-  { Perform test on M, assuming that it results in box MyBox moved by (20,0,0). }
+  { Perform test on M, assuming that it results in box Box20. }
   procedure DoTests(M: TMy3DTransform);
   var
     IsAbove: boolean;
@@ -631,7 +648,7 @@ procedure TTestBase3D.Test3DTransformReal;
     Collision: T3DCollision;
     CollisionDistance: Single;
   begin
-    Assert(M.BoundingBox.Equal(MyBox.Translate(Vector3Single(20, 0, 0))));
+    Assert(M.BoundingBox.Equal(Box20));
 
     M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, IsAbove, AboveHeight, AboveGround);
@@ -700,7 +717,7 @@ var
 begin
   M := TMy3DTransform.Create(nil);
   try
-    M.Add(TMy3D.Create(M));
+    M.Add(TMy3D.Create(M, Box0));
     M.Translation := Vector3Single(20, 0, 0);
     Assert(M.OnlyTranslation);
     DoTests(M);
@@ -708,7 +725,7 @@ begin
 
   M := TMy3DTransform.Create(nil);
   try
-    M.Add(TMy3D.Create(M));
+    M.Add(TMy3D.Create(M, Box0));
     M.Translation := Vector3Single(20, 0, 0);
     M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
     Assert(not M.OnlyTranslation);
@@ -727,7 +744,7 @@ begin
     M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
     M.Center := Vector3Single(20, 0, 0);
     Assert(not M.OnlyTranslation);
-    M2.Add(TMy3D.Create(M));
+    M2.Add(TMy3D.Create(M, Box0));
     M2.Translation := Vector3Single(20, 0, 0);
     Assert(M2.OnlyTranslation);
     DoTests(M);
