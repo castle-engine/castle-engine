@@ -714,12 +714,16 @@ type
 
     { Transformation is a combined Translation, and Rotation around Center point,
       and Scale around Center and with orientation given by ScaleOrientation.
-      For precise meaning, see X3D Transform node.
+      For precise order of these operations, see X3D Transform node.
 
       Default values of these fields indicate no transformation.
       So everything is zero, except Scale which is (1,1,1).
-      Scale must always have all components > 1 (some operations depend
+      Scale must always have all components > 0 (some operations depend
       that scale here is invertible and doesn't flip sides).
+      Non-uniform scale (e.g. when you scale along X coordinate 2 times,
+      but you scale along Y coordinate 3 times) works... to some extent,
+      that is collisions with spheres (including camera radius) are not perfect
+      in this case. For perfect results, keep your scale uniform.
 
       @groupBegin }
     property Center: TVector3Single read FCenter write SetCenter;
