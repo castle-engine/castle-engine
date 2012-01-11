@@ -691,12 +691,12 @@ procedure TTestBase3D.Test3DTransformReal;
       Vector3Single(30, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
     Assert(FloatsEqual(CollisionDistance, 9));
-    Assert(VectorsEqual(Collision.Point, Vector3Single(21, 0, 0)));
+    Assert(VectorsEqual(Collision.Point, Vector3Single(21, 0, 0), 0.001));
     FreeAndNil(Collision);
   end;
 
 var
-  M: TMy3DTransform;
+  M, M2: TMy3DTransform;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -714,6 +714,27 @@ begin
     Assert(not M.OnlyTranslation);
     DoTests(M);
   finally FreeAndNil(M) end;
+
+  M := nil;
+  M2 := nil;
+  try
+    M := TMy3DTransform.Create(nil);
+    M2 := TMy3DTransform.Create(nil);
+
+    { test rotation and translation in different order.
+      This requires connecting 2 T3DTransform instances, and using Center. }
+    M.Add(M2);
+    M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
+    M.Center := Vector3Single(20, 0, 0);
+    Assert(not M.OnlyTranslation);
+    M2.Add(TMy3D.Create(M));
+    M2.Translation := Vector3Single(20, 0, 0);
+    Assert(M2.OnlyTranslation);
+    DoTests(M);
+  finally
+    FreeAndNil(M);
+    FreeAndNil(M2);
+  end;
 end;
 
 initialization
