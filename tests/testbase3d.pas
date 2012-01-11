@@ -23,7 +23,9 @@ uses
 type
   TTestBase3D = class(TTestCase)
   published
-    procedure TestBase3D;
+    procedure TestMy3D;
+    procedure TestMy3DNotExists;
+    procedure TestMy3DNotCollides;
   end;
 
 implementation
@@ -163,7 +165,8 @@ function TMy3D.RayCollision(
 var
   Intersection: TVector3Single;
 begin
-  if MyBox.TryRayEntrance(Intersection, IntersectionDistance, Ray0, RayVector) then
+  if GetExists and Collides and
+    MyBox.TryRayEntrance(Intersection, IntersectionDistance, Ray0, RayVector) then
   begin
     Result := T3DCollision.Create;
     Result.Hierarchy.Add(Self);
@@ -175,7 +178,7 @@ begin
     Result := nil;
 end;
 
-procedure TTestBase3D.TestBase3D;
+procedure TTestBase3D.TestMy3D;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -244,9 +247,146 @@ begin
     Assert(FloatsEqual(CollisionDistance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
+  finally FreeAndNil(M) end;
+end;
 
+procedure TTestBase3D.TestMy3DNotExists;
+var
+  M: TMy3D;
+  IsAbove: boolean;
+  AboveHeight: Single;
+  AboveGround: P3DTriangle;
+  NewPos: TVector3Single;
+  Collision: T3DCollision;
+  CollisionDistance: Single;
+begin
+  M := TMy3D.Create(nil);
+  try
     M.Exists := false;
+
     Assert(M.BoundingBox.IsEmpty);
+
+    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
+      0.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      1.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      0.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      0.5, nil));
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      1.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      0.5, nil));
+
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
+
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+  finally FreeAndNil(M) end;
+end;
+
+procedure TTestBase3D.TestMy3DNotCollides;
+var
+  M: TMy3D;
+  IsAbove: boolean;
+  AboveHeight: Single;
+  AboveGround: P3DTriangle;
+  NewPos: TVector3Single;
+  Collision: T3DCollision;
+  CollisionDistance: Single;
+begin
+  M := TMy3D.Create(nil);
+  try
+    M.Collides := false;
+
+    Assert(M.BoundingBox.Equal(MyBox));
+
+    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, IsAbove, AboveHeight, AboveGround);
+    Assert(not IsAbove);
+    Assert(AboveHeight = Single(MaxSingle));
+
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
+      0.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      1.5, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
+      0.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      0.5, nil));
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      1.5, nil));
+
+    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      0.5, nil));
+
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveBoxAllowedSimple(
+      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
+    Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
+
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
+    Assert(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
+    Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
+
+    Collision := M.RayCollision(CollisionDistance,
+      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+    Assert(Collision = nil);
   finally FreeAndNil(M) end;
 end;
 
