@@ -28,6 +28,7 @@ uses
   TestOldFPCBugs,
   TestBoxes3d,
   TestFrustum,
+  TestBase3D,
   TestParsingParameters,
   TestFNMatch,
   TestCameras,
