@@ -1459,6 +1459,17 @@ function LineOfTwoDifferentPoints2d(const p1, p2: TVector2Double): TVector3Doubl
 function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3Single): Single; overload;
 function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3Double): Double; overload;
 
+{ Transform plane by a matrix.
+
+  @raises(ETransformedResultInvalid Raised when matrix
+  will transform some point to a direction, or direction to point,
+  in homogeneous coordinates.)
+
+  @groupBegin }
+function PlaneTransform(const Plane: TVector4Single; const Matrix: TMatrix4Single): TVector4Single;
+function PlaneTransform(const Plane: TVector4Double; const Matrix: TMatrix4Double): TVector4Double;
+{ @groupEnd }
+
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3Single;
   const TunnelRadius: Single; const SphereCenter: TVector3Single;
   const SphereRadius: Single): boolean; overload;
@@ -2188,6 +2199,7 @@ uses Math, CastleStringUtils, CastleColors;
 {$define TMatrix4 := TMatrix4Single}
 {$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
 {$define UnitVector3 := UnitVector3Single}
+{$define ZeroVector3 := ZeroVector3Single}
 {$define IdentityMatrix4 := IdentityMatrix4Single}
 {$define TMatrix2_ := TMatrix2_Single}
 {$define TMatrix3_ := TMatrix3_Single}
@@ -2211,6 +2223,7 @@ uses Math, CastleStringUtils, CastleColors;
 {$define TMatrix4 := TMatrix4Double}
 {$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
 {$define UnitVector3 := UnitVector3Double}
+{$define ZeroVector3 := ZeroVector3Double}
 {$define IdentityMatrix4 := IdentityMatrix4Double}
 {$define TMatrix2_ := TMatrix2_Double}
 {$define TMatrix3_ := TMatrix3_Double}

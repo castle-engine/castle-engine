@@ -41,6 +41,7 @@ type
     procedure TestMatrixTranspose;
     procedure TestVector3FromStr;
     procedure TestVector4FromStr;
+    procedure TestPlaneTransform;
   end;
 
 function RandomVector: TVector3Single;
@@ -606,6 +607,92 @@ begin
   Assert(FloatsEqual(V[1], 22));
   Assert(FloatsEqual(V[2], 33));
   Assert(FloatsEqual(V[3], 44));
+end;
+
+procedure TTestVectorMath.TestPlaneTransform;
+
+  function PointLiesOnPlane(const Point: TVector3Single; const Plane: TVector4Single): boolean;
+  var
+    PlaneDir: TVector3Single absolute Plane;
+  begin
+    // Writeln('point ', VectorToNiceStr(Point), ' gives ',
+    //   FloatToNiceStr(VectorDotProduct(Point, PlaneDir) + Plane[3]));
+    Result := Zero(VectorDotProduct(Point, PlaneDir) + Plane[3], 0.001);
+  end;
+
+  procedure DoTest(const Plane: TVector4Single; const Matrix: TMatrix4Single;
+    const PointsYes: array of TVector3Single;
+    const PointsNo: array of TVector3Single);
+  var
+    I: Integer;
+    NewPlane: TVector4Single;
+  begin
+    NewPlane := PlaneTransform(Plane, Matrix);
+    // Writeln('New plane ', VectorToNiceStr(NewPlane));
+    for I := 0 to High(PointsYes) do
+      Assert(PointLiesOnPlane(PointsYes[I], NewPlane));
+    for I := 0 to High(PointsNo) do
+      Assert(not PointLiesOnPlane(PointsNo[I], NewPlane));
+  end;
+
+begin
+  { x = 0 plane }
+  DoTest(Vector4Single(1, 0, 0, 0),
+    IdentityMatrix4Single,
+    [ Vector3Single(0,  10,  10),
+      Vector3Single(0, -10,  10),
+      Vector3Single(0,  10, -10),
+      Vector3Single(0, -10, -10) ],
+    [ Vector3Single( 10,  10, 123),
+      Vector3Single(-10,  10, 2),
+      Vector3Single( 10, -10, -3),
+      Vector3Single(1, 0, 0) ]);
+
+  { rotate x = 0 plane to make z = 0 }
+  DoTest(Vector4Single(1, 0, 0, 0),
+    RotationMatrixDeg(90, 0, 1, 0),
+    [ Vector3Single( 10,  10, 0),
+      Vector3Single(-10,  10, 0),
+      Vector3Single( 10, -10, 0),
+      Vector3Single(-10, -10, 0) ],
+    [ Vector3Single( 10,  10, 123),
+      Vector3Single(-10,  10, 2),
+      Vector3Single( 10, -10, -3),
+      Vector3Single(0, 0, 1) ]);
+
+  { rotate and move x = 0 plane to make z = 10 }
+  DoTest(Vector4Single(1, 0, 0, 0),
+    TranslationMatrix(0, 0, 10) * RotationMatrixDeg(90, 0, 1, 0),
+    [ Vector3Single( 10,  10, 10),
+      Vector3Single(-10,  10, 10),
+      Vector3Single( 10, -10, 10),
+      Vector3Single(-10, -10, 10) ],
+    [ Vector3Single( 10,  10, 0),
+      Vector3Single(-10,  10, 0),
+      Vector3Single( 10, -10, 0),
+      Vector3Single(-10, -10, 0),
+      Vector3Single( 10,  10, 123),
+      Vector3Single(-10,  10, 2),
+      Vector3Single( 10, -10, -3),
+      Vector3Single(0, 0, 1) ]);
+
+  { rotate and move and scale x = 0 plane to make z = 100 }
+  DoTest(Vector4Single(1, 0, 0, 0),
+    ScalingMatrix(Vector3Single(10, 10, 10)) *
+    TranslationMatrix(0, 0, 10) *
+    RotationMatrixDeg(90, 0, 1, 0),
+    [ Vector3Single( 10,  10, 100),
+      Vector3Single(-10,  10, 100),
+      Vector3Single( 10, -10, 100),
+      Vector3Single(-10, -10, 100) ],
+    [ Vector3Single( 10,  10, 10),
+      Vector3Single(-10,  10, 10),
+      Vector3Single( 10, -10, 0),
+      Vector3Single(-10, -10, 0),
+      Vector3Single( 10,  10, 123),
+      Vector3Single(-10,  10, 2),
+      Vector3Single( 10, -10, -3),
+      Vector3Single(0, 0, 1) ]);
 end;
 
 initialization

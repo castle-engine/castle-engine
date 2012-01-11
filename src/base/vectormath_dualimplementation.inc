@@ -1344,6 +1344,26 @@ begin
                               PointsDistanceSqr(pos2, point));
 end;
 
+function PlaneTransform(const Plane: TVector4; const Matrix: TMatrix4): TVector4;
+var
+  MaxCoord: Integer;
+  PlaneDir: TVector3 absolute Plane;
+  NewPlaneDir: TVector3 absolute Result;
+  PlanePoint, NewPlanePoint: TVector3;
+begin
+  { calculate point that for sure lies on a plane.
+    For this, we need a plane direction coordinate that isn't zero
+    --- we know that such coordinate exists, since plane direction cannot be zero.
+    For maximum numeric stability, choose largest coordinate. }
+  MaxCoord := MaxAbsVectorCoord(PlaneDir);
+  PlanePoint := ZeroVector3;
+  PlanePoint[MaxCoord] := -Plane[3] / Plane[MaxCoord];
+
+  NewPlanePoint := MatrixMultPoint(Matrix, PlanePoint);
+  NewPlaneDir := MatrixMultDirection(Matrix, PlaneDir);
+  Result[3] := -VectorDotProduct(NewPlanePoint, NewPlaneDir);
+end;
+
 function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;
   const TunnelRadius: TScalar; const SphereCenter: TVector3;
   const SphereRadius: TScalar): boolean;
