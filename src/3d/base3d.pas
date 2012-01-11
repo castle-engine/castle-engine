@@ -1884,10 +1884,7 @@ begin
     Result := inherited SphereCollision(
       Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
-      { TODO: why
-          Radius / AverageScale
-        seems not needed, tests with and without it? }
-      MatrixMultPoint(TransformInverse, Pos), Radius{ / AverageScale}, TrianglesToIgnoreFunc);
+      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(

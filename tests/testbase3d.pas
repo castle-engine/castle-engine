@@ -696,6 +696,10 @@ procedure TTestBase3D.Test3DTransformReal;
 
     Assert(not M.SphereCollision(Vector3Single(22, 2, 2), 0.3, nil));
     Assert(M.SphereCollision(Vector3Single(22, 2, 2), 3, nil));
+    { below radius values chosen specifically to test that "/ AverageScale"
+      inside T3DCustomTransform.SphereCollision works Ok }
+    Assert(not M.SphereCollision(Vector3Single(22, 0, 0), 0.9, nil));
+    Assert(M.SphereCollision(Vector3Single(22, 0, 0), 1.1, nil));
 
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(22, 2, 2), 0.6), nil));
     Assert(M.BoxCollision(Box3DAroundPoint(Vector3Single(22, 2, 2), 6), nil));
