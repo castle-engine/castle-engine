@@ -648,6 +648,7 @@ type
     function TransformInverse: TMatrix4Single;
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single);
     procedure TransformMatrices(out M, MInverse: TMatrix4Single);
+    function AverageScale: Single;
   public
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -1599,6 +1600,14 @@ begin
   TransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
 end;
 
+function T3DCustomTransform.AverageScale: Single;
+var
+  S: TVector3Single;
+begin
+  S := GetScale;
+  Result := (S[0] + S[1] + S[2]) / 3;
+end;
+
 { We assume in all methods below that OnlyTranslation is the most common case,
   and then that GetTranslation = 0,0,0 is the most common case.
   This is true for many 3D objects. And for only translation,
@@ -1696,8 +1705,11 @@ begin
   end;
 end;
 
-{ TODO: when scale is not 1, some things should be corrected: CameraRadius,
-  AboveHeight, sphere Radius, IntersectionDistance etc. }
+{ TODO: Other things should be scaled by AverageScale:
+  - AboveHeight,
+  - sphere Radius,
+  - IntersectionDistance
+}
 
 procedure T3DCustomTransform.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -1759,7 +1771,7 @@ begin
     Result := inherited MoveAllowed(
       MatrixMultPoint(MInverse, OldPos),
       MatrixMultPoint(MInverse, ProposedNewPos),
-      NewPos, CameraRadius, TrianglesToIgnoreFunc);
+      NewPos, CameraRadius / AverageScale, TrianglesToIgnoreFunc);
     { transform calculated NewPos back }
     if Result then
       NewPos := MatrixMultPoint(M, NewPos);
@@ -1794,7 +1806,7 @@ begin
     Result := inherited MoveAllowedSimple(
       MatrixMultPoint(MInverse, OldPos),
       MatrixMultPoint(MInverse, ProposedNewPos),
-      CameraRadius, TrianglesToIgnoreFunc);
+      CameraRadius / AverageScale, TrianglesToIgnoreFunc);
   end;
 end;
 
@@ -1957,7 +1969,7 @@ procedure T3DTransform.SetCenter(const Value: TVector3Single);
 begin
   FCenter := Value;
   FOnlyTranslation := FOnlyTranslation and
-    (Value[0] = 0) or (Value[1] = 0) or (Value[2] = 0);
+    (Value[0] = 0) and (Value[1] = 0) and (Value[2] = 0);
 end;
 
 procedure T3DTransform.SetRotation(const Value: TVector4Single);
@@ -1970,7 +1982,7 @@ procedure T3DTransform.SetScale(const Value: TVector3Single);
 begin
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
-    (Value[0] = 1) or (Value[1] = 1) or (Value[2] = 1);
+    (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
 end;
 
 procedure T3DTransform.SetScaleOrientation(const Value: TVector4Single);
