@@ -1705,12 +1705,6 @@ begin
   end;
 end;
 
-{ TODO: Other things should be scaled by AverageScale:
-  - AboveHeight,
-  - sphere Radius,
-  - IntersectionDistance
-}
-
 procedure T3DCustomTransform.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
@@ -1738,6 +1732,9 @@ begin
       MatrixMultPoint(MInverse, Position),
       MatrixMultDirection(MInverse, GravityUp), TrianglesToIgnoreFunc,
         IsAbove, AboveHeight, AboveGround);
+{ TODO: why this is invalid? why passes tests without it?
+    if IsAbove then
+      AboveHeight *= AverageScale;}
   end;
 end;
 
@@ -1879,7 +1876,10 @@ begin
     Result := inherited SphereCollision(
       Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
-      MatrixMultPoint(TransformInverse, Pos), Radius, TrianglesToIgnoreFunc);
+      { TODO: why
+          Radius / AverageScale
+        seems not needed, tests with and without it? }
+      MatrixMultPoint(TransformInverse, Pos), Radius{ / AverageScale}, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(
@@ -1923,7 +1923,11 @@ begin
       MatrixMultPoint(MInverse, Ray0),
       MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
     if Result <> nil then
+    begin
+{ TODO: why this is invalid? why passes tests without it?
+      IntersectionDistance *= AverageScale; }
       Result.Point := MatrixMultPoint(M, Result.Point);
+    end;
   end;
 end;
 
