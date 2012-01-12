@@ -1697,19 +1697,27 @@ begin
     T := GetTranslation;
     { we save and restore RayHit.Point, to always provide RayHit.Point
       in local coordinates to MouseMove call. }
-    OldRayHitPoint := RayHit.Point;
-    RayHit.Point -= T;
+    if RayHit <> nil then
+    begin
+      OldRayHitPoint := RayHit.Point;
+      RayHit.Point -= T;
+    end;
     Result := inherited MouseMove(RayOrigin - T, RayDirection, RayHit);
-    RayHit.Point := OldRayHitPoint;
+    if RayHit <> nil then
+      RayHit.Point := OldRayHitPoint;
   end else
   begin
     Inverse := TransformInverse;
-    OldRayHitPoint := RayHit.Point;
-    RayHit.Point := MatrixMultPoint(Inverse, RayHit.Point);
+    if RayHit <> nil then
+    begin
+      OldRayHitPoint := RayHit.Point;
+      RayHit.Point := MatrixMultPoint(Inverse, RayHit.Point);
+    end;
     Result := inherited MouseMove(
       MatrixMultPoint(Inverse, RayOrigin),
       MatrixMultDirection(Inverse, RayDirection), RayHit);
-    RayHit.Point := OldRayHitPoint;
+    if RayHit <> nil then
+      RayHit.Point := OldRayHitPoint;
   end;
 end;
 
