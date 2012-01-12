@@ -24,11 +24,12 @@ type
   TTestWindow = class(TTestCase)
   published
     procedure Test1;
+    procedure TestNotifications;
   end;
 
 implementation
 
-uses SysUtils, CastleWindow;
+uses SysUtils, CastleWindow, CastleControls;
 
 procedure TTestWindow.Test1;
 var
@@ -38,6 +39,18 @@ begin
   try
     Window.Open;
     Window.Close;
+  finally FreeAndNil(Window) end;
+end;
+
+procedure TTestWindow.TestNotifications;
+var
+  Window: TCastleWindowCustom;
+  C: TCastleButton;
+begin
+  Window := TCastleWindowCustom.Create(nil);
+  try
+    C := TCastleButton.Create(Window);
+    FreeAndNil(C);
   finally FreeAndNil(Window) end;
 end;
 

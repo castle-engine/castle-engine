@@ -4311,8 +4311,13 @@ begin
     This is crucial: TControlledUIControlList.Notify,
     and some Controls.MakeSingle calls, assume that all objects on
     the Controls list are always valid objects (no invalid references,
-    even for a short time). }
-  if (Operation = opRemove) and (AComponent is TUIControl) then
+    even for a short time).
+
+    Check "Controls <> nil" is not needed here, it's just in case
+    this code will be moved to TUIControl.Notification some day.
+    See T3D.Notification for explanation. }
+
+  if (Operation = opRemove) and (AComponent is TUIControl) {and (Controls <> nil)} then
   begin
     Controls.DeleteAll(AComponent);
     if AComponent = FFocus then FFocus := nil;
