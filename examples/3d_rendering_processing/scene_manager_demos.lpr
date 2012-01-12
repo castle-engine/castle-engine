@@ -27,15 +27,15 @@ program scene_manager_demos;
 {$apptype CONSOLE}
 
 uses CastleUtils, CastleWindow, VectorMath, CastleWarnings, Base3D,
-  CastleSceneCore, CastleScene, CastleSceneManager, PrecalculatedAnimation, X3DNodes;
+  CastleSceneCore, CastleScene, CastleSceneManager, PrecalculatedAnimation,
+  X3DFields, X3DNodes;
 
 var
   Window: TCastleWindow;
-  Scene, Scene2: TCastleScene;
-  Animation: TCastlePrecalculatedAnimation;
-  Transform: T3DTransform;
-  Scene2Transform: TTransformNode;
-  Scene2NewRoot: TX3DRootNode;
+  Scene, ParticlesScene: TCastleScene;
+  DinoAnimation: TCastlePrecalculatedAnimation;
+  ParticlesTransform, DinoTransform: T3DTransform;
+  ParticleScript: TScriptNode;
 begin
   Window := TCastleWindow.Create(Application);
 
@@ -67,45 +67,49 @@ begin
     Let's suppose we want to have SceneManager.Items to be a tree:
 
     SceneManager.Items
-    |- Scene
-    |- Transform
-       |- Scene2
-       |- Animation
+    |- Scene (class TCastleScene)
+    |- ParticlesTransform (class T3DTransform)
+       |- ParticlesScene (class TCastleScene)
+    |- DinoTransform (class T3DTransform)
+       |- DinoAnimation (class TCastlePrecalculatedAnimation)
   }
 
-  { initialize Transform }
-  Transform := T3DTransform.Create(Application);
-  Transform.Translation := Vector3Single(-15, -4, 0);
-  Window.SceneManager.Items.Add(Transform);
+  { initialize ParticlesTransform }
+  ParticlesTransform := T3DTransform.Create(Application);
+  ParticlesTransform.Translation := Vector3Single(-15, -4, 0);
+  ParticlesTransform.Rotation := Vector4Single(1, 0, 0, -Pi/2);
+  Window.SceneManager.Items.Add(ParticlesTransform);
 
-  { initialize a 2nd scene, just because we can }
-  Scene2 := TCastleScene.Create(Application);
-  Scene2.Load('models/castle_script_particles.x3dv');
-  Scene2.Spatial := [ssRendering, ssDynamicCollisions];
-  Scene2.ProcessEvents := true;
-{  Scene2.Attributes.WireframeEffect := weWireframeOnly;} { render this as wireframe }
-  Transform.Add(Scene2);
+  { initialize ParticlesScene }
+  ParticlesScene := TCastleScene.Create(Application);
+  ParticlesScene.Load('models/castle_script_particles.x3dv');
+  ParticlesScene.Spatial := [ssRendering, ssDynamicCollisions];
+  { Modify the loaded nodes graph, just to show that we can.
+    We find a node called ParticleScript, and change it's "count" field.
+    This affects the number of particles generated.
+    We change it before the animation even starts (before activating ProcessEvents). }
+  ParticleScript := ParticlesScene.RootNode.FindNodeByName(
+    TScriptNode, 'ParticleScript', true) as TScriptNode;
+  (ParticleScript.Fields.ByName['count'] as TSFInt32).Send(100);
+  ParticlesScene.ProcessEvents := true;
+  ParticlesTransform.Add(ParticlesScene);
 
-  { let's now show that you can process 3D model graph after loading:
-    let's add a rotation inside X3D model in Scene2.
-    Note that you can also achieve transformation using T3DTransform.
-    In this case, using T3DTransform would probably be simpler. }
-  Scene2Transform := TTransformNode.Create('', '');
-  Scene2Transform.FdRotation.Axis := Vector3Single(1, 0, 0);
-  Scene2Transform.FdRotation.RotationRad := -Pi/2;
-  Scene2Transform.FdChildren.Add(Scene2.RootNode);
+  { initialize DinoTransform }
+  DinoTransform := T3DTransform.Create(Application);
+  DinoTransform.Translation := Vector3Single(-28, -3, 20);
+  Window.SceneManager.Items.Add(DinoTransform);
 
-  Scene2NewRoot := TX3DRootNode.Create('', '');
-  Scene2NewRoot.FdChildren.Add(Scene2Transform);
+  { initialize DinoAnimation }
+  DinoAnimation := TCastlePrecalculatedAnimation.Create(Application);
+  DinoAnimation.LoadFromFile('models/raptor.kanim', false, true);
+  DinoAnimation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
+  { render wireframe over a normal model. See TWireframeEffect docs
+    for other options.  }
+  DinoAnimation.Attributes.WireframeEffect := weSolidWireframe;
+  DinoAnimation.Attributes.WireframeColor := Vector3Single(0, 0.25, 0); { dark green }
+  DinoTransform.Add(DinoAnimation);
 
-  Scene2.RootNode := Scene2NewRoot;
-  Scene2.ChangedAll; { notify Scene2 that RootNode contents changed }
-
-  { initialize Animation }
-  Animation := TCastlePrecalculatedAnimation.Create(Application);
-  Animation.LoadFromFile('models/raptor.kanim', false, true);
-  Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
-  Transform.Add(Animation);
+  Window.FpsShowOnCaption := true;
 
   Window.OpenAndRun;
 end.
