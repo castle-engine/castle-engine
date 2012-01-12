@@ -1,7 +1,7 @@
 #X3D V3.2 utf8
 PROFILE Interchange
 
-DEF Scr Script {
+DEF ParticleScript Script {
   inputOutput MFVec3f coords []
   inputOutput MFColor colors []
   initializeOnly MFVec3f speeds []
@@ -139,10 +139,10 @@ Collision {
     }
   }
 }
-ROUTE Scr.line_colors TO LnColor.color
-ROUTE Scr.line_coords TO LnCoord.point
-ROUTE Scr.line_colorIndex TO LnSet.set_colorIndex
-ROUTE Scr.line_coordIndex TO LnSet.set_coordIndex
+ROUTE ParticleScript.line_colors TO LnColor.color
+ROUTE ParticleScript.line_coords TO LnCoord.point
+ROUTE ParticleScript.line_colorIndex TO LnSet.set_colorIndex
+ROUTE ParticleScript.line_coordIndex TO LnSet.set_coordIndex
 
 Collision {
   enabled FALSE
@@ -153,11 +153,11 @@ Collision {
     }
   }
 }
-ROUTE Scr.colors TO PtColor.color
-ROUTE Scr.coords TO PtCoord.point
+ROUTE ParticleScript.colors TO PtColor.color
+ROUTE ParticleScript.coords TO PtCoord.point
 
 DEF Time TimeSensor { loop TRUE }
-ROUTE Time.time TO Scr.time
+ROUTE Time.time TO ParticleScript.time
 
 Shape {
   appearance Appearance { material Material { } }
