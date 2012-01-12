@@ -1255,7 +1255,34 @@ begin
     the List are always valid objects (no invalid references,
     even for a short time). }
 
-  if (Operation = opRemove) and (AComponent is T3D) then
+  { About List <> nil check:
+
+    How situation with List = nil may happen? When our List is destroyed,
+    it calls B.FreeNotification on all it's items, so it (falsely) seems we will
+    not get any more notifications.
+
+    It turns out that we may get notifications,
+    and they are notifications about our own destruction (AComponent = Self).
+    That is because TComponent.Notification passes down the notification to
+    all it's FComponents, that is rtl/objpas/classes/compon.inc
+    (in FPC sources) contains code
+
+    Procedure TComponent.Notification(AComponent: TComponent; Operation: TOperation);
+    begin
+      ...
+      For Runner:=0 To FComponents.Count-1 do
+        TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
+    end;
+
+    And FComponents contain all components that are owned.
+    So we are informed when something is removed from the owner,
+    including about our own removal. (And in this case, we are a T3D descendant
+    ourselves, just like our children; so check "AComponent is T3D" doesn't
+    protect us.)
+    Practical situation when it happens is in testcases
+    TTestBase3D.TestNotifications and TTestBase3D.TestNotificationsSceneManager. }
+
+  if (Operation = opRemove) and (AComponent is T3D) and (List <> nil) then
     List.DeleteAll(AComponent);
 end;
 

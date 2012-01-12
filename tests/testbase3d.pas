@@ -30,11 +30,13 @@ type
     procedure Test3DTransformNotExists;
     procedure Test3DTransformNotCollides;
     procedure Test3DTransformReal;
+    procedure TestNotifications;
+    procedure TestNotificationsSceneManager;
   end;
 
 implementation
 
-uses VectorMath, Boxes3D, Base3D;
+uses VectorMath, Boxes3D, Base3D, CastleSceneManager;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -768,6 +770,64 @@ begin
     Assert(not M.OnlyTranslation);
     DoTests(M);
   finally FreeAndNil(M) end;
+end;
+
+procedure TTestBase3D.TestNotifications;
+var
+  ListParent, List: T3DList;
+  ItemOnList: T3DTransform;
+begin
+  ListParent := T3DList.Create(nil);
+  try
+    List := T3DList.Create(ListParent);
+    try
+      ListParent.Add(List);
+
+      ItemOnList := T3DTransform.Create(ListParent);
+      List.Add(ItemOnList);
+
+      { now this will cause T3DList.Notification with Owner=Self, and List=nil }
+      FreeAndNil(ItemOnList);
+
+    finally FreeAndNil(List) end;
+  finally FreeAndNil(ListParent) end;
+
+  ListParent := T3DList.Create(nil);
+  try
+    List := T3DList.Create(ListParent);
+    try
+      ListParent.Add(List);
+
+      ItemOnList := T3DTransform.Create(List);
+      List.Add(ItemOnList);
+
+      { now this will cause T3DList.Notification with Owner=Self, and List=nil }
+      FreeAndNil(ItemOnList);
+
+    finally FreeAndNil(List) end;
+  finally FreeAndNil(ListParent) end;
+end;
+
+procedure TTestBase3D.TestNotificationsSceneManager;
+var
+  SceneManager: TCastleSceneManager;
+  List: T3DList;
+  ItemOnList: T3DTransform;
+begin
+  SceneManager := TCastleSceneManager.Create(nil);
+  try
+    List := T3DList.Create(SceneManager);
+    try
+      SceneManager.Items.Add(List);
+
+      ItemOnList := T3DTransform.Create(SceneManager);
+      List.Add(ItemOnList);
+
+      { now this will cause T3DList.Notification with Owner=Self, and List=nil }
+      FreeAndNil(ItemOnList);
+
+    finally FreeAndNil(List) end;
+  finally FreeAndNil(SceneManager) end;
 end;
 
 initialization
