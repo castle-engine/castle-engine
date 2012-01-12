@@ -662,7 +662,7 @@ begin
 
   { rotate and move x = 0 plane to make z = 10 }
   DoTest(Vector4Single(1, 0, 0, 0),
-    TranslationMatrix(0, 0, 10) * RotationMatrixDeg(90, 0, 1, 0),
+    TranslationMatrix(Single(0), 0, 10) * RotationMatrixDeg(90, 0, 1, 0),
     [ Vector3Single( 10,  10, 10),
       Vector3Single(-10,  10, 10),
       Vector3Single( 10, -10, 10),
@@ -679,7 +679,7 @@ begin
   { rotate and move and scale x = 0 plane to make z = 100 }
   DoTest(Vector4Single(1, 0, 0, 0),
     ScalingMatrix(Vector3Single(10, 10, 10)) *
-    TranslationMatrix(0, 0, 10) *
+    TranslationMatrix(Single(0), 0, 10) *
     RotationMatrixDeg(90, 0, 1, 0),
     [ Vector3Single( 10,  10, 100),
       Vector3Single(-10,  10, 100),
