@@ -18,6 +18,21 @@ Viewpoint {
   orientation 0.0217522922903299 -0.9996275305747985 0.0164888687431812 1.2975844144821167
 }
 
+# Test light for shadows.
+# SpotLight {
+#   color 1 1 0.5
+# #  beamWidth 0.9
+#   cutOffAngle 1
+#   direction -0 -1 0
+#   location -25 10 0
+#   defaultShadowMap GeneratedShadowMap {
+#     update "ALWAYS"
+#     size 1024
+#     scale 4
+#   }
+#   shadows TRUE
+# }
+
 Transform {
   # Rotate bridge.wrl to have up vector in +Y (Blender models typically
   # have in +Z). This makes it matching some other models with +Y up,
