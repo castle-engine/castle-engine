@@ -101,9 +101,7 @@ begin
       even when the path to ImageMagick is first on $PATH (before
       the path to windows/system32/). }
 
-    ConvertExecutable := PathFileSearch(
-      {$ifdef MSWINDOWS} 'convert.exe' {$endif}
-      {$ifdef UNIX} 'convert' {$endif});
+    ConvertExecutable := PathFileSearch('convert' + ExeExtension);
 
     if ConvertExecutable = '' then
       raise EImageLoadError.CreateFmt('You must have "convert" program from ' +

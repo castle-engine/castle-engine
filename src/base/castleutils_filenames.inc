@@ -22,6 +22,8 @@ const
   RootDir = {$ifdef UNIX} '/' {$endif}
             {$ifdef MSWINDOWS} '' {$endif} ;
 
+  ExeExtension = {$ifdef MSWINDOWS} '.exe' {$else} '' {$endif};
+
 { Remove from the FileName the last extension (including the dot).
   Note that if the FileName had a couple of extensions (e.g. @code(blah.x3d.gz))
   this will remove only the last one.
