@@ -21,6 +21,9 @@ unit CastleOpenDocument;
 
 interface
 
+resourcestring
+  SCannotOpenURL = 'WWW browser not found on your system.';
+
 function OpenURL(AURL: String): Boolean;
 function OpenDocument(APath: String): Boolean;
 
