@@ -58,6 +58,7 @@ implementation
 uses
   {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
+  {$ifdef DARWIN} MacOSAll, {$endif}
   SysUtils, Classes, Process, CastleUtils, CastleFilesUtils, CastleLog;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
