@@ -1141,6 +1141,18 @@ Various:
   false, but we actually do not know the value of this field --- only that it's
   equal VRML/X3D proto default).
 
+- Anchor URL expanding: currently LoadAnchor just opens original Url.
+  It's not expanded (which would be pointless, as our PathFromWWWBasePath
+  expands only dir, not really Url).
+  Plan:
+  - the Url should be expanded, to take into account base WWWBasePath
+    which should be URL (not just a file-name).
+    Eventually it should add file://.
+  - if final Url contains file:// (because it was specified by user,
+    or because the filename was relative and base Url was a file://
+    on disk) then we should open it by OpenDocument, not OpenURL.
+  - this should be done together with handling 3D models from real URLs.
+
 ------------------------------------------------------------------------------
 Shaders:
 
