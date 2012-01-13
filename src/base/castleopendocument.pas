@@ -65,60 +65,6 @@ resourcestring
   lisProgramFileNotFound = 'program file not found %s';
   lisCanNotExecute = 'can not execute %s';
 
-{ lcl/include/unixfileutil.inc ----------------------------------------------- }
-
-{$ifdef UNIX}
-function FileIsExecutable(const AFilename: string): boolean;
-var
-  Info : Stat;
-begin
-  // first check AFilename is not a directory and then check if executable
-  Result:= (FpStat(AFilename,info)<>-1) and FPS_ISREG(info.st_mode) and
-           (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
-end;
-{$endif}
-
-{ lcl/utf8process.pp --------------------------------------------------------- }
-
-// Runs a short command which should point to an executable in
-// the environment PATH
-// For example: ProgramFilename=ls CmdLineParameters=-l /home
-// Will locate and execute the file /bin/ls
-// If the command isn't found, an exception will be raised
-procedure RunCmdFromPath(ProgramFilename, CmdLineParameters: string);
-var
-  OldProgramFilename: String;
-  BrowserProcess: TProcess;
-begin
-  OldProgramFilename:=ProgramFilename;
-  ProgramFilename:=PathFileSearch(ProgramFilename);
-
-  if ProgramFilename='' then
-    raise EFOpenError.Create(Format(lisProgramFileNotFound, [OldProgramFilename]
-      ));
-  if not FileIsExecutable(ProgramFilename) then
-    raise EFOpenError.Create(Format(lisCanNotExecute, [ProgramFilename]));
-
-  // run
-  BrowserProcess := TProcess.Create(nil);
-  try
-    // Encloses the executable with "" if it's name has spaces
-    if Pos(' ',ProgramFilename)>0 then
-      ProgramFilename:='"'+ProgramFilename+'"';
-
-    BrowserProcess.CommandLine := ProgramFilename;
-    if CmdLineParameters<>'' then
-      BrowserProcess.CommandLine := BrowserProcess.CommandLine + ' ' + CmdLineParameters;
-
-    if Log then
-      WritelnLog('Executing', BrowserProcess.CommandLine);
-
-    BrowserProcess.Execute;
-  finally
-    BrowserProcess.Free;
-  end;
-end;
-
 {$ifdef Windows}
 
 { lcl/include/sysenvapis_win.inc --------------------------------------------- }
@@ -164,6 +110,59 @@ end;
 
 {$endif}
 {$ifdef UNIX}
+
+{ lcl/include/unixfileutil.inc ----------------------------------------------- }
+
+function FileIsExecutable(const AFilename: string): boolean;
+var
+  Info : Stat;
+begin
+  // first check AFilename is not a directory and then check if executable
+  Result:= (FpStat(AFilename,info)<>-1) and FPS_ISREG(info.st_mode) and
+           (BaseUnix.FpAccess(AFilename,BaseUnix.X_OK)=0);
+end;
+
+{ lcl/utf8process.pp --------------------------------------------------------- }
+
+// Runs a short command which should point to an executable in
+// the environment PATH
+// For example: ProgramFilename=ls CmdLineParameters=-l /home
+// Will locate and execute the file /bin/ls
+// If the command isn't found, an exception will be raised
+procedure RunCmdFromPath(ProgramFilename, CmdLineParameters: string);
+var
+  OldProgramFilename: String;
+  BrowserProcess: TProcess;
+begin
+  OldProgramFilename:=ProgramFilename;
+  ProgramFilename:=PathFileSearch(ProgramFilename);
+
+  if ProgramFilename='' then
+    raise EFOpenError.Create(Format(lisProgramFileNotFound, [OldProgramFilename]
+      ));
+  if not FileIsExecutable(ProgramFilename) then
+    raise EFOpenError.Create(Format(lisCanNotExecute, [ProgramFilename]));
+
+  // run
+  BrowserProcess := TProcess.Create(nil);
+  try
+    // Encloses the executable with "" if it's name has spaces
+    if Pos(' ',ProgramFilename)>0 then
+      ProgramFilename:='"'+ProgramFilename+'"';
+
+    BrowserProcess.CommandLine := ProgramFilename;
+    if CmdLineParameters<>'' then
+      BrowserProcess.CommandLine := BrowserProcess.CommandLine + ' ' + CmdLineParameters;
+
+    if Log then
+      WritelnLog('Executing', BrowserProcess.CommandLine);
+
+    BrowserProcess.Execute;
+  finally
+    BrowserProcess.Free;
+  end;
+end;
+
   {$ifdef darwin}
 
 { lcl/include/sysenvapis_mac.inc --------------------------------------------- }
