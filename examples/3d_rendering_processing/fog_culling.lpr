@@ -46,6 +46,7 @@ type
     function TestFogVisibility(Shape: TGLShape): boolean;
   protected
     procedure Render3D(const Params: TRenderParams); override;
+    procedure RenderFromViewEverything; override;
   end;
 
 var
@@ -71,10 +72,13 @@ begin
   if FogCulling then
     Scene.Render(@TestFogVisibility, Params) else
     inherited;
+end;
 
+procedure TMySceneManager.RenderFromViewEverything;
+begin
+  inherited;
   Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
-    [ Scene.LastRender_RenderedShapesCount,
-      Scene.LastRender_VisibleShapesCount,
+    [ Statistics.ShapesRendered, Statistics.ShapesVisible,
       BoolToStr[FogCulling] ]));
 end;
 

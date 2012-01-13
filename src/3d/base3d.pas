@@ -168,6 +168,31 @@ type
     Triangle: P3DTriangle;
   end;
 
+  { Statistics about what was rendered during last frame.
+    You will usually access this from @link(TCastleSceneManager.Statistics). }
+  TRenderStatistics = record
+    { How many shapes were rendered (send to OpenGL)
+      versus all shapes that were potentially visible.
+      Potentially visible shapes are the ones with
+      TShape.Visible inside a 3D object with T3D.GetExists.
+
+      When ShapesRendered is much smaller than ShapesVisible,
+      it means that the algorithm for removing invisible scene parts
+      works good. This includes frustum culling (automatically
+      used by TCastleScene), or occlusion culling (see
+      TSceneRenderingAttributes.UseOcclusionQuery),
+      or any custom algorithm you implement by using TTestShapeVisibility
+      callback with @link(TCastleScene.Render). }
+    ShapesRendered, ShapesVisible: Cardinal;
+
+    { The number of shapes that were not rendered,
+      but their bounding box was rendered to check with occlusion query.
+      This is always zero when not using occlusion query (see
+      TSceneRenderingAttributes.UseOcclusionQuery).
+      Basically, this measures the "invisible overhead" of occlusion query. }
+    BoxesOcclusionQueriedCount: Cardinal;
+  end;
+
   { List of lights. Always TLightInstancesList, but we cannot declare it here
     as such. }
   TAbstractLightInstancesList = TFPSList;
@@ -204,6 +229,8 @@ type
     RenderTransform: TMatrix4Single;
     RenderTransformIdentity: boolean;
     { @groupEnd }
+
+    Statistics: TRenderStatistics;
 
     constructor Create;
 

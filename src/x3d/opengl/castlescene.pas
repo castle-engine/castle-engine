@@ -443,10 +443,7 @@ type
       setting appropriate OpenGL state and rendering partially transparent
       shape before all opaque objects.
 
-      Sets FLastRender_RenderedShapesCount,
-      FLastRender_BoxesOcclusionQueriedCount,
-      FLastRender_VisibleShapesCount,
-      handling also LastRender_SumNext. }
+      Updates Params.Statistics. }
     procedure RenderScene(TestShapeVisibility: TTestShapeVisibility;
       const Params: TRenderParams);
 
@@ -462,11 +459,6 @@ type
       Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
   private
-    FLastRender_RenderedShapesCount: Cardinal;
-    FLastRender_BoxesOcclusionQueriedCount: Cardinal;
-    FLastRender_VisibleShapesCount: Cardinal;
-    FLastRender_SumNext: boolean;
-
     FOwnsRenderer: boolean;
 
     { Fog for this shape. @nil if none. }
@@ -626,52 +618,6 @@ type
       const Params: TRenderParams);
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-
-    { Statistics about what was rendered during last @link(Render) call.
-      How many shapes were rendered (send to OpenGL
-      pipeline) versus all shapes that were available
-      (this is the number of shapes in @link(Shapes) tree that are
-      @link(TShape.Visible Visible)).
-
-      This way you can see how effective was frustum culling
-      in @link(Render) or how effective was your function TestShapeVisibility
-      (if you used directly @link(Render) with TTestShapeVisibility).
-      "Effective" as in
-      "eliminating many invisible shapes from rendering pipeline".
-
-      These are initially equal to zeros.
-      Then they are updated each time you called @link(Render).
-
-      Also, LastRender_BoxesOcclusionQueriedCount is useful to test
-      if you use Attributes.UseOcclusionQuery (it's always zero when
-      not using occlusion query). This tells the number of shapes that
-      were not rendered, but their bounding box was rendered to check
-      with occlusion query.
-
-      @groupBegin }
-    property LastRender_RenderedShapesCount: Cardinal
-      read FLastRender_RenderedShapesCount;
-
-    property LastRender_BoxesOcclusionQueriedCount: Cardinal
-      read FLastRender_BoxesOcclusionQueriedCount;
-
-    property LastRender_VisibleShapesCount: Cardinal
-      read FLastRender_VisibleShapesCount;
-    { @groupEnd }
-
-    { Let next Render call to only increase (sum to)
-      the LastRender_RenderedShapesCount statistics, instead of
-      resetting and updating all LastRender_ properties.
-      This is useful if you use multi-pass rendering (e.g. render
-      a scene few times for shadow volumes, calling Render a few times)
-      and you want LastRender_ statistics to represent the total
-      work e.g. done for this frame.
-
-      Note that this is automatically done at the beginning of @link(Render)
-      with Params.Transparent = true.
-      So rendering transparent always sums to the rendered shapes.
-      This reflects typical usage. }
-    procedure LastRender_SumNext;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
@@ -1715,7 +1661,7 @@ var
     begin
       OcclusionBoxStateEnd;
 
-      Inc(FLastRender_RenderedShapesCount);
+      Inc(Params.Statistics.ShapesRendered);
       RenderShape(Shape);
     end;
 
@@ -1768,7 +1714,7 @@ var
 
             OcclusionBoxStateBegin;
             glDrawBox3DSimple(Shape.BoundingBox);
-            Inc(FLastRender_BoxesOcclusionQueriedCount);
+            Inc(Params.Statistics.BoxesOcclusionQueriedCount);
           end;
 
         if Params.StencilTest = 0 then
@@ -1954,7 +1900,7 @@ var
       end;
 
       glDrawBox3DSimple(Box);
-      Inc(FLastRender_BoxesOcclusionQueriedCount);
+      Inc(Params.Statistics.BoxesOcclusionQueriedCount);
     end;
 
   const
@@ -2082,7 +2028,7 @@ var
                   begin
                     OcclusionBoxStateBegin;
                     glDrawBox3DSimple(Node.Box);
-                    Inc(FLastRender_BoxesOcclusionQueriedCount);
+                    Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                   end;
                 glEndQueryARB(GL_SAMPLES_PASSED_ARB);
 
@@ -2107,16 +2053,12 @@ var
   I: Integer;
   LightRenderEvent: TVRMLLightRenderEvent;
 begin
-  if Params.Transparent then
-    LastRender_SumNext;
-
-  if FLastRender_SumNext then
-    FLastRender_SumNext := false else
-  begin
-    FLastRender_RenderedShapesCount := 0;
-    FLastRender_BoxesOcclusionQueriedCount := 0;
-    FLastRender_VisibleShapesCount := ShapesActiveVisibleCount;
-  end;
+  { We update ShapesVisible only for one value of Params.Transparent.
+    Otherwise, we would increase it twice.
+    This method is always called first with Params.Transparent = false,
+    then Params.Transparent = true during a single frame. }
+  if not Params.Transparent then
+    Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
 
   OcclusionBoxState := false;
 
@@ -3783,11 +3725,6 @@ begin
   end;
 
   UpdateCameraProjectionMatrix;
-end;
-
-procedure TCastleScene.LastRender_SumNext;
-begin
-  FLastRender_SumNext := true;
 end;
 
 procedure TCastleScene.UpdateGeneratedTextures(

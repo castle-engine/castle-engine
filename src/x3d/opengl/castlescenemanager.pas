@@ -354,6 +354,9 @@ type
       You can only use this outside PrepareResources or Render,
       as they may change this instance. }
     function BaseLights: TLightInstancesList;
+
+    { Statistics about last rendering frame. See TRenderStatistics docs. }
+    function Statistics: TRenderStatistics;
   published
     { Viewport dimensions where the 3D world will be drawn.
       When FullSize is @true (the default), the viewport always fills
@@ -1536,7 +1539,11 @@ begin
 
   glLoadMatrix(RenderingCamera.Matrix);
 
+  { clear FRenderParams instance }
+
   FRenderParams.Pass := 0;
+
+  FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
   FRenderParams.FBaseLights[false].Clear;
   InitializeLights(FRenderParams.FBaseLights[false]);
@@ -1849,6 +1856,11 @@ end;
 function TCastleAbstractViewport.CreateDefaultCamera: TCamera;
 begin
   Result := CreateDefaultCamera(Self);
+end;
+
+function TCastleAbstractViewport.Statistics: TRenderStatistics;
+begin
+  Result := FRenderParams.Statistics;
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }
