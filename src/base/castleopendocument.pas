@@ -57,6 +57,7 @@ implementation
 
 uses
   {$ifdef UNIX} BaseUnix, {$endif}
+  {$ifdef MSWINDOWS} Windows, {$endif}
   SysUtils, Classes, Process, CastleUtils, CastleFilesUtils, CastleLog;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
