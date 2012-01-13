@@ -239,17 +239,12 @@ procedure TCastleWindowBase.BackendMenuInitialize;
     function MenuEntryToGtkMenuItem(Entry: TMenuEntry): PGtkMenuItem;
 
       function NewGtkMenu(): PGtkMenu;
-      { Returns fresh gtk_menu_new() (only with standard PGtkTearoffMenuItem) }
-      var Tearoff: PGtkWidget;
+      { Returns fresh gtk_menu_new() }
       begin
        Result := PGtkMenu(gtk_menu_new());
        { Do not show ! No "gtk_widget_show(GTK_WIDGET(Result));",
          you do not want to show GtkMenu (it will be automatically
          shown when user selects it with a mouse click etc.)  }
-
-       Tearoff := gtk_tearoff_menu_item_new();
-       gtk_widget_show(Tearoff);
-       gtk_menu_append(GTK_WIDGET(Result), Tearoff);
       end;
 
     var SubMenu: PGtkMenu;
