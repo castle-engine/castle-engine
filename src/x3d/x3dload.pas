@@ -71,7 +71,8 @@ uses VectorMath, SysUtils, X3DNodes, X3DLoadInternalMD3,
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
     a VRML/X3D file from StdInStream (using GetCurrentDir as WWWBasePath).) }
 function Load3D(const filename: string;
-  AllowStdIn: boolean = false): TX3DRootNode;
+  AllowStdIn: boolean = false;
+  NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;
 
 const
   { File filters for files loaded by Load3D, suitable
@@ -155,7 +156,7 @@ uses PrecalculatedAnimationCore, CastleClassUtils,
   X3DLoadInternalCollada;
 
 function Load3D(const filename: string;
-  AllowStdIn: boolean): TX3DRootNode;
+  AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
 const
   GzExt = '.gz';
   Extensions: array [0..14] of string =
@@ -183,9 +184,12 @@ begin
       11: Result := LoadCollada(FileName);
       12: Result := LoadX3DXml(FileName, false);
       13, 14: Result := LoadX3DXml(FileName, true);
-      else raise Exception.CreateFmt(
-        'Unrecognized file extension "%s" for 3D model file "%s"',
-        [Ext, FileName]);
+      else
+        if NilOnUnrecognizedFormat then
+          Result := nil else
+          raise Exception.CreateFmt(
+            'Unrecognized file extension "%s" for 3D model file "%s"',
+            [Ext, FileName]);
     end;
   end;
 end;

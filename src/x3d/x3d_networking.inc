@@ -45,20 +45,22 @@
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    { Load the new world and viewpoint referenced by this Anchor node.
+    { Load the document, world and/or viewpoint referenced by this Anchor node.
 
       This iterates over url field, for each URL trying to load
-      referenced file. If URL specifies viewpoint name, we also search
-      for viewpoint within this file.
+      referenced file. If URL specifies viewpoint name within 3D file (or current
+      3D world), we also search for viewpoint.
       If it will succeed for some URL, returns @true,
       setting output parameters. Returns @false if no loadable URL is found.
 
       Output NewRootNode is the loaded world,
       or @nil if actually we should stay within the same world.
-      @nil happens for URLs like @code(#ViewpointName), see X3D spec.
+      @nil happens for URLs like @code(#ViewpointName),
+      or when URL refers to some non-3D document (that is opened with appropriate
+      application on user system).
 
       NewViewpoint is the new viewpoint that should be bound,
-      or @nil if URL doesn't specify viewpoint name.
+      or @nil if URL doesn't specify viewpoint name within 3D file.
       This viewpoint is part of NewRootNode graph, if NewRootNode <> @nil,
       or is part of CurrentRootNode if we should stay within
       current world (NewRootNode = @nil).
@@ -66,7 +68,6 @@
       Note that this means that NewRootNode = nil and
       NewViewpoint = nil are valid output from this method,
       and indicate that nothing should be done.
-      And this is Ok, following X3D spec AFAIK.
 
       CurrentRootNode is required to detect invalid viewpoint names
       within current file. An explanation why this is needed follows:
@@ -89,7 +90,7 @@
       and move on to the next URL (which may be local or not).
       That's why we need CurrentRootNode instance.
       When CurrentRootNode = nil, we understand that no file is currently
-      loaded (at least, you don't have it's VRML graph). It means that
+      loaded (at least, you don't have it's X3D graph). It means that
       any "#Viewpoint" within current model is considered invalid. }
     function LoadAnchor(
       out NewRootNode: TX3DRootNode;
@@ -293,7 +294,7 @@ function TAnchorNode.LoadAnchor(
 
 var
   I: Integer;
-  FullUrl, NewViewpointName: string;
+  FullUrl, UrlWithoutViewpoint, NewViewpointName: string;
 begin
   for I := 0 to FdUrl.Count - 1 do
   begin
@@ -303,10 +304,12 @@ begin
       cases when the URL before # doesn't exist (so NewRootNode = nil
       and exit with success). Otherwise, PathFromWWWBasePath would append
       current path to empty URL, making it non-empty (and invalid...). }
-    URLExtractAnchor(FullUrl, NewViewpointName);
+    UrlWithoutViewpoint := FullUrl;
+    URLExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
 
-    if FullUrl = '' then
+    if UrlWithoutViewpoint = '' then
     begin
+      { in this case, we have either a viewpoint in current 3D world, or nothing }
       NewRootNode := nil;
 
       if NewViewpointName = '' then
@@ -333,15 +336,32 @@ begin
 
     end else
     begin
-      FullUrl := PathFromWWWBasePath(FullUrl);
+      { in this case, we have either a new 3D world, or a document }
+      UrlWithoutViewpoint := PathFromWWWBasePath(UrlWithoutViewpoint);
       try
-        NewRootNode := Load3D(FullUrl, false);
+        NewRootNode := Load3D(UrlWithoutViewpoint, false, true);
+
+        if NewRootNode = nil then
+        begin
+          { we have a document URL }
+          if OpenURL(FullUrl) then
+          begin
+            NewViewpoint := nil;
+            Exit(true);
+          end else
+          begin
+            OnWarning(wtMinor, 'VRML/X3D', Format('Cannot open browser to handle document on this URL: %s',
+              [FullUrl]));
+            Continue;
+          end;
+        end;
+
       except
         on E: Exception do
         begin
           { Catch exception and produce OnWarning, go to next URL }
           OnWarning(wtMajor, 'VRML/X3D', Format('Loading world from Anchor URL "%s" failed: %s',
-            [FullUrl, E.Message]));
+            [UrlWithoutViewpoint, E.Message]));
           Continue;
         end;
       end;
@@ -359,7 +379,7 @@ begin
         { In this case invalid viewpoint name is ignored,
           that is we still accept this URL. This follows X3D spec
           (also, this is sensible, otherwise we would have to free
-          loaded model just becuase viewpoint is invalid). }
+          loaded model just because viewpoint is invalid). }
       end;
 
       Exit(true);

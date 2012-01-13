@@ -2227,7 +2227,7 @@ uses
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
   CastleFilesUtils, RaysWindow, StrUtils, CastleURLUtils,
   CastleLog, CastleScriptParser, DataURI, URIParser,
-  NURBS, Quaternions, Cameras, CastleXMLUtils;
+  NURBS, Quaternions, Cameras, CastleXMLUtils, CastleOpenDocument;
 
 {$define read_implementation}
 
