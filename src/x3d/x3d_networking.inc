@@ -294,17 +294,17 @@ function TAnchorNode.LoadAnchor(
 
 var
   I: Integer;
-  FullUrl, UrlWithoutViewpoint, NewViewpointName: string;
+  Url, UrlWithoutViewpoint, NewViewpointName: string;
 begin
   for I := 0 to FdUrl.Count - 1 do
   begin
-    FullUrl := FdUrl.Items[I];
+    Url := FdUrl.Items[I];
 
-    { We have to call URLExtractAnchor first, to be able to detect
-      cases when the URL before # doesn't exist (so NewRootNode = nil
-      and exit with success). Otherwise, PathFromWWWBasePath would append
-      current path to empty URL, making it non-empty (and invalid...). }
-    UrlWithoutViewpoint := FullUrl;
+    { We have to call URLExtractAnchor before PathFromWWWBasePath.
+      Otherwise, in case of Urls like '' or '#viewpoint_in_this_world'
+      PathFromWWWBasePath would prefix it with our path,
+      making it invalid. }
+    UrlWithoutViewpoint := Url;
     URLExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
 
     if UrlWithoutViewpoint = '' then
@@ -344,14 +344,14 @@ begin
         if NewRootNode = nil then
         begin
           { we have a document URL }
-          if OpenURL(FullUrl) then
+          if OpenURL(Url) then
           begin
             NewViewpoint := nil;
             Exit(true);
           end else
           begin
             OnWarning(wtMinor, 'VRML/X3D', Format('Cannot open browser to handle document on this URL: %s',
-              [FullUrl]));
+              [Url]));
             Continue;
           end;
         end;
