@@ -42,6 +42,7 @@ type
     procedure TestVector3FromStr;
     procedure TestVector4FromStr;
     procedure TestPlaneTransform;
+    procedure TestTransformToFromCoordsMatrix;
   end;
 
 function RandomVector: TVector3Single;
@@ -693,6 +694,29 @@ begin
       Vector3Single(-10,  10, 2),
       Vector3Single( 10, -10, -3),
       Vector3Single(0, 0, 1) ]);
+end;
+
+procedure TTestVectorMath.TestTransformToFromCoordsMatrix;
+var
+  M, MInverse: TMatrix4Single;
+  NewOrigin, NewX, NewY, NewZ: TVector3Single;
+begin
+  NewOrigin := RandomVector;
+  repeat NewX := Normalized(RandomVector) until not ZeroVector(NewX);
+  NewY := Normalized(AnyOrthogonalVector(NewX));
+  NewZ := VectorProduct(NewX, NewY);
+
+  M        := TransformToCoordsMatrix  (NewOrigin, NewX, NewY, NewZ);
+  MInverse := TransformFromCoordsMatrix(NewOrigin, NewX, NewY, NewZ);
+
+  try
+    Assert(MatricesEqual(M * MInverse, IdentityMatrix4Single, 0.01));
+    Assert(MatricesEqual(MInverse * M, IdentityMatrix4Single, 0.01));
+  except
+    Writeln('Failed for origin=', VectorToRawStr(NewOrigin),
+      ' newX=', VectorToRawStr(NewX));
+    raise;
+  end;
 end;
 
 initialization
