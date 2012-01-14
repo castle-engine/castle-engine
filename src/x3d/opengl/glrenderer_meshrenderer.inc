@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML / X3D rendering.
+{ X3D rendering.
   This is internal for GLRenderer unit.
 
   Some ideas for implementation:
@@ -22,7 +22,7 @@
     large and complicated. The idea of this file is to take some tasks
     from their hands. TMeshRenderer and descendants are created
     only for the time of one RenderShape call, and are used
-    to render specific non-trivial VRML mesh nodes.
+    to render specific non-trivial X3D mesh nodes.
 
   - Since all classes within this file and GLRenderer live
     in one Pascal unit, we could break it and access each other's
@@ -32,9 +32,6 @@
     long-term work, to encompass many nodes and features. So, while
     this is internal for GLRenderer, it still must be implemented
     and documented cleanly.
-
-  - In the future, this may be abstracted from OpenGL and used as a basis
-    also for TAbstractGeometryNode.Triangulate methods implementation.
 }
 
 type
