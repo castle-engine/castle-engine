@@ -2235,10 +2235,14 @@ procedure TExamineCamera.Idle(const CompSpeed: Single;
   { Increase speed of rotating, or just rotation angle
     (depending on RotationAccelerate). Direction must be -1 or +1. }
   procedure RotateSpeedOrAngle(const Coord: Integer; const Direction: Integer);
+  const
+    MaxRotationSpeed = 6.0; { this prevents rotations getting too wild speed }
   begin
     if RotationAccelerate then
-      FRotationsAnim[coord] +=
-        RotationAccelerationSpeed * CompSpeed * Direction else
+      FRotationsAnim[coord] :=
+        Clamped(FRotationsAnim[coord] +
+          RotationAccelerationSpeed * CompSpeed * Direction,
+          -MaxRotationSpeed, MaxRotationSpeed) else
       FRotations := QuatFromAxisAngle(UnitVector3Single[Coord],
         RotationSpeed * CompSpeed * Direction) * FRotations;
     VisibleChange;
