@@ -71,14 +71,19 @@ type
     { Nothing special done. }
     ctNone,
     { Pickable item.
-      Moving level parts (doors and such) try to not crush this item.
-      For now this concerns DOOM E1M1 doors, and is guaranteed
-      to *never* crush item. }
+      - Moving level parts (doors and such) try to not crush this item.
+        For now this concerns DOOM E1M1 doors, and is guaranteed
+        to *never* crush item.
+      - When we detect player colliding with this item, we call T3D.PlayerCollision.
+        If player is the same as camera (first-person perspective,
+        not third-person perspective) be sure to also set Collides := false,
+        to enable the collisions with such items to happen.
+    }
     ctItem,
     { Creature.
-      Moving level parts (doors and such) try to not crush this item.
-      For now this concerns DOOM E1M1 doors, and is guaranteed
-      to *never* crush item. }
+      - Moving level parts (doors and such) try to not crush this item.
+        For now this concerns DOOM E1M1 doors, and is guaranteed
+        to *never* crush item. }
     ctCreature
   );
 
@@ -257,6 +262,8 @@ type
     { Lights that shine on given 3D object. }
     function BaseLights(Scene: T3D): TAbstractLightInstancesList; virtual; abstract;
   end;
+
+  TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
@@ -579,6 +586,19 @@ type
       (like drag sensors, e.g. PlaneSensor, but also TouchSensor may
       use it). }
     function Dragging: boolean; virtual;
+
+    { Called (TODO: for now only by "The Castle", and only in main Items list)
+      when we detect collision between player and this item.
+      See TCollisionType = ctItem.
+      TODO: this is just a prototype now.
+      Maybe change this into PlayerCollision(const PlayerBox),
+      that checks collision itself (no need to look at TCollisionType).
+
+      @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
+        this item from 3D world after PlayerCollision finished.
+        rtRemoveAndFree additionally will free this item.
+        Initially it's rtNone when this method is called.) }
+    procedure PlayerCollision(var RemoveMe: TRemoveType); virtual;
   end;
 
   T3DList = class;
@@ -1032,6 +1052,10 @@ end;
 function T3D.GetExists: boolean;
 begin
   Result := FExists;
+end;
+
+procedure T3D.PlayerCollision(var RemoveMe: TRemoveType);
+begin
 end;
 
 { T3DListCore ------------------------------------------------------------ }
