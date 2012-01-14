@@ -29,19 +29,22 @@ function OpenDocument(APath: String): Boolean;
 
 implementation
 
-{ Largely copied from Lazarus LCL unit LCLIntf. The core of our engine
+{ Copied and adapted from Lazarus LCL unit LCLIntf. The core of our engine
   cannot depend on LCL. Fortunately, Lazarus
   has the same license as our engine, so copying code is fine.
 
-  I merely removed references to UTF8 classes and functions.
-  Not that I don't like them, but they just have no place in a game engine.
-  With time, hopefully FPC will have nice solution for UTF8.
-  Also, with time, hopefully these functions may be moved to FPC FCL too.
-
-  Also, some bits may use our CastleUtils, CastleStringUtils functions.
+  We did some changes to the code here:
+  - Removed references to UTF8 classes and functions.
+    Not that I don't like them, but they just have no place in a game engine.
+    With time, hopefully FPC will have nice solution for UTF8.
+    Also, with time, hopefully these functions may be moved to FPC FCL too.
+  - Using TProcess.Executable, TProcess.Parameters instead of
+    TProcess.CommandLine. This avoids the need for many paranoid quoting
+    previously present here.
+  - Some bits may use our CastleUtils, CastleFilesUtils functions.
 
   So:
-  - FilenameIsAbsolute => our IsPathAbsolute
+  - FilenameIsAbsolute => IsPathAbsolute
   - FileExistsUTF8 => FileExists
   - CleanAndExpandFilename => ExpandFilename
   - AppendPathDelim => InclPathDelim
@@ -52,8 +55,8 @@ implementation
   - FindDefaultBrowser => simplified and folded inside OpenURL for Unix,
     LCL implementation was cross-platform but was used only on
     Unix (except Darwin) (for these OpenXxx routines).
-  - SearchFileInPath => PathFileSearch (it's only used by Unix (except Darwin))
- }
+  - SearchFileInPath => PathFileSearch (it's only used by Unix)
+}
 
 uses
   {$ifdef UNIX} BaseUnix, {$endif}
@@ -126,12 +129,16 @@ end;
 
 { lcl/utf8process.pp --------------------------------------------------------- }
 
-// Runs a short command which should point to an executable in
-// the environment PATH
-// For example: ProgramFilename=ls CmdLineParameters=-l /home
-// Will locate and execute the file /bin/ls
-// If the command isn't found, an exception will be raised
-procedure RunCmdFromPath(ProgramFilename, CmdLineParameters: string);
+{ Runs a short command which should point to an executable in
+  the environment PATH.
+
+  Kambi: simplified this to use TProcess.Executable, TProcess.Parameters
+  instead of TProcess.CommandLine (Lazarus TProcessUTF8 didn't have these
+  improvements). This removes the need for paranoid quoting of strings
+  everywhere.
+  This always takes exactly 1 parameter now --- which is actually Ok
+  for usage in this unit. }
+procedure RunCmdFromPath(ProgramFilename, Parameter: string);
 var
   OldProgramFilename: String;
   BrowserProcess: TProcess;
@@ -140,24 +147,19 @@ begin
   ProgramFilename:=PathFileSearch(ProgramFilename);
 
   if ProgramFilename='' then
-    raise EFOpenError.Create(Format(lisProgramFileNotFound, [OldProgramFilename]
-      ));
+    raise EFOpenError.Create(Format(lisProgramFileNotFound, [OldProgramFilename]));
   if not FileIsExecutable(ProgramFilename) then
     raise EFOpenError.Create(Format(lisCanNotExecute, [ProgramFilename]));
 
   // run
   BrowserProcess := TProcess.Create(nil);
   try
-    // Encloses the executable with "" if it's name has spaces
-    if Pos(' ',ProgramFilename)>0 then
-      ProgramFilename:='"'+ProgramFilename+'"';
-
-    BrowserProcess.CommandLine := ProgramFilename;
-    if CmdLineParameters<>'' then
-      BrowserProcess.CommandLine := BrowserProcess.CommandLine + ' ' + CmdLineParameters;
+    BrowserProcess.Executable := ProgramFilename;
+    BrowserProcess.Parameters.Add(Parameter);
 
     if Log then
-      WritelnLog('Executing', BrowserProcess.CommandLine);
+      WritelnLog('Executing', 'Executable: "' + BrowserProcess.Executable +
+        '", Parameter: "' + BrowserProcess.Parameters[0] + '"');
 
     BrowserProcess.Execute;
   finally
@@ -230,7 +232,7 @@ begin
   Result := FindDefaultBrowser(ABrowser) and FileExists(ABrowser) and FileIsExecutable(ABrowser);
   if not Result then
     Exit;
-  RunCmdFromPath(ABrowser, AnsiQuotedStr(AURL, '"'));
+  RunCmdFromPath(ABrowser, AURL);
 end;
 
 // Open a document with the default application associated with it in the system
@@ -249,8 +251,6 @@ begin
   if lApp='' then
     Exit(False);
 
-  if (APath<>'') and (APath[1]<>'"') then
-    APath:=QuotedStr(APath);
   RunCmdFromPath(lApp,APath);
 end;
 
