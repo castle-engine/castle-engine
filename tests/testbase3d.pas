@@ -32,11 +32,12 @@ type
     procedure Test3DTransformReal;
     procedure TestNotifications;
     procedure TestNotificationsSceneManager;
+    procedure TestList;
   end;
 
 implementation
 
-uses VectorMath, Boxes3D, Base3D, CastleSceneManager;
+uses VectorMath, Boxes3D, Base3D, CastleSceneManager, Contnrs, CastleClassUtils;
 
 { TMy3D ---------------------------------------------------------------------- }
 
@@ -828,6 +829,39 @@ begin
 
     finally FreeAndNil(List) end;
   finally FreeAndNil(SceneManager) end;
+end;
+
+procedure TTestBase3D.TestList;
+var
+  My, My2: T3D;
+  List: T3DList;
+  OList: TCastleObjectList;
+begin
+  My  := TMy3D.Create(nil, Box0);
+  My2 := TMy3D.Create(nil, Box0);
+  try
+    OList := TCastleObjectList.Create(false);
+    try
+      OList.Add(My);
+      OList[0] := My2;
+      Assert(OList.Count = 1);
+      Assert(OList[0] = My2);
+    finally FreeAndNil(OList) end;
+
+    { Test that our T3DListCore avoids this bug:
+      http://bugs.freepascal.org/view.php?id=21087 }
+
+    List := T3DList.Create(nil);
+    try
+      List.Add(My);
+      List.List[0] := My2;
+      Assert(List.List.Count = 1);
+      Assert(List.List[0] = My2);
+    finally FreeAndNil(List) end;
+  finally
+    FreeAndNil(My);
+    FreeAndNil(My2);
+  end;
 end;
 
 initialization

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Base 3D object (T3D). }
+{ Base 3D objects (T3D, T3DList, T3DTransform). }
 unit Base3D;
 
 interface
@@ -199,7 +199,9 @@ type
 
   TRenderingPass = 0..1;
 
-  { Information that 3D object needs to render, read-only for T3D.Render. }
+  { Information that 3D object needs to render.
+    Read-only for T3D.Render (except Statistics, which should be updated
+    by T3D.Render). }
   TRenderParams = class
     { Which parts should be rendered: opaque (@false) or transparent (@true). }
     Transparent: boolean;
@@ -678,10 +680,14 @@ type
     function GetRotation: TVector4Single; virtual;
     function GetScale: TVector3Single; virtual;
     function GetScaleOrientation: TVector4Single; virtual;
+    { If @true, then we may use only GetTranslation for transformation.
+      This allows optimization is some cases. }
     function OnlyTranslation: boolean; virtual;
     function Transform: TMatrix4Single;
     function TransformInverse: TMatrix4Single;
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4Single);
+    { You can override this to derive transformation martix using anything,
+      not necessarily GetTranslation / GetCenter etc. }
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); virtual;
     procedure TransformMatrices(out M, MInverse: TMatrix4Single);
     function AverageScale: Single;
   public
@@ -1062,7 +1068,7 @@ end;
 
 procedure T3DListCore.SetItem(const I: Integer; const Item: T3D);
 begin
-  (inherited Items[I]) := Item;
+  inherited Items[I] := Item;
 end;
 
 function T3DListCore.First: T3D;
@@ -1698,7 +1704,7 @@ begin
     inherited Render(Frustum, Params) else
     begin
       { inherited Render expects Frustum in local coordinates (without
-        transformation),  so we subtract transformation here. }
+        transformation), so we subtract transformation here. }
 
       OldRenderTransform         := Params.RenderTransform;
       OldRenderTransformIdentity := Params.RenderTransformIdentity;
