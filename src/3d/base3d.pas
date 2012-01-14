@@ -64,6 +64,24 @@ type
       1: (Normal: TVector3Single;);
   end;
 
+  { Collision resolution type.
+    TODO: for now used by "The Castle" code, but in the future will be moved
+    to core engine, so is declared as T3D already. }
+  TCollisionType = (
+    { Nothing special done. }
+    ctNone,
+    { Pickable item.
+      Moving level parts (doors and such) try to not crush this item.
+      For now this concerns DOOM E1M1 doors, and is guaranteed
+      to *never* crush item. }
+    ctItem,
+    { Creature.
+      Moving level parts (doors and such) try to not crush this item.
+      For now this concerns DOOM E1M1 doors, and is guaranteed
+      to *never* crush item. }
+    ctCreature
+  );
+
   { 3D triangle.
 
     This object should always be initialized by @link(Init),
@@ -251,6 +269,7 @@ type
     FOnVisibleChangeHere: TVisibleChangeEvent;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
+    FCollision: TCollisionType;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { In T3D class, just calls OnCursorChange event. }
@@ -285,6 +304,12 @@ type
 
       @noAutoLinkHere }
     property Collides: boolean read FCollides write FCollides default true;
+
+    { How this 3D object behaves when other 3D objects try to collide with it.
+      See @link(Collides) instead for collision resolution with camera.
+      This property describes collision resolution with other 3D objects. }
+    property Collision: TCollisionType
+      read FCollision write FCollision default ctNone;
 
     { Bounding box of the 3D object.
 
