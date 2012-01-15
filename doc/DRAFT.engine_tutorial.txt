@@ -112,32 +112,32 @@ However, you usually have a lot of item instances showing the same item. For exa
 
 This means that want to think about two concepts separately: a <b>type</b> of item (like potion, sword, etc.) and an <b>instance</b> of this item in visible 3D world (like "potion lying beside the front door", "other potion hidden behind a secret corridor", "yet another potion not visible yet but in player's backpack", "a sword lying somewhere" and such). Don't confuse the terms <b>type</b> and <b>instance</b> here with ObjectPascal concepts. In our program, we will want to have a class (and it's instance) representing a potion, and a class (and many instances) representing each place where potion exists.
 
-Our engine allows you to do this in a flexible way. We have many 3D objects that keep only references to other 3D objects. In particular, T3DTranslated keeps a reference to other 3D object(s), and translates (moves) it.
+Our engine allows you to do this in a flexible way. We have many 3D objects that keep only references to other 3D objects. In particular, T3DTransfrom keeps a reference to other 3D object(s), and transforms (translates (moves), rotates, scales) them.
 
-So you can create an instance of TCastleScene where you load an item, like potion. Then you create as many as you like instances of T3DTranslated, where you add your potion as a children. Additionally, at T3DTranslated, you can setup the translation of your item.
+So you can create an instance of TCastleScene where you load an item, like potion. Then you create as many as you like instances of T3DTransform, where you add your potion as a children. Additionally, at T3DTransform, you can setup the transformation (like translation) of your item.
 
 [[
 var
   PotionType: TCastleScene;
-  PotionInstance1, PotionInstance2: T3DTranslated;
+  PotionInstance1, PotionInstance2: T3DTransform;
 
 { ... somewhere in begin...end block ... }
   PotionType := TCastleScene.Create(Application);
   PotionType.Load('my_scene.x3d');
   PotionType.ProcessEvents := true; // if the item model has interactive/animated parts by VRML/X3D events
 
-  PotionInstance1 := T3DTranslated.Create(Application);
+  PotionInstance1 := T3DTransform.Create(Application);
   PotionInstance1.Translation := Vector3Single(1, 2, 3);
   PotionInstance1.Add(PotionType);
   SceneManager.Items.Add(PotionInstance1);
 
-  PotionInstance2 := T3DTranslated.Create(Application);
+  PotionInstance2 := T3DTransform.Create(Application);
   PotionInstance2.Translation := Vector3Single(4, 5, 6);
   PotionInstance2.Add(PotionType);
   SceneManager.Items.Add(PotionInstance2);
 ]]
 
-For more advanced uses, you may want to create your own class for TPotionType (descending from TCastleScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTranslated, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
+For more advanced uses, you may want to create your own class for TPotionType (descending from TCastleScene, and adding additional information, for example is this a "life potion", "mana potion", "cure potion" etc. --- we assume these potions have different 3D models, but also share some common parameters and so they want to be treated under a common class TPotionType). Also, you may want to create your own class for TPotionInstance (descending from T3DTransform, and adding additional information like "how much percent of this potion is used up (drink)"). No surprises here, you can do all this by following standard ObjectPascal syntax and conventions, example:
 
 [[
 type
@@ -155,7 +155,7 @@ type
     you can introduce a method here to get it comfortably).
     When it is visible on a level (that is, added to SceneManager items
     graph), the Translation determines it's position on a level. }
-  TPotionInstance = class(T3DTranslated)
+  TPotionInstance = class(T3DTransform)
     PercentUsed: Integer;
   end;
 
@@ -193,7 +193,7 @@ var
   SceneManager.Items.Add(ManaPotionInstance1);
 ]]
 
-TODO: engine 2.6.0 will contain a comfortable T3DTransformed, which also allows to rotate, scale etc.. For now refer to castle code how to make it.
+TODO: engine 3.1.0: We have a comfortable classes to store item information (TItem) and visible item on level (TItemOnLevel). TODO: describe here, probably replace above description. For advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. It's important to note that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
 
 6. Letting player pick up items
 XXX (follow the castle code, where we just check player's bounding box with items bounding box. make special utilities for this.)
