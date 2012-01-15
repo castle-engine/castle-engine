@@ -1661,7 +1661,7 @@ var
     begin
       OcclusionBoxStateEnd;
 
-      Inc(Params.Statistics.ShapesRendered);
+      if Params.Pass = 0 then Inc(Params.Statistics.ShapesRendered);
       RenderShape(Shape);
     end;
 
@@ -1714,7 +1714,7 @@ var
 
             OcclusionBoxStateBegin;
             glDrawBox3DSimple(Shape.BoundingBox);
-            Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+            if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
           end;
 
         if Params.StencilTest = 0 then
@@ -1900,7 +1900,7 @@ var
       end;
 
       glDrawBox3DSimple(Box);
-      Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+      if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
     end;
 
   const
@@ -2028,7 +2028,7 @@ var
                   begin
                     OcclusionBoxStateBegin;
                     glDrawBox3DSimple(Node.Box);
-                    Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+                    if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                   end;
                 glEndQueryARB(GL_SAMPLES_PASSED_ARB);
 
@@ -2057,7 +2057,7 @@ begin
     Otherwise, we would increase it twice.
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
-  if not Params.Transparent then
+  if (not Params.Transparent) and (Params.Pass = 0) then
     Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
 
   OcclusionBoxState := false;
