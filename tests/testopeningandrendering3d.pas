@@ -62,7 +62,7 @@ begin
 
     FreeAndNil(Scene);
     Assert(SceneManager.MainScene = nil);
-    Assert(SceneManager.Items.List.Count = 0);
+    Assert(SceneManager.Items.Count = 0);
 
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];

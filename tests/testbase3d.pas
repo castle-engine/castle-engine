@@ -854,9 +854,9 @@ begin
     List := T3DList.Create(nil);
     try
       List.Add(My);
-      List.List[0] := My2;
-      Assert(List.List.Count = 1);
-      Assert(List.List[0] = My2);
+      List[0] := My2;
+      Assert(List.Count = 1);
+      Assert(List[0] = My2);
     finally FreeAndNil(List) end;
   finally
     FreeAndNil(My);

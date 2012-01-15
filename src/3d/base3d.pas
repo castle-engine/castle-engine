@@ -639,17 +639,21 @@ type
     FList: T3DListCore;
     procedure ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);
     procedure ListCursorChange(Sender: TObject);
+    function GetItem(const I: Integer): T3D;
+    procedure SetItem(const I: Integer; const Item: T3D);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Add and remove items to the @link(List).
+    { Operate on 3D objects contained in the list.
+      You can also operate directly on @link(List) instance.
       @groupBegin }
     procedure Add(const Item: T3D);
-    procedure Insert(const Index: Integer; const Item: T3D);
     procedure Remove(const Item: T3D);
+    property Items[I: Integer]: T3D read GetItem write SetItem; default;
+    function Count: Integer;
     procedure Clear;
     { @groupEnd }
 
@@ -1149,9 +1153,19 @@ begin
   List.Add(Item);
 end;
 
-procedure T3DList.Insert(const Index: Integer; const Item: T3D);
+function T3DList.GetItem(const I: Integer): T3D;
 begin
-  List.Insert(Index, Item);
+  Result := List[I];
+end;
+
+procedure T3DList.SetItem(const I: Integer; const Item: T3D);
+begin
+  List[I] := Item;
+end;
+
+function T3DList.Count: Integer;
+begin
+  Result := List.Count;
 end;
 
 procedure T3DList.Remove(const Item: T3D);
