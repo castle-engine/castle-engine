@@ -78,7 +78,11 @@ type
     CurrentScreenEffectsCount: Integer;
     CurrentScreenEffectsNeedDepth: boolean;
 
+    FInput_PointingDeviceActivate: TInputShortcut;
+    FOwnsInput_PointingDeviceActivate: boolean;
+
     procedure ItemsAndCameraCursorChange(Sender: TObject);
+    procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -210,8 +214,10 @@ type
     function GetHeadlightCamera: TCamera; virtual; abstract;
     { @groupEnd }
 
-    { Pass mouse move event to 3D world. }
-    procedure MouseMove3D(const RayOrigin, RayDirection: TVector3Single); virtual; abstract;
+    { Pass pointing device (mouse) move event to 3D world. }
+    procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); virtual; abstract;
+    { Pass pointing device (mouse) activation/deactivation event to 3D world. }
+    procedure PointingDeviceActivate(const Active: boolean); virtual; abstract;
 
     { Handle camera events.
 
@@ -560,6 +566,20 @@ type
       without wrapping in any T3DTransform. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default false;
+
+    { Input (mouse / key combination) to make pointing device active
+      (that is, to activate VRML/X3D pointing-device sensors like TouchSensor).
+      By default this requires left mouse button click.
+
+      You can change it to any other mouse button or even to key combination.
+      You can simply change properties of existing
+      Input_PointingDeviceActivate value (like TInputShortcut.Key1
+      or TInputShortcut.MouseButtonUse).
+
+      Or you can even assign here your own TInputShortcut instance.
+      Then you're responsible for freeing it yourself. }
+    property Input_PointingDeviceActivate: TInputShortcut
+      read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
   end;
 
   TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
@@ -672,7 +692,8 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
-    procedure MouseMove3D(const RayOrigin, RayDirection: TVector3Single); override;
+    procedure PointingDeviceActivate(const Active: boolean); override;
+    procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -871,7 +892,8 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
-    procedure MouseMove3D(const RayOrigin, RayDirection: TVector3Single); override;
+    procedure PointingDeviceActivate(const Active: boolean); override;
+    procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); override;
 
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -935,6 +957,9 @@ begin
   FFullSize := true;
   FAlwaysApplyProjection := true;
   FRenderParams := TManagerRenderParams.Create;
+
+  FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
+  FOwnsInput_PointingDeviceActivate := true;
 end;
 
 destructor TCastleAbstractViewport.Destroy;
@@ -962,6 +987,10 @@ begin
 
   FreeAndNil(FRenderParams);
   FreeAndNil(DefaultHeadlightNode);
+
+  if FOwnsInput_PointingDeviceActivate then
+    FreeAndNil(FInput_PointingDeviceActivate) else
+    FInput_PointingDeviceActivate := nil;
 
   inherited;
 end;
@@ -1057,6 +1086,19 @@ begin
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
 end;
 
+procedure TCastleAbstractViewport.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
+begin
+  if FInput_PointingDeviceActivate <> Value then
+  begin
+    { first, free the old one }
+    if FOwnsInput_PointingDeviceActivate then
+      FreeAndNil(FInput_PointingDeviceActivate);
+
+    FInput_PointingDeviceActivate := Value;
+    FOwnsInput_PointingDeviceActivate := false;
+  end;
+end;
+
 function TCastleAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
 begin
   Result := inherited;
@@ -1069,6 +1111,9 @@ begin
   end;
 
   Result := GetItems.KeyDown(Key, C);
+
+  if Input_PointingDeviceActivate.IsKey(Key, C) then
+    PointingDeviceActivate(true);
 end;
 
 function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
@@ -1083,6 +1128,9 @@ begin
   end;
 
   Result := GetItems.KeyUp(Key, C);
+
+  if Input_PointingDeviceActivate.IsKey(Key, C) then
+    PointingDeviceActivate(false);
 end;
 
 function TCastleAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
@@ -1096,7 +1144,8 @@ begin
     if Result then Exit;
   end;
 
-  Result := GetItems.MouseDown(Button);
+  if Input_PointingDeviceActivate.IsMouseButton(Button) then
+    PointingDeviceActivate(true);
 end;
 
 function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
@@ -1110,7 +1159,8 @@ begin
     if Result then Exit;
   end;
 
-  Result := GetItems.MouseUp(Button);
+  if Input_PointingDeviceActivate.IsMouseButton(Button) then
+    PointingDeviceActivate(false);
 end;
 
 function TCastleAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
@@ -1129,7 +1179,7 @@ begin
         CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
         NewX, NewY, PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
         RayOrigin, RayDirection);
-      MouseMove3D(RayOrigin, RayDirection);
+      PointingDeviceMove(RayOrigin, RayDirection);
     end;
   end;
 
@@ -2078,7 +2128,7 @@ begin
     begin
       MouseRayHit3D := nil;
       { When FMouseRayHit3D is destroyed, our MouseRayHit must be freed too,
-        it cannot be used it subsequent ItemsAndCameraCursorChange. }
+        it cannot be used in subsequent ItemsAndCameraCursorChange. }
       FreeAndNil(FMouseRayHit);
     end;
 
@@ -2193,15 +2243,52 @@ begin
   RenderOnScreen(Camera);
 end;
 
-procedure TCastleSceneManager.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
+procedure TCastleSceneManager.PointingDeviceActivate(const Active: boolean);
+var
+  PassToMainScene: boolean;
+
+  function PassTo(const Item: T3D): boolean;
+  begin
+    Result := Item.PointingDeviceActivate(Active);
+    if Result or (Item = MainScene) then
+      PassToMainScene := false;
+  end;
+
+var
+  I: Integer;
+begin
+  PassToMainScene := true;
+  if MouseRayHit <> nil then
+    for I := MouseRayHit.Hierarchy.Count - 1 downto 0 do
+      if PassTo(MouseRayHit.Hierarchy[I]) then Break;
+  if PassToMainScene and (MainScene <> nil) then
+    PassTo(MainScene);
+end;
+
+procedure TCastleSceneManager.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single);
+var
+  PassToMainScene: boolean;
+
+  function PassTo(const Item: T3D): boolean;
+  begin
+    { pass point and triangle only to the MouseRayHit.Hierarchy.Last.
+      Reason: if ray hit outside this scene (other 3D object, or empty space)
+      then mouse is no longer over any part of *this* scene.
+      More practically: TCastleSceneCore implementation must assume
+      that Triangle belongs to it's own octree. }
+
+    if (MouseRayHit <> nil) and (MouseRayHit.Hierarchy.Last = Item) then
+      Result := Item.PointingDeviceMove(RayOrigin, RayDirection, MouseRayHit.Point, MouseRayHit.Triangle) else
+      Result := Item.PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil);
+    if Result or (Item = MainScene) then
+      PassToMainScene := false;
+  end;
+
 var
   Dummy: Single;
+  I: Integer;
 begin
-  { We call here Items.RayCollision ourselves, to update FMouseRayHit
-    (useful to e.g. update Cusdor based on it). To Items.MouseMove
-    we can also pass this FMouseRay, so that they know collision
-    result already. }
-
+  { update FMouseRayHit }
   FreeAndNil(FMouseRayHit);
   FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
     { Do not use CollisionIgnoreItem here,
@@ -2212,7 +2299,12 @@ begin
     MouseRayHit3D := MouseRayHit.Hierarchy.Last else
     MouseRayHit3D := nil;
 
-  Items.MouseMove(RayOrigin, RayDirection, FMouseRayHit);
+  PassToMainScene := true;
+  if MouseRayHit <> nil then
+    for I := MouseRayHit.Hierarchy.Count - 1 downto 0 do
+      if PassTo(MouseRayHit.Hierarchy[I]) then Break;
+  if PassToMainScene and (MainScene <> nil) then
+    PassTo(MainScene);
 end;
 
 procedure TCastleSceneManager.Idle(const CompSpeed: Single;
@@ -2419,10 +2511,16 @@ begin
   RenderOnScreen(Camera);
 end;
 
-procedure TCastleViewport.MouseMove3D(const RayOrigin, RayDirection: TVector3Single);
+procedure TCastleViewport.PointingDeviceActivate(const Active: boolean);
 begin
   if SceneManager <> nil then
-    SceneManager.MouseMove3D(RayOrigin, RayDirection);
+    SceneManager.PointingDeviceActivate(Active);
+end;
+
+procedure TCastleViewport.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single);
+begin
+  if SceneManager <> nil then
+    SceneManager.PointingDeviceMove(RayOrigin, RayDirection);
 end;
 
 procedure TCastleViewport.SetSceneManager(const Value: TCastleSceneManager);

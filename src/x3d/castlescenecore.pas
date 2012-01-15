@@ -490,8 +490,6 @@ type
     FTimePlaying: boolean;
     FTimePlayingSpeed: Single;
     FFileName: string;
-    FInput_PointingDeviceActivate: TInputShortcut;
-    FOwnsInput_PointingDeviceActivate: boolean;
     FStatic: boolean;
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
@@ -519,7 +517,6 @@ type
     procedure UpdateLODLevel(LODTree: TShapeTreeLOD);
 
     procedure SetFileName(const AValue: string);
-    procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
     procedure SetStatic(const Value: boolean);
     procedure SetShadowMaps(const Value: boolean);
     procedure SetShadowMapsDefaultSize(const Value: Cardinal);
@@ -1332,17 +1329,22 @@ type
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
 
-    { Call this to when pointing-device moves.
+    function PointingDeviceActivate(const Active: boolean): boolean; override;
+
+    { Called when pointing device moves.
       This may generate the continously-generated events like
       hitPoint_changed, also it updates PointingDeviceOverItem
       and PointingDeviceOverPoint,
       thus producing isOver and such events.
 
+      To make pointing-device sensors work Ok, make sure you have non-nil
+      OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)).
+
       OverItem may be @nil to indicate we're not over any item.
       In this case, OverPoint is ignored. }
-    procedure PointingDeviceMove(
+    function PointingDeviceMove(
       const RayOrigin, RayDirection: TVector3Single;
-      const OverPoint: TVector3Single; const OverItem: PTriangle);
+      const OverPoint: TVector3Single; const OverItemCore: P3DTriangle): boolean; override;
 
     { Current item over which the pointing device is. @nil if over none.
       For example, you can investigate it's pointing device sensors
@@ -1409,36 +1411,6 @@ type
     property OnPointingDeviceSensorsChange: TNotifyEvent
       read FOnPointingDeviceSensorsChange
       write FOnPointingDeviceSensorsChange;
-
-    { Call mouse down / up / move to have PointiDeviceXxx stuff automatically
-      handled.
-
-      To make mouse move actually working (so that VRML pointing-device sensors work Ok),
-      make sure you have non-nil OctreeCollisions (e.g. include
-      ssDynamicCollisions in @link(Spatial)).
-
-      @groupBegin }
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
-      RayHit: T3DCollision): boolean; override;
-    { @groupEnd }
-
-    { Input (mouse / key combination) to make pointing device active
-      (that is, to activate VRML/X3D pointing-device sensors like TouchSensor).
-      By default this requires left mouse button click.
-
-      You can change it to any other mouse button or even to key combination.
-      You can simply change properties of existing
-      Input_PointingDeviceActivate value (like TInputShortcut.Key1
-      or TInputShortcut.MouseButtonUse).
-
-      Or you can even assign here your own TInputShortcut instance.
-      Then you're responsible for freeing it yourself.
-      This may be comfortable e.g. to share your own TInputShortcut instance
-      among many TCastleSceneCore instances. }
-    property Input_PointingDeviceActivate: TInputShortcut
-      read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
 
     procedure Idle(const CompSpeed: Single); override;
 
@@ -2292,9 +2264,6 @@ begin
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
 
-  FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
-  FOwnsInput_PointingDeviceActivate := true;
-
   FShadowMaps := true;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
 
@@ -2316,10 +2285,6 @@ begin
 
   { frees FManifoldEdges, FBorderEdges if needed }
   InvalidateManifoldAndBorderEdges;
-
-  if FOwnsInput_PointingDeviceActivate then
-    FreeAndNil(FInput_PointingDeviceActivate) else
-    FInput_PointingDeviceActivate := nil;
 
   FreeAndNil(ScheduledHumanoidAnimateSkin);
   FreeAndNil(ScreenEffectNodes);
@@ -5089,9 +5054,6 @@ begin
       This would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
-
-  if Input_PointingDeviceActivate.IsKey(Key, C) then
-    PointingDeviceActive := true;
 end;
 
 function TCastleSceneCore.KeyUp(Key: TKey; C: char): boolean;
@@ -5115,16 +5077,13 @@ begin
       This would disable too much (like Camera usually under Scene on Controls).
     Result := false; }
   end;
-
-  if Input_PointingDeviceActivate.IsKey(Key, C) then
-    PointingDeviceActive := false;
 end;
 
 { pointing device handling --------------------------------------------------- }
 
-procedure TCastleSceneCore.PointingDeviceMove(
+function TCastleSceneCore.PointingDeviceMove(
   const RayOrigin, RayDirection: TVector3Single;
-  const OverPoint: TVector3Single; const OverItem: PTriangle);
+  const OverPoint: TVector3Single; const OverItemCore: P3DTriangle): boolean;
 var
   TouchSensor: TTouchSensorNode;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
@@ -5132,7 +5091,17 @@ var
   OldSensors: TX3DNodeList;
   NewSensors: TX3DNodeList;
   I: Integer;
+  { OverItemCore must always be something contained in our object,
+    so it is always P3DTriangle. }
+  OverItem: PTriangle absolute OverItemCore;
 begin
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
+  { Never treat it as handled here (returning ExclusiveEvents),
+    this would disable too much (like Camera usually under Scene on Controls).
+  Result := false; }
+
   if ProcessEvents then
   begin
     Inc(FTime.PlusTicks);
@@ -5456,58 +5425,12 @@ begin
     Result := nil;
 end;
 
-procedure TCastleSceneCore.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
-begin
-  if FInput_PointingDeviceActivate <> Value then
-  begin
-    { first, free the old one }
-    if FOwnsInput_PointingDeviceActivate then
-      FreeAndNil(FInput_PointingDeviceActivate);
-
-    FInput_PointingDeviceActivate := Value;
-    FOwnsInput_PointingDeviceActivate := false;
-  end;
-end;
-
-function TCastleSceneCore.MouseDown(const Button: TMouseButton): boolean;
+function TCastleSceneCore.PointingDeviceActivate(const Active: boolean): boolean;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  if Input_PointingDeviceActivate.IsMouseButton(Button) then
-  begin
-    PointingDeviceActive := true;
-    { Do not treat it as handled (returning ExclusiveEvents),
-      this would disable too much (like Camera usually under Scene on Controls).
-    Result := false; }
-  end;
-end;
-
-function TCastleSceneCore.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  if Input_PointingDeviceActivate.IsMouseButton(Button) then
-  begin
-    PointingDeviceActive := false;
-    { Do not treat it as handled (returning ExclusiveEvents),
-      this would disable too much (like Camera usually under Scene on Controls).
-    Result := false; }
-  end;
-end;
-
-function TCastleSceneCore.MouseMove(const RayOrigin, RayDirection: TVector3Single;
-  RayHit: T3DCollision): boolean;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  if (RayHit = nil) or (not RayHit.Hierarchy.IsLast(Self)) then
-    { If ray hit outside this scene (other 3D object, or empty space)
-      then mouse is no longer over any part of *this* scene. }
-    PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil) else
-    PointingDeviceMove(RayOrigin, RayDirection, RayHit.Point, PTriangle(RayHit.Triangle));
+  PointingDeviceActive := Active;
 
   { Do not treat it as handled (returning ExclusiveEvents),
     this would disable too much (like Camera usually under Scene on Controls).

@@ -180,7 +180,7 @@ type
       Always given in the local coordinate system of
       the T3D object that deals with this T3DCollision tree.
       That is, T3D.RayCollision returns this in coordinates of given T3D object,
-      and T3D.MouseMove expects this in coordinates of given T3D object.
+      and T3D.PointingDeviceMove expects OverPoint in coordinates of given T3D object.
       This means that coordinate system changes, and this point is recalculated
       to appropriate coordinate systems, as this structure is passed
       through the T3DTransform class in the hierarchy. }
@@ -425,19 +425,53 @@ type
       In the base class T3D this just returns 0.  }
     function PrepareResourcesSteps: Cardinal; virtual;
 
-    { Key and mouse events. Return @true if you handled them.
+    { Key events. Return @true if you handled them.
       See also TUIControl analogous events.
-      Note that our MouseMove gets 3D ray corresponding to mouse
-      position on the screen (this is the ray for "picking" 3D objects
-      pointed by the mouse).
-
       @groupBegin }
     function KeyDown(Key: TKey; C: char): boolean; virtual;
     function KeyUp(Key: TKey; C: char): boolean; virtual;
-    function MouseDown(const Button: TMouseButton): boolean; virtual;
-    function MouseUp(const Button: TMouseButton): boolean; virtual;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
-      RayHit: T3DCollision): boolean; virtual;
+    { @groupEnd }
+
+    { Pointing device (usually mouse) events.
+      Return @true if you handled the event.
+
+      PointingDeviceActivate signals that the picking button (usually,
+      left mouse button) is pressed or released (depending on Active parameter).
+
+      PointingDeviceMove signals that pointer moves over this 3D object
+      (or outside of it, it this is the main 3D scene and nothing else
+      handled the event --- see below). It receives information about
+      the 3D ray that represents the 3D direction indicated by current mouse
+      position on the screen. It also has detailed information about 3D point
+      and triangle under the mouse (this is passed @italic(only) if the
+      picked triangle actually belongs to the given 3D object;
+      in other words, only when the object is the last item on
+      T3DCollision.Hierarchy list).
+
+      The event informing about the pointing device (activation,
+      deactivation or move) is send first to the innermost 3D object.
+      That is, we first send this event to the last item on
+      T3DCollision.Hierarchy corresponding to current ray.
+      This way, the innermost ("most local") 3D object has the chance
+      to handle this event first. If the event is not handled, it is passed
+      to more outer 3D objects (we simply move backward on the
+      T3DCollision.Hierarchy list). If nothing on T3DCollision.Hierarchy list
+      handled the item, it is eventually passed to main 3D scene
+      (TCastleSceneManager.MainScene), if it wasn't already present on
+      T3DCollision.Hierarchy list.
+
+      This event should be handled only if GetExists.
+      Usually, 3D objects with GetExists = @false will not be returned
+      by RayCollision, so they will not receive this event anyway.
+      However, if 3D object may be equal to TCastleSceneManager.MainScene,
+      then it should be secured and check for GetExists
+      inside PointingDeviceActivate and PointingDeviceMove.
+
+      @groupBegin }
+    function PointingDeviceActivate(const Active: boolean): boolean; virtual;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
+      const OverPoint: TVector3Single;
+      const OverItem: P3DTriangle): boolean; virtual;
     { @groupEnd }
 
     { Idle event, for continously repeated tasks. }
@@ -676,10 +710,6 @@ type
     function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
-      RayHit: T3DCollision): boolean; override;
     procedure Idle(const CompSpeed: Single); override;
     procedure GLContextClose; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
@@ -752,8 +782,6 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
-      RayHit: T3DCollision): boolean; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out IsAbove: boolean; out AboveHeight: Single;
@@ -780,6 +808,8 @@ type
       out IntersectionDistance: Single;
       const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
+      const OverPoint: TVector3Single; const OverItem: P3DTriangle): boolean; override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -937,18 +967,14 @@ begin
   Result := false;
 end;
 
-function T3D.MouseDown(const Button: TMouseButton): boolean;
+function T3D.PointingDeviceActivate(const Active: boolean): boolean;
 begin
   Result := false;
 end;
 
-function T3D.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := false;
-end;
-
-function T3D.MouseMove(const RayOrigin, RayDirection: TVector3Single;
-  RayHit: T3DCollision): boolean;
+function T3D.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
+  const OverPoint: TVector3Single;
+  const OverItem: P3DTriangle): boolean;
 begin
   Result := false;
 end;
@@ -1257,41 +1283,6 @@ begin
 
   for I := 0 to List.Count - 1 do
     if List[I].KeyUp(Key, C) then Exit(true);
-end;
-
-function T3DList.MouseDown(const Button: TMouseButton): boolean;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  for I := 0 to List.Count - 1 do
-    if List[I].MouseDown(Button) then Exit(true);
-end;
-
-function T3DList.MouseUp(const Button: TMouseButton): boolean;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  for I := 0 to List.Count - 1 do
-    if List[I].MouseUp(Button) then Exit(true);
-end;
-
-function T3DList.MouseMove(const RayOrigin, RayDirection: TVector3Single;
-  RayHit: T3DCollision): boolean;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  for I := 0 to List.Count - 1 do
-    if List[I].MouseMove(RayOrigin, RayDirection, RayHit) then
-      Exit(true);
 end;
 
 procedure T3DList.Idle(const CompSpeed: Single);
@@ -1815,38 +1806,24 @@ begin
       false, MatrixMult(Transform, ParentTransform));
 end;
 
-function T3DCustomTransform.MouseMove(const RayOrigin, RayDirection: TVector3Single;
-  RayHit: T3DCollision): boolean;
+function T3DCustomTransform.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
+  const OverPoint: TVector3Single; const OverItem: P3DTriangle): boolean;
 var
-  T, OldRayHitPoint: TVector3Single;
+  T: TVector3Single;
   Inverse: TMatrix4Single;
 begin
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    { we save and restore RayHit.Point, to always provide RayHit.Point
-      in local coordinates to MouseMove call. }
-    if RayHit <> nil then
-    begin
-      OldRayHitPoint := RayHit.Point;
-      RayHit.Point -= T;
-    end;
-    Result := inherited MouseMove(RayOrigin - T, RayDirection, RayHit);
-    if RayHit <> nil then
-      RayHit.Point := OldRayHitPoint;
+    Result := inherited PointingDeviceMove(RayOrigin - T, RayDirection,
+      OverPoint - T, OverItem);
   end else
   begin
     Inverse := TransformInverse;
-    if RayHit <> nil then
-    begin
-      OldRayHitPoint := RayHit.Point;
-      RayHit.Point := MatrixMultPoint(Inverse, RayHit.Point);
-    end;
-    Result := inherited MouseMove(
+    Result := inherited PointingDeviceMove(
       MatrixMultPoint(Inverse, RayOrigin),
-      MatrixMultDirection(Inverse, RayDirection), RayHit);
-    if RayHit <> nil then
-      RayHit.Point := OldRayHitPoint;
+      MatrixMultDirection(Inverse, RayDirection),
+      MatrixMultPoint(Inverse, OverPoint), OverItem);
   end;
 end;
 

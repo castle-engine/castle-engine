@@ -476,10 +476,6 @@ type
       @groupBegin }
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
-    function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
-    function MouseMove(const RayOrigin, RayDirection: TVector3Single;
-      RayHit: T3DCollision): boolean; override;
     { @groupEnd }
 
     procedure Idle(const CompSpeed: Single); override;
@@ -1705,28 +1701,6 @@ function TCastlePrecalculatedAnimation.KeyUp(Key: TKey; C: char): boolean;
 begin
   if ScenesCount = 1 then
     Result := Scenes[0].KeyUp(Key, C) else
-    Result := false;
-end;
-
-function TCastlePrecalculatedAnimation.MouseDown(const Button: TMouseButton): boolean;
-begin
-  if ScenesCount = 1 then
-    Result := Scenes[0].MouseDown(Button) else
-    Result := false;
-end;
-
-function TCastlePrecalculatedAnimation.MouseUp(const Button: TMouseButton): boolean;
-begin
-  if ScenesCount = 1 then
-    Result := Scenes[0].MouseUp(Button) else
-    Result := false;
-end;
-
-function TCastlePrecalculatedAnimation.MouseMove(const RayOrigin, RayDirection: TVector3Single;
-  RayHit: T3DCollision): boolean;
-begin
-  if ScenesCount = 1 then
-    Result := Scenes[0].MouseMove(RayOrigin, RayDirection, RayHit) else
     Result := false;
 end;
 
