@@ -41,7 +41,8 @@ type
   in all other cases the warning just goes to ErrOutput. }
 procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
 
-{ Assign this to OnWarning to ignore (do nothing) warnings. }
+{ Assign this to OnWarning to ignore (do nothing) warnings.
+  Eventually, if @link(Log), then will be logged. }
 procedure OnWarningIgnore(const AType: TWarningType; const Category, S: string);
 
 type
@@ -62,7 +63,7 @@ var
 
 implementation
 
-uses CastleUtils, CastleFilesUtils;
+uses CastleUtils, CastleFilesUtils, CastleLog;
 
 procedure OnWarningWrite(const AType: TWarningType; const Category, S: string);
 begin
@@ -71,6 +72,8 @@ end;
 
 procedure OnWarningIgnore(const AType: TWarningType; const Category, S: string);
 begin
+  if Log then
+    WritelnLog(Category, 'Warning: ' + S);
 end;
 
 end.
