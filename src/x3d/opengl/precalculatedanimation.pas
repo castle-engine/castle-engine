@@ -1958,7 +1958,7 @@ begin
   Result := nil;
   IntersectionDistance := 0; { Only to silence compiler warning }
 
-  if Loaded and GetExists and Collides then
+  if Loaded and GetExists then
   begin
     Result := FirstScene.RayCollision(IntersectionDistance,
       Ray0, RayVector, TrianglesToIgnoreFunc);

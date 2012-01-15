@@ -6421,7 +6421,7 @@ var
   Intersection: TVector3Single;
 begin
   Result := nil;
-  if GetExists and Collides and (OctreeCollisions <> nil) then
+  if GetExists and (OctreeCollisions <> nil) then
   begin
     Triangle := OctreeCollisions.RayCollision(
       Intersection, IntersectionDistance, Ray0, RayVector,

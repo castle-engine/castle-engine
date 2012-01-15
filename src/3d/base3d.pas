@@ -556,6 +556,12 @@ type
       Returns a collision as T3DCollision instance, or @nil if no collision.
       Caller is responsible for freeing the returned T3DCollision instance.
 
+      Contrary to other collision routines, this should @italic(ignore
+      the @link(Collides) property). The @link(Collides) property
+      specifies whether item collides with camera. And this method is used
+      for picking (pointing) 3D stuff --- everything visible can be picked,
+      collidable or not.
+
       IntersectionDistance is the distance to the collision point,
       @italic(where one RayVector equals one unit).
       Always use normalized RayVector if you expect to get here a normal distance.
@@ -1541,7 +1547,7 @@ begin
   Result := nil;
   IntersectionDistance := 0; { Only to silence compiler warning }
 
-  if GetExists and Collides then
+  if GetExists then
   begin
     for I := 0 to List.Count - 1 do
     begin
@@ -2043,7 +2049,7 @@ var
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then Exit(nil);
+  if not GetExists then Exit(nil);
 
   if OnlyTranslation then
   begin

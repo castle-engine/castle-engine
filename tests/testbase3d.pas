@@ -181,7 +181,7 @@ function TMy3D.RayCollision(
 var
   Intersection: TVector3Single;
 begin
-  if GetExists and Collides and
+  if GetExists and
     MyBox.TryRayEntrance(Intersection, IntersectionDistance, Ray0, RayVector) then
   begin
     Result := T3DCollision.Create;
@@ -410,7 +410,10 @@ begin
 
     Collision := M.RayCollision(CollisionDistance,
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
-    Assert(Collision = nil);
+    Assert(Collision <> nil);
+    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
 
@@ -635,7 +638,10 @@ begin
 
     Collision := M.RayCollision(CollisionDistance,
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
-    Assert(Collision = nil);
+    Assert(Collision <> nil);
+    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
 
