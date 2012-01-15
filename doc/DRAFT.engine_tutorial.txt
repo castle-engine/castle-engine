@@ -1,4 +1,4 @@
-TODO: This is a work in progress. I want to finish this for engine 2.6.0 release. This is supposed to be a full tutorial how to make an FPS game, from the basics.
+TODO: This is a work in progress. I want to finish this for engine 3.1.0 release. This is supposed to be a full tutorial how to make an FPS game, from the basics.
 
 The tutorial handles both alternatives for creating OpenGL context: as Lazarus component (on Lazarus form), or as our TCastleWindow instance. Appropriate parts of the tutorial will be in 2-column view to visualize this.
 
@@ -209,7 +209,7 @@ Showing a weapon is a little more tricky, as it's a 3D thing, but it doesn't act
 XXX
 
 8. Adding some creatures
-XXX (this is just like items, except creature kinds need AI to move; engine 2.6 will include ready classes with such AI, for now refer to castle code.)
+XXX (this is just like items, except creature kinds need AI to move; engine 3.1.0 will include ready classes with such AI, for now refer to castle code.)
 
 9. Adding some sounds
 
