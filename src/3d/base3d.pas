@@ -166,11 +166,11 @@ type
     { The path in the 3D objects tree leading from the root to the
       final colliding 3D object.
 
-      For example, if your 3D tree is a list, and within
-      this list is another list, and within this another list is your final
-      colliding object (for example, some TCastleScene instance),
-      then Hierarchy will contain three items (in order: 1st list, 2nd list,
-      TCastleScene instance).
+      For example, your 3D tree may be a list (like T3DList), and within
+      this list is a transformed list (T3DTransform),
+      and within is your final colliding object (like TCastleScene).
+      Hierarchy will contain in this case these three items, which allows
+      you to track the containers that contain given collision.
 
       This is never an empty list. }
     Hierarchy: T3DListCore;
