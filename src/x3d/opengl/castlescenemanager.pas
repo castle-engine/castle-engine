@@ -643,7 +643,7 @@ type
     FCameraBox: TBox3D;
     FShadowVolumeRenderer: TGLShadowVolumeRenderer;
 
-    FMouseRayHit: T3DCollision;
+    FMouseRayHit: TRayCollision;
 
     FMouseRayHit3D: T3D;
 
@@ -750,7 +750,7 @@ type
 
     { Current 3D objects under the mouse cursor.
       Updated in every mouse move. }
-    property MouseRayHit: T3DCollision read FMouseRayHit;
+    property MouseRayHit: TRayCollision read FMouseRayHit;
 
     { List of viewports connected to this scene manager.
       This contains all TCastleViewport instances that have
@@ -2247,7 +2247,7 @@ procedure TCastleSceneManager.PointingDeviceActivate(const Active: boolean);
 var
   PassToMainScene: boolean;
 
-  function PassTo(const Node: T3DCollisionNode): boolean;
+  function PassTo(const Node: TRayCollisionNode): boolean;
   begin
     Result := Node.Item.PointingDeviceActivate(Active);
     if Result or (Node.Item = MainScene) then
@@ -2269,7 +2269,7 @@ procedure TCastleSceneManager.PointingDeviceMove(const RayOrigin, RayDirection: 
 var
   PassToMainScene: boolean;
 
-  function PassTo(const Node: T3DCollisionNode): boolean;
+  function PassTo(const Node: TRayCollisionNode): boolean;
   begin
     Result := Node.Item.PointingDeviceMove(Node.RayOrigin, Node.RayDirection, Node.Point, Node.Triangle);
     if Result or (Node.Item = MainScene) then

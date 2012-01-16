@@ -541,7 +541,7 @@ type
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -1921,10 +1921,10 @@ end;
 
 function TCastlePrecalculatedAnimation.RayCollision(
   const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
-  NewResult: T3DCollision;
-  NewNode, PreviousNode: P3DCollisionNode;
+  NewResult: TRayCollision;
+  NewNode, PreviousNode: PRayCollisionNode;
 begin
   Result := nil;
 

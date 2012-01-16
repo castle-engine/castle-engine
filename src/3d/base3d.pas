@@ -160,7 +160,7 @@ type
   { Information about ray collision with a single 3D object.
     Everything (Point, RayOrigin, RayDirection) is expressed in the
     local coordinates of given 3D object (in @link(Item)). }
-  T3DCollisionNode = object
+  TRayCollisionNode = object
   public
     { Colliding 3D object. }
     Item: T3D;
@@ -170,10 +170,10 @@ type
     RayOrigin, RayDirection: TVector3Single;
     { The triangle that collides. This triangle is always a part of @link(Item).
       For now, always @nil when this is not the first (innermost)
-      item on T3DCollision list. }
+      item on TRayCollision list. }
     Triangle: P3DTriangle;
   end;
-  P3DCollisionNode = ^T3DCollisionNode;
+  PRayCollisionNode = ^TRayCollisionNode;
 
   { Represents a collision with a 3D objects (T3D descendants) tree.
 
@@ -188,7 +188,7 @@ type
     This allows you to track the containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
-  T3DCollision = class(specialize TGenericStructList<T3DCollisionNode>)
+  TRayCollision = class(specialize TGenericStructList<TRayCollisionNode>)
   public
     { Distance to collision, from the ray origin along the ray vector.
 
@@ -464,14 +464,14 @@ type
       The event informing about the pointing device (activation,
       deactivation or move) is send first to the innermost 3D object.
       That is, we first send this event to the first item on
-      T3DCollision list corresponding to current ray.
+      TRayCollision list corresponding to current ray.
       This way, the innermost ("most local") 3D object has the chance
       to handle this event first. If the event is not handled, it is passed
-      to more outer 3D objects (we simply iterate over the T3DCollision list).
-      If nothing on T3DCollision list
+      to more outer 3D objects (we simply iterate over the TRayCollision list).
+      If nothing on TRayCollision list
       handled the item, it is eventually passed to main 3D scene
       (TCastleSceneManager.MainScene), if it wasn't already present on
-      T3DCollision list.
+      TRayCollision list.
 
       This event should be handled only if GetExists.
       Usually, 3D objects with GetExists = @false will not be returned
@@ -599,9 +599,9 @@ type
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
-    { Check collision with a ray, building a T3DCollision result.
-      Returns a collision as T3DCollision instance, or @nil if no collision.
-      Caller is responsible for freeing the returned T3DCollision instance.
+    { Check collision with a ray, building a TRayCollision result.
+      Returns a collision as TRayCollision instance, or @nil if no collision.
+      Caller is responsible for freeing the returned TRayCollision instance.
 
       Contrary to other collision routines, this should @italic(ignore
       the @link(Collides) property). The @link(Collides) property
@@ -610,11 +610,11 @@ type
       collidable or not.
 
       This always returns the first collision with the 3D world, that is
-      the one with smallest T3DCollision.Distance. For example, when
+      the one with smallest TRayCollision.Distance. For example, when
       implemented in T3DList, this checks collisions for all list items,
       and chooses the closest one. }
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -673,7 +673,7 @@ type
     function Last: T3D;
 
     { T3DList instance that owns this list.
-      May be @nil, for example when this list is used by T3DCollision. }
+      May be @nil, for example when this list is used by TRayCollision. }
     property Owner: T3DList read FOwner;
   end;
 
@@ -742,7 +742,7 @@ type
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -810,7 +810,7 @@ type
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -898,9 +898,9 @@ begin
   World := Local;
 end;
 
-{ T3DCollision --------------------------------------------------------------- }
+{ TRayCollision --------------------------------------------------------------- }
 
-function T3DCollision.IndexOfItem(const Item: T3D): Integer;
+function TRayCollision.IndexOfItem(const Item: T3D): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].Item = Item then Exit;
@@ -1062,7 +1062,7 @@ begin
 end;
 
 function T3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 begin
   Result := nil;
 end;
@@ -1522,11 +1522,11 @@ begin
 end;
 
 function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   I: Integer;
-  NewResult: T3DCollision;
-  NewNode, PreviousNode: P3DCollisionNode;
+  NewResult: TRayCollision;
+  NewNode, PreviousNode: PRayCollisionNode;
 begin
   Result := nil;
 
@@ -1994,11 +1994,11 @@ begin
 end;
 
 function T3DCustomTransform.RayCollision(const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   T: TVector3Single;
   M, MInverse: TMatrix4Single;
-  LastNode: P3DCollisionNode;
+  LastNode: PRayCollisionNode;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }

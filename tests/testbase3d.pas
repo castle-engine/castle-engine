@@ -75,7 +75,7 @@ type
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   end;
 
 constructor TMy3D.Create(AOwner: TComponent; const AMyBox: TBox3D);
@@ -173,16 +173,16 @@ begin
 end;
 
 function TMy3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   Intersection: TVector3Single;
   IntersectionDistance: Single;
-  NewNode: P3DCollisionNode;
+  NewNode: PRayCollisionNode;
 begin
   if GetExists and
     MyBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
   begin
-    Result := T3DCollision.Create;
+    Result := TRayCollision.Create;
     Result.Distance := IntersectionDistance;
 
     NewNode := Result.Add;
@@ -212,7 +212,7 @@ var
   AboveHeight: Single;
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
-  Collision: T3DCollision;
+  Collision: TRayCollision;
 begin
   M := TMy3D.Create(nil, Box0);
   try
@@ -283,7 +283,7 @@ var
   AboveHeight: Single;
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
-  Collision: T3DCollision;
+  Collision: TRayCollision;
 begin
   M := TMy3D.Create(nil, Box0);
   try
@@ -352,7 +352,7 @@ var
   AboveHeight: Single;
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
-  Collision: T3DCollision;
+  Collision: TRayCollision;
 begin
   M := TMy3D.Create(nil, Box0);
   try
@@ -430,7 +430,7 @@ var
   AboveHeight: Single;
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
-  Collision: T3DCollision;
+  Collision: TRayCollision;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -504,7 +504,7 @@ var
   AboveHeight: Single;
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
-  Collision: T3DCollision;
+  Collision: TRayCollision;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -575,7 +575,7 @@ var
   AboveHeight: Single;
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
-  Collision: T3DCollision;
+  Collision: TRayCollision;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -651,7 +651,7 @@ procedure TTestBase3D.Test3DTransformReal;
     AboveHeight: Single;
     AboveGround: P3DTriangle;
     NewPos: TVector3Single;
-    Collision: T3DCollision;
+    Collision: TRayCollision;
   begin
     Assert(M.BoundingBox.Equal(Box20));
 

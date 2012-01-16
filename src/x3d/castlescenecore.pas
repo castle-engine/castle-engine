@@ -1740,7 +1740,7 @@ type
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
     function Dragging: boolean; override;
 
     { Static scene will not be automatically notified about the changes
@@ -6334,12 +6334,12 @@ begin
 end;
 
 function TCastleSceneCore.RayCollision(const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   Triangle: PTriangle;
   Intersection: TVector3Single;
   IntersectionDistance: Single;
-  NewNode: P3DCollisionNode;
+  NewNode: PRayCollisionNode;
 begin
   Result := nil;
   if GetExists and (OctreeCollisions <> nil) then
@@ -6351,7 +6351,7 @@ begin
       { IgnoreMarginAtStart } false, TrianglesToIgnoreFunc);
     if Triangle <> nil then
     begin
-      Result := T3DCollision.Create;
+      Result := TRayCollision.Create;
       Result.Distance := IntersectionDistance;
       NewNode := Result.Add;
       NewNode^.Item := Self;
