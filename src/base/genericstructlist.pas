@@ -84,7 +84,7 @@ type
       @code(List^[I]) in FPC objfpc mode.
 
       This is just trivial shortcut,  but we use direct access a @italic(lot)
-      for structures. Reasonis: using Items[] default
+      for structures. Reasons: using Items[] default
       property means copying the structures, which is
       @orderedList(
         @item(very dangerous (you can trivially easy modify a temporary result))
