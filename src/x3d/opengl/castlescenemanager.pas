@@ -2307,7 +2307,9 @@ begin
   begin
     MainSceneNode.Item := MainScene;
     { if ray hit something, then the outermost 3D object should just be our Items,
-      and it contains the 3D point picked. }
+      and it contains the 3D point picked.
+      This isn't actually used by anything now --- TRayCollisionNode.Point
+      is for now used only by TCastleSceneCore, and only when Triangle <> nil. }
     if MouseRayHit <> nil then
       MainSceneNode.Point := MouseRayHit.Last.Point else
       MainSceneNode.Point := ZeroVector3Single;
