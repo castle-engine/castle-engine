@@ -2282,6 +2282,13 @@ begin
   MInvert[3, 2] -= Transl[2] * OldLastRow[3];
 end;
 
+function TransformToCoords(const V, NewX, NewY, NewZ: TVector3): TVector3;
+begin
+  Result[0] := V[0] * NewX[0] + V[1] * NewY[0] + V[2] * NewZ[0];
+  Result[1] := V[0] * NewX[1] + V[1] * NewY[1] + V[2] * NewZ[1];
+  Result[2] := V[0] * NewX[2] + V[1] * NewY[2] + V[2] * NewZ[2];
+end;
+
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3): TMatrix4Single;
 var

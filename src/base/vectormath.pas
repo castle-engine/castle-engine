@@ -2129,6 +2129,17 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Double): TMatrix4Single; overload;
 { @groupEnd }
 
+{ Transform vector into new coordinate space.
+
+  Equivalent to @code(MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
+  NewX, NewY, NewZ))). So the origin of new coordinate system is at the same
+  place. You should pass NewX, NewY, NewZ vectors normalized if you want to
+  preserve vector length.
+  @groupBegin }
+function TransformToCoords(const V, NewX, NewY, NewZ: TVector3Single): TVector3Single;
+function TransformToCoords(const V, NewX, NewY, NewZ: TVector3Double): TVector3Double;
+{ @groupEnd }
+
 { Camera matrix to look at the specified point (or along the specified direction).
   Work according to right-handed coordinate system.
 

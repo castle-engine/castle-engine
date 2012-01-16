@@ -84,7 +84,11 @@ type
       of the appropriate pixel (on imaginary "rzutnia" = image positioned
       paraller to view direction). But you can provide non-integer X, Y,
       useful for multisampling (taking many samples within the pixel,
-      like (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5)). }
+      like (X, Y) = (PixX + Random - 0.5, PixY + Random - 0.5)).
+
+      Resulting RayDirection is guaranteed to be normalized
+      (this is in practice not costly to us, and it often helps --- when ray
+      direction is normalized, various distances from ray collisions are "real"). }
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
       out Ray0, RayDirection: TVector3Single); virtual; abstract;
@@ -92,7 +96,7 @@ type
 
   TPerspectiveRaysWindow = class(TRaysWindow)
   private
-    WindowZ, WindowWidth, WindowHeight: Single;
+    WindowWidth, WindowHeight: Single;
     PerspectiveViewAngles: TVector2Single;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
@@ -198,19 +202,19 @@ end;
 constructor TPerspectiveRaysWindow.Create(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
   const APerspectiveViewAngles: TVector2Single);
-const
-  WindowDistance = 1;  { anything > 0 }
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
 
   PerspectiveViewAngles := APerspectiveViewAngles;
 
-  { calculate window parameters, ignoring camera settings }
-  WindowZ := -WindowDistance;
-  { We know that WindowWidth / 2 / Abs(WindowZ) = Tan(ViewAngleX / 2).
+  { calculate window parameters, ignoring camera settings.
+    We assume distance to projection plane is 1 (this simplifies some calculations,
+    and we can choose this distance arbitrarily --- it doesn't matter for user
+    of this class).
+    We know that WindowWidth / 2 = Tan(ViewAngleX / 2).
     From this, equations below follow. }
-  WindowWidth  := Tan(DegToRad(PerspectiveViewAngles[0]) / 2) * Abs(WindowZ) * 2;
-  WindowHeight := Tan(DegToRad(PerspectiveViewAngles[1]) / 2) * Abs(WindowZ) * 2;
+  WindowWidth  := Tan(DegToRad(PerspectiveViewAngles[0]) / 2) * 2;
+  WindowHeight := Tan(DegToRad(PerspectiveViewAngles[1]) / 2) * 2;
 end;
 
 procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;
@@ -223,21 +227,14 @@ begin
     (assume camera position = zero, direction = -Z, up = +Y).
     Integer X, Y values should result in a ray that goes
     right through the middle of the pixel area. }
-  RayDirection := Vector3Single(
-    MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2),
-    MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2),
-    WindowZ);
+  RayDirection[0] := MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2);
+  RayDirection[1] := MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2);
+  RayDirection[2] := -1;
 
-  { Transform ray, to take camera into acount.
-    We use TransformToCoordsMatrix instead of TransformToCoordsNoScaleMatrix,
-    because we know vectors are already normalized.
-    Note that we don't pass CamPosition to TransformToCoordsMatrix
-    (this would be nonsense, it would treat RayVector as a point
-    on the ray, and later we would have to subtract Ray0 from it to get
-    actual direction). }
-  RayDirection := MatrixMultPoint(
-    TransformToCoordsMatrix(ZeroVector3Single,
-      CamSide, CamUp, -CamDirection), RayDirection);
+  { Transform ray to take camera settings into acount. }
+  RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
+
+  NormalizeTo1st(RayDirection);
 end;
 
 { TOrthographicRaysWindow ---------------------------------------------------- }
@@ -259,6 +256,8 @@ begin
     OrthoViewDimensions[0], OrthoViewDimensions[2]));
   Ray0 += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
     OrthoViewDimensions[1], OrthoViewDimensions[3]));
+
+  { CamDirection must already be normalized, so RayDirection is normalized too }
   RayDirection := CamDirection;
 end;
 
