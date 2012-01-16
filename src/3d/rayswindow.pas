@@ -13,11 +13,10 @@
   ----------------------------------------------------------------------------
 }
 
-{ Calculating rays that correspond to the given points on 2D screen.
-  This is used in situations such as by ray-tracing (that casts a ray
-  for each image pixel) and when "picking" objects
-  (e.g. user clicks with a mouse on window,
-  and we want to know what object in 3D space he picked). }
+{ Calculating 3D rays that correspond to the given points on 2D screen.
+  This is used by ray-tracing (casting a ray for each image pixel)
+  or when picking objects (what 3D object/point is indicated by
+  the current mouse position). }
 unit RaysWindow;
 
 interface
@@ -58,7 +57,7 @@ type
   public
     { Camera vectors. Initialized in the constructor.
       Note that CamUp may be changed in constructor, to be always perfectly
-      orthogonal to CamDriection.
+      orthogonal to CamDirection.
 
       @groupBegin }
     property CamPosition: TVector3Single read FCamPosition;
