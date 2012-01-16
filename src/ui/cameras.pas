@@ -389,6 +389,7 @@ type
       PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
       describe your projection, required for calculating the ray properly.
       See TCastleSceneManager.PerspectiveView for their specification.
+      Resulting RayDirection is always normalized.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top. }
@@ -402,7 +403,10 @@ type
       Uses current Container (both to get it's size and to get current
       mouse position), which means that you have to add this camera
       to TCastleWindowCustom.Controls or TCastleControlCustom.Controls before
-      using this method. }
+      using this method.
+
+      @seealso Ray
+      @seealso CustomRay }
     procedure MouseRay(
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
@@ -416,6 +420,7 @@ type
       PerspectiveView, PerspectiveViewAngles and OrthoViewDimensions
       describe your projection, required for calculating the ray properly.
       See TCastleSceneManager.PerspectiveView for their specification.
+      Resulting RayDirection is always normalized.
 
       WindowX, WindowY are given in the same style as MouseX, MouseY:
       WindowX = 0 is left, WindowY = 0 is top.
