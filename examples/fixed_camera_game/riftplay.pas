@@ -190,7 +190,7 @@ end;
 
 procedure MouseDown(Window: TCastleWindowBase; Button: TMouseButton);
 var
-  Ray0, RayVector, SelectedPoint: TVector3Single;
+  RayOrigin, RayDirection, SelectedPoint: TVector3Single;
 begin
   if Button = mbLeft then
   begin
@@ -199,9 +199,9 @@ begin
       Window.MouseX, Window.MouseY,
       { Always uses perspective projection, for now }
       true, Vector2Single(AngleOfViewX, AngleOfViewY), ZeroVector4Single,
-      Ray0, RayVector);
+      RayOrigin, RayDirection);
     if CurrentLocation.Scene.OctreeCollisions.RayCollision(
-         SelectedPoint, Ray0, RayVector, true, nil, false, nil) <> nil then
+         SelectedPoint, RayOrigin, RayDirection, true, nil, false, nil) <> nil then
     begin
       Player.WantsToWalk(SelectedPoint);
     end;

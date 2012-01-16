@@ -1739,7 +1739,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     function Dragging: boolean; override;
 
@@ -6333,7 +6333,7 @@ begin
       Box,  nil, TrianglesToIgnoreFunc);
 end;
 
-function TCastleSceneCore.RayCollision(const Ray0, RayVector: TVector3Single;
+function TCastleSceneCore.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   Triangle: PTriangle;
@@ -6345,7 +6345,7 @@ begin
   if GetExists and (OctreeCollisions <> nil) then
   begin
     Triangle := OctreeCollisions.RayCollision(
-      Intersection, IntersectionDistance, Ray0, RayVector,
+      Intersection, IntersectionDistance, RayOrigin, RayDirection,
       { ReturnClosestIntersection } true,
       { TriangleToIgnore } nil,
       { IgnoreMarginAtStart } false, TrianglesToIgnoreFunc);
@@ -6356,8 +6356,8 @@ begin
       NewNode := Result.Add;
       NewNode^.Item := Self;
       NewNode^.Point := Intersection;
-      NewNode^.RayOrigin := Ray0;
-      NewNode^.RayDirection := RayVector;
+      NewNode^.RayOrigin := RayOrigin;
+      NewNode^.RayDirection := RayDirection;
       NewNode^.Triangle := Triangle;
     end;
   end;

@@ -540,7 +540,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -1920,7 +1920,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.RayCollision(
-  const Ray0, RayVector: TVector3Single;
+  const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   NewResult: T3DCollision;
@@ -1930,12 +1930,12 @@ begin
 
   if Loaded and GetExists then
   begin
-    Result := FirstScene.RayCollision(Ray0, RayVector, TrianglesToIgnoreFunc);
+    Result := FirstScene.RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
 
     if CollisionUseLastScene then
     begin
       { try the same thing on LastScene }
-      NewResult := LastScene.RayCollision(Ray0, RayVector, TrianglesToIgnoreFunc);
+      NewResult := LastScene.RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
 
       if NewResult <> nil then
       begin

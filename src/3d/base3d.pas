@@ -158,7 +158,7 @@ type
   T3DListCore = class;
 
   { Information about ray collision with a single 3D object.
-    Everything (Point, RayOrigin, RayVector) is expressed in the
+    Everything (Point, RayOrigin, RayDirection) is expressed in the
     local coordinates of given 3D object (in @link(Item)). }
   T3DCollisionNode = object
   public
@@ -613,7 +613,7 @@ type
       the one with smallest T3DCollision.Distance. For example, when
       implemented in T3DList, this checks collisions for all list items,
       and chooses the closest one. }
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; virtual;
 
     procedure UpdateGeneratedTextures(
@@ -741,7 +741,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -809,7 +809,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   end;
 
@@ -1061,7 +1061,7 @@ begin
   Result := false;
 end;
 
-function T3D.RayCollision(const Ray0, RayVector: TVector3Single;
+function T3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 begin
   Result := nil;
@@ -1521,7 +1521,7 @@ begin
     end;
 end;
 
-function T3DList.RayCollision(const Ray0, RayVector: TVector3Single;
+function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   I: Integer;
@@ -1534,7 +1534,7 @@ begin
   begin
     for I := 0 to List.Count - 1 do
     begin
-      NewResult := List[I].RayCollision(Ray0, RayVector, TrianglesToIgnoreFunc);
+      NewResult := List[I].RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
       if NewResult <> nil then
       begin
         if (Result = nil) or (NewResult.Distance < Result.Distance) then
@@ -1993,7 +1993,7 @@ begin
       Box.Transform(TransformInverse), TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTransform.RayCollision(const Ray0, RayVector: TVector3Single;
+function T3DCustomTransform.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   T: TVector3Single;
@@ -2007,31 +2007,31 @@ begin
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    Result := inherited RayCollision(Ray0 - T, RayVector, TrianglesToIgnoreFunc);
+    Result := inherited RayCollision(RayOrigin - T, RayDirection, TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
       LastNode := @(Result.List^[Result.Count - 1]);
       LastNode^.Point += T;
       { untransform the ray }
-      LastNode^.RayOrigin := Ray0;
-      LastNode^.RayDirection := RayVector;
+      LastNode^.RayOrigin := RayOrigin;
+      LastNode^.RayDirection := RayDirection;
     end;
   end else
   begin
     TransformMatrices(M, MInverse);
     Result := inherited RayCollision(
-      MatrixMultPoint(MInverse, Ray0),
-      MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
+      MatrixMultPoint(MInverse, RayOrigin),
+      MatrixMultDirection(MInverse, RayDirection), TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
       LastNode := @(Result.List^[Result.Count - 1]);
       LastNode^.Point := MatrixMultPoint(M, LastNode^.Point);
       { untransform the ray }
-      LastNode^.RayOrigin := Ray0;
-      LastNode^.RayDirection := RayVector;
+      LastNode^.RayOrigin := RayOrigin;
+      LastNode^.RayDirection := RayDirection;
 
       { Note that we should not scale Result.Distance by AverageScale.
-        That is because Result.Distance is relative to RayVector length,
+        That is because Result.Distance is relative to RayDirection length,
         so it's automatically correct. }
     end;
   end;

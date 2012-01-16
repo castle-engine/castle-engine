@@ -74,7 +74,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   end;
 
@@ -172,7 +172,7 @@ begin
   Result := GetExists and Collides and MyBox.Collision(Box);
 end;
 
-function TMy3D.RayCollision(const Ray0, RayVector: TVector3Single;
+function TMy3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   Intersection: TVector3Single;
@@ -180,7 +180,7 @@ var
   NewNode: P3DCollisionNode;
 begin
   if GetExists and
-    MyBox.TryRayEntrance(Intersection, IntersectionDistance, Ray0, RayVector) then
+    MyBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
   begin
     Result := T3DCollision.Create;
     Result.Distance := IntersectionDistance;
@@ -188,8 +188,8 @@ begin
     NewNode := Result.Add;
     NewNode^.Item := Self;
     NewNode^.Point := Intersection;
-    NewNode^.RayOrigin := Ray0;
-    NewNode^.RayDirection := RayVector;
+    NewNode^.RayOrigin := RayOrigin;
+    NewNode^.RayDirection := RayDirection;
     { real T3D implementation could assign here something nice to NewNode^.Triangle,
       to inform T3D.PointingDeviceMove/Activate about the intersected material. }
     NewNode^.Triangle := nil;

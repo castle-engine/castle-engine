@@ -25,7 +25,7 @@
     b) schodzic rekurencyjnie w DoNotLeaf przez SegmentCollision (zamiast
        przez RayCollision)
     W kazdym innym przypadku mozna traktowac segment Pos1, Pos2
-    jak promien dla ktorego Ray0 = Pos1, RayVector = Pos2-Pos1.
+    jak promien dla ktorego RayOrigin = Pos1, RayDirection = Pos2-Pos1.
 
   - ale natuaralnie tracilibysmy wtedy sporo dla optymalnosci.
     O ile DoLeaf nie mozna juz zoptymalizowac w jakis specyficzny dla
@@ -62,8 +62,8 @@
 
 {$ifdef SEGMENT_COLLISION}
 var
-  Ray0: TYPE_VECTOR3 absolute Pos1;
-  RayVector: TYPE_VECTOR3;
+  RayOrigin: TYPE_VECTOR3 absolute Pos1;
+  RayDirection: TYPE_VECTOR3;
 {$endif}
 
   function TryTriangleCollision(
@@ -74,12 +74,12 @@ var
     Result:=
       {$ifdef SEGMENT_COLLISION}
       Item.SegmentDirCollision(Intersection, IntersectionDistance,
-        Pos1, RayVector,
+        Pos1, RayDirection,
         Tag,
         ParentTree.DirectCollisionTestsCounter)
       {$else}
       Item.RayCollision(Intersection, IntersectionDistance,
-        Ray0, RayVector,
+        RayOrigin, RayDirection,
         Tag,
         ParentTree.DirectCollisionTestsCounter)
       {$endif}
@@ -100,7 +100,7 @@ var
          Iterate_Item^) and
        ( TriangleToIgnore <> Iterate_Item ) and
        ( (not IgnoreMarginAtStart) or
-         (not VectorsEqual(Iterate_Intersection, Ray0)) ) and
+         (not VectorsEqual(Iterate_Intersection, RayOrigin)) ) and
        ( (not Assigned(TrianglesToIgnoreFunc)) or
          (not TrianglesToIgnoreFunc(ParentTree, Iterate_Item)) ) then
      ON_INTERSECTION_FOUND
@@ -113,7 +113,7 @@ var
   Iterate_IntersectionDistance: TYPE_SCALAR;
 begin
  {$ifdef SEGMENT_COLLISION}
- RayVector := VectorSubtract(Pos2, Pos1);
+ RayDirection := VectorSubtract(Pos2, Pos1);
  {$endif}
 
  if ReturnClosestIntersection then

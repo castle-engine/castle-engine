@@ -73,8 +73,8 @@ procedure ComputeTransfer(RadianceTransfer: TVector3SingleList;
 var
   I, J, SHBase: Integer;
   V, N: TVector3Single;
-  RayVectorPT: TVector2Single;
-  RayVector: TVector3Single;
+  RayDirectionPT: TVector2Single;
+  RayDirection: TVector3Single;
   VertexTransfer: PVector3Single;
 begin
   RadianceTransfer.Count := Coord.Count * SHBasisCount;
@@ -108,30 +108,30 @@ begin
 
         for J := 0 to RaysPerVertex - 1 do
         begin
-          RayVectorPT := RandomHemispherePointConst;
-          RayVector := PhiThetaToXYZ(RayVectorPT, N);
-          if not Scene.OctreeVisibleTriangles.IsRayCollision(V, RayVector,
+          RayDirectionPT := RandomHemispherePointConst;
+          RayDirection := PhiThetaToXYZ(RayDirectionPT, N);
+          if not Scene.OctreeVisibleTriangles.IsRayCollision(V, RayDirection,
             nil, true { yes, ignore margin at start, to not hit V },
             nil) then
           begin
-            { Previous RayVectorPT assumed that (0, 0, 1) is N.
-              That is, RayVectorPT was in local vertex coords, not
+            { Previous RayDirectionPT assumed that (0, 0, 1) is N.
+              That is, RayDirectionPT was in local vertex coords, not
               in actual world coords (like N). So now transform back
-              RayVector to RayVectorPT, to get RayVectorPT in world coords.
+              RayDirection to RayDirectionPT, to get RayDirectionPT in world coords.
               This is an extremely important operation, without this SHBasis
               is calculated with wrong arguments, and the models are
               not lighted as they should with PRT. }
 
-            RayVectorPT := XYZToPhiTheta(RayVector);
+            RayDirectionPT := XYZToPhiTheta(RayDirection);
             for SHBase := 0 to SHBasisCount - 1 do
-              { VectorDotProduct below must be >= 0, since RayVector was
+              { VectorDotProduct below must be >= 0, since RayDirection was
                 chosen at random within hemisphere around N.
                 So no need to do Max(0, VectorDotProduct(...)) below.
 
                 We calculate only red component here, the rest will
                 be copied from it later. }
-              VertexTransfer[SHBase][0] += SHBasis(SHBase, RayVectorPT) *
-                VectorDotProduct(N, RayVector);
+              VertexTransfer[SHBase][0] += SHBasis(SHBase, RayDirectionPT) *
+                VectorDotProduct(N, RayDirection);
           end;
         end;
 

@@ -1232,28 +1232,28 @@ begin
 end;
 
 function TryPlaneRayIntersection(out Intersection: TVector3;
-  const Plane: TVector4; const Ray0, RayVector: TVector3): boolean;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean;
 var
   MaybeT: TScalar;
 begin
-  result := TryPlaneLineIntersection(MaybeT, Plane, Ray0, RayVector) and (MaybeT >= 0);
-  if result then Intersection := VectorAdd(Ray0, VectorScale(RayVector, MaybeT));
+  result := TryPlaneLineIntersection(MaybeT, Plane, RayOrigin, RayDirection) and (MaybeT >= 0);
+  if result then Intersection := VectorAdd(RayOrigin, VectorScale(RayDirection, MaybeT));
 end;
 
 function TryPlaneRayIntersection(
   out Intersection: TVector3; out T: TScalar;
-  const Plane: TVector4; const Ray0, RayVector: TVector3): boolean;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean;
 var
   MaybeT: TScalar;
 begin
-  result := TryPlaneLineIntersection(MaybeT, Plane, Ray0, RayVector) and (MaybeT >= 0);
+  result := TryPlaneLineIntersection(MaybeT, Plane, RayOrigin, RayDirection) and (MaybeT >= 0);
   if result then
   begin
-    // Intersection := VectorAdd(Ray0, VectorScale(RayVector, MaybeT));
+    // Intersection := VectorAdd(RayOrigin, VectorScale(RayDirection, MaybeT));
     // powyzsza instrukcja zapisana ponizej w 3 linijkach dziala nieco szybciej:
-    Intersection := RayVector;
+    Intersection := RayDirection;
     VectorScaleTo1st(Intersection, MaybeT);
-    VectorAddTo1st(Intersection, Ray0);
+    VectorAddTo1st(Intersection, RayOrigin);
 
     t := MaybeT;
   end;
@@ -1409,7 +1409,7 @@ begin
   begin
     Delta := Sqrt(Delta);
 
-    { There are two solutions, choose closest to Ray0 (smallest)
+    { There are two solutions, choose closest to RayOrigin (smallest)
       but >= 0 (the one < 0 does not fall on ray). }
     T1 := (-B - Delta) / (2 * A);
     T2 := (-B + Delta) / (2 * A);
@@ -1430,31 +1430,31 @@ end;
 
 function TrySphereRayIntersection(out Intersection: TVector3;
   const SphereCenter: TVector3; const SphereRadius: TScalar;
-  const Ray0, RayVector: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 var
   T, A, B, C: TScalar;
-  Ray0MinusCenter: TVector3;
+  RayOriginMinusCenter: TVector3;
 begin
-  { Intersection = Ray0 + RayVector * T,
+  { Intersection = RayOrigin + RayDirection * T,
     Also Distance(Intersection, SphereCenter) = SphereRadius,
-    so Distance(Ray0 + RayVector * T, SphereCenter) = SphereRadius.
+    so Distance(RayOrigin + RayDirection * T, SphereCenter) = SphereRadius.
 
     Expand this, and use to calculate T: we get a quadratic equation for T.
     A * T^2 + B * T + C = 0. }
-  Ray0MinusCenter := Ray0 - SphereCenter;
-  A := Sqr(RayVector[0]) +
-       Sqr(RayVector[1]) +
-       Sqr(RayVector[2]);
-  B := 2 * RayVector[0] * Ray0MinusCenter[0] +
-       2 * RayVector[1] * Ray0MinusCenter[1] +
-       2 * RayVector[2] * Ray0MinusCenter[2];
-  C := Sqr(Ray0MinusCenter[0]) +
-       Sqr(Ray0MinusCenter[1]) +
-       Sqr(Ray0MinusCenter[2]) - Sqr(SphereRadius);
+  RayOriginMinusCenter := RayOrigin - SphereCenter;
+  A := Sqr(RayDirection[0]) +
+       Sqr(RayDirection[1]) +
+       Sqr(RayDirection[2]);
+  B := 2 * RayDirection[0] * RayOriginMinusCenter[0] +
+       2 * RayDirection[1] * RayOriginMinusCenter[1] +
+       2 * RayDirection[2] * RayOriginMinusCenter[2];
+  C := Sqr(RayOriginMinusCenter[0]) +
+       Sqr(RayOriginMinusCenter[1]) +
+       Sqr(RayOriginMinusCenter[2]) - Sqr(SphereRadius);
 
   Result := TryRayIntersectionQuadraticEquation(T, A, B, C);
   if Result then
-    Intersection := Ray0 + RayVector * T;
+    Intersection := RayOrigin + RayDirection * T;
 end;
 
 function TryCylinderRayIntersection(out Intersection: TVector3;
@@ -1792,7 +1792,7 @@ var
   MaybeT: TScalar;
   TriDir: TVector3 absolute TriPlane;
 begin
-  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, Ray0, RayVector) and
+  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
   if result then
   begin
@@ -1866,14 +1866,14 @@ function IsTriangleSphereCollision(const Tri: TTriangle3;
 
 function TryTriangleRayCollision(var Intersection: TVector3; var T: TScalar;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Ray0, RayVector: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 {$define HAS_T}
 TryTriangleRayCollision_IMPLEMENT
 {$undef HAS_T}
 
 function TryTriangleRayCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const Ray0, RayVector: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 TryTriangleRayCollision_IMPLEMENT
 
 (* pare funkcji *ToStr -------------------------------------------------------- *)

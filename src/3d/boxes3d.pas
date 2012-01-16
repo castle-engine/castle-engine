@@ -185,45 +185,45 @@ type
     procedure Clamp(var point: TVector3Double); overload;
 
     { TryBoxRayClosestIntersection calculates intersection between the
-      ray (returns closest intersection to Ray0) and the box.
+      ray (returns closest intersection to RayOrigin) and the box.
 
       The box is treated just like a set of 6 rectangles in 3D.
       This means that the intersection will always be placed on one of the
-      box sides, even if Ray0 starts inside the box.
+      box sides, even if RayOrigin starts inside the box.
       See TryBoxRayEntrance for the other version.
 
       Returns also IntersectionDistance, which is the distance to the Intersection
-      relative to RayVector (i.e. Intersection is always = Ray0 +
-      IntersectionDistance * RayVector).
+      relative to RayDirection (i.e. Intersection is always = RayOrigin +
+      IntersectionDistance * RayDirection).
 
       @groupBegin }
     function TryRayClosestIntersection(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single): boolean; overload;
+      const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     function TryRayClosestIntersection(
       out Intersection: TVector3Single;
-      const Ray0, RayVector: TVector3Single): boolean; overload;
+      const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     function TryRayClosestIntersection(
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single): boolean; overload;
+      const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     { @groupEnd }
 
     { TryBoxRayEntrance calculates intersection between the
-      ray (returns closest intersection to Ray0) and the box, treating the box
+      ray (returns closest intersection to RayOrigin) and the box, treating the box
       as a filled volume.
 
-      This means that if Ray0 is inside the box, TryBoxRayEntrance simply returns
-      Ray0. If Ray0 is outside of the box, the answer is the same
+      This means that if RayOrigin is inside the box, TryBoxRayEntrance simply returns
+      RayOrigin. If RayOrigin is outside of the box, the answer is the same
       as with TryBoxRayClosestIntersection.
 
       @groupBegin }
     function TryRayEntrance(
       out Entrance: TVector3Single; out EntranceDistance: Single;
-      const Ray0, RayVector: TVector3Single): boolean; overload;
+      const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     function TryRayEntrance(
       out Entrance: TVector3Single;
-      const Ray0, RayVector: TVector3Single): boolean; overload;
+      const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     { @groupEnd }
 
     function IsSegmentCollision(
@@ -890,7 +890,7 @@ procedure TBox3D.Clamp(var point: TVector3Double); CLAMP_IMPLEMENTATION
 function TBox3D.TryRayClosestIntersection(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 var
   IntrProposed: boolean absolute result;
 
@@ -902,7 +902,7 @@ var
     c1, c2: integer;
   begin
     if TrySimplePlaneRayIntersection(NowIntersection, NowIntersectionDistance,
-      PlaneConstCoord, PlaneConstValue, Ray0, RayVector) then
+      PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection) then
     begin
       RestOf3dCoords(PlaneConstCoord, c1, c2);
       if Between(NowIntersection[c1], Data[0, c1], Data[1, c1]) and
@@ -925,13 +925,13 @@ begin
   IntrProposed := false;
   for I := 0 to 2 do
   begin
-    { wykorzystujemy ponizej fakt ze jezeli Ray0[i] < Data[0, i] to na pewno
+    { wykorzystujemy ponizej fakt ze jezeli RayOrigin[i] < Data[0, i] to na pewno
       promien ktory przecinalby scianke Data[1, i] pudelka przecinalby najpierw
-      tez inna scianke. Wiec jezeli Ray0[i] < Data[0, i] to nie musimy sprawdzac
+      tez inna scianke. Wiec jezeli RayOrigin[i] < Data[0, i] to nie musimy sprawdzac
       przeciecia z plaszczyzna Data[1, i]. }
-    if Ray0[i] < Data[0, i] then
+    if RayOrigin[i] < Data[0, i] then
       ProposeBoxIntr(i, Data[0, i]) else
-    if Ray0[i] > Data[1, i] then
+    if RayOrigin[i] > Data[1, i] then
       ProposeBoxIntr(i, Data[1, i]) else
     begin
       ProposeBoxIntr(i, Data[0, i]);
@@ -942,47 +942,47 @@ end;
 
 function TBox3D.TryRayClosestIntersection(
   out Intersection: TVector3Single;
-  const Ray0, RayVector: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 var
   IntersectionDistance: Single;
 begin
   Result := TryRayClosestIntersection(
-    Intersection, IntersectionDistance, Ray0, RayVector);
+    Intersection, IntersectionDistance, RayOrigin, RayDirection);
 end;
 
 function TBox3D.TryRayClosestIntersection(
   out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 var
   Intersection: TVector3Single;
 begin
   Result := TryRayClosestIntersection(
-    Intersection, IntersectionDistance, Ray0, RayVector);
+    Intersection, IntersectionDistance, RayOrigin, RayDirection);
 end;
 
 function TBox3D.TryRayEntrance(
   out Entrance: TVector3Single; out EntranceDistance: Single;
-  const Ray0, RayVector: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
-  if PointInside(Ray0) then
+  if PointInside(RayOrigin) then
   begin
-    Entrance := Ray0;
+    Entrance := RayOrigin;
     EntranceDistance := 0;
     result := true;
   end else
-    result := TryRayClosestIntersection(Entrance, EntranceDistance, Ray0, RayVector);
+    result := TryRayClosestIntersection(Entrance, EntranceDistance, RayOrigin, RayDirection);
 end;
 
 function TBox3D.TryRayEntrance(
   out Entrance: TVector3Single;
-  const Ray0, RayVector: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
-  if PointInside(Ray0) then
+  if PointInside(RayOrigin) then
   begin
-    Entrance := Ray0;
+    Entrance := RayOrigin;
     result := true;
   end else
-    result := TryRayClosestIntersection(Entrance, Ray0, RayVector);
+    result := TryRayClosestIntersection(Entrance, RayOrigin, RayDirection);
 end;
 
 function TBox3D.IsSegmentCollision(

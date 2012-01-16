@@ -224,30 +224,30 @@ implementation
 
 uses SysUtils, SphereSampling;
 
-{ RayVector calculations ----------------------------------------------------- }
+{ RayDirection calculations ----------------------------------------------------- }
 
 { Calculate the transmitted ray created by hitting a ray
-  - with direction NormRayVector (normalized ray direction is expected here)
+  - with direction NormRayDirection (normalized ray direction is expected here)
   - from material with angle of refraction EtaFrom
   - transmitted into the material with angle of refraction EtaTo
   - hit occurs on the plane with normal vector (i.e. normalized) PlaneNormal }
-function TryTransmittedRayVector(
-  out TransmittedRayVector: TVector3Single;
-  const NormRayVector: TVector3Single;
+function TryTransmittedRayDirection(
+  out TransmittedRayDirection: TVector3Single;
+  const NormRayDirection: TVector3Single;
   const PlaneNormal: TVector4Single;
   const EtaFrom, EtaTo: Single): boolean;
 { Written based on Foley, page 627 }
 var
   EtaTransmission, RayIDotNormal, ToBeSqrRooted: Single;
   RayI: TVector3Single;
-  { This is the Normal pointing in the direction from where the RayVector came
-    (i.e. in the opposite of RayVector,
-    i.e. -RayVector (note the "-") and Normal must point to the same side
+  { This is the Normal pointing in the direction from where the RayDirection came
+    (i.e. in the opposite of RayDirection,
+    i.e. -RayDirection (note the "-") and Normal must point to the same side
     of plane with PlaneNormal) }
   Normal: TVector3Single;
 begin
-  Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
-  RayI := -NormRayVector;
+  Normal := PlaneDirNotInDirection(PlaneNormal, NormRayDirection);
+  RayI := -NormRayDirection;
 
   RayIDotNormal := RayI ** Normal;
 
@@ -260,27 +260,27 @@ begin
 
   Result := ToBeSqrRooted >= 0;
   if Result then
-    TransmittedRayVector :=
+    TransmittedRayDirection :=
       (Normal * (EtaTransmission * RayIDotNormal - Sqrt(ToBeSqrRooted)))
       - (RayI * EtaTransmission);
 end;
 
 { Calculate the perfect reflected vector.
-  Arguments NormRayVector and PlaneNormal like for TryTransmittedRayVector. }
-function ReflectedRayVector(
-  const NormRayVector: TVector3Single;
+  Arguments NormRayDirection and PlaneNormal like for TryTransmittedRayDirection. }
+function ReflectedRayDirection(
+  const NormRayDirection: TVector3Single;
   const PlaneNormal: TVector4Single): TVector3Single;
 var
-  Normal, NormNegatedRayVector: TVector3Single;
+  Normal, NormNegatedRayDirection: TVector3Single;
 begin
-  { Calculate Normal like in TryTransmittedRayVector. }
-  Normal := PlaneDirNotInDirection(PlaneNormal, NormRayVector);
-  NormNegatedRayVector := -NormRayVector;
+  { Calculate Normal like in TryTransmittedRayDirection. }
+  Normal := PlaneDirNotInDirection(PlaneNormal, NormRayDirection);
+  NormNegatedRayDirection := -NormRayDirection;
 
-  { We calculate ray as mirror ray to NormNegatedRayVector.
+  { We calculate ray as mirror ray to NormNegatedRayDirection.
     Calculation is just like in Foley (page 601, section (14.16)). }
-  Result := (Normal * 2 * (Normal ** NormNegatedRayVector))
-    - NormNegatedRayVector;
+  Result := (Normal * 2 * (Normal ** NormNegatedRayDirection))
+    - NormNegatedRayDirection;
 end;
 
 { TClassicRayTracer ---------------------------------------------------------- }
@@ -292,7 +292,7 @@ var
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
-  function Trace(const Ray0, RayVector: TVector3Single; const Depth: Cardinal;
+  function Trace(const RayOrigin, RayDirection: TVector3Single; const Depth: Cardinal;
     const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean):
     TVector3Single;
   var
@@ -321,8 +321,8 @@ var
           begin EtaFrom := 1; EtaTo := EtaConst end else
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
-        if TryTransmittedRayVector(
-          TransmittedRayVec, Normalized(RayVector),
+        if TryTransmittedRayDirection(
+          TransmittedRayVec, Normalized(RayDirection),
           IntersectNode^.World.Plane, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
@@ -335,13 +335,13 @@ var
 
     procedure ModifyColorByReflectedRay;
     var
-      ReflRayVector, ReflColor: TVector3Single;
+      ReflRayDirection, ReflColor: TVector3Single;
     begin
       if MaterialMirror > 0 then
       begin
-        ReflRayVector := ReflectedRayVector(Normalized(RayVector),
+        ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
           IntersectNode^.World.Plane);
-        ReflColor := Trace(Intersection, ReflRayVector, Depth - 1,
+        ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
         Result := Result * (1 - MaterialMirror) + ReflColor * MaterialMirror;
       end;
@@ -364,12 +364,12 @@ var
         Appearance.shadowCaster = FALSE do not block light.
 
         We also take into account that the light may be on the opposide
-        side of the plane than from where RayVector came.
+        side of the plane than from where RayDirection came.
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
       Result := Octree.LightNotBlocked(Light,
         Intersection, IntersectNode^.World.Normal,
-        -RayVector, IntersectNode, true);
+        -RayDirection, IntersectNode, true);
     end;
 
   var
@@ -378,7 +378,7 @@ var
     M2: TMaterialNode;
     Lights: TLightInstancesList;
   begin
-    IntersectNode := Octree.RayCollision(Intersection, Ray0, RayVector, true,
+    IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
@@ -480,10 +480,10 @@ var
 
   procedure DoPixel(const x, y: Cardinal);
   var
-    Ray0, RayVector: TVector3Single;
+    RayOrigin, RayDirection: TVector3Single;
   begin
-    RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, Ray0, RayVector);
-    Image.SetColorRGB(x, y, Trace(Ray0, RayVector, InitialDepth, nil, false));
+    RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, RayOrigin, RayDirection);
+    Image.SetColorRGB(x, y, Trace(RayOrigin, RayDirection, InitialDepth, nil, false));
   end;
 
 var
@@ -709,7 +709,7 @@ const
     finally OctreeIgnorer.Free end;
   end;
 
-  function Trace(const Ray0, RayVector: TVector3Single;
+  function Trace(const RayOrigin, RayDirection: TVector3Single;
     const Depth: Integer; const TriangleToIgnore: PTriangle;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
     : TVector3Single;
@@ -719,15 +719,15 @@ const
     Intersection: TVector3Single;
     IntersectNode: PTriangle;
     MaterialInfo: TX3DMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
-    IntersectNormalInRay0Dir: TVector3Single;
+    IntersectNormalInRayDir: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;
 
-      function TryCalculateTransmittedSpecularRayVector(
+      function TryCalculateTransmittedSpecularRayDirection(
         var TracedDir: TVector3Single;
         var PdfValue: Single): boolean;
       var
-        TransmittedRayVector: TVector3Single;
+        TransmittedRayDirection: TVector3Single;
         EtaFrom, EtaTo: Single;
       const
         EtaConst = 1.3; { TODO: tu tez uzywam EtaConst, jak w Classic }
@@ -736,15 +736,15 @@ const
           begin EtaFrom := 1; EtaTo := EtaConst end else
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
-        Result := TryTransmittedRayVector(TransmittedRayVector,
-          Normalized(RayVector),
+        Result := TryTransmittedRayDirection(TransmittedRayDirection,
+          Normalized(RayDirection),
           IntersectNode^.World.Plane, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
             RandomHemispherePointCosThetaExp(
               Round(MaterialInfo.TransSpecularExp),
               PdfValue),
-            TransmittedRayVector);
+            TransmittedRayDirection);
       end;
 
       function DirectIllumination: TVector3Single;
@@ -764,7 +764,7 @@ const
           result += PolePowierzchni(LightItem) * LightEmission * BRDF *
             GeometryFunction
         jest mniej wiecej rownowazne
-          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormalInRay0Dir)
+          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormalInRayDir)
             * solid-angle-swiatla
         (taka jest rola PolePowierzchni(LightItem) i czesci GeometryFunction -
         one po prostu licza solid angle; no, de facto pewne bardzo dobre przyblizenie
@@ -810,11 +810,11 @@ const
 
           { calculate LigtDirNorm (nieznormalizowane).
             Jezeli LigtDirNorm wychodzi z innej strony
-            IntersectionNode.TriangleNormPlane niz IntersectNormalInRay0Dir
+            IntersectionNode.TriangleNormPlane niz IntersectNormalInRayDir
             to znaczy ze swiatlo jest po przeciwnej stronie plane - wiec
             swiatlo nie oswietla naszego pixela. }
           LightDirNorm := SampleLightPoint - Intersection;
-          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRay0Dir,
+          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRayDir,
             IntersectNode^.World.Plane) then Continue;
 
           { sprawdz IsLightShadowed, czyli zrob shadow ray }
@@ -834,7 +834,7 @@ const
 
           { Wymnoz DirectColor
             1) przez GeometryFunction czyli
-                 cos(LightDirNorm, IntersectNormalInRay0Dir)
+                 cos(LightDirNorm, IntersectNormalInRayDir)
                    * cos(-LightDirNorm, LightSource.World.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
                Cosinusy naturalnie licz uzywajac dot product.
@@ -861,7 +861,7 @@ const
               przenioslem mnozenie przez LightEmissionArea na sam koniec tej
               funkcji.}
           DirectColor *=
-            (LightDirNorm ** IntersectNormalInRay0Dir) *
+            (LightDirNorm ** IntersectNormalInRayDir) *
             (NegatedLightDirNorm **
               PlaneDirInDirection(LightSource^.World.Plane,
                 NegatedLightDirNorm)) *
@@ -953,9 +953,9 @@ const
           mala wartosc). }
         if Weights[ck] > SingleEqualityEpsilon then
         begin
-          { calculate IntersectNormalInRay0Dir - Normal at intersection in direction Ray0 }
-          IntersectNormalInRay0Dir := PlaneDirNotInDirection(
-            IntersectNode^.World.Plane, RayVector);
+          { calculate IntersectNormalInRayDir - Normal at intersection in direction RayOrigin }
+          IntersectNormalInRayDir := PlaneDirNotInDirection(
+            IntersectNode^.World.Plane, RayDirection);
 
           { calculate TracedDir i PdfValue samplujac odpowiednio polsfere
            (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
@@ -963,17 +963,17 @@ const
           case ck of
             ckTD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
-                    -IntersectNormalInRay0Dir);
-            ckTS: if not TryCalculateTransmittedSpecularRayVector(
+                    -IntersectNormalInRayDir);
+            ckTS: if not TryCalculateTransmittedSpecularRayDirection(
                     TracedDir, PdfValue) then Exit;
             ckRD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
-                    IntersectNormalInRay0Dir);
+                    IntersectNormalInRayDir);
             ckRS: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
-                    ReflectedRayVector(Normalized(RayVector),
+                    ReflectedRayDirection(Normalized(RayDirection),
                       IntersectNode^.World.Plane));
           end;
 
@@ -1005,7 +1005,7 @@ const
     i: Integer;
     NonEmissiveColor: TVector3Single;
   begin
-    IntersectNode := Octree.RayCollision(Intersection, Ray0, RayVector, true,
+    IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
@@ -1053,7 +1053,7 @@ var
 
   procedure DoPixel(const x, y: Cardinal);
   var
-    PixColor, PrimaryRay0, PrimaryRayVector: TVector3Single;
+    PixColor, PrimaryRayOrigin, PrimaryRayDirection: TVector3Single;
     SampleNum: Integer;
   begin
     { generuj pixel x, y. calculate PixColor }
@@ -1062,8 +1062,8 @@ var
       { gdy PrimarySamplesCount = 1 to wysylamy jeden promien pierwotny
         i ten promien NIE jest losowany na rzutni w zakresie pixela
         x, y ale przechodzi dokladnie przez srodek pixela x, y. }
-      RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, PrimaryRay0, PrimaryRayVector);
-      PixColor := Trace(PrimaryRay0, PrimaryRayVector, MinDepth, nil, false, false);
+      RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, PrimaryRayOrigin, PrimaryRayDirection);
+      PixColor := Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
     end else
     begin
       PixColor := ZeroVector3Single;
@@ -1071,8 +1071,8 @@ var
       begin
         RaysWindow.PrimaryRay(
           x + Random - 0.5, y + Random - 0.5,
-          Image.Width, Image.Height, PrimaryRay0, PrimaryRayVector);
-        PixColor += Trace(PrimaryRay0, PrimaryRayVector, MinDepth, nil, false, false);
+          Image.Width, Image.Height, PrimaryRayOrigin, PrimaryRayDirection);
+        PixColor += Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
       end;
       PixColor *= 1 / PrimarySamplesCount;
     end;

@@ -91,7 +91,7 @@ type
       direction is normalized, various distances from ray collisions are "real"). }
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out Ray0, RayDirection: TVector3Single); virtual; abstract;
+      out RayOrigin, RayDirection: TVector3Single); virtual; abstract;
   end;
 
   TPerspectiveRaysWindow = class(TRaysWindow)
@@ -104,7 +104,7 @@ type
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out Ray0, RayDirection: TVector3Single); override;
+      out RayOrigin, RayDirection: TVector3Single); override;
   end;
 
   TOrthographicRaysWindow = class(TRaysWindow)
@@ -116,7 +116,7 @@ type
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out Ray0, RayDirection: TVector3Single); override;
+      out RayOrigin, RayDirection: TVector3Single); override;
   end;
 
 { Calculate position and direction of the primary ray cast from CamPosition,
@@ -135,7 +135,7 @@ procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Intege
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
-  out Ray0, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 
 implementation
 
@@ -218,9 +218,9 @@ end;
 
 procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;
   const ScreenWidth, ScreenHeight: Integer;
-  out Ray0, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 begin
-  Ray0 := CamPosition;
+  RayOrigin := CamPosition;
 
   { Direction of ray, ignoring current camera settings
     (assume camera position = zero, direction = -Z, up = +Y).
@@ -248,12 +248,12 @@ end;
 
 procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
   const ScreenWidth, ScreenHeight: Integer;
-  out Ray0, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 begin
-  Ray0 := CamPosition;
-  Ray0 += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
+  RayOrigin := CamPosition;
+  RayOrigin += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
     OrthoViewDimensions[0], OrthoViewDimensions[2]));
-  Ray0 += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
+  RayOrigin += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
     OrthoViewDimensions[1], OrthoViewDimensions[3]));
 
   { CamDirection must already be normalized, so RayDirection is normalized too }
@@ -267,14 +267,14 @@ procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Intege
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
-  out Ray0, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 var
   RaysWindow: TRaysWindow;
 begin
   RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
   try
-    RaysWindow.PrimaryRay(x, y, ScreenWidth, ScreenHeight, Ray0, RayDirection);
+    RaysWindow.PrimaryRay(x, y, ScreenWidth, ScreenHeight, RayOrigin, RayDirection);
   finally RaysWindow.Free end;
 end;
 

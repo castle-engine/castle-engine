@@ -117,12 +117,12 @@ var RayNormVector: TVector3Single;
     W ten sposob argumenty podawane do tej funkcji juz nie mowia nic
     o Image - one tylko podaja pozycje w swiecie 3d w ktorym jest
     TrianglePos i Lights. }
-  var Ray0: TVector3Single;
+  var RayOrigin: TVector3Single;
   begin
-   Ray0 := TrianglePos[1];
-   VectorAddTo1st(Ray0, VectorScale( VectorSubtract(TrianglePos[0], TrianglePos[1]), Tri10Pos));
-   VectorAddTo1st(Ray0, VectorScale( VectorSubtract(TrianglePos[2], TrianglePos[1]), Tri12Pos));
-   result := PointLightMap(Ray0, RayNormVector, Lights, Octree, RenderDir);
+   RayOrigin := TrianglePos[1];
+   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(TrianglePos[0], TrianglePos[1]), Tri10Pos));
+   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(TrianglePos[2], TrianglePos[1]), Tri12Pos));
+   result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
   function PrzekatnaXFromY(y: Integer): Integer;
@@ -175,12 +175,12 @@ procedure QuadLightMapTo1st(const Image: TImage;
 var RayNormVector: TVector3Single;
 
   function Color(const Quad01Pos, Quad03Pos: Single): TVector3Single;
-  var Ray0: TVector3Single;
+  var RayOrigin: TVector3Single;
   begin
-   Ray0 := Quad[0];
-   VectorAddTo1st(Ray0, VectorScale( VectorSubtract(Quad[1], Quad[0]), Quad01Pos));
-   VectorAddTo1st(Ray0, VectorScale( VectorSubtract(Quad[3], Quad[0]), Quad03Pos));
-   result := PointLightMap(Ray0, RayNormVector, Lights, Octree, RenderDir);
+   RayOrigin := Quad[0];
+   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(Quad[1], Quad[0]), Quad01Pos));
+   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(Quad[3], Quad[0]), Quad03Pos));
+   result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
   procedure DoPixel(x, y: Integer);

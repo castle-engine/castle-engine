@@ -175,7 +175,7 @@ begin
 end;
 
 procedure TTestVectorMath.TestOther;
-var I1, I2, Ray0, RayVector: TVector3Double;
+var I1, I2, RayOrigin, RayDirection: TVector3Double;
     Plane: TVector4Double;
 //    PlaneDir: TVector3Double absolute Plane;
     PlaneConstCoord: integer;
@@ -200,8 +200,8 @@ begin
    testuj TrySimplePlaneRayIntersection przy uzyciu TryPlaneRayIntersection }
  for i := 1 to 100000 do
  begin
-  Ray0 := RandomVector3Double;
-  RayVector := RandomVector3Double;
+  RayOrigin := RandomVector3Double;
+  RayDirection := RandomVector3Double;
 
   PlaneConstCoord := Random(3);
   PlaneConstVal := Random*1000 - 500;
@@ -213,17 +213,17 @@ begin
     czy sobie z tym radzi) }
   if Random(10) = 1 then
   begin
-   RayVector[PlaneConstCoord] := 0;
-   b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, Ray0, RayVector);
-   b2 := TryPlaneRayIntersection(I2, Plane, Ray0, RayVector);
+   RayDirection[PlaneConstCoord] := 0;
+   b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
+   b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
    Check( (not b1) and (not b2) ,'intersect with parallel plane');
   end else
   begin
    { nie wykonuj testu jesli wylosowalimy niepoprawne dane }
-   if not VectorsEqual(RayVector, Vector3Double(0, 0, 0)) then
+   if not VectorsEqual(RayDirection, Vector3Double(0, 0, 0)) then
    begin
-    b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, Ray0, RayVector);
-    b2 := TryPlaneRayIntersection(I2, Plane, Ray0, RayVector);
+    b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
+    b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
     Assert( b1 = b2 , 'b1 <> b2');
     if b1 then
     begin
@@ -231,17 +231,17 @@ begin
         not FloatsEqual(I1[PlaneConstCoord], PlaneConstVal) or
 	not FloatsEqual(I2[PlaneConstCoord], PlaneConstVal) then
      begin
-      t1:=(PlaneConstVal-Ray0[PlaneConstCoord]) / RayVector[PlaneConstCoord];
-      t2 := -(plane[0]*Ray0[0] + plane[1]*Ray0[1] + plane[2]*Ray0[2] + plane[3])/
-          VectorDotProduct(PlaneDir, RayVector);
+      t1:=(PlaneConstVal-RayOrigin[PlaneConstCoord]) / RayDirection[PlaneConstCoord];
+      t2 := -(plane[0]*RayOrigin[0] + plane[1]*RayOrigin[1] + plane[2]*RayOrigin[2] + plane[3])/
+          VectorDotProduct(PlaneDir, RayDirection);
       Writeln('I1 = ',VectorToNiceStr(I1), ' I2 = ',VectorToNiceStr(I2), nl,
         'PlaneConst Coord = ',PlaneConstCoord, ' Value = ',PlaneConstVal, nl,
 	'Plane = ',VectorToNiceStr(Plane), nl,
-	'Ray0 = ',VectorToNiceStr(Ray0), ' RayVector = ',VectorToNiceStr(RayVector), nl,
+	'RayOrigin = ',VectorToNiceStr(RayOrigin), ' RayDirection = ',VectorToNiceStr(RayDirection), nl,
 	FloatToNiceStr(t1), nl,
 	FloatToNiceStr(t2), nl,
-	VectorToNiceStr(VectorAdd(Ray0, VectorScale(RayVector, t1))), nl,
-	VectorToNiceStr(VectorAdd(Ray0, VectorScale(RayVector, t2)))
+	VectorToNiceStr(VectorAdd(RayOrigin, VectorScale(RayDirection, t1))), nl,
+	VectorToNiceStr(VectorAdd(RayOrigin, VectorScale(RayDirection, t2)))
       );
      end; }
      Assert( FloatsEqual(I1[PlaneConstCoord], PlaneConstVal), 'I1 not ok');
@@ -263,13 +263,13 @@ begin
 
  ProcessTimerBegin;
  for i := 1 to SPEED_TEST_1_CYCLES do
-  TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, Ray0, RayVector);
+  TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
  Time1 := ProcessTimerEnd;
  WritelnSpeedTest(Format('TrySimplePlaneRayIntersection = %f',[Time1]));
 
  ProcessTimerBegin;
  for i := 1 to SPEED_TEST_1_CYCLES do
-  TryPlaneRayIntersection(I1, Plane, Ray0, RayVector);
+  TryPlaneRayIntersection(I1, Plane, RayOrigin, RayDirection);
  Time2 := ProcessTimerEnd;
  WritelnSpeedTest(Format('TryPlaneRayIntersection = %f',[Time2]));
 

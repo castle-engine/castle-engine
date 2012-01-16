@@ -82,9 +82,9 @@
       and a TunnelRadius.)
 
     @item(
-      A @italic(ray) is defined just like a line: two vectors Ray0 and RayVector,
-      RayVector must be nonzero.
-      Ray consists of all points @code(Line0 + R * LineVector)
+      A @italic(ray) is defined just like a line: two vectors RayOrigin and RayDirection,
+      RayDirection must be nonzero.
+      Ray consists of all points @code(RayOrigin + R * RayDirection)
       for R being any real value >= 0.)
 
     @item(
@@ -123,7 +123,7 @@
 
   In descriptions of geometric objects above, I often
   stated some requirements, e.g. the triangle must not be "degenerated"
-  to a line segment, RayVector must not be a zero vector, etc.
+  to a line segment, RayDirection must not be a zero vector, etc.
   You should note that these requirements are generally @italic(not checked)
   by routines in this unit (for the sake of speed) and passing
   wrong values to many of the routines may lead to serious bugs
@@ -191,15 +191,15 @@
   a line segment, a line or a ray there are alternative versions
   that return just a scalar "T" instead of a calculated point.
   The actual collision point can be calculated then like
-  @code(Ray0 + T * RayVector). Of course for rays you can be sure
+  @code(RayOrigin + T * RayDirection). Of course for rays you can be sure
   that T is >= 0, for line segments you can be sure that
   0 <= T <= 1. The "T" is often useful, because it allows
   you to easily calculate collision point, and also the distance
   to the collision (you can e.g. compare T1 and T2 to compare which
-  collision is closer, and when your RayVector is normalized then
+  collision is closer, and when your RayDirection is normalized then
   the T gives you the exact distance). Thanks to this you can often
   entirely avoid calculating the actual collision point
-  (@code(Ray0 + T * RayVector)).
+  (@code(RayOrigin + T * RayDirection)).
 
   Contains some stuff useful for integration with FPC's Matrix unit.
   For now, there are some "glueing" functions here like
@@ -1351,35 +1351,35 @@ function TryPlaneLineIntersection(out t: Double;
   have to point in the opposite direction to hit the plane.
 
   Otherwise, returns @true, and calculates 3D intersection point,
-  or calculates T such that @code(3D intersection = Ray0 + RayVector * T).
+  or calculates T such that @code(3D intersection = RayOrigin + RayDirection * T).
   @groupBegin }
 function TrySimplePlaneRayIntersection(out Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Ray0, RayVector: TVector3Single): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TrySimplePlaneRayIntersection(out Intersection: TVector3Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
-  const Ray0, RayVector: TVector3Double): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 function TrySimplePlaneRayIntersection(out Intersection: TVector3Single; out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Ray0, RayVector: TVector3Single): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TrySimplePlaneRayIntersection(out Intersection: TVector3Double; out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
-  const Ray0, RayVector: TVector3Double): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 function TrySimplePlaneRayIntersection(out T: Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
-  const Ray0, RayVector: TVector3Single): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TrySimplePlaneRayIntersection(out T: Double;
   const PlaneConstCoord: integer; const PlaneConstValue: Double;
-  const Ray0, RayVector: TVector3Double): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 
 function TryPlaneRayIntersection(out Intersection: TVector3Single;
-  const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Plane: TVector4Single; const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TryPlaneRayIntersection(out Intersection: TVector3Double;
-  const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
+  const Plane: TVector4Double; const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 function TryPlaneRayIntersection(out Intersection: TVector3Single; out T: Single;
-  const Plane: TVector4Single; const Ray0, RayVector: TVector3Single): boolean; overload;
+  const Plane: TVector4Single; const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TryPlaneRayIntersection(out Intersection: TVector3Double; out T: Double;
-  const Plane: TVector4Double; const Ray0, RayVector: TVector3Double): boolean; overload;
+  const Plane: TVector4Double; const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 { @groupEnd }
 
 { Plane and line segment intersection.
@@ -1390,7 +1390,7 @@ function TryPlaneRayIntersection(out Intersection: TVector3Double; out T: Double
   would have to be longer to hit the plane.
 
   Otherwise, returns @true, and calculates 3D intersection point,
-  or calculates T such that @code(3D intersection = Ray0 + RayVector * T).
+  or calculates T such that @code(3D intersection = RayOrigin + RayDirection * T).
   @groupBegin }
 function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3Single;
   const PlaneConstCoord: integer; const PlaneConstValue: Single;
@@ -1489,10 +1489,10 @@ function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3Double
 
 function TrySphereRayIntersection(out Intersection: TVector3Single;
   const SphereCenter: TVector3Single; const SphereRadius: Single;
-  const Ray0, RayVector: TVector3Single): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TrySphereRayIntersection(out Intersection: TVector3Double;
   const SphereCenter: TVector3Double; const SphereRadius: Double;
-  const Ray0, RayVector: TVector3Double): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 
 { Intersection between an (infinitely tall) cylinder and a ray.
   @groupBegin }
@@ -1664,16 +1664,16 @@ function TryTriangleSegmentDirCollision(var Intersection: TVector3Double; var T:
   @groupBegin }
 function TryTriangleRayCollision(var Intersection: TVector3Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Ray0, RayVector: TVector3Single): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TryTriangleRayCollision(var Intersection: TVector3Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Ray0, RayVector: TVector3Double): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 function TryTriangleRayCollision(var Intersection: TVector3Single; var T: Single;
   const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Ray0, RayVector: TVector3Single): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
 function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double;
   const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Ray0, RayVector: TVector3Double): boolean; overload;
+  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
 { @groupEnd }
 
 { Calculates normalized normal vector for polygon composed from

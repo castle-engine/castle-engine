@@ -18,22 +18,22 @@
 {$define TrySimplePlaneRayIntersection_IMPLEMENT:=
 var MaybeT: TScalar;
 begin
- result := not IsLineParallelToSimplePlane(RayVector, PlaneConstCoord);
+ result := not IsLineParallelToSimplePlane(RayDirection, PlaneConstCoord);
  if result then
  begin
-  MaybeT:=(PlaneConstValue-Ray0[PlaneConstCoord]) / RayVector[PlaneConstCoord];
+  MaybeT:=(PlaneConstValue-RayOrigin[PlaneConstCoord]) / RayDirection[PlaneConstCoord];
   result := MaybeT >= 0;
   if result then
   begin
    {$ifdef HAS_T}T := MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection := VectorAdd(Ray0, VectorScale(RayVector, MaybeT));{$endif}
+   {$ifdef HAS_INTR}Intersection := VectorAdd(RayOrigin, VectorScale(RayDirection, MaybeT));{$endif}
   end;
  end;
 end;}
 
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
-  const Ray0, RayVector: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 {$define HAS_INTR}
 TrySimplePlaneRayIntersection_IMPLEMENT
 {$undef HAS_INTR}
@@ -41,7 +41,7 @@ TrySimplePlaneRayIntersection_IMPLEMENT
 function TrySimplePlaneRayIntersection(
   out Intersection: TVector3; out T: TScalar;
   const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
-  const Ray0, RayVector: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 {$define HAS_INTR}
 {$define HAS_T}
 TrySimplePlaneRayIntersection_IMPLEMENT
@@ -50,7 +50,7 @@ TrySimplePlaneRayIntersection_IMPLEMENT
 
 function TrySimplePlaneRayIntersection(out T: TScalar;
   const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
-  const Ray0, RayVector: TVector3): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 {$define HAS_T}
 TrySimplePlaneRayIntersection_IMPLEMENT
 {$undef HAS_T}

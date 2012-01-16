@@ -468,7 +468,7 @@ type
       const Tag: TMailboxTag;
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -1524,7 +1524,7 @@ function TShape.RayCollision(
   const Tag: TMailboxTag;
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+  const RayOrigin, RayDirection: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -1544,7 +1544,7 @@ begin
   {$endif}
 
     Result := OctreeTriangles.RayCollision(
-      Intersection, IntersectionDistance, Ray0, RayVector,
+      Intersection, IntersectionDistance, RayOrigin, RayDirection,
       ReturnClosestIntersection,
       TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
 

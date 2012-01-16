@@ -397,7 +397,7 @@ type
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
       const OrthoViewDimensions: TVector4Single;
-      out Ray0, RayVector: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single);
 
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
@@ -411,7 +411,7 @@ type
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
       const OrthoViewDimensions: TVector4Single;
-      out Ray0, RayVector: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single);
 
     { Calculate a ray picked by WindowX, WindowY position on the viewport,
       assuming current viewport dimensions are as given.
@@ -433,7 +433,7 @@ type
       const PerspectiveView: boolean;
       const PerspectiveViewAngles: TVector2Single;
       const OrthoViewDimensions: TVector4Single;
-      out Ray0, RayVector: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single);
 
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
@@ -1994,24 +1994,24 @@ procedure TCamera.Ray(const WindowX, WindowY: Integer;
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
-  out Ray0, RayVector: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
   CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
     WindowX, WindowY,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, Ray0, RayVector);
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.MouseRay(
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
-  out Ray0, RayVector: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
   CustomRay(0, 0, ContainerWidth, ContainerHeight, ContainerHeight,
     Container.MouseX, Container.MouseY,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, Ray0, RayVector);
+    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions, RayOrigin, RayDirection);
 end;
 
 procedure TCamera.CustomRay(
@@ -2021,7 +2021,7 @@ procedure TCamera.CustomRay(
   const PerspectiveView: boolean;
   const PerspectiveViewAngles: TVector2Single;
   const OrthoViewDimensions: TVector4Single;
-  out Ray0, RayVector: TVector3Single);
+  out RayOrigin, RayDirection: TVector3Single);
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -2032,7 +2032,7 @@ begin
     ViewportWidth, ViewportHeight,
     Pos, Dir, Up,
     PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-    Ray0, RayVector);
+    RayOrigin, RayDirection);
 end;
 
 procedure TCamera.Idle(const CompSpeed: Single;

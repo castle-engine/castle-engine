@@ -102,7 +102,7 @@ type
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const RayTag: TMailboxTag;
       var DirectCollisionTestsCounter: TCollisionCount): boolean;
     { @groupEnd }
@@ -212,7 +212,7 @@ type
     function CommonRay(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -222,7 +222,7 @@ type
     function CommonRayLeaf(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -283,7 +283,7 @@ type
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -291,7 +291,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; virtual; abstract;
 
     function IsRayCollision(
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -341,7 +341,7 @@ type
         For routines that don't have ReturnClosestIntersection parameter
         (SphereCollision, BoxCollision) always any collision is returned.
 
-        If this is @true, then the collision closest to Ray0 (for RayCollision)
+        If this is @true, then the collision closest to RayOrigin (for RayCollision)
         or Pos1 (for SegmentCollision) is returned. This makes the collision
         somewhat slower (as we have to check all collisions, while
         for ReturnClosestIntersection = @false we can terminate at first
@@ -375,7 +375,7 @@ type
 
       @param(IgnoreMarginAtStart
 
-        If @true, then collisions that happen very very close to Ray0 (or Pos1
+        If @true, then collisions that happen very very close to RayOrigin (or Pos1
         for SegmentCollision) will be ignored.
 
         This is another thing helpful for recursive ray-tracers:
@@ -395,10 +395,10 @@ type
 
       @param(IntersectionDistance
         For RayCollision:
-        Returned IntersectionDistance is the distance along the RayVector:
-        smaller IntersectionDistance, closer to Ray0.
+        Returned IntersectionDistance is the distance along the RayDirection:
+        smaller IntersectionDistance, closer to RayOrigin.
         IntersectionDistance is always >= 0.
-        Intersection is always equal to Ray0 + RayVector * IntersectionDistance.
+        Intersection is always equal to RayOrigin + RayDirection * IntersectionDistance.
 
         For SegmentCollision: analogously,
         IntersectionDistance is along Pos2 - Pos1.
@@ -467,7 +467,7 @@ type
     function RayCollision(
       out Intersection: TVector3Single;
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -475,7 +475,7 @@ type
 
     function RayCollision(
       out Intersection: TVector3Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -483,20 +483,20 @@ type
 
     function RayCollision(
       out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; overload;
 
-    function RayCollision(const Ray0, RayVector: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; overload;
 
     function IsRayCollision(
-      const Ray0, RayVector: TVector3Single;
+      const RayOrigin, RayDirection: TVector3Single;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -741,13 +741,13 @@ end;
 function TTriangle.RayCollision(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+  const RayOrigin, RayDirection: TVector3Single;
   const RayTag: TMailboxTag;
   var DirectCollisionTestsCounter: TCollisionCount): boolean;
 begin
   { uwzgledniam tu fakt ze czesto bedzie wypuszczanych wiele promieni
-    z jednego Ray0 ale z roznym RayVector (np. w raytracerze). Wiec lepiej
-    najpierw porownywac przechowywane w skrzynce RayVector (niz Ray0)
+    z jednego RayOrigin ale z roznym RayDirection (np. w raytracerze). Wiec lepiej
+    najpierw porownywac przechowywane w skrzynce RayDirection (niz RayOrigin)
     zeby moc szybciej stwierdzic niezgodnosc. }
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = RayTag then
@@ -765,7 +765,7 @@ begin
     result := TryTriangleRayCollision(
       Intersection, IntersectionDistance,
       Local.Triangle, Local.Plane,
-      Ray0, RayVector);
+      RayOrigin, RayDirection);
     Inc(DirectCollisionTestsCounter);
 
   {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
@@ -945,7 +945,7 @@ function TBaseTrianglesOctreeNode.CommonSegment(
 function TBaseTrianglesOctreeNode.CommonRay(
   out Intersection: TVector3Single;
   out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+  const RayOrigin, RayDirection: TVector3Single;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -1051,7 +1051,7 @@ begin
 end;
 
 {$define RayCollision_CommonParams :=
-  const Ray0, RayVector: TVector3Single;
+  const RayOrigin, RayDirection: TVector3Single;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -1062,7 +1062,7 @@ end;
 begin
   Result := TBaseTrianglesOctreeNode(InternalTreeRoot).RayCollision(
     Intersection, IntersectionDistance,
-    Ray0, RayVector,
+    RayOrigin, RayDirection,
     AssignNewTag,
     ReturnClosestIntersection, TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
@@ -1099,13 +1099,13 @@ end;}
 {$undef RayCollision_Implementation}
 
 function TBaseTrianglesOctree.IsRayCollision(
-  const Ray0, RayVector: TVector3Single;
+  const RayOrigin, RayDirection: TVector3Single;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := TBaseTrianglesOctreeNode(InternalTreeRoot).IsRayCollision(
-    Ray0, RayVector,
+    RayOrigin, RayDirection,
     AssignNewTag,
     TriangleToIgnore, IgnoreMarginAtStart,
     TrianglesToIgnoreFunc);
