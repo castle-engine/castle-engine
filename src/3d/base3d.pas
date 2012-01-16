@@ -198,6 +198,11 @@ type
       the distance from camera to collision point (in world coordinate system,
       i.e. withot any additional scaling). }
     Distance: Single;
+
+    { Index of node with given Item.
+      TODO: this will be removed once we change castle to use PointingDeviceActivate
+      for all. }
+    function IndexOfItem(const Item: T3D): Integer;
   end;
 
   { Statistics about what was rendered during last frame.
@@ -891,6 +896,15 @@ begin
   Local.Area := TriangleArea(ATriangle);
 
   World := Local;
+end;
+
+{ T3DCollision --------------------------------------------------------------- }
+
+function T3DCollision.IndexOfItem(const Item: T3D): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if L[Result].Item = Item then Exit;
+  Result := -1;
 end;
 
 { TRenderParams -------------------------------------------------------------- }
