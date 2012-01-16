@@ -1153,6 +1153,40 @@ Various:
     on disk) then we should open it by OpenDocument, not OpenURL.
   - this should be done together with handling 3D models from real URLs.
 
+- Current PointingDeviceXxx is sensible for "the castle" activation
+  stateless "click and forget" activation. Activating stuff not under
+  mouse is stupid then (why should all 100 creatures be notified
+  about mouse click, transformed to their local coordinate system?)
+
+  But it's not so sensible for stateful X3D activation. If you're over
+  item, you want to be notified when this ends. If you're active with
+  something (mouse pressed), again you want to be notified when this ends.
+  We workaround this now by adding MainScene as a fallback, but this
+  is workaround:
+
+  1. if other T3D will have TouchSensor and process events,
+     it will not always receive correct notifications when isover/isactive
+     should end.
+
+     This is not an issue now, because other T3D items (other than MainScene)
+     do not really use sensors.
+
+  2. when things intercept activation, by setting "result := true"
+     because some message was done, it's possible that even MainScene will
+     not receive them when neeed.
+
+     This is not an issue now, because we "the castle" 3d items
+     only "handle" stuff on PointingDeviceActivation with Active=true.
+     So we only intercept mouse down clicks, which is Ok, since mouse down
+     when mouse is not over any sensor would not have any effect anyway.
+
+  Seems that a real solution is to introduce a list of 3d items
+  that should be just always notified about mouse events. Something
+  that can not intercepted (because item is not under mouse, or because
+  something else set "already handled").
+  Maybe all scenes with ProcessEvents := true? (but that's too much,
+  since even interpolator animation will require ProcessEvents := true...).
+
 ------------------------------------------------------------------------------
 Shaders:
 
