@@ -47,8 +47,10 @@ type
   TRaysWindow = class
   private
     FCamPosition, FCamDirection, FCamUp: TVector3Single;
+    CamSide: TVector3Single;
   public
     { Camera vectors. Initialized in the constructor.
+      Must be given already normalized.
       Note that CamUp may be changed in constructor, to be always perfectly
       orthogonal to CamDirection.
 
@@ -104,7 +106,6 @@ type
   TOrthographicRaysWindow = class(TRaysWindow)
   private
     OrthoViewDimensions: TVector4Single;
-    CamSide: TVector3Single;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
       const AOrthoViewDimensions: TVector4Single);
@@ -170,6 +171,13 @@ begin
 
   { fix CamUp }
   MakeVectorsOrthoOnTheirPlane(FCamUp, FCamDirection);
+
+  { CamSide will be normalized, if CamDirection and CamUp are normalized too. }
+  CamSide := CamDirection >< CamUp;
+
+  Assert(FloatsEqual(VectorLenSqr(CamDirection), 1.0, 0.01));
+  Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.01));
+  Assert(FloatsEqual(VectorLenSqr(CamSide), 1.0, 0.01));
 end;
 
 class function TRaysWindow.CreateDescendant(
@@ -221,15 +229,15 @@ begin
     WindowZ);
 
   { Transform ray, to take camera into acount.
-    Note that we don't pass CamPosition to TransformToCoordsNoScaleMatrix
+    We use TransformToCoordsMatrix instead of TransformToCoordsNoScaleMatrix,
+    because we know vectors are already normalized.
+    Note that we don't pass CamPosition to TransformToCoordsMatrix
     (this would be nonsense, it would treat RayVector as a point
     on the ray, and later we would have to subtract Ray0 from it to get
     actual direction). }
   RayDirection := MatrixMultPoint(
-    TransformToCoordsNoScaleMatrix(ZeroVector3Single,
-      CamDirection >< CamUp,
-      CamUp,
-      -CamDirection), RayDirection);
+    TransformToCoordsMatrix(ZeroVector3Single,
+      CamSide, CamUp, -CamDirection), RayDirection);
 end;
 
 { TOrthographicRaysWindow ---------------------------------------------------- }
@@ -239,14 +247,6 @@ constructor TOrthographicRaysWindow.Create(
   const AOrthoViewDimensions: TVector4Single);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
-
-  { we want to have CamUp always normalized }
-  NormalizeTo1st(FCamUp);
-
-  { we want to have CamSide, also always normalized }
-  CamSide := CamDirection >< CamUp;
-  NormalizeTo1st(CamSide);
-
   OrthoViewDimensions := AOrthoViewDimensions;
 end;
 

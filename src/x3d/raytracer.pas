@@ -67,8 +67,12 @@ type
       above 1.0 are clamped. }
     Image: TImage;
 
-    { Camera view. As usual, CamUp will be automatically corrected
-      to be orthogonal to CamDirection if necessary. }
+    { Camera view.
+      CamDirection and CamUp do not have to be normalized --- we will correct
+      them here if needed.
+      CamUp will be automatically corrected to be orthogonal to
+      CamDirection if necessary, you only make sure it's not parallel
+      to CamDirection. }
     CamPosition, CamDirection, CamUp: TVector3Single;
 
     { Camera projection properties.
@@ -491,7 +495,8 @@ begin
   RaysWindow := nil;
   SFCurve := nil;
   try
-    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
+    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, 
+      Normalized(CamDirection), Normalized(CamUp),
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
 
     { Using any other kind of space filling curve doesn't have any
@@ -1107,7 +1112,8 @@ begin
     {$endif}
 
     { calculate RaysWindow }
-    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, CamDirection, CamUp,
+    RaysWindow := TRaysWindow.CreateDescendant(CamPosition, 
+      Normalized(CamDirection), Normalized(CamUp),
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions);
 
     { calculate SFCurve }
