@@ -1329,7 +1329,8 @@ type
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
 
-    function PointingDeviceActivate(const Active: boolean): boolean; override;
+    function PointingDeviceActivate(const Active: boolean;
+      const Distance: Single): boolean; override;
 
     { Called when pointing device moves.
       This may generate the continously-generated events like
@@ -1338,13 +1339,9 @@ type
       thus producing isOver and such events.
 
       To make pointing-device sensors work Ok, make sure you have non-nil
-      OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)).
-
-      OverItem may be @nil to indicate we're not over any item.
-      In this case, OverPoint is ignored. }
-    function PointingDeviceMove(
-      const RayOrigin, RayDirection: TVector3Single;
-      const OverPoint: TVector3Single; const OverItemCore: P3DTriangle): boolean; override;
+      OctreeCollisions (e.g. include ssDynamicCollisions in @link(Spatial)). }
+    function PointingDeviceMove(const Pick: TRayCollisionNode;
+      const Distance: Single): boolean; override;
 
     { Current item over which the pointing device is. @nil if over none.
       For example, you can investigate it's pointing device sensors
@@ -1387,8 +1384,8 @@ type
       save some sensors for a longer time.
 
       You could free it by calling
-      @link(PointingDeviceMove) with OverItem = @nil,
-      but this could cause other VRML events,
+      @link(PointingDeviceMove) with Collision = @nil,
+      but this could cause other X3D events,
       so it's undesirable to call this when you're going to e.g. release
       the scene or it's octree. Also, you would have to deactivate sensor
       first, causing even more events.
@@ -5079,9 +5076,8 @@ end;
 
 { pointing device handling --------------------------------------------------- }
 
-function TCastleSceneCore.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3Single;
-  const OverPoint: TVector3Single; const OverItemCore: P3DTriangle): boolean;
+function TCastleSceneCore.PointingDeviceMove(const Pick: TRayCollisionNode;
+  const Distance: Single): boolean;
 var
   TouchSensor: TTouchSensorNode;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
@@ -5089,12 +5085,12 @@ var
   OldSensors: TX3DNodeList;
   NewSensors: TX3DNodeList;
   I: Integer;
-  { OverItemCore must always be something contained in our object,
-    so it is always P3DTriangle. }
-  OverItem: PTriangle absolute OverItemCore;
+  OverItem: PTriangle;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
+
+  OverItem := PTriangle(Pick.Triangle);
 
   { Never treat it as handled here (returning ExclusiveEvents),
     this would disable too much (like Camera usually under Scene on Controls).
@@ -5106,8 +5102,8 @@ begin
     { Note that using Begin/EndChangesSchedule is not only for efficiency
       here. It's also sometimes needed to keep the code correct: note
       that ChangedAll changes everything, including State pointers.
-      So OverPoint.State becomes invalid. (Once octree will be rebuild, also
-      OverPoint will be invalid.) Obviously, we can't let this happen
+      So OverItem.State becomes invalid. (Once octree will be rebuild, also
+      OverItem will be invalid.) Obviously, we can't let this happen
       in the middle of PointingDeviceMove. }
     BeginChangesSchedule;
     try
@@ -5165,7 +5161,7 @@ begin
             The latter interpretation:
             - Would be unhandy for implementation, as I would have to call
               raycollision twice for each MouseMove (to get
-              OverPointBeforeMove and OverPoint).
+              OverItemBeforeMove and OverItem).
             - Would be unhandy for users. You want
               to catch isOver changes eventually, right? Otherwise,
               user may be forced to move mouse out and then back in to generate
@@ -5220,10 +5216,10 @@ begin
         DoPointingDeviceSensorsChange;
       end;
 
-      { When OverItem <> nil => OverPoint is meaningful.
+      { When OverItem <> nil => Pick.Point is meaningful.
         Right now OverItem = FPointingDeviceOverItem,
         so take care to make PointingDeviceOverPoint also meaningful. }
-      FPointingDeviceOverPoint := OverPoint;
+      FPointingDeviceOverPoint := Pick.Point;
 
       { Handle hitXxx_changed events }
 
@@ -5240,15 +5236,15 @@ begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
                   we can get this by InverseTransform. }
-                MatrixMultPoint(OverItem^.State.InvertedTransform, OverPoint), Time);
+                MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), Time);
 
               if TouchSensor.EventHitNormal_Changed.SendNeeded then
                 TouchSensor.EventHitNormal_Changed.Send(
-                  OverItem^.INormal(OverPoint), Time);
+                  OverItem^.INormal(Pick.Point), Time);
 
               if TouchSensor.EventHitTexCoord_Changed.SendNeeded then
                 TouchSensor.EventHitTexCoord_Changed.Send(
-                  OverItem^.ITexCoord2D(OverPoint), Time);
+                  OverItem^.ITexCoord2D(Pick.Point), Time);
             end;
           end;
       end;
@@ -5260,7 +5256,7 @@ begin
           TAbstractPointingDeviceSensorNode;
         if ActiveSensor is TAbstractDragSensorNode then
           TAbstractDragSensorNode(ActiveSensor).Drag(
-            Time, RayOrigin, RayDirection);
+            Time, Pick.RayOrigin, Pick.RayDirection);
       end;
     finally
       EndChangesSchedule;
@@ -5423,7 +5419,8 @@ begin
     Result := nil;
 end;
 
-function TCastleSceneCore.PointingDeviceActivate(const Active: boolean): boolean;
+function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
+  const Distance: Single): boolean;
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
@@ -6356,9 +6353,9 @@ begin
       NewNode := Result.Add;
       NewNode^.Item := Self;
       NewNode^.Point := Intersection;
+      NewNode^.Triangle := Triangle;
       NewNode^.RayOrigin := RayOrigin;
       NewNode^.RayDirection := RayDirection;
-      NewNode^.Triangle := Triangle;
     end;
   end;
 end;

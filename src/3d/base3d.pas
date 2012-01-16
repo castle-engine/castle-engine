@@ -164,14 +164,27 @@ type
   public
     { Colliding 3D object. }
     Item: T3D;
-    { The 3D point of collision. }
+
+    { Position, in local coordinate system of this 3D object,
+      of the picked 3D point.
+
+      If the ray hit empty space, this is undefined.
+      Note that only MainScene is informed about pointing device events
+      when the ray hit empty space. }
     Point: TVector3Single;
+
+    { Triangle that was hit. This triangle is always a part of @link(Item).
+
+      If the ray hit empty space, this is @nil.
+      Note that only MainScene is informed about pointing device events
+      when the ray hit empty space.
+
+      May also be @nil if RayCollision for the 3D object simply left it @nil.
+      Right now, only TCastleScene sets Triangle at all. }
+    Triangle: P3DTriangle;
+
     { Ray used to cause the collision. }
     RayOrigin, RayDirection: TVector3Single;
-    { The triangle that collides. This triangle is always a part of @link(Item).
-      For now, always @nil when this is not the first (innermost)
-      item on TRayCollision list. }
-    Triangle: P3DTriangle;
   end;
   PRayCollisionNode = ^TRayCollisionNode;
 
@@ -190,13 +203,14 @@ type
     This is never an empty list when returned by RayCollision. }
   TRayCollision = class(specialize TGenericStructList<TRayCollisionNode>)
   public
-    { Distance to collision, from the ray origin along the ray vector.
+    { Distance, in world coordinate system, from the current
+      camera to the picked point. The suggested usage is to decide if player
+      is close enough to reach the 3D object --- for example, you may not
+      want to allow player to open a door by clicking on it from a far distance.
 
-      When this is used for pointing device picking by TCastleSceneManager,
-      then ray origin is equal to camera position,
-      and ray vector is always normalized. Which means that this is simply
-      the distance from camera to collision point (in world coordinate system,
-      i.e. withot any additional scaling). }
+      If the ray hit empty space, the distance is MaxSingle.
+      Note that only MainScene is informed about pointing device events
+      when the ray hit empty space. }
     Distance: Single;
 
     { Index of node with given Item.
@@ -449,29 +463,41 @@ type
     { Pointing device (usually mouse) events.
       Return @true if you handled the event.
 
-      PointingDeviceActivate signals that the picking button (usually,
-      left mouse button) is pressed or released (depending on Active parameter).
+      @unorderedList(
+        @item(PointingDeviceActivate signals that the picking button (usually,
+          left mouse button) is pressed or released (depending on Active parameter).)
 
-      PointingDeviceMove signals that pointer moves over this 3D object
-      (or outside of it, it this is the main 3D scene and nothing else
-      handled the event --- see below). It receives information about
-      the 3D ray that represents the 3D direction indicated by current mouse
-      position on the screen.
-      It also has detailed information about 3D point
-      and triangle under the mouse.
-      Ray and point coordinates are always in local coordinate system of this 3D object.
+        @item(PointingDeviceMove signals that pointer moves over this 3D object.)
+      )
 
-      The event informing about the pointing device (activation,
+      PointingDeviceMove receives Pick information about what exactly is hit
+      by the 3D ray corresponding to the current mouse position.
+      It contains the detailed information about 3D point, triangle
+      and ray (all in local coordinate system) that are indicated by the mouse.
+      PointingDeviceActivate does not receive this information now
+      (because it may happen in obscure situations when ray direction is not known;
+      this is all related to our "fallback to MainScene" mechanism).
+
+      They also receive Distance to the collision,
+      in world coordinates. See TRayCollision.Distance.
+
+      The pointing device event (activation,
       deactivation or move) is send first to the innermost 3D object.
       That is, we first send this event to the first item on
-      TRayCollision list corresponding to current ray.
+      TRayCollision list corresponding to the current ray.
       This way, the innermost ("most local") 3D object has the chance
       to handle this event first. If the event is not handled, it is passed
-      to more outer 3D objects (we simply iterate over the TRayCollision list).
+      to other 3D objects (we simply iterate over the TRayCollision list).
       If nothing on TRayCollision list
       handled the item, it is eventually passed to main 3D scene
       (TCastleSceneManager.MainScene), if it wasn't already present on
       TRayCollision list.
+
+      Note that when passing this event to TCastleSceneManager.MainScene,
+      it is possible that 3D ray simply didn't hit anything (mouse pointer
+      is over the background). In this case, TRayCollisionNode.Point
+      is undefined, TRayCollisionNode.Triangle is @nil
+      and Distance is MaxSingle.
 
       This event should be handled only if GetExists.
       Usually, 3D objects with GetExists = @false will not be returned
@@ -481,10 +507,10 @@ type
       inside PointingDeviceActivate and PointingDeviceMove.
 
       @groupBegin }
-    function PointingDeviceActivate(const Active: boolean): boolean; virtual;
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
-      const OverPoint: TVector3Single;
-      const OverItem: P3DTriangle): boolean; virtual;
+    function PointingDeviceActivate(const Active: boolean;
+      const Distance: Single): boolean; virtual;
+    function PointingDeviceMove(const Pick: TRayCollisionNode;
+      const Distance: Single): boolean; virtual;
     { @groupEnd }
 
     { Idle event, for continously repeated tasks. }
@@ -964,14 +990,14 @@ begin
   Result := false;
 end;
 
-function T3D.PointingDeviceActivate(const Active: boolean): boolean;
+function T3D.PointingDeviceActivate(const Active: boolean;
+  const Distance: Single): boolean;
 begin
   Result := false;
 end;
 
-function T3D.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
-  const OverPoint: TVector3Single;
-  const OverItem: P3DTriangle): boolean;
+function T3D.PointingDeviceMove(const Pick: TRayCollisionNode;
+  const Distance: Single): boolean;
 begin
   Result := false;
 end;
@@ -1552,9 +1578,9 @@ begin
       PreviousNode := @(Result.List^[Result.Count - 2]);
       NewNode^.Item := Self;
       NewNode^.Point := PreviousNode^.Point;
-      NewNode^.RayOrigin := PreviousNode^.RayOrigin;
-      NewNode^.RayDirection := PreviousNode^.RayDirection;
       NewNode^.Triangle := nil;
+      NewNode^.RayOrigin := RayOrigin;
+      NewNode^.RayDirection := RayDirection;
     end;
   end;
 end;

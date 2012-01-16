@@ -2246,40 +2246,37 @@ end;
 procedure TCastleSceneManager.PointingDeviceActivate(const Active: boolean);
 var
   PassToMainScene: boolean;
-
-  function PassTo(const Node: TRayCollisionNode): boolean;
-  begin
-    Result := Node.Item.PointingDeviceActivate(Active);
-    if Result or (Node.Item = MainScene) then
-      PassToMainScene := false;
-  end;
-
-var
   I: Integer;
 begin
+  { call T3D.PointingDeviceActivate on everything }
+
   PassToMainScene := true;
+
   if MouseRayHit <> nil then
     for I := 0 to MouseRayHit.Count - 1 do
-      if PassTo(MouseRayHit[I]) then Break;
+    begin
+      if MouseRayHit[I].Item = MainScene then
+        PassToMainScene := false;
+      if MouseRayHit[I].Item.PointingDeviceActivate(Active, MouseRayHit.Distance) then
+      begin
+        PassToMainScene := false;
+        Break;
+      end;
+    end;
+
   if PassToMainScene and (MainScene <> nil) then
-    MainScene.PointingDeviceActivate(Active);
+    MainScene.PointingDeviceActivate(Active, MaxSingle);
 end;
 
 procedure TCastleSceneManager.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single);
 var
   PassToMainScene: boolean;
-
-  function PassTo(const Node: TRayCollisionNode): boolean;
-  begin
-    Result := Node.Item.PointingDeviceMove(Node.RayOrigin, Node.RayDirection, Node.Point, Node.Triangle);
-    if Result or (Node.Item = MainScene) then
-      PassToMainScene := false;
-  end;
-
-var
   I: Integer;
+  MainSceneNode: TRayCollisionNode;
 begin
-  { update FMouseRayHit }
+  { update FMouseRayHit.
+    We know that RayDirection is normalized now, which is important
+    to get correct FMouseRayHit.Distance. }
   FreeAndNil(FMouseRayHit);
   FMouseRayHit := Items.RayCollision(RayOrigin, RayDirection,
     { Do not use CollisionIgnoreItem here,
@@ -2290,12 +2287,35 @@ begin
     MouseRayHit3D := MouseRayHit.First.Item else
     MouseRayHit3D := nil;
 
+  { call T3D.PointingDeviceMove on everything }
+
   PassToMainScene := true;
+
   if MouseRayHit <> nil then
     for I := 0 to MouseRayHit.Count - 1 do
-      if PassTo(MouseRayHit[I]) then Break;
+    begin
+      if MouseRayHit[I].Item = MainScene then
+        PassToMainScene := false;
+      if MouseRayHit[I].Item.PointingDeviceMove(MouseRayHit[I], MouseRayHit.Distance) then
+      begin
+        PassToMainScene := false;
+        Break;
+      end;
+    end;
+
   if PassToMainScene and (MainScene <> nil) then
-    MainScene.PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil);
+  begin
+    MainSceneNode.Item := MainScene;
+    { if ray hit something, then the outermost 3D object should just be our Items,
+      and it contains the 3D point picked. }
+    if MouseRayHit <> nil then
+      MainSceneNode.Point := MouseRayHit.Last.Point else
+      MainSceneNode.Point := ZeroVector3Single;
+    MainSceneNode.RayOrigin := RayOrigin;
+    MainSceneNode.RayDirection := RayDirection;
+    MainSceneNode.Triangle := nil;
+    MainScene.PointingDeviceMove(MainSceneNode, MaxSingle);
+  end;
 end;
 
 procedure TCastleSceneManager.Idle(const CompSpeed: Single;

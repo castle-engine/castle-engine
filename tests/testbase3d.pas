@@ -188,11 +188,11 @@ begin
     NewNode := Result.Add;
     NewNode^.Item := Self;
     NewNode^.Point := Intersection;
-    NewNode^.RayOrigin := RayOrigin;
-    NewNode^.RayDirection := RayDirection;
     { real T3D implementation could assign here something nice to NewNode^.Triangle,
       to inform T3D.PointingDeviceMove/Activate about the intersected material. }
     NewNode^.Triangle := nil;
+    NewNode^.RayOrigin := RayOrigin;
+    NewNode^.RayDirection := RayDirection;
   end else
     Result := nil;
 end;

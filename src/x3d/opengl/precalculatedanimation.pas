@@ -1954,9 +1954,9 @@ begin
       PreviousNode := @(Result.List^[Result.Count - 2]);
       NewNode^.Item := Self;
       NewNode^.Point := PreviousNode^.Point;
+      NewNode^.Triangle := nil;
       NewNode^.RayOrigin := PreviousNode^.RayOrigin;
       NewNode^.RayDirection := PreviousNode^.RayDirection;
-      NewNode^.Triangle := nil;
     end;
   end;
 end;
