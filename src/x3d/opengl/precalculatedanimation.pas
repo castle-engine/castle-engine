@@ -1924,6 +1924,7 @@ function TCastlePrecalculatedAnimation.RayCollision(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   NewResult: T3DCollision;
+  NewNode, PreviousNode: P3DCollisionNode;
 begin
   Result := nil;
 
@@ -1948,7 +1949,15 @@ begin
     end;
 
     if Result <> nil then
-      Result.Hierarchy.Insert(0, Self);
+    begin
+      NewNode := Result.Add;
+      PreviousNode := @(Result.List^[Result.Count - 2]);
+      NewNode^.Item := Self;
+      NewNode^.Point := PreviousNode^.Point;
+      NewNode^.RayOrigin := PreviousNode^.RayOrigin;
+      NewNode^.RayDirection := PreviousNode^.RayDirection;
+      NewNode^.Triangle := nil;
+    end;
   end;
 end;
 

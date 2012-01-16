@@ -19,7 +19,7 @@ unit Base3D;
 interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
-  CastleUtils, FGL;
+  CastleUtils, FGL, GenericStructList;
 
 type
   TRenderFromViewFunction = procedure of object;
@@ -157,35 +157,39 @@ type
 
   T3DListCore = class;
 
-  { Represents a collision with a 3D objects (T3D descendants) tree. }
-  T3DCollision = class
+  { Information about ray collision with a single 3D object.
+    Everything (Point, RayOrigin, RayVector) is expressed in the
+    local coordinates of given 3D object (in @link(Item)). }
+  T3DCollisionNode = object
   public
-    constructor Create;
-    destructor Destroy; override;
-  public
-    { The path in the 3D objects tree leading from the root to the
-      final colliding 3D object.
-
-      For example, your 3D tree may be a list (like T3DList), and within
-      this list is a transformed list (T3DTransform),
-      and within is your final colliding object (like TCastleScene).
-      Hierarchy will contain in this case these three items, which allows
-      you to track the containers that contain given collision.
-
-      This is never an empty list. }
-    Hierarchy: T3DListCore;
-
-    { The 3D point of collision.
-
-      Always given in the local coordinate system of
-      the T3D object that deals with this T3DCollision tree.
-      That is, T3D.RayCollision returns this in coordinates of given T3D object,
-      and T3D.PointingDeviceMove expects OverPoint in coordinates of given T3D object.
-      This means that coordinate system changes, and this point is recalculated
-      to appropriate coordinate systems, as this structure is passed
-      through the T3DTransform class in the hierarchy. }
+    { Colliding 3D object. }
+    Item: T3D;
+    { The 3D point of collision. }
     Point: TVector3Single;
+    { Ray used to cause the collision. }
+    RayOrigin, RayDirection: TVector3Single;
+    { The triangle that collides. This triangle is always a part of @link(Item).
+      For now, always @nil when this is not the first (innermost)
+      item on T3DCollision list. }
+    Triangle: P3DTriangle;
+  end;
+  P3DCollisionNode = ^T3DCollisionNode;
 
+  { Represents a collision with a 3D objects (T3D descendants) tree.
+
+    This list is a path in the 3D objects tree leading from the
+    final colliding 3D object to the root of the tree.
+
+    For example, your 3D tree may be a list (like T3DList), and within
+    this list is a transformed list (T3DTransform),
+    and within is your final colliding object (like TCastleScene).
+    We will contain in this case these three items, in reverse order
+    (TCastleScene, T3DTransformm, T3DList).
+    This allows you to track the containers that contain given collision.
+
+    This is never an empty list when returned by RayCollision. }
+  T3DCollision = class(specialize TGenericStructList<T3DCollisionNode>)
+  public
     { Distance to collision, from the ray origin along the ray vector.
 
       When this is used for pointing device picking by TCastleSceneManager,
@@ -194,10 +198,6 @@ type
       the distance from camera to collision point (in world coordinate system,
       i.e. withot any additional scaling). }
     Distance: Single;
-
-    { The triangle that collides. This triangle is always a part of the last
-      item on @link(Hierarchy) list. }
-    Triangle: P3DTriangle;
   end;
 
   { Statistics about what was rendered during last frame.
@@ -451,23 +451,22 @@ type
       (or outside of it, it this is the main 3D scene and nothing else
       handled the event --- see below). It receives information about
       the 3D ray that represents the 3D direction indicated by current mouse
-      position on the screen. It also has detailed information about 3D point
-      and triangle under the mouse (this is passed @italic(only) if the
-      picked triangle actually belongs to the given 3D object;
-      in other words, only when the object is the last item on
-      T3DCollision.Hierarchy list).
+      position on the screen.
+      It also has detailed information about 3D point
+      and triangle under the mouse.
+      Ray and point coordinates are always in local coordinate system of this 3D object.
 
       The event informing about the pointing device (activation,
       deactivation or move) is send first to the innermost 3D object.
-      That is, we first send this event to the last item on
-      T3DCollision.Hierarchy corresponding to current ray.
+      That is, we first send this event to the first item on
+      T3DCollision list corresponding to current ray.
       This way, the innermost ("most local") 3D object has the chance
       to handle this event first. If the event is not handled, it is passed
-      to more outer 3D objects (we simply move backward on the
-      T3DCollision.Hierarchy list). If nothing on T3DCollision.Hierarchy list
+      to more outer 3D objects (we simply iterate over the T3DCollision list).
+      If nothing on T3DCollision list
       handled the item, it is eventually passed to main 3D scene
       (TCastleSceneManager.MainScene), if it wasn't already present on
-      T3DCollision.Hierarchy list.
+      T3DCollision list.
 
       This event should be handled only if GetExists.
       Usually, 3D objects with GetExists = @false will not be returned
@@ -807,8 +806,6 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
-      const OverPoint: TVector3Single; const OverItem: P3DTriangle): boolean; override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -894,19 +891,6 @@ begin
   Local.Area := TriangleArea(ATriangle);
 
   World := Local;
-end;
-
-{ T3DCollision ------------------------------------------------------------- }
-
-constructor T3DCollision.Create;
-begin
-  inherited;
-  Hierarchy := T3DListCore.Create(false, nil);
-end;
-
-destructor T3DCollision.Destroy;
-begin
-  FreeAndNil(Hierarchy);
 end;
 
 { TRenderParams -------------------------------------------------------------- }
@@ -1309,11 +1293,11 @@ begin
   { Open question: alternatively, instead of directly sending CursorChange,
     we could update our own cursor (thus indirectly (possibly) generating
     OnCursorChange), and let scene manager to take cursor from
-    MouseRayHit.Hierarchy.First.Cursor.
+    MouseRayHit.Last.Item.Cursor.
 
-    Right now, scene manager takes cursor from MouseRayHit.Hierarchy.Last.Cursor,
+    Right now, scene manager takes cursor from MouseRayHit.First.Item.Cursor,
     and pretty much ignores Cursor value of 3d stuff along
-    the MouseRayHit.Hierarchy path.
+    the MouseRayHit list.
 
     This is undecided yet, I currently don't see any compelling reason
     for one or the other behavior. }
@@ -1528,6 +1512,7 @@ function T3DList.RayCollision(const Ray0, RayVector: TVector3Single;
 var
   I: Integer;
   NewResult: T3DCollision;
+  NewNode, PreviousNode: P3DCollisionNode;
 begin
   Result := nil;
 
@@ -1548,7 +1533,15 @@ begin
     end;
 
     if Result <> nil then
-      Result.Hierarchy.Insert(0, Self);
+    begin
+      NewNode := Result.Add;
+      PreviousNode := @(Result.List^[Result.Count - 2]);
+      NewNode^.Item := Self;
+      NewNode^.Point := PreviousNode^.Point;
+      NewNode^.RayOrigin := PreviousNode^.RayOrigin;
+      NewNode^.RayDirection := PreviousNode^.RayDirection;
+      NewNode^.Triangle := nil;
+    end;
   end;
 end;
 
@@ -1797,27 +1790,6 @@ begin
       false, MatrixMult(Transform, ParentTransform));
 end;
 
-function T3DCustomTransform.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
-  const OverPoint: TVector3Single; const OverItem: P3DTriangle): boolean;
-var
-  T: TVector3Single;
-  Inverse: TMatrix4Single;
-begin
-  if OnlyTranslation then
-  begin
-    T := GetTranslation;
-    Result := inherited PointingDeviceMove(RayOrigin - T, RayDirection,
-      OverPoint - T, OverItem);
-  end else
-  begin
-    Inverse := TransformInverse;
-    Result := inherited PointingDeviceMove(
-      MatrixMultPoint(Inverse, RayOrigin),
-      MatrixMultDirection(Inverse, RayDirection),
-      MatrixMultPoint(Inverse, OverPoint), OverItem);
-  end;
-end;
-
 procedure T3DCustomTransform.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
@@ -2012,6 +1984,7 @@ function T3DCustomTransform.RayCollision(const Ray0, RayVector: TVector3Single;
 var
   T: TVector3Single;
   M, MInverse: TMatrix4Single;
+  LastNode: P3DCollisionNode;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -2022,17 +1995,31 @@ begin
     T := GetTranslation;
     Result := inherited RayCollision(Ray0 - T, RayVector, TrianglesToIgnoreFunc);
     if Result <> nil then
-      Result.Point += T;
+    begin
+      LastNode := @(Result.List^[Result.Count - 1]);
+      LastNode^.Point += T;
+      { untransform the ray }
+      LastNode^.RayOrigin := Ray0;
+      LastNode^.RayDirection := RayVector;
+    end;
   end else
   begin
     TransformMatrices(M, MInverse);
-    Result := inherited RayCollision(MatrixMultPoint(MInverse, Ray0),
+    Result := inherited RayCollision(
+      MatrixMultPoint(MInverse, Ray0),
       MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
     if Result <> nil then
-      Result.Point := MatrixMultPoint(M, Result.Point);
-    { Note that we should not scale Result.Distance by AverageScale.
-      That is because Result.Distance is relative to RayVector length,
-      so it's automatically correct. }
+    begin
+      LastNode := @(Result.List^[Result.Count - 1]);
+      LastNode^.Point := MatrixMultPoint(M, LastNode^.Point);
+      { untransform the ray }
+      LastNode^.RayOrigin := Ray0;
+      LastNode^.RayDirection := RayVector;
+
+      { Note that we should not scale Result.Distance by AverageScale.
+        That is because Result.Distance is relative to RayVector length,
+        so it's automatically correct. }
+    end;
   end;
 end;
 

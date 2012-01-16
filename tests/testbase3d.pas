@@ -177,17 +177,22 @@ function TMy3D.RayCollision(const Ray0, RayVector: TVector3Single;
 var
   Intersection: TVector3Single;
   IntersectionDistance: Single;
+  NewNode: P3DCollisionNode;
 begin
   if GetExists and
     MyBox.TryRayEntrance(Intersection, IntersectionDistance, Ray0, RayVector) then
   begin
     Result := T3DCollision.Create;
-    Result.Hierarchy.Add(Self);
-    Result.Point := Intersection;
     Result.Distance := IntersectionDistance;
-    { real T3D implementation could assign here something nice to Result.Triangle,
-      to give T3D.PointingDeviceMove/Activate knowledge about
-      the intersected material. }
+
+    NewNode := Result.Add;
+    NewNode^.Item := Self;
+    NewNode^.Point := Intersection;
+    NewNode^.RayOrigin := Ray0;
+    NewNode^.RayDirection := RayVector;
+    { real T3D implementation could assign here something nice to NewNode^.Triangle,
+      to inform T3D.PointingDeviceMove/Activate about the intersected material. }
+    NewNode^.Triangle := nil;
   end else
     Result := nil;
 end;
@@ -266,7 +271,7 @@ begin
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
     Assert(FloatsEqual(Collision.Distance, 9));
-    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -407,7 +412,7 @@ begin
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
     Assert(FloatsEqual(Collision.Distance, 9));
-    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -487,7 +492,7 @@ begin
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
     Assert(FloatsEqual(Collision.Distance, 9));
-    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -632,7 +637,7 @@ begin
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
     Assert(FloatsEqual(Collision.Distance, 9));
-    Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
+    Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -712,7 +717,7 @@ procedure TTestBase3D.Test3DTransformReal;
       Vector3Single(30, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
     Assert(FloatsEqual(Collision.Distance, 9));
-    Assert(VectorsEqual(Collision.Point, Vector3Single(21, 0, 0), 0.001));
+    Assert(VectorsEqual(Collision.Last.Point, Vector3Single(21, 0, 0), 0.001));
     FreeAndNil(Collision);
   end;
 

@@ -6339,6 +6339,7 @@ var
   Triangle: PTriangle;
   Intersection: TVector3Single;
   IntersectionDistance: Single;
+  NewNode: P3DCollisionNode;
 begin
   Result := nil;
   if GetExists and (OctreeCollisions <> nil) then
@@ -6351,10 +6352,13 @@ begin
     if Triangle <> nil then
     begin
       Result := T3DCollision.Create;
-      Result.Triangle := Triangle;
-      Result.Point := Intersection;
       Result.Distance := IntersectionDistance;
-      Result.Hierarchy.Add(Self);
+      NewNode := Result.Add;
+      NewNode^.Item := Self;
+      NewNode^.Point := Intersection;
+      NewNode^.RayOrigin := Ray0;
+      NewNode^.RayDirection := RayVector;
+      NewNode^.Triangle := Triangle;
     end;
   end;
 end;

@@ -2247,10 +2247,10 @@ procedure TCastleSceneManager.PointingDeviceActivate(const Active: boolean);
 var
   PassToMainScene: boolean;
 
-  function PassTo(const Item: T3D): boolean;
+  function PassTo(const Node: T3DCollisionNode): boolean;
   begin
-    Result := Item.PointingDeviceActivate(Active);
-    if Result or (Item = MainScene) then
+    Result := Node.Item.PointingDeviceActivate(Active);
+    if Result or (Node.Item = MainScene) then
       PassToMainScene := false;
   end;
 
@@ -2259,28 +2259,20 @@ var
 begin
   PassToMainScene := true;
   if MouseRayHit <> nil then
-    for I := MouseRayHit.Hierarchy.Count - 1 downto 0 do
-      if PassTo(MouseRayHit.Hierarchy[I]) then Break;
+    for I := 0 to MouseRayHit.Count - 1 do
+      if PassTo(MouseRayHit[I]) then Break;
   if PassToMainScene and (MainScene <> nil) then
-    PassTo(MainScene);
+    MainScene.PointingDeviceActivate(Active);
 end;
 
 procedure TCastleSceneManager.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single);
 var
   PassToMainScene: boolean;
 
-  function PassTo(const Item: T3D): boolean;
+  function PassTo(const Node: T3DCollisionNode): boolean;
   begin
-    { pass point and triangle only to the MouseRayHit.Hierarchy.Last.
-      Reason: if ray hit outside this scene (other 3D object, or empty space)
-      then mouse is no longer over any part of *this* scene.
-      More practically: TCastleSceneCore implementation must assume
-      that Triangle belongs to it's own octree. }
-
-    if (MouseRayHit <> nil) and (MouseRayHit.Hierarchy.Last = Item) then
-      Result := Item.PointingDeviceMove(RayOrigin, RayDirection, MouseRayHit.Point, MouseRayHit.Triangle) else
-      Result := Item.PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil);
-    if Result or (Item = MainScene) then
+    Result := Node.Item.PointingDeviceMove(Node.RayOrigin, Node.RayDirection, Node.Point, Node.Triangle);
+    if Result or (Node.Item = MainScene) then
       PassToMainScene := false;
   end;
 
@@ -2295,15 +2287,15 @@ begin
 
   { calculate MouseRayHit3D }
   if MouseRayHit <> nil then
-    MouseRayHit3D := MouseRayHit.Hierarchy.Last else
+    MouseRayHit3D := MouseRayHit.First.Item else
     MouseRayHit3D := nil;
 
   PassToMainScene := true;
   if MouseRayHit <> nil then
-    for I := MouseRayHit.Hierarchy.Count - 1 downto 0 do
-      if PassTo(MouseRayHit.Hierarchy[I]) then Break;
+    for I := 0 to MouseRayHit.Count - 1 do
+      if PassTo(MouseRayHit[I]) then Break;
   if PassToMainScene and (MainScene <> nil) then
-    PassTo(MainScene);
+    MainScene.PointingDeviceMove(RayOrigin, RayDirection, ZeroVector3Single, nil);
 end;
 
 procedure TCastleSceneManager.Idle(const CompSpeed: Single;
