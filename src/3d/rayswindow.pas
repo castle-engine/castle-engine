@@ -122,15 +122,14 @@ type
 { Calculate position and direction of the primary ray cast from CamPosition,
   going through the pixel X, Y.
   Takes into account camera 3D settings and screen sizes.
+  RayDirection will always be normalized, just like from TRaysWindow.PrimaryRay.
 
   See TCastleSceneManager.PerspectiveView for specification
   of projection properties PerspectiveView etc.
 
-  This simply creates and uses TRaysWindow instance, which is not optimal
-  if you will want to ask for PrimaryRay many times with the same camera
-  and window settings. Better use TRaysWindow class directly then.
-  For things like picking interactively objects with mouse this is usually
-  fast enough (camera will change anyway on each move). }
+  If you want to call this many times for the same camera settings,
+  it may be more optimal to create TRaysWindow instance first
+  and call it's TRaysWindow.PrimaryRay method. }
 procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
   const CamPosition, CamDirection, CamUp: TVector3Single;
   const PerspectiveView: boolean;
