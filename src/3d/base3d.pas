@@ -186,6 +186,15 @@ type
       through the T3DTransform class in the hierarchy. }
     Point: TVector3Single;
 
+    { Distance to collision, from the ray origin along the ray vector.
+
+      When this is used for pointing device picking by TCastleSceneManager,
+      then ray origin is equal to camera position,
+      and ray vector is always normalized. Which means that this is simply
+      the distance from camera to collision point (in world coordinate system,
+      i.e. withot any additional scaling). }
+    Distance: Single;
+
     { The triangle that collides. This triangle is always a part of the last
       item on @link(Hierarchy) list. }
     Triangle: P3DTriangle;
@@ -596,17 +605,11 @@ type
       for picking (pointing) 3D stuff --- everything visible can be picked,
       collidable or not.
 
-      IntersectionDistance is the distance to the collision point,
-      @italic(where one RayVector equals one unit).
-      Always use normalized RayVector if you expect to get here a normal distance.
-
       This always returns the first collision with the 3D world, that is
-      the one with smallest IntersectionDistance. For example, when
+      the one with smallest T3DCollision.Distance. For example, when
       implemented in T3DList, this checks collisions for all list items,
       and chooses the closest one. }
-    function RayCollision(
-      out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+    function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; virtual;
 
     procedure UpdateGeneratedTextures(
@@ -734,9 +737,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(
-      out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+    function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -804,9 +805,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(
-      out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+    function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single;
       const OverPoint: TVector3Single; const OverItem: P3DTriangle): boolean; override;
@@ -1064,9 +1063,7 @@ begin
   Result := false;
 end;
 
-function T3D.RayCollision(
-  out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+function T3D.RayCollision(const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 begin
   Result := nil;
@@ -1526,29 +1523,23 @@ begin
     end;
 end;
 
-function T3DList.RayCollision(
-  out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+function T3DList.RayCollision(const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   I: Integer;
-  NewIntersectionDistance: Single;
   NewResult: T3DCollision;
 begin
   Result := nil;
-  IntersectionDistance := 0; { Only to silence compiler warning }
 
   if GetExists then
   begin
     for I := 0 to List.Count - 1 do
     begin
-      NewResult := List[I].RayCollision(
-        NewIntersectionDistance, Ray0, RayVector, TrianglesToIgnoreFunc);
+      NewResult := List[I].RayCollision(Ray0, RayVector, TrianglesToIgnoreFunc);
       if NewResult <> nil then
       begin
-        if (Result = nil) or (NewIntersectionDistance < IntersectionDistance) then
+        if (Result = nil) or (NewResult.Distance < Result.Distance) then
         begin
-          IntersectionDistance := NewIntersectionDistance;
           SysUtils.FreeAndNil(Result);
           Result := NewResult;
         end else
@@ -2016,9 +2007,7 @@ begin
       Box.Transform(TransformInverse), TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTransform.RayCollision(
-  out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+function T3DCustomTransform.RayCollision(const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   T: TVector3Single;
@@ -2031,20 +2020,18 @@ begin
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    Result := inherited RayCollision(IntersectionDistance,
-      Ray0 - T, RayVector, TrianglesToIgnoreFunc);
+    Result := inherited RayCollision(Ray0 - T, RayVector, TrianglesToIgnoreFunc);
     if Result <> nil then
       Result.Point += T;
   end else
   begin
     TransformMatrices(M, MInverse);
-    Result := inherited RayCollision(IntersectionDistance,
-      MatrixMultPoint(MInverse, Ray0),
+    Result := inherited RayCollision(MatrixMultPoint(MInverse, Ray0),
       MatrixMultDirection(MInverse, RayVector), TrianglesToIgnoreFunc);
     if Result <> nil then
       Result.Point := MatrixMultPoint(M, Result.Point);
-    { Note that we should not scale resulting IntersectionDistance by AverageScale.
-      That is because IntersectionDistance is relative to RayVector length,
+    { Note that we should not scale Result.Distance by AverageScale.
+      That is because Result.Distance is relative to RayVector length,
       so it's automatically correct. }
   end;
 end;

@@ -1739,9 +1739,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(
-      out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+    function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     function Dragging: boolean; override;
 
@@ -6335,13 +6333,12 @@ begin
       Box,  nil, TrianglesToIgnoreFunc);
 end;
 
-function TCastleSceneCore.RayCollision(
-  out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+function TCastleSceneCore.RayCollision(const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   Triangle: PTriangle;
   Intersection: TVector3Single;
+  IntersectionDistance: Single;
 begin
   Result := nil;
   if GetExists and (OctreeCollisions <> nil) then
@@ -6356,6 +6353,7 @@ begin
       Result := T3DCollision.Create;
       Result.Triangle := Triangle;
       Result.Point := Intersection;
+      Result.Distance := IntersectionDistance;
       Result.Hierarchy.Add(Self);
     end;
   end;

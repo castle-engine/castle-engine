@@ -540,9 +540,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(
-      out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+    function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -1922,32 +1920,26 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.RayCollision(
-  out IntersectionDistance: Single;
   const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
-  NewIntersectionDistance: Single;
   NewResult: T3DCollision;
 begin
   Result := nil;
-  IntersectionDistance := 0; { Only to silence compiler warning }
 
   if Loaded and GetExists then
   begin
-    Result := FirstScene.RayCollision(IntersectionDistance,
-      Ray0, RayVector, TrianglesToIgnoreFunc);
+    Result := FirstScene.RayCollision(Ray0, RayVector, TrianglesToIgnoreFunc);
 
     if CollisionUseLastScene then
     begin
       { try the same thing on LastScene }
-      NewResult := LastScene.RayCollision(NewIntersectionDistance,
-        Ray0, RayVector, TrianglesToIgnoreFunc);
+      NewResult := LastScene.RayCollision(Ray0, RayVector, TrianglesToIgnoreFunc);
 
       if NewResult <> nil then
       begin
-        if (Result = nil) or (NewIntersectionDistance < IntersectionDistance) then
+        if (Result = nil) or (NewResult.Distance < Result.Distance) then
         begin
-          IntersectionDistance := NewIntersectionDistance;
           SysUtils.FreeAndNil(Result);
           Result := NewResult;
         end else

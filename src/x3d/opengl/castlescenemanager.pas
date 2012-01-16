@@ -2285,12 +2285,11 @@ var
   end;
 
 var
-  Dummy: Single;
   I: Integer;
 begin
   { update FMouseRayHit }
   FreeAndNil(FMouseRayHit);
-  FMouseRayHit := Items.RayCollision(Dummy, RayOrigin, RayDirection,
+  FMouseRayHit := Items.RayCollision(RayOrigin, RayDirection,
     { Do not use CollisionIgnoreItem here,
       as this is not camera<->3d world collision? } nil);
 

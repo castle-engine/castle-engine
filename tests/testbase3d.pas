@@ -74,9 +74,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(
-      out IntersectionDistance: Single;
-      const Ray0, RayVector: TVector3Single;
+    function RayCollision(const Ray0, RayVector: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision; override;
   end;
 
@@ -174,12 +172,11 @@ begin
   Result := GetExists and Collides and MyBox.Collision(Box);
 end;
 
-function TMy3D.RayCollision(
-  out IntersectionDistance: Single;
-  const Ray0, RayVector: TVector3Single;
+function TMy3D.RayCollision(const Ray0, RayVector: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): T3DCollision;
 var
   Intersection: TVector3Single;
+  IntersectionDistance: Single;
 begin
   if GetExists and
     MyBox.TryRayEntrance(Intersection, IntersectionDistance, Ray0, RayVector) then
@@ -187,9 +184,10 @@ begin
     Result := T3DCollision.Create;
     Result.Hierarchy.Add(Self);
     Result.Point := Intersection;
-    { real T3D implementation could assign here something better
-      to get intersected material. }
-    Result.Triangle := nil;
+    Result.Distance := IntersectionDistance;
+    { real T3D implementation could assign here something nice to Result.Triangle,
+      to give T3D.PointingDeviceMove/Activate knowledge about
+      the intersected material. }
   end else
     Result := nil;
 end;
@@ -210,7 +208,6 @@ var
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
   Collision: T3DCollision;
-  CollisionDistance: Single;
 begin
   M := TMy3D.Create(nil, Box0);
   try
@@ -261,14 +258,14 @@ begin
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
     Assert(M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(FloatsEqual(Collision.Distance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -282,7 +279,6 @@ var
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
   Collision: T3DCollision;
-  CollisionDistance: Single;
 begin
   M := TMy3D.Create(nil, Box0);
   try
@@ -334,11 +330,11 @@ begin
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
   finally FreeAndNil(M) end;
@@ -352,7 +348,6 @@ var
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
   Collision: T3DCollision;
-  CollisionDistance: Single;
 begin
   M := TMy3D.Create(nil, Box0);
   try
@@ -404,14 +399,14 @@ begin
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(FloatsEqual(Collision.Distance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -431,7 +426,6 @@ var
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
   Collision: T3DCollision;
-  CollisionDistance: Single;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -485,14 +479,14 @@ begin
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
     Assert(M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(FloatsEqual(Collision.Distance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -506,7 +500,6 @@ var
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
   Collision: T3DCollision;
-  CollisionDistance: Single;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -560,11 +553,11 @@ begin
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
   finally FreeAndNil(M) end;
@@ -578,7 +571,6 @@ var
   AboveGround: P3DTriangle;
   NewPos: TVector3Single;
   Collision: T3DCollision;
-  CollisionDistance: Single;
 begin
   M := TMy3DTransform.Create(nil);
   try
@@ -632,14 +624,14 @@ begin
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(FloatsEqual(Collision.Distance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -655,7 +647,6 @@ procedure TTestBase3D.Test3DTransformReal;
     AboveGround: P3DTriangle;
     NewPos: TVector3Single;
     Collision: T3DCollision;
-    CollisionDistance: Single;
   begin
     Assert(M.BoundingBox.Equal(Box20));
 
@@ -713,14 +704,14 @@ procedure TTestBase3D.Test3DTransformReal;
     Assert(not M.BoxCollision(Box3DAroundPoint(Vector3Single(22, 2, 2), 0.6), nil));
     Assert(M.BoxCollision(Box3DAroundPoint(Vector3Single(22, 2, 2), 6), nil));
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(30, 10, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision = nil);
 
-    Collision := M.RayCollision(CollisionDistance,
+    Collision := M.RayCollision(
       Vector3Single(30, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(CollisionDistance, 9));
+    Assert(FloatsEqual(Collision.Distance, 9));
     Assert(VectorsEqual(Collision.Point, Vector3Single(21, 0, 0), 0.001));
     FreeAndNil(Collision);
   end;
