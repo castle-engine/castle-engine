@@ -79,11 +79,9 @@ type
     CurrentScreenEffectsNeedDepth: boolean;
 
     FInput_PointingDeviceActivate: TInputShortcut;
-    FOwnsInput_PointingDeviceActivate: boolean;
     FApproximateActivation: boolean;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
-    procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
   protected
     { These variables are writeable from overridden ApplyProjection. }
     FPerspectiveView: boolean;
@@ -568,19 +566,16 @@ type
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default false;
 
-    { Input (mouse / key combination) to make pointing device active
-      (that is, to activate VRML/X3D pointing-device sensors like TouchSensor).
-      By default this requires left mouse button click.
+    { Input (mouse/key combination) to make pointing device active
+      (used to pick and drag items, possibly using VRML/X3D
+      pointing-device sensors).
+      By default this is left mouse button click.
 
       You can change it to any other mouse button or even to key combination.
-      You can simply change properties of existing
-      Input_PointingDeviceActivate value (like TInputShortcut.Key1
-      or TInputShortcut.MouseButtonUse).
-
-      Or you can even assign here your own TInputShortcut instance.
-      Then you're responsible for freeing it yourself. }
+      Simply change properties like TInputShortcut.Key1
+      or TInputShortcut.MouseButtonUse. }
     property Input_PointingDeviceActivate: TInputShortcut
-      read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
+      read FInput_PointingDeviceActivate;
 
     { Help user to activate pointing device sensors and pick items.
       Every time you press or release Input_PointingDeviceActivate (by default
@@ -986,7 +981,8 @@ begin
   FRenderParams := TManagerRenderParams.Create;
 
   FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
-  FOwnsInput_PointingDeviceActivate := true;
+  Input_PointingDeviceActivate.SetSubComponent(true);
+  Input_PointingDeviceActivate.Name := 'Input_PointingDeviceActivate';
 end;
 
 destructor TCastleAbstractViewport.Destroy;
@@ -1015,9 +1011,7 @@ begin
   FreeAndNil(FRenderParams);
   FreeAndNil(DefaultHeadlightNode);
 
-  if FOwnsInput_PointingDeviceActivate then
-    FreeAndNil(FInput_PointingDeviceActivate) else
-    FInput_PointingDeviceActivate := nil;
+  FreeAndNil(FInput_PointingDeviceActivate);
 
   inherited;
 end;
@@ -1111,19 +1105,6 @@ begin
 
   if Camera <> nil then
     Camera.ContainerResize(AContainerWidth, AContainerHeight);
-end;
-
-procedure TCastleAbstractViewport.SetInput_PointingDeviceActivate(const Value: TInputShortcut);
-begin
-  if FInput_PointingDeviceActivate <> Value then
-  begin
-    { first, free the old one }
-    if FOwnsInput_PointingDeviceActivate then
-      FreeAndNil(FInput_PointingDeviceActivate);
-
-    FInput_PointingDeviceActivate := Value;
-    FOwnsInput_PointingDeviceActivate := false;
-  end;
 end;
 
 function TCastleAbstractViewport.KeyDown(Key: TKey; C: char): boolean;
