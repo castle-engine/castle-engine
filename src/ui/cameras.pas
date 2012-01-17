@@ -50,21 +50,26 @@ type
   TInputShortcut = class;
   TInputShortcutChangedFunc = procedure (Shortcut: TInputShortcut) of object;
 
-  { An input shortcut represents a keyboard and/or mouse shortcut
-    for some command. Up to two key shortcuts may be assigned to a single
-    item, one mouse button shortcut, one character shortcut,
-    and one mouse wheel shortcut.
+  { A keyboard and/or mouse shortcut for activating some action.
 
-    Normal "key shortcut" is identified by Keys.TKey value.
+    Action may be activated by:
+    @unorderedList(
+      @itemSpacing compact
+      @item at most two key shortcuts,
+      @item and one mouse button shortcut,
+      @item and one character shortcut,
+      @item and one mouse wheel shortcut.
+    )
 
-    "Character shortcut" differs from "key shortcut" because it's identified
-    by produced character. We don't deal here how this character is produced
-    (for example, character "X" may produced on normal systems
-    by Shift + "x" or by pressing "x" while "caps lock" is on;
-    but this is not dealt with in this unit (it's usually provided
-    by operating system / GUI toolkit to CastleWindow unit),
-    we just get characters passed to TCamera.KeyDown and such methods.) }
-  TInputShortcut = class
+    The difference between @italic(key shortcut) and @italic(character shortcut):
+    @italic("Key") is something that can be expressed as TKey value.
+    @italic("Character") is something that can be expressed as Char value.
+    They are keys like "control key" (K_Ctrl) or "shift key" (K_Shift)
+    that cannot be expressed (on their own) as characters.
+    Characters are both more and less specific: character "A" (upper letter "a")
+    is activated by pressing "a", but only when Shift is pressed or CapsLock is on
+    (window system / GUI toolkit may also allow other ways to input characters). }
+  TInputShortcut = class(TComponent)
   private
     FKey1: TKey;
     FKey2: TKey;
@@ -95,56 +100,11 @@ type
       as the default shortcuts (so they will be used in subsequent
       MakeDefault) and they are also the initial values for Key1, Key2 etc.
       properties. }
+    constructor Create(AOwner: TComponent); override;
     constructor Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
       AMouseButtonUse: boolean;
       AMouseButton: TMouseButton;
       const AMouseWheel: TMouseWheelDirection = mwNone);
-
-    { Key shortcuts for given command. You can set any of them to K_None
-      to indicate that no key is assigned.
-      @groupBegin }
-    property Key1: TKey read FKey1 write SetKey1;
-    property Key2: TKey read FKey2 write SetKey2;
-    { @groupEnd }
-
-    { Character shortcut for given command. You can set this to #0
-      to indicate that no character shortcut is assigned. }
-    property Character: Char read FCharacter write SetCharacter;
-
-    { Mouse shortcut for given command. You can set MouseButtonUse to @false
-      if you don't want to use this.
-      @groupBegin }
-    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
-    property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
-    { @groupEnd }
-
-    { Mouse wheel to activate this command. Note that mouse wheels cannot be
-      continously pressed (our method IsPressed doesn't look at it),
-      so this is only suitable for commands that work in steps
-      (not continously). }
-    property MouseWheel: TMouseWheelDirection read FMouseWheel
-      write SetMouseWheel default mwNone;
-
-    { Default values for properties key/mouse.
-      You can change them --- this will change what MakeDefault does.
-
-      Note that setting these properties doesn't automatically set
-      corresponding "current" property. E.g. @code(DefaultKey1 := K_Space;)
-      doesn't change the value of Key1 property --- only DefaultKey1
-      changes. You can explicitly change Key1 property, or just call
-      MakeDefault afterwards, if you want this to happen.
-      @groupBegin }
-    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
-    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
-    property DefaultCharacter: Char
-      read FDefaultCharacter write FDefaultCharacter;
-    property DefaultMouseButtonUse: boolean
-      read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
-    property DefaultMouseButton: TMouseButton
-      read FDefaultMouseButton write FDefaultMouseButton;
-    property DefaultMouseWheel: TMouseWheelDirection
-      read FDefaultMouseWheel write FDefaultMouseWheel;
-    { @groupEnd }
 
     procedure MakeDefault;
 
@@ -155,7 +115,7 @@ type
       It always copies "current" properties (Key1, Key2, Character,
       MouseButtonUse, MouseButton, MouseWheel), and optionally (if CopyDefaults)
       also copies the DefaultXxx properties. }
-    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean);
+    procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
 
     { Make this input impossible to activate by the user.
       This sets both keys to K_None, Character to #0, MouseButtonUse
@@ -202,6 +162,52 @@ type
     { Describe this input shortcut. If it's not active at all
       (like after MakeClear), we will use NoneString. }
     function Description(const NoneString: string): string;
+  published
+    { Key shortcuts for given command. You can set any of them to K_None
+      to indicate that no key is assigned.
+      @groupBegin }
+    property Key1: TKey read FKey1 write SetKey1;
+    property Key2: TKey read FKey2 write SetKey2;
+    { @groupEnd }
+
+    { Character shortcut for given command. You can set this to #0
+      to indicate that no character shortcut is assigned. }
+    property Character: Char read FCharacter write SetCharacter;
+
+    { Mouse shortcut for given command. You can set MouseButtonUse to @false
+      if you don't want to use this.
+      @groupBegin }
+    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
+    property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
+    { @groupEnd }
+
+    { Mouse wheel to activate this command. Note that mouse wheels cannot be
+      continously pressed (our method IsPressed doesn't look at it),
+      so this is only suitable for commands that work in steps
+      (not continously). }
+    property MouseWheel: TMouseWheelDirection read FMouseWheel
+      write SetMouseWheel default mwNone;
+
+    { Default values for properties key/mouse.
+      You can change them --- this will change what MakeDefault does.
+
+      Note that setting these properties doesn't automatically set
+      corresponding "current" property. E.g. @code(DefaultKey1 := K_Space;)
+      doesn't change the value of Key1 property --- only DefaultKey1
+      changes. You can explicitly change Key1 property, or just call
+      MakeDefault afterwards, if you want this to happen.
+      @groupBegin }
+    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
+    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
+    property DefaultCharacter: Char
+      read FDefaultCharacter write FDefaultCharacter;
+    property DefaultMouseButtonUse: boolean
+      read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
+    property DefaultMouseButton: TMouseButton
+      read FDefaultMouseButton write FDefaultMouseButton;
+    property DefaultMouseWheel: TMouseWheelDirection
+      read FDefaultMouseWheel write FDefaultMouseWheel;
+    { @groupEnd }
 
     { If assigned, this will be called always right after the key/character/mouse
       shortcut value changed. Note that this is called only when
@@ -210,6 +216,18 @@ type
       the DefaultXxx values changed. }
     property OnChanged: TInputShortcutChangedFunc
       read FOnChanged write FOnChanged;
+
+    { TODO: Maybe introduce a way to limit (TKey, or all shortcuts?)
+      to activate only when specific modifier is pressed.
+
+      Right now both TWalkCamera and TExamineCamera check modifiers
+      and have not configurable behavior:
+
+      - TWalkCamera allows inputs only when modifiers = [].
+        Except Input_Right/LeftRot and Input_Up/DownRotate that have special
+        meaning when Ctrl is pressed (see TWalkCamera.AllowSlowerRotations).
+      - TExamineCamera allows Inputs_Move only when modifiers = [mkCtrl].
+        Other TExamineCamera are allowed only when modifiers = []. }
   end;
 
   { Handle user navigation in 3D scene.
@@ -654,12 +672,6 @@ type
 
     { User inputs ------------------------------------------------------------ }
 
-    { TODO: tak samo jak TWalkCamera, przydaloby sie moc podawac
-      tutaj za jednym zamachem char+TKey+modifiers zamiast tylko char
-      lub tylko TKey.
-      W tym momencie klawisze Inputs_Move dzialaja gdy ModifiersDown = [mkCtrl],
-      a pozostale klawisze gdy ModifiersDown = []. }
-
     { }
     property Inputs_Move: T3BoolInputs read FInputs_Move;
     property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
@@ -897,107 +909,6 @@ type
     function DoMoveAllowed(const ProposedNewPos: TVector3Single;
       out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual;
-
-    { Keys --------------------------------------------------------- }
-
-    { TODO: przydaloby sie rozwiazac tu sprawe z modifiers jakos bardziej
-      elegancko. Kazdy klawisz to powinien byc kod + flagi modifierow.
-      W tej chwili klawisze wszystkie ponizsze klawisze dzialaja gdy
-      wszystkie modifiery sa OFF, za wyjatkiem Input_Right/LeftRot i
-      Input_Up/DownRotate ktore uzyskuja specjalne znaczenie gdy dziala modifier
-      Ctrl (see AllowSlowerRotations). }
-
-    { }
-    property Input_Forward: TInputShortcut read FInput_Forward;
-    property Input_Backward: TInputShortcut read FInput_Backward;
-    property Input_LeftRot: TInputShortcut read FInput_LeftRot;
-    property Input_RightRot: TInputShortcut read FInput_RightRot;
-    property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
-    property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
-    property Input_UpRotate: TInputShortcut read FInput_UpRotate;
-    property Input_DownRotate: TInputShortcut read FInput_DownRotate;
-    property Input_UpMove: TInputShortcut read FInput_UpMove;
-    property Input_IncreaseCameraPreferredHeight: TInputShortcut read FInput_IncreaseCameraPreferredHeight;
-    property Input_DecreaseCameraPreferredHeight: TInputShortcut read FInput_DecreaseCameraPreferredHeight;
-    property Input_DownMove: TInputShortcut read FInput_DownMove;
-    property Input_GravityUp: TInputShortcut read FInput_GravityUp;
-
-    { Input_MoveSpeedInc and Input_MoveSpeedDec change the MoveSpeed.
-      @groupBegin }
-    property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
-    property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
-    { @groupEnd }
-
-    { Note that jumping and crouching works only when @link(Gravity) works.
-      @groupBegin }
-    property Input_Jump: TInputShortcut read FInput_Jump;
-    property Input_Crouch: TInputShortcut read FInput_Crouch;
-    { @groupEnd }
-
-    { If @true then all rotation keys
-      (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
-      will work 10x slower when Ctrl modified is pressed. }
-    property AllowSlowerRotations: boolean
-      read FAllowSlowerRotations write FAllowSlowerRotations
-      default true;
-
-    { @abstract(Do we check what key modifiers are pressed and do something
-      differently based on it?)
-
-      If @true then all keys work only when no modifiers or only shift are
-      pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
-      rotation keys work 10x slower. Also Increase/DecreaseCameraPreferredHeight
-      work only when Ctrl pressed.
-      Other keys with other modifiers
-      don't work. We allow shift, because to press character "+" on non-numpad
-      keyboard (useful on laptops, where numpad is difficult) you
-      probably need to press shift.
-
-      If @false then all keys work as usual, no matter what
-      modifiers are pressed. And rotation keys never work 10x slower
-      (AllowSlowerRotations is ignored),
-      also Increase/DecreaseCameraPreferredHeight are ignored. }
-    property CheckModsDown: boolean
-      read FCheckModsDown write FCheckModsDown
-      default true;
-
-    { General stuff ----------------------------------------------------- }
-
-    { Moving speeds. MoveHorizontalSpeed is only for horizontal movement,
-      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
-      both types of movement. Effectively, we always scale the speed
-      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
-      @code(MoveVerticalSpeed * MoveSpeed).
-
-      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
-      during one second. Assuming "normal circumstances",
-      namely that CompSpeed provided to @link(Idle) method
-      is expressed in seconds (which is the case, when you use
-      camera with TCastleWindowBase.Controls or TCastleSceneManager.Camera).
-      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
-      MoveSpeed expressed the speed in nice units / per second.
-
-      Default values for all these speed properties is 1.0,
-      so you simply move by 1 unit per second.
-
-      @groupBegin }
-    property MoveHorizontalSpeed: Single
-      read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
-    property MoveVerticalSpeed: Single
-      read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
-    { @groupEnd }
-
-    { Rotation keys speed, in degrees per second.
-      @groupBegin }
-    property RotationHorizontalSpeed: Single
-      read FRotationHorizontalSpeed write FRotationHorizontalSpeed
-      default DefaultRotationHorizontalSpeed;
-
-    property RotationVerticalSpeed: Single
-      read FRotationVerticalSpeed write FRotationVerticalSpeed
-      default DefaultRotationVerticalSpeed;
-    { @groupEnd }
 
     { Camera position, looking direction and up vector.
 
@@ -1525,6 +1436,95 @@ type
     property AboveHeight: Single read FAboveHeight;
     property AboveGround: P3DTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
+  published
+    property Input_Forward: TInputShortcut read FInput_Forward;
+    property Input_Backward: TInputShortcut read FInput_Backward;
+    property Input_LeftRot: TInputShortcut read FInput_LeftRot;
+    property Input_RightRot: TInputShortcut read FInput_RightRot;
+    property Input_LeftStrafe: TInputShortcut read FInput_LeftStrafe;
+    property Input_RightStrafe: TInputShortcut read FInput_RightStrafe;
+    property Input_UpRotate: TInputShortcut read FInput_UpRotate;
+    property Input_DownRotate: TInputShortcut read FInput_DownRotate;
+    property Input_UpMove: TInputShortcut read FInput_UpMove;
+    property Input_IncreaseCameraPreferredHeight: TInputShortcut read FInput_IncreaseCameraPreferredHeight;
+    property Input_DecreaseCameraPreferredHeight: TInputShortcut read FInput_DecreaseCameraPreferredHeight;
+    property Input_DownMove: TInputShortcut read FInput_DownMove;
+    property Input_GravityUp: TInputShortcut read FInput_GravityUp;
+
+    { Change the MoveSpeed.
+      @groupBegin }
+    property Input_MoveSpeedInc: TInputShortcut read FInput_MoveSpeedInc;
+    property Input_MoveSpeedDec: TInputShortcut read FInput_MoveSpeedDec;
+    { @groupEnd }
+
+    { Jumping and crouching. Note that it works only when @link(Gravity) = @true.
+      @groupBegin }
+    property Input_Jump: TInputShortcut read FInput_Jump;
+    property Input_Crouch: TInputShortcut read FInput_Crouch;
+    { @groupEnd }
+
+    { If @true then all rotation keys
+      (Input_RightRot, Input_LeftRot, Input_UpRotate, Input_DownRotate)
+      will work 10x slower when Ctrl modified is pressed. }
+    property AllowSlowerRotations: boolean
+      read FAllowSlowerRotations write FAllowSlowerRotations
+      default true;
+
+    { @abstract(Do we check what key modifiers are pressed and do something
+      differently based on it?)
+
+      If @true then all keys work only when no modifiers or only shift are
+      pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
+      rotation keys work 10x slower. Also Increase/DecreaseCameraPreferredHeight
+      work only when Ctrl pressed.
+      Other keys with other modifiers
+      don't work. We allow shift, because to press character "+" on non-numpad
+      keyboard (useful on laptops, where numpad is difficult) you
+      probably need to press shift.
+
+      If @false then all keys work as usual, no matter what
+      modifiers are pressed. And rotation keys never work 10x slower
+      (AllowSlowerRotations is ignored),
+      also Increase/DecreaseCameraPreferredHeight are ignored. }
+    property CheckModsDown: boolean
+      read FCheckModsDown write FCheckModsDown
+      default true;
+
+    { Moving speeds. MoveHorizontalSpeed is only for horizontal movement,
+      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
+      both types of movement. Effectively, we always scale the speed
+      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
+      @code(MoveVerticalSpeed * MoveSpeed).
+
+      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
+      during one second. Assuming "normal circumstances",
+      namely that CompSpeed provided to @link(Idle) method
+      is expressed in seconds (which is the case, when you use
+      camera with TCastleWindowBase.Controls or TCastleSceneManager.Camera).
+      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
+      MoveSpeed expressed the speed in nice units / per second.
+
+      Default values for all these speed properties is 1.0,
+      so you simply move by 1 unit per second.
+
+      @groupBegin }
+    property MoveHorizontalSpeed: Single
+      read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
+    property MoveVerticalSpeed: Single
+      read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+    { @groupEnd }
+
+    { Rotation keys speed, in degrees per second.
+      @groupBegin }
+    property RotationHorizontalSpeed: Single
+      read FRotationHorizontalSpeed write FRotationHorizontalSpeed
+      default DefaultRotationHorizontalSpeed;
+
+    property RotationVerticalSpeed: Single
+      read FRotationVerticalSpeed write FRotationVerticalSpeed
+      default DefaultRotationVerticalSpeed;
+    { @groupEnd }
   end;
 
   TCameraNavigationClass = (ncExamine, ncWalk);
@@ -1726,11 +1726,16 @@ const
 
 { TInputShortcut ------------------------------------------------------------- }
 
+constructor TInputShortcut.Create(AOwner: TComponent);
+begin
+  inherited;
+end;
+
 constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
   AMouseButtonUse: boolean; AMouseButton: TMouseButton;
   const AMouseWheel: TMouseWheelDirection);
 begin
-  inherited Create;
+  Create(nil);
   FDefaultKey1 := AKey1;
   FDefaultKey2 := AKey2;
   FDefaultCharacter := ACharacter;
@@ -2790,6 +2795,42 @@ begin
 
   FInput_Jump         := TInputShortcut.Create(K_A           , K_None, #0, false, mbRight);
   FInput_Crouch       := TInputShortcut.Create(K_Z           , K_None, #0, false, mbLeft);
+
+  Input_Forward.SetSubComponent(true);
+  Input_Backward.SetSubComponent(true);
+  Input_LeftRot.SetSubComponent(true);
+  Input_RightRot.SetSubComponent(true);
+  Input_LeftStrafe.SetSubComponent(true);
+  Input_RightStrafe.SetSubComponent(true);
+  Input_UpRotate.SetSubComponent(true);
+  Input_DownRotate.SetSubComponent(true);
+  Input_UpMove.SetSubComponent(true);
+  Input_DownMove.SetSubComponent(true);
+  Input_IncreaseCameraPreferredHeight.SetSubComponent(true);
+  Input_DecreaseCameraPreferredHeight.SetSubComponent(true);
+  Input_GravityUp.SetSubComponent(true);
+  Input_MoveSpeedInc.SetSubComponent(true);
+  Input_MoveSpeedDec.SetSubComponent(true);
+  Input_Jump.SetSubComponent(true);
+  Input_Crouch.SetSubComponent(true);
+
+  Input_Forward.Name := 'Input_Forward';
+  Input_Backward.Name := 'Input_Backward';
+  Input_LeftRot.Name := 'Input_LeftRot';
+  Input_RightRot.Name := 'Input_RightRot';
+  Input_LeftStrafe.Name := 'Input_LeftStrafe';
+  Input_RightStrafe.Name := 'Input_RightStrafe';
+  Input_UpRotate.Name := 'Input_UpRotate';
+  Input_DownRotate.Name := 'Input_DownRotate';
+  Input_UpMove.Name := 'Input_UpMove';
+  Input_DownMove.Name := 'Input_DownMove';
+  Input_IncreaseCameraPreferredHeight.Name := 'Input_IncreaseCameraPreferredHeight';
+  Input_DecreaseCameraPreferredHeight.Name := 'Input_DecreaseCameraPreferredHeight';
+  Input_GravityUp.Name := 'Input_GravityUp';
+  Input_MoveSpeedInc.Name := 'Input_MoveSpeedInc';
+  Input_MoveSpeedDec.Name := 'Input_MoveSpeedDec';
+  Input_Jump.Name := 'Input_Jump';
+  Input_Crouch.Name := 'Input_Crouch';
 end;
 
 destructor TWalkCamera.Destroy;
