@@ -80,6 +80,7 @@ type
 
     FInput_PointingDeviceActivate: TInputShortcut;
     FOwnsInput_PointingDeviceActivate: boolean;
+    FApproximateActivation: boolean;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
     procedure SetInput_PointingDeviceActivate(const Value: TInputShortcut);
@@ -580,6 +581,28 @@ type
       Then you're responsible for freeing it yourself. }
     property Input_PointingDeviceActivate: TInputShortcut
       read FInput_PointingDeviceActivate write SetInput_PointingDeviceActivate;
+
+    { Help user to activate pointing device sensors and pick items.
+      Every time you press or release Input_PointingDeviceActivate (by default
+      just left mouse button), we look if current mouse position hits 3D object
+      that actually does something on activation. 3D objects may do various stuff
+      inside T3D.PointingDeviceActivate, generally this causes various
+      picking/interaction with the 3D object (like pulling a level, opening a door),
+      possibly dragging, possibly with the help of VRML/X3D pointing device
+      and drag sensors.
+
+      When this is @true, we try harder to hit some 3D object that handles
+      PointingDeviceActivate. If there's nothing interesting under mouse,
+      we will retry a couple of other positions arount the current mouse.
+
+      This should be usually used when you use TWalkCamera.MouseLook,
+      or other navigation when mouse cursor is hidden.
+      It allows user to only approximately look at interesting item and hit
+      interaction button or key.
+      Otherwise, activating a small 3D object is difficult,
+      as you don't see the mouse cursor. }
+    property ApproximateActivation: boolean
+      read FApproximateActivation write FApproximateActivation default false;
   end;
 
   TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
@@ -694,6 +717,10 @@ type
     function GetHeadlightCamera: TCamera; override;
     procedure PointingDeviceActivate(const Active: boolean); override;
     procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); override;
+    { Called when PointingDeviceActivate was not handled by any 3D object.
+      You can override this to make a message / sound signal to notify user
+      that his Input_PointingDeviceActivate click was not successful. }
+    procedure PointingDeviceActivateFailed; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2244,31 +2271,113 @@ begin
 end;
 
 procedure TCastleSceneManager.PointingDeviceActivate(const Active: boolean);
-var
-  PassToMainScene: boolean;
-  I: Integer;
-begin
-  { call T3D.PointingDeviceActivate on everything }
 
-  PassToMainScene := true;
+  { Try PointingDeviceActivate on 3D stuff hit by RayHit }
+  function TryActivate(RayHit: TRayCollision): boolean;
+  var
+    PassToMainScene: boolean;
+    I: Integer;
+  begin
+    { call T3D.PointingDeviceActivate on everything, calculate Result }
+    Result := false;
+    PassToMainScene := true;
 
-  if MouseRayHit <> nil then
-    for I := 0 to MouseRayHit.Count - 1 do
-    begin
-      if MouseRayHit[I].Item = MainScene then
-        PassToMainScene := false;
-      if MouseRayHit[I].Item.PointingDeviceActivate(Active, MouseRayHit.Distance) then
+    if RayHit <> nil then
+      for I := 0 to RayHit.Count - 1 do
       begin
-        PassToMainScene := false;
-        Break;
+        if RayHit[I].Item = MainScene then
+          PassToMainScene := false;
+        Result := RayHit[I].Item.PointingDeviceActivate(Active, RayHit.Distance);
+        if Result then
+        begin
+          PassToMainScene := false;
+          Break;
+        end;
       end;
-    end;
 
-  if PassToMainScene and (MainScene <> nil) then
-    MainScene.PointingDeviceActivate(Active, MaxSingle);
+    if PassToMainScene and (MainScene <> nil) then
+      Result := MainScene.PointingDeviceActivate(Active, MaxSingle);
+  end;
+
+var
+  MouseX, MouseY: Integer;
+
+  { Try PointingDeviceActivate on 3D stuff hit by ray moved by given number
+    of screen pixels from current mouse position.
+    Call only if Camera and MouseX, MouseY already assigned. }
+  function TryActivateAround(const XChange, YChange: Integer): boolean;
+  var
+    RayOrigin, RayDirection: TVector3Single;
+    RayHit: TRayCollision;
+  begin
+    Camera.CustomRay(
+      CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
+      MouseX + XChange, MouseY + YChange,
+      PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
+      RayOrigin, RayDirection);
+
+    RayHit := Items.RayCollision(RayOrigin, RayDirection, nil);
+
+    { We do not really have to check "RayHit <> nil" below,
+      as TryActivate can (and should) work even with RayHit=nil case.
+      However, we know that TryActivate will not do anything new if RayHit=nil
+      (it will just pass this to MainScene, which was already done before
+      trying ApproximateActivation). }
+
+    Result := (RayHit <> nil) and TryActivate(RayHit);
+  end;
+
+  function TryActivateAroundSquare(const Change: Integer): boolean;
+  begin
+    Result := TryActivateAround(-Change, -Change) or
+              TryActivateAround(-Change, +Change) or
+              TryActivateAround(+Change, +Change) or
+              TryActivateAround(+Change, -Change) or
+              TryActivateAround(      0, -Change) or
+              TryActivateAround(      0, +Change) or
+              TryActivateAround(-Change,       0) or
+              TryActivateAround(+Change,       0);
+  end;
+
+  { If Container assigned, set local MouseX/Y.
+    Using local procedure for this, to avoid long lifetime of Container
+    reference. }
+  function GetMousePosition: boolean;
+  var
+    C: IUIContainer;
+  begin
+    C := Container;
+    Result := C <> nil;
+    if Result then
+    begin
+      MouseX := C.MouseX;
+      MouseY := C.MouseY;
+    end;
+  end;
+
+var
+  Handled: boolean;
+begin
+  Handled := TryActivate(MouseRayHit);
+  if not Handled then
+  begin
+    if ApproximateActivation and (Camera <> nil) and GetMousePosition then
+      Handled := TryActivateAroundSquare(25) or
+                 TryActivateAroundSquare(50) or
+                 TryActivateAroundSquare(100) or
+                 TryActivateAroundSquare(200);
+  end;
+
+  if not Handled then
+    PointingDeviceActivateFailed;
 end;
 
-procedure TCastleSceneManager.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single);
+procedure TCastleSceneManager.PointingDeviceActivateFailed;
+begin
+end;
+
+procedure TCastleSceneManager.PointingDeviceMove(
+  const RayOrigin, RayDirection: TVector3Single);
 var
   PassToMainScene: boolean;
   I: Integer;
@@ -2530,7 +2639,8 @@ begin
     SceneManager.PointingDeviceActivate(Active);
 end;
 
-procedure TCastleViewport.PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single);
+procedure TCastleViewport.PointingDeviceMove(
+  const RayOrigin, RayDirection: TVector3Single);
 begin
   if SceneManager <> nil then
     SceneManager.PointingDeviceMove(RayOrigin, RayDirection);
