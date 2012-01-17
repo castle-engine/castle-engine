@@ -5332,9 +5332,27 @@ function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
   end;
 
 var
+  Sensors: TPointingDeviceSensorList;
+
+  function PDSensorActivate(Sensor: TAbstractPointingDeviceSensorNode): boolean;
+  begin
+    Result := Sensor.FdEnabled.Value and
+      { Send isActive = true and make DoPointingDeviceSensorsChange
+        only if FPointingDeviceActiveSensor changes. }
+      (PointingDeviceActiveSensors.IndexOf(Sensor) = -1);
+    if Result then
+    begin
+      PointingDeviceActiveSensors.Add(Sensor);
+      { We do this only when PointingDeviceOverItem <> nil,
+        so we know that PointingDeviceOverPoint is meaningful. }
+      Sensor.Activate(Time, Sensors.Transform, Sensors.InvertedTransform,
+        PointingDeviceOverPoint);
+    end;
+  end;
+
+var
   I: Integer;
   ToActivate: TX3DNode;
-  Sensors: TPointingDeviceSensorList;
   ActiveChanged: boolean;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
 begin
@@ -5358,20 +5376,10 @@ begin
             { Activate all the enabled sensors. Spec says to activate
               simultaneouly all Sensors (tied for this mouse down). }
             ToActivate := Sensors[I];
-            if (ToActivate is TAbstractPointingDeviceSensorNode) and
-               (TAbstractPointingDeviceSensorNode(ToActivate).FdEnabled.Value) then
+            if ToActivate is TAbstractPointingDeviceSensorNode then
             begin
-              { Send isActive = true and make DoPointingDeviceSensorsChange
-                only if FPointingDeviceActiveSensor changes. }
-              if PointingDeviceActiveSensors.IndexOf(ToActivate) = -1 then
-              begin
-                PointingDeviceActiveSensors.Add(ToActivate);
-                { We do this only when PointingDeviceOverItem <> nil,
-                  so we know that PointingDeviceOverPoint is meaningful. }
-                TAbstractPointingDeviceSensorNode(ToActivate).Activate(Time,
-                  Sensors.Transform, Sensors.InvertedTransform, PointingDeviceOverPoint);
+              if PDSensorActivate(TAbstractPointingDeviceSensorNode(ToActivate)) then
                 ActiveChanged := true;
-              end;
             end else
             if ToActivate is TAnchorNode then
             begin
