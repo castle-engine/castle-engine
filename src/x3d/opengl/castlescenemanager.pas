@@ -720,7 +720,7 @@ type
     { Called when PointingDeviceActivate was not handled by any 3D object.
       You can override this to make a message / sound signal to notify user
       that his Input_PointingDeviceActivate click was not successful. }
-    procedure PointingDeviceActivateFailed; virtual;
+    procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -2325,6 +2325,8 @@ var
       trying ApproximateActivation). }
 
     Result := (RayHit <> nil) and TryActivate(RayHit);
+
+    FreeAndNil(RayHit);
   end;
 
   function TryActivateAroundSquare(const Change: Integer): boolean;
@@ -2369,10 +2371,10 @@ begin
   end;
 
   if not Handled then
-    PointingDeviceActivateFailed;
+    PointingDeviceActivateFailed(Active);
 end;
 
-procedure TCastleSceneManager.PointingDeviceActivateFailed;
+procedure TCastleSceneManager.PointingDeviceActivateFailed(const Active: boolean);
 begin
 end;
 
