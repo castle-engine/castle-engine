@@ -626,7 +626,6 @@ type
     FPointingDeviceOverPoint: TVector3Single;
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensors: TX3DNodeList;
-    procedure SetPointingDeviceActive(const Value: boolean);
   private
     { Call this when the ProximitySensor instance changed (either the box or
       it's transformation) or when camera position changed (by user actions
@@ -1380,7 +1379,7 @@ type
 
     { Clear any references to OverItem passed previously to PointingDeviceMove.
       This is sometimes useful, because PointingDeviceMove may save
-      the last passed OverItem, and SetPointingDeviceActive may even
+      the last passed OverItem, and PointingDeviceActivate may even
       save some sensors for a longer time.
 
       You could free it by calling
@@ -1397,11 +1396,10 @@ type
       PointingDeviceSensors possibly changed. }
     procedure PointingDeviceClear;
 
-    { Change this to indicate whether pointing device is currently active
-      (for example, mouse button is pressed down) or not. }
+    { Is pointing device currently active
+      (for example, mouse button is pressed down). }
     property PointingDeviceActive: boolean
-      read FPointingDeviceActive
-      write SetPointingDeviceActive default false;
+      read FPointingDeviceActive default false;
 
     { Event called PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed. }
@@ -5302,7 +5300,8 @@ begin
     DoPointingDeviceSensorsChange;
 end;
 
-procedure TCastleSceneCore.SetPointingDeviceActive(const Value: boolean);
+function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
+  const Distance: Single): boolean;
 
   function AnchorActivate(Anchor: TAnchorNode): boolean;
   var
@@ -5339,18 +5338,21 @@ var
   ActiveChanged: boolean;
   ActiveSensor: TAbstractPointingDeviceSensorNode;
 begin
-  if ProcessEvents and (FPointingDeviceActive <> Value) then
+  Result := inherited;
+  if Result or (not GetExists) then Exit;
+
+  if ProcessEvents and (FPointingDeviceActive <> Active) then
   begin
     Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
-      FPointingDeviceActive := Value;
-      if Value then
+      ActiveChanged := false;
+      FPointingDeviceActive := Active;
+      if Active then
       begin
         if PointingDeviceOverItem <> nil then
         begin
           Sensors := PointingDeviceOverItem^.State.PointingDeviceSensors;
-          ActiveChanged := false;
           for I := 0 to Sensors.Count - 1 do
           begin
             { Activate all the enabled sensors. Spec says to activate
@@ -5380,7 +5382,6 @@ begin
               end;
             end;
           end;
-          if ActiveChanged then DoPointingDeviceSensorsChange;
         end;
       end else
       begin
@@ -5403,9 +5404,27 @@ begin
             end;
           end;
           FPointingDeviceActiveSensors.Count := 0;
-          DoPointingDeviceSensorsChange;
+          ActiveChanged := true;
         end;
       end;
+
+      if ActiveChanged then DoPointingDeviceSensorsChange;
+
+      { We try hard to leave Result as false when nothing happened.
+        This is important for TCastleSceneManager, that wants to retry
+        activation around if ApproximateActivation, and for other 3D objects
+        along the same TRayCollision list. So we really must set
+        Result := false if nothing happened, to enable other objects
+        to have a better chance of catching activation.
+        At the same time, we really must set Result := true if something
+        (possibly) happened. Otherwise, simultaneously two objects may be activated,
+        and TCastleSceneManager.PointingDeviceActivateFailed may do a sound
+        warning that activation was unsuccessful.
+
+        Fortunately, our ActiveChanged right now precisely tells us
+        when something happened. Whe not ActiveChanged, nothing happened,
+        no X3D event was send. }
+      Result := ActiveChanged;
     finally
       EndChangesSchedule;
     end;
@@ -5417,19 +5436,6 @@ begin
   if PointingDeviceOverItem <> nil then
     Result := PointingDeviceOverItem^.State.PointingDeviceSensors else
     Result := nil;
-end;
-
-function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  PointingDeviceActive := Active;
-
-  { Do not treat it as handled (returning ExclusiveEvents),
-    this would disable too much (like Camera usually under Scene on Controls).
-  Result := false; }
 end;
 
 function TCastleSceneCore.Dragging: boolean;
