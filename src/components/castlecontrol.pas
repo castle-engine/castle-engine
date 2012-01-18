@@ -27,11 +27,11 @@ uses
   Cameras, X3DNodes, CastleScene, CastleSceneManager;
 
 const
-  { Default value for TCastleControlBase.AggressiveUpdateGap.
+  { Default value for TCastleControlBase.AggressiveUpdateDelay.
     "1000 div 60" means that we strike for 60 frames per second,
     although this is gross approximation (no guarantees, of course;
     especially if your Idle / Draw take a long time). }
-  DefaultAggressiveUpdateGap = 1000 div 60;
+  DefaultAggressiveUpdateDelay = 1000 div 60;
 
   { Default value for TCastleControlBase.AggressiveUpdate }
   DefaultAggressiveUpdate = false;
@@ -67,7 +67,7 @@ type
     FMousePressed: KeysMouse.TMouseButtons;
 
     FAggressiveUpdate: boolean;
-    FAggressiveUpdateGap: TMilisecTime;
+    FAggressiveUpdateDelay: TMilisecTime;
     LastAggressiveUpdateTime: TMilisecTime; { tracked only when AggressiveUpdate }
     Invalidated: boolean; { tracked only when AggressiveUpdate }
 
@@ -223,7 +223,7 @@ type
       (for example, may be ~ 100 GTK messages, see
       TGtkWidgetSet.AppProcessMessages in lazarus/trunk/lcl/interfaces/gtk/gtkwidgetset.inc).
       So instead we hack from the inside: from time to time
-      (more precisely, after AggressiveUpdateGap miliseconds since last Idle + Paint end),
+      (more precisely, after AggressiveUpdateDelay miliseconds since last Idle + Paint end),
       when receving key or mouse events (KeyDown, MouseDown, MouseMove etc.),
       we'll call the Idle, and (if pending Invalidate call) Paint methods.
 
@@ -235,8 +235,8 @@ type
       @groupBegin }
     property AggressiveUpdate: boolean
       read FAggressiveUpdate write FAggressiveUpdate default DefaultAggressiveUpdate;
-    property AggressiveUpdateGap: TMilisecTime
-      read FAggressiveUpdateGap write FAggressiveUpdateGap default DefaultAggressiveUpdateGap;
+    property AggressiveUpdateDelay: TMilisecTime
+      read FAggressiveUpdateDelay write FAggressiveUpdateDelay default DefaultAggressiveUpdateDelay;
     { @groupEnd }
 
     property TabOrder;
@@ -456,7 +456,7 @@ begin
   FPressed := TKeysPressed.Create;
 
   FAggressiveUpdate := DefaultAggressiveUpdate;
-  FAggressiveUpdateGap := DefaultAggressiveUpdateGap;
+  FAggressiveUpdateDelay := DefaultAggressiveUpdateDelay;
   LastAggressiveUpdateTime := 0;
   Invalidated := false;
 
@@ -563,7 +563,7 @@ procedure TCastleControlBase.AggressiveUpdateTick;
 begin
   if AggressiveUpdate then
   begin
-    if TimeTickSecondLater(LastAggressiveUpdateTime, GetTickCount, AggressiveUpdateGap) then
+    if TimeTickSecondLater(LastAggressiveUpdateTime, GetTickCount, AggressiveUpdateDelay) then
     begin
       Idle;
       if Invalidated then Paint;
@@ -571,7 +571,7 @@ begin
       { We have to resist the temptation of optimizing below by reusing previous
         GetTickCount result here for speed. This could make our aggressive
         update overloading the event loop with repaints.
-        Imagine that Idle + Paint would take > AggressiveUpdateGap
+        Imagine that Idle + Paint would take > AggressiveUpdateDelay
         (quite possible, if your scene is complex and you're constantly
         repainting, e.g. observed with mouse look walking + rotating on
         cubemap_with_dynamic_world.x3d). Then we would effectively repeat
@@ -580,7 +580,7 @@ begin
 
         True, this "overloading" is always possible with AggressiveUpdate
         anyway (by definition AggressiveUpdate does something non-optimal
-        with events). But at least this way, AggressiveUpdateGap provides
+        with events). But at least this way, AggressiveUpdateDelay provides
         some working security against this overloading. }
 
       LastAggressiveUpdateTime := GetTickCount;
