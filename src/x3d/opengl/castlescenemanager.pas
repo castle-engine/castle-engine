@@ -1314,6 +1314,9 @@ var
   var
     ProjectionMatrix: TMatrix4f;
   begin
+    FProjectionNear := Box.AverageSize(false, 1.0) * 0.01;
+    FProjectionFar := Box.MaxSize(false, 1.0) * 10.0;
+
     FPerspectiveView := true;
     FPerspectiveViewAngles[1] := 45.0;
     FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
@@ -1321,8 +1324,7 @@ var
 
     glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
     ProjectionGLPerspective(PerspectiveViewAngles[1], CorrectWidth / CorrectHeight,
-      Box.AverageSize(false, 1.0) * 0.01,
-      Box.MaxSize(false, 1.0) * 10.0);
+      FProjectionNear, FProjectionFar);
 
     { update Camera.ProjectionMatrix }
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
