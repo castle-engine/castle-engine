@@ -56,7 +56,8 @@ uses SysUtils, Classes, Boxes3D,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   Cameras, VectorMath, CastleFilesUtils, Elevations, CastleMessages,
   CastleStringUtils, OnScreenMenu, UIControls, Images, RenderElevations,
-  GLShaders, GLImages, X3DFields, X3DNodes;
+  GLShaders, GLImages, X3DFields, X3DNodes, Base3D, Frustum, CastleSceneManager,
+  RaysWindow, Background;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -64,7 +65,6 @@ type
 var
   { global stuff }
   Glw: TCastleWindowCustom;
-  Camera: TCamera;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   Elevation: TElevation;
@@ -119,6 +119,10 @@ type
     procedure AccessoryValueChanged; override;
   end;
 
+  TMySceneManager = class(TCastleSceneManager)
+    procedure ApplyProjection; override;
+  end;
+
 var
   { ui controls }
   ControlsNoise: TControlsNoise;
@@ -127,6 +131,7 @@ var
   SubdivisionSlider: TMenuIntegerSlider;
   LayersCountSlider: TMenuIntegerSlider;
   ImageHeightScaleSlider: TMenuFloatSlider;
+  SceneManager: TMySceneManager;
 
 { Current TCastleOnScreenMenu, or none, based on Elevation class and ControlsVisible. }
 function CurrentControls: TCastleOnScreenMenu;
@@ -191,7 +196,13 @@ begin
   end;
 end;
 
-procedure Draw(Glwin: TCastleWindowBase);
+type
+  T3DTerrain = class(T3D)
+    function BoundingBox: TBox3D; override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+  end;
+
+procedure T3DTerrain.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
   procedure WalkCameraAboveGround;
   var
@@ -205,13 +216,10 @@ procedure Draw(Glwin: TCastleWindowBase);
 var
   VisibilityEnd: Single;
 begin
-  glClearColor(BackgroundColor[0], BackgroundColor[1], BackgroundColor[2], 1);
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
+  if Params.Transparent or (not Params.ShadowVolumesReceivers) then Exit;
 
-  if (Camera = WalkCamera) and KeepCameraAboveGround then
+  if (SceneManager.Camera = WalkCamera) and KeepCameraAboveGround then
     WalkCameraAboveGround;
-
-  glLoadMatrix(Camera.Matrix);
 
   if Wireframe then
   begin
@@ -222,6 +230,9 @@ begin
     glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_DEPTH_TEST);
   end;
+
+  glPushMatrix;
+    glMultMatrix(Params.RenderTransform);
 
     if (Elevation is TElevationGrid) and
        SpecializedGridRendering then
@@ -284,18 +295,48 @@ begin
       glPopAttrib;
     end;
 
+  glPopMatrix;
+
   glPopAttrib;
 end;
 
-procedure Resize(Glwin: TCastleWindowBase);
-var
-  ProjectionNear: Single;
+function T3DTerrain.BoundingBox: TBox3D;
+{ Instead of trying to figure out what is a suitable bounding box,
+  just assume we fill the whole 3D space. }
+const
+  InfiniteBox: TBox3D = (Data:
+    ((-MaxSingle, -MaxSingle, -MaxSingle),
+     ( MaxSingle,  MaxSingle,  MaxSingle)));
 begin
-  glViewport(0, 0, Glwin.Width, Glwin.Height);
-  if Camera = WalkCamera then
-    ProjectionNear := 0.01 else
-    ProjectionNear := 0.1;
-  ProjectionGLPerspective(30, Glwin.Width / Glwin.Height, ProjectionNear, 100);
+  Result := InfiniteBox;
+end;
+
+procedure TMySceneManager.ApplyProjection;
+
+  procedure UpdateCameraProjectionMatrix;
+  var
+    ProjectionMatrix: TMatrix4f;
+  begin
+    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
+    WalkCamera.ProjectionMatrix := ProjectionMatrix;
+    ExamineCamera.ProjectionMatrix := ProjectionMatrix;
+  end;
+
+begin
+  glViewport(0, 0, ContainerWidth, ContainerHeight);
+
+  FProjectionNear := Camera.CameraRadius * 0.6;
+  FProjectionFar := 100.0;
+
+  FPerspectiveView := true;
+  FPerspectiveViewAngles[1] := 30.0;
+  FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
+    FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
+
+  ProjectionGLPerspective(FPerspectiveViewAngles[1],
+    ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar);
+
+  UpdateCameraProjectionMatrix;
 end;
 
 constructor TControlsNoise.Create(AOwner: TComponent);
@@ -628,11 +669,10 @@ begin
       end;
     120:
       begin
-        if Camera = ExamineCamera then
-          Camera := WalkCamera else
-          Camera := ExamineCamera;
-        Glw.Controls.MakeSingle(TCamera, Camera, false);
-        Glw.EventResize; { to update ProjectionNear }
+        { updating SceneManager.Camera will cause ApplyProjection automatically }
+        if SceneManager.Camera = ExamineCamera then
+          SceneManager.Camera := WalkCamera else
+          SceneManager.Camera := ExamineCamera;
       end;
     125: KeepCameraAboveGround := not KeepCameraAboveGround;
     130: Lighting := not Lighting;
@@ -724,7 +764,7 @@ begin
     M.Append(TMenuItem.Create('Export to _X3D (basic) ...', 1000));
     M.Append(TMenuItem.Create('Export to _X3D (with our shaders and textures) ...', 1001));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create('Walk', 120, 'c', Camera = WalkCamera, true));
+    M.Append(TMenuItemChecked.Create('Walk', 120, 'c', SceneManager.Camera = WalkCamera, true));
     M.Append(TMenuItemChecked.Create('Keep Above the Ground (in Walk)', 125, KeepCameraAboveGround, true));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit', 100, CtrlW));
@@ -763,25 +803,29 @@ begin
     ExamineCamera := TExamineCamera.Create(Glw);
     ExamineCamera.Init(Box3D(
       Vector3Single(-1, -1, -1),
-      Vector3Single( 1,  1,  1)), 0.1);
+      Vector3Single( 1,  1,  1)), { CameraRadius } 0.2);
 
     WalkCamera := TWalkCamera.Create(Glw);
     WalkCamera.Init(Vector3Single(0, 0, 0) { position },
       Vector3Single(0, 1, 0) { direction },
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1),
-      0, 0 { unused, we don't use Gravity here });
+      { CameraPreferredHeight: unused, we don't use Gravity here } 0,
+      { CameraRadius } 0.02);
     WalkCamera.MoveSpeed := 0.5;
 
-    Camera := ExamineCamera;
-    Glw.Controls.Add(Camera);
+    SceneManager := TMySceneManager.Create(Glw);
+    Glw.Controls.Add(SceneManager);
+
+    SceneManager.Items.Add(T3DTerrain.Create(Glw));
+
+    SceneManager.Camera := ExamineCamera;
 
     Glw.MainMenu := CreateMainMenu;
     Glw.OnMenuCommand := @MenuCommand;
 
     Glw.OnOpen := @Open;
     Glw.OnClose := @Close;
-    Glw.OnResize := @Resize;
     Glw.OnDrawStyle := ds3D;
     { Do not enable
       - SwapFullScreen: (Close+Open) is for now broken here
@@ -791,6 +835,7 @@ begin
         This isn't difficult, but would complicate source code for little gain.)
       - Close_CharKey: it would make it too easy to close. }
     Glw.FpsShowOnCaption := true;
-    Glw.OpenAndRun(ProgramName, @Draw);
+    Glw.Caption := ProgramName;
+    Glw.OpenAndRun;
   finally FreeAndNil(Elevation) end;
 end.
