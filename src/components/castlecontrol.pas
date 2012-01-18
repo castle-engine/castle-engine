@@ -1043,7 +1043,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyDown(Key, Ch) then
+        if C.KeyDown(MyKey, Ch) then
         begin
           Key := 0;
           Exit;
@@ -1069,7 +1069,7 @@ begin
     begin
       C := Controls[I];
       if C.PositionInside(MouseX, MouseY) then
-        if C.KeyUp(Key, Ch) then
+        if C.KeyUp(MyKey, Ch) then
         begin
           Key := 0;
           Exit;
@@ -1497,19 +1497,19 @@ begin
 
     Ord('0') .. Ord('9'):
       begin
-        MyKey := K_0  + Key - Ord('0');
+        MyKey := TKey(Ord(K_0)  + Ord(Key) - Ord('0'));
         MyCharKey := Chr(Key);
       end;
 
     Ord('A') .. Ord('Z'):
       begin
-        MyKey := K_A  + Key - Ord('A');
+        MyKey := TKey(Ord(K_A)  + Ord(Key) - Ord('A'));
         MyCharKey := Chr(Key);
         if not (ssShift in Shift) then
           MyCharKey := LoCase(MyCharKey);
       end;
 
-    VK_F1 .. VK_F12  : MyKey := K_F1 + Key - VK_F1;
+    VK_F1 .. VK_F12  : MyKey := TKey(Ord(K_F1) + Ord(Key) - VK_F1);
   end;
 end;
 
