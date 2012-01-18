@@ -1600,10 +1600,7 @@ type
     procedure SetCameraRadius(const Value: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
 
-    property Examine: TExamineCamera read FExamine;
-    property Walk: TWalkCamera read FWalk;
     { Current (determined by NavigationClass) internal camera,
       that is either @link(Examine) or @link(Walk). }
     function Current: TCamera;
@@ -1637,6 +1634,9 @@ type
 
     function PreventsComfortableDragging: boolean; override;
   published
+    property Examine: TExamineCamera read FExamine;
+    property Walk: TWalkCamera read FWalk;
+
     { Choose navigation method by choosing particular camera class.
       The names of this correspond to camera classes (TExamineCamera,
       TWalkCamera). }
@@ -4378,23 +4378,20 @@ end;
 constructor TUniversalCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FExamine := TExamineCameraInUniversal.Create(nil);
+  FExamine := TExamineCameraInUniversal.Create(Self);
   TExamineCameraInUniversal(FExamine).Universal := Self;
   { Useful and works sensibly with our view3dscene events that pass
     mouse / keys to VRML/X3D scene. This way in Examine mode you can
     activate pointing device sensors.
     Note: This is the default now. }
-  FExamine.ExclusiveEvents := false;
+  Examine.ExclusiveEvents := false;
+  Examine.Name := 'Examine';
+  Examine.SetSubComponent(true);
 
-  FWalk := TWalkCameraInUniversal.Create(nil);
+  FWalk := TWalkCameraInUniversal.Create(Self);
   TWalkCameraInUniversal(FWalk).Universal := Self;
-end;
-
-destructor TUniversalCamera.Destroy;
-begin
-  FreeAndNil(FExamine);
-  FreeAndNil(FWalk);
-  inherited;
+  Walk.Name := 'Walk';
+  Walk.SetSubComponent(true);
 end;
 
 function TUniversalCamera.Current: TCamera;
