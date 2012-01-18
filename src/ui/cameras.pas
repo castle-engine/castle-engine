@@ -163,22 +163,32 @@ type
       (like after MakeClear), we will use NoneString. }
     function Description(const NoneString: string): string;
   published
+    { Key/mouse properties on TInputShortcut are declared without
+      "default" specifier, to always save them in Lazarus LFM file.
+      Reason: various class (TExamineCamera, TWalkCamera, TCastleSceneManager)
+      create them setting different default values.
+      If we would declare that default for Key1 is K_None,
+      then you couldn't set in Lazarus e.g. TWalkCamera.Input_Forward.Key1 to K_None.
+      Such K_None would not be saved to LFM (since it would equal Key1 default
+      value), but when reading the LFM back it would change into K_Up
+      (because TWalkCamera creates Input_Forward with K_Up by default). }
+
     { Key shortcuts for given command. You can set any of them to K_None
       to indicate that no key is assigned.
       @groupBegin }
-    property Key1: TKey read FKey1 write SetKey1 default K_None;
-    property Key2: TKey read FKey2 write SetKey2 default K_None;
+    property Key1: TKey read FKey1 write SetKey1;
+    property Key2: TKey read FKey2 write SetKey2;
     { @groupEnd }
 
     { Character shortcut for given command. You can set this to #0
       to indicate that no character shortcut is assigned. }
-    property Character: Char read FCharacter write SetCharacter default #0;
+    property Character: Char read FCharacter write SetCharacter;
 
     { Mouse shortcut for given command. You can set MouseButtonUse to @false
       if you don't want to use this.
       @groupBegin }
-    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse default false;
-    property MouseButton: TMouseButton read FMouseButton write SetMouseButton default mbLeft;
+    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
+    property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
     { @groupEnd }
 
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
@@ -186,7 +196,7 @@ type
       so this is only suitable for commands that work in steps
       (not continously). }
     property MouseWheel: TMouseWheelDirection read FMouseWheel
-      write SetMouseWheel default mwNone;
+      write SetMouseWheel;
 
     { Default values for properties key/mouse.
       You can change them --- this will change what MakeDefault does.
@@ -197,16 +207,16 @@ type
       changes. You can explicitly change Key1 property, or just call
       MakeDefault afterwards, if you want this to happen.
       @groupBegin }
-    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1 default K_None;
-    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2 default K_None;
+    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
+    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
     property DefaultCharacter: Char
-      read FDefaultCharacter write FDefaultCharacter default #0;
+      read FDefaultCharacter write FDefaultCharacter;
     property DefaultMouseButtonUse: boolean
-      read FDefaultMouseButtonUse write FDefaultMouseButtonUse default false;
+      read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
     property DefaultMouseButton: TMouseButton
-      read FDefaultMouseButton write FDefaultMouseButton default mbLeft;
+      read FDefaultMouseButton write FDefaultMouseButton;
     property DefaultMouseWheel: TMouseWheelDirection
-      read FDefaultMouseWheel write FDefaultMouseWheel default mwNone;
+      read FDefaultMouseWheel write FDefaultMouseWheel;
     { @groupEnd }
 
     { If assigned, this will be called always right after the key/character/mouse
