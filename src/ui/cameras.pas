@@ -580,12 +580,25 @@ type
     FInput_ScaleSmaller: TInputShortcut;
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
+    FMouseNavigation: boolean;
+
+    function GetInput_MoveXInc: TInputShortcut;
+    function GetInput_MoveXDec: TInputShortcut;
+    function GetInput_MoveYInc: TInputShortcut;
+    function GetInput_MoveYDec: TInputShortcut;
+    function GetInput_MoveZInc: TInputShortcut;
+    function GetInput_MoveZDec: TInputShortcut;
+    function GetInput_RotateXInc: TInputShortcut;
+    function GetInput_RotateXDec: TInputShortcut;
+    function GetInput_RotateYInc: TInputShortcut;
+    function GetInput_RotateYDec: TInputShortcut;
+    function GetInput_RotateZInc: TInputShortcut;
+    function GetInput_RotateZDec: TInputShortcut;
 
     function EventDown(AKey: TKey; ACharacter: Char;
       AMousePress: boolean; AMouseButton: TMouseButton;
       AMouseWheel: TMouseWheelDirection): boolean;
   private
-    FMouseNavigation: boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -612,8 +625,6 @@ type
 
     { Continous rotation animation, applied each Idle to Rotations. }
     property RotationsAnim: TVector3Single read FRotationsAnim write SetRotationsAnim;
-
-    { @groupEnd }
 
     { MoveAmount says how to translate the model.
       It's always added to the middle of ModelBox, this is usually
@@ -672,16 +683,13 @@ type
 
     { User inputs ------------------------------------------------------------ }
 
-    { }
+    { Alternative ways to access Input_Move/Rotate(X|Y|Z)(Inc|Dec).
+      Index the array (2nd index true means increase) instead of having
+      to use the full identifier.
+      @groupBegin }
     property Inputs_Move: T3BoolInputs read FInputs_Move;
     property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
-    property Input_ScaleLarger: TInputShortcut read FInput_ScaleLarger;
-    property Input_ScaleSmaller: TInputShortcut read FInput_ScaleSmaller;
-    property Input_Home: TInputShortcut read FInput_Home;
-    property Input_StopRotating: TInputShortcut read FInput_StopRotating;
-
-    property MouseNavigation: boolean
-      read FMouseNavigation write FMouseNavigation default true;
+    { @groupEnd }
 
     { TODO: for historical reasons, ExclusiveEvents is @false by default
       for TExamineCamera. }
@@ -695,6 +703,26 @@ type
 
     function PreventsComfortableDragging: boolean; override;
   published
+    property MouseNavigation: boolean
+      read FMouseNavigation write FMouseNavigation default true;
+
+    property Input_MoveXInc: TInputShortcut read GetInput_MoveXInc;
+    property Input_MoveXDec: TInputShortcut read GetInput_MoveXDec;
+    property Input_MoveYInc: TInputShortcut read GetInput_MoveYInc;
+    property Input_MoveYDec: TInputShortcut read GetInput_MoveYDec;
+    property Input_MoveZInc: TInputShortcut read GetInput_MoveZInc;
+    property Input_MoveZDec: TInputShortcut read GetInput_MoveZDec;
+    property Input_RotateXInc: TInputShortcut read GetInput_RotateXInc;
+    property Input_RotateXDec: TInputShortcut read GetInput_RotateXDec;
+    property Input_RotateYInc: TInputShortcut read GetInput_RotateYInc;
+    property Input_RotateYDec: TInputShortcut read GetInput_RotateYDec;
+    property Input_RotateZInc: TInputShortcut read GetInput_RotateZInc;
+    property Input_RotateZDec: TInputShortcut read GetInput_RotateZDec;
+    property Input_ScaleLarger: TInputShortcut read FInput_ScaleLarger;
+    property Input_ScaleSmaller: TInputShortcut read FInput_ScaleSmaller;
+    property Input_Home: TInputShortcut read FInput_Home;
+    property Input_StopRotating: TInputShortcut read FInput_StopRotating;
+
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
       hold rotation keys to rotate. }
@@ -2158,6 +2186,8 @@ const
     ((K_Left, K_Right), (K_Down, K_Up), (K_PageDown, K_PageUp));
   DefaultInputs_Rotate: T3BoolKeys =
     ((K_Up, K_Down), (K_Left, K_Right), (K_PageDown, K_PageUp));
+  CoordToStr: array [0..2] of string = ('X', 'Y', 'Z');
+  IncreaseToStr: array [boolean] of string = ('Dec', 'Inc');
 var
   I: Integer;
   B: boolean;
@@ -2180,23 +2210,36 @@ begin
     for B := false to true do
     begin
       FInputs_Move[I, B] := TInputShortcut.Create(Self);
+      FInputs_Move[I, B].Name := 'Input_Move' + CoordToStr[I] + IncreaseToStr[B];
+      FInputs_Move[I, B].SetSubComponent(true);
       FInputs_Move[I, B].Assign(DefaultInputs_Move[I, B]);
+
       FInputs_Rotate[I, B] := TInputShortcut.Create(Self);
+      FInputs_Rotate[I, B].Name := 'Input_Rotate' + CoordToStr[I] + IncreaseToStr[B];
+      FInputs_Rotate[I, B].SetSubComponent(true);
       FInputs_Rotate[I, B].Assign(DefaultInputs_Rotate[I, B]);
     end;
 
   { For scale larger/smaller we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
   FInput_ScaleLarger  := TInputShortcut.Create(Self);
+   Input_ScaleLarger.Name := 'Input_ScaleLarger';
+   Input_ScaleLarger.SetSubComponent(true);
    Input_ScaleLarger.Assign(K_Numpad_Plus, K_None, '+');
 
   FInput_ScaleSmaller := TInputShortcut.Create(Self);
+   Input_ScaleSmaller.Name := 'Input_ScaleSmaller';
+   Input_ScaleSmaller.SetSubComponent(true);
    Input_ScaleSmaller.Assign(K_Numpad_Minus, K_None, '-');
 
-  FInput_Home         := TInputShortcut.Create(Self);
+  FInput_Home := TInputShortcut.Create(Self);
+   Input_Home.Name := 'Input_Home';
+   Input_Home.SetSubComponent(true);
    Input_Home.Assign(K_Home);
 
   FInput_StopRotating := TInputShortcut.Create(Self);
+   Input_StopRotating.Name := 'Input_StopRotating';
+   Input_StopRotating.SetSubComponent(true);
    Input_StopRotating.Assign(K_Space, K_None, #0, true, mbLeft);
 end;
 
@@ -2740,6 +2783,19 @@ function TExamineCamera.PreventsComfortableDragging: boolean;
 begin
   Result := true;
 end;
+
+function TExamineCamera.GetInput_MoveXInc: TInputShortcut; begin Result := Inputs_Move[0, true ] end;
+function TExamineCamera.GetInput_MoveXDec: TInputShortcut; begin Result := Inputs_Move[0, false] end;
+function TExamineCamera.GetInput_MoveYInc: TInputShortcut; begin Result := Inputs_Move[1, true ] end;
+function TExamineCamera.GetInput_MoveYDec: TInputShortcut; begin Result := Inputs_Move[1, false] end;
+function TExamineCamera.GetInput_MoveZInc: TInputShortcut; begin Result := Inputs_Move[2, true ] end;
+function TExamineCamera.GetInput_MoveZDec: TInputShortcut; begin Result := Inputs_Move[2, false] end;
+function TExamineCamera.GetInput_RotateXInc: TInputShortcut; begin Result := Inputs_Rotate[0, true ] end;
+function TExamineCamera.GetInput_RotateXDec: TInputShortcut; begin Result := Inputs_Rotate[0, false] end;
+function TExamineCamera.GetInput_RotateYInc: TInputShortcut; begin Result := Inputs_Rotate[1, true ] end;
+function TExamineCamera.GetInput_RotateYDec: TInputShortcut; begin Result := Inputs_Rotate[1, false] end;
+function TExamineCamera.GetInput_RotateZInc: TInputShortcut; begin Result := Inputs_Rotate[2, true ] end;
+function TExamineCamera.GetInput_RotateZDec: TInputShortcut; begin Result := Inputs_Rotate[2, false] end;
 
 { TWalkCamera ---------------------------------------------------------------- }
 
