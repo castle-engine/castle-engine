@@ -56,15 +56,14 @@ uses SysUtils, Classes, Boxes3D,
   CastleUtils, CastleWindow, GL, GLExt, CastleGLUtils, CastleParameters,
   Cameras, VectorMath, CastleFilesUtils, Elevations, CastleMessages,
   CastleStringUtils, OnScreenMenu, UIControls, Images, RenderElevations,
-  GLShaders, GLImages, X3DFields, X3DNodes, Base3D, Frustum, CastleSceneManager,
-  RaysWindow, Background;
+  GLShaders, GLImages, X3DFields, X3DNodes, Base3D, Frustum, CastleSceneManager;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
 
 var
   { global stuff }
-  Glw: TCastleWindowCustom;
+  Glw: TCastleWindow;
   ExamineCamera: TExamineCamera;
   WalkCamera: TWalkCamera;
   Elevation: TElevation;
@@ -119,10 +118,6 @@ type
     procedure AccessoryValueChanged; override;
   end;
 
-  TMySceneManager = class(TCastleSceneManager)
-    procedure ApplyProjection; override;
-  end;
-
 var
   { ui controls }
   ControlsNoise: TControlsNoise;
@@ -131,7 +126,7 @@ var
   SubdivisionSlider: TMenuIntegerSlider;
   LayersCountSlider: TMenuIntegerSlider;
   ImageHeightScaleSlider: TMenuFloatSlider;
-  SceneManager: TMySceneManager;
+  SceneManager: TCastleSceneManager;
 
 { Current TCastleOnScreenMenu, or none, based on Elevation class and ControlsVisible. }
 function CurrentControls: TCastleOnScreenMenu;
@@ -302,41 +297,15 @@ end;
 
 function T3DTerrain.BoundingBox: TBox3D;
 { Instead of trying to figure out what is a suitable bounding box,
-  just assume we fill the whole 3D space. }
+  just assume we fill the whole 3D space.
+  It must be large to always consider terrain within frustum,
+  and to force TCastleSceneManager.ApplyProjection to have sufficiently
+  large ProjectionFar. }
 const
-  InfiniteBox: TBox3D = (Data:
-    ((-MaxSingle, -MaxSingle, -MaxSingle),
-     ( MaxSingle,  MaxSingle,  MaxSingle)));
+  M = 10000;
+  InfiniteBox: TBox3D = (Data:((-M, -M, -M), (M, M, M)));
 begin
   Result := InfiniteBox;
-end;
-
-procedure TMySceneManager.ApplyProjection;
-
-  procedure UpdateCameraProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    WalkCamera.ProjectionMatrix := ProjectionMatrix;
-    ExamineCamera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
-begin
-  glViewport(0, 0, ContainerWidth, ContainerHeight);
-
-  FProjectionNear := Camera.CameraRadius * 0.6;
-  FProjectionFar := 100.0;
-
-  FPerspectiveView := true;
-  FPerspectiveViewAngles[1] := 30.0;
-  FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
-    FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
-
-  ProjectionGLPerspective(FPerspectiveViewAngles[1],
-    ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar);
-
-  UpdateCameraProjectionMatrix;
 end;
 
 constructor TControlsNoise.Create(AOwner: TComponent);
@@ -794,7 +763,7 @@ begin
 end;
 
 begin
-  Glw := TCastleWindowCustom.Create(Application);
+  Glw := TCastleWindow.Create(Application);
 
   Glw.ParseParameters(StandardParseOptions);
   Parameters.CheckHighAtMost(1);
@@ -814,11 +783,8 @@ begin
       { CameraRadius } 0.02);
     WalkCamera.MoveSpeed := 0.5;
 
-    SceneManager := TMySceneManager.Create(Glw);
-    Glw.Controls.Add(SceneManager);
-
+    SceneManager := Glw.SceneManager;
     SceneManager.Items.Add(T3DTerrain.Create(Glw));
-
     SceneManager.Camera := ExamineCamera;
 
     Glw.MainMenu := CreateMainMenu;
