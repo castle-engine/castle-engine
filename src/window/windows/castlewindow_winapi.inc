@@ -152,9 +152,9 @@ begin
     VK_OEM_MINUS: Result := K_Minus;
     VK_OEM_PLUS: Result := K_Plus;
 
-    Ord('0') .. Ord('9'): Result := K_0  + VirtualKey - Ord('0');
-    Ord('A') .. Ord('Z'): Result := K_A  + VirtualKey - Ord('A');
-    VK_F1    .. VK_F12  : Result := K_F1 + VirtualKey - VK_F1;
+    Ord('0') .. Ord('9'): Result := TKey(Ord(K_0)  + Ord(VirtualKey) - Ord('0'));
+    Ord('A') .. Ord('Z'): Result := TKey(Ord(K_A)  + Ord(VirtualKey) - Ord('A'));
+    VK_F1    .. VK_F12  : Result := TKey(Ord(K_F1) + Ord(VirtualKey) - Ord(VK_F1));
     else
       if not VK_Stored(VK_LeftBracket_Exists , VK_LeftBracket , K_LeftBracket ) then
       if not VK_Stored(VK_RightBracket_Exists, VK_RightBracket, K_RightBracket) then
@@ -256,7 +256,7 @@ function TCastleWindowBase.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM):
 
   function InterceptedSystemKey(key: integer): boolean;
   begin
-    Result := { TODO-alt: (key = K_Alt) or }(key = K_F10)
+    Result := { TODO-alt: (key = K_Alt) or }(key = VK_F10)
   end;
 
   procedure Handle_WM_KEYDOWN;
