@@ -851,15 +851,6 @@ type
       out OrthoViewDimensions: TVector4Single;
       out ProjectionNear, ProjectionFar: Single);
 
-    { Simplified GLProjection version. Useful when you're not interested
-      in resulting projection properties. Should not be used ---
-      this is only a temporary proc for compatibility, to compile old examples.
-      @deprecated }
-    procedure GLProjection(ACamera: TCamera;
-      const Box: TBox3D;
-      const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
-      const ForceZFarInfinity: boolean = false);
-
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -3551,22 +3542,6 @@ end;
 function TCastleScene.Attributes: TSceneRenderingAttributes;
 begin
   Result := Renderer.Attributes as TSceneRenderingAttributes;
-end;
-
-procedure TCastleScene.GLProjection(ACamera: TCamera;
-  const Box: TBox3D;
-  const ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
-  const ForceZFarInfinity: boolean);
-var
-  PerspectiveView: boolean;
-  PerspectiveViewAngles: TVector2Single;
-  OrthoViewDimensions: TVector4Single;
-  ProjectionNear, ProjectionFar: Single;
-begin
-  GLProjection(ACamera, Box,
-    ViewportX, ViewportY, ViewportWidth, ViewportHeight, ForceZFarInfinity,
-    PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-    ProjectionNear, ProjectionFar);
 end;
 
 procedure TCastleScene.GLProjection(ACamera: TCamera;
