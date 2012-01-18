@@ -701,8 +701,8 @@ type
     property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
     { @groupEnd }
 
-    { TODO: for historical reasons, ExclusiveEvents is @false by default
-      for TExamineCamera. }
+    { For Examine camera, ExclusiveEvents by default are @false,
+      so enable activating and using pointing device sensors in Examine mode. }
     property ExclusiveEvents default false;
 
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
