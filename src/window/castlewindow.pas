@@ -545,14 +545,13 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
 
 { ---------------------------------------------------------------------
 
-  I'm aliasing here TKey type and key constants from Keys unit,
+  I'm aliasing here TKey type and key constants from KeysMouse unit,
   this way code that uses CastleWindow unit has automcatically
   available TKey type and key constants (because a lot of code
   using CastleWindow unit uses also these type/constant, so I want
-  to avoid adding "Keys" unit to uses clauses).
+  to avoid adding "KeysMouse" unit to uses clauses).
 
-  Once the "reuse" keyword will be implemented in FPC,
-  this can be done using something like "reuse Keys".
+  Once the "reuse" keyword will be implemented in FPC, this can be done simpler.
 }
 
 type
