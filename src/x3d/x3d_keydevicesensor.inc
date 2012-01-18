@@ -127,7 +127,7 @@ function KeyToActionKey(Key: TKey; out ActionKey: Integer): boolean;
 begin
   Result := true;
   case Key of
-    K_F1 .. K_F12 : ActionKey := Key - K_F1 + 1;
+    K_F1 .. K_F12 : ActionKey := Ord(Key) - Ord(K_F1) + 1;
     K_Home     : ActionKey := 13;
     K_End      : ActionKey := 14;
     K_PageUp   : ActionKey := 15;

@@ -62,12 +62,209 @@ interface
 uses CastleUtils, CastleStringUtils;
 
 type
-  { }
-  TKey = Byte;
+  { Keys on keyboard.
+    Do not ever use values K_Reserved_Xxx (they are declared here only to avoid
+    using assignments, which would prevent FPC from allowing TKey to index arrays). }
+  TKey = (
+    { K_None is a special value, meaning "no key".
+      It's guaranteed that it's always equal to zero. }
+    K_None,
+    K_PrintScreen,
+    K_CapsLock,
+    K_ScrollLock,
+    K_NumLock,
+    K_Pause,
+    K_Apostrophe,
+    K_Semicolon,
+    K_BackSpace, //< = Ord(CharBackSpace) = 8
+    K_Tab, //< = Ord(CharTab) = 9
+    K_Slash,
+    K_BackQuote,
+    K_Minus,
+    K_Enter, //< = Ord(CharEnter) = 13
+    K_Equal,
+    K_BackSlash,
+    K_Shift,
+    K_Ctrl,
+    K_Alt,
+    K_Plus,
+    K_Reserved_20,
+    K_Reserved_21,
+    K_Reserved_22,
+    K_Reserved_23,
+    K_Reserved_24,
+    K_Reserved_25,
+    K_Reserved_26,
+    K_Escape, //< = Ord(CharEscape) = 27
+    K_Reserved_28,
+    K_Reserved_29,
+    K_Reserved_30,
+    K_Reserved_31,
+    K_Space, //< = Ord(' ') = 32
+    K_PageUp,
+    K_PageDown,
+    K_End,
+    K_Home,
+    K_Left,
+    K_Up,
+    K_Right,
+    K_Down,
+    K_Reserved_41,
+    K_Reserved_42,
+    K_Reserved_43,
+    K_Reserved_44,
+    K_Insert,
+    K_Delete,
+    K_Reserved_47,
+    K_0, //< = Ord('0') = 48
+    K_1, //< = Ord('1')
+    K_2, //< = Ord('2')
+    K_3, //< = Ord('3')
+    K_4, //< = Ord('4')
+    K_5, //< = Ord('5')
+    K_6, //< = Ord('6')
+    K_7, //< = Ord('7')
+    K_8, //< = Ord('8')
+    K_9, //< = Ord('9') = 57
+    K_Reserved_58,
+    K_Reserved_59,
+    K_Reserved_60,
+    K_Reserved_61,
+    K_Reserved_62,
+    K_Reserved_63,
+    K_Reserved_64,
+    K_A, //< = Ord('A') = 65
+    K_B, //< = Ord('B')
+    K_C, //< = Ord('C')
+    K_D, //< = Ord('D')
+    K_E, //< = Ord('E')
+    K_F, //< = Ord('F')
+    K_G, //< = Ord('G')
+    K_H, //< = Ord('H')
+    K_I, //< = Ord('I')
+    K_J, //< = Ord('J')
+    K_K, //< = Ord('K')
+    K_L, //< = Ord('L')
+    K_M, //< = Ord('M')
+    K_N, //< = Ord('N')
+    K_O, //< = Ord('O')
+    K_P, //< = Ord('P')
+    K_Q, //< = Ord('Q')
+    K_R, //< = Ord('R')
+    K_S, //< = Ord('S')
+    K_T, //< = Ord('T')
+    K_U, //< = Ord('U')
+    K_V, //< = Ord('V')
+    K_W, //< = Ord('W')
+    K_X, //< = Ord('X')
+    K_Y, //< = Ord('Y')
+    K_Z, //< = Ord('Z') = 90
+    K_LeftBracket,
+    K_Reserved_92,
+    K_RightBracket,
+    K_Reserved_94,
+    K_Reserved_95,
+    K_Reserved_96,
+    K_Reserved_97,
+    K_Reserved_98,
+    K_Reserved_99,
+    K_Reserved_100,
+    K_Reserved_101,
+    K_Reserved_102,
+    K_Reserved_103,
+    K_Reserved_104,
+    K_Reserved_105,
+    K_Reserved_106,
+    K_Numpad_Plus ,
+    K_Reserved_108,
+    K_Numpad_Minus,
+    K_Reserved_110,
+    K_Reserved_111,
+    K_F1,
+    K_F2,
+    K_F3,
+    K_F4,
+    K_F5,
+    K_F6,
+    K_F7,
+    K_F8,
+    K_F9,
+    K_F10,
+    K_F11,
+    K_F12,
+    K_Reserved_124,
+    K_Reserved_125,
+    K_Reserved_126,
+    K_Reserved_127,
+    K_Reserved_128,
+    K_Reserved_129,
+    K_Reserved_130,
+    K_Reserved_131,
+    K_Reserved_132,
+    K_Reserved_133,
+    K_Reserved_134,
+    K_Reserved_135,
+    K_Reserved_136,
+    K_Reserved_137,
+    K_Reserved_138,
+    K_Reserved_139,
+    K_Numpad_0,
+    K_Numpad_1,
+    K_Numpad_2,
+    K_Numpad_3,
+    K_Numpad_4,
+    K_Numpad_5,
+    K_Numpad_6,
+    K_Numpad_7,
+    K_Numpad_8,
+    K_Numpad_9,
+    K_Numpad_End,
+    K_Numpad_Down,
+    K_Numpad_PageDown,
+    K_Numpad_Left,
+    K_Numpad_Begin,
+    K_Numpad_Right,
+    K_Numpad_Home,
+    K_Numpad_Up,
+    K_Numpad_PageUp,
+    K_Numpad_Insert,
+    K_Numpad_Delete,
+    K_Numpad_Enter,
+    K_Numpad_Multiply,
+    K_Numpad_Divide,
+    K_Reserved_164,
+    K_Reserved_165,
+    K_Reserved_166,
+    K_Reserved_167,
+    K_Reserved_168,
+    K_Reserved_169,
+    K_Reserved_170,
+    K_Reserved_171,
+    K_Reserved_172,
+    K_Reserved_173,
+    K_Reserved_174,
+    K_Reserved_175,
+    K_Reserved_176,
+    K_Reserved_177,
+    K_Reserved_178,
+    K_Reserved_179,
+    K_Reserved_180,
+    K_Reserved_181,
+    K_Reserved_182,
+    K_Reserved_183,
+    K_Reserved_184,
+    K_Reserved_185,
+    K_Reserved_186,
+    K_Reserved_187,
+    K_Comma,
+    K_Reserved_189,
+    K_Period,
+    K_Reserved_191
+  );
 
-  TKeysBooleans = array[TKey]of Boolean;
+  TKeysBooleans = array [TKey] of Boolean;
   PKeysBooleans = ^TKeysBooleans;
-  TKeysBytes = array[TKey]of Byte;
+  TKeysBytes = array [TKey] of Byte;
   PKeysBytes = ^TKeysBytes;
 
   TCharactersBooleans = array [Char] of Boolean;
@@ -106,137 +303,6 @@ type
     mcHand);
 
 const
-  { K_None is a very special value of type TKey. It means "no key",
-    and is generally useful in similar situations when "nil" value
-    is useful for Pointer types: to indicate some special "invalid"
-    or "nonexisting" value. E.g. instead of
-      @longCode# Key: TKey; ValidKey: boolean; #
-    you can use just
-      @longCode# Key: TKey; #
-    and say that "Key = K_None means that key is not a valid key".
-
-    It's guaranteed that K_None constant is always equal to zero.
-    It's not a nice programming practice, but you can depend on it. }
-  K_None = 0;
-
-  K_PrintScreen = 1;
-  K_CapsLock = 2;
-  K_ScrollLock = 3;
-  K_NumLock = 4;
-  K_Pause = 5;
-  K_Apostrophe = 6;
-  K_Semicolon = 7;
-  K_BackSpace = Ord(CharBackSpace); //< = 8
-  K_Tab = Ord(CharTab); //< = 9
-  K_Slash = 10;
-  K_BackQuote = 11;
-  K_Minus = 12;
-  K_Enter = Ord(CharEnter); //< = 13
-  K_Equal = 14;
-  K_BackSlash = 15;
-  K_Shift = 16;
-  K_Ctrl = 17;
-  K_Alt = 18;
-  K_Plus = 19;
-
-  K_Escape = Ord(CharEscape); //< = 27
-  K_Space = Ord(' '); //< 32
-  K_PageUp = 33;
-  K_PageDown = 34;
-  K_End = 35;
-  K_Home = 36;
-  K_Left = 37;
-  K_Up = 38;
-  K_Right = 39;
-  K_Down = 40;
-  K_Insert = 45;
-  K_Delete = 46;
-
-  K_0 = Ord('0'); //< = 48
-  K_1 = Ord('1');
-  K_2 = Ord('2');
-  K_3 = Ord('3');
-  K_4 = Ord('4');
-  K_5 = Ord('5');
-  K_6 = Ord('6');
-  K_7 = Ord('7');
-  K_8 = Ord('8');
-  K_9 = Ord('9'); //< = 57
-
-  K_A = Ord('A'); //< = 65
-  K_B = Ord('B');
-  K_C = Ord('C');
-  K_D = Ord('D');
-  K_E = Ord('E');
-  K_F = Ord('F');
-  K_G = Ord('G');
-  K_H = Ord('H');
-  K_I = Ord('I');
-  K_J = Ord('J');
-  K_K = Ord('K');
-  K_L = Ord('L');
-  K_M = Ord('M');
-  K_N = Ord('N');
-  K_O = Ord('O');
-  K_P = Ord('P');
-  K_Q = Ord('Q');
-  K_R = Ord('R');
-  K_S = Ord('S');
-  K_T = Ord('T');
-  K_U = Ord('U');
-  K_V = Ord('V');
-  K_W = Ord('W');
-  K_X = Ord('X');
-  K_Y = Ord('Y');
-  K_Z = Ord('Z'); //< = 90
-
-  K_LeftBracket = 91;
-  K_RightBracket = 93;
-
-  K_Numpad_Plus  = 107;
-  K_Numpad_Minus = 109;
-
-  K_F1 = 112;
-  K_F2 = 113;
-  K_F3 = 114;
-  K_F4 = 115;
-  K_F5 = 116;
-  K_F6 = 117;
-  K_F7 = 118;
-  K_F8 = 119;
-  K_F9 = 120;
-  K_F10 = 121;
-  K_F11 = 122;
-  K_F12 = 123;
-
-  K_Numpad_0 = 140;
-  K_Numpad_1 = 141;
-  K_Numpad_2 = 142;
-  K_Numpad_3 = 143;
-  K_Numpad_4 = 144;
-  K_Numpad_5 = 145;
-  K_Numpad_6 = 146;
-  K_Numpad_7 = 147;
-  K_Numpad_8 = 148;
-  K_Numpad_9 = 149;
-  K_Numpad_End = 150;
-  K_Numpad_Down = 151;
-  K_Numpad_PageDown = 152;
-  K_Numpad_Left = 153;
-  K_Numpad_Begin = 154;
-  K_Numpad_Right = 155;
-  K_Numpad_Home = 156;
-  K_Numpad_Up = 157;
-  K_Numpad_PageUp = 158;
-  K_Numpad_Insert = 159;
-  K_Numpad_Delete = 160;
-  K_Numpad_Enter = 161;
-  K_Numpad_Multiply = 162;
-  K_Numpad_Divide = 163;
-
-  K_Comma = 188;
-  K_Period = 190;
-
   MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
 
 function KeyToStr(key: TKey): string;
@@ -369,82 +435,221 @@ const
   Assumes that Scroll <> 0, like TCastleWindowBase.OnMouseWheel guarantees. }
 function MouseWheelDirection(const Scroll: Single; const Vertical: boolean): TMouseWheelDirection;
 
+{ Convert string value back to a key name, reversing KeyToStr.
+  If string does not contain any recognized key name, return DefaultKey. }
+function StrToKey(const S: string; const DefaultKey: TKey): TKey;
+
 implementation
 
 uses SysUtils;
 
-function KeyToStr(key: TKey): string;
+const
+  KeyToStrTable: array [TKey] of string = (
+  'None',
+  'Print Screen',
+  'Caps Lock',
+  'Scroll Lock',
+  'Num Lock',
+  'Pause',
+  'Apostrophe',
+  'Semicolon',
+  'BackSpace',
+  'Tab',
+  'Slash',
+  'BackQuote',
+  'Minus',
+  'Enter',
+  'Equal',
+  'BackSlash',
+  'Shift',
+  'Ctrl',
+  'Alt',
+  'Plus',
+  'Reserved_20',
+  'Reserved_21',
+  'Reserved_22',
+  'Reserved_23',
+  'Reserved_24',
+  'Reserved_25',
+  'Reserved_26',
+  'Escape',
+  'Reserved_28',
+  'Reserved_29',
+  'Reserved_30',
+  'Reserved_31',
+  'Space',
+  'Page Up',
+  'Page Down',
+  'End',
+  'Home',
+  'Left',
+  'Up',
+  'Right',
+  'Down',
+  'Reserved_41',
+  'Reserved_42',
+  'Reserved_43',
+  'Reserved_44',
+  'Insert',
+  'Delete',
+  'Reserved_47',
+  '0',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  'Reserved_58',
+  'Reserved_59',
+  'Reserved_60',
+  'Reserved_61',
+  'Reserved_62',
+  'Reserved_63',
+  'Reserved_64',
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+  '[',
+  'Reserved_92',
+  ']',
+  'Reserved_94',
+  'Reserved_95',
+  'Reserved_96',
+  'Reserved_97',
+  'Reserved_98',
+  'Reserved_99',
+  'Reserved_100',
+  'Reserved_101',
+  'Reserved_102',
+  'Reserved_103',
+  'Reserved_104',
+  'Reserved_105',
+  'Reserved_106',
+  'Numpad Plus',
+  'Reserved_108',
+  'Numpad Minus',
+  'Reserved_110',
+  'Reserved_111',
+  'F1',
+  'F2',
+  'F3',
+  'F4',
+  'F5',
+  'F6',
+  'F7',
+  'F8',
+  'F9',
+  'F10',
+  'F11',
+  'F12',
+  'Reserved_124',
+  'Reserved_125',
+  'Reserved_126',
+  'Reserved_127',
+  'Reserved_128',
+  'Reserved_129',
+  'Reserved_130',
+  'Reserved_131',
+  'Reserved_132',
+  'Reserved_133',
+  'Reserved_134',
+  'Reserved_135',
+  'Reserved_136',
+  'Reserved_137',
+  'Reserved_138',
+  'Reserved_139',
+  'Numpad 0',
+  'Numpad 1',
+  'Numpad 2',
+  'Numpad 3',
+  'Numpad 4',
+  'Numpad 5',
+  'Numpad 6',
+  'Numpad 7',
+  'Numpad 8',
+  'Numpad 9',
+  'Numpad End',
+  'Numpad Down',
+  'Numpad PageDown',
+  'Numpad Left',
+  'Numpad Begin',
+  'Numpad Right',
+  'Numpad Home',
+  'Numpad Up',
+  'Numpad PageUp',
+  'Numpad Insert',
+  'Numpad Delete',
+  'Numpad Enter',
+  'Numpad Multiply',
+  'Numpad Divide',
+  'Reserved_164',
+  'Reserved_165',
+  'Reserved_166',
+  'Reserved_167',
+  'Reserved_168',
+  'Reserved_169',
+  'Reserved_170',
+  'Reserved_171',
+  'Reserved_172',
+  'Reserved_173',
+  'Reserved_174',
+  'Reserved_175',
+  'Reserved_176',
+  'Reserved_177',
+  'Reserved_178',
+  'Reserved_179',
+  'Reserved_180',
+  'Reserved_181',
+  'Reserved_182',
+  'Reserved_183',
+  'Reserved_184',
+  'Reserved_185',
+  'Reserved_186',
+  'Reserved_187',
+  'Comma',
+  'Reserved_189',
+  'Period',
+  'Reserved_191'
+  );
+
+function KeyToStr(Key: TKey): string;
 begin
- case key of
-  K_None: result := 'None';
-  K_PrintScreen: Result := 'Print Screen';
-  K_CapsLock: Result := 'Caps Lock';
-  K_ScrollLock: Result := 'Scroll Lock';
-  K_NumLock: Result := 'Num Lock';
-  K_Pause: Result := 'Pause';
-  K_BackSpace: result := 'BackSpace';
-  K_Tab: result := 'Tab';
-  K_Enter: result := 'Enter';
-  K_Shift: result := 'Shift';
-  K_Ctrl: Result := 'Ctrl';
-  K_Alt: Result := 'Alt';
-  K_Escape: Result := 'Escape';
-  K_Space: Result := 'Space';
-  K_PageUp: Result := 'Page Up';
-  K_PageDown: Result := 'Page Down';
-  K_End: Result := 'End';
-  K_Home: Result := 'Home';
-  K_Left: Result := 'Left';
-  K_Up: Result := 'Up';
-  K_Right: Result := 'Right';
-  K_Down: Result := 'Down';
-  K_Insert: Result := 'Insert';
-  K_Delete: Result := 'Delete';
-  K_LeftBracket: Result := '[';
-  K_RightBracket: Result := ']';
-  K_Numpad_Plus: Result := 'Numpad Plus';
-  K_Numpad_Minus: Result := 'Numpad Minus';
-  K_Comma: Result := 'Comma';
-  K_Period: Result := 'Period';
-  K_Numpad_0: Result := 'Numpad 0';
-  K_Numpad_1: Result := 'Numpad 1';
-  K_Numpad_2: Result := 'Numpad 2';
-  K_Numpad_3: Result := 'Numpad 3';
-  K_Numpad_4: Result := 'Numpad 4';
-  K_Numpad_5: Result := 'Numpad 5';
-  K_Numpad_6: Result := 'Numpad 6';
-  K_Numpad_7: Result := 'Numpad 7';
-  K_Numpad_8: Result := 'Numpad 8';
-  K_Numpad_9: Result := 'Numpad 9';
-  K_Numpad_End: Result := 'Numpad End';
-  K_Numpad_Down: Result := 'Numpad Down';
-  K_Numpad_PageDown: Result := 'Numpad Page Down';
-  K_Numpad_Left: Result := 'Numpad Left';
-  K_Numpad_Begin: Result := 'Numpad Begin';
-  K_Numpad_Right: Result := 'Numpad Right';
-  K_Numpad_Home: Result := 'Numpad Home';
-  K_Numpad_Up: Result := 'Numpad Up';
-  K_Numpad_PageUp: Result := 'Numpad Page Up';
-  K_Numpad_Insert: Result := 'Numpad Insert';
-  K_Numpad_Delete: Result := 'Numpad Delete';
-  K_Numpad_Enter: Result := 'Numpad Enter';
-  K_Numpad_Multiply: Result := 'Numpad Multiply';
-  K_Numpad_Divide: Result := 'Numpad Divide';
-  K_Apostrophe: Result := 'Apostrophe';
-  K_Semicolon: Result := 'Semicolon';
-  K_Slash: Result := 'Slash';
-  K_BackQuote: Result := 'Backquote';
-  K_Minus: Result := 'Minus';
-  K_Plus : Result := 'Plus';
-  K_Equal: Result := 'Equal';
-  K_BackSlash: Result := 'Backslash';
+  Result := KeyToStrTable[Key];
+end;
 
-  K_0 .. K_9: Result := IntToStr(key-K_0);
-  K_A .. K_Z: Result := Chr( Ord('A')+key-K_A );
-  K_F1 .. K_F12: Result := 'F'+IntToStr(key-K_F1+1);
-
-  else result := '<unknown key>';
- end;
+function StrToKey(const S: string; const DefaultKey: TKey): TKey;
+begin
+  for Result := Low(Result) to High(Result) do
+    if KeyToStrTable[Result] = S then
+      Exit;
+  Result := DefaultKey;
 end;
 
 function ModifiersDown(const KeysDown: TKeysBooleans): TModifierKeys;

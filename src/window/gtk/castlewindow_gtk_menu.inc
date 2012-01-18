@@ -204,8 +204,8 @@ procedure TCastleWindowBase.BackendMenuInitialize;
        K_Numpad_Plus: gdk_keyval := GDK_KEY_Plus;
        K_Numpad_Minus: gdk_keyval := GDK_KEY_Minus;
 
-       K_0 .. K_9: gdk_keyval := GDK_KEY_0 + Key - K_0;
-       K_A .. K_Z: gdk_keyval := GDK_KEY_A + Key - K_A;
+       K_0 .. K_9: gdk_keyval := GDK_KEY_0 + Ord(Key) - Ord(K_0);
+       K_A .. K_Z: gdk_keyval := GDK_KEY_A + Ord(Key) - Ord(K_A);
 
        K_F1 : gdk_keyval := GDK_KEY_F1;
        K_F2 : gdk_keyval := GDK_KEY_F2;

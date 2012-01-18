@@ -23,6 +23,7 @@ uses
   TestCastleClassUtils,
   TestVectorMath,
   TestCastleColors,
+  TestKeysMouse,
   TestFPImage,
   TestImages,
   TestOldFPCBugs,

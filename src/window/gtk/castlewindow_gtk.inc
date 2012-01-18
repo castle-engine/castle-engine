@@ -293,12 +293,12 @@ begin
   GDK_KEY_KP_Add: Result := K_Numpad_Plus;
   GDK_KEY_KP_Subtract: Result := K_Numpad_Minus;
 
-  GDK_KEY_0..GDK_KEY_9: Result := K_0 + GdkKeysym - GDK_KEY_0;
+  GDK_KEY_0..GDK_KEY_9: Result := TKey(Ord(K_0) + GdkKeysym - GDK_KEY_0);
 
-  GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := K_A + GdkKeysym - GDK_KEY_Capital_A;
-  GDK_KEY_A        ..GDK_KEY_Z        : Result := K_A + GdkKeysym - GDK_KEY_A;
+  GDK_KEY_Capital_A..GDK_KEY_Capital_Z: Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_Capital_A);
+  GDK_KEY_A        ..GDK_KEY_Z        : Result := TKey(Ord(K_A) + GdkKeysym - GDK_KEY_A);
 
-  GDK_KEY_F1..GDK_KEY_F12: Result := K_F1 + GdkKeysym - GDK_KEY_F1;
+  GDK_KEY_F1..GDK_KEY_F12: Result := TKey(Ord(K_F1) + GdkKeysym - GDK_KEY_F1);
 
   GDK_KEY_Comma: Result := K_Comma;
   GDK_KEY_Period: Result := K_Period;

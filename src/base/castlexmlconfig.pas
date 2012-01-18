@@ -31,14 +31,15 @@ unit CastleXMLConfig;
 interface
 
 uses CastleUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM,
-  VectorMath;
+  VectorMath, KeysMouse;
 
 type
   { Store configuration in XML format.
 
     This is a descendant of TXMLConfig that adds various small extensions:
     float types (GetFloat, SetFloat, SetDeleteFloat),
-    vector types, PathElement utility. }
+    vector types, key (TKey) types,
+    PathElement utility. }
   TCastleConfig = class(TXMLConfig)
   public
     { Internal notes: At the beginning I made the float methods
@@ -79,6 +80,13 @@ type
       const AValue: TVector4Single); overload;
     procedure SetDeleteValue(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TKey): TKey; overload;
+    procedure SetValue(const APath: string;
+      const AValue: TKey); overload;
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TKey); overload;
 
     { For a given path, return corresponding DOM element of XML tree.
       This is useful if you want to mix XMLConfig style operations
@@ -198,6 +206,24 @@ var
 begin
   for I := 0 to 3 do
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TKey): TKey;
+begin
+  Result := StrToKey(GetValue(APath, KeyToStr(ADefaultValue)), ADefaultValue);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TKey);
+begin
+  SetValue(APath, KeyToStr(AValue));
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TKey);
+begin
+  SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));
 end;
 
 function TCastleConfig.PathElement(const APath: string): TDOMElement;
