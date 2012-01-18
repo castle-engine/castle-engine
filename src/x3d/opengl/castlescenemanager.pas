@@ -980,7 +980,8 @@ begin
   FAlwaysApplyProjection := true;
   FRenderParams := TManagerRenderParams.Create;
 
-  FInput_PointingDeviceActivate := TInputShortcut.Create(K_None, K_None, #0, true, mbLeft);
+  FInput_PointingDeviceActivate := TInputShortcut.Create(Self);
+  Input_PointingDeviceActivate.Assign(K_None, K_None, #0, true, mbLeft);
   Input_PointingDeviceActivate.SetSubComponent(true);
   Input_PointingDeviceActivate.Name := 'Input_PointingDeviceActivate';
 end;
@@ -1010,8 +1011,6 @@ begin
 
   FreeAndNil(FRenderParams);
   FreeAndNil(DefaultHeadlightNode);
-
-  FreeAndNil(FInput_PointingDeviceActivate);
 
   inherited;
 end;

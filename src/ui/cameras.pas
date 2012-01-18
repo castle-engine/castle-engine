@@ -96,26 +96,24 @@ type
   protected
     procedure Changed; virtual;
   public
-    { Constructor. Key/mouse shortcuts passed here are interpreted
-      as the default shortcuts (so they will be used in subsequent
-      MakeDefault) and they are also the initial values for Key1, Key2 etc.
-      properties. }
-    constructor Create(AOwner: TComponent); override;
-    constructor Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
-      AMouseButtonUse: boolean;
-      AMouseButton: TMouseButton;
-      const AMouseWheel: TMouseWheelDirection = mwNone);
-
     procedure MakeDefault;
 
-    { This assigns to this object the default values from Source. }
+    { Assigns to this object the default values from Source. }
     procedure AssignFromDefault(Source: TInputShortcut);
 
-    { This copies Source properties to this object.
+    { Copy Source properties to this object.
       It always copies "current" properties (Key1, Key2, Character,
       MouseButtonUse, MouseButton, MouseWheel), and optionally (if CopyDefaults)
       also copies the DefaultXxx properties. }
     procedure Assign(Source: TInputShortcut; CopyDefaults: boolean); reintroduce;
+
+    { Set keys/mouse buttons of this shortcut.
+      Sets both current and default properties. }
+    procedure Assign(AKey1: TKey; AKey2: TKey = K_None;
+      ACharacter: Char = #0;
+      AMouseButtonUse: boolean = false;
+      AMouseButton: TMouseButton = mbLeft;
+      const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
       This sets both keys to K_None, Character to #0, MouseButtonUse
@@ -166,19 +164,19 @@ type
     { Key shortcuts for given command. You can set any of them to K_None
       to indicate that no key is assigned.
       @groupBegin }
-    property Key1: TKey read FKey1 write SetKey1;
-    property Key2: TKey read FKey2 write SetKey2;
+    property Key1: TKey read FKey1 write SetKey1 default K_None;
+    property Key2: TKey read FKey2 write SetKey2 default K_None;
     { @groupEnd }
 
     { Character shortcut for given command. You can set this to #0
       to indicate that no character shortcut is assigned. }
-    property Character: Char read FCharacter write SetCharacter;
+    property Character: Char read FCharacter write SetCharacter default #0;
 
     { Mouse shortcut for given command. You can set MouseButtonUse to @false
       if you don't want to use this.
       @groupBegin }
-    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse;
-    property MouseButton: TMouseButton read FMouseButton write SetMouseButton;
+    property MouseButtonUse: boolean read FMouseButtonUse write SetMouseButtonUse default false;
+    property MouseButton: TMouseButton read FMouseButton write SetMouseButton default mbLeft;
     { @groupEnd }
 
     { Mouse wheel to activate this command. Note that mouse wheels cannot be
@@ -197,16 +195,16 @@ type
       changes. You can explicitly change Key1 property, or just call
       MakeDefault afterwards, if you want this to happen.
       @groupBegin }
-    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1;
-    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2;
+    property DefaultKey1: TKey read FDefaultKey1 write FDefaultKey1 default K_None;
+    property DefaultKey2: TKey read FDefaultKey2 write FDefaultKey2 default K_None;
     property DefaultCharacter: Char
-      read FDefaultCharacter write FDefaultCharacter;
+      read FDefaultCharacter write FDefaultCharacter default #0;
     property DefaultMouseButtonUse: boolean
-      read FDefaultMouseButtonUse write FDefaultMouseButtonUse;
+      read FDefaultMouseButtonUse write FDefaultMouseButtonUse default false;
     property DefaultMouseButton: TMouseButton
-      read FDefaultMouseButton write FDefaultMouseButton;
+      read FDefaultMouseButton write FDefaultMouseButton default mbLeft;
     property DefaultMouseWheel: TMouseWheelDirection
-      read FDefaultMouseWheel write FDefaultMouseWheel;
+      read FDefaultMouseWheel write FDefaultMouseWheel default mwNone;
     { @groupEnd }
 
     { If assigned, this will be called always right after the key/character/mouse
@@ -1726,25 +1724,6 @@ const
 
 { TInputShortcut ------------------------------------------------------------- }
 
-constructor TInputShortcut.Create(AOwner: TComponent);
-begin
-  inherited;
-end;
-
-constructor TInputShortcut.Create(AKey1: TKey; AKey2: TKey; ACharacter: Char;
-  AMouseButtonUse: boolean; AMouseButton: TMouseButton;
-  const AMouseWheel: TMouseWheelDirection);
-begin
-  Create(nil);
-  FDefaultKey1 := AKey1;
-  FDefaultKey2 := AKey2;
-  FDefaultCharacter := ACharacter;
-  FDefaultMouseButtonUse := AMouseButtonUse;
-  FDefaultMouseButton := AMouseButton;
-  FDefaultMouseWheel := AMouseWheel;
-  MakeDefault;
-end;
-
 procedure TInputShortcut.MakeDefault;
 begin
   AssignFromDefault(Self);
@@ -1762,6 +1741,21 @@ begin
   { I don't set here properties, but directly set FXxx fields,
     so that I can call Changed only once. }
   Changed;
+end;
+
+procedure TInputShortcut.Assign(AKey1: TKey; AKey2: TKey;
+  ACharacter: Char;
+  AMouseButtonUse: boolean;
+  AMouseButton: TMouseButton;
+  const AMouseWheel: TMouseWheelDirection);
+begin
+  FDefaultKey1 := AKey1;
+  FDefaultKey2 := AKey2;
+  FDefaultCharacter := ACharacter;
+  FDefaultMouseButtonUse := AMouseButtonUse;
+  FDefaultMouseButton := AMouseButton;
+  FDefaultMouseWheel := AMouseWheel;
+  MakeDefault;
 end;
 
 procedure TInputShortcut.Assign(Source: TInputShortcut; CopyDefaults: boolean);
@@ -2182,19 +2176,25 @@ begin
   for I := 0 to 2 do
     for B := false to true do
     begin
-      FInputs_Move[I, B] := TInputShortcut.Create(DefaultInputs_Move[I, B],
-        K_None, #0, false, mbLeft);
-      FInputs_Rotate[I, B] := TInputShortcut.Create(DefaultInputs_Rotate[I, B],
-        K_None, #0, false, mbLeft);
+      FInputs_Move[I, B] := TInputShortcut.Create(Self);
+      FInputs_Move[I, B].Assign(DefaultInputs_Move[I, B]);
+      FInputs_Rotate[I, B] := TInputShortcut.Create(Self);
+      FInputs_Rotate[I, B].Assign(DefaultInputs_Rotate[I, B]);
     end;
 
   { For scale larger/smaller we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  FInput_ScaleLarger  := TInputShortcut.Create(K_Numpad_Plus , K_None, '+', false, mbLeft);
-  FInput_ScaleSmaller := TInputShortcut.Create(K_Numpad_Minus, K_None, '-', false, mbLeft);
+  FInput_ScaleLarger  := TInputShortcut.Create(Self);
+   Input_ScaleLarger.Assign(K_Numpad_Plus, K_None, '+');
 
-  FInput_Home         := TInputShortcut.Create(K_Home        , K_None, #0 , false, mbLeft);
-  FInput_StopRotating := TInputShortcut.Create(K_Space       , K_None, #0 , true , mbLeft);
+  FInput_ScaleSmaller := TInputShortcut.Create(Self);
+   Input_ScaleSmaller.Assign(K_Numpad_Minus, K_None, '-');
+
+  FInput_Home         := TInputShortcut.Create(Self);
+   Input_Home.Assign(K_Home);
+
+  FInput_StopRotating := TInputShortcut.Create(Self);
+   Input_StopRotating.Assign(K_Space, K_None, #0, true, mbLeft);
 end;
 
 destructor TExamineCamera.Destroy;
@@ -2774,84 +2774,83 @@ begin
   FJumpPower := DefaultJumpPower;
   FInvertVerticalMouseLook := false;
 
-  FInput_Forward      := TInputShortcut.Create(K_Up          , K_None, #0, false, mbLeft);
-  FInput_Backward     := TInputShortcut.Create(K_Down        , K_None, #0, false, mbLeft);
-  FInput_LeftRot      := TInputShortcut.Create(K_Left        , K_None, #0, false, mbLeft);
-  FInput_RightRot     := TInputShortcut.Create(K_Right       , K_None, #0, false, mbLeft);
-  FInput_LeftStrafe   := TInputShortcut.Create(K_Comma       , K_None, #0, false, mbLeft);
-  FInput_RightStrafe  := TInputShortcut.Create(K_Period      , K_None, #0, false, mbLeft);
-  FInput_UpRotate     := TInputShortcut.Create(K_PageUp      , K_None, #0, false, mbLeft);
-  FInput_DownRotate   := TInputShortcut.Create(K_PageDown    , K_None, #0, false, mbLeft);
-  FInput_UpMove       := TInputShortcut.Create(K_Insert      , K_None, #0, false, mbRight);
-  FInput_DownMove     := TInputShortcut.Create(K_Delete      , K_None, #0, false, mbLeft);
-  FInput_IncreaseCameraPreferredHeight := TInputShortcut.Create(K_Insert , K_None, #0, false, mbLeft);
-  FInput_DecreaseCameraPreferredHeight := TInputShortcut.Create(K_Delete , K_None, #0, false, mbLeft);
-  FInput_GravityUp    := TInputShortcut.Create(K_Home        , K_None, #0, false, mbLeft);
+  FInput_Forward                       := TInputShortcut.Create(Self);
+  FInput_Backward                      := TInputShortcut.Create(Self);
+  FInput_LeftRot                       := TInputShortcut.Create(Self);
+  FInput_RightRot                      := TInputShortcut.Create(Self);
+  FInput_LeftStrafe                    := TInputShortcut.Create(Self);
+  FInput_RightStrafe                   := TInputShortcut.Create(Self);
+  FInput_UpRotate                      := TInputShortcut.Create(Self);
+  FInput_DownRotate                    := TInputShortcut.Create(Self);
+  FInput_UpMove                        := TInputShortcut.Create(Self);
+  FInput_DownMove                      := TInputShortcut.Create(Self);
+  FInput_IncreaseCameraPreferredHeight := TInputShortcut.Create(Self);
+  FInput_DecreaseCameraPreferredHeight := TInputShortcut.Create(Self);
+  FInput_GravityUp                     := TInputShortcut.Create(Self);
+  FInput_MoveSpeedInc                  := TInputShortcut.Create(Self);
+  FInput_MoveSpeedDec                  := TInputShortcut.Create(Self);
+  FInput_Jump                          := TInputShortcut.Create(Self);
+  FInput_Crouch                        := TInputShortcut.Create(Self);
 
-  { For move speed inc/dev we use also character codes +/-, as numpad
+  Input_Forward                       .Assign(K_Up);
+  Input_Backward                      .Assign(K_Down);
+  Input_LeftRot                       .Assign(K_Left);
+  Input_RightRot                      .Assign(K_Right);
+  Input_LeftStrafe                    .Assign(K_Comma);
+  Input_RightStrafe                   .Assign(K_Period);
+  Input_UpRotate                      .Assign(K_PageUp);
+  Input_DownRotate                    .Assign(K_PageDown);
+  Input_UpMove                        .Assign(K_Insert);
+  Input_DownMove                      .Assign(K_Delete);
+  Input_IncreaseCameraPreferredHeight .Assign(K_Insert);
+  Input_DecreaseCameraPreferredHeight .Assign(K_Delete);
+  Input_GravityUp                     .Assign(K_Home);
+  { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  FInput_MoveSpeedInc := TInputShortcut.Create(K_Numpad_Plus , K_None, '+', false, mbLeft);
-  FInput_MoveSpeedDec := TInputShortcut.Create(K_Numpad_Minus, K_None, '-', false, mbLeft);
+  Input_MoveSpeedInc                  .Assign(K_Numpad_Plus , K_None, '+');
+  Input_MoveSpeedDec                  .Assign(K_Numpad_Minus, K_None, '-');
+  Input_Jump                          .Assign(K_A);
+  Input_Crouch                        .Assign(K_Z);
 
-  FInput_Jump         := TInputShortcut.Create(K_A           , K_None, #0, false, mbRight);
-  FInput_Crouch       := TInputShortcut.Create(K_Z           , K_None, #0, false, mbLeft);
-
-  Input_Forward.SetSubComponent(true);
-  Input_Backward.SetSubComponent(true);
-  Input_LeftRot.SetSubComponent(true);
-  Input_RightRot.SetSubComponent(true);
-  Input_LeftStrafe.SetSubComponent(true);
-  Input_RightStrafe.SetSubComponent(true);
-  Input_UpRotate.SetSubComponent(true);
-  Input_DownRotate.SetSubComponent(true);
-  Input_UpMove.SetSubComponent(true);
-  Input_DownMove.SetSubComponent(true);
+  Input_Forward                      .SetSubComponent(true);
+  Input_Backward                     .SetSubComponent(true);
+  Input_LeftRot                      .SetSubComponent(true);
+  Input_RightRot                     .SetSubComponent(true);
+  Input_LeftStrafe                   .SetSubComponent(true);
+  Input_RightStrafe                  .SetSubComponent(true);
+  Input_UpRotate                     .SetSubComponent(true);
+  Input_DownRotate                   .SetSubComponent(true);
+  Input_UpMove                       .SetSubComponent(true);
+  Input_DownMove                     .SetSubComponent(true);
   Input_IncreaseCameraPreferredHeight.SetSubComponent(true);
   Input_DecreaseCameraPreferredHeight.SetSubComponent(true);
-  Input_GravityUp.SetSubComponent(true);
-  Input_MoveSpeedInc.SetSubComponent(true);
-  Input_MoveSpeedDec.SetSubComponent(true);
-  Input_Jump.SetSubComponent(true);
-  Input_Crouch.SetSubComponent(true);
+  Input_GravityUp                    .SetSubComponent(true);
+  Input_MoveSpeedInc                 .SetSubComponent(true);
+  Input_MoveSpeedDec                 .SetSubComponent(true);
+  Input_Jump                         .SetSubComponent(true);
+  Input_Crouch                       .SetSubComponent(true);
 
-  Input_Forward.Name := 'Input_Forward';
-  Input_Backward.Name := 'Input_Backward';
-  Input_LeftRot.Name := 'Input_LeftRot';
-  Input_RightRot.Name := 'Input_RightRot';
-  Input_LeftStrafe.Name := 'Input_LeftStrafe';
-  Input_RightStrafe.Name := 'Input_RightStrafe';
-  Input_UpRotate.Name := 'Input_UpRotate';
-  Input_DownRotate.Name := 'Input_DownRotate';
-  Input_UpMove.Name := 'Input_UpMove';
-  Input_DownMove.Name := 'Input_DownMove';
+  Input_Forward                      .Name := 'Input_Forward';
+  Input_Backward                     .Name := 'Input_Backward';
+  Input_LeftRot                      .Name := 'Input_LeftRot';
+  Input_RightRot                     .Name := 'Input_RightRot';
+  Input_LeftStrafe                   .Name := 'Input_LeftStrafe';
+  Input_RightStrafe                  .Name := 'Input_RightStrafe';
+  Input_UpRotate                     .Name := 'Input_UpRotate';
+  Input_DownRotate                   .Name := 'Input_DownRotate';
+  Input_UpMove                       .Name := 'Input_UpMove';
+  Input_DownMove                     .Name := 'Input_DownMove';
   Input_IncreaseCameraPreferredHeight.Name := 'Input_IncreaseCameraPreferredHeight';
   Input_DecreaseCameraPreferredHeight.Name := 'Input_DecreaseCameraPreferredHeight';
-  Input_GravityUp.Name := 'Input_GravityUp';
-  Input_MoveSpeedInc.Name := 'Input_MoveSpeedInc';
-  Input_MoveSpeedDec.Name := 'Input_MoveSpeedDec';
-  Input_Jump.Name := 'Input_Jump';
-  Input_Crouch.Name := 'Input_Crouch';
+  Input_GravityUp                    .Name := 'Input_GravityUp';
+  Input_MoveSpeedInc                 .Name := 'Input_MoveSpeedInc';
+  Input_MoveSpeedDec                 .Name := 'Input_MoveSpeedDec';
+  Input_Jump                         .Name := 'Input_Jump';
+  Input_Crouch                       .Name := 'Input_Crouch';
 end;
 
 destructor TWalkCamera.Destroy;
 begin
-  FreeAndNil(FInput_Forward);
-  FreeAndNil(FInput_Backward);
-  FreeAndNil(FInput_LeftRot);
-  FreeAndNil(FInput_RightRot);
-  FreeAndNil(FInput_LeftStrafe);
-  FreeAndNil(FInput_RightStrafe);
-  FreeAndNil(FInput_UpRotate);
-  FreeAndNil(FInput_DownRotate);
-  FreeAndNil(FInput_UpMove);
-  FreeAndNil(FInput_DownMove);
-  FreeAndNil(FInput_IncreaseCameraPreferredHeight);
-  FreeAndNil(FInput_DecreaseCameraPreferredHeight);
-  FreeAndNil(FInput_GravityUp);
-  FreeAndNil(FInput_MoveSpeedInc);
-  FreeAndNil(FInput_MoveSpeedDec);
-  FreeAndNil(FInput_Jump);
-  FreeAndNil(FInput_Crouch);
   inherited;
 end;
 
