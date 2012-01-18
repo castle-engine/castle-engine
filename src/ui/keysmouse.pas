@@ -264,7 +264,7 @@ type
 
   TKeysBooleans = array [TKey] of Boolean;
   PKeysBooleans = ^TKeysBooleans;
-  TKeysBytes = array [TKey] of Byte;
+  TKeysBytes = array [Byte] of TKey;
   PKeysBytes = ^TKeysBytes;
 
   TCharactersBooleans = array [Char] of Boolean;

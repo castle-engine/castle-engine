@@ -49,9 +49,9 @@ begin
   CharEnter: result := K_Enter;
   CharEscape: result := K_Escape;
   ' ': result := K_Space;
-  'a'..'z': result := K_A + Ord(c)-Ord('a');
-  'A'..'Z': result := K_A + Ord(c)-Ord('A');
-  '0'..'9': result := K_0 + Ord(c)-Ord('0');
+  'a'..'z': result := TKey(Ord(K_A) + Ord(c) - Ord('a'));
+  'A'..'Z': result := TKey(Ord(K_A) + Ord(c) - Ord('A'));
+  '0'..'9': result := TKey(Ord(K_0) + Ord(c) - Ord('0'));
   '+': result := K_Numpad_Plus;
   '-': result := K_Numpad_Minus;
   ',': result := K_Comma;

@@ -788,11 +788,11 @@ begin
   KeySymFFToKey[XK_KP_Multiply and $FF] := K_Numpad_Multiply;
   KeySymFFToKey[XK_KP_Divide and $FF] := K_Numpad_Divide;
 
-  for b := 0 to 11 do KeySymFFToKey[(XK_F1+b) and $FF] := K_F1+b;
+  for b := 0 to 11 do KeySymFFToKey[(XK_F1+b) and $FF] := TKey(Ord(K_F1) + b);
 
-  for b := XK_0 to XK_9 do KeySym0ToKey[b] := ord(b);
-  for b := XK_a_lower to XK_z_lower do KeySym0ToKey[b] := ord(UpCase(chr(b)));
-  for b := XK_a_upper to XK_z_upper do KeySym0ToKey[b] := b;
+  for b := XK_0 to XK_9 do KeySym0ToKey[b] := TKey(b);
+  for b := XK_a_lower to XK_z_lower do KeySym0ToKey[b] := TKey(Ord(UpCase(Chr(b))));
+  for b := XK_a_upper to XK_z_upper do KeySym0ToKey[b] := TKey(b);
   KeySym0ToKey[XK_Space] := K_Space;
   KeySym0ToKey[XK_comma] := K_comma;
   KeySym0ToKey[XK_period] := K_period;
