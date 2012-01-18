@@ -43,7 +43,7 @@ program shadow_fields;
 
 uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D, CastleColors,
   CastleWindow, CastleScene, Cameras, CastleWarnings, CastleParameters,
-  ShadowFields, CastleUtils, CubeMap, X3DNodes, CastleSceneManager,
+  ShadowFields, CastleUtils, CubeMap, X3DNodes, CastleSceneManager, Base3D,
   SphericalHarmonics, GLCubeMap, CastleMessages, Shape, CastleStringUtils;
 
 var
@@ -133,7 +133,6 @@ end;
 type
   TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromViewEverything; override;
-    procedure ApplyProjection; override;
     function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; override;
   end;
 
@@ -227,7 +226,7 @@ begin
     SceneLocalLight.Render(nil, RenderParams);
   glPopMatrix;
 
-  { GL_LIGHTING is disabled by VRML renderer now }
+  { GL_LIGHTING is disabled by TCastleScene renderer now }
 
   glPushMatrix;
     DrawEnvLight(false);
@@ -242,12 +241,6 @@ begin
   glDisable(GL_DEPTH_TEST);
 
   DrawSFExplorerMaps;
-end;
-
-procedure TMySceneManager.ApplyProjection;
-begin
-  SceneReceiver.GLProjection(NavigatorCurrent, SceneReceiver.BoundingBox,
-    0, 0, Window.Width, Window.Height);
 end;
 
 function TMySceneManager.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
@@ -551,11 +544,28 @@ begin
 end;
 
 var
+  BoxSum: TBox3D;
+
+type
+  { Dummy invisible 3D object, just to pass bounding box of everything
+    to scene manager (to make it calculate sufficiently large ProjectionFar).
+
+    This is a little unclean, cleaner way to achieve this would be to just
+    add our SceneXxx objects to SceneManager.Items, and then scene manager
+    will magically know their bounding volume. }
+  TDummy3DBox = class(T3D)
+    function BoundingBox: TBox3D; override;
+  end;
+
+function TDummy3DBox.BoundingBox: TBox3D;
+begin
+  Result := BoxSum;
+end;
+
+var
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   LocalLightFileName: string = 'models/sphere.wrl';
-
-  BoxSum: TBox3D;
   V: TVector3Single;
 begin
   Window := TCastleWindowCustom.Create(Application);
@@ -604,6 +614,7 @@ begin
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;
+    SceneManager.Items.Add(TDummy3DBox.Create(SceneManager));
 
     { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }
