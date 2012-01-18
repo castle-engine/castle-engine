@@ -109,10 +109,12 @@ type
 
     { Set keys/mouse buttons of this shortcut.
       Sets both current and default properties. }
-    procedure Assign(AKey1: TKey; AKey2: TKey = K_None;
-      ACharacter: Char = #0;
-      AMouseButtonUse: boolean = false;
-      AMouseButton: TMouseButton = mbLeft;
+    procedure Assign(
+      const AKey1: TKey;
+      const AKey2: TKey = K_None;
+      const ACharacter: Char = #0;
+      const AMouseButtonUse: boolean = false;
+      const AMouseButton: TMouseButton = mbLeft;
       const AMouseWheel: TMouseWheelDirection = mwNone);
 
     { Make this input impossible to activate by the user.
@@ -1743,10 +1745,11 @@ begin
   Changed;
 end;
 
-procedure TInputShortcut.Assign(AKey1: TKey; AKey2: TKey;
-  ACharacter: Char;
-  AMouseButtonUse: boolean;
-  AMouseButton: TMouseButton;
+procedure TInputShortcut.Assign(const AKey1: TKey;
+  const AKey2: TKey;
+  const ACharacter: Char;
+  const AMouseButtonUse: boolean;
+  const AMouseButton: TMouseButton;
   const AMouseWheel: TMouseWheelDirection);
 begin
   FDefaultKey1 := AKey1;
