@@ -3689,6 +3689,7 @@ begin
       FdVisibilityLimit.Value else
     VisibilityLimit := 0;
 
+  Assert(ACamera.CameraRadius > 0, 'ACamera.CameraRadius must be > 0 when using TCastleScene.GLProjection');
   ProjectionNear := ACamera.CameraRadius * 0.6;
 
   if VisibilityLimit <> 0.0 then
