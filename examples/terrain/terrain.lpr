@@ -685,7 +685,14 @@ begin
           MessageOk(Glwin, 'Not an image elevation');
       end;
     170:
-      Glwin.ColorDialog(BackgroundColor);
+      begin
+        Glwin.ColorDialog(BackgroundColor);
+        { It's a little hacky but valid to just set glClearColor directly here.
+          If we would use some TCastleSceneManager.MainScene with it's own
+          Background, it would override this glClearColor... but we don't have
+          MainScene here. So this is safe. }
+        glClearColor(BackgroundColor[0], BackgroundColor[1], BackgroundColor[2], 1.0);
+      end;
     200..299:
       begin
         NoiseInterpolation := TNoiseInterpolation(Item.IntData - 200);
