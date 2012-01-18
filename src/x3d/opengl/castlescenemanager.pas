@@ -92,7 +92,7 @@ type
 
     ApplyProjectionNeeded: boolean;
 
-    { Sets OpenGL projection matrix, based on scene manager MainScene's
+    { Sets OpenGL projection matrix, based on MainScene's
       currently bound Viewpoint, NavigationInfo and used @link(Camera).
       Viewport's @link(Camera), if not assigned, is automatically created here,
       see @link(Camera) and CreateDefaultCamera.
@@ -101,12 +101,12 @@ type
 
       Takes care of updating Camera.ProjectionMatrix,
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-      ProjectionNear, ProjectionFar.
+      ProjectionNear, ProjectionFar, GetMainScene.BackgroundSkySphereRadius.
 
       This is automatically called at the beginning of our Render method,
       if it's needed.
 
-      @seealso TCastleScene.GLProjection }
+      Requires Camera.CameraRadius to be already properly set. }
     procedure ApplyProjection; virtual;
 
     { Render one pass, with current camera and parameters.
@@ -939,7 +939,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine;
+  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math;
 
 procedure Register;
 begin
@@ -1307,30 +1307,92 @@ begin
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
-var
-  Box: TBox3D;
 
-  procedure DefaultGLProjection;
+  procedure UpdateCameraProjectionMatrix;
   var
     ProjectionMatrix: TMatrix4f;
   begin
-    FProjectionNear := Box.AverageSize(false, 1.0) * 0.01;
-    FProjectionFar := Box.MaxSize(false, 1.0) * 10.0;
-
-    FPerspectiveView := true;
-    FPerspectiveViewAngles[1] := 45.0;
-    FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
-      FPerspectiveViewAngles[1], CorrectWidth / CorrectHeight);
-
-    glViewport(CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight);
-    ProjectionGLPerspective(PerspectiveViewAngles[1], CorrectWidth / CorrectHeight,
-      FProjectionNear, FProjectionFar);
-
-    { update Camera.ProjectionMatrix }
     glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
     Camera.ProjectionMatrix := ProjectionMatrix;
   end;
 
+var
+  Box: TBox3D;
+  ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
+  ViewpointNode: TAbstractViewpointNode;
+  PerspectiveFieldOfView: Single;
+  VisibilityLimit: Single;
+
+  procedure DoPerspective;
+  begin
+    { Only perspective projection supports z far in infinity. }
+    if ShadowVolumesPossible then
+      FProjectionFar := ZFarInfinity;
+
+    FPerspectiveView := true;
+    { PerspectiveViewAngles is already calculated here.
+      For now, we calculate correct PerspectiveViewAngles regardless
+      of whether we actually apply perspective or orthogonal projection. }
+
+    ProjectionGLPerspective(PerspectiveViewAngles[1],
+      ViewportWidth / ViewportHeight, ProjectionNear, ProjectionFar);
+  end;
+
+  procedure DoOrthographic;
+  var
+    FieldOfView: TSingleList;
+    MaxSize: Single;
+  begin
+    MaxSize := Box.MaxSize(false, { any dummy value } 1.0);
+
+    FPerspectiveView := false;
+
+    { default FOrthoViewDimensions, when not OrthoViewpoint }
+    FOrthoViewDimensions[0] := -MaxSize / 2;
+    FOrthoViewDimensions[1] := -MaxSize / 2;
+    FOrthoViewDimensions[2] :=  MaxSize / 2;
+    FOrthoViewDimensions[3] :=  MaxSize / 2;
+
+    { update FOrthoViewDimensions using OrthoViewpoint.fieldOfView }
+    if (ViewpointNode <> nil) and
+       (ViewpointNode is TOrthoViewpointNode) then
+    begin
+      { default FOrthoViewDimensions, for OrthoViewpoint }
+      FOrthoViewDimensions[0] := -1;
+      FOrthoViewDimensions[1] := -1;
+      FOrthoViewDimensions[2] :=  1;
+      FOrthoViewDimensions[3] :=  1;
+
+      FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
+      if FieldOfView.Count > 0 then FOrthoViewDimensions[0] := FieldOfView.Items[0];
+      if FieldOfView.Count > 1 then FOrthoViewDimensions[1] := FieldOfView.Items[1];
+      if FieldOfView.Count > 2 then FOrthoViewDimensions[2] := FieldOfView.Items[2];
+      if FieldOfView.Count > 3 then FOrthoViewDimensions[3] := FieldOfView.Items[3];
+    end else
+    if (ViewpointNode <> nil) and
+       (ViewpointNode is TOrthographicCameraNode_1) then
+    begin
+      FOrthoViewDimensions[0] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      FOrthoViewDimensions[1] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      FOrthoViewDimensions[2] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      FOrthoViewDimensions[3] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+    end;
+
+    TOrthoViewpointNode.AspectFieldOfView(FOrthoViewDimensions,
+      ViewportWidth / ViewportHeight);
+
+    ProjectionGLOrtho(
+      { Beware: order of OrthoViewpoint.fieldOfView and FOrthoViewDimensions
+        is different than typical OpenGL and our ProjectionGLOrtho params. }
+      FOrthoViewDimensions[0],
+      FOrthoViewDimensions[2],
+      FOrthoViewDimensions[1],
+      FOrthoViewDimensions[3],
+      FProjectionNear, FProjectionFar);
+  end;
+
+var
+  ProjectionType: TProjectionType;
 begin
   if Camera = nil then
     Camera := CreateDefaultCamera(Self);
@@ -1344,13 +1406,79 @@ begin
     Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
 
     Box := GetItems.BoundingBox;
+    ViewportX := CorrectLeft;
+    ViewportY := CorrectBottom;
+    ViewportWidth := CorrectWidth;
+    ViewportHeight := CorrectHeight;
 
+    glViewport(ViewportX, ViewportY, ViewportWidth, ViewportHeight);
+
+    { calculate ViewpointNode }
     if GetMainScene <> nil then
-      GetMainScene.GLProjection(Camera, Box,
-        CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ShadowVolumesPossible,
-        FPerspectiveView, FPerspectiveViewAngles, FOrthoViewDimensions,
-        FProjectionNear, FProjectionFar) else
-      DefaultGLProjection;
+      ViewpointNode := GetMainScene.ViewpointStack.Top as TAbstractViewpointNode else
+      ViewpointNode := nil;
+
+    if (ViewpointNode <> nil) and
+       (ViewpointNode is TViewpointNode) then
+      PerspectiveFieldOfView := TViewpointNode(ViewpointNode).FdFieldOfView.Value else
+    if (ViewpointNode <> nil) and
+       (ViewpointNode is TPerspectiveCameraNode_1) then
+      PerspectiveFieldOfView := TPerspectiveCameraNode_1(ViewpointNode).FdHeightAngle.Value else
+      PerspectiveFieldOfView := DefaultViewpointFieldOfView;
+
+    FPerspectiveViewAngles[0] := RadToDeg(TViewpointNode.ViewpointAngleOfView(
+      PerspectiveFieldOfView, ViewportWidth / ViewportHeight));
+
+    FPerspectiveViewAngles[1] := AdjustViewAngleDegToAspectRatio(
+      PerspectiveViewAngles[0], ViewportHeight / ViewportWidth);
+
+    { Tests:
+      Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
+
+    if (GetMainScene <> nil) and
+       (GetMainScene.NavigationInfoStack.Top <> nil) then
+      VisibilityLimit := (GetMainScene.NavigationInfoStack.Top as TNavigationInfoNode).
+        FdVisibilityLimit.Value else
+      VisibilityLimit := 0;
+
+    Assert(Camera.CameraRadius > 0, 'ACamera.CameraRadius must be > 0 when using TCastleScene.GLProjection');
+    FProjectionNear := Camera.CameraRadius * 0.6;
+
+    if VisibilityLimit <> 0.0 then
+      FProjectionFar := VisibilityLimit else
+    begin
+      FProjectionFar := Box.AverageSize(false,
+        { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
+          It must be appropriately larger than ProjectionNear
+          to provide sufficient space for rendering Background node. }
+        FProjectionNear) * 20.0;
+    end;
+
+    { At some point, I was using here larger projection near when
+      (ACamera is TExamineCamera). Reasoning: you do not get so close
+      to the model with Examine view, and you do not need collision detection.
+      Both arguments are wrong now, you can switch between Examine/Walk
+      in view3dscene and easily get close to the model, and collision detection
+      in Examine mode will be some day implemented (VRML/X3D spec require this). }
+
+    if ViewpointNode <> nil then
+      ProjectionType := ViewpointNode.ProjectionType else
+      ProjectionType := ptPerspective;
+
+    { Calculate BackgroundSkySphereRadius here,
+      using ProjectionFar that is *not* ZFarInfinity }
+    if GetMainScene <> nil then
+      GetMainScene.BackgroundSkySphereRadius :=
+        TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
+          GetMainScene.BackgroundSkySphereRadius);
+
+    case ProjectionType of
+      ptPerspective: DoPerspective;
+      ptOrthographic: DoOrthographic;
+      else EInternalError.Create('TCastleScene.GLProjectionCore-ProjectionType?');
+    end;
+
+    UpdateCameraProjectionMatrix;
 
     ApplyProjectionNeeded := false;
   end;
