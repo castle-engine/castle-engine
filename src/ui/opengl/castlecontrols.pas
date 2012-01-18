@@ -147,15 +147,16 @@ type
       behave like a checkbox, that is indicate a boolean state.
       When @link(Toggle) is @true, you can set the @link(Pressed) property,
       and the clicks are visualized a little different. }
-    property Toggle: boolean read FToggle write FToggle;
+    property Toggle: boolean read FToggle write FToggle default false;
 
     { Is the button pressed down. If @link(Toggle) is @true,
       you can read and write this property to set the pressed state.
 
       When not @link(Toggle), this property isn't really useful to you.
       The pressed state is automatically managed then to visualize
-      user clicks. You can read this property, but you cannot set it. }
-    property Pressed: boolean read FPressed write SetPressed;
+      user clicks. In this case, you can read this property,
+      but you cannot reliably set it. }
+    property Pressed: boolean read FPressed write SetPressed default false;
 
     { Opacity (1 - transparency) with which control is drawn.
       When this is < 1, we draw control with nice blending.
