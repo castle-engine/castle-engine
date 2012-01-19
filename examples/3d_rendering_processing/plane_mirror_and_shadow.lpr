@@ -121,8 +121,6 @@ type
       - and we do not need scene manager's automatic headlight handling
         (in InitializeLights, normally called by RenderFromViewEverything).
 
-    - We also override ApplyProjection to do our own work.
-
     - We also do not add Scene or SceneForShadow currently for scene manager:
       no point right now.
 
@@ -130,7 +128,6 @@ type
   TMySceneManager = class(TCastleSceneManager)
   public
     procedure RenderFromViewEverything; override;
-    procedure ApplyProjection; override;
   end;
 
 procedure TMySceneManager.RenderFromViewEverything;
@@ -445,20 +442,6 @@ begin
   end;
 end;
 
-procedure TMySceneManager.ApplyProjection;
-var
-  Box: TBox3D;
-  BoxMaxSize: Single;
-begin
-  glViewport(0, 0, ContainerWidth, ContainerHeight);
-
-  Box := Scene.BoundingBox;
-  BoxMaxSize := Box.MaxSize(false, { whatever, arbitrary number } 2);
-
-  ProjectionGLPerspective(45.0, ContainerWidth / ContainerHeight,
-    BoxMaxSize * 0.01, BoxMaxSize * 100.0);
-end;
-
 var
   SceneManager: TCastleSceneManager;
 
@@ -602,6 +585,7 @@ begin
     SceneFileName := '';
 
   SceneManager := TMySceneManager.Create(Application);
+  SceneManager.DefaultVisibilityLimit := 100;
   Window.Controls.Add(SceneManager);
 
   OnWarning := @OnWarningWrite;
@@ -640,7 +624,7 @@ begin
 
     { init SceneManager.Camera }
     SceneManager.Camera := TExamineCamera.Create(Window);
-    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
+    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.02);
 
     Window.MainMenu := CreateMainMenu;
     Window.OnMenuCommand := @MenuCommand;

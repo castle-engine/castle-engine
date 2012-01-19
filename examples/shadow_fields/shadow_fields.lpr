@@ -545,24 +545,6 @@ end;
 
 var
   BoxSum: TBox3D;
-
-type
-  { Dummy invisible 3D object, just to pass bounding box of everything
-    to scene manager (to make it calculate sufficiently large ProjectionFar).
-
-    This is a little unclean, cleaner way to achieve this would be to just
-    add our SceneXxx objects to SceneManager.Items, and then scene manager
-    will magically know their bounding volume. }
-  TDummy3DBox = class(T3D)
-    function BoundingBox: TBox3D; override;
-  end;
-
-function TDummy3DBox.BoundingBox: TBox3D;
-begin
-  Result := BoxSum;
-end;
-
-var
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   LocalLightFileName: string = 'models/sphere.wrl';
@@ -614,7 +596,7 @@ begin
     NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
 
     BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;
-    SceneManager.Items.Add(TDummy3DBox.Create(SceneManager));
+    SceneManager.DefaultVisibilityLimit := 100;
 
     { calculate starting local light position,
       and set this as NavigatorLocalLight.MoveAmount }

@@ -53,7 +53,6 @@ type
   TMySceneManager = class(TCastleSceneManager)
   protected
     procedure Render3D(const Params: TRenderParams); override;
-    procedure ApplyProjection; override;
   end;
 
 var
@@ -192,12 +191,6 @@ begin
   end;
 end;
 
-procedure TMySceneManager.ApplyProjection;
-begin
-  glViewport(0, 0, ContainerWidth, ContainerHeight);
-  ProjectionGLPerspective(45.0, ContainerWidth/ContainerHeight, 0.01, 10);
-end;
-
 procedure Open(Glwin: TCastleWindowBase);
 begin
   glEnable(GL_DEPTH_TEST);
@@ -225,6 +218,7 @@ begin
   Window := TCastleWindowCustom.Create(Application);
 
   SceneManager := TMySceneManager.Create(Application);
+  SceneManager.DefaultVisibilityLimit := 100;
   Window.Controls.Add(SceneManager);
 
   Window.MainMenu := TMenu.Create('Main menu');
@@ -236,7 +230,7 @@ begin
   SceneManager.Camera := TExamineCamera.Create(Window);
   (SceneManager.Camera as TExamineCamera).Init(Box3D(
     Vector3Single(-1, -1, -1),
-    Vector3Single( 1,  1,  1)), 0.1);
+    Vector3Single( 1,  1,  1)), 0.02);
 
   Window.OnOpen := @Open;
   Window.OnClose := @Close;

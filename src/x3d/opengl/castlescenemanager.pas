@@ -80,6 +80,7 @@ type
 
     FInput_PointingDeviceActivate: TInputShortcut;
     FApproximateActivation: boolean;
+    FDefaultVisibilityLimit: Single;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
@@ -598,6 +599,26 @@ type
       as you don't see the mouse cursor. }
     property ApproximateActivation: boolean
       read FApproximateActivation write FApproximateActivation default false;
+
+    { Visibility limit of your 3D world. This is the distance the far projection
+      clipping plane.
+
+      Our @link(ApplyProjection) calculates the final visibility limit as follows:
+      @unorderedList(
+        @item(First of all, if ShadowVolumesPossible, then it's infinity.)
+        @item(Then we look NavigationInfo.visibilityLimit value inside MainScene.
+          This allows your 3D data creators to set this inside VRML/X3D data.
+
+          Only if MainScene is not set, or doesn't contain NavigationInfo node,
+          or NavigationInfo.visibilityLimit is left at (default) zero,
+          we look further.)
+        @item(We use this property, DefaultVisibilityLimit, if it's not zero.)
+        @item(Finally, as a last resort we calculate something suitable looking
+          at the 3D bounding box of items inside our 3D world.)
+      )
+    }
+    property DefaultVisibilityLimit: Single
+      read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
   end;
 
   TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
@@ -1321,7 +1342,6 @@ var
   ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
   ViewpointNode: TAbstractViewpointNode;
   PerspectiveFieldOfView: Single;
-  VisibilityLimit: Single;
 
   procedure DoPerspective;
   begin
@@ -1435,24 +1455,23 @@ begin
     { Tests:
       Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
 
-    if (GetMainScene <> nil) and
-       (GetMainScene.NavigationInfoStack.Top <> nil) then
-      VisibilityLimit := (GetMainScene.NavigationInfoStack.Top as TNavigationInfoNode).
-        FdVisibilityLimit.Value else
-      VisibilityLimit := 0;
-
     Assert(Camera.CameraRadius > 0, 'ACamera.CameraRadius must be > 0 when using TCastleScene.GLProjection');
     FProjectionNear := Camera.CameraRadius * 0.6;
 
-    if VisibilityLimit <> 0.0 then
-      FProjectionFar := VisibilityLimit else
-    begin
+    { calculate FProjectionFar, algorithm documented at DefaultVisibilityLimit }
+    FProjectionFar := 0;
+    if (GetMainScene <> nil) and
+       (GetMainScene.NavigationInfoStack.Top <> nil) then
+      FProjectionFar := (GetMainScene.NavigationInfoStack.Top as TNavigationInfoNode).
+        FdVisibilityLimit.Value;
+    if FProjectionFar <= 0 then
+      FProjectionFar := DefaultVisibilityLimit;
+    if FProjectionFar <= 0 then
       FProjectionFar := Box.AverageSize(false,
         { When box is empty (or has 0 sizes), ProjectionFar is not simply "any dummy value".
           It must be appropriately larger than ProjectionNear
           to provide sufficient space for rendering Background node. }
         FProjectionNear) * 20.0;
-    end;
 
     { At some point, I was using here larger projection near when
       (ACamera is TExamineCamera). Reasoning: you do not get so close
