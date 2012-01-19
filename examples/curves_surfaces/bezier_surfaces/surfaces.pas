@@ -18,7 +18,7 @@ unit Surfaces;
 
 interface
 
-uses Math, Curve;
+uses Math, Curve, Boxes3D;
 
 type
   TSurface = class
@@ -78,6 +78,8 @@ type
 
       Each quad is rendered with a correct normal vector. }
     procedure RenderControlPoints;
+
+    function BoundingBox: TBox3D;
   end;
 
 implementation
@@ -159,6 +161,20 @@ begin
   end;
 
   FreeAndNil(CurvePrev);
+end;
+
+function TSurface.BoundingBox: TBox3D;
+var
+  I, J: Cardinal;
+  CP: TVector3SingleList;
+begin
+  Result := EmptyBox3D;
+  for I := 0 to Curves.Count - 1 do
+  begin
+    CP := (Curves[I] as TControlPointsCurve).ControlPoints;
+    for J := 0 to CP.Count - 1 do
+      Result.Add(CP.L[J]);
+  end;
 end;
 
 procedure TSurface.RenderControlPoints;

@@ -20,10 +20,10 @@ program animate_surface;
 uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters,
-  CastleColors;
+  CastleColors, Base3D, Frustum;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindow;
   Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
   SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
@@ -34,12 +34,12 @@ var
 procedure CameraHome;
 begin
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
-                    Vector3Single(1, 1,  1)), 0.0);
+                    Vector3Single(1, 1,  1)), Camera.CameraRadius);
 end;
 
 procedure CameraScene;
 begin
-  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0, 0);
+  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0, Camera.CameraRadius);
   Camera.MoveSpeed := SurfaceMoveSpeed;
 end;
 
@@ -90,7 +90,18 @@ begin
   CameraScene;
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+type
+  TAnimatedCurve = class(T3D)
+    function BoundingBox: TBox3D; override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+  end;
+
+function TAnimatedCurve.BoundingBox: TBox3D;
+begin
+  Result := Surface1.BoundingBox + Surface2.BoundingBox;
+end;
+
+procedure TAnimatedCurve.Render(const Frustum: TFrustum; const Params: TRenderParams);
 const
   SurfaceXSegments = 20;
   SurfaceYSegments = 20;
@@ -99,8 +110,7 @@ var
   I, J: Integer;
   C1, C2, MyCurve: TRationalBezierCurve;
 begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Camera.Matrix);
+  if Params.Transparent or (not Params.ShadowVolumesReceivers) then Exit;
 
   glColorv(White3Single);
 
@@ -135,12 +145,6 @@ begin
   glEnable(GL_LIGHT0);
   glEnable(GL_COLOR_MATERIAL);
   glShadeModel(GL_FLAT);
-end;
-
-procedure Resize(Window: TCastleWindowBase);
-begin
-  glViewport(0, 0, Window.Width, Window.Height);
-  ProjectionGLPerspective(30, Window.Width/Window.Height, 0.1, 100);
 end;
 
 procedure Idle(Window: TCastleWindowBase);
@@ -184,21 +188,27 @@ begin
   end;
 end;
 
+var
+  FileName: string = 'sample_data/sail.animation';
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Camera := TWalkCamera.Create(Window);
   Camera.PreferGravityUpForRotations := false;
   Camera.PreferGravityUpForMoving := false;
-  Window.Controls.Add(Camera);
+  Camera.CameraRadius := 0.02;
+  Window.SceneManager.Camera := Camera;
 
-  Parameters.CheckHigh(1);
-  SurfacesLoad(Parameters[1]);
+  Window.SceneManager.Items.Add(TAnimatedCurve.Create(Window));
+
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    FileName := Parameters[1];
+
+  SurfacesLoad(FileName);
   try
     Window.OnOpen := @Open;
-    Window.OnResize := @Resize;
     Window.OnIdle := @Idle;
-    Window.OnDraw := @Draw;
     Window.OnKeyDown := @KeyDown;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.AutoRedisplay := true;
