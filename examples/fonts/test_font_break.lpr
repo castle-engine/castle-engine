@@ -58,7 +58,7 @@ end;
 procedure Resize(Window: TCastleWindowBase);
 begin
  glViewport(0, 0, Window.Width, Window.Height);
- ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+ OrthoProjection(0, Window.Width, 0, Window.Height);
  BoxWidth := Window.Width * 2 div 3;
 end;
 

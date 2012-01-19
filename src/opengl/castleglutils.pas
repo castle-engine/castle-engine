@@ -561,24 +561,19 @@ procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
 
 { Projection matrix -------------------------------------------------------- }
 
-{ Load correspoding OpenGL matrices
-  (gluPerspective, glOrtho), making sure we're in GL_PROJECTION matrix mode.
+{ Load projection matrix to OpenGL GL_PROJECTION matrix.
 
-  First these change current matrix
-  mode (if needed) to GL_PROJECTION. Then they load identity,
-  and then call appropriate OpenGL functions (gluPerspective, glOrtho).
-  And then (if needed) go back to previous matrix mode.
-  So current matrix mode is never changed by these procedures.
+  At the end, these unconditionally change matrix mode to GL_MODELVIEW.
 
-  Also, ZFar is allowed to have special ZFarInfinity value
-  for ProjectionGLPerspective.
+  ZFar is allowed to have special ZFarInfinity value
+  for PerspectiveProjection.
   Then we set special perspective matrix, that has far plane set
   at infinity --- useful for z-fail shadow volumes.
 
   @groupBegin }
-procedure ProjectionGLPerspective(const fovy, aspect, zNear, zFar: TGLdouble);
-procedure ProjectionGLOrtho(const left, right, bottom, top: TGLdouble;
-  const zNear: TGLdouble = -1; const zFar: TGLdouble = 1);
+function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
+function OrthoProjection(const left, right, bottom, top: Single;
+  const zNear: Single = -1; const zFar: Single = 1): TMatrix4Single;
 { @groupEnd }
 
 { ------------------------------------------------------------ }
@@ -1428,55 +1423,22 @@ begin
     glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
 end;
 
-{ manipulacje projection matrix ---------------------------------------------- }
+{ projection matrix ---------------------------------------------------------- }
 
-{ If you define it, ProjectionGLPerspective and ProjectionGLOrtho
-  functions will use VectorMath functions that calculatate matrices:
-  PerspectiveProjMatrixDeg and OrthoProjMatrixDeg.
-
-  This will work correct but may be slower than using OpenGL functions
-  (gluPerspective, glOrtho) so define it only when you want to test
-  VectorMath unit. }
-{ $define TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
-
-procedure ProjectionGLPerspective(const fovy, aspect, zNear, zFar: TGLdouble);
-var
-  oldMatrixMode: TGLenum;
+function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
 begin
-  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
   glMatrixMode(GL_PROJECTION);
-
-  {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
-  glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
-  {$else}
-  if ZFar = ZFarInfinity then
-  begin
-    glLoadMatrix(PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar));
-  end else
-  begin
-    glLoadIdentity;
-    gluPerspective(fovy, aspect, zNear, zFar);
-  end;
-  {$endif}
-
-  glMatrixMode(oldMatrixMode);
+  Result := PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar);
+  glLoadMatrix(Result);
+  glMatrixMode(GL_MODELVIEW);
 end;
 
-procedure ProjectionGLOrtho(const left, right, bottom, top, zNear, zFar: TGLdouble);
-var
-  oldMatrixMode: TGLenum;
+function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
 begin
-  oldMatrixMode := glGetInteger(GL_MATRIX_MODE);
   glMatrixMode(GL_PROJECTION);
-
-  {$ifdef TEST_VECTOR_MATH_MATRIX_FUNCTIONS}
-  glLoadMatrix(OrthoProjMatrix(left, right, bottom, top, zNear, zFar));
-  {$else}
-  glLoadIdentity;
-  glOrtho(left, right, bottom, top, zNear, zFar);
-  {$endif}
-
-  glMatrixMode(oldMatrixMode);
+  Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
+  glLoadMatrix(Result);
+  glMatrixMode(GL_MODELVIEW);
 end;
 
 { poly stipple ------------------------------------------------------------ }

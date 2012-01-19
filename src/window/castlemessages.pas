@@ -618,7 +618,7 @@ var
   WindowScrolledHeight: Integer;
 begin
  glViewport(0, 0, Window.Width, Window.Height);
- ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+ OrthoProjection(0, Window.Width, 0, Window.Height);
 
  { calculate BreakWidth. We must here always subtract
    DrawMessg_ScrollBarWholeWidth to be on the safe side, because we don't know

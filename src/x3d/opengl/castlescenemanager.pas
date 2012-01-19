@@ -1328,15 +1328,6 @@ begin
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
-
-  procedure UpdateCameraProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Camera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
 var
   Box: TBox3D;
   ViewportX, ViewportY, ViewportWidth, ViewportHeight: Cardinal;
@@ -1354,7 +1345,7 @@ var
       For now, we calculate correct PerspectiveViewAngles regardless
       of whether we actually apply perspective or orthogonal projection. }
 
-    ProjectionGLPerspective(PerspectiveViewAngles[1],
+    Camera.ProjectionMatrix := PerspectiveProjection(PerspectiveViewAngles[1],
       ViewportWidth / ViewportHeight, ProjectionNear, ProjectionFar);
   end;
 
@@ -1401,9 +1392,9 @@ var
     TOrthoViewpointNode.AspectFieldOfView(FOrthoViewDimensions,
       ViewportWidth / ViewportHeight);
 
-    ProjectionGLOrtho(
+    Camera.ProjectionMatrix := OrthoProjection(
       { Beware: order of OrthoViewpoint.fieldOfView and FOrthoViewDimensions
-        is different than typical OpenGL and our ProjectionGLOrtho params. }
+        is different than typical OpenGL and our OrthoProjection params. }
       FOrthoViewDimensions[0],
       FOrthoViewDimensions[2],
       FOrthoViewDimensions[1],
@@ -1496,8 +1487,6 @@ begin
       ptOrthographic: DoOrthographic;
       else EInternalError.Create('TCastleScene.GLProjectionCore-ProjectionType?');
     end;
-
-    UpdateCameraProjectionMatrix;
 
     ApplyProjectionNeeded := false;
   end;

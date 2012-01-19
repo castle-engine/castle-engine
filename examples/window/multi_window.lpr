@@ -123,7 +123,7 @@ begin
  inherited;
 
  glViewport(0, 0, Width, Height);
- ProjectionGLPerspective(45.0, Width/Height, 0.1, 100.0);
+ PerspectiveProjection(45.0, Width/Height, 0.1, 100.0);
 end;
 
 procedure TMyWindow.EventOpen;

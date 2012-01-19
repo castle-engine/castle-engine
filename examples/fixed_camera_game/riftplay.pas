@@ -136,25 +136,15 @@ begin
 end;
 
 procedure TGameSceneManager.ApplyProjection;
-
-  procedure UpdateCameraProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
-  begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    SceneCamera.ProjectionMatrix := ProjectionMatrix;
-  end;
-
 var
   ZFar: TGLfloat;
 begin
   if RenderShadowsPossible then
     ZFar := ZFarInfinity else
     ZFar := 100;
-  ProjectionGLPerspective(AngleOfViewY,
-    Window.Width / Window.Height, 0.01, ZFar);
 
-  UpdateCameraProjectionMatrix;
+  SceneCamera.ProjectionMatrix := PerspectiveProjection(
+    AngleOfViewY, Window.Width / Window.Height, 0.01, ZFar);
 end;
 
 { rest ----------------------------------------------------------------------- }

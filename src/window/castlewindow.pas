@@ -2909,7 +2909,7 @@ const
   It does
 @longCode(#
   glViewport(0, 0, Window.Width, Window.Height);
-  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+  OrthoProjection(0, Window.Width, 0, Window.Height);
 #) }
 procedure Resize2D(Window: TCastleWindowBase);
 
@@ -5096,8 +5096,8 @@ end;
 
 procedure Resize2D(Window: TCastleWindowBase);
 begin
- glViewport(0, 0, Window.Width, Window.Height);
- ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+  glViewport(0, 0, Window.Width, Window.Height);
+  OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 
 { init/fini --------------------------------------------------------------- }

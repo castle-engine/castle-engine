@@ -831,13 +831,10 @@ end;
 
 procedure TMySceneManager.ApplyProjection;
 
-  procedure UpdateCameraProjectionMatrix;
-  var
-    ProjectionMatrix: TMatrix4f;
+  procedure UpdateCameraProjectionMatrix(const M: TMatrix4Single);
   begin
-    glGetFloatv(GL_PROJECTION_MATRIX, @ProjectionMatrix);
-    Walker.ProjectionMatrix := ProjectionMatrix;
-    Examiner.ProjectionMatrix := ProjectionMatrix;
+    Walker.ProjectionMatrix := M;
+    Examiner.ProjectionMatrix := M;
   end;
 
 begin
@@ -856,13 +853,11 @@ begin
   FPerspectiveViewAngles[0] := AdjustViewAngleDegToAspectRatio(
     FPerspectiveViewAngles[1], ContainerWidth / ContainerHeight);
 
-  ProjectionGLPerspective(FPerspectiveViewAngles[1],
-    ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar);
+  UpdateCameraProjectionMatrix(PerspectiveProjection(FPerspectiveViewAngles[1],
+    ContainerWidth / ContainerHeight, ProjectionNear, ProjectionFar));
 
   Scene.BackgroundSkySphereRadius :=
     TBackground.NearFarToSkySphereRadius(ProjectionNear, ProjectionFar);
-
-  UpdateCameraProjectionMatrix;
 end;
 
 { vrml scene loading --------------------------------------------------------- }

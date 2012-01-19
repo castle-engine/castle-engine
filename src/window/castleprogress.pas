@@ -149,7 +149,7 @@ begin
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
 
-  ProjectionGLOrtho(0, Window.Width, 0, Window.Height);
+  OrthoProjection(0, Window.Width, 0, Window.Height);
 
   { To actually draw progress start. }
   Window.PostRedisplay;

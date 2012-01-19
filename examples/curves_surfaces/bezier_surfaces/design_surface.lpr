@@ -283,8 +283,8 @@ procedure Resize(Window: TCastleWindowBase);
 begin
   glViewport(0, 0, Window.Width, Window.Height);
   if ProjectionPerspective then
-    ProjectionGLPerspective(30, Window.Width/Window.Height, 0.1, 100) else
-    ProjectionGLOrtho(-1, 1, -1, 1, 0.1, 100);
+    PerspectiveProjection(30, Window.Width/Window.Height, 0.1, 100) else
+    OrthoProjection(-1, 1, -1, 1, 0.1, 100);
 end;
 
 procedure Idle(Window: TCastleWindowBase);
@@ -416,7 +416,7 @@ begin
       This was correct assumption
       --- but only for orthographic projection. You can see that it works
       by replacing GLPerspective inside Resize to
-        ProjectionGLOrtho(-1, 1, -1, 1, 0.1, 100);
+        OrthoProjection(-1, 1, -1, 1, 0.1, 100);
 
       For perspective projection, we have to carefully calculate WinZ,
       since the distance of the point from the camera determines
