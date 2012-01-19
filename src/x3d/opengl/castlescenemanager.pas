@@ -1455,7 +1455,7 @@ begin
     { Tests:
       Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
 
-    Assert(Camera.CameraRadius > 0, 'ACamera.CameraRadius must be > 0 when using TCastleScene.GLProjection');
+    Assert(Camera.CameraRadius > 0, 'Camera.CameraRadius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
     FProjectionNear := Camera.CameraRadius * 0.6;
 
     { calculate FProjectionFar, algorithm documented at DefaultVisibilityLimit }
