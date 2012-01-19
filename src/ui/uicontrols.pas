@@ -77,43 +77,17 @@ type
     See TUIControl.Draw, TUIControl.DrawStyle. }
   TUIControlDrawStyle = (dsNone, ds2D, ds3D);
 
-  { Basic user interface control class. All controls derive from this class,
-    overriding chosen methods to react to some events.
-    Various user interface containers (things that directly receive messages
-    from something outside, like operating system, windowing library etc.)
-    implement support for such controls.
-
-    Control may handle mouse/keyboard input, see KeyDown, MouseDown etc.
-    methods.
-
-    Various methods return boolean saying if input event is handled.
-    The idea is that not handled events are passed to the next
-    control suitable. Handled events are generally not processed more
-    --- otherwise the same event could be handled by more than one listener,
-    which is bad. Generally, return ExclusiveEvents if anything (possibly)
-    was done (you changed any field value etc.) as a result of this,
-    and only return @false when you're absolutely sure that nothing was done
-    by this control.
-
-    All screen (mouse etc.) coordinates passed here should be in the usual
-    window system coordinates, that is (0, 0) is left-top window corner.
-    (Note that this is contrary to the usual OpenGL 2D system,
-    where (0, 0) is left-bottom window corner.) }
-  TUIControl = class(TComponent)
+  { Base class for things that listen to user input: cameras and 2D controls. }
+  TInputListener = class(TComponent)
   private
-    FExclusiveEvents: boolean;
     FOnVisibleChange: TNotifyEvent;
     FContainerWidth, FContainerHeight: Cardinal;
     FContainerSizeKnown: boolean;
     FContainer: IUIContainer;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
-    FDisableContextOpenClose: Cardinal;
-    FFocused: boolean;
-    FGLInitialized: boolean;
-    FExists: boolean;
+    FExclusiveEvents: boolean;
     procedure SetCursor(const Value: TMouseCursor);
-    procedure SetExists(const Value: boolean);
   protected
     { Container (window containing the control) size, as known by this control,
       undefined when ContainerSizeKnown = @false. This is simply collected at
@@ -127,13 +101,8 @@ type
     { Called when @link(Cursor) changed.
       In TUIControl class, just calls OnCursorChange. }
     procedure DoCursorChange; virtual;
-    { Return whether item really exists, see @link(Exists).
-      It TUIControl class, returns @link(Exists) value.
-      May be modified in subclasses, to return something more complicated. }
-    function GetExists: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
 
     (*Handle key events.
       Return @true if the key event was somehow handled.
@@ -215,10 +184,6 @@ type
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); virtual;
 
-    { Is given position inside this control.
-      Returns always @false in this class. }
-    function PositionInside(const X, Y: Integer): boolean; virtual;
-
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
       know when we need to redraw the control.
@@ -245,6 +210,97 @@ type
 
       @seeAlso TCastleWindowBase.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
+
+    { Called always when containing window size changes.
+      Also, when the control is first inserted into the window controls list
+      (like @link(TCastleWindowCustom.Controls)), it will also receive
+      initial ContainerResize event. So every member of of Controls list
+      knows window width / height.
+
+      In this class, this sets values of ContainerWidth, ContainerHeight, ContainerSizeKnown
+      properties. }
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
+
+    { Container of this control. When adding control to container's Controls
+      list (like TCastleWindowCustom.Controls) container will automatically
+      set itself here, an when removing from container this will be changed
+      back to @nil.
+
+      May be @nil if this control is not yet inserted into any container.
+      May also be @nil since not all containers have to implement
+      right now IUIContainer interface, it's not crucial for most controls
+      to work. }
+    property Container: IUIContainer read FContainer write SetContainer;
+
+    { Mouse cursor over this control.
+      When user moves mouse over the Container, the currently focused
+      (topmost under the cursor) control determines the mouse cursor look. }
+    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+
+    { Event called when the @link(Cursor) property changes.
+      This event is, in normal circumstances, used by the Container,
+      so you should not use it in your own programs. }
+    property OnCursorChange: TNotifyEvent
+      read FOnCursorChange write FOnCursorChange;
+
+    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
+      (for normal usage you don't want to deal with it). Also, it's confusing
+      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
+      totally not related to this property that is concerned with handling
+      TUIControl events.) }
+
+    { Should we disable further mouse / keys handling for events that
+      we already handled in this control. If @true, then our events will
+      return @true for mouse and key events handled.
+
+      This means that events will not be simultaneously handled by both this
+      control and some other (or camera or normal window callbacks),
+      which is usually more sensible, but sometimes less functional. }
+    property ExclusiveEvents: boolean
+      read FExclusiveEvents write FExclusiveEvents default true;
+  end;
+
+  { Basic user interface control class. All controls derive from this class,
+    overriding chosen methods to react to some events.
+    Various user interface containers (things that directly receive messages
+    from something outside, like operating system, windowing library etc.)
+    implement support for such controls.
+
+    Control may handle mouse/keyboard input, see KeyDown, MouseDown etc.
+    methods.
+
+    Various methods return boolean saying if input event is handled.
+    The idea is that not handled events are passed to the next
+    control suitable. Handled events are generally not processed more
+    --- otherwise the same event could be handled by more than one listener,
+    which is bad. Generally, return ExclusiveEvents if anything (possibly)
+    was done (you changed any field value etc.) as a result of this,
+    and only return @false when you're absolutely sure that nothing was done
+    by this control.
+
+    All screen (mouse etc.) coordinates passed here should be in the usual
+    window system coordinates, that is (0, 0) is left-top window corner.
+    (Note that this is contrary to the usual OpenGL 2D system,
+    where (0, 0) is left-bottom window corner.) }
+  TUIControl = class(TInputListener)
+  private
+    FDisableContextOpenClose: Cardinal;
+    FFocused: boolean;
+    FGLInitialized: boolean;
+    FExists: boolean;
+    procedure SetExists(const Value: boolean);
+  protected
+    { Return whether item really exists, see @link(Exists).
+      It TUIControl class, returns @link(Exists) value.
+      May be modified in subclasses, to return something more complicated. }
+    function GetExists: boolean; virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Is given position inside this control.
+      Returns always @false in this class. }
+    function PositionInside(const X, Y: Integer): boolean; virtual;
 
     { Prepare your resources, right before drawing. }
     procedure BeforeDraw; virtual;
@@ -316,27 +372,6 @@ type
     procedure DrawTooltip; virtual;
     { @groupEnd }
 
-    { Called always when containing window size changes.
-      Also, when the control is first inserted into the window controls list
-      (like @link(TCastleWindowCustom.Controls)), it will also receive
-      initial ContainerResize event. So every member of of Controls list
-      knows window width / height.
-
-      In this class, this sets values of ContainerWidth, ContainerHeight, ContainerSizeKnown
-      properties. }
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
-
-    { Container of this control. When adding control to container's Controls
-      list (like TCastleWindowCustom.Controls) container will automatically
-      set itself here, an when removing from container this will be changed
-      back to @nil.
-
-      May be @nil if this control is not yet inserted into any container.
-      May also be @nil since not all containers have to implement
-      right now IUIContainer interface, it's not crucial for most controls
-      to work. }
-    property Container: IUIContainer read FContainer write SetContainer;
-
     { Initialize your OpenGL resources.
 
       This is called when OpenGL context of the container is created.
@@ -380,33 +415,6 @@ type
       removed from the @link(TCastleWindowCustom.Controls) list. }
     property DisableContextOpenClose: Cardinal
       read FDisableContextOpenClose write FDisableContextOpenClose;
-
-    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
-      (for normal usage you don't want to deal with it). Also, it's confusing
-      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
-      totally not related to this property that is concerned with handling
-      TUIControl events.) }
-
-    { Should we disable further mouse / keys handling for events that
-      we already handled in this control. If @true, then our events will
-      return @true for mouse and key events handled.
-
-      This means that events will not be simultaneously handled by both this
-      control and some other (or camera or normal window callbacks),
-      which is usually more sensible, but sometimes less functional. }
-    property ExclusiveEvents: boolean
-      read FExclusiveEvents write FExclusiveEvents default true;
-
-    { Mouse cursor over this control.
-      When user moves mouse over the Container, the currently focused
-      (topmost under the cursor) control determines the mouse cursor look. }
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
-    { Event called when the @link(Cursor) property changes.
-      This event is, in normal circumstances, used by the Container,
-      so you should not use it in your own programs. }
-    property OnCursorChange: TNotifyEvent
-      read FOnCursorChange write FOnCursorChange;
 
     { Called when this control becomes or stops being focused.
       In this class, they simply update Focused property. }
@@ -473,11 +481,94 @@ type
 
 implementation
 
-constructor TUIControl.Create(AOwner: TComponent);
+{ TInputListener ------------------------------------------------------------- }
+
+constructor TInputListener.Create(AOwner: TComponent);
 begin
   inherited;
   FExclusiveEvents := true;
   FCursor := mcDefault;
+end;
+
+function TInputListener.KeyDown(Key: TKey; C: char): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.KeyUp(Key: TKey; C: char): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
+
+procedure TInputListener.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
+begin
+end;
+
+procedure TInputListener.VisibleChange;
+begin
+  if Assigned(OnVisibleChange) then
+    OnVisibleChange(Self);
+end;
+
+function TInputListener.AllowSuspendForInput: boolean;
+begin
+  Result := true;
+end;
+
+procedure TInputListener.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+begin
+  FContainerWidth := AContainerWidth;
+  FContainerHeight := AContainerHeight;
+  FContainerSizeKnown := true;
+end;
+
+procedure TInputListener.SetCursor(const Value: TMouseCursor);
+begin
+  if Value <> FCursor then
+  begin
+    FCursor := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    DoCursorChange;
+  end;
+end;
+
+procedure TInputListener.DoCursorChange;
+begin
+  if Assigned(OnCursorChange) then OnCursorChange(Self);
+end;
+
+procedure TInputListener.SetContainer(const Value: IUIContainer);
+begin
+  FContainer := Value;
+end;
+
+{ TUIControl ----------------------------------------------------------------- }
+
+constructor TUIControl.Create(AOwner: TComponent);
+begin
+  inherited;
   FExists := true;
 end;
 
@@ -487,56 +578,9 @@ begin
   inherited;
 end;
 
-function TUIControl.KeyDown(Key: TKey; C: char): boolean;
-begin
-  Result := false;
-end;
-
-function TUIControl.KeyUp(Key: TKey; C: char): boolean;
-begin
-  Result := false;
-end;
-
-function TUIControl.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
-begin
-  Result := false;
-end;
-
-function TUIControl.MouseDown(const Button: TMouseButton): boolean;
-begin
-  Result := false;
-end;
-
-function TUIControl.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
-begin
-  Result := false;
-end;
-
-function TUIControl.MouseUp(const Button: TMouseButton): boolean;
-begin
-  Result := false;
-end;
-
-procedure TUIControl.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-begin
-end;
-
 function TUIControl.PositionInside(const X, Y: Integer): boolean;
 begin
   Result := false;
-end;
-
-procedure TUIControl.VisibleChange;
-begin
-  if Assigned(OnVisibleChange) then
-    OnVisibleChange(Self);
-end;
-
-function TUIControl.AllowSuspendForInput: boolean;
-begin
-  Result := true;
 end;
 
 function TUIControl.DrawStyle: TUIControlDrawStyle;
@@ -561,13 +605,6 @@ procedure TUIControl.DrawTooltip;
 begin
 end;
 
-procedure TUIControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-  FContainerWidth := AContainerWidth;
-  FContainerHeight := AContainerHeight;
-  FContainerSizeKnown := true;
-end;
-
 procedure TUIControl.GLContextOpen;
 begin
   FGLInitialized := true;
@@ -581,26 +618,6 @@ end;
 function TUIControl.GetExists: boolean;
 begin
   Result := FExists;
-end;
-
-procedure TUIControl.SetCursor(const Value: TMouseCursor);
-begin
-  if Value <> FCursor then
-  begin
-    FCursor := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
-    DoCursorChange;
-  end;
-end;
-
-procedure TUIControl.DoCursorChange;
-begin
-  if Assigned(OnCursorChange) then OnCursorChange(Self);
-end;
-
-procedure TUIControl.SetContainer(const Value: IUIContainer);
-begin
-  FContainer := Value;
 end;
 
 procedure TUIControl.SetFocused(const Value: boolean);

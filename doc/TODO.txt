@@ -16,8 +16,6 @@ engine improvements, allow making FPS-like as easily as possible:
 - castle: use everything as T3D inside scene manager,
   do not call special TCastleScene.Render methods.
 - Move castle creature animations outside of XML, to separate kanim files.
-- T3DTransformed, with fields like VRML/X3D Transform.
-  Transform frustum (with far plane possibly in infinity) by arbitrary matrix?
 
 Maybe:
 - Blender exporter fixes.
@@ -27,8 +25,6 @@ Maybe:
   BTW: maybe allow configuring shadow maps params,
   checkbox to switch "Shadows" and to change shadow map size would be very cool!
 - Merge PrecalculatedAnimationInfo functionality into PrecalculatedAnimation class?
-- Should we disallow placing TCamera directly on TCastleWindowCustom / TCastleControlCustom?
-  See todo below. Maybe do it for 2.6.0.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
@@ -152,8 +148,8 @@ Scene manager / controls / better Lazarus integration:
 - For later, something like KeyPreview for viewport would be useful
   to split-screen games, to catch keys (but not mouse clicks) regardless
   of mouse position (to handle keys from both players at once, assuming
-  not conflicting). So, actually (since TCastleViewport will decide about it,
-  and TCamera.PositionInside is ignored), TCastleViewport.KeyPreview is needed.
+  not conflicting). So, actually (since TCastleViewport will decide about it)
+  TCastleViewport.KeyPreview is needed.
   Maybe just make TUIControl.KeyPreview property?
 
   Note: normal handling of keys in OnKeyDown would not be enough here,
@@ -185,47 +181,6 @@ Scene manager / controls / better Lazarus integration:
        (instead of all on MouseRayHit.Hierarchy.)
 
   - TWalkCamera.AboveGround should be freed when triangle is destroyed.
-
-- Should we disallow placing TCamera directly on TCastleWindowCustom / TCastleControlCustoms?
-  IOW, should TCamera be changed to not descend from TUIControl?
-
-  Yes: because in 99% you want to use TCastleSceneManager.Camera.
-  - The scene manager offers instant integration of view with camera
-    (with viewpoints, proximity sensors, glLoadMatrix(Camera.Matrix)
-    is automatically done for you, and RenderingCamera is updated correctly).
-  - You should not place camera on both TCastleSceneManager.Camera and
-    some Glw.Controls (Idle and some other events would get twice, making
-    weird things --- at least 2x faster rotations for Examine).
-    Being able to do it currently may be confusing.
-  - Also, camera PositionInside is the poor hack with returning always @true.
-    For scene manager, we will nicely improve this with TCastleViewport,
-    that will take defined space and pass events to it's camera.
-    For pure TCamera on Glw.Controls, this will not be done.
-
-  No: despite all above, we have remaining some camera uses in engine
-  examples where scene manager really adds nothing. Yes, scene manager
-  is fantastic and simplified 99% of examples...
-  but there's no point forcing it for remaining 1%,
-  where it really doesn't add anything?
-
-  This concerns stuff without VRML/X3D at all (so the lack of proximity,
-  render state integration etc. doesn't matter there, and
-  glLoadMatrix(Camera.Matrix) may as well be done directly).
-
-  Below is extracted from
-  grep_pas_src . 'glLoadMatrix(.*camera.matrix)'
-
-  pure OpenGL demos (no VRML code), possibly let them use Glw.Camera?
-    ../examples/terrain/terrain.lpr:200:  glLoadMatrix(Camera.Matrix);
-    ../examples/curves_surfaces/bezier_surfaces/animate_surface.lpr:95:  glLoadMatrix(Camera.Matrix);
-    ../examples/curves_surfaces/bezier_surfaces/design_surface.lpr:202:  glLoadMatrix(Camera.Matrix);
-
-  If TCamera removed from TUIControl, maybe make some common class,
-  like TInputListener, for TUIControl, TCamera, TBase3D.
-  Or at least for TUIControl, TCamera.
-  Maybe TInvisibleUIControl, or TCustomUIControl?
-
-  Maybe good idea? Rethink for engine 2.6.0.
 
 - castle: besides level (MainScene, and level objects as additional stuff),
   it would be most perfect if castle creatures / items would be part of
