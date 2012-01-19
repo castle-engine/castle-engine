@@ -22,14 +22,14 @@ program design_surface;
 
 uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
-  CastleStringUtils, Math, CastleMessages, CastleFilesUtils,
-  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors;
+  CastleStringUtils, Math, CastleMessages, CastleFilesUtils, UIControls,
+  BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors, Base3D, Frustum;
 
 type
   TShow = (shNone, shWire, shFill);
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindow;
   Camera: TExamineCamera;
 
   Surface: TSurface;
@@ -51,8 +51,6 @@ var
       Dragging = true.
       And always CurrentCurve, CurrentPoint <> -1 when Dragging. }
   Dragging: boolean = false;
-
-  ProjectionPerspective: boolean = true;
 
   StatusFont: TGLBitmapFont;
 
@@ -187,7 +185,7 @@ end;
 
 { CastleWindow callbacks --------------------------------------------------------- }
 
-procedure DrawStatus(Data: Pointer);
+procedure Draw(Window: TCastleWindowBase);
 begin
   glLoadIdentity;
   glColorv(Yellow3Single);
@@ -197,10 +195,20 @@ begin
     false, 5, 10, 10);
 end;
 
-procedure Draw(Window: TCastleWindowBase);
+type
+  TSurface3D = class(T3D)
+    function BoundingBox: TBox3D; override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+  end;
+
+function TSurface3D.BoundingBox: TBox3D;
 begin
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(Camera.Matrix);
+  Result := Surface.BoundingBox;
+end;
+
+procedure TSurface3D.Render(const Frustum: TFrustum; const Params: TRenderParams);
+begin
+  if Params.Transparent or (not Params.ShadowVolumesReceivers) then Exit;
 
   case SurfaceShow of
     shNone: ;
@@ -255,12 +263,6 @@ begin
       glEnd;
     glPopAttrib;
   end;
-
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glProjectionPushPopOrtho2D(@DrawStatus, nil, 0, Window.Width, 0, Window.Height);
-  glPopAttrib;
 end;
 
 procedure Open(Window: TCastleWindowBase);
@@ -277,14 +279,6 @@ end;
 procedure Close(Window: TCastleWindowBase);
 begin
   FreeAndNil(StatusFont);
-end;
-
-procedure Resize(Window: TCastleWindowBase);
-begin
-  glViewport(0, 0, Window.Width, Window.Height);
-  if ProjectionPerspective then
-    PerspectiveProjection(30, Window.Width/Window.Height, 0.1, 100) else
-    OrthoProjection(-1, 1, -1, 1, 0.1, 100);
 end;
 
 procedure Idle(Window: TCastleWindowBase);
@@ -548,10 +542,6 @@ begin
     61: ChangeCurrentCurve(+1);
     70: ChangeCurrentPoint(-1);
     71: ChangeCurrentPoint(+1);
-    80: begin
-          ProjectionPerspective := not ProjectionPerspective;
-          Window.EventResize;
-        end;
     100: SurfaceShow := shNone;
     101: SurfaceShow := shWire;
     102: SurfaceShow := shFill;
@@ -603,9 +593,6 @@ begin
       'Show control points as surface', 52, ControlPointsShow = shFill, true);
     Radio.Group := RadioGroup;
     M.Append(Radio);
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItemChecked.Create(
-      'Perspective projection', 80, CtrlP, ProjectionPerspective, true));
     Result.Append(M);
   M := TMenu.Create('_Select');
     M.Append(TMenuItem.Create('Select previous curve', 60, 's'));
@@ -618,7 +605,7 @@ end;
 { main ----------------------------------------------------------------------- }
 
 begin
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
 
   Window.OnMenuCommand := @MenuCommand;
   Window.MainMenu := CreateMainMenu;
@@ -626,20 +613,22 @@ begin
   Camera := TExamineCamera.Create(Window);
   Camera.OnVisibleChange := @Dummy.VisibleChange;
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
-                    Vector3Single(1, 1,  1)), 0.1);
+                    Vector3Single(1, 1,  1)), 0.2);
   { conflicts with our MouseDown / MouseMove }
   Camera.MouseNavigation := false;
   Camera.Input_StopRotating.MouseButtonUse := false;
-  Window.Controls.Add(Camera);
+  Window.SceneManager.Camera := Camera;
+
+  Window.SceneManager.Items.Add(TSurface3D.Create(Window));
 
   Window.OnOpen := @Open;
   Window.OnClose := @Close;
-  Window.OnResize := @Resize;
   Window.OnIdle := @Idle;
   Window.OnMouseDown := @MouseDown;
   Window.OnMouseUp := @MouseUp;
   Window.OnMouseMove := @MouseMove;
   Window.OnDraw := @Draw;
+  Window.OnDrawStyle := ds2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
   SurfaceNew(4, 4);
