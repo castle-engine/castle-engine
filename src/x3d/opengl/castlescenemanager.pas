@@ -2484,9 +2484,9 @@ begin
   begin
     if ApproximateActivation and (Camera <> nil) and GetMousePosition then
       Result := TryActivateAroundSquare(25) or
-                 TryActivateAroundSquare(50) or
-                 TryActivateAroundSquare(100) or
-                 TryActivateAroundSquare(200);
+                TryActivateAroundSquare(50) or
+                TryActivateAroundSquare(100) or
+                TryActivateAroundSquare(200);
   end;
 
   if not Result then
