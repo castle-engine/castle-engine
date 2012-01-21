@@ -1142,6 +1142,13 @@ Various:
   Maybe all scenes with ProcessEvents := true? (but that's too much,
   since even interpolator animation will require ProcessEvents := true...).
 
+- Merely moving (awsd) instead of rotating makes no MouseMove,
+  so MouseRayHit.Distance stays the same even if you get closer to object.
+
+  Update MouseRayHit in each camera changed?
+  But do PointingDeviceMove only in MouseMove.
+  How to avoid on MouseMove updating MouseRayHit needlessly 2 times
+  (once from MouseMove, once from CameraChanged).
 ------------------------------------------------------------------------------
 Shaders:
 
