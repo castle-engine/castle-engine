@@ -215,9 +215,9 @@ type
     { @groupEnd }
 
     { Pass pointing device (mouse) move event to 3D world. }
-    procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); virtual; abstract;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; virtual; abstract;
     { Pass pointing device (mouse) activation/deactivation event to 3D world. }
-    procedure PointingDeviceActivate(const Active: boolean); virtual; abstract;
+    function PointingDeviceActivate(const Active: boolean): boolean; virtual; abstract;
 
     { Handle camera events.
 
@@ -731,8 +731,8 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
-    procedure PointingDeviceActivate(const Active: boolean); override;
-    procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); override;
+    function PointingDeviceActivate(const Active: boolean): boolean; override;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
     { Called when PointingDeviceActivate was not handled by any 3D object.
       You can override this to make a message / sound signal to notify user
       that his Input_PointingDeviceActivate click was not successful. }
@@ -935,8 +935,8 @@ type
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
     function GetHeadlightCamera: TCamera; override;
-    procedure PointingDeviceActivate(const Active: boolean); override;
-    procedure PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single); override;
+    function PointingDeviceActivate(const Active: boolean): boolean; override;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
 
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
@@ -1139,9 +1139,10 @@ begin
   end;
 
   Result := GetItems.KeyDown(Key, C);
+  if Result then Exit;
 
   if Input_PointingDeviceActivate.IsKey(Key, C) then
-    PointingDeviceActivate(true);
+    Result := PointingDeviceActivate(true);
 end;
 
 function TCastleAbstractViewport.KeyUp(Key: TKey; C: char): boolean;
@@ -1156,9 +1157,10 @@ begin
   end;
 
   Result := GetItems.KeyUp(Key, C);
+  if Result then Exit;
 
   if Input_PointingDeviceActivate.IsKey(Key, C) then
-    PointingDeviceActivate(false);
+    Result := PointingDeviceActivate(false);
 end;
 
 function TCastleAbstractViewport.MouseDown(const Button: TMouseButton): boolean;
@@ -1173,7 +1175,7 @@ begin
   end;
 
   if Input_PointingDeviceActivate.IsMouseButton(Button) then
-    PointingDeviceActivate(true);
+    Result := PointingDeviceActivate(true);
 end;
 
 function TCastleAbstractViewport.MouseUp(const Button: TMouseButton): boolean;
@@ -1188,7 +1190,7 @@ begin
   end;
 
   if Input_PointingDeviceActivate.IsMouseButton(Button) then
-    PointingDeviceActivate(false);
+    Result := PointingDeviceActivate(false);
 end;
 
 function TCastleAbstractViewport.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean;
@@ -1207,6 +1209,7 @@ begin
         CorrectLeft, CorrectBottom, CorrectWidth, CorrectHeight, ContainerHeight,
         NewX, NewY, PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
         RayOrigin, RayDirection);
+      { TODO: do Result := PointingDeviceMove below? }
       PointingDeviceMove(RayOrigin, RayDirection);
     end;
   end;
@@ -2388,7 +2391,7 @@ begin
   RenderOnScreen(Camera);
 end;
 
-procedure TCastleSceneManager.PointingDeviceActivate(const Active: boolean);
+function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): boolean;
 
   { Try PointingDeviceActivate on 3D stuff hit by RayHit }
   function TryActivate(RayHit: TRayCollision): boolean;
@@ -2475,20 +2478,18 @@ var
     end;
   end;
 
-var
-  Handled: boolean;
 begin
-  Handled := TryActivate(MouseRayHit);
-  if not Handled then
+  Result := TryActivate(MouseRayHit);
+  if not Result then
   begin
     if ApproximateActivation and (Camera <> nil) and GetMousePosition then
-      Handled := TryActivateAroundSquare(25) or
+      Result := TryActivateAroundSquare(25) or
                  TryActivateAroundSquare(50) or
                  TryActivateAroundSquare(100) or
                  TryActivateAroundSquare(200);
   end;
 
-  if not Handled then
+  if not Result then
     PointingDeviceActivateFailed(Active);
 end;
 
@@ -2496,8 +2497,8 @@ procedure TCastleSceneManager.PointingDeviceActivateFailed(const Active: boolean
 begin
 end;
 
-procedure TCastleSceneManager.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3Single);
+function TCastleSceneManager.PointingDeviceMove(
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 var
   PassToMainScene: boolean;
   I: Integer;
@@ -2516,8 +2517,8 @@ begin
     MouseRayHit3D := MouseRayHit.First.Item else
     MouseRayHit3D := nil;
 
-  { call T3D.PointingDeviceMove on everything }
-
+  { call T3D.PointingDeviceMove on everything, calculate Result }
+  Result := false;
   PassToMainScene := true;
 
   if MouseRayHit <> nil then
@@ -2525,7 +2526,8 @@ begin
     begin
       if MouseRayHit[I].Item = MainScene then
         PassToMainScene := false;
-      if MouseRayHit[I].Item.PointingDeviceMove(MouseRayHit[I], MouseRayHit.Distance) then
+      Result := MouseRayHit[I].Item.PointingDeviceMove(MouseRayHit[I], MouseRayHit.Distance);
+      if Result then
       begin
         PassToMainScene := false;
         Break;
@@ -2545,7 +2547,7 @@ begin
     MainSceneNode.RayOrigin := RayOrigin;
     MainSceneNode.RayDirection := RayDirection;
     MainSceneNode.Triangle := nil;
-    MainScene.PointingDeviceMove(MainSceneNode, MaxSingle);
+    Result := MainScene.PointingDeviceMove(MainSceneNode, MaxSingle);
   end;
 end;
 
@@ -2753,16 +2755,16 @@ begin
   RenderOnScreen(Camera);
 end;
 
-procedure TCastleViewport.PointingDeviceActivate(const Active: boolean);
+function TCastleViewport.PointingDeviceActivate(const Active: boolean): boolean;
 begin
-  if SceneManager <> nil then
+  Result := (SceneManager <> nil) and
     SceneManager.PointingDeviceActivate(Active);
 end;
 
-procedure TCastleViewport.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3Single);
+function TCastleViewport.PointingDeviceMove(
+  const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
-  if SceneManager <> nil then
+  Result := (SceneManager <> nil) and
     SceneManager.PointingDeviceMove(RayOrigin, RayDirection);
 end;
 
