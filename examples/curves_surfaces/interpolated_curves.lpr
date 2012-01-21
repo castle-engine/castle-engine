@@ -1,5 +1,5 @@
 {
-  Copyright 2004,2008 Michalis Kamburelis.
+  Copyright 2004-2012 Michalis Kamburelis.
 
   This file is part of "interpolated_curves".
 

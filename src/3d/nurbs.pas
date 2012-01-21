@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2011 Michalis Kamburelis.
+  Copyright 2009-2012 Michalis Kamburelis.
   Parts based on white dune (GPL >= 2):
   Stephen F. White, J. "MUFTI" Scheurich, others.
 
