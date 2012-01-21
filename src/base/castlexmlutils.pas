@@ -3,7 +3,7 @@ unit CastleXMLUtils;
 
 interface
 
-uses SysUtils, DOM;
+uses SysUtils, DOM, CastleUtils;
 
 { Retrieves from Element attribute Value and returns @true,
   or (of there is no such attribute) returns @false
@@ -24,6 +24,10 @@ function DOMGetIntegerAttribute(const Element: TDOMElement;
 { Like DOMGetAttribute, but reads Single value. }
 function DOMGetSingleAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: Single): boolean;
+
+{ Like DOMGetAttribute, but reads Float value. }
+function DOMGetFloatAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Float): boolean;
 
 { Like DOMGetAttribute, but reads Boolean value.
   A boolean value is interpreted just like FPC's TXMLConfig
@@ -215,8 +219,6 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 
 implementation
 
-uses CastleUtils;
-
 function DOMGetAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: string): boolean;
 var
@@ -254,6 +256,16 @@ end;
 
 function DOMGetSingleAttribute(const Element: TDOMElement;
   const AttrName: string; var Value: Single): boolean;
+var
+  ValueStr: string;
+begin
+  Result := DOMGetAttribute(Element, AttrName, ValueStr);
+  if Result then
+    Value := StrToFloat(ValueStr);
+end;
+
+function DOMGetFloatAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Float): boolean;
 var
   ValueStr: string;
 begin

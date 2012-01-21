@@ -37,7 +37,7 @@ type
       but the upside is that you can use these features in all VRML versions.) } { }
     vkAS, vkEXPORT, vkIMPORT,
     { X3D-only keywords below } { }
-    vkCOMPONENT, vkMETA, vkPROFILE,
+    vkCOMPONENT, vkMETA, vkPROFILE, vkUNIT,
     vkInputOnly, vkOutputOnly, vkInputOutput, vkInitializeOnly);
 
   TX3DKeywords = set of TX3DKeyword;
@@ -355,7 +355,7 @@ const
     'DEF', 'EXTERNPROTO', 'FALSE', 'IS', 'NULL', 'PROTO', 'ROUTE',
     'TO', 'TRUE', 'USE', 'eventIn', 'eventOut', 'exposedField', 'field',
     'AS', 'EXPORT', 'IMPORT',
-    'COMPONENT', 'META', 'PROFILE',
+    'COMPONENT', 'META', 'PROFILE', 'UNIT',
     'inputOnly', 'outputOnly', 'inputOutput', 'initializeOnly'
     );
 

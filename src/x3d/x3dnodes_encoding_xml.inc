@@ -325,13 +325,78 @@ var
       OnWarning(wtMajor, 'VRML/X3D', 'X3D "profile" attribute missing');
   end;
 
-  procedure ParseComponentsAndMetas;
+  procedure ParseHead;
+
+    procedure ParseMeta(Element: TDOMElement);
+    var
+      MetaName, MetaContent: string;
+    begin
+      MetaName := '';
+      MetaContent := '';
+      DOMGetAttribute(Element, 'name', MetaName);
+      DOMGetAttribute(Element, 'content', MetaContent);
+      Result.Meta[MetaName] := MetaContent;
+    end;
+
+    procedure ParseComponent(Element: TDOMElement);
+    var
+      ComponentName: string;
+      ComponentLevel: Integer;
+    begin
+      if DOMGetAttribute(Element, 'name', ComponentName) then
+      begin
+        if not DOMGetIntegerAttribute(Element, 'level', ComponentLevel) then
+          ComponentLevel := 1;
+        Result.Components[ComponentName] := ComponentLevel;
+      end else
+        OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: <component> element without required "name" attribute',
+          [Element.TagName]));
+    end;
+
+    procedure ParseUnit(Element: TDOMElement);
+    var
+      Category, Name: string;
+      ConversionFactor: Float;
+    begin
+      if not DOMGetAttribute(Element, 'category', Category) then
+      begin
+        OnWarning(wtMajor, 'X3D', 'Missing <unit> category');
+        Exit;
+      end;
+
+      if not DOMGetAttribute(Element, 'name', Name) then
+      begin
+        OnWarning(wtMajor, 'X3D', 'Missing <unit> category');
+        Exit;
+      end;
+
+      if not DOMGetFloatAttribute(Element, 'conversionFactor', ConversionFactor) then
+      begin
+        OnWarning(wtMajor, 'X3D', 'Missing <unit> category');
+        Exit;
+      end;
+
+      if (Names.Version.Major < 3) or
+         ( (Names.Version.Major = 3) and
+           (Names.Version.Minor < 3) ) then
+        OnWarning(wtMajor, 'X3D', 'UNIT declaration found, but X3D version is < 3.3');
+
+      { store UNIT inside Reader }
+      if Category = 'angle' then
+        { TODO } else
+      if Category = 'force' then
+        { TODO } else
+      if Category = 'length' then
+        { TODO } else
+      if Category = 'mass' then
+        { TODO } else
+        OnWarning(wtMajor, 'X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
+          [Category]));
+    end;
+
   var
     Head: TDOMElement;
     I: TXMLElementIterator;
-    MetaName, MetaContent: string;
-    ComponentName: string;
-    ComponentLevel: Integer;
   begin
     Head := DOMGetChildElement(X3DHeaderElement, 'head', false);
     if Head = nil then Exit;
@@ -341,24 +406,11 @@ var
       while I.GetNext do
       begin
         if I.Current.TagName = 'meta' then
-        begin
-          MetaName := '';
-          MetaContent := '';
-          DOMGetAttribute(I.Current, 'name', MetaName);
-          DOMGetAttribute(I.Current, 'content', MetaContent);
-          Result.Meta[MetaName] := MetaContent;
-        end else
+          ParseMeta(I.Current) else
         if I.Current.TagName = 'component' then
-        begin
-          if DOMGetAttribute(I.Current, 'name', ComponentName) then
-          begin
-            if not DOMGetIntegerAttribute(I.Current, 'level', ComponentLevel) then
-              ComponentLevel := 1;
-            Result.Components[ComponentName] := ComponentLevel;
-          end else
-            OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: <component> element without required "name" attribute',
-              [I.Current.TagName]));
-        end else
+          ParseComponent(I.Current) else
+        if I.Current.TagName = 'unit' then
+          ParseUnit(I.Current) else
           OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: unrecognized element "%s" in <head>',
             [I.Current.TagName]));
       end;
@@ -448,7 +500,7 @@ begin
     if FileTopLevel then
     begin
       ParseProfile;
-      ParseComponentsAndMetas;
+      ParseHead;
     end;
 
     I := TXMLElementIterator.Create(Element);
