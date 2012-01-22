@@ -895,7 +895,7 @@ type
       so it's more comfortable. }
     property ParentNode: TX3DNode read FParentNode;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Checks is the Child allowed as a value of this SFNode,
       and makes OnWarning if not.
@@ -1027,7 +1027,7 @@ type
 
     property ParentNode: TX3DNode read FParentNode;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
       and makes OnWarning if not.
@@ -3135,7 +3135,7 @@ begin
   FDefaultValueExists := AValue;
 end;
 
-class function TSFNode.VRMLTypeName: string;
+class function TSFNode.TypeName: string;
 begin
   Result := 'SFNode';
 end;
@@ -3503,7 +3503,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TMFNode.VRMLTypeName: string;
+class function TMFNode.TypeName: string;
 begin
   Result := 'MFNode';
 end;
@@ -3868,7 +3868,7 @@ begin
         if Event.InEvent then
           Writer.WriteIndent(ATName(atInputOnly) + ' ') else
           Writer.WriteIndent(ATName(atOutputOnly) + ' ');
-        Writer.Write(Event.FieldClass.VRMLTypeName + ' ');
+        Writer.Write(Event.FieldClass.TypeName + ' ');
         if Event.IsClauseNames.Count <> 0 then
         begin
           Writer.DiscardNextIndent;
@@ -3883,7 +3883,7 @@ begin
         if Field.Exposed then
           Writer.WriteIndent(ATName(atInputOutput) + ' ') else
           Writer.WriteIndent(ATName(atInitializeOnly) + ' ');
-        Writer.Write(Field.VRMLTypeName + ' ');
+        Writer.Write(Field.TypeName + ' ');
 
         { When saving from interface declaration, you can only
           1. write sole field name
@@ -3926,7 +3926,7 @@ begin
           [ Iff(Event.InEvent,
               StringToX3DXml(ATName(atInputOnly)),
               StringToX3DXml(ATName(atOutputOnly))),
-            StringToX3DXml(Event.FieldClass.VRMLTypeName),
+            StringToX3DXml(Event.FieldClass.TypeName),
             StringToX3DXml(N) ]));
       end else
       begin
@@ -3934,7 +3934,7 @@ begin
           [ Iff(Field.Exposed,
               StringToX3DXml(ATName(atInputOutput)),
               StringToX3DXml(ATName(atInitializeOnly))),
-            StringToX3DXml(Field.VRMLTypeName),
+            StringToX3DXml(Field.TypeName),
             StringToX3DXml(N) ]));
 
         if ( FieldValue and
@@ -4131,9 +4131,9 @@ begin
           'field of type %s (named "%s") references ' +
           '(by "IS" clause) field of different type %s (named "%s")',
           [Prototype.Name,
-           DestinationField.VRMLTypeName,
+           DestinationField.TypeName,
            Destination.Name,
-           SourceField.VRMLTypeName,
+           SourceField.TypeName,
            Source.Name]));
       end;
       on E: EX3DFieldAssign do
@@ -4162,8 +4162,8 @@ begin
     begin
       OnWarning(wtMajor, 'VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
-          DestinationEvent.FieldClass.VRMLTypeName,
-          SourceEvent.FieldClass.VRMLTypeName ]));
+          DestinationEvent.FieldClass.TypeName,
+          SourceEvent.FieldClass.TypeName ]));
       Exit;
     end;
 
@@ -5224,9 +5224,9 @@ begin
   begin
     if DestEnding then
       raise ERouteSetEndingError.CreateFmt('Route uses wrong event: destination of the route (%s, type %s) can only be output event',
-        [ Event.Name, Event.FieldClass.VRMLTypeName ]) else
+        [ Event.Name, Event.FieldClass.TypeName ]) else
       raise ERouteSetEndingError.CreateFmt('Route uses wrong event: source of the route (%s, type %s) can only be input event',
-        [ Event.Name, Event.FieldClass.VRMLTypeName ]);
+        [ Event.Name, Event.FieldClass.TypeName ]);
   end;
 
   if (SourceEvent <> nil) and
@@ -5235,8 +5235,8 @@ begin
      { destination field can be XFAny (for some Avalon nodes) as an exception. }
      (not (DestinationEvent.FieldClass = TX3DField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
-      [ SourceEvent     .Name, SourceEvent     .FieldClass.VRMLTypeName,
-        DestinationEvent.Name, DestinationEvent.FieldClass.VRMLTypeName ]);
+      [ SourceEvent     .Name, SourceEvent     .FieldClass.TypeName,
+        DestinationEvent.Name, DestinationEvent.FieldClass.TypeName ]);
 
   if (Event <> nil) and (not DestEnding) then
     Event.OnReceive.Add(@EventReceive);

@@ -3472,7 +3472,7 @@ var
       Format(', node: %s (%s %s) at %s',
       [ Node.NodeName, Node.NodeTypeName, Node.ClassName, PointerToStr(Node) ]);
     if Field <> nil then
-      S += Format(', field %s (%s)', [ Field.Name, Field.VRMLTypeName ]);
+      S += Format(', field %s (%s)', [ Field.Name, Field.TypeName ]);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('VRML changes', S);

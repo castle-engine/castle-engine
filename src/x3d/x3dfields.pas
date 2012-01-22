@@ -799,9 +799,11 @@ type
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
 
-    { This returns fieldType as for VRML interface declaration statements.
-      Returns 'XFAny' (name indicating any type, used by instantreality and us). }
-    class function VRMLTypeName: string; virtual;
+    { Field type name in VRML/X3D.
+      As for VRML/X3D interface declaration statements.
+      In base TX3DField class, this teturns @code(XFAny)
+      (name indicating any type, used by instantreality and us). }
+    class function TypeName: string; virtual;
 
     { Copies the current field value. Contrary to TPersistent.Assign, this
       doesn't copy the rest of properties.
@@ -1176,7 +1178,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
   end;
 
   TSFBool = class(TX3DSingleField)
@@ -1202,7 +1204,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: boolean); overload;
   end;
@@ -1243,7 +1245,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
   end;
 
   TSFFloat = class(TX3DSingleField)
@@ -1285,7 +1287,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: Single); overload;
   end;
@@ -1320,13 +1322,13 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: Double); overload;
   end;
 
   TSFTime = class(TSFDouble)
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
   end;
 
   TSFImage = class(TX3DSingleField)
@@ -1365,7 +1367,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
   end;
 
   TSFLong = class(TX3DSingleField)
@@ -1401,14 +1403,14 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: LongInt); virtual; overload;
   end;
 
   TSFInt32 = class(TSFLong)
   public
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: LongInt); override;
   end;
 
@@ -1438,7 +1440,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TMatrix3Single); overload;
   end;
@@ -1469,7 +1471,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TMatrix3Double); overload;
   end;
@@ -1509,14 +1511,14 @@ type
       looking at some rotation matrices). }
     function TransformScale: Single;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TMatrix4Single); virtual; overload;
   end;
 
   { VRML 1.0 SFMatrix field. }
   TSFMatrix = class(TSFMatrix4f)
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: TMatrix4Single); override;
   end;
 
@@ -1546,7 +1548,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TMatrix4Double); overload;
   end;
@@ -1602,7 +1604,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector4Single); overload;
   end;
@@ -1631,7 +1633,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -1665,7 +1667,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector2Single); overload;
   end;
@@ -1696,14 +1698,14 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector3Single); virtual; overload;
   end;
 
   TSFColor = class(TSFVec3f)
   public
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: TVector3Single); override;
   end;
 
@@ -1733,14 +1735,14 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector4Single); virtual; overload;
   end;
 
   TSFColorRGBA = class(TSFVec4f)
   public
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: TVector4Single); override;
   end;
 
@@ -1770,7 +1772,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector2Double); overload;
   end;
@@ -1801,7 +1803,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector3Double); overload;
   end;
@@ -1831,7 +1833,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure Send(const AValue: TVector4Double); overload;
   end;
@@ -1883,7 +1885,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return false, Set will do nothing,
@@ -1930,7 +1932,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
@@ -1965,7 +1967,7 @@ type
 
   TMFInt32 = class(TMFLong)
   public
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: array of LongInt); override;
   end;
 
@@ -1997,7 +1999,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
@@ -2036,7 +2038,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
@@ -2075,7 +2077,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
@@ -2114,7 +2116,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
@@ -2153,7 +2155,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
@@ -2192,7 +2194,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
@@ -2205,7 +2207,7 @@ type
 
   TMFColor = class(TMFVec3f)
   public
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: array of TVector3Single); override;
   end;
 
@@ -2237,7 +2239,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return (0, 0, 0, 1) vector, Set will do nothing,
@@ -2249,7 +2251,7 @@ type
   end;
 
   TMFColorRGBA = class(TMFVec4f)
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
     procedure Send(const AValue: array of TVector4Single); override;
   end;
 
@@ -2281,7 +2283,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
@@ -2320,7 +2322,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
@@ -2359,7 +2361,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return (0, 0, 0, 1), Set will do nothing,
@@ -2399,7 +2401,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return DefaultRotation, Set will do nothing,
@@ -2440,7 +2442,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
@@ -2481,7 +2483,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
@@ -2494,7 +2496,7 @@ type
 
   TMFTime = class(TMFDouble)
   public
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
   end;
 
   TMFString = class(TX3DSimpleMultField)
@@ -2524,7 +2526,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function VRMLTypeName: string; override;
+    class function TypeName: string; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -3230,8 +3232,8 @@ procedure TX3DField.AssignValueRaiseInvalidClass(Source: TX3DField);
 begin
   raise EX3DFieldAssignInvalidClass.CreateFmt('Cannot assign VRML field ' +
     '%s (%s) from %s (%s)',
-    [        Name,        VRMLTypeName,
-      Source.Name, Source.VRMLTypeName]);
+    [        Name,        TypeName,
+      Source.Name, Source.TypeName]);
 end;
 
 procedure TX3DField.AssignValue(Source: TX3DField);
@@ -3271,10 +3273,10 @@ begin
   end;
 end;
 
-{ Note that TX3DField.VRMLTypeName cannot be abstract:
+{ Note that TX3DField.TypeName cannot be abstract:
   it may be used if source event is of XFAny type in warning message
   in TX3DRoute.SetEndingInternal }
-class function TX3DField.VRMLTypeName: string;
+class function TX3DField.TypeName: string;
 begin
   Result := 'XFAny';
 end;
@@ -3529,10 +3531,10 @@ const
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [NiceName, VRMLTypeName, Index, ACount])) else
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [NiceName, TypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
     OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [NiceName, VRMLTypeName, InvalidIndexWarnings]));
+      [NiceName, TypeName, InvalidIndexWarnings]));
 end;
 
 { simple helpful parsing functions ---------------------------------------- }
@@ -3673,7 +3675,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFBool.VRMLTypeName: string;
+class function TSFBool.TypeName: string;
 begin
   Result := 'SFBool';
 end;
@@ -3783,7 +3785,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFFloat.VRMLTypeName: string;
+class function TSFFloat.TypeName: string;
 begin
   Result := 'SFFloat';
 end;
@@ -3882,7 +3884,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFDouble.VRMLTypeName: string;
+class function TSFDouble.TypeName: string;
 begin
   Result := 'SFDouble';
 end;
@@ -3899,7 +3901,7 @@ end;
 
 { TSFTime -------------------------------------------------------------------- }
 
-class function TSFTime.VRMLTypeName: string;
+class function TSFTime.TypeName: string;
 begin
   Result := 'SFTime';
 end;
@@ -4152,7 +4154,7 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-class function TSFImage.VRMLTypeName: string;
+class function TSFImage.TypeName: string;
 begin
   Result := 'SFImage';
 end;
@@ -4258,7 +4260,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFLong.VRMLTypeName: string;
+class function TSFLong.TypeName: string;
 begin
   Result := 'SFLong';
 end;
@@ -4275,7 +4277,7 @@ end;
 
 { TSFInt32 ------------------------------------------------------------------- }
 
-class function TSFInt32.VRMLTypeName: string;
+class function TSFInt32.TypeName: string;
 begin
   Result := 'SFInt32';
 end;
@@ -4426,21 +4428,21 @@ IMPLEMENT_SF_CLASS_USING_MATRICES
 
 { TSFMatrix3f ------------------------------------------------------------------ }
 
-class function TSFMatrix3f.VRMLTypeName: string;
+class function TSFMatrix3f.TypeName: string;
 begin
   Result := 'SFMatrix3f';
 end;
 
 { TSFMatrix3d ------------------------------------------------------------------ }
 
-class function TSFMatrix3d.VRMLTypeName: string;
+class function TSFMatrix3d.TypeName: string;
 begin
   Result := 'SFMatrix3d';
 end;
 
 { TSFMatrix4f ------------------------------------------------------------------ }
 
-class function TSFMatrix4f.VRMLTypeName: string;
+class function TSFMatrix4f.TypeName: string;
 begin
   Result := 'SFMatrix4f';
 end;
@@ -4458,14 +4460,14 @@ end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }
 
-class function TSFMatrix4d.VRMLTypeName: string;
+class function TSFMatrix4d.TypeName: string;
 begin
   Result := 'SFMatrix4d';
 end;
 
 { TSFMatrix ------------------------------------------------------------------ }
 
-class function TSFMatrix.VRMLTypeName: string;
+class function TSFMatrix.TypeName: string;
 begin
   Result := 'SFMatrix';
 end;
@@ -4624,7 +4626,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFRotation.VRMLTypeName: string;
+class function TSFRotation.TypeName: string;
 begin
   Result := 'SFRotation';
 end;
@@ -4714,7 +4716,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFString.VRMLTypeName: string;
+class function TSFString.TypeName: string;
 begin
   Result := 'SFString';
 end;
@@ -4880,21 +4882,21 @@ IMPLEMENT_SF_CLASS_USING_VECTORS
 
 { TSFVec2f ------------------------------------------------------------------- }
 
-class function TSFVec2f.VRMLTypeName: string;
+class function TSFVec2f.TypeName: string;
 begin
   Result := 'SFVec2f';
 end;
 
 { TSFVec3f ------------------------------------------------------------------- }
 
-class function TSFVec3f.VRMLTypeName: string;
+class function TSFVec3f.TypeName: string;
 begin
   Result := 'SFVec3f';
 end;
 
 { TSFColor ------------------------------------------------------------------- }
 
-class function TSFColor.VRMLTypeName: string;
+class function TSFColor.TypeName: string;
 begin
   Result := 'SFColor';
 end;
@@ -4911,14 +4913,14 @@ end;
 
 { TSFVec4f ------------------------------------------------------------------- }
 
-class function TSFVec4f.VRMLTypeName: string;
+class function TSFVec4f.TypeName: string;
 begin
   Result := 'SFVec4f';
 end;
 
 { TSFColorRGBA --------------------------------------------------------------- }
 
-class function TSFColorRGBA.VRMLTypeName: string;
+class function TSFColorRGBA.TypeName: string;
 begin
   Result := 'SFColorRGBA';
 end;
@@ -4935,21 +4937,21 @@ end;
 
 { TSFVec2d ------------------------------------------------------------------- }
 
-class function TSFVec2d.VRMLTypeName: string;
+class function TSFVec2d.TypeName: string;
 begin
   Result := 'SFVec2d';
 end;
 
 { TSFVec3d ------------------------------------------------------------------- }
 
-class function TSFVec3d.VRMLTypeName: string;
+class function TSFVec3d.TypeName: string;
 begin
   Result := 'SFVec3d';
 end;
 
 { TSFVec4d ------------------------------------------------------------------- }
 
-class function TSFVec4d.VRMLTypeName: string;
+class function TSFVec4d.TypeName: string;
 begin
   Result := 'SFVec4d';
 end;
@@ -5108,7 +5110,7 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-class function TSFBitMask.VRMLTypeName: string;
+class function TSFBitMask.TypeName: string;
 begin
   Result := 'SFBitMask';
 end;
@@ -5204,7 +5206,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFEnum.VRMLTypeName: string;
+class function TSFEnum.TypeName: string;
 begin
   Result := 'SFEnum';
 end;
@@ -5690,7 +5692,7 @@ begin
   Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
 
-class function TMFBool.VRMLTypeName: string;
+class function TMFBool.TypeName: string;
 begin
   Result := 'MFBool';
 end;
@@ -5707,7 +5709,7 @@ begin
   Result := IntToStr(Items[ItemNum])
 end;
 
-class function TMFLong.VRMLTypeName: string;
+class function TMFLong.TypeName: string;
 begin
   Result := 'MFLong';
 end;
@@ -5729,7 +5731,7 @@ end;
 
 { TMFInt32 ------------------------------------------------------------------- }
 
-class function TMFInt32.VRMLTypeName: string;
+class function TMFInt32.TypeName: string;
 begin
   Result := 'MFInt32';
 end;
@@ -5746,49 +5748,49 @@ end;
 
 { TMFMatrix3f ------------------------------------------------------------------- }
 
-class function TMFMatrix3f.VRMLTypeName: string;
+class function TMFMatrix3f.TypeName: string;
 begin
   Result := 'MFMatrix3f';
 end;
 
 { TMFMatrix3d ------------------------------------------------------------------- }
 
-class function TMFMatrix3d.VRMLTypeName: string;
+class function TMFMatrix3d.TypeName: string;
 begin
   Result := 'MFMatrix3d';
 end;
 
 { TMFMatrix4f ------------------------------------------------------------------- }
 
-class function TMFMatrix4f.VRMLTypeName: string;
+class function TMFMatrix4f.TypeName: string;
 begin
   Result := 'MFMatrix4f';
 end;
 
 { TMFMatrix4d ------------------------------------------------------------------- }
 
-class function TMFMatrix4d.VRMLTypeName: string;
+class function TMFMatrix4d.TypeName: string;
 begin
   Result := 'MFMatrix4d';
 end;
 
 { TMFVec2f ------------------------------------------------------------------- }
 
-class function TMFVec2f.VRMLTypeName: string;
+class function TMFVec2f.TypeName: string;
 begin
   Result := 'MFVec2f';
 end;
 
 { TMFVec3f ------------------------------------------------------------------- }
 
-class function TMFVec3f.VRMLTypeName: string;
+class function TMFVec3f.TypeName: string;
 begin
   Result := 'MFVec3f';
 end;
 
 { TMFColor ------------------------------------------------------------------- }
 
-class function TMFColor.VRMLTypeName: string;
+class function TMFColor.TypeName: string;
 begin
   Result := 'MFColor';
 end;
@@ -5805,14 +5807,14 @@ end;
 
 { TMFVec4f ------------------------------------------------------------------- }
 
-class function TMFVec4f.VRMLTypeName: string;
+class function TMFVec4f.TypeName: string;
 begin
   Result := 'MFVec4f';
 end;
 
 { TMFColorRGBA --------------------------------------------------------------- }
 
-class function TMFColorRGBA.VRMLTypeName: string;
+class function TMFColorRGBA.TypeName: string;
 begin
   Result := 'MFColorRGBA';
 end;
@@ -5829,28 +5831,28 @@ end;
 
 { TMFVec2d ------------------------------------------------------------------- }
 
-class function TMFVec2d.VRMLTypeName: string;
+class function TMFVec2d.TypeName: string;
 begin
   Result := 'MFVec2d';
 end;
 
 { TMFVec3d ------------------------------------------------------------------- }
 
-class function TMFVec3d.VRMLTypeName: string;
+class function TMFVec3d.TypeName: string;
 begin
   Result := 'MFVec3d';
 end;
 
 { TMFVec4d ------------------------------------------------------------------- }
 
-class function TMFVec4d.VRMLTypeName: string;
+class function TMFVec4d.TypeName: string;
 begin
   Result := 'MFVec4d';
 end;
 
 { TMFRotation ---------------------------------------------------------------- }
 
-class function TMFRotation.VRMLTypeName: string;
+class function TMFRotation.TypeName: string;
 begin
   Result := 'MFRotation';
 end;
@@ -5887,7 +5889,7 @@ begin
   Result := true;
 end;
 
-class function TMFFloat.VRMLTypeName: string;
+class function TMFFloat.TypeName: string;
 begin
   Result := 'MFFloat';
 end;
@@ -5924,14 +5926,14 @@ begin
   Result := true;
 end;
 
-class function TMFDouble.VRMLTypeName: string;
+class function TMFDouble.TypeName: string;
 begin
   Result := 'MFDouble';
 end;
 
 { TMFTime -------------------------------------------------------------------- }
 
-class function TMFTime.VRMLTypeName: string;
+class function TMFTime.TypeName: string;
 begin
   Result := 'MFTime';
 end;
@@ -5947,7 +5949,7 @@ begin
   end;
 end;
 
-class function TMFString.VRMLTypeName: string;
+class function TMFString.TypeName: string;
 begin
   Result := 'MFString';
 end;
@@ -6010,7 +6012,7 @@ end;
 
 procedure TX3DFieldsManager.RegisterClass(AClass: TX3DFieldClass);
 begin
-  Registered.AddObject(AClass.VRMLTypeName, TObject(AClass));
+  Registered.AddObject(AClass.TypeName, TObject(AClass));
 end;
 
 procedure TX3DFieldsManager.RegisterClasses(

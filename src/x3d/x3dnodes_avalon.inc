@@ -495,7 +495,7 @@ procedure TLoggerNode.EventWriteReceive(
     Writer: TX3DWriterNames;
   begin
     S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
-      [NodeName, Value.Name, Value.VRMLTypeName, Time.Seconds]);
+      [NodeName, Value.Name, Value.TypeName, Time.Seconds]);
 
     if FdLevel.Value = 1 then
     begin
