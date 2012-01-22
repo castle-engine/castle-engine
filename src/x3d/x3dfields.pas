@@ -67,6 +67,25 @@ type
     procedure DiscardNextIndent;
   end;
 
+  { Reading of VRML/X3D from stream.
+    Common knowledge for both classic and XML reader.
+    X3DNodes unit extends this into TX3DReaderNames. }
+  TX3DReader = class
+  private
+    FVersion: TX3DVersion;
+    FWWWBasePath: string;
+  public
+    constructor Create(const AWWWBasePath: string;
+      const AVersion: TX3DVersion);
+
+    { Base path for resolving URLs from nodes in this namespace.
+      See TX3DNode.WWWBasePath. }
+    property WWWBasePath: string read FWWWBasePath;
+
+    { VRML/X3D version number. For resolving node class names and other stuff. }
+    property Version: TX3DVersion read FVersion;
+  end;
+
   TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
 
   { Possible things that happen when given field is changed.
@@ -644,13 +663,10 @@ type
 
       If "IS" clause not found, we call ParseValue which should
       actually parse field's value.
-      Descendants should override ParseValue.
+      Descendants should override ParseValue. }
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReader; IsClauseAllowed: boolean);
 
-      Names may be @nil and is unused for descendants other than TSFNode
-      and TMFNode. }
-    procedure Parse(Lexer: TX3DLexer; Names: TObject; IsClauseAllowed: boolean);
-
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); virtual; abstract;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); virtual; abstract;
 
     { Parse field value from X3D XML encoded attribute using a Lexer.
       Attributes in X3D are generally encoded such that normal
@@ -662,13 +678,13 @@ type
 
       Implementation in this class creates a Lexer to parse the string,
       and calls ParseXMLAttributeLexer. }
-    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); virtual;
+    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); virtual;
 
     { Parse field's value from XML Element children.
       This is used to read SFNode / MFNode field value inside <field>
       (for interface declaration default field value) and <fieldValue>
       inside <ProtoInstance>. }
-    procedure ParseXMLElement(Element: TDOMElement; Names: TObject); virtual;
+    procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); virtual;
 
     { Save the field to the stream.
       Field name (if set, omitted if empty) and value are saved.
@@ -1075,7 +1091,7 @@ type
 
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses ItemClass.Parse method. }
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     destructor Destroy; override;
 
@@ -1133,7 +1149,7 @@ type
     property NoneString: string read fNoneString;
     { @groupEnd }
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     { Are all flag values set to @true currently. }
     function AreAllFlags(value: boolean): boolean;
@@ -1171,7 +1187,7 @@ type
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
@@ -1212,7 +1228,7 @@ type
 
     property EnumNames[i: integer]:string read GetEnumNames;
     function EnumNamesCount: integer;
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1251,7 +1267,7 @@ type
       negative sphere radius. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1286,7 +1302,7 @@ type
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1336,7 +1352,7 @@ type
 
     destructor Destroy; override;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
@@ -1369,7 +1385,7 @@ type
 
     { See TSFFloat.MustBeNonnegative for explanation of this. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1404,7 +1420,7 @@ type
 
     property Value: TMatrix3Single read FValue write FValue;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1435,7 +1451,7 @@ type
 
     property Value: TMatrix3Double read FValue write FValue;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1466,7 +1482,7 @@ type
 
     property Value: TMatrix4Single read FValue write FValue;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1512,7 +1528,7 @@ type
 
     property Value: TMatrix4Double read FValue write FValue;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1566,7 +1582,7 @@ type
       it only presents them to you differently. }
     property ValueDeg: TVector4Single read GetValueDeg write SetValueDeg;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3Single): TVector3Single;
 
@@ -1599,7 +1615,7 @@ type
     DefaultValue: string;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1612,7 +1628,7 @@ type
 
     class function VRMLTypeName: string; override;
 
-    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
 
     procedure Send(const AValue: string); overload;
@@ -1631,7 +1647,7 @@ type
     DefaultValue: TVector2Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1662,7 +1678,7 @@ type
     DefaultValue: TVector3Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1699,7 +1715,7 @@ type
     DefaultValue: TVector4Single;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1736,7 +1752,7 @@ type
     DefaultValue: TVector2Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1767,7 +1783,7 @@ type
     DefaultValue: TVector3Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1798,7 +1814,7 @@ type
     DefaultValue: TVector4Double;
     DefaultValueExists: boolean;
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
@@ -2505,7 +2521,7 @@ type
 
     class function VRMLTypeName: string; override;
 
-    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
+    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
 
     { Access Items[] checking for range errors.
@@ -2601,7 +2617,7 @@ uses Math, X3DNodes, CastleXMLUtils, CastleWarnings;
 
 {$I x3devents.inc}
 
-{ TX3DWriter ------------------------------------------------ }
+{ TX3DWriter ----------------------------------------------------------------- }
 
 const
   { IndentIncrement is string or char. It's used by SaveToStream }
@@ -2668,6 +2684,16 @@ end;
 procedure TX3DWriter.DiscardNextIndent;
 begin
   DoDiscardNextIndent := true;
+end;
+
+{ TX3DReader ----------------------------------------------------------------- }
+
+constructor TX3DReader.Create(
+  const AWWWBasePath: string; const AVersion: TX3DVersion);
+begin
+  inherited Create;
+  FWWWBasePath := AWWWBasePath;
+  FVersion := AVersion;
 end;
 
 { TX3DFileItem -------------------------------------------------------------- }
@@ -3070,11 +3096,11 @@ begin
   Result := false;
 end;
 
-procedure TX3DField.Parse(Lexer: TX3DLexer; Names: TObject; IsClauseAllowed: boolean);
+procedure TX3DField.Parse(Lexer: TX3DLexer; Reader: TX3DReader; IsClauseAllowed: boolean);
 begin
   if IsClauseAllowed and Lexer.TokenIsKeyword(vkIS) then
     ParseIsClause(Lexer) else
-    ParseValue(Lexer, Names);
+    ParseValue(Lexer, Reader);
 end;
 
 procedure TX3DField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
@@ -3082,12 +3108,11 @@ begin
   ParseValue(Lexer, nil);
 end;
 
-procedure TX3DField.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+procedure TX3DField.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
 var
   Lexer: TX3DLexer;
 begin
-  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue,
-    (Names as TX3DNames).Version);
+  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
   try
     try
       ParseXMLAttributeLexer(Lexer);
@@ -3098,7 +3123,7 @@ begin
   finally FreeAndNil(Lexer) end;
 end;
 
-procedure TX3DField.ParseXMLElement(Element: TDOMElement; Names: TObject);
+procedure TX3DField.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   I: TXMLElementIterator;
 begin
@@ -3328,7 +3353,7 @@ begin
   result := ItemClass.CreateUndefined(ParentNode, '', false);
 end;
 
-procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   SingleItem: TX3DSingleField;
 begin
@@ -3345,7 +3370,7 @@ begin
       while Lexer.Token <> vtCloseSqBracket do
       {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
       begin
-        SingleItem.ParseValue(Lexer, Names);
+        SingleItem.ParseValue(Lexer, Reader);
         RawItemsAdd(SingleItem);
 
         if Lexer.Token = vtCloseSqBracket then break;
@@ -3368,7 +3393,7 @@ begin
     end else
     begin
       {one single field - not enclosed in [] brackets}
-      SingleItem.ParseValue(Lexer, Names);
+      SingleItem.ParseValue(Lexer, Reader);
       RawItemsAdd(SingleItem);
     end;
 
@@ -3519,7 +3544,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFBool.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFBool.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
   procedure VRML2BooleanIntegerWarning;
   begin
@@ -3653,7 +3678,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFFloat.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFFloat.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Value := ParseFloat(Lexer);
 end;
@@ -3754,7 +3779,7 @@ begin
   FValue := AValue;
 end;
 
-procedure TSFDouble.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFDouble.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Value := ParseFloat(Lexer);
 end;
@@ -3930,7 +3955,7 @@ end;
 
 {$include norqcheckend.inc}
 
-procedure TSFImage.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFImage.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
   procedure ReplaceValue(NewValue: TImage);
   begin
@@ -4122,7 +4147,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFLong.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFLong.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Lexer.CheckTokenIs(vtInteger);
 
@@ -4242,7 +4267,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   Column: integer;
 begin
@@ -4448,7 +4473,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFRotation.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFRotation.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   ParseVector(Axis, Lexer);
   RotationRad := ParseFloat(Lexer);
@@ -4590,7 +4615,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSFString.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFString.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Lexer.CheckTokenIs(vtString);
   Value := Lexer.TokenString;
@@ -4659,7 +4684,7 @@ begin
   Result := 'SFString';
 end;
 
-procedure TSFString.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+procedure TSFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
 begin
   { SFString has quite special interpretation, it's just attrib
     name. It would not be usefull trying to use TX3DLexer here,
@@ -4709,7 +4734,7 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   ParseVector(Value, Lexer);
 end;
@@ -4939,7 +4964,7 @@ begin
   result := fFlagNames[i]
 end;
 
-procedure TSFBitMask.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFBitMask.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
   procedure InterpretTokenAsFlagName;
   var
@@ -5082,7 +5107,7 @@ begin
   result := fEnumNames.Count
 end;
 
-procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFEnum.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   val: integer;
 begin
@@ -5892,7 +5917,7 @@ begin
   Result := 'MFString';
 end;
 
-procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
 var
   Lexer: TX3DLexer;
 begin
@@ -5904,8 +5929,7 @@ begin
     quotes. We just do what Xj3D seems to do, that is
     we handle this as a single string (producing a warning). }
 
-  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue,
-    (Names as TX3DNames).Version);
+  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
   try
     try
       ParseXMLAttributeLexer(Lexer);

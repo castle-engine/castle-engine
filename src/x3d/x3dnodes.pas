@@ -699,8 +699,8 @@ type
   TX3DPrototypeBaseList = class;
   TX3DRouteList = class;
   TX3DInterfaceDeclaration = class;
-  TX3DNames = class;
   TX3DNodeNames = class;
+  TX3DReaderNames = class;
   TX3DPrototypeNames = class;
 
   TX3DAccessType = (atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput);
@@ -874,9 +874,9 @@ type
       read FDefaultValueExists write SetDefaultValueExists default false;
 
     property Value: TX3DNode read FValue write SetValue;
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
-    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
-    procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1013,9 +1013,9 @@ type
     procedure AssignItems(SourceItems: TX3DNodeList);
     procedure Replace(Index: Integer; Node: TX3DNode);
 
-    procedure ParseValue(Lexer: TX3DLexer; Names: TObject); override;
-    procedure ParseXMLAttribute(const AttributeValue: string; Names: TObject); override;
-    procedure ParseXMLElement(Element: TDOMElement; Names: TObject); override;
+    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
+    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
+    procedure ParseXMLElement(Element: TDOMElement; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -1136,7 +1136,7 @@ type
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     function NodeTypeName: string; override;
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
     constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
@@ -1219,7 +1219,7 @@ type
     property Event: TX3DEvent read FEvent;
     { @groupEnd }
 
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames;
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       FieldValue, IsClauseAllowed: boolean);
 
     { Parse interface declaration encoded in XML.
@@ -1232,7 +1232,7 @@ type
       the X3D XML encoding spec) the <IS> element inside node body may
       point from nodeField to any interface field of this node, including
       InterfaceDeclarations. So ParseISStatement handles this. }
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames;
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames;
       FieldValue: boolean);
 
     { Save this interface declaration to stream.
@@ -1448,7 +1448,7 @@ type
     { Parses InterfaceDeclarations. Also inits WWWBasePath from
       Names.WWWBasePath, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
-      Lexer: TX3DLexer; Names: TX3DNames);
+      Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
     { Parse interface declarations in XML encoding.
       Handle sequence of <field> elements.
@@ -1458,7 +1458,7 @@ type
       you do not have 'ProtoInterface', so you would have to do it yourself
       anyway). }
     procedure ParseInterfaceDeclarationsXML(ExternalProto: boolean;
-      Element: TDOMElement; Names: TX3DNames);
+      Element: TDOMElement; Reader: TX3DReaderNames);
 
     { Saves interface declarations of the prototype.
       For classic encoding, they are already enclosed in [ ]. }
@@ -1474,8 +1474,8 @@ type
     { Parse prototype, and add it to Names.Prototypes.
       Adds to @code(Names) by @code(Names.Prototypes.Bind(Self)).
       @groupBegin }
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); virtual; abstract;
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames); virtual; abstract;
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); virtual; abstract;
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); virtual; abstract;
     { @groupEnd }
 
     { The base URL path used to resolve urls inside.
@@ -1492,8 +1492,8 @@ type
   public
     destructor Destroy; override;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames); override;
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
     { Prototype contents: all nodes, prototypes, routes defined inside. }
@@ -1521,8 +1521,8 @@ type
     destructor Destroy; override;
     property URLList: TMFString read FURLList;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); override;
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames); override;
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames); override;
     procedure SaveToStream(Writer: TX3DWriter); override;
 
     property ReferencedPrototype: TX3DPrototype read FReferencedPrototype;
@@ -1557,7 +1557,7 @@ type
       RemoveFromDestructionNotification: boolean = true);
 
     procedure SetEnding(const NodeName, FieldOrEventName: string;
-      Names: TX3DNames;
+      Reader: TX3DReaderNames;
       var Node: TX3DNode; var Event: TX3DEvent;
       const DestEnding: boolean);
 
@@ -1621,11 +1621,11 @@ type
       @groupBegin }
     procedure SetSource(
       const SourceNodeName, SourceFieldOrEventName: string;
-      Names: TX3DNames);
+      Reader: TX3DReaderNames);
 
     procedure SetDestination(
       const DestinationNodeName, DestinationFieldOrEventName: string;
-      Names: TX3DNames);
+      Reader: TX3DReaderNames);
     { @groupEnd }
 
     { These set source/destination of the route in more direct way.
@@ -1658,11 +1658,11 @@ type
     { Parse the route (classic VRML encoding).
       Implementation should be able to safely assume that current token
       is ROUTE. }
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames);
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
     { Parse the route (XML encoding).
       Given Element here must have TagName = 'ROUTE'. }
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
     { Save a ROUTE to VRML file.
 
@@ -1706,11 +1706,11 @@ type
   public
     InlineNodeName, ImportedNodeName, ImportedNodeAlias: string;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames);
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
     { Parse the IMPORT declaration (XML encoding).
       Given Element here must have TagName = 'IMPORT'. }
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DImport;
@@ -1720,11 +1720,11 @@ type
   public
     ExportedNodeName, ExportedNodeAlias: string;
 
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames);
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
     { Parse the EXPORT declaration (XML encoding).
       Given Element here must have TagName = 'EXPORT'. }
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
     procedure SaveToStream(Writer: TX3DWriter); override;
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DExport;
@@ -1810,87 +1810,7 @@ type
   TX3DVersion = X3DLexer.TX3DVersion;
   TX3DEncoding = X3DLexer.TX3DEncoding;
 
-  { Container tracking VRML/X3D node and prototype names during parsing.
-    Used by both classic and XML VRML/X3D readers. }
-  TX3DNames = class
-  private
-    FVersion: TX3DVersion;
-    FWWWBasePath: string;
-    FNodes: TX3DNodeNames;
-    FPrototypes: TX3DPrototypeNames;
-    FImported: TX3DNodeNames;
-    FExported: TX3DNodeNames;
-    FImportable: TX3DImportableNames;
-  public
-    constructor Create(const AAutoRemoveNodes: boolean;
-      const AWWWBasePath: string;
-      const AVersion: TX3DVersion);
-    destructor Destroy; override;
-
-    { Extract names, before destructing this object.
-      This method can be used only right before calling the destructor.
-      It copies the prototype and exported names list (names visible
-      from the outside), and sets them to @nil (to avoid releasing them
-      at destruction). }
-    procedure ExtractNames(out APrototypes: TX3DPrototypeNames;
-      out AExported: TX3DNodeNames);
-
-    { Base path for resolving URLs from nodes in this namespace.
-      See TX3DNode.WWWBasePath. }
-    property WWWBasePath: string read FWWWBasePath;
-
-    { VRML/X3D version number, for resolving node class names. }
-    property Version: TX3DVersion read FVersion;
-
-    { Current namespace for DEF/USE.
-
-      This is a list without duplicates with all
-      currently known node names. Objects[] of this list point to
-      actual TX3DNode instances. If many instances had the same NodeName,
-      only the last instance will be referenced here, following VRML spec
-      (last DEF takes precedence).
-
-      Internal notes: ParseNode doesn't modify this, only TX3DNode.Parse
-      can do this. }
-    property Nodes: TX3DNodeNames read FNodes;
-
-    { Current namespace of PROTO names. }
-    property Prototypes: TX3DPrototypeNames read FPrototypes;
-
-    { Currently IMPORTed nodes.
-
-      The nodes on this list are "bound" to their aliases,
-      as this is the name under which they are visible in the current namespace.
-      Alias is the identifier after the "AS" keyword in the "IMPORT" declaration
-      (or, if no "AS xxx" clause was present, then alias is just the name
-      under which node was exported). }
-    property Imported: TX3DNodeNames read FImported;
-
-    { Currently EXPORTed nodes from this scene.
-
-      The nodes on this list are "bound" to their
-      aliases, as this is the name under which they are visible for
-      the outside VRML scenes (that can import these nodes).
-      Alias is the identifier after the "AS" keyword in "EXPORT" declaration
-      (or, if no "AS xxx" clause, then alias is just normal node name). }
-    property Exported: TX3DNodeNames read FExported;
-
-    { Currently loaded Inlines with importable nodes.
-
-      The mechanism is that when you load an Inline node, the resulting
-      "Exported" nodes (from the namespace within the Inline) get added
-      to this "Importable" list. Then the "IMPORT" clause in this
-      namespace can make "Importable" nodes into actually "Imported".
-
-      This is a list with strings representing Inline node names
-      (there's no way to IMPORT from unnamed Inline nodes).
-      Objects[] of this list are instances of TX3DNodeNames
-      corresponding to exported names within the inline. }
-    property Importable: TX3DImportableNames read FImportable;
-
-    procedure DoExport(E: TX3DExport);
-    procedure DoImport(I: TX3DImport);
-  end;
+  {$I x3dnodes_load.inc}
 
 { TraverseStateLastNodesClasses ---------------------------------------------- }
 
@@ -2271,6 +2191,7 @@ resourcestring
 {$I x3dnodes_sphere.inc}
 {$I x3dnodes_box.inc}
 {$I x3dnodes_save.inc}
+{$I x3dnodes_load.inc}
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
 
@@ -3038,7 +2959,7 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TSFNode.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TSFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
   begin
@@ -3047,13 +2968,13 @@ begin
   end else
   begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
-    Value := ParseNode(Lexer, Names as TX3DNames, true);
+    Value := ParseNode(Lexer, Reader as TX3DReaderNames, true);
     if Value <> nil then
       WarningIfChildNotAllowed(Value);
   end;
 end;
 
-procedure TSFNode.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+procedure TSFNode.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
 const
   SNull = 'NULL';
 var
@@ -3065,7 +2986,7 @@ begin
     (other values for SFNode / MFNode cannot be expressed inside
     the attribute). }
 
-  V := (Names as TX3DNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  V := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
@@ -3084,7 +3005,7 @@ begin
   end;
 end;
 
-procedure TSFNode.ParseXMLElement(Element: TDOMElement; Names: TObject);
+procedure TSFNode.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   Child: TX3DNode;
   I: TXMLElementIterator;
@@ -3095,7 +3016,7 @@ begin
     if I.GetNext then
     begin
       Child := ParseXMLNode(I.Current,
-        ContainerFieldDummy { ignore containerField }, Names as TX3DNames, true);
+        ContainerFieldDummy { ignore containerField }, Reader as TX3DReaderNames, true);
       if Child <> nil then
       begin
         Value := Child;
@@ -3468,13 +3389,13 @@ begin
     ChildNotAllowed;
 end;
 
-procedure TMFNode.ParseValue(Lexer: TX3DLexer; Names: TObject);
+procedure TMFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
   procedure ParseOneItem;
   var
     Node: TX3DNode;
   begin
-    Node := ParseNode(Lexer, Names as TX3DNames, false);
+    Node := ParseNode(Lexer, Reader as TX3DReaderNames, false);
     Add(Node);
     WarningIfChildNotAllowed(Node);
   end;
@@ -3498,12 +3419,12 @@ begin
   end;
 end;
 
-procedure TMFNode.ParseXMLAttribute(const AttributeValue: string; Names: TObject);
+procedure TMFNode.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
 var
   Node: TX3DNode;
   UsedNodeFinished: boolean;
 begin
-  Node := (Names as TX3DNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
+  Node := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }
@@ -3519,7 +3440,7 @@ begin
   end;
 end;
 
-procedure TMFNode.ParseXMLElement(Element: TDOMElement; Names: TObject);
+procedure TMFNode.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   Child: TX3DNode;
   I: TXMLElementIterator;
@@ -3530,7 +3451,7 @@ begin
     while I.GetNext do
     begin
       Child := ParseXMLNode(I.Current,
-        ContainerFieldDummy { ignore containerField }, Names as TX3DNames, true);
+        ContainerFieldDummy { ignore containerField }, Reader as TX3DReaderNames, true);
       if Child <> nil then
       begin
         Add(Child);
@@ -3608,7 +3529,7 @@ begin
  result := fNodeTypeName;
 end;
 
-procedure TX3DUnknownNode.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DUnknownNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
 (*TODO: use "fields" and "isA" VRML 1.0 extensibility features here.
 
@@ -3641,9 +3562,9 @@ begin
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
   Lexer.NextToken;
-  ParseIgnoreToMatchingCurlyBracket(Lexer, Names);
+  ParseIgnoreToMatchingCurlyBracket(Lexer, Reader);
 
-  FWWWBasePath := Names.WWWBasePath;
+  FWWWBasePath := Reader.WWWBasePath;
 
   OnWarning(wtMajor, 'VRML/X3D', 'Unknown VRML node of type '''+NodeTypeName+
     ''' (named '''+NodeName+''')');
@@ -3708,7 +3629,7 @@ begin
   end;
 end;
 
-procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Names: TX3DNames;
+procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   FieldValue, IsClauseAllowed: boolean);
 var
   FieldTypeName: string;
@@ -3767,7 +3688,7 @@ begin
   end else
   begin
     if FieldValue then
-      Field.Parse(Lexer, Names, IsClauseAllowed) else
+      Field.Parse(Lexer, Reader, IsClauseAllowed) else
     if IsClauseAllowed then
       Field.ParseIsClause(Lexer);
   end;
@@ -3776,7 +3697,7 @@ begin
 end;
 
 procedure TX3DInterfaceDeclaration.ParseXML(
-  Element: TDOMElement; Names: TX3DNames; FieldValue: boolean);
+  Element: TDOMElement; Reader: TX3DReaderNames; FieldValue: boolean);
 var
   Access: TX3DAccessType;
   AccessIndex: Integer;
@@ -3834,8 +3755,8 @@ begin
     if FieldValue then
     begin
       if DOMGetAttribute(Element, 'value', FieldActualValue) then
-        Field.ParseXMLAttribute(FieldActualValue, Names) else
-        Field.ParseXMLElement(Element, Names);
+        Field.ParseXMLAttribute(FieldActualValue, Reader) else
+        Field.ParseXMLElement(Element, Reader);
     end;
 
     { Classic VRML parser has here
@@ -4624,7 +4545,7 @@ begin
 end;
 
 procedure TX3DPrototypeBase.ParseInterfaceDeclarations(ExternalProto: boolean;
-  Lexer: TX3DLexer; Names: TX3DNames);
+  Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
   I: TX3DInterfaceDeclaration;
 begin
@@ -4635,7 +4556,7 @@ begin
 
     if Lexer.TokenIsKeyword(InterfaceDeclarationKeywords(AllAccessTypes)) then
     begin
-      I.Parse(Lexer, Names, not ExternalProto, false);
+      I.Parse(Lexer, Reader, not ExternalProto, false);
     end else
       raise EX3DParserError.Create(
         Lexer, Format(SExpectedInterfaceDeclaration, [Lexer.DescribeToken]));
@@ -4644,11 +4565,11 @@ begin
   { eat "]" token }
   Lexer.NextToken;
 
-  FWWWBasePath := Names.WWWBasePath;
+  FWWWBasePath := Reader.WWWBasePath;
 end;
 
 procedure TX3DPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: boolean;
-  Element: TDOMElement; Names: TX3DNames);
+  Element: TDOMElement; Reader: TX3DReaderNames);
 var
   I: TX3DInterfaceDeclaration;
   Iter: TXMLElementIterator;
@@ -4661,7 +4582,7 @@ begin
       begin
         I := TX3DInterfaceDeclaration.Create(nil);
         InterfaceDeclarations.Add(I);
-        I.ParseXML(Iter.Current, Names, not ExternalProto);
+        I.ParseXML(Iter.Current, Reader, not ExternalProto);
       end else
         OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: only <field> elements expected in prototype interface');
     end;
@@ -4689,9 +4610,9 @@ begin
   inherited;
 end;
 
-procedure TX3DPrototype.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DPrototype.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
-  OldNames: TX3DNames;
+  OldReader: TX3DReaderNames;
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -4701,7 +4622,7 @@ begin
   Lexer.CheckTokenIs(vtOpenSqBracket);
 
   Lexer.NextToken;
-  ParseInterfaceDeclarations(false, Lexer, Names);
+  ParseInterfaceDeclarations(false, Lexer, Reader);
 
   Lexer.CheckTokenIs(vtOpenCurlyBracket);
 
@@ -4713,32 +4634,32 @@ begin
 
     Also prototype name scope is local within the prototype,
     however it starts from current prototype name scope (not empty,
-    like in case of Names.Nodes). So prototypes defined outside
+    like in case of Reader.Nodes). So prototypes defined outside
     are available inside, but nested prototypes inside are not
     available outside. }
-  OldNames := Names;
-  Names := TX3DNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
+  OldReader := Reader;
+  Reader := TX3DReaderNames.Create(true, OldReader.WWWBasePath, OldReader.Version);
   try
-    Names.Prototypes.Assign(OldNames.Prototypes);
-    FNode := ParseVRMLStatements(Lexer, Names, vtCloseCurlyBracket, false);
+    Reader.Prototypes.Assign(OldReader.Prototypes);
+    FNode := ParseVRMLStatements(Lexer, Reader, vtCloseCurlyBracket, false);
   finally
-    FreeAndNil(Names);
-    Names := OldNames;
+    FreeAndNil(Reader);
+    Reader := OldReader;
   end;
 
   { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
   Lexer.NextToken;
 
-  Names.Prototypes.Bind(Self);
+  Reader.Prototypes.Bind(Self);
 end;
 
-procedure TX3DPrototype.ParseXML(Element: TDOMElement; Names: TX3DNames);
+procedure TX3DPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
-  OldNames: TX3DNames;
+  OldReader: TX3DReaderNames;
   NewName: string;
   E: TDOMElement;
 begin
-  WWWBasePath := Names.WWWBasePath;
+  WWWBasePath := Reader.WWWBasePath;
 
   if DOMGetAttribute(Element, 'name', NewName) then
     Name := NewName else
@@ -4746,7 +4667,7 @@ begin
 
   E := DOMGetChildElement(Element, 'ProtoInterface', false);
   if E <> nil then
-    ParseInterfaceDeclarationsXML(false, E, Names);
+    ParseInterfaceDeclarationsXML(false, E, Reader);
 
   E := DOMGetChildElement(Element, 'ProtoBody', false);
   if E = nil then
@@ -4759,20 +4680,20 @@ begin
 
     Also prototype name scope is local within the prototype,
     however it starts from current prototype name scope (not empty,
-    like in case of Names.Nodes). So prototypes defined outside
+    like in case of Reader.Nodes). So prototypes defined outside
     are available inside, but nested prototypes inside are not
     available outside. }
-  OldNames := Names;
-  Names := TX3DNames.Create(true, OldNames.WWWBasePath, OldNames.Version);
+  OldReader := Reader;
+  Reader := TX3DReaderNames.Create(true, OldReader.WWWBasePath, OldReader.Version);
   try
-    Names.Prototypes.Assign(OldNames.Prototypes);
-    FNode := ParseVRMLStatements(E, false, nil, Names);
+    Reader.Prototypes.Assign(OldReader.Prototypes);
+    FNode := ParseVRMLStatements(E, false, nil, Reader);
   finally
-    FreeAndNil(Names);
-    Names := OldNames;
+    FreeAndNil(Reader);
+    Reader := OldReader;
   end;
 
-  Names.Prototypes.Bind(Self);
+  Reader.Prototypes.Bind(Self);
 end;
 
 procedure TX3DPrototype.SaveToStream(Writer: TX3DWriter);
@@ -4849,7 +4770,7 @@ begin
   inherited;
 end;
 
-procedure TX3DExternalPrototype.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DExternalPrototype.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
@@ -4859,32 +4780,32 @@ begin
   Lexer.CheckTokenIs(vtOpenSqBracket);
 
   Lexer.NextToken;
-  ParseInterfaceDeclarations(true, Lexer, Names);
+  ParseInterfaceDeclarations(true, Lexer, Reader);
 
-  URLList.Parse(Lexer, Names, false);
+  URLList.Parse(Lexer, Reader, false);
 
-  Names.Prototypes.Bind(Self);
+  Reader.Prototypes.Bind(Self);
 
   LoadReferenced;
 end;
 
-procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Names: TX3DNames);
+procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
   NewName, URLListValue: string;
 begin
-  WWWBasePath := Names.WWWBasePath;
+  WWWBasePath := Reader.WWWBasePath;
 
   if DOMGetAttribute(Element, 'name', NewName) then
     Name := NewName else
     raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
 
-  ParseInterfaceDeclarationsXML(true, Element, Names);
+  ParseInterfaceDeclarationsXML(true, Element, Reader);
 
   if DOMGetAttribute(Element, 'url', URLListValue) then
-    URLList.ParseXMLAttribute(URLListValue, Names) else
+    URLList.ParseXMLAttribute(URLListValue, Reader) else
     raise EX3DXmlError.Create('Missing "url" for <ExternProtoDeclare> element');
 
-  Names.Prototypes.Bind(Self);
+  Reader.Prototypes.Bind(Self);
 
   LoadReferenced;
 end;
@@ -5164,7 +5085,7 @@ begin
   inherited;
 end;
 
-procedure TX3DRoute.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DRoute.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
   SourceNodeName, SourceEventName: string;
   DestinationNodeName, DestinationEventName: string;
@@ -5200,11 +5121,11 @@ begin
 
   Lexer.NextToken;
 
-  SetSource     (SourceNodeName     , SourceEventName     , Names);
-  SetDestination(DestinationNodeName, DestinationEventName, Names);
+  SetSource     (SourceNodeName     , SourceEventName     , Reader);
+  SetDestination(DestinationNodeName, DestinationEventName, Reader);
 end;
 
-procedure TX3DRoute.ParseXML(Element: TDOMElement; Names: TX3DNames);
+procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
   function RequiredAttrib(const AttrName: string): string;
   begin
@@ -5224,8 +5145,8 @@ begin
   DestinationNodeName := RequiredAttrib('toNode');
   DestinationEventName := RequiredAttrib('toField');
 
-  SetSource     (SourceNodeName     , SourceEventName     , Names);
-  SetDestination(DestinationNodeName, DestinationEventName, Names);
+  SetSource     (SourceNodeName     , SourceEventName     , Reader);
+  SetDestination(DestinationNodeName, DestinationEventName, Reader);
 end;
 
 procedure TX3DRoute.UnsetEnding(
@@ -5322,7 +5243,7 @@ begin
 end;
 
 procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
-  Names: TX3DNames;
+  Reader: TX3DReaderNames;
   var Node: TX3DNode; var Event: TX3DEvent;
   const DestEnding: boolean);
 var
@@ -5333,9 +5254,9 @@ begin
   UnsetEnding(Node, Event, DestEnding);
 
   try
-    N := Names.Nodes.Bound(NodeName, IgnoreNodeFinished);
+    N := Reader.Nodes.Bound(NodeName, IgnoreNodeFinished);
     if N = nil then
-      N := Names.Imported.Bound(NodeName, IgnoreNodeFinished);
+      N := Reader.Imported.Bound(NodeName, IgnoreNodeFinished);
     if N = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s node name "%s" not found',
         [ DestEndingNames[DestEnding], NodeName ]);
@@ -5370,18 +5291,18 @@ end;
 
 procedure TX3DRoute.SetSource(
   const SourceNodeName, SourceFieldOrEventName: string;
-  Names: TX3DNames);
+  Reader: TX3DReaderNames);
 begin
   SetEnding(SourceNodeName, SourceFieldOrEventName,
-    Names, FSourceNode, FSourceEvent, false);
+    Reader, FSourceNode, FSourceEvent, false);
 end;
 
 procedure TX3DRoute.SetDestination(
   const DestinationNodeName, DestinationFieldOrEventName: string;
-  Names: TX3DNames);
+  Reader: TX3DReaderNames);
 begin
   SetEnding(DestinationNodeName, DestinationFieldOrEventName,
-    Names, FDestinationNode, FDestinationEvent, true);
+    Reader, FDestinationNode, FDestinationEvent, true);
 end;
 
 procedure TX3DRoute.SetEndingDirectly(
@@ -5554,7 +5475,7 @@ end;
 
 { TX3DImport ---------------------------------------------------------------- }
 
-procedure TX3DImport.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DImport.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'Inline node name');
@@ -5578,10 +5499,10 @@ begin
   end else
     ImportedNodeAlias := ImportedNodeName;
 
-  Names.DoImport(Self);
+  Reader.DoImport(Self);
 end;
 
-procedure TX3DImport.ParseXML(Element: TDOMElement; Names: TX3DNames);
+procedure TX3DImport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
   if not DOMGetAttribute(Element, 'inlineDEF', InlineNodeName) then
   begin
@@ -5602,7 +5523,7 @@ begin
   if not DOMGetAttribute(Element, 'AS', ImportedNodeAlias) then
     ImportedNodeAlias := ImportedNodeName;
 
-  Names.DoImport(Self);
+  Reader.DoImport(Self);
 end;
 
 procedure TX3DImport.SaveToStream(Writer: TX3DWriter);
@@ -5638,7 +5559,7 @@ end;
 
 { TX3DExport ---------------------------------------------------------------- }
 
-procedure TX3DExport.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DExport.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'exported node name');
@@ -5655,10 +5576,10 @@ begin
   end else
     ExportedNodeAlias := ExportedNodeName;
 
-  Names.DoExport(Self);
+  Reader.DoExport(Self);
 end;
 
-procedure TX3DExport.ParseXML(Element: TDOMElement; Names: TX3DNames);
+procedure TX3DExport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
   if not DOMGetAttribute(Element, 'localDEF', ExportedNodeName) then
   begin
@@ -5669,7 +5590,7 @@ begin
   if not DOMGetAttribute(Element, 'AS', ExportedNodeAlias) then
     ExportedNodeAlias := ExportedNodeName;
 
-  Names.DoExport(Self);
+  Reader.DoExport(Self);
 end;
 
 procedure TX3DExport.SaveToStream(Writer: TX3DWriter);
@@ -5831,82 +5752,6 @@ begin
     Objects[I].Free;
     Objects[I] := Exported;
   end;
-end;
-
-{ TX3DNames ----------------------------------------------------------------- }
-
-constructor TX3DNames.Create(const AAutoRemoveNodes: boolean;
-  const AWWWBasePath: string; const AVersion: TX3DVersion);
-begin
-  inherited Create;
-  FWWWBasePath := AWWWBasePath;
-  FVersion := AVersion;
-  FNodes := TX3DNodeNames.Create(AAutoRemoveNodes);
-  FPrototypes := TX3DPrototypeNames.Create;
-  FImported := TX3DNodeNames.Create(AAutoRemoveNodes);
-  FExported := TX3DNodeNames.Create(AAutoRemoveNodes);
-  FImportable := TX3DImportableNames.Create;
-end;
-
-destructor TX3DNames.Destroy;
-begin
-  FreeAndNil(FNodes);
-  FreeAndNil(FPrototypes);
-  FreeAndNil(FImported);
-  FreeAndNil(FExported);
-  FreeAndNil(FImportable);
-  inherited;
-end;
-
-procedure TX3DNames.ExtractNames(out APrototypes: TX3DPrototypeNames;
-  out AExported: TX3DNodeNames);
-begin
-  APrototypes := FPrototypes;
-  AExported := FExported;
-
-  FPrototypes := nil;
-  FExported := nil;
-end;
-
-procedure TX3DNames.DoExport(E: TX3DExport);
-var
-  ExportedNode: TX3DNode;
-  IgnoreNodeFinished: boolean;
-begin
-  ExportedNode := Nodes.Bound(E.ExportedNodeName, IgnoreNodeFinished);
-  if ExportedNode = nil then
-  begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Exported node name "%s" not found', [E.ExportedNodeName]));
-    Exit;
-  end;
-
-  Exported.Bind(ExportedNode, true, E.ExportedNodeAlias);
-end;
-
-procedure TX3DNames.DoImport(I: TX3DImport);
-var
-  ImportedNames: TX3DNodeNames;
-  ImportedNamesIndex: Integer;
-  ImportedNode: TX3DNode;
-  IgnoreNodeFinished: boolean;
-begin
-  ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
-  if ImportedNamesIndex = -1 then
-  begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Inline node name "%s" not found (or nothing was EXPORTed from it), cannot IMPORT', [I.InlineNodeName]));
-    Exit;
-  end;
-
-  ImportedNames := Importable.Objects[ImportedNamesIndex] as TX3DNodeNames;
-
-  ImportedNode := ImportedNames.Bound(I.ImportedNodeName, IgnoreNodeFinished);
-  if ImportedNode = nil then
-  begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
-    Exit;
-  end;
-
-  Imported.Bind(ImportedNode, true, I.ImportedNodeAlias);
 end;
 
 { global procedures ---------------------------------------------------------- }

@@ -54,7 +54,7 @@
       Func: TEnumerateChildrenFunction); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-    procedure ParseAfter(Names: TX3DNames); override;
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -151,7 +151,7 @@
     procedure DirectEnumerateActive(
       Func: TEnumerateChildrenFunction); override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
-    procedure ParseAfter(Names: TX3DNames); override;
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -511,7 +511,7 @@ begin
   inherited;
 end;
 
-procedure THAnimHumanoidNode.ParseAfter(Names: TX3DNames);
+procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
 
   procedure CalculateVertexJoints;
   var
@@ -655,7 +655,7 @@ begin
   Result := MatrixMultPoint(AnimateSkinTransform, Point);
 end;
 
-procedure THAnimJointNode.ParseAfter(Names: TX3DNames);
+procedure THAnimJointNode.ParseAfter(Reader: TX3DReaderNames);
 begin
   inherited;
   RestCenter := FdCenter.Value;

@@ -524,7 +524,7 @@
 
   TShapeHintsNode_1 = class(TAbstractChildNode)
   protected
-    function ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
+    function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       const APositionInParent: Integer): boolean; override;
   public
     procedure CreateNode; override;
@@ -1752,7 +1752,7 @@ begin
   result := 'ShapeHints';
 end;
 
-function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
+function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const APositionInParent: Integer): boolean;
 var
   Hints: TSFBitMask;
@@ -1771,7 +1771,7 @@ begin
         [ false,   true,      true]);
       try
         Lexer.NextToken;
-        Hints.Parse(Lexer, Names, false);
+        Hints.Parse(Lexer, Reader, false);
         if Hints.Flags[0] then
           FdShapeType.Value := SHTYPE_SOLID else
           FdShapeType.Value := SHTYPE_UNKNOWN;

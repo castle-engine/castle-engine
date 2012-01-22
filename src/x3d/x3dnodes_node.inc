@@ -229,11 +229,11 @@
       Otherwise either read your stuff and return @true
       (Lexer should advance to the position of next "nodeBodyElement").
       Or return @false without changing Lexer position. }
-    function ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
+    function ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       const APositionInParent: Integer): boolean; virtual;
 
     { Called at the end of parsing (in both classic and XML encoding). }
-    procedure ParseAfter(Names: TX3DNames); virtual;
+    procedure ParseAfter(Reader: TX3DReaderNames); virtual;
 
     procedure CreateNode; virtual;
 
@@ -470,10 +470,10 @@
       In special cases like TX3DUnknownNode this may
       actually initialize whole Fields list (by VRML 1.0 "fields" extensibility
       feature). }
-    procedure Parse(Lexer: TX3DLexer; Names: TX3DNames); virtual;
+    procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); virtual;
 
     { Parse node body, i.e. mainly node's fields. }
-    procedure ParseXML(Element: TDOMElement; Names: TX3DNames);
+    procedure ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 
     { Constructor. Initializes various properties:
 
@@ -1509,7 +1509,7 @@ begin
     Result := CombinePaths(WWWBasePath, RelativePath);
 end;
 
-procedure TX3DNode.Parse(Lexer: TX3DLexer; Names: TX3DNames);
+procedure TX3DNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 var
   Handled: boolean;
   Position: Integer;
@@ -1523,7 +1523,7 @@ begin
   Lexer.NextToken;
   while Lexer.Token <> vtCloseCurlyBracket do
   begin
-    Handled := ParseNodeBodyElement(Lexer, Names, Position);
+    Handled := ParseNodeBodyElement(Lexer, Reader, Position);
 
     { VRML 1.0 children nodes are handled as a last resort here
       (that's also why they can't be inside our ParseNodeBodyElement).
@@ -1534,7 +1534,7 @@ begin
     begin
       if VRML1ChildrenParsingAllowed then
       begin
-        ChildNode := ParseNode(Lexer, Names, false);
+        ChildNode := ParseNode(Lexer, Reader, false);
         ChildNode.PositionInParent := Position;
         VRML1ChildAdd(ChildNode);
       end else
@@ -1550,12 +1550,12 @@ begin
   end;
   Lexer.NextToken;
 
-  FWWWBasePath := Names.WWWBasePath;
+  FWWWBasePath := Reader.WWWBasePath;
 
-  ParseAfter(Names);
+  ParseAfter(Reader);
 end;
 
-function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
+function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const APositionInParent: Integer): boolean;
 
   procedure ParseExtensibilityFields;
@@ -1622,7 +1622,7 @@ function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Names: TX3DNames;
   begin
     IsAField := TMFString.Create(Self, '', []);
     try
-      IsAField.Parse(Lexer, Names, false);
+      IsAField.Parse(Lexer, Reader, false);
 
       { TODO: we should actually do something with obtained here
         isA value }
@@ -1663,7 +1663,7 @@ begin
         Lexer.NextTokenForceVTString else
         Lexer.NextToken;
 
-      Fields[I].Parse(Lexer, Names, true);
+      Fields[I].Parse(Lexer, Reader, true);
       Fields[I].PositionInParent := APositionInParent;
     end else
     begin
@@ -1698,7 +1698,7 @@ begin
 
     IDecl := TX3DInterfaceDeclaration.Create(Self);
     InterfaceDeclarations.Add(IDecl);
-    IDecl.Parse(Lexer, Names, true, true);
+    IDecl.Parse(Lexer, Reader, true, true);
     IDecl.PositionInParent := APositionInParent;
     PostAddInterfaceDeclaration(IDecl);
   end else
@@ -1708,7 +1708,7 @@ begin
 
     Proto := TX3DPrototype.Create;
     Prototypes.Add(Proto);
-    Proto.Parse(Lexer, Names);
+    Proto.Parse(Lexer, Reader);
     Proto.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkEXTERNPROTO) then
@@ -1717,7 +1717,7 @@ begin
 
     Proto := TX3DExternalPrototype.Create;
     Prototypes.Add(Proto);
-    Proto.Parse(Lexer, Names);
+    Proto.Parse(Lexer, Reader);
     Proto.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkROUTE) then
@@ -1726,7 +1726,7 @@ begin
 
     Route := TX3DRoute.Create;
     Routes.Add(Route);
-    Route.Parse(Lexer, Names);
+    Route.Parse(Lexer, Reader);
     Route.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkIMPORT) then
@@ -1735,7 +1735,7 @@ begin
 
     Import := TX3DImport.Create;
     ImportsList.Add(Import);
-    Import.Parse(Lexer, Names);
+    Import.Parse(Lexer, Reader);
     Import.PositionInParent := APositionInParent;
   end else
   if Lexer.TokenIsKeyword(vkEXPORT) then
@@ -1744,12 +1744,12 @@ begin
 
     ExportItem := TX3DExport.Create;
     ExportsList.Add(ExportItem);
-    ExportItem.Parse(Lexer, Names);
+    ExportItem.Parse(Lexer, Reader);
     ExportItem.PositionInParent := APositionInParent;
   end;
 end;
 
-procedure TX3DNode.ParseXML(Element: TDOMElement; Names: TX3DNames);
+procedure TX3DNode.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 var
   Position: Integer;
 
@@ -1775,7 +1775,7 @@ var
       Index := Fields.IndexOf(Attr.Name);
       if Index >= 0 then
       begin
-        Fields[Index].ParseXMLAttribute(Attr.Value, Names);
+        Fields[Index].ParseXMLAttribute(Attr.Value, Reader);
         { Note that saving PositionInParent from XML attributes order
           isn't really useful, as FPC DOM unit already sorted
           Element.Attributes (TDOMNamedNodeMap) by name. }
@@ -1810,7 +1810,7 @@ var
           Route := TX3DRoute.Create;
           Route.PositionInParent := Position;
           Routes.Add(Route);
-          Route.ParseXML(I.Current, Names);
+          Route.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'IS' then
         begin
@@ -1821,34 +1821,34 @@ var
           Import := TX3DImport.Create;
           Import.PositionInParent := Position;
           ImportsList.Add(Import);
-          Import.ParseXML(I.Current, Names);
+          Import.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'EXPORT' then
         begin
           ExportItem := TX3DExport.Create;
           ExportItem.PositionInParent := Position;
           ExportsList.Add(ExportItem);
-          ExportItem.ParseXML(I.Current, Names);
+          ExportItem.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'ProtoDeclare' then
         begin
           Proto := TX3DPrototype.Create;
           Proto.PositionInParent := Position;
           Prototypes.Add(Proto);
-          Proto.ParseXML(I.Current, Names);
+          Proto.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'ExternProtoDeclare' then
         begin
           ExternProto := TX3DExternalPrototype.Create;
           ExternProto.PositionInParent := Position;
           Prototypes.Add(ExternProto);
-          ExternProto.ParseXML(I.Current, Names);
+          ExternProto.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'field' then
         begin
           IDecl := TX3DInterfaceDeclaration.Create(Self);
           try
-            IDecl.ParseXML(I.Current, Names, true);
+            IDecl.ParseXML(I.Current, Reader, true);
             IDecl.PositionInParent := Position;
             if IDecl.AccessType in HasInterfaceDeclarations then
             begin
@@ -1865,7 +1865,7 @@ var
           end;
         end else
         begin
-          Child := ParseXMLNode(I.Current, ContainerField, Names, true);
+          Child := ParseXMLNode(I.Current, ContainerField, Reader, true);
           if Child <> nil then
           try
             Child.PositionInParent := Position;
@@ -1972,10 +1972,10 @@ begin
     of "url" fields, like spec requires. }
   ParseXMLCdata;
 
-  ParseAfter(Names);
+  ParseAfter(Reader);
 end;
 
-procedure TX3DNode.ParseAfter(Names: TX3DNames);
+procedure TX3DNode.ParseAfter(Reader: TX3DReaderNames);
 begin
 end;
 

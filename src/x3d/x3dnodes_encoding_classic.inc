@@ -63,7 +63,7 @@ function LoadX3DClassic(const FileName: string;
 { Internal for ParseIgnoreToMatchingSqBracket and
   ParseIgnoreToMatchingCurlyBracket }
 procedure ParseIgnoreToMatchingBracket(
-  Lexer: TX3DLexer; Names: TX3DNames;
+  Lexer: TX3DLexer; Reader: TX3DReaderNames;
   LevelSqBracket, LevelCurlyBracket: integer);
 begin
   while (LevelSqBracket > 0) or
@@ -84,16 +84,16 @@ end;
    Read everything up to (and including) matching "]".
    This is a hack to omit (not really parse) interface sections
    of prototypes. *)
-procedure ParseIgnoreToMatchingSqBracket(Lexer: TX3DLexer; Names: TX3DNames);
+procedure ParseIgnoreToMatchingSqBracket(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
-  ParseIgnoreToMatchingBracket(Lexer, Names, 1, 0);
+  ParseIgnoreToMatchingBracket(Lexer, Reader, 1, 0);
 end;
 
 (* Just like ParseIgnoreToMatchingSqBracket, but here for "{" and "}" brackets.
    This is a hack to omit (not really parse) unknown VRML nodes. *)
-procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TX3DLexer; Names: TX3DNames);
+procedure ParseIgnoreToMatchingCurlyBracket(Lexer: TX3DLexer; Reader: TX3DReaderNames);
 begin
-  ParseIgnoreToMatchingBracket(Lexer, Names, 0, 1);
+  ParseIgnoreToMatchingBracket(Lexer, Reader, 0, 1);
 end;
 
 (*
@@ -112,7 +112,7 @@ end;
 
   @raises(EX3DParserError On various parsing errors.)
 *)
-function ParseNode(Lexer: TX3DLexer; Names: TX3DNames;
+function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const nodename: string);
@@ -141,28 +141,28 @@ function ParseNode(Lexer: TX3DLexer; Names: TX3DNames;
       Only when this failed, we look at built-in nodes in NodesManager.
     }
 
-    Proto := Names.Prototypes.Bound(NodeTypeName);
+    Proto := Reader.Prototypes.Bound(NodeTypeName);
     if Proto <> nil then
     begin
       if (Proto is TX3DExternalPrototype) and
          (TX3DExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
-        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
+        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Reader.WWWBasePath) else
+        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.WWWBasePath, Proto);
     end else
     begin
       NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Lexer.Version);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(nodename, Names.WWWBasePath);
+        Result := NodeClass.Create(nodename, Reader.WWWBasePath);
       end else
       begin
-        Result := TX3DUnknownNode.CreateUnknown(nodename, Names.WWWBasePath, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(nodename, Reader.WWWBasePath, NodeTypeName);
       end;
     end;
 
-    Names.Nodes.Bind(Result, false);
+    Reader.Nodes.Bind(Result, false);
 
-    Result.Parse(Lexer, Names);
+    Result.Parse(Lexer, Reader);
 
     if Result is TX3DPrototypeNode then
     try
@@ -221,7 +221,7 @@ function ParseNode(Lexer: TX3DLexer; Names: TX3DNames;
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
 
-    Names.Nodes.Bind(Result, true);
+    Reader.Nodes.Bind(Result, true);
   end;
 
 var
@@ -252,7 +252,7 @@ begin
            nodename := Lexer.TokenName;
 
            {get appropriate node}
-           Result := Names.Nodes.Bound(nodename, UsedNodeFinished);
+           Result := Reader.Nodes.Bound(nodename, UsedNodeFinished);
            if (Result = nil) or (not UsedNodeFinished) then
            begin
              if Result = nil then
@@ -283,7 +283,7 @@ end;
   This is good to use to parse whole VRML file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false). }
 function ParseVRMLStatements(
-  Lexer: TX3DLexer; Names: TX3DNames;
+  Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const EndToken: TX3DToken;
   FileTopLevel: boolean): TX3DRootNode;
 var
@@ -292,7 +292,7 @@ var
   { Create root group node, appropriate for current VRML version in Lexer. }
   function CreateRootNode: TX3DRootNode;
   begin
-    Result := TX3DRootNode.Create('', Names.WWWBasePath);
+    Result := TX3DRootNode.Create('', Reader.WWWBasePath);
     Result.HasForceVersion := true;
     Result.ForceVersion := Lexer.Version;
   end;
@@ -405,7 +405,7 @@ var
         Proto := TX3DPrototype.Create else
         Proto := TX3DExternalPrototype.Create;
       try
-        Proto.Parse(Lexer, Names);
+        Proto.Parse(Lexer, Reader);
         Proto.PositionInParent := PositionInParent;
         Result.Prototypes.Add(Proto);
       except
@@ -420,7 +420,7 @@ var
     begin
       Route := TX3DRoute.Create;
       try
-        Route.Parse(Lexer, Names);
+        Route.Parse(Lexer, Reader);
         Route.PositionInParent := PositionInParent;
         Result.Routes.Add(Route);
       except
@@ -435,7 +435,7 @@ var
     begin
       Import := TX3DImport.Create;
       try
-        Import.Parse(Lexer, Names);
+        Import.Parse(Lexer, Reader);
         Import.PositionInParent := PositionInParent;
         Result.ImportsList.Add(Import);
       except
@@ -450,7 +450,7 @@ var
     begin
       Export := TX3DExport.Create;
       try
-        Export.Parse(Lexer, Names);
+        Export.Parse(Lexer, Reader);
         Export.PositionInParent := PositionInParent;
         Result.ExportsList.Add(Export);
       except
@@ -463,7 +463,7 @@ var
     var
       NewNode: TX3DNode;
     begin
-      NewNode := ParseNode(Lexer, Names, false);
+      NewNode := ParseNode(Lexer, Reader, false);
       NewNode.PositionInParent := PositionInParent;
       Result.FdChildren.Add(NewNode);
       { for prototypes, do not check NewNode class, as anything is valid. }
@@ -553,15 +553,15 @@ function LoadX3DClassic(Stream: TPeekCharStream;
   const WWWBasePath: string): TX3DRootNode;
 var
   Lexer: TX3DLexer;
-  Names: TX3DNames;
+  Reader: TX3DReaderNames;
 begin
   Lexer := TX3DLexer.Create(Stream, false);
   try
-    Names := TX3DNames.Create(false, WWWBasePath, Lexer.Version);
+    Reader := TX3DReaderNames.Create(false, WWWBasePath, Lexer.Version);
     try
-      Result := ParseVRMLStatements(Lexer, Names, vtEnd, true);
-      Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
-    finally FreeAndNil(Names) end;
+      Result := ParseVRMLStatements(Lexer, Reader, vtEnd, true);
+      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
+    finally FreeAndNil(Reader) end;
   finally FreeAndNil(Lexer) end;
 end;
 

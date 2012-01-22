@@ -131,7 +131,7 @@
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
-    procedure ParseAfter(Names: TX3DNames); override;
+    procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -432,7 +432,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TInlineNode.ParseAfter(Names: TX3DNames);
+procedure TInlineNode.ParseAfter(Reader: TX3DReaderNames);
 var
   Exported: TX3DNodeNames;
 begin
@@ -453,7 +453,7 @@ begin
   begin
     { connect Exported nodes with our inline NodeName }
     Assert(NodeName <> '');
-    Names.Importable.Bind(NodeName, Exported);
+    Reader.Importable.Bind(NodeName, Exported);
   end;
 end;
 

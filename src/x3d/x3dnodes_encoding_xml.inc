@@ -46,11 +46,11 @@ const
   SAttrDEF = 'DEF';
 
 function ParseXMLNode(Element: TDOMElement;
-  out ContainerField: string; Names: TX3DNames;
+  out ContainerField: string; Reader: TX3DReaderNames;
   NilIfUnresolvedUSE: boolean): TX3DNode; forward;
 function ParseVRMLStatements(Element: TDOMElement;
   FileTopLevel: boolean;
-  X3DHeaderElement: TDOMElement; Names: TX3DNames): TX3DRootNode; forward;
+  X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; forward;
 
 { Checks is Element a correct <connect> element, extracting
   nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -132,7 +132,7 @@ end;
     be better.)
 *)
 function ParseXMLNode(Element: TDOMElement;
-  out ContainerField: string; Names: TX3DNames;
+  out ContainerField: string; Reader: TX3DReaderNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
 
   procedure ParseNamedNode(const NodeName: string);
@@ -153,16 +153,16 @@ function ParseXMLNode(Element: TDOMElement;
       if not DOMGetAttribute(Element, 'name', ProtoName) then
         raise EX3DXmlError.Create('<ProtoInstance> doesn''t specify "name" of the prototype');
 
-      Proto := Names.Prototypes.Bound(ProtoName);
+      Proto := Reader.Prototypes.Bound(ProtoName);
       if Proto = nil then
         raise EX3DXmlError.CreateFmt('<ProtoInstance> specifies unknown prototype name "%s"', [ProtoName]);
 
       if (Proto is TX3DExternalPrototype) and
          (TX3DExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Names.WWWBasePath) else
-        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Names.WWWBasePath, Proto);
+        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Reader.WWWBasePath) else
+        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.WWWBasePath, Proto);
 
-      Names.Nodes.Bind(Result, false);
+      Reader.Nodes.Bind(Result, false);
 
       { parse field values from <fieldValue> elements }
       ProtoIter := TXMLElementIterator.Create(Element);
@@ -187,8 +187,8 @@ function ParseXMLNode(Element: TDOMElement;
             end;
 
             if DOMGetAttribute(ProtoIter.Current, 'value', FieldActualValue) then
-              Result.Fields[FieldIndex].ParseXMLAttribute(FieldActualValue, Names) else
-              Result.Fields[FieldIndex].ParseXMLElement(ProtoIter.Current, Names);
+              Result.Fields[FieldIndex].ParseXMLAttribute(FieldActualValue, Reader) else
+              Result.Fields[FieldIndex].ParseXMLElement(ProtoIter.Current, Reader);
 
             Result.Fields[FieldIndex].PositionInParent := PositionInParent;
           end else
@@ -217,15 +217,15 @@ function ParseXMLNode(Element: TDOMElement;
       end;
     end else
     begin
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Names.Version);
+      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Reader.Version);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(NodeName, Names.WWWBasePath);
-        Names.Nodes.Bind(Result, false);
-        Result.ParseXML(Element, Names);
+        Result := NodeClass.Create(NodeName, Reader.WWWBasePath);
+        Reader.Nodes.Bind(Result, false);
+        Result.ParseXML(Element, Reader);
       end else
       begin
-        Result := TX3DUnknownNode.CreateUnknown(NodeName, Names.WWWBasePath, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(NodeName, Reader.WWWBasePath, NodeTypeName);
 
         { In classic VRML parser, we had special TX3DUnknownNode.Parse
           that performed the "magic" trick of
@@ -238,7 +238,7 @@ function ParseXMLNode(Element: TDOMElement;
       end;
     end;
 
-    Names.Nodes.Bind(Result, true);
+    Reader.Nodes.Bind(Result, true);
   end;
 
 var
@@ -250,7 +250,7 @@ begin
     if DOMGetAttribute(Element, 'USE', NodeName) then
     begin
       { get appropriate node }
-      Result := Names.Nodes.Bound(NodeName, UsedNodeFinished);
+      Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
       if (Result = nil) or (not UsedNodeFinished) then
       begin
         if Result = nil then
@@ -299,16 +299,16 @@ end;
   classic ParseVRMLStatements :) ). }
 function ParseVRMLStatements(Element: TDOMElement;
   FileTopLevel: boolean;
-  X3DHeaderElement: TDOMElement; Names: TX3DNames): TX3DRootNode;
+  X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode;
 var
   PositionInParent: Integer;
 
   { Create root group node. }
   function CreateRootNode: TX3DRootNode;
   begin
-    Result := TX3DRootNode.Create('', Names.WWWBasePath);
+    Result := TX3DRootNode.Create('', Reader.WWWBasePath);
     Result.HasForceVersion := true;
-    Result.ForceVersion := Names.Version;
+    Result.ForceVersion := Reader.Version;
   end;
 
   procedure ParseProfile;
@@ -376,9 +376,9 @@ var
         Exit;
       end;
 
-      if (Names.Version.Major < 3) or
-         ( (Names.Version.Major = 3) and
-           (Names.Version.Minor < 3) ) then
+      if (Reader.Version.Major < 3) or
+         ( (Reader.Version.Major = 3) and
+           (Reader.Version.Minor < 3) ) then
         OnWarning(wtMajor, 'X3D', 'UNIT declaration found, but X3D version is < 3.3');
 
       { store UNIT inside Reader }
@@ -433,7 +433,7 @@ var
 
       Result.Prototypes.Add(Proto);
 
-      Proto.ParseXML(Element, Names);
+      Proto.ParseXML(Element, Reader);
     end;
 
     procedure ParseRouteStatement;
@@ -443,7 +443,7 @@ var
       Route := TX3DRoute.Create;
       Route.PositionInParent := PositionInParent;
       Result.Routes.Add(Route);
-      Route.ParseXML(Element, Names);
+      Route.ParseXML(Element, Reader);
     end;
 
     procedure ParseImportStatement;
@@ -453,7 +453,7 @@ var
       Import := TX3DImport.Create;
       Import.PositionInParent := PositionInParent;
       Result.ImportsList.Add(Import);
-      Import.ParseXML(Element, Names);
+      Import.ParseXML(Element, Reader);
     end;
 
     procedure ParseExportStatement;
@@ -463,7 +463,7 @@ var
       ExportItem := TX3DExport.Create;
       ExportItem.PositionInParent := PositionInParent;
       Result.ExportsList.Add(ExportItem);
-      ExportItem.ParseXML(Element, Names);
+      ExportItem.ParseXML(Element, Reader);
     end;
 
     procedure ParseNodeStatement;
@@ -471,7 +471,7 @@ var
       NewNode: TX3DNode;
       ContainerFieldDummy: string;
     begin
-      NewNode := ParseXMLNode(Element, ContainerFieldDummy, Names, false);
+      NewNode := ParseXMLNode(Element, ContainerFieldDummy, Reader, false);
       NewNode.PositionInParent := PositionInParent;
       Result.FdChildren.Add(NewNode);
       { for prototypes, do not check NewNode class, as anything is valid. }
@@ -542,7 +542,7 @@ var
   Version: TX3DVersion;
   { TODO: each USE must occur after it's DEF,
     does X3D XML encoding guarantee this? }
-  Names: TX3DNames;
+  Reader: TX3DReaderNames;
   FileName: string;
 begin
   Doc := nil;
@@ -578,11 +578,11 @@ begin
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
     { X3D XML requires AutoRemove = true below }
-    Names := TX3DNames.Create(true, WWWBasePath, Version);
+    Reader := TX3DReaderNames.Create(true, WWWBasePath, Version);
     try
-      Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Names);
-      Names.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
-    finally FreeAndNil(Names) end;
+      Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Reader);
+      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
+    finally FreeAndNil(Reader) end;
   finally
     FreeAndNil(Doc);
   end;
