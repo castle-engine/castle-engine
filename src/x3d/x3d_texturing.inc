@@ -1241,6 +1241,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 
   FFdRotation := TSFFloat.Create(Self, 'rotation', 0);
+   FFdrotation.Angle := true;
    FFdrotation.ChangesAlways := [chTextureTransform];
   Fields.Add(FFdRotation);
   { X3D specification comment: (-Inf,Inf) }

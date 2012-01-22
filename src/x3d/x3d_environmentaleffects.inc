@@ -302,6 +302,7 @@ begin
   inherited;
 
   FFdGroundAngle := TMFFloat.Create(Self, 'groundAngle', []);
+   FdGroundAngle.Angle := true;
    FdGroundAngle.ChangesAlways := [chBackground];
   Fields.Add(FFdGroundAngle);
   { X3D specification comment: [0,Pi/2] }
@@ -312,6 +313,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdSkyAngle := TMFFloat.Create(Self, 'skyAngle', []);
+   FdSkyAngle.Angle := true;
    FdSkyAngle.ChangesAlways := [chBackground];
   Fields.Add(FFdSkyAngle);
   { X3D specification comment: [0,Pi] }

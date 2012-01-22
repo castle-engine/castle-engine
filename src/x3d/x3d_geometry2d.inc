@@ -195,6 +195,7 @@ begin
   inherited;
 
   FFdEndAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
+   FdEndAngle.Angle := true;
    FdEndAngle.Exposed := false;
    FdEndAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdEndAngle);
@@ -207,6 +208,7 @@ begin
   { X3D specification comment: (0,Inf) }
 
   FFdStartAngle := TSFFloat.Create(Self, 'startAngle', 0);
+   FdStartAngle.Angle := true;
    FdStartAngle.Exposed := false;
    FdStartAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdStartAngle);
@@ -238,6 +240,7 @@ begin
   { X3D specification comment: ["PIE"|"CHORD"] }
 
   FFdEndAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
+   FdEndAngle.Angle := true;
    FdEndAngle.Exposed := false;
    FdEndAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdEndAngle);
@@ -255,6 +258,7 @@ begin
   Fields.Add(FFdSolid);
 
   FFdStartAngle := TSFFloat.Create(Self, 'startAngle', 0);
+   FdStartAngle.Angle := true;
    FdStartAngle.Exposed := false;
    FdStartAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdStartAngle);

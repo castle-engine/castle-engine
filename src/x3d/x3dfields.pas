@@ -2428,6 +2428,7 @@ type
   private
     DefaultValuesCount: integer;
     DefaultValue: Single;
+    FAngle: boolean;
     function GetItems: TSingleList;
     procedure SetItems(const Value: TSingleList);
     function GetItemsSafe(Index: Integer): Single;
@@ -2435,7 +2436,13 @@ type
   protected
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
+    function CreateItemBeforeParse: TX3DSingleField; override;
   public
+    { Value represents an angle. When reading from X3D 3.3 file, we will
+      make sure it's expressed in radians, honoring optional "UNIT angle ..."
+      declaration in X3D file. }
+    property Angle: boolean read FAngle write FAngle default false;
+
     property Items: TSingleList read GetItems write SetItems;
     procedure RawItemsAdd(Item: TX3DSingleField); override;
     constructor Create(AParentNode: TX3DFileItem;
@@ -5908,6 +5915,15 @@ end;
 class function TMFFloat.TypeName: string;
 begin
   Result := 'MFFloat';
+end;
+
+function TMFFloat.CreateItemBeforeParse: TX3DSingleField;
+begin
+  Result := inherited;
+  { Assign our Angle to single item used for parsing.
+    This way float values on MFFloat fields will be correctly converted to radians,
+    important e.g. for Background.skyAngle,groundAngle. }
+  (Result as TSFFloat).Angle := Angle;
 end;
 
 { TMFDouble -------------------------------------------------------------------- }
