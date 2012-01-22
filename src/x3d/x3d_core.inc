@@ -124,6 +124,22 @@ type
     public property EventIsActive: TX3DEvent read FEventIsActive;
   end;
 
+  TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataObject)
+  public
+    procedure CreateNode; override;
+    class function ClassNodeTypeName: string; override;
+    class function URNMatching(const URN: string): boolean; override;
+
+    private FFdName: TSFString;
+    public property FdName: TSFString read FFdName;
+
+    private FFdReference: TSFString;
+    public property FdReference: TSFString read FFdReference;
+
+    private FFdValue: TMFBool;
+    public property FdValue: TMFBool read FFdValue;
+  end;
+
   TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -275,6 +291,33 @@ begin
 
   FEventIsActive := TX3DEvent.Create(Self, 'isActive', TSFBool, false);
   Events.Add(FEventIsActive);
+end;
+
+procedure TMetadataBooleanNode.CreateNode;
+begin
+  inherited;
+
+  FFdName := TSFString.Create(Self, 'name', '');
+  Fields.Add(FFdName);
+
+  FFdReference := TSFString.Create(Self, 'reference', '');
+  Fields.Add(FFdReference);
+
+  FFdValue := TMFBool.Create(Self, 'value', []);
+  Fields.Add(FFdValue);
+
+  DefaultContainerField := 'metadata';
+end;
+
+class function TMetadataBooleanNode.ClassNodeTypeName: string;
+begin
+  Result := 'MetadataBoolean';
+end;
+
+class function TMetadataBooleanNode.URNMatching(const URN: string): boolean;
+begin
+  Result := (inherited URNMatching(URN)) or
+    (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
 procedure TMetadataDoubleNode.CreateNode;
@@ -440,6 +483,7 @@ end;
 procedure RegisterCoreNodes;
 begin
   NodesManager.RegisterNodeClasses([
+    TMetadataBooleanNode,
     TMetadataDoubleNode,
     TMetadataFloatNode,
     TMetadataIntegerNode,
