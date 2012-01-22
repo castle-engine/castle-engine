@@ -1252,6 +1252,7 @@ type
   private
     FMustBeNonnegative: boolean;
     FValue: Single;
+    FAngle: boolean;
     procedure SetValue(const AValue: Single);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
@@ -1273,6 +1274,11 @@ type
       This is nice e.g. for Sphere.FdRadius field --- some incorrect VRML specify
       negative sphere radius. }
     property MustBeNonnegative: boolean read FMustBeNonnegative default false;
+
+    { Value represents an angle. When reading from X3D 3.3 file, we will
+      make sure it's expressed in radians, honoring optional "UNIT angle ..."
+      declaration in X3D file. }
+    property Angle: boolean read FAngle write FAngle default false;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -1296,6 +1302,7 @@ type
   TSFDouble = class(TX3DSingleField)
   private
     FValue: Double;
+    FAngle: boolean;
     procedure SetValue(const AValue: Double);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
@@ -1308,6 +1315,11 @@ type
   public
     DefaultValue: Double;
     DefaultValueExists: boolean;
+
+    { Value represents an angle. When reading from X3D 3.3 file, we will
+      make sure it's expressed in radians, honoring optional "UNIT angle ..."
+      declaration in X3D file. }
+    property Angle: boolean read FAngle write FAngle default false;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -3718,6 +3730,8 @@ end;
 procedure TSFFloat.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Value := ParseFloat(Lexer);
+  if Angle then
+    FValue *= Reader.AngleConversionFactor;
 end;
 
 procedure TSFFloat.SaveToStreamValue(Writer: TX3DWriter);
@@ -3819,6 +3833,8 @@ end;
 procedure TSFDouble.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Value := ParseFloat(Lexer);
+  if Angle then
+    FValue *= Reader.AngleConversionFactor;
 end;
 
 procedure TSFDouble.SaveToStreamValue(Writer: TX3DWriter);

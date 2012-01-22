@@ -443,6 +443,7 @@ begin
   Fields.Add(FFdColorPerVertex);
 
   FFdCreaseAngle := TSFDouble.Create(Self, 'creaseAngle', 0);
+   FdCreaseAngle.Angle := true;
    FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdCreaseAngle);

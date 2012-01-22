@@ -1743,6 +1743,7 @@ begin
   Fields.Add(FFdFaceType);
 
   FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', DefaultVRML1CreaseAngle);
+   FdCreaseAngle.Angle := true;
    FdCreaseAngle.ChangesAlways := [chVisibleVRML1State];
   Fields.Add(FFdCreaseAngle);
 end;

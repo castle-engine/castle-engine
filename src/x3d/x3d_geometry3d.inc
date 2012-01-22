@@ -624,6 +624,7 @@ begin
   Fields.Add(FFdColorPerVertex);
 
   FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
+   FdCreaseAngle.Angle := true;
    FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdCreaseAngle);
@@ -767,6 +768,7 @@ begin
   Fields.Add(FFdConvex);
 
   FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
+   FdCreaseAngle.Angle := true;
    FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdCreaseAngle);
@@ -1170,6 +1172,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
+   FdCreaseAngle.Angle := true;
    FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   Fields.Add(FFdCreaseAngle);
