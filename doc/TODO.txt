@@ -1215,8 +1215,3 @@ Examples reorganizations / improvements, more ideas:
   maybe more?
 
 - Make a Lazarus demo when you build X3D graph, dragging node names etc.
-
-------------------------------------------------------------------------------
-X3D 3.3:
-- implement UNIT <category> <name> <conversion_factor>
-- recheck how my submissions are handled --- looks like at least NURBS stuff is fixed, everything else not, possibly resubmit?
