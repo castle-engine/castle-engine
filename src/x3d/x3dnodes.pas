@@ -4641,13 +4641,13 @@ begin
   Reader := TX3DReaderNames.CreateCopy(true, OldReader);
   try
     Reader.Prototypes.Assign(OldReader.Prototypes);
-    FNode := ParseVRMLStatements(Lexer, Reader, vtCloseCurlyBracket, false);
+    FNode := ParseStatements(Lexer, Reader, vtCloseCurlyBracket, false);
   finally
     FreeAndNil(Reader);
     Reader := OldReader;
   end;
 
-  { consume last vtCloseCurlyBracket, ParseVRMLStatements doesn't do it }
+  { consume last vtCloseCurlyBracket, ParseStatements doesn't do it }
   Lexer.NextToken;
 
   Reader.Prototypes.Bind(Self);
@@ -4687,7 +4687,7 @@ begin
   Reader := TX3DReaderNames.CreateCopy(true, OldReader);
   try
     Reader.Prototypes.Assign(OldReader.Prototypes);
-    FNode := ParseVRMLStatements(E, false, nil, Reader);
+    FNode := ParseStatements(E, false, nil, Reader);
   finally
     FreeAndNil(Reader);
     Reader := OldReader;

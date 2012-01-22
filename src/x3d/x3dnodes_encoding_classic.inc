@@ -278,11 +278,11 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-{ This parses a sequence of VRML statements: any number of nodes,
+{ Parses a sequence of VRML/X3D statements: any number of nodes,
   (external) protypes, routes, import/export declarations.
-  This is good to use to parse whole VRML file (when FileTopLevel = true),
+  This is good to use to parse whole VRML/X3D file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false). }
-function ParseVRMLStatements(
+function ParseStatements(
   Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const EndToken: TX3DToken;
   FileTopLevel: boolean): TX3DRootNode;
@@ -379,7 +379,7 @@ var
     end;
   end;
 
-  procedure ParseVRMLStatement;
+  procedure ParseStatement;
 
     { You can safely assume that current token is PROTO or EXTERNPROTO. }
     procedure ParseProtoStatement;
@@ -483,14 +483,14 @@ begin
     - store multiple root nodes of VRML 2.0 file
     - and many VRML 1.0 files also used (incorrectly) the "multiple root nodes"
       feature
-    - also, VRML 2.0 routes and prototypes declared at global scope had
+    - also, VRML 2.0 / X3D routes and prototypes declared at global scope had
       to be stored in a root group
     - Finally, ForceVersion mechanism is available for RootGroup to force
-      writing of specific VRML version.
+      writing of specific VRML/X3D version.
     - And for X3D, TX3DRootNode has to be enhanced
       to keep other top-level X3D data: profile, components, meta statements.
 
-    So now, we simply always create root node by ParseVRMLStatements. }
+    So now, we simply always create root node by ParseStatements. }
 
   Result := CreateRootNode;
   try
@@ -510,18 +510,18 @@ begin
     begin
       while Lexer.Token <> EndToken do
       begin
-        ParseVRMLStatement;
+        ParseStatement;
         Inc(PositionInParent);
       end;
     end else
     begin
       { Somewhat more involved version of the loop, the idea is to catch
-        EX3DClassicReadError happening in the ParseVRMLStatement
+        EX3DClassicReadError happening in the ParseStatement
         and convert it to OnWarning (then merely stop reading VRML file,
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
       try
-        ParseVRMLStatement;
+        ParseStatement;
         Inc(PositionInParent);
       except
         on E: EX3DClassicReadError do
@@ -544,7 +544,7 @@ begin
   try
     Reader := TX3DReaderNames.Create(false, WWWBasePath, Lexer.Version);
     try
-      Result := ParseVRMLStatements(Lexer, Reader, vtEnd, true);
+      Result := ParseStatements(Lexer, Reader, vtEnd, true);
       Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
     finally FreeAndNil(Reader) end;
   finally FreeAndNil(Lexer) end;

@@ -48,7 +48,7 @@ const
 function ParseXMLNode(Element: TDOMElement;
   out ContainerField: string; Reader: TX3DReaderNames;
   NilIfUnresolvedUSE: boolean): TX3DNode; forward;
-function ParseVRMLStatements(Element: TDOMElement;
+function ParseStatements(Element: TDOMElement;
   FileTopLevel: boolean;
   X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; forward;
 
@@ -294,10 +294,10 @@ end;
   This is good to use to parse whole VRML file (when FileTopLevel = true),
   or a (non-external) prototype content (when FileTopLevel = false).
 
-  It's somewhat similar to classic VRML ParseVRMLStatements.
+  It's somewhat similar to classic ParseStatements.
   (Admittedly, it was even implemented by copying and modifying
-  classic ParseVRMLStatements :) ). }
-function ParseVRMLStatements(Element: TDOMElement;
+  classic ParseStatements :) ). }
+function ParseStatements(Element: TDOMElement;
   FileTopLevel: boolean;
   X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode;
 var
@@ -402,7 +402,7 @@ var
     finally FreeAndNil(I) end;
   end;
 
-  procedure ParseVRMLStatement(Element: TDOMElement);
+  procedure ParseStatement(Element: TDOMElement);
 
     { You can safely assume that Element.TagName
       indicates proto or externproto. }
@@ -494,7 +494,7 @@ begin
 
       while I.GetNext do
       begin
-        ParseVRMLStatement(I.Current);
+        ParseStatement(I.Current);
         Inc(PositionInParent);
       end;
     finally FreeAndNil(I) end;
@@ -565,7 +565,7 @@ begin
     { X3D XML requires AutoRemove = true below }
     Reader := TX3DReaderNames.Create(true, WWWBasePath, Version);
     try
-      Result := ParseVRMLStatements(SceneElement, true, Doc.DocumentElement, Reader);
+      Result := ParseStatements(SceneElement, true, Doc.DocumentElement, Reader);
       Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
     finally FreeAndNil(Reader) end;
   finally
