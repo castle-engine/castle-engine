@@ -150,7 +150,7 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
         Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.WWWBasePath, Proto);
     end else
     begin
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Lexer.Version);
+      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Reader.Version);
       if NodeClass <> nil then
       begin
         Result := NodeClass.Create(nodename, Reader.WWWBasePath);
@@ -294,7 +294,7 @@ var
   begin
     Result := TX3DRootNode.Create('', Reader.WWWBasePath);
     Result.HasForceVersion := true;
-    Result.ForceVersion := Lexer.Version;
+    Result.ForceVersion := Reader.Version;
   end;
 
   procedure ParseProfile;
@@ -511,7 +511,7 @@ begin
   try
     { Parse X3D "configuration information": profile, component and meta
       statements here. }
-    if FileTopLevel and (Lexer.Version.Major >= 3) then
+    if FileTopLevel and (Reader.Version.Major >= 3) then
     begin
       ParseProfile;
       ParseComponents;
