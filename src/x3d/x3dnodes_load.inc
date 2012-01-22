@@ -24,10 +24,13 @@
     FImported: TX3DNodeNames;
     FExported: TX3DNodeNames;
     FImportable: TX3DImportableNames;
+    procedure CommonCreate(const AAutoRemoveNodes: boolean);
   public
     constructor Create(const AAutoRemoveNodes: boolean;
       const AWWWBasePath: string;
       const AVersion: TX3DVersion);
+    constructor CreateCopy(const AAutoRemoveNodes: boolean;
+      Source: TX3DReader);
     destructor Destroy; override;
 
     { Extract names, before destructing this object.
@@ -98,6 +101,18 @@ constructor TX3DReaderNames.Create(const AAutoRemoveNodes: boolean;
   const AWWWBasePath: string; const AVersion: TX3DVersion);
 begin
   inherited Create(AWWWBasePath, AVersion);
+  CommonCreate(AAutoRemoveNodes);
+end;
+
+constructor TX3DReaderNames.CreateCopy(const AAutoRemoveNodes: boolean;
+  Source: TX3DReader);
+begin
+  inherited CreateCopy(Source);
+  CommonCreate(AAutoRemoveNodes);
+end;
+
+procedure TX3DReaderNames.CommonCreate(const AAutoRemoveNodes: boolean);
+begin
   FNodes := TX3DNodeNames.Create(AAutoRemoveNodes);
   FPrototypes := TX3DPrototypeNames.Create;
   FImported := TX3DNodeNames.Create(AAutoRemoveNodes);

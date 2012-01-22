@@ -4638,7 +4638,7 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldReader := Reader;
-  Reader := TX3DReaderNames.Create(true, OldReader.WWWBasePath, OldReader.Version);
+  Reader := TX3DReaderNames.CreateCopy(true, OldReader);
   try
     Reader.Prototypes.Assign(OldReader.Prototypes);
     FNode := ParseVRMLStatements(Lexer, Reader, vtCloseCurlyBracket, false);
@@ -4684,7 +4684,7 @@ begin
     are available inside, but nested prototypes inside are not
     available outside. }
   OldReader := Reader;
-  Reader := TX3DReaderNames.Create(true, OldReader.WWWBasePath, OldReader.Version);
+  Reader := TX3DReaderNames.CreateCopy(true, OldReader);
   try
     Reader.Prototypes.Assign(OldReader.Prototypes);
     FNode := ParseVRMLStatements(E, false, nil, Reader);

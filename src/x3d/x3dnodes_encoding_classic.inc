@@ -337,8 +337,8 @@ var
 
   procedure ParseUnits;
   var
-    Category: string;
-    ConversionFactor: Double;
+    Category, Name: string;
+    ConversionFactor: Float;
   begin
     while Lexer.TokenIsKeyword(vkUNIT) do
     begin
@@ -348,7 +348,7 @@ var
 
       Lexer.NextToken;
       Lexer.CheckTokenIs(vtName, 'X3D unit name');
-      { Name := Lexer.TokenName; } { new unit name is simply ignored }
+      Name := Lexer.TokenName;
 
       Lexer.NextToken;
       Lexer.CheckTokenIs(TokenNumbers, 'X3D unit conversion factor (double-precision float)');
@@ -356,22 +356,7 @@ var
 
       Lexer.NextToken;
 
-      if (Lexer.Version.Major < 3) or
-         ( (Lexer.Version.Major = 3) and
-           (Lexer.Version.Minor < 3) ) then
-        OnWarning(wtMajor, 'X3D', 'UNIT declaration found, but X3D version is < 3.3');
-
-      { store UNIT inside Reader }
-      if Category = 'angle' then
-        { TODO } else
-      if Category = 'force' then
-        { TODO } else
-      if Category = 'length' then
-        { TODO } else
-      if Category = 'mass' then
-        { TODO } else
-        OnWarning(wtMajor, 'X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
-          [Category]));
+      Reader.UnitConversion(Category, Name, ConversionFactor);
     end;
   end;
 

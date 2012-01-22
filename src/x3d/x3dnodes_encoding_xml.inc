@@ -376,22 +376,7 @@ var
         Exit;
       end;
 
-      if (Reader.Version.Major < 3) or
-         ( (Reader.Version.Major = 3) and
-           (Reader.Version.Minor < 3) ) then
-        OnWarning(wtMajor, 'X3D', 'UNIT declaration found, but X3D version is < 3.3');
-
-      { store UNIT inside Reader }
-      if Category = 'angle' then
-        { TODO } else
-      if Category = 'force' then
-        { TODO } else
-      if Category = 'length' then
-        { TODO } else
-      if Category = 'mass' then
-        { TODO } else
-        OnWarning(wtMajor, 'X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
-          [Category]));
+      Reader.UnitConversion(Category, Name, ConversionFactor);
     end;
 
   var

@@ -74,9 +74,11 @@ type
   private
     FVersion: TX3DVersion;
     FWWWBasePath: string;
+    AngleConversionFactor: Float;
   public
     constructor Create(const AWWWBasePath: string;
       const AVersion: TX3DVersion);
+    constructor CreateCopy(Source: TX3DReader);
 
     { Base path for resolving URLs from nodes in this namespace.
       See TX3DNode.WWWBasePath. }
@@ -84,6 +86,9 @@ type
 
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
+
+    procedure UnitConversion(const Category, Name: string;
+      const ConversionFactor: Float);
   end;
 
   TSaveToXmlMethod = (sxNone, sxAttribute, sxAttributeCustomQuotes, sxChildElement);
@@ -672,7 +677,7 @@ type
       Attributes in X3D are generally encoded such that normal
       @code(ParseValue(Lexer, nil)) call is appropriate,
       so this is done in this class. }
-    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer); virtual;
+    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader); virtual;
 
     { Parse field value from X3D XML encoded attribute.
 
@@ -1102,7 +1107,7 @@ type
     function Equals(SecondValue: TX3DField;
       const EqualityEpsilon: Double): boolean; override;
 
-    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer); override;
+    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader); override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -2694,6 +2699,36 @@ begin
   inherited Create;
   FWWWBasePath := AWWWBasePath;
   FVersion := AVersion;
+  AngleConversionFactor := 1;
+end;
+
+constructor TX3DReader.CreateCopy(Source: TX3DReader);
+begin
+  inherited Create;
+  FWWWBasePath := Source.WWWBasePath;
+  FVersion := Source.Version;
+  AngleConversionFactor := Source.AngleConversionFactor;
+end;
+
+procedure TX3DReader.UnitConversion(const Category, Name: string;
+  const ConversionFactor: Float);
+begin
+  if (Version.Major < 3) or
+     ( (Version.Major = 3) and
+       (Version.Minor < 3) ) then
+    OnWarning(wtMajor, 'X3D', 'UNIT declaration found, but X3D version is < 3.3');
+
+  { store UNIT inside Reader }
+  if Category = 'angle' then
+    AngleConversionFactor := ConversionFactor else
+  if Category = 'force' then
+    { TODO } else
+  if Category = 'length' then
+    { TODO } else
+  if Category = 'mass' then
+    { TODO } else
+    OnWarning(wtMajor, 'X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
+      [Category]));
 end;
 
 { TX3DFileItem -------------------------------------------------------------- }
@@ -3103,9 +3138,9 @@ begin
     ParseValue(Lexer, Reader);
 end;
 
-procedure TX3DField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
+procedure TX3DField.ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
-  ParseValue(Lexer, nil);
+  ParseValue(Lexer, Reader);
 end;
 
 procedure TX3DField.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
@@ -3115,7 +3150,7 @@ begin
   Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
   try
     try
-      ParseXMLAttributeLexer(Lexer);
+      ParseXMLAttributeLexer(Lexer, Reader);
     except
       on E: EX3DClassicReadError do
         OnWarning(wtMajor, 'VRML/X3D', 'Error when reading field "' + Name + '" value: ' + E.Message);
@@ -3400,7 +3435,7 @@ begin
   finally FreeAndNil(SingleItem) end;
 end;
 
-procedure TX3DSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer);
+procedure TX3DSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   SingleItem: TX3DSingleField;
 begin
@@ -3415,7 +3450,7 @@ begin
   try
     while Lexer.Token <> vtEnd do
     begin
-      SingleItem.ParseValue(Lexer, nil);
+      SingleItem.ParseValue(Lexer, Reader);
       RawItemsAdd(SingleItem);
     end;
   finally FreeAndNil(SingleItem) end;
@@ -4476,7 +4511,7 @@ end;
 procedure TSFRotation.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   ParseVector(Axis, Lexer);
-  RotationRad := ParseFloat(Lexer);
+  RotationRad := ParseFloat(Lexer) * Reader.AngleConversionFactor;
 end;
 
 function TSFRotation.GetValue: TVector4Single;
@@ -5932,7 +5967,7 @@ begin
   Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
   try
     try
-      ParseXMLAttributeLexer(Lexer);
+      ParseXMLAttributeLexer(Lexer, Reader);
     except
       on E: EX3DClassicReadError do
       begin
