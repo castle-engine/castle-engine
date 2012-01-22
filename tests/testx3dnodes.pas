@@ -1133,6 +1133,7 @@ procedure TTestX3DNodes.TestEmptyChanges;
       (Field.ParentNode is TWWWAnchorNode_1) or
       { metadata, info nodes }
       FieldIs(Field, TAbstractNode, 'metadata') or
+      (Field.ParentNode is TMetadataBooleanNode) or
       (Field.ParentNode is TMetadataDoubleNode) or
       (Field.ParentNode is TMetadataFloatNode) or
       (Field.ParentNode is TMetadataIntegerNode) or
