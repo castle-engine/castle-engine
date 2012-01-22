@@ -575,6 +575,9 @@
     private FFdMinSeparation: TSFFloat;
     public property FdMinSeparation: TSFFloat read FFdMinSeparation;
 
+    private FFdSliderForce: TSFFloat;
+    public property FdSliderForce: TSFFloat read FFdSliderForce;
+
     private FFdStopBounce: TSFFloat;
     public property FdStopBounce: TSFFloat read FFdStopBounce;
 
@@ -1369,6 +1372,10 @@ begin
 
   FFdMinSeparation := TSFFloat.Create(Self, 'minSeparation', 0);
   Fields.Add(FFdMinSeparation);
+  { X3D specification comment: [0,Inf) }
+
+  FFdSliderForce := TSFFloat.Create(Self, 'sliderForce', 0);
+  Fields.Add(FSliderForce);
   { X3D specification comment: [0,Inf) }
 
   FFdStopBounce := TSFFloat.Create(Self, 'stopBounce', 0);

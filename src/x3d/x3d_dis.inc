@@ -45,7 +45,7 @@
     public property EventRemovedEntities: TX3DEvent read FEventRemovedEntities;
   end;
 
-  TDISEntityTypeMappingNode = class(TAbstractInfoNode)
+  TDISEntityTypeMappingNode = class(TAbstractInfoNode, IAbstractUrlObject)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;

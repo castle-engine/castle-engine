@@ -76,7 +76,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
   end;
 
-  TGravityPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
+  TForcePhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -330,7 +330,7 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TGravityPhysicsModelNode.CreateNode;
+procedure TForcePhysicsModelNode.CreateNode;
 begin
   inherited;
 
@@ -339,12 +339,12 @@ begin
   { X3D specification comment: (Inf,Inf) }
 end;
 
-class function TGravityPhysicsModelNode.ClassNodeTypeName: string;
+class function TForcePhysicsModelNode.ClassNodeTypeName: string;
 begin
-  Result := 'GravityPhysicsModel';
+  Result := 'ForcePhysicsModel';
 end;
 
-class function TGravityPhysicsModelNode.URNMatching(const URN: string): boolean;
+class function TForcePhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
@@ -576,7 +576,7 @@ begin
     TBoundedPhysicsModelNode,
     TConeEmitterNode,
     TExplosionEmitterNode,
-    TGravityPhysicsModelNode,
+    TForcePhysicsModelNode,
     TParticleSystemNode,
     TPointEmitterNode,
     TPolylineEmitterNode,
