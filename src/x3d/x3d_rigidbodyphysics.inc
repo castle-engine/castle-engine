@@ -1375,7 +1375,7 @@ begin
   { X3D specification comment: [0,Inf) }
 
   FFdSliderForce := TSFFloat.Create(Self, 'sliderForce', 0);
-  Fields.Add(FSliderForce);
+  Fields.Add(FFdSliderForce);
   { X3D specification comment: [0,Inf) }
 
   FFdStopBounce := TSFFloat.Create(Self, 'stopBounce', 0);
