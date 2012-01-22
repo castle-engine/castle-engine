@@ -4522,10 +4522,10 @@ end;
 
 procedure TSFRotation.SetValue(const AValue: TVector4Single);
 begin
- Axis[0] := AValue[0];
- Axis[1] := AValue[1];
- Axis[2] := AValue[2];
- RotationRad := AValue[3];
+  Axis[0] := AValue[0];
+  Axis[1] := AValue[1];
+  Axis[2] := AValue[2];
+  RotationRad := AValue[3];
 end;
 
 function TSFRotation.GetValueDeg: TVector4Single;
@@ -4536,10 +4536,10 @@ end;
 
 procedure TSFRotation.SetValueDeg(const AValue: TVector4Single);
 begin
- Axis[0] := AValue[0];
- Axis[1] := AValue[1];
- Axis[2] := AValue[2];
- RotationRad := DegToRad(AValue[3]);
+  Axis[0] := AValue[0];
+  Axis[1] := AValue[1];
+  Axis[2] := AValue[2];
+  RotationRad := DegToRad(AValue[3]);
 end;
 
 procedure TSFRotation.SaveToStreamValue(Writer: TX3DWriter);
@@ -4563,10 +4563,10 @@ end;
 function TSFRotation.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFRotation) and
-   VectorsEqual(TSFRotation(SecondValue).Axis, Axis, EqualityEpsilon) and
-   FloatsEqual(TSFRotation(SecondValue).RotationRad, RotationRad, EqualityEpsilon);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFRotation) and
+    VectorsEqual(TSFRotation(SecondValue).Axis, Axis, EqualityEpsilon) and
+    FloatsEqual(TSFRotation(SecondValue).RotationRad, RotationRad, EqualityEpsilon);
 end;
 
 function TSFRotation.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -4585,8 +4585,8 @@ end;
 
 procedure TSFRotation.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
- Axis        := Lerp(A, (Value1 as TSFRotation).Axis       , (Value2 as TSFRotation).Axis);
- RotationRad := Lerp(A, (Value1 as TSFRotation).RotationRad, (Value2 as TSFRotation).RotationRad);
+  Axis        := Lerp(A, (Value1 as TSFRotation).Axis       , (Value2 as TSFRotation).Axis);
+  RotationRad := Lerp(A, (Value1 as TSFRotation).RotationRad, (Value2 as TSFRotation).RotationRad);
 end;
 
 function TSFRotation.CanAssignLerp: boolean;
@@ -4596,13 +4596,13 @@ end;
 
 procedure TSFRotation.Assign(Source: TPersistent);
 begin
- if Source is TSFRotation then
- begin
-  Axis        := TSFRotation(Source).Axis;
-  RotationRad := TSFRotation(Source).RotationRad;
-  VRMLFieldAssignCommon(TX3DField(Source));
- end else
-  inherited;
+  if Source is TSFRotation then
+  begin
+    Axis        := TSFRotation(Source).Axis;
+    RotationRad := TSFRotation(Source).RotationRad;
+    VRMLFieldAssignCommon(TX3DField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFRotation.AssignValue(Source: TX3DField);
@@ -4668,15 +4668,15 @@ end;
 
 function TSFString.EqualsDefaultValue: boolean;
 begin
- result := DefaultValueExists and (DefaultValue = Value);
+  Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
 function TSFString.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TSFString) and
-   (TSFString(SecondValue).Value = Value);
+  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+    (SecondValue is TSFString) and
+    (TSFString(SecondValue).Value = Value);
 end;
 
 function TSFString.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -4687,14 +4687,14 @@ end;
 
 procedure TSFString.Assign(Source: TPersistent);
 begin
- if Source is TSFString then
- begin
-  DefaultValue       := TSFString(Source).DefaultValue;
-  DefaultValueExists := TSFString(Source).DefaultValueExists;
-  Value              := TSFString(Source).Value;
-  VRMLFieldAssignCommon(TX3DField(Source));
- end else
-  inherited;
+  if Source is TSFString then
+  begin
+    DefaultValue       := TSFString(Source).DefaultValue;
+    DefaultValueExists := TSFString(Source).DefaultValueExists;
+    Value              := TSFString(Source).Value;
+    VRMLFieldAssignCommon(TX3DField(Source));
+  end else
+    inherited;
 end;
 
 procedure TSFString.AssignValue(Source: TX3DField);
@@ -5916,7 +5916,7 @@ begin
   Items.Count := Val1.Items.Count;
 
   for I := 0 to Items.Count - 1 do
-   Items[I] := Lerp(A, Val1.Items[I], Val2.Items[I]);
+    Items[I] := Lerp(A, Val1.Items[I], Val2.Items[I]);
 end;
 
 function TMFDouble.CanAssignLerp: boolean;
