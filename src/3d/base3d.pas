@@ -697,8 +697,14 @@ type
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
       See TCollisionType for when it may happen.
+
+      UseSphere must be @false when not GetExists (because we can't express
+      "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
+      EmptyBox3D).
+
       By default, in T3D class, this always returns @false
       and @link(Sphere) is undefined.
+
       @groupBegin }
     function UseSphere: boolean; virtual;
     procedure Sphere(out Center: TVector3Single; out Radius: Single); virtual;
