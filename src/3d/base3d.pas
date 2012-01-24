@@ -677,6 +677,19 @@ type
       See TCollisionType for when it may happen.
       By default, in T3D class, this does nothing. }
     procedure Translate(const T: TVector3Single); virtual;
+
+    { Can the approximate sphere be used for some collision-detection
+      tasks. If UseSphere is @true then @link(Sphere) returns the approximate
+      sphere surrounding the 3D object (it does not have to be a perfect
+      bounding sphere around the object), and it may be used for some
+      collisions instead of BoundingBox.
+      See TCollisionType for when it may happen.
+      By default, in T3D class, this always returns @false
+      and @link(Sphere) is undefined.
+      @groupBegin }
+    function UseSphere: boolean; virtual;
+    procedure Sphere(out Center: TVector3Single; out Radius: Single); virtual;
+    { @groupEnd }
   end;
 
   T3DList = class;
@@ -1132,6 +1145,17 @@ end;
 
 procedure T3D.Translate(const T: TVector3Single);
 begin
+end;
+
+function T3D.UseSphere: boolean;
+begin
+  Result := false;
+end;
+
+procedure T3D.Sphere(out Center: TVector3Single; out Radius: Single);
+begin
+  Center := ZeroVector3Single;
+  Radius := 0;
 end;
 
 { T3DListCore ------------------------------------------------------------ }
