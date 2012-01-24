@@ -672,6 +672,11 @@ type
         rtRemoveAndFree additionally will free this item.
         Initially it's rtNone when this method is called.) }
     procedure PlayerCollision(var RemoveMe: TRemoveType); virtual;
+
+    { What happens when other 3D objects try to push this object.
+      See TCollisionType for when it may happen.
+      By default, in T3D class, this does nothing. }
+    procedure Translate(const T: TVector3Single); virtual;
   end;
 
   T3DList = class;
@@ -796,13 +801,21 @@ type
     function GetRotation: TVector4Single; virtual;
     function GetScale: TVector3Single; virtual;
     function GetScaleOrientation: TVector4Single; virtual;
-    { If @true, then we may use only GetTranslation for transformation.
-      This allows optimization is some cases. }
+    { Can we use simple GetTranslation instead of full TransformMatricesMult.
+       @true, this allows optimization is some cases. }
     function OnlyTranslation: boolean; virtual;
     function Transform: TMatrix4Single;
     function TransformInverse: TMatrix4Single;
-    { You can override this to derive transformation martix using anything,
-      not necessarily GetTranslation / GetCenter etc. }
+
+    { Transformation matrix.
+      You can override this to derive transformation using anything,
+      not necessarily GetTranslation / GetCenter etc. methods.
+
+      This method must produce matrices that preserve points as points
+      and directions as directions in homegeneous space.
+      In other words, using MatrixMultPoint or MatrixMultDirection
+      with these matrices must never raise ETransformedResultInvalid.
+      For example, a combination of translations, rotations, scaling is Ok. }
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); virtual;
     procedure TransformMatrices(out M, MInverse: TMatrix4Single);
     function AverageScale: Single;
@@ -886,6 +899,8 @@ type
     property ScaleOrientation: TVector4Single read FScaleOrientation write SetScaleOrientation;
     property Translation: TVector3Single read FTranslation write FTranslation;
     { @groupEnd }
+
+    procedure Translate(const T: TVector3Single); override;
   end;
 
   { Deprecated name for T3DCustomTransform. @deprecated @exclude }
@@ -1112,6 +1127,10 @@ begin
 end;
 
 procedure T3D.PlayerCollision(var RemoveMe: TRemoveType);
+begin
+end;
+
+procedure T3D.Translate(const T: TVector3Single);
 begin
 end;
 
@@ -2130,6 +2149,11 @@ end;
 function T3DTransform.OnlyTranslation: boolean;
 begin
   Result := FOnlyTranslation;
+end;
+
+procedure T3DTransform.Translate(const T: TVector3Single);
+begin
+  Translation := Translation + T;
 end;
 
 end.
