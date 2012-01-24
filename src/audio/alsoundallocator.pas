@@ -383,7 +383,12 @@ end;
 procedure TALSound.SetBuffer(const Value: TALBuffer);
 begin
   FBuffer := Value;
+  { TALBuffer is unsigned, while alSourcei is declared as taking signed integer.
+    But we know we can pass TALBuffer to alSourcei, just typecasting it to
+    whatever alSourcei requires. }
+  {$I norqcheckbegin.inc}
   alSourcei(ALSource, AL_BUFFER, Value);
+  {$I norqcheckend.inc}
 end;
 
 procedure TALSound.SetPitch(const Value: Single);
