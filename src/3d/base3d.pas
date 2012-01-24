@@ -71,19 +71,32 @@ type
     { Nothing special done. }
     ctNone,
     { Pickable item.
-      - Moving level parts (doors and such) try to not crush this item.
-        For now this concerns DOOM E1M1 doors, and is guaranteed
-        to *never* crush item.
-      - When we detect player colliding with this item, we call T3D.PlayerCollision.
-        If player is the same as camera (first-person perspective,
-        not third-person perspective) be sure to also set Collides := false,
-        to enable the collisions with such items to happen.
+      @unorderedList(
+        @item(Moving level parts (doors, elevators and such) try to not crush this item.
+          This concerns DOOM E1M1 doors, and is guaranteed to *never* crush item.
+
+          This also concerns TLevelMovingObject, like various up-down elevators,
+          and then the item is moved along with the moving elevator.
+          We may use sphere (see @link(T3D.UseSphere), @link(T3D.Sphere)) for checking
+          collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
+          The item is moved using @link(T3D.Translate), so make sure it
+          actually does something (for example, by descending from T3DTransform,
+          that provides natural @link(T3D.Translate) implementation).)
+
+        @item(When we detect player colliding with this item, we call
+          T3D.PlayerCollision.
+          If player is the same as camera (first-person perspective,
+          not third-person perspective) be sure to also set Collides := false,
+          to enable the collisions with such items to happen.)
+      )
     }
     ctItem,
+
     { Creature.
-      - Moving level parts (doors and such) try to not crush this item.
-        For now this concerns DOOM E1M1 doors, and is guaranteed
-        to *never* crush item. }
+      @unorderedList(
+        @item(Moving level parts (doors and elevators) try to not crush this item.
+          See above notes for ctItem about how this works.)
+      ) }
     ctCreature
   );
 
