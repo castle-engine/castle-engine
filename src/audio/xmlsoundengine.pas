@@ -32,8 +32,7 @@ const
   DefaultMusicVolume = 1.0;
 
 type
-  { This is a unique sound type identifier for sounds used within
-    TXmlSoundEngine.
+  { Unique sound type identifier for sounds used within TXmlSoundEngine.
 
     This is actually just an index to appropriate
     TXmlSoundEngine.SoundNames array, but you should always treat
@@ -255,7 +254,7 @@ type
 implementation
 
 uses ProgressUnit, CastleFilesUtils, DOM, XMLRead, CastleXMLUtils,
-  VorbisFile, CastleStringUtils;
+  CastleStringUtils;
 
 { TXmlSoundEngine ----------------------------------------------------------- }
 
