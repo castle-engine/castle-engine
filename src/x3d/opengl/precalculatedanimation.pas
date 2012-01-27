@@ -284,7 +284,7 @@ type
         since these properties are writeable at any time.) }
     procedure LoadFromFile(const FileName: string;
       const AllowStdIn: boolean; const LoadTime: boolean;
-      const ScenesPerTimeMultiply: Cardinal = 1);
+      const ScenesPerTimeMultiply: Float = 1.0);
 
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -1369,7 +1369,7 @@ end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromFile(const FileName: string;
   const AllowStdIn, LoadTime: boolean;
-  const ScenesPerTimeMultiply: Cardinal);
+  const ScenesPerTimeMultiply: Float);
 var
   Times: TSingleList;
   RootNodes: TX3DNodeList;
@@ -1384,7 +1384,7 @@ begin
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 
-    ScenesPerTime *= ScenesPerTimeMultiply;
+    ScenesPerTime := Round(ScenesPerTime * ScenesPerTimeMultiply);
 
     Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
 

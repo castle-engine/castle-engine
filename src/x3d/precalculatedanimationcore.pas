@@ -22,6 +22,9 @@ interface
 
 uses CastleUtils, DOM, Base3D, Classes;
 
+const
+  DefaultKAnimScenesPerTime = 30;
+
 type
   { An abstract (cannot be rendered) precalculated animation.
     You usually want to use a descendant of this class that can be rendered
@@ -101,7 +104,6 @@ begin
 end;
 
 const
-  DefaultKAnimScenesPerTime = 30;
   DefaultKAnimEqualityEpsilon = 0.001;
   DefaultKAnimLoop = false;
   DefaultKAnimBackwards = false;
