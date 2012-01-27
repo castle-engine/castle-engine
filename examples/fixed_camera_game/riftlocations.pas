@@ -152,18 +152,15 @@ end;
 
 procedure WindowOpen(Window: TCastleWindowBase);
 
-  procedure MissingLocationAttribute(Index: Integer; const AttrName: string);
+  procedure MissingLocationAttribute(const AttrName: string);
   begin
-    raise Exception.CreateFmt('Location %d doesn''t have a required attribute "%s"',
-      [Index, AttrName]);
+    raise Exception.CreateFmt('Location doesn''t have a required attribute "%s"',
+      [AttrName]);
   end;
 
 var
-  I: Integer;
+  I: TXMLElementIterator;
   LocationsElement: TDOMElement;
-  LocationsChildren: TDOMNodeList;
-  LocationNode: TDOMNode;
-  LocationElement: TDOMElement;
   Location: TLocation;
   StartLocationName: string;
   V: string;
@@ -178,52 +175,46 @@ begin
     raise Exception.CreateFmt(
       '<locations> doesn''t have a required attribute "start_name"', []);
 
-  LocationsChildren := LocationsElement.ChildNodes;
+  I := TXMLElementIterator.Create(LocationsElement);
   try
-    for I := 0 to LocationsChildren.Count - 1 do
+    while I.GetNext do
     begin
-      LocationNode := LocationsChildren.Item[I];
-      if LocationNode.NodeType = ELEMENT_NODE then
-      begin
-        LocationElement := LocationNode as TDOMElement;
+      Location := TLocation.Create;
+      Locations.Add(Location);
 
-        Location := TLocation.Create;
-        Locations.Add(Location);
+      if not DOMGetAttribute(I.Current, 'name', Location.FName) then
+        MissingLocationAttribute('name');
+      if Location.Name = StartLocationName then
+        StartLocation := Location;
 
-        if not DOMGetAttribute(LocationElement, 'name', Location.FName) then
-          MissingLocationAttribute(I, 'name');
-        if Location.Name = StartLocationName then
-          StartLocation := Location;
+      if not DOMGetAttribute(I.Current, 'image_file_name', Location.FImageFileName) then
+        MissingLocationAttribute('image_file_name');
+      Location.FImageFileName := DataFileNameFromConfig(Location.FImageFileName);
 
-        if not DOMGetAttribute(LocationElement, 'image_file_name', Location.FImageFileName) then
-          MissingLocationAttribute(I, 'image_file_name');
-        Location.FImageFileName := DataFileNameFromConfig(Location.FImageFileName);
+      if not DOMGetAttribute(I.Current, 'shadowed_image_file_name', Location.FShadowedImageFileName) then
+        MissingLocationAttribute('shadowed_image_file_name');
+      Location.FShadowedImageFileName := DataFileNameFromConfig(Location.FShadowedImageFileName);
 
-        if not DOMGetAttribute(LocationElement, 'shadowed_image_file_name', Location.FShadowedImageFileName) then
-          MissingLocationAttribute(I, 'shadowed_image_file_name');
-        Location.FShadowedImageFileName := DataFileNameFromConfig(Location.FShadowedImageFileName);
+      if not DOMGetAttribute(I.Current, 'scene_file_name', Location.FSceneFileName) then
+        MissingLocationAttribute('scene_file_name');
+      Location.FSceneFileName := DataFileNameFromConfig(Location.FSceneFileName);
 
-        if not DOMGetAttribute(LocationElement, 'scene_file_name', Location.FSceneFileName) then
-          MissingLocationAttribute(I, 'scene_file_name');
-        Location.FSceneFileName := DataFileNameFromConfig(Location.FSceneFileName);
+      DOMGetAttribute(I.Current, 'scene_camera_description',
+        Location.FSceneCameraDescription);
 
-        DOMGetAttribute(LocationElement, 'scene_camera_description',
-          Location.FSceneCameraDescription);
+      if DOMGetAttribute(I.Current, 'initial_position', V) then
+        Location.FInitialPosition := Vector3SingleFromStr(V) else
+        Location.FInitialPosition := Vector3Single(0, 0, 0);
 
-        if DOMGetAttribute(LocationElement, 'initial_position', V) then
-          Location.FInitialPosition := Vector3SingleFromStr(V) else
-          Location.FInitialPosition := Vector3Single(0, 0, 0);
+      if DOMGetAttribute(I.Current, 'initial_direction', V) then
+        Location.FInitialDirection := Vector3SingleFromStr(V) else
+        Location.FInitialDirection := Vector3Single(1, 0, 0);
 
-        if DOMGetAttribute(LocationElement, 'initial_direction', V) then
-          Location.FInitialDirection := Vector3SingleFromStr(V) else
-          Location.FInitialDirection := Vector3Single(1, 0, 0);
-
-        if DOMGetAttribute(LocationElement, 'initial_up', V) then
-          Location.FInitialUp := Vector3SingleFromStr(V) else
-          Location.FInitialUp := Vector3Single(0, 0, 1);
-      end;
+      if DOMGetAttribute(I.Current, 'initial_up', V) then
+        Location.FInitialUp := Vector3SingleFromStr(V) else
+        Location.FInitialUp := Vector3Single(0, 0, 1);
     end;
-  finally FreeChildNodes(LocationsChildren) end;
+  finally FreeAndNil(I) end;
 
   if StartLocation = nil then
     raise Exception.CreateFmt('Start location name "%s" not found',
