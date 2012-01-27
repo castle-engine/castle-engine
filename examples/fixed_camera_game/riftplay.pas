@@ -274,20 +274,15 @@ begin
       Window.FpsShowOnCaption := DebugMenuFps;
       Window.AutoRedisplay := true;
 
-      { We have two cameras: Player.Camera determines player avatar position,
-        and may be controlled by keys. SceneCamera determines the rendering
-        camera.
+      { We have two cameras: Player.Camera determines player avatar position.
+        It used to be controllable by keys by a hacky solution, not available
+        now. It's now controllable only indirectly, by clicking on target
+        location.
 
-        For this simple demo, we allow you to directly control Player.Camera
-        by keys. TODO: this is only for debugging,
-        in actual game this would be disabled.
-
-        TODO: on the other hand, for even more debugging features,
-        it would nice to have an option to make SceneCamera responsive.
-        This means using SceneCamera.IgnoreAllInputs := false,
-        and removing Player.Camera from controls.
-        This would allow to "fine position" the camera vs 2D image. }
-      Window.Controls.MakeSingle(TCamera, Player.Camera);
+        SceneCamera determines the rendering camera.
+        To "fine position" the camera vs 2D image, it may be useful to
+        temporaiily comment out "SceneCamera.IgnoreAllInputs := true" line,
+        and allow to move SceneCamera. }
 
       SceneCamera := TWalkCamera.Create(nil);
       SceneCamera.IgnoreAllInputs := true;
