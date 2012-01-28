@@ -168,7 +168,7 @@ begin
   FreeAndNil(ProgressFont);
   glDeleteLists(list_drawProgressBG, 1);
 
-  SavedMode.Free;
+  FreeAndNil(SavedMode);
 end;
 
 initialization
