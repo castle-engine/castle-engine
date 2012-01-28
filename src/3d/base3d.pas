@@ -677,19 +677,6 @@ type
       use it). }
     function Dragging: boolean; virtual;
 
-    { Called (TODO: for now only by "The Castle", and only in main Items list)
-      when we detect collision between player and this item.
-      See TCollisionType = ctItem.
-      TODO: this is just a prototype now.
-      Maybe change this into PlayerCollision(const PlayerBox),
-      that checks collision itself (no need to look at TCollisionType).
-
-      @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
-        this item from 3D world after PlayerCollision finished.
-        rtRemoveAndFree additionally will free this item.
-        Initially it's rtNone when this method is called.) }
-    procedure PlayerCollision(var RemoveMe: TRemoveType); virtual;
-
     { What happens when other 3D objects try to push this object.
       See TCollisionType for when it may happen.
       By default, in T3D class, this does nothing. }
@@ -1160,10 +1147,6 @@ end;
 function T3D.GetExists: boolean;
 begin
   Result := FExists;
-end;
-
-procedure T3D.PlayerCollision(var RemoveMe: TRemoveType);
-begin
 end;
 
 procedure T3D.Translate(const T: TVector3Single);
