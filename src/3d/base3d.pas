@@ -526,8 +526,12 @@ type
       const Distance: Single): boolean; virtual;
     { @groupEnd }
 
-    { Idle event, for continously repeated tasks. }
-    procedure Idle(const CompSpeed: Single); virtual;
+    { Idle event, for various continously repeated tasks.
+      @param(RemoveMe Set this to rtRemove or rtRemoveAndFree to remove
+        this item from 3D world (parent list) after Idle finished.
+        rtRemoveAndFree additionally will free this item.
+        Initially it's rtNone when this method is called.) }
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); virtual;
 
     { Something visible changed inside @italic(this) 3D object.
       This is usually called by implementation of this 3D object,
@@ -780,7 +784,7 @@ type
     function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
-    procedure Idle(const CompSpeed: Single); override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure GLContextClose; override;
     procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -1049,7 +1053,7 @@ begin
   Result := false;
 end;
 
-procedure T3D.Idle(const CompSpeed: Single);
+procedure T3D.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
 end;
 
@@ -1368,14 +1372,30 @@ begin
     if List[I].KeyUp(Key, C) then Exit(true);
 end;
 
-procedure T3DList.Idle(const CompSpeed: Single);
+procedure T3DList.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 var
   I: Integer;
+  Item: T3D;
+  RemoveItem: TRemoveType;
 begin
   inherited;
   if GetExists then
-    for I := 0 to List.Count - 1 do
-      List[I].Idle(CompSpeed);
+  begin
+    I := 0;
+    while I < List.Count do
+    begin
+      Item := List[I];
+      RemoveItem := rtNone;
+      Item.Idle(CompSpeed, RemoveItem);
+      if RemoveItem in [rtRemove, rtRemoveAndFree] then
+      begin
+        List.Delete(I);
+        if RemoveItem = rtRemoveAndFree then
+          FreeAndNil(Item);
+      end else
+        Inc(I);
+    end;
+  end;
 end;
 
 procedure T3DList.ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);

@@ -2554,11 +2554,17 @@ end;
 procedure TCastleSceneManager.Idle(const CompSpeed: Single;
   const HandleMouseAndKeys: boolean;
   var LetOthersHandleMouseAndKeys: boolean);
+var
+  RemoveItem: TRemoveType;
 begin
   inherited;
 
   if (not Paused) and GetExists then
-    Items.Idle(CompSpeed);
+  begin
+    RemoveItem := rtNone;
+    Items.Idle(CompSpeed, RemoveItem);
+    { we ignore RemoveItem --- main Items list cannot be removed }
+  end;
 end;
 
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);

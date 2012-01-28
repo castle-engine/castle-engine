@@ -479,7 +479,7 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     { @groupEnd }
 
-    procedure Idle(const CompSpeed: Single); override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
     { Initial world time, set by the ResetTimeAtLoad call.
       This can be useful for showing user
@@ -1745,7 +1745,7 @@ begin
     Scenes[0].ResetTime(NewValue);
 end;
 
-procedure TCastlePrecalculatedAnimation.Idle(const CompSpeed: Single);
+procedure TCastlePrecalculatedAnimation.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 var
   OldTime: TFloatTime;
 begin

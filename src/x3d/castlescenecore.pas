@@ -1407,7 +1407,7 @@ type
       read FOnPointingDeviceSensorsChange
       write FOnPointingDeviceSensorsChange;
 
-    procedure Idle(const CompSpeed: Single); override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
     { Change current scene time, setting @link(Time).
       It is crucial that you call this continously to have some VRML/X3D
@@ -5580,7 +5580,7 @@ begin
   Inc(FTime.PlusTicks);
 end;
 
-procedure TCastleSceneCore.Idle(const CompSpeed: Single);
+procedure TCastleSceneCore.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   if not GetExists then Exit;
