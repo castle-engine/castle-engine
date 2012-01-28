@@ -76,6 +76,8 @@ type
     FWWWBasePath: string;
     AngleConversionFactor: Float;
   public
+    LengthConversionFactor: Float;
+
     constructor Create(const AWWWBasePath: string;
       const AVersion: TX3DVersion);
     constructor CreateCopy(Source: TX3DReader);
@@ -87,6 +89,11 @@ type
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
 
+    { Apply unit convertion.
+      If this is angle convertion factor, it is stored and used internally.
+      If this is length convertion factor, we update our
+      LengthConversionFactor property, but it's callers responsibility
+      to make use of it. (You want to use here TX3DRootNode.Scale.) }
     procedure UnitConversion(const Category, Name: string;
       const ConversionFactor: Float);
   end;
@@ -2721,6 +2728,7 @@ begin
   FWWWBasePath := AWWWBasePath;
   FVersion := AVersion;
   AngleConversionFactor := 1;
+  LengthConversionFactor := 1;
 end;
 
 constructor TX3DReader.CreateCopy(Source: TX3DReader);
@@ -2729,6 +2737,7 @@ begin
   FWWWBasePath := Source.WWWBasePath;
   FVersion := Source.Version;
   AngleConversionFactor := Source.AngleConversionFactor;
+  LengthConversionFactor := Source.LengthConversionFactor;
 end;
 
 procedure TX3DReader.UnitConversion(const Category, Name: string;
@@ -2745,7 +2754,7 @@ begin
   if Category = 'force' then
     { TODO } else
   if Category = 'length' then
-    { TODO } else
+    LengthConversionFactor := ConversionFactor else
   if Category = 'mass' then
     { TODO } else
     OnWarning(wtMajor, 'X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',

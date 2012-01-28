@@ -358,6 +358,7 @@ var
 
       Reader.UnitConversion(Category, Name, ConversionFactor);
     end;
+    Result.Scale := Reader.LengthConversionFactor;
   end;
 
   procedure ParseMetas;

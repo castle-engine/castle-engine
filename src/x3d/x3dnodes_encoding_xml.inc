@@ -400,6 +400,7 @@ var
             [I.Current.TagName]));
       end;
     finally FreeAndNil(I) end;
+    Result.Scale := Reader.LengthConversionFactor;
   end;
 
   procedure ParseStatement(Element: TDOMElement);

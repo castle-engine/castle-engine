@@ -141,6 +141,7 @@
     FMeta: TStringStringMap;
     FPrototypeNames: TX3DPrototypeNames;
     FExportedNames: TX3DNodeNames;
+    FScale: Single;
     procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
@@ -151,6 +152,8 @@
       then it is placed inside Inline node, which will do save/restore anyway.
       And this way VRML 1.0 WWWInline with separate=FALSE may also work too. }
     function SeparateGroup: boolean; override;
+
+    procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     ForceVersion: TX3DVersion;
 
@@ -212,6 +215,15 @@
     { Node names exported from the file by EXPORT keyword.
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
     property ExportedNames: TX3DNodeNames read FExportedNames;
+
+    { Scale of the model.
+      When loading, this is set to honor @code("UNIT length ...")
+      declaration in X3D 3.3.
+      It scales model such that 1 unit = 1 meter. When one model is inlined
+      inside another (e.g. using X3D Inline node), this is adjusted to
+      the existing scale of the outer model (always to make the resulting
+      complete node graph keep the assumption 1 unit = 1 meter). }
+    property Scale: Single read FScale write FScale default 1.0;
   end;
 
   TStaticGroupNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
@@ -611,6 +623,7 @@ begin
   FComponents := TStringLongIntMap.Create;
   FMeta := TStringStringMap.Create;
   FSaveAsRootNode := true;
+  FScale := 1;
 end;
 
 destructor TX3DRootNode.Destroy;
@@ -671,7 +684,7 @@ begin
 
   Res.HasForceVersion := HasForceVersion;
   Res.ForceVersion := ForceVersion;
-
+  Res.Scale := Scale;
   Res.Profile := Profile;
   Res.Components.Assign(Components);
   Res.Meta.Assign(Meta);
@@ -711,6 +724,21 @@ begin
   if not (Supports(Child, IAbstractChildNode) or (Child is TLayerSetNode)) then
     OnWarning(wtMajor, 'VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
       [Child.NodeTypeName]));
+end;
+
+procedure TX3DRootNode.ApplyTransform(State: TX3DGraphTraverseState);
+var
+  M, IM: TMatrix4Single;
+begin
+  inherited;
+
+  if Scale <> 1 then
+  begin
+    ScalingMatrices(Vector3Single(Scale, Scale, Scale), true, M, IM);
+    State.Transform := MatrixMult(State.Transform, M);
+    State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+    State.TransformScale *= Scale;
+  end;
 end;
 
 procedure TStaticGroupNode.CreateNode;

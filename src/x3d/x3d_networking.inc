@@ -121,7 +121,7 @@
       If "url" didn't contain anything useful, Loaded is still set to @true,
       to avoid constantly trying to reload. }
     Loaded: boolean;
-    FInlined: TX3DNode;
+    FInlined: TX3DRootNode;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -151,7 +151,7 @@
 
     class function VRML1ChildrenSaveToStream: boolean; override;
 
-    { Load inlined VRML content @bold(now).
+    { Load inlined content @bold(now).
       If @link(Inlined) is already loaded:
       if CanReload = @true then it will be freed and loaded again,
       else (if CanReload = @false) nothing will happen.
@@ -174,7 +174,9 @@
 
       @param(Exported If non-nil, we will assign here node names
         exported from the file. Used to handle IMPORT/EXPORT X3D mechanism.) }
-    procedure LoadInlined(CanReload: boolean; Exported: TX3DNodeNames = nil);
+    procedure LoadInlined(CanReload: boolean;
+      const CurrentLengthConversionFactor: Float = 1.0;
+      Exported: TX3DNodeNames = nil);
 
     procedure UnLoadInlined;
 
@@ -182,12 +184,12 @@
       by using AddChild yourself. }
     procedure LoadedInlineDirectly;
 
-    { The inlined VRML content (loaded from inlined url).
+    { The inlined content (loaded from inlined url).
       @nil if not yet loaded, or no loading was successful.
 
       This is also kept in VRML 1.0 children as Children[0],
       but for future it's better to not depend on that. }
-    property Inlined: TX3DNode read FInlined;
+    property Inlined: TX3DRootNode read FInlined;
   end;
 
   { InlineLoadControl (VRML 97 node).
@@ -442,7 +444,7 @@ begin
     Exported := TX3DNodeNames.Create(false) else
     Exported := nil;
 
-  LoadInlined(false, Exported);
+  LoadInlined(false, Reader.LengthConversionFactor, Exported);
 
   { do not add Exported to Importable list, if nothing was exported.
     This just saves the size of the Importable list. }
@@ -464,19 +466,9 @@ begin
   Loaded := false;
 end;
 
-procedure TInlineNode.LoadInlined(CanReload: boolean; Exported: TX3DNodeNames = nil);
-
-  { The Inlined contents are usually TX3DRootNode,
-    but they should not be saved as such. Although usually this doesn't
-    get saved (since we do not save inline contents), but it may happen
-    if you copy VRML nodes around, e.g. "expanding" inlines like
-    castle-process-3d-model. }
-  procedure InlinedIsNotRootNode;
-  begin
-    if FInlined is TX3DRootNode then
-      (FInlined as TX3DRootNode).SaveAsRootNode := false;
-  end;
-
+procedure TInlineNode.LoadInlined(CanReload: boolean;
+  const CurrentLengthConversionFactor: Float;
+  Exported: TX3DNodeNames);
 var
   I: Integer;
   FullUrl: string;
@@ -520,7 +512,26 @@ begin
 
   if FInlined <> nil then
   begin
-    InlinedIsNotRootNode;
+    { The Inlined contents are usually TX3DRootNode,
+      but they should not be saved as such. Although usually this doesn't
+      get saved (since we do not save inline contents), but it may happen
+      if you copy nodes around, e.g. "expanding" inlines like
+      castle-process-3d-model.
+
+      TODO: Such expanding must inherently break mismatching UNIT clauses
+      for LengthConversionFactor. To overcome this, our TX3DRootNode
+      should descend from TTransformNode and have it's scale actually saved. }
+    FInlined.SaveAsRootNode := false;
+
+    { FInlined.Scale is adjusted now to make 1 unit = 1 meter inside.
+      However, we are already scaled by CurrentLengthConversionFactor.
+
+      (The check for CurrentLengthConversionFactor <> 1 is only to make sure
+      we keep Scale equal precisely 1.0 (no fp errors) when nothing uses
+      UNIT length.)  }
+    if CurrentLengthConversionFactor <> 1 then
+      FInlined.Scale := FInlined.Scale / CurrentLengthConversionFactor;
+
     VRML1ChildAdd(FInlined);
     AfterLoadInlined;
   end;
@@ -536,7 +547,7 @@ procedure TInlineNode.LoadedInlineDirectly;
 begin
   Loaded := true;
   if VRML1ChildrenCount <> 0 then
-    FInlined := VRML1Children[0] else
+    FInlined := VRML1Children[0] as TX3DRootNode else
     FInlined := nil;
 end;
 
@@ -551,7 +562,7 @@ begin
     and "Inlined" field to the same value. }
   ResultI.Loaded := Loaded;
   if ResultI.VRML1ChildrenCount <> 0 then
-    ResultI.FInlined := ResultI.VRML1Children[0] else
+    ResultI.FInlined := ResultI.VRML1Children[0] as TX3DRootNode else
     ResultI.FInlined := nil;
 end;
 
