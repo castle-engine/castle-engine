@@ -52,10 +52,10 @@ begin
   S := TStringList.Create;
   try
     S.Append(Format('Camera: pos %s, dir %s, up %s, Move speed (per sec): %f',
-      [ VectorToNiceStr((SceneManager.Camera As TWalkCamera).Position),
-        VectorToNiceStr((SceneManager.Camera As TWalkCamera).Direction),
-        VectorToNiceStr((SceneManager.Camera As TWalkCamera).Up),
-        (SceneManager.Camera As TWalkCamera).MoveSpeed ]));
+      [ VectorToNiceStr((SceneManager.Camera as TWalkCamera).Position),
+        VectorToNiceStr((SceneManager.Camera as TWalkCamera).Direction),
+        VectorToNiceStr((SceneManager.Camera as TWalkCamera).Up),
+        (SceneManager.Camera as TWalkCamera).MoveSpeed ]));
 
     S.Append(Format('World time : %f', [WorldTime]));
 
@@ -81,7 +81,7 @@ procedure KeyDown(Window: TCastleWindowBase; key: TKey; c: char);
 begin
   case C of
     CharEscape: UserQuit := true;
-    'h': (SceneManager.Camera As TWalkCamera).GoToInitial;
+    'h': (SceneManager.Camera as TWalkCamera).GoToInitial;
     's': ChangeState(csStand);
     'w': ChangeState(csWalk);
     'b': ChangeState(csBored);
@@ -112,13 +112,13 @@ begin
     Window.Controls.Add(SceneManager);
 
     SceneManager.Camera := TWalkCamera.Create(SceneManager);
-    (SceneManager.Camera As TWalkCamera).Init(
+    (SceneManager.Camera as TWalkCamera).Init(
       Vector3Single(3, 3, 4),
       Vector3Single(-1, -1, -1),
       Vector3Single(0, 0, 1) { this will be corrected for ortho to dir, don't worry },
       Vector3Single(0, 0, 1),
-      0, 0);
-    (SceneManager.Camera As TWalkCamera).MoveSpeed := 2.5;
+      0, 0.1);
+    (SceneManager.Camera as TWalkCamera).MoveSpeed := 2.5;
 
     CreaturesKinds.Load(SceneManager.BaseLights);
     { TODO: allow to choose creature }
