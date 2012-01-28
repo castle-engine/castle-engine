@@ -305,8 +305,6 @@ begin
       until UserQuit;
 
       FreeAndNil(SceneCamera);
-
-      Window.Controls.MakeSingle(TCamera, nil);
     finally FreeAndNil(SavedMode); end;
   finally
     FreeAndNil(Player);
