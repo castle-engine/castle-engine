@@ -313,8 +313,11 @@ begin
   if ALActive then
   begin
     StopAllSources;
-    for ST := 0 to Sounds.Count - 1 do
-      FreeBuffer(Sounds[ST].Buffer);
+    { this is called from TALSoundEngine.Destroy, so be secure and check
+      Sounds for nil }
+    if Sounds <> nil then
+      for ST := 0 to Sounds.Count - 1 do
+        FreeBuffer(Sounds[ST].Buffer);
   end;
   inherited;
 end;
