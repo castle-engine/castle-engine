@@ -3,16 +3,14 @@
 <!--
    This is a sample sounds.xml file, usable by XmlSoundEngine unit.
    Configuration of game sounds. Each sound has a <sound> element.
+   You can add here sounds, and reference them from other configuration
+   files (e.g. creature config file will allow you to connect
+   sound names to creature actions like attack, death etc.).
 
-   `name' is the unique sound name, as defined in TXmlSoundEngine.SoundNames.
-   Currently you can have multiple <sound> elements for the same
-   name, and they will be processed in order - - - but don't depend
-   on it. For future safety each <sound> element should have different
-   name. In the future this file will allow you to add new sounds,
-   and name them any way you like - - - for now, you are constrained
-   to sounds defined and named in TXmlSoundEngine.SoundNames property.
+   `name' is the unique sound name. Each <sound> element must have a different
+   name.
 
-   `file_name' attribute defaults to element_name + '.wav', so in the most
+   `file_name' attribute defaults to `name' + '.wav', so in the most
    common situation, when sound named xxx has the filename xxx.wav,
    you don't have to specify filename. You have to specify file_name
    only if the sound needs different file_name (for whatever reason),
@@ -30,23 +28,17 @@
    `default_importance' is the sound importance, for AL sound manager.
    You can place here a simple unsigned int value, but it's strongly advised
    to use one of predefined special values, like "max".
-   For "The Castle" only: more predefined importances are
+   For "The Castle": more predefined importances are
    "player" or "default_creature" or "level_event".
 
-   For more details see declaration of TSoundInfo record in XmlSoundEngine unit.
+   For more details see declaration of TSoundInfo in XmlSoundEngine unit.
 
    Comments for "The Castle" only:
    Note that you can change this file while the game is running,
    and reload it by "Reload sounds/index.xml" command from the debug menu.
    This allows you to easily test various sound settings without
-   restarting the actual game program.
-   Note that when using "Reload sounds/index.xml" command:
-   - Don't change the "file_name" attribute. I.e. you must exit
-     and run the game again to use new sound file_name.
-     "Reload sounds/index.xml" is useful only when playing with other sound
-     attributes.
-   - Changes will only be reflected in newly started sounds,
-     not in currently played sounds.
+   restarting the actual game program. Changes may only be reflected
+   in newly started sounds, not in currently played sounds.
 -->
 
 <sounds>

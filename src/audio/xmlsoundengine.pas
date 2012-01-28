@@ -48,20 +48,22 @@ const
 type
   { Sound information, internally used by TXmlSoundEngine.
 
-    Although you still may want to familiarize with it's fields,
-    as they correspond to appropriate fields in your sounds/index.xml file.
-    All of the fields besides Buffer are initialized only by ReadSoundInfos.
+    The fields correspond to appropriate attributes in sounds/index.xml file.
+    All of the fields except Buffer are initialized only by ReadSounds.
 
     From the point of view of end-user the number of sounds
     is constant for given game and their properties (expressed in
     TSoundInfo below) are also constant.
     However, for the sake of debugging/testing the game,
-    and for content designers, the actual values of SoundInfos are loaded
-    at initialization by ReadSoundInfos (called automatically by ALContextOpen)
+    and for content designers, the actual values of Sounds are loaded
+    at initialization by ReadSounds (called automatically by ALContextOpen)
     from sounds/index.xml file,
-    and later can be changed by calling ReadSoundInfos once again during the
+    and later can be changed by calling ReadSounds once again during the
     game (debug menu may have command like "Reload sounds/index.xml"). }
   TSoundInfo = class
+    { Unique sound name. Empty only for stNone. }
+    Name: string;
+
     { '' means that this sound is not implemented and will never
       have any OpenAL buffer associated with it. }
     FileName: string;
@@ -108,10 +110,8 @@ type
   TXmlSoundEngine = class(TALSoundEngine)
   private
     FSoundImportanceNames: TStringList;
-    FSoundNames: TStringList;
+    FSounds: TSoundInfoList;
     FSoundsXmlFileName: string;
-
-    SoundInfos: TSoundInfoList;
 
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
@@ -129,8 +129,8 @@ type
       for a heavily commented example.
 
       It's crucial that you create such file, and eventually adjust
-      this property before calling ReadSoundInfos (or ALContextOpen,
-      that always calls ReadSoundInfos).
+      this property before calling ReadSounds (or ALContextOpen,
+      that always calls ReadSounds).
 
       By default (in our constryctor) this is initialized to
       @code(ProgramDataPath + 'data' +
@@ -139,26 +139,15 @@ type
     property SoundsXmlFileName: string
       read FSoundsXmlFileName write FSoundsXmlFileName;
 
-    { A list of sound names used by your program.
+    { A list of sounds used by your program.
       Each sound has a unique name, used to identify sound in
       sounds/index.xml file and for SoundFromName function.
-      These names are stored here.
 
-      At the beginning, this list always contains exactly one item: empty string.
+      At the beginning, this list always contains exactly one sound: empty stNone.
       This is a special "sound type" that has index 0 (should be always
       expressed as TSoundType value stNone) and name ''.
-      stNone is a special sound as it actually means "no sound" in many cases.
-
-      You can (and should !) fill this array with all the sound names
-      your game is using @bold(before calling ALContextOpen)
-      (or ReadSoundInfos, but ReadSoundInfos is usually called
-      for the first time by ALContextOpen).
-
-      TODO: in the future this may be automatically filled when
-      ReadSoundInfos is called. For now, ReadSoundInfos just
-      read sounds information for all sounds mentioned here --- in the future,
-      ReadSoundInfos may also just fill this list. }
-    property SoundNames: TStringList read FSoundNames;
+      stNone is a special sound as it actually means "no sound" in many cases. }
+    property Sounds: TSoundInfoList read FSounds;
 
     { Return sound with given name.
       Available names are given in SoundNames,
@@ -200,7 +189,7 @@ type
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
 
-    procedure ReadSoundInfos;
+    procedure ReadSounds; virtual;
 
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
 
@@ -265,18 +254,15 @@ begin
   { Sound importance names and sound names are case-sensitive because
     XML traditionally is. Maybe in the future I'll relax this,
     there's no definite reason actually to not let them ignore case. }
-
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
   AddSoundImportanceName('max', MaxSoundImportance);
 
   Volume := DefaultXmlEngineVolume;
 
-  FSoundNames := TStringList.Create;
-  FSoundNames.CaseSensitive := true;
-  FSoundNames.Append(''); { stNone entry }
-
-  SoundInfos := TSoundInfoList.Create;
+  FSounds := TSoundInfoList.Create;
+  { add stNone sound }
+  Sounds.Add(TSoundInfo.Create);
 
   FMusicPlayer := TMusicPlayer.Create(Self);
 
@@ -287,8 +273,7 @@ end;
 destructor TXmlSoundEngine.Destroy;
 begin
   FreeAndNil(FSoundImportanceNames);
-  FreeAndNil(FSoundNames);
-  FreeAndNil(SoundInfos);
+  FreeAndNil(FSounds);
   FreeAndNil(FMusicPlayer);
   inherited;
 end;
@@ -299,20 +284,20 @@ var
 begin
   inherited;
 
-  { initialize SoundInfos regardless of ALActive }
-  ReadSoundInfos;
+  { initialize Sounds regardless of ALActive }
+  ReadSounds;
 
   if ALActive then
   begin
-    Progress.Init(SoundInfos.Count - 1, 'Loading sounds');
+    Progress.Init(Sounds.Count - 1, 'Loading sounds');
     try
-      { We do progress to "SoundInfos.Count - 1" because we start
+      { We do progress to "Sounds.Count - 1" because we start
         iterating from ST = 1 because ST = 0 = stNone never exists. }
-      Assert(SoundInfos[stNone].FileName = '');
-      for ST := 1 to SoundInfos.Count - 1 do
+      Assert(Sounds[stNone].FileName = '');
+      for ST := 1 to Sounds.Count - 1 do
       begin
-        if SoundInfos[ST].FileName <> '' then
-          SoundInfos[ST].Buffer := LoadBuffer(SoundInfos[ST].FileName);
+        if Sounds[ST].FileName <> '' then
+          Sounds[ST].Buffer := LoadBuffer(Sounds[ST].FileName);
         Progress.Step;
       end;
     finally Progress.Fini; end;
@@ -328,8 +313,8 @@ begin
   if ALActive then
   begin
     StopAllSources;
-    for ST := 0 to SoundInfos.Count - 1 do
-      FreeBuffer(SoundInfos[ST].Buffer);
+    for ST := 0 to Sounds.Count - 1 do
+      FreeBuffer(Sounds[ST].Buffer);
   end;
   inherited;
 end;
@@ -338,11 +323,11 @@ function TXmlSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
-    SoundInfos[SoundType].Buffer, false, Looping,
-    SoundInfos[SoundType].DefaultImportance,
-    SoundInfos[SoundType].Gain,
-    SoundInfos[SoundType].MinGain,
-    SoundInfos[SoundType].MaxGain,
+    Sounds[SoundType].Buffer, false, Looping,
+    Sounds[SoundType].DefaultImportance,
+    Sounds[SoundType].Gain,
+    Sounds[SoundType].MinGain,
+    Sounds[SoundType].MaxGain,
     ZeroVector3Single);
 end;
 
@@ -351,28 +336,30 @@ function TXmlSoundEngine.Sound3d(SoundType: TSoundType;
   const Looping: boolean): TALSound;
 begin
   Result := PlaySound(
-    SoundInfos[SoundType].Buffer, true, Looping,
-    SoundInfos[SoundType].DefaultImportance,
-    SoundInfos[SoundType].Gain,
-    SoundInfos[SoundType].MinGain,
-    SoundInfos[SoundType].MaxGain,
+    Sounds[SoundType].Buffer, true, Looping,
+    Sounds[SoundType].DefaultImportance,
+    Sounds[SoundType].Gain,
+    Sounds[SoundType].MinGain,
+    Sounds[SoundType].MaxGain,
     Position);
 end;
 
-procedure TXmlSoundEngine.ReadSoundInfos;
+procedure TXmlSoundEngine.ReadSounds;
 var
-  ST: TSoundType;
   SoundConfig: TXMLDocument;
-  SoundNode: TDOMNode;
-  SoundElement: TDOMElement;
-  SoundElements: TDOMNodeList;
-  S: string;
-  I, SoundImportanceIndex: Integer;
+  ImportanceStr: string;
+  SoundImportanceIndex: Integer;
+  I: TXMLElementIterator;
   SoundsXmlPath: string;
+  S: TSoundInfo;
 begin
-  { This must be an absolute path, since SoundInfos[].FileName should be
+  { This must be an absolute path, since Sounds[].FileName should be
     absolute (to not depend on the current dir when loading sound files. }
   SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsXmlFileName));
+
+  Sounds.Clear;
+  { add stNone sound }
+  Sounds.Add(TSoundInfo.Create);
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
@@ -382,87 +369,69 @@ begin
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
 
-    { Init all SoundInfos to default values }
-    SoundInfos.Count := SoundNames.Count;
-    { stNone has specific info: FileName is '', Buffer is 0, rest doesn't matter }
-    SoundInfos[stNone] := TSoundInfo.Create;
-    SoundInfos[stNone].FileName := '';
-    SoundInfos[stNone].Buffer := 0;
-    { initialize other than stNone sounds }
-    for ST := 1 to SoundInfos.Count - 1 do
-    begin
-      SoundInfos[ST] := TSoundInfo.Create;
-      SoundInfos[ST].FileName :=
-        CombinePaths(SoundsXmlPath, SoundNames[ST] + '.wav');
-      SoundInfos[ST].Gain := 1;
-      SoundInfos[ST].MinGain := 0;
-      SoundInfos[ST].MaxGain := 1;
-      SoundInfos[ST].DefaultImportance := MaxSoundImportance;
-      SoundInfos[ST].Buffer := 0; {< initially, will be loaded later }
-    end;
-
-    SoundElements := SoundConfig.DocumentElement.ChildNodes;
+    I := TXMLElementIterator.Create(SoundConfig.DocumentElement);
     try
-      for I := 0 to SoundElements.Count - 1 do
+      while I.GetNext do
       begin
-        SoundNode := SoundElements.Item[I];
-        if SoundNode.NodeType = ELEMENT_NODE then
+        Check(I.Current.TagName = 'sound',
+          'Each child of sounds/index.xml root node must be the <sound> element');
+
+        S := TSoundInfo.Create;
+        S.Name := I.Current.GetAttribute('name');
+
+        { init to default values }
+        S.FileName := CombinePaths(SoundsXmlPath, S.Name + '.wav');
+        S.Gain := 1;
+        S.MinGain := 0;
+        S.MaxGain := 1;
+        S.DefaultImportance := MaxSoundImportance;
+        S.Buffer := 0; {< initially, will be loaded later }
+
+        Sounds.Add(S);
+
+        { retrieve FileNameNode using DOMGetAttribute
+          (that internally uses I.Current.Attributes.GetNamedItem),
+          because we have to distinguish between the case when file_name
+          attribute is not present (in this case FileName is left as it was)
+          and when it's present as set to empty string.
+          Standard I.Current.GetAttribute wouldn't allow me this. }
+        if DOMGetAttribute(I.Current, 'file_name', S.FileName) and
+          (S.FileName <> '') then
+          { Make FileName absolute, using SoundsXmlPath, if non-empty FileName
+            was specified in XML file. }
+          S.FileName := CombinePaths(SoundsXmlPath, S.FileName);
+
+        DOMGetSingleAttribute(I.Current, 'gain', S.Gain);
+        DOMGetSingleAttribute(I.Current, 'min_gain', S.MinGain);
+        DOMGetSingleAttribute(I.Current, 'max_gain', S.MaxGain);
+
+        { MaxGain is max 1. Although some OpenAL implementations allow > 1,
+          Windows impl (from Creative) doesn't. For consistent results,
+          we don't allow it anywhere. }
+        if S.MaxGain > 1 then
+          S.MaxGain := 1;
+
+        if DOMGetAttribute(I.Current, 'default_importance', ImportanceStr) then
         begin
-          SoundElement := SoundNode as TDOMElement;
-          Check(SoundElement.TagName = 'sound',
-            'Each child of sounds/index.xml root node must be the <sound> element');
-
-          ST := SoundFromName(SoundElement.GetAttribute('name'));
-
-          { I retrieve FileNameNode using DOMGetAttribute
-            (that internally uses SoundElement.Attributes.GetNamedItem),
-            because I have to distinguish between the case when file_name
-            attribute is not present (in this case FileName is left as it was)
-            and when it's present as set to empty string.
-            Standard SoundElement.GetAttribute wouldn't allow me this. }
-          if DOMGetAttribute(SoundElement, 'file_name',
-            SoundInfos[ST].FileName) and
-            (SoundInfos[ST].FileName <> '') then
-            { Make FileName absolute, using SoundsXmlPath, if non-empty FileName
-              was specified in XML file. }
-            SoundInfos[ST].FileName := CombinePaths(
-              SoundsXmlPath,
-              SoundInfos[ST].FileName);
-
-          DOMGetSingleAttribute(SoundElement, 'gain', SoundInfos[ST].Gain);
-          DOMGetSingleAttribute(SoundElement, 'min_gain', SoundInfos[ST].MinGain);
-          DOMGetSingleAttribute(SoundElement, 'max_gain', SoundInfos[ST].MaxGain);
-
-          { MaxGain is max 1. Although some OpenAL implementations allow > 1,
-            Windows impl (from Creative) doesn't. For consistent results,
-            we don't allow it anywhere. }
-          if SoundInfos[ST].MaxGain > 1 then
-            SoundInfos[ST].MaxGain := 1;
-
-          if DOMGetAttribute(SoundElement, 'default_importance', S) then
-          begin
-            SoundImportanceIndex := SoundImportanceNames.IndexOf(S);
-            if SoundImportanceIndex = -1 then
-              SoundInfos[ST].DefaultImportance := StrToInt(S) else
-              SoundInfos[ST].DefaultImportance :=
-                PtrUInt(SoundImportanceNames.Objects[SoundImportanceIndex]);
-          end;
+          SoundImportanceIndex := SoundImportanceNames.IndexOf(ImportanceStr);
+          if SoundImportanceIndex = -1 then
+            S.DefaultImportance := StrToInt(ImportanceStr) else
+            S.DefaultImportance :=
+              PtrUInt(SoundImportanceNames.Objects[SoundImportanceIndex]);
         end;
       end;
-    finally FreeChildNodes(SoundElements); end;
+    finally FreeAndNil(I) end;
   finally
     FreeAndNil(SoundConfig);
   end;
 end;
 
 function TXmlSoundEngine.SoundFromName(const SoundName: string): TSoundType;
-var
-  Index: Integer;
 begin
-  Index := SoundNames.IndexOf(SoundName);
-  if Index = -1 then
-    raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]) else
-    Result := Index;
+  for Result := 0 to Sounds.Count - 1 do
+    if Sounds[Result].Name = SoundName then
+      Exit;
+  raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]);
 end;
 
 procedure TXmlSoundEngine.AddSoundImportanceName(const Name: string;
@@ -509,9 +478,9 @@ end;
 procedure TMusicPlayer.AllocateSource;
 begin
   FAllocatedSource := FEngine.PlaySound(
-    FEngine.SoundInfos[PlayedSound].Buffer, false, true,
+    FEngine.Sounds[PlayedSound].Buffer, false, true,
     MaxSoundImportance,
-    MusicVolume * FEngine.SoundInfos[PlayedSound].Gain, 0, 1,
+    MusicVolume * FEngine.Sounds[PlayedSound].Gain, 0, 1,
     ZeroVector3Single);
 
   if FAllocatedSource <> nil then
@@ -554,7 +523,7 @@ begin
   begin
     FMusicVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := MusicVolume * FEngine.SoundInfos[PlayedSound].Gain;
+      FAllocatedSource.Gain := MusicVolume * FEngine.Sounds[PlayedSound].Gain;
   end;
 end;
 

@@ -51,25 +51,19 @@ implementation
 uses SysUtils, ALSoundEngine, RiftConfig;
 
 constructor TRiftSoundEngine.Create;
-
-  procedure SoundNameType(const Name: string; var Value: TSoundType);
-  begin
-    SoundNames.Append(Name);
-    Value := SoundFromName(Name);
-    Assert(Integer(Value) = SoundNames.Count - 1);
-  end;
-
 begin
   inherited;
-
-  SoundNameType('intro_music',             stIntroMusic);
-  SoundNameType('main_menu_music',         stMainMenuMusic);
-  SoundNameType('menu_current_item_changed',  stMenuCurrentItemChanged);
-  SoundNameType('menu_current_item_selected', stMenuClick);
 
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
 
   LoadFromConfig(UserConfig);
+
+  ReadSounds;
+
+  stIntroMusic             := SoundFromName('intro_music');
+  stMainMenuMusic          := SoundFromName('main_menu_music');
+  stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed');
+  stMenuClick              := SoundFromName('menu_current_item_selected');
 end;
 
 destructor TRiftSoundEngine.Destroy;
