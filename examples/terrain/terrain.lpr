@@ -147,7 +147,7 @@ begin
     FreeAndNil(Elevation);
     Elevation := Value;
 
-    Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true { before camera });
+    Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
 
     if Elevation is TElevationImage then
       TElevationImage(Elevation).ImageHeightScale := ImageHeightScaleSlider.Value;
@@ -654,7 +654,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true { before camera });
+        Glw.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
