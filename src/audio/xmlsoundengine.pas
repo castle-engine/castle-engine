@@ -242,7 +242,7 @@ type
 
 implementation
 
-uses ProgressUnit, CastleFilesUtils, DOM, XMLRead, CastleXMLUtils,
+uses ProgressUnit, CastleFilesUtils, DOM, XMLRead, CastleXMLUtils, CastleWarnings,
   CastleStringUtils;
 
 { TXmlSoundEngine ----------------------------------------------------------- }
@@ -297,7 +297,16 @@ begin
       for ST := 1 to Sounds.Count - 1 do
       begin
         if Sounds[ST].FileName <> '' then
+        try
           Sounds[ST].Buffer := LoadBuffer(Sounds[ST].FileName);
+        except
+          on E: Exception do
+          begin
+            Sounds[ST].Buffer := 0;
+            OnWarning(wtMinor, 'Sound', Format('Sound file "%s" cannot be loaded: %s',
+              [Sounds[ST].FileName, E.Message]));
+          end;
+        end;
         Progress.Step;
       end;
     finally Progress.Fini; end;
