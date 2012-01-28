@@ -144,7 +144,7 @@ type
     FCamera: TWalkCamera;
 
     { This is set and used only if csWalk }
-    WantsToWalkTarget: TVector3Single;
+    WantsToWalkPos, WantsToWalkDir: TVector3Single;
 
     TargetVisualize: TCastleScene;
   public
@@ -614,8 +614,47 @@ end;
 
 procedure TPlayer.Idle(const CompSpeed: Single);
 var
-  MoveDirectionCurrent, MoveDirectionMax: TVector3Single;
-  MoveDirectionCurrentScale: Single;
+  RotationAxis: TVector3Single;
+  AngleToTarget: Single;
+
+  procedure Rotate;
+  var
+    AngleRotate: Single;
+  begin
+    { first adjust direction }
+    AngleRotate := CompSpeed;
+    if AngleToTarget < 0 then
+      AngleRotate := Max(-AngleRotate, AngleToTarget) else
+      AngleRotate := Min( AngleRotate, AngleToTarget);
+    Camera.Direction := RotatePointAroundAxisRad(AngleRotate, Camera.Direction, RotationAxis);
+  end;
+
+  procedure Move;
+  var
+    MoveDirectionCurrent, MoveDirectionMax: TVector3Single;
+    MoveDirectionCurrentScale: Single;
+  begin
+    { since Camera.Position <> WantsToWalkPos, we know that
+      MoveDirectionMax is non-zero }
+    MoveDirectionMax := VectorSubtract(WantsToWalkPos, Camera.Position);
+    MoveDirectionCurrentScale := Camera.MoveSpeed * CompSpeed / VectorLen(MoveDirectionMax);
+    if MoveDirectionCurrentScale >= 1.0 then
+    begin
+      { This means that
+          Camera.Position + MoveDirectionMax * MoveDirectionCurrentScale
+        would actually get us too far. So we instead just go to target and
+        stop there. }
+      Camera.Position := WantsToWalkPos;
+      State := csStand;
+    end else
+    begin
+      MoveDirectionCurrent := VectorScale(MoveDirectionMax, MoveDirectionCurrentScale);
+      Camera.Position := VectorAdd(Camera.Position, MoveDirectionCurrent);
+    end;
+  end;
+
+var
+  IsTargetPos, IsTargetDir: boolean;
 begin
   inherited;
 
@@ -626,31 +665,24 @@ begin
       change to csStand. }
 
     { TODO: check collisions with the scene before changing Camera.Position }
-    { TODO: change our Camera.Direction first }
 
-    if VectorsEqual(Camera.Position, WantsToWalkTarget) then
+    IsTargetPos := VectorsEqual(Camera.Position, WantsToWalkPos);
+    IsTargetDir := VectorsEqual(Camera.Direction, WantsToWalkDir);
+
+    if not IsTargetDir then
     begin
-      State := csStand;
-    end else
-    begin
-      { since Camera.Position <> WantsToWalkTarget, we know that
-        MoveDirectionMax is non-zero }
-      MoveDirectionMax := VectorSubtract(WantsToWalkTarget, Camera.Position);
-      MoveDirectionCurrentScale := Camera.MoveSpeed * CompSpeed / VectorLen(MoveDirectionMax);
-      if MoveDirectionCurrentScale >= 1.0 then
-      begin
-        { This means that
-            Camera.Position + MoveDirectionMax * MoveDirectionCurrentScale
-          would actually get us too far. So we instead just go to target and
-          stop there. }
-        Camera.Position := WantsToWalkTarget;
-        State := csStand;
-      end else
-      begin
-        MoveDirectionCurrent := VectorScale(MoveDirectionMax, MoveDirectionCurrentScale);
-        Camera.Position := VectorAdd(Camera.Position, MoveDirectionCurrent);
-      end;
+      { compare Camera.Direction and WantsToWalkDir with more tolerance }
+      RotationAxis := VectorProduct(Camera.Direction, WantsToWalkDir);
+      AngleToTarget := RotationAngleRadBetweenVectors(Camera.Direction, WantsToWalkDir, RotationAxis);
+      if Abs(AngleToTarget) < 0.01 then
+        IsTargetDir := true;
     end;
+
+    if IsTargetPos and IsTargetDir then
+      State := csStand else
+    if not IsTargetDir then
+      Rotate else
+      Move;
   end;
 end;
 
@@ -672,7 +704,7 @@ begin
   if DebugRenderWantsToWalk and (State = csWalk) then
   begin
     glPushMatrix();
-      glTranslatev(WantsToWalkTarget);
+      glTranslatev(WantsToWalkPos);
       TargetVisualize.Render(nil, Params);
     glPopMatrix();
   end;
@@ -680,7 +712,17 @@ end;
 
 procedure TPlayer.WantsToWalk(const Value: TVector3Single);
 begin
-  WantsToWalkTarget := Value;
+  WantsToWalkPos := Value;
+  WantsToWalkDir := Normalized(WantsToWalkPos - Camera.Direction);
+  { fix WantsToWalkDir, to avoid wild rotations.
+    Without this, our avatar would wildly change up when walking to some
+    higher/lower target. This is coupled with the fact that currently
+    we accept any clicked position as walk target --- in a real game,
+    it would be more limited where you can walk, and so this safeguard
+    could be less critical. }
+  if VectorsParallel(WantsToWalkDir, Camera.Up) then
+    WantsToWalkDir := Camera.Direction else
+    MakeVectorsOrthoOnTheirPlane(WantsToWalkDir, Camera.Up);
   State := csWalk;
 end;
 
