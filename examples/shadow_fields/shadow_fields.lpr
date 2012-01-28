@@ -75,33 +75,17 @@ type
 var
   Navigator: TNavigatorType = ntAll;
   NavigatorRadio: array [TNavigatorType] of TMenuItemRadio;
-  { TCamera instance corresponding to current Navigator value }
-  NavigatorCurrent: TCamera;
-  NavigatorAll: TCamera;
-  NavigatorCaster: TExamineCamera;
-  NavigatorLocalLight: TExamineCamera;
-  NavigatorSFExplorer: TExamineCamera;
-  NavigatorEnvLight: TExamineCamera;
+  NavigatorData: array [ntCaster..ntEnvLight] of record
+    Pos: TVector3Single;
+    Scale: Single;
+  end = ( (Pos: (0, 0, 0); Scale: 1.0),
+          (Pos: (0, 0, 0); Scale: 1.0),
+          (Pos: (0, 0, 0); Scale: 1.0),
+          (Pos: (0, 0, 0); Scale: 1.0) );
 
 procedure NavigatorChanged;
 begin
-  case Navigator of
-    ntAll       : NavigatorCurrent := NavigatorAll;
-    ntCaster    : NavigatorCurrent := NavigatorCaster;
-    ntLocalLight: NavigatorCurrent := NavigatorLocalLight;
-    ntSFExplorer: NavigatorCurrent := NavigatorSFExplorer;
-    ntEnvLight  : NavigatorCurrent := NavigatorEnvLight;
-    else raise EInternalError.Create('Navigator?');
-  end;
-
-  { NavigatorCurrent may be any of NavigatorXxx.
-    However, NavigatorAll must be treated specially, as it's already present
-    inside SceneManager.Camera (we don't want to make it also referenced
-    from Window.Controls). }
-  NavigatorAll.IgnoreAllInputs := NavigatorAll <> NavigatorCurrent;
-  if NavigatorAll <> NavigatorCurrent then
-    Window.Controls.MakeSingle(TCamera, NavigatorCurrent) else
-    Window.Controls.MakeSingle(TCamera, nil);
+  SceneManager.Camera.IgnoreAllInputs := Navigator <> ntAll;
 
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;
@@ -110,10 +94,8 @@ end;
 procedure DrawEnvLight(ForMap: boolean);
 begin
   glPushMatrix;
-    glTranslatev(NavigatorEnvLight.MoveAmount);
-    glScalef(NavigatorEnvLight.ScaleFactor,
-             NavigatorEnvLight.ScaleFactor,
-             NavigatorEnvLight.ScaleFactor);
+    glTranslatev(NavigatorData[ntEnvLight].Pos);
+    glScalev(NavigatorData[ntEnvLight].Scale);
 
     if not ForMap then
     begin
@@ -134,6 +116,7 @@ type
   TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromViewEverything; override;
     function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; override;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
   end;
 
 procedure TMySceneManager.RenderFromViewEverything;
@@ -151,7 +134,7 @@ procedure TMySceneManager.RenderFromViewEverything;
       Side: TCubeMapSide;
     begin
       Map := Field.EnvMapFromPoint(VectorSubtract(
-        NavigatorSFExplorer.MoveAmount, FieldMoveAmount), FieldScale);
+        NavigatorData[ntSFExplorer].Pos, FieldMoveAmount), FieldScale);
       if Map <> nil then
       begin
         for Side := Low(Side) to High(Side) do
@@ -171,11 +154,11 @@ procedure TMySceneManager.RenderFromViewEverything;
     glPixelZoom(Scale, Scale);
 
     DrawOneMap(CasterOOF,
-      NavigatorCaster.MoveAmount,
-      NavigatorCaster.ScaleFactor, 100, 100);
+      NavigatorData[ntCaster].Pos,
+      NavigatorData[ntCaster].Scale, 100, 100);
     DrawOneMap(LocalLightSRF,
-      NavigatorLocalLight.MoveAmount,
-      NavigatorLocalLight.ScaleFactor, 100, 300);
+      NavigatorData[ntLocalLight].Pos,
+      NavigatorData[ntLocalLight].Scale, 100, 300);
 
     glPixelZoom(1, 1);
   end;
@@ -184,7 +167,7 @@ var
   H: TLightInstance;
 begin
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT);
-  glLoadMatrix(NavigatorAll.Matrix);
+  glLoadMatrix(Camera.Matrix);
 
   if UseEnvLight and (not SceneReceiver.BoundingBox.IsEmpty) then
   begin
@@ -211,18 +194,14 @@ begin
   H.Node.FdOn.Send(true);
 
   glPushMatrix;
-    glTranslatev(NavigatorCaster.MoveAmount);
-    glScalef(NavigatorCaster.ScaleFactor,
-             NavigatorCaster.ScaleFactor,
-             NavigatorCaster.ScaleFactor);
+    glTranslatev(NavigatorData[ntCaster].Pos);
+    glScalev(NavigatorData[ntCaster].Scale);
     SceneCaster.Render(nil, RenderParams);
   glPopMatrix;
 
   glPushMatrix;
-    glTranslatev(NavigatorLocalLight.MoveAmount);
-    glScalef(NavigatorLocalLight.ScaleFactor,
-             NavigatorLocalLight.ScaleFactor,
-             NavigatorLocalLight.ScaleFactor);
+    glTranslatev(NavigatorData[ntLocalLight].Pos);
+    glScalev(NavigatorData[ntLocalLight].Scale);
     SceneLocalLight.Render(nil, RenderParams);
   glPopMatrix;
 
@@ -234,9 +213,9 @@ begin
 
   glEnable(GL_DEPTH_TEST);
     glColorv(Blue3Single);
-    glPointSize(10); { VRML renderer will reset point size }
+    glPointSize(10); { GLRenderer will reset point size }
     glBegin(GL_POINTS);
-      glVertexv(NavigatorSFExplorer.MoveAmount);
+      glVertexv(NavigatorData[ntSFExplorer].Pos);
     glEnd;
   glDisable(GL_DEPTH_TEST);
 
@@ -247,6 +226,14 @@ function TMySceneManager.Headlight(out CustomHeadlight: TAbstractLightNode): boo
 begin
   Result := true;
   CustomHeadlight := nil;
+end;
+
+function TMySceneManager.PointingDeviceMove(
+  const RayOrigin, RayDirection: TVector3Single): boolean;
+begin
+  Result := inherited;
+
+  { TODO: based on Navigator, move/scale something }
 end;
 
 procedure Open(Window: TCastleWindowBase);
@@ -303,15 +290,13 @@ var
     C: Single;
   begin
     CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorCaster.MoveAmount),
-      NavigatorCaster.ScaleFactor);
+      Position, NavigatorData[ntCaster].Pos), NavigatorData[ntCaster].Scale);
 
     if not (CasterBeforeLocalLight or UseEnvLight) then
       CasterMap := nil;
 
     LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorLocalLight.MoveAmount),
-      NavigatorLocalLight.ScaleFactor);
+      Position, NavigatorData[ntLocalLight].Pos), NavigatorData[ntLocalLight].Scale);
 
     if LocalLightMap = nil then
       { Too far from light }
@@ -366,8 +351,8 @@ var
     LM: Cardinal;
   begin
     CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorCaster.MoveAmount),
-      NavigatorCaster.ScaleFactor, UseInterpolation, SHCount);
+      Position, NavigatorData[ntCaster].Pos),
+      NavigatorData[ntCaster].Scale, UseInterpolation, SHCount);
 
     if not (CasterBeforeLocalLight or UseEnvLight) then
       CasterVector := nil;
@@ -378,8 +363,8 @@ var
     if UseEnvLight then
       LightVector := @EnvLightSHVector else
       LightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
-        Position, NavigatorLocalLight.MoveAmount),
-        NavigatorLocalLight.ScaleFactor, UseInterpolation, SHCount);
+        Position, NavigatorData[ntLocalLight].Pos),
+        NavigatorData[ntLocalLight].Scale, UseInterpolation, SHCount);
 
     if LightVector = nil then
       { Too far from light }
@@ -414,8 +399,8 @@ begin
   Position := MatrixMultPoint(Shape.State.Transform, VertexPosition);
 
   CasterBeforeLocalLight :=
-    PointsDistanceSqr(Position, NavigatorCaster.MoveAmount) <
-    PointsDistanceSqr(Position, NavigatorLocalLight.MoveAmount);
+    PointsDistanceSqr(Position, NavigatorData[ntCaster].Pos) <
+    PointsDistanceSqr(Position, NavigatorData[ntLocalLight].Pos);
 
   if UseSH then
     CalculateBySH else
@@ -548,7 +533,6 @@ var
   ShadowCasterFileName: string = 'models/humanoid_stand.wrl';
   ShadowReceiverFileName: string = 'models/plane.wrl';
   LocalLightFileName: string = 'models/sphere.wrl';
-  V: TVector3Single;
 begin
   Window := TCastleWindowCustom.Create(Application);
 
@@ -586,63 +570,40 @@ begin
 
     { initialize navigators }
 
-    NavigatorAll := SceneReceiver.CreateCamera(Window);
-    SceneManager.Camera := NavigatorAll;
-
-    NavigatorCaster := TExamineCamera.Create(Window);
-    NavigatorCaster.ModelBox := SceneCaster.BoundingBox;
-
-    NavigatorLocalLight := TExamineCamera.Create(Window);
-    NavigatorLocalLight.ModelBox := SceneLocalLight.BoundingBox;
+    SceneManager.Camera := SceneReceiver.CreateCamera(Window);
 
     BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;
     SceneManager.DefaultVisibilityLimit := 100;
 
-    { calculate starting local light position,
-      and set this as NavigatorLocalLight.MoveAmount }
+    { calculate starting local light position }
     if BoxSum.IsEmpty then
     begin
-      V := Vector3Single(0, 0, 1);
+      NavigatorData[ntLocalLight].Pos := Vector3Single(0, 0, 1);
     end else
     begin
-      V := BoxSum.Middle;
-      V[0] := BoxSum.Data[0][0];
+      NavigatorData[ntLocalLight].Pos := BoxSum.Middle;
+      NavigatorData[ntLocalLight].Pos[0] := BoxSum.Data[0][0];
     end;
-    NavigatorLocalLight.MoveAmount := V;
 
-    NavigatorSFExplorer := TExamineCamera.Create(Window);
-    { use SceneCaster.BoundingBox for light's box, this determines the speed
-      of moving light source with mouse. }
-    NavigatorSFExplorer.ModelBox := SceneCaster.BoundingBox;
-
-    { calculate starting sf explorer position,
-      and set this as NavigatorSFExplorer.MoveAmount }
+    { calculate starting sf explorer position }
     if BoxSum.IsEmpty then
     begin
-      V := Vector3Single(0, 0, 1);
+      NavigatorData[ntSFExplorer].Pos := Vector3Single(0, 0, 1);
     end else
     begin
-      V := BoxSum.Middle;
-      V[0] := BoxSum.Data[1][0];
+      NavigatorData[ntSFExplorer].Pos := BoxSum.Middle;
+      NavigatorData[ntSFExplorer].Pos[0] := BoxSum.Data[1][0];
     end;
-    NavigatorSFExplorer.MoveAmount := V;
 
-    NavigatorEnvLight := TExamineCamera.Create(Window);
-    { use SceneCaster.BoundingBox for light's box, this determines the speed
-      of moving light source with mouse. }
-    NavigatorEnvLight.ModelBox := SceneCaster.BoundingBox;
-
-    { calculate starting env light position,
-      and set this as NavigatorEnvLight.MoveAmount }
+    { calculate starting env light position }
     if BoxSum.IsEmpty then
     begin
-      V := Vector3Single(0, 0, 1);
+      NavigatorData[ntEnvLight].Pos := Vector3Single(0, 0, 1);
     end else
     begin
-      V := BoxSum.Middle;
-      V[1] := BoxSum.Data[0][1];
+      NavigatorData[ntEnvLight].Pos := BoxSum.Middle;
+      NavigatorData[ntEnvLight].Pos[1] := BoxSum.Data[0][1];
     end;
-    NavigatorEnvLight.MoveAmount := V;
 
     NavigatorChanged;
 

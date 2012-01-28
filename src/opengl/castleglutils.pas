@@ -434,6 +434,7 @@ procedure glTranslatev(const V: TVector3d); overload;
 procedure glTranslatev(const V: TVector3_Single); overload;
 procedure glTranslatev(const V: TVector3_Double); overload;
 
+procedure glScalev(const V: Single); overload;
 procedure glScalev(const V: TVector3f); overload;
 procedure glScalev(const V: TVector3d); overload;
 procedure glScalev(const V: TVector3_Single); overload;
@@ -1247,6 +1248,8 @@ procedure glTranslatev(const V: TVector3d); begin glTranslated(V[0], V[1], V[2])
 
 procedure glTranslatev(const V: TVector3_Single); begin glTranslatef(V.Data[0], V.Data[1], V.Data[2]); end;
 procedure glTranslatev(const V: TVector3_Double); begin glTranslated(V.Data[0], V.Data[1], V.Data[2]); end;
+
+procedure glScalev(const V: Single); begin glScalef(V, V, V); end;
 
 procedure glScalev(const V: TVector3f); begin glScalef(V[0], V[1], V[2]); end;
 procedure glScalev(const V: TVector3d); begin glScaled(V[0], V[1], V[2]); end;
