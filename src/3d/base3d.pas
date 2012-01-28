@@ -632,7 +632,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
@@ -787,7 +787,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -863,7 +863,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -1101,7 +1101,7 @@ end;
 
 function T3D.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
@@ -1551,7 +1551,7 @@ end;
 
 function T3DList.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -1562,7 +1562,7 @@ begin
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].MoveBoxAllowedSimple(OldPos, ProposedNewPos,
-        ProposedNewBox, TrianglesToIgnoreFunc);
+        OldBox, ProposedNewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
     end;
 end;
@@ -1999,11 +1999,10 @@ end;
 
 function T3DCustomTransform.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
-  B: TBox3D;
   MInverse: TMatrix4Single;
 begin
   { inherited will check these anyway. But by checking them here,
@@ -2018,16 +2017,19 @@ begin
         Items and (OldPos, ProposedNewPos) - Translation
       And this way I can use "inherited MoveBoxAllowedSimple". }
     T := GetTranslation;
-    B := ProposedNewBox.AntiTranslate(T);
     Result := inherited MoveBoxAllowedSimple(
-      OldPos - T, ProposedNewPos - T, B, TrianglesToIgnoreFunc);
+      OldPos         - T,
+      ProposedNewPos - T,
+      OldBox        .AntiTranslate(T),
+      ProposedNewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
   end else
   begin
     MInverse := TransformInverse;
-    B := ProposedNewBox.Transform(MInverse);
     Result := inherited MoveBoxAllowedSimple(
       MatrixMultPoint(MInverse, OldPos),
-      MatrixMultPoint(MInverse, ProposedNewPos), B, TrianglesToIgnoreFunc);
+      MatrixMultPoint(MInverse, ProposedNewPos),
+      OldBox        .Transform(MInverse),
+      ProposedNewBox.Transform(MInverse), TrianglesToIgnoreFunc);
   end;
 end;
 

@@ -533,7 +533,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -1880,15 +1880,15 @@ end;
 
 function TCastlePrecalculatedAnimation.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Loaded) or (not GetExists) or (not Collides) or
-    (FirstScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos, ProposedNewBox,
-       TrianglesToIgnoreFunc) and
+    (FirstScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos,
+      OldBox, ProposedNewBox, TrianglesToIgnoreFunc) and
        ( (not CollisionUseLastScene) or
-         LastScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos, ProposedNewBox,
-           TrianglesToIgnoreFunc) ));
+         LastScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos,
+           OldBox, ProposedNewBox, TrianglesToIgnoreFunc) ));
 end;
 
 function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;

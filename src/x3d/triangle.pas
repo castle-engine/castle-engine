@@ -530,7 +530,7 @@ type
       around ProposedNewPos using TBox3D instead of a sphere. }
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TriangleToIgnore: PTriangle = nil;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
 
@@ -1128,10 +1128,13 @@ end;
 
 function TBaseTrianglesOctree.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
+  { In case of precise comparison with octree, we don't use OldBox,
+    it's not needed here. OldBox is only useful for imprecise collision
+    detections with dynamic creatures, see TCreature.MoveBoxAllowedSimple. }
   Result :=
     (not IsSegmentCollision(OldPos, ProposedNewPos,
       TriangleToIgnore, false, TrianglesToIgnoreFunc)) and

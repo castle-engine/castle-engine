@@ -1726,7 +1726,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -6309,13 +6309,12 @@ end;
 
 function TCastleSceneCore.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not GetExists) or (not Collides) or (OctreeCollisions = nil) or
-    OctreeCollisions.MoveBoxAllowedSimple(
-      OldPos, ProposedNewPos, ProposedNewBox,
-      nil, TrianglesToIgnoreFunc);
+    OctreeCollisions.MoveBoxAllowedSimple(OldPos, ProposedNewPos,
+      OldBox, ProposedNewBox, nil, TrianglesToIgnoreFunc);
 end;
 
 function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;

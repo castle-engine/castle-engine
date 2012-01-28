@@ -66,7 +66,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveBoxAllowedSimple(
       const OldPos, ProposedNewPos: TVector3Single;
-      const ProposedNewBox: TBox3D;
+      const OldBox, ProposedNewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -143,9 +143,10 @@ end;
 
 function TMy3D.MoveBoxAllowedSimple(
   const OldPos, ProposedNewPos: TVector3Single;
-  const ProposedNewBox: TBox3D;
+  const OldBox, ProposedNewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
+  { OldBox may be usually ignored here }
   Result := not (
     GetExists and
     Collides and
@@ -246,13 +247,13 @@ begin
 
     Assert(not M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
     Assert(not M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -318,13 +319,13 @@ begin
 
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -387,13 +388,13 @@ begin
 
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -467,13 +468,13 @@ begin
 
     Assert(not M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
     Assert(not M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -541,13 +542,13 @@ begin
 
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -612,13 +613,13 @@ begin
 
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -688,13 +689,13 @@ procedure TTestBase3D.Test3DTransformReal;
 
     Assert(not M.MoveBoxAllowedSimple(
       Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
-      Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
     Assert(not M.MoveBoxAllowedSimple(
       Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(22, 2, 0), 3.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 3.0), nil));
     Assert(M.MoveBoxAllowedSimple(
       Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
+      EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(30, 10, 10), Vector3Single(40, 20, 20), nil));
     Assert(M.SegmentCollision(Vector3Single(30, 10, 10), Vector3Single(10, -10, -10), nil));
