@@ -116,7 +116,6 @@ type
   TMySceneManager = class(TCastleSceneManager)
     procedure RenderFromViewEverything; override;
     function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; override;
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
   end;
 
 procedure TMySceneManager.RenderFromViewEverything;
@@ -228,12 +227,30 @@ begin
   CustomHeadlight := nil;
 end;
 
-function TMySceneManager.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3Single): boolean;
+procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: Integer);
+var
+  W2, H2: Integer;
+  X, Y: Single;
 begin
-  Result := inherited;
-
-  { TODO: based on Navigator, move/scale something }
+  if Navigator <> ntAll then
+  begin
+    W2 := Window.Width div 2;
+    H2 := Window.Height div 2;
+    X := NewX;
+    Y := Window.Height - NewY;
+    X := (X - W2) / 100;
+    Y := (Y - H2) / 100;
+    if mbLeft in Window.MousePressed then
+    begin
+      NavigatorData[Navigator].Pos := Vector3Single(X, Y, 0);
+      Window.PostRedisplay;
+    end else
+    if mbRight in Window.MousePressed then
+    begin
+      NavigatorData[Navigator].Scale := Sqrt(Sqr(X) + Sqr(Y));
+      Window.PostRedisplay;
+    end;
+  end;
 end;
 
 procedure Open(Window: TCastleWindowBase);
@@ -612,6 +629,7 @@ begin
     Window.OnMenuCommand := @MenuCommand;
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
+    Window.OnMouseMove := @MouseMove;
     Window.SetDemoOptions(K_F11, CharEscape, true);
 
     { initialize UseShadowFieldsChanged }
