@@ -1105,8 +1105,8 @@ function TBaseTrianglesOctree.MoveAllowed(
       Radius. (Exactly on Radius would mean that it's
       sensitive to floating point imprecision, and sometimes the sphere
       could be considered colliding with Blocker anyway, instead
-      of sliding along it. And final MoveAllowedSimple test will
-      then fail, making wall-sliding non-working.)
+      of sliding along it. And final MoveAllowed (without wall-sliding) call
+      will then fail, making wall-sliding non-working.)
 
       So this must be something slightly larger than 1.
       And obviously must be close to 1
