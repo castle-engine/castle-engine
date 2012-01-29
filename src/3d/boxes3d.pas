@@ -291,14 +291,14 @@ type
       in plane XY of 4 Box corners to point (0, 0). }
     function XYRadius: Single;
 
-    { Check for collision betweeb box and sphere, fast @italic(but not
+    { Check for collision between box and sphere, fast @italic(but not
       entirely correct).
 
       This considers a Box enlarged by SphereRadius in each direction.
-      Then checks whether SphereRadius is inside such enlarged Box.
+      Then checks whether SphereCenter is inside such enlarged Box.
       So this check will incorrectly report collision while in fact
-      there's no collision in the case when the Sphere is very near
-      the edge of the Box.
+      there's no collision in the case when the sphere center is near
+      the corner of the Box.
 
       So this check is not 100% correct. But often this is good enough
       --- in games, if you know that the SphereRadius is going to be
@@ -308,7 +308,7 @@ type
       const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
     { Check for box <-> sphere collision.
-      This is a little slower than Box3DSphereSimpleCollision, although still
+      This is a little slower than SphereSimpleCollision, although still
       damn fast, and it's a precise check. }
     function SphereCollision(
       const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
