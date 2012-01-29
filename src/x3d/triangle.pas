@@ -502,67 +502,24 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
     { @groupEnd }
 
-    { This checks if move between OldPos and ProposedNewPos is possible,
-      by checking is segment between OldPos and ProposedNewPos free
-      and sphere (with radius CameraRadius) ProposedNewPos is free.
-
-      CameraRadius must obviously be > 0.
-
-      See @link(MoveAllowed) for some more sophisticated way of
-      collision detection.
+    { Check is move allowed. This is the perfect (precise, using triangle mesh,
+      and fast) implementation of T3D.MoveAllowed interface.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. This can be used to allow
       camera to walk thorugh some surfaces (e.g. through water
       surface, or to allow player to walk through some "fake wall"
-      and discover secret room in game etc.).
-
-      @seealso(TWalkCamera.DoMoveAllowed
-        TWalkCamera.DoMoveAllowed is some place
-        where you can use this function) }
-    function MoveAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TriangleToIgnore: PTriangle = nil;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
-
-    { This is like @link(MoveAllowedSimple), but it checks for collision
-      around ProposedNewPos using TBox3D instead of a sphere. }
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
-      const TriangleToIgnore: PTriangle = nil;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
-
-    { This is like @link(MoveAllowedSimple), but in some cases
-      where MoveAllowedSimple would answer "false", this will
-      answer "true" and will set NewPos to some other position
-      (close to ProposedNewPos) that user is allowed to move into.
-      This is used to allow user who is trying to walk "into the wall"
-      to "move alongside the wall" (instead of just completely blocking
-      his move, like @link(MoveAllowedSimple) would do).
-
-      Always when MoveAllowedSimple would return true, this will also
-      answer true and set NewPos to ProposedNewPos.
-
-      CameraRadius must obviously be > 0.
-
-      The value of NewPos when we returned @false is undefined.
-      Maybe we'll change it internally to something, maybe not --- just don't
-      use resulting NewPos if result is @false.
-
-      TriangleToIgnore and TrianglesToIgnoreFunc meaning
-      is just like for RayCollision.
-
-      @seealso(TWalkCamera.DoMoveAllowed
-        TWalkCamera.DoMoveAllowed is some place
-        where you can use this function)
-
-      @groupBegin }
+      and discover secret room in game etc.). }
     function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single;
-      out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TriangleToIgnore: PTriangle = nil;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TriangleToIgnore: PTriangle = nil;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc = nil): boolean;
     { @groupEnd }
@@ -1113,39 +1070,30 @@ end;
 
 { MoveAllowed / GetHeightAbove methods -------------------------------------- }
 
-function TBaseTrianglesOctree.MoveAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
+function TBaseTrianglesOctree.MoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result :=
-    (not IsSegmentCollision(OldPos, ProposedNewPos,
-      TriangleToIgnore, false, TrianglesToIgnoreFunc)) and
-    (not IsSphereCollision(ProposedNewPos, CameraRadius,
-      TriangleToIgnore, TrianglesToIgnoreFunc));
-end;
-
-function TBaseTrianglesOctree.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
-  const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { In case of precise comparison with octree, we don't use OldBox,
-    it's not needed here. OldBox is only useful for imprecise collision
-    detections with dynamic creatures, see TCreature.MoveBoxAllowedSimple. }
-  Result :=
-    (not IsSegmentCollision(OldPos, ProposedNewPos,
-      TriangleToIgnore, false, TrianglesToIgnoreFunc)) and
-    (not IsBoxCollision(ProposedNewBox,
-      TriangleToIgnore, TrianglesToIgnoreFunc));
+  if IsRadius then
+    Result :=
+      (not IsSegmentCollision(OldPos, NewPos,
+        TriangleToIgnore, false, TrianglesToIgnoreFunc)) and
+      (not IsSphereCollision(NewPos, Radius,
+        TriangleToIgnore, TrianglesToIgnoreFunc)) else
+    Result :=
+      (not IsSegmentCollision(OldPos, NewPos,
+        TriangleToIgnore, false, TrianglesToIgnoreFunc)) and
+      (not IsBoxCollision(NewBox,
+        TriangleToIgnore, TrianglesToIgnoreFunc));
 end;
 
 function TBaseTrianglesOctree.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3Single;
-  out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
@@ -1154,7 +1102,7 @@ function TBaseTrianglesOctree.MoveAllowed(
   const
     { For wall-sliding inside MoveAlongTheBlocker implementations,
       we want to position ourselves slightly farther away than
-      CameraRadius. (Exactly on CameraRadius would mean that it's
+      Radius. (Exactly on Radius would mean that it's
       sensitive to floating point imprecision, and sometimes the sphere
       could be considered colliding with Blocker anyway, instead
       of sliding along it. And final MoveAllowedSimple test will
@@ -1163,7 +1111,7 @@ function TBaseTrianglesOctree.MoveAllowed(
       So this must be something slightly larger than 1.
       And obviously must be close to 1
       (otherwise NewPos will not be sensible). }
-    CameraRadiusEnlarge = 1.01;
+    RadiusEnlarge = 1.01;
 
   { This is the worse version of wall-sliding:
     we don't know the 3D point of intersection with blocker,
@@ -1183,19 +1131,19 @@ function TBaseTrianglesOctree.MoveAllowed(
     NewPos := PointOnPlaneClosestToPoint(PlanePtr^, ProposedNewPos);
 
     { now NewPos must be on the same plane side as OldPos is,
-      and it must be at the distance slightly larger than CameraRadius from the plane }
+      and it must be at the distance slightly larger than Radius from the plane }
     if VectorsSamePlaneDirections(PlaneNormalPtr^,
          VectorSubtract(ProposedNewPos, NewPos), PlanePtr^) then
-      NewPosShift := VectorScale(PlaneNormalPtr^,  CameraRadius * CameraRadiusEnlarge) else
-      NewPosShift := VectorScale(PlaneNormalPtr^, -CameraRadius * CameraRadiusEnlarge);
+      NewPosShift := VectorScale(PlaneNormalPtr^,  Radius * RadiusEnlarge) else
+      NewPosShift := VectorScale(PlaneNormalPtr^, -Radius * RadiusEnlarge);
     VectorAddTo1st(NewPos, NewPosShift);
 
     { Even though I calculated NewPos so that it's not blocked by object
       Blocker, I must check whether it's not blocked by something else
       (e.g. if player is trying to walk into the corner (two walls)).
-      I can do it by using my simple MoveAllowedSimple. }
+      I can do it by using my simple MoveAllowed. }
 
-    Result := MoveAllowedSimple(OldPos, NewPos, CameraRadius,
+    Result := MoveAllowed(OldPos, NewPos, IsRadius, Radius, OldBox, NewBox,
       TriangleToIgnore, TrianglesToIgnoreFunc);
 
     {$ifdef DEBUG_WALL_SLIDING}
@@ -1271,10 +1219,10 @@ function TBaseTrianglesOctree.MoveAllowed(
       { Even though I calculated NewPos so that it's not blocked by object
         Blocker, I must check whether it's not blocked by something else
         (e.g. if player is trying to walk into the corner (two walls)).
-        I can do it by using my simple MoveAllowedSimple. }
+        I can do it by using my simple MoveAllowed. }
 
-      Result := MoveAllowedSimple(OldPos, NewPos,
-        CameraRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+      Result := MoveAllowed(OldPos, NewPos,
+        IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
 
       {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Final check of sliding result: ', Result); {$endif}
 
@@ -1306,7 +1254,7 @@ function TBaseTrianglesOctree.MoveAllowed(
              NewBlocker^.World.Plane,
              ProposedNewPos,
              { NewBlocker is accepted more generously, within 2 * normal radius. }
-             CameraRadius * 2) and
+             Radius * 2) and
            TryPlaneLineIntersection(NewBlockerIntersection,
              NewBlocker^.World.Plane,
              OldPos, VectorSubtract(ProposedNewPos, OldPos)) then
@@ -1325,8 +1273,8 @@ function TBaseTrianglesOctree.MoveAllowed(
           begin
             VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
             NewPos := VectorAdd(OldPos, Slide);
-            Result := MoveAllowedSimple(OldPos, NewPos,
-              CameraRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+            Result := MoveAllowed(OldPos, NewPos,
+              IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
 
             {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Better blocker final check of sliding result: ', Result); {$endif}
           end;
@@ -1357,12 +1305,17 @@ var
   Blocker: PTriangle;
   BlockerIntersection: TVector3Single;
 begin
-  { Tests: make MoveAllowed equivalent to MoveAllowedSimple:
-  Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius,
-    KeepWithinRootBox, TriangleToIgnore, TrianglesToIgnoreFunc);
-  if Result then NewPos := ProposedNewPos;
-  Exit;
-  }
+  if not IsRadius then
+  begin
+    { for IsRadius = false, for now just fallback to simple yes-no check,
+      without wall-sliding. We can improve this one day to make wall-sliding
+      even in this case (NewBox in this case will be shifted
+      like ProposedNewPos->NewPos). }
+    Result := MoveAllowed(OldPos, ProposedNewPos,
+      IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
+    NewPos := ProposedNewPos;
+    Exit;
+  end;
 
   Blocker := SegmentCollision(
     BlockerIntersection, OldPos, ProposedNewPos,
@@ -1370,7 +1323,7 @@ begin
     TriangleToIgnore, false, TrianglesToIgnoreFunc);
   if Blocker = nil then
   begin
-    Blocker := SphereCollision(ProposedNewPos, CameraRadius,
+    Blocker := SphereCollision(ProposedNewPos, Radius,
       TriangleToIgnore, TrianglesToIgnoreFunc);
     if Blocker = nil then
     begin

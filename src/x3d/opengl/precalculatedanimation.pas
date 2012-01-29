@@ -525,15 +525,13 @@ type
       out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
+    function MoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -1839,22 +1837,22 @@ end;
 
 function TCastlePrecalculatedAnimation.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if Loaded and GetExists and Collides then
   begin
     Result := FirstScene.MoveAllowed(OldPos, ProposedNewPos, NewPos,
-      CameraRadius, TrianglesToIgnoreFunc);
+      IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
 
-    { Call MoveAllowed on FirstScene, on the LastScene use only
-      MoveAllowedSimple (no wall sliding).
+    { On the LastScene use MoveAllowed without wall sliding.
       Reason: see T3DList.MoveAllowed implementation. }
 
     if Result and CollisionUseLastScene then
     begin
-      Result := LastScene.MoveAllowedSimple(OldPos, NewPos,
-        CameraRadius, TrianglesToIgnoreFunc);
+      Result := LastScene.MoveAllowed(OldPos, NewPos,
+        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
     end;
   end else
   begin
@@ -1863,32 +1861,18 @@ begin
   end;
 end;
 
-function TCastlePrecalculatedAnimation.MoveAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
+function TCastlePrecalculatedAnimation.MoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not Loaded) or (not GetExists) or (not Collides) or
-    (FirstScene.MoveAllowedSimple(
-       OldPos, ProposedNewPos,
-       CameraRadius, TrianglesToIgnoreFunc) and
+    (FirstScene.MoveAllowed(OldPos, NewPos,
+      IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) and
        ( (not CollisionUseLastScene) or
-         LastScene.MoveAllowedSimple(
-           OldPos, ProposedNewPos,
-           CameraRadius, TrianglesToIgnoreFunc) ));
-end;
-
-function TCastlePrecalculatedAnimation.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := (not Loaded) or (not GetExists) or (not Collides) or
-    (FirstScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos,
-      OldBox, ProposedNewBox, TrianglesToIgnoreFunc) and
-       ( (not CollisionUseLastScene) or
-         LastScene.MoveBoxAllowedSimple(OldPos, ProposedNewPos,
-           OldBox, ProposedNewBox, TrianglesToIgnoreFunc) ));
+         LastScene.MoveAllowed(OldPos, NewPos,
+           IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) ));
 end;
 
 function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;

@@ -1718,15 +1718,13 @@ type
       out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
+    function MoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -6271,8 +6269,7 @@ procedure TCastleSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Sin
 begin
   if GetExists and Collides and (OctreeCollisions <> nil) then
   begin
-    OctreeCollisions.GetHeightAbove(
-      Position, GravityUp,
+    OctreeCollisions.GetHeightAbove(Position, GravityUp,
       IsAbove, AboveHeight, PTriangle(AboveGround),
       nil, TrianglesToIgnoreFunc);
   end else
@@ -6281,14 +6278,14 @@ end;
 
 function TCastleSceneCore.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if GetExists and Collides and (OctreeCollisions <> nil) then
   begin
-    Result := OctreeCollisions.MoveAllowed(
-      OldPos, ProposedNewPos, NewPos,
-      CameraRadius, nil, TrianglesToIgnoreFunc);
+    Result := OctreeCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos,
+      IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
   end else
   begin
     Result := true;
@@ -6296,25 +6293,15 @@ begin
   end;
 end;
 
-function TCastleSceneCore.MoveAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
+function TCastleSceneCore.MoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := (not GetExists) or (not Collides) or (OctreeCollisions = nil) or
-    OctreeCollisions.MoveAllowedSimple(
-      OldPos, ProposedNewPos,
-      CameraRadius, nil, TrianglesToIgnoreFunc);
-end;
-
-function TCastleSceneCore.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := (not GetExists) or (not Collides) or (OctreeCollisions = nil) or
-    OctreeCollisions.MoveBoxAllowedSimple(OldPos, ProposedNewPos,
-      OldBox, ProposedNewBox, nil, TrianglesToIgnoreFunc);
+    OctreeCollisions.MoveAllowed(OldPos, NewPos,
+      IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
 end;
 
 function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;

@@ -622,18 +622,41 @@ type
       out IsAbove: boolean; out AboveHeight: Single;
       out AboveGround: P3DTriangle); virtual;
 
+    { Can other 3D object (maybe a player) move without colliding with this object.
+
+      If IsRadius, then you should prefer to perform exact collision with sphere
+      of given radius (must be > 0).
+      At the very least, this checks that the line segment
+      between OldPos and NewPos doesn't collide,
+      @bold(and) that sphere with given Radius centered around NewPos
+      doesn't collide.
+
+      If not IsRadius, or if checking for collisions with sphere is not possible
+      for some reasons, then you can check for collisions with boxes.
+      OldBox should usually be ignored (it can be useful when collision-checking
+      has to be approximate in some corner cases, see TCreature.MoveAllowed).
+      NewBox plays the same role as "sphere centered around NewPos" in paragraph
+      above.
+
+      Overloaded version with separate ProposedNewPos and NewPos parameters
+      allows you to accept the move, but for NewPos (that should be some slightly
+      modified version of ProposedNewPos). This allows to implement wall-sliding:
+      when camera tries to walk into the wall, we will change movement
+      to move alongside the wall (instead of just completely blocking the move).
+      When this version returns @false, it's undefined what is the NewPos.
+
+      @groupBegin }
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    function MoveAllowedSimple(
+    function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
@@ -779,15 +802,13 @@ type
       out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
+    function MoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -855,15 +876,13 @@ type
       out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
+    function MoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -1084,24 +1103,18 @@ end;
 
 function T3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
   NewPos := ProposedNewPos;
 end;
 
-function T3D.MoveAllowedSimple(
+function T3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := true;
-end;
-
-function T3D.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := true;
@@ -1494,34 +1507,37 @@ end;
 
 function T3DList.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
 begin
   if GetExists and Collides and (List.Count <> 0) then
   begin
-    { We call MoveAllowed only one time, on the first scene.
+    { We call MoveAllowed with separate ProposedNewPos and NewPos
+      only on the first scene.
       This means that only first scene collisions provide wall sliding.
       Collisions with other 3D objects will simply block the player.
 
       Otherwise, various MoveAllowed could modify NewPos
       making it colliding with other items, already checked. This would
-      be wrong. So MoveAllowed is used only once, and for the others
-      we use simple MoveAllowedSimple.
+      be wrong.
 
-      TODO: this could be improved, to call MoveAllowed on the first scene
+      TODO: this could be improved, to call MoveAllowed
+      with separate ProposedNewPos and NewPos
+      on the first scene
       where the simple move is not allowed. This would make it more general,
       although also slower. Is there any way to make it as fast and
       more general? }
     Result := List[0].MoveAllowed(OldPos, ProposedNewPos, NewPos,
-      CameraRadius, TrianglesToIgnoreFunc);
+      IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
     if not Result then Exit;
 
     for I := 1 to List.Count - 1 do
     begin
-      Result := List[I].MoveAllowedSimple(OldPos, NewPos,
-        CameraRadius, TrianglesToIgnoreFunc);
+      Result := List[I].MoveAllowed(OldPos, NewPos,
+        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
     end;
   end else
@@ -1531,9 +1547,10 @@ begin
   end;
 end;
 
-function T3DList.MoveAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
+function T3DList.MoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -1543,26 +1560,8 @@ begin
   if GetExists and Collides then
     for I := 0 to List.Count - 1 do
     begin
-      Result := List[I].MoveAllowedSimple(OldPos, ProposedNewPos,
-        CameraRadius, TrianglesToIgnoreFunc);
-      if not Result then Exit;
-    end;
-end;
-
-function T3DList.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  I: Integer;
-begin
-  Result := true;
-
-  if GetExists and Collides then
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].MoveBoxAllowedSimple(OldPos, ProposedNewPos,
-        OldBox, ProposedNewBox, TrianglesToIgnoreFunc);
+      Result := List[I].MoveAllowed(OldPos, NewPos,
+        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
     end;
 end;
@@ -1930,7 +1929,8 @@ end;
 
 function T3DCustomTransform.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
@@ -1947,8 +1947,12 @@ begin
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    Result := inherited MoveAllowed(OldPos - T, ProposedNewPos - T, NewPos,
-      CameraRadius, TrianglesToIgnoreFunc);
+    Result := inherited MoveAllowed(
+      OldPos         - T,
+      ProposedNewPos - T, NewPos,
+      IsRadius, Radius,
+      OldBox.AntiTranslate(T),
+      NewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
     { translate calculated NewPos back }
     if Result then
       NewPos += T;
@@ -1957,17 +1961,20 @@ begin
     TransformMatrices(M, MInverse);
     Result := inherited MoveAllowed(
       MatrixMultPoint(MInverse, OldPos),
-      MatrixMultPoint(MInverse, ProposedNewPos),
-      NewPos, CameraRadius / AverageScale, TrianglesToIgnoreFunc);
+      MatrixMultPoint(MInverse, ProposedNewPos), NewPos,
+      IsRadius, Radius / AverageScale,
+      OldBox.Transform(MInverse),
+      NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
     { transform calculated NewPos back }
     if Result then
       NewPos := MatrixMultPoint(M, NewPos);
   end;
 end;
 
-function T3DCustomTransform.MoveAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
+function T3DCustomTransform.MoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   T: TVector3Single;
@@ -1980,56 +1987,26 @@ begin
   if OnlyTranslation then
   begin
     { I have to check collision between
-        Items + Translation and (OldPos, ProposedNewPos).
+        Items + Translation and (OldPos, NewPos).
       So it's equivalent to checking for collision between
-        Items and (OldPos, ProposedNewPos) - Translation
-      And this way I can use inherited MoveAllowedSimple. }
+        Items and (OldPos, NewPos) - Translation
+      And this way I can use inherited MoveAllowed. }
     T := GetTranslation;
-    Result := inherited MoveAllowedSimple(
-      OldPos - T, ProposedNewPos - T, CameraRadius, TrianglesToIgnoreFunc);
+    Result := inherited MoveAllowed(
+      OldPos - T,
+      NewPos - T,
+      IsRadius, Radius,
+      OldBox.AntiTranslate(T),
+      NewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
   end else
   begin
     MInverse := TransformInverse;
-    Result := inherited MoveAllowedSimple(
+    Result := inherited MoveAllowed(
       MatrixMultPoint(MInverse, OldPos),
-      MatrixMultPoint(MInverse, ProposedNewPos),
-      CameraRadius / AverageScale, TrianglesToIgnoreFunc);
-  end;
-end;
-
-function T3DCustomTransform.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  T: TVector3Single;
-  MInverse: TMatrix4Single;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then Exit(true);
-
-  if OnlyTranslation then
-  begin
-    { I have to check collision between
-        Items + Translation and (OldPos, ProposedNewPos).
-      So it's equivalent to checking for collision between
-        Items and (OldPos, ProposedNewPos) - Translation
-      And this way I can use "inherited MoveBoxAllowedSimple". }
-    T := GetTranslation;
-    Result := inherited MoveBoxAllowedSimple(
-      OldPos         - T,
-      ProposedNewPos - T,
-      OldBox        .AntiTranslate(T),
-      ProposedNewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
-  end else
-  begin
-    MInverse := TransformInverse;
-    Result := inherited MoveBoxAllowedSimple(
-      MatrixMultPoint(MInverse, OldPos),
-      MatrixMultPoint(MInverse, ProposedNewPos),
-      OldBox        .Transform(MInverse),
-      ProposedNewBox.Transform(MInverse), TrianglesToIgnoreFunc);
+      MatrixMultPoint(MInverse, NewPos),
+      IsRadius, Radius / AverageScale,
+      OldBox.Transform(MInverse),
+      NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
   end;
 end;
 

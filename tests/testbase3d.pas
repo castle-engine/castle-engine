@@ -58,15 +58,13 @@ type
       out AboveGround: P3DTriangle); override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const CameraRadius: Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowedSimple(
+    function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single;
-      const CameraRadius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveBoxAllowedSimple(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const OldBox, ProposedNewBox: TBox3D;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -117,42 +115,35 @@ end;
 
 function TMy3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  { A simple implementation of MoveAllowed is just to call MoveAllowedSimple.
-    This means that we don't do wall-sliding. }
-  Result := MoveAllowedSimple(OldPos, ProposedNewPos, CameraRadius,
+  { A simple implementation, just don't do wall-sliding. }
+  Result := MoveAllowed(OldPos, ProposedNewPos, IsRadius, Radius, OldBox, NewBox,
     TrianglesToIgnoreFunc);
   if Result then
     NewPos := ProposedNewPos;
 end;
 
-function TMy3D.MoveAllowedSimple(
+function TMy3D.MoveAllowed(
   const OldPos, ProposedNewPos: TVector3Single;
-  const CameraRadius: Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := not (
-    GetExists and
-    Collides and
-    ( MyBox.IsSegmentCollision(OldPos, ProposedNewPos) or
-      MyBox.SphereCollision(ProposedNewPos, CameraRadius) )
-  );
-end;
+  if IsRadius then
+    Result := not (
+      GetExists and
+      Collides and
+      ( MyBox.IsSegmentCollision(OldPos, ProposedNewPos) or
+        MyBox.SphereCollision(ProposedNewPos, Radius) ) ) else
+    Result := not (
+      GetExists and
+      Collides and
+      ( MyBox.IsSegmentCollision(OldPos, ProposedNewPos) or
+        MyBox.Collision(NewBox) ) );
 
-function TMy3D.MoveBoxAllowedSimple(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const OldBox, ProposedNewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { OldBox may be usually ignored here }
-  Result := not (
-    GetExists and
-    Collides and
-    ( MyBox.IsSegmentCollision(OldPos, ProposedNewPos) or
-      MyBox.Collision(ProposedNewBox) )
-  );
 end;
 
 function TMy3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
@@ -229,31 +220,30 @@ begin
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
+    { wall-sliding with sphere }
     Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(VectorsEqual(Vector3Single(-2, -1.5, 0), NewPos));
 
-    Assert(not M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      0.5, nil));
-    Assert(not M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      0.5, nil));
-
-    Assert(not M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    Assert(not M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    { with box }
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -302,30 +292,29 @@ begin
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
+    { wall-sliding with sphere }
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      0.5, nil));
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      0.5, nil));
-
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    { with box }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -371,30 +360,29 @@ begin
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
+    { wall-sliding with sphere }
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      0.5, nil));
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      0.5, nil));
-
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    { with box }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -450,31 +438,30 @@ begin
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
+    { wall-sliding with sphere }
     Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(VectorsEqual(Vector3Single(-2, -1.5, 0), NewPos));
 
-    Assert(not M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      0.5, nil));
-    Assert(not M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      0.5, nil));
-
-    Assert(not M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    Assert(not M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    { with box }
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(not M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -525,30 +512,29 @@ begin
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
+    { wall-sliding with sphere }
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      0.5, nil));
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      0.5, nil));
-
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    { with box }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -596,30 +582,29 @@ begin
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
+    { wall-sliding with sphere }
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      0.5, nil));
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      0.5, nil));
-
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    { with box }
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil));
     Assert(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil));
@@ -671,31 +656,30 @@ procedure TTestBase3D.Test3DTransformReal;
     Assert(IsAbove);
     Assert(FloatsEqual(AboveHeight, 1));
 
+    { wall-sliding with sphere }
     Assert(not M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(not M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0), NewPos,
-      1.5, nil));
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0), NewPos,
-      0.5, nil));
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
     Assert(VectorsEqual(Vector3Single(18, -1.5, 0), NewPos));
 
-    Assert(not M.MoveAllowedSimple(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
-      0.5, nil));
-    Assert(not M.MoveAllowedSimple(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      1.5, nil));
+    { no wall-sliding, with sphere }
+    Assert(not M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(not M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
+      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
+    Assert(M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
+      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
 
-    Assert(M.MoveAllowedSimple(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      0.5, nil));
-
-    Assert(not M.MoveBoxAllowedSimple(
-      Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
-    Assert(not M.MoveBoxAllowedSimple(
-      Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 3.0), nil));
-    Assert(M.MoveBoxAllowedSimple(
-      Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
+    { with box }
+    Assert(not M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
+    Assert(not M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 3.0), nil));
+    Assert(M.MoveAllowed(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
+      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
 
     Assert(not M.SegmentCollision(Vector3Single(30, 10, 10), Vector3Single(40, 20, 20), nil));
     Assert(M.SegmentCollision(Vector3Single(30, 10, 10), Vector3Single(10, -10, -10), nil));

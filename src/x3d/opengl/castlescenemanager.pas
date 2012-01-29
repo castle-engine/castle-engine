@@ -2594,7 +2594,12 @@ function TCastleSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := Items.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
-    ACamera.CameraRadius, @CollisionIgnoreItem);
+    true, ACamera.CameraRadius,
+    { We prefer to resolve collisions with camera using sphere.
+      But for T3D implementations that can't use sphere, we can construct box. }
+    Box3DAroundPoint(ACamera.Position, ACamera.CameraRadius * 2),
+    Box3DAroundPoint(ProposedNewPos, ACamera.CameraRadius * 2),
+    @CollisionIgnoreItem);
 
   if Result then
   begin
