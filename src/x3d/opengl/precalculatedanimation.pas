@@ -1825,7 +1825,9 @@ procedure TCastlePrecalculatedAnimation.GetHeightAbove(
   end;
 
 begin
-  inherited;
+  IsAbove := false;
+  AboveHeight := MaxSingle;
+  AboveGround := nil;
 
   if Loaded and GetExists and Collides then
   begin

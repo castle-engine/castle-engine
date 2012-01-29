@@ -6267,13 +6267,16 @@ procedure TCastleSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Sin
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 begin
+  IsAbove := false;
+  AboveHeight := MaxSingle;
+  AboveGround := nil;
+
   if GetExists and Collides and (OctreeCollisions <> nil) then
   begin
     OctreeCollisions.GetHeightAbove(Position, GravityUp,
       IsAbove, AboveHeight, PTriangle(AboveGround),
       nil, TrianglesToIgnoreFunc);
-  end else
-    inherited;
+  end;
 end;
 
 function TCastleSceneCore.MoveAllowed(

@@ -44,36 +44,15 @@ uses VectorMath, Boxes3D, Base3D, CastleSceneManager, Contnrs, CastleClassUtils;
 type
   { Simple invisible 3D axis-aligned box.
     Probably the simplest possible complete T3D descendant implementation,
-    to test various T3D methods. }
+    to test various T3D methods.
+    Default T3D methods implementation takes care of collisions with BoundingBox,
+    so all we need to do is to override the BoundingBox method. }
   TMy3D = class(T3D)
   private
     MyBox: TBox3D;
   public
     constructor Create(AOwner: TComponent; const AMyBox: TBox3D); reintroduce;
-
     function BoundingBox: TBox3D; override;
-    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   end;
 
 constructor TMy3D.Create(AOwner: TComponent; const AMyBox: TBox3D);
@@ -93,100 +72,6 @@ begin
   if GetExists then
     Result := MyBox else
     Result := EmptyBox3D;
-end;
-
-procedure TMy3D.GetHeightAbove(const Position, GravityUp: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
-var
-  Intersection: TVector3Single;
-  IntersectionDistance: Single;
-begin
-  inherited;
-  if GetExists and Collides and
-    MyBox.TryRayEntrance(Intersection, IntersectionDistance, Position, -GravityUp) then
-  begin
-    IsAbove := true;
-    AboveHeight := IntersectionDistance;
-    // AboveGround := ... leave it as nil for this simple 3D object
-  end;
-end;
-
-function TMy3D.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { A simple implementation, just don't do wall-sliding. }
-  Result := MoveAllowed(OldPos, ProposedNewPos, IsRadius, Radius, OldBox, NewBox,
-    TrianglesToIgnoreFunc);
-  if Result then
-    NewPos := ProposedNewPos;
-end;
-
-function TMy3D.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3Single;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  if IsRadius then
-    Result := not (
-      GetExists and
-      Collides and
-      ( MyBox.SegmentCollision(OldPos, ProposedNewPos) or
-        MyBox.SphereCollision(ProposedNewPos, Radius) ) ) else
-    Result := not (
-      GetExists and
-      Collides and
-      ( MyBox.SegmentCollision(OldPos, ProposedNewPos) or
-        MyBox.Collision(NewBox) ) );
-
-end;
-
-function TMy3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := GetExists and Collides and MyBox.SegmentCollision(Pos1, Pos2);
-end;
-
-function TMy3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := GetExists and Collides and MyBox.SphereCollision(Pos, Radius);
-end;
-
-function TMy3D.BoxCollision(const Box: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := GetExists and Collides and MyBox.Collision(Box);
-end;
-
-function TMy3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
-var
-  Intersection: TVector3Single;
-  IntersectionDistance: Single;
-  NewNode: PRayCollisionNode;
-begin
-  if GetExists and
-    MyBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
-  begin
-    Result := TRayCollision.Create;
-    Result.Distance := IntersectionDistance;
-
-    NewNode := Result.Add;
-    NewNode^.Item := Self;
-    NewNode^.Point := Intersection;
-    { real T3D implementation could assign here something nice to NewNode^.Triangle,
-      to inform T3D.PointingDeviceMove/Activate about the intersected material. }
-    NewNode^.Triangle := nil;
-    NewNode^.RayOrigin := RayOrigin;
-    NewNode^.RayDirection := RayDirection;
-  end else
-    Result := nil;
 end;
 
 { Helper box values ---------------------------------------------------------- }

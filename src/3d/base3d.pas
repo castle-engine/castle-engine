@@ -308,7 +308,30 @@ type
 
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
-    insert them into the TCastleSceneManager. }
+    insert them into the TCastleSceneManager.
+
+    Default implementations of collision methods in this class work
+    with our BoundingBox:
+
+    @unorderedList(
+      @item(Wall-sliding MoveAllowed version simply calls
+        non-wall-sliding version (without separate ProposedNewPos
+        and NewPos).)
+      @item(Non-wall-sliding MoveAllowed version uses SegmentCollision,
+        SphereCollision and BoxCollision.)
+      @item(SegmentCollision, SphereCollision, BoxCollision and RayCollision
+        and GetHeightAbove check for collisions with our BoundingBox,
+        using TBox3D methods:
+        @link(TBox3D.TryRayEntrance),
+        @link(TBox3D.SegmentCollision),
+        @link(TBox3D.SphereCollision) and
+        @link(TBox3D.BoxCollision).)
+    )
+
+    The idea is that by default everything simple uses BoundingBox,
+    and that is the only method that you really @italic(have) to override.
+    You do not have to (in fact, often you should not) call "inherited"
+    when overriding collision methods mentioned above. }
   T3D = class(TComponent)
   private
     FCastShadowVolumes: boolean;
@@ -1095,10 +1118,20 @@ procedure T3D.GetHeightAbove(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
+var
+  Intersection: TVector3Single;
+  IntersectionDistance: Single;
 begin
   IsAbove := false;
   AboveHeight := MaxSingle;
   AboveGround := nil;
+
+  if GetExists and Collides and
+    BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, Position, -GravityUp) then
+  begin
+    IsAbove := true;
+    AboveHeight := IntersectionDistance;
+  end;
 end;
 
 function T3D.MoveAllowed(
@@ -1107,8 +1140,11 @@ function T3D.MoveAllowed(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := true;
-  NewPos := ProposedNewPos;
+  { A simple implementation, just don't do wall-sliding. }
+  Result := MoveAllowed(OldPos, ProposedNewPos, IsRadius, Radius, OldBox, NewBox,
+    TrianglesToIgnoreFunc);
+  if Result then
+    NewPos := ProposedNewPos;
 end;
 
 function T3D.MoveAllowed(
@@ -1117,31 +1153,58 @@ function T3D.MoveAllowed(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := true;
+  if IsRadius then
+    Result := not (
+      GetExists and Collides and
+      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc) or
+        SphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) ) else
+    Result := not (
+      GetExists and Collides and
+      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc) or
+        BoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
 end;
 
 function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := false;
+  Result := GetExists and Collides and BoundingBox.SegmentCollision(Pos1, Pos2);
 end;
 
 function T3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := false;
+  Result := GetExists and Collides and BoundingBox.SphereCollision(Pos, Radius);
 end;
 
 function T3D.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := false;
+  Result := GetExists and Collides and BoundingBox.Collision(Box);
 end;
 
 function T3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
+var
+  Intersection: TVector3Single;
+  IntersectionDistance: Single;
+  NewNode: PRayCollisionNode;
 begin
-  Result := nil;
+  if GetExists and
+    BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
+  begin
+    Result := TRayCollision.Create;
+    Result.Distance := IntersectionDistance;
+
+    NewNode := Result.Add;
+    NewNode^.Item := Self;
+    NewNode^.Point := Intersection;
+    { better T3D implementation could assign here something nice to NewNode^.Triangle,
+      to inform T3D.PointingDeviceMove/Activate about the intersected material. }
+    NewNode^.Triangle := nil;
+    NewNode^.RayOrigin := RayOrigin;
+    NewNode^.RayDirection := RayDirection;
+  end else
+    Result := nil;
 end;
 
 procedure T3D.UpdateGeneratedTextures(
@@ -1488,7 +1551,9 @@ var
   NewAboveHeight: Single;
   NewAboveGround: P3DTriangle;
 begin
-  inherited;
+  IsAbove := false;
+  AboveHeight := MaxSingle;
+  AboveGround := nil;
 
   if GetExists and Collides then
     for I := 0 to List.Count - 1 do
