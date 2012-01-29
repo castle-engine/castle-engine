@@ -370,6 +370,14 @@ type
       You can turn this off, useful to make e.g. "fake" walls
       (to some secret places on level).
 
+      This describes collision resolution with everything --- camera,
+      player (in third-person perspective, camera may differ from player),
+      other creatures, other level parts. That is because everything
+      resolves collisions through our methods MoveAllowed and GetHeightAbove
+      (high-level) or SegmentCollision, SphereCollision, BoxCollision
+      (low-level). (Note that RayCollision is excluded from this,
+      it exceptionally ignores Collides value, as it's primarily used for picking.)
+
       Note that if not @link(Exists) then this doesn't matter
       (not existing objects never participate in collision detection).
 
@@ -377,8 +385,8 @@ type
     property Collides: boolean read FCollides write FCollides default true;
 
     { How this 3D object behaves when other 3D objects try to collide with it.
-      See @link(Collides) instead for collision resolution with camera.
-      This property describes collision resolution with other 3D objects. }
+      See also @link(Collides).
+      This property describes  with other 3D objects. }
     property Collision: TCollisionType
       read FCollision write FCollision default ctNone;
 
