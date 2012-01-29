@@ -136,12 +136,12 @@ begin
     Result := not (
       GetExists and
       Collides and
-      ( MyBox.IsSegmentCollision(OldPos, ProposedNewPos) or
+      ( MyBox.SegmentCollision(OldPos, ProposedNewPos) or
         MyBox.SphereCollision(ProposedNewPos, Radius) ) ) else
     Result := not (
       GetExists and
       Collides and
-      ( MyBox.IsSegmentCollision(OldPos, ProposedNewPos) or
+      ( MyBox.SegmentCollision(OldPos, ProposedNewPos) or
         MyBox.Collision(NewBox) ) );
 
 end;
@@ -149,7 +149,7 @@ end;
 function TMy3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := GetExists and Collides and MyBox.IsSegmentCollision(Pos1, Pos2);
+  Result := GetExists and Collides and MyBox.SegmentCollision(Pos1, Pos2);
 end;
 
 function TMy3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;

@@ -226,6 +226,10 @@ type
       const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     { @groupEnd }
 
+    function SegmentCollision(
+      const Segment1, Segment2: TVector3Single): boolean;
+
+    { Deprecated name for SegmentCollision. @deprecated @exclude }
     function IsSegmentCollision(
       const Segment1, Segment2: TVector3Single): boolean;
 
@@ -986,6 +990,12 @@ begin
 end;
 
 function TBox3D.IsSegmentCollision(
+  const Segment1, Segment2: TVector3Single): boolean;
+begin
+  Result := SegmentCollision(Segment1, Segment2);
+end;
+
+function TBox3D.SegmentCollision(
   const Segment1, Segment2: TVector3Single): boolean;
 
   function IsCollisionWithBoxPlane(const PlaneConstCoord: integer;
