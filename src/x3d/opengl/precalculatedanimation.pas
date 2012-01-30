@@ -602,7 +602,7 @@ type
       Regardless of this value, we always check collision with the
       first animation frame (FirstScene), of course only when
       FirstScene.OctreeCollisions is initialized, and only if
-      @link(Collides) and @link(Exists).
+      @link(GetCollides) (which includes @link(GetExists)).
 
       When CollisionUseLastScene is @true, we will also check collision
       with the last animation frame's octree, i.e. LastScene.OctreeCollisions.
@@ -1829,7 +1829,7 @@ begin
   AboveHeight := MaxSingle;
   AboveGround := nil;
 
-  if Loaded and GetExists and Collides then
+  if Loaded and GetCollides then
   begin
     MakeScene(FirstScene);
     if CollisionUseLastScene then
@@ -1843,7 +1843,7 @@ function TCastlePrecalculatedAnimation.MoveAllowed(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if Loaded and GetExists and Collides then
+  if Loaded and GetCollides then
   begin
     Result := FirstScene.MoveAllowed(OldPos, ProposedNewPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
@@ -1869,7 +1869,7 @@ function TCastlePrecalculatedAnimation.MoveAllowed(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := (not Loaded) or (not GetExists) or (not Collides) or
+  Result := (not Loaded) or (not GetCollides) or
     (FirstScene.MoveAllowed(OldPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) and
        ( (not CollisionUseLastScene) or
@@ -1880,7 +1880,7 @@ end;
 function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Loaded and GetExists and Collides and
+  Result := Loaded and GetCollides and
     ( FirstScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc)))
@@ -1891,7 +1891,7 @@ function TCastlePrecalculatedAnimation.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Loaded and GetExists and Collides and
+  Result := Loaded and GetCollides and
     ( FirstScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc)))
@@ -1902,7 +1902,7 @@ function TCastlePrecalculatedAnimation.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := Loaded and GetExists and Collides and
+  Result := Loaded and GetCollides and
     ( FirstScene.BoxCollision(Box, TrianglesToIgnoreFunc) or
       (CollisionUseLastScene and
         (LastScene.BoxCollision(Box, TrianglesToIgnoreFunc)))

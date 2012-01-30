@@ -343,6 +343,10 @@ type
       It T3D class, returns @link(Exists) value.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
+    { Return whether item really exists, see @link(Collides).
+      It T3D class, returns @link(Collides) value and @link(GetExists).
+      May be modified in subclasses, to return something more complicated. }
+    function GetCollides: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -374,6 +378,9 @@ type
 
       Note that if not @link(Exists) then this doesn't matter
       (not existing objects never participate in collision detection).
+
+      Descendants may also override GetCollides method. Sometimes it's more
+      comfortable than changing the property value.
 
       @noAutoLinkHere }
     property Collides: boolean read FCollides write FCollides default true;
@@ -1128,7 +1135,7 @@ begin
   AboveHeight := MaxSingle;
   AboveGround := nil;
 
-  if GetExists and Collides and
+  if GetCollides and
     BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, Position, -GravityUp) then
   begin
     IsAbove := true;
@@ -1156,12 +1163,10 @@ function T3D.MoveAllowed(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if IsRadius then
-    Result := not (
-      GetExists and Collides and
+    Result := not ( GetCollides and
       ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc) or
         SphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) ) else
-    Result := not (
-      GetExists and Collides and
+    Result := not ( GetCollides and
       ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc) or
         BoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
 end;
@@ -1169,19 +1174,19 @@ end;
 function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := GetExists and Collides and BoundingBox.SegmentCollision(Pos1, Pos2);
+  Result := GetCollides and BoundingBox.SegmentCollision(Pos1, Pos2);
 end;
 
 function T3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := GetExists and Collides and BoundingBox.SphereCollision(Pos, Radius);
+  Result := GetCollides and BoundingBox.SphereCollision(Pos, Radius);
 end;
 
 function T3D.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := GetExists and Collides and BoundingBox.Collision(Box);
+  Result := GetCollides and BoundingBox.Collision(Box);
 end;
 
 function T3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
@@ -1225,6 +1230,11 @@ end;
 function T3D.GetExists: boolean;
 begin
   Result := FExists;
+end;
+
+function T3D.GetCollides: boolean;
+begin
+  Result := GetExists and FCollides;
 end;
 
 procedure T3D.Translate(const T: TVector3Single);
@@ -1557,7 +1567,7 @@ begin
   AboveHeight := MaxSingle;
   AboveGround := nil;
 
-  if GetExists and Collides then
+  if GetCollides then
     for I := 0 to List.Count - 1 do
     begin
       List[I].GetHeightAbove(Position, GravityUp, TrianglesToIgnoreFunc,
@@ -1580,7 +1590,7 @@ function T3DList.MoveAllowed(
 var
   I: Integer;
 begin
-  if GetExists and Collides and (List.Count <> 0) then
+  if GetCollides and (List.Count <> 0) then
   begin
     { We call MoveAllowed with separate ProposedNewPos and NewPos
       only on the first scene.
@@ -1624,7 +1634,7 @@ var
 begin
   Result := true;
 
-  if GetExists and Collides then
+  if GetCollides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].MoveAllowed(OldPos, NewPos,
@@ -1640,7 +1650,7 @@ var
 begin
   Result := false;
 
-  if GetExists and Collides then
+  if GetCollides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc);
@@ -1655,7 +1665,7 @@ var
 begin
   Result := false;
 
-  if GetExists and Collides then
+  if GetCollides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
@@ -1670,7 +1680,7 @@ var
 begin
   Result := false;
 
-  if GetExists and Collides then
+  if GetCollides then
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].BoxCollision(Box, TrianglesToIgnoreFunc);
@@ -1970,7 +1980,7 @@ var
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then
+  if not GetCollides then
   begin
     IsAbove := false;
     AboveHeight := MaxSingle;
@@ -2005,7 +2015,7 @@ var
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then
+  if not GetCollides then
   begin
     NewPos := ProposedNewPos;
     Exit(true);
@@ -2049,7 +2059,7 @@ var
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then Exit(true);
+  if not GetCollides then Exit(true);
 
   if OnlyTranslation then
   begin
@@ -2085,7 +2095,7 @@ var
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then Exit(false);
+  if not GetCollides then Exit(false);
 
   if OnlyTranslation then
   begin
@@ -2106,7 +2116,7 @@ function T3DCustomTransform.SphereCollision(
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then Exit(false);
+  if not GetCollides then Exit(false);
 
   if OnlyTranslation then
     Result := inherited SphereCollision(
@@ -2121,7 +2131,7 @@ function T3DCustomTransform.BoxCollision(
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not (GetExists and Collides) then Exit(false);
+  if not GetCollides then Exit(false);
 
   if OnlyTranslation then
     Result := inherited BoxCollision(

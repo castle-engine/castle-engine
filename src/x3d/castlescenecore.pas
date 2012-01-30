@@ -1792,7 +1792,7 @@ type
       collision detection would unnecessarily create octrees at construction.
       Scenes that do not have any spatial structures use default T3D
       methods for resolving collisions, which means that collisions
-      are checked vs BoundingBox of this scene. (Unless @link(Collides)
+      are checked vs BoundingBox of this scene. (Unless @link(GetCollides)
       is @false, in which case collisions are disabled, regardless
       of @name.) }
     property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
@@ -6278,7 +6278,7 @@ begin
     AboveHeight := MaxSingle;
     AboveGround := nil;
 
-    if GetExists and Collides then
+    if GetCollides then
     begin
       OctreeCollisions.GetHeightAbove(Position, GravityUp,
         IsAbove, AboveHeight, PTriangle(AboveGround),
@@ -6297,7 +6297,7 @@ function TCastleSceneCore.MoveAllowed(
 begin
   if OctreeCollisions <> nil then
   begin
-    if GetExists and Collides then
+    if GetCollides then
     begin
       Result := OctreeCollisions.MoveAllowed(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
@@ -6319,7 +6319,7 @@ function TCastleSceneCore.MoveAllowed(
 begin
   if OctreeCollisions <> nil then
   begin
-    Result := (not GetExists) or (not Collides) or
+    Result := (not GetCollides) or
       OctreeCollisions.MoveAllowed(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
   end else
@@ -6331,7 +6331,7 @@ function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if OctreeCollisions <> nil then
-    Result := GetExists and Collides and
+    Result := GetCollides and
       OctreeCollisions.IsSegmentCollision(
         Pos1, Pos2,
         nil, false, TrianglesToIgnoreFunc) else
@@ -6343,7 +6343,7 @@ function TCastleSceneCore.SphereCollision(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if OctreeCollisions <> nil then
-    Result := GetExists and Collides and
+    Result := GetCollides and
       OctreeCollisions.IsSphereCollision(
         Pos, Radius, nil, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
@@ -6353,7 +6353,7 @@ function TCastleSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if OctreeCollisions <> nil then
-    Result := GetExists and Collides and
+    Result := GetCollides and
       OctreeCollisions.IsBoxCollision(
         Box,  nil, TrianglesToIgnoreFunc) else
     Result := inherited BoxCollision(Box, TrianglesToIgnoreFunc);
