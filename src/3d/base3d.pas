@@ -64,36 +64,6 @@ type
       1: (Normal: TVector3Single;);
   end;
 
-  { Collision resolution type.
-    TODO: for now used by "The Castle" code, but in the future will be moved
-    to core engine, so is declared as T3D already. }
-  TCollisionType = (
-    { Nothing special done. }
-    ctNone,
-    { Pickable item.
-      @unorderedList(
-        @item(Moving level parts (doors, elevators and such) try to not crush this item.
-          This concerns DOOM E1M1 doors, and is guaranteed to *never* crush item.
-
-          This also concerns TLevelMovingObject, like various up-down elevators,
-          and then the item is moved along with the moving elevator.
-          We may use sphere (see @link(T3D.UseSphere), @link(T3D.Sphere)) for checking
-          collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
-          The item is moved using @link(T3D.Translate), so make sure it
-          actually does something (for example, by descending from T3DTransform,
-          that provides natural @link(T3D.Translate) implementation).)
-      )
-    }
-    ctItem,
-
-    { Creature.
-      @unorderedList(
-        @item(Moving level parts (doors and elevators) try to not crush this item.
-          See above notes for ctItem about how this works.)
-      ) }
-    ctCreature
-  );
-
   { 3D triangle.
 
     This object should always be initialized by @link(Init),
@@ -334,7 +304,7 @@ type
     FOnVisibleChangeHere: TVisibleChangeEvent;
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
-    FCollision: TCollisionType;
+    FPushable: boolean;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { In T3D class, just calls OnCursorChange event. }
@@ -384,12 +354,6 @@ type
 
       @noAutoLinkHere }
     property Collides: boolean read FCollides write FCollides default true;
-
-    { How this 3D object behaves when other 3D objects try to collide with it.
-      See also @link(Collides).
-      This property describes  with other 3D objects. }
-    property Collision: TCollisionType
-      read FCollision write FCollision default ctNone;
 
     { Bounding box of the 3D object.
 
@@ -733,7 +697,7 @@ type
     function Dragging: boolean; virtual;
 
     { What happens when other 3D objects try to push this object.
-      See TCollisionType for when it may happen.
+      See @link(Pushable) for when it may happen.
       By default, in T3D class, this does nothing. }
     procedure Translate(const T: TVector3Single); virtual;
 
@@ -742,7 +706,7 @@ type
       sphere surrounding the 3D object (it does not have to be a perfect
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
-      See TCollisionType for when it may happen.
+      See @link(Pushable) for when it may happen.
 
       UseSphere must be @false when not GetExists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
@@ -755,6 +719,22 @@ type
     function UseSphere: boolean; virtual;
     procedure Sphere(out Center: TVector3Single; out Radius: Single); virtual;
     { @groupEnd }
+
+    { Can this object be pushed (or may block movement of) doors, elevators
+      and other level features. This specifies how moving level parts
+      (doors, elevators and such) interact with this item.
+
+      Some parts may try to not crush this item.
+      This concerns DOOM E1M1 doors, and is guaranteed to @italic(never) crush item.
+
+      This also concerns TLevelMovingObject, like various up-down elevators,
+      and then the item is moved along with the moving elevator.
+      We may use sphere (see @link(T3D.UseSphere), @link(T3D.Sphere)) for checking
+      collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
+      The item is moved using @link(T3D.Translate), so make sure it
+      actually does something (for example, by descending from T3DTransform,
+      that provides natural @link(T3D.Translate) implementation). }
+    property Pushable: boolean read FPushable write FPushable default false;
   end;
 
   T3DList = class;
