@@ -2618,8 +2618,7 @@ procedure TCastleSceneManager.CameraGetHeight(ACamera: TWalkCamera;
   out AboveGround: P3DTriangle);
 begin
   Items.GetHeightAbove(ACamera.Position, ACamera.GravityUp,
-    @CollisionIgnoreItem,
-    IsAbove, AboveHeight, AboveGround);
+    @CollisionIgnoreItem, IsAbove, AboveHeight, AboveGround);
 end;
 
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
