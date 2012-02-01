@@ -1234,7 +1234,7 @@ end;
 
 function T3D.GetCollides: boolean;
 begin
-  Result := GetExists and FCollides;
+  Result := FCollides and GetExists;
 end;
 
 procedure T3D.Translate(const T: TVector3Single);
@@ -1502,7 +1502,7 @@ procedure T3DList.GLContextClose;
 var
   I: Integer;
 begin
-  { this is called from inherited destrudtor, so check <> nil carefully }
+  { this is called from inherited destructor, so check <> nil carefully }
   if FList <> nil then
   begin
     for I := 0 to List.Count - 1 do
