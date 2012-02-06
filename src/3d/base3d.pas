@@ -305,16 +305,18 @@ type
     FCursor: TMouseCursor;
     FOnCursorChange: TNotifyEvent;
     FPushable: boolean;
+    Disabled: Cardinal;
     procedure SetCursor(const Value: TMouseCursor);
   protected
     { In T3D class, just calls OnCursorChange event. }
     procedure CursorChange; virtual;
-    { Return whether item really exists, see @link(Exists).
-      It T3D class, returns @link(Exists) value.
+    { Return whether item really exists, see @link(Exists) and @link(Enable),
+      @link(Disable).
+      It T3D class, returns @true if @link(Exists) and not disabled.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
     { Return whether item really exists, see @link(Collides).
-      It T3D class, returns @link(Collides) value and @link(GetExists).
+      It T3D class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
   public
@@ -333,6 +335,19 @@ type
 
       @noAutoLinkHere }
     property Exists: boolean read FExists write FExists default true;
+
+    { Items that are at least once disabled are treated like not existing.
+      Every @link(Disable) call should always be paired with @link(Enable) call
+      (usually using @code(try ... finally .... end) block).
+      Internally, we keep a counter of how many times the object is disabled,
+      and if this counter is <> 0 then GetExists returns @false.
+      Using this is useful for taming collisions, especially to avoid self-collisions
+      (when a creature moves, it doesn't want to collide with other creatures,
+      but obviously it doesn't collide with it's own bounding volume).
+      @groupBegin }
+    procedure Disable;
+    procedure Enable;
+    { @groupEnd }
 
     { Should this 3D object participate in collision detection.
       You can turn this off, useful to make e.g. "fake" walls
@@ -1209,7 +1224,7 @@ end;
 
 function T3D.GetExists: boolean;
 begin
-  Result := FExists;
+  Result := FExists and (Disabled = 0);
 end;
 
 function T3D.GetCollides: boolean;
@@ -1230,6 +1245,16 @@ procedure T3D.Sphere(out Center: TVector3Single; out Radius: Single);
 begin
   Center := ZeroVector3Single;
   Radius := 0;
+end;
+
+procedure T3D.Disable;
+begin
+  Inc(Disabled);
+end;
+
+procedure T3D.Enable;
+begin
+  Dec(Disabled);
 end;
 
 { T3DListCore ------------------------------------------------------------ }
