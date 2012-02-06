@@ -231,6 +231,7 @@ type
     procedure CameraGetHeight(ACamera: TWalkCamera;
       out IsAbove: boolean; out AboveHeight: Single;
       out AboveGround: P3DTriangle); virtual; abstract;
+    function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
 
@@ -724,6 +725,7 @@ type
     procedure CameraGetHeight(ACamera: TWalkCamera;
       out IsAbove: boolean; out AboveHeight: Single;
       out AboveGround: P3DTriangle); override;
+    function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
     function GetItems: T3D; override;
@@ -944,6 +946,7 @@ type
     procedure CameraGetHeight(ACamera: TWalkCamera;
       out IsAbove: boolean; out AboveHeight: Single;
       out AboveGround: P3DTriangle); override;
+    function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
   public
     destructor Destroy; override;
@@ -2437,7 +2440,7 @@ var
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
       RayOrigin, RayDirection);
 
-    RayHit := Items.RayCollision(RayOrigin, RayDirection, nil);
+    RayHit := CameraRay(RayOrigin, RayDirection);
 
     { We do not really have to check "RayHit <> nil" below,
       as TryActivate can (and should) work even with RayHit=nil case.
@@ -2508,9 +2511,7 @@ begin
     We know that RayDirection is normalized now, which is important
     to get correct FMouseRayHit.Distance. }
   FreeAndNil(FMouseRayHit);
-  FMouseRayHit := Items.RayCollision(RayOrigin, RayDirection,
-    { Do not use CollisionIgnoreItem here,
-      as this is not camera<->3d world collision? } nil);
+  FMouseRayHit := CameraRay(RayOrigin, RayDirection);
 
   { calculate MouseRayHit3D }
   if MouseRayHit <> nil then
@@ -2621,6 +2622,13 @@ begin
     @CollisionIgnoreItem, IsAbove, AboveHeight, AboveGround);
 end;
 
+function TCastleSceneManager.CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+begin
+  Result := Items.RayCollision(RayOrigin, RayDirection,
+    { Do not use CollisionIgnoreItem here,
+      as this is not camera<->3d world collision } nil);
+end;
+
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
@@ -2722,6 +2730,13 @@ begin
     AboveHeight := MaxSingle;
     AboveGround := nil;
   end;
+end;
+
+function TCastleViewport.CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+begin
+  if SceneManager <> nil then
+    Result := SceneManager.CameraRay(RayOrigin, RayDirection) else
+    Result := nil;
 end;
 
 function TCastleViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
