@@ -736,14 +736,15 @@ type
     { @groupEnd }
 
     { Can this object be pushed (or may block movement of) doors, elevators
-      and other level features. This specifies how moving level parts
-      (doors, elevators and such) interact with this item.
+      and other such features. This specifies how moving level parts
+      (T3DMoving instances --- doors, elevators and such) interact with this item.
 
-      Some parts may try to not crush this item.
-      This concerns DOOM E1M1 doors, and is guaranteed to @italic(never) crush item.
+      Some 3D moving objects may try to not crush this item. Like an automatic
+      door that stops it's closing animation to not crush things standing
+      in the doorway.
 
-      This also concerns TLevelMovingObject, like various up-down elevators,
-      and then the item is moved along with the moving elevator.
+      Some other 3D moving objects may transport this object.
+      Like elevators (vertical, or horizontal moving platforms).
       We may use sphere (see @link(T3D.UseSphere), @link(T3D.Sphere)) for checking
       collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
       The item is moved using @link(T3D.Translate), so make sure it
