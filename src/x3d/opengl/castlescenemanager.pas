@@ -213,7 +213,7 @@ type
       For scene maager, these methods simply return it's own properties.
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
-    function GetItems: T3D; virtual; abstract;
+    function GetItems: T3DWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit3D: T3D; virtual; abstract;
@@ -680,7 +680,7 @@ type
   TCastleSceneManager = class(TCastleAbstractViewport)
   private
     FMainScene: TCastleScene;
-    FItems: T3DList;
+    FItems: T3DWorld;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
 
@@ -734,7 +734,7 @@ type
     function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
-    function GetItems: T3D; override;
+    function GetItems: T3DWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
@@ -824,11 +824,8 @@ type
       You may also set your main TCastleScene (if you have any) as MainScene.
 
       T3DList is also T3D instance, so yes --- this may be a tree
-      of T3D, not only a flat list.
-
-      Note that scene manager "hijacks" T3D callbacks T3D.OnCursorChange and
-      T3D.OnVisibleChange. }
-    property Items: T3DList read FItems;
+      of T3D, not only a flat list. }
+    property Items: T3DWorld read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
       (after all, your 3D world doesn't even need to have any TCastleScene
@@ -941,7 +938,7 @@ type
     FSceneManager: TCastleSceneManager;
     procedure SetSceneManager(const Value: TCastleSceneManager);
   protected
-    function GetItems: T3D; override;
+    function GetItems: T3DWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit3D: T3D; override;
@@ -972,7 +969,7 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math;
+  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math, Triangle;
 
 procedure Register;
 begin
@@ -2104,40 +2101,116 @@ end;
 { T3DWorldConcrete ----------------------------------------------------------- }
 
 type
-  { Root of T3D hierarchy lists. Owner is always a TCastleSceneManager. }
+  { Root of T3D hierarchy lists.
+    Owner is always non-nil, always a TCastleSceneManager. }
   T3DWorldConcrete = class(T3DWorld)
   public
+    function Owner: TCastleSceneManager;
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3Single; override;
+    function WorldMoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const BecauseOfGravity: boolean): boolean; override;
+    function WorldMoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const BecauseOfGravity: boolean): boolean; override;
+    procedure WorldGetHeightAbove(const Position: TVector3Single;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); override;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; override;
   end;
+
+function T3DWorldConcrete.Owner: TCastleSceneManager;
+begin
+  Result := TCastleSceneManager(inherited Owner);
+end;
 
 procedure T3DWorldConcrete.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
-  if Owner <> nil then
-    TCastleSceneManager(Owner).ItemsVisibleChange(Changes);
+  Owner.ItemsVisibleChange(Changes);
 end;
 
 procedure T3DWorldConcrete.CursorChange;
 begin
-  if Owner <> nil then
-    TCastleSceneManager(Owner).ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
+  Owner.ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
 end;
 
 function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
   const Triangle: P3DTriangle): boolean;
 begin
-  Result := (Owner <> nil) and
-    TCastleSceneManager(Owner).CollisionIgnoreItem(Sender, Triangle);
+  Result := Owner.CollisionIgnoreItem(Sender, Triangle);
 end;
 
 function T3DWorldConcrete.GravityUp: TVector3Single;
 begin
-  if Owner <> nil then
-    Result := TCastleSceneManager(Owner).GravityUp else
-    Result := DefaultCameraUp;
+  Result := Owner.GravityUp;
+end;
+
+function T3DWorldConcrete.WorldMoveAllowed(
+  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveAllowed(OldPos, ProposedNewPos, NewPos, IsRadius, Radius,
+    OldBox, NewBox, @CollisionIgnoreItem);
+
+  if Result then
+  begin
+    if Owner.CameraBox.IsEmpty then
+    begin
+      { Don't objects to fall outside of the box because of gravity,
+        as then they would fall into infinity. }
+      if BecauseOfGravity then
+        Result := BoundingBox.PointInside(NewPos);
+    end else
+      Result := Owner.CameraBox.PointInside(NewPos);
+  end;
+end;
+
+function T3DWorldConcrete.WorldMoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const IsRadius: boolean; const Radius: Single;
+  const OldBox, NewBox: TBox3D;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveAllowed(OldPos, NewPos, IsRadius, Radius,
+    OldBox, NewBox, @CollisionIgnoreItem);
+
+  if Result then
+  begin
+    if Owner.CameraBox.IsEmpty then
+    begin
+      { Don't let user to fall outside of the box because of gravity. }
+      if BecauseOfGravity then
+        Result := BoundingBox.PointInside(NewPos);
+    end else
+      Result := Owner.CameraBox.PointInside(NewPos);
+  end;
+end;
+
+procedure T3DWorldConcrete.WorldGetHeightAbove(const Position: TVector3Single;
+  out IsAbove: boolean; out AboveHeight: Single;
+  out AboveGround: P3DTriangle);
+begin
+  GetHeightAbove(Position, Owner.GravityUp, @CollisionIgnoreItem,
+    IsAbove, AboveHeight, AboveGround);
+end;
+
+function T3DWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+begin
+  Result := not SegmentCollision(Pos1, Pos2,
+    { Ignore transparent materials, this means that creatures can see through
+      glass --- even though they can't walk through it.
+      CollisionIgnoreItem doesn't matter for LineOfSight. }
+    @TBaseTrianglesOctree(nil).IgnoreTransparentItem);
 end;
 
 { TCastleSceneManager -------------------------------------------------------- }
@@ -2658,32 +2731,19 @@ function TCastleSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := Items.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
+  Result := Items.WorldMoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
     true, ACamera.Radius,
     { We prefer to resolve collisions with camera using sphere.
       But for T3D implementations that can't use sphere, we can construct box. }
     Box3DAroundPoint(ACamera.Position, ACamera.Radius * 2),
-    Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2),
-    @CollisionIgnoreItem);
-
-  if Result then
-  begin
-    if FCameraBox.IsEmpty then
-    begin
-      { Don't let user to fall outside of the box because of gravity. }
-      if BecauseOfGravity then
-        Result := Items.BoundingBox.PointInside(NewPos);
-    end else
-      Result := FCameraBox.PointInside(NewPos);
-  end;
+    Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2), BecauseOfGravity);
 end;
 
 procedure TCastleSceneManager.CameraGetHeight(ACamera: TWalkCamera;
   out IsAbove: boolean; out AboveHeight: Single;
   out AboveGround: P3DTriangle);
 begin
-  Items.GetHeightAbove(ACamera.Position, ACamera.GravityUp,
-    @CollisionIgnoreItem, IsAbove, AboveHeight, AboveGround);
+  Items.WorldGetHeightAbove(ACamera.Position, IsAbove, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneManager.CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
@@ -2720,7 +2780,7 @@ begin
     Scene.CameraFromViewpoint(Camera, true);
 end;
 
-function TCastleSceneManager.GetItems: T3D;
+function TCastleSceneManager.GetItems: T3DWorld;
 begin
   Result := Items;
 end;
@@ -2815,7 +2875,7 @@ begin
   Result := SceneManager.CreateDefaultCamera(AOwner);
 end;
 
-function TCastleViewport.GetItems: T3D;
+function TCastleViewport.GetItems: T3DWorld;
 begin
   Result := SceneManager.Items;
 end;

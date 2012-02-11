@@ -858,6 +858,26 @@ type
       const Triangle: P3DTriangle): boolean; virtual; abstract;
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3Single; virtual; abstract;
+
+    { Collisions with world. They call corresponding methods without the World
+      prefix, automatically taking into account some knowledge about this
+      3D world.
+      @groupBegin }
+    function WorldMoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const BecauseOfGravity: boolean): boolean; virtual; abstract;
+    function WorldMoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const BecauseOfGravity: boolean): boolean; virtual; abstract;
+    procedure WorldGetHeightAbove(const Position: TVector3Single;
+      out IsAbove: boolean; out AboveHeight: Single;
+      out AboveGround: P3DTriangle); virtual; abstract;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
+    { @groupEnd }
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
