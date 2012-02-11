@@ -1567,7 +1567,7 @@ type
         @item(TWalkCamera.Gravity,)
         @item(TWalkCamera.PreferGravityUpForRotations,)
         @item(TWalkCamera.PreferGravityUpForMoving,)
-        @item(TWalkCamera.CameraPreferredHeight,)
+        @item(TWalkCamera.PreferredHeight,)
         @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingTime.)
       )
 
@@ -5907,17 +5907,17 @@ begin
 
   if Walk <> nil then
   begin
-    { calculate Walk.CameraPreferredHeight }
+    { calculate Walk.PreferredHeight }
     if (NavigationNode <> nil) and
        (NavigationNode.FdAvatarSize.Count >= 2) then
-      Walk.CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
+      Walk.PreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
       { Make it something >> Radius * 2, to allow some
-        space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
-        in view3dscene). Remember that CorrectCameraPreferredHeight
-        adds a limit to CameraPreferredHeight, around Radius * 2. }
-      Walk.CameraPreferredHeight := Radius * 4;
+        space to decrease (e.g. by Input_DecreasePreferredHeight
+        in view3dscene). Remember that CorrectPreferredHeight
+        adds a limit to PreferredHeight, around Radius * 2. }
+      Walk.PreferredHeight := Radius * 4;
 
-    Walk.CorrectCameraPreferredHeight;
+    Walk.CorrectPreferredHeight;
 
     { calculate Walk.HeadBobbing* }
     if (NavigationNode <> nil) and

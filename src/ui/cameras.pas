@@ -376,13 +376,13 @@ type
           smaller than this radius) for 3D rendering.)
         @item(
           Walk camera uses this for automatically correcting
-          CameraPreferredHeight, otherwise weird things could happen
+          PreferredHeight, otherwise weird things could happen
           if your avatar height is too small compared to camera radius.
-          See @link(CorrectCameraPreferredHeight).
+          See @link(CorrectPreferredHeight).
 
           Especially useful if you let
-          user change CameraPreferredHeight at runtime by
-          Input_IncreaseCameraPreferredHeight, Input_DcreaseCameraPreferredHeight.
+          user change PreferredHeight at runtime by
+          Input_IncreasePreferredHeight, Input_DcreasePreferredHeight.
 
           This is actually the whole use of @link(Radius) inside @link(Cameras) unit
           and classes. But the code all around the engine also looks for
@@ -802,8 +802,8 @@ type
     FInput_DownRotate: TInputShortcut;
     FInput_UpMove: TInputShortcut;
     FInput_DownMove: TInputShortcut;
-    FInput_IncreaseCameraPreferredHeight: TInputShortcut;
-    FInput_DecreaseCameraPreferredHeight: TInputShortcut;
+    FInput_IncreasePreferredHeight: TInputShortcut;
+    FInput_DecreasePreferredHeight: TInputShortcut;
     FInput_GravityUp: TInputShortcut;
     FInput_MoveSpeedInc: TInputShortcut;
     FInput_MoveSpeedDec: TInputShortcut;
@@ -836,7 +836,7 @@ type
   private
     { Private things related to gravity ---------------------------- }
 
-    FCameraPreferredHeight: Single;
+    FPreferredHeight: Single;
     FIsFallingDown: boolean;
     FFallingDownStartPos: TVector3Single;
     FOnFalledDown: TFalledDownNotifyFunc;
@@ -878,8 +878,8 @@ type
     FInvertVerticalMouseLook: boolean;
     FOnMoveAllowed: TMoveAllowedFunc;
 
-    function RealCameraPreferredHeightNoHeadBobbing: Single;
-    function RealCameraPreferredHeightMargin: Single;
+    function RealPreferredHeightNoHeadBobbing: Single;
+    function RealPreferredHeightMargin: Single;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1099,15 +1099,15 @@ type
       and AInitialUp will be adjusted to be orthogonal to AInitialDirection
       (see SetInitialView).
 
-      Sets also CameraPreferredHeight and Radius.
-      CameraPreferredHeight may be adjusted to be sensible
-      (by calling CorrectCameraPreferredHeight(ARadius)).
+      Sets also PreferredHeight and Radius.
+      PreferredHeight may be adjusted to be sensible
+      (by calling CorrectPreferredHeight(ARadius)).
       You can pass ARadius = 0.0 if you really don't want this
-      CameraPreferredHeight adjustment. }
+      PreferredHeight adjustment. }
     procedure Init(const AInitialPosition, AInitialDirection,
       AInitialUp: TVector3Single;
       const AGravityUp: TVector3Single;
-      const ACameraPreferredHeight: Single;
+      const APreferredHeight: Single;
       const ARadius: Single); overload;
 
     { Alternative Init that sets camera properties such that
@@ -1115,7 +1115,7 @@ type
       Sets InitialCameraXxx properties to make it look right,
       sets current CameraXxx properties to InitialCameraXxx.
       Sets GravityUp to the same thing as InitialUp.
-      Sets also CameraPreferredHeight to make it behave "sensibly". }
+      Sets also PreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
 
     { Deprecated name in TWalkCamera for GoToInitial. @deprecated }
@@ -1186,7 +1186,7 @@ type
           JumpSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
         @item(It tries to keep @link(Position) above the ground on
-          CameraPreferredHeight height.)
+          PreferredHeight height.)
         @item(When current height is too small --- @link(Position) is moved up.
           See GrowingSpeed.)
         @item(When current height is too large --- we're falling down.
@@ -1198,7 +1198,7 @@ type
       While there are many properties allowing you to control
       gravity behavior, most of them have initial values that should be
       sensible in all cases. The only things that you really want to take
-      care of are: OnGetHeightAbove and CameraPreferredHeight.
+      care of are: OnGetHeightAbove and PreferredHeight.
       Everything else should basically work auto-magically.
 
       Note that Gravity setting is independent from
@@ -1208,7 +1208,7 @@ type
     property Gravity: boolean
       read FGravity write FGravity default false;
 
-    { When @link(Gravity) is on, @link(Position) tries to stay CameraPreferredHeight
+    { When @link(Gravity) is on, @link(Position) tries to stay PreferredHeight
       above the ground. Temporary it may be lower (player can
       shortly "duck" when he falls from high).
 
@@ -1217,32 +1217,32 @@ type
       behavior of some things related to @link(Gravity),
       and also you should set OnGetHeightAbove.
 
-      See CorrectCameraPreferredHeight for important property
-      of CameraPreferredHeight that you should keep. }
-    property CameraPreferredHeight: Single
-      read FCameraPreferredHeight write FCameraPreferredHeight default 0.0;
+      See CorrectPreferredHeight for important property
+      of PreferredHeight that you should keep. }
+    property PreferredHeight: Single
+      read FPreferredHeight write FPreferredHeight default 0.0;
 
-    { This procedure corrects CameraPreferredHeight based on your Radius
+    { This procedure corrects PreferredHeight based on your Radius
       and on current HeadBobbing.
 
       Exactly what and why is done: if you do any kind of collision
       detection with some Radius, then
-      you should make sure that RealCameraPreferredHeight is always >= of your
+      you should make sure that RealPreferredHeight is always >= of your
       Radius, otherwise strange effects may happen when crouching
       or when head bobbing forces camera to go down.
 
       Exactly, the required equation is
 @preformatted(
-  MinimumRealCameraPreferredHeight :=
-    CameraPreferredHeight * CrouchHeight * (1 - HeadBobbing);
+  MinimumRealPreferredHeight :=
+    PreferredHeight * CrouchHeight * (1 - HeadBobbing);
 )
       and always must be
 @preformatted(
-  MinimumRealCameraPreferredHeight >= RealCameraPreferredHeight
+  MinimumRealPreferredHeight >= RealPreferredHeight
 )
 
       Reasoning: otherwise this class would "want camera to fall down"
-      (because we will always be higher than RealCameraPreferredHeight)
+      (because we will always be higher than RealPreferredHeight)
       but your OnMoveAllowed would not allow it (because Radius
       would not allow it). Note that this class doesn't keep value
       of your Radius, because collision detection
@@ -1250,13 +1250,13 @@ type
       delegated to OnGetHeightAbove and OnMoveAllowed.
       Also, it's not exactly forced @italic(how) you should force this
       condition to hold. Sometimes the good solution is to adjust
-      Radius, not to adjust CameraPreferredHeight.
+      Radius, not to adjust PreferredHeight.
 
       Anyway, this method will make sure that this condition
-      holds by eventually adjusting (making larger) CameraPreferredHeight.
+      holds by eventually adjusting (making larger) PreferredHeight.
       Note that for Radius = 0.0 this will always leave
-      CameraPreferredHeight as it is. }
-    procedure CorrectCameraPreferredHeight;
+      PreferredHeight as it is. }
+    procedure CorrectPreferredHeight;
 
     { Assign here the callback (or override UpdateHeightAbove)
       to say what is the current height of camera above the ground.
@@ -1347,10 +1347,10 @@ type
       read FFallingDownEffect write FFallingDownEffect default true;
 
     { When @link(Gravity) works and camera height above the ground
-      is less than CameraPreferredHeight, then we try to "grow",
+      is less than PreferredHeight, then we try to "grow",
       i.e. camera position increases along the GravityUp
       so that camera height above the ground is closer to
-      CameraPreferredHeight. This property (together with length of
+      PreferredHeight. This property (together with length of
       @link(Direction), that always determines every moving speed)
       determines the speed of this growth. }
     property GrowingSpeed: Single
@@ -1359,11 +1359,11 @@ type
 
     { How high can you jump ?
       The max jump distance is calculated as
-      MaxJumpHeight * CameraPreferredHeight, see MaxJumpDistance. }
+      MaxJumpHeight * PreferredHeight, see MaxJumpDistance. }
     property MaxJumpHeight: Single
       read FMaxJumpHeight write FMaxJumpHeight default DefaultMaxJumpHeight;
 
-    { Returns just MaxJumpHeight * CameraPreferredHeight,
+    { Returns just MaxJumpHeight * PreferredHeight,
       see MaxJumpHeight for explanation. }
     function MaxJumpDistance: Single;
 
@@ -1385,7 +1385,7 @@ type
       --- camera position slightly changes it's vertical position,
       going a little up, then a little down, then a little up again etc.
 
-      This property mutiplied by CameraPreferredHeight
+      This property mutiplied by PreferredHeight
       says how much head bobbing can move you along GravityUp.
       Set this to 0 to disable head bobbing.
       This must always be < 1.0. For sensible effects, this should
@@ -1402,7 +1402,7 @@ type
       default DefaultHeadBobbingTime;
 
     { This defines the preferred height of camera when crouching.
-      This is always mutiplied to CameraPreferredHeight.
+      This is always mutiplied to PreferredHeight.
       This should always be <= 1 (CrouchHeight = 1 effectively disables
       crouching, although it's better to do this by calling MakeClear
       on Input_Crouch). }
@@ -1412,10 +1412,10 @@ type
     { Is player crouching right now ? }
     property IsCrouching: boolean read FIsCrouching;
 
-    { This is CameraPreferredHeight slightly modified by head bobbing
+    { This is PreferredHeight slightly modified by head bobbing
       and crouch. It can be useful for collision detection
       between camera and something. }
-    function RealCameraPreferredHeight: Single;
+    function RealPreferredHeight: Single;
 
     { This makes a visual effect of camera falling down horizontally
       on the ground. Nice to use when player died, and you want to show
@@ -1484,8 +1484,8 @@ type
     property Input_UpRotate: TInputShortcut read FInput_UpRotate;
     property Input_DownRotate: TInputShortcut read FInput_DownRotate;
     property Input_UpMove: TInputShortcut read FInput_UpMove;
-    property Input_IncreaseCameraPreferredHeight: TInputShortcut read FInput_IncreaseCameraPreferredHeight;
-    property Input_DecreaseCameraPreferredHeight: TInputShortcut read FInput_DecreaseCameraPreferredHeight;
+    property Input_IncreasePreferredHeight: TInputShortcut read FInput_IncreasePreferredHeight;
+    property Input_DecreasePreferredHeight: TInputShortcut read FInput_DecreasePreferredHeight;
     property Input_DownMove: TInputShortcut read FInput_DownMove;
     property Input_GravityUp: TInputShortcut read FInput_GravityUp;
 
@@ -1513,7 +1513,7 @@ type
 
       If @true then all keys work only when no modifiers or only shift are
       pressed. Additionally when Ctrl is pressed (and AllowSlowerRotations) then
-      rotation keys work 10x slower. Also Increase/DecreaseCameraPreferredHeight
+      rotation keys work 10x slower. Also Increase/DecreasePreferredHeight
       work only when Ctrl pressed.
       Other keys with other modifiers
       don't work. We allow shift, because to press character "+" on non-numpad
@@ -1523,7 +1523,7 @@ type
       If @false then all keys work as usual, no matter what
       modifiers are pressed. And rotation keys never work 10x slower
       (AllowSlowerRotations is ignored),
-      also Increase/DecreaseCameraPreferredHeight are ignored. }
+      also Increase/DecreasePreferredHeight are ignored. }
     property CheckModsDown: boolean
       read FCheckModsDown write FCheckModsDown
       default true;
@@ -1671,9 +1671,9 @@ type
       read GetNavigationType write SetNavigationType default ntExamine;
   end;
 
-{ See TWalkCamera.CorrectCameraPreferredHeight.
+{ See TWalkCamera.CorrectPreferredHeight.
   This is a global version, sometimes may be useful. }
-procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
+procedure CorrectPreferredHeight(var PreferredHeight: Single;
   const Radius: Single; const CrouchHeight, HeadBobbing: Single);
 
 const
@@ -2839,79 +2839,79 @@ begin
   FJumpPower := DefaultJumpPower;
   FInvertVerticalMouseLook := false;
 
-  FInput_Forward                       := TInputShortcut.Create(Self);
-  FInput_Backward                      := TInputShortcut.Create(Self);
-  FInput_LeftRot                       := TInputShortcut.Create(Self);
-  FInput_RightRot                      := TInputShortcut.Create(Self);
-  FInput_LeftStrafe                    := TInputShortcut.Create(Self);
-  FInput_RightStrafe                   := TInputShortcut.Create(Self);
-  FInput_UpRotate                      := TInputShortcut.Create(Self);
-  FInput_DownRotate                    := TInputShortcut.Create(Self);
-  FInput_UpMove                        := TInputShortcut.Create(Self);
-  FInput_DownMove                      := TInputShortcut.Create(Self);
-  FInput_IncreaseCameraPreferredHeight := TInputShortcut.Create(Self);
-  FInput_DecreaseCameraPreferredHeight := TInputShortcut.Create(Self);
-  FInput_GravityUp                     := TInputShortcut.Create(Self);
-  FInput_MoveSpeedInc                  := TInputShortcut.Create(Self);
-  FInput_MoveSpeedDec                  := TInputShortcut.Create(Self);
-  FInput_Jump                          := TInputShortcut.Create(Self);
-  FInput_Crouch                        := TInputShortcut.Create(Self);
+  FInput_Forward                 := TInputShortcut.Create(Self);
+  FInput_Backward                := TInputShortcut.Create(Self);
+  FInput_LeftRot                 := TInputShortcut.Create(Self);
+  FInput_RightRot                := TInputShortcut.Create(Self);
+  FInput_LeftStrafe              := TInputShortcut.Create(Self);
+  FInput_RightStrafe             := TInputShortcut.Create(Self);
+  FInput_UpRotate                := TInputShortcut.Create(Self);
+  FInput_DownRotate              := TInputShortcut.Create(Self);
+  FInput_UpMove                  := TInputShortcut.Create(Self);
+  FInput_DownMove                := TInputShortcut.Create(Self);
+  FInput_IncreasePreferredHeight := TInputShortcut.Create(Self);
+  FInput_DecreasePreferredHeight := TInputShortcut.Create(Self);
+  FInput_GravityUp               := TInputShortcut.Create(Self);
+  FInput_MoveSpeedInc            := TInputShortcut.Create(Self);
+  FInput_MoveSpeedDec            := TInputShortcut.Create(Self);
+  FInput_Jump                    := TInputShortcut.Create(Self);
+  FInput_Crouch                  := TInputShortcut.Create(Self);
 
-  Input_Forward                       .Assign(K_Up);
-  Input_Backward                      .Assign(K_Down);
-  Input_LeftRot                       .Assign(K_Left);
-  Input_RightRot                      .Assign(K_Right);
-  Input_LeftStrafe                    .Assign(K_Comma);
-  Input_RightStrafe                   .Assign(K_Period);
-  Input_UpRotate                      .Assign(K_PageUp);
-  Input_DownRotate                    .Assign(K_PageDown);
-  Input_UpMove                        .Assign(K_Insert);
-  Input_DownMove                      .Assign(K_Delete);
-  Input_IncreaseCameraPreferredHeight .Assign(K_Insert);
-  Input_DecreaseCameraPreferredHeight .Assign(K_Delete);
-  Input_GravityUp                     .Assign(K_Home);
+  Input_Forward                 .Assign(K_Up);
+  Input_Backward                .Assign(K_Down);
+  Input_LeftRot                 .Assign(K_Left);
+  Input_RightRot                .Assign(K_Right);
+  Input_LeftStrafe              .Assign(K_Comma);
+  Input_RightStrafe             .Assign(K_Period);
+  Input_UpRotate                .Assign(K_PageUp);
+  Input_DownRotate              .Assign(K_PageDown);
+  Input_UpMove                  .Assign(K_Insert);
+  Input_DownMove                .Assign(K_Delete);
+  Input_IncreasePreferredHeight .Assign(K_Insert);
+  Input_DecreasePreferredHeight .Assign(K_Delete);
+  Input_GravityUp               .Assign(K_Home);
   { For move speed we use also character codes +/-, as numpad
     may be hard to reach on some keyboards (e.g. on laptops). }
-  Input_MoveSpeedInc                  .Assign(K_Numpad_Plus , K_None, '+');
-  Input_MoveSpeedDec                  .Assign(K_Numpad_Minus, K_None, '-');
-  Input_Jump                          .Assign(K_A);
-  Input_Crouch                        .Assign(K_Z);
+  Input_MoveSpeedInc            .Assign(K_Numpad_Plus , K_None, '+');
+  Input_MoveSpeedDec            .Assign(K_Numpad_Minus, K_None, '-');
+  Input_Jump                    .Assign(K_A);
+  Input_Crouch                  .Assign(K_Z);
 
-  Input_Forward                      .SetSubComponent(true);
-  Input_Backward                     .SetSubComponent(true);
-  Input_LeftRot                      .SetSubComponent(true);
-  Input_RightRot                     .SetSubComponent(true);
-  Input_LeftStrafe                   .SetSubComponent(true);
-  Input_RightStrafe                  .SetSubComponent(true);
-  Input_UpRotate                     .SetSubComponent(true);
-  Input_DownRotate                   .SetSubComponent(true);
-  Input_UpMove                       .SetSubComponent(true);
-  Input_DownMove                     .SetSubComponent(true);
-  Input_IncreaseCameraPreferredHeight.SetSubComponent(true);
-  Input_DecreaseCameraPreferredHeight.SetSubComponent(true);
-  Input_GravityUp                    .SetSubComponent(true);
-  Input_MoveSpeedInc                 .SetSubComponent(true);
-  Input_MoveSpeedDec                 .SetSubComponent(true);
-  Input_Jump                         .SetSubComponent(true);
-  Input_Crouch                       .SetSubComponent(true);
+  Input_Forward                .SetSubComponent(true);
+  Input_Backward               .SetSubComponent(true);
+  Input_LeftRot                .SetSubComponent(true);
+  Input_RightRot               .SetSubComponent(true);
+  Input_LeftStrafe             .SetSubComponent(true);
+  Input_RightStrafe            .SetSubComponent(true);
+  Input_UpRotate               .SetSubComponent(true);
+  Input_DownRotate             .SetSubComponent(true);
+  Input_UpMove                 .SetSubComponent(true);
+  Input_DownMove               .SetSubComponent(true);
+  Input_IncreasePreferredHeight.SetSubComponent(true);
+  Input_DecreasePreferredHeight.SetSubComponent(true);
+  Input_GravityUp              .SetSubComponent(true);
+  Input_MoveSpeedInc           .SetSubComponent(true);
+  Input_MoveSpeedDec           .SetSubComponent(true);
+  Input_Jump                   .SetSubComponent(true);
+  Input_Crouch                 .SetSubComponent(true);
 
-  Input_Forward                      .Name := 'Input_Forward';
-  Input_Backward                     .Name := 'Input_Backward';
-  Input_LeftRot                      .Name := 'Input_LeftRot';
-  Input_RightRot                     .Name := 'Input_RightRot';
-  Input_LeftStrafe                   .Name := 'Input_LeftStrafe';
-  Input_RightStrafe                  .Name := 'Input_RightStrafe';
-  Input_UpRotate                     .Name := 'Input_UpRotate';
-  Input_DownRotate                   .Name := 'Input_DownRotate';
-  Input_UpMove                       .Name := 'Input_UpMove';
-  Input_DownMove                     .Name := 'Input_DownMove';
-  Input_IncreaseCameraPreferredHeight.Name := 'Input_IncreaseCameraPreferredHeight';
-  Input_DecreaseCameraPreferredHeight.Name := 'Input_DecreaseCameraPreferredHeight';
-  Input_GravityUp                    .Name := 'Input_GravityUp';
-  Input_MoveSpeedInc                 .Name := 'Input_MoveSpeedInc';
-  Input_MoveSpeedDec                 .Name := 'Input_MoveSpeedDec';
-  Input_Jump                         .Name := 'Input_Jump';
-  Input_Crouch                       .Name := 'Input_Crouch';
+  Input_Forward                .Name := 'Input_Forward';
+  Input_Backward               .Name := 'Input_Backward';
+  Input_LeftRot                .Name := 'Input_LeftRot';
+  Input_RightRot               .Name := 'Input_RightRot';
+  Input_LeftStrafe             .Name := 'Input_LeftStrafe';
+  Input_RightStrafe            .Name := 'Input_RightStrafe';
+  Input_UpRotate               .Name := 'Input_UpRotate';
+  Input_DownRotate             .Name := 'Input_DownRotate';
+  Input_UpMove                 .Name := 'Input_UpMove';
+  Input_DownMove               .Name := 'Input_DownMove';
+  Input_IncreasePreferredHeight.Name := 'Input_IncreasePreferredHeight';
+  Input_DecreasePreferredHeight.Name := 'Input_DecreasePreferredHeight';
+  Input_GravityUp              .Name := 'Input_GravityUp';
+  Input_MoveSpeedInc           .Name := 'Input_MoveSpeedInc';
+  Input_MoveSpeedDec           .Name := 'Input_MoveSpeedDec';
+  Input_Jump                   .Name := 'Input_Jump';
+  Input_Crouch                 .Name := 'Input_Crouch';
 end;
 
 destructor TWalkCamera.Destroy;
@@ -2963,19 +2963,19 @@ begin
   Result := Gravity and (HeadBobbing <> 0.0);
 end;
 
-function TWalkCamera.RealCameraPreferredHeightNoHeadBobbing: Single;
+function TWalkCamera.RealPreferredHeightNoHeadBobbing: Single;
 begin
-  Result := CameraPreferredHeight;
+  Result := PreferredHeight;
 
   if IsCrouching then
     Result *= CrouchHeight;
 end;
 
-function TWalkCamera.RealCameraPreferredHeight: Single;
+function TWalkCamera.RealPreferredHeight: Single;
 var
   BobbingModifier: Single;
 begin
-  Result := RealCameraPreferredHeightNoHeadBobbing;
+  Result := RealPreferredHeightNoHeadBobbing;
 
   if UseHeadBobbing then
   begin
@@ -3011,11 +3011,11 @@ begin
   end;
 end;
 
-function TWalkCamera.RealCameraPreferredHeightMargin: Single;
+function TWalkCamera.RealPreferredHeightMargin: Single;
 begin
   { I tried using here something smaller like
     SingleEqualityEpsilon, but this was not good. }
-  Result := RealCameraPreferredHeight * 0.01;
+  Result := RealPreferredHeight * 0.01;
 end;
 
 procedure TWalkCamera.RotateAroundGravityUp(const AngleDeg: Single);
@@ -3258,7 +3258,7 @@ var
   end;
 
   { Things related to gravity --- jumping, taking into account
-    falling down and keeping RealCameraPreferredHeight above the ground. }
+    falling down and keeping RealPreferredHeight above the ground. }
   procedure GravityIdle;
 
     function TryJump: boolean;
@@ -3299,25 +3299,25 @@ var
 
    function TryFde_Stabilize: boolean; forward;
 
-    { If our height above the ground is < RealCameraPreferredHeight
+    { If our height above the ground is < RealPreferredHeight
       then we try to "grow".
 
       (this may happen because of many things --- e.g. user code
-      just changed CameraPreferredHeight to something larger
+      just changed PreferredHeight to something larger
       (because e.g. "duck mode" ended), or we just ended falling dowm
       from high). }
     function TryGrow: boolean;
     var
       GrowingVectorLength: Single;
     begin
-      Result := AboveHeight < RealCameraPreferredHeight - RealCameraPreferredHeightMargin;
+      Result := AboveHeight < RealPreferredHeight - RealPreferredHeightMargin;
 
       if Result then
       begin
         { calculate GrowingVectorLength }
         GrowingVectorLength := Min(
           MoveSpeed * MoveVerticalSpeed * GrowingSpeed * CompSpeed,
-          RealCameraPreferredHeight - AboveHeight);
+          RealPreferredHeight - AboveHeight);
 
         Move(VectorScale(GravityUp, GrowingVectorLength), true);
 
@@ -3355,21 +3355,21 @@ var
         which means that (assuming OnGetHeightAbove is correctly assigned)
         we are not above the ground, or
           AboveHeight >=
-            RealCameraPreferredHeight - RealCameraPreferredHeightMargin
+            RealPreferredHeight - RealPreferredHeightMargin
         However we require something stronger to continue:
           AboveHeight >
-            RealCameraPreferredHeight + RealCameraPreferredHeightMargin
+            RealPreferredHeight + RealPreferredHeightMargin
 
         This is important, because this way we avoid the unpleasant
         "bouncing" effect when in one Idle we decide that camera
         is falling down, in next Idle we decide that it's growing,
         in next Idle it falls down again etc. In TryGrow we try
         to precisely set our Position, so that it hits exactly
-        at RealCameraPreferredHeight -- which means that after TryGrow,
+        at RealPreferredHeight -- which means that after TryGrow,
         in next Idle TryGrow should not cause growing and TryFallingDown
         should not cause falling down. }
       if AboveHeight <=
-           RealCameraPreferredHeight + RealCameraPreferredHeightMargin then
+           RealPreferredHeight + RealPreferredHeightMargin then
       begin
         FIsFallingDown := false;
         Exit;
@@ -3395,20 +3395,20 @@ var
 
         Actually, we even do more. We make sure that
         FallingDownVectorLength is no longer than
-        (AboveHeight - RealCameraPreferredHeight).
+        (AboveHeight - RealPreferredHeight).
         Initially I wanted to do here
           MinTo1st(FallingDownVectorLength, AboveHeight);
-        i.e. to allow camera to fall below RealCameraPreferredHeight.
+        i.e. to allow camera to fall below RealPreferredHeight.
 
         But this didn't work like it should. Why ?
         See above for the trick that I have to do with
-        RealCameraPreferredHeightMargin above (to not cause
+        RealPreferredHeightMargin above (to not cause
         "unpleasant bouncing" when swapping FallingDown and TryGrow).
-        If I could fall down here below RealCameraPreferredHeight then
+        If I could fall down here below RealPreferredHeight then
 
         1. It *will not* cause the desired "nice" effect (of automatically
            "ducking" when falling down from high), because of comparison
-           (the one with RealCameraPreferredHeightMargin) above.
+           (the one with RealPreferredHeightMargin) above.
 
         2. It *will* cause the undesired unpleasant swapping between
            FallingDown and TryGrow.
@@ -3416,10 +3416,10 @@ var
         So it's totally bad thing to do.
 
         This means that I should limit myself to not fall down
-        below RealCameraPreferredHeight. And that's what I'm doing. }
+        below RealPreferredHeight. And that's what I'm doing. }
       FallingDownVectorLength :=
         MoveSpeed * MoveVerticalSpeed * FFallingDownSpeed * CompSpeed;
-      MinTo1st(FallingDownVectorLength, AboveHeight - RealCameraPreferredHeight);
+      MinTo1st(FallingDownVectorLength, AboveHeight - RealPreferredHeight);
 
       if Move(VectorScale(GravityUp, - FallingDownVectorLength), true) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
@@ -3453,7 +3453,7 @@ var
 
         Result := true;
 
-        if AboveHeight < RealCameraPreferredHeight * 1.1 then
+        if AboveHeight < RealPreferredHeight * 1.1 then
         begin
           { This check is needed, otherwise when you're walking down even from
             the most slight hill then you get
@@ -3471,7 +3471,7 @@ var
             like player fell down from the top of the hill to the ground
             (which can cause e.g. player losing life).
 
-            The check for RealCameraPreferredHeight * 1.1 above and
+            The check for RealPreferredHeight * 1.1 above and
             setting FIsFallingDown cure the situation. OnFalledDown will
             be called more often indicating very small fallen down heights,
             and FallingDownSpeed and FallingDownEffect will not be able
@@ -3503,7 +3503,7 @@ var
                and we're better not using this too much... A practical bug demo:
                open in view3dscene (it does progress bar in OpenGL, so will cause
                large CompSpeed) any model with gravity on and camera slightly
-               higher then CameraPreferredHeight (we want to trigger IsFallingDown
+               higher then PreferredHeight (we want to trigger IsFallingDown
                right when the model is loaded). E.g. run
                "view3dscene demo_models/navigation/speed_2.wrl".
                If FallingDownSpeedIncrease will be done before FallingDownEffect,
@@ -3675,7 +3675,7 @@ var
     var
       MinAboveHeight, MaxAboveHeight, H: Single;
     begin
-      H := RealCameraPreferredHeightNoHeadBobbing;
+      H := RealPreferredHeightNoHeadBobbing;
       MinAboveHeight := (H - H * HeadBobbing) * 0.99;
       MaxAboveHeight := (H + H * HeadBobbing) * 1.01;
       Result := IsAbove and
@@ -3793,15 +3793,15 @@ var
   begin
   end;
 
-  procedure ChangeCameraPreferredHeight(const Increase: Integer);
+  procedure ChangePreferredHeight(const Increase: Integer);
   begin
-    CameraPreferredHeight := CameraPreferredHeight +
-      { It's best to scale CameraPreferredHeight changes by MoveSpeed,
+    PreferredHeight := PreferredHeight +
+      { It's best to scale PreferredHeight changes by MoveSpeed,
         to make it faster/slower depending on scene size
         (which usually corresponds to move speed). }
       Increase * MoveSpeed * CompSpeed * 0.2;
 
-    CorrectCameraPreferredHeight;
+    CorrectPreferredHeight;
 
     { Why ScheduleVisibleChange here? Reasoning the same as for
       MoveSpeedInc/Dec changes. }
@@ -3944,15 +3944,15 @@ begin
         if AllowSlowerRotations then
           CheckRotates(0.1);
 
-        { Either MoveSpeedInc/Dec work, or Increase/DecreaseCameraPreferredHeight,
+        { Either MoveSpeedInc/Dec work, or Increase/DecreasePreferredHeight,
           as they by default have the same shortcuts, so should not work
           together. }
         if ModsDown = [mkCtrl] then
         begin
-          if Input_IncreaseCameraPreferredHeight.IsPressed(Container) then
-            ChangeCameraPreferredHeight(+1);
-          if Input_DecreaseCameraPreferredHeight.IsPressed(Container) then
-            ChangeCameraPreferredHeight(-1);
+          if Input_IncreasePreferredHeight.IsPressed(Container) then
+            ChangePreferredHeight(+1);
+          if Input_DecreasePreferredHeight.IsPressed(Container) then
+            ChangePreferredHeight(-1);
         end;
       end;
     end;
@@ -3988,7 +3988,7 @@ begin
   { calculate IsAbove, AboveHeight }
   UpdateHeightAbove;
 
-  if AboveHeight > RealCameraPreferredHeight + RealCameraPreferredHeightMargin then
+  if AboveHeight > RealPreferredHeight + RealPreferredHeightMargin then
     Exit;
 
   FIsJumping := true;
@@ -4072,14 +4072,14 @@ end;
 procedure TWalkCamera.Init(
   const AInitialPosition, AInitialDirection, AInitialUp: TVector3Single;
   const AGravityUp: TVector3Single;
-  const ACameraPreferredHeight: Single;
+  const APreferredHeight: Single;
   const ARadius: Single);
 begin
   SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
   FGravityUp := Normalized(AGravityUp);
-  CameraPreferredHeight := ACameraPreferredHeight;
+  PreferredHeight := APreferredHeight;
   Radius := ARadius;
-  CorrectCameraPreferredHeight;
+  CorrectPreferredHeight;
   GoToInitial;
 end;
 
@@ -4130,15 +4130,15 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.CorrectCameraPreferredHeight;
+procedure TWalkCamera.CorrectPreferredHeight;
 begin
-  Cameras.CorrectCameraPreferredHeight(
-    FCameraPreferredHeight, Radius, CrouchHeight, HeadBobbing);
+  Cameras.CorrectPreferredHeight(
+    FPreferredHeight, Radius, CrouchHeight, HeadBobbing);
 end;
 
 function TWalkCamera.MaxJumpDistance: Single;
 begin
-  Result := MaxJumpHeight * CameraPreferredHeight;
+  Result := MaxJumpHeight * PreferredHeight;
 end;
 
 function TWalkCamera.DirectionInGravityPlane: TVector3Single;
@@ -4634,24 +4634,24 @@ end;
 
 { global ------------------------------------------------------------ }
 
-procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
+procedure CorrectPreferredHeight(var PreferredHeight: Single;
   const Radius: Single; const CrouchHeight, HeadBobbing: Single);
 var
-  NewCameraPreferredHeight: Single;
+  NewPreferredHeight: Single;
 begin
   { We have requirement that
-      CameraPreferredHeight * CrouchHeight * (1 - HeadBobbing) >= Radius
+      PreferredHeight * CrouchHeight * (1 - HeadBobbing) >= Radius
     So
-      CameraPreferredHeight >= Radius / (CrouchHeight * (1 - HeadBobbing));
+      PreferredHeight >= Radius / (CrouchHeight * (1 - HeadBobbing));
 
     I make it even a little larger (that's the reason for "* 1.01") to be
     sure to avoid floating-point rounding errors. }
 
-  NewCameraPreferredHeight := 1.01 * Radius /
+  NewPreferredHeight := 1.01 * Radius /
     (CrouchHeight * (1 - HeadBobbing));
 
-  if CameraPreferredHeight < NewCameraPreferredHeight then
-    CameraPreferredHeight := NewCameraPreferredHeight;
+  if PreferredHeight < NewPreferredHeight then
+    PreferredHeight := NewPreferredHeight;
 end;
 
 function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
