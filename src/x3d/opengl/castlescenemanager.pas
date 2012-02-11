@@ -2088,34 +2088,34 @@ begin
   Result := false;
 end;
 
-{ T3DWorld ------------------------------------------------------------------- }
+{ T3DWorldConcrete ----------------------------------------------------------- }
 
 type
   { Root of T3D hierarchy lists. Owner is always a TCastleSceneManager. }
-  T3DWorld = class(T3DList)
+  T3DWorldConcrete = class(T3DWorld)
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
   end;
 
-procedure T3DWorld.VisibleChangeHere(const Changes: TVisibleChanges);
+procedure T3DWorldConcrete.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
   if Owner <> nil then
     TCastleSceneManager(Owner).ItemsVisibleChange(Changes);
 end;
 
-procedure T3DWorld.CursorChange;
+procedure T3DWorldConcrete.CursorChange;
 begin
   if Owner <> nil then
     TCastleSceneManager(Owner).ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
 end;
 
-{ TCastleSceneManager ----------------------------------------------------------- }
+{ TCastleSceneManager -------------------------------------------------------- }
 
 constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := T3DWorld.Create(Self);
+  FItems := T3DWorldConcrete.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so make it a correct sub-component. }

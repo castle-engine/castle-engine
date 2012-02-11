@@ -271,6 +271,7 @@ type
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
   T3DList = class;
+  T3DWorld = class;
 
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
@@ -569,6 +570,11 @@ type
     { Containing 3D list. }
     property Parent: T3DList read FParent;
 
+    { World containing this 3D object. In other words, the root of 3D objects
+      tree containing this object. @nil if we are not part of a hierarchy rooted
+      in T3DWorld. }
+    function World: T3DWorld; virtual;
+
     { Something visible changed in the 3D world.
       This is usually called by our container (like TCastleSceneManager),
       to allow this 3D object to react (e.g. by regenerating mirror textures)
@@ -840,6 +846,12 @@ type
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
     property List: T3DListCore read FList;
+  end;
+
+  { 3D world. List of 3D objects, with some central properties. }
+  T3DWorld = class(T3DList)
+  public
+    function World: T3DWorld; override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -1241,6 +1253,13 @@ end;
 procedure T3D.Enable;
 begin
   Dec(Disabled);
+end;
+
+function T3D.World: T3DWorld;
+begin
+  if Parent <> nil then
+    Result := Parent.World else
+    Result := nil;
 end;
 
 { T3DListCore ------------------------------------------------------------ }
@@ -1781,6 +1800,13 @@ begin
   end;
 
   MultMatricesTranslation(Transform, TransformInverse, VectorNegate(Center));
+end;
+
+{ T3DWorld ------------------------------------------------------------------- }
+
+function T3DWorld.World: T3DWorld;
+begin
+  Result := Self;
 end;
 
 { T3DCustomTransform -------------------------------------------------------- }
