@@ -93,6 +93,12 @@ type
 
     ApplyProjectionNeeded: boolean;
 
+    { Set these to non-1 to deliberately distort field of view / aspect ratio.
+      This is useful for special effects when you want to create unrealistic
+      projection. Used only by ApplyProjection. For now, used only in perspective
+      projection. }
+    DistortFieldOfViewY, DistortViewAspect: Single;
+
     { Sets OpenGL projection matrix, based on MainScene's
       currently bound Viewpoint, NavigationInfo and used @link(Camera).
       Viewport's @link(Camera), if not assigned, is automatically created here,
@@ -1006,6 +1012,8 @@ begin
   FFullSize := true;
   FAlwaysApplyProjection := true;
   FRenderParams := TManagerRenderParams.Create;
+  DistortFieldOfViewY := 1;
+  DistortViewAspect := 1;
 
   FInput_PointingDeviceActivate := TInputShortcut.Create(Self);
   Input_PointingDeviceActivate.Assign(K_None, K_None, #0, true, mbLeft);
@@ -1359,8 +1367,10 @@ var
       For now, we calculate correct PerspectiveViewAngles regardless
       of whether we actually apply perspective or orthogonal projection. }
 
-    Camera.ProjectionMatrix := PerspectiveProjection(PerspectiveViewAngles[1],
-      ViewportWidth / ViewportHeight, ProjectionNear, ProjectionFar);
+    Camera.ProjectionMatrix := PerspectiveProjection(
+      DistortFieldOfViewY * PerspectiveViewAngles[1],
+      DistortViewAspect * ViewportWidth / ViewportHeight,
+      ProjectionNear, ProjectionFar);
   end;
 
   procedure DoOrthographic;
