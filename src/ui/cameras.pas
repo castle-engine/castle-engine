@@ -1759,10 +1759,6 @@ end;
   desired IMHO :) }
 { $define SINGLE_STEP_ROTATION}
 
-const
-  DefaultDirection: TVector3Single = (0, 0, -1);
-  DefaultUp: TVector3Single = (0, 1, 0);
-
 { TInputShortcut ------------------------------------------------------------- }
 
 procedure TInputShortcut.MakeDefault;
@@ -1969,8 +1965,8 @@ begin
   inherited;
   FProjectionMatrix := IdentityMatrix4Single;
   FInitialPosition  := Vector3Single(0, 0, 0);
-  FInitialDirection := DefaultDirection;
-  FInitialUp        := DefaultUp;
+  FInitialDirection := DefaultCameraDirection;
+  FInitialUp        := DefaultCameraUp;
   FCameraRadius := DefaultCameraRadius;
 end;
 
@@ -2711,8 +2707,8 @@ begin
     nicely. }
 
   APos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
-  ADir := MatrixMultDirection(M, DefaultDirection);
-  AUp  := MatrixMultDirection(M, DefaultUp);
+  ADir := MatrixMultDirection(M, DefaultCameraDirection);
+  AUp  := MatrixMultDirection(M, DefaultCameraUp);
 end;
 
 procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
@@ -2728,7 +2724,7 @@ end;
 
 function TExamineCamera.GetGravityUp: TVector3Single;
 begin
-  Result := DefaultUp; { nothing more sensible for Examine camera }
+  Result := DefaultCameraUp; { nothing more sensible for Examine camera }
 end;
 
 procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single);
@@ -2747,13 +2743,13 @@ begin
   This should always succeed now, many cases tested automatically
   by TTestCameras.TestOrientationFromBasicAxes.
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(ADir)), DefaultDirection, 0.01) then
+  if not VectorsEqual(QuatRotate(FRotations, Normalized(ADir)), DefaultCameraDirection, 0.01) then
   begin
     Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(ADir))));
     Writeln('  q: ', VectorToNiceStr(FRotations.Vector4));
   end;
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(Up)), DefaultUp, 0.01) then
+  if not VectorsEqual(QuatRotate(FRotations, Normalized(Up)), DefaultCameraUp, 0.01) then
     Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Up))));
 }
 
@@ -2816,7 +2812,7 @@ begin
   FPosition  := InitialPosition;
   FDirection := InitialDirection;
   FUp        := InitialUp;
-  FGravityUp := DefaultUp;
+  FGravityUp := DefaultCameraUp;
 
   FMoveHorizontalSpeed := 1;
   FMoveVerticalSpeed := 1;
@@ -4094,8 +4090,8 @@ var Pos: TVector3Single;
 begin
  if Box.IsEmptyOrZero then
   Init(Vector3Single(0, 0, 0),
-       DefaultDirection,
-       DefaultUp,
+       DefaultCameraDirection,
+       DefaultCameraUp,
        Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
        0 { whatever }, ACameraRadius) else
  begin
@@ -4667,15 +4663,15 @@ function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
   some bugs :)
 
   Idea: we want to convert CamDir and CamUp into VRML orientation,
-  which is a rotation from DefaultDirection/DefaultUp into CamDir/Up.
+  which is a rotation from DefaultCameraDirection/DefaultCameraUp into CamDir/Up.
 
-  1) Take vector orthogonal to standard DefaultDirection and CamDir.
-     Rotate around it, to match DefaultDirection with CamDir.
+  1) Take vector orthogonal to standard DefaultCameraDirection and CamDir.
+     Rotate around it, to match DefaultCameraDirection with CamDir.
 
   2) Now rotate around CamDir such that standard up (already rotated
      by 1st transform) matches with CamUp. We know it's possible,
      since CamDir and CamUp are orthogonal and normalized,
-     just like standard DefaultDirection/DefaultUp.
+     just like standard DefaultCameraDirection/DefaultCameraUp.
 
   Combine these two rotations and you have the result.
 
