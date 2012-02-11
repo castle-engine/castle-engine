@@ -698,7 +698,7 @@ type
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
 
-    procedure ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
+    procedure ItemsVisibleChange(const Changes: TVisibleChanges);
 
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
@@ -1221,7 +1221,7 @@ begin
 
     Accidentaly, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
-    Items.OnCursorChange notify only TCastleSceneManager (not custom viewport).
+    Items.CursorChange notify only TCastleSceneManager (not custom viewport).
     But thanks to doing ItemsAndCameraCursorChange below, this isn't
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
@@ -1257,7 +1257,12 @@ begin
   { We show mouse cursor from top-most 3D object.
     This is sensible, if multiple 3D scenes obscure each other at the same
     pixel --- the one "on the top" (visible by the player at that pixel)
-    determines the mouse cursor. }
+    determines the mouse cursor.
+
+    Scene manager just takes cursor from MouseRayHit.First.Item.Cursor now,
+    and pretty much ignores Cursor value of other 3d stuff along
+    the MouseRayHit list. Maybe we should browse Cursor values along the way,
+    and choose the first non-none? }
 
   if GetMouseRayHit3D <> nil then
   begin
@@ -2083,15 +2088,34 @@ begin
   Result := false;
 end;
 
+{ T3DWorld ------------------------------------------------------------------- }
+
+type
+  { Root of T3D hierarchy lists. Owner is always a TCastleSceneManager. }
+  T3DWorld = class(T3DList)
+    procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
+    procedure CursorChange; override;
+  end;
+
+procedure T3DWorld.VisibleChangeHere(const Changes: TVisibleChanges);
+begin
+  if Owner <> nil then
+    TCastleSceneManager(Owner).ItemsVisibleChange(Changes);
+end;
+
+procedure T3DWorld.CursorChange;
+begin
+  if Owner <> nil then
+    TCastleSceneManager(Owner).ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
+end;
+
 { TCastleSceneManager ----------------------------------------------------------- }
 
 constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := T3DList.Create(Self);
-  FItems.OnVisibleChangeHere := @ItemsVisibleChange;
-  FItems.OnCursorChange := @ItemsAndCameraCursorChange;
+  FItems := T3DWorld.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so make it a correct sub-component. }
@@ -2138,7 +2162,7 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneManager.ItemsVisibleChange(Sender: T3D; Changes: TVisibleChanges);
+procedure TCastleSceneManager.ItemsVisibleChange(const Changes: TVisibleChanges);
 begin
   { pass visible change notification "upward" (as a TUIControl, to container) }
   VisibleChange;
@@ -2571,7 +2595,7 @@ end;
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
 begin
   if (MainScene <> nil) and (ACamera = Camera) then
-    { MainScene.CameraChanged will cause MainScene.[On]VisibleChangeHere,
+    { MainScene.CameraChanged will cause MainScene.VisibleChangeHere,
       that (assuming here that MainScene is also on Items) will cause
       ItemsVisibleChange that will cause our own VisibleChange.
       So this way MainScene.CameraChanged will also cause our VisibleChange. }

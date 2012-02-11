@@ -270,6 +270,8 @@ type
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
+  T3DList = class;
+
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
     insert them into the TCastleSceneManager.
@@ -301,14 +303,13 @@ type
     FCastShadowVolumes: boolean;
     FExists: boolean;
     FCollides: boolean;
-    FOnVisibleChangeHere: TVisibleChangeEvent;
+    FParent: T3DList;
     FCursor: TMouseCursor;
-    FOnCursorChange: TNotifyEvent;
     FPushable: boolean;
     Disabled: Cardinal;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { In T3D class, just calls OnCursorChange event. }
+    { In T3D class, just calls Parent.CursorChange. }
     procedure CursorChange; virtual;
     { Return whether item really exists, see @link(Exists) and @link(Enable),
       @link(Disable).
@@ -550,30 +551,23 @@ type
 
       Changes is a set describing what changes occurred.
       It can be [], meaning "something else", we'll
-      still make OnVisibleChangeHere then. See TVisibleChange
+      still broadcast VisibleChangeNotification then. See TVisibleChange
       docs for possible values. It must specify all things that possibly
       changed.
 
-      The information about visibility changed is usually passed upward,
-      to the TCastleSceneManager, that broadcasts this to all 3D objects
+      The information about visibility changed is passed upward,
+      to the Parent, and eventually to the TCastleSceneManager,
+      that broadcasts this to all 3D objects
       by VisibleChangeNotification. If you want to @italic(react) to visibility
-      changes, you usually should override VisibleChangeNotification,
+      changes, you should override VisibleChangeNotification,
       not this method.
 
-      In this class this simply calls OnVisibleChangeHere (if assigned). }
+      Be careful when handling this, various changes may cause this,
+      so be prepared to handle this at every time. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Called when some visible part of this control changes.
-      This is usually used by the scene manager
-      (to know when we need to redraw the control),
-      so don't use it in your own programs directly.
-
-      Be careful when handling this event, various changes may cause this,
-      so be prepared to handle OnVisibleChangeHere at every time.
-
-      @seealso VisibleChangeHere }
-    property OnVisibleChangeHere: TVisibleChangeEvent
-      read FOnVisibleChangeHere write FOnVisibleChangeHere;
+    { Containing 3D list. }
+    property Parent: T3DList read FParent;
 
     { Something visible changed in the 3D world.
       This is usually called by our container (like TCastleSceneManager),
@@ -587,13 +581,6 @@ type
 
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
-    { Called when the @link(Cursor) of this control changes.
-      This is usually used by the scene manager
-      (to know when we need to redraw the control),
-      so don't use it in your own programs directly. }
-    property OnCursorChange: TNotifyEvent
-      read FOnCursorChange write FOnCursorChange;
 
     { Called when OpenGL context of the window is destroyed.
       This will be also automatically called from destructor.
@@ -753,8 +740,6 @@ type
     property Pushable: boolean read FPushable write FPushable default false;
   end;
 
-  T3DList = class;
-
   { List of base 3D objects (T3D instances).
     This allows you to group many 3D objects, and treat them as one T3D
     descendant.
@@ -789,8 +774,6 @@ type
   T3DList = class(T3D)
   private
     FList: T3DListCore;
-    procedure ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);
-    procedure ListCursorChange(Sender: TObject);
     function GetItem(const I: Integer): T3D;
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
@@ -1093,8 +1076,8 @@ end;
 
 procedure T3D.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
-  if Assigned(OnVisibleChangeHere) then
-    OnVisibleChangeHere(Self, Changes);
+  if Parent <> nil then
+    Parent.VisibleChangeHere(Changes);
 end;
 
 procedure T3D.VisibleChangeNotification(const Changes: TVisibleChanges);
@@ -1112,7 +1095,9 @@ end;
 
 procedure T3D.CursorChange;
 begin
-  if Assigned(OnCursorChange) then OnCursorChange(Self);
+  { pass CursorChange event up the tree (eventually, to the scenemanager, that will
+    pass it by TUIControl similar OnCursorChange mechanism to the container). }
+  if Parent <> nil then Parent.CursorChange;
 end;
 
 procedure T3D.GLContextClose;
@@ -1279,23 +1264,15 @@ begin
     case Action of
       lnAdded:
         begin
-          { Make sure Owner.ListVisibleChange will be called
-            when an item calls OnVisibleChangeHere. }
-          if B.OnVisibleChangeHere = nil then
-            B.OnVisibleChangeHere := @Owner.ListVisibleChange;
-          if B.OnCursorChange = nil then
-            B.OnCursorChange := @Owner.ListCursorChange;
-
+          if B.FParent = nil then
+            B.FParent := Owner;
           { Register Owner to be notified of item destruction. }
           B.FreeNotification(Owner);
         end;
       lnExtracted, lnDeleted:
         begin
-          if B.OnVisibleChangeHere = @Owner.ListVisibleChange then
-            B.OnVisibleChangeHere := nil;
-          if B.OnCursorChange = @Owner.ListCursorChange then
-            B.OnCursorChange := nil;
-
+          if B.FParent = Owner then
+            B.FParent := nil;
           B.RemoveFreeNotification(Owner);
         end;
       else raise EInternalError.Create('T3DListCore.Notify action?');
@@ -1303,10 +1280,10 @@ begin
 
     { This notification may get called during FreeAndNil(FList)
       in T3DList.Destroy. Then FList is already nil (as FreeAndNil
-      first sets object to nil), and Owner.ListCursorChange
+      first sets object to nil), and Owner.CursorChange
       may not be ready for this. }
     if Owner.FList <> nil then
-      Owner.ListCursorChange(nil);
+      Owner.CursorChange;
   end;
 end;
 
@@ -1473,35 +1450,6 @@ begin
         Inc(I);
     end;
   end;
-end;
-
-procedure T3DList.ListVisibleChange(Sender: T3D; Changes: TVisibleChanges);
-begin
-  { when an Item calls OnVisibleChangeHere, we'll call our own OnVisibleChangeHere,
-    to pass it up the tree (eventually, to the scenemanager, that will
-    pass it by TUIControl similar OnVisibleChangeHere mechanism to the container). }
-  VisibleChangeHere(Changes);
-end;
-
-procedure T3DList.ListCursorChange(Sender: TObject);
-begin
-  { when an Item calls OnCursorChange, we'll call our own OnCursorChange,
-    to pass it up the tree (eventually, to the scenemanager, that will
-    pass it by TUIControl similar OnCursorChange mechanism to the container). }
-
-  { Open question: alternatively, instead of directly sending CursorChange,
-    we could update our own cursor (thus indirectly (possibly) generating
-    OnCursorChange), and let scene manager to take cursor from
-    MouseRayHit.Last.Item.Cursor.
-
-    Right now, scene manager takes cursor from MouseRayHit.First.Item.Cursor,
-    and pretty much ignores Cursor value of 3d stuff along
-    the MouseRayHit list.
-
-    This is undecided yet, I currently don't see any compelling reason
-    for one or the other behavior. }
-
-  CursorChange;
 end;
 
 procedure T3DList.GLContextClose;
