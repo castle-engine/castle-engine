@@ -19,7 +19,8 @@ unit Base3D;
 interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
-  CastleUtils, FGL, GenericStructList;
+  CastleUtils, FGL, GenericStructList, CastleTimeUtils,
+  ALSoundAllocator, ALSoundEngine, XmlSoundEngine;
 
 type
   TRenderFromViewFunction = procedure of object;
@@ -976,6 +977,218 @@ type
 
   { Deprecated name for T3DTransform. @deprecated @exclude }
   T3DTranslated = T3DTransform;
+
+  { 3D object moving and potentially pushing other 3D objects.
+    Good for elevators, doors and such.
+
+    Other 3D objects may be pushed, if @link(Pushes).
+    There are two methods of pushing available, see @link(PushesEverythingInside).
+    Only the 3D objects with @link(T3D.Pushable) are ever pushed by this object
+    (the rest of 3D world is treated as static, does not interact with
+    elevators / doors or such).
+
+    You can also stop/reverse the move to prevent some collisions
+    from occuring at all. This way you can e.g. prevent the door
+    from automatically closing, if someone/something blocks the way.
+    You do this by overriding BeforeTimeIncrease.
+    See TDoomLevelDoor.BeforeTimeIncrease in "The Castle" for example how to
+    do this. }
+  T3DMoving = class(T3DCustomTransform)
+  private
+    FPushes: boolean;
+    FPushesEverythingInside: boolean;
+    FAnimationTime: TFloatTime;
+  protected
+    { Local object time, always increasing, used to track animations. }
+    property AnimationTime: TFloatTime read FAnimationTime;
+
+    { Implements T3D.GetTranslation by always calling
+      GetTranslationFromTime(AnimationTime).
+      Descendants should only override GetTranslationFromTime. }
+    function GetTranslation: TVector3Single; override;
+    function OnlyTranslation: boolean; override;
+
+    function GetTranslationFromTime(const AnAnimationTime: TFloatTime):
+      TVector3Single; virtual; abstract;
+
+    { Do something right before animation progresses.
+      Called at the beginning of our @link(Idle),
+      @italic(right before) AnimationTime changes to NewAnimationTime.
+
+      Useful for taking care of collision detection issues,
+      as our assumption always is that "nothing collides". Which means
+      that if you don't want your T3DMoving to collide
+      with e.g. player or creatures or items, then you should
+      prevent the collision @italic(before it happens).
+      This is the place to do it. }
+    procedure BeforeTimeIncrease(const NewAnimationTime: TFloatTime); virtual;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+  published
+    { Are other 3D objects pushed when this object moves.
+      Only the 3D objects with @link(T3D.Pushable) are ever pushed by this object
+      (the rest of 3D world is treated as static, does not interact with
+      elevators / doors or such).
+
+      Only relevant if GetCollides. Non-colliding objects never push others. }
+    property Pushes: boolean read FPushes write FPushes default true;
+
+    { If @link(Pushes) is @true, this determines how pushing actually works.
+      There two methods:
+
+      @orderedList(
+        @item(PushesEverythingInside = @true: We move every
+          pushable 3D object that is inside our bounding box.
+          This is sensible if we can reasonably assume that things
+          inside our box are standing. For example if this is
+          a (vertical or horizontal) elevator, then creatures/items
+          are usually standing/lying inside, and naturally move with
+          the same speed (and direction) as the elevator.)
+
+        @item(When PushesEverythingInside = @false: We check precise
+          collision between pushable 3D objects and our triangle mesh.
+          Actually, we use T3DList.BoxCollision / T3DList.SphereCollsion,
+          that will use children's T3D.BoxCollision / T3D.SphereCollsion;
+          they check collisions with triangle mesh in case of TCastleScene
+          with Spatial containing e.g. ssDynamicCollisions.)
+      )
+
+      Neither method is really perfect.
+
+      PushesEverythingInside = @false seems like a more precise check,
+      as it actually compares the triangle mesh, taking into account
+      the interior of (this) moving 3D object. PushesEverythingInside = @true
+      just approximates the moving 3D object by it's bounding box.
+
+      On the other hand, PushesEverythingInside = @true makes the elevator
+      more "sticky". With PushesEverythingInside = @false,
+      when player hits the floor, it takes them some time to raise up.
+      This creates a "bouncing camera" effect when the elevator goes up
+      quickly: player constantly falls to the ground, tries to get up,
+      but elevator moves up and player falls to it's ground again.
+      When the elevator goes down, the player/creature constantly falls
+      down on it because of gravity, which again causes artifacts
+      as gravity may work significantly slower/faster than elavator moving speed.
+      When the elevator is a horizontal moving platform, it will "slip"
+      from under the player/creature, leaving the poor fella suddenly hanging
+      in the air, and falling down because of gravity in the next second.
+
+      In practice: PushesEverythingInside should be @true for small
+      containers, when you can reasonably assume that things (creatures,
+      player, items) stand inside, and when you intend to use it for transport
+      of 3D stuff. For very large moving stuff, that possibly
+      interacts with flying players/creatures in some creative way,
+      PushesEverythingInside may be @false. }
+    property PushesEverythingInside: boolean
+      read FPushesEverythingInside write FPushesEverythingInside default true;
+  end;
+
+  { 3D moving with constant speed between 2 points.
+    Moves with a constant speed from (0, 0, 0) to TranslationEnd.
+    They are called @italic(begin position) and @italic(end position).
+
+    This is a simplified, more comfortable descendant of T3DMoving.
+    You get easy to use GoBeginPosition, GoEndPosition
+    properties, you can easily set sounds by SoundGoBeginPosition and
+    SoundGoEndPosition and such.
+
+    SoundEngine must be of TXmlSoundEngine class, if you use sounds. }
+  T3DLinearMoving = class(T3DMoving)
+  private
+    FEndPosition: boolean;
+    FEndPositionStateChangeTime: Single;
+
+    FSoundGoBeginPosition: TSoundType;
+    FSoundGoEndPosition: TSoundType;
+    FSoundGoBeginPositionLooping: boolean;
+    FSoundGoEndPositionLooping: boolean;
+    FSoundTracksCurrentPosition: boolean;
+
+    UsedSound: TALSound;
+    procedure SoundSourceUsingEnd(Sender: TALSound);
+    function SoundPosition: TVector3Single;
+    procedure PlaySound(SoundType: TSoundType; Looping: boolean);
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { Is this object in @italic(end position), or going to it.
+      If @false, then this object is in @italic(begin position)
+      or going to it. See also CompletelyEndPosion and CompletelyBeginPosition.
+
+      Initially this is @false, and EndPositionStateChangeTime is set such that
+      we're sure that we're in CompletelyBeginPosion, }
+    property EndPosition: boolean read FEndPosition;
+
+    { Last time EndPosition changed. }
+    property EndPositionStateChangeTime: Single read FEndPositionStateChangeTime;
+
+    function CompletelyEndPosition: boolean;
+    function CompletelyBeginPosition: boolean;
+
+    { Start going to @italic(begin position), assuming that
+      currently we're in @italic(end position) (i.e. CompletelyEndPosion). }
+    procedure GoBeginPosition;
+
+    { Start going to @italic(end position), assuming that
+      currently we're in @italic(begin position) (i.e. CompletelyBeginPosion). }
+    procedure GoEndPosition;
+
+    { Stop going from @italic(end position) to @italic(begin position)
+      and go back to @italic(end position). Call this only when currently
+      EndPosition is @false and we were in the middle of going to
+      @italic(begin position).
+
+      As an example, this is what happens when door on DOOM level gets blocked.
+      In the middle of closing (which ig going to @italic(begin position))
+      it will realize that something blocks it, and open back
+      (go back to @italic(end position)).  }
+    procedure RevertGoEndPosition;
+
+    { Just like RevertGoEndPosition, but this should be used in the middle
+      of the move from @italic(begin position) to @italic(end position),
+      to go back to @italic(begin position). }
+    procedure RevertGoBeginPosition;
+
+    { This goes to the @italic(other) position.
+      Which means that if we're completely in @italic(end position)
+      or in the middle of move to @italic(end position), this goes
+      back to @italic(begin position). And if we're in @italic(begin position),
+      this goes back to @italic(end position). }
+    procedure GoOtherPosition;
+
+    property SoundGoBeginPosition: TSoundType
+      read FSoundGoBeginPosition write FSoundGoBeginPosition default stNone;
+    property SoundGoEndPosition: TSoundType
+      read FSoundGoEndPosition write FSoundGoEndPosition default stNone;
+
+    property SoundGoBeginPositionLooping: boolean
+      read FSoundGoBeginPositionLooping write FSoundGoBeginPositionLooping
+      default false;
+    property SoundGoEndPositionLooping: boolean
+      read FSoundGoEndPositionLooping write FSoundGoEndPositionLooping
+      default false;
+
+    { If @true then the sound (set by SoundGoBeginPosition or
+      SoundGoEndPosition) 3D position changes as the 3D position of the object
+      changes.
+
+      Otherwise (default) sound is initially made at initial
+      3D position of this object, and then the sound position doesn't change
+      (even if the position of the object changes). }
+    property SoundTracksCurrentPosition: boolean
+      read FSoundTracksCurrentPosition write FSoundTracksCurrentPosition
+      default false;
+  public
+    MoveTime: Single;
+    TranslationEnd: TVector3Single;
+
+    function GetTranslationFromTime(const AnAnimationTime: TFloatTime):
+      TVector3Single; override;
+
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
+  end;
 
 const
   MaxSingle = Math.MaxSingle;
@@ -2239,6 +2452,325 @@ end;
 procedure T3DTransform.Translate(const T: TVector3Single);
 begin
   Translation := Translation + T;
+end;
+
+{ T3DMoving --------------------------------------------------------- }
+
+{ TODO: this browser World list, doesn't take into acount Pushable items
+  that may be inside a sublist. }
+
+constructor T3DMoving.Create(AOwner: TComponent);
+begin
+  inherited;
+  FPushes := true;
+  FPushesEverythingInside := true;
+  FAnimationTime := 0;
+end;
+
+function T3DMoving.GetTranslation: TVector3Single;
+begin
+  Result := GetTranslationFromTime(AnimationTime);
+end;
+
+function T3DMoving.OnlyTranslation: boolean;
+begin
+  Result := true; { T3DMoving always uses only translation }
+end;
+
+{ Note: When pushing the creature/player/item, right now
+  we don't check whether the creature/player/item will not be
+  pushed into collision with something else.
+
+  For now, design your level to minimize the chance that it will ever happen.
+  Although in theory you cannot design your level to guarantee
+  that it will never happen (because e.g. a creature may be pushed
+  into collision with other creature, and since creatures move
+  on their own they can arrange themselves (in theory) in all manners of
+  funny configurations...). But in practice it's not so difficult,
+  just make sure that there is enough space on the way of move.
+}
+
+procedure T3DMoving.BeforeTimeIncrease(
+  const NewAnimationTime: TFloatTime);
+
+  function BoundingBoxAssumeTranslation(
+    const AssumeTranslation: TVector3Single): TBox3D;
+  begin
+    if GetCollides then
+      Result := (inherited BoundingBox).Translate(AssumeTranslation) else
+      Result := EmptyBox3D;
+  end;
+
+  function SphereCollisionAssumeTranslation(
+    const AssumeTranslation: TVector3Single;
+    const Pos: TVector3Single; const Radius: Single;
+    const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  begin
+    Result := GetCollides;
+    if Result then
+    begin
+      { We use the same trick as in T3DCustomTransform.MoveAllowed to
+        use "inherited SphereCollsion" with Translation. }
+
+      Result := inherited SphereCollision(
+        Pos - AssumeTranslation, Radius, TrianglesToIgnoreFunc);
+    end;
+  end;
+
+  function BoxCollisionAssumeTranslation(
+    const AssumeTranslation: TVector3Single;
+    const Box: TBox3D;
+    const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  begin
+    Result := GetCollides;
+    if Result then
+    begin
+      { We use the same trick as in T3DCustomTransform.MoveAllowed to
+        use "inherited BoxCollision" with Translation. }
+
+      Result := inherited BoxCollision(
+        Box.AntiTranslate(AssumeTranslation), TrianglesToIgnoreFunc);
+    end;
+  end;
+
+var
+  CurrentBox, NewBox, Box: TBox3D;
+  I: Integer;
+  Move: TVector3Single;
+  CurrentTranslation, NewTranslation: TVector3Single;
+  SphereC: TVector3Single;
+  SphereR: Single;
+  Item: T3D;
+begin
+  if GetCollides and Pushes then
+  begin
+    CurrentTranslation := GetTranslationFromTime(AnimationTime);
+    NewTranslation := GetTranslationFromTime(NewAnimationTime);
+
+    { It often happens that T3DMoving doesn't move at all,
+      and then Translation doesn't change at all
+      (even when compared precisely, without usual epsilon used to compare
+      floats). So the check below may be worth the time, we expect
+      it will avoid doing actual work. }
+
+    if not VectorsPerfectlyEqual(CurrentTranslation, NewTranslation) then
+    begin
+      Move := NewTranslation - CurrentTranslation;
+
+      { TODO: it may be sensible to add a pushing method when we compare
+        other object's bounding box (never a sphere, and be sure to use
+        the "tall" box for player, including it's legs) with octree
+        (that is, using inherited BoxCollision).
+        This can have the advantages of both PushesEverythingInside=true
+        (reacts more sticky, more eager to move colliding stuff with
+        the same speed as elevator)
+        and PushesEverythingInside=false (takes into account triangle mesh,
+        not just our bounding volume). }
+
+      if PushesEverythingInside then
+      begin
+        CurrentBox := BoundingBox;
+        NewBox := BoundingBoxAssumeTranslation(NewTranslation);
+        for I := 0 to World.Count - 1 do
+        begin
+          Item := World[I];
+          if Item.Pushable then
+          begin
+            { This case doesn't really use Item.UseSphere. But it's not really
+              terribly important design decision, we may use Item.UseSphere
+              one day here. It's most comfortable to just use
+              here Item.BoundingBox, as we perform collisions with our box. }
+            Box := Item.BoundingBox;
+            if Box.Collision(NewBox) or
+               Box.Collision(CurrentBox) then
+              Item.Translate(Move);
+          end;
+        end;
+      end else
+      begin
+        for I := 0 to World.Count - 1 do
+        begin
+          Item := World[I];
+          if Item.Pushable then
+            if Item.UseSphere then
+            begin
+              Item.Sphere(SphereC, SphereR);
+              if SphereCollisionAssumeTranslation(NewTranslation, SphereC, SphereR,
+                @World.CollisionIgnoreItem) then
+                Item.Translate(Move);
+            end else
+            begin
+              if BoxCollisionAssumeTranslation(NewTranslation,
+                Item.BoundingBox,
+                @World.CollisionIgnoreItem) then
+                Item.Translate(Move);
+            end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure T3DMoving.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+var
+  NewAnimationTime: TFloatTime;
+begin
+  inherited;
+
+  NewAnimationTime := AnimationTime + CompSpeed;
+  BeforeTimeIncrease(NewAnimationTime);
+  FAnimationTime := NewAnimationTime;
+end;
+
+{ T3DLinearMoving --------------------------------------------------- }
+
+constructor T3DLinearMoving.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FSoundGoEndPosition := stNone;
+  FSoundGoBeginPosition := stNone;
+
+  FEndPosition := false;
+
+  { We set FEndPositionStateChangeTime to a past time, to be sure
+    that we don't treat the door as "closing right now". }
+  FEndPositionStateChangeTime := -1000.0; { TODO: should be implemented better... }
+
+  UsedSound := nil;
+end;
+
+destructor T3DLinearMoving.Destroy;
+begin
+  { Otherwise, if you exit from the game while some sound was played,
+    and the sound was e.g. looping (like the elevator on "Tower" level),
+    the sound will never get stopped. }
+  if UsedSound <> nil then
+    UsedSound.DoUsingEnd;
+
+  inherited;
+end;
+
+procedure T3DLinearMoving.SoundSourceUsingEnd(Sender: TALSound);
+begin
+  Assert(Sender = UsedSound);
+  UsedSound.OnUsingEnd := nil;
+  UsedSound := nil;
+end;
+
+function T3DLinearMoving.SoundPosition: TVector3Single;
+begin
+  Result := BoundingBox.Middle;
+end;
+
+procedure T3DLinearMoving.PlaySound(SoundType: TSoundType;
+  Looping: boolean);
+begin
+  { The object can play only one sound (going to begin or end position)
+    at a time. }
+  if UsedSound <> nil then
+    UsedSound.DoUsingEnd;
+  UsedSound := (SoundEngine as TXmlSoundEngine).Sound3d(SoundType, SoundPosition, Looping);
+
+  if UsedSound <> nil then
+    UsedSound.OnUsingEnd := @SoundSourceUsingEnd;
+end;
+
+procedure T3DLinearMoving.GoEndPosition;
+begin
+  FEndPosition := true;
+  FEndPositionStateChangeTime := AnimationTime;
+  PlaySound(SoundGoEndPosition, SoundGoEndPositionLooping);
+end;
+
+procedure T3DLinearMoving.GoBeginPosition;
+begin
+  FEndPosition := false;
+  FEndPositionStateChangeTime := AnimationTime;
+  PlaySound(SoundGoBeginPosition, SoundGoBeginPositionLooping);
+end;
+
+procedure T3DLinearMoving.RevertGoEndPosition;
+begin
+  FEndPosition := true;
+  FEndPositionStateChangeTime := { AnimationTime -
+    (MoveTime - (AnimationTime - EndPositionStateChangeTime)) }
+    { simplified : }
+    2 * AnimationTime - MoveTime - EndPositionStateChangeTime;
+  PlaySound(SoundGoEndPosition, SoundGoEndPositionLooping);
+end;
+
+procedure T3DLinearMoving.RevertGoBeginPosition;
+begin
+  FEndPosition := false;
+  FEndPositionStateChangeTime := { AnimationTime -
+    (MoveTime - (AnimationTime - EndPositionStateChangeTime)) }
+    { simplified : }
+    2 * AnimationTime - MoveTime - EndPositionStateChangeTime;
+  PlaySound(SoundGoEndPosition, SoundGoBeginPositionLooping);
+end;
+
+procedure T3DLinearMoving.GoOtherPosition;
+begin
+  if CompletelyEndPosition then
+    GoBeginPosition else
+  if CompletelyBeginPosition then
+    GoEndPosition else
+  begin
+    if EndPosition then
+      RevertGoBeginPosition else
+      RevertGoEndPosition;
+  end;
+end;
+
+function T3DLinearMoving.GetTranslationFromTime(
+  const AnAnimationTime: TFloatTime): TVector3Single;
+begin
+  if not EndPosition then
+  begin
+    if AnAnimationTime - EndPositionStateChangeTime > MoveTime then
+      { Completely closed. }
+      Result := ZeroVector3Single else
+      { During closing. }
+      Result := TranslationEnd *
+        (1 - (AnAnimationTime - EndPositionStateChangeTime) / MoveTime);
+  end else
+  begin
+    if AnAnimationTime - EndPositionStateChangeTime > MoveTime then
+      { Completely open. }
+      Result := TranslationEnd else
+      { During opening. }
+      Result := TranslationEnd *
+        ((AnAnimationTime - EndPositionStateChangeTime) / MoveTime);
+  end;
+end;
+
+function T3DLinearMoving.CompletelyEndPosition: boolean;
+begin
+  Result := EndPosition and
+    (AnimationTime - EndPositionStateChangeTime > MoveTime);
+end;
+
+function T3DLinearMoving.CompletelyBeginPosition: boolean;
+begin
+  Result := (not EndPosition) and
+    (AnimationTime - EndPositionStateChangeTime > MoveTime);
+end;
+
+procedure T3DLinearMoving.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+begin
+  inherited;
+
+  { Update sound position when object is moving }
+  if (UsedSound <> nil) and SoundTracksCurrentPosition then
+    UsedSound.Position := SoundPosition;
+
+  { If the SoundGoBegin/EndPosition is longer than the MoveTime
+    (or it's looping),
+    stop this sound once we're completely in Begin/EndPosition. }
+  if (AnimationTime - EndPositionStateChangeTime > MoveTime) and
+    (UsedSound <> nil) then
+    UsedSound.DoUsingEnd;
 end;
 
 end.
