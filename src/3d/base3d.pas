@@ -856,6 +856,8 @@ type
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; virtual; abstract;
+    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
+    function GravityUp: TVector3Single; virtual; abstract;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.

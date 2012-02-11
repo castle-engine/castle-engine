@@ -809,6 +809,9 @@ type
       or TCastleSceneManager.DefaultViewport, we automatically update this list
       as appropriate). }
     property Viewports: TCastleAbstractViewportList read FViewports;
+
+    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
+    function GravityUp: TVector3Single;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -2098,6 +2101,7 @@ type
     procedure CursorChange; override;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
+    function GravityUp: TVector3Single; override;
   end;
 
 procedure T3DWorldConcrete.VisibleChangeHere(const Changes: TVisibleChanges);
@@ -2117,6 +2121,13 @@ function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
 begin
   Result := (Owner <> nil) and
     TCastleSceneManager(Owner).CollisionIgnoreItem(Sender, Triangle);
+end;
+
+function T3DWorldConcrete.GravityUp: TVector3Single;
+begin
+  if Owner <> nil then
+    Result := TCastleSceneManager(Owner).GravityUp else
+    Result := DefaultCameraUp;
 end;
 
 { TCastleSceneManager -------------------------------------------------------- }
@@ -2733,6 +2744,13 @@ begin
       Viewports.Add(Self) else
       Viewports.Remove(Self);
   end;
+end;
+
+function TCastleSceneManager.GravityUp: TVector3Single;
+begin
+  if Camera <> nil then
+    Result := Camera.GetGravityUp else
+    Result := DefaultCameraUp;
 end;
 
 { TCastleViewport --------------------------------------------------------------- }
