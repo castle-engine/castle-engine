@@ -34,12 +34,12 @@ var
 procedure CameraHome;
 begin
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
-                    Vector3Single(1, 1,  1)), Camera.CameraRadius);
+                    Vector3Single(1, 1,  1)), Camera.Radius);
 end;
 
 procedure CameraScene;
 begin
-  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0, Camera.CameraRadius);
+  Camera.Init(SurfacePos, SurfaceDir, SurfaceUp, SurfaceUp, 0, Camera.Radius);
   Camera.MoveSpeed := SurfaceMoveSpeed;
 end;
 
@@ -196,7 +196,7 @@ begin
   Camera := TWalkCamera.Create(Window);
   Camera.PreferGravityUpForRotations := false;
   Camera.PreferGravityUpForMoving := false;
-  Camera.CameraRadius := 0.02;
+  Camera.Radius := 0.02;
   Window.SceneManager.Camera := Camera;
 
   Window.SceneManager.Items.Add(TAnimatedCurve.Create(Window));

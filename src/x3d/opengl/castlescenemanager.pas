@@ -107,7 +107,7 @@ type
       This is automatically called at the beginning of our Render method,
       if it's needed.
 
-      Requires Camera.CameraRadius to be already properly set. }
+      Requires Camera.Radius to be already properly set. }
     procedure ApplyProjection; virtual;
 
     { Render one pass, with current camera and parameters.
@@ -1460,8 +1460,8 @@ begin
     { Tests:
       Writeln(Format('Angle of view: x %f, y %f', [PerspectiveViewAngles[0], PerspectiveViewAngles[1]])); }
 
-    Assert(Camera.CameraRadius > 0, 'Camera.CameraRadius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
-    FProjectionNear := Camera.CameraRadius * 0.6;
+    Assert(Camera.Radius > 0, 'Camera.Radius must be > 0 when using TCastleAbstractViewport.ApplyProjection');
+    FProjectionNear := Camera.Radius * 0.6;
 
     { calculate FProjectionFar, algorithm documented at DefaultVisibilityLimit }
     FProjectionFar := 0;
@@ -2224,7 +2224,7 @@ begin
   begin
     Result := TExamineCamera.Create(AOwner);
     (Result as TExamineCamera).Init(Box,
-      { CameraRadius = } Box.AverageSize(false, 1.0) * 0.005);
+      { Radius = } Box.AverageSize(false, 1.0) * 0.005);
   end;
 end;
 
@@ -2649,11 +2649,11 @@ function TCastleSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := Items.MoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
-    true, ACamera.CameraRadius,
+    true, ACamera.Radius,
     { We prefer to resolve collisions with camera using sphere.
       But for T3D implementations that can't use sphere, we can construct box. }
-    Box3DAroundPoint(ACamera.Position, ACamera.CameraRadius * 2),
-    Box3DAroundPoint(ProposedNewPos, ACamera.CameraRadius * 2),
+    Box3DAroundPoint(ACamera.Position, ACamera.Radius * 2),
+    Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2),
     @CollisionIgnoreItem);
 
   if Result then

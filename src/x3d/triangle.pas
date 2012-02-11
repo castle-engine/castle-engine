@@ -1286,7 +1286,7 @@ function TBaseTrianglesOctree.MoveAllowed(
             IsTriangleSphereCollision(
               NewBlocker^.World.Triangle,
               NewBlocker^.World.Plane,
-              ProposedNewPos, CameraRadius), ' ',
+              ProposedNewPos, Radius), ' ',
             TryPlaneLineIntersection(NewBlockerIntersection,
               NewBlocker^.World.Plane,
               OldPos, VectorSubtract(ProposedNewPos, OldPos)), '.');

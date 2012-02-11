@@ -37,7 +37,7 @@ const
   DefaultHeadBobbingTime = 0.4;
   DefaultJumpSpeedMultiply = 2.0;
   DefaultJumpPower = 9.0;
-  { Default value for TCamera.CameraRadius.
+  { Default value for TCamera.Radius.
     Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
   DefaultCameraRadius = 0.25;
   DefaultExamineRotationAccelerationSpeed = 5.0;
@@ -276,7 +276,7 @@ type
     FIgnoreAllInputs: boolean;
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FProjectionMatrix: TMatrix4Single;
-    FCameraRadius: Single;
+    FRadius: Single;
 
     Animation: boolean;
     AnimationEndTime: TFloatTime;
@@ -311,7 +311,7 @@ type
 
     procedure SetIgnoreAllInputs(const Value: boolean); virtual;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
-    procedure SetCameraRadius(const Value: Single); virtual;
+    procedure SetRadius(const Value: Single); virtual;
 
     function IsAnimation: boolean; virtual;
   public
@@ -384,13 +384,12 @@ type
           user change CameraPreferredHeight at runtime by
           Input_IncreaseCameraPreferredHeight, Input_DcreaseCameraPreferredHeight.
 
-          This is actually the whole use of CameraRadius inside Cameras unit
+          This is actually the whole use of @link(Radius) inside @link(Cameras) unit
           and classes. But the code all around the engine also looks for
-          this CameraRadius, and the camera is a natural place to keep this
+          this @link(Radius), and the camera is a natural place to keep this
           information.)
       ) }
-    property CameraRadius: Single
-      read FCameraRadius write SetCameraRadius default DefaultCameraRadius;
+    property Radius: Single read FRadius write SetRadius default DefaultCameraRadius;
 
     { Express current view as camera vectors: position, direction, up.
 
@@ -676,7 +675,7 @@ type
 
       In other words, this is just a shortcut to setting ModelBox
       and then calling @link(Home). }
-    procedure Init(const AModelBox: TBox3D; const ACameraRadius: Single);
+    procedure Init(const AModelBox: TBox3D; const ARadius: Single);
 
     { Go to a nice view over the entire scene. }
     procedure Home;
@@ -1100,16 +1099,16 @@ type
       and AInitialUp will be adjusted to be orthogonal to AInitialDirection
       (see SetInitialView).
 
-      Sets also CameraPreferredHeight and CameraRadius.
+      Sets also CameraPreferredHeight and Radius.
       CameraPreferredHeight may be adjusted to be sensible
-      (by calling CorrectCameraPreferredHeight(ACameraRadius)).
-      You can pass ACameraRadius = 0.0 if you really don't want this
+      (by calling CorrectCameraPreferredHeight(ARadius)).
+      You can pass ARadius = 0.0 if you really don't want this
       CameraPreferredHeight adjustment. }
     procedure Init(const AInitialPosition, AInitialDirection,
       AInitialUp: TVector3Single;
       const AGravityUp: TVector3Single;
       const ACameraPreferredHeight: Single;
-      const ACameraRadius: Single); overload;
+      const ARadius: Single); overload;
 
     { Alternative Init that sets camera properties such that
       an object inside Box is more or less "visible good".
@@ -1117,7 +1116,7 @@ type
       sets current CameraXxx properties to InitialCameraXxx.
       Sets GravityUp to the same thing as InitialUp.
       Sets also CameraPreferredHeight to make it behave "sensibly". }
-    procedure Init(const box: TBox3D; const ACameraRadius: Single); overload;
+    procedure Init(const box: TBox3D; const ARadius: Single); overload;
 
     { Deprecated name in TWalkCamera for GoToInitial. @deprecated }
     procedure Home;
@@ -1223,13 +1222,13 @@ type
     property CameraPreferredHeight: Single
       read FCameraPreferredHeight write FCameraPreferredHeight default 0.0;
 
-    { This procedure corrects CameraPreferredHeight based on your CameraRadius
+    { This procedure corrects CameraPreferredHeight based on your Radius
       and on current HeadBobbing.
 
       Exactly what and why is done: if you do any kind of collision
-      detection with some CameraRadius, then
+      detection with some Radius, then
       you should make sure that RealCameraPreferredHeight is always >= of your
-      CameraRadius, otherwise strange effects may happen when crouching
+      Radius, otherwise strange effects may happen when crouching
       or when head bobbing forces camera to go down.
 
       Exactly, the required equation is
@@ -1244,18 +1243,18 @@ type
 
       Reasoning: otherwise this class would "want camera to fall down"
       (because we will always be higher than RealCameraPreferredHeight)
-      but your OnMoveAllowed would not allow it (because CameraRadius
+      but your OnMoveAllowed would not allow it (because Radius
       would not allow it). Note that this class doesn't keep value
-      of your CameraRadius, because collision detection
+      of your Radius, because collision detection
       is (by design) never done by this class --- it's always
       delegated to OnGetHeightAbove and OnMoveAllowed.
       Also, it's not exactly forced @italic(how) you should force this
       condition to hold. Sometimes the good solution is to adjust
-      CameraRadius, not to adjust CameraPreferredHeight.
+      Radius, not to adjust CameraPreferredHeight.
 
       Anyway, this method will make sure that this condition
       holds by eventually adjusting (making larger) CameraPreferredHeight.
-      Note that for CameraRadius = 0.0 this will always leave
+      Note that for Radius = 0.0 this will always leave
       CameraPreferredHeight as it is. }
     procedure CorrectCameraPreferredHeight;
 
@@ -1598,7 +1597,7 @@ type
     procedure SetIgnoreAllInputs(const Value: boolean); override;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
     procedure SetContainer(const Value: IUIContainer); override;
-    procedure SetCameraRadius(const Value: Single); override;
+    procedure SetRadius(const Value: Single); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1675,7 +1674,7 @@ type
 { See TWalkCamera.CorrectCameraPreferredHeight.
   This is a global version, sometimes may be useful. }
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
-  const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
+  const Radius: Single; const CrouchHeight, HeadBobbing: Single);
 
 const
   { Default camera direction and up vectors, used to define the meaning
@@ -1967,7 +1966,7 @@ begin
   FInitialPosition  := Vector3Single(0, 0, 0);
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
-  FCameraRadius := DefaultCameraRadius;
+  FRadius := DefaultCameraRadius;
 end;
 
 procedure TCamera.VisibleChange;
@@ -2017,9 +2016,9 @@ begin
   RecalculateFrustum;
 end;
 
-procedure TCamera.SetCameraRadius(const Value: Single);
+procedure TCamera.SetRadius(const Value: Single);
 begin
-  FCameraRadius := Value;
+  FRadius := Value;
 end;
 
 procedure TCamera.Ray(const WindowX, WindowY: Integer;
@@ -2413,10 +2412,10 @@ begin FScaleFactor *= ScaleBy; VisibleChange; end;
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
-procedure TExamineCamera.Init(const AModelBox: TBox3D; const ACameraRadius: Single);
+procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
 begin
  ModelBox := AModelBox;
- CameraRadius := ACameraRadius;
+ Radius := ARadius;
  Home;
 end;
 
@@ -4074,17 +4073,17 @@ procedure TWalkCamera.Init(
   const AInitialPosition, AInitialDirection, AInitialUp: TVector3Single;
   const AGravityUp: TVector3Single;
   const ACameraPreferredHeight: Single;
-  const ACameraRadius: Single);
+  const ARadius: Single);
 begin
   SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
   FGravityUp := Normalized(AGravityUp);
   CameraPreferredHeight := ACameraPreferredHeight;
-  CameraRadius := ACameraRadius;
+  Radius := ARadius;
   CorrectCameraPreferredHeight;
   GoToInitial;
 end;
 
-procedure TWalkCamera.Init(const Box: TBox3D; const ACameraRadius: Single);
+procedure TWalkCamera.Init(const Box: TBox3D; const ARadius: Single);
 var Pos: TVector3Single;
     AvgSize: Single;
 begin
@@ -4093,7 +4092,7 @@ begin
        DefaultCameraDirection,
        DefaultCameraUp,
        Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
-       0 { whatever }, ACameraRadius) else
+       0 { whatever }, ARadius) else
  begin
   AvgSize := Box.AverageSize;
   Pos[0] := Box.Data[0, 0]-AvgSize;
@@ -4102,7 +4101,7 @@ begin
   Init(Pos, UnitVector3Single[0],
     UnitVector3Single[2],
     UnitVector3Single[2] { GravityUp is the same as InitialUp },
-    AvgSize * 5, ACameraRadius);
+    AvgSize * 5, ARadius);
  end;
 end;
 
@@ -4134,7 +4133,7 @@ end;
 procedure TWalkCamera.CorrectCameraPreferredHeight;
 begin
   Cameras.CorrectCameraPreferredHeight(
-    FCameraPreferredHeight, CameraRadius, CrouchHeight, HeadBobbing);
+    FCameraPreferredHeight, Radius, CrouchHeight, HeadBobbing);
 end;
 
 function TWalkCamera.MaxJumpDistance: Single;
@@ -4445,11 +4444,11 @@ begin
   FWalk.SetView(APos, ADir, AUp, AGravityUp);
 end;
 
-procedure TUniversalCamera.SetCameraRadius(const Value: Single);
+procedure TUniversalCamera.SetRadius(const Value: Single);
 begin
   inherited;
-  FExamine.CameraRadius := Value;
-  FWalk.CameraRadius := Value;
+  FExamine.Radius := Value;
+  FWalk.Radius := Value;
 end;
 
 procedure TUniversalCamera.SetIgnoreAllInputs(const Value: boolean);
@@ -4636,19 +4635,19 @@ end;
 { global ------------------------------------------------------------ }
 
 procedure CorrectCameraPreferredHeight(var CameraPreferredHeight: Single;
-  const CameraRadius: Single; const CrouchHeight, HeadBobbing: Single);
+  const Radius: Single; const CrouchHeight, HeadBobbing: Single);
 var
   NewCameraPreferredHeight: Single;
 begin
   { We have requirement that
-      CameraPreferredHeight * CrouchHeight * (1 - HeadBobbing) >= CameraRadius
+      CameraPreferredHeight * CrouchHeight * (1 - HeadBobbing) >= Radius
     So
-      CameraPreferredHeight >= CameraRadius / (CrouchHeight * (1 - HeadBobbing));
+      CameraPreferredHeight >= Radius / (CrouchHeight * (1 - HeadBobbing));
 
     I make it even a little larger (that's the reason for "* 1.01") to be
     sure to avoid floating-point rounding errors. }
 
-  NewCameraPreferredHeight := 1.01 * CameraRadius /
+  NewCameraPreferredHeight := 1.01 * Radius /
     (CrouchHeight * (1 - HeadBobbing));
 
   if CameraPreferredHeight < NewCameraPreferredHeight then

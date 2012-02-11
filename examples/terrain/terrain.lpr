@@ -779,7 +779,7 @@ begin
     ExamineCamera := TExamineCamera.Create(Glw);
     ExamineCamera.Init(Box3D(
       Vector3Single(-1, -1, -1),
-      Vector3Single( 1,  1,  1)), { CameraRadius } 0.2);
+      Vector3Single( 1,  1,  1)), { Radius } 0.2);
 
     WalkCamera := TWalkCamera.Create(Glw);
     WalkCamera.Init(Vector3Single(0, 0, 0) { position },
@@ -787,7 +787,7 @@ begin
       Vector3Single(0, 0, 1) { up },
       Vector3Single(0, 0, 1),
       { CameraPreferredHeight: unused, we don't use Gravity here } 0,
-      { CameraRadius } 0.02);
+      { Radius } 0.02);
     WalkCamera.MoveSpeed := 0.5;
 
     SceneManager := Glw.SceneManager;

@@ -1562,7 +1562,7 @@ type
 
       This initializes a lot of camera properties:
       @unorderedList(
-        @item(TCamera.CameraRadius,)
+        @item(TCamera.Radius,)
         @item(TCamera.IgnoreAllInputs,)
         @item(TWalkCamera.Gravity,)
         @item(TWalkCamera.PreferGravityUpForRotations,)
@@ -1577,7 +1577,7 @@ type
     procedure CameraFromNavigationInfo(Camera: TCamera;
       const Box: TBox3D;
       const ForceNavigationType: string = '';
-      const ForceCameraRadius: Single = 0);
+      const ForceRadius: Single = 0);
 
     { Update camera to the currently bound VRML/X3D viewpoint.
       When no viewpoint is currently bound, we will go to a suitable
@@ -5785,7 +5785,7 @@ end;
 procedure TCastleSceneCore.CameraFromNavigationInfo(
   Camera: TCamera; const Box: TBox3D;
   const ForceNavigationType: string;
-  const ForceCameraRadius: Single);
+  const ForceRadius: Single);
 var
   NavigationTypeInitialized: boolean;
 
@@ -5841,7 +5841,7 @@ var
 var
   NavigationNode: TNavigationInfoNode;
   I: Integer;
-  CameraRadius: Single;
+  Radius: Single;
 begin
   { calculate Walk, Examine and Universal first.
     Makes handling various cameras later much easier. }
@@ -5890,20 +5890,20 @@ begin
     { No recognized "type" found, so use default type EXAMINE. }
     InitializeNavigationType('EXAMINE');
 
-  { calculate CameraRadius }
-  CameraRadius := ForceCameraRadius;
-  if CameraRadius <= 0 then
+  { calculate Radius }
+  Radius := ForceRadius;
+  if Radius <= 0 then
   begin
     if (NavigationNode <> nil) and
        (NavigationNode.FdAvatarSize.Count >= 1) then
-      CameraRadius := NavigationNode.FdAvatarSize.Items[0];
-    { if avatarSize doesn't specify CameraRadius, or specifies invalid <= 0,
+      Radius := NavigationNode.FdAvatarSize.Items[0];
+    { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
       calculate something suitable based on Box. }
-    if CameraRadius <= 0 then
-      CameraRadius := Box.AverageSize(false, 1.0) * 0.005;
+    if Radius <= 0 then
+      Radius := Box.AverageSize(false, 1.0) * 0.005;
   end;
 
-  Camera.CameraRadius := CameraRadius;
+  Camera.Radius := Radius;
 
   if Walk <> nil then
   begin
@@ -5911,11 +5911,11 @@ begin
     if (NavigationNode <> nil) and
        (NavigationNode.FdAvatarSize.Count >= 2) then
       Walk.CameraPreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-      { Make it something >> CameraRadius * 2, to allow some
+      { Make it something >> Radius * 2, to allow some
         space to decrease (e.g. by Input_DecreaseCameraPreferredHeight
         in view3dscene). Remember that CorrectCameraPreferredHeight
-        adds a limit to CameraPreferredHeight, around CameraRadius * 2. }
-      Walk.CameraPreferredHeight := CameraRadius * 4;
+        adds a limit to CameraPreferredHeight, around Radius * 2. }
+      Walk.CameraPreferredHeight := Radius * 4;
 
     Walk.CorrectCameraPreferredHeight;
 
@@ -5934,9 +5934,9 @@ begin
     { calculate Walk.MoveSpeed }
     if NavigationNode = nil then
       { Since we don't have NavigationNode.speed, we just calculate some
-        speed that should "feel sensible". We base it on CameraRadius,
+        speed that should "feel sensible". We base it on Radius,
         that was set above. }
-      Walk.MoveSpeed := Camera.CameraRadius * 20 else
+      Walk.MoveSpeed := Camera.Radius * 20 else
       { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
       Walk.MoveSpeed := NavigationNode.FdSpeed.Value;
   end;
