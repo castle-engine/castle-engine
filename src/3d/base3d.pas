@@ -852,6 +852,9 @@ type
   T3DWorld = class(T3DList)
   public
     function World: T3DWorld; override;
+    { See TCastleSceneManager.CollisionIgnoreItem. }
+    function CollisionIgnoreItem(const Sender: TObject;
+      const Triangle: P3DTriangle): boolean; virtual; abstract;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.

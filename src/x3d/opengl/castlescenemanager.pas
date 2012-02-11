@@ -2093,8 +2093,11 @@ end;
 type
   { Root of T3D hierarchy lists. Owner is always a TCastleSceneManager. }
   T3DWorldConcrete = class(T3DWorld)
+  public
     procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
     procedure CursorChange; override;
+    function CollisionIgnoreItem(const Sender: TObject;
+      const Triangle: P3DTriangle): boolean; override;
   end;
 
 procedure T3DWorldConcrete.VisibleChangeHere(const Changes: TVisibleChanges);
@@ -2107,6 +2110,13 @@ procedure T3DWorldConcrete.CursorChange;
 begin
   if Owner <> nil then
     TCastleSceneManager(Owner).ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
+end;
+
+function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
+  const Triangle: P3DTriangle): boolean;
+begin
+  Result := (Owner <> nil) and
+    TCastleSceneManager(Owner).CollisionIgnoreItem(Sender, Triangle);
 end;
 
 { TCastleSceneManager -------------------------------------------------------- }
