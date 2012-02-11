@@ -1540,7 +1540,7 @@ type
       is expressed in seconds (which is the case, when you use
       camera with TCastleWindowBase.Controls or TCastleSceneManager.Camera).
       So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
-      MoveSpeed expressed the speed in nice units / per second.
+      MoveSpeed expresses the speed in nice units / per second.
 
       Default values for all these speed properties is 1.0,
       so you simply move by 1 unit per second.
