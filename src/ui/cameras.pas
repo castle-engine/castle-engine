@@ -399,6 +399,7 @@ type
     procedure GetView(out APos, ADir, AUp: TVector3Single); virtual; abstract;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
     function GetPosition: TVector3Single; virtual; abstract;
+    function GetGravityUp: TVector3Single; virtual; abstract;
 
     { Set camera view from vectors: position, direction, up.
 
@@ -706,6 +707,7 @@ type
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+    function GetGravityUp: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
@@ -1448,6 +1450,7 @@ type
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+    function GetGravityUp: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
@@ -1608,6 +1611,7 @@ type
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
     function GetPosition: TVector3Single; override;
+    function GetGravityUp: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
@@ -2714,12 +2718,17 @@ end;
 procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
 begin
   GetView(APos, ADir, AUp);
-  AGravityUp := DefaultUp; { nothing more sensible for Examine camera }
+  AGravityUp := GetGravityUp;
 end;
 
 function TExamineCamera.GetPosition: TVector3Single;
 begin
   Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
+end;
+
+function TExamineCamera.GetGravityUp: TVector3Single;
+begin
+  Result := DefaultUp; { nothing more sensible for Examine camera }
 end;
 
 procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single);
@@ -4280,6 +4289,11 @@ begin
   Result := FPosition;
 end;
 
+function TWalkCamera.GetGravityUp: TVector3Single;
+begin
+  Result := GravityUp;
+end;
+
 procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3Single);
 begin
   FPosition := APos;
@@ -4416,6 +4430,11 @@ end;
 function TUniversalCamera.GetPosition: TVector3Single;
 begin
   Result := Current.GetPosition;
+end;
+
+function TUniversalCamera.GetGravityUp: TVector3Single;
+begin
+  Result := Current.GetGravityUp;
 end;
 
 procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3Single);
