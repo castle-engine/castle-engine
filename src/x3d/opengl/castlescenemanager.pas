@@ -2603,6 +2603,15 @@ begin
 end;
 
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
+
+  procedure UpdateSoundEngineListener;
+  var
+    Pos, Dir, Up: TVector3Single;
+  begin
+    (ACamera as TCamera).GetView(Pos, Dir, Up);
+    SoundEngine.UpdateListener(Pos, Dir, Up);
+  end;
+
 begin
   if (MainScene <> nil) and (ACamera = Camera) then
     { MainScene.CameraChanged will cause MainScene.VisibleChangeHere,
@@ -2612,7 +2621,7 @@ begin
     MainScene.CameraChanged(Camera, CameraToChanges) else
     VisibleChange;
 
-  SoundEngine.UpdateListener(ACamera as TCamera);
+  UpdateSoundEngineListener;
 
   if Assigned(OnCameraChanged) then
     OnCameraChanged(ACamera);

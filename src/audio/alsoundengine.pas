@@ -18,7 +18,7 @@ unit ALSoundEngine;
 
 interface
 
-uses SysUtils, Classes, CastleOpenAL, ALSoundAllocator, VectorMath, Cameras,
+uses SysUtils, Classes, CastleOpenAL, ALSoundAllocator, VectorMath,
   CastleTimeUtils, CastleXMLConfig, Math, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
   CastleClassUtils;
 
@@ -232,11 +232,8 @@ type
       as they are valid arguments for the @--audio-device option. }
     function ParseParametersHelp: string;
 
-    { Set OpenAL listener position and orientation.
-      @groupBegin }
-    procedure UpdateListener(Camera: TCamera);
+    { Set OpenAL listener position and orientation. }
     procedure UpdateListener(const Position, Direction, Up: TVector3Single);
-    { @groupEnd }
 
     { List of available OpenAL sound devices. Read-only.
 
@@ -1099,16 +1096,6 @@ begin
     '                        Choose specific OpenAL audio device.' +nl+
     DevicesHelp +
     '  --no-sound            Turn off sound';
-end;
-
-procedure TALSoundEngine.UpdateListener(Camera: TCamera);
-begin
-  Camera.GetView(ListenerPosition, ListenerOrientation[0], ListenerOrientation[1]);
-  if ALActive then
-  begin
-    alListenerVector3f(AL_POSITION, ListenerPosition);
-    alListenerfv(AL_ORIENTATION, @ListenerOrientation);
-  end;
 end;
 
 procedure TALSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
