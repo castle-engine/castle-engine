@@ -2210,7 +2210,8 @@ begin
     { Ignore transparent materials, this means that creatures can see through
       glass --- even though they can't walk through it.
       CollisionIgnoreItem doesn't matter for LineOfSight. }
-    @TBaseTrianglesOctree(nil).IgnoreTransparentItem);
+    @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
+    true);
 end;
 
 { TCastleSceneManager -------------------------------------------------------- }

@@ -362,7 +362,8 @@ type
       resolves collisions through our methods MoveAllowed and GetHeightAbove
       (high-level) or SegmentCollision, SphereCollision, BoxCollision
       (low-level). (Note that RayCollision is excluded from this,
-      it exceptionally ignores Collides value, as it's primarily used for picking.)
+      it exceptionally ignores Collides value, as it's primarily used for picking.
+      Same for SegmentCollision with LineOfSight=true.)
 
       Note that if not @link(Exists) then this doesn't matter
       (not existing objects never participate in collision detection).
@@ -664,7 +665,8 @@ type
     { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3D;
@@ -829,7 +831,8 @@ type
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -934,7 +937,8 @@ type
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -1395,17 +1399,19 @@ function T3D.MoveAllowed(
 begin
   if IsRadius then
     Result := not ( GetCollides and
-      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc) or
+      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
         SphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) ) else
     Result := not ( GetCollides and
-      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc) or
+      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
         BoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
 end;
 
 function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const LineOfSight: boolean): boolean;
 begin
-  Result := GetCollides and BoundingBox.SegmentCollision(Pos1, Pos2);
+  Result := (GetCollides or (LineOfSight and GetExists)) and
+    BoundingBox.SegmentCollision(Pos1, Pos2);
 end;
 
 function T3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
@@ -1855,16 +1861,17 @@ begin
 end;
 
 function T3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const LineOfSight: boolean): boolean;
 var
   I: Integer;
 begin
   Result := false;
 
-  if GetCollides then
+  if GetCollides or (LineOfSight and GetExists) then
     for I := 0 to List.Count - 1 do
     begin
-      Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc);
+      Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight);
       if Result then Exit;
     end;
 end;
@@ -2306,25 +2313,26 @@ begin
 end;
 
 function T3DCustomTransform.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const LineOfSight: boolean): boolean;
 var
   T: TVector3Single;
   MInverse: TMatrix4Single;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
+  if not (GetCollides or (LineOfSight and GetExists)) then Exit(false);
 
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc);
+    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, LineOfSight);
   end else
   begin
     MInverse := TransformInverse;
     Result := inherited SegmentCollision(
       MatrixMultPoint(MInverse, Pos1),
-      MatrixMultPoint(MInverse, Pos2), TrianglesToIgnoreFunc);
+      MatrixMultPoint(MInverse, Pos2), TrianglesToIgnoreFunc, LineOfSight);
   end;
 end;
 

@@ -534,7 +534,8 @@ type
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -1878,12 +1879,14 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const LineOfSight: boolean): boolean;
 begin
-  Result := Loaded and GetCollides and
-    ( FirstScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc) or
+  Result := Loaded and
+    (GetCollides or (LineOfSight and GetExists)) and
+    ( FirstScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight) or
       (CollisionUseLastScene and
-        (LastScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc)))
+        (LastScene.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight)))
     );
 end;
 
