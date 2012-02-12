@@ -324,29 +324,6 @@ type
       It T3D class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
-
-    { Get height of my own point above the rest of the 3D world. }
-    function MyHeight(const MyPosition: TVector3Single;
-      out AboveHeight: Single): boolean;
-
-    function MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
-
-    { Is the move from OldPos to ProposedNewPos possible.
-      Returns true and sets NewPos if some move is allowed.
-      Overloaded version without ProposedNewPos doesn't do wall-sliding,
-      and only answers if exactly this move is allowed.
-
-      If this 3D object allows to use sphere as the bounding volume (see UseSphere),
-      then this sphere must be centered around OldPos, not some other point.
-      That is, we assume that @link(Sphere) returns Center that is equal to OldPos.
-
-      @groupBegin }
-    function MyMoveAllowed(const OldPos, ProposedNewPos: TVector3Single;
-      out NewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
-    function MyMoveAllowed(const OldPos, NewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
-    { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -771,6 +748,33 @@ type
       actually does something (for example, by descending from T3DTransform,
       that provides natural @link(T3D.Translate) implementation). }
     property Pushable: boolean read FPushable write FPushable default false;
+
+    { Get height of my point above the rest of the 3D world.
+      @groupBegin }
+    function MyHeight(const MyPosition: TVector3Single;
+      out AboveHeight: Single): boolean;
+    function MyHeight(const MyPosition: TVector3Single;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+    { @groupEnd }
+
+    function MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+
+    { Is the move from OldPos to ProposedNewPos possible.
+      Returns true and sets NewPos if some move is allowed.
+      Overloaded version without ProposedNewPos doesn't do wall-sliding,
+      and only answers if exactly this move is allowed.
+
+      If this 3D object allows to use sphere as the bounding volume (see UseSphere),
+      then this sphere must be centered around OldPos, not some other point.
+      That is, we assume that @link(Sphere) returns Center that is equal to OldPos.
+
+      @groupBegin }
+    function MyMoveAllowed(const OldPos, ProposedNewPos: TVector3Single;
+      out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    function MyMoveAllowed(const OldPos, NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    { @groupEnd }
   end;
 
   { List of base 3D objects (T3D instances).
@@ -1526,7 +1530,13 @@ end;
 function T3D.MyHeight(const MyPosition: TVector3Single;
   out AboveHeight: Single): boolean;
 var
-  AboveGround: P3DTriangle; {< just ignored for now }
+  AboveGroundIgnored: P3DTriangle;
+begin
+  Result := MyHeight(MyPosition, AboveHeight, AboveGroundIgnored);
+end;
+
+function T3D.MyHeight(const MyPosition: TVector3Single;
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   Disable;
   try
