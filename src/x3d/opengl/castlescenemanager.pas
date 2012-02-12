@@ -236,7 +236,7 @@ type
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
     function CameraHeight(ACamera: TWalkCamera;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
-    function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
+    function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
 
@@ -729,7 +729,7 @@ type
       const BecauseOfGravity: boolean): boolean; override;
     function CameraHeight(ACamera: TWalkCamera;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
+    function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
     function GetItems: T3DWorld; override;
@@ -949,7 +949,7 @@ type
       const BecauseOfGravity: boolean): boolean; override;
     function CameraHeight(ACamera: TWalkCamera;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
+    function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
   public
     destructor Destroy; override;
@@ -2121,6 +2121,7 @@ type
     function WorldHeight(const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; override;
+    function WorldRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
   end;
 
 function T3DWorldConcrete.Owner: TCastleSceneManager;
@@ -2207,6 +2208,15 @@ begin
       CollisionIgnoreItem doesn't matter for LineOfSight. }
     @TBaseTrianglesOctree(nil).IgnoreTransparentItem,
     true);
+end;
+
+function T3DWorldConcrete.WorldRayCollision(
+  const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+begin
+  Result := RayCollision(RayOrigin, RayDirection,
+    { Do not use CollisionIgnoreItem here,
+      as this is for picking, so the first object should win --- usually.
+      May be configurable in the future. } nil);
 end;
 
 { TCastleSceneManager -------------------------------------------------------- }
@@ -2564,7 +2574,7 @@ var
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
       RayOrigin, RayDirection);
 
-    RayHit := CameraRay(RayOrigin, RayDirection);
+    RayHit := CameraRayCollision(RayOrigin, RayDirection);
 
     { We do not really have to check "RayHit <> nil" below,
       as TryActivate can (and should) work even with RayHit=nil case.
@@ -2635,7 +2645,7 @@ begin
     We know that RayDirection is normalized now, which is important
     to get correct FMouseRayHit.Distance. }
   FreeAndNil(FMouseRayHit);
-  FMouseRayHit := CameraRay(RayOrigin, RayDirection);
+  FMouseRayHit := CameraRayCollision(RayOrigin, RayDirection);
 
   { calculate MouseRayHit3D }
   if MouseRayHit <> nil then
@@ -2741,7 +2751,7 @@ begin
   Result := Items.WorldHeight(ACamera.Position, AboveHeight, AboveGround);
 end;
 
-function TCastleSceneManager.CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
 begin
   Result := Items.RayCollision(RayOrigin, RayDirection,
     { Do not use CollisionIgnoreItem here,
@@ -2856,10 +2866,10 @@ begin
   end;
 end;
 
-function TCastleViewport.CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+function TCastleViewport.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
 begin
   if SceneManager <> nil then
-    Result := SceneManager.CameraRay(RayOrigin, RayDirection) else
+    Result := SceneManager.CameraRayCollision(RayOrigin, RayDirection) else
     Result := nil;
 end;
 

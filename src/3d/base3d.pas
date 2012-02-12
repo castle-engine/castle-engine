@@ -775,6 +775,8 @@ type
     function MyMoveAllowed(const OldPos, NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
     { @groupEnd }
+
+    function MyRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
   end;
 
   { List of base 3D objects (T3D instances).
@@ -906,6 +908,7 @@ type
     function WorldHeight(const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
+    function WorldRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     { @groupEnd }
   end;
 
@@ -1600,6 +1603,15 @@ begin
   try
     Result := World.WorldMoveAllowed(OldPos, NewPos,
       Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
+  finally Enable end;
+end;
+
+function T3D.MyRayCollision(
+  const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+begin
+  Disable;
+  try
+    Result := World.WorldRayCollision(RayOrigin, RayDirection);
   finally Enable end;
 end;
 
