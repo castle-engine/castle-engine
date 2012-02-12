@@ -324,6 +324,12 @@ type
       It T3D class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
+
+    { Get height of my own point above the rest of the 3D world. }
+    function MyHeight(const MyPosition: TVector3Single;
+      out AboveHeight: Single): boolean;
+
+    function MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1498,6 +1504,25 @@ begin
   if Parent <> nil then
     Result := Parent.World else
     Result := nil;
+end;
+
+function T3D.MyHeight(const MyPosition: TVector3Single;
+  out AboveHeight: Single): boolean;
+var
+  AboveGround: P3DTriangle; {< just ignored for now }
+begin
+  Disable;
+  try
+    Result := World.WorldHeight(MyPosition, AboveHeight, AboveGround);
+  finally Enable end;
+end;
+
+function T3D.MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+begin
+  Disable;
+  try
+    Result := World.WorldLineOfSight(Pos1, Pos2);
+  finally Enable end;
 end;
 
 { T3DListCore ------------------------------------------------------------ }
