@@ -234,9 +234,8 @@ type
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
-    procedure CameraGetHeight(ACamera: TWalkCamera;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); virtual; abstract;
+    function CameraHeight(ACamera: TWalkCamera;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
@@ -406,7 +405,7 @@ type
 
       Scene manager / viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
-      TWalkCamera.OnGetHeightAbove, TCamera.OnCursorChange.
+      TWalkCamera.OnHeight, TCamera.OnCursorChange.
       We will handle them in a proper way.
 
       @italic(For TCastleViewport only:)
@@ -728,9 +727,8 @@ type
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; override;
-    procedure CameraGetHeight(ACamera: TWalkCamera;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
+    function CameraHeight(ACamera: TWalkCamera;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
@@ -949,9 +947,8 @@ type
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; override;
-    procedure CameraGetHeight(ACamera: TWalkCamera;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
+    function CameraHeight(ACamera: TWalkCamera;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
   public
@@ -1061,12 +1058,12 @@ begin
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
-        TWalkCamera(FCamera).OnGetHeightAbove := nil;
+        TWalkCamera(FCamera).OnHeight := nil;
       end else
       if FCamera is TUniversalCamera then
       begin
         TUniversalCamera(FCamera).Walk.OnMoveAllowed := nil;
-        TUniversalCamera(FCamera).Walk.OnGetHeightAbove := nil;
+        TUniversalCamera(FCamera).Walk.OnHeight := nil;
       end;
 
       FCamera.RemoveFreeNotification(Self);
@@ -1085,12 +1082,12 @@ begin
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
-        TWalkCamera(FCamera).OnGetHeightAbove := @CameraGetHeight;
+        TWalkCamera(FCamera).OnHeight := @CameraHeight;
       end else
       if FCamera is TUniversalCamera then
       begin
         TUniversalCamera(FCamera).Walk.OnMoveAllowed := @CameraMoveAllowed;
-        TUniversalCamera(FCamera).Walk.OnGetHeightAbove := @CameraGetHeight;
+        TUniversalCamera(FCamera).Walk.OnHeight := @CameraHeight;
       end;
 
       FCamera.FreeNotification(Self);
@@ -2121,9 +2118,8 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
-    procedure WorldGetHeightAbove(const Position: TVector3Single;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
+    function WorldHeight(const Position: TVector3Single;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; override;
   end;
 
@@ -2196,12 +2192,11 @@ begin
   end;
 end;
 
-procedure T3DWorldConcrete.WorldGetHeightAbove(const Position: TVector3Single;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+function T3DWorldConcrete.WorldHeight(const Position: TVector3Single;
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  GetHeightAbove(Position, Owner.GravityUp, @CollisionIgnoreItem,
-    IsAbove, AboveHeight, AboveGround);
+  Result := Height(Position, Owner.GravityUp, @CollisionIgnoreItem,
+    AboveHeight, AboveGround);
 end;
 
 function T3DWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
@@ -2740,11 +2735,10 @@ begin
     Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2), BecauseOfGravity);
 end;
 
-procedure TCastleSceneManager.CameraGetHeight(ACamera: TWalkCamera;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+function TCastleSceneManager.CameraHeight(ACamera: TWalkCamera;
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  Items.WorldGetHeightAbove(ACamera.Position, IsAbove, AboveHeight, AboveGround);
+  Result := Items.WorldHeight(ACamera.Position, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneManager.CameraRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
@@ -2850,15 +2844,13 @@ begin
   end;
 end;
 
-procedure TCastleViewport.CameraGetHeight(ACamera: TWalkCamera;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+function TCastleViewport.CameraHeight(ACamera: TWalkCamera;
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   if SceneManager <> nil then
-    SceneManager.CameraGetHeight(
-      ACamera, IsAbove, AboveHeight, AboveGround) else
+    Result := SceneManager.CameraHeight(ACamera, AboveHeight, AboveGround) else
   begin
-    IsAbove := false;
+    Result := false;
     AboveHeight := MaxSingle;
     AboveGround := nil;
   end;

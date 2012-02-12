@@ -526,31 +526,17 @@ type
 
     { For given camera position and up vector, calculate camera height
       above the ground. This is comfortable for cooperation with
-      TWalkCamera.OnGetHeightAbove.
+      TWalkCamera.OnHeight.
 
-      This simply checks collision of a ray from
-      Position in direction -GravityUp, and sets IsAbove,
-      AboveHeight and AboveGround as needed. See TBase3D.GetHeightAbove
-      for specification.
+      See TBase3D.Height for specification.
 
       TriangleToIgnore and TrianglesToIgnoreFunc meaning
       is just like for RayCollision. }
-    procedure GetHeightAbove(
+    function Height(
       const Position, GravityUp: TVector3Single;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: PTriangle;
+      out AboveHeight: Single; out AboveGround: PTriangle;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
-
-    { This is just like GetHeightAbove, but it assumes that
-      GravityUp = (0, 0, 1). This is faster than GetHeightAbove,
-      since calculating AboveHeight doesn't require now costly Sqrt operation. }
-    procedure GetHeightAboveZ(
-      const Position: TVector3Single;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: PTriangle;
-      const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
     { This ignores (that is, returns @true) transparent triangles
       (with Material.Transparency > 0).
@@ -1068,7 +1054,7 @@ begin
     TrianglesToIgnoreFunc);
 end;
 
-{ MoveAllowed / GetHeightAbove methods -------------------------------------- }
+{ MoveAllowed / Height methods ----------------------------------------------- }
 
 function TBaseTrianglesOctree.MoveAllowed(
   const OldPos, NewPos: TVector3Single;
@@ -1338,42 +1324,16 @@ begin
     Result := MoveAlongTheBlocker(BlockerIntersection, true, Blocker);
 end;
 
-procedure TBaseTrianglesOctree.GetHeightAbove(
+function TBaseTrianglesOctree.Height(
   const Position, GravityUp: TVector3Single;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: PTriangle;
+  out AboveHeight: Single; out AboveGround: PTriangle;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
-var
-  GroundIntersection: TVector3Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  AboveGround := RayCollision(GroundIntersection,
-    Position, VectorNegate(GravityUp), true,
-    TriangleToIgnore, false, TrianglesToIgnoreFunc);
-  IsAbove := AboveGround <> nil;
-  if IsAbove then
-    AboveHeight := PointsDistance(Position, GroundIntersection) else
-    AboveHeight := MaxSingle;
-end;
-
-procedure TBaseTrianglesOctree.GetHeightAboveZ(
-  const Position: TVector3Single;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: PTriangle;
-  const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc);
-const
-  RayDir: TVector3Single = (0, 0, -1);
-var
-  GroundIntersection: TVector3Single;
-begin
-  AboveGround := RayCollision(GroundIntersection,
-    Position, RayDir, true,
-    TriangleToIgnore, false, TrianglesToIgnoreFunc);
-  IsAbove := AboveGround <> nil;
-  if IsAbove then
-    { Calculation of AboveHeight uses the fact that RayDir is so simple. }
-    AboveHeight := Position[2] - GroundIntersection[2] else
+  AboveGround := RayCollision(AboveHeight, Position, VectorNegate(GravityUp),
+    true, TriangleToIgnore, false, TrianglesToIgnoreFunc);
+  Result := AboveGround <> nil;
+  if not Result then
     AboveHeight := MaxSingle;
 end;
 
@@ -1401,7 +1361,7 @@ var
     a rebuild of shapes octree. (But actual TShape and it's local triangles
     octree stay unmodified.) Without moving NextFreeTag to global variable,
     the new created octree would have NextFreeTag that was already recorded.
-    In effect, GetHeightAbove (for camera gravity) were returning a result
+    In effect, @link(Height) (for camera gravity) were returning a result
     for previous mouse ray pick, temporary showing our "height above the ground"
     even though we were not standing on the ground. }
   NextFreeTag: TMailboxTag;

@@ -1712,10 +1712,9 @@ type
     procedure PrepareResources(Options: TPrepareResourcesOptions;
       ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
 
-    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
+    function Height(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -6268,26 +6267,24 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.GetHeightAbove(const Position, GravityUp: TVector3Single;
+function TCastleSceneCore.Height(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   if OctreeCollisions <> nil then
   begin
-    IsAbove := false;
+    Result := false;
     AboveHeight := MaxSingle;
     AboveGround := nil;
 
     if GetCollides then
     begin
-      OctreeCollisions.GetHeightAbove(Position, GravityUp,
-        IsAbove, AboveHeight, PTriangle(AboveGround),
-        nil, TrianglesToIgnoreFunc);
+      Result := OctreeCollisions.Height(Position, GravityUp,
+        AboveHeight, PTriangle(AboveGround), nil, TrianglesToIgnoreFunc);
     end;
   end else
-    inherited GetHeightAbove(Position, GravityUp,
-      TrianglesToIgnoreFunc, IsAbove, AboveHeight, AboveGround);
+    Result := inherited Height(Position, GravityUp,
+      TrianglesToIgnoreFunc, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneCore.MoveAllowed(

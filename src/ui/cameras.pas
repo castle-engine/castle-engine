@@ -765,10 +765,8 @@ type
   TFalledDownNotifyFunc = procedure (Camera: TWalkCamera;
     const FallenHeight: Single) of object;
 
-  TGetHeightAbove = procedure (Camera: TWalkCamera;
-    out IsAbove: boolean; out AboveHeight: Single;
-    out AboveGround: P3DTriangle)
-    of object;
+  THeightEvent = function (Camera: TWalkCamera;
+    out AboveHeight: Single; out AboveGround: P3DTriangle): boolean of object;
 
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
     Camera is defined by it's position, looking direction
@@ -844,7 +842,7 @@ type
     FFallingDownSpeed: Single;
     FFallingDownSpeedIncrease: Single;
     FGravity: boolean;
-    FOnGetHeightAbove: TGetHeightAbove;
+    FOnHeight: THeightEvent;
     FGrowingSpeed: Single;
     { This is used by FallingDownEffect to temporary modify Matrix result
       by rotating Up around Direction. In degress. }
@@ -884,8 +882,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Call OnGetHeightAbove callback, updating IsAbove, AboveHeight, AboveGround. }
-    procedure UpdateHeightAbove; virtual;
+    { Call OnHeight callback, updating IsAbove, AboveHeight, AboveGround. }
+    procedure UpdateHeight; virtual;
 
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
@@ -1181,7 +1179,7 @@ type
 
       Summary of things done by gravity:
       @unorderedList(
-        @item(It uses OnGetHeightAbove to get camera height above the ground.)
+        @item(It uses OnHeight to get camera height above the ground.)
         @item(It allows player to jump. See Input_Jump, IsJumping, MaxJumpHeight,
           JumpSpeedMultiply.)
         @item(It allows player to crouch. See Input_Crouch, CrouchHeight.)
@@ -1198,7 +1196,7 @@ type
       While there are many properties allowing you to control
       gravity behavior, most of them have initial values that should be
       sensible in all cases. The only things that you really want to take
-      care of are: OnGetHeightAbove and PreferredHeight.
+      care of are: OnHeight and PreferredHeight.
       Everything else should basically work auto-magically.
 
       Note that Gravity setting is independent from
@@ -1215,7 +1213,7 @@ type
       This must always be >= 0.
       You should set this to something greater than zero to get sensible
       behavior of some things related to @link(Gravity),
-      and also you should set OnGetHeightAbove.
+      and also you should set OnHeight.
 
       See CorrectPreferredHeight for important property
       of PreferredHeight that you should keep. }
@@ -1247,7 +1245,7 @@ type
       would not allow it). Note that this class doesn't keep value
       of your Radius, because collision detection
       is (by design) never done by this class --- it's always
-      delegated to OnGetHeightAbove and OnMoveAllowed.
+      delegated to OnHeight and OnMoveAllowed.
       Also, it's not exactly forced @italic(how) you should force this
       condition to hold. Sometimes the good solution is to adjust
       Radius, not to adjust PreferredHeight.
@@ -1258,20 +1256,18 @@ type
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
 
-    { Assign here the callback (or override UpdateHeightAbove)
+    { Assign here the callback (or override UpdateHeight)
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from @link(Position)
       in direction -GravityUp with the scene.
-      See TBase3D.OnGetHeightAbove for specification what returned parameters
+      See TBase3D.Height for specification what returned parameters
       mean.
 
-      Implementation of UpdateHeightAbove in this class
-      calls OnGetHeightAbove, if assigned. (If not assigned,
+      Implementation of UpdateHeight in this class
+      calls OnHeight, if assigned. (If not assigned,
       we assume no collision: IsAbove = @false, AboveHeight = MaxSingle,
       AboveGround = @nil). }
-    property OnGetHeightAbove: TGetHeightAbove
-      read FOnGetHeightAbove
-      write FOnGetHeightAbove;
+    property OnHeight: THeightEvent read FOnHeight write FOnHeight;
 
     { This is called when camera was falling down for some time,
       and suddenly stopped (this means that camera "hit the ground").
@@ -1321,7 +1317,7 @@ type
       the opinion that "camera is not falling down right now".
 
       Of course, if in the nearest Idle we will find out (using
-      GetHeightAbove) that camera is too high above the ground,
+      OnHeight) that camera is too high above the ground,
       then we will start falling down again, setting IsFallingDown
       back to true. (but then we will start falling down from the beginning,
       starting at given @link(Position) and with initial falling down speed).
@@ -1454,10 +1450,10 @@ type
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     { Last known information about whether camera is over the ground.
-      Updated by every UpdateHeightAbove call, using
-      OnGetHeightAbove callback.
+      Updated by every UpdateHeight call, using
+      OnHeight callback.
 
-      Note that these are updated only when UpdateHeightAbove
+      Note that these are updated only when UpdateHeight
       is continously called, which in practice means:
       only when @link(Gravity) is @true.
 
@@ -2947,10 +2943,10 @@ begin
  end;
 end;
 
-procedure TWalkCamera.UpdateHeightAbove;
+procedure TWalkCamera.UpdateHeight;
 begin
-  if Assigned(OnGetHeightAbove) then
-    OnGetHeightAbove(Self, FIsAbove, FAboveHeight, FAboveGround) else
+  if Assigned(OnHeight) then
+    FIsAbove := OnHeight(Self, FAboveHeight, FAboveGround) else
   begin
     FIsAbove := false;
     FAboveHeight := MaxSingle;
@@ -3352,7 +3348,7 @@ var
       Result := false;
 
       { Note that if we got here, then TryGrow returned false,
-        which means that (assuming OnGetHeightAbove is correctly assigned)
+        which means that (assuming OnHeight is correctly assigned)
         we are not above the ground, or
           AboveHeight >=
             RealPreferredHeight - RealPreferredHeightMargin
@@ -3691,7 +3687,7 @@ var
     if Gravity then
     begin
       { calculate IsAbove, AboveHeight }
-      UpdateHeightAbove;
+      UpdateHeight;
 
       FIsOnTheGround := GetIsOnTheGround;
       FIsWalkingOnTheGround := MoveHorizontalDone and FIsOnTheGround;
@@ -3986,7 +3982,7 @@ begin
     to be able to jump. }
 
   { calculate IsAbove, AboveHeight }
-  UpdateHeightAbove;
+  UpdateHeight;
 
   if AboveHeight > RealPreferredHeight + RealPreferredHeightMargin then
     Exit;

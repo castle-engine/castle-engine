@@ -288,7 +288,7 @@ type
       @item(Non-wall-sliding MoveAllowed version uses SegmentCollision,
         SphereCollision and BoxCollision.)
       @item(SegmentCollision, SphereCollision, BoxCollision and RayCollision
-        and GetHeightAbove check for collisions with our BoundingBox,
+        and @link(Height) check for collisions with our BoundingBox,
         using TBox3D methods:
         @link(TBox3D.TryRayEntrance),
         @link(TBox3D.SegmentCollision),
@@ -313,12 +313,14 @@ type
   protected
     { In T3D class, just calls Parent.CursorChange. }
     procedure CursorChange; virtual;
-    { Return whether item really exists, see @link(Exists) and @link(Enable),
+
+    { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
       It T3D class, returns @true if @link(Exists) and not disabled.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
-    { Return whether item really exists, see @link(Collides).
+
+    { Does item really collide, see @link(Collides).
       It T3D class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
@@ -359,7 +361,7 @@ type
       This describes collision resolution with everything --- camera,
       player (in third-person perspective, camera may differ from player),
       other creatures, other level parts. That is because everything
-      resolves collisions through our methods MoveAllowed and GetHeightAbove
+      resolves collisions through our methods MoveAllowed and @link(Height)
       (high-level) or SegmentCollision, SphereCollision, BoxCollision
       (low-level). (Note that RayCollision is excluded from this,
       it exceptionally ignores Collides value, as it's primarily used for picking.
@@ -596,13 +598,13 @@ type
       Control should clear here any resources that are tied to the GL context. }
     procedure GLContextClose; virtual;
 
-    { Check height of a point (like a player camera) above the ground.
+    { Height of a point above the 3D model.
       This checks ray collision, from Position along the negated GravityUp vector.
       Measures distance to the nearest scene item (called "ground" here).
 
-      @param(IsAbove Says if the 3D scene is hit.
-        @false means that player floats above an empty space.
-        That is, if you turn gravity on, the player will fall down forever,
+      @returns(If the 3D scene is hit.
+        @false means that Position floats above an empty space.
+        That is, if you turn gravity on, it will fall down forever,
         as far as this 3D scene is concerned.)
 
       @param(AboveHeight Height above the ground.
@@ -610,23 +612,22 @@ type
         Always use normalized GravityUp vector if you expect
         to receive here a normal distance.
 
-        Must be MaxSingle if IsAbove was set to @false
+        AboveHeight is always set to MaxSingle when returned result is @false
         (this guarantee simplifies some code).)
 
       @param(AboveGround Pointer to P3DTriangle representing the ground.
-        Must be @nil if IsAbove was set to @false.
-        @bold(May) be @nil even if IsAbove was set to @true (not all 3D
+        Must be @nil if returned result is @false.
+        @bold(May) be @nil even if we returned @true (not all 3D
         objects may be able to generate P3DTriangle information about collision).
 
         This may be useful for example to make a footsteps sound dependent
         on texture of the ground.
         Or to decrease player life points for walking on hot lava.
-        See "castle" for examples.)
+        See "The Castle" game for examples.)
     }
-    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
+    function Height(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); virtual;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
 
     { Can other 3D object (maybe a player) move without colliding with this object.
 
@@ -816,10 +817,9 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure GLContextClose; override;
-    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
+    function Height(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -876,9 +876,8 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
-    procedure WorldGetHeightAbove(const Position: TVector3Single;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); virtual; abstract;
+    function WorldHeight(const Position: TVector3Single;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
     { @groupEnd }
   end;
@@ -922,10 +921,9 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
-    procedure GetHeightAbove(const Position, GravityUp: TVector3Single;
+    function Height(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out IsAbove: boolean; out AboveHeight: Single;
-      out AboveGround: P3DTriangle); override;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -1358,24 +1356,20 @@ procedure T3D.GLContextClose;
 begin
 end;
 
-procedure T3D.GetHeightAbove(const Position, GravityUp: TVector3Single;
+function T3D.Height(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
   Intersection: TVector3Single;
   IntersectionDistance: Single;
 begin
-  IsAbove := false;
   AboveHeight := MaxSingle;
   AboveGround := nil;
 
-  if GetCollides and
-    BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, Position, -GravityUp) then
-  begin
-    IsAbove := true;
+  Result := GetCollides and
+    BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, Position, -GravityUp);
+  if Result then
     AboveHeight := IntersectionDistance;
-  end;
 end;
 
 function T3D.MoveAllowed(
@@ -1770,29 +1764,28 @@ begin
     List.DeleteAll(AComponent);
 end;
 
-procedure T3DList.GetHeightAbove(const Position, GravityUp: TVector3Single;
+function T3DList.Height(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
   I: Integer;
-  NewIsAbove: boolean;
+  NewResult: boolean;
   NewAboveHeight: Single;
   NewAboveGround: P3DTriangle;
 begin
-  IsAbove := false;
+  Result := false;
   AboveHeight := MaxSingle;
   AboveGround := nil;
 
   if GetCollides then
     for I := 0 to List.Count - 1 do
     begin
-      List[I].GetHeightAbove(Position, GravityUp, TrianglesToIgnoreFunc,
-        NewIsAbove, NewAboveHeight, NewAboveGround);
+      NewResult := List[I].Height(Position, GravityUp, TrianglesToIgnoreFunc,
+        NewAboveHeight, NewAboveGround);
 
       if NewAboveHeight < AboveHeight then
       begin
-        IsAbove := NewIsAbove;
+        Result := NewResult;
         AboveHeight := NewAboveHeight;
         AboveGround := NewAboveGround;
       end;
@@ -2196,10 +2189,9 @@ begin
       false, MatrixMult(Transform, ParentTransform));
 end;
 
-procedure T3DCustomTransform.GetHeightAbove(const Position, GravityUp: TVector3Single;
+function T3DCustomTransform.Height(const Position, GravityUp: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out IsAbove: boolean; out AboveHeight: Single;
-  out AboveGround: P3DTriangle);
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
   MInverse: TMatrix4Single;
 begin
@@ -2207,22 +2199,22 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then
   begin
-    IsAbove := false;
+    Result := false;
     AboveHeight := MaxSingle;
     AboveGround := nil;
     Exit;
   end;
 
   if OnlyTranslation then
-    inherited GetHeightAbove(
+    Result := inherited Height(
       Position - GetTranslation, GravityUp, TrianglesToIgnoreFunc,
-      IsAbove, AboveHeight, AboveGround) else
+      AboveHeight, AboveGround) else
   begin
     MInverse := TransformInverse;
-    inherited GetHeightAbove(
+    Result := inherited Height(
       MatrixMultPoint(MInverse, Position),
       MatrixMultDirection(MInverse, GravityUp), TrianglesToIgnoreFunc,
-        IsAbove, AboveHeight, AboveGround);
+        AboveHeight, AboveGround);
     { Note that we should not scale resulting AboveHeight by AverageScale.
       That is because AboveHeight is relative to GravityUp length,
       so it's automatically correct. }

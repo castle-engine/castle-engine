@@ -95,13 +95,13 @@ begin
   try
     Assert(M.BoundingBox.Equal(Box0));
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(IsAbove);
     Assert(FloatsEqual(AboveHeight, 1));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
@@ -167,13 +167,13 @@ begin
 
     Assert(M.BoundingBox.IsEmpty);
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
@@ -235,13 +235,13 @@ begin
 
     Assert(M.BoundingBox.Equal(Box0));
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
@@ -313,13 +313,13 @@ begin
 
     Assert(M.BoundingBox.Equal(Box0));
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(IsAbove);
     Assert(FloatsEqual(AboveHeight, 1));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
@@ -387,13 +387,13 @@ begin
 
     Assert(M.BoundingBox.IsEmpty);
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
@@ -457,13 +457,13 @@ begin
 
     Assert(M.BoundingBox.Equal(Box0));
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
@@ -526,18 +526,18 @@ procedure TTestBase3D.Test3DTransformReal;
   begin
     Assert(M.BoundingBox.Equal(Box20));
 
-    M.GetHeightAbove(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
-    M.GetHeightAbove(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(not IsAbove);
     Assert(AboveHeight = Single(MaxSingle));
 
-    M.GetHeightAbove(Vector3Single(20.5, 0.5, 2), Vector3Single(0, 0, 1),
-      nil, IsAbove, AboveHeight, AboveGround);
+    IsAbove := M.Height(Vector3Single(20.5, 0.5, 2), Vector3Single(0, 0, 1),
+      nil, AboveHeight, AboveGround);
     Assert(IsAbove);
     Assert(FloatsEqual(AboveHeight, 1));
 
