@@ -199,11 +199,17 @@ begin
 end;
 
 procedure Idle(Window: TCastleWindowBase);
+var
+  Remove: TRemoveType;
 begin
   WorldTime += Window.Fps.IdleSpeed;
 
   if not DebugNoCreatures then
-    Player.Idle(Window.Fps.IdleSpeed);
+  begin
+    Remove := rtNone;
+    Player.Idle(Window.Fps.IdleSpeed, Remove);
+    { for now resulting Remove ignored }
+  end;
 end;
 
 procedure InitLocation;

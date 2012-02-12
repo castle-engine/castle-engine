@@ -129,7 +129,7 @@ type
 
     function Scene: TCastleScene;
 
-    procedure Idle(const CompSpeed: Single); override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
     { This is called from @link(Idle) when no state change is scheduled.
       Usually, you want to implement AI here, not directly in Idle. }
@@ -163,7 +163,7 @@ type
     { Using Camera calculate transformation of player 3D object. }
     function Transform: TMatrix4Single;
 
-    procedure Idle(const CompSpeed: Single); override;
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
     function BoundingBox: TBox3D; override;
     procedure GLContextClose; override;
@@ -471,7 +471,7 @@ begin
       SceneFromTime(WorldTime - CurrentStateStartTime);
 end;
 
-procedure TCreature.Idle(const CompSpeed: Single);
+procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 begin
   if ScheduledTransitionEnd then
   begin
@@ -612,7 +612,7 @@ begin
     Camera.Up);
 end;
 
-procedure TPlayer.Idle(const CompSpeed: Single);
+procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
 var
   RotationAxis: TVector3Single;
   AngleToTarget: Single;
