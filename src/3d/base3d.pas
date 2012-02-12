@@ -330,6 +330,23 @@ type
       out AboveHeight: Single): boolean;
 
     function MyLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+
+    { Is the move from OldPos to ProposedNewPos possible.
+      Returns true and sets NewPos if some move is allowed.
+      Overloaded version without ProposedNewPos doesn't do wall-sliding,
+      and only answers if exactly this move is allowed.
+
+      If this 3D object allows to use sphere as the bounding volume (see UseSphere),
+      then this sphere must be centered around OldPos, not some other point.
+      That is, we assume that @link(Sphere) returns Center that is equal to OldPos.
+
+      @groupBegin }
+    function MyMoveAllowed(const OldPos, ProposedNewPos: TVector3Single;
+      out NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    function MyMoveAllowed(const OldPos, NewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    { @groupEnd }
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1522,6 +1539,57 @@ begin
   Disable;
   try
     Result := World.WorldLineOfSight(Pos1, Pos2);
+  finally Enable end;
+end;
+
+function T3D.MyMoveAllowed(
+  const OldPos, ProposedNewPos: TVector3Single;
+  out NewPos: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+var
+  Sp: boolean;
+  SpRadius: Single;
+  OldBox, NewBox: TBox3D;
+  CenterIgnored: TVector3Single;
+begin
+  { save bounding volume information before calling Disable, as Disable makes
+    bounding volume empty }
+  Sp := UseSphere;
+  if Sp then
+    Sphere(CenterIgnored, SpRadius) else
+    SpRadius := 0; { something predictable, for safety }
+  OldBox := BoundingBox;
+  NewBox := OldBox.Translate(ProposedNewPos - OldPos);
+
+  Disable;
+  try
+    Result := World.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos,
+      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
+  finally Enable end;
+end;
+
+function T3D.MyMoveAllowed(
+  const OldPos, NewPos: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+var
+  Sp: boolean;
+  SpRadius: Single;
+  OldBox, NewBox: TBox3D;
+  CenterIgnored: TVector3Single;
+begin
+  { save bounding volume information before calling Disable, as Disable makes
+    bounding volume empty }
+  Sp := UseSphere;
+  if Sp then
+    Sphere(CenterIgnored, SpRadius) else
+    SpRadius := 0; { something predictable, for safety }
+  OldBox := BoundingBox;
+  NewBox := OldBox.Translate(NewPos - OldPos);
+
+  Disable;
+  try
+    Result := World.WorldMoveAllowed(OldPos, NewPos,
+      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
   finally Enable end;
 end;
 
