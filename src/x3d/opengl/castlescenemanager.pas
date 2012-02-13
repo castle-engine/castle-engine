@@ -691,6 +691,7 @@ type
     FMouseRayHit: TRayCollision;
 
     FMouseRayHit3D: T3D;
+    FPlayer: T3D;
 
     { calculated by every PrepareResources }
     ChosenViewport: TCastleAbstractViewport;
@@ -712,6 +713,8 @@ type
 
     procedure SetMouseRayHit3D(const Value: T3D);
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
+
+    procedure SetPlayer(const Value: T3D);
   protected
     procedure SetCamera(const Value: TCamera); override;
 
@@ -889,6 +892,24 @@ type
       read FDefaultViewport write SetDefaultViewport default true;
 
     property AlwaysApplyProjection default false;
+
+    { Player in this 3D world. This currently serves two purposes:
+
+      @unorderedList(
+        @item(In the 1st person view, this 3D object guides the camera and
+          it never collides with the camera. That is, our CameraMoveAllowed
+          and similar methods simply call Player.MyMoveAllowed,
+          that in turn calls World.WorldMoveAllowed making sure
+          that player is temporarily disabled (does not collide with itself).)
+
+        @item(For simple AI in CastleCreatures, hostile creatures will attack
+          this player. So this determines the target position that
+          creatures try to reach, where they shoot missiles etc.
+          More advanced AI, with friendlies/companions, or cooperating
+          factions of creatures, may have other mechanisms to determine who
+          wants to attack who.)
+      ) }
+    property Player: T3D read FPlayer write SetPlayer;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -2252,8 +2273,9 @@ begin
     done by SetMainScene(nil) already. }
   MainScene := nil;
 
-  { unregister free notification from MouseRayHit3D }
+  { unregister free notification from these objects }
   MouseRayHit3D := nil;
+  Player := nil;
 
   if FViewports <> nil then
   begin
@@ -2323,8 +2345,9 @@ begin
   begin
     if FMainScene <> nil then
     begin
-      { When FMainScene = FMouseRayHit3D, leave free notification for FMouseRayHit3D }
-      if FMainScene <> FMouseRayHit3D then
+      { When FMainScene = FMouseRayHit3D or FPlayer, leave free notification }
+      if (FMainScene <> FMouseRayHit3D) and
+         (FMainScene <> FPlayer) then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
       FMainScene.OnBoundNavigationInfoFieldsChanged := nil;
@@ -2366,8 +2389,9 @@ begin
 
     if FMouseRayHit3D <> nil then
     begin
-      { When FMainScene = FMouseRayHit3D, leave free notification for FMouseRayHit3D }
-      if FMainScene <> FMouseRayHit3D then
+      { leave free notification for FMouseRayHit3D if it's also present somewhere else }
+      if (FMouseRayHit3D <> FMainScene) and
+         (FMouseRayHit3D <> FPlayer) then
         FMouseRayHit3D.RemoveFreeNotification(Self);
     end;
 
@@ -2375,6 +2399,25 @@ begin
 
     if FMouseRayHit3D <> nil then
       FMouseRayHit3D.FreeNotification(Self);
+  end;
+end;
+
+procedure TCastleSceneManager.SetPlayer(const Value: T3D);
+begin
+  if FPlayer <> Value then
+  begin
+    if FPlayer <> nil then
+    begin
+      { leave free notification for FPlayer if it's also present somewhere else }
+      if (FPlayer <> FMainScene) and
+         (FPlayer <> FMouseRayHit3D) then
+        FPlayer.RemoveFreeNotification(Self);
+    end;
+
+    FPlayer := Value;
+
+    if FPlayer <> nil then
+      FPlayer.FreeNotification(Self);
   end;
 end;
 
@@ -2407,7 +2450,11 @@ begin
   begin
     { set to nil by methods (like SetMainScene), to clean nicely }
     if AComponent = FMainScene then
+    begin
       MainScene := nil;
+      { ApplyProjection work depends on MainScene value. }
+      ApplyProjectionNeeded := true;
+    end;
 
     if AComponent = FMouseRayHit3D then
     begin
@@ -2417,8 +2464,8 @@ begin
       FreeAndNil(FMouseRayHit);
     end;
 
-    { Maybe ApplyProjectionNeeded := true also for MainScene cleaning?
-      But ApplyProjection doesn't set projection now, when MainScene is @nil. }
+    if AComponent = FPlayer then
+      Player := nil;
   end;
 end;
 
@@ -2737,25 +2784,35 @@ function TCastleSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
   const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
-  Result := Items.WorldMoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
-    true, ACamera.Radius,
-    { We prefer to resolve collisions with camera using sphere.
-      But for T3D implementations that can't use sphere, we can construct box. }
-    Box3DAroundPoint(ACamera.Position, ACamera.Radius * 2),
-    Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2), BecauseOfGravity);
+  { Both version result in calling WorldMoveAllowed.
+    Player version adds Player.Disable/Enable around, so don't collide with self. }
+  if Player <> nil then
+    Result := Player.MyMoveAllowed(ACamera.Position, ProposedNewPos, NewPos, BecauseOfGravity) else
+    Result := Items.WorldMoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
+      true, ACamera.Radius,
+      { We prefer to resolve collisions with camera using sphere.
+        But for T3D implementations that can't use sphere, we can construct box. }
+      Box3DAroundPoint(ACamera.Position, ACamera.Radius * 2),
+      Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2), BecauseOfGravity);
 end;
 
 function TCastleSceneManager.CameraHeight(ACamera: TWalkCamera;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  Result := Items.WorldHeight(ACamera.Position, AboveHeight, AboveGround);
+  { Both version result in calling WorldHeight.
+    Player version adds Player.Disable/Enable around, so don't collide with self. }
+  if Player <> nil then
+    Result := Player.MyHeight(ACamera.Position, AboveHeight, AboveGround) else
+    Result := Items.WorldHeight(ACamera.Position, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
 begin
-  Result := Items.RayCollision(RayOrigin, RayDirection,
-    { Do not use CollisionIgnoreItem here,
-      as this is not camera<->3d world collision } nil);
+  { Both version result in calling WorldRayCollision.
+    Player version adds Player.Disable/Enable around, so don't collide with self. }
+  if Player <> nil then
+    Result := Player.MyRayCollision(RayOrigin, RayDirection) else
+    Result := Items.WorldRayCollision(RayOrigin, RayDirection);
 end;
 
 procedure TCastleSceneManager.SceneBoundViewpointChanged(Scene: TCastleSceneCore);
