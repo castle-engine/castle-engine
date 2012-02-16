@@ -691,7 +691,7 @@ type
     FMouseRayHit: TRayCollision;
 
     FMouseRayHit3D: T3D;
-    FPlayer: T3D;
+    FPlayer: T3DOrient;
 
     { calculated by every PrepareResources }
     ChosenViewport: TCastleAbstractViewport;
@@ -714,7 +714,7 @@ type
     procedure SetMouseRayHit3D(const Value: T3D);
     property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
 
-    procedure SetPlayer(const Value: T3D);
+    procedure SetPlayer(const Value: T3DOrient);
   protected
     procedure SetCamera(const Value: TCamera); override;
 
@@ -900,7 +900,12 @@ type
           it never collides with the camera. That is, our CameraMoveAllowed
           and similar methods simply call Player.MyMoveAllowed,
           that in turn calls World.WorldMoveAllowed making sure
-          that player is temporarily disabled (does not collide with itself).)
+          that player is temporarily disabled (does not collide with itself).
+
+          TODO: Right now, synchronization is also done the other way:
+          when camera changes, the player vectors are adjusted to it.
+          That is because right now, 1st person view navigation is actually
+          implemented inside TWalkCamera.)
 
         @item(For simple AI in CastleCreatures, hostile creatures will attack
           this player. So this determines the target position that
@@ -909,7 +914,7 @@ type
           factions of creatures, may have other mechanisms to determine who
           wants to attack who.)
       ) }
-    property Player: T3D read FPlayer write SetPlayer;
+    property Player: T3DOrient read FPlayer write SetPlayer;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -2346,8 +2351,9 @@ begin
     if FMainScene <> nil then
     begin
       { When FMainScene = FMouseRayHit3D or FPlayer, leave free notification }
-      if (FMainScene <> FMouseRayHit3D) and
-         (FMainScene <> FPlayer) then
+      if (FMainScene <> FMouseRayHit3D) { and
+         // impossible, as FMainScene is TCastleScene and FPlayer is T3DOrient
+         (FMainScene <> FPlayer) } then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
       FMainScene.OnBoundNavigationInfoFieldsChanged := nil;
@@ -2402,14 +2408,15 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetPlayer(const Value: T3D);
+procedure TCastleSceneManager.SetPlayer(const Value: T3DOrient);
 begin
   if FPlayer <> Value then
   begin
     if FPlayer <> nil then
     begin
       { leave free notification for FPlayer if it's also present somewhere else }
-      if (FPlayer <> FMainScene) and
+      if { // impossible, as FMainScene is TCastleScene and FPlayer is T3DOrient
+         (FPlayer <> FMainScene) and }
          (FPlayer <> FMouseRayHit3D) then
         FPlayer.RemoveFreeNotification(Self);
     end;
@@ -2750,16 +2757,11 @@ begin
 end;
 
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
-
-  procedure UpdateSoundEngineListener;
-  var
-    Pos, Dir, Up: TVector3Single;
-  begin
-    (ACamera as TCamera).GetView(Pos, Dir, Up);
-    SoundEngine.UpdateListener(Pos, Dir, Up);
-  end;
-
+var
+  Pos, Dir, Up: TVector3Single;
 begin
+  (ACamera as TCamera).GetView(Pos, Dir, Up);
+
   if (MainScene <> nil) and (ACamera = Camera) then
     { MainScene.CameraChanged will cause MainScene.VisibleChangeHere,
       that (assuming here that MainScene is also on Items) will cause
@@ -2768,7 +2770,10 @@ begin
     MainScene.CameraChanged(Camera, CameraToChanges) else
     VisibleChange;
 
-  UpdateSoundEngineListener;
+  SoundEngine.UpdateListener(Pos, Dir, Up);
+
+  if Player <> nil then
+    Player.SetView(Pos, Dir, Up);
 
   if Assigned(OnCameraChanged) then
     OnCameraChanged(ACamera);
