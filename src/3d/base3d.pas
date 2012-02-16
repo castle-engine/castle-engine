@@ -2751,6 +2751,7 @@ begin
   FDirection := Normalized(ADir);
   FUp := Normalized(AUp);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  VectorsChanged;
 end;
 
 function T3DOrient.BoundingBox: TBox3D;
