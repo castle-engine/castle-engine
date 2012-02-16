@@ -1037,24 +1037,17 @@ type
   private
     FPosition, FDirection, FUp: TVector3Single;
     FZUp: boolean;
-
-    { It's faster to keep FBoundingBox precalculated (and only update
-      it each time we change Direction or Position)
-      instead of completely recalculating it in each BoundingBox call.
-
-      This is especially noticeable when there are many creatures on the level:
-      then a lot of time is wasted in DoGravity, and main time of this
-      is iterating over creatures checking their @link(Height),
-      and main time of this
-      would be spend within BoundingBox calculations. Yes, this is
-      checked with profiler. }
     FBoundingBox: TBox3D;
-
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
     procedure VectorsChanged;
+    { Override this to calculate bounding box for curent vectors and transformation.
+      Ignore our GetExists here.
+      The @link(BoundingBox) method will automatically use this.
+      Keeping bounding box recalculated only at specific moments improves
+      the speed, e.g. important for creature vs creature collision in "The Castle". }
     procedure RecalculateBoundingBox(out Box: TBox3D); virtual; abstract;
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
@@ -2710,7 +2703,7 @@ begin
     length is also = 1), so no need to do
     TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
     on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
-    
+
   { TODO: ZUp ignored }
 
   NewM := TransformToCoordsMatrix(Position, Direction, Side, Up);
