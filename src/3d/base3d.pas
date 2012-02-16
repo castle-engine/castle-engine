@@ -1054,8 +1054,8 @@ type
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
-    procedure RecalculateBoundingBox;
-    procedure DoRecalculateBoundingBox(out Box: TBox3D); virtual; abstract;
+    procedure VectorsChanged;
+    procedure RecalculateBoundingBox(out Box: TBox3D); virtual; abstract;
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
   public
@@ -2728,28 +2728,28 @@ end;
 procedure T3DOrient.SetPosition(const Value: TVector3Single);
 begin
   FPosition := Value;
-  RecalculateBoundingBox;
+  VectorsChanged;
 end;
 
 procedure T3DOrient.SetDirection(const Value: TVector3Single);
 begin
   FDirection := Normalized(Value);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  RecalculateBoundingBox;
+  VectorsChanged;
 end;
 
 procedure T3DOrient.SetUp(const Value: TVector3Single);
 begin
   FUp := Normalized(Value);
   MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
-  RecalculateBoundingBox;
+  VectorsChanged;
 end;
 
 procedure T3DOrient.UpPrefer(const AUp: TVector3Single);
 begin
   FUp := Normalized(AUp);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  RecalculateBoundingBox;
+  VectorsChanged;
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single);
@@ -2772,9 +2772,9 @@ begin
   Position := Position + T;
 end;
 
-procedure T3DOrient.RecalculateBoundingBox;
+procedure T3DOrient.VectorsChanged;
 begin
-  DoRecalculateBoundingBox(FBoundingBox);
+  RecalculateBoundingBox(FBoundingBox);
 end;
 
 { T3DMoving --------------------------------------------------------- }
