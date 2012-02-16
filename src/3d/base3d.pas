@@ -2773,7 +2773,7 @@ end;
 
 { T3DMoving --------------------------------------------------------- }
 
-{ TODO: this browser World list, doesn't take into acount Pushable items
+{ TODO: this browses World list, doesn't take into acount Pushable items
   that may be inside a sublist. }
 
 constructor T3DMoving.Create(AOwner: TComponent);
