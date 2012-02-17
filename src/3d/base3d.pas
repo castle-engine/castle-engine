@@ -1051,7 +1051,6 @@ type
   private
     FPosition, FDirection, FUp: TVector3Single;
     FZUp: boolean;
-    FBoundingBox: TBox3D;
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
@@ -1059,8 +1058,6 @@ type
     function OnlyTranslation: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
-
-    function BoundingBox: TBox3D; override;
 
     { Position (translation) of this 3D object. }
     property Position: TVector3Single read FPosition write FPosition;
@@ -2748,13 +2745,6 @@ begin
   FDirection := Normalized(ADir);
   FUp := Normalized(AUp);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-end;
-
-function T3DOrient.BoundingBox: TBox3D;
-begin
-  if GetExists then
-    Result := FBoundingBox else
-    Result := EmptyBox3D;
 end;
 
 procedure T3DOrient.Translate(const T: TVector3Single);
