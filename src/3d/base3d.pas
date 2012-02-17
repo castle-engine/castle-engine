@@ -1062,7 +1062,7 @@ type
       The @link(BoundingBox) method will automatically use this.
       Keeping bounding box recalculated only at specific moments improves
       the speed, e.g. important for creature vs creature collision in "The Castle". }
-    procedure RecalculateBoundingBox(out Box: TBox3D); virtual; abstract;
+    function CalculateBoundingBox: TBox3D; virtual; abstract;
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
   public
@@ -2782,7 +2782,7 @@ end;
 
 procedure T3DOrient.VectorsChanged;
 begin
-  RecalculateBoundingBox(FBoundingBox);
+  FBoundingBox := CalculateBoundingBox;
 end;
 
 { T3DMoving --------------------------------------------------------- }
