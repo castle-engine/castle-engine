@@ -1056,13 +1056,6 @@ type
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
-    procedure VectorsChanged;
-    { Override this to calculate bounding box for curent vectors and transformation.
-      Ignore our GetExists here.
-      The @link(BoundingBox) method will automatically use this.
-      Keeping bounding box recalculated only at specific moments improves
-      the speed, e.g. important for creature vs creature collision in "The Castle". }
-    function CalculateBoundingBox: TBox3D; virtual; abstract;
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
   public
@@ -2735,28 +2728,24 @@ end;
 procedure T3DOrient.SetPosition(const Value: TVector3Single);
 begin
   FPosition := Value;
-  VectorsChanged;
 end;
 
 procedure T3DOrient.SetDirection(const Value: TVector3Single);
 begin
   FDirection := Normalized(Value);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  VectorsChanged;
 end;
 
 procedure T3DOrient.SetUp(const Value: TVector3Single);
 begin
   FUp := Normalized(Value);
   MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
-  VectorsChanged;
 end;
 
 procedure T3DOrient.UpPrefer(const AUp: TVector3Single);
 begin
   FUp := Normalized(AUp);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  VectorsChanged;
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single);
@@ -2765,7 +2754,6 @@ begin
   FDirection := Normalized(ADir);
   FUp := Normalized(AUp);
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  VectorsChanged;
 end;
 
 function T3DOrient.BoundingBox: TBox3D;
@@ -2778,11 +2766,6 @@ end;
 procedure T3DOrient.Translate(const T: TVector3Single);
 begin
   Position := Position + T;
-end;
-
-procedure T3DOrient.VectorsChanged;
-begin
-  FBoundingBox := CalculateBoundingBox;
 end;
 
 { T3DMoving --------------------------------------------------------- }
