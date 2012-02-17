@@ -1052,7 +1052,6 @@ type
     FPosition, FDirection, FUp: TVector3Single;
     FZUp: boolean;
     FBoundingBox: TBox3D;
-    procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
@@ -1064,7 +1063,7 @@ type
     function BoundingBox: TBox3D; override;
 
     { Position (translation) of this 3D object. }
-    property Position: TVector3Single read FPosition write SetPosition;
+    property Position: TVector3Single read FPosition write FPosition;
 
     { Direction the creature is facing, and up vector.
 
@@ -2723,11 +2722,6 @@ end;
 function T3DOrient.OnlyTranslation: boolean;
 begin
   Result := false;
-end;
-
-procedure T3DOrient.SetPosition(const Value: TVector3Single);
-begin
-  FPosition := Value;
 end;
 
 procedure T3DOrient.SetDirection(const Value: TVector3Single);
