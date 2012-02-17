@@ -921,13 +921,27 @@ type
     Use T3DTransform to have simple T3DTransform.Translation and such properties. }
   T3DCustomTransform = class(T3DList)
   protected
+    { The GetXxx methods below determine the transformation returned
+      by default TransformMatricesMult implementation in this class.
+      Simply descendants need only to override these, and OnlyTranslation,
+      and the TransformMatricesMult will automatically work correctly already.
+
+      More complicated descendants may override TransformMatricesMult,
+      and then GetTranslation / GetCenter etc. methods do not have to be used.
+      You still need to override OnlyTranslation (and if it may return @true,
+      you need to override GetTranslation), and make sure AverageScale is correct
+      (if you want it be <> 1, you need to override GetScale).
+
+      @groupBegin }
     function GetTranslation: TVector3Single; virtual;
     function GetCenter: TVector3Single; virtual;
     function GetRotation: TVector4Single; virtual;
     function GetScale: TVector3Single; virtual;
     function GetScaleOrientation: TVector4Single; virtual;
+    { @groupEnd }
+
     { Can we use simple GetTranslation instead of full TransformMatricesMult.
-       @true, this allows optimization is some cases. }
+      Returning @true allows optimization is some cases. }
     function OnlyTranslation: boolean; virtual;
     function Transform: TMatrix4Single;
     function TransformInverse: TMatrix4Single;
