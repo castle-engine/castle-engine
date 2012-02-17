@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Base 3D objects (T3D, T3DList, T3DTransform). }
+{ Base 3D objects (T3D, T3DList, T3DTransform, T3DOrient, T3DMoving). }
 unit Base3D;
 
 interface
