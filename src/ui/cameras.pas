@@ -573,6 +573,16 @@ type
     FRotationAccelerate: boolean;
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
+    FPosition, FDirection, FUp: TVector3Single;
+
+    FInputs_Move: T3BoolInputs;
+    FInputs_Rotate: T3BoolInputs;
+    FInput_ScaleLarger: TInputShortcut;
+    FInput_ScaleSmaller: TInputShortcut;
+    FInput_Home: TInputShortcut;
+    FInput_StopRotating: TInputShortcut;
+    FMouseNavigation: boolean;
+
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
@@ -581,14 +591,6 @@ type
     procedure SetCenterOfRotation(const Value: TVector3Single);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
-  private
-    FInputs_Move: T3BoolInputs;
-    FInputs_Rotate: T3BoolInputs;
-    FInput_ScaleLarger: TInputShortcut;
-    FInput_ScaleSmaller: TInputShortcut;
-    FInput_Home: TInputShortcut;
-    FInput_StopRotating: TInputShortcut;
-    FMouseNavigation: boolean;
 
     function GetInput_MoveXInc: TInputShortcut;
     function GetInput_MoveXDec: TInputShortcut;
@@ -606,7 +608,6 @@ type
     function EventDown(AKey: TKey; ACharacter: Char;
       AMousePress: boolean; AMouseButton: TMouseButton;
       AMouseWheel: TMouseWheelDirection): boolean;
-  private
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -709,6 +710,8 @@ type
     function GetGravityUp: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single); override;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
+
+    procedure VisibleChange; override;
 
     function PreventsComfortableDragging: boolean; override;
   published
@@ -2689,21 +2692,33 @@ begin
     Result := ExclusiveEvents;
 end;
 
-procedure TExamineCamera.GetView(
-  out APos, ADir, AUp: TVector3Single);
+procedure TExamineCamera.GetView(out APos, ADir, AUp: TVector3Single);
+begin
+  APos := FPosition;
+  ADir := FDirection;
+  AUp  := FUp;
+end;
+
+procedure TExamineCamera.VisibleChange;
 var
   M: TMatrix4Single;
 begin
+  { calculate our pos/dir/up vectors here.
+    This allows our GetView to work immediately fast, at the expense of doing
+    the below calculations always. In practice, this is good,
+    as e.g. TCastleSceneManager.CameraVisibleChange calls GetView *always*.
+    So assume that GetView is called very often, and make it instant. }
   M := MatrixInverse;
 
   { These MatrixMultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
     which preserve points/directions (4th component in homogeneus coordinates)
     nicely. }
+  FPosition  := MatrixMultPoint(M, ZeroVector3Single);
+  FDirection := MatrixMultDirection(M, DefaultCameraDirection);
+  FUp        := MatrixMultDirection(M, DefaultCameraUp);
 
-  APos := MatrixMultPoint(M, Vector3Single(0, 0, 0));
-  ADir := MatrixMultDirection(M, DefaultCameraDirection);
-  AUp  := MatrixMultDirection(M, DefaultCameraUp);
+  inherited;
 end;
 
 procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
