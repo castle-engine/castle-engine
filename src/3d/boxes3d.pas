@@ -140,9 +140,14 @@ type
       Always false if Box is empty (obviously, no point is inside an empty box).
 
       @groupBegin }
-    function PointInside(const pt: TVector3Single): boolean; overload;
-    function PointInside(const pt: TVector3Double): boolean; overload;
+    function PointInside(const Point: TVector3Single): boolean; overload;
+    function PointInside(const Point: TVector3Double): boolean; overload;
     { @groupEnd }
+
+    { Looking only at XY axes, is the point inside the box.
+      The Point[2] component, as well as our Z coordinates (Data[0][2], Data[1][2])
+      are ignored. }
+    function PointInsideXY(const Point: TVector3Single): boolean;
 
     { Sum two TBox3D values. This calculates the smallest box that encloses
       both Box1 and Box2. You can also use + operator. }
@@ -671,19 +676,31 @@ begin
   Result.Data[1, 2] := Data[1, 2] + AExpand[2];
 end;
 
-{$define Box3DPointInside_IMPLEMENT:=
+function TBox3D.PointInside(const Point: TVector3Single): boolean;
 begin
- if IsEmpty then exit(false);
- result := Between(pt[0], Data[0, 0], Data[1, 0]) and
-           Between(pt[1], Data[0, 1], Data[1, 1]) and
-           Between(pt[2], Data[0, 2], Data[1, 2]);
-end;}
+  if IsEmpty then Exit(false);
+  Result :=
+    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]) and
+    (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
+end;
 
-function TBox3D.PointInside(const pt: TVector3Single): boolean;
-Box3DPointInside_IMPLEMENT
+function TBox3D.PointInside(const Point: TVector3Double): boolean;
+begin
+  if IsEmpty then Exit(false);
+  Result :=
+    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]) and
+    (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
+end;
 
-function TBox3D.PointInside(const pt: TVector3Double): boolean;
-Box3DPointInside_IMPLEMENT
+function TBox3D.PointInsideXY(const Point: TVector3Single): boolean;
+begin
+  if IsEmpty then Exit(false);
+  Result :=
+    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
+end;
 
 procedure TBox3D.Add(const box2: TBox3D);
 begin
