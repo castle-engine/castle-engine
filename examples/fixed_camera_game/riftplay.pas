@@ -111,7 +111,7 @@ begin
         H.Node.FdAmbientIntensity.Send(1);
         H.Node.FdColor.Send(Vector3Single(0.2, 0.2, 0.2));
       end;
-      Player.Render(RenderingCamera.Frustum, Params);
+      RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
       if Params.InShadow and HeadlightInstance(H) then
       begin
         H.Node.FdAmbientIntensity.Send(H.Node.FdAmbientIntensity.DefaultValue);
@@ -124,7 +124,7 @@ end;
 procedure TGameSceneManager.RenderShadowVolume;
 begin
   if not DebugNoCreatures then
-    Player.Scene.RenderShadowVolume(ShadowVolumeRenderer, false, Player.Transform);
+    RiftPlay.Player.Scene.RenderShadowVolume(ShadowVolumeRenderer, false, RiftPlay.Player.Transform);
 end;
 
 function TGameSceneManager.MainLightForShadows(
