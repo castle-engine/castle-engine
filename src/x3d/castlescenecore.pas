@@ -777,6 +777,29 @@ type
     procedure DoPointingDeviceSensorsChange; virtual;
 
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
+
+    function Height(const Position, GravityUp: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function MoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; override;
+    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function BoxCollision(const Box: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1712,28 +1735,6 @@ type
     procedure PrepareResources(Options: TPrepareResourcesOptions;
       ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
 
-    function Height(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
-      const OldPos, NewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
     function Dragging: boolean; override;
 
     { Static scene will not be automatically notified about the changes

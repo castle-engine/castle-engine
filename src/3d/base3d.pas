@@ -324,6 +324,98 @@ type
       It T3D class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
+
+    { Height of a point above the 3D model.
+      This checks ray collision, from Position along the negated GravityUp vector.
+      Measures distance to the nearest scene item (called "ground" here).
+
+      @returns(If the 3D scene is hit.
+        @false means that Position floats above an empty space.
+        That is, if you turn gravity on, it will fall down forever,
+        as far as this 3D scene is concerned.)
+
+      @param(AboveHeight Height above the ground.
+        @italic(One height unit equals one GravityUp vector).
+        Always use normalized GravityUp vector if you expect
+        to receive here a normal distance.
+
+        AboveHeight is always set to MaxSingle when returned result is @false
+        (this guarantee simplifies some code).)
+
+      @param(AboveGround Pointer to P3DTriangle representing the ground.
+        Must be @nil if returned result is @false.
+        @bold(May) be @nil even if we returned @true (not all 3D
+        objects may be able to generate P3DTriangle information about collision).
+
+        This may be useful for example to make a footsteps sound dependent
+        on texture of the ground.
+        Or to decrease player life points for walking on hot lava.
+        See "The Castle" game for examples.)
+    }
+    function Height(const Position, GravityUp: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
+
+    { Can other 3D object (maybe a player) move without colliding with this object.
+
+      If IsRadius, then you should prefer to perform exact collision with sphere
+      of given radius (must be > 0).
+      At the very least, this checks that the line segment
+      between OldPos and NewPos doesn't collide,
+      @bold(and) that sphere with given Radius centered around NewPos
+      doesn't collide.
+
+      If not IsRadius, or if checking for collisions with sphere is not possible
+      for some reasons, then you can check for collisions with boxes.
+      OldBox should usually be ignored (it can be useful when collision-checking
+      has to be approximate in some corner cases, see TCreature.MoveAllowed).
+      NewBox plays the same role as "sphere centered around NewPos" in paragraph
+      above.
+
+      Overloaded version with separate ProposedNewPos and NewPos parameters
+      allows you to accept the move, but for NewPos (that should be some slightly
+      modified version of ProposedNewPos). This allows to implement wall-sliding:
+      when camera tries to walk into the wall, we will change movement
+      to move alongside the wall (instead of just completely blocking the move).
+      When this version returns @false, it's undefined what is the NewPos.
+
+      @groupBegin }
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    { @groupEnd }
+
+    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; virtual;
+    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function BoxCollision(const Box: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+
+    { Check collision with a ray, building a TRayCollision result.
+      Returns a collision as TRayCollision instance, or @nil if no collision.
+      Caller is responsible for freeing the returned TRayCollision instance.
+
+      Contrary to other collision routines, this should @italic(ignore
+      the @link(Collides) property). The @link(Collides) property
+      specifies whether item collides with camera. And this method is used
+      for picking (pointing) 3D stuff --- everything visible can be picked,
+      collidable or not.
+
+      This always returns the first collision with the 3D world, that is
+      the one with smallest TRayCollision.Distance. For example, when
+      implemented in T3DList, this checks collisions for all list items,
+      and chooses the closest one. }
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -598,98 +690,6 @@ type
       Control should clear here any resources that are tied to the GL context. }
     procedure GLContextClose; virtual;
 
-    { Height of a point above the 3D model.
-      This checks ray collision, from Position along the negated GravityUp vector.
-      Measures distance to the nearest scene item (called "ground" here).
-
-      @returns(If the 3D scene is hit.
-        @false means that Position floats above an empty space.
-        That is, if you turn gravity on, it will fall down forever,
-        as far as this 3D scene is concerned.)
-
-      @param(AboveHeight Height above the ground.
-        @italic(One height unit equals one GravityUp vector).
-        Always use normalized GravityUp vector if you expect
-        to receive here a normal distance.
-
-        AboveHeight is always set to MaxSingle when returned result is @false
-        (this guarantee simplifies some code).)
-
-      @param(AboveGround Pointer to P3DTriangle representing the ground.
-        Must be @nil if returned result is @false.
-        @bold(May) be @nil even if we returned @true (not all 3D
-        objects may be able to generate P3DTriangle information about collision).
-
-        This may be useful for example to make a footsteps sound dependent
-        on texture of the ground.
-        Or to decrease player life points for walking on hot lava.
-        See "The Castle" game for examples.)
-    }
-    function Height(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
-
-    { Can other 3D object (maybe a player) move without colliding with this object.
-
-      If IsRadius, then you should prefer to perform exact collision with sphere
-      of given radius (must be > 0).
-      At the very least, this checks that the line segment
-      between OldPos and NewPos doesn't collide,
-      @bold(and) that sphere with given Radius centered around NewPos
-      doesn't collide.
-
-      If not IsRadius, or if checking for collisions with sphere is not possible
-      for some reasons, then you can check for collisions with boxes.
-      OldBox should usually be ignored (it can be useful when collision-checking
-      has to be approximate in some corner cases, see TCreature.MoveAllowed).
-      NewBox plays the same role as "sphere centered around NewPos" in paragraph
-      above.
-
-      Overloaded version with separate ProposedNewPos and NewPos parameters
-      allows you to accept the move, but for NewPos (that should be some slightly
-      modified version of ProposedNewPos). This allows to implement wall-sliding:
-      when camera tries to walk into the wall, we will change movement
-      to move alongside the wall (instead of just completely blocking the move).
-      When this version returns @false, it's undefined what is the NewPos.
-
-      @groupBegin }
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    { @groupEnd }
-
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; virtual;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-    function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
-
-    { Check collision with a ray, building a TRayCollision result.
-      Returns a collision as TRayCollision instance, or @nil if no collision.
-      Caller is responsible for freeing the returned TRayCollision instance.
-
-      Contrary to other collision routines, this should @italic(ignore
-      the @link(Collides) property). The @link(Collides) property
-      specifies whether item collides with camera. And this method is used
-      for picking (pointing) 3D stuff --- everything visible can be picked,
-      collidable or not.
-
-      This always returns the first collision with the 3D world, that is
-      the one with smallest TRayCollision.Distance. For example, when
-      implemented in T3DList, this checks collisions for all list items,
-      and chooses the closest one. }
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
-
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -817,6 +817,28 @@ type
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    function Height(const Position, GravityUp: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+    function MoveAllowed(
+      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function MoveAllowed(
+      const OldPos, NewPos: TVector3Single;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const LineOfSight: boolean): boolean; override;
+    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function BoxCollision(const Box: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -846,28 +868,6 @@ type
     function KeyUp(Key: TKey; C: char): boolean; override;
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure GLContextClose; override;
-    function Height(const Position, GravityUp: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveAllowed(
-      const OldPos, NewPos: TVector3Single;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const LineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
@@ -958,13 +958,7 @@ type
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); virtual;
     procedure TransformMatrices(out M, MInverse: TMatrix4Single);
     function AverageScale: Single;
-  public
-    function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    procedure RenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); override;
+
     function Height(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
@@ -987,6 +981,13 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
+  public
+    function BoundingBox: TBox3D; override;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure RenderShadowVolume(
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
+      const ParentTransformIsIdentity: boolean;
+      const ParentTransform: TMatrix4Single); override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
