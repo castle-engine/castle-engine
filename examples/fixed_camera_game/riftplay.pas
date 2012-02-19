@@ -279,12 +279,7 @@ begin
       Window.FpsShowOnCaption := DebugMenuFps;
       Window.AutoRedisplay := true;
 
-      { We have two cameras: Player.Camera determines player avatar position.
-        It used to be controllable by keys by a hacky solution, not available
-        now. It's now controllable only indirectly, by clicking on target
-        location.
-
-        SceneCamera determines the rendering camera.
+      { SceneCamera determines the rendering camera.
         To "fine position" the camera vs 2D image, it may be useful to
         temporaiily comment out "SceneCamera.IgnoreAllInputs := true" line,
         and allow to move SceneCamera. }
