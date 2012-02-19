@@ -727,6 +727,85 @@ type
       By default, in T3D class, this always returns @false
       and @link(Sphere) is undefined.
 
+      The advantages of using a sphere, that does not have to be a perfect
+      bounding sphere (it may be smaller than necessary, and only
+      account e.g. for upper body part of the creature), are:
+
+      @unorderedList(
+        @item(It can have constant radius, even though the actual
+          creature animates. This allows us to perfectly, reliably guarantee
+          that sphere absolutely never collides with level and such.
+
+          In case of a tight bounding volume (box or sphere) that animates,
+          this guarantee is not really possible. Simply increasing time changes
+          the animation to the next frame, which may be slightly larger
+          in one dimension because e.g. creature moves a hand in this direction.
+          This means that simply increasing time may change the non-collidable
+          creature into a collidable one, if creature stands close to a wall/other
+          creature and such. And we cannot simply stop/reverse an arbitrary animation
+          at an arbitrary time (to avoid collision), this would look weird
+          for some animations and would require some additional work
+          at preparing animations and designing AI (as then "every action can
+          be interrupted").
+
+          Also using a bounding volume large enough to account for all
+          possible positions is not doable, as it would be too large.
+          Consider that for humanoid creatures, walking animation usually
+          has tall and thin bounding box (creature stands) but dead/lying animation
+          usually has flat and wide bounding box.
+
+          So, only a bounding volume (like a sphere) that
+          @italic(may be smaller than bounding volume) can remain constant
+          and easily guarantee the assertion "it never collides".
+
+          This means that using such sphere results in simpler collision
+          detection routines, as they may assume that collision doesn't occur.
+          In contrast, detection routines looking at our (possibly animated)
+          BoundingBox must take into account that collision may already be happening,
+          and they must incorporate code to allow creatures/players to "get unstruck".)
+
+        @item(Using smaller sphere also allows to naturally ascend the stairs
+          and upward slopes. Sphere can move forward slightly, and then creature
+          may raise up, to reach it's preferred height. Then sphere can move
+          further forward, and so on. This alllows to allow stair climbing
+          for creatures without any extra effort in the code.
+
+          The downside is that creature legs will temporarily "sink into the floor"
+          when climbing up the stairs. But it's not noticeable if "growing up"
+          mechanism works fast enough.)
+      )
+
+      Sphere disadvantage:
+
+      @unorderedList(
+        @item(Sphere is far from perfect as a bounding volume --- it's too small,
+          sometimes also too large, sometimes both at the same time...
+
+          Since the Sphere radius remains always the same, it must be good
+          for many creature animation frames. In cases where the sphere
+          isn't suitable, and you don't need advantages above --- you can
+          make UseSphere return @false.
+          E.g. a dead creature may be stuck in a wall,
+          and it doesn't have to climb stairs. So you don't really need
+          sphere advantages listed above, and UseSphere may return @false
+          when creature is in dying state.
+
+          But still it may be a problem sometimes, if some creature states
+          have entirely different animations and bounding boxes. Then you
+          will be forced to choose one universal Radius for all creature
+          states. And you need constant radius to keep the advantage above
+          of "guarantee".
+
+          1. Obviously you can't set radius too small, because if it's much smaller
+          than actual creature's geometry then the creature will noticeably collide
+          with level geometry and other creatures.
+
+          2. On the other hand, you can't set radius too large
+          (or move sphere center much lower).
+          This would block stair climbing.
+        )
+      )
+
       @groupBegin }
     function UseSphere: boolean; virtual;
     procedure Sphere(out Center: TVector3Single; out Radius: Single); virtual;
