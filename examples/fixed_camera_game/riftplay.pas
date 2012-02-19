@@ -124,7 +124,7 @@ end;
 procedure TGameSceneManager.RenderShadowVolume;
 begin
   if not DebugNoCreatures then
-    RiftPlay.Player.Scene.RenderShadowVolume(ShadowVolumeRenderer, false, RiftPlay.Player.Transform);
+    RiftPlay.Player.RenderShadowVolume(ShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
 function TGameSceneManager.MainLightForShadows(
@@ -247,10 +247,9 @@ begin
     CurrentLocation.Scene.Attributes.Mode := rmDepth else
     CurrentLocation.Scene.Attributes.Mode := rmFull;
 
-  Player.Camera.Init(CurrentLocation.InitialPosition,
+  Player.SetView(CurrentLocation.InitialPosition,
     CurrentLocation.InitialDirection,
-    CurrentLocation.InitialUp,
-    UnitVector3Single[2], 0, 0);
+    CurrentLocation.InitialUp);
 
   Player.LocationChanged;
 end;

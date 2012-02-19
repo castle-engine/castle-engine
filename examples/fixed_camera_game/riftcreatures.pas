@@ -26,7 +26,7 @@ unit RiftCreatures;
 interface
 
 uses PrecalculatedAnimation, CastleUtils, CastleClassUtils, Classes, CastleScene,
-  SysUtils, Cameras, VectorMath, Boxes3D, Base3D, Frustum,
+  SysUtils, VectorMath, Boxes3D, Base3D, Frustum,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, CastleColors;
 
@@ -87,12 +87,15 @@ type
 
   ECreatureStateChangeNotPossible = class(Exception);
 
-  TCreature = class(T3D)
+  TCreature = class(T3DOrient)
   private
     FKind: TCreatureKind;
 
     FState: TCreatureState;
     procedure SetState(const Value: TCreatureState);
+
+    { Insert Scene to our list. }
+    procedure UpdateScene;
   private
     { SetState actually only "schedules" actual state change at the nearest
       comfortable time (namely, when current animation will get to the state
@@ -136,13 +139,10 @@ type
     procedure IdleNoStateChangeScheduled(const CompSpeed: Single); virtual;
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    function BoundingBox: TBox3D; override;
   end;
 
   TPlayer = class(TCreature)
   private
-    FCamera: TWalkCamera;
-
     { This is set and used only if csWalk }
     WantsToWalkPos, WantsToWalkDir: TVector3Single;
 
@@ -151,21 +151,8 @@ type
     constructor Create(AKind: TCreatureKind);
     destructor Destroy; override;
 
-    { Stores position, direction and so on of the player.
-
-      Although we do not use Camera.Matrix (this is not FPS game,
-      so player Camera doesn't actually affect the viewing camera),
-      it's still most comfortable to place player camera-like properties
-      inside Camera. This way e.g. you can operate on player using keys,
-      for simple navigation. }
-    property Camera: TWalkCamera read FCamera;
-
-    { Using Camera calculate transformation of player 3D object. }
-    function Transform: TMatrix4Single;
-
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    function BoundingBox: TBox3D; override;
     procedure GLContextClose; override;
 
     procedure LocationChanged;
@@ -384,11 +371,20 @@ begin
   FKind := AKind;
 
   RandomizeStandTimeToBeBored;
+  UpdateScene;
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
 begin
   StandTimeToBeBored := 10 + Random(5);
+end;
+
+procedure TCreature.UpdateScene;
+begin
+  { Make sure our List contains exactly CurrentScene }
+  if Count = 1 then
+    List[0] := Scene else
+    Add(Scene);
 end;
 
 procedure TCreature.SetState(const Value: TCreatureState);
@@ -519,10 +515,9 @@ end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  { Do not use frustum culling (do not pass Frustum to Scene.Render),
-    as caller possibly transformed the creature. This could be made
-    better in the future. }
-  Scene.Render(nil, Params);
+  UpdateScene;
+
+  inherited;
 
   if DebugRenderBoundingGeometry and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
@@ -538,17 +533,12 @@ begin
       glEnable(GL_DEPTH_TEST);
       glColorv(Gray3Single);
 
-      glDrawBox3DWire(Scene.BoundingBox);
+      glDrawBox3DWire(BoundingBox);
     glPopAttrib;
 
     if not Params.RenderTransformIdentity then
       glPopMatrix;
   end;
-end;
-
-function TCreature.BoundingBox: TBox3D;
-begin
-  Result := Scene.BoundingBox;
 end;
 
 { TPlayer -------------------------------------------------------------------- }
@@ -578,15 +568,12 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 
 begin
   inherited;
-  FCamera := TWalkCamera.Create(nil);
-  FCamera.MoveSpeed := 0.5;
   TargetVisualize := CreateTargetVisualize;
 end;
 
 destructor TPlayer.Destroy;
 begin
   FreeAndNil(TargetVisualize);
-  FreeAndNil(FCamera);
   inherited;
 end;
 
@@ -594,22 +581,6 @@ procedure TPlayer.GLContextClose;
 begin
   if TargetVisualize <> nil then
     FreeAndNil(TargetVisualize);
-end;
-
-function TPlayer.Transform: TMatrix4Single;
-begin
-  { Note that actually I could do here TransformToCoordsNoScaleMatrix,
-    as obviously I don't want any scaling. But in this case I know
-    that PlayerDirection length = 1 and PlayerUp = 1 (so their product
-    length is also = 1), so no need to do
-    TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
-    on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
-
-  Result := TransformToCoordsMatrix(
-    Camera.Position,
-    Camera.Direction,
-    VectorProduct(Camera.Up, Camera.Direction),
-    Camera.Up);
 end;
 
 procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -626,30 +597,32 @@ var
     if AngleToTarget < 0 then
       AngleRotate := Max(-AngleRotate, AngleToTarget) else
       AngleRotate := Min( AngleRotate, AngleToTarget);
-    Camera.Direction := RotatePointAroundAxisRad(AngleRotate, Camera.Direction, RotationAxis);
+    Direction := RotatePointAroundAxisRad(AngleRotate, Direction, RotationAxis);
   end;
 
   procedure Move;
+  const
+    MoveSpeed = 0.5;
   var
     MoveDirectionCurrent, MoveDirectionMax: TVector3Single;
     MoveDirectionCurrentScale: Single;
   begin
-    { since Camera.Position <> WantsToWalkPos, we know that
+    { since Position <> WantsToWalkPos, we know that
       MoveDirectionMax is non-zero }
-    MoveDirectionMax := VectorSubtract(WantsToWalkPos, Camera.Position);
-    MoveDirectionCurrentScale := Camera.MoveSpeed * CompSpeed / VectorLen(MoveDirectionMax);
+    MoveDirectionMax := VectorSubtract(WantsToWalkPos, Position);
+    MoveDirectionCurrentScale := MoveSpeed * CompSpeed / VectorLen(MoveDirectionMax);
     if MoveDirectionCurrentScale >= 1.0 then
     begin
       { This means that
-          Camera.Position + MoveDirectionMax * MoveDirectionCurrentScale
+          Position + MoveDirectionMax * MoveDirectionCurrentScale
         would actually get us too far. So we instead just go to target and
         stop there. }
-      Camera.Position := WantsToWalkPos;
+      Position := WantsToWalkPos;
       State := csStand;
     end else
     begin
       MoveDirectionCurrent := VectorScale(MoveDirectionMax, MoveDirectionCurrentScale);
-      Camera.Position := VectorAdd(Camera.Position, MoveDirectionCurrent);
+      Position := VectorAdd(Position, MoveDirectionCurrent);
     end;
   end;
 
@@ -664,16 +637,16 @@ begin
     { Do walking. If walking ends (because target reached, or can't reach target),
       change to csStand. }
 
-    { TODO: check collisions with the scene before changing Camera.Position }
+    { TODO: check collisions with the scene before changing Position }
 
-    IsTargetPos := VectorsEqual(Camera.Position, WantsToWalkPos);
-    IsTargetDir := VectorsEqual(Camera.Direction, WantsToWalkDir);
+    IsTargetPos := VectorsEqual(Position, WantsToWalkPos);
+    IsTargetDir := VectorsEqual(Direction, WantsToWalkDir);
 
     if not IsTargetDir then
     begin
-      { compare Camera.Direction and WantsToWalkDir with more tolerance }
-      RotationAxis := VectorProduct(Camera.Direction, WantsToWalkDir);
-      AngleToTarget := RotationAngleRadBetweenVectors(Camera.Direction, WantsToWalkDir, RotationAxis);
+      { compare Direction and WantsToWalkDir with more tolerance }
+      RotationAxis := VectorProduct(Direction, WantsToWalkDir);
+      AngleToTarget := RotationAngleRadBetweenVectors(Direction, WantsToWalkDir, RotationAxis);
       if Abs(AngleToTarget) < 0.01 then
         IsTargetDir := true;
     end;
@@ -696,10 +669,7 @@ end;
 
 procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  glPushMatrix();
-    glMultMatrix(Transform);
-    inherited Render(Frustum, Params);
-  glPopMatrix();
+  inherited;
 
   if DebugRenderWantsToWalk and (State = csWalk) then
   begin
@@ -713,22 +683,17 @@ end;
 procedure TPlayer.WantsToWalk(const Value: TVector3Single);
 begin
   WantsToWalkPos := Value;
-  WantsToWalkDir := Normalized(WantsToWalkPos - Camera.Direction);
+  WantsToWalkDir := Normalized(WantsToWalkPos - Direction);
   { fix WantsToWalkDir, to avoid wild rotations.
     Without this, our avatar would wildly change up when walking to some
     higher/lower target. This is coupled with the fact that currently
     we accept any clicked position as walk target --- in a real game,
     it would be more limited where you can walk, and so this safeguard
     could be less critical. }
-  if VectorsParallel(WantsToWalkDir, Camera.Up) then
-    WantsToWalkDir := Camera.Direction else
-    MakeVectorsOrthoOnTheirPlane(WantsToWalkDir, Camera.Up);
+  if VectorsParallel(WantsToWalkDir, Up) then
+    WantsToWalkDir := Direction else
+    MakeVectorsOrthoOnTheirPlane(WantsToWalkDir, Up);
   State := csWalk;
-end;
-
-function TPlayer.BoundingBox: TBox3D;
-begin
-  Result := (inherited BoundingBox).Transform(Transform);
 end;
 
 { initialization / finalization ---------------------------------------------- }
