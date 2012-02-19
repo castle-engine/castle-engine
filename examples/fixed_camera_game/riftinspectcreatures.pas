@@ -124,6 +124,8 @@ begin
     { TODO: allow to choose creature }
     Creature := TCreature.Create(PlayerKind);
     try
+      Creature.Direction := Vector3Single(1, 0, 0);
+      Creature.Up := Vector3Single(0, 0, 1);
       SceneManager.Items.Add(Creature);
 
       Window.OnDraw := @Draw2D;
