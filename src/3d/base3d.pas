@@ -895,6 +895,17 @@ type
     function GetItem(const I: Integer): T3D;
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
+    { Additional child inside the list, always processed before all children
+      on the @link(Items) list. By default this method returns @nil,
+      indicating no additional child exists.
+      The presence of this child can be calculated in overriden
+      method using any condition, which is sometimes more comfortable
+      than adding item to Items.
+
+      This item cannot be removed by methods like @link(T3DList,Delete)
+      or by setting RemoveMe in it's @link(T3D.Idle) implementation.
+      Presence of this item is completely determined by GetChild implementation. }
+    function GetChild: T3D; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function Height(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -1865,6 +1876,11 @@ begin
   inherited;
 end;
 
+function T3DList.GetChild: T3D;
+begin
+  Result := nil;
+end;
+
 procedure T3DList.Add(const Item: T3D);
 begin
   List.Add(Item);
@@ -1901,8 +1917,12 @@ var
 begin
   Result := EmptyBox3D;
   if GetExists then
+  begin
+    if GetChild <> nil then
+      Result.Add(GetChild.BoundingBox);
     for I := 0 to List.Count - 1 do
       Result.Add(List[I].BoundingBox);
+  end;
 end;
 
 procedure T3DList.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -1911,8 +1931,12 @@ var
 begin
   inherited;
   if GetExists then
+  begin
+    if GetChild <> nil then
+      GetChild.Render(Frustum, Params);
     for I := 0 to List.Count - 1 do
       List[I].Render(Frustum, Params);
+  end;
 end;
 
 procedure T3DList.RenderShadowVolume(
@@ -1924,9 +1948,14 @@ var
 begin
   inherited;
   if GetExists and CastShadowVolumes then
+  begin
+    if GetChild <> nil then
+      GetChild.RenderShadowVolume(ShadowVolumeRenderer,
+        ParentTransformIsIdentity, ParentTransform);
     for I := 0 to List.Count - 1 do
       List[I].RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform);
+  end;
 end;
 
 procedure T3DList.PrepareResources(Options: TPrepareResourcesOptions;
@@ -1935,6 +1964,8 @@ var
   I: Integer;
 begin
   inherited;
+  if GetChild <> nil then
+    GetChild.PrepareResources(Options, ProgressStep, BaseLights);
   for I := 0 to List.Count - 1 do
     List[I].PrepareResources(Options, ProgressStep, BaseLights);
 end;
@@ -1944,6 +1975,8 @@ var
   I: Integer;
 begin
   Result := inherited;
+  if GetChild <> nil then
+    Result += GetChild.PrepareResourcesSteps;
   for I := 0 to List.Count - 1 do
     Result += List[I].PrepareResourcesSteps;
 end;
@@ -1955,6 +1988,8 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
+  if GetChild <> nil then
+    if GetChild.KeyDown(Key, C) then Exit(true);
   for I := 0 to List.Count - 1 do
     if List[I].KeyDown(Key, C) then Exit(true);
 end;
@@ -1966,6 +2001,8 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
+  if GetChild <> nil then
+    if GetChild.KeyUp(Key, C) then Exit(true);
   for I := 0 to List.Count - 1 do
     if List[I].KeyUp(Key, C) then Exit(true);
 end;
@@ -1979,6 +2016,13 @@ begin
   inherited;
   if GetExists then
   begin
+    if GetChild <> nil then
+    begin
+      RemoveItem := rtNone;
+      GetChild.Idle(CompSpeed, RemoveItem);
+      { resulting RemoveItem is ignored, GetChild cannot be removed }
+    end;
+
     I := 0;
     while I < List.Count do
     begin
@@ -2000,6 +2044,8 @@ procedure T3DList.GLContextClose;
 var
   I: Integer;
 begin
+  if GetChild <> nil then
+    GetChild.GLContextClose;
   { this is called from inherited destructor, so check <> nil carefully }
   if FList <> nil then
   begin
@@ -2065,6 +2111,20 @@ begin
   AboveGround := nil;
 
   if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      NewResult := GetChild.Height(Position, GravityUp, TrianglesToIgnoreFunc,
+        NewAboveHeight, NewAboveGround);
+
+      if NewAboveHeight < AboveHeight then
+      begin
+        Result := NewResult;
+        AboveHeight := NewAboveHeight;
+        AboveGround := NewAboveGround;
+      end;
+    end;
+
     for I := 0 to List.Count - 1 do
     begin
       NewResult := List[I].Height(Position, GravityUp, TrianglesToIgnoreFunc,
@@ -2077,6 +2137,7 @@ begin
         AboveGround := NewAboveGround;
       end;
     end;
+  end;
 end;
 
 function T3DList.MoveAllowed(
@@ -2087,10 +2148,10 @@ function T3DList.MoveAllowed(
 var
   I: Integer;
 begin
-  if GetCollides and (List.Count <> 0) then
+  if GetCollides then
   begin
     { We call MoveAllowed with separate ProposedNewPos and NewPos
-      only on the first scene.
+      only on the first scene (or GetChild, if exists).
       This means that only first scene collisions provide wall sliding.
       Collisions with other 3D objects will simply block the player.
 
@@ -2104,15 +2165,32 @@ begin
       where the simple move is not allowed. This would make it more general,
       although also slower. Is there any way to make it as fast and
       more general? }
-    Result := List[0].MoveAllowed(OldPos, ProposedNewPos, NewPos,
-      IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-    if not Result then Exit;
 
-    for I := 1 to List.Count - 1 do
+    if GetChild <> nil then
     begin
-      Result := List[I].MoveAllowed(OldPos, NewPos,
+      Result := GetChild.MoveAllowed(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
+
+      for I := 0 to List.Count - 1 do
+      begin
+        Result := List[I].MoveAllowed(OldPos, NewPos,
+          IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
+        if not Result then Exit;
+      end;
+    end else
+    if List.Count <> 0 then
+    begin
+      Result := List[0].MoveAllowed(OldPos, ProposedNewPos, NewPos,
+        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
+      if not Result then Exit;
+
+      for I := 1 to List.Count - 1 do
+      begin
+        Result := List[I].MoveAllowed(OldPos, NewPos,
+          IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
+        if not Result then Exit;
+      end;
     end;
   end else
   begin
@@ -2132,12 +2210,21 @@ begin
   Result := true;
 
   if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.MoveAllowed(OldPos, NewPos,
+        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
+      if not Result then Exit;
+    end;
+
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].MoveAllowed(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
       if not Result then Exit;
     end;
+  end;
 end;
 
 function T3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
@@ -2149,11 +2236,19 @@ begin
   Result := false;
 
   if GetCollides or (LineOfSight and GetExists) then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight);
+      if Result then Exit;
+    end;
+
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, LineOfSight);
       if Result then Exit;
     end;
+  end;
 end;
 
 function T3DList.SphereCollision(const Pos: TVector3Single; const Radius: Single;
@@ -2164,11 +2259,19 @@ begin
   Result := false;
 
   if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
       if Result then Exit;
     end;
+  end;
 end;
 
 function T3DList.BoxCollision(const Box: TBox3D;
@@ -2179,37 +2282,50 @@ begin
   Result := false;
 
   if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.BoxCollision(Box, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].BoxCollision(Box, TrianglesToIgnoreFunc);
       if Result then Exit;
     end;
+  end;
 end;
 
 function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
+
+  procedure AddNewResult(NewResult: TRayCollision);
+  begin
+    if NewResult <> nil then
+    begin
+      if (Result = nil) or (NewResult.Distance < Result.Distance) then
+      begin
+        SysUtils.FreeAndNil(Result);
+        Result := NewResult;
+      end else
+        FreeAndNil(NewResult);
+    end;
+  end;
+
 var
   I: Integer;
-  NewResult: TRayCollision;
+
   NewNode, PreviousNode: PRayCollisionNode;
 begin
   Result := nil;
 
   if GetExists then
   begin
+    if GetChild <> nil then
+      AddNewResult(GetChild.RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
     for I := 0 to List.Count - 1 do
-    begin
-      NewResult := List[I].RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
-      if NewResult <> nil then
-      begin
-        if (Result = nil) or (NewResult.Distance < Result.Distance) then
-        begin
-          SysUtils.FreeAndNil(Result);
-          Result := NewResult;
-        end else
-          FreeAndNil(NewResult);
-      end;
-    end;
+      AddNewResult(List[I].RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
 
     if Result <> nil then
     begin
@@ -2233,6 +2349,11 @@ var
   I: Integer;
 begin
   inherited;
+  if GetChild <> nil then
+    GetChild.UpdateGeneratedTextures(
+      RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewportX, OriginalViewportY,
+      OriginalViewportWidth, OriginalViewportHeight);
   for I := 0 to List.Count - 1 do
     List[I].UpdateGeneratedTextures(
       RenderFunc, ProjectionNear, ProjectionFar,
@@ -2245,6 +2366,8 @@ var
   I: Integer;
 begin
   inherited;
+  if GetChild <> nil then
+    GetChild.VisibleChangeNotification(Changes);
   for I := 0 to List.Count - 1 do
     List[I].VisibleChangeNotification(Changes);
 end;
@@ -2255,6 +2378,12 @@ var
 begin
   Result := inherited;
   if Result then Exit;
+
+  if GetChild <> nil then
+  begin
+    Result := GetChild.Dragging;
+    if Result then Exit;
+  end;
 
   for I := 0 to List.Count - 1 do
   begin
