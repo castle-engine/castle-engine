@@ -93,9 +93,6 @@ type
 
     FState: TCreatureState;
     procedure SetState(const Value: TCreatureState);
-
-    { Insert Scene to our list. }
-    procedure UpdateScene;
   private
     { SetState actually only "schedules" actual state change at the nearest
       comfortable time (namely, when current animation will get to the state
@@ -125,12 +122,12 @@ type
     StandTimeToBeBored: TFloatTime;
 
     procedure RandomizeStandTimeToBeBored;
+  protected
+    function GetChild: T3D; override;
   public
     constructor Create(AKind: TCreatureKind); reintroduce;
     property Kind: TCreatureKind read FKind;
     property State: TCreatureState read FState write SetState;
-
-    function Scene: TCastleScene;
 
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
@@ -371,20 +368,11 @@ begin
   FKind := AKind;
 
   RandomizeStandTimeToBeBored;
-  UpdateScene;
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
 begin
   StandTimeToBeBored := 10 + Random(5);
-end;
-
-procedure TCreature.UpdateScene;
-begin
-  { Make sure our List contains exactly CurrentScene }
-  if Count = 1 then
-    List[0] := Scene else
-    Add(Scene);
 end;
 
 procedure TCreature.SetState(const Value: TCreatureState);
@@ -457,7 +445,7 @@ begin
   end;
 end;
 
-function TCreature.Scene: TCastleScene;
+function TCreature.GetChild: T3D;
 begin
   if ScheduledTransitionEnd then
     Result := Kind.Animations[
@@ -515,8 +503,6 @@ end;
 
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
 begin
-  UpdateScene;
-
   inherited;
 
   if DebugRenderBoundingGeometry and
