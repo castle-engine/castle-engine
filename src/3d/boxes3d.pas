@@ -214,11 +214,10 @@ type
       const RayOrigin, RayDirection: TVector3Single): boolean; overload;
     { @groupEnd }
 
-    { TryBoxRayEntrance calculates intersection between the
-      ray (returns closest intersection to RayOrigin) and the box, treating the box
-      as a filled volume.
+    { Intersection between the ray (returns closest intersection to RayOrigin)
+      and the box, treating the box as a filled volume.
 
-      This means that if RayOrigin is inside the box, TryBoxRayEntrance simply returns
+      If RayOrigin is inside the box, TryBoxRayEntrance simply returns
       RayOrigin. If RayOrigin is outside of the box, the answer is the same
       as with TryBoxRayClosestIntersection.
 
