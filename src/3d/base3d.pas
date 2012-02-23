@@ -716,7 +716,8 @@ type
     { Middle point, usually "eye point", of the 3D model.
       This is used for sphere center (if overriden Sphere returns @true),
       it is also used as the central point along which collisions
-      are checked when this object moves.
+      (MyMoveAllowed, MyHeight, MyLineOfSight) are checked when this object
+      is dynamic.
       For 3D things like level scene this is mostly useless (as you will leave
       Sphere at default @false then, and the scene itself doesn't move),
       but it's crucial for dynamic 3D things like player and creatures.
@@ -731,11 +732,18 @@ type
       In descendants where this may result in a position on the ground
       ("legs position"), this method should be overriden to return
       legs position shifted by a constant amount up. Otherwise,
-      floating point errors could make the creature "glued" to the ground
+      small precision errors could make the creature "glued" to the ground
       on which it is standing.
 
-      In short, it's usually most comfortable to think about this is
-      "eye position". }
+      In short, it's usually most comfortable to think about this as
+      a position of the eye, or the middle of the creature's head.
+
+      For flying creatures, it's usually best to actually set this around
+      the middle of the whole creature height. That's because flying creatures
+      do not need to climb the stairs, and their legs Position
+      doesn't usually stand on the ground, so there's no need to artificially
+      raise Middle. Setting Middle exactly in the middle of their Height
+      allows to use most efficient (smallest, best fit) sphere radius. }
     function Middle: TVector3Single; virtual;
 
     { Can the approximate sphere (around Middle point)
