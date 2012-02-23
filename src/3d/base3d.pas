@@ -731,7 +731,8 @@ type
       this reflects T3DTransform.Translation or T3DOrient.Position.
       In descendants where this may result in a position on the ground
       ("legs position"), this method should be overriden to return
-      legs position shifted by a constant amount up. Otherwise,
+      legs position shifted by a constant amount up (at least by your
+      @link(Sphere) radius, maybe more). Otherwise,
       small precision errors could make the creature "glued" to the ground
       on which it is standing.
 
