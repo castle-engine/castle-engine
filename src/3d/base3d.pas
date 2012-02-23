@@ -22,6 +22,9 @@ uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
   ALSoundAllocator, ALSoundEngine, XmlSoundEngine;
 
+const
+  DefaultKnockBackSpeed = 1.0;
+
 type
   TRenderFromViewFunction = procedure of object;
 
@@ -1534,7 +1537,7 @@ type
 
     { Scales how far the knockback effect pushes this creature/player. }
     property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
-      default 1.0;
+      default DefaultKnockBackSpeed;
   end;
 
 const
@@ -3541,7 +3544,7 @@ begin
   if FKnockbackDistance > 0 then
   begin
     { Calculate CurrentKnockBackDistance, update FKnockbackDistance }
-    CurrentKnockBackDistance := KnockBackSpeed * CompSpeed * 50;
+    CurrentKnockBackDistance := KnockBackSpeed * CompSpeed;
     if FKnockbackDistance < CurrentKnockBackDistance then
     begin
       CurrentKnockBackDistance := FKnockbackDistance;
