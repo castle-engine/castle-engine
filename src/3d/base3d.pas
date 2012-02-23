@@ -1435,6 +1435,29 @@ type
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
+  { Alive, oriented 3D object. Basis for players, creatures and everything
+    else that has some position, direction and that can be killed. }
+  T3DAlive = class(T3DOrient)
+  private
+    FLife: Single;
+    FMaxLife: Single;
+  protected
+    procedure SetLife(const Value: Single); virtual;
+  public
+    { Shortcut for checking Life <= 0. }
+    function Dead: boolean;
+  published
+    { Current Life. We're dead when this is <= 0. }
+    property Life: Single read FLife write SetLife;
+
+    { Maximum amount of life. Used as default value for Life when sensible.
+      Can be also used for information (to display on player HUDs and such).
+      It's not really a limit, that is you're free to set Life
+      to someting larger than MaxLife if you want (it may make some HUD displays
+      confusing, but everything will work perfectly). }
+    property MaxLife: Single read FMaxLife write FMaxLife;
+  end;
+
 const
   MaxSingle = Math.MaxSingle;
 
@@ -3375,6 +3398,18 @@ begin
   if (AnimationTime - EndPositionStateChangeTime > MoveTime) and
     (UsedSound <> nil) then
     UsedSound.DoUsingEnd;
+end;
+
+{ T3DAlive ------------------------------------------------------------------- }
+
+procedure T3DAlive.SetLife(const Value: Single);
+begin
+  FLife := Value;
+end;
+
+function T3DAlive.Dead: boolean;
+begin
+  Result := Life <= 0;
 end;
 
 end.
