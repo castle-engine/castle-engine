@@ -286,9 +286,8 @@ type
       @item(Wall-sliding MoveAllowed version simply calls
         non-wall-sliding version (without separate ProposedNewPos
         and NewPos).)
-      @item(Non-wall-sliding MoveAllowed version uses SegmentCollision,
-        SphereCollision and BoxCollision.)
-      @item(SegmentCollision, SphereCollision, BoxCollision and RayCollision
+      @item(Non-wall-sliding MoveAllowed version,
+        SegmentCollision, SphereCollision, BoxCollision and RayCollision
         and @link(Height) check for collisions with our BoundingBox,
         using TBox3D methods:
         @link(TBox3D.TryRayEntrance),
@@ -387,7 +386,7 @@ type
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function MoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single;
+      const OldPos, NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
@@ -1608,11 +1607,99 @@ begin
 end;
 
 function T3D.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3Single;
+  const OldPos, NewPos: TVector3Single;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+var
+  MyBox: TBox3D;
+
+  { P1 is closer to our middle than P2. }
+  function CloserToMiddle(const P1, P2: TVector3Single): boolean;
+  var
+    Middle: TVector3Single;
+    MyRadiusIgnored: Single;
+  begin
+    if UseSphere then
+      Sphere(Middle, MyRadiusIgnored) else
+      Middle := MyBox.Middle; { we checked earlier that MyBox is not empty }
+    Result := PointsDistanceSqr(Middle, P1) < PointsDistanceSqr(Middle, P2);
+  end;
+
+var
+  OldCollision, NewCollision: boolean;
 begin
+  { check collision with our bounding box.
+
+    We do not look here at our own sphere. When other objects move,
+    it's better to treat ourself as larger (not smaller), to prevent
+    collisions rather then allow them in case of uncertainty.
+    So we ignore Self.UseSphere, Self.Sphere methods
+    (with the exception of potentially using sphere middle for CloserToMiddle).
+
+    But we do take into account that other (moving) object may prefer to
+    be treated as a sphere, so we take into account IsRadius, Radius parameters.
+    This allows a player to climb on top of dead corpses (with flat
+    bbox), since player's sphere is slightly above the ground.
+    And it allows the missiles (like arrow) to use their spheres
+    for determining what is hit, which is good because e.g. arrow
+    has a very large bbox, sphere is much better (otherwise it may be too easy
+    to hit with arrow). }
+
+  Result := true;
+
+  if GetCollides then
+  begin
+    MyBox := BoundingBox;
+    if MyBox.IsEmpty then Exit; { no collision possible, move always allowed }
+
+    if IsRadius then
+    begin
+      OldCollision := MyBox.SphereCollision(OldPos, Radius);
+      NewCollision := MyBox.SphereCollision(NewPos, Radius);
+    end else
+    begin
+      OldCollision := MyBox.Collision(OldBox);
+      NewCollision := MyBox.Collision(NewBox);
+    end;
+
+    if NewCollision then
+    begin
+      { We now know that we have a collision with new position.
+        Strictly thinking, move should be disallowed
+        (we should exit with false). But it's not that simple.
+
+        There is a weakness in collision checking with dynamic objects,
+        like creatures, because when LifeTime changes then effectively
+        BoundingBox changes, and there is no way how I can prevent collisions
+        from occuring (we cannot stop/reverse an arbitrary animation,
+        this would look bad and require AI preparations, see UseSphere comments).
+
+        So we must allow some moves, to allow player/creature that is already
+        stuck (already collidable with Self) to get out of the collision.
+        To do this, we are going to enable a move, only if *old position
+        was already collidable (so the other object is stuck with us already)
+        and new position is further from us (so the other object tries
+        to get unstuck)". }
+      if (not OldCollision) or CloserToMiddle(NewPos, OldPos) then
+        Exit(false);
+    end else
+    if (not OldCollision) and
+       { new and old positions are Ok (not collidable), so check also
+         line segment. Otherwise fast moving player could run through slim
+         creature. }
+       MyBox.SegmentCollision(OldPos, NewPos) then
+      Exit(false);
+  end;
+
+{ Simpler implementation that doesn't allow others to become "unstuck".
+  It's also slightly less optimal, as internally BoundingBox and GetCollides
+  will be calculated many times (although they should be lighting-fast,
+  still their time matters, as this is the basis of our AI and may be called
+  many times per frame).
+  OTOH, this simpler version is a little cleaner: it delegates work
+  to other methods, they may use BoundingBox or something else.
+
   if IsRadius then
     Result := not ( GetCollides and
       ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
@@ -1620,6 +1707,7 @@ begin
     Result := not ( GetCollides and
       ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
         BoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
+}
 end;
 
 function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
