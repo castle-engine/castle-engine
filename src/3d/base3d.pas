@@ -273,6 +273,7 @@ type
 
   T3DList = class;
   T3DWorld = class;
+  T3DOrient = class;
 
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
@@ -718,7 +719,7 @@ type
       sphere surrounding the 3D object (it does not have to be a perfect
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
-      See @link(Pushable) for when it may happen.
+      See @link(Pushable) and @link(MyMoveAllowed) for when it may happen.
 
       UseSphere must be @false when not GetExists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
@@ -981,9 +982,17 @@ type
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3Single; virtual; abstract;
 
+    { Player, see TCastleSceneManager.Player. }
+    function Player: T3DOrient; virtual; abstract;
+
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
       3D world.
+
+      Outside code should prefer calling MyXxx methods of Colliders,
+      like T3D.MyMoveAllowed, instead of these WorldXxx methods.
+      Calling these WorldXxx methods directly still makes sense if your query
+      is not initiated by any 3D object that is part of this 3D world.
       @groupBegin }
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;

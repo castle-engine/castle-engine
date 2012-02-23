@@ -2134,6 +2134,7 @@ type
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3Single; override;
+    function Player: T3DOrient; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -2174,6 +2175,11 @@ end;
 function T3DWorldConcrete.GravityUp: TVector3Single;
 begin
   Result := Owner.GravityUp;
+end;
+
+function T3DWorldConcrete.Player: T3DOrient;
+begin
+  Result := Owner.Player;
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
