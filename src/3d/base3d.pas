@@ -175,7 +175,7 @@ type
     this list is a transformed list (T3DTransform),
     and within is your final colliding object (like TCastleScene).
     We will contain in this case these three items, in reverse order
-    (TCastleScene, T3DTransformm, T3DList).
+    (TCastleScene, T3DTransform, T3DList).
     This allows you to track the containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
@@ -713,8 +713,34 @@ type
       By default, in T3D class, this does nothing. }
     procedure Translate(const T: TVector3Single); virtual;
 
-    { Can the approximate sphere be used for some collision-detection
-      tasks. If UseSphere is @true then @link(Sphere) returns the approximate
+    { Middle point, usually "eye point", of the 3D model.
+      This is used for sphere center (if overriden Sphere returns @true),
+      it is also used as the central point along which collisions
+      are checked when this object moves.
+      For 3D things like level scene this is mostly useless (as you will leave
+      Sphere at default @false then, and the scene itself doesn't move),
+      but it's crucial for dynamic 3D things like player and creatures.
+
+      It should not be derived from the BoundingBox.Middle,
+      or anything else that may dynamically change. Instead it should
+      be stable --- remain constant even when the shape of the object changes,
+      e.g. even when animation changes the shape of the creature.
+
+      In this class this is simply zero. In transformed descendants,
+      this reflects T3DTransform.Translation or T3DOrient.Position.
+      In descendants where this may result in a position on the ground
+      ("legs position"), this method should be overriden to return
+      legs position shifted by a constant amount up. Otherwise,
+      floating point errors could make the creature "glued" to the ground
+      on which it is standing.
+
+      In short, it's usually most comfortable to think about this is
+      "eye position". }
+    function Middle: TVector3Single; virtual;
+
+    { Can the approximate sphere (around Middle point)
+      be used for some collision-detection
+      tasks. If @true then Radius (and Middle point) determine the approximate
       sphere surrounding the 3D object (it does not have to be a perfect
       bounding sphere around the object), and it may be used for some
       collisions instead of BoundingBox.
@@ -801,15 +827,11 @@ type
           with level geometry and other creatures.
 
           2. On the other hand, you can't set radius too large
-          (or move sphere center much lower).
+          (or move sphere center, Middle, much lower).
           This would block stair climbing.
         )
-      )
-
-      @groupBegin }
-    function UseSphere: boolean; virtual;
-    procedure Sphere(out Center: TVector3Single; out Radius: Single); virtual;
-    { @groupEnd }
+      ) }
+    function Sphere(out Radius: Single): boolean; virtual;
 
     { Can this object be pushed (or may block movement of) doors, elevators
       and other such features. This specifies how moving level parts
@@ -1086,6 +1108,7 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
+    function Middle: TVector3Single; override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -1215,6 +1238,8 @@ type
           Transformation makes +X and +Z match (respectively) Direction and Up.)
       ) }
     property ZUp: boolean read FZUp write FZUp;
+
+    function Middle: TVector3Single; override;
   end;
 
   { Deprecated name for T3DCustomTransform. @deprecated @exclude }
@@ -1640,13 +1665,10 @@ var
   { P1 is closer to our middle than P2. }
   function CloserToMiddle(const P1, P2: TVector3Single): boolean;
   var
-    Middle: TVector3Single;
-    MyRadiusIgnored: Single;
+    M: TVector3Single;
   begin
-    if UseSphere then
-      Sphere(Middle, MyRadiusIgnored) else
-      Middle := MyBox.Middle; { we checked earlier that MyBox is not empty }
-    Result := PointsDistanceSqr(Middle, P1) < PointsDistanceSqr(Middle, P2);
+    M := Middle;
+    Result := PointsDistanceSqr(M, P1) < PointsDistanceSqr(M, P2);
   end;
 
 var
@@ -1657,8 +1679,7 @@ begin
     We do not look here at our own sphere. When other objects move,
     it's better to treat ourself as larger (not smaller), to prevent
     collisions rather then allow them in case of uncertainty.
-    So we ignore Self.UseSphere, Self.Sphere methods
-    (with the exception of potentially using sphere middle for CloserToMiddle).
+    So we ignore Self.Sphere method.
 
     But we do take into account that other (moving) object may prefer to
     be treated as a sphere, so we take into account IsRadius, Radius parameters.
@@ -1674,7 +1695,6 @@ begin
   if GetCollides then
   begin
     MyBox := BoundingBox;
-    if MyBox.IsEmpty then Exit; { no collision possible, move always allowed }
 
     if IsRadius then
     begin
@@ -1805,14 +1825,14 @@ procedure T3D.Translate(const T: TVector3Single);
 begin
 end;
 
-function T3D.UseSphere: boolean;
+function T3D.Middle: TVector3Single;
 begin
-  Result := false;
+  Result := ZeroVector3Single;
 end;
 
-procedure T3D.Sphere(out Center: TVector3Single; out Radius: Single);
+function T3D.Sphere(out Radius: Single): boolean;
 begin
-  Center := ZeroVector3Single;
+  Result := false;
   Radius := 0;
 end;
 
@@ -1866,13 +1886,11 @@ var
   Sp: boolean;
   SpRadius: Single;
   OldBox, NewBox: TBox3D;
-  CenterIgnored: TVector3Single;
 begin
   { save bounding volume information before calling Disable, as Disable makes
     bounding volume empty }
-  Sp := UseSphere;
-  if Sp then
-    Sphere(CenterIgnored, SpRadius) else
+  Sp := Sphere(SpRadius);
+  if not Sp then
     SpRadius := 0; { something predictable, for safety }
   OldBox := BoundingBox;
   NewBox := OldBox.Translate(ProposedNewPos - OldPos);
@@ -1891,13 +1909,11 @@ var
   Sp: boolean;
   SpRadius: Single;
   OldBox, NewBox: TBox3D;
-  CenterIgnored: TVector3Single;
 begin
   { save bounding volume information before calling Disable, as Disable makes
     bounding volume empty }
-  Sp := UseSphere;
-  if Sp then
-    Sphere(CenterIgnored, SpRadius) else
+  Sp := Sphere(SpRadius);
+  if not Sp then
     SpRadius := 0; { something predictable, for safety }
   OldBox := BoundingBox;
   NewBox := OldBox.Translate(NewPos - OldPos);
@@ -2938,6 +2954,11 @@ begin
   end;
 end;
 
+function T3DCustomTransform.Middle: TVector3Single;
+begin
+  Result := GetTranslation;
+end;
+
 { T3DTransform -------------------------------------------------------------- }
 
 constructor T3DTransform.Create(AOwner: TComponent);
@@ -3081,6 +3102,11 @@ begin
   Position := Position + T;
 end;
 
+function T3DOrient.Middle: TVector3Single;
+begin
+  Result := Position;
+end;
+
 { T3DMoving --------------------------------------------------------- }
 
 { TODO: this browses World list, doesn't take into acount Pushable items
@@ -3165,8 +3191,7 @@ var
   I: Integer;
   Move: TVector3Single;
   CurrentTranslation, NewTranslation: TVector3Single;
-  SphereC: TVector3Single;
-  SphereR: Single;
+  SphereRadius: Single;
   Item: T3D;
 begin
   if GetCollides and Pushes then
@@ -3219,10 +3244,10 @@ begin
         begin
           Item := World[I];
           if Item.Pushable then
-            if Item.UseSphere then
+            if Item.Sphere(SphereRadius) then
             begin
-              Item.Sphere(SphereC, SphereR);
-              if SphereCollisionAssumeTranslation(NewTranslation, SphereC, SphereR,
+              if SphereCollisionAssumeTranslation(NewTranslation,
+                Item.Middle, SphereRadius,
                 @World.CollisionIgnoreItem) then
                 Item.Translate(Move);
             end else
