@@ -1485,11 +1485,44 @@ type
   private
     FLife: Single;
     FMaxLife: Single;
+
+    { FKnockbackDistance <= 0 means "no knockback currently" }
+    FKnockbackDistance: Single;
+    FLastHurtDirection: TVector3Single;
+    FKnockBackSpeed: Single;
   protected
     procedure SetLife(const Value: Single); virtual;
+    { Do the knockback effect, if it's currently active, by pushing
+      creature along last attack direction.
+      Call this from Idle in descendants, to actually show the knockback
+      effect. }
+    procedure Knockback(const CompSpeed: Single);
   public
+    constructor Create(AOwner: TComponent); override;
+
     { Shortcut for checking Life <= 0. }
     function Dead: boolean;
+
+    { Hurt given creature, decreasing it's life by LifeLoss,
+      setting last attack direction (used by knockback and some other effects),
+      optionally do a knockback.
+
+      HurtDirection should be a normalized vector indicating direction
+      in which the attack came.
+
+      AKnockbackDistance, if non-zero, indicates to push creature by given
+      length in the direction given by HurtDirection.
+      Ignored if HurtDirection is zero.
+      Some creatures may ignore this parameter, and derive their own
+      knockback distance (e.g. suitable for their animation). }
+    procedure Hurt(const LifeLoss: Single;
+      const HurtDirection: TVector3Single;
+      const AKnockbackDistance: Single); virtual;
+
+    { Direction from where the attack came.
+      Zero if there was no specific direction of last attack,
+      otherwise a normalized (length 1) vector. }
+    property LastHurtDirection: TVector3Single read FLastHurtDirection;
   published
     { Current Life. We're dead when this is <= 0. }
     property Life: Single read FLife write SetLife;
@@ -1500,6 +1533,10 @@ type
       to someting larger than MaxLife if you want (it may make some HUD displays
       confusing, but everything will work perfectly). }
     property MaxLife: Single read FMaxLife write FMaxLife;
+
+    { Scales how far the knockback effect pushes this creature/player. }
+    property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
+      default 1.0;
   end;
 
 const
@@ -3467,6 +3504,12 @@ end;
 
 { T3DAlive ------------------------------------------------------------------- }
 
+constructor T3DAlive.Create(AOwner: TComponent);
+begin
+  inherited;
+  KnockBackSpeed := 1.0;
+end;
+
 procedure T3DAlive.SetLife(const Value: Single);
 begin
   FLife := Value;
@@ -3475,6 +3518,34 @@ end;
 function T3DAlive.Dead: boolean;
 begin
   Result := Life <= 0;
+end;
+
+procedure T3DAlive.Hurt(const LifeLoss: Single;
+  const HurtDirection: TVector3Single;
+  const AKnockbackDistance: Single);
+begin
+  Life := Life - LifeLoss;
+  FKnockbackDistance := AKnockbackDistance;
+  FLastHurtDirection := HurtDirection;
+end;
+
+procedure T3DAlive.Knockback(const CompSpeed: Single);
+var
+  CurrentKnockBackDistance: Single;
+begin
+  if FKnockbackDistance > 0 then
+  begin
+    { Calculate CurrentKnockBackDistance, update FKnockbackDistance }
+    CurrentKnockBackDistance := KnockBackSpeed * CompSpeed * 50;
+    if FKnockbackDistance < CurrentKnockBackDistance then
+    begin
+      CurrentKnockBackDistance := FKnockbackDistance;
+      FKnockbackDistance := 0;
+    end else
+      FKnockbackDistance -= CurrentKnockBackDistance;
+
+    MyMove(FLastHurtDirection * CurrentKnockBackDistance, false);
+  end;
 end;
 
 end.
