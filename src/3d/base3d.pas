@@ -1492,11 +1492,7 @@ type
     FKnockBackSpeed: Single;
   protected
     procedure SetLife(const Value: Single); virtual;
-    { Do the knockback effect, if it's currently active, by pushing
-      creature along last attack direction.
-      Call this from Idle in descendants, to actually show the knockback
-      effect. }
-    procedure Knockback(const CompSpeed: Single);
+    procedure CancelKnockback;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1518,6 +1514,8 @@ type
     procedure Hurt(const LifeLoss: Single;
       const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single); virtual;
+
+    procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
 
     { Direction from where the attack came.
       Zero if there was no specific direction of last attack,
@@ -3529,7 +3527,14 @@ begin
   FLastHurtDirection := HurtDirection;
 end;
 
-procedure T3DAlive.Knockback(const CompSpeed: Single);
+procedure T3DAlive.CancelKnockback;
+begin
+  FKnockbackDistance := 0;
+end;
+
+procedure T3DAlive.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
+{ Do the knockback effect, if it's currently active, by pushing
+  creature along last attack direction. }
 var
   CurrentKnockBackDistance: Single;
 begin
