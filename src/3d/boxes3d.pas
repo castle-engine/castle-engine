@@ -1437,7 +1437,7 @@ begin
     4 multiplications.
 
     Ok, that's damn fast, but still a little slower than
-    Box3DSphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
+    TBox3D.SphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
 
   if SphereCenter[0] < Data[0][0] then D += Sqr(SphereCenter[0] - Data[0][0]) else
   if SphereCenter[0] > Data[1][0] then D += Sqr(SphereCenter[0] - Data[1][0]);
