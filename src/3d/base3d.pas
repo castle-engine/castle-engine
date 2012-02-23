@@ -716,7 +716,7 @@ type
     { Middle point, usually "eye point", of the 3D model.
       This is used for sphere center (if overriden Sphere returns @true),
       it is also used as the central point along which collisions
-      (MyMoveAllowed, MyHeight, MyLineOfSight) are checked when this object
+      (MyMove, MyMoveAllowed, MyHeight, MyLineOfSight) are checked when this object
       is dynamic.
       For 3D things like level scene this is mostly useless (as you will leave
       Sphere at default @false then, and the scene itself doesn't move),
@@ -885,6 +885,16 @@ type
     function MyMoveAllowed(const OldPos, NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
     { @groupEnd }
+
+    { Move, if possible (no collisions). This is the simplest way to move
+      a 3D object, and a basic building block for artificial intelligence
+      of creatures.
+
+      Checks move possibility by MyMoveAllowed, using @link(Middle) point.
+      Actual move is done using @link(Translate). }
+    function MyMove(const Move: TVector3Single;
+      const BecauseOfGravity: boolean;
+      const EnableWallSliding: boolean = true): boolean;
 
     function MyRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
   end;
@@ -1941,6 +1951,27 @@ begin
   try
     Result := World.WorldRayCollision(RayOrigin, RayDirection);
   finally Enable end;
+end;
+
+function T3D.MyMove(const Move: TVector3Single;
+  const BecauseOfGravity, EnableWallSliding: boolean): boolean;
+var
+  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3Single;
+begin
+  OldMiddle := Middle;
+
+  if EnableWallSliding then
+  begin
+    ProposedNewMiddle := OldMiddle + Move;
+    Result := MyMoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
+  end else
+  begin
+    NewMiddle := OldMiddle + Move;
+    Result := MyMoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
+  end;
+
+  if Result then
+    Translate(NewMiddle - OldMiddle);
 end;
 
 { T3DListCore ------------------------------------------------------------ }
