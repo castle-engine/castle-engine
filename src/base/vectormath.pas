@@ -1237,7 +1237,7 @@ procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3Double;
 
 { Adjust the V1 vector to force V1 and V2 to be orthogonal.
   This is a shortcut (and may be calculated faster)
-  for @code(MakeVectorsAngleDefOnTheirPlane(V1, V2, 90)). }
+  for @code(MakeVectorsAngleDegOnTheirPlane(V1, V2, 90)). }
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Single;
   const v2: TVector3Single); overload;
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;
