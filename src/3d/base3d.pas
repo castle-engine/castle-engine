@@ -1483,7 +1483,15 @@ type
   end;
 
   { Alive, oriented 3D object. Basis for players, creatures and everything
-    else that has some position, direction and that can be killed. }
+    else that has some position, direction and that can be killed.
+
+    Note that the T3DAlive doesn't remove dead objects, doesn't make any
+    dead animations or such. T3DAlive class merely keeps track of
+    @link(Life), @link(Dead) and such properties,
+    and allows you to call @link(Hurt) doing eventual knockback.
+    If your own code doesn't call @link(Hurt),
+    or even doesn't look at @link(Life) value, then they have no implication
+    for given 3D object, so it may be indestructible just like other 3D objects. }
   T3DAlive = class(T3DOrient)
   private
     FLife: Single;
