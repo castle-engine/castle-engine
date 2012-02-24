@@ -1080,10 +1080,11 @@ type
       read FPreferGravityUpForMoving write FPreferGravityUpForMoving default true;
     { @groupEnd }
 
-    { This returns @link(Direction) vector rotated such that it is
+    { Return @link(Direction) vector rotated such that it is
       orthogonal to GravityUp. This way it returns @link(Direction) projected
       on the gravity horizontal plane, which neutralizes such things
       like raising / bowing your head.
+      Result is always normalized (length 1).
 
       Note that when @link(Direction) and GravityUp are parallel,
       this just returns current @link(Direction) --- because in such case
@@ -3218,8 +3219,8 @@ var
       Dir := DirectionInGravityPlane else
       Dir := Direction;
 
-    Move(VectorScale(Dir,
-      MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply * AJumpMultiply), false);
+    Move(Dir * (MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply *
+      AJumpMultiply), false);
   end;
 
   procedure MoveVertical(const Multiply: Integer);
@@ -3616,8 +3617,7 @@ var
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
 
-      Up := RotatePointAroundAxisRad(AngleRotate, Up,
-        DirectionInGravityPlane);
+      Up := RotatePointAroundAxisRad(AngleRotate, Up, DirectionInGravityPlane);
     end;
 
     procedure DoFalledDown;
