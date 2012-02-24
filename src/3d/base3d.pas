@@ -1512,16 +1512,17 @@ type
 
     { Hurt given creature, decreasing it's life by LifeLoss,
       setting last attack direction (used by knockback and some other effects),
-      optionally do a knockback.
+      optionally doing a knockback.
+      If all you want to do is to decrease Life, you can also just set @link(Life)
+      property. Unless your code depends on LastHurtDirection being always updated
+      (only TCreature in CastleCreatures unit depends on it now).
 
       HurtDirection should be a normalized vector indicating direction
       in which the attack came.
 
       AKnockbackDistance, if non-zero, indicates to push creature by given
       length in the direction given by HurtDirection.
-      Ignored if HurtDirection is zero.
-      Some creatures may ignore this parameter, and derive their own
-      knockback distance (e.g. suitable for their animation). }
+      Ignored if HurtDirection is zero. }
     procedure Hurt(const LifeLoss: Single;
       const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single); virtual;
