@@ -278,7 +278,7 @@ type
     FProjectionMatrix: TMatrix4Single;
     FRadius: Single;
 
-    Animation: boolean;
+    FAnimation: boolean;
     AnimationEndTime: TFloatTime;
     AnimationCurrentTime: TFloatTime;
 
@@ -312,8 +312,6 @@ type
     procedure SetIgnoreAllInputs(const Value: boolean); virtual;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetRadius(const Value: Single); virtual;
-
-    function IsAnimation: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -499,6 +497,8 @@ type
     procedure AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
     procedure AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TFloatTime);
     { @groupEnd }
+
+    function Animation: boolean; virtual;
 
     { Initial camera values.
 
@@ -2070,12 +2070,12 @@ procedure TCamera.Idle(const CompSpeed: Single;
   var LetOthersHandleMouseAndKeys: boolean);
 begin
   inherited;
-  if Animation then
+  if FAnimation then
   begin
     AnimationCurrentTime += CompSpeed;
     if AnimationCurrentTime > AnimationEndTime then
     begin
-      Animation := false;
+      FAnimation := false;
       { When animation ended, make sure you're exactly at the final view. }
       SetView(AnimationEndPosition, AnimationEndDirection, AnimationEndUp);
     end else
@@ -2103,7 +2103,7 @@ begin
   AnimationCurrentTime := 0;
   { No point in doing animation (especially since it blocks camera movement
     for Time seconds) if we're already there. }
-  Animation := not (
+  FAnimation := not (
     VectorsEqual(AnimationBeginPosition , AnimationEndPosition) and
     VectorsEqual(AnimationBeginDirection, AnimationEndDirection) and
     VectorsEqual(AnimationBeginUp       , AnimationEndUp));
@@ -2117,9 +2117,9 @@ begin
   AnimateTo(Pos, Dir, Up, Time);
 end;
 
-function TCamera.IsAnimation: boolean;
+function TCamera.Animation: boolean;
 begin
-  Result := Animation;
+  Result := FAnimation;
 end;
 
 procedure TCamera.SetInitialView(
@@ -2313,7 +2313,7 @@ begin
   inherited;
 
   { Do not handle keys or rotations etc. }
-  if IsAnimation then Exit;
+  if Animation then Exit;
 
   { If given RotationsAnim component is zero, no need to change current Rotations.
     What's more important, this avoids the need to call VisibleChange,
@@ -2468,7 +2468,7 @@ function TExamineCamera.EventDown(AKey: TKey; ACharacter: Char;
   AMousePress: boolean; AMouseButton: TMouseButton;
   AMouseWheel: TMouseWheelDirection): boolean;
 begin
-  if IgnoreAllInputs or IsAnimation then Exit(false);
+  if IgnoreAllInputs or Animation then Exit(false);
 
   if Input_StopRotating.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
   begin
@@ -2636,7 +2636,7 @@ begin
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     or should be ignored, do nothing. }
   if (Container.MousePressed = []) or (not MouseNavigation) or
-     IgnoreAllInputs or IsAnimation then
+     IgnoreAllInputs or Animation then
     Exit;
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
@@ -2682,7 +2682,7 @@ function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean
 begin
   Result := inherited;
   if Result or
-    (not MouseNavigation) or IgnoreAllInputs or IsAnimation or
+    (not MouseNavigation) or IgnoreAllInputs or Animation or
     (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) then
     Exit;
 
@@ -3874,7 +3874,7 @@ begin
   PositionMouseLook;
 
   { Do not handle keys or gravity etc. }
-  if IsAnimation then Exit;
+  if Animation then Exit;
 
   ModsDown := ModifiersDown(Container.Pressed);
 
@@ -4016,7 +4016,7 @@ function TWalkCamera.EventDown(AKey: TKey; ACharacter: Char;
   AMousePress: boolean; AMouseButton: TMouseButton;
   AMouseWheel: TMouseWheelDirection): boolean;
 begin
-  if IgnoreAllInputs or IsAnimation then Exit(false);
+  if IgnoreAllInputs or Animation then Exit(false);
 
   {$ifdef SINGLE_STEP_ROTATION}
   if Input_RightRot.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
@@ -4204,7 +4204,7 @@ begin
   if Result then Exit;
 
   if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown and
-    (not IsAnimation) then
+    (not Animation) then
   begin
     MiddleWidth := ContainerWidth div 2;
     MiddleHeight := ContainerHeight div 2;
@@ -4330,14 +4330,14 @@ type
     Universal: TUniversalCamera;
   public
     procedure VisibleChange; override;
+    function Animation: boolean; override;
   protected
-    function IsAnimation: boolean; override;
     procedure DoCursorChange; override;
   end;
 
-function TExamineCameraInUniversal.IsAnimation: boolean;
+function TExamineCameraInUniversal.Animation: boolean;
 begin
-  Result := (inherited IsAnimation) or Universal.IsAnimation;
+  Result := (inherited Animation) or Universal.Animation;
 end;
 
 procedure TExamineCameraInUniversal.VisibleChange;
@@ -4361,15 +4361,15 @@ type
     { Owning TUniversalCamera }
     Universal: TUniversalCamera;
   protected
-    function IsAnimation: boolean; override;
     procedure DoCursorChange; override;
   public
     procedure VisibleChange; override;
+    function Animation: boolean; override;
   end;
 
-function TWalkCameraInUniversal.IsAnimation: boolean;
+function TWalkCameraInUniversal.Animation: boolean;
 begin
-  Result := (inherited IsAnimation) or Universal.IsAnimation;
+  Result := (inherited Animation) or Universal.Animation;
 end;
 
 procedure TWalkCameraInUniversal.VisibleChange;
