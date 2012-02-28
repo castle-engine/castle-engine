@@ -114,13 +114,28 @@ type
       some XML content, you should be careful when accessing this content
       from regular XMLConfig Get/SetValue methods. }
     function PathElement(const APath: string): TDOMElement;
+
+    { Read a file name from an XML attribute.
+      The attribute in an XML file may be absolute or relative to this
+      XML file's path (we will look at own TXMLConfig.FileName directory
+      to resolve relative filenames).
+      The returned filename is always an absolute filename.
+
+      If EmptyIfNoAttribute, then this will just set FileName to ''
+      if appropriate XML attribute not found. Otherwise
+      (when EmptyIfNoAttribute = @false, this is default),
+      error will be raised.
+
+      @raises(Exception If EmptyIfNoAttribute = @false and no such attribute.) }
+    function GetFileName(const APath: string;
+      const EmptyIfNoAttribute: boolean = false): string;
   end;
 
 procedure Register;
 
 implementation
 
-uses SysUtils, CastleStringUtils, Classes;
+uses SysUtils, CastleStringUtils, Classes, CastleFilesUtils;
 
 procedure Register;
 begin
@@ -252,6 +267,18 @@ begin
     if PathComponent = '' then break;
     Result := FindElementChildren(Result, PathComponent);
   end;
+end;
+
+function TCastleConfig.GetFileName(const APath: string;
+  const EmptyIfNoAttribute: boolean): string;
+begin
+  Result := GetValue(APath, '');
+  if Result = '' then
+  begin
+    if not EmptyIfNoAttribute then
+      raise Exception.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+  end else
+    Result := CombinePaths(ExtractFilePath(FileName), Result);
 end;
 
 end.
