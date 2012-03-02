@@ -248,25 +248,14 @@ end;
 
 function SpecialDirName(const DirectoryName: string): boolean;
 begin
- { Microsoft swego czasu straszyl ze w systemie beda zdefiniowane katalogi ...
-     i .... jako katalog-dziadek i pradziadek tak jak obecnie sa .. jako rodzic i
-     . jako aktualny. Sprawdzilem to i przynajmniej pod win95/98 nie zrobili tego
-     bezuzytecznego kretynstwa, ale zawsze lepiej sie zabezpieczyc - stad powyzsze
-     checki '...' i '....'. One niczemu nie przeszkadzaja, bo i tak
-     ... i .... to nieprawidlowe nazwy plikow pod Windows wiec ten check
-     (poza zabieraniem chwilki czasu) nic nie psuje.
-
-   Pod linuxem (i prawdopodobnie kazdym innym nie-Windowsem)
-   ... i .... to zupelnie legalne nazwy plikow dlatego
-   ten check nie moze istniec pod nie-Windowsem. }
- result := ArrayPosStr(DirectoryName,['.','..' {$ifdef MSWINDOWS},'...','....'{$endif}]) >= 0;
+  Result := (DirectoryName = '.') or (DirectoryName = '..');
 end;
 
 function AppendToFilename(const FileName, Suffix: string): string;
 begin
- { I know, this can be optimized, as DeleteFileExt and ExtractFileExt
-   do almost the same work twice. }
- Result := DeleteFileExt(FileName) +Suffix +ExtractFileExt(FileName);
+  { Could be optimized, as DeleteFileExt and ExtractFileExt
+    do almost the same work twice. }
+  Result := DeleteFileExt(FileName) + Suffix + ExtractFileExt(FileName);
 end;
 
 function ExpandFilePath(const FilePath: string): string;

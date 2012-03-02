@@ -1099,7 +1099,8 @@ begin
   Path := InclPathDelim(Path);
   if FindFirst(Path + '*', faDirectory, F) = 0 then
   repeat
-    if F.Attr and faDirectory = faDirectory then
+    if (F.Attr and faDirectory = faDirectory) and
+      not SpecialDirName(F.Name) then
     begin
       FileName := Path + F.Name + PathDelim + Name;
       if FileExists(FileName) then
