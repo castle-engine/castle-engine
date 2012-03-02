@@ -129,6 +129,11 @@ type
       @raises(Exception If EmptyIfNoAttribute = @false and no such attribute.) }
     function GetFileName(const APath: string;
       const EmptyIfNoAttribute: boolean = false): string;
+
+    { Get a value, as a string. Value must exist and cannot be empty in XML file. }
+    function GetNonEmptyValue(const APath: string): string;
+
+    procedure NotModified;
   end;
 
 procedure Register;
@@ -279,6 +284,18 @@ begin
       raise Exception.CreateFmt('Missing attribute "%s" in XML file', [APath]);
   end else
     Result := CombinePaths(ExtractFilePath(FileName), Result);
+end;
+
+function TCastleConfig.GetNonEmptyValue(const APath: string): string;
+begin
+  Result := GetValue(APath, '');
+  if Result = '' then
+    raise Exception.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+end;
+
+procedure TCastleConfig.NotModified;
+begin
+  FModified := false;
 end;
 
 end.
