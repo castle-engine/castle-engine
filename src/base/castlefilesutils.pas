@@ -475,6 +475,15 @@ const
   { Any file, including symlinks. }
   faReallyAnyFile = faAnyFile or faSymLink;
 
+type
+  THandleFileMethod = procedure (const FileName: string) of object;
+
+{ Scan subdirectories of given path for files named Name.
+  For each file, the HandleFile method is called, with filename
+  (given filename is relative or absolute, just like given Path parameter). }
+procedure ScanForFiles(Path: string; const Name: string;
+  const HandleFile: THandleFileMethod);
+
 implementation
 
 uses CastleStringUtils, {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog;
@@ -1079,6 +1088,25 @@ begin
  {$endif}
 
  {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
+end;
+
+procedure ScanForFiles(Path: string; const Name: string;
+  const HandleFile: THandleFileMethod);
+var
+  F: TSearchRec;
+  FileName: string;
+begin
+  Path := InclPathDelim(Path);
+  if FindFirst(Path + '*', faDirectory, F) = 0 then
+  repeat
+    if F.Attr and faDirectory = faDirectory then
+    begin
+      FileName := Path + F.Name + PathDelim + Name;
+      if FileExists(FileName) then
+        HandleFile(FileName);
+    end;
+  until FindNext(F) <> 0;
+  FindClose(F);
 end;
 
 initialization
