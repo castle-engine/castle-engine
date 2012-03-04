@@ -556,8 +556,8 @@ type
         the names should be self-explanatory (they refer to appropriate
         methods of T3D, TCastleSceneCore or TCastleScene).)
 
-      @param(ProgressStep Says that we should make Progress.Step calls
-        (exactly PrepareResourcesSteps times) during preparation.
+      @param(ProgressStep Says that we should make this many Progress.Step calls
+        during preparation.
         Useful to show progress bar to the user during long preparation.
 
         TODO: for now, do not include prSpatial if you use ProgressStep.
@@ -1024,9 +1024,10 @@ type
       const Triangle: P3DTriangle): boolean; virtual; abstract;
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3Single; virtual; abstract;
-
     { Player, see TCastleSceneManager.Player. }
     function Player: T3DOrient; virtual; abstract;
+    { Base lights, see TCastleSceneManager.BaseLights. }
+    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
 
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
