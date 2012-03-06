@@ -439,28 +439,22 @@
       read / write VRML DEF / USE statements), searching for nodes by name. }
     property NodeName: string read fNodeName write FNodeName;
 
-    { WWWBasePath is the base URL path for all URLs
-      in node's fields. This is used by all nodes that get some
-      url (like Texture2 and WWWInline in VRML 1.0, ImageTexture
-      and Inline in VRML 2.0 etc.).
+    { Base URL for all URLs inside our fields.
+      Used everywhere as a base for relative URLs, to handle fields that refer
+      to external files like textures, other 3D models (ImageTexture,
+      Inline nodes, many others).
 
-      This way URL's in node's fields may contain relative names.
-      If WWWBasePath doesn't begin with <proto>:// it is understood
-      to be a file:// base path.
+      It must be an absolute URL. Currently, it doesn't have to contain
+      a protocol, and is then interpreted as a path on local filesystem
+      (just like it had file:// prefix). Still, it must be an absolute path.
 
-      TODO: chwilowo, poniewaz tylko odwolania do lokalnych plikow
-      sa zaimplementowane, cale to bajanie o URL'ach to tylko mowa
-      "jak kiedys bedzie". Chwilowo WWWBasePath musi byc lokalna sciezka
-      (i to absolutna, bezwzgledna sciezka).
-
-      WWWBasePath is set in constructor, and eventually adjusted by
-      various parsing/converting routines (TX3DNode.Parse, but also
-      potentially other things from X3DLoad).
+      This is set in constructor, and eventually adjusted by
+      various parsing routines.
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
     property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
 
-    { This returns absolute path, assuming that RelativePath is relative
+    { Returns an absolute path, assuming that RelativePath is relative
       path from WWWBasePath or that RelativePath is already absolute. }
     function PathFromWWWBasePath(const RelativePath: string): string;
 
@@ -1505,8 +1499,8 @@ begin
     (that's a general convention used internally by Blender, AFAIK).
     Here I simply remove this "//". }
   if IsPrefix('//', RelativePath) then
-    Result := CombinePaths(WWWBasePath, SEnding(RelativePath, 3)) else
-    Result := CombinePaths(WWWBasePath, RelativePath);
+    Result := CombineUrls(WWWBasePath, SEnding(RelativePath, 3)) else
+    Result := CombineUrls(WWWBasePath, RelativePath);
 end;
 
 procedure TX3DNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);

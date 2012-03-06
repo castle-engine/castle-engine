@@ -4911,7 +4911,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
   begin
     Result := false;
 
-    URL := CombinePaths(WWWBasePath, RelativeURL);
+    URL := CombineUrls(WWWBasePath, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
       ReferencedPrototypeNode := X3DCache.Load3D(URL);

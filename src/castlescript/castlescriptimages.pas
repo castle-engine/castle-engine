@@ -115,7 +115,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleWarnings, CastleScriptVectors, CastleFilesUtils;
+uses SysUtils, CastleUtils, CastleWarnings, CastleScriptVectors, CastleURLUtils;
 
 { TCasScriptImage ------------------------------------------------------------ }
 
@@ -201,7 +201,7 @@ begin
 
   FullUrl := TCasScriptString(Arguments[0]).Value;
   if AFunction.Environment <> nil then
-    FullUrl := CombinePaths(AFunction.Environment.WWWBasePath, FullUrl);
+    FullUrl := CombineUrls(AFunction.Environment.WWWBasePath, FullUrl);
 
   try
     NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage], []);

@@ -59,9 +59,18 @@ function UrlProtocolIs(const S: string; const Protocol: string; out Colon: Integ
 
 function UrlDeleteProtocol(const S: string): string;
 
+{ Combine base URL with relative, just like CombinePaths does for file paths.
+
+  TODO: this is a dummy implementation for now, that basically calls
+  CombinePaths, however it allows the Base or Relative to start with 'file://'
+  prefix (but result will not contain this prefix).
+  This allows most places in our engine (that in the future should deal with
+  URLs) for now just work with local file paths. }
+function CombineUrls(Base, Relative: string): string;
+
 implementation
 
-uses SysUtils, CastleStringUtils, CastleWarnings;
+uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils;
 
 procedure URLExtractAnchor(var URL: string; out Anchor: string);
 var
@@ -217,6 +226,13 @@ begin
     { Cut off also whitespace before FirstCharacter }
     Result := SEnding(S, Colon + 1) else
     Result := S;
+end;
+
+function CombineUrls(Base, Relative: string): string;
+begin
+  Result := CombinePaths(
+    PrefixRemove('file://', Base, false),
+    PrefixRemove('file://', Relative, false));
 end;
 
 end.

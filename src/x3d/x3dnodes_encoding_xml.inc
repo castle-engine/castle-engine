@@ -535,7 +535,7 @@ begin
   try
     { calculate FileName. Used for ReadXMLFile, used there e.g. for error messages }
     if BaseName <> '' then
-      FileName := CombinePaths(WWWBasePath, BaseName) else
+      FileName := CombineUrls(WWWBasePath, BaseName) else
       FileName := WWWBasePath;
 
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
