@@ -64,7 +64,7 @@
       It's implemented using WindowModes approach. Which means that when you call
       some MessageXxx procedure, it temporarily switches all TCastleWindowBase callbacks
       (OnDraw, OnKeyDown, OnMouseDown, OnIdle etc.) for it's own.
-      So you can be sure that e.g. no glwin callbacks that you registered in your
+      So you can be sure that e.g. no TCastleWindow callbacks that you registered in your
       own programs/units will be called while MessageXxx works.
       When message box ends (e.g. for simple MessageOk, this happens when user
       will accept it by Enter key or clicking OK), original callbacks are
@@ -368,13 +368,6 @@ var
     is called while other window is in MessageXxx). }
   MessagesTheme: TMessagesTheme;
 
-type
-  TGLWinMessageNotify = procedure(Text: TStringList);
-
-var
-  { If non-nil, this will be notified about every MessageXxx call. }
-  OnGLWinMessage: TGLWinMessageNotify;
-
 implementation
 
 uses OpenGLBmpFonts, BFNT_BitstreamVeraSansMono_m18_Unit, Images,
@@ -517,7 +510,7 @@ type
     przewVisY1, przewVisY2: Single;
     ScrollBarDragging: boolean;
 
-    { ustawiane w GLWinMesssage, potem readonly }
+    { set in MessageCore, readonly afterwards }
     OnUserKeyDown: TKeyCharFunc;
     OnUserMouseDown: TMouseUpDownFunc;
     OnUserMouseWheel: TMouseWheelFunc;
@@ -531,9 +524,8 @@ type
       naszego okienka (tam powinno byc widoczne tlo, czyli list_DrawBG). }
     WholeMessageRect: TIntRect;
 
-    { ------------------------------------------------------------
-      zmienne ktore mowia jak i co rysowac, ustawiane w GLWinMesssage
-      i potem tylko do odczytu dla roznych callbackow ! }
+    { set in MessageCore, readonly afterwards for various callbacks }
+
     { przekazana jako parametr lista stringow; tylko do odczytu,
       nie modyfikuj tego zawartosci ! }
     MessgText: TStringList;
@@ -543,7 +535,7 @@ type
     DrawAdditional: boolean; { czy wypisywac SAdditional }
     ClosingInfo: string;     { ClosingInfo : jesli '' to nie bedzie wypisywane }
 
-    { zmienne ktore umozliwiaja inna komunikacje miedzy GLWinMessage a callbackami }
+    { zmienne ktore umozliwiaja inna komunikacje miedzy MessageCore a callbackami }
     answered: boolean;              { ustaw na true aby zakonczyc }
 
     { bedzie wyswietlany jezeli DrawAdditional }
@@ -608,7 +600,7 @@ begin
     Result := 0;
 end;
 
-{ GLWinMessage callbacks -------------------------------------------------- }
+{ MessageCore callbacks -------------------------------------------------- }
 
 procedure ResizeMessg(Window: TCastleWindowBase);
 var
@@ -1004,14 +996,14 @@ begin
  glDisable(GL_SCISSOR_TEST);
 end;
 
-{ zasadnicza procedura GLWinMessage ------------------------------------- }
+{ main utility MessageCore ------------------------------------- }
 
 { Notes:
   - MessageOnUserMouseDown will be called only if the mouse position
     will be within WholeMessageRect. You should not react to mouse
     click on other places.
 }
-procedure GLWinMessage(Window: TCastleWindowBase; textlist: TStringList;
+procedure MessageCore(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign; MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
   MessageOnUserMouseWheel: TMouseWheelFunc;
@@ -1024,7 +1016,7 @@ procedure GLWinMessage(Window: TCastleWindowBase; textlist: TStringList;
   bedzie callback na OnKeyDown i OnDraw; W callbackach uzywamy
   ustawianej w tej procedurze strukturze TMessageData (bierzemy ja z
   PMessageData(Window.UserData) ). W ten sposob mozna wywolac na wielu
-  roznch okienkach GLWinMessage i wszystko bedzie dzialalo ok.
+  roznch okienkach MessageCore i wszystko bedzie dzialalo ok.
 
   OnDraw moze zasadniczo wygladac dowolnie, ale powinno uzywac zmiennych
   ustawionych dla niego w TMessageData mowiacych mu co i jak wypisac.
@@ -1034,16 +1026,13 @@ procedure GLWinMessage(Window: TCastleWindowBase; textlist: TStringList;
 
   Zawartosc obiektu textlist nie bedzie modyfikowana - jest to gwarantowane.
 
-  GLWinMessage dziala az ktorys callback ustawi answered na true.
+  Works until ktorys callback ustawi answered na true.
 }
 var messageData: TMessageData;
     SavedMode: TGLMode;
 begin
-  if Assigned(OnGLWinMessage) then
-    OnGLWinMessage(TextList);
-
   if Log then
-    WritelnLogMultiline('GLWinMessage', TextList.Text);
+    WritelnLogMultiline('Message', TextList.Text);
 
  {1 faza :
    FlushRedisplay; W ten sposob po zainstalowaniu naszych callbackow
@@ -1071,9 +1060,7 @@ begin
 
  {3 faza zarazem:
    Ustawiamy wlasne wlasciwosci okienka, w szczegolnosci - wlasne callbacki. }
-   {$ifdef FPC_OBJFPC} @ {$endif} drawMessg,
-   {$ifdef FPC_OBJFPC} @ {$endif} resizeMessg,
-   {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
+   @drawMessg, @resizeMessg, @NoClose);
 
  { FakeMouseDown must be @false.
    Otherwise closing dialog box with MouseDown will then cause MouseDown
@@ -1183,7 +1170,7 @@ begin
  end;
 end;
 
-procedure GLWinMessage_NoAdditional(Window: TCastleWindowBase; textlist: TStringList;
+procedure MessageCore_NoAdditional(Window: TCastleWindowBase; textlist: TStringList;
   textalign: TTextAlign;
   MessageOnUserKeyDown: TKeyCharFunc;
   MessageOnUserMouseDown: TMouseUpDownFunc;
@@ -1194,7 +1181,7 @@ procedure GLWinMessage_NoAdditional(Window: TCastleWindowBase; textlist: TString
 var dummy: string;
 begin
  dummy := '';
- GLWinMessage(Window, textlist, textalign, MessageOnUserKeyDown,
+ MessageCore(Window, textlist, textalign, MessageOnUserKeyDown,
    MessageOnUserMouseDown, MessageOnUserMouseWheel,
    AUserMouseDownOnlyWithinRect,
    messageUserdata, AClosingInfo, false, dummy);
@@ -1238,10 +1225,8 @@ end;
 procedure MessageOK(Window: TCastleWindowBase;  textlist: TStringList;
   textalign: TTextAlign);
 begin
- GLWinMessage_NoAdditional(Window, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgOK,
-   {$ifdef FPC_OBJFPC} @ {$endif} MouseDownMessgOK, nil, true,
-   nil, '[Enter]');
+ MessageCore_NoAdditional(Window, textlist, textalign,
+   @KeyDownMessgOK, @MouseDownMessgOK, nil, true, nil, '[Enter]');
 end;
 
 { MessageInput function with callbacks --------------------------------------- }
@@ -1322,9 +1307,8 @@ begin
  inputdata.userCanCancel := false;
  inputdata.answerCancelled := false;
  result := answerDefault;
- GLWinMessage(Window, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, nil, false,
-   @inputdata, '', true, result);
+ MessageCore(Window, textlist, textalign,
+   @KeyDownMessgInput, nil, nil, false, @inputdata, '', true, result);
 end;
 
 function MessageInputQuery(Window: TCastleWindowBase; const s: string;
@@ -1356,8 +1340,8 @@ begin
   GLWinMessage zmienna answer bo jezeli not result to nie chcemy zmieniac
   answer. }
  SAdditional := answer;
- GLWinMessage(Window, textlist, textalign,
-   {$ifdef FPC_OBJFPC} @ {$endif} KeyDownMessgInput, nil, nil, false,
+ MessageCore(Window, textlist, textalign,
+   @KeyDownMessgInput, nil, nil, false,
    @inputdata, 'OK[Enter] / Cancel[Escape]', true, SAdditional);
  result := not inputdata.answerCancelled;
  if result then answer := SAdditional;
@@ -1431,7 +1415,7 @@ var charData: TCharData;
 begin
  chardata.allowedChars := AllowedChars;
  chardata.IgnoreCase := IgnoreCase;
- GLWinMessage_NoAdditional(Window, textlist, textalign,
+ MessageCore_NoAdditional(Window, textlist, textalign,
    @KeyDownMessgChar, nil, nil, false,
    @chardata, ClosingInfo);
  result := chardata.answer;
@@ -1489,9 +1473,8 @@ function MessageKey(Window: TCastleWindowBase; TextList: TStringList;
 var
   MessageKeyData: TMessageKeyData;
 begin
-  GLWinMessage_NoAdditional(Window, TextList, TextAlign,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKey_KeyDown, nil, nil, false,
-    @MessageKeyData, ClosingInfo);
+  MessageCore_NoAdditional(Window, TextList, TextAlign,
+    @MessageKey_KeyDown, nil, nil, false, @MessageKeyData, ClosingInfo);
   Result := MessageKeyData.Answer;
 end;
 
@@ -1579,11 +1562,10 @@ procedure MessageKeyMouse(Window: TCastleWindowBase; TextList: TStringList;
 var
   Data: TMessageKeyMouseData;
 begin
-  GLWinMessage_NoAdditional(Window, TextList, TextAlign,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_KeyDown,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseDown,
-    {$ifdef FPC_OBJFPC} @ {$endif} MessageKeyMouse_MouseWheel, false,
-    @Data, ClosingInfo);
+  MessageCore_NoAdditional(Window, TextList, TextAlign,
+    @MessageKeyMouse_KeyDown,
+    @MessageKeyMouse_MouseDown,
+    @MessageKeyMouse_MouseWheel, false, @Data, ClosingInfo);
   Key := Data.AnswerKey;
   MousePress := Data.AnswerMousePress;
   MouseButton := Data.AnswerMouseButton;
