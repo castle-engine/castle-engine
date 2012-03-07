@@ -302,9 +302,9 @@ begin
   begin
     Url := FdUrl.Items[I];
 
-    { We have to call URLExtractAnchor before PathFromWWWBasePath.
+    { We have to call URLExtractAnchor before PathFromBaseUrl.
       Otherwise, in case of Urls like '' or '#viewpoint_in_this_world'
-      PathFromWWWBasePath would prefix it with our path,
+      PathFromBaseUrl would prefix it with our path,
       making it invalid. }
     UrlWithoutViewpoint := Url;
     URLExtractAnchor(UrlWithoutViewpoint, NewViewpointName);
@@ -339,7 +339,7 @@ begin
     end else
     begin
       { in this case, we have either a new 3D world, or a document }
-      UrlWithoutViewpoint := PathFromWWWBasePath(UrlWithoutViewpoint);
+      UrlWithoutViewpoint := PathFromBaseUrl(UrlWithoutViewpoint);
       try
         NewRootNode := Load3D(UrlWithoutViewpoint, false, true);
 
@@ -495,7 +495,7 @@ begin
       about unrecognized 3D model file extension for dir name is done). }
     if FdUrl.Items[I] <> '' then
     begin
-      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
         FInlined := Load3D(FullUrl, false);
         if (Exported <> nil) and

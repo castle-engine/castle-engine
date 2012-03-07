@@ -492,7 +492,7 @@ begin
       if LoadFromDataProtocol(FdUrl.Items[I], Result) then Break;
     end else
     begin
-      FullUrl := Node.PathFromWWWBasePath(FdUrl.Items[I]);
+      FullUrl := Node.PathFromBaseUrl(FdUrl.Items[I]);
       try
         Result := FileToString(FullUrl);
         UsedFullUrl := FullUrl;

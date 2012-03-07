@@ -77,14 +77,14 @@ var
   CoordNode: TCoordinateNode;
   TexCoords: TVector2SingleList;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
     XDimension := FdXDimension.Value;
     ZDimension := FdZDimension.Value;
 
     if IsNotEmpty then
     begin
-      CoordNode := TCoordinateNode.Create('', WWWBasePath);
+      CoordNode := TCoordinateNode.Create('', BaseUrl);
       IFS.FdCoord.Value := CoordNode;
       Coords := CoordNode.FdPoint.Items;
 
@@ -97,7 +97,7 @@ begin
       if TexCoordProvided then
         IFS.FdTexCoord.Value := FdTexCoord.Value else
       begin
-        IFS.FdTexCoord.Value := TTextureCoordinateNode.Create('', WWWBasePath);
+        IFS.FdTexCoord.Value := TTextureCoordinateNode.Create('', BaseUrl);
         TexCoords := TTextureCoordinateNode(IFS.FdTexCoord.Value).FdPoint.Items;
       end;
 

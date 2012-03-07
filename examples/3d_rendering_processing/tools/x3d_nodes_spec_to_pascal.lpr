@@ -95,7 +95,7 @@ begin
   begin
     WritelnStr(InterfaceLines,
       '  public' + NL +
-      '    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;');
+      '    constructor Create(const ANodeName: string; const ABaseUrl: string); override;');
 
     if not IsAbstract then
       WritelnStr(InterfaceLines,
@@ -104,7 +104,7 @@ begin
 
     WritelnStr(ImplementationLines,
       'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + NL +
-      '  const AWWWBasePath: string);' + NL +
+      '  const ABaseUrl: string);' + NL +
       'begin' + NL +
       '  inherited;');
 

@@ -46,7 +46,7 @@
   TX3DNode = class(TX3DFileItem, IX3DNode)
   private
     fNodeName: string;
-    FWWWBasePath: string;
+    FBaseUrl: string;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
     FKeepExisting: Cardinal;
     FParentFields: TX3DFieldList;
@@ -452,14 +452,17 @@
       various parsing routines.
       This way we could, if only we would like to, resolve nodes
       like Inline or ImageTexture immediately after parsing them. }
-    property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
+    property BaseUrl: string read FBaseUrl write FBaseUrl;
+
+    { Old deprecated name for BaseUrl. @deprecated }
+    property WWWBasePath: string read FBaseUrl write FBaseUrl;
 
     { Returns an absolute path, assuming that RelativePath is relative
-      path from WWWBasePath or that RelativePath is already absolute. }
-    function PathFromWWWBasePath(const RelativePath: string): string;
+      path from BaseUrl or that RelativePath is already absolute. }
+    function PathFromBaseUrl(const RelativePath: string): string;
 
     { Parse node. This should set values of your fields, VRML 1.0 Children
-      list, WWWBasePath.
+      list, BaseUrl.
 
       In special cases like TX3DUnknownNode this may
       actually initialize whole Fields list (by VRML 1.0 "fields" extensibility
@@ -472,7 +475,7 @@
     { Constructor. Initializes various properties:
 
       @unorderedList(
-        @item(NodeName, WWWBasePath are initialized
+        @item(NodeName, BaseUrl are initialized
           directly from given parameters.)
         @item(The @link(Fields), @link(Events) lists are filled
           in every descendant, to have all the fields/events defined
@@ -482,7 +485,7 @@
           in CreateNode, that is called at the end of this constructor.)
       )
     }
-    constructor Create(const ANodeName, AWWWBasePath: string); virtual;
+    constructor Create(const ANodeName, ABaseUrl: string); virtual;
 
     destructor Destroy; override;
 
@@ -1044,14 +1047,14 @@ end;
 
 { TX3DNode ------------------------------------------------------------------ }
 
-constructor TX3DNode.Create(const ANodeName, AWWWBasePath: string);
+constructor TX3DNode.Create(const ANodeName, ABaseUrl: string);
 begin
   inherited Create;
   VRML1ChildrenAllowed := false;
   VRML1ChildrenParsingAllowed := false;
 
   FNodeName := ANodeName;
-  FWWWBasePath := AWWWBasePath;
+  FBaseUrl := ABaseUrl;
 
   FVRML1Children := TX3DNodeList.Create(false);
   FVRML1Parents := TX3DNodeList.Create(false);
@@ -1492,15 +1495,15 @@ begin
  result := '';
 end;
 
-function TX3DNode.PathFromWWWBasePath(const RelativePath: string): string;
+function TX3DNode.PathFromBaseUrl(const RelativePath: string): string;
 begin
   { This is a workaround for Blender errorneous VRML 1.0 export.
     Blender exports relative paths by prefixing them by "//"
     (that's a general convention used internally by Blender, AFAIK).
     Here I simply remove this "//". }
   if IsPrefix('//', RelativePath) then
-    Result := CombineUrls(WWWBasePath, SEnding(RelativePath, 3)) else
-    Result := CombineUrls(WWWBasePath, RelativePath);
+    Result := CombineUrls(BaseUrl, SEnding(RelativePath, 3)) else
+    Result := CombineUrls(BaseUrl, RelativePath);
 end;
 
 procedure TX3DNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
@@ -1544,7 +1547,7 @@ begin
   end;
   Lexer.NextToken;
 
-  FWWWBasePath := Reader.WWWBasePath;
+  FBaseUrl := Reader.BaseUrl;
 
   ParseAfter(Reader);
 end;
@@ -2883,7 +2886,7 @@ end;
 
 function TX3DNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DNodeClass(ClassType).Create(NodeName, WWWBasePath);
+  Result := TX3DNodeClass(ClassType).Create(NodeName, BaseUrl);
 end;
 
 function TX3DNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;

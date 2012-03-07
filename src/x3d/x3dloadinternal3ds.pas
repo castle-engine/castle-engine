@@ -966,7 +966,7 @@ end;
 
 function Load3DS(const filename: string): TX3DRootNode;
 var
-  WWWBasePath: string;
+  BaseUrl: string;
   O3ds: TScene3DS;
 
   { Prefix names with things like "Material_", to make sure these
@@ -997,7 +997,7 @@ var
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
     begin
-      Viewpoint := MakeCameraNode(cvVrml2_X3d, WWWBasePath,
+      Viewpoint := MakeCameraNode(cvVrml2_X3d, BaseUrl,
         O3ds.Cameras[I].Position,
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,
@@ -1017,7 +1017,7 @@ var
     for I := 0 to O3ds.Lights.Count - 1 do
     begin
       Light := TPointLightNode.Create(LightVRMLName(
-        O3ds.Lights[I].Name), WWWBasePath);
+        O3ds.Lights[I].Name), BaseUrl);
       Result.FdChildren.Add(Light);
 
       Light.FdOn.Value := O3ds.Lights[I].Enabled;
@@ -1032,9 +1032,9 @@ var
     Tex: TImageTextureNode;
     TexTransform: TTextureTransformNode;
   begin
-    Result := TAppearanceNode.Create(MaterialVRMLName(Material.Name), WWWBasePath);
+    Result := TAppearanceNode.Create(MaterialVRMLName(Material.Name), BaseUrl);
 
-    Mat := TMaterialNode.Create('', WWWBasePath);
+    Mat := TMaterialNode.Create('', BaseUrl);
     Mat.FdDiffuseColor.Value := Vector3SingleCut(Material.DiffuseColor);
     Mat.FdAmbientIntensity.Value := AmbientIntensity(Material.AmbientColor, Material.DiffuseColor);
     Mat.FdSpecularColor.Value := Vector3SingleCut(Material.SpecularColor);
@@ -1044,19 +1044,19 @@ var
 
     if Material.TextureMap1.Exists then
     begin
-      Tex := TImageTextureNode.Create('', WWWBasePath);
-      Tex.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath,
+      Tex := TImageTextureNode.Create('', BaseUrl);
+      Tex.FdUrl.Items.Add(SearchTextureFileName(BaseUrl,
         Material.TextureMap1.MapFilename));
       Result.FdTexture.Value := Tex;
 
-      TexTransform := TTextureTransformNode.Create('', WWWBasePath);
+      TexTransform := TTextureTransformNode.Create('', BaseUrl);
       TexTransform.FdScale.Value := Material.TextureMap1.Scale;
       Result.FdTextureTransform.Value := TexTransform;
 
       if Material.TextureMapBump.Exists then
       begin
-        Tex := TImageTextureNode.Create('', WWWBasePath);
-        Tex.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath,
+        Tex := TImageTextureNode.Create('', BaseUrl);
+        Tex.FdUrl.Items.Add(SearchTextureFileName(BaseUrl,
           Material.TextureMapBump.MapFilename));
         Result.FdNormalMap.Value := Tex;
 
@@ -1093,11 +1093,11 @@ var
   Shape: TShapeNode;
   I, J, FaceMaterialNum, ThisMaterialFacesCount, FaceNum: Integer;
 begin
-  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  BaseUrl := ExtractFilePath(ExpandFilename(filename));
   Appearances := nil;
   O3ds := TScene3DS.Create(filename);
   try
-    Result := TX3DRootNode.Create('', WWWBasePath);
+    Result := TX3DRootNode.Create('', BaseUrl);
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
@@ -1119,7 +1119,7 @@ begin
         Trimesh3ds := O3ds.Trimeshes[I];
 
         { Create Coordinate node }
-        Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
+        Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
           Coord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].Pos;
@@ -1127,7 +1127,7 @@ begin
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
         begin
-          TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), WWWBasePath);
+          TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
             TexCoord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].TexCoord;
@@ -1138,7 +1138,7 @@ begin
         J := 0;
         while J < Trimesh3ds.FacesCount do
         begin
-          IFS := TIndexedFaceSetNode.Create('', WWWBasePath);
+          IFS := TIndexedFaceSetNode.Create('', BaseUrl);
           IFS.FdTexCoord.Value := TexCoord;
           IFS.FdCoord.Value := Coord;
           { We don't support 3DS smoothing groups.
@@ -1146,7 +1146,7 @@ begin
           IFS.FdCreaseAngle.Value := NiceCreaseAngle;
           IFS.FdSolid.Value := false;
 
-          Shape := TShapeNode.Create('', WWWBasePath);
+          Shape := TShapeNode.Create('', BaseUrl);
           Shape.FdGeometry.Value := IFS;
 
           FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;

@@ -136,9 +136,9 @@ type
 { Load a specific animation frame from a given MD3 model.
   @param Md3 is the MD3 file to use.
   @param FrameNumber is the frame number to load, must be < Md3.Count.
-  @param WWWBasePath is the base URL, set for TX3DNode.WWWBasePath. }
+  @param BaseUrl is the base URL, set for TX3DNode.BaseUrl. }
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TX3DRootNode; forward;
+  const BaseUrl: string): TX3DRootNode; forward;
 
 type
   EInvalidMD3 = class(Exception);
@@ -450,7 +450,7 @@ end;
 { Converting to X3D ---------------------------------------------------------- }
 
 function LoadMD3Frame(Md3: TObject3DMD3; FrameNumber: Cardinal;
-  const WWWBasePath: string): TX3DRootNode;
+  const BaseUrl: string): TX3DRootNode;
 var
   Texture: TImageTextureNode;
   SceneBox: TBox3D;
@@ -461,7 +461,7 @@ var
     I: Integer;
     V: PMd3Vertex;
   begin
-    Result := TCoordinateNode.Create('', WWWBasePath);
+    Result := TCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
     V := Addr(Vertexes.L[VertexesInFrameCount * FrameNumber]);
     for I := 0 to VertexesInFrameCount - 1 do
@@ -482,7 +482,7 @@ var
     I: Integer;
     V: PVector2Single;
   begin
-    Result := TTextureCoordinateNode.Create('', WWWBasePath);
+    Result := TTextureCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := TextureCoords.Count;
     V := PVector2Single(TextureCoords.List);
     for I := 0 to TextureCoords.Count - 1 do
@@ -496,7 +496,7 @@ var
   var
     I: Integer;
   begin
-    Result := TIndexedFaceSetNode.Create('', WWWBasePath);
+    Result := TIndexedFaceSetNode.Create('', BaseUrl);
     Result.FdCreaseAngle.Value := NiceCreaseAngle;
     Result.FdSolid.Value := false;
     Result.FdCoordIndex.Items.Count := Triangles.Count * 4;
@@ -523,9 +523,9 @@ var
     IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
     IFS.FdTexCoord.Value := MakeTextureCoordinates(Surface.TextureCoords);
 
-    Result := TShapeNode.Create(ToX3DName(Surface.Name), WWWBasePath);
+    Result := TShapeNode.Create(ToX3DName(Surface.Name), BaseUrl);
     Result.FdGeometry.Value := IFS;
-    Result.Material := TMaterialNode.Create('', WWWBasePath);
+    Result.Material := TMaterialNode.Create('', BaseUrl);
     Result.Texture := Texture;
   end;
 
@@ -536,7 +536,7 @@ begin
     ToX3DName(Md3.Name
       { Although adding here FrameNumber is not a bad idea, but PrecalculatedAnimation
         requires for now that sequence of VRML models have the same node names }
-      { + '_Frame' + IntToStr(FrameNumber) }), WWWBasePath);
+      { + '_Frame' + IntToStr(FrameNumber) }), BaseUrl);
 
   Result.HasForceVersion := true;
   Result.ForceVersion := X3DVersion;
@@ -545,7 +545,7 @@ begin
 
   if Md3.TextureFileName <> '' then
   begin
-    Texture := TImageTextureNode.Create('', WWWBasePath);
+    Texture := TImageTextureNode.Create('', BaseUrl);
     Texture.FdUrl.Items.Add(Md3.TextureFileName);
   end else
     Texture := nil;
@@ -557,7 +557,7 @@ begin
     to be in +Z, since this is the convention used in all MD3 files that
     I saw (so I guess that Quake3 engine generally uses this convention). }
   Result.FdChildren.Add(CameraNodeForWholeScene(cvVrml2_X3d, 
-    WWWBasePath, SceneBox, 0, 2, false, true));
+    BaseUrl, SceneBox, 0, 2, false, true));
 
   if Texture <> nil then
   begin
@@ -569,12 +569,12 @@ end;
 function LoadMD3(const FileName: string): TX3DRootNode;
 var
   Md3: TObject3DMD3;
-  WWWBasePath: string;
+  BaseUrl: string;
 begin
-  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+  BaseUrl := ExtractFilePath(ExpandFilename(FileName));
   Md3 := TObject3DMD3.Create(FileName);
   try
-    Result := LoadMD3Frame(Md3, 0, WWWBasePath);
+    Result := LoadMD3Frame(Md3, 0, BaseUrl);
   finally FreeAndNil(Md3) end;
 end;
 
@@ -587,16 +587,16 @@ procedure LoadMD3Sequence(
   out TimeLoop, TimeBackwards: boolean);
 var
   Md3: TObject3DMD3;
-  WWWBasePath: string;
+  BaseUrl: string;
   I: Integer;
 begin
-  WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+  BaseUrl := ExtractFilePath(ExpandFilename(FileName));
   Md3 := TObject3DMD3.Create(FileName);
   try
     { handle each MD3 frame }
     for I := 0 to Md3.FramesCount - 1 do
     begin
-      RootNodes.Add(LoadMD3Frame(Md3, I, WWWBasePath));
+      RootNodes.Add(LoadMD3Frame(Md3, I, BaseUrl));
       Times.Add(I / 30);
     end;
 

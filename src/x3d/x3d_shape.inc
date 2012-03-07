@@ -500,7 +500,7 @@ begin
     App.FdMaterial.Value := Value else
   if Value <> nil then
   begin
-    App := TAppearanceNode.Create('', WWWBasePath);
+    App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
     Appearance := App;
     App.FdMaterial.Value := Value;
@@ -528,7 +528,7 @@ begin
     App.FdTexture.Value := Value else
   if Value <> nil then
   begin
-    App := TAppearanceNode.Create('', WWWBasePath);
+    App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
     Appearance := App;
     App.FdTexture.Value := Value;
@@ -556,7 +556,7 @@ begin
     App.FdTextureTransform.Value := Value else
   if Value <> nil then
   begin
-    App := TAppearanceNode.Create('', WWWBasePath);
+    App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
     Appearance := App;
     App.FdTextureTransform.Value := Value;
@@ -584,7 +584,7 @@ begin
     App.FdLineProperties.Value := Value else
   if Value <> nil then
   begin
-    App := TAppearanceNode.Create('', WWWBasePath);
+    App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
     Appearance := App;
     App.FdLineProperties.Value := Value;

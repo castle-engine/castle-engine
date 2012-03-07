@@ -64,7 +64,7 @@ begin
 
     Prog := ParseProgram(FileToString(Parameters[1]), Vars);
     try
-      Prog.Environment.WWWBasePath := InclPathDelim(GetCurrentDir);
+      Prog.Environment.BaseUrl := InclPathDelim(GetCurrentDir);
       Prog.ExecuteFunction('main', []);
       SaveImage(TCasScriptImage(Vars[0]).Value, Parameters[2]);
     finally FreeAndNil(Prog) end;

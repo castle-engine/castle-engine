@@ -394,9 +394,9 @@ var
   CoordNode: TCoordinateNode;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
-    CoordNode := TCoordinateNode.Create('', WWWBasePath);
+    CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
     if FdManifold.Value then
       CoordNode.FdPoint.Items.AssignArray(TeapotManifoldCoord) else

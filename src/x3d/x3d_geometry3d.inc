@@ -951,7 +951,7 @@ var
   TexCapsMin, TexCapsMax: TVector2Single;
   TexCapsTranslation, TexCapsScale: Single;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
     E := TVRMLExtrusion.Create;
     try
@@ -962,7 +962,7 @@ begin
 
       { Fill CoordNode }
 
-      CoordNode := TCoordinateNode.Create('', WWWBasePath);
+      CoordNode := TCoordinateNode.Create('', BaseUrl);
       IFS.FdCoord.Value := CoordNode;
 
       CoordNode.FdPoint.Items.Count := SidesCount;
@@ -979,7 +979,7 @@ begin
 
       { Fill TexCoordNode }
 
-      TexCoordNode := TTextureCoordinateNode.Create('', WWWBasePath);
+      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
       IFS.FdTexCoord.Value := TexCoordNode;
 
       Len := SidesCount;

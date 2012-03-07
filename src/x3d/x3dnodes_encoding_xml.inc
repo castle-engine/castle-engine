@@ -28,7 +28,7 @@ const
   stream (as read) is no longer compressed.
   @groupBegin }
 function LoadX3DXml(const FileName: string; Gzipped: boolean): TX3DRootNode;
-function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
+function LoadX3DXml(Stream: TStream; const BaseUrl: string;
   const BaseName: string = ''): TX3DRootNode;
 { @groupEnd }
 
@@ -159,8 +159,8 @@ function ParseXMLNode(Element: TDOMElement;
 
       if (Proto is TX3DExternalPrototype) and
          (TX3DExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Reader.WWWBasePath) else
-        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.WWWBasePath, Proto);
+        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Reader.BaseUrl) else
+        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.BaseUrl, Proto);
 
       Reader.Nodes.Bind(Result, false);
 
@@ -220,12 +220,12 @@ function ParseXMLNode(Element: TDOMElement;
       NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Reader.Version);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(NodeName, Reader.WWWBasePath);
+        Result := NodeClass.Create(NodeName, Reader.BaseUrl);
         Reader.Nodes.Bind(Result, false);
         Result.ParseXML(Element, Reader);
       end else
       begin
-        Result := TX3DUnknownNode.CreateUnknown(NodeName, Reader.WWWBasePath, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(NodeName, Reader.BaseUrl, NodeTypeName);
 
         { In classic VRML parser, we had special TX3DUnknownNode.Parse
           that performed the "magic" trick of
@@ -306,7 +306,7 @@ var
   { Create root group node. }
   function CreateRootNode: TX3DRootNode;
   begin
-    Result := TX3DRootNode.Create('', Reader.WWWBasePath);
+    Result := TX3DRootNode.Create('', Reader.BaseUrl);
     Result.HasForceVersion := true;
     Result.ForceVersion := Reader.Version;
   end;
@@ -519,7 +519,7 @@ begin
   end;
 end;
 
-function LoadX3DXml(Stream: TStream; const WWWBasePath: string;
+function LoadX3DXml(Stream: TStream; const BaseUrl: string;
   const BaseName: string): TX3DRootNode;
 var
   Doc: TXMLDocument;
@@ -535,8 +535,8 @@ begin
   try
     { calculate FileName. Used for ReadXMLFile, used there e.g. for error messages }
     if BaseName <> '' then
-      FileName := CombineUrls(WWWBasePath, BaseName) else
-      FileName := WWWBasePath;
+      FileName := CombineUrls(BaseUrl, BaseName) else
+      FileName := BaseUrl;
 
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
       even in case of exception. So place it inside try..finally. }
@@ -564,7 +564,7 @@ begin
     SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
 
     { X3D XML requires AutoRemove = true below }
-    Reader := TX3DReaderNames.Create(true, WWWBasePath, Version);
+    Reader := TX3DReaderNames.Create(true, BaseUrl, Version);
     try
       Result := ParseStatements(SceneElement, true, Doc.DocumentElement, Reader);
       Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);

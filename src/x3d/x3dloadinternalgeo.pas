@@ -172,21 +172,21 @@ var
   faces: TIndexedFaceSetNode;
   Shape: TShapeNode;
   i: integer;
-  WWWBasePath: string;
+  BaseUrl: string;
 begin
-  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  BaseUrl := ExtractFilePath(ExpandFilename(filename));
   geo := TObject3DGEO.Create(filename);
   try
-    result := TX3DRootNode.Create('', WWWBasePath);
+    result := TX3DRootNode.Create('', BaseUrl);
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 
-      Shape := TShapeNode.Create('', WWWBasePath);
+      Shape := TShapeNode.Create('', BaseUrl);
       result.FdChildren.Add(Shape);
-      Shape.Material := TMaterialNode.Create('', WWWBasePath);
+      Shape.Material := TMaterialNode.Create('', BaseUrl);
 
-      faces := TIndexedFaceSetNode.Create('', WWWBasePath);
+      faces := TIndexedFaceSetNode.Create('', BaseUrl);
       Shape.FdGeometry.Value := faces;
       faces.FdCreaseAngle.Value := NiceCreaseAngle;
       faces.FdSolid.Value := false;
@@ -199,7 +199,7 @@ begin
         faces.FdCoordIndex.Items.L[i * 4 + 3] := -1;
       end;
 
-      verts := TCoordinateNode.Create('', WWWBasePath);
+      verts := TCoordinateNode.Create('', BaseUrl);
       faces.FdCoord.Value := verts;
       verts.FdPoint.Items.Assign(geo.Verts);
     except result.Free; raise end;

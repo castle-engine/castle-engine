@@ -850,10 +850,10 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
         'Different names of nodes: "%s" and "%s"',
         [Model1.NodeName, Model2.NodeName]);
 
-    if Model1.WWWBasePath <> Model2.WWWBasePath then
+    if Model1.BaseUrl <> Model2.BaseUrl then
       raise EModelsStructureDifferent.CreateFmt(
-        'Different WWWBasePath of nodes: "%s" and "%s"',
-        [Model1.WWWBasePath, Model2.WWWBasePath]);
+        'Different BaseUrl of nodes: "%s" and "%s"',
+        [Model1.BaseUrl, Model2.BaseUrl]);
 
     if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
       raise EModelsStructureDifferent.CreateFmt(
@@ -1087,7 +1087,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
       Exit(Model1);
 
     Result := TX3DNodeClass(Model1.ClassType).Create(Model1.NodeName,
-      Model1.WWWBasePath);
+      Model1.BaseUrl);
     try
       { We already loaded all inlines (in CheckVRMLModelsStructurallyEqual).
         We have to mark it now, by setting Loaded := true field as necessary

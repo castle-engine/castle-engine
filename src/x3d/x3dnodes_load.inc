@@ -27,7 +27,7 @@
     procedure CommonCreate(const AAutoRemoveNodes: boolean);
   public
     constructor Create(const AAutoRemoveNodes: boolean;
-      const AWWWBasePath: string;
+      const ABaseUrl: string;
       const AVersion: TX3DVersion);
     constructor CreateCopy(const AAutoRemoveNodes: boolean;
       Source: TX3DReader);
@@ -98,9 +98,9 @@
 { TX3DReaderNames ----------------------------------------------------------------- }
 
 constructor TX3DReaderNames.Create(const AAutoRemoveNodes: boolean;
-  const AWWWBasePath: string; const AVersion: TX3DVersion);
+  const ABaseUrl: string; const AVersion: TX3DVersion);
 begin
-  inherited Create(AWWWBasePath, AVersion);
+  inherited Create(ABaseUrl, AVersion);
   CommonCreate(AAutoRemoveNodes);
 end;
 

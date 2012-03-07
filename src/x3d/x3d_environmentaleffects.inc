@@ -460,7 +460,7 @@ procedure TBackgroundNode.SetBgImagesLoaded(const Value: boolean);
     for i := 0 to Urls.Count-1 do
     begin
       try
-        URL := PathFromWWWBasePath(Urls.Items[i]);
+        URL := PathFromBaseUrl(Urls.Items[i]);
         FBgImages.Images[bs] := X3DCache.TextureImage_IncReference(URL);
         Break;
       except

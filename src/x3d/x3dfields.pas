@@ -73,18 +73,18 @@ type
   TX3DReader = class
   private
     FVersion: TX3DVersion;
-    FWWWBasePath: string;
+    FBaseUrl: string;
     AngleConversionFactor: Float;
   public
     LengthConversionFactor: Float;
 
-    constructor Create(const AWWWBasePath: string;
+    constructor Create(const ABaseUrl: string;
       const AVersion: TX3DVersion);
     constructor CreateCopy(Source: TX3DReader);
 
     { Base path for resolving URLs from nodes in this namespace.
-      See TX3DNode.WWWBasePath. }
-    property WWWBasePath: string read FWWWBasePath;
+      See TX3DNode.BaseUrl. }
+    property BaseUrl: string read FBaseUrl;
 
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
@@ -2722,10 +2722,10 @@ end;
 { TX3DReader ----------------------------------------------------------------- }
 
 constructor TX3DReader.Create(
-  const AWWWBasePath: string; const AVersion: TX3DVersion);
+  const ABaseUrl: string; const AVersion: TX3DVersion);
 begin
   inherited Create;
-  FWWWBasePath := AWWWBasePath;
+  FBaseUrl := ABaseUrl;
   FVersion := AVersion;
   AngleConversionFactor := 1;
   LengthConversionFactor := 1;
@@ -2734,7 +2734,7 @@ end;
 constructor TX3DReader.CreateCopy(Source: TX3DReader);
 begin
   inherited Create;
-  FWWWBasePath := Source.WWWBasePath;
+  FBaseUrl := Source.BaseUrl;
   FVersion := Source.Version;
   AngleConversionFactor := Source.AngleConversionFactor;
   LengthConversionFactor := Source.LengthConversionFactor;

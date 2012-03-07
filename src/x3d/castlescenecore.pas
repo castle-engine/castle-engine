@@ -820,7 +820,7 @@ type
 
       @param(AllowStdIn If AllowStdIn and AFileName = '-' then we will load
         a file from standard input (StdInStream), using GetCurrentDir
-        as WWWBasePath (to resolve relative URLs from the file).
+        as BaseUrl (to resolve relative URLs from the file).
         Currently, this limits the file to be VRML/X3D.) }
     procedure Load(const AFileName: string; AllowStdIn: boolean = false;
       const AResetTime: boolean = true);

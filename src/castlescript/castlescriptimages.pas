@@ -201,7 +201,7 @@ begin
 
   FullUrl := TCasScriptString(Arguments[0]).Value;
   if AFunction.Environment <> nil then
-    FullUrl := CombineUrls(AFunction.Environment.WWWBasePath, FullUrl);
+    FullUrl := CombineUrls(AFunction.Environment.BaseUrl, FullUrl);
 
   try
     NewImage := LoadImage(FullUrl, [TRGBImage, TRGBAlphaImage], []);

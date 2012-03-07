@@ -31,7 +31,7 @@ const
   generic TStream class. But it's not a problem, really, because
   you can wrap any class inside TPeekCharStream descendant. E.g. do
   @longcode(#
-    LoadX3DClassic(TBufferedReadStream.Create(MyStream, false), WWWBasePath)
+    LoadX3DClassic(TBufferedReadStream.Create(MyStream, false), BaseUrl)
   #)
 
   Note that this function can't handle compressed data (VRML files are
@@ -40,10 +40,10 @@ const
 
   @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
 function LoadX3DClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string): TX3DRootNode; overload;
+  const BaseUrl: string): TX3DRootNode; overload;
 
 function LoadX3DClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string): TX3DRootNode; overload;
+  const BaseUrl: string): TX3DRootNode; overload;
 
 { Load VRML/X3D file in classic encoding, return it's root node.
 
@@ -146,17 +146,17 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
     begin
       if (Proto is TX3DExternalPrototype) and
          (TX3DExternalPrototype(Proto).ReferencedClass <> nil) then
-        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Reader.WWWBasePath) else
-        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.WWWBasePath, Proto);
+        Result := TX3DExternalPrototype(Proto).ReferencedClass.Create(NodeName, Reader.BaseUrl) else
+        Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.BaseUrl, Proto);
     end else
     begin
       NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Reader.Version);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(nodename, Reader.WWWBasePath);
+        Result := NodeClass.Create(nodename, Reader.BaseUrl);
       end else
       begin
-        Result := TX3DUnknownNode.CreateUnknown(nodename, Reader.WWWBasePath, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(nodename, Reader.BaseUrl, NodeTypeName);
       end;
     end;
 
@@ -292,7 +292,7 @@ var
   { Create root group node, appropriate for current VRML version in Lexer. }
   function CreateRootNode: TX3DRootNode;
   begin
-    Result := TX3DRootNode.Create('', Reader.WWWBasePath);
+    Result := TX3DRootNode.Create('', Reader.BaseUrl);
     Result.HasForceVersion := true;
     Result.ForceVersion := Reader.Version;
   end;
@@ -536,14 +536,14 @@ begin
 end;
 
 function LoadX3DClassic(Stream: TPeekCharStream;
-  const WWWBasePath: string): TX3DRootNode;
+  const BaseUrl: string): TX3DRootNode;
 var
   Lexer: TX3DLexer;
   Reader: TX3DReaderNames;
 begin
   Lexer := TX3DLexer.Create(Stream, false);
   try
-    Reader := TX3DReaderNames.Create(false, WWWBasePath, Lexer.Version);
+    Reader := TX3DReaderNames.Create(false, BaseUrl, Lexer.Version);
     try
       Result := ParseStatements(Lexer, Reader, vtEnd, true);
       Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
@@ -555,28 +555,28 @@ function LoadX3DClassic(const FileName: string;
   AllowStdIn: boolean): TX3DRootNode;
 
   function DoIt(BaseStream: TStream; FreeBaseStream: boolean;
-    const WWWBasePath: string): TX3DRootNode;
+    const BaseUrl: string): TX3DRootNode;
   var
     Stream: TPeekCharStream;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadX3DClassic(Stream, WWWBasePath);
+      Result := LoadX3DClassic(Stream, BaseUrl);
     finally Stream.Free end;
   end;
 
 var
-  WWWBasePath: string;
+  BaseUrl: string;
 begin
   if AllowStdIn and (FileName = '-') then
     Result := DoIt(StdInStream, false, GetCurrentDir) else
   begin
-    WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+    BaseUrl := ExtractFilePath(ExpandFilename(FileName));
 
     if SameText(ExtractFileExt(FileName), '.gz') or
        SameText(ExtractFileExt(FileName), '.wrz') then
       Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true,
-        WWWBasePath) else
+        BaseUrl) else
     begin
       {$ifdef VER2_0_4}
         {$ifdef WIN32}
@@ -600,7 +600,7 @@ begin
       {$endif}
 
       try
-        Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true, WWWBasePath);
+        Result := DoIt(TFileStream.Create(FileName, fmOpenRead), true, BaseUrl);
       except
         { It's somewhat hacky solution to reopen the file, creating new stream.
           But in practice, this works OK, and it allows us to read files
@@ -615,21 +615,21 @@ begin
           2. TDecompressionStream doesn't handle gzip compressed data for now
              (it handles zlib-compressed streams, which is not the same thing). }
         on EX3DGzipCompressed do
-          Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true, WWWBasePath);
+          Result := DoIt(TGZFileStream.Create(FileName, gzOpenRead), true, BaseUrl);
       end;
     end;
   end;
 end;
 
 function LoadX3DClassicFromString(const VRMLContents: string;
-  const WWWBasePath: string): TX3DRootNode; overload;
+  const BaseUrl: string): TX3DRootNode; overload;
 var
   Stream: TPeekCharStream;
 begin
   Stream := TSimplePeekCharStream.Create(
     TStringStream.Create(VRMLContents), true);
   try
-    Result := LoadX3DClassic(Stream, WWWBasePath);
+    Result := LoadX3DClassic(Stream, BaseUrl);
   finally FreeAndNil(Stream) end;
 end;
 

@@ -595,7 +595,7 @@ end;
 function LoadCollada(const FileName: string;
   const AllowKambiExtensions: boolean): TX3DRootNode;
 var
-  WWWBasePath: string;
+  BaseUrl: string;
 
   { List of Collada effects. Each contains an X3D Appearance node,
     with a name equal to Collada effect name. }
@@ -910,10 +910,10 @@ var
     Effect := TColladaEffect.Create;
     Effects.Add(Effect);
 
-    Appearance := TAppearanceNode.Create(Id, WWWBasePath);
+    Appearance := TAppearanceNode.Create(Id, BaseUrl);
     Effect.Appearance := Appearance;
 
-    Mat := TMaterialNode.Create('', WWWBasePath);
+    Mat := TMaterialNode.Create('', BaseUrl);
     Appearance.FdMaterial.Value := Mat;
 
     ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
@@ -1006,10 +1006,10 @@ var
       Effect := TColladaEffect.Create;
       Effects.Add(Effect);
 
-      Appearance := TAppearanceNode.Create(MatId, WWWBasePath);
+      Appearance := TAppearanceNode.Create(MatId, BaseUrl);
       Effect.Appearance := Appearance;
 
-      Mat := TMaterialNode.Create('', WWWBasePath);
+      Mat := TMaterialNode.Create('', BaseUrl);
       Appearance.FdMaterial.Value := Mat;
 
       { Collada 1.3 doesn't really have a concept of effects used by materials.
@@ -1315,7 +1315,7 @@ var
       if not DOMGetAttribute(VerticesElement, 'id', Id) then
         Id := '';
 
-      Coord := TCoordinateNode.Create(Id, WWWBasePath);
+      Coord := TCoordinateNode.Create(Id, BaseUrl);
       CoordCorrect := true;
 
       I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
@@ -1378,12 +1378,12 @@ var
       if (PrimitiveE.TagName = 'lines') or
          (PrimitiveE.TagName = 'linestrips') then
       begin
-        IndexedLineSet := TIndexedLineSetNode.Create(X3DGeometryName, WWWBasePath);
+        IndexedLineSet := TIndexedLineSetNode.Create(X3DGeometryName, BaseUrl);
         IndexedLineSet.FdCoord.Value := Coord;
         Primitive.X3DGeometry := IndexedLineSet;
       end else
       begin
-        IndexedFaceSet := TIndexedFaceSetNode.Create(X3DGeometryName, WWWBasePath);
+        IndexedFaceSet := TIndexedFaceSetNode.Create(X3DGeometryName, BaseUrl);
         IndexedFaceSet.FdSolid.Value := not DoubleSided;
         { For VRML >= 2.0, creaseAngle is 0 by default.
           TODO: what is the default normal generation for Collada? }
@@ -1445,7 +1445,7 @@ var
                   begin
                     { create and use new X3D tex coord node }
                     FreeIfUnusedAndNil(LastTexCoord);
-                    LastTexCoord := TTextureCoordinateNode.Create(InputSourceId, WWWBasePath);
+                    LastTexCoord := TTextureCoordinateNode.Create(InputSourceId, BaseUrl);
                     InputSource.AssignToVectorST(LastTexCoord.FdPoint.Items);
                     IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
                   end else
@@ -1478,7 +1478,7 @@ var
                   begin
                     { create and use new X3D normal node }
                     FreeIfUnusedAndNil(LastNormal);
-                    LastNormal := TNormalNode.Create(InputSourceId, WWWBasePath);
+                    LastNormal := TNormalNode.Create(InputSourceId, BaseUrl);
                     InputSource.AssignToVectorXYZ(LastNormal.FdVector.Items);
                     IndexedFaceSet.FdNormal.Value := LastNormal;
                   end else
@@ -1912,7 +1912,7 @@ var
       for I := 0 to Geometry.Primitives.Count - 1 do
       begin
         Primitive := Geometry.Primitives[I];
-        Shape := TShapeNode.Create('', WWWBasePath);
+        Shape := TShapeNode.Create('', BaseUrl);
         Group.FdChildren.Add(Shape);
         Shape.FdGeometry.Value := Primitive.X3DGeometry;
         Shape.Appearance := MaterialToX3D(Primitive.Material, InstantiatingElement);
@@ -1992,10 +1992,10 @@ var
           begin
             if Controller.BoundShapeMatrixIdentity then
             begin
-              Group := TGroupNode.Create('', WWWBasePath);
+              Group := TGroupNode.Create('', BaseUrl);
             end else
             begin
-              Group := TMatrixTransformNode.Create('', WWWBasePath);
+              Group := TMatrixTransformNode.Create('', BaseUrl);
               TMatrixTransformNode(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
             end;
             ParentGroup.FdChildren.Add(Group);
@@ -2024,7 +2024,7 @@ var
     var
       NewNodeTransform: TTransformNode;
     begin
-      NewNodeTransform := TTransformNode.Create('', WWWBasePath);
+      NewNodeTransform := TTransformNode.Create('', BaseUrl);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
@@ -2035,7 +2035,7 @@ var
     var
       NewNodeTransform: TMatrixTransformNode;
     begin
-      NewNodeTransform := TMatrixTransformNode.Create('', WWWBasePath);
+      NewNodeTransform := TMatrixTransformNode.Create('', BaseUrl);
       NodeTransform.FdChildren.Add(NewNodeTransform);
 
       NodeTransform := NewNodeTransform;
@@ -2051,7 +2051,7 @@ var
     if not DOMGetAttribute(NodeElement, 'id', NodeId) then
       NodeId := '';
 
-    NodeTransform := TTransformNode.Create(NodeId, WWWBasePath);
+    NodeTransform := TTransformNode.Create(NodeId, BaseUrl);
     ParentGroup.FdChildren.Add(NodeTransform);
 
     { First iterate to gather all transformations.
@@ -2176,7 +2176,7 @@ var
     var
       Group: TGroupNode;
     begin
-      Group := TGroupNode.Create(SceneId, WWWBasePath);
+      Group := TGroupNode.Create(SceneId, BaseUrl);
       ResultModel.FdChildren.Add(Group);
 
       ReadNodesSequence(Group, SceneElement);
@@ -2205,7 +2205,7 @@ var
     if not DOMGetAttribute(VisualSceneElement, 'id', VisualSceneId) then
       VisualSceneId := '';
 
-    Group := TGroupNode.Create(VisualSceneId, WWWBasePath);
+    Group := TGroupNode.Create(VisualSceneId, BaseUrl);
     VisualScenes.Add(Group);
     VisualScenesSwitch.FdChildren.Add(Group);
 
@@ -2228,7 +2228,7 @@ var
       That's good --- it's always nice to keep some data when
       converting. }
 
-    VisualScenesSwitch := TSwitchNode.Create(LibraryId, WWWBasePath);
+    VisualScenesSwitch := TSwitchNode.Create(LibraryId, BaseUrl);
     ResultModel.FdChildren.Add(VisualScenesSwitch);
 
     I := TXMLElementFilteringIterator.Create(LibraryElement, 'visual_scene');
@@ -2283,7 +2283,7 @@ var
       while I.GetNext do
         if DOMGetAttribute(I.Current, 'id', ImageId) then
         begin
-          Image := TImageTextureNode.Create(ImageId, WWWBasePath);
+          Image := TImageTextureNode.Create(ImageId, BaseUrl);
           Images.Add(Image);
           ImageUrl := ReadChildText(I.Current, 'init_from');
           if ImageUrl <> '' then
@@ -2316,7 +2316,7 @@ var
       Navigation: TNavigationInfoNode;
       ZNear, ZFar: Float;
     begin
-      Navigation := TNavigationInfoNode.Create(Id + '_navigation_info', WWWBasePath);
+      Navigation := TNavigationInfoNode.Create(Id + '_navigation_info', BaseUrl);
       CameraGroup.FdChildren.Add(Navigation);
 
       if ReadChildFloat(E, 'znear', ZNear) then
@@ -2338,7 +2338,7 @@ var
       while I.GetNext do
         if DOMGetAttribute(I.Current, 'id', Id) then
         begin
-          CameraGroup := TGroupNode.Create(Id, WWWBasePath);
+          CameraGroup := TGroupNode.Create(Id, BaseUrl);
           Cameras.Add(CameraGroup);
 
           OpticsE := DOMGetChildElement(I.Current, 'optics', false);
@@ -2350,7 +2350,7 @@ var
               PerspectiveE := DOMGetChildElement(TechniqueE, 'perspective', false);
               if PerspectiveE <> nil then
               begin
-                Viewpoint := TViewpointNode.Create(Id + '_viewpoint', WWWBasePath);
+                Viewpoint := TViewpointNode.Create(Id + '_viewpoint', BaseUrl);
                 Viewpoint.FdPosition.Value := ZeroVector3Single;
                 CameraGroup.FdChildren.Add(Viewpoint);
 
@@ -2371,7 +2371,7 @@ var
                 OrthographicE := DOMGetChildElement(TechniqueE, 'orthographic', false);
                 if OrthographicE <> nil then
                 begin
-                  OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', WWWBasePath);
+                  OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', BaseUrl);
                   OrthoViewpoint.FdPosition.Value := ZeroVector3Single;
                   CameraGroup.FdChildren.Add(OrthoViewpoint);
 
@@ -2448,7 +2448,7 @@ var
             LightE := DOMGetChildElement(TechniqueE, 'point', false);
             if LightE <> nil then
             begin
-              Point := TPointLightNode.Create(Id, WWWBasePath);
+              Point := TPointLightNode.Create(Id, BaseUrl);
               Point.FdAttenuation.Value := ReadAttenuation(LightE);
               Light := Point;
             end else
@@ -2456,7 +2456,7 @@ var
               LightE := DOMGetChildElement(TechniqueE, 'directional', false);
               if LightE <> nil then
               begin
-                Directional := TDirectionalLightNode.Create(Id, WWWBasePath);
+                Directional := TDirectionalLightNode.Create(Id, BaseUrl);
                 { default X3D light direction is -Z, matches Collada }
                 Light := Directional;
               end else
@@ -2464,7 +2464,7 @@ var
                 LightE := DOMGetChildElement(TechniqueE, 'spot', false);
                 if LightE <> nil then
                 begin
-                  Spot := TSpotLightNode.Create(Id, WWWBasePath);
+                  Spot := TSpotLightNode.Create(Id, BaseUrl);
                   Spot.FdAttenuation.Value := ReadAttenuation(LightE);
                   { default X3D spot direction is -Z, matches Collada }
                   if not ReadChildFloat(LightE, 'falloff_angle', FalloffAngle) then
@@ -2478,7 +2478,7 @@ var
                   LightE := DOMGetChildElement(TechniqueE, 'ambient', false);
                   if LightE <> nil then
                   begin
-                    Point := TPointLightNode.Create(Id, WWWBasePath);
+                    Point := TPointLightNode.Create(Id, BaseUrl);
                     { ambient light can be translated to normal PointLight with
                       intensity = 0 (this scales diffuse and specular to zero). }
                     Point.FdIntensity.Value := 0;
@@ -2555,13 +2555,13 @@ begin
         Version14 := IsPrefix('1.4.', Version) or IsPrefix('1.5.', Version);
       end;
 
-      if DOMGetAttribute(Doc.DocumentElement, 'base', WWWBasePath) then
+      if DOMGetAttribute(Doc.DocumentElement, 'base', BaseUrl) then
       begin
-        { COLLADA.base is exactly for the same purpose as WWWBasePath.
+        { COLLADA.base is exactly for the same purpose as BaseUrl.
           Use it (making sure it's absolute path). }
-        WWWBasePath := ExpandFileName(WWWBasePath);
+        BaseUrl := ExpandFileName(BaseUrl);
       end else
-        WWWBasePath := ExtractFilePath(ExpandFilename(FileName));
+        BaseUrl := ExtractFilePath(ExpandFilename(FileName));
 
       Effects := TColladaEffectList.Create;
       Materials := TColladaMaterialsMap.Create;
@@ -2572,7 +2572,7 @@ begin
       Cameras := TX3DNodeList.Create(false);
       Lights := TX3DNodeList.Create(false);
 
-      Result := TX3DRootNode.Create('', WWWBasePath);
+      Result := TX3DRootNode.Create('', BaseUrl);
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
 

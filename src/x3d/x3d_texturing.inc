@@ -801,7 +801,7 @@ begin
   for I := 0 to FdUrl.Count - 1 do
     if FdUrl.Items[I] = '' then
     begin
-      { Empty URL would be expanded by PathFromWWWBasePath to directory
+      { Empty URL would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
       OnWarning(wtMinor, 'VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
@@ -810,7 +810,7 @@ begin
       if LoadImageFromDataProtocol(FdUrl.Items[I]) then Break;
     end else
     begin
-      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);
         WasCacheUsed := true;
@@ -931,7 +931,7 @@ begin
 
   for I := 0 to FdUrl.Count - 1 do
   begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+    FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
     try
       FTextureVideo := X3DCache.Video_IncReference(FullUrl);
 

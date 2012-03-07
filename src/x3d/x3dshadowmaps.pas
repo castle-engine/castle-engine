@@ -448,7 +448,7 @@ begin
   if (App = nil) and
      (LightsCastingOnEverything.Count <> 0) then
   begin
-    App := TAppearanceNode.Create('', Shape.Node.WWWBasePath); { recalculate App }
+    App := TAppearanceNode.Create('', Shape.Node.BaseUrl); { recalculate App }
     Shape.Node.Appearance := App;
   end;
 

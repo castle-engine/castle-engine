@@ -69,7 +69,7 @@ uses VectorMath, SysUtils, X3DNodes, X3DLoadInternalMD3,
   other model formats are converted under the hood to VRML/X3D.
 
   @param(AllowStdIn If AllowStdIn and FileName = '-' then it will load
-    a VRML/X3D file from StdInStream (using GetCurrentDir as WWWBasePath).) }
+    a VRML/X3D file from StdInStream (using GetCurrentDir as BaseUrl).) }
 function Load3D(const filename: string;
   AllowStdIn: boolean = false;
   NilOnUnrecognizedFormat: boolean = false): TX3DRootNode;

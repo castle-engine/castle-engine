@@ -763,7 +763,7 @@ begin
   Increase := (Knot.Last - Knot.First) / (Tess - 1);
 
   { make resulting Coordinate node }
-  ResultCoord := TCoordinateNode.Create('', LS.WWWBasePath);
+  ResultCoord := TCoordinateNode.Create('', LS.BaseUrl);
   LS.FdCoord.Value := ResultCoord;
 
   { calculate result Coordinate.point field }
@@ -785,7 +785,7 @@ function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState;
 var
   ControlPoint: TVector3SingleList;
 begin
-  Result := TLineSetNode.Create(NodeName, WWWBasePath);
+  Result := TLineSetNode.Create(NodeName, BaseUrl);
   try
     { TODO: we should handle here all TAbstractCoordinateNode }
     if (FdControlPoint.Value <> nil) and
@@ -1141,11 +1141,11 @@ begin
   VIncrease := (VKnot.Last - VKnot.First) / (VTess - 1);
 
   { make resulting Coordinate and Normal nodes }
-  QS.FdCoord.Value := TCoordinateNode.Create('', QS.WWWBasePath);
+  QS.FdCoord.Value := TCoordinateNode.Create('', QS.BaseUrl);
   ResultCoord := (QS.FdCoord.Value as TCoordinateNode).FdPoint.Items;
   ResultCoord.Count := UTess * VTess;
 
-  QS.FdNormal.Value := TNormalNode.Create('', QS.WWWBasePath);
+  QS.FdNormal.Value := TNormalNode.Create('', QS.BaseUrl);
   ResultNormal := (QS.FdNormal.Value as TNormalNode).FdVector.Items;
   ResultNormal.Count := UTess * VTess;
 
@@ -1201,7 +1201,7 @@ begin
       (or cube for 3D coordinates) are generated automatically
       from the parametric subdivision.". I think this means that tex coords
       S/T = 0..1 range from starting to ending knot. }
-    QS.FdTexCoord.Value := TTextureCoordinateNode.Create('', QS.WWWBasePath);
+    QS.FdTexCoord.Value := TTextureCoordinateNode.Create('', QS.BaseUrl);
     ResultTexCoord := (QS.FdTexCoord.Value as TTextureCoordinateNode).FdPoint.Items;
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
@@ -1220,7 +1220,7 @@ function TNurbsPatchSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
 var
   ControlPoint: TVector3SingleList;
 begin
-  Result := TIndexedQuadSetNode.Create(NodeName, WWWBasePath);
+  Result := TIndexedQuadSetNode.Create(NodeName, BaseUrl);
   try
     { TODO: we should handle here all TAbstractCoordinateNode }
     if (FdControlPoint.Value <> nil) and

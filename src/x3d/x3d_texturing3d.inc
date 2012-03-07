@@ -347,7 +347,7 @@ var
 begin
   for I := 0 to FdUrl.Items.Count - 1 do
   begin
-    FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+    FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
     try
       FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);

@@ -278,7 +278,7 @@ begin
     begin
       for I := 0 to FdUrl.Items.Count - 1 do
       begin
-        FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+        FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
         try
           { LoadBuffer inside may cause OpenAL open, and we don't want to
             do ALOpenClose then.

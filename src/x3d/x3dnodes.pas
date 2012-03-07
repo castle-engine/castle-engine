@@ -1139,9 +1139,9 @@ type
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
-    constructor Create(const ANodeName: string; const AWWWBasePath: string); override;
+    constructor Create(const ANodeName: string; const ABaseUrl: string); override;
 
-    constructor CreateUnknown(const ANodeName, AWWWBasePath: string; const ANodeTypeName :string);
+    constructor CreateUnknown(const ANodeName, ABaseUrl: string; const ANodeTypeName :string);
   end;
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
@@ -1380,8 +1380,8 @@ type
   public
     { This constructor will raise exception for TX3DPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
-    constructor Create(const ANodeName, AWWWBasePath: string); override;
-    constructor CreatePrototypeNode(const ANodeName, AWWWBasePath: string;
+    constructor Create(const ANodeName, ABaseUrl: string); override;
+    constructor CreatePrototypeNode(const ANodeName, ABaseUrl: string;
       APrototype: TX3DPrototypeBase);
     function NodeTypeName: string; override;
 
@@ -1443,10 +1443,10 @@ type
     FName: string;
     FInterfaceDeclarations: TX3DInterfaceDeclarationList;
 
-    FWWWBasePath: string;
+    FBaseUrl: string;
 
-    { Parses InterfaceDeclarations. Also inits WWWBasePath from
-      Names.WWWBasePath, by the way. }
+    { Parses InterfaceDeclarations. Also inits BaseUrl from
+      Names.BaseUrl, by the way. }
     procedure ParseInterfaceDeclarations(ExternalProto: boolean;
       Lexer: TX3DLexer; Reader: TX3DReaderNames);
 
@@ -1454,7 +1454,7 @@ type
       Handle sequence of <field> elements.
 
       Note: unlike classic ParseInterfaceDeclarations,
-      this doesn't set WWWBasePath, do it yourself (because often
+      this doesn't set BaseUrl, do it yourself (because often
       you do not have 'ProtoInterface', so you would have to do it yourself
       anyway). }
     procedure ParseInterfaceDeclarationsXML(ExternalProto: boolean;
@@ -1480,8 +1480,8 @@ type
 
     { The base URL path used to resolve urls inside.
       For now, used by EXTERNPROTO urls.
-      See TX3DNode.WWWBasePath for more comments. }
-    property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
+      See TX3DNode.BaseUrl for more comments. }
+    property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 
   TX3DPrototypeBaseList = class(specialize TFPGObjectList<TX3DPrototypeBase>);
@@ -3564,29 +3564,29 @@ begin
   Lexer.NextToken;
   ParseIgnoreToMatchingCurlyBracket(Lexer, Reader);
 
-  FWWWBasePath := Reader.WWWBasePath;
+  FBaseUrl := Reader.BaseUrl;
 
   OnWarning(wtMajor, 'VRML/X3D', 'Unknown VRML node of type '''+NodeTypeName+
     ''' (named '''+NodeName+''')');
 end;
 
-constructor TX3DUnknownNode.Create(const ANodeName: string; const AWWWBasePath: string);
+constructor TX3DUnknownNode.Create(const ANodeName: string; const ABaseUrl: string);
 begin
   { Safety check: never create a TX3DUnknownNode instance by this method,
     to not leave FNodeTypeName unset. }
   raise Exception.Create('You cannot create Unknown node using default constructor');
 end;
 
-constructor TX3DUnknownNode.CreateUnknown(const ANodeName, AWWWBasePath: string; const ANodeTypeName :string);
+constructor TX3DUnknownNode.CreateUnknown(const ANodeName, ABaseUrl: string; const ANodeTypeName :string);
 begin
-  inherited Create(ANodeName, AWWWBasePath);
+  inherited Create(ANodeName, ABaseUrl);
   fNodeTypeName := ANodeTypeName;
 end;
 
 function TX3DUnknownNode.DeepCopyCreate(
   CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DUnknownNode.CreateUnknown(NodeName, WWWBasePath, NodeTypeName);
+  Result := TX3DUnknownNode.CreateUnknown(NodeName, BaseUrl, NodeTypeName);
 end;
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
@@ -4042,21 +4042,21 @@ end;
 
 { TX3DPrototypeNode --------------------------------------------------------- }
 
-constructor TX3DPrototypeNode.Create(const ANodeName, AWWWBasePath: string);
+constructor TX3DPrototypeNode.Create(const ANodeName, ABaseUrl: string);
 begin
   raise EInternalError.Create('TX3DPrototypeNode node must be created' +
     ' using CreatePrototypeNode, never default constructor');
 end;
 
 constructor TX3DPrototypeNode.CreatePrototypeNode(
-  const ANodeName, AWWWBasePath: string;
+  const ANodeName, ABaseUrl: string;
   APrototype: TX3DPrototypeBase);
 var
   I: TX3DInterfaceDeclaration;
   Index: Integer;
   ProtoInitial: TX3DPrototypeBase;
 begin
-  inherited Create(ANodeName, AWWWBasePath);
+  inherited Create(ANodeName, ABaseUrl);
   FPrototype := APrototype;
 
   ProtoInitial := Prototype;
@@ -4083,7 +4083,7 @@ end;
 
 function TX3DPrototypeNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, WWWBasePath,
+  Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, BaseUrl,
     { TODO: for now, we don't copy proto, instead simply passing the same
       proto reference. }
     Prototype);
@@ -4565,7 +4565,7 @@ begin
   { eat "]" token }
   Lexer.NextToken;
 
-  FWWWBasePath := Reader.WWWBasePath;
+  FBaseUrl := Reader.BaseUrl;
 end;
 
 procedure TX3DPrototypeBase.ParseInterfaceDeclarationsXML(ExternalProto: boolean;
@@ -4659,7 +4659,7 @@ var
   NewName: string;
   E: TDOMElement;
 begin
-  WWWBasePath := Reader.WWWBasePath;
+  BaseUrl := Reader.BaseUrl;
 
   if DOMGetAttribute(Element, 'name', NewName) then
     Name := NewName else
@@ -4793,7 +4793,7 @@ procedure TX3DExternalPrototype.ParseXML(Element: TDOMElement; Reader: TX3DReade
 var
   NewName, URLListValue: string;
 begin
-  WWWBasePath := Reader.WWWBasePath;
+  BaseUrl := Reader.BaseUrl;
 
   if DOMGetAttribute(Element, 'name', NewName) then
     Name := NewName else
@@ -4911,7 +4911,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
   begin
     Result := false;
 
-    URL := CombineUrls(WWWBasePath, RelativeURL);
+    URL := CombineUrls(BaseUrl, RelativeURL);
     URLExtractAnchor(URL, Anchor);
     try
       ReferencedPrototypeNode := X3DCache.Load3D(URL);

@@ -463,7 +463,7 @@ const
     TODO: would be better to allocate necessary space once, by assigning Count. }
   IndicesCapacity = 100;
 var
-  WWWBasePath: string;
+  BaseUrl: string;
 
   function MatOBJNameToX3DName(const MatOBJName: string): string;
   begin
@@ -476,9 +476,9 @@ var
     Texture: TImageTextureNode;
   begin
     Result := TAppearanceNode.Create(
-      MatOBJNameToX3DName(Material.Name), WWWBasePath);
+      MatOBJNameToX3DName(Material.Name), BaseUrl);
 
-    Mat := TMaterialNode.Create('', WWWBasePath);
+    Mat := TMaterialNode.Create('', BaseUrl);
     Result.FdMaterial.Value := Mat;
     Mat.FdAmbientIntensity.Value := AmbientIntensity(
       Material.AmbientColor, Material.DiffuseColor);
@@ -489,15 +489,15 @@ var
 
     if Material.DiffuseTextureFileName <> '' then
     begin
-      Texture := TImageTextureNode.Create('', WWWBasePath);
+      Texture := TImageTextureNode.Create('', BaseUrl);
       Result.FdTexture.Value := Texture;
-      Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.DiffuseTextureFileName));
+      Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.DiffuseTextureFileName));
 
       if Material.BumpTextureFileName <> '' then
       begin
-        Texture := TImageTextureNode.Create('', WWWBasePath);
+        Texture := TImageTextureNode.Create('', BaseUrl);
         Result.FdNormalMap.Value := Texture;
-        Texture.FdUrl.Items.Add(SearchTextureFileName(WWWBasePath, Material.BumpTextureFileName));
+        Texture.FdUrl.Items.Add(SearchTextureFileName(BaseUrl, Material.BumpTextureFileName));
       end;
     end;
   end;
@@ -514,11 +514,11 @@ var
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
 begin
-  WWWBasePath := ExtractFilePath(ExpandFilename(filename));
+  BaseUrl := ExtractFilePath(ExpandFilename(filename));
   Appearances := nil;
   Obj := TObject3DOBJ.Create(filename);
   try
-    result := TX3DRootNode.Create('', WWWBasePath);
+    result := TX3DRootNode.Create('', BaseUrl);
     try
       Result.HasForceVersion := true;
       Result.ForceVersion := X3DVersion;
@@ -528,13 +528,13 @@ begin
       for I := 0 to Obj.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(Obj.Materials[I]);
 
-      Coord := TCoordinateNode.Create('',WWWBasePath);
+      Coord := TCoordinateNode.Create('',BaseUrl);
       Coord.FdPoint.Items.Assign(obj.Verts);
 
-      TexCoord := TTextureCoordinateNode.Create('', WWWBasePath);
+      TexCoord := TTextureCoordinateNode.Create('', BaseUrl);
       TexCoord.FdPoint.Items.Assign(obj.TexCoords);
 
-      Normal := TNormalNode.Create('', WWWBasePath);
+      Normal := TNormalNode.Create('', BaseUrl);
       Normal.FdVector.Items.Assign(Obj.Normals);
 
       i := 0;
@@ -544,7 +544,7 @@ begin
         FacesWithNormal := Obj.Faces.L[i].HasNormals;
         FacesWithMaterial := Obj.Faces.L[i].Material;
 
-        Shape := TShapeNode.Create('', WWWBasePath);
+        Shape := TShapeNode.Create('', BaseUrl);
         Result.FdChildren.Add(Shape);
 
         if FacesWithMaterial <> nil then
@@ -554,7 +554,7 @@ begin
           Shape.Appearance := Appearances.FindName(
             MatOBJNameToX3DName(FacesWithMaterial.Name)) as TAppearanceNode;
         end else
-          Shape.Material := TMaterialNode.Create('', WWWBasePath);
+          Shape.Material := TMaterialNode.Create('', BaseUrl);
 
         { We don't do anything special for the case when FacesWithMaterial = nil
           and FacesWithTexCoord = true. This may be generated e.g. by Blender
@@ -564,7 +564,7 @@ begin
           field, but without texture it will not have any effect.
           This is natural, and there's no reason for now to do anything else. }
 
-        Faces := TIndexedFaceSetNode.Create('', WWWBasePath);
+        Faces := TIndexedFaceSetNode.Create('', BaseUrl);
         Shape.FdGeometry.Value := Faces;
         Faces.FdCreaseAngle.Value := NiceCreaseAngle;
         Faces.FdSolid.Value := false;

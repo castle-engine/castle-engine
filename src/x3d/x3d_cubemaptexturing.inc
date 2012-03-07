@@ -295,7 +295,7 @@ begin
   try
     for I := 0 to FdUrl.Items.Count - 1 do
     begin
-      FullUrl := PathFromWWWBasePath(FdUrl.Items[I]);
+      FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
       if FileExtToImageFormatDef(ExtractFileExt(FullUrl),
         false, false, ifBMP) <> ifDDS then

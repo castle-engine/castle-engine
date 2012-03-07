@@ -461,12 +461,12 @@ var
   TexCoords: TVector2SingleList;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
-    CoordNode := TCoordinateNode.Create('', WWWBasePath);
+    CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
 
-    NormalNode := TNormalNode.Create('', WWWBasePath);
+    NormalNode := TNormalNode.Create('', BaseUrl);
     IFS.FdNormal.Value := NormalNode;
     IFS.FdNormalPerVertex.Value := true;
 
@@ -477,7 +477,7 @@ begin
       TexCoords := nil;
     end else
     begin
-      TexCoordNode := TTextureCoordinateNode.Create('', WWWBasePath);
+      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
       IFS.FdTexCoord.Value := TexCoordNode;
       TexCoords := TexCoordNode.FdPoint.Items;
     end;
@@ -504,12 +504,12 @@ var
   TexCoords: TVector2SingleList;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
-    CoordNode := TCoordinateNode.Create('', WWWBasePath);
+    CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
 
-    NormalNode := TNormalNode.Create('', WWWBasePath);
+    NormalNode := TNormalNode.Create('', BaseUrl);
     IFS.FdNormal.Value := NormalNode;
     IFS.FdNormalPerVertex.Value := true;
 
@@ -520,7 +520,7 @@ begin
       TexCoords := nil;
     end else
     begin
-      TexCoordNode := TTextureCoordinateNode.Create('', WWWBasePath);
+      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
       IFS.FdTexCoord.Value := TexCoordNode;
       TexCoords := TexCoordNode.FdPoint.Items;
     end;
@@ -552,27 +552,27 @@ var
   MaterialIndex: TLongIntList;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);
 
-    CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
+    CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
-    NormalNode := TNormalNode.Create('', WWWBasePath);
+    NormalNode := TNormalNode.Create('', BaseUrl);
     State.SetLastNodes(vsNormal, NormalNode, true);
 
-    NormalBinding := TNormalBindingNode_1.Create('', WWWBasePath);
+    NormalBinding := TNormalBindingNode_1.Create('', BaseUrl);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
-    TexCoordNode := TTextureCoordinate2Node_1.Create('', WWWBasePath);
+    TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
-    ShapeHints := TShapeHintsNode_1.Create('', WWWBasePath);
+    ShapeHints := TShapeHintsNode_1.Create('', BaseUrl);
     { For VRML 1.0, Cylinder is never solid. }
     ShapeHints.FdshapeType.Value := SHTYPE_UNKNOWN;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
@@ -581,7 +581,7 @@ begin
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
     { calculate MaterialBinding node and MaterialIndex }
-    MaterialBinding := TMaterialBindingNode_1.Create('', WWWBasePath);
+    MaterialBinding := TMaterialBindingNode_1.Create('', BaseUrl);
     if State.LastNodes.MaterialBinding.FdValue.Value in
       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     begin
@@ -623,27 +623,27 @@ var
   MaterialIndex: TLongIntList;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TIndexedFaceSetNode_1.Create(NodeName, WWWBasePath);
+  IFS := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);
 
-    CoordNode := TCoordinate3Node_1.Create('', WWWBasePath);
+    CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
-    NormalNode := TNormalNode.Create('', WWWBasePath);
+    NormalNode := TNormalNode.Create('', BaseUrl);
     State.SetLastNodes(vsNormal, NormalNode, true);
 
-    NormalBinding := TNormalBindingNode_1.Create('', WWWBasePath);
+    NormalBinding := TNormalBindingNode_1.Create('', BaseUrl);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
     State.SetLastNodes(vsNormalBinding, NormalBinding, true);
 
-    TexCoordNode := TTextureCoordinate2Node_1.Create('', WWWBasePath);
+    TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
-    ShapeHints := TShapeHintsNode_1.Create('', WWWBasePath);
+    ShapeHints := TShapeHintsNode_1.Create('', BaseUrl);
     { For VRML 1.0, Cone is never solid. }
     ShapeHints.FdshapeType.Value := SHTYPE_UNKNOWN;
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
@@ -652,7 +652,7 @@ begin
     State.SetLastNodes(vsShapeHints, ShapeHints, true);
 
     { calculate MaterialBinding node and MaterialIndex }
-    MaterialBinding := TMaterialBindingNode_1.Create('', WWWBasePath);
+    MaterialBinding := TMaterialBindingNode_1.Create('', BaseUrl);
     if State.LastNodes.MaterialBinding.FdValue.Value in
       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     begin

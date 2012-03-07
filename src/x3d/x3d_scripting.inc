@@ -228,7 +228,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         CastleScriptVariables.Add(Events[I]);
 
     CastleScriptProgram := ParseProgram(ProgramContent, CastleScriptVariables);
-    CastleScriptProgram.Environment.WWWBasePath := WWWBasePath;
+    CastleScriptProgram.Environment.BaseUrl := BaseUrl;
   end;
 
   function LoadUrl(Url: string; var FailedUrlsLog: string): boolean;
@@ -271,7 +271,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
        (SameText(ExtractFileExt(Url), '.castlescript') or
         SameText(ExtractFileExt(Url), '.kscript') ) then
     begin
-      PotentialFullUrl := PathFromWWWBasePath(Url);
+      PotentialFullUrl := PathFromBaseUrl(Url);
       try
         ScriptContents := FileToString(PotentialFullUrl);
 

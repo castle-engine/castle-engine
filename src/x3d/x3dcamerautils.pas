@@ -44,13 +44,13 @@ function MakeCameraStr(const Version: TX3DCameraVersion;
 
 { Construct TX3DNode defining camera with given properties. }
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const WWWBasePath: string;
+  const BaseUrl: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 
 { Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
-  const WWWBasePath: string;
+  const BaseUrl: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
@@ -187,7 +187,7 @@ begin
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
-  const WWWBasePath: string;
+  const BaseUrl: string;
   const Position, Direction, Up, GravityUp: TVector3Single): TX3DNode;
 var
   RotationVectorForGravity: TVector3Single;
@@ -204,8 +204,8 @@ begin
     { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     case Version of
-      cvVrml1_Inventor: ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
-      cvVrml2_X3d     : ViewpointNode := TViewpointNode.Create('', WWWBasePath);
+      cvVrml1_Inventor: ViewpointNode := TPerspectiveCameraNode_1.Create('', BaseUrl);
+      cvVrml2_X3d     : ViewpointNode := TViewpointNode.Create('', BaseUrl);
       else raise EInternalError.Create('MakeCameraNode Version incorrect');
     end;
     ViewpointNode.Position.Value := Position;
@@ -233,15 +233,15 @@ begin
     case Version of
       cvVrml1_Inventor:
         begin
-          Transform_1 := TTransformNode_1.Create('', WWWBasePath);
+          Transform_1 := TTransformNode_1.Create('', BaseUrl);
           Transform_1.FdTranslation.Value := Position;
           Transform_1.FdRotation.Value := Rotation;
 
-          ViewpointNode := TPerspectiveCameraNode_1.Create('', WWWBasePath);
+          ViewpointNode := TPerspectiveCameraNode_1.Create('', BaseUrl);
           ViewpointNode.Position.Value := ZeroVector3Single;
           ViewpointNode.FdOrientation.Value := Orientation;
 
-          Separator := TSeparatorNode_1.Create('', WWWBasePath);
+          Separator := TSeparatorNode_1.Create('', BaseUrl);
           Separator.VRML1ChildAdd(Transform_1);
           Separator.VRML1ChildAdd(ViewpointNode);
 
@@ -250,11 +250,11 @@ begin
 
       cvVrml2_X3d:
         begin
-          Transform_2 := TTransformNode.Create('', WWWBasePath);
+          Transform_2 := TTransformNode.Create('', BaseUrl);
           Transform_2.FdTranslation.Value := Position;
           Transform_2.FdRotation.Value := Rotation;
 
-          ViewpointNode := TViewpointNode.Create('', WWWBasePath);
+          ViewpointNode := TViewpointNode.Create('', BaseUrl);
           ViewpointNode.Position.Value := ZeroVector3Single;
           ViewpointNode.FdOrientation.Value := Orientation;
 
@@ -268,7 +268,7 @@ begin
 end;
 
 function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
-  const WWWBasePath: string;
+  const BaseUrl: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
@@ -277,7 +277,7 @@ var
 begin
   CameraViewpointForWholeScene(Box, WantedDirection, WantedUp,
     WantedDirectionPositive, WantedUpPositive, Position, Direction, Up, GravityUp);
-  Result := MakeCameraNode(Version, WWWBasePath,
+  Result := MakeCameraNode(Version, BaseUrl,
     Position, Direction, Up, GravityUp);
 end;
 

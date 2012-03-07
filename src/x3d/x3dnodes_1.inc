@@ -1620,7 +1620,7 @@ begin
   { sprobuj zaladowac teksture z pliku FdFilename }
   if FdFilename.Value <> '' then
   try
-    FullUrl := PathFromWWWBasePath(FdFilename.Value);
+    FullUrl := PathFromBaseUrl(FdFilename.Value);
     FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
@@ -1650,7 +1650,7 @@ function TTexture2Node_1.TextureDescription: string;
 begin
   if FdFilename.Value <> '' then
   begin
-    result := 'file "' +PathFromWWWBasePath(FdFilename.Value) +'"';
+    result := 'file "' +PathFromBaseUrl(FdFilename.Value) +'"';
     if not FdImage.Value.IsNull then result += ' (and '+InlinedDescr+')';
   end else
   if not FdImage.Value.IsNull then

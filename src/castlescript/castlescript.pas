@@ -84,12 +84,12 @@ type
     CastleScript. }
   TCasScriptEnvironment = class
   private
-    FWWWBasePath: string;
+    FBaseUrl: string;
     FOutputProc: TCasScriptOutputProc;
   public
     { Base URL to use for relative filenames.
-      Similar to TX3DNode.WWWBasePath. }
-    property WWWBasePath: string read FWWWBasePath write FWWWBasePath;
+      Similar to TX3DNode.BaseUrl. }
+    property BaseUrl: string read FBaseUrl write FBaseUrl;
     { If assigned, it will be used to realize writeln()
       function. If not assigned, we will use OnWarning. }
     property OutputProc: TCasScriptOutputProc read FOutputProc write FOutputProc;
