@@ -528,7 +528,7 @@ type
 
       If TransformCurrentCamera = @true, then they will also
       try to change current camera relative to the initial vectors changes.
-      This implements VRML desired behavior that
+      This implements VRML/X3D desired behavior that
       "viewer position/orientation is conceptually a child of
       viewpoint position/orientation, and when viewpoint position/orientation
       changes, viewer should also change". }
