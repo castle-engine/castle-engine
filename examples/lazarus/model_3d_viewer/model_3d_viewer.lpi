@@ -4,8 +4,10 @@
     <Version Value="9"/>
     <General>
       <Flags>
+        <SaveClosedFiles Value="False"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
     </General>
     <BuildModes Count="1">
@@ -48,9 +50,6 @@
         <Filename Value="model_3d_viewer.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="model_3d_viewer"/>
-        <TopLine Value="1"/>
-        <CursorPos X="53" Y="17"/>
-        <UsageCount Value="72"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -58,14 +57,8 @@
         <ComponentName Value="Main"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
-        <IsVisibleTab Value="True"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="289"/>
-        <CursorPos X="44" Y="319"/>
-        <UsageCount Value="72"/>
       </Unit1>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -105,7 +98,7 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="5">
+    <Exceptions Count="6">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -121,6 +114,9 @@
       <Item5>
         <Name Value="BreakTransformChangeSuccess"/>
       </Item5>
+      <Item6>
+        <Name Value="BreakMainLightForShadows"/>
+      </Item6>
     </Exceptions>
   </Debugging>
 </CONFIG>
