@@ -2345,19 +2345,28 @@ end;
 function TCastleSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
 var
   Box: TBox3D;
-  Radius: Single;
+  Position, Direction, Up, GravUp: TVector3Single;
 begin
   Box := Items.BoundingBox;
   if MainScene <> nil then
     Result := MainScene.CreateCamera(AOwner, Box) else
   begin
-    Radius := Box.AverageSize(false, 1.0) * 0.005;
+    CameraViewpointForWholeScene(Box, 2, 1, false, true,
+      Position, Direction, Up, GravUp);
+
     { by default, create TUniversalCamera, as this is the most versatile camera,
       and it's also what TCastleSceneCore creates (so it's good for consistency,
-      simple 3D viewers may in practice assume they always have TUniversalCamera). }
+      simple 3D viewers may in practice assume they always have TUniversalCamera).
+      Operations below set the same stuff as
+      TExamineCamera.Init and TWalkCamera.Init (but we try to do most by
+      using TUniversalCamera methods, so that everything is known by
+      TUniversalCamera fields too). }
     Result := TUniversalCamera.Create(AOwner);
-    (Result as TUniversalCamera).Examine.Init(Box, Radius);
-    (Result as TUniversalCamera).Walk.Init(Box, Radius);
+    (Result as TUniversalCamera).Radius := Box.AverageSize(false, 1.0) * 0.005;
+    (Result as TUniversalCamera).Examine.ModelBox := Box;
+    (Result as TUniversalCamera).Walk.GravityUp := GravUp;
+    (Result as TUniversalCamera).SetInitialView(Position, Direction, Up, false);
+    (Result as TUniversalCamera).GoToInitial;
   end;
 end;
 
