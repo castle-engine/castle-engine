@@ -24,7 +24,7 @@ interface
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
   VectorMath, KeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, X3DNodes, CastleScene, CastleSceneManager;
+  Cameras, X3DNodes, CastleScene, CastleSceneManager, Images;
 
 const
   { Default value for TCastleControlBase.AggressiveUpdateDelay.
@@ -183,6 +183,11 @@ type
 
       Ignored when window is closed. }
     procedure SetMousePosition(const NewMouseX, NewMouseY: Integer);
+
+    { Capture the current control contents to an image.
+      These functions take care of flushing any pending redraw operations
+      and capturing the screen contents correctly. }
+    function SaveScreen: TRGBImage;
   published
     { This will be called right after GL context
       will be initialized. }
@@ -431,7 +436,8 @@ procedure Register;
 
 implementation
 
-uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad;
+uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
+  GLImages;
 
 procedure Register;
 begin
@@ -745,6 +751,23 @@ begin
     finally Fps._RenderEnd end;
     Invalidated := false; { used only when AggressiveUpdate }
   end;
+end;
+
+function TCastleControlBase.SaveScreen: TRGBImage;
+var
+  ReadBuffer: TGLenum;
+begin
+  if MakeCurrent then
+  begin
+    DoBeforeDraw;
+    DoDraw;
+  end;
+
+  if DoubleBuffered then
+    ReadBuffer := GL_BACK else
+    ReadBuffer := GL_FRONT;
+
+  Result := SaveScreen_NoFlush(0, 0, Width, Height, ReadBuffer);
 end;
 
 procedure TCastleControlBase.SetMousePosition(const NewMouseX, NewMouseY: Integer);
