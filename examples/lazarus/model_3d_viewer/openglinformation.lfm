@@ -8,12 +8,12 @@ object OpenGLInformation: TOpenGLInformation
   ClientHeight = 519
   ClientWidth = 677
   Position = poDefault
-  LCLVersion = '0.9.28.2'
+  LCLVersion = '0.9.31'
   object ButtonClose: TButton
-    Left = 598
-    Height = 44
-    Top = 464
-    Width = 74
+    Left = 607
+    Height = 45
+    Top = 463
+    Width = 65
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.InnerBorder = 4
@@ -24,7 +24,7 @@ object OpenGLInformation: TOpenGLInformation
   object MemoInfo: TMemo
     AnchorSideBottom.Control = ButtonClose
     Left = 0
-    Height = 454
+    Height = 453
     Top = 0
     Width = 677
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -33,6 +33,7 @@ object OpenGLInformation: TOpenGLInformation
       'Memo1'
     )
     ReadOnly = True
+    ScrollBars = ssAutoVertical
     TabOrder = 1
   end
 end
