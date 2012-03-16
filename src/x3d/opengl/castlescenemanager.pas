@@ -305,7 +305,7 @@ type
       The implementation in base TCastleSceneManager uses MainScene.CreateCamera
       (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
       If MainScene is not assigned, we will just create a simple
-      TExamineCamera.
+      TUniversalCamera in (initially) Examine mode.
 
       The implementation in TCastleViewport simply calls
       SceneManager.CreateDefaultCamera. So by default all the viewport's
@@ -2345,14 +2345,19 @@ end;
 function TCastleSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
 var
   Box: TBox3D;
+  Radius: Single;
 begin
   Box := Items.BoundingBox;
   if MainScene <> nil then
     Result := MainScene.CreateCamera(AOwner, Box) else
   begin
-    Result := TExamineCamera.Create(AOwner);
-    (Result as TExamineCamera).Init(Box,
-      { Radius = } Box.AverageSize(false, 1.0) * 0.005);
+    Radius := Box.AverageSize(false, 1.0) * 0.005;
+    { by default, create TUniversalCamera, as this is the most versatile camera,
+      and it's also what TCastleSceneCore creates (so it's good for consistency,
+      simple 3D viewers may in practice assume they always have TUniversalCamera). }
+    Result := TUniversalCamera.Create(AOwner);
+    (Result as TUniversalCamera).Examine.Init(Box, Radius);
+    (Result as TUniversalCamera).Walk.Init(Box, Radius);
   end;
 end;
 
