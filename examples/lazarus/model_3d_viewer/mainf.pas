@@ -203,7 +203,7 @@ end;
 
 procedure TMain.FormCreate(Sender: TObject);
 begin
-  FileFiltersToOpenDialog(Load3D_FileFilters, OpenDialog1);
+  FileFiltersToDialog(Load3D_FileFilters, OpenDialog1);
 
   { load config settings, in particular recent files }
   OnGetApplicationName := @MyGetApplicationName;
