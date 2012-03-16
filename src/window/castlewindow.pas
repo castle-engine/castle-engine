@@ -2021,7 +2021,7 @@ end;
 @longCode(#
   EventBeforeDraw;
   EventDraw;
-  CastleGLUtils.SaveScreenXxx_noflush(..,GL_BACK);
+  CastleGLUtils.SaveScreenXxx_NoFlush(..,GL_BACK);
 #)
 
           This draws to the back buffer and captures it's contents,
@@ -2032,11 +2032,11 @@ end;
 
 @longCode(#
   FlushRedisplay;
-  CastleGLUtils.SaveScreenXxx_noflush(..,GL_FRONT);
+  CastleGLUtils.SaveScreenXxx_NoFlush(..,GL_FRONT);
 #)
 
           This isn't absolutely reliable. Read
-          CastleGLUtils.SaveScreenXxx_noflush docs, and OpenGL FAQ:
+          CastleGLUtils.SaveScreenXxx_NoFlush docs, and OpenGL FAQ:
           capturing the front buffer contents is generally not reliable
           with OpenGL.)
       )
@@ -3542,11 +3542,11 @@ begin
   begin
     EventBeforeDraw;
     EventDraw;
-    Result := SaveScreen_noflush(0, 0, Width, Height, GL_BACK);
+    Result := SaveScreen_NoFlush(0, 0, Width, Height, GL_BACK);
   end else
   begin
     FlushRedisplay;
-    Result := SaveScreen_noflush(0, 0, Width, Height, GL_FRONT);
+    Result := SaveScreen_NoFlush(0, 0, Width, Height, GL_FRONT);
   end;
 end;
 
@@ -3556,11 +3556,11 @@ begin
   begin
     EventBeforeDraw;
     EventDraw;
-    Result := SaveAlignedScreen_noflush(0, 0, Width, Height, GL_BACK);
+    Result := SaveAlignedScreen_NoFlush(0, 0, Width, Height, GL_BACK);
   end else
   begin
     FlushRedisplay;
-    Result := SaveAlignedScreen_noflush(0, 0, Width, Height, GL_FRONT);
+    Result := SaveAlignedScreen_NoFlush(0, 0, Width, Height, GL_FRONT);
   end;
 end;
 
@@ -3579,7 +3579,7 @@ begin
     FlushRedisplay;
     ReadBuffer := GL_FRONT;
   end;
-  Result := SaveScreen_noflush(xpos, ypos,
+  Result := SaveScreen_NoFlush(xpos, ypos,
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 
@@ -3589,11 +3589,11 @@ begin
   begin
     EventBeforeDraw;
     EventDraw;
-    Result := SaveScreen_ToDisplayList_noflush(0, 0, Width, Height, GL_BACK);
+    Result := SaveScreen_ToDisplayList_NoFlush(0, 0, Width, Height, GL_BACK);
   end else
   begin
     FlushRedisplay;
-    Result := SaveScreen_ToDisplayList_noflush(0, 0, Width, Height, GL_FRONT);
+    Result := SaveScreen_ToDisplayList_NoFlush(0, 0, Width, Height, GL_FRONT);
   end;
 end;
 
@@ -3612,7 +3612,7 @@ begin
     FlushRedisplay;
     ReadBuffer := GL_FRONT;
   end;
-  Result := SaveScreen_ToDisplayList_noflush(xpos, ypos,
+  Result := SaveScreen_ToDisplayList_NoFlush(xpos, ypos,
     SavedAreaWidth, SavedAreaHeight, ReadBuffer);
 end;
 

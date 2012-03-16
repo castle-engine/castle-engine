@@ -31,7 +31,7 @@
 
     @item(Screen saving, that is saving OpenGL buffer contents to TImage instance.
       Wrapper around glReadPixels and related things.
-      See TCastleWindowBase.SaveScreen, based on SaveScreen_noflush in this unit.)
+      See TCastleWindowBase.SaveScreen, based on SaveScreen_NoFlush in this unit.)
 
     @item(Rendering straight to texture (see TGLRenderToTexture class).
       This is our abstraction
@@ -228,7 +228,7 @@ function ImageDrawPartToDisplayList(
   glReadPixels will return pixel array filled with contents of
   *those other windows*.
 
-  Prefixing functions below, SaveScreen_noflush, with things like
+  Prefixing functions below, SaveScreen_NoFlush, with things like
     TCastleWindowBase.FlushRedisplay, or even
     TCastleWindowBase.PostRedisplay + TCastleWindowBase.FlushRedisplay, or even
     an explicit call to Draw procedure and an explicit call
@@ -240,7 +240,7 @@ function ImageDrawPartToDisplayList(
 
   This means that the only really reliable way to save screen contents
   is to draw something to BACK buffer and (without doing any swapbuffers)
-  do SaveScreen_noflush(GL_BACK) (where ReadBuffer may be some part of back
+  do SaveScreen_NoFlush(GL_BACK) (where ReadBuffer may be some part of back
   buffer, not necessarily only simple GL_BACK). This is only possible
   if you have double-buffered window, of course.
 }
@@ -268,15 +268,15 @@ function ImageDrawPartToDisplayList(
   as the viewport may change when we use custom viewports.
 
   @groupBegin }
-function SaveScreen_noflush(xpos, ypos, width, height: integer;
+function SaveScreen_NoFlush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
 
-function SaveScreen_noflush(
+function SaveScreen_NoFlush(
   ImageClass: TImageClass;
   xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TImage; overload;
 
-procedure SaveScreen_noflush(
+procedure SaveScreen_NoFlush(
   Image: TImage;
   xpos, ypos: integer;
   ReadBuffer: TGLenum); overload;
@@ -297,23 +297,23 @@ procedure SaveScreen_noflush(
   Ideally, it would be best to draw this only by
   ImageDrawPart(0, 0, Width (given here, not Image.Width), Image.Height)
   but it may not be possible --- again, thanks to TGLVersion.BuggyDrawOddWidth. }
-function SaveAlignedScreen_noflush(
+function SaveAlignedScreen_NoFlush(
   const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
   const ReadBuffer: TGLenum): TRGBImage;
 
 { Captures current screen and creates a display list to draw it in the future.
 
-  Capturing the screen is done by SaveScreen_noflush,
+  Capturing the screen is done by SaveScreen_NoFlush,
   drawing of the image is done normally,
   and placed in a display list.
 
   Actually, this is more complicated
-  (we capture the screen with SaveAlignedScreen_noflush,
+  (we capture the screen with SaveAlignedScreen_NoFlush,
   to workaround GLVersion.BuggyDrawOddWidth bug,
   we also have to actually draw it a little larger),
   but the intention of this procedure is to
   completely hide this completexity from you. }
-function SaveScreen_ToDisplayList_noflush(
+function SaveScreen_ToDisplayList_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
   const ReadBuffer: TGLenum): TGLuint;
 
@@ -708,7 +708,7 @@ type
         @item(tbNone: we will not capture screen contents to any texture
           at all. This is useful for rendering a screen that you want
           to manually capture to normal memory with glReadPixels
-          (see also SaveScreen_noflush in this unit or TCastleWindowBase.SaveScreen).
+          (see also SaveScreen_NoFlush in this unit or TCastleWindowBase.SaveScreen).
           Be sure to capture the screen before RenderEnd.)
       )
 
@@ -963,7 +963,7 @@ end;
 { Saving screen to TRGBImage ------------------------------------------------ }
 
 { This is the basis for all other SaveScreen* functions below. }
-procedure SaveScreen_noflush(
+procedure SaveScreen_NoFlush(
   Image: TImage;
   xpos, ypos: integer;
   ReadBuffer: TGLenum);
@@ -978,40 +978,40 @@ begin
   finally AfterPackNotAlignedRGBImage(packData, Image.width) end;
 end;
 
-function SaveScreen_noflush(
+function SaveScreen_NoFlush(
   ImageClass: TImageClass;
   xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TImage;
 begin
   Result := ImageClass.Create(width, height);
   try
-    SaveScreen_noflush(Result, xpos, ypos, ReadBuffer);
+    SaveScreen_NoFlush(Result, xpos, ypos, ReadBuffer);
   except Result.Free; raise end;
 end;
 
-function SaveScreen_noflush(
+function SaveScreen_NoFlush(
   xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage;
 begin
-  Result := TRGBImage(SaveScreen_noflush(TRGBImage, xpos, ypos, width, height, ReadBuffer));
+  Result := TRGBImage(SaveScreen_NoFlush(TRGBImage, xpos, ypos, width, height, ReadBuffer));
 end;
 
-function SaveAlignedScreen_noflush(
+function SaveAlignedScreen_NoFlush(
   const XPos, YPos: Integer; Width: Cardinal; const Height: Cardinal;
   const ReadBuffer: TGLenum): TRGBImage;
 begin
   if GLVersion.BuggyDrawOddWidth and (Width mod 4 <> 0) then
     Width += (4 - Width mod 4);
-  Result := SaveScreen_noflush(XPos, YPos, Width, Height, ReadBuffer);
+  Result := SaveScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
 end;
 
-function SaveScreen_ToDisplayList_noflush(
+function SaveScreen_ToDisplayList_NoFlush(
   const XPos, YPos: Integer; const Width, Height: Cardinal;
   const ReadBuffer: TGLenum): TGLuint;
 var
   ScreenImage: TRGBImage;
 begin
-  ScreenImage := SaveAlignedScreen_noflush(XPos, YPos, Width, Height, ReadBuffer);
+  ScreenImage := SaveAlignedScreen_NoFlush(XPos, YPos, Width, Height, ReadBuffer);
   try
     { There was an idea to do here
         ImageDrawPartToDisplayList(ScreenImage, 0, 0, Width, Height);
