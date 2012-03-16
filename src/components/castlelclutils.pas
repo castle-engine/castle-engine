@@ -20,52 +20,82 @@ interface
 
 uses FileFilters, Dialogs;
 
-{ Convert file filters into LCL OpenDialog.Filter, OpenDialog.FilterIndex.
-  FileFilters must be encoded as for TFileFilterList.AddFiltersFromString.
+{ Convert file filters into LCL Dialog.Filter, Dialog.FilterIndex.
+  Suitable for both open and save dialogs (TOpenDialog, TSaveDialog
+  both descend from TFileDialog).
+
+  Input filters are either given as a string FileFilters
+  (encoded just like for TFileFilterList.AddFiltersFromString),
+  or as TFileFilterList instance.
+
+  Output filters are either written to LCLFilter, LCLFilterIndex
+  variables, or set appropriate properties of given Dialog instance.
 
   @groupBegin }
-procedure FileFiltersToOpenDialog(const FileFilters: string;
-  OpenDialog: TOpenDialog);
-procedure FileFiltersToOpenDialog(const FileFilters: string;
-  out LCLFilter: string; out FilterIndex: Integer);
-{ @groupEnd }
-
-{ Convert file filters into LCL OpenDialog.Filter, OpenDialog.FilterIndex. }
-procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
+procedure FileFiltersToDialog(const FileFilters: string;
+  Dialog: TFileDialog);
+procedure FileFiltersToDialog(const FileFilters: string;
   out LCLFilter: string; out LCLFilterIndex: Integer);
+procedure FileFiltersToDialog(FFList: TFileFilterList;
+  Dialog: TFileDialog);
+procedure FileFiltersToDialog(FFList: TFileFilterList;
+  out LCLFilter: string; out LCLFilterIndex: Integer);
+{ @groupEnd }
 
 { Make each '&' inside string '&&', this way the string will not contain
   special '&x' sequences when used as a TMenuItem.Caption and such. }
 function SQuoteLCLCaption(const S: string): string;
 
+{ Deprecated names, use the identifiers without "Open" in new code.
+  @deprecated
+  @groupBegin }
+procedure FileFiltersToOpenDialog(const FileFilters: string;
+  Dialog: TFileDialog);
+procedure FileFiltersToOpenDialog(const FileFilters: string;
+  out LCLFilter: string; out LCLFilterIndex: Integer);
+procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
+  out LCLFilter: string; out LCLFilterIndex: Integer);
+{ @groupEnd }
+
 implementation
 
 uses SysUtils, CastleClassUtils;
 
-procedure FileFiltersToOpenDialog(const FileFilters: string;
-  OpenDialog: TOpenDialog);
+procedure FileFiltersToDialog(const FileFilters: string;
+  Dialog: TFileDialog);
 var
   LCLFilter: string;
-  FilterIndex: Integer;
+  LCLFilterIndex: Integer;
 begin
-  FileFiltersToOpenDialog(FileFilters, LCLFilter, FilterIndex);
-  OpenDialog.Filter := LCLFilter;
-  OpenDialog.FilterIndex := FilterIndex;
+  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex);
+  Dialog.Filter := LCLFilter;
+  Dialog.FilterIndex := LCLFilterIndex;
 end;
 
-procedure FileFiltersToOpenDialog(const FileFilters: string;
-  out LCLFilter: string; out FilterIndex: Integer);
+procedure FileFiltersToDialog(const FileFilters: string;
+  out LCLFilter: string; out LCLFilterIndex: Integer);
 var
   FFList: TFileFilterList;
 begin
   FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
-    FileFiltersToOpenDialog(FFList, LCLFilter, FilterIndex);
+    FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
   finally FreeAndNil(FFList) end;
 end;
 
-procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
+procedure FileFiltersToDialog(FFList: TFileFilterList;
+  Dialog: TFileDialog);
+var
+  LCLFilter: string;
+  LCLFilterIndex: Integer;
+begin
+  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
+  Dialog.Filter := LCLFilter;
+  Dialog.FilterIndex := LCLFilterIndex;
+end;
+
+procedure FileFiltersToDialog(FFList: TFileFilterList;
   out LCLFilter: string; out LCLFilterIndex: Integer);
 var
   Filter: TFileFilter;
@@ -94,6 +124,26 @@ end;
 function SQuoteLCLCaption(const S: string): string;
 begin
   Result := StringReplace(S, '&', '&&', [rfReplaceAll]);
+end;
+
+{ Deprecated functions, just call identifier without "Open". }
+
+procedure FileFiltersToOpenDialog(const FileFilters: string;
+  Dialog: TFileDialog);
+begin
+  FileFiltersToDialog(FileFilters, Dialog);
+end;
+
+procedure FileFiltersToOpenDialog(const FileFilters: string;
+  out LCLFilter: string; out LCLFilterIndex: Integer);
+begin
+  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex);
+end;
+
+procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
+  out LCLFilter: string; out LCLFilterIndex: Integer);
+begin
+  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
 end;
 
 end.
