@@ -1399,7 +1399,9 @@ begin
   MainScene.TriangleOctreeProgressTitle := 'Building triangle octree';
   MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
-  { just to make our Camera always non-nil }
+  { just to make our Camera always non-nil.
+    Useful for model_3d_viewer that wants to initialize NavigationType
+    from camera. }
   SceneManager.Camera := SceneManager.CreateDefaultCamera;
 end;
 
