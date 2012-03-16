@@ -1,12 +1,12 @@
 object Main: TMain
   Left = 462
-  Height = 514
+  Height = 515
   Top = 211
-  Width = 722
+  Width = 718
   ActiveControl = Browser
   Caption = 'Main'
-  ClientHeight = 481
-  ClientWidth = 722
+  ClientHeight = 482
+  ClientWidth = 718
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
@@ -15,28 +15,29 @@ object Main: TMain
   LCLVersion = '0.9.31'
   object PanelBottom: TPanel
     Left = 0
-    Height = 218
-    Top = 263
-    Width = 722
+    Height = 232
+    Top = 250
+    Width = 718
     Align = alBottom
     AutoSize = True
-    ClientHeight = 218
-    ClientWidth = 722
+    ClientHeight = 232
+    ClientWidth = 718
     TabOrder = 1
     object GroupBoxCamera: TGroupBox
-      Left = 6
+      Left = 9
       Height = 134
-      Top = 6
-      Width = 457
+      Top = 9
+      Width = 473
       AutoSize = True
-      BorderSpacing.Around = 5
+      BorderSpacing.Around = 8
       BorderSpacing.InnerBorder = 8
       Caption = 'Camera vectors'
+      ChildSizing.LeftRightSpacing = 8
       ClientHeight = 107
-      ClientWidth = 453
+      ClientWidth = 469
       TabOrder = 0
       object LabelPosition: TLabel
-        Left = 0
+        Left = 8
         Height = 26
         Top = 0
         Width = 71
@@ -44,7 +45,7 @@ object Main: TMain
         ParentColor = False
       end
       object LabelDirection: TLabel
-        Left = 0
+        Left = 8
         Height = 26
         Top = 33
         Width = 78
@@ -52,7 +53,7 @@ object Main: TMain
         ParentColor = False
       end
       object LabelUp: TLabel
-        Left = 0
+        Left = 8
         Height = 26
         Top = 65
         Width = 28
@@ -62,7 +63,7 @@ object Main: TMain
       object EditPositionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 88
+        Left = 96
         Height = 35
         Top = -5
         Width = 80
@@ -73,7 +74,7 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditPositionX
         AnchorSideLeft.Side = asrBottom
-        Left = 178
+        Left = 186
         Height = 35
         Top = -5
         Width = 80
@@ -84,7 +85,7 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditPositionY
         AnchorSideLeft.Side = asrBottom
-        Left = 268
+        Left = 276
         Height = 35
         Top = -5
         Width = 80
@@ -94,7 +95,7 @@ object Main: TMain
       object EditDirectionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 88
+        Left = 96
         Height = 35
         Top = 27
         Width = 80
@@ -105,7 +106,7 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditDirectionX
         AnchorSideLeft.Side = asrBottom
-        Left = 178
+        Left = 186
         Height = 35
         Top = 27
         Width = 80
@@ -116,7 +117,7 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditDirectionY
         AnchorSideLeft.Side = asrBottom
-        Left = 268
+        Left = 276
         Height = 35
         Top = 27
         Width = 80
@@ -126,7 +127,7 @@ object Main: TMain
       object EditUpX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 88
+        Left = 96
         Height = 35
         Top = 59
         Width = 80
@@ -137,7 +138,7 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditUpX
         AnchorSideLeft.Side = asrBottom
-        Left = 178
+        Left = 186
         Height = 35
         Top = 59
         Width = 80
@@ -148,7 +149,7 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditUpY
         AnchorSideLeft.Side = asrBottom
-        Left = 268
+        Left = 276
         Height = 35
         Top = 57
         Width = 80
@@ -158,7 +159,7 @@ object Main: TMain
       object ButtonChangeCamera: TButton
         AnchorSideLeft.Control = EditUpZ
         AnchorSideLeft.Side = asrBottom
-        Left = 358
+        Left = 366
         Height = 45
         Top = 44
         Width = 79
@@ -171,9 +172,9 @@ object Main: TMain
       end
     end
     object ButtonScreenshot: TBitBtn
-      Left = 584
+      Left = 580
       Height = 37
-      Top = 17
+      Top = 20
       Width = 129
       Anchors = [akTop, akRight]
       AutoSize = True
@@ -266,11 +267,12 @@ object Main: TMain
     object GroupNavigationType: TGroupBox
       AnchorSideTop.Control = GroupBoxCamera
       AnchorSideTop.Side = asrBottom
-      Left = 8
+      Left = 11
       Height = 72
-      Top = 145
+      Top = 151
       Width = 623
       AutoSize = True
+      BorderSpacing.Around = 8
       Caption = 'Navigation type'
       ClientHeight = 45
       ClientWidth = 619
@@ -519,9 +521,9 @@ object Main: TMain
   object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 263
+    Height = 250
     Top = 0
-    Width = 722
+    Width = 718
     Align = alClient
     TabOrder = 0
     SceneManager.Input_PointingDeviceActivate.Key1 = K_None
