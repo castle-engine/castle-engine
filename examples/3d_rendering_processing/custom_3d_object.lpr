@@ -76,14 +76,9 @@ begin
   Cube := TCube.Create(Application);
   Window.SceneManager.Items.Add(Cube);
 
-  { init SceneManager.Camera.
-    This is optional, if SceneManager.Camera is left unassigned, a suitable
-    default camera will be created by the scene manager during ApplyProjection
-    (before first rendering), see TCastleSceneManager.CreateDefaultCamera docs. }
-  Window.SceneManager.Camera := TExamineCamera.Create(Application);
-  (Window.SceneManager.Camera as TExamineCamera).Init(Box3D(
-    Vector3Single(-1, -1, -1),
-    Vector3Single( 1,  1,  1)), 0.1);
+  { do not assign here SceneManager.Camera, let it be automatically created
+    (during nearest ApplyProjection (before first rendering),
+    see TCastleSceneManager.CreateDefaultCamera docs). }
 
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
