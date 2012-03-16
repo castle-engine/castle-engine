@@ -28,6 +28,7 @@ uses
 type
   TMain = class(TForm)
     ApplicationProperties1: TApplicationProperties;
+    ButtonScreenshot: TBitBtn;
     ButtonChangeCamera: TButton;
     EditPositionX: TEdit;
     EditPositionY: TEdit;
@@ -56,6 +57,7 @@ type
     MenuOpen: TMenuItem;
     OpenDialog1: TOpenDialog;
     PanelBottom: TPanel;
+    SaveScreenshotDialog: TSaveDialog;
     Timer1: TTimer;
     MenuItem2: TMenuItem;
     MenuMouseLookToggle: TMenuItem;
@@ -63,6 +65,7 @@ type
     RecentFiles: TLazRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
     procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
+    procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TCamera);
     procedure ButtonChangeCameraClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -94,7 +97,7 @@ implementation
 uses LCLType, VectorMath, Boxes3D, X3DNodes, GLRenderer,
   GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
-  OpenGLInformation, CastleLCLUtils, ConsoleF;
+  OpenGLInformation, CastleLCLUtils, ConsoleF, Images;
 
 procedure TMain.OpenScene(const FileName: string);
 begin
@@ -297,6 +300,21 @@ begin
     EditUpX.Text := FloatToNiceStr(Up[0]);
     EditUpY.Text := FloatToNiceStr(Up[1]);
     EditUpZ.Text := FloatToNiceStr(Up[2]);
+  end;
+end;
+
+procedure TMain.ButtonScreenshotClick(Sender: TObject);
+var
+  Image: TRGBImage;
+begin
+  FileFiltersToDialog(SaveImage_FileFilters, SaveScreenshotDialog);
+
+  if SaveScreenshotDialog.Execute then
+  begin
+    Image := Browser.SaveScreen;
+    try
+      SaveImage(Image, SaveScreenshotDialog.FileName);
+    finally FreeAndNil(Image) end;
   end;
 end;
 

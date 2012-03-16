@@ -7,7 +7,6 @@
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -60,120 +59,16 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="mainf"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="133"/>
-        <CursorPos X="38" Y="269"/>
+        <TopLine Value="289"/>
+        <CursorPos X="44" Y="319"/>
         <UsageCount Value="72"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
     </Units>
-    <JumpHistory Count="25" HistoryIndex="24">
-      <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="223" Column="51" TopLine="213"/>
-      </Position1>
-      <Position2>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="224" Column="22" TopLine="210"/>
-      </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="221" Column="7" TopLine="210"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="160" Column="14" TopLine="143"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="25" Column="51" TopLine="5"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="268" Column="20" TopLine="252"/>
-      </Position6>
-      <Position7>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="271" Column="20" TopLine="252"/>
-      </Position7>
-      <Position8>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="273" Column="39" TopLine="252"/>
-      </Position8>
-      <Position9>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="274" Column="39" TopLine="252"/>
-      </Position9>
-      <Position10>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="270" Column="1" TopLine="242"/>
-      </Position10>
-      <Position11>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="149" Column="26" TopLine="117"/>
-      </Position11>
-      <Position12>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="247" Column="12" TopLine="219"/>
-      </Position12>
-      <Position13>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="157" Column="5" TopLine="139"/>
-      </Position13>
-      <Position14>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="80" Column="28" TopLine="53"/>
-      </Position14>
-      <Position15>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="84" Column="28" TopLine="57"/>
-      </Position15>
-      <Position16>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="83" Column="28" TopLine="56"/>
-      </Position16>
-      <Position17>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="84" Column="28" TopLine="57"/>
-      </Position17>
-      <Position18>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="83" Column="28" TopLine="56"/>
-      </Position18>
-      <Position19>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="70" Column="110" TopLine="56"/>
-      </Position19>
-      <Position20>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="72" Column="110" TopLine="57"/>
-      </Position20>
-      <Position21>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
-      </Position21>
-      <Position22>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="69" Column="31" TopLine="53"/>
-      </Position22>
-      <Position23>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="85" Column="14" TopLine="69"/>
-      </Position23>
-      <Position24>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="156" Column="1" TopLine="142"/>
-      </Position24>
-      <Position25>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="275" Column="33" TopLine="259"/>
-      </Position25>
-    </JumpHistory>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <SearchPaths>
       <SrcPath Value="$(LazarusDir)/lcl;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)"/>
     </SearchPaths>
@@ -193,7 +88,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
-        <GenerateDebugInfo Value="True"/>
+        <DebugInfoType Value="dsStabs"/>
       </Debugging>
       <Options>
         <Win32>

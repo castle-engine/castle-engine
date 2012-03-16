@@ -1,68 +1,68 @@
 object Main: TMain
   Left = 379
-  Height = 508
+  Height = 518
   Top = 202
-  Width = 744
+  Width = 739
   ActiveControl = Browser
   Caption = 'Main'
-  ClientHeight = 473
-  ClientWidth = 744
+  ClientHeight = 485
+  ClientWidth = 739
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnDestroy = FormDestroy
   Position = poDefaultPosOnly
-  LCLVersion = '0.9.30'
+  LCLVersion = '0.9.31'
   object PanelBottom: TPanel
     Left = 0
     Height = 141
-    Top = 332
-    Width = 744
+    Top = 344
+    Width = 739
     Align = alBottom
     ClientHeight = 141
-    ClientWidth = 744
+    ClientWidth = 739
     TabOrder = 1
     object GroupBoxCamera: TGroupBox
       Left = 6
       Height = 129
       Top = 6
-      Width = 467
+      Width = 441
       Align = alLeft
       AutoSize = True
       BorderSpacing.Around = 5
       Caption = 'Camera'
-      ClientHeight = 103
-      ClientWidth = 461
+      ClientHeight = 102
+      ClientWidth = 437
       TabOrder = 0
       object LabelPosition: TLabel
         Left = 0
-        Height = 24
+        Height = 26
         Top = 0
-        Width = 79
+        Width = 71
         Caption = 'Position:'
         ParentColor = False
       end
       object LabelDirection: TLabel
         Left = 0
-        Height = 24
+        Height = 26
         Top = 33
-        Width = 91
+        Width = 78
         Caption = 'Direction:'
         ParentColor = False
       end
       object LabelUp: TLabel
         Left = 0
-        Height = 24
+        Height = 26
         Top = 65
-        Width = 32
+        Width = 28
         Caption = 'Up:'
         ParentColor = False
       end
       object EditPositionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 101
-        Height = 33
+        Left = 88
+        Height = 35
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -72,8 +72,8 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditPositionX
         AnchorSideLeft.Side = asrBottom
-        Left = 191
-        Height = 33
+        Left = 178
+        Height = 35
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -83,8 +83,8 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditPositionY
         AnchorSideLeft.Side = asrBottom
-        Left = 281
-        Height = 33
+        Left = 268
+        Height = 35
         Top = -5
         Width = 80
         BorderSpacing.Left = 10
@@ -93,8 +93,8 @@ object Main: TMain
       object EditDirectionX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 101
-        Height = 33
+        Left = 88
+        Height = 35
         Top = 27
         Width = 80
         BorderSpacing.Left = 10
@@ -104,8 +104,8 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditDirectionX
         AnchorSideLeft.Side = asrBottom
-        Left = 191
-        Height = 33
+        Left = 178
+        Height = 35
         Top = 27
         Width = 80
         BorderSpacing.Left = 10
@@ -115,8 +115,8 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditDirectionY
         AnchorSideLeft.Side = asrBottom
-        Left = 281
-        Height = 33
+        Left = 268
+        Height = 35
         Top = 27
         Width = 80
         BorderSpacing.Left = 10
@@ -125,8 +125,8 @@ object Main: TMain
       object EditUpX: TEdit
         AnchorSideLeft.Control = LabelDirection
         AnchorSideLeft.Side = asrBottom
-        Left = 101
-        Height = 33
+        Left = 88
+        Height = 35
         Top = 59
         Width = 80
         BorderSpacing.Left = 10
@@ -136,8 +136,8 @@ object Main: TMain
         Tag = 1
         AnchorSideLeft.Control = EditUpX
         AnchorSideLeft.Side = asrBottom
-        Left = 191
-        Height = 33
+        Left = 178
+        Height = 35
         Top = 59
         Width = 80
         BorderSpacing.Left = 10
@@ -147,8 +147,8 @@ object Main: TMain
         Tag = 2
         AnchorSideLeft.Control = EditUpY
         AnchorSideLeft.Side = asrBottom
-        Left = 281
-        Height = 33
+        Left = 268
+        Height = 35
         Top = 57
         Width = 80
         BorderSpacing.Left = 10
@@ -157,10 +157,10 @@ object Main: TMain
       object ButtonChangeCamera: TButton
         AnchorSideLeft.Control = EditUpZ
         AnchorSideLeft.Side = asrBottom
-        Left = 371
-        Height = 43
+        Left = 358
+        Height = 45
         Top = 44
-        Width = 90
+        Width = 79
         AutoSize = True
         BorderSpacing.Left = 10
         BorderSpacing.InnerBorder = 4
@@ -169,15 +169,121 @@ object Main: TMain
         TabOrder = 9
       end
     end
+    object ButtonScreenshot: TBitBtn
+      Left = 595
+      Height = 37
+      Top = 10
+      Width = 129
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      Caption = 'Screenshot'
+      Glyph.Data = {
+        FA090000424DFA09000000000000360000002800000019000000190000000100
+        200000000000C409000064000000640000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00000000000000000000A4A4A40B6C6C6CA9000000FF0A0A0AFF0D0D0DFF0D0D
+        0DFF0F0F0FFF0F0F0FFF0E0E0EFF0D0D0DFF0D0D0DFF0D0D0DFF0D0D0DFF0D0D
+        0DFF0D0D0DFF0D0D0DFF0D0D0DFF0D0D0DFF0D0D0DFF0D0D0DFF0C0C0CFF0000
+        00FF6A6A6AA9A4A4A40B0000000070707098252525F4000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF242424F46D6D6D9800000000282828FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF080808FF00000000272727FF000000FF0000
+        00FF000000FF000000FF000000FF010101FF000000FF000000FF4E4E4ED66E6E
+        6EA1787878A16D6D6DA24D4D4DCF000000FF000000FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF0A0A0AFF00000000262626FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF151515FF7A7A7A8CA2A2
+        A218A8A8A800A7A7A701A8A8A800A2A2A21379797981080808FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF0D0D0DFF000000002626
+        26FF000000FF000000FF000000FF000000FF000000FF000000FF7C7C7C80A9A9
+        A900909090535C5C5CC6464646D6636363B596969634AAAAAA007676768D0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF0D0D0DFF0000
+        0000262626FF000000FF000000FF000000FF000000FF000000FF4E4E4ED3A5A5
+        A5069090904A292929F9000000FF000000FF000000FF353535E698989831A0A0
+        A01D404040E4000000FF000000FF000000FF000000FF000000FF000000FF0D0D
+        0DFF00000000252525FF000000FF000000FF000000FF000000FF000000FF7676
+        7687A7A7A702646464AE000000FF000000FF000000FF010101FF000000FF6868
+        68AFA9A9A900636363B6000000FF000000FF000000FF000000FF000000FF0000
+        00FF0D0D0DFF00000000252525FF000000FF000000FF000000FF000000FF0000
+        00FF7D7D7D70A4A4A412525252DE000000FF000000FF000000FF000000FF0000
+        00FF555555C5A8A8A8006B6B6BB2000000FF000000FF000000FF000000FF0000
+        00FF000000FF0D0D0DFF00000000252525FF000000FF000000FF000000FF0000
+        00FF000000FF6D6D6DA3A7A7A7066D6D6DA1000000FF000000FF000000FF0000
+        00FF000000FF75757590A9A9A9005E5E5EB9000000FF000000FF000000FF0000
+        00FF000000FF000000FF0D0D0DFF00000000242424FF000000FF000000FF0000
+        00FF000000FF000000FF3B3B3BED9F9F9F209B9B9B2B4C4C4CD5000000FF0000
+        00FF000000FF4C4C4CD99F9F9F2399999932323232EF000000FF000000FF0000
+        00FF000000FF000000FF000000FF0D0D0DFF00000000232323FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF6C6C6C9DA7A7A7009F9F9F197C7C
+        7C82666666C08080807EA1A1A113A3A3A3125F5F5FBE000000FF141414FC2929
+        29F02A2A2AEE212121F6010101FF000000FF0D0D0DFF00000000232323FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF636363B39595
+        9544A6A6A60DA8A8A800A5A5A50A9494943B595959C1000000FF000000FF5B5B
+        5BC59C9C9C26A0A0A00F8383837E0D0D0DFF000000FF0D0D0DFF000000001F1F
+        1FFF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF2C2C2CF6525252CB5C5C5CB6535353C82A2A2AF3000000FF000000FF0000
+        00FF606060BCA5A5A510A9A9A9008B8B8B710F0F0FFF000000FF090909FF0000
+        00001E1E1EFF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF272727F4484848D34B4B4BCF3C3C3CE5020202FF000000FF0000
+        00FF00000000616161C2121212FF000000FF000000FF000000FF000000FF0101
+        01FF010101FF010101FF010101FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF010101FF000000FF000000FF000000FF000000FF000000FF0D0D
+        0DFF5D5D5DC200000000919191166B6B6B74353535CD292929DC2C2C2CDB2D2D
+        2DD52C2C2CCF2C2C2CD02C2C2CD02C2C2CD02C2C2CD02C2C2CD02C2C2CD02B2B
+        2BD02B2B2BD02A2A2AD02D2D2DD02B2B2BD02B2B2BD02B2B2BD02B2B2BD12B2B
+        2BCF656565809191911300000000202020002F2F2F002F2F2F9E161616D11919
+        19D1282828791414140015151507151515071515150715151507151515071515
+        1507151515071515150714141407161616071515150715151507151515071515
+        1507191919062A2A2A0022222200000000000000000000000000292929BD0000
+        00FF000000FF2626268000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        000000000000000000000000000000000000000000000000000000000000
+      }
+      OnClick = ButtonScreenshotClick
+      TabOrder = 1
+    end
   end
   object Browser: TCastleControl
     AnchorSideBottom.Control = PanelBottom
     Left = 0
-    Height = 332
+    Height = 344
     Top = 0
-    Width = 744
+    Width = 739
     Align = alClient
     TabOrder = 0
+    SceneManager.Input_PointingDeviceActivate.Key1 = K_None
+    SceneManager.Input_PointingDeviceActivate.Key2 = K_None
+    SceneManager.Input_PointingDeviceActivate.Character = #0
+    SceneManager.Input_PointingDeviceActivate.MouseButtonUse = True
+    SceneManager.Input_PointingDeviceActivate.MouseButton = mbLeft
+    SceneManager.Input_PointingDeviceActivate.MouseWheel = mwNone
+    SceneManager.Input_PointingDeviceActivate.DefaultKey1 = K_None
+    SceneManager.Input_PointingDeviceActivate.DefaultKey2 = K_None
+    SceneManager.Input_PointingDeviceActivate.DefaultCharacter = #0
+    SceneManager.Input_PointingDeviceActivate.DefaultMouseButtonUse = True
+    SceneManager.Input_PointingDeviceActivate.DefaultMouseButton = mbLeft
+    SceneManager.Input_PointingDeviceActivate.DefaultMouseWheel = mwNone
+    SceneManager.OnCameraChanged = BrowserCameraChanged
     OnCameraChanged = BrowserCameraChanged
   end
   object MainMenu1: TMainMenu
@@ -264,5 +370,11 @@ object Main: TMain
     OnIdle = ApplicationProperties1Idle
     left = 268
     top = 44
+  end
+  object SaveScreenshotDialog: TSaveDialog
+    Title = 'Save Screenshot As'
+    Options = [ofOverwritePrompt, ofEnableSizing, ofViewDetail]
+    left = 259
+    top = 271
   end
 end
