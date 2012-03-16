@@ -149,7 +149,7 @@ begin
   if SceneFileName <> '' then
     S := ExtractFileName(SceneFileName) else
     S := 'No Scene';
-  S += ' - vrml_browser' +
+  S += ' - ' +  ApplicationName +
     Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
   Caption := S;
 end;
@@ -215,7 +215,7 @@ end;
 
 function MyGetApplicationName: string;
 begin
-  Result := 'vrml_browser';
+  Result := 'model_3d_viewer';
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
