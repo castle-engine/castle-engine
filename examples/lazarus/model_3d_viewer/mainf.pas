@@ -23,13 +23,18 @@ interface
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, CastleScene, Cameras, CastleControl, CastleWarnings,
-  LCLRecentFiles, CastleXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles;
+  LCLRecentFiles, CastleXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles,
+  CastleSceneManager;
 
 type
   TMain = class(TForm)
     ApplicationProperties1: TApplicationProperties;
+    ButtonExamine: TSpeedButton;
+    ButtonFly: TSpeedButton;
+    ButtonNone: TSpeedButton;
     ButtonScreenshot: TBitBtn;
     ButtonChangeCamera: TButton;
+    ButtonWalk: TSpeedButton;
     EditPositionX: TEdit;
     EditPositionY: TEdit;
     EditPositionZ: TEdit;
@@ -39,6 +44,7 @@ type
     EditUpZ: TEdit;
     EditUpY: TEdit;
     EditUpX: TEdit;
+    GroupNavigationType: TGroupBox;
     GroupBoxCamera: TGroupBox;
     Browser: TCastleControl;
     LabelPosition: TLabel;
@@ -65,6 +71,7 @@ type
     RecentFiles: TLazRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
     procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
+    procedure ButtonNavigationTypeClick(Sender: TObject);
     procedure ButtonScreenshotClick(Sender: TObject);
     procedure BrowserCameraChanged(Camera: TCamera);
     procedure ButtonChangeCameraClick(Sender: TObject);
@@ -75,6 +82,7 @@ type
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
     procedure MenuShowVrmlConsoleClick(Sender: TObject);
+    procedure SceneManagerBoundNavigationInfoChanged(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure MenuMouseLookToggleClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -83,6 +91,7 @@ type
   private
     SceneFileName: string;
     CameraChanged: boolean;
+    ButtonsNavigationType: array [TCameraNavigationType] of TSpeedButton;
     procedure OpenScene(const FileName: string);
     procedure UpdateCaption;
   public
@@ -118,6 +127,11 @@ begin
   end;
 
   RecentFiles.Add(FileName);
+
+  { after loading the scene, make sure to update ButtonsNavigationType state.
+    Although during scene loading, OnBoundNavigationInfoChanged was already
+    called, but at that time Camera was nil. }
+  SceneManagerBoundNavigationInfoChanged(nil);
 end;
 
 procedure TMain.MenuOpenClick(Sender: TObject);
@@ -227,6 +241,11 @@ begin
   VrmlConsole := TVrmlConsole.Create(Application);
   OnWarning := @OnWarningVrmlConsole;
 
+  ButtonsNavigationType[ntExamine] := ButtonExamine;
+  ButtonsNavigationType[ntWalk] := ButtonWalk;
+  ButtonsNavigationType[ntFly] := ButtonFly;
+  ButtonsNavigationType[ntNone] := ButtonNone;
+
   if Parameters.High >= 1 then
     OpenScene(Parameters[1]);
 end;
@@ -300,6 +319,48 @@ begin
     EditUpX.Text := FloatToNiceStr(Up[0]);
     EditUpY.Text := FloatToNiceStr(Up[1]);
     EditUpZ.Text := FloatToNiceStr(Up[2]);
+  end;
+end;
+
+procedure TMain.SceneManagerBoundNavigationInfoChanged(Sender: TObject);
+var
+  NavigationType: TCameraNavigationType;
+begin
+  { For safety, we check here Camera existence and class.
+    Camera may not exist yet (it is intially nil, and is freed / recreated
+    inside Browser.Load call in OpenScene).
+    In this program, it is always TUniversalCamera (because by default
+    TCastleSceneManager and TCastlScene always create the most versatile
+    TUniversalCamera). }
+
+  if (Browser.Camera <> nil) and
+     (Browser.Camera is TUniversalCamera) then
+  begin
+    NavigationType := (Browser.Camera as TUniversalCamera).NavigationType;
+
+    { make the appropriate button on ButtonsNavigationType pressed.
+      Thanks to TSpeedButton.GroupIndex, all others will be automatically released. }
+    ButtonsNavigationType[NavigationType].Down := true;
+  end;
+end;
+
+procedure TMain.ButtonNavigationTypeClick(Sender: TObject);
+var
+  NavigationType, NT: TCameraNavigationType;
+begin
+  { Just like in SceneManagerBoundNavigationInfoChanged:
+    in practice, our Camera is always of TUniversalCamera class.
+    But check for safety. }
+  if (Browser.Camera <> nil) and
+     (Browser.Camera is TUniversalCamera) then
+  begin
+    { this is a handler for all four navigation type buttons.
+      Scan ButtonsNavigationType to detect which is Sender. }
+    for NT := Low(NT) to High(NT) do
+      if ButtonsNavigationType[NT] = Sender then
+        NavigationType := NT;
+
+    (Browser.Camera as TUniversalCamera).NavigationType := NavigationType;
   end;
 end;
 
