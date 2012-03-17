@@ -67,7 +67,7 @@ interface
 uses SysUtils, Classes, Math, CastleUtils, VectorMath,
   CastlePng, FileFilters, CastleClassUtils, CastleColors,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
-  FPImage, FPReadPCX, 
+  FPImage, FPReadPCX,
   {$ifndef VER2_2} FPReadGIF, FPReadPSD, {$endif} FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
@@ -1308,51 +1308,26 @@ type
   end;
 
 const
+  { Information about supported image formats. }
   ImageFormatInfos :array[TImageFormat]of TImageFormatInfo =
-  ( ( FormatName: 'Windows BMP image';
-      ExtsCount: 1; Exts: ('bmp', '', '');
-      Load: @LoadBMP; LoadedClasses: lcRGB_RGBA;
-      Save: @SaveBMP; SavedClasses: scRGB),
+  ( { The order on this list matters --- it determines the order of filters
+      for open/save dialogs.
+      First list most adviced and well-known formats, starting from lossless. }
+
     { Portable Network Graphic } { }
     ( FormatName: 'PNG image';
       ExtsCount: 1; Exts: ('png', '', '');
       Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
       Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
+    ( FormatName: 'Windows BMP image';
+      ExtsCount: 1; Exts: ('bmp', '', '');
+      Load: @LoadBMP; LoadedClasses: lcRGB_RGBA;
+      Save: @SaveBMP; SavedClasses: scRGB),
     { Portable Pixel Map } { }
     ( FormatName: 'PPM image';
       ExtsCount: 1; Exts: ('ppm', '', '');
       Load: @LoadPPM; LoadedClasses: lcRGB;
       Save: @SavePPM; SavedClasses: scRGB; ),
-    ( FormatName: 'IPLab image';
-      ExtsCount: 1; Exts: ('ipl', '', '');
-      Load: @LoadIPL; LoadedClasses: lcRGB;
-      Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'RGBE (RGB+Exponent) image';
-      ExtsCount: 2; Exts: ('rgbe', 'pic', '');
-      Load: @LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
-      Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat; ),
-
-    { Loaded using ImageMagick } { }
-
-    ( FormatName: 'TIFF image';
-      ExtsCount: 1; Exts: ('tif', '', '');
-      Load: @LoadTIFF; LoadedClasses: lcRGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'SGI image';
-      ExtsCount: 1; Exts: ('sgi', '', '');
-      Load: @LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'JP2 image';
-      ExtsCount: 1; Exts: ('jp2', '', '');
-      Load: @LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
-    ( FormatName: 'EXR image';
-      ExtsCount: 1; Exts: ('exr', '', '');
-      Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: nil; SavedClasses: scRGB; ),
-
-    { Loaded using FPImage } { }
-
     { JFIF, JPEG File Interchange Format } { }
     ( FormatName: 'JPEG image';
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
@@ -1388,7 +1363,40 @@ const
     ( FormatName: 'DDS image';
       ExtsCount: 1; Exts: ('dds', '', '');
       Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA; )
+      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA; ),
+
+    { Image formats not well known. }
+
+    ( FormatName: 'RGBE (RGB+Exponent) image';
+      ExtsCount: 2; Exts: ('rgbe', 'pic', '');
+      Load: @LoadRGBE; LoadedClasses: lcRGB_RGBFloat;
+      Save: @SaveRGBE; SavedClasses: scRGB_RGBFloat; ),
+    ( FormatName: 'IPLab image';
+      ExtsCount: 1; Exts: ('ipl', '', '');
+      Load: @LoadIPL; LoadedClasses: lcRGB;
+      Save: nil; SavedClasses: scRGB; ),
+
+    { Image formats loaded using ImageMagick's convert.
+      Placed at the end of the list, to be at the end of open/save dialogs
+      filters, since there's a large chance they will not work,
+      if user didn't install ImageMagick. } { }
+
+    ( FormatName: 'TIFF image';
+      ExtsCount: 1; Exts: ('tif', '', '');
+      Load: @LoadTIFF; LoadedClasses: lcRGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'SGI image';
+      ExtsCount: 1; Exts: ('sgi', '', '');
+      Load: @LoadSGI; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'JP2 image';
+      ExtsCount: 1; Exts: ('jp2', '', '');
+      Load: @LoadJP2; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; ),
+    ( FormatName: 'EXR image';
+      ExtsCount: 1; Exts: ('exr', '', '');
+      Load: @LoadEXR; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: nil; SavedClasses: scRGB; )
   );
 
   DefaultSaveImageFormat: TImageFormat = ifBMP;
