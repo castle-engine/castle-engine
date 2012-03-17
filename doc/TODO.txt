@@ -24,6 +24,11 @@ Maybe:
 - Move castle lights editor to view3dscene.
   BTW: maybe allow configuring shadow maps params,
   checkbox to switch "Shadows" and to change shadow map size would be very cool!
+  
+3.2 plans (~end of April):
+- add ability to initialize GL context with options for stencil butffer
+  and multi-sampling. Activate shadow volumes and anti-aliasing on model_3d_viewer.
+  Notify Jan Adamec.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
