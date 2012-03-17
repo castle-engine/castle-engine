@@ -59,7 +59,11 @@ uses
   TestCastleWindow,
   TestOpeningAndRendering3D,
   TestOpenGLFonts
-  {$endif} {$endif};
+  {$endif} {$endif}
+  { Stuff requiring Lazarus LCL. }
+  {$ifndef TEXT_RUNNER},
+  TestCastleLCLUtils
+  {$endif};
 
 {var
   T: TTestX3DNodes;}

@@ -31,15 +31,18 @@ uses FileFilters, Dialogs;
   Output filters are either written to LCLFilter, LCLFilterIndex
   variables, or set appropriate properties of given Dialog instance.
 
+  When AllFields is false, then filters starting with "All " in the name,
+  like "All files", "All images", are not included in the output.
+
   @groupBegin }
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog);
+  Dialog: TFileDialog; const AllFields: boolean = true);
 procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog);
+  Dialog: TFileDialog; const AllFields: boolean = true);
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean = true);
 { @groupEnd }
 
 { Make each '&' inside string '&&', this way the string will not contain
@@ -59,53 +62,70 @@ procedure FileFiltersToOpenDialog(FFList: TFileFilterList;
 
 implementation
 
-uses SysUtils, CastleClassUtils;
+uses SysUtils, CastleClassUtils, CastleStringUtils;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  Dialog: TFileDialog);
+  Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex);
+  FileFiltersToDialog(FileFilters, LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
 
 procedure FileFiltersToDialog(const FileFilters: string;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
 var
   FFList: TFileFilterList;
 begin
   FFList := TFileFilterList.Create(true);
   try
     FFList.AddFiltersFromString(FileFilters);
-    FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
+    FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
   finally FreeAndNil(FFList) end;
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  Dialog: TFileDialog);
+  Dialog: TFileDialog; const AllFields: boolean);
 var
   LCLFilter: string;
   LCLFilterIndex: Integer;
 begin
-  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex);
+  FileFiltersToDialog(FFList, LCLFilter, LCLFilterIndex, AllFields);
   Dialog.Filter := LCLFilter;
   Dialog.FilterIndex := LCLFilterIndex;
 end;
 
 procedure FileFiltersToDialog(FFList: TFileFilterList;
-  out LCLFilter: string; out LCLFilterIndex: Integer);
+  out LCLFilter: string; out LCLFilterIndex: Integer; const AllFields: boolean);
 var
   Filter: TFileFilter;
   I, J: Integer;
 begin
   LCLFilter := '';
 
+  { initialize LCLFilterIndex.
+    Will be corrected for AllFields=false case, and will be incremented
+    (because LCL FilterIndex counts from 1) later. }
+
+  LCLFilterIndex := FFList.DefaultFilter;
+
   for I := 0 to FFList.Count - 1 do
   begin
     Filter := FFList[I];
+    if (not AllFields) and IsPrefix('All ', Filter.Name) then
+    begin
+      { then we don't want to add this to LCLFilter.
+        We also need to fix LCLFilterIndex, to shift it. }
+      if I = FFList.DefaultFilter then
+        LCLFilterIndex := 0 else
+      if I < FFList.DefaultFilter then
+        Dec(LCLFilterIndex);
+      Continue;
+    end;
+
     LCLFilter += Filter.Name + '|';
 
     for J := 0 to Filter.Patterns.Count - 1 do
@@ -118,7 +138,7 @@ begin
   end;
 
   { LCL FilterIndex counts from 1. }
-  LCLFilterIndex := FFList.DefaultFilter + 1;
+  Inc(LCLFilterIndex);
 end;
 
 function SQuoteLCLCaption(const S: string): string;
