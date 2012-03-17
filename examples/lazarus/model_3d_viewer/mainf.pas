@@ -47,6 +47,7 @@ type
     GroupNavigationType: TGroupBox;
     GroupBoxCamera: TGroupBox;
     Browser: TCastleControl;
+    ImagePoweredBy: TImage;
     LabelPosition: TLabel;
     LabelDirection: TLabel;
     LabelUp: TLabel;
