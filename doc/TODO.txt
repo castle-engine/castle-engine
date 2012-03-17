@@ -1149,6 +1149,13 @@ Various:
   But do PointingDeviceMove only in MouseMove.
   How to avoid on MouseMove updating MouseRayHit needlessly 2 times
   (once from MouseMove, once from CameraChanged).
+
+- once we migrate to fpc 2.6.0, add deprecated notes to all @deprecated stuff.
+
+- followers component,
+  see also x3d mail about new nodes
+  http://www.hersto.net/VRML/DampersHowto/?lay=2
+  http://www.web3d.org/x3d/content/examples/Basic/Followers/Stocker_06_Followers.pdf
 ------------------------------------------------------------------------------
 Shaders:
 
