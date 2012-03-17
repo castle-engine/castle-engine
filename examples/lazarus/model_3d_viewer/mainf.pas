@@ -57,6 +57,8 @@ type
     MenuHelp: TMenuItem;
     MenuAboutOpenGL: TMenuItem;
     MenuItem1: TMenuItem;
+    MenuWebsite: TMenuItem;
+    MenuSep2: TMenuItem;
     MenuShowVrmlConsole: TMenuItem;
     MenuItemView: TMenuItem;
     MenuQuit: TMenuItem;
@@ -83,6 +85,7 @@ type
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
     procedure MenuShowVrmlConsoleClick(Sender: TObject);
+    procedure MenuWebsiteClick(Sender: TObject);
     procedure SceneManagerBoundNavigationInfoChanged(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure MenuMouseLookToggleClick(Sender: TObject);
@@ -104,7 +107,7 @@ var
 
 implementation
 
-uses LCLType, VectorMath, Boxes3D, X3DNodes, GLRenderer,
+uses LCLType, LCLIntf, VectorMath, Boxes3D, X3DNodes, GLRenderer,
   GL, GLU, GLExt, CastleClassUtils, CastleUtils, X3DLoad,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
   OpenGLInformation, CastleLCLUtils, ConsoleF, Images;
@@ -163,6 +166,12 @@ end;
 procedure TMain.MenuShowVrmlConsoleClick(Sender: TObject);
 begin
   VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
+end;
+
+procedure TMain.MenuWebsiteClick(Sender: TObject);
+begin
+  if not OpenURL('http://castle-engine.sourceforge.net/') then
+    MessageDlg('WWW browser not found on your system.', mtError, [mbClose], 0);
 end;
 
 procedure TMain.Timer1Timer(Sender: TObject);
