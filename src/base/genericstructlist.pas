@@ -1,12 +1,14 @@
-{
+{ Generic list of any type (TGenericStructList) and map with keys of any type
+  (TGenericStructMap).
+
+  This unit is ostensibly done to avoid bug
+  http://bugs.freepascal.org/view.php?id=9228 with unit FGL.
+
   Based on FPC FGL unit, copyright by FPC team.
   License of FPC RTL is the same as our engine (modified LGPL,
   see COPYING.txt for details).
   Fixed to compile also under FPC 2.4.0 and 2.2.4.
-  Some small comfortable methods added.
-}
-
-{ Generic list of any type (TGenericStructList). }
+  Some small comfortable methods added. }
 unit GenericStructList;
 
 {$mode objfpc}{$H+}
@@ -99,7 +101,62 @@ type
     function Add: PT;
   end;
 
+  { Generic map of types, with keys compared by CompareByte.
+
+    This is equivalent to TFPGMap, except our KeyCompare doesn't
+    use < or > or even = operators, instead it compares by CompareByte.
+    So it works with types that do not have built-in < or > or even = operator
+    in FPC, like records or class instances.
+
+    See also http://bugs.freepascal.org/view.php?id=9228 . }
+  generic TGenericStructMap<TKey, TData> = class(TFPSMap)
+  private
+    type
+      TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
+      TDataCompareFunc = function(const Data1, Data2: TData): Integer;
+//      PKey = ^TKey;
+// unsed      PData = ^TData;
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+      FOnKeyCompare: TKeyCompareFunc;
+      FOnDataCompare: TDataCompareFunc;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure CopyKey(Src, Dest: Pointer); override;
+    procedure CopyData(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
+    function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function KeyCompare(Key1, Key2: Pointer): Integer;
+    function KeyCustomCompare(Key1, Key2: Pointer): Integer;
+    //function DataCompare(Data1, Data2: Pointer): Integer;
+    function DataCustomCompare(Data1, Data2: Pointer): Integer;
+    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+    procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
+  public
+    constructor Create;
+    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOfData(const AData: TData): Integer;
+    procedure InsertKey(Index: Integer; const AKey: TKey);
+    procedure InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
+    function Remove(const AKey: TKey): Integer;
+    property Keys[Index: Integer]: TKey read GetKey write PutKey;
+    property Data[Index: Integer]: TData read GetData write PutData;
+    property KeyData[const AKey: TKey]: TData read GetKeyData write PutKeyData; default;
+    property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; //deprecated;
+    property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
+    property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
+  end;
+
 implementation
+
+{ TGenericStructList --------------------------------------------------------- }
 
 constructor TGenericStructList.Create;
 begin
@@ -208,6 +265,145 @@ function TGenericStructList.Add: PT;
 begin
   Count := Count + 1;
   Result := Addr(L[Count - 1]);
+end;
+
+{ TGenericStructMap ---------------------------------------------------------- }
+
+constructor TGenericStructMap.Create;
+begin
+  inherited Create(SizeOf(TKey), SizeOf(TData));
+end;
+
+procedure TGenericStructMap.CopyItem(Src, Dest: Pointer);
+begin
+  CopyKey(Src, Dest);
+  CopyData(PByte(Src)+KeySize, PByte(Dest)+KeySize);
+end;
+
+procedure TGenericStructMap.CopyKey(Src, Dest: Pointer);
+begin
+  TKey(Dest^) := TKey(Src^);
+end;
+
+procedure TGenericStructMap.CopyData(Src, Dest: Pointer);
+begin
+  TData(Dest^) := TData(Src^);
+end;
+
+procedure TGenericStructMap.Deref(Item: Pointer);
+begin
+  Finalize(TKey(Item^));
+  Finalize(TData(Pointer(PByte(Item)+KeySize)^));
+end;
+
+function TGenericStructMap.GetKey(Index: Integer): TKey;
+begin
+  Result := TKey(inherited GetKey(Index)^);
+end;
+
+function TGenericStructMap.GetData(Index: Integer): TData;
+begin
+  Result := TData(inherited GetData(Index)^);
+end;
+
+function TGenericStructMap.GetKeyData(const AKey: TKey): TData;
+begin
+  Result := TData(inherited GetKeyData(@AKey)^);
+end;
+
+function TGenericStructMap.KeyCompare(Key1, Key2: Pointer): Integer;
+begin
+  Result := CompareByte(Key1^, Key2^, KeySize);
+end;
+
+function TGenericStructMap.KeyCustomCompare(Key1, Key2: Pointer): Integer;
+begin
+  Result := FOnKeyCompare(TKey(Key1^), TKey(Key2^));
+end;
+
+function TGenericStructMap.DataCustomCompare(Data1, Data2: Pointer): Integer;
+begin
+  Result := FOnDataCompare(TData(Data1^), TData(Data2^));
+end;
+
+procedure TGenericStructMap.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+begin
+  FOnKeyCompare := NewCompare;
+  if NewCompare <> nil then
+    OnKeyPtrCompare := @KeyCustomCompare
+  else
+    OnKeyPtrCompare := @KeyCompare;
+end;
+
+procedure TGenericStructMap.SetOnDataCompare(NewCompare: TDataCompareFunc);
+begin
+  FOnDataCompare := NewCompare;
+  if NewCompare <> nil then
+    OnDataPtrCompare := @DataCustomCompare
+  else
+    OnDataPtrCompare := nil;
+end;
+
+procedure TGenericStructMap.InitOnPtrCompare;
+begin
+  SetOnKeyCompare(nil);
+  SetOnDataCompare(nil);
+end;
+
+procedure TGenericStructMap.PutKey(Index: Integer; const NewKey: TKey);
+begin
+  inherited PutKey(Index, @NewKey);
+end;
+
+procedure TGenericStructMap.PutData(Index: Integer; const NewData: TData);
+begin
+  inherited PutData(Index, @NewData);
+end;
+
+procedure TGenericStructMap.PutKeyData(const AKey: TKey; const NewData: TData);
+begin
+  inherited PutKeyData(@AKey, @NewData);
+end;
+
+function TGenericStructMap.Add(const AKey: TKey): Integer;
+begin
+  Result := inherited Add(@AKey);
+end;
+
+function TGenericStructMap.Add(const AKey: TKey; const AData: TData): Integer;
+begin
+  Result := inherited Add(@AKey, @AData);
+end;
+
+function TGenericStructMap.Find(const AKey: TKey; out Index: Integer): Boolean;
+begin
+  Result := inherited Find(@AKey, Index);
+end;
+
+function TGenericStructMap.IndexOf(const AKey: TKey): Integer;
+begin
+  Result := inherited IndexOf(@AKey);
+end;
+
+function TGenericStructMap.IndexOfData(const AData: TData): Integer;
+begin
+  { TODO: loop ? }
+  Result := inherited IndexOfData(@AData);
+end;
+
+procedure TGenericStructMap.InsertKey(Index: Integer; const AKey: TKey);
+begin
+  inherited InsertKey(Index, @AKey);
+end;
+
+procedure TGenericStructMap.InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
+begin
+  inherited InsertKeyData(Index, @AKey, @AData);
+end;
+
+function TGenericStructMap.Remove(const AKey: TKey): Integer;
+begin
+  Result := inherited Remove(@AKey);
 end;
 
 end.
