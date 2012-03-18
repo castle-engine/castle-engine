@@ -348,6 +348,17 @@ type
 
   { @exclude }
   TProximitySensorInstanceList = specialize TFPGObjectList<TProximitySensorInstance>;
+  { @exclude }
+  TVisibilitySensorInstanceList = specialize TFPGObjectList<TVisibilitySensorInstance>;
+  { @exclude }
+  TVisibilitySensors = class(specialize TGenericStructMap<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+  public
+    destructor Destroy; override;
+    { Remove everything are released owned stuff.
+      We own TVisibilitySensorInstanceList instances on our Data list.
+      We do not own TVisibilitySensorNode (our Keys list). }
+    procedure Clear;
+  end;
   TTimeDependentHandlerList = class(specialize TFPGObjectList<TTimeDependentNodeHandler>)
     procedure AddIfNotExists(const Item: TTimeDependentNodeHandler);
   end;
@@ -582,6 +593,7 @@ type
     KeyDeviceSensorNodes: TX3DNodeList;
     TimeDependentHandlers: TTimeDependentHandlerList;
     ProximitySensors: TProximitySensorInstanceList;
+    FVisibilitySensors: TVisibilitySensors;
 
     procedure ChangedAllEnumerateCallback(Node: TX3DNode);
     procedure ScriptsInitializeCallback(Node: TX3DNode);
@@ -766,6 +778,8 @@ type
     procedure UpdateHeadlightOnFromNavigationInfo;
 
     procedure InvalidateBackground; virtual;
+
+    property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
   protected
     GeneratedTextures: TGeneratedTextureList;
 
@@ -2225,6 +2239,26 @@ begin
     Add(Item);
 end;
 
+{ TVisibilitySensors --------------------------------------------------------- }
+
+destructor TVisibilitySensors.Destroy;
+begin
+  Clear;
+  inherited;
+end;
+
+procedure TVisibilitySensors.Clear;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+  begin
+    Data[I].Free;
+    Data[I] := nil;
+  end;
+  Count := 0;
+end;
+
 { TCastleSceneCore ----------------------------------------------------------- }
 
 constructor TCastleSceneCore.Create(AOwner: TComponent);
@@ -2253,6 +2287,7 @@ begin
   BillboardInstancesList := TTransformInstancesList.Create(false);
   GeneratedTextures := TGeneratedTextureList.Create;
   ProximitySensors := TProximitySensorInstanceList.Create(false);
+  FVisibilitySensors := TVisibilitySensors.Create;
   ScreenEffectNodes := TX3DNodeList.Create(false);
   ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
@@ -2286,6 +2321,7 @@ begin
   FreeAndNil(ScheduledHumanoidAnimateSkin);
   FreeAndNil(ScreenEffectNodes);
   FreeAndNil(ProximitySensors);
+  FreeAndNil(FVisibilitySensors);
   FreeAndNil(GeneratedTextures);
   if TransformInstancesList <> nil then
   begin
@@ -2650,6 +2686,30 @@ procedure TChangedAllTraverser.Traverse(
     ParentScene.ProximitySensors.Add(PSI);
   end;
 
+  procedure HandleVisibilitySensor(const Node: TVisibilitySensorNode);
+  var
+    VSI: TVisibilitySensorInstance;
+    Instances: TVisibilitySensorInstanceList;
+    Index: Integer;
+  begin
+    VSI := TVisibilitySensorInstance.Create(ParentScene);
+    VSI.Node := Node;
+    VSI.Transform := StateStack.Top.Transform;
+    VSI.Box := Node.Box.Transform(VSI.Transform);
+
+    ShapesGroup.Children.Add(VSI);
+
+    { add to ParentScene.VisibilitySensors map }
+    Index := ParentScene.VisibilitySensors.IndexOf(Node);
+    if Index = -1 then
+    begin
+      Instances := TVisibilitySensorInstanceList.Create(false);
+      ParentScene.VisibilitySensors.Add(Node, Instances);
+    end else
+      Instances := ParentScene.VisibilitySensors.Data[Index];
+    Instances.Add(VSI);
+  end;
+
 var
   Shape: TShape;
 begin
@@ -2743,6 +2803,8 @@ begin
   end else
   if Node is TProximitySensorNode then
     HandleProximitySensor(Node as TProximitySensorNode) else
+  if Node is TVisibilitySensorNode then
+    HandleVisibilitySensor(Node as TVisibilitySensorNode) else
   if Node is TScreenEffectNode then
   begin
     TScreenEffectNode(Node).StateForShaderPrepare.Assign(StateStack.Top);
@@ -2795,6 +2857,7 @@ begin
   BillboardInstancesList.FreeShapeTrees;
   GeneratedTextures.Count := 0;
   ProximitySensors.Count := 0;
+  VisibilitySensors.Clear;
   ScreenEffectNodes.Count := 0;
   ScheduledHumanoidAnimateSkin.Count := 0;
   KeyDeviceSensorNodes.Clear;
@@ -3266,9 +3329,50 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
     ParentScene.GeneratedTextures.UpdateShadowMaps(LightNode);
   end;
 
+  procedure HandleProximitySensor(Node: TProximitySensorNode);
+  var
+    Instance: TProximitySensorInstance;
+  begin
+    Check(Shapes^.Index < Shapes^.Group.Children.Count,
+      'Missing shape in Shapes tree');
+    Instance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
+    Inc(Shapes^.Index);
+
+    Instance.InvertedTransform := StateStack.Top.InvertedTransform;
+
+    { We only care about ProximitySensor in active graph parts.
+
+      TODO: (Inactive = 0) does not guarantee that we're in active part,
+      it only says we're *possibly* in an active part, and we cannot fix it
+      (without sacrificing transform optimization).
+      This is bad, it means we make ProximitySensor events also for
+      sensors in inactive graph parts. Although, should we really
+      look at this? Maybe ProximitySensor ignore active/inactive,
+      and we should just remove the test for "(Inactive = 0)" and that's it? }
+    if Inactive = 0 then
+    begin
+      { Call ProximitySensorUpdate, since the sensor's box is transformed,
+        so possibly it should be activated/deactivated,
+        position/orientation_changed called etc. }
+      if ParentScene.CameraViewKnown then
+        ParentScene.ProximitySensorUpdate(Instance);
+    end;
+  end;
+
+  procedure HandleVisibilitySensor(Node: TVisibilitySensorNode);
+  var
+    Instance: TVisibilitySensorInstance;
+  begin
+    Check(Shapes^.Index < Shapes^.Group.Children.Count,
+      'Missing shape in Shapes tree');
+    Instance := Shapes^.Group.Children[Shapes^.Index] as TVisibilitySensorInstance;
+    Inc(Shapes^.Index);
+    Instance.Transform := StateStack.Top.Transform;
+    Instance.Box := Node.Box.Transform(Instance.Transform);
+  end;
+
 var
   Shape: TShape;
-  ProximitySensorInstance: TProximitySensorInstance;
 begin
   case Node.TransformationChange of
     ntcNone: ;
@@ -3328,33 +3432,8 @@ begin
           of viewpoint changes here we'll have to do something. }
       end;
     ntcLight: HandleLight(TAbstractLightNode(Node));
-    ntcProximitySensor:
-      begin
-        Check(Shapes^.Index < Shapes^.Group.Children.Count,
-          'Missing shape in Shapes tree');
-        ProximitySensorInstance := Shapes^.Group.Children[Shapes^.Index] as TProximitySensorInstance;
-        Inc(Shapes^.Index);
-
-        ProximitySensorInstance.InvertedTransform := StateStack.Top.InvertedTransform;
-
-        { We only care about ProximitySensor in active graph parts.
-
-          TODO: (Inactive = 0) does not guarantee that we're in active part,
-          it only says we're *possibly* in an active part, and we cannot fix it
-          (without sacrifing transform optimization).
-          This is bad, it means we make ProximitySensor events also for
-          sensors in inactive graph parts. Although, should we really
-          look at this? Maybe ProximitySensor ignore active/inactive,
-          and we should just remove the test for "(Inactive = 0)" and that's it? }
-        if Inactive = 0 then
-        begin
-          { Call ProximitySensorUpdate, since the sensor's box is transformed,
-            so possibly it should be activated/deactivated,
-            position/orientation_changed called etc. }
-          if ParentScene.CameraViewKnown then
-            ParentScene.ProximitySensorUpdate(ProximitySensorInstance);
-        end;
-      end;
+    ntcProximitySensor: HandleProximitySensor(TProximitySensorNode(Node));
+    ntcVisibilitySensor: HandleVisibilitySensor(TVisibilitySensorNode(Node));
     else raise EInternalError.Create('HandleTransform: NodeTransformationChange?');
   end;
 end;
@@ -3752,20 +3831,33 @@ var
 
   procedure HandleChangeEnvironmentalSensorBounds;
   var
-   I: Integer;
+    I: Integer;
+    VSInstances: TVisibilitySensorInstanceList;
+    VS: TVisibilitySensorNode;
   begin
-    { For now, we're only interested here in ProximitySensor changes.
-      In the future, we may need to do something for other
-      X3DEnvironmentalSensorNode too. }
-    if not (Node is TProximitySensorNode) then Exit;
-
-    { Update state for this ProximitySensor node. }
-    if CameraViewKnown then
-      for I := 0 to ProximitySensors.Count - 1 do
+    if Node is TProximitySensorNode then
+    begin
+      { Update state for this ProximitySensor node. }
+      if CameraViewKnown then
+        for I := 0 to ProximitySensors.Count - 1 do
+        begin
+          if ProximitySensors[I].Node = Node then
+            ProximitySensorUpdate(ProximitySensors[I]);
+        end;
+    end else
+    if Node is TVisibilitySensorNode then
+    begin
+      VS := TVisibilitySensorNode(Node);
+      { local Box of this node changed,
+        so update transformed Box in all TVisibilitySensorInstance for this node }
+      I := VisibilitySensors.IndexOf(VS);
+      if I <> -1 then
       begin
-        if ProximitySensors[I].Node = Node then
-          ProximitySensorUpdate(ProximitySensors[I]);
+        VSInstances := VisibilitySensors.Data[I];
+        for I := 0 to VSInstances.Count - 1 do
+          VSInstances[I].Box := VS.Box.Transform(VSInstances[I].Transform);
       end;
+    end;
   end;
 
   procedure HandleChangeTimeStopStart;

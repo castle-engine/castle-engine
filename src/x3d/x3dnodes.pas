@@ -726,7 +726,8 @@ type
     ntcFog, //< TFogNode
     ntcViewpoint, //< TAbstractViewpointNode
     ntcLight, //< TAbstractLightNode
-    ntcProximitySensor //< TProximitySensorNode
+    ntcProximitySensor, //< TProximitySensorNode
+    ntcVisibilitySensor //< TVisibilitySensorNode
   );
 
   { @exclude Internal for TX3DNodesCache. }

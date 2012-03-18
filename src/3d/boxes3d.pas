@@ -412,6 +412,7 @@ type
   @groupBegin }
 function Box3D(const p0, p1: TVector3Single): TBox3D;
 function Box3DAroundPoint(const Pt: TVector3Single; Size: Single): TBox3D;
+function Box3DAroundPoint(const Pt: TVector3Single; Size: TVector3Single): TBox3D;
 { @groupEnd }
 
 { Calculate bounding box of a set of 3D points.
@@ -1676,6 +1677,17 @@ begin
   Result.Data[1][0] := Pt[0] + Size;
   Result.Data[1][1] := Pt[1] + Size;
   Result.Data[1][2] := Pt[2] + Size;
+end;
+
+function Box3DAroundPoint(const Pt: TVector3Single; Size: TVector3Single): TBox3D;
+begin
+  Size /= 2;
+  Result.Data[0][0] := Pt[0] - Size[0];
+  Result.Data[0][1] := Pt[1] - Size[1];
+  Result.Data[0][2] := Pt[2] - Size[2];
+  Result.Data[1][0] := Pt[0] + Size[0];
+  Result.Data[1][1] := Pt[1] + Size[1];
+  Result.Data[1][2] := Pt[2] + Size[2];
 end;
 
 { MinSingleTo1st i MaxSingleTo1st will be useful for CalculateBoundingBox }

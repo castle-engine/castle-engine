@@ -774,6 +774,26 @@ type
     function DebugInfo(const Indent: string = ''): string; override;
   end;
 
+  TVisibilitySensorInstance = class(TShapeTree)
+  private
+    FNode: TVisibilitySensorNode;
+  public
+    { Bounding box of this visibility sensor instance,
+      already transformed to global VRML/X3D scene coordinates.
+      That is, transformed by parent Transform and similar nodes. }
+    Box: TBox3D;
+    Transform: TMatrix4Single;
+
+    property Node: TVisibilitySensorNode read FNode write FNode;
+
+    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    function ShapesCount(const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false): Cardinal; override;
+    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+    function DebugInfo(const Indent: string = ''): string; override;
+  end;
+
   TShapeList = class;
 
   { Iterates over all TShape items that would be enumerated by
@@ -2299,6 +2319,30 @@ end;
 function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
 begin
   Result := Indent + 'ProximitySensor (' + Node.NodeName + ')' + NL;
+end;
+
+{ TVisibilitySensorInstance ---------------------------------------------- }
+
+procedure TVisibilitySensorInstance.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+begin
+  { Nothing to do: no geometry shapes, no children here }
+end;
+
+function TVisibilitySensorInstance.ShapesCount(const OnlyActive: boolean;
+  const OnlyVisible: boolean = false;
+  const OnlyCollidable: boolean = false): Cardinal;
+begin
+  Result := 0;
+end;
+
+procedure TVisibilitySensorInstance.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+begin
+  { Nothing to do: no geometry shapes, no children here }
+end;
+
+function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;
+begin
+  Result := Indent + 'VisibilitySensor (' + Node.NodeName + ')' + NL;
 end;
 
 { TShapeTreeIterator ----------------------------------------------------- }

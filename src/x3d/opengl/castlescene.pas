@@ -445,6 +445,7 @@ type
 
       Updates Params.Statistics. }
     procedure RenderScene(TestShapeVisibility: TTestShapeVisibility;
+      const Frustum: TFrustum;
       const Params: TRenderParams);
 
     { Destroy any associations of Renderer with OpenGL context.
@@ -615,6 +616,7 @@ type
         TestShapeVisibility callback may be used to implement frustum
         culling, or some other visibility algorithm.) }
     procedure Render(TestShapeVisibility: TTestShapeVisibility;
+      const Frustum: TFrustum;
       const Params: TRenderParams);
 
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -1557,7 +1559,8 @@ begin
 end;
 
 procedure TCastleScene.RenderScene(
-  TestShapeVisibility: TTestShapeVisibility; const Params: TRenderParams);
+  TestShapeVisibility: TTestShapeVisibility;
+  const Frustum: TFrustum; const Params: TRenderParams);
 var
   OcclusionBoxState: boolean;
 
@@ -2016,6 +2019,38 @@ var
     end;
   end;
 
+  procedure UpdateVisibilitySensors;
+  var
+    I, J: Integer;
+    Instances: TVisibilitySensorInstanceList;
+    NewActive: boolean;
+  begin
+    { optimize for common case: exit early if nothing to do }
+    if VisibilitySensors.Count = 0 then Exit;
+
+    if ProcessEvents then
+    begin
+      Inc(Time.PlusTicks);
+      BeginChangesSchedule;
+      try
+        for I := 0 to VisibilitySensors.Count - 1 do
+          if VisibilitySensors.Keys[I].FdEnabled.Value then
+          begin
+            { calculate NewActive }
+            NewActive := false;
+            Instances := VisibilitySensors.Data[I];
+            for J := 0 to Instances.Count - 1 do
+              if Frustum.Box3DCollisionPossibleSimple(Instances[J].Box) then
+              begin
+                NewActive := true;
+                Break;
+              end;
+            VisibilitySensors.Keys[I].SetIsActive(NewActive, Time);
+          end;
+      finally EndChangesSchedule; end;
+    end;
+  end;
+
 var
   OpaqueShapes, TransparentShapes: TShapeList;
   BlendingSourceFactorSet, BlendingDestinationFactorSet: TGLEnum;
@@ -2027,7 +2062,11 @@ begin
     This method is always called first with Params.Transparent = false,
     then Params.Transparent = true during a single frame. }
   if (not Params.Transparent) and (Params.Pass = 0) then
+  begin
     Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
+    { also do this only once per frame }
+    UpdateVisibilitySensors;
+  end;
 
   OcclusionBoxState := false;
 
@@ -2207,11 +2246,11 @@ end;
 
 procedure TCastleScene.Render(
   TestShapeVisibility: TTestShapeVisibility;
-  const Params: TRenderParams);
+  const Frustum: TFrustum; const Params: TRenderParams);
 
   procedure RenderNormal;
   begin
-    RenderScene(TestShapeVisibility, Params);
+    RenderScene(TestShapeVisibility, Frustum, Params);
   end;
 
   procedure RenderWireframe(UseWireframeColor: boolean);
@@ -3366,9 +3405,9 @@ end;
 
 procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
-{ Call Render with explicit TTestShapeVisibility function
-  instead of Frustum parameter. That is, choose test function
-  suitable for our Frustum, octrees and some settings.
+{ Call Render with explicit TTestShapeVisibility function.
+  That is, choose test function suitable for our Frustum,
+  octrees and some settings.
 
   If OctreeRendering is initialized (so be sure to include
   ssRendering in @link(Spatial)), this octree will be used to quickly
@@ -3387,7 +3426,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
 
     Octree.EnumerateCollidingOctreeItems(Frustum,
       @RenderFrustumOctree_EnumerateShapes);
-    Render(@RenderFrustumOctree_TestShape, Params);
+    Render(@RenderFrustumOctree_TestShape, Frustum, Params);
   end;
 
 begin
@@ -3398,7 +3437,7 @@ begin
 
     if OctreeRendering <> nil then
       RenderFrustumOctree(OctreeRendering) else
-      Render(FrustumCullingFunc, Params);
+      Render(FrustumCullingFunc, Frustum, Params);
   end;
 end;
 

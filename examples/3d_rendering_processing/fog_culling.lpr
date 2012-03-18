@@ -34,7 +34,7 @@ uses SysUtils, VectorMath, GL, GLU, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleWarnings,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene,
   ProgressUnit, ProgressConsole, CastleFilesUtils, Base3D,
-  CastleSceneManager, CastleParameters;
+  CastleSceneManager, CastleParameters, RenderingCameraUnit;
 
 var
   Window: TCastleWindowCustom;
@@ -70,7 +70,7 @@ var
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
   if FogCulling then
-    Scene.Render(@TestFogVisibility, Params) else
+    Scene.Render(@TestFogVisibility, RenderingCamera.Frustum, Params) else
     inherited;
 end;
 

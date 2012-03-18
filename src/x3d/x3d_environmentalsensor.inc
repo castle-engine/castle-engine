@@ -73,10 +73,17 @@
   end;
 
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
+  private
+    FIsActive: boolean;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function TransformationChange: TNodeTransformationChange; override;
+    function Box: TBox3D;
+
+    property IsActive: boolean read FIsActive;
+    procedure SetIsActive(const Value: boolean; const Time: TX3DTime);
   end;
 
 {$endif read_interface}
@@ -168,7 +175,6 @@ end;
 procedure TVisibilitySensorNode.CreateNode;
 begin
   inherited;
-
   DefaultContainerField := 'children';
 end;
 
@@ -182,6 +188,41 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassNodeTypeName) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TVisibilitySensorNode.TransformationChange: TNodeTransformationChange;
+begin
+  Result := ntcVisibilitySensor;
+end;
+
+function TVisibilitySensorNode.Box: TBox3D;
+begin
+  if (FdSize.Value[0] < 0) or
+     (FdSize.Value[1] < 0) or
+     (FdSize.Value[2] < 0) then
+  begin
+    OnWarning(wtMajor, 'VRML/X3D', 'All VisibilitySensor.size components must be >= 0');
+    Exit(EmptyBox3D);
+  end;
+
+  { In case of VisibilitySensor, specification doesn't say that size = 0
+    indicates empty box (like in case of ProximitySensor).
+    And this is sensible: flat (0 depth or such) VisibilitySensor
+    makes sense. So for a valid VRML/X3D, this box is never EmptyBox3D. }
+
+  Result := Box3DAroundPoint(FdCenter.Value, FdSize.Value);
+end;
+
+procedure TVisibilitySensorNode.SetIsActive(const Value: boolean; const Time: TX3DTime);
+begin
+  if FIsActive <> Value then
+  begin
+    FIsActive := Value;
+    EventIsActive.Send(Value, Time);
+    if Value then
+      EventEnterTime.Send(Time.Seconds, Time) else
+      EventExitTime.Send(Time.Seconds, Time);
+  end;
 end;
 
 procedure RegisterEnvironmentalSensorNodes;
