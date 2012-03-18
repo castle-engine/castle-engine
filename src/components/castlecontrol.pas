@@ -39,6 +39,8 @@ const
   DefaultTooltipDelay = 1000;
   DefaultTooltipDistance = 10;
 
+  DefaultLimitFPS = 100.0;
+
 type
   { OpenGL control, with a couple of extensions for "Castle Game Engine".
     You will usually prefer to use TCastleControlCustom instead of directly this
@@ -434,6 +436,23 @@ function LMouseButtonToMyMouseButton(
 
 procedure Register;
 
+var
+  { Limit the number of (real) frames per second inside TCastleControl
+    rendering, to not hog the CPU.
+    Set to zero to not limit.
+
+    See TCastleWindow.ProcessMessage documentation about WaitToLimitFPS
+    parameter, and see TGLApplication.LimitFPS documentation.
+
+    The mechanism does mean sleeping in your process, so it's a global
+    thing, not just a property of TCastleControl.
+    However, the mechanism is activated only when some TCastleControl
+    component is used, and only when LCL idle is fired (so we have no pending
+    events, as LCL idle is "lazy" and fires only when process is really idle),
+    and not at Lazarus design time, and not when TCastleControl.AggressiveUpdate
+    is used. }
+  LimitFPS: Single = DefaultLimitFPS;
+
 implementation
 
 uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
@@ -451,6 +470,49 @@ begin
       and risk confusing novice users?) will be at engine 3.1.0. }
     { TCastleControlCustom, }
     TCastleControl]);
+end;
+
+{ Limit FPS ------------------------------------------------------------------ }
+
+var
+  LastLimitFPSTime: TTimerResult;
+
+procedure DoLimitFPS;
+var
+  NowTime: TTimerResult;
+  TimeRemainingFloat: Single;
+begin
+  if LimitFPS > 0 then
+  begin
+    NowTime := Timer;
+
+    { When this is run for the 1st time, LastLimitFPSTime is zero,
+      so NowTime - LastLimitFPSTime is huge, so we will not do any Sleep
+      and only update LastLimitFPSTime.
+
+      For the same reason, it is not a problem if you do not call DoLimitFPS
+      often enough (for example, you do a couple of ProcessMessage calls
+      without DoLimitFPS for some reason), or when user temporarily sets
+      LimitFPS to zero and then back to 100.0.
+      In every case, NowTime - LastLimitFPSTime will be large, and no sleep
+      will happen. IOW, in the worst case --- we will not limit FPS,
+      but we will *never* slow down the program when it's not really necessary. }
+
+    TimeRemainingFloat :=
+      { how long I should wait between _LimitFPS calls }
+      1 / LimitFPS -
+      { how long I actually waited between _LimitFPS calls }
+      (NowTime - LastLimitFPSTime) / TimerFrequency;
+    { Don't do Sleep with too small values.
+      It's better to have larger FPS values than limit,
+      than to have them too small. }
+    if TimeRemainingFloat > 0.001 then
+    begin
+      Sleep(Round(1000 * TimeRemainingFloat));
+      LastLimitFPSTime := Timer;
+    end else
+      LastLimitFPSTime := NowTime;
+  end;
 end;
 
 { TCastleControlBaseCore -------------------------------------------------- }
@@ -717,6 +779,9 @@ end;
 
 procedure TCastleControlBase.Idle;
 begin
+  if (not AggressiveUpdate) and not (csDesigning in ComponentState) then
+    DoLimitFPS;
+
   Fps._IdleBegin;
 end;
 
