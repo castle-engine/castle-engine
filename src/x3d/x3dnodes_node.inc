@@ -1143,9 +1143,14 @@ begin
      (FParentFields.Count = 0) and
      (KeepExisting = 0) then
   begin
-    { This is written as "Self.Destroy" to actually do the desctruction,
+    { For FPC <= 2.2.2:
+      This is written as "Self.Destroy" to actually do the desctruction,
       freeing memory etc. If I would just call it "Destroy", it would
-      perform what destructor does but leaving object instance unfreed. }
+      perform what destructor does but leaving object instance unfreed.
+
+      In FPC 2.2.4, 2.4.0, 2.4.2, 2.4.4, 2.6.0, calling Destroy always
+      does the actual destruction, there seems to be no difference
+      between "Self.Destroy" and "Destroy" below. }
     Self.Destroy;
   end;
 end;
