@@ -1151,9 +1151,6 @@ procedure SaveDDS(Img: TImage; Stream: TStream);
 type
   { }
   TImageFormat = (
-    { We handle uncompressed BMP images. }
-    ifBMP,
-
     { We handle PNG file format fully, both reading and writing,
       through the libpng library.
 
@@ -1169,8 +1166,18 @@ type
       PNG installed, until you try to load/save PNG format. }
     ifPNG,
 
+    { We handle uncompressed BMP images. }
+    ifBMP,
+
     ifPPM,
-    ifIPL,
+
+    { Image formats below are supported by FPImage. }
+    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
+
+    { We handle fully DDS (DirectDraw Surface) image format.
+      See also TDDSImage class in DDS unit,
+      this exposes even more features of the DDS image format. }
+    ifDDS,
 
     { High-dynamic range image format, originally used by Radiance.
       See e.g. the pfilt and ximage programs from the Radiance package
@@ -1199,20 +1206,15 @@ type
       if you're Ok with losing some of the precision. }
     ifRGBE,
 
+    ifIPL,
+
     { Image formats below are supported
       by converting them  "under the hood" with ImageMagick.
       This is available only if this unit is compiled with FPC
       (i.e. not with Delphi) on platforms where ExecuteProcess is
       implemented. And ImageMagick must be installed and available on $PATH. }
-    ifTIFF, ifSGI, ifJP2, ifEXR,
-
-    { Image formats below are supported by FPImage. }
-    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
-
-    { We handle fully DDS (DirectDraw Surface) image format.
-      See also TDDSImage class in DDS unit,
-      this exposes even more features of the DDS image format. }
-    ifDDS);
+    ifTIFF, ifSGI, ifJP2, ifEXR
+  );
   TImageFormats = set of TImageFormat;
 
   TImageLoadFunc = function (Stream: TStream;
