@@ -114,11 +114,9 @@ type
     type
       TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
-//      PKey = ^TKey;
-// unsed      PData = ^TData;
-  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+    {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnKeyCompare: TKeyCompareFunc;
-      FOnDataCompare: TDataCompareFunc;
+      {$ifndef OldSyntax} FOnDataCompare: TDataCompareFunc; {$endif}
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure CopyKey(Src, Dest: Pointer); override;
     procedure CopyData(Src, Dest: Pointer); override;
@@ -129,13 +127,17 @@ type
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function KeyCompare(Key1, Key2: Pointer): Integer;
     function KeyCustomCompare(Key1, Key2: Pointer): Integer;
+    {$ifndef OldSyntax}
     //function DataCompare(Data1, Data2: Pointer): Integer;
     function DataCustomCompare(Data1, Data2: Pointer): Integer;
+    {$endif}
     procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+    {$ifndef OldSyntax} 
     procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
+    {$endif}
   public
     constructor Create;
     function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -151,7 +153,9 @@ type
     property KeyData[const AKey: TKey]: TData read GetKeyData write PutKeyData; default;
     property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; //deprecated;
     property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
+    {$ifndef OldSyntax} 
     property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
+    {$endif}
   end;
 
 implementation
@@ -321,20 +325,23 @@ begin
   Result := FOnKeyCompare(TKey(Key1^), TKey(Key2^));
 end;
 
+{$ifndef OldSyntax}
 function TGenericStructMap.DataCustomCompare(Data1, Data2: Pointer): Integer;
 begin
   Result := FOnDataCompare(TData(Data1^), TData(Data2^));
 end;
+{$endif}
 
 procedure TGenericStructMap.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
 begin
   FOnKeyCompare := NewCompare;
   if NewCompare <> nil then
-    OnKeyPtrCompare := @KeyCustomCompare
+    {$ifndef OldSyntax} OnKeyPtrCompare {$else} OnPtrCompare {$endif} := @KeyCustomCompare
   else
-    OnKeyPtrCompare := @KeyCompare;
+    {$ifndef OldSyntax} OnKeyPtrCompare {$else} OnPtrCompare {$endif} := @KeyCompare;
 end;
 
+{$ifndef OldSyntax}
 procedure TGenericStructMap.SetOnDataCompare(NewCompare: TDataCompareFunc);
 begin
   FOnDataCompare := NewCompare;
@@ -343,11 +350,14 @@ begin
   else
     OnDataPtrCompare := nil;
 end;
+{$endif}
 
 procedure TGenericStructMap.InitOnPtrCompare;
 begin
   SetOnKeyCompare(nil);
+{$ifndef OldSyntax}
   SetOnDataCompare(nil);
+{$endif}
 end;
 
 procedure TGenericStructMap.PutKey(Index: Integer; const NewKey: TKey);
