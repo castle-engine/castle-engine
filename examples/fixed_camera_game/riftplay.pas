@@ -76,7 +76,7 @@ begin
     if DebugScene3DDisplay = 0 then
       glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-    CurrentLocation.Scene.Render(nil, Params);
+    CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
 
     if DebugScene3DDisplay = 0 then
       glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

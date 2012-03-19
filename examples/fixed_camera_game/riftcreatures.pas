@@ -661,7 +661,7 @@ begin
   begin
     glPushMatrix();
       glTranslatev(WantsToWalkPos);
-      TargetVisualize.Render(nil, Params);
+      TargetVisualize.Render(Frustum.Move(-WantsToWalkPos), Params);
     glPopMatrix();
   end;
 end;
