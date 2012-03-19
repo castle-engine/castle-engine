@@ -205,7 +205,13 @@ var
             { we want it to always pass depth test, stencil protects us from drawing
               in bad places }
             glDepthFunc(GL_ALWAYS);
-            SceneForShadow.Render(nil, RenderParams);
+
+            { TODO: RenderingCamera.Frustum is actually invalid.
+              But we pass TestShapeVisibility = nil, and we don't use
+              VisibilitySensor inside these models,
+              so frustum value isn't really used. }
+
+            SceneForShadow.Render(nil, RenderingCamera.Frustum, RenderParams);
           glPopAttrib();
         glPopMatrix();
       glPopAttrib();
@@ -289,7 +295,13 @@ var
             We swap CCW to CW --- sides that were CCW previously (and had to
             be culled, or have normal vectors pointing from them) are now CW. }
           glFrontFace(GL_CW);
-          Scene.Render(nil, RenderParams);
+
+          { TODO: RenderingCamera.Frustum is actually invalid.
+            But we pass TestShapeVisibility = nil, and we don't use
+            VisibilitySensor inside these models,
+            so frustum value isn't really used. }
+
+          Scene.Render(nil, RenderingCamera.Frustum, RenderParams);
           glFrontFace(GL_CCW);
         glPopMatrix();
 
@@ -348,7 +360,13 @@ begin
     { Render normal Scene }
     glPushMatrix();
       glRotatef(RotationAngle, 1, 1, 1);
-      Scene.Render(nil, RenderParams);
+
+      { TODO: RenderingCamera.Frustum is actually invalid.
+        But we pass TestShapeVisibility = nil, and we don't use
+        VisibilitySensor inside these models,
+        so frustum value isn't really used. }
+
+      Scene.Render(nil, RenderingCamera.Frustum, RenderParams);
     glPopMatrix();
 
     BoxMaxSize := Box.MaxSize;

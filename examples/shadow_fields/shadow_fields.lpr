@@ -44,7 +44,8 @@ program shadow_fields;
 uses SysUtils, GL, CastleGLUtils, VectorMath, Boxes3D, CastleColors,
   CastleWindow, CastleScene, Cameras, CastleWarnings, CastleParameters,
   ShadowFields, CastleUtils, CubeMap, X3DNodes, CastleSceneManager, Base3D,
-  SphericalHarmonics, GLCubeMap, CastleMessages, Shape, CastleStringUtils;
+  SphericalHarmonics, GLCubeMap, CastleMessages, Shape, CastleStringUtils,
+  RenderingCameraUnit;
 
 var
   Window: TCastleWindowCustom;
@@ -186,8 +187,12 @@ begin
     properties }
   RenderParams.FBaseLights.Assign(BaseLights);
 
+  { TODO: RenderingCamera.Frustum is actually invalid (at least in 2 of 3 cases
+    below). But we pass TestShapeVisibility = nil, and we don't use
+    VisibilitySensor inside these models, so frustum value isn't really used. }
+
   H.Node.FdOn.Send(false);
-  SceneReceiver.Render(nil, RenderParams);
+  SceneReceiver.Render(nil, RenderingCamera.Frustum, RenderParams);
 
   { turn on headlight for following rendering }
   H.Node.FdOn.Send(true);
@@ -195,13 +200,13 @@ begin
   glPushMatrix;
     glTranslatev(NavigatorData[ntCaster].Pos);
     glScalev(NavigatorData[ntCaster].Scale);
-    SceneCaster.Render(nil, RenderParams);
+    SceneCaster.Render(nil, RenderingCamera.Frustum, RenderParams);
   glPopMatrix;
 
   glPushMatrix;
     glTranslatev(NavigatorData[ntLocalLight].Pos);
     glScalev(NavigatorData[ntLocalLight].Scale);
-    SceneLocalLight.Render(nil, RenderParams);
+    SceneLocalLight.Render(nil, RenderingCamera.Frustum, RenderParams);
   glPopMatrix;
 
   { GL_LIGHTING is disabled by TCastleScene renderer now }
