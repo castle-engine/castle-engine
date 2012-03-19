@@ -111,7 +111,7 @@ begin
     glViewport(0, 0, ContainerWidth, ContainerHeight);
   end;
 
-  Scene.Render(nil, RenderParams);
+  Scene.Render(RenderingCamera.Frustum, RenderParams);
 
   DrawLight(false);
 end;
@@ -259,16 +259,20 @@ begin
     Result.Append(M);
 end;
 
+var
+  FileName: string = 'models' + PathDelim + 'chinchilla_with_prt.wrl.gz';
 begin
   Window := TCastleWindowCustom.Create(Application);
 
-  Parameters.CheckHigh(1);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    FileName := Parameters[1];
 
   RenderParams := TBasicRenderParams.Create;
 
   Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;
-  Scene.Load(Parameters[1]);
+  Scene.Load(FileName);
 
   if Scene.BoundingBox.IsEmpty then
   begin
