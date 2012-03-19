@@ -13,8 +13,8 @@ unit GenericStructList;
 
 {$mode objfpc}{$H+}
 
-{$IF defined(VER2_2)} {$DEFINE OldSyntax} {$IFEND}
-{$IF defined(VER2_4)} {$DEFINE OldSyntax} {$IFEND}
+{$ifdef VER2_2} {$define OldSyntax} {$endif}
+{$ifdef VER2_4} {$define OldSyntax} {$endif}
 
 {$define HAS_ENUMERATOR}
 {$ifdef VER2_2} {$undef HAS_ENUMERATOR} {$endif}
@@ -54,9 +54,7 @@ type
       PTypeList = ^TTypeList;
       PT = ^T;
   {$ifdef HAS_ENUMERATOR} TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>; {$endif}
-  {$ifndef OldSyntax}protected var{$else}
-      {$ifdef PASDOC}protected var{$else} { PasDoc can't handle "var protected", and I don't know how/if they should be handled? }
-                     var protected{$endif}{$endif}
+    {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
@@ -135,7 +133,7 @@ type
     procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
-    {$ifndef OldSyntax} 
+    {$ifndef OldSyntax}
     procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
     {$endif}
   public
@@ -153,7 +151,7 @@ type
     property KeyData[const AKey: TKey]: TData read GetKeyData write PutKeyData; default;
     property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; //deprecated;
     property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
-    {$ifndef OldSyntax} 
+    {$ifndef OldSyntax}
     property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
     {$endif}
   end;

@@ -201,7 +201,8 @@ type
   end;
 
   { Statistics about what was rendered during last frame.
-    You will usually access this from @link(TCastleSceneManager.Statistics). }
+    You will usually access this by scene manager property,
+    see @link(TCastleAbstractViewport.Statistics). }
   TRenderStatistics = record
     { How many shapes were rendered (send to OpenGL)
       versus all shapes that were potentially visible.
@@ -296,7 +297,7 @@ type
         @link(TBox3D.TryRayEntrance),
         @link(TBox3D.SegmentCollision),
         @link(TBox3D.SphereCollision) and
-        @link(TBox3D.BoxCollision).)
+        @link(TBox3D.Collision).)
     )
 
     The idea is that by default everything simple uses BoundingBox,

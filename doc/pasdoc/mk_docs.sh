@@ -134,7 +134,7 @@ pasdoc \
    --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
-  --define FPC --define VER2 --define VER2_4 --define PASDOC \
+  --define FPC --define VER2 --define VER2_6 --define VER2_6_0 --define PASDOC \
   --write-uses-list --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \
