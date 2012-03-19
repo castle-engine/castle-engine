@@ -28,7 +28,7 @@ type
   { State of collision between a plane and some other object.
 
     pcNone occurs only when the "other object" is empty
-    (IsEmptyBox3D, in case of box).
+    (TBox3D.IsEmpty, in case of box).
     Other values mean that the other object is not empty.
 
     pcOutside means that the whole object is on the side of the plane pointed
