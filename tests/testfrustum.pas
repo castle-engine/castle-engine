@@ -132,6 +132,7 @@ begin
  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(20, 10, 10), 1,
    fcSomeCollisionPossible);
 
+ AssertFrustumBox3DCollisionPossible(Frustum, EmptyBox3D, fcNoCollision);
  AssertFrustumBox3DCollisionPossible(Frustum,
    Box3D(Vector3Single(-1, -1, -1), Vector3Single(9, 9, 9)),
    fcNoCollision);

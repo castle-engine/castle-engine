@@ -529,6 +529,9 @@ var
   InsidePlanesCount: Cardinal;
   LastPlane: TFrustumPlane;
 begin
+  if Box.IsEmpty then
+    Exit(fcNoCollision);
+
   InsidePlanesCount := 0;
 
   LastPlane := High(FP);
@@ -572,6 +575,9 @@ var
   fp: TFrustumPlane;
   LastPlane: TFrustumPlane;
 begin
+  if Box.IsEmpty then
+    Exit(false);
+
   LastPlane := High(FP);
   Assert(LastPlane = fpFar);
 
