@@ -2030,12 +2030,17 @@ var
 
     if ProcessEvents then
     begin
-      Inc(Time.PlusTicks);
       BeginChangesSchedule;
       try
         for I := 0 to VisibilitySensors.Count - 1 do
           if VisibilitySensors.Keys[I].FdEnabled.Value then
           begin
+            { increment timestamp for each VisibilitySensor,
+              otherwise sensors_environmental/visibility_sensor.x3dv
+              has a problem at initialization, when multiple sensors
+              send isActive = TRUE, and X3D mechanism to avoid loops
+              kicks in. }
+            Inc(Time.PlusTicks);
             { calculate NewActive }
             NewActive := false;
             Instances := VisibilitySensors.Data[I];
