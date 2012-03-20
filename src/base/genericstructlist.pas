@@ -2,7 +2,7 @@
   (TGenericStructMap).
 
   This unit is ostensibly done to avoid bug
-  http://bugs.freepascal.org/view.php?id=9228 with unit FGL.
+  http://bugs.freepascal.org/view.php?id=15480 with unit FGL.
 
   Based on FPC FGL unit, copyright by FPC team.
   License of FPC RTL is the same as our engine (modified LGPL,
@@ -106,7 +106,7 @@ type
     So it works with types that do not have built-in < or > or even = operator
     in FPC, like records or class instances.
 
-    See also http://bugs.freepascal.org/view.php?id=9228 . }
+    See also http://bugs.freepascal.org/view.php?id=15480 . }
   generic TGenericStructMap<TKey, TData> = class(TFPSMap)
   private
     type
