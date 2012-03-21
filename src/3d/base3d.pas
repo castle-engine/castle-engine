@@ -1186,17 +1186,37 @@ type
     procedure Translate(const T: TVector3Single); override;
   end;
 
+  TOrientationType = (
+    { Sensible for worlds oriented around Y axis.
+      That is when gravity pulls in -Y and GravityUp vector is +Y.
+      Transformation makes -Z and +Y match (respectively) Direction and Up.
+
+      This matches default direction/up of OpenGL and VRML/X3D cameras. }
+    otUpYDirectionMinusZ,
+
+    { Sensible for worlds oriented around Z axis.
+      Transformation makes -Y and +Z match (respectively) Direction and Up.
+
+      This matches suggested (by view names, default gravity, and some tools
+      like "X-axis mirror") direction/up when modeling in Blender. }
+    otUpZDirectionMinusY,
+
+    { @deprecated Up in +Z (like otUpZDirectionMinusY) and direction
+      in +X. Should not be used in new models. }
+    otUpZDirectionX
+  );
+
   { Transform other 3D objects by changing their orientation.
 
     The rotation of objects depends on given Direction and Up vectors,
-    see @link(ZUp) for details.
+    see @link(Orientation) for details.
     The translation of objects is just taken from @link(Position),
     and works just like normal T3DTransform.Translation.
     There is no scaling of 3D objects, ever. }
   T3DOrient = class(T3DCustomTransform)
   private
     FPosition, FDirection, FUp: TVector3Single;
-    FZUp: boolean;
+    FOrientation: TOrientationType;
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
   protected
@@ -1251,17 +1271,8 @@ type
     procedure Translate(const T: TVector3Single); override;
 
     { How the direction and up vectors determine transformation.
-
-      @unorderedList(
-        @item(ZUp = @false (default) is sensible for worlds
-          oriented around Y axis. That is when gravity pulls in -Y
-          and GravityUp vector is +Y.
-          Transformation makes -Z and +Y match (respectively) Direction and Up.)
-
-        @item(ZUp = @true is sensible for worls oriented around Z axis.
-          Transformation makes +X and +Z match (respectively) Direction and Up.)
-      ) }
-    property ZUp: boolean read FZUp write FZUp;
+      See TOrientationType for values documentation. }
+    property Orientation: TOrientationType read FOrientation write FOrientation;
 
     function Middle: TVector3Single; override;
   end;
@@ -3146,7 +3157,7 @@ begin
     TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
     on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
 
-  { TODO: ZUp ignored }
+  { TODO: Orientation ignored, assumes otUpZDirectionX now }
 
   NewM := TransformToCoordsMatrix(Position, Direction, Side, Up);
   NewMInverse := TransformFromCoordsMatrix(Position, Direction, Side, Up);
