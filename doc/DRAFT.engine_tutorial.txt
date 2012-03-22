@@ -196,17 +196,19 @@ var
 TODO: engine 3.1.0: We have a comfortable classes to store item information (TItem) and visible item on level (TItemOnLevel). TODO: describe here, probably replace above description. For advanced usage, it's possible that the traditional concepts of "items that can be picked", "creatures" will not suit you particular game. It's important to note that our 3D system is designed around flexible T3D class, that you can group (T3DList) and transform (T3DTransform). You can freely design your own descendants of T3DXxx classes, and have all the flexibility you want in creating... well, anything you want in your 3D world.
 
 6. Letting player pick up items
+
 XXX (follow the castle code, where we just check player's bounding box with items bounding box. make special utilities for this.)
+
+(Actually, TItemOnLevel already gives this functionality automatically.)
 
 7. Display player life and weapon
 
 You often want to display something 2D on player screen. Let's draw a simple meter showing your life points.
 
-XXX
+TODO: demo of simple TUIControl creation
 
-Showing a weapon is a little more tricky, as it's a 3D thing, but it doesn't actually interact with the world, it's glued to the player view. So we don't actuallly want to add it the scene manager. Instead, we want to load it and render directly. OK, actually it's not that tricky, as you already know how to load a 3D stuff, and you already know how to add something custom-drawn to the window:
-
-XXX
+To show a weapon, or other stuff glued to the player, just add 3D things to TPlayer list. They will be automatically oriented to follow the player position and orientation.
+TODO: describe also the Overal attribute here, for now not available.
 
 8. Adding some creatures
 XXX (this is just like items, except creature kinds need AI to move; engine 3.1.0 will include ready classes with such AI, for now refer to castle code.)
@@ -265,3 +267,51 @@ In addition to previous point, you may want to change the menu FullSize to true.
 An alternative method to achieve (part) of 2nd choice is to set background level camera's IgnoreAllInputs to true. This also blocks user from moving in the scene (although it doesn't make input passed to menu regardless of mouse position).
 
 If you want to place a static 2D image under menu, you can use TCastleImageControl underneath, instead of 3D scene.
+
+12. Making screenshots
+
+Making a screenshot is very easy:
+
+[[
+var
+  Image: TRGBImage;
+begin
+  Image := Control.SaveScreen;
+  try
+    SaveImage(Image, 'screenshot_name.png');
+  finally FreeAndNil(Image) end;
+end;
+]]
+
+TRGBImage, and it's ancestor TImage and many other similar classes, is defined in the unit Images. This provides various image loading, saving and processing utilities to our engine. By having our own image handling unit, we can store images in the format best suitable for 3D graphics libraries, like OpenGL (for example, our class TS3TCImage to handle S3TC compressed images is tightly integrated there; we also handle there 3D textures).
+
+Still, we use the excellent FPC FpImage library to load/save some image formats underneath. So we do not implement everything from stratch here, we *are* using FpImage loading/saving features.
+
+13. Recoding movies
+(Not really useful for an interactive game, but useful for various 3D viewers)
+
+If you have a predefined animation in VRML/X3D (meaning: it plays without any user interaction), and want to record with constant number of frames per second, you can do this:
+
+[[
+in a loop:
+begin
+  SceneManager.MainScene.IncreaseTime(FrameTime);
+  SceneManager.Camera.Idle(FrameTime, true, DummyBooleanInitializedToTrue);
+
+  { capture and save screen as before, like: }
+  Image := Control.SaveScreen;
+  try
+    { add your image to the movie sequence.
+      Various options possible, view3dscene for now just saves a sequence
+      of images to temporary location and later processes them by ffmpeg
+      to produce a full movie. }
+    SaveImage(Image, Format('screenshot_name_%4d.png', [FrameNumber]));
+  finally FreeAndNil(Image) end;
+end;
+]]
+
+IOW, you manually force the current time of the scene/camera to increase as much as you want before each screenshot. This makes it work 100% reliably, without any worries how fast you can process captured images.
+
+The time of the scene and of the camera is actually independent. You can remove the "MainScene.IncreaseTime" call, if you know that your scene stays static (and want to force it to look like static), and want to animate only camera. Or the other way around, if your camera is static (or you want to force it to be static) but you have an animation in VRML/X3D, you can remove the "Camera.Idle" line.
+
+FrameTime is in seconds, as both TCastleSceneCore.IncreseTime and TCamera.Idle take it's time argument in seconds. But don't worry, this is a float, so actually it honors fractions of seconds as well. So something like 1/25 to get 25 frames per second is Ok.
