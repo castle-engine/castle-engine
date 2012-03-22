@@ -96,7 +96,7 @@ begin
 
   { initialize DinoTransform }
   DinoTransform := T3DTransform.Create(Application);
-  DinoTransform.Translation := Vector3Single(-28, -3, 20);
+  DinoTransform.Translation := Vector3Single(-28, -3, -20);
   Window.SceneManager.Items.Add(DinoTransform);
 
   { initialize DinoAnimation }

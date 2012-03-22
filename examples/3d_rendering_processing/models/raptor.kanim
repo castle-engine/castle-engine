@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
 <animation backwards="true" loop="true">
-  <frame file_name="raptor_1.wrl" time="0" />
-  <frame file_name="raptor_2.wrl" time="1" />
+  <frame file_name="raptor_1.x3d" time="0" />
+  <frame file_name="raptor_2.x3d" time="1" />
 </animation>
