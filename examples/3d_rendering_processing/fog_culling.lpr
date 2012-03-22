@@ -18,8 +18,8 @@
   This can make a hude speedup if you have dense fog and exterior-like level
   (where frustum culing leaves too many shapes visible).
 
-  This always loads models/fog_culling_final.wrl VRML file.
-  Be sure to run it with proper current directory (examples/vrml/).
+  This always loads models/fog_culling_final.x3dv X3D file.
+  Be sure to run it with proper current directory (examples/3d_rendering_processing/).
   It's a crafted scene, with some green and dense fog and a lot of
   spheres scattered around. Fog culling will work best on it.
 
@@ -124,7 +124,7 @@ begin
 
   Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;
-  Scene.Load('models' + PathDelim + 'fog_culling_final.wrl');
+  Scene.Load('models' + PathDelim + 'fog_culling_final.x3dv');
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);
 

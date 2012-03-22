@@ -1,0 +1,30 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+# Camera settings "encoded" in the VRML declaration below :
+# direction 0.738170325756073 0.308308035135269 5.86154307313791E-008
+# up -0.000000088960007 -0.000000090544233 0.999999940395355
+# gravityUp 0 0 1
+Transform {
+  translation -25.312177658081055 15.919895172119141 4.039839744567871
+  rotation 1 0 0 1.570796370506287
+  children Viewpoint {
+    position 0 0 0 # camera position is expressed by translation
+    orientation 6.11496489000274E-008 -1 0 1.175154685974121
+  }
+}
+
+DirectionalLight {
+  direction 1 1 -1
+  intensity 1.0
+}
+
+Fog {
+  visibilityRange 30
+  color 0 1 0
+}
+Background { skyColor 0 1 0 }
+
+NavigationInfo { type [ "FLY", "ANY" ] speed 10 }
+
+Inline { url "fog_culling.x3d" }
