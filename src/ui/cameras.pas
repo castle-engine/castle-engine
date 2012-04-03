@@ -2463,13 +2463,67 @@ procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
 procedure TExamineCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+var
+  Size: single;
+  Moved: boolean;
+  MoveSize: double;
 begin
-  { TODO (see TWalkCamera for details) }
+  if FModelBox.IsEmptyOrZero then Exit;
+
+  Moved := false;
+  Size := FModelBox.AverageSize;
+  MoveSize := Length * CompSpeed / 5000;
+
+  if abs(X)>5 then   { left / right }
+  begin
+    FMoveAmount[0] += Size * X * MoveSize;
+    Moved := true;
+  end;
+
+  if abs(Y)>5 then   { up / down }
+  begin
+    FMoveAmount[1] += Size * Y * MoveSize;
+    Moved := true;
+  end;
+
+  if Moved then
+    VisibleChange;
+
+  if abs(Z)>5 then   { backward / forward }
+    Zoom(Z * MoveSize / 2);
 end;
 
 procedure TExamineCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+var
+  RotationToMake: TQuaternion;
+  Moved: boolean;
+  RotationSize: double;
 begin
-  { TODO (see TWalkCamera for details) }
+  Moved := false;
+  RotationSize := CompSpeed * Angle / 50;
+  if abs(X) > 0.4 then      { tilt forward / backward}
+  begin
+    RotationToMake := QuatFromAxisAngle(Vector3Single(1, 0, 0), X * RotationSize);
+    Moved := true;
+  end;
+
+  if abs(Y) > 0.4 then      { rotate }
+  begin
+    RotationToMake := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize);
+    Moved := true;
+  end;
+
+  if abs(Z) > 0.4 then      { tilt sidewards }
+  begin
+    RotationToMake := QuatFromAxisAngle(Vector3Single(0, 0, 1), Z * RotationSize);
+    Moved := true;
+  end;
+
+  if Moved then
+  begin
+    FRotations := RotationToMake * FRotations;
+    VisibleChange;
+  end;
 end;
 
 procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
@@ -4120,38 +4174,41 @@ begin
 end;
 
 procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+var
+  MoveSize: double;
 begin
+  MoveSize := Length * CompSpeed / 5000;
   if Z > 5 then
-    MoveHorizontal((Z/20) * CompSpeed, -1); { backward }
+    MoveHorizontal(Z * MoveSize, -1); { backward }
   if Z < -5 then
-    MoveHorizontal((-Z/20)* CompSpeed, 1);  { forward }
+    MoveHorizontal(-Z * MoveSize, 1);  { forward }
 
   if X > 5 then
   begin
     RotateHorizontalForStrafeMove(-90);
-    MoveHorizontal((X/20) * CompSpeed);     { right }
+    MoveHorizontal(X * MoveSize);     { right }
     RotateHorizontalForStrafeMove(90);
   end;
   if X < -5 then
   begin
     RotateHorizontalForStrafeMove(90);
-    MoveHorizontal((-X/20) * CompSpeed);    { left }
+    MoveHorizontal(-X * MoveSize);    { left }
     RotateHorizontalForStrafeMove(-90);
   end;
 
   if (Y > 5) and not Gravity then
-    MoveVertical((Y/20) * CompSpeed, 1);    { up }
+    MoveVertical(Y * MoveSize, 1);    { up }
   if (Y < -5) and not Gravity then
-    MoveVertical((-Y/20) * CompSpeed, -1);  { down }
+    MoveVertical(-Y * MoveSize, -1);  { down }
 end;
 
 procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
 begin
-  if abs(X) > 0.2 then      { tilt forward }
+  if abs(X) > 0.4 then      { tilt forward / backward }
     RotateVertical(X * Angle * 2 * CompSpeed);
-  if abs(Y) > 0.2 then      { rotate }
+  if abs(Y) > 0.4 then      { rotate }
     RotateHorizontal(Y * Angle * 2 * CompSpeed);
-  {if abs(Z) > 0.2 then ?} { tilt sidewards }
+  {if abs(Z) > 0.4 then ?} { tilt sidewards }
 end;
 
 procedure TWalkCamera.Init(
