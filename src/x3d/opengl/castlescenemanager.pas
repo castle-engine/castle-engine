@@ -281,6 +281,8 @@ type
     function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
+    function Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean; override;
+    function Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean; override;
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
@@ -2100,6 +2102,28 @@ end;
 function TCastleAbstractViewport.Statistics: TRenderStatistics;
 begin
   Result := FRenderParams.Statistics;
+end;
+
+function TCastleAbstractViewport.Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean;
+begin
+  if Camera <> nil then
+  begin
+    Camera.Mouse3dRotationEvent(X, Y, Z, Angle, CompSpeed);
+    Result := true;
+  end
+  else
+    Result := false;
+end;
+
+function TCastleAbstractViewport.Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean;
+begin
+  if Camera <> nil then
+  begin
+    Camera.Mouse3dTranslationEvent(X, Y, Z, Length, CompSpeed);
+    Result := true;
+  end
+  else
+    Result := false;
 end;
 
 { TCastleAbstractViewportList -------------------------------------------------- }

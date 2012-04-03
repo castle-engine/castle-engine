@@ -131,6 +131,12 @@ type
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; virtual;
     { @groupEnd }
 
+    { Handle 3D mouse events.
+      @groupBegin }
+    function Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean; virtual;
+    function Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean; virtual;
+    { @groupEnd }
+
     { Control may do here anything that must be continously repeated.
       This is called often by the container.
       E.g. camera handles here falling down due to gravity
@@ -516,6 +522,16 @@ begin
 end;
 
 function TInputListener.MouseUp(const Button: TMouseButton): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.Mouse3dRotation(X, Y, Z, Angle: Double; CompSpeed: Single): boolean;
+begin
+  Result := false;
+end;
+
+function TInputListener.Mouse3dTranslation(X, Y, Z, Length: Double; CompSpeed: Single): boolean;
 begin
   Result := false;
 end;

@@ -24,7 +24,8 @@ interface
 uses
   Classes, SysUtils, OpenGLContext, Controls, Forms,
   VectorMath, KeysMouse, CastleUtils, CastleTimeUtils, StdCtrls, UIControls,
-  Cameras, X3DNodes, CastleScene, CastleSceneManager, Images;
+  Cameras, X3DNodes, CastleScene, CastleSceneManager, Images,
+  pk3DConnexion;
 
 const
   { Default value for TCastleControlBase.AggressiveUpdateDelay.
@@ -269,6 +270,8 @@ type
     LastPositionForTooltip: boolean;
     LastPositionForTooltipX, LastPositionForTooltipY: Integer;
     LastPositionForTooltipTime: TTimerResult;
+    Mouse3d: T3DConnexionDevice;
+    Mouse3dPollTimer: Single;
     procedure ControlsVisibleChange(Sender: TObject);
     procedure SetUseControls(const Value: boolean);
     procedure UpdateFocusAndMouseCursor;
@@ -948,11 +951,24 @@ begin
   FOnDrawStyle := dsNone;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
+
+  { connect 3D device - 3Dconnexion device }
+  Mouse3dPollTimer := 0;
+  Mouse3d := nil;
+  try
+    Mouse3d := T3DConnexionDevice.Create('Castle Control');
+  except
+    Mouse3d.Free;
+    Mouse3d := nil;
+  end;
+
 end;
 
 destructor TCastleControlCustom.Destroy;
 begin
   FreeAndNil(FControls);
+  if assigned(Mouse3d) then
+    Mouse3d.Free;
   inherited;
 end;
 
@@ -1087,10 +1103,37 @@ var
   C: TUIControl;
   HandleMouseAndKeys: boolean;
   Dummy: boolean;
+  Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
+  Mouse3dPollSpeed: Single;
+const
+  Mouse3dPollDelay = 0.1;
 begin
   if UseControls then
   begin
     UpdateTooltip;
+
+    { 3D Mouse }
+    if assigned(Mouse3D) AND Mouse3D.Loaded then
+    begin
+      Mouse3dPollTimer -= Fps.IdleSpeed;
+      if Mouse3dPollTimer < 0 then
+      begin
+        { get values from sensor }
+        Mouse3dPollSpeed := Mouse3dPollTimer + Mouse3dPollDelay;
+        Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);
+        Mouse3D.GetRotationValues(Rx, Ry, Rz, RAngle);
+
+        { send to viewport }
+        for I := 0 to Controls.Count - 1 do
+        begin
+          C := Controls[I];
+          C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+          C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+        end;
+        { set timer }
+        repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
+      end;
+    end;
 
     { Although we call Idle for all the controls, we look
       at PositionInside and track HandleMouseAndKeys values.

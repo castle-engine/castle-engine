@@ -47,7 +47,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="159">
+    <Files Count="161">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -223,7 +223,7 @@
       </Item43>
       <Item44>
         <Filename Value="../src/base/castlezlib.pas"/>
-        <UnitName Value="CastleZlib"/>
+        <UnitName Value="CastleZLib"/>
       </Item44>
       <Item45>
         <Filename Value="../src/base/castlezstream.pas"/>
@@ -508,7 +508,7 @@
       </Item113>
       <Item114>
         <Filename Value="../src/ui/opengl/castlenotifications.pas"/>
-        <UnitName Value="castlenotifications"/>
+        <UnitName Value="CastleNotifications"/>
       </Item114>
       <Item115>
         <Filename Value="../src/ui/opengl/onscreenmenu.pas"/>
@@ -694,6 +694,14 @@
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
       </Item159>
+      <Item160>
+        <Filename Value="../src/ui/pk3DConnexion.pas"/>
+        <UnitName Value="pk3DConnexion"/>
+      </Item160>
+      <Item161>
+        <Filename Value="../src/ui/TDxInput_TLB.pas"/>
+        <UnitName Value="TDxInput_TLB"/>
+      </Item161>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

@@ -500,6 +500,20 @@ type
 
     function Animation: boolean; virtual;
 
+    { 3Dconnexion devices support - notifiacation about translation
+      @param X   X axis (move left/right)
+      @param Y   Y axis (move up/down)
+      @param Z   Z axis (move forward/backwards)
+      @param Length   Length of the vector consisting of the above. }
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); virtual; abstract;
+
+    { 3Dconnexion devices support - notifiacation about rotation
+      @param X   X axis (tilt forward/backwards)
+      @param Y   Y axis (rotate)
+      @param Z   Z axis (tilt sidewards)
+      @param Angle   Angle of rotation.}
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); virtual; abstract;
+
     { Initial camera values.
 
       InitialDirection and InitialUp must be always normalized,
@@ -625,6 +639,9 @@ type
     function MouseDown(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
+
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); override;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -819,10 +836,38 @@ type
     FMouseLookHorizontalSensitivity: Single;
     FMouseLookVerticalSensitivity: Single;
 
+    { This is initally false. It's used by MoveHorizontal while head bobbing,
+      to avoid updating HeadBobbingPosition more than once in the same Idle call.
+
+      Updating it more than once is bad --- try e.g. holding Input_Forward
+      with one of the strafe keys: you move and it's very noticeable
+      that HeadBobbing seems faster. That's because
+      when holding both Input_Forward and Input_StrafeRight, you shouldn't
+      do HeadBobbing twice in one Idle --- you should do it only Sqrt(2).
+      When you will also hold Input_RotateRight at the same time --- situation
+      gets a little complicated...
+
+      The good solution seems to just do head bobbing only once.
+      In some special cases this means that head bobbing will be done
+      *less often* than it should be, but this doesn't hurt. }
+    HeadBobbingAlreadyDone: boolean;
+
+    { MoveHorizontal call sets this to @true to indicate that some
+      horizontal move was done. }
+    MoveHorizontalDone: boolean;
+
     procedure RotateAroundGravityUp(const AngleDeg: Single);
     procedure RotateAroundUp(const AngleDeg: Single);
     procedure RotateHorizontal(const AngleDeg: Single);
     procedure RotateVertical(const AngleDeg: Single);
+
+    function MoveTo(const ProposedNewPos: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    function Move(const MoveVector: TVector3Single;
+      const BecauseOfGravity: boolean): boolean;
+    procedure MoveHorizontal(const CompSpeed: single; const Multiply: integer = 1);
+    procedure MoveVertical(const CompSpeed: single; const Multiply: integer);
+    procedure RotateHorizontalForStrafeMove(const AngleDeg: single);
 
     { Jump.
 
@@ -895,6 +940,8 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); override;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
@@ -1624,6 +1671,9 @@ type
     function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
+
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); override;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -2412,6 +2462,16 @@ begin FScaleFactor *= ScaleBy; VisibleChange; end;
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
+procedure TExamineCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+begin
+  { TODO (see TWalkCamera for details) }
+end;
+
+procedure TExamineCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+begin
+  { TODO (see TWalkCamera for details) }
+end;
+
 procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
 begin
  ModelBox := AModelBox;
@@ -3146,21 +3206,17 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.Idle(const CompSpeed: Single;
-  const HandleMouseAndKeys: boolean;
-  var LetOthersHandleMouseAndKeys: boolean);
-
-  { Like Move, but you pass here final ProposedNewPos }
-  function MoveTo(const ProposedNewPos: TVector3Single;
+{ Like Move, but you pass here final ProposedNewPos }
+function TWalkCamera.MoveTo(const ProposedNewPos: TVector3Single;
     const BecauseOfGravity: boolean): boolean;
-  var
-    NewPos: TVector3Single;
-  begin
-    Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
-    if Result then
-      { Note that setting Position automatically calls ScheduleVisibleChange }
-      Position := NewPos;
-  end;
+var
+  NewPos: TVector3Single;
+begin
+  Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
+  if Result then
+    { Note that setting Position automatically calls ScheduleVisibleChange }
+    Position := NewPos;
+end;
 
   { Tries to move Position to Position + MoveVector.
     Returns DoMoveAllowed result. So if it returns @false,
@@ -3168,75 +3224,54 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
     if it returns @true, you don't know anything --- maybe Position
     didn't change, maybe it changed to Position + MoveVector,
     maybe it changed to something different). }
-  function Move(const MoveVector: TVector3Single;
-    const BecauseOfGravity: boolean): boolean;
-  begin
-    Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity);
-  end;
-
-var
-  { This is initally false. It's used by MoveHorizontal while head bobbing,
-    to avoid updating HeadBobbingPosition more than once in the same Idle call.
-
-    Updating it more than once is bad --- try e.g. holding Input_Forward
-    with one of the strafe keys: you move and it's very noticeable
-    that HeadBobbing seems faster. That's because
-    when holding both Input_Forward and Input_StrafeRight, you shouldn't
-    do HeadBobbing twice in one Idle --- you should do it only Sqrt(2).
-    When you will also hold Input_RotateRight at the same time --- situation
-    gets a little complicated...
-
-    The good solution seems to just do head bobbing only once.
-    In some special cases this means that head bobbing will be done
-    *less often* than it should be, but this doesn't hurt. }
-  HeadBobbingAlreadyDone: boolean;
-
-  { MoveHorizontal call sets this to @true to indicate that some
-    horizontal move was done. }
-  MoveHorizontalDone: boolean;
+function TWalkCamera.Move(const MoveVector: TVector3Single;
+  const BecauseOfGravity: boolean): boolean;
+begin
+  Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity);
+end;
 
   { Multiply must be +1 or -1 }
-  procedure MoveHorizontal(const Multiply: Integer = 1);
-  var
-    Dir: TVector3Single;
-  var
-    AJumpMultiply: Single;
+procedure TWalkCamera.MoveHorizontal(const CompSpeed: single; const Multiply: integer = 1);
+var
+  Dir: TVector3Single;
+var
+  AJumpMultiply: Single;
+begin
+  if IsJumping then
+    AJumpMultiply := JumpSpeedMultiply else
+    AJumpMultiply := 1.0;
+
+  { Update HeadBobbingPosition }
+  if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
   begin
-    if IsJumping then
-      AJumpMultiply := JumpSpeedMultiply else
-      AJumpMultiply := 1.0;
-
-    { Update HeadBobbingPosition }
-    if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
-    begin
-      HeadBobbingPosition += CompSpeed / HeadBobbingTime;
-      HeadBobbingAlreadyDone := true;
-    end;
-
-    MoveHorizontalDone := true;
-
-    if PreferGravityUpForMoving then
-      Dir := DirectionInGravityPlane else
-      Dir := Direction;
-
-    Move(Dir * (MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply *
-      AJumpMultiply), false);
+    HeadBobbingPosition += CompSpeed / HeadBobbingTime;
+    HeadBobbingAlreadyDone := true;
   end;
 
-  procedure MoveVertical(const Multiply: Integer);
+  MoveHorizontalDone := true;
 
-    { Provided PreferredUpVector must be already normalized. }
-    procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
-    begin
-      Move(VectorScale(PreferredUpVector,
-        MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply), false);
-    end;
+  if PreferGravityUpForMoving then
+    Dir := DirectionInGravityPlane else
+    Dir := Direction;
 
+  Move(Dir * (MoveSpeed * MoveHorizontalSpeed * CompSpeed * Multiply *
+    AJumpMultiply), false);
+end;
+
+procedure TWalkCamera.MoveVertical(const CompSpeed: single; const Multiply: integer);
+
+  { Provided PreferredUpVector must be already normalized. }
+  procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
   begin
-    if PreferGravityUpForMoving then
-      MoveVerticalCore(GravityUp) else
-      MoveVerticalCore(Up);
+    Move(VectorScale(PreferredUpVector,
+      MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply), false);
   end;
+
+begin
+  if PreferGravityUpForMoving then
+    MoveVerticalCore(GravityUp) else
+    MoveVerticalCore(Up);
+end;
 
   { This is just like RotateHorizontal, but it uses
     PreferGravityUpForMoving to decide which rotation to use.
@@ -3244,12 +3279,16 @@ var
     move in GravityUp plane, and then rotate back versus GravityUp.
     If not PreferGravityUpForMoving, then we do all this versus Up.
     And so everything works. }
-  procedure RotateHorizontalForStrafeMove(const AngleDeg: Single);
-  begin
-    if PreferGravityUpForMoving then
-      RotateAroundGravityUp(AngleDeg) else
-      RotateAroundUp(AngleDeg);
-  end;
+procedure TWalkCamera.RotateHorizontalForStrafeMove(const AngleDeg: single);
+begin
+  if PreferGravityUpForMoving then
+    RotateAroundGravityUp(AngleDeg) else
+    RotateAroundUp(AngleDeg);
+end;
+
+procedure TWalkCamera.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean;
+  var LetOthersHandleMouseAndKeys: boolean);
 
   { Check are keys for left/right/down/up rotations are pressed, and handle them.
     SpeedScale = 1 indicates a normal rotation speed, you can use it to scale
@@ -3893,21 +3932,21 @@ begin
         CheckRotates(1.0);
 
         if Input_Forward.IsPressed(Container) then
-          MoveHorizontal;
+          MoveHorizontal(CompSpeed);
         if Input_Backward.IsPressed(Container) then
-          MoveHorizontal(-1);
+          MoveHorizontal(CompSpeed, -1);
 
         if Input_RightStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(-90);
-          MoveHorizontal;
+          MoveHorizontal(CompSpeed);
           RotateHorizontalForStrafeMove(90);
         end;
 
         if Input_LeftStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(90);
-          MoveHorizontal;
+          MoveHorizontal(CompSpeed);
           RotateHorizontalForStrafeMove(-90);
         end;
 
@@ -3920,9 +3959,9 @@ begin
           MinAngleRadFromGravityUp). }
 
         if Input_UpMove.IsPressed(Container) then
-          MoveVertical( 1);
+          MoveVertical(CompSpeed, 1);
         if Input_DownMove.IsPressed(Container) then
-          MoveVertical(-1);
+          MoveVertical(CompSpeed, -1);
 
         { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
           ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
@@ -4078,6 +4117,41 @@ begin
 
   Result := EventDown(K_None, #0, false, mbLeft,
     MouseWheelDirection(Scroll, Vertical));
+end;
+
+procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+begin
+  if Z > 5 then
+    MoveHorizontal((Z/20) * CompSpeed, -1); { backward }
+  if Z < -5 then
+    MoveHorizontal((-Z/20)* CompSpeed, 1);  { forward }
+
+  if X > 5 then
+  begin
+    RotateHorizontalForStrafeMove(-90);
+    MoveHorizontal((X/20) * CompSpeed);     { right }
+    RotateHorizontalForStrafeMove(90);
+  end;
+  if X < -5 then
+  begin
+    RotateHorizontalForStrafeMove(90);
+    MoveHorizontal((-X/20) * CompSpeed);    { left }
+    RotateHorizontalForStrafeMove(-90);
+  end;
+
+  if (Y > 5) and not Gravity then
+    MoveVertical((Y/20) * CompSpeed, 1);    { up }
+  if (Y < -5) and not Gravity then
+    MoveVertical((-Y/20) * CompSpeed, -1);  { down }
+end;
+
+procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+begin
+  if abs(X) > 0.2 then      { tilt forward }
+    RotateVertical(X * Angle * 2 * CompSpeed);
+  if abs(Y) > 0.2 then      { rotate }
+    RotateHorizontal(Y * Angle * 2 * CompSpeed);
+  {if abs(Z) > 0.2 then ?} { tilt sidewards }
 end;
 
 procedure TWalkCamera.Init(
@@ -4486,6 +4560,16 @@ begin
 
   LetOthersHandleMouseAndKeys := not Current.ExclusiveEvents;
   Current.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
+end;
+
+procedure TUniversalCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+begin
+  Current.Mouse3dTranslationEvent(X, Y, Z, Length, CompSpeed);
+end;
+
+procedure TUniversalCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+begin
+  Current.Mouse3dRotationEvent(X, Y, Z, Angle, CompSpeed);
 end;
 
 function TUniversalCamera.AllowSuspendForInput: boolean;
