@@ -240,6 +240,13 @@ type
         Other TExamineCamera are allowed only when modifiers = []. }
   end;
 
+  { Possible navigation input types in cameras, set in TCamera.NavigationInput }
+  TCameraNavigationInput = (
+    niKeyboard,
+    niMouseDragging,
+    ni3dMouse);
+  TCameraNavigationInputs = set of TCameraNavigationInput;
+
   { Handle user navigation in 3D scene.
     You control camera parameters and provide user input
     to this class by various methods and properties.
@@ -274,6 +281,7 @@ type
     VisibleChangeSchedule: Cardinal;
     IsVisibleChangeScheduled: boolean;
     FIgnoreAllInputs: boolean;
+    FNavigationInput: TCameraNavigationInputs;
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FProjectionMatrix: TMatrix4Single;
     FRadius: Single;
@@ -514,6 +522,7 @@ type
       @param Angle   Angle of rotation.}
     procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); virtual; abstract;
 
+    property NavigationInput: TCameraNavigationInputs read FNavigationInput write FNavigationInput;
     { Initial camera values.
 
       InitialDirection and InitialUp must be always normalized,
@@ -835,6 +844,9 @@ type
 
     FMouseLookHorizontalSensitivity: Single;
     FMouseLookVerticalSensitivity: Single;
+
+    { Needed for niMouseDragging navigation in @link(TWalkCamera.Idle) }
+    CurrentMouseDownPos, CurrentMouseMovePos: TVector2Integer;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
       to avoid updating HeadBobbingPosition more than once in the same Idle call.
@@ -2017,6 +2029,7 @@ begin
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
   FRadius := DefaultCameraRadius;
+  FNavigationInput  := [niKeyboard, niMouseDragging, ni3dMouse];  {enable all types of input }
 end;
 
 procedure TCamera.VisibleChange;
@@ -2468,6 +2481,7 @@ var
   Moved: boolean;
   MoveSize: double;
 begin
+  if not (ni3dMouse in NavigationInput) then Exit;
   if FModelBox.IsEmptyOrZero then Exit;
 
   Moved := false;
@@ -2499,6 +2513,8 @@ var
   Moved: boolean;
   RotationSize: double;
 begin
+  if not (ni3dMouse in NavigationInput) then Exit;
+
   Moved := false;
   RotationSize := CompSpeed * Angle / 50;
   if abs(X) > 0.4 then      { tilt forward / backward}
@@ -3959,6 +3975,36 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       Container.SetMousePosition(ContainerWidth div 2, ContainerHeight div 2);
   end;
 
+  procedure MoveViaMouseDragging(deltaX, deltaY: integer);
+  var
+    MoveSize: single;
+  const
+    Tolerance = 5;  { 5px tolerance for not-moving }
+  begin
+    MoveSize := 0;
+    if abs(deltaY) < Tolerance then
+      deltaY := 0
+    else
+    begin
+      MoveSize := (abs(deltaY) - Tolerance) / 100;
+      if MoveSize > 1.0 then MoveSize := 1.0;
+    end;
+
+    if deltaY < -Tolerance then
+      MoveHorizontal(MoveSize * CompSpeed, 1); { forward }
+    if deltaY > Tolerance then
+      MoveHorizontal(MoveSize * CompSpeed, -1); { backward }
+
+    if abs(deltaX) > Tolerance then
+      RotateHorizontal(-deltaX / 4 * CompSpeed); { rotate }
+    {if deltaY <> 0 then
+    begin
+      if InvertVerticalMouseLook then
+        deltaY := -deltaY;
+      RotateVertical(-deltaY * CompSpeed);
+    end;}
+  end;
+
 var
   ModsDown: TModifierKeys;
 begin
@@ -3976,7 +4022,7 @@ begin
 
   BeginVisibleChangeSchedule;
   try
-    if HandleMouseAndKeys and not IgnoreAllInputs then
+    if (niKeyboard in NavigationInput) and HandleMouseAndKeys and not IgnoreAllInputs then
     begin
       FIsCrouching := Input_Crouch.IsPressed(Container);
 
@@ -4060,6 +4106,12 @@ begin
         end;
       end;
     end;
+
+    { mouse dragging navigation }
+    if (niMouseDragging in NavigationInput) and (mbLeft in Container.MousePressed)
+         and not MouseLook and HandleMouseAndKeys and not IgnoreAllInputs then
+      MoveViaMouseDragging(CurrentMouseMovePos[0]-CurrentMouseDownPos[0],
+                           CurrentMouseMovePos[1]-CurrentMouseDownPos[1]);
 
     PreferGravityUpForRotationsIdle;
 
@@ -4161,6 +4213,13 @@ begin
   Result := inherited;
   if Result then Exit;
 
+  if (niMouseDragging in NavigationInput) then
+  begin
+    CurrentMouseDownPos[0] := Container.MouseX;
+    CurrentMouseDownPos[1] := Container.MouseY;
+    CurrentMouseMovePos := CurrentMouseDownPos;
+  end;
+
   Result := EventDown(K_None, #0, true, Button, mwNone);
 end;
 
@@ -4168,6 +4227,13 @@ function TWalkCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): 
 begin
   Result := inherited;
   if Result then Exit;
+
+  if (niMouseDragging in NavigationInput) and Vertical then
+  begin
+    RotateVertical(-Scroll * 3);
+    Result := true;
+    Exit;
+  end;
 
   Result := EventDown(K_None, #0, false, mbLeft,
     MouseWheelDirection(Scroll, Vertical));
@@ -4177,6 +4243,8 @@ procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; con
 var
   MoveSize: double;
 begin
+  if not (ni3dMouse in NavigationInput) then Exit;
+
   MoveSize := Length * CompSpeed / 5000;
   if Z > 5 then
     MoveHorizontal(Z * MoveSize, -1); { backward }
@@ -4204,6 +4272,8 @@ end;
 
 procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
 begin
+  if not (ni3dMouse in NavigationInput) then Exit;
+
   if abs(X) > 0.4 then      { tilt forward / backward }
     RotateVertical(X * Angle * 2 * CompSpeed);
   if abs(Y) > 0.4 then      { rotate }
@@ -4333,6 +4403,12 @@ var
 begin
   Result := inherited;
   if Result then Exit;
+
+  if (niMouseDragging in NavigationInput) and (mbLeft in Container.MousePressed) then
+  begin
+    CurrentMouseMovePos[0] := NewX;
+    CurrentMouseMovePos[1] := NewY;
+  end;
 
   if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown and
     (not Animation) then

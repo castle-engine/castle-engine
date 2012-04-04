@@ -115,6 +115,9 @@ type
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMove(Shift: TShiftState; NewX, NewY: Integer); override;
 
+    function DoMouseWheel(Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint): Boolean; override;
+    function MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean; virtual;
+
     { Overriden KeyDown, KeyUp methods call some necessary stuff (like inherited,
       and updating the Pressed, MousePressed values) and call respective
       *Event method.
@@ -285,6 +288,7 @@ type
     procedure MouseUpEvent(Button: Controls.TMouseButton;
       Shift:TShiftState; X,Y:Integer); override;
     procedure MouseMoveEvent(Shift: TShiftState; NewX, NewY: Integer); override;
+    function MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean; override;
     procedure DoBeforeDraw; override;
     procedure DoDraw; override;
     procedure Resize; override;
@@ -333,6 +337,8 @@ type
     property TooltipX: Integer read FTooltipX;
     property TooltipY: Integer read FTooltipY;
     { @groupEnd }
+
+    function Mouse3dLoaded: boolean;
 
   published
     { How OnDraw callback fits within various Draw methods of our
@@ -780,6 +786,20 @@ begin
   inherited MouseMove(Shift, NewX, NewY);
 end;
 
+function TCastleControlBase.DoMouseWheel(Shift: TShiftState; WheelDelta: Integer;
+  MousePos: TPoint): Boolean;
+begin
+  Result := MouseWheelEvent(WheelDelta/120, true);
+  if Result then Exit;
+
+  Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
+end;
+
+function TCastleControlBase.MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean;
+begin
+  Result := false;
+end;
+
 procedure TCastleControlBase.Idle;
 begin
   if (not AggressiveUpdate) and not (csDesigning in ComponentState) then
@@ -972,6 +992,11 @@ begin
   inherited;
 end;
 
+function TCastleControlCustom.Mouse3dLoaded: boolean;
+begin
+  Result := (assigned(Mouse3d) AND Mouse3d.Loaded);
+end;
+
 procedure TCastleControlCustom.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   { We have to remove a reference to the object from Controls list.
@@ -1106,7 +1131,7 @@ var
   Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
   Mouse3dPollSpeed: Single;
 const
-  Mouse3dPollDelay = 0.1;
+  Mouse3dPollDelay = 0.05;
 begin
   if UseControls then
   begin
@@ -1271,6 +1296,27 @@ begin
   end;
 
   inherited;
+end;
+
+function TCastleControlCustom.MouseWheelEvent(const Scroll: Single; const Vertical: boolean): boolean;
+var
+  C: TUIControl;
+  I: Integer;
+begin
+  if UseControls then
+  begin
+    for I := 0 to Controls.Count - 1 do
+    begin
+      C := Controls[I];
+      if C.PositionInside(MouseX, MouseY) then
+        if C.MouseWheel(Scroll, true) then
+        begin
+          Result := true;
+          Exit;
+        end;
+    end;
+  end;
+  Result := false;
 end;
 
 procedure TCastleControlCustom.ControlsVisibleChange(Sender: TObject);
