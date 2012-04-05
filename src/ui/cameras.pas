@@ -508,21 +508,22 @@ type
 
     function Animation: boolean; virtual;
 
-    { 3Dconnexion devices support - notifiacation about translation
+    { Translation of 3Dconnexion devices.
       @param X   X axis (move left/right)
       @param Y   Y axis (move up/down)
       @param Z   Z axis (move forward/backwards)
       @param Length   Length of the vector consisting of the above. }
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); virtual; abstract;
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); virtual; abstract;
 
-    { 3Dconnexion devices support - notifiacation about rotation
+    { Rotation of 3Dconnexion devices.
       @param X   X axis (tilt forward/backwards)
       @param Y   Y axis (rotate)
       @param Z   Z axis (tilt sidewards)
       @param Angle   Angle of rotation.}
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); virtual; abstract;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); virtual; abstract;
 
     property NavigationInput: TCameraNavigationInputs read FNavigationInput write FNavigationInput;
+
     { Initial camera values.
 
       InitialDirection and InitialUp must be always normalized,
@@ -649,8 +650,8 @@ type
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); override;
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); override;
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
 
     { Current camera properties ---------------------------------------------- }
 
@@ -873,13 +874,27 @@ type
     procedure RotateHorizontal(const AngleDeg: Single);
     procedure RotateVertical(const AngleDeg: Single);
 
+    { Like Move, but you pass here final ProposedNewPos. }
     function MoveTo(const ProposedNewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
+    { Tries to move Position to Position + MoveVector.
+      Returns DoMoveAllowed result. So if it returns @false,
+      you know that Position didn't change (on the other hand,
+      if it returns @true, you don't know anything --- maybe Position
+      didn't change, maybe it changed to Position + MoveVector,
+      maybe it changed to something different). }
     function Move(const MoveVector: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
-    procedure MoveHorizontal(const CompSpeed: single; const Multiply: integer = 1);
-    procedure MoveVertical(const CompSpeed: single; const Multiply: integer);
-    procedure RotateHorizontalForStrafeMove(const AngleDeg: single);
+    { Forward or backward move. Multiply must be +1 or -1. }
+    procedure MoveHorizontal(const CompSpeed: Single; const Multiply: Integer = 1);
+    procedure MoveVertical(const CompSpeed: Single; const Multiply: Integer);
+    { Like RotateHorizontal, but it uses
+      PreferGravityUpForMoving to decide which rotation to use.
+      This way when PreferGravityUpForMoving, then we rotate versus GravityUp,
+      move in GravityUp plane, and then rotate back versus GravityUp.
+      If not PreferGravityUpForMoving, then we do all this versus Up.
+      And so everything works. }
+    procedure RotateHorizontalForStrafeMove(const AngleDeg: Single);
 
     { Jump.
 
@@ -952,8 +967,8 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
     function AllowSuspendForInput: boolean; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); override;
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); override;
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
 
     { This is used by @link(DoMoveAllowed), see there for description. }
     property OnMoveAllowed: TMoveAllowedFunc read FOnMoveAllowed write FOnMoveAllowed;
@@ -1684,8 +1699,8 @@ type
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
-    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single); override;
-    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single); override;
+    procedure Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single); override;
+    procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
@@ -2475,11 +2490,11 @@ begin FScaleFactor *= ScaleBy; VisibleChange; end;
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin FMoveAmount[coord] += MoveDistance; VisibleChange; end;
 
-procedure TExamineCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+procedure TExamineCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
 var
-  Size: single;
+  Size: Single;
   Moved: boolean;
-  MoveSize: double;
+  MoveSize: Double;
 begin
   if not (ni3dMouse in NavigationInput) then Exit;
   if FModelBox.IsEmptyOrZero then Exit;
@@ -2488,13 +2503,13 @@ begin
   Size := FModelBox.AverageSize;
   MoveSize := Length * CompSpeed / 5000;
 
-  if abs(X)>5 then   { left / right }
+  if Abs(X)>5 then   { left / right }
   begin
     FMoveAmount[0] += Size * X * MoveSize;
     Moved := true;
   end;
 
-  if abs(Y)>5 then   { up / down }
+  if Abs(Y)>5 then   { up / down }
   begin
     FMoveAmount[1] += Size * Y * MoveSize;
     Moved := true;
@@ -2503,33 +2518,33 @@ begin
   if Moved then
     VisibleChange;
 
-  if abs(Z)>5 then   { backward / forward }
+  if Abs(Z)>5 then   { backward / forward }
     Zoom(Z * MoveSize / 2);
 end;
 
-procedure TExamineCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+procedure TExamineCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
 var
   RotationToMake: TQuaternion;
   Moved: boolean;
-  RotationSize: double;
+  RotationSize: Double;
 begin
   if not (ni3dMouse in NavigationInput) then Exit;
 
   Moved := false;
   RotationSize := CompSpeed * Angle / 50;
-  if abs(X) > 0.4 then      { tilt forward / backward}
+  if Abs(X) > 0.4 then      { tilt forward / backward}
   begin
     RotationToMake := QuatFromAxisAngle(Vector3Single(1, 0, 0), X * RotationSize);
     Moved := true;
   end;
 
-  if abs(Y) > 0.4 then      { rotate }
+  if Abs(Y) > 0.4 then      { rotate }
   begin
     RotationToMake := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize);
     Moved := true;
   end;
 
-  if abs(Z) > 0.4 then      { tilt sidewards }
+  if Abs(Z) > 0.4 then      { tilt sidewards }
   begin
     RotationToMake := QuatFromAxisAngle(Vector3Single(0, 0, 1), Z * RotationSize);
     Moved := true;
@@ -3276,9 +3291,8 @@ begin
   ScheduleVisibleChange;
 end;
 
-{ Like Move, but you pass here final ProposedNewPos }
 function TWalkCamera.MoveTo(const ProposedNewPos: TVector3Single;
-    const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity: boolean): boolean;
 var
   NewPos: TVector3Single;
 begin
@@ -3288,20 +3302,13 @@ begin
     Position := NewPos;
 end;
 
-  { Tries to move Position to Position + MoveVector.
-    Returns DoMoveAllowed result. So if it returns @false,
-    you know that Position didn't change (on the other hand,
-    if it returns @true, you don't know anything --- maybe Position
-    didn't change, maybe it changed to Position + MoveVector,
-    maybe it changed to something different). }
 function TWalkCamera.Move(const MoveVector: TVector3Single;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity);
 end;
 
-  { Multiply must be +1 or -1 }
-procedure TWalkCamera.MoveHorizontal(const CompSpeed: single; const Multiply: integer = 1);
+procedure TWalkCamera.MoveHorizontal(const CompSpeed: Single; const Multiply: Integer = 1);
 var
   Dir: TVector3Single;
 var
@@ -3328,7 +3335,7 @@ begin
     AJumpMultiply), false);
 end;
 
-procedure TWalkCamera.MoveVertical(const CompSpeed: single; const Multiply: integer);
+procedure TWalkCamera.MoveVertical(const CompSpeed: Single; const Multiply: Integer);
 
   { Provided PreferredUpVector must be already normalized. }
   procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
@@ -3343,13 +3350,7 @@ begin
     MoveVerticalCore(Up);
 end;
 
-  { This is just like RotateHorizontal, but it uses
-    PreferGravityUpForMoving to decide which rotation to use.
-    This way when PreferGravityUpForMoving, then we rotate versus GravityUp,
-    move in GravityUp plane, and then rotate back versus GravityUp.
-    If not PreferGravityUpForMoving, then we do all this versus Up.
-    And so everything works. }
-procedure TWalkCamera.RotateHorizontalForStrafeMove(const AngleDeg: single);
+procedure TWalkCamera.RotateHorizontalForStrafeMove(const AngleDeg: Single);
 begin
   if PreferGravityUpForMoving then
     RotateAroundGravityUp(AngleDeg) else
@@ -3977,16 +3978,16 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
 
   procedure MoveViaMouseDragging(deltaX, deltaY: integer);
   var
-    MoveSize: single;
+    MoveSize: Single;
   const
     Tolerance = 5;  { 5px tolerance for not-moving }
   begin
     MoveSize := 0;
-    if abs(deltaY) < Tolerance then
+    if Abs(deltaY) < Tolerance then
       deltaY := 0
     else
     begin
-      MoveSize := (abs(deltaY) - Tolerance) / 100;
+      MoveSize := (Abs(deltaY) - Tolerance) / 100;
       if MoveSize > 1.0 then MoveSize := 1.0;
     end;
 
@@ -3995,7 +3996,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
     if deltaY > Tolerance then
       MoveHorizontal(MoveSize * CompSpeed, -1); { backward }
 
-    if abs(deltaX) > Tolerance then
+    if Abs(deltaX) > Tolerance then
       RotateHorizontal(-deltaX / 4 * CompSpeed); { rotate }
     {if deltaY <> 0 then
     begin
@@ -4108,8 +4109,9 @@ begin
     end;
 
     { mouse dragging navigation }
-    if (niMouseDragging in NavigationInput) and (mbLeft in Container.MousePressed)
-         and not MouseLook and HandleMouseAndKeys and not IgnoreAllInputs then
+    if (niMouseDragging in NavigationInput) and
+       (mbLeft in Container.MousePressed) and
+       (not MouseLook) and HandleMouseAndKeys and (not IgnoreAllInputs) then
       MoveViaMouseDragging(CurrentMouseMovePos[0]-CurrentMouseDownPos[0],
                            CurrentMouseMovePos[1]-CurrentMouseDownPos[1]);
 
@@ -4213,7 +4215,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (niMouseDragging in NavigationInput) then
+  if niMouseDragging in NavigationInput then
   begin
     CurrentMouseDownPos[0] := Container.MouseX;
     CurrentMouseDownPos[1] := Container.MouseY;
@@ -4239,9 +4241,9 @@ begin
     MouseWheelDirection(Scroll, Vertical));
 end;
 
-procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
 var
-  MoveSize: double;
+  MoveSize: Double;
 begin
   if not (ni3dMouse in NavigationInput) then Exit;
 
@@ -4270,15 +4272,15 @@ begin
     MoveVertical(-Y * MoveSize, -1);  { down }
 end;
 
-procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
 begin
   if not (ni3dMouse in NavigationInput) then Exit;
 
-  if abs(X) > 0.4 then      { tilt forward / backward }
+  if Abs(X) > 0.4 then      { tilt forward / backward }
     RotateVertical(X * Angle * 2 * CompSpeed);
-  if abs(Y) > 0.4 then      { rotate }
+  if Abs(Y) > 0.4 then      { rotate }
     RotateHorizontal(Y * Angle * 2 * CompSpeed);
-  {if abs(Z) > 0.4 then ?} { tilt sidewards }
+  {if Abs(Z) > 0.4 then ?} { tilt sidewards }
 end;
 
 procedure TWalkCamera.Init(
@@ -4695,12 +4697,12 @@ begin
   Current.Idle(CompSpeed, HandleMouseAndKeys, LetOthersHandleMouseAndKeys);
 end;
 
-procedure TUniversalCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: double; const CompSpeed: single);
+procedure TUniversalCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
 begin
   Current.Mouse3dTranslationEvent(X, Y, Z, Length, CompSpeed);
 end;
 
-procedure TUniversalCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: double; const CompSpeed: single);
+procedure TUniversalCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
 begin
   Current.Mouse3dRotationEvent(X, Y, Z, Angle, CompSpeed);
 end;

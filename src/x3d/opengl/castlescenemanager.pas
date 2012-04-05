@@ -2110,8 +2110,7 @@ begin
   begin
     Camera.Mouse3dRotationEvent(X, Y, Z, Angle, CompSpeed);
     Result := true;
-  end
-  else
+  end else
     Result := false;
 end;
 
@@ -2121,8 +2120,7 @@ begin
   begin
     Camera.Mouse3dTranslationEvent(X, Y, Z, Length, CompSpeed);
     Result := true;
-  end
-  else
+  end else
     Result := false;
 end;
 

@@ -465,7 +465,7 @@ var
 implementation
 
 uses LCLType, GL, GLU, GLExt, CastleGLUtils, CastleStringUtils, X3DLoad,
-  GLImages;
+  GLImages, CastleLog;
 
 procedure Register;
 begin
@@ -974,27 +974,25 @@ begin
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
-  Mouse3d := nil;
   try
     Mouse3d := T3DConnexionDevice.Create('Castle Control');
   except
-    Mouse3d.Free;
-    Mouse3d := nil;
+    on E: Exception do
+      if Log then WritelnLog('3D Mouse', 'Exception %s when initializing T3DConnexionDevice: %s',
+        [E.ClassName, E.Message]);
   end;
-
 end;
 
 destructor TCastleControlCustom.Destroy;
 begin
   FreeAndNil(FControls);
-  if assigned(Mouse3d) then
-    Mouse3d.Free;
+  FreeAndNil(Mouse3d);
   inherited;
 end;
 
 function TCastleControlCustom.Mouse3dLoaded: boolean;
 begin
-  Result := (assigned(Mouse3d) AND Mouse3d.Loaded);
+  Result := Assigned(Mouse3d) and Mouse3d.Loaded;
 end;
 
 procedure TCastleControlCustom.Notification(AComponent: TComponent; Operation: TOperation);
@@ -1138,7 +1136,7 @@ begin
     UpdateTooltip;
 
     { 3D Mouse }
-    if assigned(Mouse3D) AND Mouse3D.Loaded then
+    if Assigned(Mouse3D) and Mouse3D.Loaded then
     begin
       Mouse3dPollTimer -= Fps.IdleSpeed;
       if Mouse3dPollTimer < 0 then
@@ -1148,14 +1146,19 @@ begin
         Mouse3D.GetTranslationValues(Tx, Ty, Tz, TLength);
         Mouse3D.GetRotationValues(Rx, Ry, Rz, RAngle);
 
-        { send to viewport }
+        { send to all 2D controls, including viewports }
         for I := 0 to Controls.Count - 1 do
         begin
           C := Controls[I];
           C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
           C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
         end;
-        { set timer }
+        { set timer.
+          The "repeat ... until" below should not be necessary under normal
+          circumstances, as Mouse3dPollDelay should be much larger than typical
+          frequency of how often this is checked. But we do it for safety
+          (in case something else, like AI or collision detection,
+          slows us down *a lot*). }
         repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
       end;
     end;
