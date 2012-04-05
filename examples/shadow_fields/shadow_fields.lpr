@@ -86,7 +86,9 @@ var
 
 procedure NavigatorChanged;
 begin
-  SceneManager.Camera.IgnoreAllInputs := Navigator <> ntAll;
+  if Navigator <> ntAll then
+    SceneManager.Camera.Input := [] else
+    SceneManager.Camera.Input := DefaultCameraInput;
 
   if NavigatorRadio[Navigator] <> nil then
     NavigatorRadio[Navigator].Checked := true;

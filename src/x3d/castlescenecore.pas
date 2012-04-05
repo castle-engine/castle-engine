@@ -5914,7 +5914,7 @@ var
     if NavigationType = 'NONE' then
     begin
       NavigationTypeInitialized := true;
-      Camera.IgnoreAllInputs := true;
+      Camera.Input := [];
     end else
     if (NavigationType = 'EXAMINE') or (NavigationType = 'LOOKAT') then
     begin
@@ -5963,7 +5963,7 @@ begin
   if Walk <> nil then Walk.PreferGravityUpForRotations := true;
   if Walk <> nil then Walk.PreferGravityUpForMoving := true;
   if Walk <> nil then Walk.Gravity := false;
-  Camera.IgnoreAllInputs := false;
+  Camera.Input := DefaultCameraInput;
 
   if ForceNavigationType <> '' then
     InitializeNavigationType(ForceNavigationType);

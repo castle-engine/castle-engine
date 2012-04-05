@@ -1741,7 +1741,7 @@ type
       @unorderedList(
         @itemSpacing compact
         @item NavigationClass,
-        @item Input (and derived properties IgnoreAllInputs and MouseNavigation),
+        @item Input (and derived deprecated properties IgnoreAllInputs and MouseNavigation),
         @item Walk.Gravity (see TWalkCamera.Gravity),
         @item Walk.PreferGravityUpForRotations (see TWalkCamera.PreferGravityUpForRotations),
         @item Walk.PreferGravityUpForMoving (see TWalkCamera.PreferGravityUpForMoving)

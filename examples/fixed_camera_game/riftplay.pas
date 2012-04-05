@@ -281,11 +281,11 @@ begin
 
       { SceneCamera determines the rendering camera.
         To "fine position" the camera vs 2D image, it may be useful to
-        temporaiily comment out "SceneCamera.IgnoreAllInputs := true" line,
+        temporaiily comment out "SceneCamera.Input := []" line,
         and allow to move SceneCamera. }
 
       SceneCamera := TWalkCamera.Create(nil);
-      SceneCamera.IgnoreAllInputs := true;
+      SceneCamera.Input := [];
       SceneManager.Camera := SceneCamera;
 
       Window.Controls.Add(Notifications);

@@ -615,7 +615,7 @@ begin
   Camera.Init(Box3D(Vector3Single(0, 0, -1),
                     Vector3Single(1, 1,  1)), 0.2);
   { conflicts with our MouseDown / MouseMove }
-  Camera.MouseNavigation := false;
+  Camera.Input := Camera.Input - [ciMouseDragging];
   Camera.Input_StopRotating.MouseButtonUse := false;
   Window.SceneManager.Camera := Camera;
 

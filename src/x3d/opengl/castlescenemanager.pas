@@ -466,7 +466,7 @@ type
           may still run, for example MovieTexture will still animate,
           if only TCastleScene.TimePlaying.)
 
-        @item(For cameras, you can set TCamera.IgnoreAllInputs to ignore
+        @item(For cameras, you can set @code(TCamera.Input := []) to ignore
           key / mouse clicks.)
       ) }
     property Paused: boolean read FPaused write FPaused default false;
