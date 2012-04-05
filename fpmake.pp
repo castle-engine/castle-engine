@@ -240,6 +240,12 @@ begin
     P.Targets.AddUnit('keysmouse.pas');
     P.Targets.AddUnit('uicontrols.pas');
     P.Targets.AddUnit('cameras.pas');
+    P.Targets.AddUnit('pk3dconnexion.pas');
+    if Defaults.OS in AllWindowsOSes then
+    begin
+      P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'windows');
+      P.Targets.AddUnit('tdxinput_tlb.pas');
+    end;
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecontrols.pas');

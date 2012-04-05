@@ -90,6 +90,9 @@ if (( $# == 0 )); then
   # for FPC <= 2.24. Also, it doesn't parse, due to defining generics.
   #
   # Don't generate docs for units created only for example programs.
+  #
+  # Don't generate docs for pk3dconnexion.pas, tdxinput_tlb.pas:
+  # external code, not ready for pasdoc.
   find .  \
     '(' -type d '(' -iname old -or \
                     -iname private \
@@ -99,6 +102,8 @@ if (( $# == 0 )); then
               '(' -iwholename '*/fglobjectlist22.pas' ')' -or \
               '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
+              '(' -iwholename '*/src/ui/pk3dconnexion.pas' ')' -or \
+              '(' -iwholename '*/src/ui/windows/tdxinput_tlb.pas' ')' -or \
               '(' -iwholename '*fonts/TTF_*.pas' ')' -or \
               '(' -iwholename '*fonts/BFNT_*.pas' ')' \
             ')' \

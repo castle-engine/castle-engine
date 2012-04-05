@@ -7,7 +7,7 @@
       <Version Value="9"/>
       <SearchPaths>
         <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/castlescript;../src/3d;../src/x3d/opengl/glsl"/>
-        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/opengl"/>
+        <OtherUnitFiles Value="../src/base;../src/3d;../src/3d/opengl;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/opengl/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
@@ -47,7 +47,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="161">
+    <Files Count="160">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -695,13 +695,9 @@
         <UnitName Value="X3DTime"/>
       </Item159>
       <Item160>
-        <Filename Value="../src/ui/pk3DConnexion.pas"/>
+        <Filename Value="../src/ui/pk3dconnexion.pas"/>
         <UnitName Value="pk3DConnexion"/>
       </Item160>
-      <Item161>
-        <Filename Value="../src/ui/TDxInput_TLB.pas"/>
-        <UnitName Value="TDxInput_TLB"/>
-      </Item161>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
