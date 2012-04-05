@@ -284,7 +284,6 @@ type
   private
     VisibleChangeSchedule: Cardinal;
     IsVisibleChangeScheduled: boolean;
-    FIgnoreAllInputs: boolean;
     FInput: TCameraInputs;
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FProjectionMatrix: TMatrix4Single;
@@ -321,7 +320,9 @@ type
     procedure ScheduleVisibleChange;
     procedure EndVisibleChangeSchedule;
 
-    procedure SetIgnoreAllInputs(const Value: boolean); virtual;
+    procedure SetInput(const Value: TCameraInputs); virtual;
+    function GetIgnoreAllInputs: boolean;
+    procedure SetIgnoreAllInputs(const Value: boolean);
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetRadius(const Value: Single); virtual;
   public
@@ -352,11 +353,12 @@ type
       which is 1.0. }
     function RotationMatrix: TMatrix4Single; virtual; abstract;
 
-    { If true, we will ignore all inputs passed to this class.
-      So this camera will not handle any key/mouse events.
-      This is useful to implement e.g. VRML "NONE" navigation type. }
+    { Deprecated, use more flexible @link(Input) instead.
+      @code(IgnoreAllInputs := true) is equivalent to @code(Input := []),
+      @code(IgnoreAllInputs := false) is equivalent to @code(Input := DefaultCameraInput).
+      @deprecated }
     property IgnoreAllInputs: boolean
-      read FIgnoreAllInputs write SetIgnoreAllInputs default false;
+      read GetIgnoreAllInputs write SetIgnoreAllInputs default false;
 
     { Things related to frustum ---------------------------------------- }
 
@@ -526,8 +528,6 @@ type
       @param Angle   Angle of rotation.}
     procedure Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single); virtual; abstract;
 
-    property Input: TCameraInputs read FInput write FInput default DefaultCameraInput;
-
     { Initial camera values.
 
       InitialDirection and InitialUp must be always normalized,
@@ -569,6 +569,8 @@ type
     procedure GoToInitial; virtual;
 
     function PreventsComfortableDragging: boolean; virtual;
+  published
+    property Input: TCameraInputs read FInput write SetInput default DefaultCameraInput;
   end;
 
   TCameraClass = class of TCamera;
@@ -609,7 +611,6 @@ type
     FInput_ScaleSmaller: TInputShortcut;
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
-    FMouseNavigation: boolean;
 
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
@@ -636,6 +637,9 @@ type
     function EventDown(AKey: TKey; ACharacter: Char;
       AMousePress: boolean; AMouseButton: TMouseButton;
       AMouseWheel: TMouseWheelDirection): boolean;
+
+    function GetMouseNavigation: boolean;
+    procedure SetMouseNavigation(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -746,8 +750,9 @@ type
 
     function PreventsComfortableDragging: boolean; override;
   published
+    { Deprecated, include/exclude ciMouseDragging from @link(Input) instead. }
     property MouseNavigation: boolean
-      read FMouseNavigation write FMouseNavigation default true;
+      read GetMouseNavigation write SetMouseNavigation default true;
 
     property Input_MoveXInc: TInputShortcut read GetInput_MoveXInc;
     property Input_MoveXDec: TInputShortcut read GetInput_MoveXDec;
@@ -1672,7 +1677,7 @@ type
     function GetNavigationType: TCameraNavigationType;
     procedure SetNavigationType(const Value: TCameraNavigationType);
   protected
-    procedure SetIgnoreAllInputs(const Value: boolean); override;
+    procedure SetInput(const Value: TCameraInputs); override;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
     procedure SetContainer(const Value: IUIContainer); override;
     procedure SetRadius(const Value: Single); override;
@@ -1736,7 +1741,7 @@ type
       @unorderedList(
         @itemSpacing compact
         @item NavigationClass,
-        @item IgnoreAllInputs,
+        @item Input (and derived properties IgnoreAllInputs and MouseNavigation),
         @item Walk.Gravity (see TWalkCamera.Gravity),
         @item Walk.PreferGravityUpForRotations (see TWalkCamera.PreferGravityUpForRotations),
         @item Walk.PreferGravityUpForMoving (see TWalkCamera.PreferGravityUpForMoving)
@@ -2082,9 +2087,9 @@ begin
   end;
 end;
 
-procedure TCamera.SetIgnoreAllInputs(const Value: boolean);
+procedure TCamera.SetInput(const Value: TCameraInputs);
 begin
-  FIgnoreAllInputs := Value;
+  FInput := Value;
 end;
 
 procedure TCamera.RecalculateFrustum;
@@ -2259,6 +2264,18 @@ begin
   Result := false;
 end;
 
+function TCamera.GetIgnoreAllInputs: boolean;
+begin
+  Result := Input = [];
+end;
+
+procedure TCamera.SetIgnoreAllInputs(const Value: boolean);
+begin
+  if Value then
+    Input := [] else
+    Input := DefaultCameraInput;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -2277,7 +2294,6 @@ var
 begin
   inherited;
 
-  FMouseNavigation := true;
   ExclusiveEvents := false;
 
   FModelBox := EmptyBox3D;
@@ -2429,7 +2445,7 @@ begin
     VisibleChange;
   end;
 
-  if HandleMouseAndKeys and (not IgnoreAllInputs) then
+  if HandleMouseAndKeys and (ciNormal in Input) then
   begin
     if ModelBox.IsEmptyOrZero then
       MoveChange := CompSpeed else
@@ -2618,7 +2634,7 @@ function TExamineCamera.EventDown(AKey: TKey; ACharacter: Char;
   AMousePress: boolean; AMouseButton: TMouseButton;
   AMouseWheel: TMouseWheelDirection): boolean;
 begin
-  if IgnoreAllInputs or Animation then Exit(false);
+  if (not (ciNormal in Input)) or Animation then Exit(false);
 
   if Input_StopRotating.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
   begin
@@ -2785,8 +2801,8 @@ begin
 
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     or should be ignored, do nothing. }
-  if (Container.MousePressed = []) or (not MouseNavigation) or
-     IgnoreAllInputs or Animation then
+  if (Container.MousePressed = []) or (not (ciMouseDragging in Input)) or
+     Animation then
     Exit;
 
   ModsDown := ModifiersDown(Container.Pressed) * [mkShift, mkCtrl];
@@ -2832,7 +2848,7 @@ function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean
 begin
   Result := inherited;
   if Result or
-    (not MouseNavigation) or IgnoreAllInputs or Animation or
+    (not (ciNormal in Input)) or Animation or
     (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) then
     Exit;
 
@@ -2963,6 +2979,18 @@ function TExamineCamera.GetInput_RotateYInc: TInputShortcut; begin Result := Inp
 function TExamineCamera.GetInput_RotateYDec: TInputShortcut; begin Result := Inputs_Rotate[1, false] end;
 function TExamineCamera.GetInput_RotateZInc: TInputShortcut; begin Result := Inputs_Rotate[2, true ] end;
 function TExamineCamera.GetInput_RotateZDec: TInputShortcut; begin Result := Inputs_Rotate[2, false] end;
+
+function TExamineCamera.GetMouseNavigation: boolean;
+begin
+  Result := ciMouseDragging in Input;
+end;
+
+procedure TExamineCamera.SetMouseNavigation(const Value: boolean);
+begin
+  if Value then
+    Input := Input + [ciMouseDragging] else
+    Input := Input - [ciMouseDragging];
+end;
 
 { TWalkCamera ---------------------------------------------------------------- }
 
@@ -4027,7 +4055,7 @@ begin
 
   BeginVisibleChangeSchedule;
   try
-    if (ciNormal in Input) and HandleMouseAndKeys and not IgnoreAllInputs then
+    if (ciNormal in Input) and HandleMouseAndKeys then
     begin
       FIsCrouching := Input_Crouch.IsPressed(Container);
 
@@ -4115,7 +4143,7 @@ begin
     { mouse dragging navigation }
     if (ciMouseDragging in Input) and
        (mbLeft in Container.MousePressed) and
-       (not MouseLook) and HandleMouseAndKeys and (not IgnoreAllInputs) then
+       (not MouseLook) and HandleMouseAndKeys then
       MoveViaMouseDragging(CurrentMouseMovePos[0]-CurrentMouseDownPos[0],
                            CurrentMouseMovePos[1]-CurrentMouseDownPos[1]);
 
@@ -4167,7 +4195,7 @@ function TWalkCamera.EventDown(AKey: TKey; ACharacter: Char;
   AMousePress: boolean; AMouseButton: TMouseButton;
   AMouseWheel: TMouseWheelDirection): boolean;
 begin
-  if IgnoreAllInputs or Animation then Exit(false);
+  if (not (ciNormal in Input)) or Animation then Exit(false);
 
   {$ifdef SINGLE_STEP_ROTATION}
   if Input_RightRot.IsEvent(AKey, ACharacter, AMousePress, AMouseButton, AMouseWheel) then
@@ -4416,7 +4444,7 @@ begin
     CurrentMouseMovePos[1] := NewY;
   end;
 
-  if MouseLook and (not IgnoreAllInputs) and ContainerSizeKnown and
+  if (ciNormal in Input) and MouseLook and ContainerSizeKnown and
     (not Animation) then
   begin
     MiddleWidth := ContainerWidth div 2;
@@ -4675,11 +4703,11 @@ begin
   FWalk.Radius := Value;
 end;
 
-procedure TUniversalCamera.SetIgnoreAllInputs(const Value: boolean);
+procedure TUniversalCamera.SetInput(const Value: TCameraInputs);
 begin
   inherited;
-  FExamine.IgnoreAllInputs := Value;
-  FWalk.IgnoreAllInputs := Value;
+  FExamine.Input := Value;
+  FWalk.Input := Value;
 end;
 
 procedure TUniversalCamera.SetProjectionMatrix(const Value: TMatrix4Single);
@@ -4812,7 +4840,7 @@ end;
 
 function TUniversalCamera.GetNavigationType: TCameraNavigationType;
 begin
-  if IgnoreAllInputs then
+  if Input = [] then
     Result := ntNone else
   if NavigationClass = ncExamine then
     Result := ntExamine else
@@ -4828,14 +4856,14 @@ begin
     doing "NavigationType := NavigationType" would not be NOOP. }
   if Value = GetNavigationType then Exit;
 
-  { set default values (for Walk camera and IgnoreAllInputs),
+  { set default values (for Walk camera and Input),
     may be changed later by this method. This way every setting
     of SetNavigationType sets them, regardless of value, which seems
     consistent. }
   Walk.Gravity := false;
   Walk.PreferGravityUpForRotations := true;
   Walk.PreferGravityUpForMoving := true;
-  IgnoreAllInputs := false;
+  Input := DefaultCameraInput;
 
   { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
 
@@ -4855,7 +4883,7 @@ begin
     ntNone:
       begin
         NavigationClass := ncWalk;
-        IgnoreAllInputs := true;
+        Input := [];
       end;
     else raise EInternalError.Create('TUniversalCamera.SetNavigationType: Value?');
   end;

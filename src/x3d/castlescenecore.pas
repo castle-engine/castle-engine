@@ -1600,7 +1600,7 @@ type
       This initializes a lot of camera properties:
       @unorderedList(
         @item(TCamera.Radius,)
-        @item(TCamera.IgnoreAllInputs,)
+        @item(TCamera.Input,)
         @item(TWalkCamera.Gravity,)
         @item(TWalkCamera.PreferGravityUpForRotations,)
         @item(TWalkCamera.PreferGravityUpForMoving,)
