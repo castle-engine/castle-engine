@@ -4461,9 +4461,13 @@ begin
         for I := 0 to Controls.Count - 1 do
         begin
           C := Controls[I];
-          C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-          C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+          if C.PositionInside(MouseX, MouseY) then
+          begin
+            C.Mouse3dTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+            C.Mouse3dRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
+          end;
         end;
+
         { set timer.
           The "repeat ... until" below should not be necessary under normal
           circumstances, as Mouse3dPollDelay should be much larger than typical
