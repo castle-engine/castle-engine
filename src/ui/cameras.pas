@@ -4010,32 +4010,57 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
 
   procedure MoveViaMouseDragging(deltaX, deltaY: integer);
   var
-    MoveSize: Single;
+    MoveSizeX, MoveSizeY: Single;
   const
     Tolerance = 5;  { 5px tolerance for not-moving }
   begin
-    MoveSize := 0;
+    MoveSizeX := 0;
+    MoveSizeY := 0;
+    if Abs(deltaX) < Tolerance then
+      deltaX := 0
+    else
+    begin
+      MoveSizeX := (Abs(deltaX) - Tolerance) / 100;
+      if MoveSizeX > 1.0 then MoveSizeX := 1.0;
+    end;
     if Abs(deltaY) < Tolerance then
       deltaY := 0
     else
     begin
-      MoveSize := (Abs(deltaY) - Tolerance) / 100;
-      if MoveSize > 1.0 then MoveSize := 1.0;
+      MoveSizeY := (Abs(deltaY) - Tolerance) / 100;
+      if MoveSizeY > 1.0 then MoveSizeY := 1.0;
     end;
 
-    if deltaY < -Tolerance then
-      MoveHorizontal(MoveSize * CompSpeed, 1); { forward }
-    if deltaY > Tolerance then
-      MoveHorizontal(MoveSize * CompSpeed, -1); { backward }
-
-    if Abs(deltaX) > Tolerance then
-      RotateHorizontal(-deltaX / 4 * CompSpeed); { rotate }
-    {if deltaY <> 0 then
+    if mbLeft in Container.MousePressed then
     begin
-      if InvertVerticalMouseLook then
-        deltaY := -deltaY;
-      RotateVertical(-deltaY * CompSpeed);
-    end;}
+      if deltaY < -Tolerance then
+        MoveHorizontal(MoveSizeY * CompSpeed, 1); { forward }
+      if deltaY > Tolerance then
+        MoveHorizontal(MoveSizeY * CompSpeed, -1); { backward }
+
+      if Abs(deltaX) > Tolerance then
+        RotateHorizontal(-deltaX / 4 * CompSpeed); { rotate }
+    end
+    else if mbRight in Container.MousePressed then
+    begin
+      if deltaX < -Tolerance then
+      begin
+        RotateHorizontalForStrafeMove(90);
+        MoveHorizontal(MoveSizeX * CompSpeed, 1);  { strife left }
+        RotateHorizontalForStrafeMove(-90);
+      end;
+      if deltaX > Tolerance then
+      begin
+        RotateHorizontalForStrafeMove(-90);
+        MoveHorizontal(MoveSizeX * CompSpeed, 1);  { strife right }
+        RotateHorizontalForStrafeMove(90);
+      end;
+
+      if (deltaY < -5) and (not Gravity) then
+        MoveVertical(MoveSizeY * CompSpeed, 1);    { fly up }
+      if (deltaY > 5) and (not Gravity) then
+        MoveVertical(MoveSizeY * CompSpeed, -1);   { fly down }
+    end;
   end;
 
 var
@@ -4142,7 +4167,7 @@ begin
 
     { mouse dragging navigation }
     if (ciMouseDragging in Input) and
-       (mbLeft in Container.MousePressed) and
+       ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
        (not MouseLook) and HandleMouseAndKeys then
       MoveViaMouseDragging(CurrentMouseMovePos[0]-CurrentMouseDownPos[0],
                            CurrentMouseMovePos[1]-CurrentMouseDownPos[1]);
@@ -4438,7 +4463,8 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciMouseDragging in Input) and (mbLeft in Container.MousePressed) then
+  if (ciMouseDragging in Input) and
+     ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) then
   begin
     CurrentMouseMovePos[0] := NewX;
     CurrentMouseMovePos[1] := NewY;
