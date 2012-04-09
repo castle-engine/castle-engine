@@ -18,7 +18,7 @@ summarizes renames done, and some reasoning.
   packages you have installed in Lazarus).
   Exceptions: TXxxCamera for TCamera descendants.
 
-  Units with common names (XxxUtils, XxxWarnings) make have Castle prefix,
+  Units with common names (XxxUtils, XxxWarnings) may have Castle prefix,
   to avoid clashes with common units.
 
 - We don't want VRML prefix to anything (units, classes).
