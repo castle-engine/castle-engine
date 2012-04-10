@@ -4031,9 +4031,13 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
   procedure MoveViaMouseDragging(deltaX, deltaY: integer);
   var
     MoveSizeX, MoveSizeY: Single;
+    WalkMult: Integer;
   const
     Tolerance = 5;  { 5px tolerance for not-moving }
   begin
+    if mkShift in ModifiersDown(Container.Pressed) then
+      WalkMult := 2 else
+      WalkMult := 1;
     MoveSizeX := 0;
     MoveSizeY := 0;
     if Abs(deltaX) < Tolerance then
@@ -4054,9 +4058,9 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
     if mbLeft in Container.MousePressed then
     begin
       if deltaY < -Tolerance then
-        MoveHorizontal(MoveSizeY * CompSpeed, 1); { forward }
+        MoveHorizontal(MoveSizeY * CompSpeed, WalkMult); { forward }
       if deltaY > Tolerance then
-        MoveHorizontal(MoveSizeY * CompSpeed, -1); { backward }
+        MoveHorizontal(MoveSizeY * CompSpeed, -WalkMult); { backward }
 
       if Abs(deltaX) > Tolerance then
         RotateHorizontal(-deltaX / 4 * CompSpeed); { rotate }
@@ -4066,25 +4070,26 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
       if deltaX < -Tolerance then
       begin
         RotateHorizontalForStrafeMove(90);
-        MoveHorizontal(MoveSizeX * CompSpeed, 1);  { strife left }
+        MoveHorizontal(MoveSizeX * CompSpeed, WalkMult);  { strife left }
         RotateHorizontalForStrafeMove(-90);
       end;
       if deltaX > Tolerance then
       begin
         RotateHorizontalForStrafeMove(-90);
-        MoveHorizontal(MoveSizeX * CompSpeed, 1);  { strife right }
+        MoveHorizontal(MoveSizeX * CompSpeed, WalkMult);  { strife right }
         RotateHorizontalForStrafeMove(90);
       end;
 
       if (deltaY < -5) and (not Gravity) then
-        MoveVertical(MoveSizeY * CompSpeed, 1);    { fly up }
+        MoveVertical(MoveSizeY * CompSpeed, WalkMult);    { fly up }
       if (deltaY > 5) and (not Gravity) then
-        MoveVertical(MoveSizeY * CompSpeed, -1);   { fly down }
+        MoveVertical(MoveSizeY * CompSpeed, -WalkMult);   { fly down }
     end;
   end;
 
 var
   ModsDown: TModifierKeys;
+  WalkMult: Integer;
 begin
   inherited;
 
@@ -4107,24 +4112,28 @@ begin
       if (not CheckModsDown) or
          (ModsDown - [mkShift] = []) then
       begin
+        if mkShift in ModsDown then
+          WalkMult := 2 else
+          WalkMult := 1;
+
         CheckRotates(1.0);
 
         if Input_Forward.IsPressed(Container) then
-          MoveHorizontal(CompSpeed);
+          MoveHorizontal(CompSpeed, WalkMult);
         if Input_Backward.IsPressed(Container) then
-          MoveHorizontal(CompSpeed, -1);
+          MoveHorizontal(CompSpeed, -WalkMult);
 
         if Input_RightStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(-90);
-          MoveHorizontal(CompSpeed);
+          MoveHorizontal(CompSpeed, WalkMult);
           RotateHorizontalForStrafeMove(90);
         end;
 
         if Input_LeftStrafe.IsPressed(Container) then
         begin
           RotateHorizontalForStrafeMove(90);
-          MoveHorizontal(CompSpeed);
+          MoveHorizontal(CompSpeed, WalkMult);
           RotateHorizontalForStrafeMove(-90);
         end;
 
@@ -4137,9 +4146,9 @@ begin
           MinAngleRadFromGravityUp). }
 
         if Input_UpMove.IsPressed(Container) then
-          MoveVertical(CompSpeed, 1);
+          MoveVertical(CompSpeed, WalkMult);
         if Input_DownMove.IsPressed(Container) then
-          MoveVertical(CompSpeed, -1);
+          MoveVertical(CompSpeed, -WalkMult);
 
         { zmiana szybkosci nie wplywa na Matrix (nie od razu). Ale wywolujemy
           ScheduleVisibleChange - zmienilismy swoje wlasciwosci, moze sa one np. gdzies
@@ -4325,32 +4334,37 @@ end;
 procedure TWalkCamera.Mouse3dTranslationEvent(const X, Y, Z, Length: Double; const CompSpeed: Single);
 var
   MoveSize: Double;
+  WalkMult: Integer;
 begin
   if not (ci3dMouse in Input) then Exit;
 
   MoveSize := Length * CompSpeed / 5000;
+  if mkShift in ModifiersDown(Container.Pressed) then
+    WalkMult := 2 else
+    WalkMult := 1;
+
   if Z > 5 then
-    MoveHorizontal(Z * MoveSize, -1); { backward }
+    MoveHorizontal(Z * MoveSize, -WalkMult); { backward }
   if Z < -5 then
-    MoveHorizontal(-Z * MoveSize, 1);  { forward }
+    MoveHorizontal(-Z * MoveSize, WalkMult); { forward }
 
   if X > 5 then
   begin
     RotateHorizontalForStrafeMove(-90);
-    MoveHorizontal(X * MoveSize);     { right }
+    MoveHorizontal(X * MoveSize, WalkMult);  { right }
     RotateHorizontalForStrafeMove(90);
   end;
   if X < -5 then
   begin
     RotateHorizontalForStrafeMove(90);
-    MoveHorizontal(-X * MoveSize);    { left }
+    MoveHorizontal(-X * MoveSize, WalkMult); { left }
     RotateHorizontalForStrafeMove(-90);
   end;
 
   if (Y > 5) and not Gravity then
-    MoveVertical(Y * MoveSize, 1);    { up }
+    MoveVertical(Y * MoveSize, WalkMult);    { up }
   if (Y < -5) and not Gravity then
-    MoveVertical(-Y * MoveSize, -1);  { down }
+    MoveVertical(-Y * MoveSize, -WalkMult);  { down }
 end;
 
 procedure TWalkCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
