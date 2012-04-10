@@ -24,6 +24,7 @@ type
   TTestCameras = class(TTestCase)
     procedure TestToOrientationAndBack;
     procedure TestOrientationFromBasicAxes;
+    procedure TestInput;
   end;
 
 implementation
@@ -153,6 +154,69 @@ begin
   { Now negate the Up vectors, for additional tests }
   for I := Low(Tests) to High(Tests) do
     DoTest(Tests[I].Dir, -Tests[I].Up, Format('%d (negated up)', [I]));
+end;
+
+procedure TTestCameras.TestInput;
+
+  procedure AssertCamera(const C: TCamera; const Input: TCameraInputs;
+    const IgnoreAllInputs, MouseNavigation: boolean);
+  begin
+    Assert(C.Input = Input);
+    Assert(C.IgnoreAllInputs = IgnoreAllInputs);
+    if C is TExamineCamera then
+      Assert(TExamineCamera(C).MouseNavigation = MouseNavigation);
+    { for TUniversalCamera, child examine/walk must always have synchronized
+      properties }
+    if C is TUniversalCamera then
+    begin
+      AssertCamera(TUniversalCamera(C).Walk   , Input, IgnoreAllInputs, MouseNavigation);
+      AssertCamera(TUniversalCamera(C).Examine, Input, IgnoreAllInputs, MouseNavigation);
+    end;
+  end;
+
+var
+  E: TExamineCamera;
+  U: TUniversalCamera;
+  W: TWalkCamera;
+begin
+  E := TExamineCamera.Create(nil);
+  try
+    AssertCamera(E, DefaultCameraInput, false, true);
+    E.Input := [];
+    AssertCamera(E, [], true, false);
+    E.MouseNavigation := true;
+    AssertCamera(E, [ciMouseDragging], false, true);
+    E.IgnoreAllInputs := true;
+    AssertCamera(E, [], true, false);
+    E.Input := [ciNormal];
+    AssertCamera(E, [ciNormal], false, false);
+  finally FreeAndNil(E) end;
+
+  U := TUniversalCamera.Create(nil);
+  try
+    AssertCamera(U, DefaultCameraInput, false, true);
+    U.Input := [];
+    AssertCamera(U, [], true, false);
+    U.Input := U.Input + [ciMouseDragging];
+    AssertCamera(U, [ciMouseDragging], false, true);
+    U.IgnoreAllInputs := true;
+    AssertCamera(U, [], true, false);
+    U.Input := [ciNormal];
+    AssertCamera(U, [ciNormal], false, false);
+  finally FreeAndNil(U) end;
+
+  W := TWalkCamera.Create(nil);
+  try
+    AssertCamera(W, DefaultCameraInput, false, true);
+    W.Input := [];
+    AssertCamera(W, [], true, false);
+    W.Input := W.Input + [ciMouseDragging];
+    AssertCamera(W, [ciMouseDragging], false, true);
+    W.IgnoreAllInputs := true;
+    AssertCamera(W, [], true, false);
+    W.Input := [ciNormal];
+    AssertCamera(W, [ciNormal], false, false);
+  finally FreeAndNil(W) end;
 end;
 
 initialization
