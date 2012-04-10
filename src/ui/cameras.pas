@@ -46,8 +46,22 @@ const
 type
   { Possible navigation input types in cameras, set in TCamera.Input. }
   TCameraInput = (
+    { Normal input types. This includes all inputs available as
+      Input_Xxx properties in TCamera descendants.
+      They are all fully configurable (as TInputShortcut class),
+      they may be mouse button presses, mouse wheel clicks, or key presses.
+      You can always clear some shortcut (like @code(WalkCamera.Input_Forward.MakeClear))
+      to disable a specific shortcut.
+      Excluding ciNormal from TCamera.Input is an easy way to disable @italic(all)
+      shortcuts. }
     ciNormal,
+
+    { Mouse dragging. Both TExamineCamera and TWalkCamera implement their own,
+      special reactions to mouse dragging, that allows to navigate / rotate
+      while pressing specific mouse buttons. }
     ciMouseDragging,
+
+    { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
 
@@ -570,6 +584,11 @@ type
 
     function PreventsComfortableDragging: boolean; virtual;
   published
+    { Input methods available to user. See documentation of TCameraInput
+      type for possible values and their meaning.
+
+      To disable any user interaction with camera (for example,
+      to implement X3D "NONE" navigation type) you can simply set this to empty. }
     property Input: TCameraInputs read FInput write SetInput default DefaultCameraInput;
   end;
 
