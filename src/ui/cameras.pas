@@ -875,7 +875,7 @@ type
     FMouseLookVerticalSensitivity: Single;
 
     { Needed for ciMouseDragging navigation in @link(TWalkCamera.Idle) }
-    CurrentMouseDownPos, CurrentMouseMovePos: TVector2Integer;
+    MouseDownPos: TVector2Integer;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
       to avoid updating HeadBobbingPosition more than once in the same Idle call.
@@ -4188,8 +4188,8 @@ begin
     if (ciMouseDragging in Input) and
        ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
        (not MouseLook) and HandleMouseAndKeys then
-      MoveViaMouseDragging(CurrentMouseMovePos[0]-CurrentMouseDownPos[0],
-                           CurrentMouseMovePos[1]-CurrentMouseDownPos[1]);
+      MoveViaMouseDragging(Container.MouseX - MouseDownPos[0],
+                           Container.MouseY - MouseDownPos[1]);
 
     PreferGravityUpForRotationsIdle;
 
@@ -4293,9 +4293,8 @@ begin
 
   if ciMouseDragging in Input then
   begin
-    CurrentMouseDownPos[0] := Container.MouseX;
-    CurrentMouseDownPos[1] := Container.MouseY;
-    CurrentMouseMovePos := CurrentMouseDownPos;
+    MouseDownPos[0] := Container.MouseX;
+    MouseDownPos[1] := Container.MouseY;
   end;
 
   Result := EventDown(K_None, #0, true, Button, mwNone);
@@ -4481,13 +4480,6 @@ var
 begin
   Result := inherited;
   if Result then Exit;
-
-  if (ciMouseDragging in Input) and
-     ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) then
-  begin
-    CurrentMouseMovePos[0] := NewX;
-    CurrentMouseMovePos[1] := NewY;
-  end;
 
   if (ciNormal in Input) and MouseLook and ContainerSizeKnown and
     (not Animation) then
