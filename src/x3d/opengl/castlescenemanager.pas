@@ -1236,9 +1236,13 @@ begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
   begin
-    Result :=
-      (not (Camera.PreventsComfortableDragging and GetItems.Dragging)) and
-      Camera.MouseMove(OldX, OldY, NewX, NewY);
+    Camera.EnableDragging := not GetItems.Dragging;
+    { Do not navigate by dragging (regardless of ciMouseDragging in Camera.Input)
+      when we're already dragging a 3D item.
+      This means that if you drag X3D sensors like TouchSensor, then your
+      dragging will not simultaneously also affect the camera (which would be very
+      disorienting). }
+    Result := Camera.MouseMove(OldX, OldY, NewX, NewY);
     if not Result then
     begin
       Camera.CustomRay(

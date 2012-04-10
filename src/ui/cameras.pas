@@ -302,6 +302,7 @@ type
     FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
     FProjectionMatrix: TMatrix4Single;
     FRadius: Single;
+    FEnableDragging: boolean;
 
     FAnimation: boolean;
     AnimationEndTime: TFloatTime;
@@ -335,6 +336,7 @@ type
     procedure EndVisibleChangeSchedule;
 
     procedure SetInput(const Value: TCameraInputs); virtual;
+    procedure SetEnableDragging(const Value: boolean); virtual;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
@@ -582,7 +584,12 @@ type
     { Jump to initial camera view (set by SetInitialView). }
     procedure GoToInitial; virtual;
 
-    function PreventsComfortableDragging: boolean; virtual;
+    { Is mouse dragging allowed by scene manager.
+      This is an additional condition to enable mouse dragging,
+      above the existing ciMouseDragging in Input.
+      It is set internally by scene manager, to prevent camera navigation by
+      dragging when we already drag a 3D item (like X3D TouchSensor). }
+    property EnableDragging: boolean read FEnableDragging write SetEnableDragging;
   published
     { Input methods available to user. See documentation of TCameraInput
       type for possible values and their meaning.
@@ -766,8 +773,6 @@ type
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     procedure VisibleChange; override;
-
-    function PreventsComfortableDragging: boolean; override;
   published
     { Deprecated, include/exclude ciMouseDragging from @link(Input) instead. }
     property MouseNavigation: boolean
@@ -1697,6 +1702,7 @@ type
     procedure SetNavigationType(const Value: TCameraNavigationType);
   protected
     procedure SetInput(const Value: TCameraInputs); override;
+    procedure SetEnableDragging(const Value: boolean); override;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
     procedure SetContainer(const Value: IUIContainer); override;
     procedure SetRadius(const Value: Single); override;
@@ -1736,8 +1742,6 @@ type
       const AInitialPosition: TVector3Single;
       AInitialDirection, AInitialUp: TVector3Single;
       const TransformCurrentCamera: boolean); override;
-
-    function PreventsComfortableDragging: boolean; override;
   published
     property Examine: TExamineCamera read FExamine;
     property Walk: TWalkCamera read FWalk;
@@ -2111,6 +2115,11 @@ begin
   FInput := Value;
 end;
 
+procedure TCamera.SetEnableDragging(const Value: boolean);
+begin
+  FEnableDragging := Value;
+end;
+
 procedure TCamera.RecalculateFrustum;
 begin
   FFrustum.Init(ProjectionMatrix, Matrix);
@@ -2276,11 +2285,6 @@ end;
 procedure TCamera.GoToInitial;
 begin
   SetView(FInitialPosition, FInitialDirection, FInitialUp);
-end;
-
-function TCamera.PreventsComfortableDragging: boolean;
-begin
-  Result := false;
 end;
 
 function TCamera.GetIgnoreAllInputs: boolean;
@@ -2820,7 +2824,9 @@ begin
 
   { Optimization, since MouseMove occurs very often: when nothing pressed,
     or should be ignored, do nothing. }
-  if (Container.MousePressed = []) or (not (ciMouseDragging in Input)) or
+  if (Container.MousePressed = []) or
+     (not (ciMouseDragging in Input)) or
+     (not EnableDragging) or
      Animation then
     Exit;
 
@@ -2979,11 +2985,6 @@ procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Sing
 begin
   SetView(APos, ADir, AUp);
   { Ignore AGravityUp }
-end;
-
-function TExamineCamera.PreventsComfortableDragging: boolean;
-begin
-  Result := true;
 end;
 
 function TExamineCamera.GetInput_MoveXInc: TInputShortcut; begin Result := Inputs_Move[0, true ] end;
@@ -4185,7 +4186,7 @@ begin
     end;
 
     { mouse dragging navigation }
-    if (ciMouseDragging in Input) and
+    if (ciMouseDragging in Input) and EnableDragging and
        ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers, or Shift modifier
          (which may be used to activate running later) is pressed.
@@ -4296,7 +4297,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if ciMouseDragging in Input then
+  if (ciMouseDragging in Input) and EnableDragging then
   begin
     MouseDownPos[0] := Container.MouseX;
     MouseDownPos[1] := Container.MouseY;
@@ -4310,7 +4311,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciMouseDragging in Input) and Vertical then
+  if (ciMouseDragging in Input) and EnableDragging and Vertical then
   begin
     RotateVertical(-Scroll * 3);
     Result := true;
@@ -4752,6 +4753,13 @@ begin
   FWalk.Input := Value;
 end;
 
+procedure TUniversalCamera.SetEnableDragging(const Value: boolean);
+begin
+  inherited;
+  FExamine.EnableDragging := Value;
+  FWalk.EnableDragging := Value;
+end;
+
 procedure TUniversalCamera.SetProjectionMatrix(const Value: TMatrix4Single);
 begin
   { This calls RecalculateFrustum on all 3 cameras, while only once
@@ -4929,11 +4937,6 @@ begin
       end;
     else raise EInternalError.Create('TUniversalCamera.SetNavigationType: Value?');
   end;
-end;
-
-function TUniversalCamera.PreventsComfortableDragging: boolean;
-begin
-  Result := Current.PreventsComfortableDragging;
 end;
 
 { global ------------------------------------------------------------ }
