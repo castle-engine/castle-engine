@@ -881,6 +881,7 @@ type
 
     { Needed for ciMouseDragging navigation in @link(TWalkCamera.Idle) }
     MouseDownPos: TVector2Integer;
+    MouseDraggingStarted: boolean;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
       to avoid updating HeadBobbingPosition more than once in the same Idle call.
@@ -1280,6 +1281,7 @@ type
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
@@ -3048,6 +3050,8 @@ begin
   FJumpPower := DefaultJumpPower;
   FInvertVerticalMouseLook := false;
 
+  MouseDraggingStarted := false;
+
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
   FInput_LeftRot                 := TInputShortcut.Create(Self);
@@ -4195,14 +4199,13 @@ begin
     end;
 
     { mouse dragging navigation }
-    if (ciMouseDragging in Input) and EnableDragging and
+    if MouseDraggingStarted and HandleMouseAndKeys and
        ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers, or Shift modifier
          (which may be used to activate running later) is pressed.
          This allows application to handle ctrl + dragging, alt + dragging
          in some custom ways (like view3dscene selecting a triangle). }
-       (Container.Pressed.Modifiers - [mkShift] = []) and
-       (not MouseLook) and HandleMouseAndKeys then
+       (Container.Pressed.Modifiers - [mkShift] = []) then
       MoveViaMouseDragging(Container.MouseX - MouseDownPos[0],
                            Container.MouseY - MouseDownPos[1]);
 
@@ -4306,13 +4309,22 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciMouseDragging in Input) and EnableDragging then
+  if (ciMouseDragging in Input) and EnableDragging and (not MouseLook) then
   begin
     MouseDownPos[0] := Container.MouseX;
     MouseDownPos[1] := Container.MouseY;
+    MouseDraggingStarted := true;
   end;
 
   Result := EventDown(K_None, #0, true, Button, mwNone);
+end;
+
+function TWalkCamera.MouseUp(const Button: TMouseButton): boolean;
+begin
+  if MouseDraggingStarted then
+    MouseDraggingStarted := false;
+
+  Result := inherited;
 end;
 
 function TWalkCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
