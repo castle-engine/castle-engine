@@ -57,7 +57,7 @@ type
       before calling this method.
 
       For every pixel, we calculate it's color and store it by
-      TImage.SetColorRGB method. So make sure SetColorRGB is implemented
+      TCastleImage.SetColorRGB method. So make sure SetColorRGB is implemented
       for your image class (it's implemented in all 3 classes
       TRGBImage, TRGBAlphaImage, TRGBFloatImage, so usually just
       don't worry about that). We don't modify alpha channel of the image.
@@ -65,7 +65,7 @@ type
       Using TRGBFloatImage class is advised if you want the full color
       information. Otherwise color precision is lost beyond 8 bits, and values
       above 1.0 are clamped. }
-    Image: TImage;
+    Image: TCastleImage;
 
     { Camera view.
       CamDirection and CamUp do not have to be normalized --- we will correct

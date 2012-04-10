@@ -36,7 +36,7 @@ type
     property XPixel: Integer read FXPixel;
     property YPixel: Integer read FYPixel;
   public
-    Image: array [TDirection] of TImage;
+    Image: array [TDirection] of TCastleImage;
     GLList: array [TDirection] of TGLuint;
 
     property Direction: TDirection read FDirection;

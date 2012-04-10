@@ -4,9 +4,9 @@
 
 function LoadImageExternalTool(
   Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions;
-  const ImageMagickName: string): TImage;
+  const ImageMagickName: string): TCastleImage;
 {$ifdef HAS_EXECUTE_PROCESS}
 
   function GetTempFileNameCheck: string;
@@ -134,32 +134,32 @@ end;
 {$endif}
 
 function LoadSGI(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadImageExternalTool(
     Stream, AllowedImageClasses, ForbiddenConvs, 'sgi');
 end;
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadImageExternalTool(
     Stream, AllowedImageClasses, ForbiddenConvs, 'tiff');
 end;
 
 function LoadJP2(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadImageExternalTool(
     Stream, AllowedImageClasses, ForbiddenConvs, 'jp2');
 end;
 
 function LoadEXR(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadImageExternalTool(
     Stream, AllowedImageClasses, ForbiddenConvs, 'exr');

@@ -17,8 +17,8 @@
   rzeczywiscie moge latwo wmontowac do mojego modulu Images; i udalo sie) }
 
 function LoadPPM(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
   function ReadPPMToken(Stream: TStream): string;
   {reads next token in ppm - skips any blanks that it stands on ,
@@ -133,7 +133,7 @@ begin
  end;
 end;
 
-procedure SavePPM(Img: TImage; Stream: TStream; Binary: boolean);
+procedure SavePPM(Img: TCastleImage; Stream: TStream; Binary: boolean);
 var line: PArray_Vector3Byte;
     x, y: cardinal;
 begin
@@ -165,5 +165,5 @@ begin
  end;
 end;
 
-procedure SavePPM(Img: TImage; Stream: TStream); { binary = true }
+procedure SavePPM(Img: TCastleImage; Stream: TStream); { binary = true }
 begin SavePPM(img, Stream, true) end;

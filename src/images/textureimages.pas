@@ -18,7 +18,7 @@
 unit TextureImages;
 
 { Some internal comments about why this unit is needed at all.
-  For a long, long time all my images were represented by TImage class.
+  For a long, long time all my images were represented by TCastleImage class.
   There was no DDS, no S3TC and everything was beautiful and simple.
 
   Well, actually, there was one ugly thing: everything that didn't depend
@@ -36,12 +36,12 @@ unit TextureImages;
   couldn't be used.
 
   One solution, that I was toying with for 2 days, was to make more things
-  to accept TEncodedImage instead of just TImage. For example,
+  to accept TEncodedImage instead of just TCastleImage. For example,
   allow LoadImage to return any TEncodedImage, and let called specify
   whether TS3TCImage is allowed by AllowedImageClasses parameter to
   LoadImage. But this was flawed.
   It required a huge lot of existing code to be changed, basically
-  just to fail gracefully if "not (Image is TImage)", which was ugly.
+  just to fail gracefully if "not (Image is TCastleImage)", which was ugly.
   If you need class checks and casts everywhere around, then something
   is just wrong. Moreover, and this is really the key point, note that
   for textures even TEncodedImage is not enough: eventually more texture
@@ -70,7 +70,7 @@ uses Images, DDS, CastleUtils, VideosCache,
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
-  TextureImageClasses: array [0..3] of TImageClass = (
+  TextureImageClasses: array [0..3] of TCastleImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,

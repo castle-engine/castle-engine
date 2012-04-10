@@ -146,18 +146,18 @@ type
     { Convert 3D images in @link(Images) list into a sequences of 2D images.
       Useful utility for 3d (volume) textures.
 
-      Normal loading of 3d DDS textures creates single TImage (using Depth
-      possibly > 1) for each mipmap level. Such TImage with depth
+      Normal loading of 3d DDS textures creates single TCastleImage (using Depth
+      possibly > 1) for each mipmap level. Such TCastleImage with depth
       is comfortable if you want to load this 3d texture into OpenGL
       (as then the image data is just a continous memory area,
       loadable by glTexImage3d). But it's not comfortable if you want
       to display it using some 2D GUI. For example, it's not comfortable
       for image viewer like glViewImage.
 
-      So this method will convert such TImage instances (with Depth > 1)
-      into a sequence of TImage instances all with Depth = 1.
-      This isn't difficult, memory contents on 3d TImage may be splitted
-      into many 2d TImage instances without problems.
+      So this method will convert such TCastleImage instances (with Depth > 1)
+      into a sequence of TCastleImage instances all with Depth = 1.
+      This isn't difficult, memory contents on 3d TCastleImage may be splitted
+      into many 2d TCastleImage instances without problems.
 
       Note that it's safe to do this before saving the image.
       SaveToFile/SaveToStream methods accept both layouts of images
@@ -629,8 +629,8 @@ var
       procedure ReadUncompressed(const UncompressedType: TUncompressedType);
       var
         RowBytePadding: Integer;
-        { Within ReadUncompressed, Result is always of TImage class }
-        Res: TImage absolute Result;
+        { Within ReadUncompressed, Result is always of TCastleImage class }
+        Res: TCastleImage absolute Result;
 
         { A couple of optimized routines for image formats that
           closely match corresponding Images unit memory format are below.
@@ -1239,10 +1239,10 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       else raise EInternalError.Create('DDSType');
     end;
 
-    if Images[0] is TImage then
+    if Images[0] is TCastleImage then
     begin
       { For uncompressed image, PitchOrLinearSize is row length }
-      Header.PitchOrLinearSize := Width * TImage(Images[0]).PixelSize;
+      Header.PitchOrLinearSize := Width * TCastleImage(Images[0]).PixelSize;
       Header.Flags := Header.Flags or DDSD_PITCH;
     end else
     if Images[0] is TS3TCImage then
@@ -1311,7 +1311,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
 
   procedure WriteImages;
 
-    procedure WriteUncompressedImage(Image: TImage);
+    procedure WriteUncompressedImage(Image: TCastleImage);
     var
       Z, Y: Integer;
     begin
@@ -1337,8 +1337,8 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
     I: Integer;
   begin
     for I := 0 to Images.Count - 1 do
-      if Images[I] is TImage then
-        WriteUncompressedImage(TImage(Images[I])) else
+      if Images[I] is TCastleImage then
+        WriteUncompressedImage(TCastleImage(Images[I])) else
       begin
         Assert(Images[I] is TS3TCImage);
         WriteCompressedImage(TS3TCImage(Images[I]));
@@ -1364,7 +1364,7 @@ end;
 procedure TDDSImage.Flatten3d;
 var
   NewImages: TEncodedImageList;
-  OldImage, NewImage: TImage;
+  OldImage, NewImage: TCastleImage;
   I, J: Integer;
 begin
   if (DDSType = dtVolume) and (Depth > 1) then
@@ -1373,14 +1373,14 @@ begin
 
     for I := 0 to Images.Count - 1 do
     begin
-      if not (Images[I] is TImage) then
+      if not (Images[I] is TCastleImage) then
         raise Exception.CreateFmt('Cannot do Flatten3d on this image class: %s',
           [Images[I].ClassName]);
-      OldImage := TImage(Images[I]);
+      OldImage := TCastleImage(Images[I]);
 
       for J := 0 to OldImage.Depth - 1 do
       begin
-        NewImage := TImageClass(OldImage.ClassType).Create(
+        NewImage := TCastleImageClass(OldImage.ClassType).Create(
           OldImage.Width, OldImage.Height, 1);
         Move(OldImage.PixelPtr(0, 0, J)^, NewImage.RawPixels^,
           OldImage.Width * OldImage.Height * OldImage.PixelSize);

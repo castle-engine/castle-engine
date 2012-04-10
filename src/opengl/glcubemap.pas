@@ -47,7 +47,7 @@ procedure SHVectorGLCapture(
   const ScaleColor: Single);
 
 type
-  TCubeMapImages = array [TCubeMapSide] of TImage;
+  TCubeMapImages = array [TCubeMapSide] of TCastleImage;
 
 { Capture cube map by rendering environment from CapturePoint.
 
@@ -62,7 +62,7 @@ type
   for Images classes (e.g. TGrayscaleImage, or TRGBImage).
 
   Cube map is recorded in six images provided in Images parameter.
-  These must be already created TImage instances with the exact same size.
+  These must be already created TCastleImage instances with the exact same size.
   (But we do not require here the images to be square, or have power-of-two
   size, or honor GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB limit,
   as we do not initialize actual OpenGL cube map here.

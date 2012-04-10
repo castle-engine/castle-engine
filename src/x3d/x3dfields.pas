@@ -1361,7 +1361,7 @@ type
       recorded in this field. Value may never be nil.
       Remember --- Value is freed by this object, but if you're altering it in any
       other way, you're responsible for good memory managing. }
-    Value: TImage;
+    Value: TCastleImage;
 
     { @param(AValue is the initial value for Value.
 
@@ -1372,7 +1372,7 @@ type
         You can pass AValue = nil, then Value will be inited to null image
         TRGBImage.Create.) }
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TImage);
+      const AName: string; const AValue: TCastleImage);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
 
@@ -3941,7 +3941,7 @@ end;
 { TSFImage ------------------------------------------------------------------- }
 
 constructor TSFImage.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TImage);
+  const AName: string; const AValue: TCastleImage);
 begin
   inherited Create(AParentNode, AName);
 
@@ -4026,7 +4026,7 @@ end;
 
 procedure TSFImage.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 
-  procedure ReplaceValue(NewValue: TImage);
+  procedure ReplaceValue(NewValue: TCastleImage);
   begin
     FreeAndNil(Value);
     Value := NewValue;
@@ -4149,7 +4149,7 @@ begin
         Writer.Write(Format('0x%.8x ', [pixel]));
       end;
     end else
-      raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TImage descendant');
+      raise Exception.Create('TSFImage.SaveToStreamValue - not implemented TCastleImage descendant');
     {$I NoRQCheckEnd.inc}
     Writer.DecIndent;
   end;

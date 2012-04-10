@@ -61,7 +61,7 @@ function Input(Window: TCastleWindowBase;
 { Wait until user presses a key.
 
   Displays a given image on the screen while waiting.
-  You can give image filename, or ready TImage instance
+  You can give image filename, or ready TCastleImage instance
   (must be renderable to OpenGL, i.e. by one of GLImages.PixelsImageClasses
   classes).
 
@@ -75,7 +75,7 @@ function Input(Window: TCastleWindowBase;
   @groupBegin }
 procedure InputAnyKey(Window: TCastleWindowBase; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(Window: TCastleWindowBase; const Img: TImage;
+procedure InputAnyKey(Window: TCastleWindowBase; const Img: TCastleImage;
   RasterX, RasterY: Integer); overload;
 procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum; FlushWindow: boolean;
   RasterX, RasterY: Integer); overload;
@@ -227,7 +227,7 @@ begin
  finally SavedMode.Free end;
 end;
 
-procedure InputAnyKey(Window: TCastleWindowBase; const Img: TImage;
+procedure InputAnyKey(Window: TCastleWindowBase; const Img: TCastleImage;
   RasterX, RasterY: Integer);
 var
   DL: TGLuint;
@@ -242,7 +242,7 @@ procedure InputAnyKey(Window: TCastleWindowBase; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer);
 var
   DL: TGLuint;
-  Image: TImage;
+  Image: TCastleImage;
   BGImageWidth, BGImageHeight: Cardinal;
 begin
   Image := LoadImage(ImgFileName, [TRGBImage], [], ResizeX, ResizeY);

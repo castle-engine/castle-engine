@@ -40,9 +40,9 @@ procedure TTestImages.TestLoadAnyImage;
 const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
 
   procedure DoTest(const fname: string;
-    const AllowedImageClasses: array of TImageClass;
-    const ForbiddenConvs: TImageLoadConversions; DestClass: TImageClass);
-  var Img: TImage;
+    const AllowedImageClasses: array of TCastleImageClass;
+    const ForbiddenConvs: TImageLoadConversions; DestClass: TCastleImageClass);
+  var Img: TCastleImage;
   begin
    Img := LoadImage(ImagesPath+ fname, AllowedImageClasses, ForbiddenConvs);
    try
@@ -51,9 +51,9 @@ const ImagesPath = 'data' + PathDelim +  'images' + PathDelim;
   end;
 
   procedure DoFailTest(const fname: string;
-    const AllowedImageClasses: array of TImageClass;
+    const AllowedImageClasses: array of TCastleImageClass;
     const ForbiddenConvs: TImageLoadConversions);
-  var Img: TImage;
+  var Img: TCastleImage;
   begin
    try
     Img := LoadImage(ImagesPath+ fname, AllowedImageClasses, ForbiddenConvs);

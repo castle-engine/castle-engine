@@ -596,7 +596,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
 
-    { The saved result of TImage.AlphaChannelType.
+    { The saved result of TCastleImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -642,7 +642,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
 
-    { The saved result of TImage.AlphaChannelType.
+    { The saved result of TCastleImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -660,7 +660,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
 
-    { The saved result of TImage.AlphaChannelType.
+    { The saved result of TCastleImage.AlphaChannelType.
 
       Detecting AlphaChannelType is a little time-consuming
       (iteration over all pixels is needed),
@@ -1169,7 +1169,7 @@ type
 
     procedure RenderShape(Shape: TX3DRendererShape; Fog: IAbstractFogObject);
 
-    { Get calculated TImage.AlphaChannelType for a prepared texture.
+    { Get calculated TCastleImage.AlphaChannelType for a prepared texture.
 
       Returns @false if texture is not prepared. If you want to make
       sure the texture is prepared make sure that
@@ -1409,7 +1409,7 @@ begin
 
       But still, the same FreeResources([frTexturesInNodes]) would prevent
       the texture from sharing, if we would free the texture prematurely
-      and later load the same texture, with to different TImage instance.
+      and later load the same texture, with to different TCastleImage instance.
 
       For now, I don't use this idea, and rely on TextureFullUrl. }
 

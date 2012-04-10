@@ -14,8 +14,8 @@
 }
 
 function LoadIPL(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 { Implemented looking at iplab_read.m from
   http://www.graphics.cornell.edu/online/box/data.html . }
 

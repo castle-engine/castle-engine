@@ -239,7 +239,7 @@ end;
 procedure TComposedTexture3DNode.LoadTextureData;
 
   { Load one slice (child texture). Returns @nil and makes OnWarning if failed. }
-  function LoadOneSlice(const Index: Integer): TImage;
+  function LoadOneSlice(const Index: Integer): TCastleImage;
   var
     Tex: TAbstractTexture2DNode;
   begin
@@ -257,19 +257,19 @@ procedure TComposedTexture3DNode.LoadTextureData;
       Exit(nil);{ Tex.IsTextureImage already did proper OnWarning }
     end;
 
-    if not (Tex.TextureImage is TImage) then
+    if not (Tex.TextureImage is TCastleImage) then
     begin
       OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is an S3TC compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
         [Index]));
       Exit(nil);
     end;
 
-    Result := TImage(Tex.TextureImage);
+    Result := TCastleImage(Tex.TextureImage);
   end;
 
 var
   I: Integer;
-  Slice: TImage;
+  Slice: TCastleImage;
 begin
   if FdTexture.Items.Count = 0 then
   begin
@@ -283,11 +283,11 @@ begin
   Slice := LoadOneSlice(0);
   if Slice = nil then Exit;
 
-  FTextureImage := TImageClass(Slice.ClassType).Create(
+  FTextureImage := TCastleImageClass(Slice.ClassType).Create(
     Slice.Width, Slice.Height, FdTexture.Count);
 
   try
-    Move(Slice.RawPixels^, TImage(FTextureImage).RawPixels^,
+    Move(Slice.RawPixels^, TCastleImage(FTextureImage).RawPixels^,
       Slice.Width * Slice.Height * Slice.PixelSize);
 
     for I := 1 to FdTexture.Count - 1 do
@@ -310,7 +310,7 @@ begin
         Exit;
       end;
 
-      Move(Slice.RawPixels^, TImage(FTextureImage).PixelPtr(0, 0, I)^,
+      Move(Slice.RawPixels^, TCastleImage(FTextureImage).PixelPtr(0, 0, I)^,
         Slice.Width * Slice.Height * Slice.PixelSize);
     end;
   except

@@ -16,7 +16,7 @@
 { Using images in OpenGL (as textures and as normal images).
 
   This unit implements various OpenGL utilities relates to handling images
-  in TImage classes. This includes
+  in TCastleImage classes. This includes
   @unorderedList(
     @item(Loading images as OpenGL textures.
       A lot of utilities: for 2D textures (see LoadGLTexture),
@@ -25,11 +25,11 @@
       glTexImage2D and analogous calls,
       setting also common related texture parameters, generating mipmaps etc.)
 
-    @item(Drawing TImage instance in OpenGL buffer.
+    @item(Drawing TCastleImage instance in OpenGL buffer.
       Wrapper around glDrawPixels and related things.
       See ImageDraw.)
 
-    @item(Screen saving, that is saving OpenGL buffer contents to TImage instance.
+    @item(Screen saving, that is saving OpenGL buffer contents to TCastleImage instance.
       Wrapper around glReadPixels and related things.
       See TCastleWindowBase.SaveScreen, based on SaveScreen_NoFlush in this unit.)
 
@@ -119,7 +119,7 @@
   So we have rows of TVector3Byte structures, stored from lowest row to
   highest row.
 
-  Routines in this unit that take TImage or TEncodedImage paramater
+  Routines in this unit that take TCastleImage or TEncodedImage paramater
   are limited to TextureImageClassesAll (for routines dealing with textures)
   or PixelsImageClasses (for routines dealing with pixel buffer, like
   glReadPixels, glDrawPixels).
@@ -135,14 +135,14 @@ interface
 uses GL, GLU, GLExt, SysUtils, Images, VectorMath, CastleGLUtils, Videos, DDS;
 
 const
-  PixelsImageClasses: array [0..3] of TImageClass = (
+  PixelsImageClasses: array [0..3] of TCastleImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage);
 
 { These functions return appropriate GL_xxx format and type
-  for given TImage descendant. If you will pass here Img
+  for given TCastleImage descendant. If you will pass here Img
   that is not a descendant of one of TextureImageClassesAll
   or PixelsImageClasses, they will return GL_INVALID_ENUM
   (which is for sure different than any valid value like GL_RGB, GL_RGBA
@@ -160,7 +160,7 @@ const
   @groupBegin }
 function ImageGLFormat(const Img: TEncodedImage): TGLenum;
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
-function ImageGLType(const Img: TImage): TGLenum;
+function ImageGLType(const Img: TCastleImage): TGLenum;
 { @groupEnd }
 
 { Loading images ------------------------------------------------------------- }
@@ -172,7 +172,7 @@ function ImageGLType(const Img: TImage): TGLenum;
   for description what these parameters mean.
   LoadAsClass may contain only classes present in PixelsImageClasses. }
 function LoadImageToDisplayList(const FileName: string;
-  const LoadAsClass: array of TImageClass;
+  const LoadAsClass: array of TCastleImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint; overload;
 
@@ -182,11 +182,11 @@ function LoadImageToDisplayList(const FileName: string;
   Don't worry about OpenGL's UNPACK_ALIGNMENT,
   we will take care here about this
   (changing it and restoring to previous value if necessary). }
-procedure ImageDraw(const Image: TImage);
+procedure ImageDraw(const Image: TCastleImage);
 
 { Same as @link(ImageDraw), but will draw only RowsCount rows
   starting from Row0. }
-procedure ImageDrawRows(const Image: TImage; Row0, RowsCount: integer);
+procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
 
 { Draw a part of the image by glDrawPixels.
 
@@ -204,17 +204,17 @@ procedure ImageDrawRows(const Image: TImage; Row0, RowsCount: integer);
   by this). So it works fast.
 
   @groupBegin }
-procedure ImageDrawPart(const image: TImage;
+procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0, Width, Height: Cardinal); overload;
-procedure ImageDrawPart(const image: TImage;
+procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0: Cardinal); overload;
 { @groupEnd }
 
 { This creates new display list with a call to ImageDraw(Img) inside. }
-function ImageDrawToDisplayList(const img: TImage): TGLuint;
+function ImageDrawToDisplayList(const img: TCastleImage): TGLuint;
 
 function ImageDrawPartToDisplayList(
-  const Image: TImage;
+  const Image: TCastleImage;
   const X0, Y0, Width, Height: Cardinal): TGLuint;
 
 { Saving screen to TRGBImage ----------------------------------- }
@@ -259,8 +259,8 @@ function ImageDrawPartToDisplayList(
 
   Version with ImageClass can save to any image format from PixelsImageClasses.
 
-  Version with TImage instance just uses this instance to save the image.
-  You must pass here already created TImage instance, it's class,
+  Version with TCastleImage instance just uses this instance to save the image.
+  You must pass here already created TCastleImage instance, it's class,
   Width and Height will be used when saving.
 
   We always take explicit Width, Height (from parameter, or from Image.Width,
@@ -272,12 +272,12 @@ function SaveScreen_NoFlush(xpos, ypos, width, height: integer;
   ReadBuffer: TGLenum): TRGBImage; overload;
 
 function SaveScreen_NoFlush(
-  ImageClass: TImageClass;
+  ImageClass: TCastleImageClass;
   xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TImage; overload;
+  ReadBuffer: TGLenum): TCastleImage; overload;
 
 procedure SaveScreen_NoFlush(
-  Image: TImage;
+  Image: TCastleImage;
   xpos, ypos: integer;
   ReadBuffer: TGLenum); overload;
 { @groupEnd }
@@ -327,8 +327,8 @@ function SaveScreen_ToDisplayList_NoFlush(
   functions call it automatically when needed.
 
   @groupBegin }
-procedure ResizeForTextureSize(var r: TImage);
-function ResizeToTextureSize(const r: TImage): TImage;
+procedure ResizeForTextureSize(var r: TCastleImage);
+function ResizeToTextureSize(const r: TCastleImage): TCastleImage;
 { @groupEnd }
 
 { Does image have proper size for OpenGL texture (GL_TEXTURE_2D).
@@ -597,7 +597,7 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
   @raises(ECannotLoadS3TCTexture If cannot decompress S3TC, for example
     because we cannot load to OpenGL this S3TC texture (because OpenGL S3TC
     extensions are not available, or such).) }
-function GLDecompressS3TC(Image: TS3TCImage): TImage;
+function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
 
 type
   EFramebufferError = class(Exception);
@@ -844,8 +844,8 @@ end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
 begin
-  if Img is TImage then
-    Result := TImage(Img).ColorComponentsCount else
+  if Img is TCastleImage then
+    Result := TCastleImage(Img).ColorComponentsCount else
   if Img is TS3TCImage then
   begin
     case TS3TCImage(Img).Compression of
@@ -859,7 +859,7 @@ begin
     Result := GL_INVALID_ENUM;
 end;
 
-function ImageGLType(const Img: TImage): TGLenum;
+function ImageGLType(const Img: TCastleImage): TGLenum;
 begin
   if (Img is TRGBImage) or
      (Img is TRGBAlphaImage) or
@@ -874,11 +874,11 @@ end;
 { Loading images ------------------------------------------------------------- }
 
 function LoadImageToDisplayList(const FileName: string;
-  const LoadAsClass: array of TImageClass;
+  const LoadAsClass: array of TCastleImageClass;
   const LoadForbiddenConvs: TImageLoadConversions;
   const ResizeToX, ResizeToY: Cardinal): TGLuint;
 var
-  Img: TImage;
+  Img: TCastleImage;
 begin
   Img := LoadImage(FileName, LoadAsClass, LoadForbiddenConvs,
     ResizeToX, ResizeToY);
@@ -887,7 +887,7 @@ begin
   finally Img.Free end;
 end;
 
-procedure ImageDraw(const Image: TImage);
+procedure ImageDraw(const Image: TCastleImage);
 var UnpackData: TUnpackNotAlignedData;
 begin
  BeforeUnpackImage(UnpackData, image);
@@ -897,7 +897,7 @@ begin
  finally AfterUnpackImage(UnpackData, image) end;
 end;
 
-procedure ImageDrawRows(const Image: TImage; Row0, RowsCount: integer);
+procedure ImageDrawRows(const Image: TCastleImage; Row0, RowsCount: integer);
 var UnpackData: TUnpackNotAlignedData;
 begin
  BeforeUnpackImage(UnpackData, image);
@@ -907,7 +907,7 @@ begin
  finally AfterUnpackImage(UnpackData, image) end;
 end;
 
-procedure ImageDrawPart(const image: TImage;
+procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0, Width, Height: Cardinal);
 var
   pixUnpack: TPixelStoreUnpack;
@@ -935,13 +935,13 @@ begin
   finally LoadPixelStoreUnpack(pixUnpack) end;
 end;
 
-procedure ImageDrawPart(const image: TImage;
+procedure ImageDrawPart(const image: TCastleImage;
   const X0, Y0: Cardinal);
 begin
   ImageDrawPart(Image, X0, Y0, MaxInt, MaxInt);
 end;
 
-function ImageDrawToDisplayList(const Img: TImage): TGLuint;
+function ImageDrawToDisplayList(const Img: TCastleImage): TGLuint;
 begin
   Result := glGenListsCheck(1, 'ImageDrawToDisplayList');
   glNewList(Result, GL_COMPILE);
@@ -951,7 +951,7 @@ begin
 end;
 
 function ImageDrawPartToDisplayList(
-  const image: TImage; const X0, Y0, Width, Height: Cardinal): TGLuint;
+  const image: TCastleImage; const X0, Y0, Width, Height: Cardinal): TGLuint;
 begin
   Result := glGenListsCheck(1, 'ImageDrawPartToDisplayList');
   glNewList(Result, GL_COMPILE);
@@ -964,7 +964,7 @@ end;
 
 { This is the basis for all other SaveScreen* functions below. }
 procedure SaveScreen_NoFlush(
-  Image: TImage;
+  Image: TCastleImage;
   xpos, ypos: integer;
   ReadBuffer: TGLenum);
 var
@@ -979,9 +979,9 @@ begin
 end;
 
 function SaveScreen_NoFlush(
-  ImageClass: TImageClass;
+  ImageClass: TCastleImageClass;
   xpos, ypos, width, height: integer;
-  ReadBuffer: TGLenum): TImage;
+  ReadBuffer: TGLenum): TCastleImage;
 begin
   Result := ImageClass.Create(width, height);
   try
@@ -1053,9 +1053,9 @@ begin
   Result := IsTextureSized(r.Width, r.Height);
 end;
 
-procedure ResizeForTextureSize(var r: TImage);
+procedure ResizeForTextureSize(var r: TCastleImage);
 var
-  newR: TImage;
+  newR: TCastleImage;
 begin
   if not IsTextureSized(r) then
   begin
@@ -1086,7 +1086,7 @@ begin
   Height := BestTexSize(Height);
 end;
 
-function ResizeToTextureSize(const r: TImage): TImage;
+function ResizeToTextureSize(const r: TCastleImage): TCastleImage;
 var
   NewWidth, NewHeight: Cardinal;
 begin
@@ -1127,11 +1127,11 @@ begin
     );
 end;
 
-function ResizeToCubeMapTextureSize(const r: TImage): TImage; forward;
+function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; forward;
 
-procedure ResizeForCubeMapTextureSize(var r: TImage);
+procedure ResizeForCubeMapTextureSize(var r: TCastleImage);
 var
-  newR: TImage;
+  newR: TCastleImage;
 begin
   if not IsCubeMapTextureSized(r) then
   begin
@@ -1159,7 +1159,7 @@ begin
   end;
 end;
 
-function ResizeToCubeMapTextureSize(const r: TImage): TImage;
+function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
 var
   Size: Cardinal;
 begin
@@ -1191,7 +1191,7 @@ begin
     );
 end;
 
-function IsTexture3DSized(const R: TImage): boolean;
+function IsTexture3DSized(const R: TCastleImage): boolean;
 begin
   if GL3DTextures <> gsNone then
   begin
@@ -1299,11 +1299,11 @@ var
     Takes care of Image size --- makes sure that image has the right size
     (power of 2, within OpenGL required sizes).
     Level = 0 for base (not a mipmap sublevel) image. }
-  procedure glTexImage2DImage(Image: TImage; Level: TGLint);
+  procedure glTexImage2DImage(Image: TCastleImage; Level: TGLint);
 
     { This is like glTexImage2DImage, but it doesn't take care
       of Image size. }
-    procedure Core(Image: TImage);
+    procedure Core(Image: TCastleImage);
     var
       UnpackData: TUnpackNotAlignedData;
     begin
@@ -1329,7 +1329,7 @@ var
     end;
 
   var
-    ImgGood: TImage;
+    ImgGood: TCastleImage;
   begin
     if IsTextureSized(Image) then
       Core(Image) else
@@ -1341,7 +1341,7 @@ var
     end;
   end;
 
-  procedure LoadNormal(const image: TImage);
+  procedure LoadNormal(const image: TCastleImage);
   begin
     { Setting GL_GENERATE_MIPMAP_SGIS to GL_FALSE isn't really needed here, AFAIK.
       It's false by default after all, and glTexParameter isn't part of the
@@ -1393,8 +1393,8 @@ var
         FromLevel := 0 else
         FromLevel := 1;
       for I := FromLevel to DDS.MipmapsCount - 1 do
-        if DDS.Images[I] is TImage then
-          glTexImage2DImage(TImage(DDS.Images[I]), I) else
+        if DDS.Images[I] is TCastleImage then
+          glTexImage2DImage(TCastleImage(DDS.Images[I]), I) else
         if DDS.Images[I] is TS3TCImage then
           glCompressedTextureImage2D(TS3TCImage(DDS.Images[I]), I) else
           raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
@@ -1405,7 +1405,7 @@ var
     Takes care of OpenGL unpacking (alignment etc.).
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
     here. }
-  procedure gluBuild2DMipmapsImage(Image: TImage);
+  procedure gluBuild2DMipmapsImage(Image: TCastleImage);
   var
     UnpackData: TUnpackNotAlignedData;
   begin
@@ -1417,7 +1417,7 @@ var
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
 
-  procedure LoadMipmapped(const image: TImage);
+  procedure LoadMipmapped(const image: TCastleImage);
   begin
     if not LoadMipmapsFromDDS(DDSForMipmaps, true) then
     if GL_SGIS_generate_mipmap then
@@ -1454,12 +1454,12 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
 
   { give the texture data }
-  if Image is TImage then
+  if Image is TCastleImage then
   begin
     { Load uncompressed }
     if TextureMinFilterNeedsMipmaps(MinFilter) then
-      LoadMipmapped(TImage(Image)) else
-      LoadNormal(TImage(Image));
+      LoadMipmapped(TCastleImage(Image)) else
+      LoadNormal(TCastleImage(Image));
   end else
   if Image is TS3TCImage then
   begin
@@ -1567,11 +1567,11 @@ var
     Takes care of OpenGL unpacking (alignment etc.).
     Takes care of Image size --- makes sure that image has the right size
     (power of 2, within OpenGL required sizes). }
-  procedure glTexImage2DImage(Image: TImage);
+  procedure glTexImage2DImage(Image: TCastleImage);
 
     { This is like glTexImage2DImage, but it doesn't take care
       of Image size. }
-    procedure Core(Image: TImage);
+    procedure Core(Image: TCastleImage);
     var
       UnpackData: TUnpackNotAlignedData;
     begin
@@ -1590,7 +1590,7 @@ var
     end;
 
   var
-    ImgGood: TImage;
+    ImgGood: TCastleImage;
   begin
     if IsCubeMapTextureSized(Image) then
       Core(Image) else
@@ -1606,7 +1606,7 @@ var
     Takes care of OpenGL unpacking (alignment etc.).
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
     here. }
-  procedure gluBuild2DMipmapsImage(Image: TImage);
+  procedure gluBuild2DMipmapsImage(Image: TCastleImage);
   var
     UnpackData: TUnpackNotAlignedData;
   begin
@@ -1618,7 +1618,7 @@ var
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
 
-  procedure LoadMipmapped(const image: TImage);
+  procedure LoadMipmapped(const image: TCastleImage);
   begin
     { Testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro),
       it looks like SGIS_generate_mipmap doesn't work on cube map texture
@@ -1633,7 +1633,7 @@ var
     gluBuild2DMipmapsImage(Image);
   end;
 
-  procedure LoadNormal(const image: TImage);
+  procedure LoadNormal(const image: TCastleImage);
   begin
     glTexImage2DImage(Image);
   end;
@@ -1672,11 +1672,11 @@ begin
 
   if Image is TS3TCImage then
     LoadCompressed(TS3TCImage(Image)) else
-  if Image Is TImage then
+  if Image Is TCastleImage then
   begin
     if Mipmaps then
-      LoadMipmapped(TImage(Image)) else
-      LoadNormal(TImage(Image));
+      LoadMipmapped(TCastleImage(Image)) else
+      LoadNormal(TCastleImage(Image));
   end else
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
@@ -1770,11 +1770,11 @@ var
     Takes care of OpenGL unpacking (alignment etc.).
     Takes care of Image size --- makes sure that image has the right size
     (power of 2, within OpenGL required sizes). }
-  procedure glTexImage3DImage(Image: TImage; Level: TGLuint);
+  procedure glTexImage3DImage(Image: TCastleImage; Level: TGLuint);
 
     { This is like glTexImage3DImage, but it doesn't take care
       of Image size. }
-    procedure Core(Image: TImage);
+    procedure Core(Image: TCastleImage);
     var
       UnpackData: TUnpackNotAlignedData;
     begin
@@ -1823,8 +1823,8 @@ var
     begin
       glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
       for I := 1 to DDS.MipmapsCount - 1 do
-        if DDS.Images[I] is TImage then
-          glTexImage3DImage(TImage(DDS.Images[I]), I) else
+        if DDS.Images[I] is TCastleImage then
+          glTexImage3DImage(TCastleImage(DDS.Images[I]), I) else
           raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
             [Image.ClassName]);
     end;
@@ -1834,11 +1834,11 @@ begin
   ImageInternalFormat := ImageGLInternalFormat(Image);
   ImageFormat := ImageGLFormat(Image);
 
-  if not (Image is TImage) then
+  if not (Image is TCastleImage) then
     raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
       [Image.ClassName]);
 
-  glTexImage3DImage(TImage(Image), 0);
+  glTexImage3DImage(TCastleImage(Image), 0);
 
   if TextureMinFilterNeedsMipmaps(MinFilter) then
   begin
@@ -1905,7 +1905,7 @@ end;
 
 { DecompressS3TC ------------------------------------------------------------- }
 
-function GLDecompressS3TC(Image: TS3TCImage): TImage;
+function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
 var
   Tex: TGLuint;
   PackData: TPackNotAlignedData;
@@ -2319,7 +2319,7 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
   procedure SaveColor(const FileName: string);
   var
     PackData: TPackNotAlignedData;
-    Image: TImage;
+    Image: TCastleImage;
   begin
     Image := TRGBImage.Create(Width, Height);
     try

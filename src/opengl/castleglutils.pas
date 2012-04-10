@@ -548,16 +548,16 @@ procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageW
 procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; imageWidth: cardinal);
 { @groupEnd }
 
-{ Save/restore OpenGL pixel store for unpacking / packing given TImage.
+{ Save/restore OpenGL pixel store for unpacking / packing given TCastleImage.
   Before you pass this image to some OpenGL procedures
   (like glDrawPixels for unpacking, glReadPixels for packing),
   call BeforeXxx, and later call AfterXxx to restore original state.
   These will take care of setting/restoring pixel alignment.
   @groupBegin }
-procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
-procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImage);
-procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TImage);
-procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
+procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
+procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TCastleImage);
+procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TCastleImage);
+procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImage);
 { @groupEnd }
 
 { Projection matrix -------------------------------------------------------- }
@@ -1374,14 +1374,14 @@ begin
   end;
 end;
 
-procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TImage);
+procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
 begin
   unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
   if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 end;
 
-procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TImage);
+procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TCastleImage);
 begin
   if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
     glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
@@ -1400,14 +1400,14 @@ begin
     glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
 end;
 
-procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TImage);
+procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TCastleImage);
 begin
   packData.Alignment := glGetInteger(GL_PACK_ALIGNMENT);
   if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 end;
 
-procedure AfterPackImage(const packData: TPackNotAlignedData; image: TImage);
+procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImage);
 begin
   if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
     glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);

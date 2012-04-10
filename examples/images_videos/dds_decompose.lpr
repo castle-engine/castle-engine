@@ -61,7 +61,7 @@ begin
 
     if SaveDecomposed then
     begin
-      if not (DImg.Images[0] is TImage) then
+      if not (DImg.Images[0] is TCastleImage) then
         raise Exception.CreateFmt('Cannot save S3TC compressed images (image class is %s)',
           [DImg.Images[0].ClassName]);
 
@@ -71,7 +71,7 @@ begin
       begin
         OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
         Writeln('Writing ', OutputName);
-        SaveImage(DImg.Images[I] as TImage, OutputName);
+        SaveImage(DImg.Images[I] as TCastleImage, OutputName);
       end;
     end;
 

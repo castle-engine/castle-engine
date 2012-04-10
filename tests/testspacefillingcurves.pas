@@ -35,7 +35,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
   procedure TestCurve(CurveClass: TSpaceFillingCurveClass; Width, Height: Cardinal);
   { sprawdz ze curve wypelnia caly obrazek, i tylko caly obrazek,
     i kazdy pixel obrazka jest wypelniony dokladnie raz. }
-  var Img: TImage;
+  var Img: TCastleImage;
       Curve: TSpaceFillingCurve;
       pixCoords: TVector2Cardinal;
       pix: PVector3Byte;

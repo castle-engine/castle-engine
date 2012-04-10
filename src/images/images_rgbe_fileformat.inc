@@ -35,9 +35,9 @@
 }
 
 function LoadRGBE(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
-var LoadResult: TImage absolute result;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+var LoadResult: TCastleImage absolute result;
 
   procedure ReadRGBERow(RGBERow: PArray_Vector4Byte);
   { odczytaj ze Stream jedna scanline (dlugosci result.Width) do RGBERow }
@@ -138,7 +138,7 @@ var LoadResult: TImage absolute result;
     Images.DoingConversion(Conv, ForbiddenConvs);
   end;
 
-  function ClassAllowed(ImageClass: TImageClass): boolean;
+  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
     Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -200,7 +200,7 @@ begin
   except Result.Free; raise end;
 end;
 
-procedure SaveRGBE(Img: TImage; Stream: TStream);
+procedure SaveRGBE(Img: TCastleImage; Stream: TStream);
 var
   PByte: PVector3Byte;
   PFloat: PVector3Single;
@@ -217,7 +217,7 @@ begin
                   '-Y '+IntToStr(Img.Height)+' +X '+IntToStr(Img.Width)+#10);
 
   { Theoretically, I could use above '+Y' instead of '-Y'.
-    '+Y' is more natural ordering for me, consistent with OpenGL and my TImage.
+    '+Y' is more natural ordering for me, consistent with OpenGL and my TCastleImage.
 
     However, it turns out that many (all?) programs cannot handle orientation
     other than (-Y, +X). This applies even for ximage from Radiance,

@@ -61,7 +61,7 @@ type
     TextWidth, TextHeight: Cardinal;
     FPressed: boolean;
     FOwnsImage: boolean;
-    FImage: TImage;
+    FImage: TCastleImage;
     FGLImage: TGLuint;
     FToggle: boolean;
     ClickStarted: boolean;
@@ -79,7 +79,7 @@ type
     { If AutoSize, update Width, Height.
       This depends on Caption, AutoSize*, Font availability. }
     procedure UpdateSize;
-    procedure SetImage(const Value: TImage);
+    procedure SetImage(const Value: TCastleImage);
     procedure SetPressed(const Value: boolean);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetWidth(const Value: Cardinal);
@@ -103,7 +103,7 @@ type
     procedure DoClick; virtual;
     procedure SetFocused(const Value: boolean); override;
     { Set this to non-nil to display an image on the button. }
-    property Image: TImage read FImage write SetImage;
+    property Image: TCastleImage read FImage write SetImage;
     { Should we free the @link(Image) when you set another one or at destructor. }
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
 
@@ -222,7 +222,7 @@ type
   TCastleImageControl = class(TUIControlPos)
   private
     FFileName: string;
-    FImage: TImage;
+    FImage: TCastleImage;
     FGLImage: TGLuint;
     FBlending: boolean;
     procedure SetFileName(const Value: string);
@@ -640,7 +640,7 @@ begin
   end;
 end;
 
-procedure TCastleButton.SetImage(const Value: TImage);
+procedure TCastleButton.SetImage(const Value: TCastleImage);
 begin
   if FImage <> Value then
   begin
@@ -856,7 +856,7 @@ end;
 
 procedure TCastleImageControl.SetFileName(const Value: string);
 var
-  NewImage: TImage;
+  NewImage: TCastleImage;
 begin
   if Value <> '' then
     NewImage := LoadImage(Value, [], [], 0, 0) else

@@ -100,7 +100,7 @@ const
 
 var
   { helper variables }
-  Img: TImage;
+  Img: TCastleImage;
 begin
   { parse free position params }
   Parameters.Parse(Options, @OptionProc, nil);

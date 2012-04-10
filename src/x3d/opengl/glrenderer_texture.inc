@@ -66,7 +66,7 @@
       Should be calculated and set in Prepare.
 
       For textures with normal images, this is the saved result of
-      TImage.AlphaChannelType. For videos, saved result of
+      TCastleImage.AlphaChannelType. For videos, saved result of
       TVideo.AlphaChannelType.
 
       By default, atNone in this class.
@@ -1177,7 +1177,7 @@ end;
 
 procedure TGLRenderedTextureNode.PrepareCore(State: TX3DGraphTraverseState);
 var
-  InitialImage: TImage;
+  InitialImage: TCastleImage;
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
   TextureWrap: TTextureWrap2D;
@@ -1572,7 +1572,7 @@ procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseStat
       SideTex := TAbstractTexture2DNode(SideField.Value);
       Result := SideTex.IsTextureImage;
 
-      if Result and not (SideTex.TextureImage is TImage) then
+      if Result and not (SideTex.TextureImage is TCastleImage) then
       begin
         OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
         Result := false;
@@ -1583,7 +1583,7 @@ procedure TGLComposedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseStat
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
-  BackRot, FrontRot, LeftRot, RightRot: TImage;
+  BackRot, FrontRot, LeftRot, RightRot: TCastleImage;
 begin
   if not GL_ARB_texture_cube_map then
   begin
@@ -1608,12 +1608,12 @@ begin
   try
     { To match expected orientation for OpenGL, we have to rotate images.
       (source images are oriented as for VRML Background.)
-      We safely cast them to TImage below, SideLoaded above checked
-      that they are indeed of TImage class. }
-    BackRot  := (TAbstractTexture2DNode(TextureNode.FdBack .Value).TextureImage as TImage).MakeRotated(2);
-    FrontRot := (TAbstractTexture2DNode(TextureNode.FdFront.Value).TextureImage as TImage).MakeRotated(2);
-    LeftRot  := (TAbstractTexture2DNode(TextureNode.FdLeft .Value).TextureImage as TImage).MakeRotated(2);
-    RightRot := (TAbstractTexture2DNode(TextureNode.FdRight.Value).TextureImage as TImage).MakeRotated(2);
+      We safely cast them to TCastleImage below, SideLoaded above checked
+      that they are indeed of TCastleImage class. }
+    BackRot  := (TAbstractTexture2DNode(TextureNode.FdBack .Value).TextureImage as TCastleImage).MakeRotated(2);
+    FrontRot := (TAbstractTexture2DNode(TextureNode.FdFront.Value).TextureImage as TCastleImage).MakeRotated(2);
+    LeftRot  := (TAbstractTexture2DNode(TextureNode.FdLeft .Value).TextureImage as TCastleImage).MakeRotated(2);
+    RightRot := (TAbstractTexture2DNode(TextureNode.FdRight.Value).TextureImage as TCastleImage).MakeRotated(2);
 
     SetTextureRGBFromImage(RightRot);
 
@@ -1622,8 +1622,8 @@ begin
       MinFilter, MagFilter, Anisotropy,
       { positive x } RightRot,
       { negative x } LeftRot,
-      { positive y } TAbstractTexture2DNode(TextureNode.FdTop   .Value).TextureImage as TImage,
-      { negative y } TAbstractTexture2DNode(TextureNode.FdBottom.Value).TextureImage as TImage,
+      { positive y } TAbstractTexture2DNode(TextureNode.FdTop   .Value).TextureImage as TCastleImage,
+      { negative y } TAbstractTexture2DNode(TextureNode.FdBottom.Value).TextureImage as TCastleImage,
       { positive z } BackRot,
       { negative z } FrontRot,
       nil,
@@ -1714,7 +1714,7 @@ procedure TGLGeneratedCubeMapTextureNode.PrepareCore(State: TX3DGraphTraverseSta
 var
   MinFilter, MagFilter: TGLint;
   Anisotropy: TGLfloat;
-  InitialImage: TImage;
+  InitialImage: TCastleImage;
 begin
   if not GL_ARB_texture_cube_map then
   begin

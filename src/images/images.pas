@@ -13,20 +13,20 @@
   ----------------------------------------------------------------------------
 }
 
-(*Loading, saving, and processing of 2D (and 3D) images (TImage and descendants).
+(*Loading, saving, and processing of 2D (and 3D) images (TCastleImage and descendants).
   Storing images in the memory, loading and saving them from/to files in various
   formats, resizing, converting to grayscale, copying and merging,
   many other image operations --- it's all here.
 
-  The most important class here is @link(TImage).
+  The most important class here is @link(TCastleImage).
   It represents an image as a simple uncompressed array of pixels.
-  Descendants of TImage define what exactly is a "pixel".
+  Descendants of TCastleImage define what exactly is a "pixel".
   We have 8-bit color images
   (@link(TRGBAlphaImage), @link(TRGBImage),
   @link(TGrayscaleAlphaImage) and @link(TGrayscaleImage)).
   We also have an image with floating-point precision and range:
   @link(TRGBFloatImage).
-  You are free to create more descendants of TImage in your own units
+  You are free to create more descendants of TCastleImage in your own units
   if you want to encode the pixel differently.
 
   When reading and writing image files, we understand various image
@@ -38,7 +38,7 @@
 
 @longCode(#
   var
-    Image: TImage;
+    Image: TCastleImage;
   begin
     Image := LoadImage('image.png', [], []);
     { scale the image to be 2x smaller }
@@ -72,7 +72,7 @@ uses SysUtils, Classes, Math, CastleUtils, VectorMath,
   FPReadJPEG, FPWriteJPEG, FPReadPNM;
 
 type
-  { See TImage.AlphaChannelType. }
+  { See TCastleImage.AlphaChannelType. }
   TAlphaChannelType = (atNone, atSimpleYesNo, atFullRange);
 
 { Colors ------------------------------------------------------------ }
@@ -82,10 +82,10 @@ type
   When Tolerance is 0, this is a normal (exact) comparison. }
 function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
 
-{ TImage ------------------------------------------------------------- }
+{ TCastleImage --------------------------------------------------------------- }
 
 type
-  { Raised by @link(TImage.MakeExtracted) when coordinates on image
+  { Raised by @link(TCastleImage.MakeExtracted) when coordinates on image
     are wrong.
     Possibly I will use it in more routines in the future. }
   EImagePosOutOfRange = class(Exception);
@@ -99,7 +99,7 @@ type
   TDetectAlphaChannel = (daAuto, daSimpleYesNo, daFullRange);
 
   { Abstract class for an image with unspecified, possibly compressed,
-    memory format. The idea is that both uncompressed images (TImage)
+    memory format. The idea is that both uncompressed images (TCastleImage)
     and compressed images (TS3TCImage) are derived from this class. }
   TEncodedImage = class
   private
@@ -136,9 +136,9 @@ type
       But AlphaChannelType may perform longer analysis of pixels
       (to differ between atSimpleYesNo and atFullRange), while this
       function always executes ultra-fast (as it's constant for each
-      TImage descendant).
+      TCastleImage descendant).
 
-      @italic(Descendants implementors notes:) in this class, TImage,
+      @italic(Descendants implementors notes:) in this class, TCastleImage,
       this returns @false. Override to return @true for images with
       alpha channel. }
     function HasAlpha: boolean; virtual;
@@ -207,14 +207,14 @@ type
     RawPixels is a pointer to Width * Height * Depth of pixels.
 
     What exactly is a "pixel" is undefined in this class. Each descendant
-    of TImage defines it's own pixel encoding and interpretation.
+    of TCastleImage defines it's own pixel encoding and interpretation.
     The only requirement is that all pixels have the same size (PixelSize).
     For example, for TRGBImage a "pixel" is a TVector3Byte type
     representing a (red, green, blue) color value.
 
     When Depth > 1, the image is actually a 3D (not just 2D!) image.
     We call the particular 2D layers then "slices".
-    Although some TImage methods (and functions in other units, like GLImages)
+    Although some TCastleImage methods (and functions in other units, like GLImages)
     still operate only on the 1st "slice", that is the 2D image on Depth = 0
     --- be careful. But many methods correctly take the depth into consideration.
 
@@ -235,7 +235,7 @@ type
 
     Don't ever operate on RawPixels pointer directly --- allocating, reallocating,
     freeing memory pointed to by RawPixels is handled inside this class.
-    You must only worry to always free created TImage instances
+    You must only worry to always free created TCastleImage instances
     (like with any class).
 
     Note that the only valid states of instances of this class
@@ -259,7 +259,7 @@ type
         incorrect coordinates to given routine.)
     )
   }
-  TImage = class(TEncodedImage)
+  TCastleImage = class(TEncodedImage)
   private
     procedure NotImplemented(const AMethodName: string);
   protected
@@ -271,13 +271,13 @@ type
       other checks (since LerpWith may be sometimes allowed between unequal
       classes), so this doesn't have to be used by all TRGBImage.LerpWith
       implementations (although it's comfortable for simple implementations). }
-    procedure LerpSimpleCheckConditions(SecondImage: TImage);
+    procedure LerpSimpleCheckConditions(SecondImage: TCastleImage);
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsNull will return @true.
 
       Both constructors must be virtual, this allows to implement things
-      like TImage.MakeCopy. }
+      like TCastleImage.MakeCopy. }
     constructor Create; overload; virtual;
     constructor Create(
       const AWidth, AHeight: Cardinal;
@@ -296,7 +296,7 @@ type
       const AWidth, AHeight: Cardinal;
       const ADepth: Cardinal = 1);
 
-    { Size of TPixel in bytes for this TImage descendant. }
+    { Size of TPixel in bytes for this TCastleImage descendant. }
     class function PixelSize: Cardinal; virtual; abstract;
 
     { Number of color components in TPixel.
@@ -330,7 +330,7 @@ type
       to High(Byte)-value). Doesn't touch other components,
       e.g. alpha value in case of TRGBAlphaImage descendant.
 
-      Note that this may be not overriden in every TImage descendant,
+      Note that this may be not overriden in every TCastleImage descendant,
       then default implementation of this method in this class
       will raise EInternalError. This also means that you must not
       call inherited in descendants when overriding this method. }
@@ -355,8 +355,8 @@ type
     { Create a new object that has exactly the same class
       and the same contents as this object.
       (note: no, this function is *not* constructor, because it's implemented
-      in TImage, but it always returns some descendant of TImage). }
-    function MakeCopy: TImage;
+      in TCastleImage, but it always returns some descendant of TCastleImage). }
+    function MakeCopy: TCastleImage;
 
     { Change Width and Height and appropriately stretch
       image contents.
@@ -376,7 +376,7 @@ type
     procedure Resize(ResizeToX, ResizeToY: Cardinal;
       const ProgressTitle: string = '');
 
-    { Create a new TImage instance with size ResizeToX, ResizeToY
+    { Create a new TCastleImage instance with size ResizeToX, ResizeToY
       and pixels copied from us and appropriately stretched.
       Class of new instance is the same as our class.
 
@@ -387,14 +387,14 @@ type
       if ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from ProgressUnit to indicate progress of operation. }
     function MakeResized(ResizeToX, ResizeToY: Cardinal;
-      const ProgressTitle: string = ''): TImage;
+      const ProgressTitle: string = ''): TCastleImage;
 
     { Mirror image horizotally (i.e. right edge is swapped with left edge) }
     procedure FlipHorizontal;
 
     { Make rotated version of the image.
       See @link(Rotate) for description of parameters. }
-    function MakeRotated(Angle: Integer): TImage;
+    function MakeRotated(Angle: Integer): TCastleImage;
 
     { Rotate image by Angle * 90 degrees, clockwise.
       For example, 0 does nothing. 1 rotates by 90 degrees, 2 rotates
@@ -406,7 +406,7 @@ type
       TileX * Width and TileY * Height and contents being our contents
       duplicated (tiled).
       Must be TileX, TileY > 0. }
-    function MakeTiled(TileX, TileY: Cardinal): TImage;
+    function MakeTiled(TileX, TileY: Cardinal): TCastleImage;
 
     { Extract rectangular area of this image.
       X0 and Y0 are start position (lower-left corner),
@@ -415,7 +415,7 @@ type
       This checks parameters for correctness -- if start position in not
       good or ExtractWidth/Height are too large exception
       @link(EImagePosOutOfRange) is raised. }
-    function MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TImage;
+    function MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TCastleImage;
 
     { Set all image pixels to the same value.
       This is implemented only in descendants that represent a pixel
@@ -496,7 +496,7 @@ type
 
       Implemented if and only if ModulateRGB is implemented. }
      function MakeModulatedRGB(
-       const ColorModulator: TColorModulatorByteFunc): TImage;
+       const ColorModulator: TColorModulatorByteFunc): TCastleImage;
 
     { Convert image colors to grayscale.
 
@@ -531,7 +531,7 @@ type
 
     { Check if given Image has the same class, the same sizes
       (Width, Height) and contains exactly the same pixel values. }
-    function IsEqual(Image: TImage): boolean;
+    function IsEqual(Image: TCastleImage): boolean;
 
     { This is like IsEqual, but is compares only given parts of the images.
       Note that it's your responsibility to make sure that given areas
@@ -544,16 +544,16 @@ type
       @groupBegin }
     function ArePartsEqual(
       const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
-      Image: TImage;
+      Image: TCastleImage;
       const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean; overload;
 
     function ArePartsEqual(
-      Image: TImage;
+      Image: TCastleImage;
       const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean; overload;
 
     function ArePartsEqual(
       const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
-      Image: TImage): boolean; overload;
+      Image: TCastleImage): boolean; overload;
     { @groupEnd }
 
     { These check that Image and Self have equal classes, and then
@@ -565,10 +565,10 @@ type
       check them, or risk invalid memory reads).
 
       @groupBegin }
-    procedure CopyFrom(Image: TImage; const X0, Y0: Cardinal);
-    procedure CopyFrom(Image: TImage; const X0, Y0: Cardinal;
+    procedure CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal);
+    procedure CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal;
       const SourceX0, SourceY0, SourceWidth, SourceHeight: Cardinal);
-    procedure CopyTo(Image: TImage; const X0, Y0: Cardinal);
+    procedure CopyTo(Image: TCastleImage; const X0, Y0: Cardinal);
     { @groupEnd }
 
     { Makes linear interpolation of colors from this image and the SecondImage.
@@ -581,7 +581,7 @@ type
       Both images need to have the exact same size.
       If they are not, EImageLerpDifferentSizes is raised.
 
-      Not all TImage combinations are allowed. Every subclass is required
+      Not all TCastleImage combinations are allowed. Every subclass is required
       to override this to at least handle Lerp between itself.
       That is, TRGBImage.Lerp has to handle Lerp with other TRGBImage,
       TRGBAlphaImage.Lerp has to handle Lerp with other TRGBAlphaImage etc.
@@ -593,12 +593,12 @@ type
 
       @raises(EImageLerpDifferentSizes When SecondImage size differs
         from this image.)
-      @raises(EImageLerpInvalidClasses When Lerp between this TImage
+      @raises(EImageLerpInvalidClasses When Lerp between this TCastleImage
         descendant class and SecondImage class is not implemented.) }
-    procedure LerpWith(const Value: Single; SecondImage: TImage); virtual;
+    procedure LerpWith(const Value: Single; SecondImage: TCastleImage); virtual;
   end;
 
-  TImageList = specialize TFPGObjectList<TImage>;
+  TCastleImageList = specialize TFPGObjectList<TCastleImage>;
 
   TEncodedImageList = specialize TFPGObjectList<TEncodedImage>;
 
@@ -667,14 +667,14 @@ type
       @raises(ECannotDecompressS3TC If cannot decompress S3TC,
         because decompressor is not set and there was some other error
         within decompressor.) }
-    function Decompress: TImage;
+    function Decompress: TCastleImage;
 
     function MakeCopy: TS3TCImage;
   end;
 
   ECannotDecompressS3TC = class(Exception);
 
-  TDecompressS3TCFunction = function (Image: TS3TCImage): TImage;
+  TDecompressS3TCFunction = function (Image: TS3TCImage): TCastleImage;
 
 var
   { Assign here S3TC decompression function that is available.
@@ -683,24 +683,27 @@ var
     to load images while some OpenGL context is active. }
   DecompressS3TC: TDecompressS3TCFunction;
 
-{ TImageClass and arrays of TImageClasses ----------------------------- }
+{ TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }
 
 type
   { }
-  TImageClass = class of TImage;
+  TCastleImageClass = class of TCastleImage;
   TEncodedImageClass = class of TEncodedImage;
-  TDynArrayImageClasses = array of TImageClass;
+  TDynArrayImageClasses = array of TCastleImageClass;
+
+  { @deprecated Deprecated name for TCastleImageClass. }
+  TImageClass = TCastleImageClass;
 
 { Check is ImageClass one of the items in the ImageClasses array,
   or a descendant of one of them. }
-function InImageClasses(ImageClass: TImageClass;
-  const ImageClasses: array of TImageClass): boolean; overload;
+function InImageClasses(ImageClass: TCastleImageClass;
+  const ImageClasses: array of TCastleImageClass): boolean; overload;
 
 { Check is Image class one of the items in the ImageClasses array,
   or a descendant of one of them.
   This is a shortcut for InImageClasses(Image.ClassType, ImageClasses). }
-function InImageClasses(Image: TImage;
-  const ImageClasses: array of TImageClass): boolean; overload;
+function InImageClasses(Image: TCastleImage;
+  const ImageClasses: array of TCastleImageClass): boolean; overload;
 
 (*Check if both arrays contain exactly the same classes in the same order.
 
@@ -728,12 +731,12 @@ function InImageClasses(Image: TImage;
     @item @true if for sure both arrays contain the same classes and
     @item @false if @italic(possibly) they don't contain the same classes.
   ) *)
-function ImageClassesEqual(const Ar1, Ar2: array of TImageClass): boolean;
+function ImageClassesEqual(const Ar1, Ar2: array of TCastleImageClass): boolean;
 
 procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
-  const NewValue: array of TImageClass);
+  const NewValue: array of TCastleImageClass);
 
-{ TImage basic descendants ------------------------------------------------- }
+{ TCastleImage basic descendants --------------------------------------------- }
 
 type
   TRGBAlphaImage = class;
@@ -742,7 +745,7 @@ type
   TGrayscaleAlphaImage = class;
 
   { Image with pixel represented as a TVector3Byte (red, green, blue). }
-  TRGBImage = class(TImage)
+  TRGBImage = class(TCastleImage)
   private
     function GetRGBPixels: PVector3Byte;
   public
@@ -833,10 +836,10 @@ type
     constructor CreateCombined(const MapImage: TRGBImage;
       var ReplaceWhiteImage, ReplaceBlackImage: TRGBImage);
 
-    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+    procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
 
-  TRGBAlphaImage = class(TImage)
+  TRGBAlphaImage = class(TCastleImage)
   private
     function GetAlphaPixels: PVector4Byte;
   public
@@ -881,14 +884,14 @@ type
       const AlphaTolerance: Byte = 0;
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
 
-    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+    procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
 
     { Remove alpha channel, creating new TRGBImage. }
     function ToRGBImage: TRGBImage;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
-  TRGBFloatImage = class(TImage)
+  TRGBFloatImage = class(TCastleImage)
   private
     function GetRGBFloatPixels: PVector3Single;
   public
@@ -924,11 +927,11 @@ type
     procedure ExpColors(const Exp: Single);
     {$endif}
 
-    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+    procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
 
   { Grayscale image. Color is a simple Byte value. }
-  TGrayscaleImage = class(TImage)
+  TGrayscaleImage = class(TCastleImage)
   private
     function GetGrayscalePixels: PByte;
   public
@@ -953,12 +956,12 @@ type
       from this object, and alpha channel filled with constant Alpha value. }
     function ToGrayscaleAlphaImage_AlphaConst(Alpha: byte): TGrayscaleAlphaImage;
 
-    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+    procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
 
   { Grayscale image with an alpha channel.
     Each pixel is two bytes: grayscale + alpha. }
-  TGrayscaleAlphaImage = class(TImage)
+  TGrayscaleAlphaImage = class(TCastleImage)
   private
     function GetGrayscaleAlphaPixels: PVector2Byte;
   public
@@ -980,8 +983,11 @@ type
       const AlphaTolerance: Byte = 0;
       const WrongPixelsTolerance: Single = 0.0): TAlphaChannelType; override;
 
-    procedure LerpWith(const Value: Single; SecondImage: TImage); override;
+    procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
   end;
+
+  { @deprecated Deprecated name for TCastleImage. }
+  TImage = TCastleImage;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
 
@@ -1002,7 +1008,7 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
   LoadXxx: load image from Stream.
 
   They must honour AllowedImageClasses and ForbiddenConvs, just like
-  LoadImage does. Except they don't have to care about returning all TImage
+  LoadImage does. Except they don't have to care about returning all TCastleImage
   descendants: see @link(TImageFormatInfo.LoadedClasses). So higher-level
   LoadImage will use them and eventually convert their result.
 
@@ -1029,48 +1035,48 @@ type
   EUnableToLoadImage = class(EImageLoadError);
 
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadBMP(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadSGI(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadJP2(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadEXR(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadJPEG(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadXPM(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadPSD(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 { Load PCX image.
 
@@ -1079,39 +1085,39 @@ function LoadPSD(Stream: TStream;
   since I don't use PCX images anymore.
   Use PNG if you want lossless compression. }
 function LoadPCX(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 { Load PPM image.
   Loads only the first image in .ppm file. }
 function LoadPPM(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
   Note that for PPM, for now it's more advised to use our LoadPPM. }
 function LoadPNM(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 function LoadIPL(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 { Load RGBE image.
   This low-level function can load to TRGBFloatImage (preserving image data)
   or to TRGBImage (loosing floating point precision of RGBE format). }
 function LoadRGBE(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 { Load DDS image file into a single 2D image. This simply returns the first
   image found in DDS file, which should be the main image.
   If you want to investigate other images in DDS, you have to use TDDSImage
   class. }
 function LoadDDS(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
 { saving image (format-specific) --------------------------------------------
 
@@ -1119,7 +1125,7 @@ function LoadDDS(Stream: TStream;
   you to give some parameters special for given format.
 
   Each format must also have procedure with two parameters
-  (Img: TImage; Stream: TStream), this will be used with
+  (Img: TCastleImage; Stream: TStream), this will be used with
   ImageFormatsInfo[].
   This means that below we must use overloading instead of
   default parameters, since pointers to given procedures must be
@@ -1133,18 +1139,18 @@ function LoadDDS(Stream: TStream;
 }
 
 { }
-procedure SaveBMP(Img: TImage; Stream: TStream);
-procedure SavePNG(Img: TImage; Stream: TStream; interlaced: boolean); overload;
-procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false } overload;
+procedure SaveBMP(Img: TCastleImage; Stream: TStream);
+procedure SavePNG(Img: TCastleImage; Stream: TStream; interlaced: boolean); overload;
+procedure SavePNG(Img: TCastleImage; Stream: TStream); { interlaced = false } overload;
 { }
-procedure SaveJPEG(Img: TImage; Stream: TStream);
+procedure SaveJPEG(Img: TCastleImage; Stream: TStream);
 { }
-procedure SavePPM(Img: TImage; Stream: TStream; binary: boolean); overload;
-procedure SavePPM(Img: TImage; Stream: TStream); { binary = true } overload;
+procedure SavePPM(Img: TCastleImage; Stream: TStream; binary: boolean); overload;
+procedure SavePPM(Img: TCastleImage; Stream: TStream); { binary = true } overload;
 { }
-procedure SaveRGBE(Img: TImage; Stream: TStream);
+procedure SaveRGBE(Img: TCastleImage; Stream: TStream);
 
-procedure SaveDDS(Img: TImage; Stream: TStream);
+procedure SaveDDS(Img: TCastleImage; Stream: TStream);
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1218,16 +1224,16 @@ type
   TImageFormats = set of TImageFormat;
 
   TImageLoadFunc = function (Stream: TStream;
-    const AllowedImageClasses: array of TImageClass;
-    const ForbiddenConvs: TImageLoadConversions): TImage;
-  TImageSaveFunc = procedure (Img: TImage; Stream: TStream);
+    const AllowedImageClasses: array of TCastleImageClass;
+    const ForbiddenConvs: TImageLoadConversions): TCastleImage;
+  TImageSaveFunc = procedure (Img: TCastleImage; Stream: TStream);
 
-  { Possible TImage classes that can be returned by Load method
+  { Possible TCastleImage classes that can be returned by Load method
     of this file format. It's assumed that appropriate Load can return
     only these classes, and any of these classes,
     and can convert (as much as ForbiddenConvs will allow) between them.
 
-    If the LoadImage will be called allowing some TImage descendants
+    If the LoadImage will be called allowing some TCastleImage descendants
     that can be returned by Load of this format,
     then LoadImage will pretty much just pass the call to Load
     for appropriate file format.
@@ -1252,7 +1258,7 @@ type
     lcRGB_RGBFloat
   );
 
-  { Possible TImage classes supported by Save method of this file format. }
+  { Possible TCastleImage classes supported by Save method of this file format. }
   TImageSaveHandledClasses = (
     scRGB,
     scG_GA_RGB_RGBA,
@@ -1297,9 +1303,9 @@ type
       @nil if cannot be loaded. }
     Load: TImageLoadFunc;
 
-    { If Load is assigned, this describes what TImage descendants
+    { If Load is assigned, this describes what TCastleImage descendants
       can be returned by this Load. LoadImage will need this information,
-      to make necessary convertions to other TImage classes,
+      to make necessary convertions to other TCastleImage classes,
       when possible. }
     LoadedClasses: TImageLoadHandledClasses;
 
@@ -1484,7 +1490,7 @@ const
   Simple examples:
 
 @longCode(#
-  { When you don't care what TImage descendant you get: }
+  { When you don't care what TCastleImage descendant you get: }
   Image := LoadImage('filename.png', [], []);
 
   { When you insist on getting TRGBImage, that is 8-bit color image
@@ -1498,9 +1504,9 @@ const
 
   AllowedImageClasses says what image classes are allowed.
   As a special case, AllowedImageClasses = [] is equivalent to
-  AllowedImageClasses = [TImage] which says that all TImage descendants
+  AllowedImageClasses = [TCastleImage] which says that all TCastleImage descendants
   are allowed. Then this function will do everything it can to load
-  any image into the best subclass of TImage, losing as little image
+  any image into the best subclass of TCastleImage, losing as little image
   information it can.
 
   Example: consider you're loading a PNG file. Let's suppose you're
@@ -1554,21 +1560,21 @@ const
 
   @groupBegin *)
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions)
-  :TImage; overload;
+  :TCastleImage; overload;
 function LoadImage(Stream: TStream; const typeext: string;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions)
-  :TImage; overload;
+  :TCastleImage; overload;
 function LoadImage(const filename: string;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions)
-  :TImage; overload;
+  :TCastleImage; overload;
 function LoadImage(const filename: string;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions;
-  const ResizeToX, ResizeToY: Cardinal): TImage; overload;
+  const ResizeToX, ResizeToY: Cardinal): TCastleImage; overload;
 { @groupEnd }
 
 { saving image --------------------------------------------------------------- }
@@ -1584,7 +1590,7 @@ type
 
   Image class does @bold(not)
   affect the created image file format, on the assumption that the
-  "memory format" of the image (what TImage descendant is used)
+  "memory format" of the image (what TCastleImage descendant is used)
   can be orthogonal to the actual "file format" used to save this file.
 
   Tries to write the image preserving it as closely as possible in this
@@ -1606,20 +1612,20 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TImage; const Format: TImageFormat; Stream: TStream); overload;
-procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream); overload;
-procedure SaveImage(const Img: TImage; const fname: string); overload;
+procedure SaveImage(const img: TCastleImage; const Format: TImageFormat; Stream: TStream); overload;
+procedure SaveImage(const img: TCastleImage; const typeext: string; Stream: TStream); overload;
+procedure SaveImage(const Img: TCastleImage; const fname: string); overload;
 { @groupEnd }
 
-{ Other TImage processing ---------------------------------------------------- }
+{ Other TCastleImage processing ---------------------------------------------------- }
 
 { Add and set constant alpha channel of given image.
   If image doesn't have alpha channel, we will create new Img instance
   (old instance will be freed) with colors copy.
   Alpha channel is then filled with AlphaConst }
-procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
+procedure ImageAlphaConstTo1st(var Img: TCastleImage; const AlphaConst: byte);
 
-{ Choose TImage descendant best matching for this image file format.
+{ Choose TCastleImage descendant best matching for this image file format.
   The only purpose of this for now is to pick TRGBFloatImage for RGBE files,
   chooses TRGBImage for anything else.
 
@@ -1627,8 +1633,8 @@ procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
   by FileName extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TImageClass; overload;
-function ImageClassBestForSavingToFormat(const FileName: string): TImageClass; overload;
+function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TCastleImageClass; overload;
+function ImageClassBestForSavingToFormat(const FileName: string): TCastleImageClass; overload;
 { @groupEnd }
 
 var
@@ -1674,18 +1680,18 @@ begin
       'conversion "'+ConvToStr[Conv]+'" must be done, but it is forbidden here');
 end;
 
-function ClassAllowed(ImageClass: TImageClass;
-  const AllowedImageClasses: array of TImageClass): boolean;
+function ClassAllowed(ImageClass: TCastleImageClass;
+  const AllowedImageClasses: array of TCastleImageClass): boolean;
 begin
   Result := (High(AllowedImageClasses) = -1) or
     InImageClasses(ImageClass, AllowedImageClasses);
 end;
 
 function LoadImageParams(
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions): string;
 
-  function ImageClassesToStr(const AllowedImageClasses: array of TImageClass): string;
+  function ImageClassesToStr(const AllowedImageClasses: array of TCastleImageClass): string;
   var
     I: Integer;
   begin
@@ -1786,15 +1792,15 @@ begin
   end;
 end;
 
-{ TImage ------------------------------------------------------------ }
+{ TCastleImage --------------------------------------------------------------- }
 
-constructor TImage.Create;
+constructor TCastleImage.Create;
 begin
  inherited;
  { Everything is already inited to nil and 0. }
 end;
 
-constructor TImage.Create(
+constructor TCastleImage.Create(
   const AWidth, AHeight: Cardinal;
   const ADepth: Cardinal = 1);
 begin
@@ -1802,7 +1808,7 @@ begin
  SetSize(AWidth, AHeight, ADepth);
 end;
 
-procedure TImage.Null;
+procedure TCastleImage.Null;
 begin
  FreeMemNiling(FRawPixels);
  FWidth := 0;
@@ -1810,7 +1816,7 @@ begin
  FDepth := 0;
 end;
 
-procedure TImage.SetSize(const AWidth, AHeight: Cardinal;
+procedure TCastleImage.SetSize(const AWidth, AHeight: Cardinal;
   const ADepth: Cardinal = 1);
 begin
  FreeMemNiling(FRawPixels);
@@ -1821,35 +1827,35 @@ begin
   FRawPixels := GetMem(PixelSize * AWidth * AHeight * ADepth);
 end;
 
-function TImage.PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
+function TCastleImage.PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): Pointer;
 begin
  Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y) + X));
 end;
 
-function TImage.RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
+function TCastleImage.RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
 begin
  Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y)));
 end;
 
-procedure TImage.NotImplemented(const AMethodName: string);
+procedure TCastleImage.NotImplemented(const AMethodName: string);
 begin
  raise EInternalError.Create(AMethodName +
-   ' method not implemented for this TImage descendant');
+   ' method not implemented for this TCastleImage descendant');
 end;
 
-procedure TImage.InvertRGBColors;
+procedure TCastleImage.InvertRGBColors;
 begin
  NotImplemented('InvertRGBColors');
 end;
 
-procedure TImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+procedure TCastleImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
 begin
  NotImplemented('SetColorRGB');
 end;
 
-function TImage.MakeCopy: TImage;
+function TCastleImage.MakeCopy: TCastleImage;
 begin
- Result := TImageClass(Self.ClassType).Create(Width, Height);
+ Result := TCastleImageClass(Self.ClassType).Create(Width, Height);
  Move(RawPixels^, Result.RawPixels^, Depth * Width * Height * PixelSize);
 end;
 
@@ -1897,7 +1903,7 @@ begin
  end;
 end;
 
-procedure TImage.Resize(ResizeToX, ResizeToY: Cardinal;
+procedure TCastleImage.Resize(ResizeToX, ResizeToY: Cardinal;
   const ProgressTitle: string);
 var NewPixels: Pointer;
 begin
@@ -1919,14 +1925,14 @@ begin
  end;
 end;
 
-function TImage.MakeResized(ResizeToX, ResizeToY: Cardinal;
-  const ProgressTitle: string): TImage;
+function TCastleImage.MakeResized(ResizeToX, ResizeToY: Cardinal;
+  const ProgressTitle: string): TCastleImage;
 begin
  { Make both ResizeTo* non-zero. }
  if ResizeToX = 0 then ResizeToX := Width;
  if ResizeToY = 0 then ResizeToY := Height;
 
- Result := TImageClass(ClassType).Create(ResizeToX, ResizeToY);
+ Result := TCastleImageClass(ClassType).Create(ResizeToX, ResizeToY);
  try
   if not IsNull then
    InternalResize(PixelSize,
@@ -1936,13 +1942,13 @@ begin
  except Result.Free; raise end;
 end;
 
-function TImage.MakeRotated(Angle: Integer): TImage;
+function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
 
   procedure Rotate90;
   var
     X, Y: Integer;
   begin
-    Result := TImageClass(ClassType).Create(Height, Width);
+    Result := TCastleImageClass(ClassType).Create(Height, Width);
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Y, Width - 1 - X)^, PixelSize);
@@ -1952,7 +1958,7 @@ function TImage.MakeRotated(Angle: Integer): TImage;
   var
     X, Y: Integer;
   begin
-    Result := TImageClass(ClassType).Create(Width, Height);
+    Result := TCastleImageClass(ClassType).Create(Width, Height);
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Width - 1 - X, Height - 1 - Y)^, PixelSize);
@@ -1962,7 +1968,7 @@ function TImage.MakeRotated(Angle: Integer): TImage;
   var
     X, Y: Integer;
   begin
-    Result := TImageClass(ClassType).Create(Height, Width);
+    Result := TCastleImageClass(ClassType).Create(Height, Width);
     for X := 0 to Width - 1 do
       for Y := 0 to Height - 1 do
         Move(PixelPtr(X, Y)^, Result.PixelPtr(Height - 1 - Y, X)^, PixelSize);
@@ -1981,9 +1987,9 @@ begin
   end;
 end;
 
-procedure TImage.Rotate(const Angle: Integer);
+procedure TCastleImage.Rotate(const Angle: Integer);
 var
-  New: TImage;
+  New: TCastleImage;
 begin
   New := MakeRotated(Angle);
   try
@@ -1992,7 +1998,7 @@ begin
   finally FreeAndNil(New) end;
 end;
 
-procedure TImage.FlipHorizontal;
+procedure TCastleImage.FlipHorizontal;
 var ImageRow, TmpPixel, Pix1, Pix2: Pointer;
     x, y: Integer;
 begin
@@ -2013,10 +2019,10 @@ begin
  finally FreeMem(TmpPixel) end;
 end;
 
-function TImage.MakeTiled(TileX, TileY: Cardinal): TImage;
+function TCastleImage.MakeTiled(TileX, TileY: Cardinal): TCastleImage;
 var i, j: Cardinal;
 begin
- Result := TImageClass(ClassType).Create(TileX * Width, TileY * Height);
+ Result := TCastleImageClass(ClassType).Create(TileX * Width, TileY * Height);
  try
   { Correct but naive version:
 
@@ -2036,7 +2042,7 @@ begin
  except Result.Free; raise end;
 end;
 
-function TImage.MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TImage;
+function TCastleImage.MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TCastleImage;
 var y: Cardinal;
 begin
  if x0 + ExtractWidth > Width then
@@ -2044,19 +2050,19 @@ begin
  if y0 + ExtractHeight > Height then
   raise EImagePosOutOfRange.Create('y0 in MakeExtracted out of range');
 
- Result := TImageClass(ClassType).Create(ExtractWidth, ExtractHeight);
+ Result := TCastleImageClass(ClassType).Create(ExtractWidth, ExtractHeight);
  try
   for y := 0 to ExtractHeight - 1 do
    Move(PixelPtr(x0, y + y0)^, Result.RowPtr(y)^, PixelSize * ExtractWidth);
  except Result.Free; raise end;
 end;
 
-procedure TImage.Clear(const Pixel: TVector4Byte);
+procedure TCastleImage.Clear(const Pixel: TVector4Byte);
 begin
  NotImplemented('Clear');
 end;
 
-function TImage.IsClear(const Pixel: TVector4Byte): boolean;
+function TCastleImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
  NotImplemented('IsClear');
  { code will never get here (NotImplemented always raises an exception),
@@ -2065,32 +2071,32 @@ begin
  Result := false;
 end;
 
-procedure TImage.TransformRGB(const Matrix: TMatrix3Single);
+procedure TCastleImage.TransformRGB(const Matrix: TMatrix3Single);
 begin
  NotImplemented('TransformRGB');
 end;
 
-procedure TImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
+procedure TCastleImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 begin
  NotImplemented('ModulateRGB');
 end;
 
 
-function TImage.MakeModulatedRGB(
-  const ColorModulator: TColorModulatorByteFunc): TImage;
+function TCastleImage.MakeModulatedRGB(
+  const ColorModulator: TColorModulatorByteFunc): TCastleImage;
 begin
  Result := MakeCopy;
  Result.ModulateRGB(ColorModulator);
 end;
 
-procedure TImage.Grayscale;
+procedure TCastleImage.Grayscale;
 begin
  ModulateRGB(@ColorGrayscaleByte);
 end;
 
 {$ifdef FPC}
 
-procedure TImage.ConvertToChannelRGB(Channel: Integer);
+procedure TCastleImage.ConvertToChannelRGB(Channel: Integer);
 begin
  case Channel of
   0: ModulateRGB(@ColorRedConvertByte);
@@ -2101,7 +2107,7 @@ begin
  end;
 end;
 
-procedure TImage.StripToChannelRGB(Channel: Integer);
+procedure TCastleImage.StripToChannelRGB(Channel: Integer);
 begin
  case Channel of
   0: ModulateRGB(@ColorRedStripByte);
@@ -2114,7 +2120,7 @@ end;
 
 {$endif FPC}
 
-function TImage.IsEqual(Image: TImage): boolean;
+function TCastleImage.IsEqual(Image: TCastleImage): boolean;
 begin
   Result :=
     (Image.ClassType = ClassType) and
@@ -2124,9 +2130,9 @@ begin
     (CompareMem(Image.RawPixels, RawPixels, Width * Height * PixelSize));
 end;
 
-function TImage.ArePartsEqual(
+function TCastleImage.ArePartsEqual(
   const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
-  Image: TImage;
+  Image: TCastleImage;
   const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean;
 var
   Y: Integer;
@@ -2158,8 +2164,8 @@ begin
   end;
 end;
 
-function TImage.ArePartsEqual(
-  Image: TImage;
+function TCastleImage.ArePartsEqual(
+  Image: TCastleImage;
   const ImageX0, ImageY0, ImageWidth, ImageHeight: Cardinal): boolean;
 begin
   Result := ArePartsEqual(
@@ -2168,9 +2174,9 @@ begin
     ImageX0, ImageY0, ImageWidth, ImageHeight);
 end;
 
-function TImage.ArePartsEqual(
+function TCastleImage.ArePartsEqual(
   const SelfX0, SelfY0, SelfWidth, SelfHeight: Cardinal;
-  Image: TImage): boolean;
+  Image: TCastleImage): boolean;
 begin
   Result := ArePartsEqual(
     SelfX0, SelfY0, SelfWidth, SelfHeight,
@@ -2178,7 +2184,7 @@ begin
     0, 0, Image.Width, Image.Height);
 end;
 
-procedure TImage.CopyFrom(Image: TImage; const X0, Y0: Cardinal;
+procedure TCastleImage.CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal;
   const SourceX0, SourceY0, SourceWidth, SourceHeight: Cardinal);
 var
   Y: Integer;
@@ -2203,17 +2209,17 @@ begin
   end;
 end;
 
-procedure TImage.CopyFrom(Image: TImage; const X0, Y0: Cardinal);
+procedure TCastleImage.CopyFrom(Image: TCastleImage; const X0, Y0: Cardinal);
 begin
   CopyFrom(Image, X0, Y0, 0, 0, Image.Width, Image.Height);
 end;
 
-procedure TImage.CopyTo(Image: TImage; const X0, Y0: Cardinal);
+procedure TCastleImage.CopyTo(Image: TCastleImage; const X0, Y0: Cardinal);
 begin
   Image.CopyFrom(Self, X0, Y0);
 end;
 
-procedure TImage.LerpSimpleCheckConditions(SecondImage: TImage);
+procedure TCastleImage.LerpSimpleCheckConditions(SecondImage: TCastleImage);
 begin
   if (Width <> SecondImage.Width) or
      (Height <> SecondImage.Height) then
@@ -2225,9 +2231,9 @@ begin
       [ClassName, SecondImage.ClassName]);
 end;
 
-procedure TImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TCastleImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 begin
-  raise EImageLerpInvalidClasses.Create('Linear interpolation (TImage.LerpWith) not possible with the base TImage class');
+  raise EImageLerpInvalidClasses.Create('Linear interpolation (TCastleImage.LerpWith) not possible with the base TCastleImage class');
 end;
 
 { TS3TCImage ----------------------------------------------------------------- }
@@ -2285,7 +2291,7 @@ end;
 
 {$I images_s3tc_flip_vertical.inc}
 
-function TS3TCImage.Decompress: TImage;
+function TS3TCImage.Decompress: TCastleImage;
 begin
   if Assigned(DecompressS3TC) then
     Result := DecompressS3TC(Self) else
@@ -2299,10 +2305,10 @@ begin
   Move(RawPixels^, Result.RawPixels^, Size);
 end;
 
-{ TImageClass and arrays of TImageClasses ----------------------------- }
+{ TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }
 
-function InImageClasses(ImageClass: TImageClass;
-  const ImageClasses: array of TImageClass): boolean;
+function InImageClasses(ImageClass: TCastleImageClass;
+  const ImageClasses: array of TCastleImageClass): boolean;
 var i: Integer;
 begin
  for i := 0 to High(ImageClasses) do
@@ -2314,13 +2320,13 @@ begin
  Result := false;
 end;
 
-function InImageClasses(Image: TImage;
-  const ImageClasses: array of TImageClass): boolean;
+function InImageClasses(Image: TCastleImage;
+  const ImageClasses: array of TCastleImageClass): boolean;
 begin
- Result := InImageClasses(TImageClass(Image.ClassType), ImageClasses);
+ Result := InImageClasses(TCastleImageClass(Image.ClassType), ImageClasses);
 end;
 
-function ImageClassesEqual(const Ar1, Ar2: array of TImageClass): boolean;
+function ImageClassesEqual(const Ar1, Ar2: array of TCastleImageClass): boolean;
 var i: Integer;
 begin
  if High(Ar1) <> High(Ar2) then
@@ -2340,7 +2346,7 @@ begin
 end;
 
 procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
-  const NewValue: array of TImageClass);
+  const NewValue: array of TCastleImageClass);
 var i: Integer;
 begin
  SetLength(Variable, High(NewValue) + 1);
@@ -2568,7 +2574,7 @@ begin
  end;
 end;
 
-procedure TRGBImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TRGBImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 var
   SelfPtr: PVector3Byte;
   SecondPtr: PVector3Byte;
@@ -2762,7 +2768,7 @@ begin
   Result := atSimpleYesNo;
 end;
 
-procedure TRGBAlphaImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TRGBAlphaImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 var
   SelfPtr: PVector4Byte;
   SecondPtr: PVector4Byte;
@@ -2907,7 +2913,7 @@ begin
 end;
 {$endif}
 
-procedure TRGBFloatImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TRGBFloatImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 var
   SelfPtr: PVector3Single;
   SecondPtr: PVector3Single;
@@ -2975,7 +2981,7 @@ begin
   end;
 end;
 
-procedure TGrayscaleImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TGrayscaleImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 var
   SelfPtr: PByte;
   SecondPtr: PByte;
@@ -3125,7 +3131,7 @@ begin
   Result := atSimpleYesNo;
 end;
 
-procedure TGrayscaleAlphaImage.LerpWith(const Value: Single; SecondImage: TImage);
+procedure TGrayscaleAlphaImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
 var
   SelfPtr: PVector2Byte;
   SecondPtr: PVector2Byte;
@@ -3350,18 +3356,18 @@ end;
 { LoadImage --------------------------------------------------------------- }
 
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions)
-  :TImage;
+  :TCastleImage;
 
   { ClassAllowed is only a shortcut to global utility. }
-  function ClassAllowed(ImageClass: TImageClass): boolean;
+  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
     Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-  procedure ImageGrayscaleTo1st(var Image: TImage);
+  procedure ImageGrayscaleTo1st(var Image: TCastleImage);
   var
     NewImage: TGrayscaleImage;
   begin
@@ -3370,9 +3376,9 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewImage;
   end;
 
-  procedure ImageRGBToFloatTo1st(var Image: TImage);
+  procedure ImageRGBToFloatTo1st(var Image: TCastleImage);
   var
-    NewResult: TImage;
+    NewResult: TCastleImage;
   begin
     NewResult := (Image as TRGBImage).ToRGBFloat;
     Image.Free;
@@ -3490,9 +3496,9 @@ begin
 end;
 
 function LoadImage(Stream: TStream; const typeext: string;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions)
-  :TImage;
+  :TCastleImage;
 var iff: TImageFormat;
 begin
  if FileExtToImageFormat(typeext, true, false, iff) then
@@ -3501,8 +3507,8 @@ begin
 end;
 
 function LoadImage(const filename: string;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 var
   f: TStream;
 begin
@@ -3535,17 +3541,17 @@ begin
 end;
 
 function LoadImage(const filename: string;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions;
-  const ResizeToX, ResizeToY: Cardinal): TImage;
+  const ResizeToX, ResizeToY: Cardinal): TCastleImage;
 begin
  result := LoadImage(filename, AllowedImageClasses, ForbiddenConvs);
  Result.Resize(ResizeToX, ResizeToY);
 end;
 
-{ SaveImage na TImage ---------------------------------------------------- }
+{ SaveImage na TCastleImage ---------------------------------------------------- }
 
-procedure SaveImage(const Img: TImage; const Format: TImageFormat; Stream: TStream);
+procedure SaveImage(const Img: TCastleImage; const Format: TImageFormat; Stream: TStream);
 var
   ImgRGB: TRGBImage;
   Save: TImageSaveFunc;
@@ -3596,13 +3602,13 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TImage; const typeext: string; Stream: TStream);
+procedure SaveImage(const img: TCastleImage; const typeext: string; Stream: TStream);
 begin
  SaveImage(Img, FileExtToImageFormatDef(
    typeext, false, true, DefaultSaveImageFormat), Stream);
 end;
 
-procedure SaveImage(const Img: TImage; const fname: string);
+procedure SaveImage(const Img: TCastleImage; const fname: string);
 var f: TFileStream;
 begin
  f := TFileStream.Create(fname, fmCreate);
@@ -3613,9 +3619,9 @@ end;
 
 { other image processing ------------------------------------------- }
 
-procedure ImageAlphaConstTo1st(var Img: TImage; const AlphaConst: byte);
+procedure ImageAlphaConstTo1st(var Img: TCastleImage; const AlphaConst: byte);
 var
-  NewImg: TImage;
+  NewImg: TCastleImage;
 begin
   if Img is TRGBImage then
   begin
@@ -3633,17 +3639,17 @@ begin
   if not ((Img is TRGBAlphaImage) or
           (Img is TGrayscaleAlphaImage)) then
     raise EInternalError.Create(
-      'ImageAlphaConstTo1st not possible for this TImage descendant: ' + Img.ClassName);
+      'ImageAlphaConstTo1st not possible for this TCastleImage descendant: ' + Img.ClassName);
 end;
 
-function ImageClassBestForSavingToFormat(const FileName: string): TImageClass;
+function ImageClassBestForSavingToFormat(const FileName: string): TCastleImageClass;
 begin
   Result := ImageClassBestForSavingToFormat(
     FileExtToImageFormatDef(ExtractFileExt(Filename), false, true,
       DefaultSaveImageFormat));
 end;
 
-function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TImageClass;
+function ImageClassBestForSavingToFormat(ImgFormat: TImageFormat): TCastleImageClass;
 begin
   if ImgFormat = ifRGBE then
     Result := TRGBFloatImage else

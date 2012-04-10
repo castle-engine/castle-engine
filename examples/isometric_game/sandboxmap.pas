@@ -8,7 +8,7 @@ type
   TTile = class
   public
     { @noAutoLinkHere }
-    Image: TImage;
+    Image: TCastleImage;
     GLList: TGLuint;
     { Relative filename vs tiles directory.
       This is read and written from/to a map file. }

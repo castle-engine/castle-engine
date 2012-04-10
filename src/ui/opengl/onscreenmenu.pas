@@ -683,8 +683,8 @@ begin
 end;
 
 var
-  ImageSlider: TImage;
-  ImageSliderPosition: TImage;
+  ImageSlider: TCastleImage;
+  ImageSliderPosition: TCastleImage;
   GLList_ImageSlider: TGLuint;
   GLList_ImageSliderPosition: TGLuint;
 

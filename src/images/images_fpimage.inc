@@ -28,10 +28,10 @@
 }
 
 function LoadFpImage(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
+  const AllowedImageClasses: array of TCastleImageClass;
   const ForbiddenConvs: TImageLoadConversions;
   Reader: TFPCustomImageReader;
-  const AllowPalette: boolean = false): TImage;
+  const AllowPalette: boolean = false): TCastleImage;
 var
   FPImage: TFPMemoryImage;
 
@@ -110,7 +110,7 @@ begin
   end;
 end;
 
-procedure SaveFpImage(Img: TImage; Stream: TStream;
+procedure SaveFpImage(Img: TCastleImage; Stream: TStream;
   Writer: TFPCustomImageWriter;
   const AllowPalette: boolean = false);
 var
@@ -181,8 +181,8 @@ begin
 end;
 
 function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   {$ifndef VER2_2}
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderGIF.Create);
@@ -192,8 +192,8 @@ begin
 end;
 
 function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderTarga.Create);
 end;
@@ -204,23 +204,23 @@ with "missing RowsPerStrip.."
 AllowPalette = true or false, doesn't matter.
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderTIFF.Create, true);
 end;
 }
 
 function LoadXPM(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderXPM.Create, true);
 end;
 
 function LoadPSD(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   {$ifndef VER2_2}
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPSD.Create);
@@ -230,27 +230,27 @@ begin
 end;
 
 function LoadPCX(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPCX.Create);
 end;
 
 function LoadJPEG(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderJPEG.Create);
 end;
 
 function LoadPNM(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, ForbiddenConvs, TFPReaderPNM.Create);
 end;
 
-procedure SaveJPEG(Img: TImage; Stream: TStream);
+procedure SaveJPEG(Img: TCastleImage; Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;

@@ -37,7 +37,7 @@ end;
 
 var
   Scene: TCastleSceneCore;
-  Image: TImage;
+  Image: TCastleImage;
 
   SceneFileName, OutImageFileName: string;
   ImageSizeX, ImageSizeY: Integer;

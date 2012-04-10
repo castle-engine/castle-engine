@@ -39,7 +39,7 @@ procedure TTestDDS.TestLoadSaveDDS;
     Assert(I1.Width     = I2.Width);
     Assert(I1.Height    = I2.Height);
     Assert(I1.Depth     = I2.Depth);
-    if I1 is TImage then
+    if I1 is TCastleImage then
     begin
       Assert(TImage(I1).PixelSize = TImage(I2).PixelSize);
       Assert(CompareMem(I1.RawPixels, I2.RawPixels,

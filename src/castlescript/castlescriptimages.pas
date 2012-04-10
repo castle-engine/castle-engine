@@ -39,15 +39,15 @@ type
     class procedure HandleImageSetAlpha(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
   private
-    FValue: TImage;
-    procedure SetValue(const AValue: TImage);
+    FValue: TCastleImage;
+    procedure SetValue(const AValue: TCastleImage);
   public
-    constructor Create(const AWriteable: boolean; const AValue: TImage);
+    constructor Create(const AWriteable: boolean; const AValue: TCastleImage);
     constructor Create(const AWriteable: boolean); override;
     destructor Destroy; override;
 
     { Image value. Assigning here makes a @italic(copy) of the image. }
-    property Value: TImage read FValue write SetValue;
+    property Value: TCastleImage read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -119,7 +119,7 @@ uses SysUtils, CastleUtils, CastleWarnings, CastleScriptVectors, CastleURLUtils;
 
 { TCasScriptImage ------------------------------------------------------------ }
 
-constructor TCasScriptImage.Create(const AWriteable: boolean; const AValue: TImage);
+constructor TCasScriptImage.Create(const AWriteable: boolean; const AValue: TCastleImage);
 begin
   Create(AWriteable);
 
@@ -146,7 +146,7 @@ begin
   inherited;
 end;
 
-procedure TCasScriptImage.SetValue(const AValue: TImage);
+procedure TCasScriptImage.SetValue(const AValue: TCastleImage);
 begin
   FreeAndNil(FValue);
   FValue := AValue.MakeCopy;
@@ -195,7 +195,7 @@ end;
 class procedure TCasScriptImage.HandleImageLoad(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   FullUrl: string;
-  NewImage: TImage;
+  NewImage: TCastleImage;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptImage);
 

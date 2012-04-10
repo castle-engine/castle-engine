@@ -59,8 +59,8 @@ type
     TimeLoop and TimeBackwards properties work. }
   TVideo = class
   private
-    FItems: array of TImage;
-    function GetItems(Index: Integer): TImage;
+    FItems: array of TCastleImage;
+    function GetItems(Index: Integer): TCastleImage;
   private
     FCache: TImagesCache;
     FLoaded: boolean;
@@ -85,11 +85,11 @@ type
 
       @groupBegin }
     function Count: Integer;
-    property Items [Index: Integer]: TImage read GetItems;
+    property Items [Index: Integer]: TCastleImage read GetItems;
     function Width: Cardinal;
     function Height: Cardinal;
     function IndexFromTime(const Time: Single): Integer;
-    function ImageFromTime(const Time: Single): TImage;
+    function ImageFromTime(const Time: Single): TCastleImage;
     { @groupEnd }
 
     { Duration of the video. In seconds (or, more precisely, in the
@@ -261,7 +261,7 @@ type
       const ATimeLoop, ATimeBackwards: boolean): Integer;
 
     { Alpha channel type of loaded video.
-      See TImage.AlphaChannelType for precise meaning of this.
+      See TCastleImage.AlphaChannelType for precise meaning of this.
 
       Currently based on the first video image, so it's fast although
       in some cases possibly inaccurate. }
@@ -272,8 +272,8 @@ type
     { Alpha channel type of loaded video, possibly overridden by
       DetectAlphaChannel.
 
-      See AlphaChannelType, TImage.AlphaChannelType,
-      TImage.AlphaChannelTypeOverride. }
+      See AlphaChannelType, TCastleImage.AlphaChannelType,
+      TCastleImage.AlphaChannelTypeOverride. }
     function AlphaChannelTypeOverride(
       const DetectAlphaChannel: TDetectAlphaChannel;
       const AlphaTolerance: Byte;
@@ -318,7 +318,7 @@ begin
   Result := High(FItems) + 1;
 end;
 
-function TVideo.GetItems(Index: Integer): TImage;
+function TVideo.GetItems(Index: Integer): TCastleImage;
 begin
   Assert(Loaded);
   Result := FItems[Index];
@@ -367,7 +367,7 @@ begin
     TimeLoop, TimeBackwards);
 end;
 
-function TVideo.ImageFromTime(const Time: Single): TImage;
+function TVideo.ImageFromTime(const Time: Single): TCastleImage;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;
@@ -396,7 +396,7 @@ procedure TVideo.LoadFromFile(const FileName: string);
   var
     Index, ReplacementsDone: Cardinal;
     S: string;
-    NewItem: TImage;
+    NewItem: TCastleImage;
   begin
     FormatIndexedName(FileName, 0, ReplacementsDone);
     if ReplacementsDone > 0 then

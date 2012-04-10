@@ -28,7 +28,7 @@
   We place it all inside directory given by --output option, by default
   just in the current directory.
 
-  The generated Pascal unit defines TImage instances
+  The generated Pascal unit defines TCastleImage instances
   (created / freed in unit's initialization / finalization)
   that contain the size and contents of your images.
   Remember that you can provide many image filenames on the command-line,
@@ -89,7 +89,7 @@ begin
 end;
 
 var
-  Image, TempImage: TImage;
+  Image, TempImage: TCastleImage;
   ImageFileName: string;
   UnitName, NameWidth, NameHeight, NamePixels, NameImage: string;
   ImagesInterface, ImagesImplementation, ImagesInitialization,

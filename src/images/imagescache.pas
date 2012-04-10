@@ -25,7 +25,7 @@ type
   TCachedImage = class
     References: Cardinal;
     FileName: string;
-    Image: TImage;
+    Image: TCastleImage;
   end;
   TCachedImageList = specialize TFPGObjectList<TCachedImage>;
 
@@ -84,8 +84,8 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function LoadImage_IncReference(const FileName: string): TImage;
-    procedure LoadImage_DecReference(var Image: TImage);
+    function LoadImage_IncReference(const FileName: string): TCastleImage;
+    procedure LoadImage_DecReference(var Image: TCastleImage);
 
     function Empty: boolean; virtual;
 
@@ -117,7 +117,7 @@ begin
   inherited;
 end;
 
-function TImagesCache.LoadImage_IncReference(const FileName: string): TImage;
+function TImagesCache.LoadImage_IncReference(const FileName: string): TCastleImage;
 var
   I: Integer;
   C: TCachedImage;
@@ -156,7 +156,7 @@ begin
   {$endif}
 end;
 
-procedure TImagesCache.LoadImage_DecReference(var Image: TImage);
+procedure TImagesCache.LoadImage_DecReference(var Image: TCastleImage);
 var
   I: Integer;
   C: TCachedImage;

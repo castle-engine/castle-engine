@@ -29,7 +29,7 @@ type
   Effectively, this generates a texture with lighting, shadows and such
   already calculated inside.
 
-  @param(Image The resulting image. We store colors by TImage.SetColorRGB,
+  @param(Image The resulting image. We store colors by TCastleImage.SetColorRGB,
     see also TClassicRayTracer.Image comments.)
 
   @param(LeftDownImagePart If @true, then the lower-left image triangle
@@ -61,7 +61,7 @@ type
     It's any vector not parallel to TrianglePos plane.)
 
 }
-procedure TriangleLightMapTo1st(const Image: TImage;
+procedure TriangleLightMapTo1st(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
@@ -77,7 +77,7 @@ procedure TriangleLightMapTo1st(const Image: TImage;
   We show progress of operation using ProgressUnit, if ProgresTitle <> ''.
 
   @seealso TriangleLightMapTo1st }
-procedure QuadLightMapTo1st(const Image: TImage;
+procedure QuadLightMapTo1st(const Image: TCastleImage;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
@@ -100,7 +100,7 @@ begin
      Point, PointPlaneNormal, White3Single));
 end;
 
-procedure TriangleLightMapTo1st(const Image: TImage;
+procedure TriangleLightMapTo1st(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
@@ -166,7 +166,7 @@ begin
  result := TriangleNormPlane(Tri);
 end;
 
-procedure QuadLightMapTo1st(const Image: TImage;
+procedure QuadLightMapTo1st(const Image: TCastleImage;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;

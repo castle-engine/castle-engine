@@ -53,8 +53,8 @@ const
   BI_BITFIELDS = 3;
 
 function LoadBMP(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     paletteSize: integer;    { rozmiar palety (0 jesli brak) }
@@ -137,7 +137,7 @@ var fhead: TBitmapFileHeader;
   end;
 
   { ClassAllowed is only shortcut to global utility. }
-  function ClassAllowed(ImageClass: TImageClass): boolean;
+  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
     Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -145,7 +145,7 @@ var fhead: TBitmapFileHeader;
 var i: integer;
     rowsGoingUp: boolean;
     rowdata: PByteArray;
-    NewResult: TImage;
+    NewResult: TCastleImage;
 begin
  try
   { read and check headers }
@@ -288,7 +288,7 @@ begin
  end;
 end;
 
-procedure SaveBMP(Img: TImage; Stream: TStream);
+procedure SaveBMP(Img: TCastleImage; Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     i, j, rowPaddedLength, PadSize: cardinal;

@@ -195,7 +195,7 @@
     public property FdAlphaChannel: TSFString read FFdAlphaChannel;
 
     { Allows VRML authors to override automatic alpha channel detection
-      of the texture, see TImage.AlphaChannelType.
+      of the texture, see TCastleImage.AlphaChannelType.
 
       Result of this is based on the value of field "alphaChannel",
       see

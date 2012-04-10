@@ -600,8 +600,8 @@ end;
 { LoadPNG ------------------------------------------------------------------- }
 
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 
   { DoingConversion and ClassAllowed are only shortcuts to
     global utilities. }
@@ -610,13 +610,13 @@ function LoadPNG(Stream: TStream;
     Images.DoingConversion(Conv, ForbiddenConvs);
   end;
 
-  function ClassAllowed(ImageClass: TImageClass): boolean;
+  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
   begin
     Result := Images.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
 var
-  PNGResult: TImage absolute Result;
+  PNGResult: TCastleImage absolute Result;
   AllocateWidth, AllocateHeight: Cardinal;
   png_ptr: png_structp;
   info_ptr: png_infop;
@@ -625,7 +625,7 @@ var
     make resulting data matching given Result class.
     Does this (and returns @true) only if ImageClass and NeededConversions
     are allowed. }
-  function TransformPng(ImageClass: TImageClass;
+  function TransformPng(ImageClass: TCastleImageClass;
     const NeededConversions: TImageLoadConversions): boolean;
   begin
     Result := ClassAllowed(ImageClass) and
@@ -675,7 +675,7 @@ begin
    IsAlpha := png_is_alpha(png_ptr, info_ptr);
    IsGrayscale := png_is_grayscale(png_ptr, info_ptr);
 
-   { First, check to what TImage descendant (we can make four,
+   { First, check to what TCastleImage descendant (we can make four,
      with 1, 2, 3, 4 number of components) our image file most matches.
 
      If it's not on the list of allowed classes, try to transform
@@ -757,7 +757,7 @@ end;
 
 { SavePNG --------------------------------------------------------------------- }
 
-procedure SavePNG(Img: TImage; Stream: TStream; Interlaced: boolean);
+procedure SavePNG(Img: TCastleImage; Stream: TStream; Interlaced: boolean);
 var png_ptr: png_structp;
     info_ptr: png_infop;
     InterlaceType: LongWord;
@@ -803,7 +803,7 @@ begin
   { zapisalismy header i jestesmy bardzo happy bo nie musimy teraz robic tego
     co bylo nasza bieda w LoadPNG : nakladanie odpowiednich transformacji.
     Zawsze zapisujemy obrazek w takim formacie w jakim go przechowujemy w
-    TImage - a wiec bitdepth = 8 , type = RGB[A] i juz. }
+    TCastleImage - a wiec bitdepth = 8 , type = RGB[A] i juz. }
 
   { wiec ready row_pointers and go }
   row_pointers := TFPList.Create;
@@ -827,7 +827,7 @@ begin
  end;
 end;
 
-procedure SavePNG(Img: TImage; Stream: TStream); { interlaced = false }
+procedure SavePNG(Img: TCastleImage; Stream: TStream); { interlaced = false }
 begin
   SavePNG(Img, Stream, false)
 end;

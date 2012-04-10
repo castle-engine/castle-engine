@@ -24,7 +24,7 @@ uses SysUtils, CastleUtils, Images, CastleParameters;
 
 var
   I: Integer;
-  Img: TImage;
+  Img: TCastleImage;
   AlphaChannelType: string;
 begin
   if Parameters.High = 0 then

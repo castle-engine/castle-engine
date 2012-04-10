@@ -1,6 +1,6 @@
 function LoadDDS(Stream: TStream;
-  const AllowedImageClasses: array of TImageClass;
-  const ForbiddenConvs: TImageLoadConversions): TImage;
+  const AllowedImageClasses: array of TCastleImageClass;
+  const ForbiddenConvs: TImageLoadConversions): TCastleImage;
 var
   DDS: TDDSImage;
 begin
@@ -11,7 +11,7 @@ begin
     { After successfully loading, DDS should always contain at least one image }
     Assert(DDS.Images.Count >= 1);
 
-    if DDS.Images[0] is TImage then
+    if DDS.Images[0] is TCastleImage then
     begin
       { This way I don't have to make a copy of DDS.Images[0] for Result,
         which would be a waste of time. }
@@ -19,13 +19,13 @@ begin
 
       { TODO: make sure to honor AllowedImageClasses and ForbiddenConvs.
         For now, I just return whatever DDS set... }
-      Result := TImage(DDS.Images[0]);
+      Result := TCastleImage(DDS.Images[0]);
     end else
       raise EImageLoadError.CreateFmt('Cannot load this way image class %s', [DDS.Images[0].ClassName]);
   finally FreeAndNil(DDS) end;
 end;
 
-procedure SaveDDS(Img: TImage; Stream: TStream);
+procedure SaveDDS(Img: TCastleImage; Stream: TStream);
 var
   DDS: TDDSImage;
 begin
