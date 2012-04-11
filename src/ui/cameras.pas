@@ -322,6 +322,10 @@ type
 
     procedure RecalculateFrustum;
   protected
+    { Needed for ciMouseDragging navigation in @link(TWalkCamera.Idle). }
+    MouseDraggingStart: TVector2Integer;
+    MouseDraggingStarted: boolean;
+
     { Mechanism to schedule VisibleChange calls.
 
       This mechanism allows to defer calling VisibleChange.
@@ -495,6 +499,8 @@ type
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
+    function MouseDown(const Button: TMouseButton): boolean; override;
+    function MouseUp(const Button: TMouseButton): boolean; override;
 
     { Animate a camera smoothly into another camera settings.
       This will gradually change our settings (only the most important
@@ -882,10 +888,6 @@ type
 
     FMouseLookHorizontalSensitivity: Single;
     FMouseLookVerticalSensitivity: Single;
-
-    { Needed for ciMouseDragging navigation in @link(TWalkCamera.Idle) }
-    MouseDownPos: TVector2Integer;
-    MouseDraggingStarted: boolean;
 
     { This is initally false. It's used by MoveHorizontal while head bobbing,
       to avoid updating HeadBobbingPosition more than once in the same Idle call.
@@ -1285,7 +1287,6 @@ type
     function MouseMove(const OldX, OldY, NewX, NewY: Integer): boolean; override;
 
     function MouseDown(const Button: TMouseButton): boolean; override;
-    function MouseUp(const Button: TMouseButton): boolean; override;
     function MouseWheel(const Scroll: Single; const Vertical: boolean): boolean; override;
 
     { Things related to gravity ---------------------------------------- }
@@ -2318,6 +2319,25 @@ begin
     Input := DefaultCameraInput;
 end;
 
+function TCamera.MouseDown(const Button: TMouseButton): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if (ciMouseDragging in Input) and EnableDragging then
+  begin
+    MouseDraggingStart[0] := Container.MouseX;
+    MouseDraggingStart[1] := Container.MouseY;
+    MouseDraggingStarted := true;
+  end;
+end;
+
+function TCamera.MouseUp(const Button: TMouseButton): boolean;
+begin
+  MouseDraggingStarted := false;
+  Result := inherited;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -2823,10 +2843,10 @@ begin
 
     My thoughts and conclusions:
     - rotating seems most natural in Examine mode (that's where this navigation
-      mode is the most comfortable), so it should be on bmLeft (like normalmap)
+      mode is the most comfortable), so it should be on mbLeft (like normalmap)
       with no modifiers (like Blender).
-    - moving closer/further: 2nd most important in Examine mode, in my opinion.
-      Goes to mbRight. For people with 1 mouse button, and Blender analogy,
+    - moving closer/further: 2nd most important action in Examine mode, IMO.
+      Goes to mbRight. For people with 1 mouse button, and for Blender analogy,
       it's also on Ctrl + mbLeft.
     - moving left/right/down/up: mbMiddle.
       For people with no middle button, and Blender analogy, it's also on
@@ -2841,11 +2861,12 @@ begin
       does something different.
   }
 
-  { Optimization, since MouseMove occurs very often: when nothing pressed,
-    or should be ignored, do nothing. }
+  { When dragging should be ignored, or (it's an optimization to check it
+    here early, MouseMove occurs very often) when nothing pressed, do nothing. }
   if (Container.MousePressed = []) or
      (not (ciMouseDragging in Input)) or
      (not EnableDragging) or
+     (not MouseDraggingStarted) or
      Animation then
     Exit;
 
@@ -3066,8 +3087,6 @@ begin
   FJumpSpeedMultiply := DefaultJumpSpeedMultiply;
   FJumpPower := DefaultJumpPower;
   FInvertVerticalMouseLook := false;
-
-  MouseDraggingStarted := false;
 
   FInput_Forward                 := TInputShortcut.Create(Self);
   FInput_Backward                := TInputShortcut.Create(Self);
@@ -4224,8 +4243,8 @@ begin
          in some custom ways (like view3dscene selecting a triangle). }
        (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
        (not MouseLook) and HandleMouseAndKeys then
-      MoveViaMouseDragging(Container.MouseX - MouseDownPos[0],
-                           Container.MouseY - MouseDownPos[1]);
+      MoveViaMouseDragging(Container.MouseX - MouseDraggingStart[0],
+                           Container.MouseY - MouseDraggingStart[1]);
 
     PreferGravityUpForRotationsIdle;
 
@@ -4327,22 +4346,7 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  if (ciMouseDragging in Input) and EnableDragging and (not MouseLook) then
-  begin
-    MouseDownPos[0] := Container.MouseX;
-    MouseDownPos[1] := Container.MouseY;
-    MouseDraggingStarted := true;
-  end;
-
   Result := EventDown(K_None, #0, true, Button, mwNone);
-end;
-
-function TWalkCamera.MouseUp(const Button: TMouseButton): boolean;
-begin
-  if MouseDraggingStarted then
-    MouseDraggingStarted := false;
-
-  Result := inherited;
 end;
 
 function TWalkCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
