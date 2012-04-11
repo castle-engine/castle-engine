@@ -322,9 +322,11 @@ type
 
     procedure RecalculateFrustum;
   protected
-    { Needed for ciMouseDragging navigation in @link(TWalkCamera.Idle). }
-    MouseDraggingStart: TVector2Integer;
+    { Needed for ciMouseDragging navigation.
+      Checking MouseDraggingStarted means that we handle only dragging that
+      was initialized on viewport (since the viewport passed events to camera). }
     MouseDraggingStarted: boolean;
+    MouseDraggingStart: TVector2Integer;
 
     { Mechanism to schedule VisibleChange calls.
 
