@@ -233,6 +233,8 @@ begin
           end;
 
           NN := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
+          { DistanceSqr is used to check that P0-P1-P2 has roughly the same
+            orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
 
           { vectors orthogonal to triangle edges going *outside* from the triangle }
