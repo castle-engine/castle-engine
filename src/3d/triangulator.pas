@@ -228,7 +228,8 @@ begin
             2 valid "ears" to cut off. }
           if P0 = Start then
           begin
-            WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), otherwise report a bug.');
+            if Log then
+              WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), otherwise report a bug.');
             Break;
           end;
 
