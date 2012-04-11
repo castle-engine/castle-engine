@@ -183,7 +183,7 @@ procedure TCasScriptVecXx.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptVecXx then
     Value := TCasScriptVecXx(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 procedure TCasScriptVecXx.SetValue(const AValue: TVectorXxx);

@@ -157,7 +157,7 @@ procedure TCasScriptImage.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptImage then
     Value := TCasScriptImage(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 { TCasScriptImage function handlers ------------------------------------------ }

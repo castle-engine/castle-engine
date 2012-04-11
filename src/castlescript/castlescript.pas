@@ -74,8 +74,11 @@ type
   TCasScriptValue = class;
 
   ECasScriptError = class(Exception);
-  EKamAssignValueError = class(ECasScriptError);
+  ECasScriptAssignError = class(ECasScriptError);
   ECasScriptAnyMathError = class(ECasScriptError);
+
+  { @deprecated Deprecated name for ECasScriptAssignError. }
+  EKamAssignValueError = ECasScriptAssignError;
 
   TCasScriptOutputProc = procedure (const S: string) of object;
 
@@ -215,7 +218,7 @@ type
     property Name: string read FName write FName;
 
     { Assign value from Source to Self.
-      @raises(EKamAssignValueError if assignment is not possible
+      @raises(ECasScriptAssignError if assignment is not possible
       because types don't match.) }
     procedure AssignValue(Source: TCasScriptValue); virtual; abstract;
 
@@ -1290,7 +1293,7 @@ procedure TCasScriptInteger.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptInteger then
     Value := TCasScriptInteger(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 procedure TCasScriptInteger.SetValue(const AValue: Int64);
@@ -1649,7 +1652,7 @@ begin
   { This allows for type promotion integer->float at assignment. }
   if Source is TCasScriptInteger then
     Value := TCasScriptInteger(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 procedure TCasScriptFloat.SetValue(const AValue: Float);
@@ -1788,7 +1791,7 @@ procedure TCasScriptBoolean.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptBoolean then
     Value := TCasScriptBoolean(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 procedure TCasScriptBoolean.SetValue(const AValue: Boolean);
@@ -1939,7 +1942,7 @@ procedure TCasScriptString.AssignValue(Source: TCasScriptValue);
 begin
   if Source is TCasScriptString then
     Value := TCasScriptString(Source).Value else
-    raise EKamAssignValueError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
 procedure TCasScriptString.SetValue(const AValue: String);
