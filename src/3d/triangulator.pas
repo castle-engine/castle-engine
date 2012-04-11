@@ -103,7 +103,21 @@ function IndexedPolygonNormal(
 
 implementation
 
-{ Implementation idea based on face2tri.C in C++, from mgflib sources. }
+uses CastleLog;
+
+{ Implementation idea based on face2tri.C in C++, from mgflib sources.
+
+  The algorithm works by finding and cutting off "ears" from the polygon.
+  "Ear" is a triangle that satisfies:
+  1. it has 1 edge inside the polygon and 2 edges along the polygon border and
+  2. it can be safely cut off from the polygon (without intersecting any edge).
+     Which means that it doesn't contain any other polygon vertex inside.
+
+  When we find an ear, we cut it off, which means
+  - we pass the ear triangle to the callback TriangulatorProc,
+  - the polygon is shrunk, it has one vertex less: this is done by setting
+    Outs (for the corner vertex) to true,
+  - and then we repeat the work for the new polygon, smaller by 1 vertex. }
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
@@ -125,7 +139,7 @@ procedure TriangulateFace(
       Result := Vertices(I);
   end;
 
-  { calculate the most distant vertex from Center. }
+  { Calculate the most distant vertex from Center. }
   function GetMostDistantVertex(const Center: TVector3Single): Integer;
   var
     MaxLen, D: Single;
@@ -145,6 +159,10 @@ procedure TriangulateFace(
   end;
 
 var
+  { Which vertexes are "out" (removed from the polygon).
+    Initially none (everything is false).
+    When we find an ear triangle, it's corner vertex is removed
+    from the polygon by setting corresponding item of this array to true. }
   Outs: TBooleanList;
 
   { Increase Index, until a value with Outs[Result]=false is found. }
@@ -159,7 +177,6 @@ var
   Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   Empty: boolean;
-
 begin
   if Count = 3 then
     { For Count = 3 this is trivial, do it fast. }
@@ -174,7 +191,9 @@ begin
 
     MostDistantVertex := GetMostDistantVertex(Center);
 
-    { P1 is the most distant vertex, P0 is previous, P2 is next }
+    { P1 is the most distant vertex, P0 is previous, P2 is next.
+      We calculate them only for the sake of calculating ConvexNormal
+      (they do not determine triangulation in any other way). }
     P1 := MostDistantVertex;
     if P1 = 0 then P0 := Count - 1 else P0 := P1 - 1;
     P2 := (P1 + 1) mod Count;
@@ -191,24 +210,46 @@ begin
       begin
         Start := P0;
 
+        { find next ear triangle }
         repeat
+          { increase P0. Set P1 and P2 to vertexes following P0.
+            We will now consider triangle P0-P1-P2 to be removed,
+            where P1 is the corner to be cut off. }
           P0 := NextNotOut(P0);
           P1 := NextNotOut(P0);
           P2 := NextNotOut(P1);
 
-          { TODO: What exactly should we do on this case?
-            Any example when this happens? }
-          if P0 = Start then Break;
+          { If P0 returned back to Start value,
+            then we considered every possible corner triangle and it cannot
+            be cut off. IOW, we cannot find any ear triangle,
+            so we cannot triangulate this polygon correctly.
+            This should happen only because of floating-point inaccuracy,
+            because every polygon (with >= 4 vertexes) should have at least
+            2 valid "ears" to cut off. }
+          if P0 = Start then
+          begin
+            WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), otherwise report a bug.');
+            Break;
+          end;
 
           NN := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
           DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
 
+          { vectors orthogonal to triangle edges going *outside* from the triangle }
           E1 := VectorProduct(NN, Verts(P0) - Verts(P1));
           E2 := VectorProduct(NN, Verts(P1) - Verts(P2));
           E3 := VectorProduct(NN, Verts(P2) - Verts(P0));
 
           Empty := true;
           for I := 0 to Count - 1 do
+            { if we can find a vertex that is
+              - part of the polygon (not "out" yet)
+              - different than P0, P1, P2
+              - inside P0-P1-P2 triangle (this is checked by looking at angle
+                between E? and vector to given vertex, value > 90 degrees means
+                vertex is inside the triangle (for given edge))
+              then the considered triangle is not empty, and it cannot be removed
+              as an ear triangle. }
             if (not Outs[I]) and
                (I <> P0) and
                (I <> P1) and
@@ -222,8 +263,8 @@ begin
             end;
         until (DistanceSqr <= 1.0) and Empty;
 
+        { ear triangle found, cut if off now }
         NewTriangle(P0, P1, P2);
-
         Outs[P1] := true;
         Dec(Corners);
       end;
