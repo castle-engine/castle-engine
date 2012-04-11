@@ -24,7 +24,7 @@ Maybe:
 - Move castle lights editor to view3dscene.
   BTW: maybe allow configuring shadow maps params,
   checkbox to switch "Shadows" and to change shadow map size would be very cool!
-  
+
 3.2 plans (~end of April):
 - add ability to initialize GL context with options for stencil butffer
   and multi-sampling. Activate shadow volumes and anti-aliasing on model_3d_viewer.
@@ -1160,6 +1160,19 @@ Various:
   see also x3d mail about new nodes
   http://www.hersto.net/VRML/DampersHowto/?lay=2
   http://www.web3d.org/x3d/content/examples/Basic/Followers/Stocker_06_Followers.pdf
+
+- Dragging camera mistakenly starts also when dragging over buttons (like "Open" in view3dscene):
+
+  For now solved by MouseDraggingStarted. This is not 100% guaranteed, as it is not guaranteed to get MouseUp always paired with MouseDown. When I press the mouse button over a viewport, and hold it pressed, and move mouse from a viewport over a button, and release the button over a button... then viewport (and so, camera too) will not get MouseUp. So MouseDraggingStarted will not be cleared.
+
+  Although it works for view3dscene and many other demos, as viewport has FullScreen=true there so it always catches MouseUp.
+
+  Full solution one day:
+  - Buttons should not allow other controls underneath to process mouse events. Affects our OpenGL-drawn TCastleButton (and TCastlePanel too, and maybe others in CastleControls). Right now they allow others to handle MouseMove, Idle underneath (only MouseDown, and sometimes MouseUp, is blocked). Hm, but this flexibility is useful sometimes: when pressing keys like arrows over buttons, it is Ok and useful that they are passed to viewport (and camera) underneath.
+  - Maybe we should improve MouseUp to *make the above guarantee 100% true* also? Because the MouseDraggingStarted mechanism is sensible, and will stay too.
+
+  So the full fix is not obvious, not trivial, and not really needed now.
+
 ------------------------------------------------------------------------------
 Shaders:
 
