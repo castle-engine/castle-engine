@@ -187,6 +187,9 @@ type
     { Describe this input shortcut. If it's not active at all
       (like after MakeClear), we will use NoneString. }
     function Description(const NoneString: string): string;
+
+    { Modifier keys that are relevant to recognize this shortcut. }
+    function Modifiers: TModifierKeys;
   published
     { Key/mouse properties on TInputShortcut are declared without
       "default" specifier, to always save them in Lazarus LFM file.
@@ -870,6 +873,7 @@ type
     FInput_MoveSpeedDec: TInputShortcut;
     FInput_Jump: TInputShortcut;
     FInput_Crouch: TInputShortcut;
+    FInput_Run: TInputShortcut;
 
     FAllowSlowerRotations: boolean;
     FCheckModsDown: boolean;
@@ -1597,6 +1601,7 @@ type
     property Input_DecreasePreferredHeight: TInputShortcut read FInput_DecreasePreferredHeight;
     property Input_DownMove: TInputShortcut read FInput_DownMove;
     property Input_GravityUp: TInputShortcut read FInput_GravityUp;
+    property Input_Run: TInputShortcut read FInput_Run;
 
     { Change the MoveSpeed.
       @groupBegin }
@@ -2066,6 +2071,18 @@ procedure TInputShortcut.SetMouseWheel(const Value: TMouseWheelDirection);
 begin
   FMouseWheel := Value;
   Changed;
+end;
+
+function TInputShortcut.Modifiers: TModifierKeys;
+var
+  MK: TModifierKey;
+begin
+  Result := [];
+  for MK := Low(MK) to High(MK) do
+  begin
+    if (Key1 = ModifierKeyToKey[MK]) or (Key2 = ModifierKeyToKey[MK]) then
+      Include(Result, MK);
+  end;
 end;
 
 { TCamera ------------------------------------------------------------ }
@@ -2876,10 +2893,10 @@ begin
   Result := inherited;
   if Result or
     (not (ciNormal in Input)) or Animation or
-    (ModifiersDown(Container.Pressed) * [mkShift, mkCtrl] <> []) then
+    (ModifiersDown(Container.Pressed) <> []) then
     Exit;
 
-  { For now, this is hardcoded, we don't call EventDown here }
+  { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
   if Zoom(Scroll / 10) then
     Result := ExclusiveEvents;
@@ -3069,6 +3086,7 @@ begin
   FInput_MoveSpeedDec            := TInputShortcut.Create(Self);
   FInput_Jump                    := TInputShortcut.Create(Self);
   FInput_Crouch                  := TInputShortcut.Create(Self);
+  FInput_Run                     := TInputShortcut.Create(Self);
 
   Input_Forward                 .Assign(K_Up);
   Input_Backward                .Assign(K_Down);
@@ -3089,6 +3107,7 @@ begin
   Input_MoveSpeedDec            .Assign(K_Numpad_Minus, K_None, '-');
   Input_Jump                    .Assign(K_A);
   Input_Crouch                  .Assign(K_Z);
+  Input_Run                     .Assign(K_Shift);
 
   Input_Forward                .SetSubComponent(true);
   Input_Backward               .SetSubComponent(true);
@@ -3107,6 +3126,7 @@ begin
   Input_MoveSpeedDec           .SetSubComponent(true);
   Input_Jump                   .SetSubComponent(true);
   Input_Crouch                 .SetSubComponent(true);
+  Input_Run                    .SetSubComponent(true);
 
   Input_Forward                .Name := 'Input_Forward';
   Input_Backward               .Name := 'Input_Backward';
@@ -3125,6 +3145,7 @@ begin
   Input_MoveSpeedDec           .Name := 'Input_MoveSpeedDec';
   Input_Jump                   .Name := 'Input_Jump';
   Input_Crouch                 .Name := 'Input_Crouch';
+  Input_Run                    .Name := 'Input_Run';
 end;
 
 destructor TWalkCamera.Destroy;
@@ -4039,7 +4060,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
   const
     Tolerance = 5;  { 5px tolerance for not-moving }
   begin
-    if mkShift in ModifiersDown(Container.Pressed) then
+    if Input_Run.IsPressed(Container) then
       WalkMult := 2 else
       WalkMult := 1;
     MoveSizeX := 0;
@@ -4114,9 +4135,9 @@ begin
       FIsCrouching := Input_Crouch.IsPressed(Container);
 
       if (not CheckModsDown) or
-         (ModsDown - [mkShift] = []) then
+         (ModsDown - Input_Run.Modifiers = []) then
       begin
-        if mkShift in ModsDown then
+        if Input_Run.IsPressed(Container) then
           WalkMult := 2 else
           WalkMult := 1;
 
@@ -4202,11 +4223,11 @@ begin
     if MouseDraggingStarted and
        (ciMouseDragging in Input) and EnableDragging and
        ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
-       { Enable dragging only when no modifiers, or Shift modifier
-         (which may be used to activate running later) is pressed.
-         This allows application to handle ctrl + dragging, alt + dragging
+       { Enable dragging only when no modifiers (except Input_Run,
+         which must be allowed to enable running) are pressed.
+         This allows application to handle e.g. ctrl + dragging
          in some custom ways (like view3dscene selecting a triangle). }
-       (Container.Pressed.Modifiers - [mkShift] = []) and
+       (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
        (not MouseLook) and HandleMouseAndKeys then
       MoveViaMouseDragging(Container.MouseX - MouseDownPos[0],
                            Container.MouseY - MouseDownPos[1]);
@@ -4300,7 +4321,7 @@ begin
   if Result then Exit;
 
   if (not CheckModsDown) or
-     (ModifiersDown(Container.Pressed) - [mkShift] = []) then
+     (ModifiersDown(Container.Pressed) - Input_Run.Modifiers = []) then
   begin
     Result := EventDown(Key, C, false, mbLeft, mwNone);
   end;
@@ -4353,7 +4374,7 @@ begin
   if not (ci3dMouse in Input) then Exit;
 
   MoveSize := Length * CompSpeed / 5000;
-  if mkShift in ModifiersDown(Container.Pressed) then
+  if Input_Run.IsPressed(Container) then
     WalkMult := 2 else
     WalkMult := 1;
 
