@@ -4199,13 +4199,15 @@ begin
     end;
 
     { mouse dragging navigation }
-    if MouseDraggingStarted and HandleMouseAndKeys and
+    if MouseDraggingStarted and
+       (ciMouseDragging in Input) and EnableDragging and
        ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
        { Enable dragging only when no modifiers, or Shift modifier
          (which may be used to activate running later) is pressed.
          This allows application to handle ctrl + dragging, alt + dragging
          in some custom ways (like view3dscene selecting a triangle). }
-       (Container.Pressed.Modifiers - [mkShift] = []) then
+       (Container.Pressed.Modifiers - [mkShift] = []) and
+       (not MouseLook) and HandleMouseAndKeys then
       MoveViaMouseDragging(Container.MouseX - MouseDownPos[0],
                            Container.MouseY - MouseDownPos[1]);
 
