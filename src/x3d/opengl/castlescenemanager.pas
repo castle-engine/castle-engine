@@ -82,6 +82,8 @@ type
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
 
+    FScreenSpaceAmbientOcclusion: boolean;
+
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
     { These variables are writeable from overridden ApplyProjection. }
@@ -92,6 +94,7 @@ type
     FProjectionFar : Single;
 
     ApplyProjectionNeeded: boolean;
+    SSAOShader: TGLSLProgram;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -353,6 +356,7 @@ type
     function ScreenEffectsNeedDepth: boolean; virtual;
     { @groupEnd }
 
+    procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
     { Instance for headlight that should be used for this scene.
@@ -627,6 +631,11 @@ type
     }
     property DefaultVisibilityLimit: Single
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
+
+    { Enable built-in SSAO screen effect in the world }
+
+    property ScreenSpaceAmbientOcclusion: boolean
+      read FScreenSpaceAmbientOcclusion write FScreenSpaceAmbientOcclusion default false;
   end;
 
   TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
@@ -2055,7 +2064,9 @@ end;
 
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
-  if GetMainScene <> nil then
+  if (Index = 0) and ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+    Result := SSAOShader
+  else if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffects(Index) else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
@@ -2066,13 +2077,43 @@ begin
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffectsCount else
     Result := 0;
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+    Inc(Result);
 end;
 
 function TCastleAbstractViewport.ScreenEffectsNeedDepth: boolean;
 begin
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+    Exit(true);
   if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffectsNeedDepth else
     Result := false;
+end;
+
+procedure TCastleAbstractViewport.GLContextOpen;
+begin
+  inherited;
+
+  if SSAOShader = nil then
+  begin
+    if (TGLSLProgram.ClassSupport <> gsNone) and
+       GL_ARB_texture_rectangle then
+    begin
+      try
+        SSAOShader := TGLSLProgram.Create;
+        SSAOShader.AttachFragmentShader({$I ssao.glsl.inc});
+        SSAOShader.Link(true);
+        SSAOShader.UniformNotFoundAction := uaIgnore;
+      except
+        on E: EGLSLError do
+        begin
+          //OnWarning(wtMinor, 'GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
+          FreeAndNil(SSAOShader);
+          ScreenSpaceAmbientOcclusion := false;
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure TCastleAbstractViewport.GLContextClose;
@@ -2081,6 +2122,7 @@ begin
   glFreeTexture(ScreenEffectTextureSrc);
   glFreeTexture(ScreenEffectTextureDepth);
   FreeAndNil(ScreenEffectRTT);
+  FreeAndNil(SSAOShader);
   inherited;
 end;
 
