@@ -356,6 +356,8 @@ type
     function ScreenEffectsNeedDepth: boolean; virtual;
     { @groupEnd }
 
+    function ScreenSpaceAmbientOcclusionAvailable: boolean;
+
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
 
@@ -2124,6 +2126,11 @@ begin
   FreeAndNil(ScreenEffectRTT);
   FreeAndNil(SSAOShader);
   inherited;
+end;
+
+function TCastleAbstractViewport.ScreenSpaceAmbientOcclusionAvailable: boolean;
+begin
+  Result := (SSAOShader<>nil);
 end;
 
 procedure TCastleAbstractViewport.CameraAnimateToDefault(const Time: TFloatTime);
