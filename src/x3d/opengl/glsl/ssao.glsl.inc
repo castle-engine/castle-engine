@@ -1,5 +1,5 @@
 { -*- buffer-read-only: t -*- }
-
+{ DON'T EDIT -- this file was automatically generated from "ssao.glsl" }
 '#extension GL_ARB_texture_rectangle : enable' + LineEnding + 
 'uniform sampler2DRect screen;' + LineEnding + 
 'uniform sampler2DRect screen_depth;' + LineEnding + 
@@ -13,8 +13,8 @@
 'float width = float(screen_width);' + LineEnding + 
 'float height = float(screen_height);' + LineEnding + 
 '' + LineEnding + 
-'float near = 1.0; //Z-near' + LineEnding + 
-'float far = 1000.0; //Z-far' + LineEnding + 
+'uniform float near; //Z-near' + LineEnding + 
+'uniform float far; //Z-far' + LineEnding + 
 '' + LineEnding + 
 'int samples = 6;//8; //samples on the first ring' + LineEnding + 
 'int rings = 3;//6; //ring count' + LineEnding + 

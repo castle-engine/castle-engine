@@ -96,6 +96,7 @@ type
     FOrthoViewDimensions: TVector4Single;
     FProjectionNear: Single;
     FProjectionFar : Single;
+    FProjectionFarFinite: Single;
 
     ApplyProjectionNeeded: boolean;
 
@@ -114,7 +115,8 @@ type
 
       Takes care of updating Camera.ProjectionMatrix,
       PerspectiveView, PerspectiveViewAngles, OrthoViewDimensions,
-      ProjectionNear, ProjectionFar, GetMainScene.BackgroundSkySphereRadius.
+      ProjectionNear, ProjectionFar, ProjectionFarFinite,
+      GetMainScene.BackgroundSkySphereRadius.
 
       This is automatically called at the beginning of our Render method,
       if it's needed.
@@ -269,11 +271,19 @@ type
 
     { Projection near/far values. ApplyProjection calculates it.
 
-      Note that ProjectionFar may be ZFarInfinity.
+      Note that ProjectionFar may be ZFarInfinity, which means that no far
+      clipping plane is used. For example, shadow volumes require this.
+
+      If you really need to know "what would be projection far,
+      if it could not be infinite" look at ProjectionFarFinite.
+      ProjectionFarFinite is calculated just like ProjectionFar
+      (looking at scene size, NavigationInfo.visibilityLimit and such),
+      except it's never changed to be ZFarInfinity.
 
       @groupBegin }
     property ProjectionNear: Single read FProjectionNear;
     property ProjectionFar : Single read FProjectionFar ;
+    property ProjectionFarFinite: Single read FProjectionFarFinite;
     { @groupEnd }
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
@@ -1546,6 +1556,10 @@ begin
         TBackground.NearFarToSkySphereRadius(FProjectionNear, FProjectionFar,
           GetMainScene.BackgroundSkySphereRadius);
 
+    { update ProjectionFarFinite.
+      ProjectionFar may be later changed to ZFarInfinity. }
+    FProjectionFarFinite := FProjectionFar;
+
     case ProjectionType of
       ptPerspective: DoPerspective;
       ptOrthographic: DoOrthographic;
@@ -1853,6 +1867,23 @@ var
           Shader.SetUniform('screen_depth', 1);
         Shader.SetUniform('screen_width', TGLint(ScreenEffectTextureWidth));
         Shader.SetUniform('screen_height', TGLint(ScreenEffectTextureHeight));
+
+        { set special uniforms for SSAO shader }
+        if Shader = SSAOShader then
+        begin
+         { TODO: use actual projection near/far values, instead of hardcoded ones.
+           Assignment below works, but it seems that effect is much less noticeable
+           then?
+
+          Writeln('setting near to ', ProjectionNear:0:10); // testing
+          Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
+          Shader.SetUniform('near', ProjectionNear);
+          Shader.SetUniform('far', ProjectionFarFinite);
+          }
+
+          Shader.SetUniform('near', 1.0);
+          Shader.SetUniform('far', 1000.0);
+        end;
 
         { Note that we ignore SetupUniforms result --- if some texture
           could not be bound, it will be undefined for shader.

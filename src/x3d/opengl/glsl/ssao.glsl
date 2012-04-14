@@ -11,8 +11,8 @@ uniform int screen_height;
 float width = float(screen_width);
 float height = float(screen_height);
 
-float near = 1.0; //Z-near
-float far = 1000.0; //Z-far
+uniform float near; //Z-near
+uniform float far; //Z-far
 
 int samples = 6;//8; //samples on the first ring
 int rings = 3;//6; //ring count
