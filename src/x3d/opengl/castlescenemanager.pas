@@ -369,6 +369,10 @@ type
     function ScreenEffectsNeedDepth: boolean; virtual;
     { @groupEnd }
 
+    { Does the graphic card support our ScreenSpaceAmbientOcclusion shader.
+      This does @italic(not) depend on the current state of
+      ScreenSpaceAmbientOcclusion property.
+      You can use it e.g. to disable the menu item to switch SSAO in 3D viewer. }
     function ScreenSpaceAmbientOcclusionAvailable: boolean;
 
     procedure GLContextOpen; override;
