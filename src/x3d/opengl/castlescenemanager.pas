@@ -24,6 +24,9 @@ uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShaders, GLImages, CastleTimeUtils,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
+const
+  DefaultScreenSpaceAmbientOcclusion = false;
+
 type
   TCastleAbstractViewport = class;
 
@@ -83,6 +86,7 @@ type
     FDefaultVisibilityLimit: Single;
 
     FScreenSpaceAmbientOcclusion: boolean;
+    SSAOShader: TGLSLProgram;
 
     procedure ItemsAndCameraCursorChange(Sender: TObject);
   protected
@@ -94,7 +98,6 @@ type
     FProjectionFar : Single;
 
     ApplyProjectionNeeded: boolean;
-    SSAOShader: TGLSLProgram;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -634,10 +637,10 @@ type
     property DefaultVisibilityLimit: Single
       read FDefaultVisibilityLimit write FDefaultVisibilityLimit default 0.0;
 
-    { Enable built-in SSAO screen effect in the world }
-
+    { Enable built-in SSAO screen effect in the world. }
     property ScreenSpaceAmbientOcclusion: boolean
-      read FScreenSpaceAmbientOcclusion write FScreenSpaceAmbientOcclusion default false;
+      read FScreenSpaceAmbientOcclusion write FScreenSpaceAmbientOcclusion
+      default DefaultScreenSpaceAmbientOcclusion;
   end;
 
   TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
@@ -2066,9 +2069,13 @@ end;
 
 function TCastleAbstractViewport.GetScreenEffects(const Index: Integer): TGLSLProgram;
 begin
-  if (Index = 0) and ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
-    Result := SSAOShader
-  else if GetMainScene <> nil then
+  if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
+  begin
+    if Index = 0 then
+      Result := SSAOShader else
+      Result := GetMainScene.ScreenEffects(Index - 1);
+  end else
+  if GetMainScene <> nil then
     Result := GetMainScene.ScreenEffects(Index) else
     { no Index is valid, since ScreenEffectsCount = 0 in this class }
     Result := nil;
@@ -2109,7 +2116,8 @@ begin
       except
         on E: EGLSLError do
         begin
-          //OnWarning(wtMinor, 'GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
+          if Log then
+            WritelnLog('GLSL', 'Error when initializing GLSL shader for ScreenSpaceAmbientOcclusionShader: ' + E.Message);
           FreeAndNil(SSAOShader);
           ScreenSpaceAmbientOcclusion := false;
         end;
