@@ -69,9 +69,9 @@
 '    fade *= 0.5;' + LineEnding + 
 '    for (int j = 0 ; j < samples*i; j += 1)' + LineEnding + 
 '    {' + LineEnding + 
-'      float step = PI*2.0 / (samples*i);' + LineEnding + 
-'      pw = (cos(j*step)*i);' + LineEnding + 
-'      ph = (sin(j*step)*i);' + LineEnding + 
+'      float step = PI*2.0 / float(samples*i);' + LineEnding + 
+'      pw = (cos(float(j)*step)*float(i));' + LineEnding + 
+'      ph = (sin(float(j)*step)*float(i));' + LineEnding + 
 '      d = readDepth(vec2(texCoord.s+pw*w,texCoord.t+ph*h));' + LineEnding + 
 '      ao += compareDepths(depth,d)*fade;' + LineEnding + 
 '      s += 1.0*fade;' + LineEnding + 

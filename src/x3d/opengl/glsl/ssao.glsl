@@ -67,9 +67,9 @@ void main(void)
     fade *= 0.5;
     for (int j = 0 ; j < samples*i; j += 1)
     {
-      float step = PI*2.0 / (samples*i);
-      pw = (cos(j*step)*i);
-      ph = (sin(j*step)*i);
+      float step = PI*2.0 / float(samples*i);
+      pw = (cos(float(j)*step)*float(i));
+      ph = (sin(float(j)*step)*float(i));
       d = readDepth(vec2(texCoord.s+pw*w,texCoord.t+ph*h));
       ao += compareDepths(depth,d)*fade;
       s += 1.0*fade;
