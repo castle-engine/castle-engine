@@ -18,78 +18,67 @@ unit GLAntiAliasing;
 
 interface
 
-const
-  MaxAntiAliasing = 4;
-  DefaultAntiAliasing = 0;
-
 type
-  TAntiAliasing = Cardinal;
-  TAntiAliasingRange = 0..MaxAntiAliasing;
+  TAntiAliasing = (aaNone,
+    aa2SamplesFaster, //< 2 samples, "don't care" hint.
+    aa2SamplesNicer,  //< 2 samples, "nicest" hint (quincunx (5 taps) for NVidia).
+    aa4SamplesFaster, //< 4 samples, "don't care" hint.
+    aa4SamplesNicer   //< 4 samples, "nicest" hint (9 taps for NVidia).
+  );
+
+const
+  DefaultAntiAliasing = aaNone;
+
+  AntiAliasingNames: array [TAntiAliasing] of string =
+  ( 'None',
+    '2 samples (faster)',
+    '2 samples (nicer)',
+    '4 samples (faster)',
+    '4 samples (nicer)'
+  );
 
 var
-  { Anti-aliasing level.
-
-    @unorderedList(
-      @item 0 - none
-      @item 1 - 2 samples, dont_care
-      @item 2 - 2 samples, nicest (quincunx (5 taps) for NVidia)
-      @item 3 - 4 samples, dont_care
-      @item 4 and more - 4 samples, nicest (9 taps for NVidia)
-    )
-  }
   AntiAliasing: TAntiAliasing = DefaultAntiAliasing;
 
-function AntiAliasingGlwMultiSampling: Cardinal;
+function AntiAliasingGLMultiSampling: Cardinal;
 
 procedure AntiAliasingGLOpen;
 
 procedure AntiAliasingEnable;
 procedure AntiAliasingDisable;
 
-function AntiAliasingToStr(Value: TAntiAliasing): string;
-
 implementation
 
-uses CastleGLUtils, GL, GLExt;
+uses CastleGLUtils, GL, GLExt, CastleUtils;
 
-function AntiAliasingGlwMultiSampling: Cardinal;
+function AntiAliasingGLMultiSampling: Cardinal;
 begin
   case AntiAliasing of
-    0: Result := 1;
-    1..2: Result := 2;
-    else Result := 4;
+    aaNone: Result := 1;
+    aa2SamplesFaster..aa2SamplesNicer: Result := 2;
+    aa4SamplesFaster..aa4SamplesNicer: Result := 4;
+    else raise EInternalError.Create('AntiAliasingGLMultiSampling:AntiAliasing?');
   end;
 end;
 
 procedure AntiAliasingGLOpen;
 begin
-  if ( (AntiAliasing = 2) or
-       (AntiAliasing >= 4) ) and
+  if ( (AntiAliasing = aa2SamplesNicer) or
+       (AntiAliasing = aa4SamplesNicer) ) and
      GL_NV_multisample_filter_hint then
     glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
 end;
 
 procedure AntiAliasingEnable;
 begin
-  if (AntiAliasing > 0) and GL_ARB_multisample then
+  if (AntiAliasing > aaNone) and GL_ARB_multisample then
     glEnable(GL_MULTISAMPLE_ARB);
 end;
 
 procedure AntiAliasingDisable;
 begin
-  if (AntiAliasing > 0) and GL_ARB_multisample then
+  if (AntiAliasing > aaNone) and GL_ARB_multisample then
     glDisable(GL_MULTISAMPLE_ARB);
-end;
-
-function AntiAliasingToStr(Value: TAntiAliasing): string;
-begin
-  case Value of
-    0: Result := 'None';
-    1: Result := '2 samples (faster)';
-    2: Result := '2 samples (nicer)';
-    3: Result := '4 samples (faster)';
-    else Result := '4 samples (nicer)';
-  end;
 end;
 
 end.
