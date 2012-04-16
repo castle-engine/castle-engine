@@ -198,6 +198,8 @@ begin
     if P1 = 0 then P0 := Count - 1 else P0 := P1 - 1;
     P2 := (P1 + 1) mod Count;
 
+    { TODO: need to check if Vert(P0)<>Vert(P1)<>Vert(P2) before doing normal}
+
     ConvexNormal := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
 
     Corners := Count; { Corners = always "how many Outs are false" }
@@ -209,6 +211,20 @@ begin
       while Corners >= 3 do
       begin
         Start := P0;
+
+        { remove duplicate vertices }
+        P0 := NextNotOut(Start);
+        P1 := P0;
+        repeat
+          P2 := NextNotOut(P1);
+          if VectorsEqual(Verts(P1), Verts(P2)) then
+          begin
+             Outs[P2] := true;
+             Dec(Corners);
+          end;
+          P1 := P2;
+        until P1 = P0;
+        if Corners < 3 then Break;  { TODO: Really? Will breaking here generate weird triangle? }
 
         { find next ear triangle }
         repeat
