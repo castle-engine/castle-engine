@@ -1238,6 +1238,9 @@ var
     a @italic(lot) of log messages, usually too many even for debugging. }
   LogRendererCache: boolean = false;
 
+{ Return GLSL library of functions to link with screen effect code. }
+function ScreenEffectLibrary(const Depth: boolean): string;
+
 {$undef read_interface}
 
 implementation
@@ -2618,6 +2621,7 @@ begin
         if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
         try
           ShaderProgram := TX3DGLSLProgram.Create(Self);
+          ShaderProgram.AttachFragmentShader(ScreenEffectLibrary(Node.FdNeedsDepth.Value));
           Shader.LinkProgram(ShaderProgram);
 
           { We have to ignore invalid uniforms, as it's normal that when
@@ -3912,6 +3916,20 @@ begin
       else raise EInternalError.Create('LineType?');
     end;
   end;
+end;
+
+{ functions ------------------------------------------------------------------ }
+
+function ScreenEffectLibrary(const Depth: boolean): string;
+const
+  MultiSampling = true; // TODO: hardcoded
+begin
+  Result := '';
+  if Depth then
+    Result += '#define DEPTH' +NL;
+  if MultiSampling then
+    Result += '#define MULTI_SAMPLING' +NL;
+  Result += {$I screen_effect_library.glsl.inc};
 end;
 
 end.

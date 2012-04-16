@@ -1,6 +1,9 @@
 #extension GL_ARB_texture_rectangle : enable
-uniform sampler2DRect screen;
-uniform sampler2DRect screen_depth;
+
+ivec2 screen_position();
+float screen_get_depth(ivec2 position);
+vec4 screen_get_color(ivec2 position);
+
 uniform int screen_width;
 uniform int screen_height;
 
@@ -17,8 +20,6 @@ uniform float far; //Z-far
 int samples = 6;//8; //samples on the first ring
 int rings = 3;//6; //ring count
 
-vec2 texCoord = gl_TexCoord[0].st;
-
 vec2 rand(in vec2 coord) //generating random noise
 {
   float noiseX = (fract(sin(dot(coord ,vec2(12.9898,78.233))) * 43758.5453));
@@ -26,9 +27,9 @@ vec2 rand(in vec2 coord) //generating random noise
   return vec2(noiseX,noiseY)*0.004;
 }
 
-float readDepth(in vec2 coord)
+float readDepth(const in ivec2 coord)
 {
-  return (2.0 * near) / (far + near - texture2DRect(screen_depth, coord).r * (far-near));
+  return (2.0 * near) / (far + near - screen_get_depth(coord) * (far-near));
 }
 
 float compareDepths( in float depth1, in float depth2 )
@@ -44,11 +45,12 @@ float compareDepths( in float depth1, in float depth2 )
 
 void main(void)
 {
-  float depth = readDepth(texCoord);
+  ivec2 current_pos = screen_position();
+  float depth = readDepth(current_pos);
   float d;
 
   float aspect = width/height;
-  vec2 noise = rand(texCoord);
+  vec2 noise = rand(vec2(current_pos));
 
   float w = (1.0 / width)/clamp(depth,0.05,1.0)+(noise.x*(1.0-noise.x));
   float h = (1.0 / height)/clamp(depth,0.05,1.0)+(noise.y*(1.0-noise.y));
@@ -70,7 +72,7 @@ void main(void)
       float step = PI*2.0 / float(samples*i);
       pw = (cos(float(j)*step)*float(i));
       ph = (sin(float(j)*step)*float(i));
-      d = readDepth(vec2(texCoord.s+pw*w,texCoord.t+ph*h));
+      d = readDepth(current_pos + ivec2(int(pw * w), int(ph * h)));
       ao += compareDepths(depth,d)*fade;
       s += 1.0*fade;
     }
@@ -79,11 +81,11 @@ void main(void)
   ao /= s;
   ao = 1.0-ao;
 
-  vec3 color = texture2DRect(screen,texCoord).rgb;
-  //vec3 luminance = texture2D(bgl_LuminanceTexture,texCoord).rgb;
+  vec3 color = screen_get_color(current_pos).rgb;
+  //vec3 luminance = texture2D(bgl_LuminanceTexture,vec2(current_pos)).rgb;
   //luminance = clamp(max(0.0,luminance-0.2)+max(0.0,luminance-0.2)+max(0.0,luminance-0.2),0.0,1.0);
   //gl_FragColor = vec4(color*mix(vec3(ao),vec3(1.0),luminance),1.0);
-  
+
   ao = ao * 0.8 + 0.2;
   gl_FragColor = vec4(color*vec3(ao),1.0);
   //gl_FragColor = vec4(vec3(ao), 1.0);  // ssao only

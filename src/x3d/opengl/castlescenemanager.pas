@@ -2184,6 +2184,7 @@ begin
       try
         SSAOShader := TGLSLProgram.Create;
         SSAOShader.AttachFragmentShader({$I ssao.glsl.inc});
+        SSAOShader.AttachFragmentShader(ScreenEffectLibrary(true));
         SSAOShader.Link(true);
         SSAOShader.UniformNotFoundAction := uaIgnore;
       except
