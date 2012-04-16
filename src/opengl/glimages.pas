@@ -628,7 +628,6 @@ type
     FramebufferBound: boolean;
     FColorBufferAlpha: boolean;
     FMultiSampling: Cardinal;
-    FEnableFramebuffer: boolean;
   public
     { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
@@ -834,13 +833,6 @@ type
       Ignored if not GLFBOMultiSampling. }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
-
-    { Enable using FBO for rendering to texture.
-      This should almost always remain @true, you want to use FBOs.
-      @false means that we actually render on screen and copy using glCopyTexSubImage,
-      which may be very slow and limits result size to the screen size. }
-    property EnableFramebuffer: boolean
-      read FEnableFramebuffer write FEnableFramebuffer default true;
   end;
 
 implementation
@@ -2076,7 +2068,6 @@ begin
   FWidth := AWidth;
   FHeight := AHeight;
   FMultiSampling := 1;
-  FEnableFramebuffer := true;
 end;
 
 destructor TGLRenderToTexture.Destroy;
@@ -2173,7 +2164,7 @@ var
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
-  if EnableFramebuffer and (GLFramebuffer <> gsNone) then
+  if GLFramebuffer <> gsNone then
   begin
     if (Width > GLMaxRenderbufferSize) or
        (Height > GLMaxRenderbufferSize) then
