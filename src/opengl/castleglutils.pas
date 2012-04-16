@@ -291,6 +291,13 @@ var
     a "core extesion", present the same way in OpenGL 3 core) is available. }
   GLFramebuffer: TGLSupport;
 
+  { Is multisampling possible for FBO buffers and textures.
+    Although these are two orthogonal features of OpenGL,
+    in practice you want to use multisample for both FBO buffers and textures,
+    or for none --- otherwise, FBO can not be initialized correctly
+    when you mix various multisample settings. }
+  GLFBOMultiSampling: boolean;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1162,6 +1169,11 @@ begin
                   Load_GL_ARB_vertex_shader and
                   Load_GL_ARB_fragment_shader and
                   Load_GL_ARB_shading_language_100;
+
+  GLFBOMultiSampling :=
+    { Is GL_ARB_framebuffer_object available? }
+    ({$ifdef HAS_GL_VERSION_ABOVE_2} GL_version_3_0 or {$endif} GL_ARB_framebuffer_object) and
+    Load_GL_ARB_texture_multisample;
 
   { Workaround http://bugs.freepascal.org/view.php?id=18613 }
   if GL_ARB_vertex_buffer_object then
@@ -2181,6 +2193,7 @@ begin
     '  GenerateMipmap available: ' + BoolToStr[HasGenerateMipmap] +nl+
     '  S3TC compressed textures: ' + BoolToStr[GL_ARB_texture_compression and GL_EXT_texture_compression_s3tc] +nl+
     '  3D textures: ' + GLSupportNames[GL3DTextures] +nl+
+    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFBOMultiSampling] +nl+
     nl+
     '  All extensions: ' +glGetString(GL_EXTENSIONS) +nl+
     nl+

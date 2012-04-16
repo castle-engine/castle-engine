@@ -627,6 +627,8 @@ type
 
     FramebufferBound: boolean;
     FColorBufferAlpha: boolean;
+    FMultiSampling: Cardinal;
+    FEnableFramebuffer: boolean;
   public
     { Constructor. Doesn't require OpenGL context,
       and doesn't initialize the framebuffer.
@@ -821,6 +823,24 @@ type
       This must be set before GLContextOpen, cannot be changed later. }
     property ColorBufferAlpha: boolean read FColorBufferAlpha write FColorBufferAlpha
       default false;
+
+    { All buffers (color and such) will be created with the
+      specified number of samples for multisampling.
+      Values greater than 1 mean that multisampling is used, which enables
+      anti-aliasing.
+      Note that all your textures (in @link(Texture), @link(DepthTexture))
+      must be created with the same number of samples.
+
+      Ignored if not GLFBOMultiSampling. }
+    property MultiSampling: Cardinal
+      read FMultiSampling write FMultiSampling default 1;
+
+    { Enable using FBO for rendering to texture.
+      This should almost always remain @true, you want to use FBOs.
+      @false means that we actually render on screen and copy using glCopyTexSubImage,
+      which may be very slow and limits result size to the screen size. }
+    property EnableFramebuffer: boolean
+      read FEnableFramebuffer write FEnableFramebuffer default true;
   end;
 
 implementation
@@ -2055,6 +2075,8 @@ begin
 
   FWidth := AWidth;
   FHeight := AHeight;
+  FMultiSampling := 1;
+  FEnableFramebuffer := true;
 end;
 
 destructor TGLRenderToTexture.Destroy;
@@ -2090,7 +2112,8 @@ procedure TGLRenderToTexture.GLContextOpen;
   function FramebufferStatusToString(const Status: TGLenum): string;
   begin
     { some of these messages based on spec wording
-      http://oss.sgi.com/projects/ogl-sample/registry/EXT/framebuffer_object.txt }
+      http://oss.sgi.com/projects/ogl-sample/registry/EXT/framebuffer_object.txt ,
+      http://www.opengl.org/registry/specs/ARB/framebuffer_object.txt }
     case Status of
       GL_FRAMEBUFFER_COMPLETE                          : Result := 'Complete (no error)';
       GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT             : Result := 'INCOMPLETE_ATTACHMENT: Not all framebuffer attachment points are "framebuffer attachment complete"';
@@ -2100,6 +2123,7 @@ procedure TGLRenderToTexture.GLContextOpen;
       GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER            : Result := 'INCOMPLETE_DRAW_BUFFER: The value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is NONE for some color attachment point(s) named by DRAW_BUFFERi';
       GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER            : Result := 'INCOMPLETE_READ_BUFFER: READ_BUFFER is not NONE, and the value of FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE is NONE for the color attachment point named by READ_BUFFER';
       GL_FRAMEBUFFER_UNSUPPORTED                       : Result := 'UNSUPPORTED: The combination of internal formats of the attached images violates an implementation-dependent set of restrictions';
+      GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE            : Result := 'INCOMPLETE_MULTISAMPLE: The value of RENDERBUFFER_SAMPLES is not the same for all attached images.';
       0: Result := 'OpenGL error during CheckFramebufferStatus';
       else Result := 'Unknown FramebufferStatus error: ' + gluErrorString(Status);
     end;
@@ -2120,7 +2144,9 @@ procedure TGLRenderToTexture.GLContextOpen;
         begin
           glGenRenderbuffers(1, @RenderbufferId);
           glBindRenderbuffer   (GL_RENDERBUFFER    , RenderbufferId);
-          glRenderbufferStorage   (GL_RENDERBUFFER    , InternalFormat, Width, Height);
+          if (MultiSampling > 1) and GLFBOMultiSampling then
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, MultiSampling, InternalFormat, Width, Height) else
+            glRenderbufferStorage           (GL_RENDERBUFFER,                InternalFormat, Width, Height);
           glFramebufferRenderbuffer   (GL_FRAMEBUFFER    , Attachment, GL_RENDERBUFFER    , RenderbufferId);
         end;
     end;
@@ -2147,7 +2173,7 @@ var
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
-  if GLFramebuffer <> gsNone then
+  if EnableFramebuffer and (GLFramebuffer <> gsNone) then
   begin
     if (Width > GLMaxRenderbufferSize) or
        (Height > GLMaxRenderbufferSize) then
@@ -2385,6 +2411,13 @@ begin
     glBindTexture(CompleteTextureTarget, Texture);
     glReadBuffer(GL_BACK);
     glCopyTexSubImage2D(TextureTarget, 0, 0, 0, 0, 0, Width, Height);
+
+    if Buffer = tbColorAndDepth then
+    begin
+      glBindTexture(DepthTextureTarget, DepthTexture);
+      glReadBuffer(GL_BACK);
+      glCopyTexSubImage2D(DepthTextureTarget, 0, 0, 0, 0, 0, Width, Height);
+    end;
   end;
 end;
 

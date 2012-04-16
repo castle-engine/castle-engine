@@ -16,6 +16,43 @@
 { Scene manager (TCastleSceneManager) and viewport (TCastleViewport) classes. }
 unit CastleSceneManager;
 
+{ Use glTexImage2DMultisample for screen effects with multi-sampling.
+
+  There are some troubles with glTexImage2DMultisample below:
+
+  - We prefer to have texture rectangles, with non-power-of-two size
+    and coordinates going from 0 to width (instead 0 to 1).
+    This addressing is more comfortable. Also, in my tests,
+    texture rectangles are just much more faster than normal non-power-of-two
+    2D textures.
+
+    So instead of GL_TEXTURE_2D_MULTISAMPLE, we would prefer something like
+    GL_TEXTURE_2D_MULTISAMPLE_RECTANGLE. But there's no such thing in OpenGL.
+
+  - We prefer to be able to sample such textures like normal
+    (non-multi-sampled) textures.
+    This way the code inside ScreenEffect will be able to stay unchanged,
+    regardless if anti-aliasing is used or not. But this seems not possible?
+    glTexImage2DMultisample docs say
+
+      When a multisample texture is accessed in a shader, the access
+      takes one vector of integers describing which texel to fetch
+      and an integer corresponding to the sample numbers
+      describing which sample within the texel to fetch.
+      No standard sampling instructions are allowed on the
+      multisample texture targets.
+
+    Not actually tested which texture functions in GLSL work and which do not.
+
+  - Also, current code does OpenGL errors "invalid argument" when
+    glTexImage2DMultisample is used. So I'm doing some other error,
+    using this texture not like it's supposed to be --- not debugged yet.
+
+  Undefine this symbol to use hack (on-screen rendering with glCopyTexSubImage)
+  to implement multi-sampling for screen effects.
+}
+{ $define ENABLE_SCREEN_EFFECT_MULTISAMPLING}
+
 interface
 
 uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
@@ -25,6 +62,7 @@ uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
 
 const
+  { }
   DefaultScreenSpaceAmbientOcclusion = false;
 
 type
@@ -69,10 +107,12 @@ type
     DefaultHeadlightNode: TDirectionalLightNode;
 
     { If a texture rectangle for screen effects is ready, then
-      ScreenEffectTextureDest/Src/Depth are non-zero and ScreenEffectRTT is non-nil.
+      ScreenEffectTextureDest/Src/Depth/Target are non-zero and
+      ScreenEffectRTT is non-nil.
       Also, ScreenEffectTextureWidth/Height indicate size of the texture,
       as well as ScreenEffectRTT.Width/Height. }
     ScreenEffectTextureDest, ScreenEffectTextureSrc: TGLuint;
+    ScreenEffectTextureTarget: TGLenum;
     ScreenEffectTextureDepth: TGLuint;
     ScreenEffectTextureWidth: Cardinal;
     ScreenEffectTextureHeight: Cardinal;
@@ -1849,13 +1889,13 @@ var
     with Viewport do
     begin
       glActiveTexture(GL_TEXTURE0); // GLUseMultiTexturing is already checked
-      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureSrc);
+      glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureSrc);
       BoundTextureUnits := 1;
 
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, ScreenEffectTextureDepth);
+        glBindTexture(ScreenEffectTextureTarget, ScreenEffectTextureDepth);
         Inc(BoundTextureUnits);
       end;
 
@@ -1922,7 +1962,7 @@ begin
     for I := 0 to CurrentScreenEffectsCount - 2 do
     begin
       ScreenEffectRTT.RenderBegin;
-      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
+      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
       RenderOneEffect(ScreenEffects[I]);
       ScreenEffectRTT.RenderEnd;
 
@@ -1938,34 +1978,57 @@ begin
   end;
 end;
 
+
+
 procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
 
   { Create and setup new OpenGL texture rectangle for screen effects.
     Depends on ScreenEffectTextureWidth, ScreenEffectTextureHeight being set. }
   function CreateScreenEffectTexture(const Depth: boolean): TGLuint;
+
+    { Create OpenGL texture rectangle for screen effect.
+      Calls glTexImage2D or glTexImage2DMultisample
+      (depending on multi-sampling requirements).
+
+      - image contents are always unallocated (pixels = nil for glTexImage2D).
+        For screen effects, we never need to load initial image contents,
+        and we also do not have to care about pixel packing.
+      - level for mipmaps is always 0
+      - border is always 0
+      - image target is ScreenEffectTextureTarget
+      - size is ScreenEffectTextureWidth/Height }
+    procedure TexImage2D(const InternalFormat: TGLint;
+      const Format, AType: TGLenum);
+    begin
+      {$ifdef ENABLE_SCREEN_EFFECT_MULTISAMPLING}
+      if (Container.MultiSampling > 1) and GLFBOMultiSampling then
+        glTexImage2DMultisample(ScreenEffectTextureTarget,
+          Container.MultiSampling, InternalFormat,
+          ScreenEffectTextureWidth,
+          ScreenEffectTextureHeight, GL_FALSE { TODO: false or true here? }) else
+      {$endif}
+        glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
+          ScreenEffectTextureWidth,
+          ScreenEffectTextureHeight, 0, Format, AType, nil);
+    end;
+
   begin
     { create new texture rectangle. }
     glGenTextures(1, @Result);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Result);
+    glBindTexture(ScreenEffectTextureTarget, Result);
     { TODO: or GL_LINEAR? Allow to config this and eventually change
       before each screen effect? }
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, CastleGL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, CastleGL_CLAMP_TO_EDGE);
-    { We never load image contents, so we also do not have to care about
-      pixel packing. }
+    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, CastleGL_CLAMP_TO_EDGE);
+    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, CastleGL_CLAMP_TO_EDGE);
     if Depth then
     begin
-      glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_DEPTH_COMPONENT,
-        ScreenEffectTextureWidth,
-        ScreenEffectTextureHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, nil);
-      //glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
-      //glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
+      TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
+      //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
+      //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
     end else
-      glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB8,
-        ScreenEffectTextureWidth,
-        ScreenEffectTextureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nil);
+      TexImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
   end;
 
 begin
@@ -1996,6 +2059,12 @@ begin
       glFreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
+      {$ifdef ENABLE_SCREEN_EFFECT_MULTISAMPLING}
+      if (Container.MultiSampling > 1) and GLFBOMultiSampling then
+        ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
+      {$endif}
+        ScreenEffectTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
+
       ScreenEffectTextureWidth := CorrectWidth;
       ScreenEffectTextureHeight := CorrectHeight;
       { We use two textures: ScreenEffectTextureDest is the destination
@@ -2016,13 +2085,20 @@ begin
       { create new TGLRenderToTexture (usually, framebuffer object) }
       ScreenEffectRTT := TGLRenderToTexture.Create(
         ScreenEffectTextureWidth, ScreenEffectTextureHeight);
-      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
-      ScreenEffectRTT.CompleteTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
+      ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
+      ScreenEffectRTT.CompleteTextureTarget := ScreenEffectTextureTarget;
+      {$ifdef ENABLE_SCREEN_EFFECT_MULTISAMPLING}
+      { use the same multi-sampling strategy as container }
+      ScreenEffectRTT.MultiSampling := Container.MultiSampling;
+      {$else}
+      if Container.MultiSampling > 1 then
+        ScreenEffectRTT.EnableFramebuffer := false;
+      {$endif}
       if CurrentScreenEffectsNeedDepth then
       begin
         ScreenEffectRTT.Buffer := tbColorAndDepth;
         ScreenEffectRTT.DepthTexture := ScreenEffectTextureDepth;
-        ScreenEffectRTT.DepthTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
+        ScreenEffectRTT.DepthTextureTarget := ScreenEffectTextureTarget;
       end else
         ScreenEffectRTT.Buffer := tbColor;
       { TODO: using stencil buffer with depth texture doesn't work
@@ -2040,12 +2116,12 @@ begin
 
     { We have to adjust glViewport.
       It will be restored from RenderScreenEffect right before actually
-      rendering to screen.  }
+      rendering to screen. }
     if not FullSize then
       glViewport(0, 0, CorrectWidth, CorrectHeight);
 
     ScreenEffectRTT.RenderBegin;
-    ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, GL_TEXTURE_RECTANGLE_ARB);
+    ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
     RenderFromViewEverything;
     ScreenEffectRTT.RenderEnd;
 
@@ -2057,13 +2133,13 @@ begin
 
       glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
-      glEnable(GL_TEXTURE_RECTANGLE_ARB);
+      glEnable(ScreenEffectTextureTarget);
 
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTexture(GL_TEXTURE1);
         glDisable(GL_TEXTURE_2D);
-        glEnable(GL_TEXTURE_RECTANGLE_ARB);
+        glEnable(ScreenEffectTextureTarget);
       end;
 
       glProjectionPushPopOrtho2D(@RenderScreenEffect, Self, 0, CorrectWidth, 0, CorrectHeight);
@@ -2071,11 +2147,11 @@ begin
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTexture(GL_TEXTURE1);
-        glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+        glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
       end;
 
       glActiveTexture(GL_TEXTURE0);
-      glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+      glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
 
       { at the end, we left active texture as default GL_TEXTURE0 }
     glPopAttrib;
@@ -2166,6 +2242,7 @@ begin
   glFreeTexture(ScreenEffectTextureDest);
   glFreeTexture(ScreenEffectTextureSrc);
   glFreeTexture(ScreenEffectTextureDepth);
+  ScreenEffectTextureTarget := 0; //< clear, for safety
   FreeAndNil(ScreenEffectRTT);
   FreeAndNil(SSAOShader);
   inherited;
