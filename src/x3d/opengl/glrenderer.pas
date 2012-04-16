@@ -1216,7 +1216,8 @@ type
 
       The GLSL program (TGLSLProgram) will be stored here,
       and will be automatically freed during UnprepareAll call. }
-    procedure PrepareScreenEffect(Node: TScreenEffectNode);
+    procedure PrepareScreenEffect(Node: TScreenEffectNode;
+      const MultiSampling: Cardinal);
   end;
 
   EGLRendererror = class(EX3DError);
@@ -1238,8 +1239,14 @@ var
     a @italic(lot) of log messages, usually too many even for debugging. }
   LogRendererCache: boolean = false;
 
-{ Return GLSL library of functions to link with screen effect code. }
-function ScreenEffectLibrary(const Depth: boolean): string;
+{ Return GLSL library of functions to link with screen effect code.
+
+  MultiSampling should correspond to the amount of multi-sampling
+  you plan to use for screen effect textures with TGLRenderToTexture.
+  We will automatically ignore it (treat as 1, which means "no multi-sampling")
+  if GLFBOMultiSampling is @false. }
+function ScreenEffectLibrary(const Depth: boolean;
+  const MultiSampling: Cardinal): string;
 
 {$undef read_interface}
 
@@ -2599,7 +2606,8 @@ begin
   end;
 end;
 
-procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
+procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode;
+  const MultiSampling: Cardinal);
 var
   Shader: TShader;
   ShaderProgram: TX3DGLSLProgram;
@@ -2621,7 +2629,7 @@ begin
         if Shader.EnableCustomShaderCode(Node.FdShaders, ShaderNode) then
         try
           ShaderProgram := TX3DGLSLProgram.Create(Self);
-          ShaderProgram.AttachFragmentShader(ScreenEffectLibrary(Node.FdNeedsDepth.Value));
+          ShaderProgram.AttachFragmentShader(ScreenEffectLibrary(Node.FdNeedsDepth.Value, MultiSampling));
           Shader.LinkProgram(ShaderProgram);
 
           { We have to ignore invalid uniforms, as it's normal that when
@@ -3920,15 +3928,22 @@ end;
 
 { functions ------------------------------------------------------------------ }
 
-function ScreenEffectLibrary(const Depth: boolean): string;
-const
-  MultiSampling = true; // TODO: hardcoded
+function ScreenEffectLibrary(const Depth: boolean;
+  const MultiSampling: Cardinal): string;
 begin
   Result := '';
   if Depth then
     Result += '#define DEPTH' +NL;
-  if MultiSampling then
-    Result += '#define MULTI_SAMPLING' +NL;
+  if GLFBOMultiSampling then
+  begin
+    case MultiSampling of
+      1: ;
+      2: Result += '#define MULTI_SAMPLING' +NL + '#define MULTI_SAMPLING_2' +NL;
+      4: Result += '#define MULTI_SAMPLING' +NL + '#define MULTI_SAMPLING_4' +NL;
+      else raise EInternalError.CreateFmt('Invalid MultiSampling value for ScreenEffectLibrary: %d',
+        [MultiSampling]);
+    end;
+  end;
   Result += {$I screen_effect_library.glsl.inc};
 end;
 

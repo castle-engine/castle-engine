@@ -267,6 +267,8 @@ type
 
     Statistics: TRenderStatistics;
 
+    MultiSampling: Cardinal;
+
     constructor Create;
 
     { Lights that shine on given 3D object. }
@@ -572,7 +574,8 @@ type
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;
-      BaseLights: TAbstractLightInstancesList); virtual;
+      BaseLights: TAbstractLightInstancesList;
+      const MultiSampling: Cardinal); virtual;
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
@@ -997,7 +1000,8 @@ type
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;
-      BaseLights: TAbstractLightInstancesList); override;
+      BaseLights: TAbstractLightInstancesList;
+      const MultiSampling: Cardinal); override;
     function PrepareResourcesSteps: Cardinal; override;
     function KeyDown(Key: TKey; C: char): boolean; override;
     function KeyUp(Key: TKey; C: char): boolean; override;
@@ -1608,6 +1612,7 @@ begin
   inherited;
   RenderTransform := IdentityMatrix4Single;
   RenderTransformIdentity := true;
+  MultiSampling := 1;
 end;
 
 { T3D -------------------------------------------------------------------- }
@@ -1639,7 +1644,8 @@ begin
 end;
 
 procedure T3D.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
+  const MultiSampling: Cardinal);
 begin
 end;
 
@@ -2195,15 +2201,16 @@ begin
 end;
 
 procedure T3DList.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
+  const MultiSampling: Cardinal);
 var
   I: Integer;
 begin
   inherited;
   if GetChild <> nil then
-    GetChild.PrepareResources(Options, ProgressStep, BaseLights);
+    GetChild.PrepareResources(Options, ProgressStep, BaseLights, MultiSampling);
   for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep, BaseLights);
+    List[I].PrepareResources(Options, ProgressStep, BaseLights, MultiSampling);
 end;
 
 function T3DList.PrepareResourcesSteps: Cardinal;

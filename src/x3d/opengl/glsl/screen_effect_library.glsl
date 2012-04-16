@@ -1,6 +1,10 @@
 /* The library of common functions for GLSL screen effects.
    The ObjectPascal code that includes this will take care to define (or not)
-   symbols MULTI_SAMPLING, DEPTH at the beginning of this file. */
+   symbols MULTI_SAMPLING_x, DEPTH at the beginning of this file.
+   Screen effect code using these functions is safe to work both with and without
+   multi-sampling.
+*/
+
 #ifdef MULTI_SAMPLING
   #extension GL_ARB_texture_multisample : enable
   uniform sampler2DMS screen;
@@ -32,26 +36,36 @@ int screen_y()
 
 vec4 screen_get_color(ivec2 position)
 {
-#ifdef MULTI_SAMPLING
+#ifdef MULTI_SAMPLING_4
   return ( texelFetch(screen, position, 0) +
            texelFetch(screen, position, 1) +
            texelFetch(screen, position, 2) +
            texelFetch(screen, position, 3) ) / 4.0;
 #else
+#ifdef MULTI_SAMPLING_2
+  return ( texelFetch(screen, position, 0) +
+           texelFetch(screen, position, 1) ) / 2.0;
+#else
   return texture2DRect(screen, vec2(position));
+#endif
 #endif
 }
 
 #ifdef DEPTH
 float screen_get_depth(ivec2 position)
 {
-#ifdef MULTI_SAMPLING
+#ifdef MULTI_SAMPLING_4
   return ( texelFetch(screen_depth, position, 0).r +
            texelFetch(screen_depth, position, 1).r +
            texelFetch(screen_depth, position, 2).r +
            texelFetch(screen_depth, position, 3).r ) / 4.0;
 #else
+#ifdef MULTI_SAMPLING_2
+  return ( texelFetch(screen_depth, position, 0).r +
+           texelFetch(screen_depth, position, 1).r ) / 2.0;
+#else
   return texture2DRect(screen_depth, vec2(position)).r;
+#endif
 #endif
 }
 #endif

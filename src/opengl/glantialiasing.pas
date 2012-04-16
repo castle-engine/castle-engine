@@ -53,6 +53,10 @@ uses CastleGLUtils, GL, GLExt, CastleUtils;
 
 function AntiAliasingGLMultiSampling: Cardinal;
 begin
+  { When extending possible results of this function, remember to also
+    update ScreenEffectLibrary implementation to be able to handle them
+    (and screen_effect_library.glsl to handle them in GLSL). }
+
   case AntiAliasing of
     aaNone: Result := 1;
     aa2SamplesFaster..aa2SamplesNicer: Result := 2;

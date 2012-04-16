@@ -1822,7 +1822,7 @@ begin
   { clear FRenderParams instance }
 
   FRenderParams.Pass := 0;
-
+  FRenderParams.MultiSampling := Container.MultiSampling;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
   FRenderParams.FBaseLights[false].Clear;
@@ -2157,7 +2157,7 @@ end;
 function TCastleAbstractViewport.ScreenEffectsCount: Integer;
 begin
   if GetMainScene <> nil then
-    Result := GetMainScene.ScreenEffectsCount else
+    Result := GetMainScene.ScreenEffectsCount(Container.MultiSampling) else
     Result := 0;
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
@@ -2184,7 +2184,7 @@ begin
       try
         SSAOShader := TGLSLProgram.Create;
         SSAOShader.AttachFragmentShader({$I ssao.glsl.inc});
-        SSAOShader.AttachFragmentShader(ScreenEffectLibrary(true));
+        SSAOShader.AttachFragmentShader(ScreenEffectLibrary(true, Container.MultiSampling));
         SSAOShader.Link(true);
         SSAOShader.UniformNotFoundAction := uaIgnore;
       except
@@ -2705,10 +2705,10 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Items.PrepareResources(Options, true, BaseLights);
+        Items.PrepareResources(Options, true, BaseLights, Container.MultiSampling);
       finally Progress.Fini end;
     end else
-      Items.PrepareResources(Options, false, BaseLights);
+      Items.PrepareResources(Options, false, BaseLights, Container.MultiSampling);
 
     NeedsUpdateGeneratedTextures := true;
   end;

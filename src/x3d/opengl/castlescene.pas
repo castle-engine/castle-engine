@@ -570,7 +570,8 @@ type
     procedure GLContextClose; override;
 
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
+      const MultiSampling: Cardinal); override;
 
     { Render for OpenGL. The rendering parameters are configurable
       by @link(Attributes), see TSceneRenderingAttributes and
@@ -842,9 +843,12 @@ type
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
 
     { Screen effects information, used by TCastleAbstractViewport.ScreenEffects.
+      ScreenEffectsCount may actually prepare screen effects,
+      so it needs to know MultiSampling that will be used for their textures
+      (to compile correct GLSL code).
       @groupBegin }
     function ScreenEffects(Index: Integer): TGLSLProgram;
-    function ScreenEffectsCount: Integer;
+    function ScreenEffectsCount(const MultiSampling: Cardinal): Integer;
     function ScreenEffectsNeedDepth: boolean;
     { @groupEnd }
   published
@@ -2178,7 +2182,9 @@ begin
 end;
 
 procedure TCastleScene.PrepareResources(
-  Options: TPrepareResourcesOptions; ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+  Options: TPrepareResourcesOptions; ProgressStep: boolean;
+  BaseLights: TAbstractLightInstancesList;
+  const MultiSampling: Cardinal);
 
   procedure PrepareAllShapes;
   var
@@ -2245,7 +2251,8 @@ begin
   if prScreenEffects in Options then
   begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
-      Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
+      Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode,
+        MultiSampling);
   end;
 end;
 
@@ -2394,7 +2401,7 @@ begin
         before actually rendering the shape).
 
       It's much simpler to just call PrepareResources at the beginning. }
-    PrepareResources([prRender], false, Params.BaseLights(Self));
+    PrepareResources([prRender], false, Params.BaseLights(Self), Params.MultiSampling);
 
     RenderWithShadowMaps;
   end;
@@ -3654,7 +3661,7 @@ begin
   end;
 end;
 
-function TCastleScene.ScreenEffectsCount: Integer;
+function TCastleScene.ScreenEffectsCount(const MultiSampling: Cardinal): Integer;
 var
   I: Integer;
   SE: TScreenEffectNode;
@@ -3664,7 +3671,7 @@ begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
     begin
       SE := TScreenEffectNode(ScreenEffectNodes[I]);
-      Renderer.PrepareScreenEffect(SE);
+      Renderer.PrepareScreenEffect(SE, MultiSampling);
       if SE.Shader <> nil then
         Inc(Result);
     end;
