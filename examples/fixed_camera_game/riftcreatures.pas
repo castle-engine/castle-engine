@@ -233,7 +233,8 @@ procedure TCreatureKind.LoadInternal(const BaseLights: TLightInstancesList);
 
   procedure AnimationPrepareResources(A: TCastlePrecalculatedAnimation);
   begin
-    A.PrepareResources([prRender, prBoundingBox] + prShadowVolume, false, BaseLights);
+    A.PrepareResources([prRender, prBoundingBox] + prShadowVolume, false, BaseLights,
+      1 { MultiSampling = 1, it is ignored as we do not include prScreenEffects });
   end;
 
 const

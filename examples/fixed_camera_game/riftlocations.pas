@@ -95,7 +95,8 @@ begin
   { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
   Scene.Attributes.Mode := rmDepth;
 
-  Scene.PrepareResources([prRender, prBoundingBox], false, BaseLights);
+  Scene.PrepareResources([prRender, prBoundingBox], false, BaseLights,
+    1 { MultiSampling = 1, it is ignored as we do not include prScreenEffects });
   Progress.Step;
 
   { prepare octrees }
