@@ -1076,6 +1076,7 @@ type
     function GetHeight: Integer;
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;
+    function GetMultiSampling: Cardinal;
   public
 
     { Handle appropriate event.
@@ -4060,6 +4061,11 @@ end;
 function TCastleWindowBase.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
+end;
+
+function TCastleWindowBase.GetMultiSampling: Cardinal;
+begin
+  Result := FMultiSampling;
 end;
 
 procedure TCastleWindowBase.MenuUpdateBegin;
