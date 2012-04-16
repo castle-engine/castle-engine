@@ -259,12 +259,12 @@ There is an example of this in model_3d_with_2d_controls example in engine sourc
 
 11. Background under on-screen menu
 
-In addition to previous point, you may want to change the menu FullSize to true. Otherwise, menu receives input only when mouse hovers over it. When FullSize, the menu obscures completely controls under it for key processing (although they are still visible as a background).
+In addition to previous point, you may want to change the menu TCastleOnScreenMenu.FullSize to true. Otherwise, menu receives input only when mouse hovers over it. When FullSize, the menu obscures completely controls under it for key processing (although they are still visible as a background).
 
 - So if you want your menu to be displayed and used orthogonally to the "live" 3D world underneath, leave FullSize = false.
 - For initial game menu with items like "New Game", you probably want to disable the camera input for this scene. This allows you to display interactive 3D scene in the background, but block user from interacting with it (after all, the user should only interact with your menu on the initial screen). To do this simply set FullSize = true.
 
-An alternative method to achieve (part) of 2nd choice is to set background level camera's IgnoreAllInputs to true. This also blocks user from moving in the scene (although it doesn't make input passed to menu regardless of mouse position).
+An alternative method to achieve (part) of 2nd choice is to set background level camera's Input := []. This also blocks user from moving in the scene (although it doesn't make input passed to menu regardless of mouse position).
 
 If you want to place a static 2D image under menu, you can use TCastleImageControl underneath, instead of 3D scene.
 
@@ -283,7 +283,7 @@ begin
 end;
 ]]
 
-TRGBImage, and it's ancestor TImage and many other similar classes, is defined in the unit Images. This provides various image loading, saving and processing utilities to our engine. By having our own image handling unit, we can store images in the format best suitable for 3D graphics libraries, like OpenGL (for example, our class TS3TCImage to handle S3TC compressed images is tightly integrated there; we also handle there 3D textures).
+TRGBImage, and it's ancestor TCastleImage and many other similar classes, is defined in the unit Images. This provides various image loading, saving and processing utilities to our engine. By having our own image handling unit, we can store images in the format best suitable for 3D graphics libraries, like OpenGL (for example, our class TS3TCImage to handle S3TC compressed images is tightly integrated there; we also handle there 3D textures).
 
 Still, we use the excellent FPC FpImage library to load/save some image formats underneath. So we do not implement everything from stratch here, we *are* using FpImage loading/saving features.
 
