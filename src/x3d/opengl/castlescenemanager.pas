@@ -44,10 +44,6 @@ unit CastleSceneManager;
 
     Not actually tested which texture functions in GLSL work and which do not.
 
-  - Also, current code does OpenGL errors "invalid argument" when
-    glTexImage2DMultisample is used. So I'm doing some other error,
-    using this texture not like it's supposed to be --- not debugged yet.
-
   Undefine this symbol to use hack (on-screen rendering with glCopyTexSubImage)
   to implement multi-sampling for screen effects.
 }
@@ -2016,12 +2012,17 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
     { create new texture rectangle. }
     glGenTextures(1, @Result);
     glBindTexture(ScreenEffectTextureTarget, Result);
-    { TODO: or GL_LINEAR? Allow to config this and eventually change
-      before each screen effect? }
-    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, CastleGL_CLAMP_TO_EDGE);
-    glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, CastleGL_CLAMP_TO_EDGE);
+    { for multisample texture, these cannot be configured (OpenGL makes
+      "invalid enumerant" error) }
+    if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
+    begin
+      { TODO: NEAREST or LINEAR? Allow to config this and eventually change
+        before each screen effect? }
+      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_S, CastleGL_CLAMP_TO_EDGE);
+      glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_WRAP_T, CastleGL_CLAMP_TO_EDGE);
+    end;
     if Depth then
     begin
       TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
@@ -2133,13 +2134,15 @@ begin
 
       glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
-      glEnable(ScreenEffectTextureTarget);
+      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
+        glEnable(ScreenEffectTextureTarget);
 
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTexture(GL_TEXTURE1);
         glDisable(GL_TEXTURE_2D);
-        glEnable(ScreenEffectTextureTarget);
+        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
+          glEnable(ScreenEffectTextureTarget);
       end;
 
       glProjectionPushPopOrtho2D(@RenderScreenEffect, Self, 0, CorrectWidth, 0, CorrectHeight);
@@ -2147,11 +2150,13 @@ begin
       if CurrentScreenEffectsNeedDepth then
       begin
         glActiveTexture(GL_TEXTURE1);
-        glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+        if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
+          glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
       end;
 
       glActiveTexture(GL_TEXTURE0);
-      glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
+      if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
+        glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
 
       { at the end, we left active texture as default GL_TEXTURE0 }
     glPopAttrib;
