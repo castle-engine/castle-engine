@@ -124,6 +124,18 @@ procedure TriangulateFace(
   Vertices: TGetVertexFromIndexFunc; TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
+  { Previous and Next in modulo Count (0.. Count - 1) range. }
+  function Previous(const I: Integer): Integer;
+  begin
+    Result := I - 1;
+    if Result = -1 then Result += Count;
+  end;
+
+  function Next(const I: Integer): Integer;
+  begin
+    Result := (I + 1) mod Count;
+  end;
+
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
     TriangulatorProc(Vector3Longint(
@@ -169,7 +181,7 @@ var
   function NextNotOut(Index: Integer): Integer;
   begin
     Result := Index;
-    repeat Result := (Result+1) mod Count until not Outs[Result];
+    repeat Result := Next(Result) until not Outs[Result];
   end;
 
 var
@@ -198,12 +210,32 @@ begin
       We calculate them only for the sake of calculating ConvexNormal
       (they do not determine triangulation in any other way). }
     P1 := MostDistantVertex;
-    if P1 = 0 then P0 := Count - 1 else P0 := P1 - 1;
-    P2 := (P1 + 1) mod Count;
+    { P0 := previous from P1, with different value. }
+    P0 := P1;
+    repeat
+      P0 := Previous(P0);
+    until (P0 = P1) or not VectorsEqual(Verts(P0), Verts(P1));
+    if P0 = P1 then
+    begin
+      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
+      Exit;
+    end;
+    { P2 := next from P1, resulting in valid triangle P0-P1-P2. }
+    P2 := P1;
+    repeat
+      P2 := Next(P2);
+      ConvexNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+      { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
+        because if ConvexNormal is non-zero then they had to be different. }
+    until (P2 = P1) or not ZeroVector(ConvexNormal);
+    if P2 = P1 then
+    begin
+      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
+      Exit;
+    end;
 
-    { TODO: need to check if Vert(P0)<>Vert(P1)<>Vert(P2) before doing normal}
-
-    ConvexNormal := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
+    Assert(not ZeroVector(ConvexNormal));
+    NormalizeTo1st(ConvexNormal);
 
     Corners := Count; { Corners = always "how many Outs are false" }
     { This initial P0 value is a "border", used to prevent an infinite loop
@@ -254,12 +286,18 @@ begin
             2 valid "ears" to cut off. }
           if P0 = Start then
           begin
-            if Log then
-              WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), otherwise report a bug.');
+            if Log then WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), otherwise report a bug.');
             Break;
           end;
 
-          NN := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
+          NN := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+          if ZeroVector(NN) then
+          begin
+            if Log then WritelnLog('Triangulator', 'Triangle inside polygon is degenerated, (TODO) rejecting.');
+//            Break; // TODO: do something here. It seems that break would be Ok, just cut off P1?
+          end;
+          NormalizeTo1st(NN);
+
           { DistanceSqr is used to check that P0-P1-P2 has roughly the same
             orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
