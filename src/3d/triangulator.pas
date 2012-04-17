@@ -177,7 +177,10 @@ var
   Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   Empty: boolean;
+  EpsilonForEmptyCheck: Single;
 begin
+  EpsilonForEmptyCheck := SingleEqualityEpsilon;
+
   if Count = 3 then
     { For Count = 3 this is trivial, do it fast. }
     NewTriangle(0, 1, 2) else
@@ -203,7 +206,14 @@ begin
     ConvexNormal := TriangleNormal(Verts(P0), Verts(P1), Verts(P2));
 
     Corners := Count; { Corners = always "how many Outs are false" }
-    P0 := -1;
+    { This initial P0 value is a "border", used to prevent an infinite loop
+      when we cannot find good ear triangle (which is always possible due
+      to lack of floating-point precision).
+      It will always be increased by first "P0 := NextNotOut(P0);".
+      It must be a valid vertex index, otherwise condition "P0 = Start"
+      could never occur and we would loop forever (testcase:
+      change EpsilonForEmptyCheck to 0, and run on demo_models/x3d/concave.x3dv). }
+    P0 := Count - 1;
     Outs := TBooleanList.Create;
     try
       Outs.Count := Count; { TFPGList initialized everything to false }
@@ -273,9 +283,9 @@ begin
                (I <> P0) and
                (I <> P1) and
                (I <> P2) and
-               (VectorDotProduct(E1, Verts(I) - Verts(P0)) <= -SingleEqualityEpsilon) and
-               (VectorDotProduct(E2, Verts(I) - Verts(P1)) <= -SingleEqualityEpsilon) and
-               (VectorDotProduct(E3, Verts(I) - Verts(P2)) <= -SingleEqualityEpsilon) then
+               (VectorDotProduct(E1, Verts(I) - Verts(P0)) <= -EpsilonForEmptyCheck) and
+               (VectorDotProduct(E2, Verts(I) - Verts(P1)) <= -EpsilonForEmptyCheck) and
+               (VectorDotProduct(E3, Verts(I) - Verts(P2)) <= -EpsilonForEmptyCheck) then
             begin
               Empty := false;
               Break;
