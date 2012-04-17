@@ -185,7 +185,7 @@ var
   end;
 
 var
-  ConvexNormal, Center, NN, E1, E2, E3: TVector3Single;
+  PolygonNormal, Center, EarNormal, E1, E2, E3: TVector3Single;
   Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   Empty: boolean;
@@ -207,7 +207,7 @@ begin
     MostDistantVertex := GetMostDistantVertex(Center);
 
     { P1 is the most distant vertex, P0 is previous, P2 is next.
-      We calculate them only for the sake of calculating ConvexNormal
+      We calculate them only for the sake of calculating PolygonNormal
       (they do not determine triangulation in any other way). }
     P1 := MostDistantVertex;
     { P0 := previous from P1, with different value. }
@@ -224,18 +224,18 @@ begin
     P2 := P1;
     repeat
       P2 := Next(P2);
-      ConvexNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+      PolygonNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
       { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
-        because if ConvexNormal is non-zero then they had to be different. }
-    until (P2 = P1) or not ZeroVector(ConvexNormal);
+        because if PolygonNormal is non-zero then they had to be different. }
+    until (P2 = P1) or not ZeroVector(PolygonNormal);
     if P2 = P1 then
     begin
       if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
       Exit;
     end;
 
-    Assert(not ZeroVector(ConvexNormal));
-    NormalizeTo1st(ConvexNormal);
+    Assert(not ZeroVector(PolygonNormal));
+    NormalizeTo1st(PolygonNormal);
 
     Corners := Count; { Corners = always "how many Outs are false" }
     { This initial P0 value is a "border", used to prevent an infinite loop
@@ -286,26 +286,26 @@ begin
             2 valid "ears" to cut off. }
           if P0 = Start then
           begin
-            if Log then WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), otherwise report a bug.');
+            if Log then WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), or self-intersecting polygon, otherwise report a bug.');
             Break;
           end;
 
-          NN := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
-          if ZeroVector(NN) then
+          EarNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+          if ZeroVector(EarNormal) then
           begin
             if Log then WritelnLog('Triangulator', 'Triangle inside polygon is degenerated, (TODO) rejecting.');
 //            Break; // TODO: do something here. It seems that break would be Ok, just cut off P1?
           end;
-          NormalizeTo1st(NN);
+          NormalizeTo1st(EarNormal);
 
           { DistanceSqr is used to check that P0-P1-P2 has roughly the same
             orientation as whole polygon, not reverted. }
-          DistanceSqr := PointsDistanceSqr(NN, ConvexNormal);
+          DistanceSqr := PointsDistanceSqr(EarNormal, PolygonNormal);
 
           { vectors orthogonal to triangle edges going *outside* from the triangle }
-          E1 := VectorProduct(NN, Verts(P0) - Verts(P1));
-          E2 := VectorProduct(NN, Verts(P1) - Verts(P2));
-          E3 := VectorProduct(NN, Verts(P2) - Verts(P0));
+          E1 := VectorProduct(EarNormal, Verts(P0) - Verts(P1));
+          E2 := VectorProduct(EarNormal, Verts(P1) - Verts(P2));
+          E3 := VectorProduct(EarNormal, Verts(P2) - Verts(P0));
 
           Empty := true;
           for I := 0 to Count - 1 do
