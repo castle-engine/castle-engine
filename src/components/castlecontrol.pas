@@ -894,15 +894,15 @@ begin
   Result := FPressed;
 end;
 
-//{$define LazarusSupportsMultisamplig}
+//{$define LazarusSupportsMultiSampling}
 
 function TCastleControlBase.GetMultiSampling: Cardinal;
 begin
-{$ifdef LazarusSupportsMultisamplig}
-  if AntiAliasing then
-    Result := 4 else
+{$ifdef LazarusSupportsMultiSampling}
+   Result := MultiSampling;
+{$else}
+   Result := 1;
 {$endif}
-    Result := 1;
 end;
 
 { TControlledUIControlList ----------------------------------------------------- }
