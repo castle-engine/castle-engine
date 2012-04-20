@@ -1553,6 +1553,11 @@ end;
 
 procedure TCastleControl.Load(const SceneFileName: string);
 begin
+  { free allocated memory *before* loading new scene }
+  SceneManager.MainScene.Free;
+  SceneManager.MainScene := nil;
+  SceneManager.Items.Clear;
+
   Load(Load3D(SceneFileName, false), true);
 end;
 
