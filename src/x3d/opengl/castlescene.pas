@@ -2044,7 +2044,7 @@ var
               has a problem at initialization, when multiple sensors
               send isActive = TRUE, and X3D mechanism to avoid loops
               kicks in. }
-            Inc(Time.PlusTicks);
+            IncreaseTimeTick;
             { calculate NewActive }
             NewActive := false;
             Instances := VisibilitySensors.Data[I];

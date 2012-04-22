@@ -754,7 +754,7 @@ end;
 
 procedure TUIControlList.SetItem(const I: Integer; const Item: TUIControl);
 begin
-  (inherited Items[I]) := Item;
+  inherited Items[I] := Item;
 end;
 
 procedure TUIControlList.Add(Item: TUIControl);

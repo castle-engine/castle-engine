@@ -47,10 +47,6 @@ const
 {$I glext_arb_framebuffer_object.inc}
 {$I glext_ext_fog_coord.inc}
 
-{ ------------------------------------------------------------ }
-{ @section(Utils needed only when using GL, GLU, GLExt bindings.
-  Not needed when using OpenGLh binding.) }
-
 type
   { Types with leading "T" } { }
   TGLenum     = GLenum;
@@ -89,7 +85,11 @@ const
       {$endif}
     {$endif};
 
+{ OpenGL versions and extensions and features -------------------------------- }
+
 var
+  { OpenGL versions supported. Checked by looking at GL version string
+    @italic(and) by checking whether actual entry points are available. }
   GL_version_1_2: boolean;
   GL_version_1_3: boolean;
   GL_version_1_4: boolean;
@@ -1508,8 +1508,7 @@ begin
   end;
 end;
 
-{inne proste procedury pomocnicze
- --------------------------------------------------------------------------------------}
+{ Various helpers ------------------------------------------------------------ }
 
 procedure SetGLenabled(value: TGLenum; isEnabled: boolean);
 begin
