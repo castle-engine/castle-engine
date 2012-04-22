@@ -1,0 +1,342 @@
+diff -ur old/glcarbonaglcontext.pas new/glcarbonaglcontext.pas
+--- old/glcarbonaglcontext.pas	2010-08-22 20:40:08.000000000 +0200
++++ new/glcarbonaglcontext.pas	2012-04-22 15:49:10.000000000 +0200
+@@ -32,7 +32,7 @@
+ procedure LOpenGLClip(Handle: HWND);
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+               {%H-}WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-              DoubleBuffered, RGBA: boolean;
++              DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+               const {%H-}AParams: TCreateParams): HWND;
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
+ function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
+@@ -162,7 +162,7 @@
+ 
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+   WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-  DoubleBuffered, RGBA: boolean;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+   const AParams: TCreateParams): HWND;
+ var
+   disp: GDHandle;
+diff -ur old/glgtkglxcontext.pas new/glgtkglxcontext.pas
+--- old/glgtkglxcontext.pas	2010-07-08 13:36:17.000000000 +0200
++++ new/glgtkglxcontext.pas	2012-04-22 15:49:13.000000000 +0200
+@@ -130,7 +130,7 @@
+ function LOpenGLMakeCurrent(Handle: HWND): boolean;
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+              WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-             DoubleBuffered, RGBA: boolean;
++             DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+              const AParams: TCreateParams): HWND;
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
+ function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
+@@ -758,7 +758,7 @@
+ 
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+   WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-  DoubleBuffered, RGBA: boolean;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+   const AParams: TCreateParams): HWND;
+ var
+   NewWidget: PGtkWidget;
+diff -ur old/glqtcontext.pas new/glqtcontext.pas
+--- old/glqtcontext.pas	2010-07-08 13:36:17.000000000 +0200
++++ new/glqtcontext.pas	2012-04-22 15:49:15.000000000 +0200
+@@ -70,7 +70,7 @@
+ function LOpenGLMakeCurrent(Handle: HWND): boolean;
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+              WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-             DoubleBuffered, RGBA: boolean;
++             DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+              const AParams: TCreateParams): HWND;
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
+ function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
+@@ -183,8 +183,9 @@
+ end;
+ 
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+-  WSPrivate: TWSPrivateClass; SharedControl: TWinControl; DoubleBuffered,
+-  RGBA: boolean; const AParams: TCreateParams): HWND;
++  WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
++  const AParams: TCreateParams): HWND;
+ var
+   AttrList: PInteger;
+   NewQtWidget: TQtGLWidget;
+diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
+--- old/glwin32wglcontext.pas	2010-07-08 13:36:17.000000000 +0200
++++ new/glwin32wglcontext.pas	2012-04-22 15:49:31.000000000 +0200
+@@ -28,7 +28,7 @@
+ function LOpenGLMakeCurrent(Handle: HWND): boolean;
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+                     WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-                    DoubleBuffered, RGBA: boolean;
++                    DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+                     const AParams: TCreateParams): HWND;
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
+ 
+@@ -276,13 +276,138 @@
+   end;
+ end;
+ 
++var
++  Temp_h_GLRc: HGLRC;
++  Temp_h_Dc: HDC;
++  Temp_h_Wnd: HWND;
++
++procedure LGlMsDestroyTemporaryWindow; forward;
++
++procedure LGlMsCreateTemporaryWindow;
++var
++  PixelFormat: LongInt;
++  pfd: PIXELFORMATDESCRIPTOR;
++begin
++  Temp_h_Wnd := 0;
++  Temp_h_Dc := 0;
++  Temp_h_GLRc := 0;
++
++  try
++    { create Temp_H_wnd }
++    Temp_H_wnd := CreateWindowEx(WS_EX_APPWINDOW or WS_EX_WINDOWEDGE,
++      PChar('STATIC'),
++      PChar('temporary window for wgl'),
++      WS_OVERLAPPEDWINDOW or WS_CLIPSIBLINGS or WS_CLIPCHILDREN,
++      0, 0, 100, 100,
++      0 { no parent window }, 0 { no menu }, hInstance,
++      nil);
++
++    { create Temp_h_Dc }
++    Temp_h_Dc := GetDC(Temp_h_Wnd);
++
++    { create and set PixelFormat (must support OpenGL to be able to
++      later do wglCreateContext) }
++    FillChar(pfd, SizeOf(pfd), 0);
++    with pfd do
++    begin
++      nSize := SizeOf(PIXELFORMATDESCRIPTOR);
++      nVersion := 1;
++      dwFlags := PFD_DRAW_TO_WINDOW or PFD_SUPPORT_OPENGL;
++      iPixelType := PFD_TYPE_RGBA;
++      iLayerType := PFD_MAIN_PLANE;
++    end;
++    PixelFormat := ChoosePixelFormat(Temp_h_Dc, @pfd);
++    SetPixelFormat(Temp_h_Dc, PixelFormat, @pfd);
++
++    { create and make current Temp_h_GLRc }
++    Temp_h_GLRc := wglCreateContext(Temp_h_Dc);
++    wglMakeCurrent(Temp_h_Dc, Temp_h_GLRc);
++  except
++    { make sure to finalize all partially initialized window parts }
++    LGlMsDestroyTemporaryWindow;
++    raise;
++  end;
++end;
++
++procedure LGlMsDestroyTemporaryWindow;
++begin
++  if Temp_h_GLRc <> 0 then
++  begin
++    wglMakeCurrent(Temp_h_Dc, 0);
++    wglDeleteContext(Temp_h_GLRc);
++    Temp_h_GLRc := 0;
++  end;
++
++  if Temp_h_Dc <> 0 then
++  begin
++    ReleaseDC(Temp_h_Wnd, Temp_h_Dc);
++    Temp_h_Dc := 0;
++  end;
++
++  if Temp_h_Wnd <> 0 then
++  begin
++    DestroyWindow(Temp_h_Wnd);
++    Temp_h_Wnd := 0;
++  end;
++end;
++
++function LGlMsCreateOpenGLContextAttrList(DoubleBuffered: boolean; RGBA: boolean; MultiSample: integer
++  ): PInteger;
++var
++  p: integer;
++
++  procedure Add(i: integer);
++  begin
++    if Result<>nil then
++      Result[p]:=i;
++    inc(p);
++  end;
++
++  procedure CreateList;
++  begin
++    Add(WGL_DRAW_TO_WINDOW_ARB); Add(GL_TRUE);
++    Add(WGL_SUPPORT_OPENGL_ARB); Add(GL_TRUE);
++    Add(WGL_ACCELERATION_ARB); Add(WGL_FULL_ACCELERATION_ARB);
++    if DoubleBuffered then
++      begin Add(WGL_DOUBLE_BUFFER_ARB); Add(GL_TRUE); end;
++    Add(WGL_PIXEL_TYPE_ARB);
++    if RGBA then
++      Add(WGL_TYPE_RGBA_ARB)
++    else
++      Add(WGL_TYPE_COLORINDEX_ARB);
++
++    Add(WGL_COLOR_BITS_ARB);  Add(24);
++    Add(WGL_DEPTH_BITS_ARB);  Add(16);
++    if MultiSample > 0 then
++    begin
++      Add(WGL_SAMPLE_BUFFERS_ARB); Add(1);
++      Add(WGL_SAMPLES_ARB);        Add(MultiSample);
++    end;
++    Add(0); Add(0);
++  end;
++
++begin
++  Result:=nil;
++  p:=0;
++  CreateList;
++  GetMem(Result,SizeOf(integer)*p);
++  p:=0;
++  CreateList;
++end;
++
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+   WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-  DoubleBuffered, RGBA: boolean; const AParams: TCreateParams): HWND;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
++  const AParams: TCreateParams): HWND;
+ var
+   Params: TCreateWindowExParams;
+   pfd: PIXELFORMATDESCRIPTOR;
+   Info: PWGLControlInfo;
++
++  ReturnedFormats: UINT;
++  VisualAttrList: PInteger;
++  VisualAttrFloat: array [0..1] of Single;
++  MsInitSuccess: WINBOOL;
+ begin
+   InitWGL;
+   //InitOpenGLContextGLWindowClass;
+@@ -323,14 +448,34 @@
+     cDepthBits:=16; // Z-Buffer
+     iLayerType:=PFD_MAIN_PLANE;
+   end;
+-  
+-  Info^.PixelFormat:=ChoosePixelFormat(Info^.DC,@pfd);
+-  if Info^.PixelFormat=0 then
+-    raise Exception.Create('LOpenGLCreateContext ChoosePixelFormat failed');
+-
+-  // set pixel format in device context
+-  if not SetPixelFormat(Info^.DC,Info^.PixelFormat,@pfd) then
+-    raise Exception.Create('LOpenGLCreateContext SetPixelFormat failed');
++
++  MsInitSuccess := false;
++  if (MultiSampling > 1) and WGL_ARB_multisample and WGL_ARB_pixel_format
++    and Assigned(wglChoosePixelFormatARB) then
++  begin
++    VisualAttrList := LGlMsCreateOpenGLContextAttrList(DoubleBuffered, RGBA, MultiSampling);
++    try
++      FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
++      MsInitSuccess := wglChoosePixelFormatARB(Info^.DC, PGLint(VisualAttrList),
++                         @VisualAttrFloat[0], 1, @Info^.PixelFormat, @ReturnedFormats);
++    finally FreeMem(VisualAttrList) end;
++
++    if MsInitSuccess and (ReturnedFormats >= 1) then
++       SetPixelFormat(Info^.DC, Info^.PixelFormat, nil)
++    else
++       MsInitSuccess := false;
++  end;
++
++  if not MsInitSuccess then
++  begin
++    Info^.PixelFormat:=ChoosePixelFormat(Info^.DC,@pfd);
++    if Info^.PixelFormat=0 then
++      raise Exception.Create('LOpenGLCreateContext ChoosePixelFormat failed');
++
++    // set pixel format in device context
++    if not SetPixelFormat(Info^.DC,Info^.PixelFormat,@pfd) then
++      raise Exception.Create('LOpenGLCreateContext SetPixelFormat failed');
++  end;
+ 
+   // create WGL context
+   Info^.WGLContext:=wglCreateContext(Info^.DC);
+@@ -370,6 +515,8 @@
+   WGLInitialized:=true;
+ 
+   try
++    LGlMsCreateTemporaryWindow;
++
+     // ARB wgl extensions
+     Pointer(wglGetExtensionsStringARB) := GLGetProcAddress('wglGetExtensionsStringARB');
+     Pointer(wglGetPixelFormatAttribivARB) := GLGetProcAddress('wglGetPixelFormatAttribivARB');
+@@ -408,6 +555,7 @@
+       DebugLn('InitWGL ',E.Message);
+     end;
+   end;
++  LGlMsDestroyTemporaryWindow;
+ end;
+ 
+ procedure InitOpenGLContextGLWindowClass;
+diff -ur old/openglcontext.pas new/openglcontext.pas
+--- old/openglcontext.pas	2010-10-25 12:43:06.000000000 +0200
++++ new/openglcontext.pas	2012-04-22 15:49:33.000000000 +0200
+@@ -109,12 +109,14 @@
+     FCurrentFrameTime: integer; // in msec
+     FLastFrameTime: integer; // in msec
+     FRGBA: boolean;
++    FMultiSampling: Cardinal;
+     FSharedOpenGLControl: TCustomOpenGLControl;
+     FSharingOpenGlControls: TList;
+     function GetSharingControls(Index: integer): TCustomOpenGLControl;
+     procedure SetAutoResizeViewport(const AValue: boolean);
+     procedure SetDoubleBuffered(const AValue: boolean);
+     procedure SetRGBA(const AValue: boolean);
++    procedure SetMultiSampling(const AMultiSampling: Cardinal);
+     procedure SetSharedControl(const AValue: TCustomOpenGLControl);
+   protected
+     procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
+@@ -145,6 +147,7 @@
+                                          write SetAutoResizeViewport default false;
+     property DoubleBuffered: boolean read FDoubleBuffered write SetDoubleBuffered default true;
+     property RGBA: boolean read FRGBA write SetRGBA default true;
++    property MultiSampling: Cardinal read FMultiSampling write SetMultiSampling default 1;
+   end;
+ 
+   { TOpenGLControl }
+@@ -156,6 +159,7 @@
+     property AutoResizeViewport;
+     property BorderSpacing;
+     property Enabled;
++    property MultiSampling;
+     property OnChangeBounds;
+     property OnClick;
+     property OnConstrainedResize;
+@@ -239,6 +243,13 @@
+   OpenGLAttributesChanged;
+ end;
+ 
++procedure TCustomOpenGLControl.SetMultiSampling(const AMultiSampling: Cardinal);
++begin
++  if FMultiSampling=AMultiSampling then exit;
++  FMultiSampling:=AMultiSampling;
++  OpenGLAttributesChanged;
++end;
++
+ procedure TCustomOpenGLControl.SetSharedControl(
+   const AValue: TCustomOpenGLControl);
+ begin
+@@ -327,6 +338,7 @@
+   inherited Create(TheOwner);
+   FDoubleBuffered:=true;
+   FRGBA:=true;
++  FMultiSampling:=1;
+   ControlStyle:=ControlStyle-[csSetCaption];
+   if (csDesigning in ComponentState) then begin
+     FCanvas := TControlCanvas.Create;
+@@ -468,6 +480,7 @@
+     Result:=LOpenGLCreateContext(OpenGlControl,WSPrivate,
+                                  OpenGlControl.SharedControl,
+                                  AttrControl.DoubleBuffered,AttrControl.RGBA,
++                                 AttrControl.MultiSampling,
+                                  AParams);
+   end;
+ end;
