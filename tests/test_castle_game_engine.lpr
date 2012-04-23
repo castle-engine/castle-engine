@@ -67,17 +67,17 @@ uses
   {$endif};
 
 {var
-  T: TTestX3DNodes;}
+  T: TTestTriangulator;}
 begin
   OnWarning := @OnWarningWrite;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestX3DNodes.Create;
-  T.TestConvertToX3D;
+  T := TTestTriangulator.Create;
+  T.TestTriangulateFace;
   T.Free;
-  Exit; }
+  Exit;}
 
   Application.Initialize;
   {$ifndef TEXT_RUNNER}
