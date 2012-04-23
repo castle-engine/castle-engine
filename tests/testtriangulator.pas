@@ -45,8 +45,8 @@ unit TestTriangulator;
     And this is with VISUALIZE_TRIANGULATION undefined, so cannot blame FpCanvas.
 
   - Finish visualization:
-    add showing which triangles are cut off on images.
-    draw indexes of tri corners.
+    draw indexes of tri corners. Hm, but TextOut not implemented for
+    canvas on images. How to show indexes otherwise?
 }
 
 interface
@@ -120,6 +120,16 @@ begin
   {$ifdef VISUALIZE_TRIANGULATION}
   FileName := Format(ImageFileNameFormat, [TriangleCount]);
 
+  { draw triangle, each triangle with different (random) color }
+  Canvas.Pen.FPColor := FPColor(Random($FFFF), Random($FFFF), Random($FFFF));
+  Canvas.Pen.Width := 10;
+  { We would prefer to just use Canvas.Polygon (with brush),
+    but it's not implemented. }
+  Canvas.PolyLine([VisualizePoint(Vertexes[Tri[0]]),
+                   VisualizePoint(Vertexes[Tri[1]]),
+                   VisualizePoint(Vertexes[Tri[2]]),
+                   VisualizePoint(Vertexes[Tri[0]])]);
+
   { recreate Writer each time, to workaround http://bugs.freepascal.org/view.php?id=21840 }
   Writer := TFPWriterPNG.Create;
   try
@@ -170,6 +180,7 @@ procedure TTestTriangulator.TestTriangulateFace;
       VisualizeX := AVisualizeX;
       VisualizeY := AVisualizeY;
 
+      { calculate MinV/MaxV to include all Vertexes, to show whole polygon }
       MinV := Vertexes[0];
       MaxV := Vertexes[0];
       for I := 1 to CountVertexes - 1 do
@@ -180,6 +191,14 @@ procedure TTestTriangulator.TestTriangulateFace;
         MaxTo1st(MaxV[0], Vertexes[I][0]);
         MaxTo1st(MaxV[1], Vertexes[I][1]);
         MaxTo1st(MaxV[2], Vertexes[I][2]);
+      end;
+
+      { make MinV/MaxV even slightly more distant, to have some margin around
+        visualized polygon }
+      for I := 0 to 2 do
+      begin
+        MinV[I] -= (MaxV[I] - MinV[I]) / 10;
+        MaxV[I] += (MaxV[I] - MinV[I]) / 10;
       end;
 
       Canvas.Pen.FPColor := FPColor($FFFF, $FFFF, $FFFF);
