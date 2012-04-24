@@ -43,10 +43,6 @@ unit TestTriangulator;
     Why?
     Do we read/write over some garbage memory maybe?
     And this is with VISUALIZE_TRIANGULATION undefined, so cannot blame FpCanvas.
-
-  - Finish visualization:
-    draw indexes of tri corners. Hm, but TextOut not implemented for
-    canvas on images. How to show indexes otherwise?
 }
 
 interface
@@ -63,12 +59,14 @@ type
     CountVertexes: Integer;
     TriangleCount: Cardinal;
     {$ifdef VISUALIZE_TRIANGULATION}
-    ImageFileNameFormat: string;
+    ImageFileNamePrefix: string;
     Image: TFPCustomImage;
     Canvas: TFPCustomCanvas;
     VisualizeX, VisualizeY: Cardinal;
     MinV, MaxV: TVector3Single;
     function VisualizePoint(const P: TVector3Single): TPoint;
+    function VisualizePointRect(const P: TVector3Single): TRect;
+    procedure SaveImage(const FileName, Message: string);
     {$endif VISUALIZE_TRIANGULATION}
     procedure Face(const Tri: TVector3Longint);
   published
@@ -107,19 +105,44 @@ begin
     Vector3Single(0, 0, -1)));
 end;
 
-procedure TTestTriangulator.Face(const Tri: TVector3Longint);
 {$ifdef VISUALIZE_TRIANGULATION}
+function TTestTriangulator.VisualizePoint(const P: TVector3Single): TPoint;
+begin
+  Result := Point(
+    Round(MapRange(P[VisualizeX], MinV[VisualizeX], MaxV[VisualizeX], 0, Image.Width)),
+    Round(MapRange(P[VisualizeY], MinV[VisualizeY], MaxV[VisualizeY], 0, Image.Height))
+  );
+end;
+
+function TTestTriangulator.VisualizePointRect(const P: TVector3Single): TRect;
 var
-  FileName: string;
+  Pt: TPoint;
+begin
+  Pt := VisualizePoint(P);
+  Result := Rect(Pt.X - 10, Pt.Y - 10, Pt.X + 10, Pt.Y + 10);
+end;
+
+procedure TTestTriangulator.SaveImage(const FileName, Message: string);
+var
   Writer: TFPWriterPNG;
+begin
+  { recreate Writer each time, to workaround http://bugs.freepascal.org/view.php?id=21840 }
+  Writer := TFPWriterPNG.Create;
+  try
+    Writer.Indexed := false;
+    Image.SaveToFile(FileName, Writer);
+  finally FreeAndNil(Writer) end;
+
+  Writeln(Message, ' (Saved to ', FileName, ')');
+end;
 {$endif VISUALIZE_TRIANGULATION}
+
+procedure TTestTriangulator.Face(const Tri: TVector3Longint);
 begin
   Inc(TriangleCount);
   Writeln('Triangle ', TriangleCount);
 
   {$ifdef VISUALIZE_TRIANGULATION}
-  FileName := Format(ImageFileNameFormat, [TriangleCount]);
-
   { draw triangle, each triangle with different (random) color }
   Canvas.Pen.FPColor := FPColor(Random($FFFF), Random($FFFF), Random($FFFF));
   Canvas.Pen.Width := 10;
@@ -130,26 +153,10 @@ begin
                    VisualizePoint(Vertexes[Tri[2]]),
                    VisualizePoint(Vertexes[Tri[0]])]);
 
-  { recreate Writer each time, to workaround http://bugs.freepascal.org/view.php?id=21840 }
-  Writer := TFPWriterPNG.Create;
-  try
-    Writer.Indexed := false;
-    Image.SaveToFile(FileName, Writer);
-  finally FreeAndNil(Writer) end;
-
-  Writeln('Triangle ', TriangleCount, ': ', Tri[0], ' ', Tri[1], ' ', Tri[2], ' (saved to ', FileName, ')');
+  SaveImage(Format(ImageFileNamePrefix + '_%d.png', [TriangleCount]),
+    Format('Triangle %d: %d - %d - %d', [TriangleCount, Tri[0], Tri[1], Tri[2]]));
   {$endif VISUALIZE_TRIANGULATION}
 end;
-
-{$ifdef VISUALIZE_TRIANGULATION}
-function TTestTriangulator.VisualizePoint(const P: TVector3Single): TPoint;
-begin
-  Result := Point(
-    Round(MapRange(P[VisualizeX], MinV[VisualizeX], MaxV[VisualizeX], 0, Image.Width)),
-    Round(MapRange(P[VisualizeY], MinV[VisualizeY], MaxV[VisualizeY], 0, Image.Height))
-  );
-end;
-{$endif VISUALIZE_TRIANGULATION}
 
 procedure TTestTriangulator.TestTriangulateFace;
 
@@ -175,8 +182,7 @@ procedure TTestTriangulator.TestTriangulateFace;
       Canvas := TFPImageCanvas.Create(Image);
       {$warnings on}
 
-      ImageFileNameFormat :=
-        SUnformattable(InclPathDelim(GetTempDir) + Name) + '_%d.png';
+      ImageFileNamePrefix := SUnformattable(InclPathDelim(GetTempDir) + Name);
       VisualizeX := AVisualizeX;
       VisualizeY := AVisualizeY;
 
@@ -202,9 +208,19 @@ procedure TTestTriangulator.TestTriangulateFace;
       end;
 
       Canvas.Pen.FPColor := FPColor($FFFF, $FFFF, $FFFF);
+      Canvas.Brush.FPColor := FPColor($FFFF, $FFFF, $FFFF);
+
       Canvas.MoveTo(VisualizePoint(Vertexes[0]));
+      Canvas.Ellipse(VisualizePointRect(Vertexes[0]));
+      SaveImage(Format(ImageFileNamePrefix + '_0_%d.png', [0]),
+        Format('Vertex %d', [0]));
       for I := 1 to CountVertexes - 1 do
+      begin
         Canvas.LineTo(VisualizePoint(Vertexes[I]));
+        Canvas.Ellipse(VisualizePointRect(Vertexes[I]));
+        SaveImage(Format(ImageFileNamePrefix + '_0_%d.png', [I]),
+          Format('Vertex %d', [I]));
+      end;
       Canvas.LineTo(VisualizePoint(Vertexes[0]));
       {$endif VISUALIZE_TRIANGULATION}
 
