@@ -105,6 +105,9 @@ implementation
 
 uses CastleLog;
 
+{ Write some debug messages about triangulation. }
+{ $define DEBUG_TRIANGULATION}
+
 { Implementation idea based on face2tri.C in C++, from mgflib sources.
 
   The algorithm works by finding and cutting off "ears" from the polygon.
@@ -236,6 +239,11 @@ begin
 
     Assert(not ZeroVector(PolygonNormal));
     NormalizeTo1st(PolygonNormal);
+
+    {$ifdef DEBUG_TRIANGULATION}
+    Writeln(Format('Most distant vertex is %d. The triangle for PolygonNormal is %d-%d-%d.',
+      [P1, P0, P1, P2]));
+    {$endif DEBUG_TRIANGULATION}
 
     Corners := Count; { Corners = always "how many Outs are false" }
     { This initial P0 value is a "border", used to prevent an infinite loop
