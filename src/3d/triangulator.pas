@@ -105,8 +105,12 @@ implementation
 
 uses CastleLog;
 
-{ Write some debug messages about triangulation. }
-{ $define DEBUG_TRIANGULATION}
+{ Write some debug messages about triangulation.
+
+  The same symbol name is used in tests/testtriangulator.pas unit,
+  so you can just -dVISUALIZE_TRIANGULATION for the compilation of whole program
+  (e.g. add it to tests/compile_console.sh) to have all debugging messages. }
+{ $define VISUALIZE_TRIANGULATION}
 
 { Implementation idea based on face2tri.C in C++, from mgflib sources.
 
@@ -238,10 +242,10 @@ begin
     Assert(not ZeroVector(PolygonNormal));
     NormalizeTo1st(PolygonNormal);
 
-    {$ifdef DEBUG_TRIANGULATION}
-    Writeln(Format('Most distant vertex is %d. The triangle for PolygonNormal is %d-%d-%d.',
+    {$ifdef VISUALIZE_TRIANGULATION}
+    Writeln(Format('Most distant vertex is %d. The triangle for PolygonNormal is %d - %d - %d.',
       [P1, P0, P1, P2]));
-    {$endif DEBUG_TRIANGULATION}
+    {$endif VISUALIZE_TRIANGULATION}
 
     Corners := Count; { Corners = always "how many Outs are false" }
     { This initial P0 value is a "border", used to prevent an infinite loop
