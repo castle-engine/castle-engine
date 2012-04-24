@@ -140,7 +140,6 @@ end;
 procedure TTestTriangulator.Face(const Tri: TVector3Longint);
 begin
   Inc(TriangleCount);
-  Writeln('Triangle ', TriangleCount);
 
   {$ifdef VISUALIZE_TRIANGULATION}
   { draw triangle, each triangle with different (random) color }
