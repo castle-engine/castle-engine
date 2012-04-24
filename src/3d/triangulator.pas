@@ -189,7 +189,7 @@ var
 
 var
   PolygonNormal, Center, EarNormal, E1, E2, E3: TVector3Single;
-  Corners, Start, MostDistantVertex, I, P0, P1, P2: Integer;
+  Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   Empty: boolean;
   EpsilonForEmptyCheck: Single;
@@ -207,12 +207,10 @@ begin
       Center += Verts(I);
     Center /= Count;
 
-    MostDistantVertex := GetMostDistantVertex(Center);
-
     { P1 is the most distant vertex, P0 is previous, P2 is next.
       We calculate them only for the sake of calculating PolygonNormal
       (they do not determine triangulation in any other way). }
-    P1 := MostDistantVertex;
+    P1 := GetMostDistantVertex(Center);
     { P0 := previous from P1, with different value. }
     P0 := P1;
     repeat
