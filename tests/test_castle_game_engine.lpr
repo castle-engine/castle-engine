@@ -55,7 +55,8 @@ uses
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   { These require CastleWindow initializing it's own window. So they
     1. conflict with LCL windows (so only when TEXT_RUNNER)
-    2. are allowed only when window system (so not when NO_WINDOW_SYSTEM,
+    2. are allowed only when graphical window system (like X on Unix)
+       is available (so not when NO_WINDOW_SYSTEM,
        e.g. do not do them when running inside non-X ssh session or cron) }
   TestCastleWindow,
   TestOpeningAndRendering3D,
