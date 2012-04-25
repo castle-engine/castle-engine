@@ -243,8 +243,8 @@ begin
     NormalizeTo1st(PolygonNormal);
 
     {$ifdef VISUALIZE_TRIANGULATION}
-    Writeln(Format('Most distant vertex is %d. The triangle for PolygonNormal is %d - %d - %d.',
-      [P1, P0, P1, P2]));
+    Writeln(Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
+      [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
     {$endif VISUALIZE_TRIANGULATION}
 
     Corners := Count; { Corners = always "how many Outs are false" }
@@ -312,10 +312,9 @@ begin
             orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(EarNormal, PolygonNormal);
           {$ifdef VISUALIZE_TRIANGULATION}
-          {  Writeln(Format('Does the ear %d - %d - %d has the same orientation as polygon? %s. (Ear normal: %s, polygon normal: %s, distance: %f.)' ,
+          Writeln(Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
             [P0, P1, P2, BoolToStr[DistanceSqr <= 1.0],
-             VectorToNiceStr(EarNormal),
-             VectorToNiceStr(PolygonNormal), DistanceSqr])); }
+             VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
           {$endif VISUALIZE_TRIANGULATION}
 
           { vectors orthogonal to triangle edges going *outside* from the triangle }
