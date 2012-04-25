@@ -103,7 +103,7 @@ function IndexedPolygonNormal(
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleStringUtils;
 
 { Write some debug messages about triangulation.
 
@@ -311,6 +311,12 @@ begin
           { DistanceSqr is used to check that P0-P1-P2 has roughly the same
             orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(EarNormal, PolygonNormal);
+          {$ifdef VISUALIZE_TRIANGULATION}
+          {  Writeln(Format('Does the ear %d - %d - %d has the same orientation as polygon? %s. (Ear normal: %s, polygon normal: %s, distance: %f.)' ,
+            [P0, P1, P2, BoolToStr[DistanceSqr <= 1.0],
+             VectorToNiceStr(EarNormal),
+             VectorToNiceStr(PolygonNormal), DistanceSqr])); }
+          {$endif VISUALIZE_TRIANGULATION}
 
           { vectors orthogonal to triangle edges going *outside* from the triangle }
           E1 := VectorProduct(EarNormal, Verts(P0) - Verts(P1));
