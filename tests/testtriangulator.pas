@@ -30,21 +30,6 @@ unit TestTriangulator;
 }
 { $define VISUALIZE_TRIANGULATION}
 
-{ TODO:
-  - Why with and without VISUALIZE_TRIANGULATION we observe totally
-    different reports ?!?!?!?!?!?!?!?!
-    With VISUALIZE_TRIANGULATION I see now only 1 face,
-    and much more "Empty tri is" messages?
-
-    Just recompiling causes different behavior.
-    Actually, just running the test multiple times can change behavior.
-    For Polygon_3_5, I can sometimes can 4, sometimes 3, sometimes 0 calls
-    to Face callback.
-    Why?
-    Do we read/write over some garbage memory maybe?
-    And this is with VISUALIZE_TRIANGULATION undefined, so cannot blame FpCanvas.
-}
-
 interface
 
 uses
@@ -223,7 +208,7 @@ procedure TTestTriangulator.TestTriangulateFace;
       Canvas.LineTo(VisualizePoint(Vertexes[0]));
       {$endif VISUALIZE_TRIANGULATION}
 
-      TriangulateFace(nil, CountVertexes, @Vertexes, @Face, 0);
+      TriangulateFace(nil, CountVertexes, Vertexes, @Face, 0);
     finally
       {$ifdef VISUALIZE_TRIANGULATION}
       FreeAndNil(Image);
