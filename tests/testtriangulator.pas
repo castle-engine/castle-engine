@@ -67,7 +67,7 @@ type
 
 implementation
 
-uses CastleStringUtils, CastleUtils;
+uses CastleStringUtils, CastleUtils, CastleGraphUtil;
 
 procedure TTestTriangulator.TestIndexedConcavePolygonNormal;
 const
@@ -131,6 +131,7 @@ end;
 procedure TTestTriangulator.Face(const Tri: TVector3Longint);
 var
   V0, V1, V2, EarNormal, E1, E2, E3: TVector3Single;
+  Middle: TPoint;
 begin
   Inc(TriangleCount);
 
@@ -152,15 +153,20 @@ begin
   {$ifdef VISUALIZE_TRIANGULATION}
   { draw triangle, each triangle with different (random) color }
   Canvas.Pen.FPColor := FPColor(Random($FFFF), Random($FFFF), Random($FFFF));
-  Canvas.Pen.Width := 10;
+  Canvas.Pen.Width := 3;
   { We would prefer to just use Canvas.Polygon (with brush) to draw triangle,
-    but it's not implemented. So draw triangle outline only. }
+    but it's not implemented. Also Canvas.FloodFill is not available.
+    So we draw triangle outline only with PolyLine, then use simple FloodFill
+    from CastleGraphUtil. }
   Canvas.PolyLine([VisualizePoint(V0),
                    VisualizePoint(V1),
                    VisualizePoint(V2),
                    VisualizePoint(V0)]);
+  Middle := VisualizePoint((V0 + V1 + V2) / 3.0);
+  Canvas.Brush.FPColor := Canvas.Pen.FPColor;
+  FloodFill(Canvas, Middle.X, Middle.Y, Canvas.Pen.FPColor, fsBorder);
   { Draw E1, E2, E3 vectors }
-  Canvas.Pen.Width := 5;
+  Canvas.Pen.Width := 1;
   Canvas.PolyLine([VisualizePoint((V0 + V1) / 2.0),
                    VisualizePoint((V0 + V1) / 2.0 + E1 / 10.0)]);
   Canvas.PolyLine([VisualizePoint((V1 + V2) / 2.0),
@@ -260,7 +266,7 @@ const
     (0.000, 0, 0.630),
     (0.528, 0, 0.413)
   );
-  Polygon_R3D_cs_minimized1: array [0..25] of TVector3Single = (
+  Polygon_R3D_cs: array [0..25] of TVector3Single = (
     (8.255, 0, 5.929),
     (8.255, 0, 6.024),
     (8.255, 0, 7.524),
@@ -271,17 +277,17 @@ const
     (0.145, 0, 0.000),
     (1.193, 0, 2.649), // 3x
 
+    (1.193, 0, 3.942),
+    (2.222, 0, 3.942),
+    (2.222, 0, 2.649),
+
+    (1.193, 0, 2.649), // 3x
+
     (0.866, 0, 1.343),
     (1.544, 0, 1.343),
     (1.544, 0, 0.665),
     (0.866, 0, 0.665),
     (0.866, 0, 1.343),
-
-    (1.193, 0, 2.649), // 3x
-
-    (1.193, 0, 3.942), // possibly this should be replaced with...
-    (2.222, 0, 3.942),
-    (2.222, 0, 2.649), // .. this one, to avoid self-intersecting polyline.
 
     (1.193, 0, 2.649), // 3x
 
@@ -293,9 +299,60 @@ const
     (8.255, 0, 3.516),
     (8.255, 0, 3.669)
   );
+
+  Polygon_R3D_cs_full_polygon: array [0..39] of TVector3Single = (
+    (7.087, 0, 5.929),
+    (8.255, 0, 5.929),
+    (8.255, 0, 6.024),
+    (8.255, 0, 7.524),
+    (8.255, 0, 8.400),
+    (5.948, 0, 8.400),
+    (4.218, 0, 8.400),
+    (0.145, 0, 8.400),
+    (0.145, 0, 0.000),
+
+    (1.193, 0, 2.649), // 3x
+
+    (1.193, 0, 3.942), // 1: Block 1 replaced with 2 to fix
+    (2.222, 0, 3.942), // 1:
+    (2.222, 0, 2.649), // 1:
+
+    (1.193, 0, 2.649), // 3x
+
+    (0.866, 0, 1.343), // 2:
+    (1.544, 0, 1.343), // 2:
+    (1.544, 0, 0.665), // 2:
+    (0.866, 0, 0.665), // 2:
+    (0.866, 0, 1.343), // 2:
+
+    (1.193, 0, 2.649), // 3x
+
+    (0.145, 0, 0.000),
+    (4.218, 0, 0.000),
+    (7.455, 0, 0.000),
+    (8.255, 0, 0.000),
+    (8.255, 0, 0.800),
+    (8.255, 0, 3.516),
+    (8.255, 0, 3.669),
+    (7.087, 0, 3.669),
+    (6.730, 0, 2.436),
+    (6.730, 0, 1.557),
+
+    (5.813, 0, 1.557),
+    (5.813, 0, 2.436),
+    (6.730, 0, 2.436),
+    (7.087, 0, 3.669),
+    (7.087, 0, 5.929),
+    (6.014, 0, 5.461),
+    (6.014, 0, 4.495),
+    (5.110, 0, 4.495),
+    (5.110, 0, 5.461),
+    (6.014, 0, 5.461)
+  );
 begin
   DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2);
-  DoPolygon(Polygon_R3D_cs_minimized1, 'R3D_cs_minimized1', 0, 2);
+  DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2);
+  DoPolygon(Polygon_R3D_cs_full_polygon, 'R3D_cs_full_polygon', 0, 2);
   { TODO: test that results are same as hardcoded results }
   { TODO: maybe test that resulting edges do not cross each other
     or original polygon edges? But it's not so easy, as on non-trivial
