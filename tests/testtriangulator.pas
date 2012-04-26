@@ -123,19 +123,44 @@ end;
 {$endif VISUALIZE_TRIANGULATION}
 
 procedure TTestTriangulator.Face(const Tri: TVector3Longint);
+var
+  V0, V1, V2, EarNormal, E1, E2, E3: TVector3Single;
 begin
   Inc(TriangleCount);
+
+  V0 := Vertexes[Tri[0]];
+  V1 := Vertexes[Tri[1]];
+  V2 := Vertexes[Tri[2]];
+
+  { Calculate (and possibly visualize later) vectors E1, E2, E3 exactly
+    like the ones calculated in TriangulateFace algorithm. }
+  EarNormal := TriangleDir(V0, V1, V2);
+  // TODO: for now, it's possible to get zero normals, see TODO in Triangulator
+//  Assert(not ZeroVector(EarNormal));
+  NormalizeTo1st(EarNormal);
+
+  E1 := VectorProduct(EarNormal, V0 - V1);
+  E2 := VectorProduct(EarNormal, V1 - V2);
+  E3 := VectorProduct(EarNormal, V2 - V0);
 
   {$ifdef VISUALIZE_TRIANGULATION}
   { draw triangle, each triangle with different (random) color }
   Canvas.Pen.FPColor := FPColor(Random($FFFF), Random($FFFF), Random($FFFF));
   Canvas.Pen.Width := 10;
-  { We would prefer to just use Canvas.Polygon (with brush),
-    but it's not implemented. }
-  Canvas.PolyLine([VisualizePoint(Vertexes[Tri[0]]),
-                   VisualizePoint(Vertexes[Tri[1]]),
-                   VisualizePoint(Vertexes[Tri[2]]),
-                   VisualizePoint(Vertexes[Tri[0]])]);
+  { We would prefer to just use Canvas.Polygon (with brush) to draw triangle,
+    but it's not implemented. So draw triangle outline only. }
+  Canvas.PolyLine([VisualizePoint(V0),
+                   VisualizePoint(V1),
+                   VisualizePoint(V2),
+                   VisualizePoint(V0)]);
+  { Draw E1, E2, E3 vectors }
+  Canvas.Pen.Width := 5;
+  Canvas.PolyLine([VisualizePoint((V0 + V1) / 2.0),
+                   VisualizePoint((V0 + V1) / 2.0 + E1 / 10.0)]);
+  Canvas.PolyLine([VisualizePoint((V1 + V2) / 2.0),
+                   VisualizePoint((V1 + V2) / 2.0 + E2 / 10.0)]);
+  Canvas.PolyLine([VisualizePoint((V2 + V0) / 2.0),
+                   VisualizePoint((V2 + V0) / 2.0 + E3 / 10.0)]);
 
   SaveImage(Format(ImageFileNamePrefix + '_%d.png', [TriangleCount]),
     Format('Triangle %d: %d - %d - %d', [TriangleCount, Tri[0], Tri[1], Tri[2]]));
