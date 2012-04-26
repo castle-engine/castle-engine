@@ -191,12 +191,19 @@ var
     repeat Result := Next(Result) until not Outs[Result];
   end;
 
+  { Decrease Index, until a value with Outs[Result]=false is found. }
+  function PreviousNotOut(Index: Integer): Integer;
+  begin
+    Result := Index;
+    repeat Result := Previous(Result) until not Outs[Result];
+  end;
+
 var
-  PolygonNormal, Center, EarNormal, E1, E2, E3: TVector3Single;
+  PolygonNormal, Center, EarNormal, E1, E2, E3, PullDirection: TVector3Single;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   Empty: boolean;
-  EpsilonForEmptyCheck: Single;
+  EpsilonForEmptyCheck, Inside1, Inside2, Inside3: Single;
 begin
   EpsilonForEmptyCheck := SingleEqualityEpsilon;
 
@@ -264,20 +271,6 @@ begin
       begin
         Start := P0;
 
-        { remove duplicate vertices }
-        P0 := NextNotOut(Start);
-        P1 := P0;
-        repeat
-          P2 := NextNotOut(P1);
-          if VectorsEqual(Verts(P1), Verts(P2)) then
-          begin
-             Outs[P2] := true;
-             Dec(Corners);
-          end;
-          P1 := P2;
-        until P1 = P0;
-        if Corners < 3 then Break;  { TODO: Really? Will breaking here generate weird triangle? }
-
         { find next ear triangle }
         repeat
           { increase P0. Set P1 and P2 to vertexes following P0.
@@ -296,6 +289,9 @@ begin
             2 valid "ears" to cut off. }
           if P0 = Start then
           begin
+            {$ifdef VISUALIZE_TRIANGULATION}
+            Writeln('Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
+            {$endif VISUALIZE_TRIANGULATION}
             if Log then WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), or self-intersecting polygon, otherwise report a bug.');
             Break;
           end;
@@ -303,8 +299,17 @@ begin
           EarNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
           if ZeroVector(EarNormal) then
           begin
-            if Log then WritelnLog('Triangulator', 'Triangle inside polygon is degenerated, (TODO) rejecting.');
-//            Break; // TODO: do something here. It seems that break would be Ok, just cut off P1?
+            {$ifdef VISUALIZE_TRIANGULATION}
+            Writeln(Format('Triangle %d - %d - %d inside polygon is colinear, removing.', [P0, P1, P2]));
+            {$endif VISUALIZE_TRIANGULATION}
+            { We know in this case we can safely remove P1.
+              We cannot remove P0 or P2 (even if they are equal),
+              because they are important for the shape of the polygon. }
+            // Actually avoid returning this triangle to NewTriangle callback.
+            // Trivial by ValidEar, but it will also make "Impossible..." results above 
+            // empty, and this makes RC_ failing more than before.
+            // So fix RC_ first.
+            Break;
           end;
           NormalizeTo1st(EarNormal);
 
@@ -335,13 +340,94 @@ begin
             if (not Outs[I]) and
                (I <> P0) and
                (I <> P1) and
-               (I <> P2) and
-               (VectorDotProduct(E1, Verts(I) - Verts(P0)) <= -EpsilonForEmptyCheck) and
-               (VectorDotProduct(E2, Verts(I) - Verts(P1)) <= -EpsilonForEmptyCheck) and
-               (VectorDotProduct(E3, Verts(I) - Verts(P2)) <= -EpsilonForEmptyCheck) then
+               (I <> P2) then
             begin
-              Empty := false;
-              Break;
+              // TODO: use middle of edge, instead of one vertex below.
+              // TODO: we added Normalized here for max stability, but is it really needed?
+              Inside1 := VectorDotProduct(Normalized(E1), Normalized(Verts(I) - Verts(P0)));
+              Inside2 := VectorDotProduct(Normalized(E2), Normalized(Verts(I) - Verts(P1)));
+              Inside3 := VectorDotProduct(Normalized(E3), Normalized(Verts(I) - Verts(P2)));
+
+              if (Inside1 <= -EpsilonForEmptyCheck) and
+                 (Inside2 <= -EpsilonForEmptyCheck) and
+                 (Inside3 <= -EpsilonForEmptyCheck) then
+              begin
+                {$ifdef VISUALIZE_TRIANGULATION}
+                Writeln(Format('Triangle %d - %d - %d would not be empty: point %d would be inside.', [P0, P1, P2, I]));
+                {$endif VISUALIZE_TRIANGULATION}
+                Empty := false;
+                Break;
+              end else
+              if (Inside1 <= EpsilonForEmptyCheck) and
+                 (Inside2 <= EpsilonForEmptyCheck) and
+                 (Inside3 <= EpsilonForEmptyCheck) then
+              begin
+                { Vertex I lies on the border of our triangle.
+                  This is the tricky situation: such vertex
+
+                  1. *Must* cause Empty:=false in some sutuations.
+
+                     Consider you have a polygon with 4 vertexes,
+                     and 1st and 3rd are equal (have equal position).
+                     So a correct triangulation is 2 degenerated (colinear)
+                     triangles. But accidentally ignoring the border vertex means
+                     that we make one non-degenerated incorrect triangle:
+                     2-3-4 (because 1st vertex will not collide with it,
+                     as it's equal to 3 so it lies on the border).
+                     And then we would fail even more, because we're left
+                     with a triangle (Corners = 3) which has orientation
+                     reverted from the polygon. So we would make *two* incorrect
+                     triangles, and spill the "Impossible to find an ear" warning.
+
+                  2. *Cannot* cause Empty:=false in other sutuations.
+
+                     Consider two triangles joined by a single vertex
+                     (that is, two vertexes with equal positions).
+                     Clearly, a sensible triangulation exists.
+                     But if the middle duplicated vertex will be taken into
+                     account, it will block every possible ear triangle.
+                     Such shape would not have any possile triangulation.
+
+                  These two cases can be distinguished by looking at edges
+                  around I. If they go out of P0-P1-P2 triangle,
+                  then I is really outside (case 2. above). Otherwise, it's inside
+                  (case 1.). Two neighbors around I "pull"
+                  it either outside or inside to our triangle, this is what
+                  PullDirection captures.
+
+                  Some (at least one) of the three Inside1/2/3 values are
+                  now between -Epsilon .. +Epsilon, these are the edges where
+                  I lies on. Other Inside1/2/3 values are < -Epsilon,
+                  these are the edges where I in fully inside.
+                  Only the former edges should be reconsidered now,
+                  looking at PullDirection. If PullDirection pulls the I vertex
+                  outside from the triangle, then we're Ok --- I vertex is not
+                  really inside our triangle (so our Empty may remain true).
+                }
+
+                // TODO: use here algorithm like for initial tri,
+                // to avoid colinear neighbors.
+
+                // TODO: try Normalized around PullDirection and E1 below.
+
+                PullDirection := (
+                  ( Verts(I) +
+                    Verts(NextNotOut(I)) +
+                    Verts(PreviousNotOut(I)) ) / 3.0 ) - Verts(I);
+
+                if not (
+                    ((Inside1 > -EpsilonForEmptyCheck) and (VectorDotProduct(PullDirection, E1) > SingleEqualityEpsilon)) or
+                    ((Inside2 > -EpsilonForEmptyCheck) and (VectorDotProduct(PullDirection, E2) > SingleEqualityEpsilon)) or
+                    ((Inside3 > -EpsilonForEmptyCheck) and (VectorDotProduct(PullDirection, E3) > SingleEqualityEpsilon))
+                  ) then
+                begin
+                  {$ifdef VISUALIZE_TRIANGULATION}
+                  Writeln(Format('Triangle %d - %d - %d would not be empty: point %d would be inside (right on the border).', [P0, P1, P2, I]));
+                  {$endif VISUALIZE_TRIANGULATION}
+                  Empty := false;
+                  Break;
+                end;
+              end;
             end;
         until (DistanceSqr <= 1.0) and Empty;
 
