@@ -198,6 +198,40 @@ var
     repeat Result := Previous(Result) until not Outs[Result];
   end;
 
+  { Look around for previous and next neighbors to the Middle vertex.
+    Searches to make sure we have a good non-colinear triangle around Middle.
+    Returns false (and does log message) if not possible. }
+  function EarAround(const Middle: Integer; out Previous, Next: Integer;
+    out EarDir: TVector3Single): boolean;
+  begin
+    { Previous := previous from Middle, with different value. }
+    Previous := Middle;
+    repeat
+      Previous := PreviousNotOut(Previous);
+    until (Previous = Middle) or not VectorsEqual(Verts(Previous), Verts(Middle));
+    if Previous = Middle then
+    begin
+      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
+      Exit(false);
+    end;
+
+    { Next := next from Middle, resulting in valid triangle Previous-Middle-Next. }
+    Next := Middle;
+    repeat
+      Next := NextNotOut(Next);
+      EarDir := TriangleDir(Verts(Previous), Verts(Middle), Verts(Next));
+      { note: no need to check for VectorsEqual(Verts(Next), Verts(Middle)) anywhere,
+        because if EarDir is non-zero then they had to be different. }
+    until (Next = Previous) or not ZeroVector(EarDir);
+    if Next = Previous then
+    begin
+      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
+      Exit(false);
+    end;
+
+    Result := true;
+  end;
+
 var
   PolygonNormal, Center, EarNormal, E1, E2, E3, PullDirection: TVector3Single;
   Corners, Start, I, P0, P1, P2: Integer;
@@ -218,55 +252,33 @@ begin
       Center += Verts(I);
     Center /= Count;
 
-    { P1 is the most distant vertex, P0 is previous, P2 is next.
-      We calculate them only for the sake of calculating PolygonNormal
-      (they do not determine triangulation in any other way). }
-    P1 := GetMostDistantVertex(Center);
-    { P0 := previous from P1, with different value. }
-    P0 := P1;
-    repeat
-      P0 := Previous(P0);
-    until (P0 = P1) or not VectorsEqual(Verts(P0), Verts(P1));
-    if P0 = P1 then
-    begin
-      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
-      Exit;
-    end;
-    { P2 := next from P1, resulting in valid triangle P0-P1-P2. }
-    P2 := P1;
-    repeat
-      P2 := Next(P2);
-      PolygonNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
-      { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
-        because if PolygonNormal is non-zero then they had to be different. }
-    until (P2 = P0) or not ZeroVector(PolygonNormal);
-    if P2 = P0 then
-    begin
-      if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
-      Exit;
-    end;
-
-    Assert(not ZeroVector(PolygonNormal));
-    NormalizeTo1st(PolygonNormal);
-
-    {$ifdef VISUALIZE_TRIANGULATION}
-    Writeln(Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
-      [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
-    {$endif VISUALIZE_TRIANGULATION}
-
-    Corners := Count; { Corners = always "how many Outs are false" }
-    { This initial P0 value is a "border", used to prevent an infinite loop
-      when we cannot find good ear triangle (which is always possible due
-      to lack of floating-point precision).
-      It will always be increased by first "P0 := NextNotOut(P0);".
-      It must be a valid vertex index, otherwise condition "P0 = Start"
-      could never occur and we would loop forever (testcase:
-      change EpsilonForEmptyCheck to 0, and run on demo_models/x3d/concave.x3dv). }
-    P0 := Count - 1;
     Outs := TBooleanList.Create;
     try
       Outs.Count := Count; { TFPGList initialized everything to false }
 
+      { P1 is the most distant vertex, P0 is previous, P2 is next.
+        We calculate them only for the sake of calculating PolygonNormal
+        (they do not determine triangulation in any other way). }
+      P1 := GetMostDistantVertex(Center);
+      if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
+      Assert(not ZeroVector(PolygonNormal));
+      NormalizeTo1st(PolygonNormal);
+
+      {$ifdef VISUALIZE_TRIANGULATION}
+      Writeln(Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
+        [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
+      {$endif VISUALIZE_TRIANGULATION}
+
+      Corners := Count; { Corners = always "how many Outs are false" }
+
+      { This initial P0 value is a "border", used to prevent an infinite loop
+        when we cannot find good ear triangle (which is always possible due
+        to lack of floating-point precision).
+        It will always be increased by first "P0 := NextNotOut(P0);".
+        It must be a valid vertex index, otherwise condition "P0 = Start"
+        could never occur and we would loop forever (testcase:
+        change EpsilonForEmptyCheck to 0, and run on demo_models/x3d/concave.x3dv). }
+      P0 := Count - 1;
       while Corners >= 3 do
       begin
         Start := P0;
@@ -306,7 +318,7 @@ begin
               We cannot remove P0 or P2 (even if they are equal),
               because they are important for the shape of the polygon. }
             // Actually avoid returning this triangle to NewTriangle callback.
-            // Trivial by ValidEar, but it will also make "Impossible..." results above 
+            // Trivial by ValidEar, but it will also make "Impossible..." results above
             // empty, and this makes RC_ failing more than before.
             // So fix RC_ first.
             Break;
