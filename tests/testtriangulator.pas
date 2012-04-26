@@ -20,7 +20,13 @@ unit TestTriangulator;
   This results in a series of images showing how triangulation progresses,
   hopefully useful to debug TriangulateFace problems.
 
-  Simply define the symbol below, and run the tests to get the images.
+  It shows vertexes in order (to better understand the other debug messages
+  in console), then shows created triangles (with the important edge vectors
+  E1,E2,E3).
+  For full debug info, add -dVISUALIZE_TRIANGULATION to ~/.fpc.cfg
+  and recompile both this unit and 3d/triangulator.pas unit.
+
+  Define the symbol below, and run the tests to get the images.
   Console will contain messages about where the images are written,
   and how the triangulation progresses.
   For better debugging, you may also want to:
@@ -254,8 +260,42 @@ const
     (0.000, 0, 0.630),
     (0.528, 0, 0.413)
   );
+  Polygon_R3D_cs_minimized1: array [0..25] of TVector3Single = (
+    (8.255, 0, 5.929),
+    (8.255, 0, 6.024),
+    (8.255, 0, 7.524),
+    (8.255, 0, 8.400),
+    (5.948, 0, 8.400),
+    (4.218, 0, 8.400),
+    (0.145, 0, 8.400),
+    (0.145, 0, 0.000),
+    (1.193, 0, 2.649), // 3x
+
+    (0.866, 0, 1.343),
+    (1.544, 0, 1.343),
+    (1.544, 0, 0.665),
+    (0.866, 0, 0.665),
+    (0.866, 0, 1.343),
+
+    (1.193, 0, 2.649), // 3x
+
+    (1.193, 0, 3.942), // possibly this should be replaced with...
+    (2.222, 0, 3.942),
+    (2.222, 0, 2.649), // .. this one, to avoid self-intersecting polyline.
+
+    (1.193, 0, 2.649), // 3x
+
+    (0.145, 0, 0.000),
+    (4.218, 0, 0.000),
+    (7.455, 0, 0.000),
+    (8.255, 0, 0.000),
+    (8.255, 0, 0.800),
+    (8.255, 0, 3.516),
+    (8.255, 0, 3.669)
+  );
 begin
   DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2);
+  DoPolygon(Polygon_R3D_cs_minimized1, 'R3D_cs_minimized1', 0, 2);
   { TODO: test that results are same as hardcoded results }
   { TODO: maybe test that resulting edges do not cross each other
     or original polygon edges? But it's not so easy, as on non-trivial
