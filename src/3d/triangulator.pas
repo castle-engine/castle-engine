@@ -232,9 +232,16 @@ var
     Result := true;
   end;
 
+  function EarAround(const Middle: Integer; out Previous, Next: Integer): boolean;
+  var
+    EarDirIgnored: TVector3Single;
+  begin
+    Result := EarAround(Middle, Previous, Next, EarDirIgnored);
+  end;
+
 var
   PolygonNormal, Center, EarNormal, E1, E2, E3, PullDirection: TVector3Single;
-  Corners, Start, I, P0, P1, P2: Integer;
+  Corners, Start, I, P0, P1, P2, IPrevious, INext: Integer;
   DistanceSqr: Single;
   Empty: boolean;
   EpsilonForEmptyCheck, Inside1, Inside2, Inside3: Single;
@@ -417,15 +424,17 @@ begin
                   really inside our triangle (so our Empty may remain true).
                 }
 
-                // TODO: use here algorithm like for initial tri,
-                // to avoid colinear neighbors.
+                { if EarAround fails, then everything is colinear, we may as well
+                  let Empty be true. This should not happen, except because
+                  of fp inaccuracy: if everything is colinear,
+                  then our ZeroVector(EarNormal) check earlier should usually
+                  detect this. }
+                if not EarAround(I, IPrevious, INext) then Continue;
 
                 // TODO: try Normalized around PullDirection and E1 below.
 
-                PullDirection := (
-                  ( Verts(I) +
-                    Verts(NextNotOut(I)) +
-                    Verts(PreviousNotOut(I)) ) / 3.0 ) - Verts(I);
+                PullDirection :=
+                  ((Verts(I) + Verts(IPrevious) + Verts(INext)) / 3.0) - Verts(I);
 
                 if not (
                     ((Inside1 > -EpsilonForEmptyCheck) and (VectorDotProduct(PullDirection, E1) > SingleEqualityEpsilon)) or
