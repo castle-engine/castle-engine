@@ -306,19 +306,6 @@ var
     PullDirection := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif}
       (((VBorder + Verts(BorderPrevious) + Verts(BorderNext)) / 3.0) - VBorder);
 
-    { This test should fix this for concave vertexes.
-      TODO: Not 100% sure yet.
-      Once RaySegmentCollision2D fix done, check is it really Ok,
-      do things fail with this commented out or reverted.
-      Tested: Revert for sure is a bad idea.
-      Looks like commenting it out is Ok for my tests?
-
-      Incorrect: polygon_3_5 spills "impossible..." with this.
-      TODO: why? }
-{    NormalizeTo1st(BorderEarNormal);
-    if PointsDistanceSqr(BorderEarNormal, PolygonNormal) <= 1.0 then
-      PullDirection := -PullDirection;}
-
     { Some (at least one) of the three Inside1/2/3 values are
       now between -Epsilon .. +Epsilon, these are the edges where
       Border lies on. Other Inside1/2/3 values are < -Epsilon,
