@@ -240,7 +240,7 @@ var
   end;
 
 var
-  PolygonNormal, Center, EarNormal, E1, E2, E3, PullDirection: TVector3Single;
+  PolygonNormal, Center, EarNormal, E1, E2, E3, PullDirection, V0, V1, V2: TVector3Single;
   Corners, Start, I, P0, P1, P2, IPrevious, INext: Integer;
   DistanceSqr: Single;
   Empty: boolean;
@@ -299,6 +299,10 @@ begin
           P1 := NextNotOut(P0);
           P2 := NextNotOut(P1);
 
+          V0 := Verts(P0);
+          V1 := Verts(P1);
+          V2 := Verts(P2);
+
           { If P0 returned back to Start value,
             then we considered every possible corner triangle and it cannot
             be cut off. IOW, we cannot find any ear triangle,
@@ -315,7 +319,7 @@ begin
             Break;
           end;
 
-          EarNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+          EarNormal := TriangleDir(V0, V1, V2);
           if ZeroVector(EarNormal) then
           begin
             {$ifdef VISUALIZE_TRIANGULATION}
@@ -342,9 +346,9 @@ begin
           {$endif VISUALIZE_TRIANGULATION}
 
           { vectors orthogonal to triangle edges going *outside* from the triangle }
-          E1 := VectorProduct(EarNormal, Verts(P0) - Verts(P1));
-          E2 := VectorProduct(EarNormal, Verts(P1) - Verts(P2));
-          E3 := VectorProduct(EarNormal, Verts(P2) - Verts(P0));
+          E1 := VectorProduct(EarNormal, V0 - V1);
+          E2 := VectorProduct(EarNormal, V1 - V2);
+          E3 := VectorProduct(EarNormal, V2 - V0);
 
           Empty := true;
           for I := 0 to Count - 1 do
@@ -363,9 +367,9 @@ begin
             begin
               // TODO: use middle of edge, instead of one vertex below.
               // TODO: we added Normalized here for max stability, but is it really needed?
-              Inside1 := VectorDotProduct(Normalized(E1), Normalized(Verts(I) - Verts(P0)));
-              Inside2 := VectorDotProduct(Normalized(E2), Normalized(Verts(I) - Verts(P1)));
-              Inside3 := VectorDotProduct(Normalized(E3), Normalized(Verts(I) - Verts(P2)));
+              Inside1 := VectorDotProduct(Normalized(E1), Normalized(Verts(I) - V0));
+              Inside2 := VectorDotProduct(Normalized(E2), Normalized(Verts(I) - V1));
+              Inside3 := VectorDotProduct(Normalized(E3), Normalized(Verts(I) - V2));
 
               if (Inside1 <= -EpsilonForEmptyCheck) and
                  (Inside2 <= -EpsilonForEmptyCheck) and
