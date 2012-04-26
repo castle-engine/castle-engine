@@ -239,8 +239,8 @@ begin
       PolygonNormal := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
       { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
         because if PolygonNormal is non-zero then they had to be different. }
-    until (P2 = P1) or not ZeroVector(PolygonNormal);
-    if P2 = P1 then
+    until (P2 = P0) or not ZeroVector(PolygonNormal);
+    if P2 = P0 then
     begin
       if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
       Exit;
