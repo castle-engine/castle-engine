@@ -103,7 +103,7 @@ function IndexedPolygonNormal(
 
 implementation
 
-uses CastleLog, CastleStringUtils;
+uses CastleLog, CastleStringUtils, CastleWarnings;
 
 { Write some debug messages about triangulation.
 
@@ -311,10 +311,13 @@ var
       Once RaySegmentCollision2D fix done, check is it really Ok,
       do things fail with this commented out or reverted.
       Tested: Revert for sure is a bad idea.
-      Looks like commenting it out is Ok for my tests? }
-    NormalizeTo1st(BorderEarNormal);
-    if PointsDistanceSqr(BorderEarNormal, PolygonNormal) > 1.0 then
-      PullDirection := -PullDirection;
+      Looks like commenting it out is Ok for my tests?
+
+      Incorrect: polygon_3_5 spills "impossible..." with this.
+      TODO: why? }
+{    NormalizeTo1st(BorderEarNormal);
+    if PointsDistanceSqr(BorderEarNormal, PolygonNormal) <= 1.0 then
+      PullDirection := -PullDirection;}
 
     { Some (at least one) of the three Inside1/2/3 values are
       now between -Epsilon .. +Epsilon, these are the edges where
@@ -333,22 +336,27 @@ var
      ( (Inside1 <= -EpsilonForEmptyCheck) and RaySegmentCollision2D(VBorder, PullDirection, V0, V1) ) or
      ( (Inside2 <= -EpsilonForEmptyCheck) and RaySegmentCollision2D(VBorder, PullDirection, V1, V2) ) or
      ( (Inside3 <= -EpsilonForEmptyCheck) and RaySegmentCollision2D(VBorder, PullDirection, V2, V0) );}
+
+    {$ifdef VISUALIZE_TRIANGULATION}
+    Writeln(Format('Border vertex %d considered inside triangle? %s.', [Border, BoolToStr[Result]]));
+    {$endif VISUALIZE_TRIANGULATION}
   end;
 
 var
   Center, EarNormal, E1, E2, E3, V0, V1, V2: TVector3Single;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
-  Empty: boolean;
+  Empty, FailureWarningDone: boolean;
   EpsilonForEmptyCheck, Inside1, Inside2, Inside3: Single;
 begin
-  EpsilonForEmptyCheck := SingleEqualityEpsilon;
-
   if Count = 3 then
     { For Count = 3 this is trivial, do it fast. }
     NewTriangle(0, 1, 2) else
   if Count > 3 then
   begin
+    EpsilonForEmptyCheck := SingleEqualityEpsilon;
+    FailureWarningDone := false;
+
     { calculate Center := average of all vertexes }
     Center := ZeroVector3Single;
     for I := 0 to Count - 1 do
@@ -412,7 +420,11 @@ begin
             {$ifdef VISUALIZE_TRIANGULATION}
             Writeln('Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             {$endif VISUALIZE_TRIANGULATION}
-            if Log then WritelnLog('Triangulator', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated. This should be caused only by floating-point inaccuracy (you use some incredibly huge and/or tiny values), or self-intersecting polygon, otherwise report a bug.');
+            if not FailureWarningDone then
+            begin
+              OnWarning(wtMinor, 'Triangulator', 'Triangulation of concave polygon failed. Polygon is self-intersecting, or we have floating-point errors (if you used some huge and/or tiny values). Report bug otherwise.');
+              FailureWarningDone := true;
+            end;
             Break;
           end;
 
