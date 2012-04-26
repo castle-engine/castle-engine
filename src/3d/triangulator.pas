@@ -324,7 +324,7 @@ begin
             { We know in this case we can safely remove P1.
               We cannot remove P0 or P2 (even if they are equal),
               because they are important for the shape of the polygon. }
-            // Actually avoid returning this triangle to NewTriangle callback.
+            // TODO: Actually avoid returning this triangle to NewTriangle callback.
             // Trivial by ValidEar, but it will also make "Impossible..." results above
             // empty, and this makes RC_ failing more than before.
             // So fix RC_ first.
