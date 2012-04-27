@@ -1078,6 +1078,8 @@ type
   ELinesParallel = class(Exception);
 
 { Intersection of two 2D lines.
+  2D lines are expressed here as a vector of three values (A,B,C),
+  such that Ax+By+C=0 is true for points on the line.
   @raises ELinesParallel if lines parallel
   @groupBegin }
 function Lines2DIntersection(const Line0, Line1: TVector3Single): TVector2Single; overload;
