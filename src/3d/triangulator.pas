@@ -254,7 +254,7 @@ var
     be treated as lying inside this triangle (and causing it non-empty).
     This is the tricky situation: border vertex
 
-    1. *Must* cause Empty:=false (be considered inside V0,V1,V2) in some cases.
+    1. *Must* cause EarFound:=false (be considered inside V0,V1,V2) in some cases.
 
        Consider you have a polygon with 4 vertexes,
        and 1st and 3rd are equal (have equal position).
@@ -268,7 +268,7 @@ var
        reverted from the polygon. So we would make *two* incorrect
        triangles, and spill the "Impossible to find an ear" warning.
 
-    2. *Cannot* cause Empty:=false (be considered outside V0,V1,V2) in other cases.
+    2. *Cannot* cause EarFound:=false (be considered outside V0,V1,V2) in other cases.
 
        Consider two triangles joined by a single vertex
        (that is, two vertexes with equal positions).
@@ -339,7 +339,7 @@ var
       PullDirection captures. }
 
     { if EarAround fails, then everything is colinear, we may as well
-      let Empty be true. This should not happen, except because
+      let EarFound be true. This should not happen, except because
       of fp inaccuracy: if everything is colinear,
       then our ZeroVector(EarNormal) check earlier should usually
       detect this. }
@@ -381,7 +381,7 @@ var
   Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3Single;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
-  Empty, FailureWarningDone: boolean;
+  EarFound, FailureWarningDone, ValidEar: boolean;
   Inside1, Inside2, Inside3: Single;
 begin
   if Count = 3 then
@@ -431,6 +431,8 @@ begin
 
         { find next ear triangle }
         repeat
+          ValidEar := false;
+
           { increase P0. Set P1 and P2 to vertexes following P0.
             We will now consider triangle P0-P1-P2 to be removed,
             where P1 is the corner to be cut off. }
@@ -467,72 +469,75 @@ begin
           if ZeroVector(EarNormal) then
           begin
             {$ifdef VISUALIZE_TRIANGULATION}
-            Writeln(Format('Triangle %d - %d - %d inside polygon is colinear, removing.', [P0, P1, P2]));
+            Writeln(Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
             {$endif VISUALIZE_TRIANGULATION}
             { We know in this case we can safely remove P1.
               We cannot remove P0 or P2 (even if they are equal),
-              because they are important for the shape of the polygon. }
-            // TODO: Actually avoid returning this triangle to NewTriangle callback.
-            // Trivial by ValidEar, but it will also make "Impossible..." results above
-            // empty, and this makes RC_ failing more than before.
-            // So fix RC_ first.
+              because they are important for the shape of the polygon.
+              Leave ValidEar = false, so it will not be actually returned. }
             Break;
           end;
           NormalizeTo1st(EarNormal);
 
+          ValidEar := true;
+
           { DistanceSqr is used to check that P0-P1-P2 has roughly the same
             orientation as whole polygon, not reverted. }
           DistanceSqr := PointsDistanceSqr(EarNormal, PolygonNormal);
+          EarFound := DistanceSqr <= 1.0;
           {$ifdef VISUALIZE_TRIANGULATION}
           Writeln(Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
-            [P0, P1, P2, BoolToStr[DistanceSqr <= 1.0],
+            [P0, P1, P2, BoolToStr[EarFound],
              VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
           {$endif VISUALIZE_TRIANGULATION}
 
-          { vectors orthogonal to triangle edges going *outside* from the triangle }
-          E1 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V0 - V1));
-          E2 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V1 - V2));
-          E3 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V2 - V0));
+          { check is the ear triangle non-empty }
+          if EarFound then
+          begin
+            { vectors orthogonal to triangle edges going *outside* from the triangle }
+            E1 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V0 - V1));
+            E2 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V1 - V2));
+            E3 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V2 - V0));
 
-          Empty := true;
-          for I := 0 to Count - 1 do
-            { if we can find a vertex that is
-              - part of the polygon (not "out" yet)
-              - different than P0, P1, P2
-              - inside P0-P1-P2 triangle (this is checked by looking at angle
-                between E? and vector to given vertex, value > 90 degrees means
-                vertex is inside the triangle (for given edge))
-              then the considered triangle is not empty, and it cannot be removed
-              as an ear triangle. }
-            if (not Outs[I]) and
-               (I <> P0) and
-               (I <> P1) and
-               (I <> P2) then
-            begin
-              Inside1 := VectorDotProduct(E1, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V0+V1)/2.0 {$else} V0 {$endif}));
-              Inside2 := VectorDotProduct(E2, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V1+V2)/2.0 {$else} V1 {$endif}));
-              Inside3 := VectorDotProduct(E3, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V2+V0)/2.0 {$else} V2 {$endif}));
-
-              if ( (Inside1 <= -EpsilonForEmptyCheck) and
-                   (Inside2 <= -EpsilonForEmptyCheck) and
-                   (Inside3 <= -EpsilonForEmptyCheck) ) or
-                 ( (Inside1 <= EpsilonForEmptyCheck) and
-                   (Inside2 <= EpsilonForEmptyCheck) and
-                   (Inside3 <= EpsilonForEmptyCheck) and
-                   BorderVertexInsideTriangle(V0, V1, V2, EarNormal,
-                     Inside1, Inside2, Inside3, I) ) then
+            for I := 0 to Count - 1 do
+              { if we can find a vertex that is
+                - part of the polygon (not "out" yet)
+                - different than P0, P1, P2
+                - inside P0-P1-P2 triangle (this is checked by looking at angle
+                  between E? and vector to given vertex, value > 90 degrees means
+                  vertex is inside the triangle (for given edge))
+                then the considered triangle is not empty, and it cannot be removed
+                as an ear triangle. }
+              if (not Outs[I]) and
+                 (I <> P0) and
+                 (I <> P1) and
+                 (I <> P2) then
               begin
-                {$ifdef VISUALIZE_TRIANGULATION}
-                Writeln(Format('Triangle %d - %d - %d would not be empty: point %d would be inside.', [P0, P1, P2, I]));
-                {$endif VISUALIZE_TRIANGULATION}
-                Empty := false;
-                Break;
+                Inside1 := VectorDotProduct(E1, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V0+V1)/2.0 {$else} V0 {$endif}));
+                Inside2 := VectorDotProduct(E2, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V1+V2)/2.0 {$else} V1 {$endif}));
+                Inside3 := VectorDotProduct(E3, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V2+V0)/2.0 {$else} V2 {$endif}));
+
+                if ( (Inside1 <= -EpsilonForEmptyCheck) and
+                     (Inside2 <= -EpsilonForEmptyCheck) and
+                     (Inside3 <= -EpsilonForEmptyCheck) ) or
+                   ( (Inside1 <= EpsilonForEmptyCheck) and
+                     (Inside2 <= EpsilonForEmptyCheck) and
+                     (Inside3 <= EpsilonForEmptyCheck) and
+                     BorderVertexInsideTriangle(V0, V1, V2, EarNormal,
+                       Inside1, Inside2, Inside3, I) ) then
+                begin
+                  {$ifdef VISUALIZE_TRIANGULATION}
+                  Writeln(Format('Triangle %d - %d - %d would not be empty: point %d would be inside.', [P0, P1, P2, I]));
+                  {$endif VISUALIZE_TRIANGULATION}
+                  EarFound := false;
+                  Break;
+                end;
               end;
-            end;
-        until (DistanceSqr <= 1.0) and Empty;
+          end;
+        until EarFound;
 
         { ear triangle found, cut if off now }
-        NewTriangle(P0, P1, P2);
+        if ValidEar then NewTriangle(P0, P1, P2);
         Outs[P1] := true;
         Dec(Corners);
       end;
