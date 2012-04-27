@@ -248,7 +248,7 @@ var
   end;
 
 var
-  PolygonNormal: TVector3Single;
+  EpsilonForEmptyCheck: Single;
 
   { Should vertex Border (lying on the border of triangle V0,V1,V2)
     be treated as lying inside this triangle (and causing it non-empty).
@@ -282,6 +282,51 @@ var
   function BorderVertexInsideTriangle(const V0, V1, V2, TriangleNormal: TVector3Single;
     const Inside1, Inside2, Inside3: Single;
     const Border: Integer): boolean;
+
+    { Check collision in 2D between a ray and line segment (0,0)-(1,0).
+      Ray0 and RayDirection are projected onto 2D space by assuming that
+      XDirection, YDirection 3D vectors correspond to unit OX and OY vectors in 2D,
+      and Origin corresponds to (0,0) in 2D.
+
+      If ray is parallel to this line segment, answers false (because
+      we use this always in case when we now that ray never lies
+      on the line segment, because our line segment is chosen to be a triangle
+      edge that *does not* contain Border vertex). }
+    function RaySegment01Collision2D(Ray0: TVector3Single;
+      const RayDirection: TVector3Single;
+      const Origin, XDirection: TVector3Single;
+      YDirection: TVector3Single): boolean;
+    var
+      R0, RDirection: TVector2Single;
+      X, T, XDirectionLenSqr, YDirectionLenSqr: Single;
+    begin
+      Ray0 -= Origin;
+
+      { fix YDirection to be orthogonal to XDirection, to make sure projecting
+        by VectorDotProduct is correct }
+      MakeVectorsOrthoOnTheirPlane(YDirection, XDirection);
+
+      XDirectionLenSqr := VectorLenSqr(XDirection);
+      YDirectionLenSqr := VectorLenSqr(YDirection);
+
+      R0[0] := VectorDotProduct(Ray0, XDirection) / XDirectionLenSqr;
+      R0[1] := VectorDotProduct(Ray0, YDirection) / YDirectionLenSqr;
+      RDirection[0] := VectorDotProduct(RayDirection, XDirection) / XDirectionLenSqr;
+      RDirection[1] := VectorDotProduct(RayDirection, YDirection) / YDirectionLenSqr;
+
+      if Zero(RDirection[1]) then Exit(false);
+
+      { we're interested now in intersection on OX axis with ray.
+        R0 + RDirection * T = (X, 0), so
+        T = -R0.y / RDirection.y, and
+        X = R0.x + RDirection.x * T }
+      T := - R0[1] / RDirection[1];
+      if T < 0 then Exit(false);
+
+      X := R0[0] + RDirection[0] * T;
+      Result := (0 <= X) and (X <= 1);
+    end;
+
   var
     BorderPrevious, BorderNext: Integer;
     VBorder, BorderEarNormal, PullDirection: TVector3Single;
@@ -315,26 +360,29 @@ var
       outside from the triangle, then we're Ok --- Border vertex is not
       really inside our triangle. }
 
-    Result := IsPointOnTrianglePlaneWithinTriangle(
+    Result :=
+      ( (Inside1 <= -EpsilonForEmptyCheck) and RaySegment01Collision2D(VBorder, PullDirection, V0, V1-V0, V2-V0) ) or
+      ( (Inside2 <= -EpsilonForEmptyCheck) and RaySegment01Collision2D(VBorder, PullDirection, V1, V2-V1, V0-V1) ) or
+      ( (Inside3 <= -EpsilonForEmptyCheck) and RaySegment01Collision2D(VBorder, PullDirection, V2, V0-V2, V1-V2) );
+
+    { Alternative hacky way to calculate this (will work Ok if triangles
+      are not too small, because of 0.01 constant): }
+    Assert(Result = IsPointOnTrianglePlaneWithinTriangle(
       VBorder + PullDirection * 0.01,
-      Triangle3Single(V0, V1, V2), TriangleNormal);
-   { TODO: this is better:
-   Result :=
-     ( (Inside1 <= -EpsilonForEmptyCheck) and RaySegmentCollision2D(VBorder, PullDirection, V0, V1) ) or
-     ( (Inside2 <= -EpsilonForEmptyCheck) and RaySegmentCollision2D(VBorder, PullDirection, V1, V2) ) or
-     ( (Inside3 <= -EpsilonForEmptyCheck) and RaySegmentCollision2D(VBorder, PullDirection, V2, V0) );}
+      Triangle3Single(V0, V1, V2), TriangleNormal));
 
     {$ifdef VISUALIZE_TRIANGULATION}
-    Writeln(Format('Border vertex %d considered inside triangle? %s.', [Border, BoolToStr[Result]]));
+    Writeln(Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
+      [Border, BorderPrevious, Border, BorderNext, BoolToStr[Result]]));
     {$endif VISUALIZE_TRIANGULATION}
   end;
 
 var
-  Center, EarNormal, E1, E2, E3, V0, V1, V2: TVector3Single;
+  Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3Single;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   Empty, FailureWarningDone: boolean;
-  EpsilonForEmptyCheck, Inside1, Inside2, Inside3: Single;
+  Inside1, Inside2, Inside3: Single;
 begin
   if Count = 3 then
     { For Count = 3 this is trivial, do it fast. }
