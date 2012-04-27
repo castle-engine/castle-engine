@@ -142,8 +142,7 @@ begin
   { Calculate (and possibly visualize later) vectors E1, E2, E3 exactly
     like the ones calculated in TriangulateFace algorithm. }
   EarNormal := TriangleDir(V0, V1, V2);
-  // TODO: for now, it's possible to get zero normals, see TODO in Triangulator
-//  Assert(not ZeroVector(EarNormal));
+  Assert(not ZeroVector(EarNormal));
   NormalizeTo1st(EarNormal);
 
   E1 := VectorProduct(EarNormal, V0 - V1);
@@ -153,7 +152,7 @@ begin
   {$ifdef VISUALIZE_TRIANGULATION}
   { draw triangle, each triangle with different (random) color }
   Canvas.Pen.FPColor := FPColor(Random($FFFF), Random($FFFF), Random($FFFF));
-  Canvas.Pen.Width := 3;
+  Canvas.Pen.Width := 5;
   { We would prefer to just use Canvas.Polygon (with brush) to draw triangle,
     but it's not implemented. Also Canvas.FloodFill is not available.
     So we draw triangle outline only with PolyLine, then use simple FloodFill
@@ -166,7 +165,7 @@ begin
   Canvas.Brush.FPColor := Canvas.Pen.FPColor;
   FloodFill(Canvas, Middle.X, Middle.Y, Canvas.Pen.FPColor, fsBorder);
   { Draw E1, E2, E3 vectors }
-  Canvas.Pen.Width := 1;
+  Canvas.Pen.Width := 3;
   Canvas.PolyLine([VisualizePoint((V0 + V1) / 2.0),
                    VisualizePoint((V0 + V1) / 2.0 + E1 / 10.0)]);
   Canvas.PolyLine([VisualizePoint((V1 + V2) / 2.0),
@@ -353,15 +352,17 @@ const
     (5.110, 0, 5.461),
     (6.014, 0, 5.461)
   );
+var
+  RevertOrder: boolean;
 begin
-  DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2, false);
-  DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2, false);
-  DoPolygon(Polygon_R3D_cs_full_polygon, 'R3D_cs_full_polygon', 0, 2, false);
+  for RevertOrder := false to true do
+  begin
+    DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2, RevertOrder);
+    DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2, RevertOrder);
+    DoPolygon(Polygon_R3D_cs_full_polygon, 'R3D_cs_full_polygon', 0, 2, RevertOrder);
+  end;
+
   { TODO: test that results are same as hardcoded results }
-  { TODO: maybe test that resulting edges do not cross each other
-    or original polygon edges? But it's not so easy, as on non-trivial
-    polygons we will have colinear edges. }
-  { TODO: just test for both RevertOrder = true and false }
 end;
 
 initialization
