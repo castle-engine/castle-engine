@@ -181,18 +181,20 @@ end;
 
 procedure TTestTriangulator.TestTriangulateFace;
 
-  procedure DoPolygon(const AVertexes: array of TVector3Single;
+  procedure DoPolygon(AVertexes: array of TVector3Single;
     const Name: string;
-    AVisualizeX, AVisualizeY: Cardinal);
-  {$ifdef VISUALIZE_TRIANGULATION}
+    AVisualizeX, AVisualizeY: Cardinal; const RevertOrder: boolean);
   var
     I: Integer;
-  {$endif VISUALIZE_TRIANGULATION}
   begin
     try
       Vertexes := @AVertexes;
       CountVertexes := High(AVertexes) + 1;
       TriangleCount := 0;
+
+      if RevertOrder then
+        for I := 0 to CountVertexes div 2 - 1 do
+          SwapValues(Vertexes[I], Vertexes[CountVertexes - 1 - I]);
 
       {$ifdef VISUALIZE_TRIANGULATION}
       Image := TFPMemoryImage.Create(1024, 1024);
@@ -204,6 +206,8 @@ procedure TTestTriangulator.TestTriangulateFace;
       {$warnings on}
 
       ImageFileNamePrefix := SUnformattable(InclPathDelim(GetTempDir) + Name);
+      if RevertOrder then
+        ImageFileNamePrefix += '_reverted';
       VisualizeX := AVisualizeX;
       VisualizeY := AVisualizeY;
 
@@ -350,13 +354,14 @@ const
     (6.014, 0, 5.461)
   );
 begin
-  DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2);
-  DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2);
-  DoPolygon(Polygon_R3D_cs_full_polygon, 'R3D_cs_full_polygon', 0, 2);
+  DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2, false);
+  DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2, false);
+  DoPolygon(Polygon_R3D_cs_full_polygon, 'R3D_cs_full_polygon', 0, 2, false);
   { TODO: test that results are same as hardcoded results }
   { TODO: maybe test that resulting edges do not cross each other
     or original polygon edges? But it's not so easy, as on non-trivial
     polygons we will have colinear edges. }
+  { TODO: just test for both RevertOrder = true and false }
 end;
 
 initialization
