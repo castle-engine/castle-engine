@@ -2080,7 +2080,7 @@ function MatrixDet2x2(const a, b, c, d: Single): Single;
   multiplied by TransformToCoordsMatrix) you think in the "new" coordinate
   system. The "old" coordinate system
   (you specify it explicitly for TransformFromCoordsMatrix)
-  is is the coordinate system of stuff @italic(after)
+  is the coordinate system of stuff @italic(after)
   it's multiplied by this matrix.
 
   This may get confusing, so to be more precise:
