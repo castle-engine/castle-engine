@@ -335,7 +335,7 @@ const
     (8.255, 0, 3.669)
   );
 
-  Polygon_R3D_cs_full_polygon: array [0..39] of TVector3Single = (
+  Polygon_R3D_cs_full: array [0..39] of TVector3Single = (
     (7.087, 0, 5.929),
     (8.255, 0, 5.929),
     (8.255, 0, 6.024),
@@ -628,7 +628,7 @@ begin
     DoPolygon(Polygon_Circle, 'Circle', 0, 2, RevertOrder);
     DoPolygon(Polygon_3_5, 'polygon_3_5', 0, 2, RevertOrder);
     DoPolygon(Polygon_R3D_cs, 'R3D_cs', 0, 2, RevertOrder);
-    DoPolygon(Polygon_R3D_cs_full_polygon, 'R3D_cs_full_polygon', 0, 2, RevertOrder);
+    DoPolygon(Polygon_R3D_cs_full, 'R3D_cs_full', 0, 2, RevertOrder);
     DoPolygon(Polygon_RoomArranger_Cave, 'RoomArranger_Cave', 0, 2, RevertOrder);
   end;
 
