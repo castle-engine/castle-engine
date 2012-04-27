@@ -145,8 +145,11 @@ end;
 
 procedure TTestTriangulator.Face(const Tri: TVector3Longint);
 var
-  V0, V1, V2, EarNormal, E1, E2, E3: TVector3Single;
+  V0, V1, V2, EarNormal: TVector3Single;
+  {$ifdef VISUALIZE_TRIANGULATION}
+  E1, E2, E3: TVector3Single;
   Middle: TPoint;
+  {$endif VISUALIZE_TRIANGULATION}
 begin
   Inc(TriangleCount);
 
@@ -160,11 +163,11 @@ begin
   Assert(not ZeroVector(EarNormal));
   NormalizeTo1st(EarNormal);
 
+  {$ifdef VISUALIZE_TRIANGULATION}
   E1 := VectorProduct(EarNormal, V0 - V1);
   E2 := VectorProduct(EarNormal, V1 - V2);
   E3 := VectorProduct(EarNormal, V2 - V0);
 
-  {$ifdef VISUALIZE_TRIANGULATION}
   { draw triangle, each triangle with different (random) color }
   Canvas.Pen.FPColor := RandomLightFPColor;
   Canvas.Pen.Width := 5;
