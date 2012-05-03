@@ -19,3 +19,35 @@ callgrind_control -i off
 
 # investigate the report:
 kcachegrind
+
+------------------------------------------------------------------------------
+For memory usage profiling:
+
+- Try using CMem: add CMem as first unit on uses clause of the main program,
+  or compile with -FaCMem. This avoids possible complications of default
+  FPC memory manager (that may be lazy about releasing memory to OS,
+  in order to gain some speed; although this didn't have any noticeable bad
+  impact on memory use in my tests, so FPC memory manager does a good job;
+  but still it's worth checking.)
+
+  Note that valgrind (-gv) option conflicts with using CMem explicitly.
+  That is because, as far as I know, using -gv means that CMem
+  is already, implicitly, added (looks like CMem is required for valgrind to
+  duplicated in uses clause. correctly interpret results).
+  So "-gv -FaCMem" will say that Cmem is duplicated in uses clause.
+  So actually any one of "-gv" or "-FaCMem" (but don't use both)
+  will result in your program being tested with CMem memory manager.
+
+- Use valgrind's massif tool.
+  Compile like before, then run like
+
+  valgrind --tool=massif \
+  --alloc-fn='CMEM_CGETMEM$LONGINT$$POINTER' \
+  --alloc-fn='CMEM_CREALLOCMEM$POINTER$LONGINT$$POINTER' \
+  --alloc-fn='SYSTEM_GETMEM$LONGINT$$POINTER' \
+  --alloc-fn='SYSTEM_GETMEM$POINTER$LONGINT' \
+  --alloc-fn='SYSTEM_REALLOCMEM$POINTER$LONGINT$$POINTER' \
+  ~/bin/view3dscene
+
+  (Previously I used --format=html, but it seems not available anymore?)
+  And investigate the resulting massif.out.xxx file afterwards.
