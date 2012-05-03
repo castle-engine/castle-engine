@@ -51,3 +51,10 @@ For memory usage profiling:
 
   (Previously I used --format=html, but it seems not available anymore?)
   And investigate the resulting massif.out.xxx file afterwards.
+
+  Unfortunately, lately massif fails for me with
+  ... VALGRIND INTERNAL ERROR: Valgrind received a signal 11 (SIGSEGV) - exiting
+  ... si_code=1;  Faulting address: 0xFFFFFFF7;  sp: 0x6293e14c
+  ... valgrind: the 'impossible' happened:
+  ...   Killed by fatal signal
+  No solution known?
