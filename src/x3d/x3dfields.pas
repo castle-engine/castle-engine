@@ -3433,7 +3433,7 @@ begin
       Lexer.NextToken;
 
       while Lexer.Token <> vtCloseSqBracket do
-      {zawsze w tym miejscu albo stoimy na "]" albo na kolejnej wartosci pola SF}
+      { we always look now at "]" or next single value }
       begin
         SingleItem.ParseValue(Lexer, Reader);
         RawItemsAdd(SingleItem);
@@ -3457,7 +3457,7 @@ begin
       Lexer.NextToken;
     end else
     begin
-      {one single field - not enclosed in [] brackets}
+      { one single field - not enclosed in [] brackets }
       SingleItem.ParseValue(Lexer, Reader);
       RawItemsAdd(SingleItem);
     end;
