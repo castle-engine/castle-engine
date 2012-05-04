@@ -366,10 +366,14 @@ var
       ( (Inside3 <= -EpsilonForEmptyCheck) and RaySegment01Collision2D(VBorder, PullDirection, V2, V0-V2, V1-V2) );
 
     { Alternative hacky way to calculate this (will work Ok if triangles
-      are not too small, because of 0.01 constant): }
+      are not too small, because of 0.01 constant) is below.
+      Testcase when the two ways (above with RaySegment01Collision2D
+      and below with IsPointOnTrianglePlaneWithinTriangle) give different
+      answers is "manor" test from Jan Adamec's Room Arranger.
+
     Assert(Result = IsPointOnTrianglePlaneWithinTriangle(
       VBorder + PullDirection * 0.01,
-      Triangle3Single(V0, V1, V2), TriangleNormal));
+      Triangle3Single(V0, V1, V2), TriangleNormal)); }
 
     {$ifdef VISUALIZE_TRIANGULATION}
     Writeln(Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
