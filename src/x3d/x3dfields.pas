@@ -3432,6 +3432,11 @@ begin
     begin
       Lexer.NextToken;
 
+      { List size may be increased rapidly during parsing.
+        Prepare for it by allocating some size in advance. }
+      if RawItems is TFPSList then
+        TFPSList(RawItems).Capacity := 64;
+
       while Lexer.Token <> vtCloseSqBracket do
       { we always look now at "]" or next single value }
       begin
@@ -3478,6 +3483,11 @@ begin
 
   SingleItem := CreateItemBeforeParse;
   try
+    { List size may be increased rapidly during parsing.
+      Prepare for it by allocating some size in advance. }
+    if RawItems is TFPSList then
+      TFPSList(RawItems).Capacity := 64;
+
     while Lexer.Token <> vtEnd do
     begin
       SingleItem.ParseValue(Lexer, Reader);
@@ -5279,8 +5289,6 @@ begin
   FItemClass := TMF_CLASS_ITEM;
 
   RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
-  if RawItems is TFPSList then
-    TFPSList(RawItems).Capacity := 100;
 
   DefaultValuesCount := -1;
 end;
