@@ -1033,7 +1033,9 @@ begin
 
       { Fill CoordIndex and TexCoordIndex }
 
-      Len := 5 * E.High * (FdCrossSection.Count - 1);
+      if E.High > 0 then
+        Len := 5 * E.High * (FdCrossSection.Count - 1) else
+        Len := 0; { E.High may be -1, then Len should remain 0 }
       if FdBeginCap.Value then
         Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
       if FdEndCap.Value then
