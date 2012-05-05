@@ -99,7 +99,7 @@ procedure TriangulateConvexFace(Count: Integer;
 { Calculate normal vector of possibly concave polygon. }
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
-  Verts: PVector3Single; const VertsCount: Integer;
+  Vertices: PVector3Single; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
 
 implementation
@@ -602,56 +602,112 @@ begin
     NewTriangle(0, I + 1, I + 2);
 end;
 
-type
-  TConcaveTriangulator = class
-    Indices: PArray_Longint;
-    Verts: PVector3Single;
-    VertsCount: Integer;
-    Normal: TVector3Single;
-    procedure HandleTriangle(const Tri: TVector3Longint);
+function IndexedConcavePolygonNormal(
+  Indices: PArray_Longint; Count: Integer;
+  Vertices: PVector3Single; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+
+{ Alternative implementation of IndexedConcavePolygonNormal
+  is to do TriangulateFace on the polygon, sum normal vectors
+  of all generated triangles, and normalize the result.
+  However, this is very unoptimal, as TriangulateFace already calculates
+  PolygonNormal (even EarNormal for each triangle) as it works.
+  The current implementation replicates the beginning part of TriangulateFace job,
+  in a simpler manner. }
+
+  { Previous and Next in modulo Count (0.. Count - 1) range. }
+  function Previous(const I: Integer): Integer;
+  begin
+    Result := I - 1;
+    if Result = -1 then Result += Count;
   end;
 
-procedure TConcaveTriangulator.HandleTriangle(const Tri: TVector3Longint);
-var
-  I0, I1, I2: Integer;
-begin
-  I0 := Indices^[Tri[0]];
-  I1 := Indices^[Tri[1]];
-  I2 := Indices^[Tri[2]];
-  if (I0 < VertsCount) and
-     (I1 < VertsCount) and
-     (I2 < VertsCount) then
-    Normal += TriangleNormal(Verts[I0], Verts[I1], Verts[I2]);
-end;
+  function Next(const I: Integer): Integer;
+  begin
+    Result := (I + 1) mod Count;
+  end;
 
-function IndexedConcavePolygonNormal(
-  Indices: PArray_Longint; IndicesCount: Integer;
-  Verts: PVector3Single; const VertsCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+  function Verts(const I: Longint): TVector3Single;
+  var
+    Index: LongInt;
+  begin
+    Index := Indices^[I];
+    if Index < VerticesCount then
+      Result := Vertices[Index] else
+      Result := ZeroVector3Single;
+  end;
+
+  { Calculate the most distant vertex from Center. }
+  function GetMostDistantVertex(const Center: TVector3Single): Integer;
+  var
+    MaxLen, D: Single;
+    I: Integer;
+  begin
+    Result := 0;
+    MaxLen := PointsDistanceSqr(Center, Verts(0));
+    for I := 1 to Count - 1 do
+    begin
+      D := PointsDistanceSqr(Center, Verts(I));
+      if D > MaxLen then
+      begin
+        MaxLen := D;
+        Result := I;
+      end;
+    end;
+  end;
+
 var
-  T: TConcaveTriangulator;
+  Center: TVector3Single;
+  P0, P1, P2, I: Integer;
 begin
-  T := TConcaveTriangulator.Create;
-  try
-    T.Indices := Indices;
-    T.Verts := Verts;
-    T.VertsCount := VertsCount;
-    TriangulateFace(Indices, IndicesCount, Verts, VertsCount, @T.HandleTriangle, 0);
-    Result := T.Normal;
-    if ZeroVector(Result) then
-      Result := ResultForIncorrectPoly else
-      NormalizeTo1st(Result);
-  finally FreeAndNil(T) end;
+  if Count < 3 then
+    Exit(ResultForIncorrectPoly);
+
+  { calculate Center := average of all vertexes }
+  Center := ZeroVector3Single;
+  for I := 0 to Count - 1 do
+    Center += Verts(I);
+  Center /= Count;
+
+  { P1 is the most distant vertex. }
+  P1 := GetMostDistantVertex(Center);
+
+  { P0 := previous from P1, with different value. }
+  P0 := P1;
+  repeat
+    P0 := Previous(P0);
+  until (P0 = P1) or not VectorsEqual(Verts(P0), Verts(P1));
+  if P0 = P1 then
+  begin
+    { All vertexes of given polygon are equal. }
+    Exit(ResultForIncorrectPoly);
+  end;
+
+  { P2 := next from P1, resulting in valid triangle P0-P1-P2. }
+  P2 := P1;
+  repeat
+    P2 := Next(P2);
+    Result := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+    { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
+      because if EarDir is non-zero then they had to be different. }
+  until (P2 = P0) or not ZeroVector(Result);
+  if P2 = P0 then
+  begin
+    { All vertexes of given polygon are collinear. }
+    Exit(ResultForIncorrectPoly);
+  end;
+
+  NormalizeTo1st(Result);
 end;
 
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
-  Verts: PVector3Single; const VertsCount: Integer;
+  Vertices: PVector3Single; const VerticesCount: Integer;
   const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
 begin
   if Convex then
-    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Verts, VertsCount, ResultForIncorrectPoly) else
-    Result := IndexedConcavePolygonNormal(Indices, IndicesCount, Verts, VertsCount, ResultForIncorrectPoly);
+    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly) else
+    Result := IndexedConcavePolygonNormal(Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly);
 end;
 
 end.
