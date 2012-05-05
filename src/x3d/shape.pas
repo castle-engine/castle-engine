@@ -1840,8 +1840,16 @@ begin
     Assert(FState[OverTriangulate] = nil);
     FState[OverTriangulate] := OriginalState;
 
-    FGeometry[OverTriangulate] := OriginalGeometry.Proxy(
-      FState[OverTriangulate], OverTriangulate);
+    try
+      FGeometry[OverTriangulate] := OriginalGeometry.Proxy(
+        FState[OverTriangulate], OverTriangulate);
+    except
+      { in case of trouble, remember to keep both
+        FGeometry[OverTriangulate] and FState[OverTriangulate] nil.
+        Never let one of them be nil, while other it not. }
+      FState[OverTriangulate] := nil;
+      raise;
+    end;
 
     if FGeometry[OverTriangulate] <> nil then
     begin
