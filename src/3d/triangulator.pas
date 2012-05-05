@@ -39,7 +39,7 @@ type
   In the simple case, you can just use Vertices[FaceIndices[Tri[0..2]]]
   to obtain your triangle, in the more sophisticated cases you have
   other options to e.g. extract other vertex information from whatever
-  data you have (see e.g. VRML IndexedFaceSet renderer).
+  data you have (see e.g. VRML/X3D IndexedFaceSet renderer).
 
   Generated triangles have the same orientation (normal from ccw etc.)
   as original polygon. This also means that if you're sure that
@@ -69,7 +69,8 @@ type
   @groupBegin }
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; TriangulatorProc: TTriangulatorProc;
+  Vertices: PVector3Single; VerticesCount: Integer;
+  TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 
 procedure TriangulateFace(
@@ -95,7 +96,7 @@ procedure TriangulateConvexFace(Count: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 
-{ Triangulate possibly concave polygon. }
+{ Calculate normal vector of possibly concave polygon. }
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
   Verts: PVector3Single; const VertsCount: Integer;
@@ -552,17 +553,23 @@ end;
 type
   TVerticesGenerator = class
     Vertices: PVector3Single;
+    VerticesCount: Integer;
     function Generate(Index: Integer): TVector3Single;
   end;
 
 function TVerticesGenerator.Generate(Index: Integer): TVector3Single;
 begin
-  Result := Vertices[Index];
+  if Index < VerticesCount then
+    Result := Vertices[Index] else
+    { invalid vertex index. VRML/X3D code will warn about it elsewhere,
+      so do not make warning now --- just make sure we don't crash. }
+    Result := ZeroVector3Single;
 end;
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; TriangulatorProc: TTriangulatorProc;
+  Vertices: PVector3Single; VerticesCount: Integer;
+  TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 var
   G: TVerticesGenerator;
@@ -570,6 +577,7 @@ begin
   G := TVerticesGenerator.Create;
   try
     G.Vertices := Vertices;
+    G.VerticesCount := VerticesCount;
     TriangulateFace(FaceIndices, Count,
       @G.Generate, TriangulatorProc, AddToIndices);
   finally FreeAndNil(G); end;
@@ -628,7 +636,7 @@ begin
     T.Indices := Indices;
     T.Verts := Verts;
     T.VertsCount := VertsCount;
-    TriangulateFace(Indices, IndicesCount, Verts, @T.HandleTriangle, 0);
+    TriangulateFace(Indices, IndicesCount, Verts, VertsCount, @T.HandleTriangle, 0);
     Result := T.Normal;
     if ZeroVector(Result) then
       Result := ResultForIncorrectPoly else

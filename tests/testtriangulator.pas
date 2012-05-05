@@ -266,7 +266,7 @@ procedure TTestTriangulator.TestTriangulateFace;
       Canvas.LineTo(VisualizePoint(Vertexes[0]));
       {$endif VISUALIZE_TRIANGULATION}
 
-      TriangulateFace(nil, CountVertexes, Vertexes, @Face, 0);
+      TriangulateFace(nil, CountVertexes, Vertexes, CountVertexes, @Face, 0);
     finally
       {$ifdef VISUALIZE_TRIANGULATION}
       FreeAndNil(Image);
