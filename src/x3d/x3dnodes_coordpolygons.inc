@@ -210,8 +210,9 @@ var
   I: Cardinal;
 begin
   SetLength(Indexes, EndIndex - BeginIndex);
-  for I := 0 to High(Indexes) do
-    Indexes[I] := I + Cardinal(BeginIndex);
+  if High(Indexes) >= 0 then
+    for I := 0 to High(Indexes) do
+      Indexes[I] := I + Cardinal(BeginIndex);
   Polygon(Indexes);
 end;
 

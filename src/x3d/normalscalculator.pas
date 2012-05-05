@@ -349,6 +349,7 @@ var
     guarantee that CoordIndex items are >= 0. }
   DirectIndexes: array of LongInt;
   I: Integer;
+  Index: LongInt;
 begin
   SetLength(DirectIndexes, Length(Indexes));
   if CoordIndex <> nil then
@@ -367,7 +368,15 @@ begin
     Vector3Single(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
-    VectorAddTo1st(Normals.L[DirectIndexes[I]], FaceNormal);
+  begin
+    Index := DirectIndexes[I];
+    { Normals count is equal to vertexes count.
+      So if Index is incorrect, then we have coordIndex pointing
+      to a non-existing vertex index. VRML/X3D code will warn about it
+      elsewhere, here just make sure we don't crash. }
+    if Index < Normals.Count then
+      VectorAddTo1st(Normals.L[Index], FaceNormal);
+  end;
 end;
 
 function CreateSmoothNormalsCoordinateNode(

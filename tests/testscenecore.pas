@@ -140,6 +140,7 @@ begin
   CheckIterator('data' + PathDelim + 'key_sensor_2.x3dv');
   CheckIterator('data' + PathDelim + 'extrusion_empty_spine.x3dv');
   CheckIterator('data' + PathDelim + 'extrusion_empty_spine_concave.x3dv');
+  CheckIterator('data' + PathDelim + 'extrusion_empty_spine_smooth.x3dv');
 end;
 
 initialization
