@@ -3258,7 +3258,7 @@ end;
 
 procedure TX3DField.AssignValueRaiseInvalidClass(Source: TX3DField);
 begin
-  raise EX3DFieldAssignInvalidClass.CreateFmt('Cannot assign VRML field ' +
+  raise EX3DFieldAssignInvalidClass.CreateFmt('Cannot assign VRML/X3D field ' +
     '%s (%s) from %s (%s)',
     [        Name,        TypeName,
       Source.Name, Source.TypeName]);
@@ -3456,7 +3456,7 @@ begin
         - When the list has no items, "[]" is allowed but "[,]" is not.
         - When there are some items on the list, the last item *may*
           be followed by a comma.
-        For VRML 2.0 this all doesn't matter, comma is just a whitespace
+        For VRML >= 2.0 this all doesn't matter, comma is just a whitespace
         and Lexer will never return such token. }
 
       Lexer.NextToken;
@@ -4007,7 +4007,7 @@ end;
   to LongWord below may cause range check errors. Yes, we want to
   directly treat LongInt as 4 bytes here, because DecodeImageColor
   works on separate bytes. See
-  http://castle-engine.sourceforge.net/x3d_implementation_status.php
+  http://castle-engine.sourceforge.net/x3d_implementation_texturing3d.php
   comments about PixelTexture3D. }
 
 {$include norqcheckbegin.inc}
@@ -4065,9 +4065,6 @@ begin
     }
 
   Value.Null;
-
-  { TODO: we convert here 1 and 2 components to 3 and 4 (that is,
-    we convert grayscale to RGB). This is a limitation of our Images unit. }
 
   w := ParseLongWord(Lexer);
   h := ParseLongWord(Lexer);
@@ -5305,19 +5302,19 @@ end;
 
 procedure TMF_CLASS.RawItemsAdd(Item: TX3DSingleField);
 begin
- Items.Add(TMF_CLASS_ITEM(Item).Value);
+  Items.Add(TMF_CLASS_ITEM(Item).Value);
 end;
 
 procedure TMF_CLASS.Assign(Source: TPersistent);
 begin
- if Source is TMF_CLASS then
- begin
-  DefaultValuesCount := TMF_CLASS(Source).DefaultValuesCount;
-  DefaultValue       := TMF_CLASS(Source).DefaultValue;
-  Items.Assign(TMF_CLASS(Source).Items);
-  VRMLFieldAssignCommon(TX3DField(Source));
- end else
-  inherited;
+  if Source is TMF_CLASS then
+  begin
+    DefaultValuesCount := TMF_CLASS(Source).DefaultValuesCount;
+    DefaultValue       := TMF_CLASS(Source).DefaultValue;
+    Items.Assign(TMF_CLASS(Source).Items);
+    VRMLFieldAssignCommon(TX3DField(Source));
+  end else
+    inherited;
 end;
 
 procedure TMF_CLASS.AssignValue(Source: TX3DField);
@@ -5334,8 +5331,8 @@ procedure TMF_CLASS.AssignDefaultValueFromValue;
 begin
   inherited;
 
-  (* inicjuj DefaultValuesCount, inicjuj tez DefaultValue
-     jesli DefaultValuesCount = 1 *)
+  (* initialize default value of the field: DefaultValuesCount, and (only
+     in case of DefaultValuesCount = 1 for now) initialize also DefaultValue *)
   case Items.Count of
     0: DefaultValuesCount := 0;
     1: begin
@@ -5376,24 +5373,12 @@ begin
 end;
 }
 
-{ dla niektorych klas MF nie bedzie mialo znaczenia ktorej wersji
-  IMPLEMENT_MF_CLASS_EQUALS_DEFAULT_VALUE_USING_* uzyjemy.
+{ Choose one of macros IMPLEMENT_MF_CLASS_USING_* to specify
+  which comparison operator is suitable for given field type.
 
-  Ale dla niektorych typow TMF_STATIC_ITEM operator "=" moze nie byc
-  standardowo dostepny (i calkiem slusznie, bo dla tych typow nie zawsze
-  chcielibysmy robic dokladne porownanie; TERAZ jednak wlasnie tego chcemy).
-  Np. dla typow TVector2/3Single. Dlatego musimy wtedy uzywac metody
-  CompareMem. Ale metoda CompareMem tez nie jest zawsze dobra - dla
-  stringow na przyklad ta metoda jest bez sensu. Ale dla stringow metoda
-  z operatorem "=" ma sens.
-
-  W tej chwili nie ma klasy MF ktora wymagalaby jakiegos jeszcze innego
-  traktowania ale nietrudno sobie taka wyobrazic. Nie wszystkie
-  typy mozemy przeciez sensownie porownywac operatorem "=" lub CompareMem,
-  np. gdybysmy mieli TMFImage.
-
-  Notka: dla klas dla ktorych obie wersje (CompareMem i "=") sa dobre
-  uzywam wersji "=" (bo jest bezpieczniejsza na typach).
+  For some types operator "=" may not be available, like for vectors
+  (where it would be unsure what it does --- precise or epsilon comparison?).
+  Then using other comparison, like CompareMem, may be suitable.
 }
 
 {$define IMPLEMENT_MF_CLASS_USING_EQUALITY_OP:=
@@ -5416,31 +5401,6 @@ begin
  if Result then
   for I := 0 to Items.Count - 1 do
    if not (TMF_CLASS(SecondValue).Items.L[I] = Items.L[I]) then
-    Exit(false);
-end;
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_COMPARE_MEM:=
-function TMF_CLASS.EqualsDefaultValue: boolean;
-begin
-  result :=
-    ((DefaultValuesCount = 0) and (Count = 0)) or
-    ((DefaultValuesCount = 1) and (Count = 1) and
-      CompareMem(@DefaultValue, Items.Pointers[0], SizeOf(TMF_STATIC_ITEM)) );
-end;
-
-function TMF_CLASS.Equals(SecondValue: TX3DField;
-  const EqualityEpsilon: Double): boolean;
-var
-  I: Integer;
-begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-   (SecondValue is TMF_CLASS);
-
- if Result then
-  for I := 0 to Items.Count - 1 do
-   if not CompareMem(@(TMF_CLASS(SecondValue).Items.L[I]), @(Items.L[I]),
-     SizeOf(TMF_STATIC_ITEM)) then
     Exit(false);
 end;
 }
@@ -6049,7 +6009,7 @@ constructor TX3DFieldsManager.Create;
 begin
   inherited;
   Registered := TStringList.Create;
-  { All VRML names are case-sensitive. }
+  { All VRML/X3D names are case-sensitive. }
   Registered.CaseSensitive := true;
 end;
 
