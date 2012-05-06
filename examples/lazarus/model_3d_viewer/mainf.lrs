@@ -915,22 +915,21 @@ LazarusResources.Add('TMain','FORMDATA',[
   +#7'OnClick'#7#31'MenuAggressiveUpdateToggleClick'#0#0#9'TMenuItem'#9'MenuIte'
   +'m2'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#18'MenuFocusGLControl'#7'Caption'#6
   +#24'Switch &focus to 3D area'#7'OnClick'#7#23'MenuFocusGLControlClick'#0#0#9
-  +'TMenuItem'#9'MenuItem1'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#19'MenuShowVrmlC'
-  +'onsole'#9'AutoCheck'#9#7'Caption'#6#22'Show Warnings &Console'#19'ShowAlway'
-  +'sCheckable'#9#7'OnClick'#7#24'MenuShowVrmlConsoleClick'#0#0#0#9'TMenuItem'#8
-  +'MenuHelp'#7'Caption'#6#5'&Help'#0#9'TMenuItem'#15'MenuAboutOpenGL'#7'Captio'
-  +'n'#6#19'&OpenGL information'#7'OnClick'#7#20'MenuAboutOpenGLClick'#0#0#9'TM'
-  +'enuItem'#8'MenuSep2'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#11'MenuWebsite'#7'C'
-  +'aption'#6'"Visit "Castle Game Engine" website'#7'OnClick'#7#16'MenuWebsiteC'
-  +'lick'#0#0#0#0#11'TOpenDialog'#11'OpenDialog1'#5'Title'#6#18'Open 3d model f'
-  +'ile'#11'FilterIndex'#2#0#4'left'#2'P'#3'top'#3#184#0#0#0#6'TTimer'#6'Timer1'
-  +#7'OnTimer'#7#11'Timer1Timer'#4'left'#2'S'#3'top'#2'I'#0#0#13'TCastleConfig'
-  +#6'Config'#10'StartEmpty'#8#8'RootName'#21#6#0#0#0'C'#0'O'#0'N'#0'F'#0'I'#0
-  +'G'#0#4'left'#3#16#1#3'top'#2'h'#0#0#15'TLazRecentFiles'#11'RecentFiles'#12
-  +'OnOpenRecent'#7#21'RecentFilesOpenRecent'#4'left'#3#18#1#3'top'#3#175#0#0#0
-  +#22'TApplicationProperties'#22'ApplicationProperties1'#6'OnIdle'#7#26'Applic'
-  +'ationProperties1Idle'#4'left'#3#12#1#3'top'#2','#0#0#11'TSaveDialog'#20'Sav'
-  +'eScreenshotDialog'#5'Title'#6#18'Save Screenshot As'#7'Options'#11#17'ofOve'
-  +'rwritePrompt'#14'ofEnableSizing'#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3
-  +#15#1#0#0#0
+  +'TMenuItem'#9'MenuItem1'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#15'MenuShowConso'
+  +'le'#9'AutoCheck'#9#7'Caption'#6#22'Show Warnings &Console'#19'ShowAlwaysChe'
+  +'ckable'#9#7'OnClick'#7#20'MenuShowConsoleClick'#0#0#0#9'TMenuItem'#8'MenuHe'
+  +'lp'#7'Caption'#6#5'&Help'#0#9'TMenuItem'#15'MenuAboutOpenGL'#7'Caption'#6#19
+  +'&OpenGL information'#7'OnClick'#7#20'MenuAboutOpenGLClick'#0#0#9'TMenuItem'
+  +#8'MenuSep2'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#11'MenuWebsite'#7'Caption'#6
+  +'"Visit "Castle Game Engine" website'#7'OnClick'#7#16'MenuWebsiteClick'#0#0#0
+  +#0#11'TOpenDialog'#11'OpenDialog1'#5'Title'#6#18'Open 3d model file'#11'Filt'
+  +'erIndex'#2#0#4'left'#2'P'#3'top'#3#184#0#0#0#6'TTimer'#6'Timer1'#7'OnTimer'
+  +#7#11'Timer1Timer'#4'left'#2'S'#3'top'#2'I'#0#0#13'TCastleConfig'#6'Config'
+  +#10'StartEmpty'#8#8'RootName'#21#6#0#0#0'C'#0'O'#0'N'#0'F'#0'I'#0'G'#0#4'lef'
+  +'t'#3#16#1#3'top'#2'h'#0#0#15'TLazRecentFiles'#11'RecentFiles'#12'OnOpenRece'
+  +'nt'#7#21'RecentFilesOpenRecent'#4'left'#3#18#1#3'top'#3#175#0#0#0#22'TAppli'
+  +'cationProperties'#22'ApplicationProperties1'#6'OnIdle'#7#26'ApplicationProp'
+  +'erties1Idle'#4'left'#3#12#1#3'top'#2','#0#0#11'TSaveDialog'#20'SaveScreensh'
+  +'otDialog'#5'Title'#6#18'Save Screenshot As'#7'Options'#11#17'ofOverwritePro'
+  +'mpt'#14'ofEnableSizing'#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3#15#1#0#0#0
 ]);

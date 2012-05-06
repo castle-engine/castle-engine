@@ -984,11 +984,11 @@ object Main: TMain
       object MenuItem1: TMenuItem
         Caption = '-'
       end
-      object MenuShowVrmlConsole: TMenuItem
+      object MenuShowConsole: TMenuItem
         AutoCheck = True
         Caption = 'Show Warnings &Console'
         ShowAlwaysCheckable = True
-        OnClick = MenuShowVrmlConsoleClick
+        OnClick = MenuShowConsoleClick
       end
     end
     object MenuHelp: TMenuItem

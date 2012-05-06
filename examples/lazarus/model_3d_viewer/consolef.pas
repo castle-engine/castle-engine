@@ -10,9 +10,9 @@ uses
 
 type
 
-  { TVrmlConsole }
+  { TConsole }
 
-  TVrmlConsole = class(TForm)
+  TConsole = class(TForm)
     Button1: TButton;
     Memo1: TMemo;
     procedure Button1Click(Sender: TObject);
@@ -24,7 +24,7 @@ type
   end;
 
 var
-  VrmlConsole: TVrmlConsole;
+  Console: TConsole;
 
 procedure OnWarningVrmlConsole(
   const WarningType: TWarningType; const Category, S: string);
@@ -36,20 +36,20 @@ uses MainF;
 procedure OnWarningVrmlConsole(
   const WarningType: TWarningType; const Category, S: string);
 begin
-  VrmlConsole.Memo1.Lines.Append(Category + ': ' + S);
-  VrmlConsole.WasWarnings := true;
+  Console.Memo1.Lines.Append(Category + ': ' + S);
+  Console.WasWarnings := true;
 end;
 
-{ TVrmlConsole }
+{ TConsole }
 
-procedure TVrmlConsole.Button1Click(Sender: TObject);
+procedure TConsole.Button1Click(Sender: TObject);
 begin
   Close;
 end;
 
-procedure TVrmlConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+procedure TConsole.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
-  Main.MenuShowVrmlConsole.Checked := false;
+  Main.MenuShowConsole.Checked := false;
 end;
 
 initialization

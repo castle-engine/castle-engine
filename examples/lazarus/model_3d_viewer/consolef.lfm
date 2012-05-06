@@ -1,20 +1,20 @@
-object VrmlConsole: TVrmlConsole
+object Console: TConsole
   Left = 290
   Height = 467
   Top = 208
   Width = 688
   ActiveControl = Memo1
-  Caption = 'VrmlConsole'
+  Caption = 'Console'
   ClientHeight = 467
   ClientWidth = 688
   OnClose = FormClose
   Position = poDefault
-  LCLVersion = '0.9.28.2'
+  LCLVersion = '0.9.31'
   object Button1: TButton
-    Left = 615
-    Height = 36
-    Top = 419
-    Width = 66
+    Left = 624
+    Height = 37
+    Top = 418
+    Width = 57
     Anchors = [akRight, akBottom]
     AutoSize = True
     Caption = 'Close'
@@ -30,6 +30,7 @@ object VrmlConsole: TVrmlConsole
     Lines.Strings = (
       ''
     )
+    ScrollBars = ssVertical
     TabOrder = 1
   end
 end

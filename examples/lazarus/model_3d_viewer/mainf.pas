@@ -59,7 +59,7 @@ type
     MenuItem1: TMenuItem;
     MenuWebsite: TMenuItem;
     MenuSep2: TMenuItem;
-    MenuShowVrmlConsole: TMenuItem;
+    MenuShowConsole: TMenuItem;
     MenuItemView: TMenuItem;
     MenuQuit: TMenuItem;
     MenuSep1: TMenuItem;
@@ -84,7 +84,7 @@ type
     procedure MenuFocusGLControlClick(Sender: TObject);
     procedure MenuOpenClick(Sender: TObject);
     procedure MenuQuitClick(Sender: TObject);
-    procedure MenuShowVrmlConsoleClick(Sender: TObject);
+    procedure MenuShowConsoleClick(Sender: TObject);
     procedure MenuWebsiteClick(Sender: TObject);
     procedure SceneManagerBoundNavigationInfoChanged(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
@@ -114,8 +114,8 @@ uses LCLType, LCLIntf, VectorMath, Boxes3D, X3DNodes, GLRenderer,
 
 procedure TMain.OpenScene(const FileName: string);
 begin
-  VrmlConsole.WasWarnings := false;
-  VrmlConsole.Memo1.Lines.Append('--- Loading ' + FileName);
+  Console.WasWarnings := false;
+  Console.Memo1.Lines.Append('--- Loading ' + FileName);
 
   Browser.Load(FileName);
   Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
@@ -124,10 +124,10 @@ begin
   SceneFileName := FileName;
   UpdateCaption;
 
-  if VrmlConsole.WasWarnings then
+  if Console.WasWarnings then
   begin
-    MenuShowVrmlConsole.Checked := true;
-    VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
+    MenuShowConsole.Checked := true;
+    Console.Visible := MenuShowConsole.Checked;
   end;
 
   RecentFiles.Add(FileName);
@@ -178,9 +178,9 @@ begin
   Close;
 end;
 
-procedure TMain.MenuShowVrmlConsoleClick(Sender: TObject);
+procedure TMain.MenuShowConsoleClick(Sender: TObject);
 begin
-  VrmlConsole.Visible := MenuShowVrmlConsole.Checked;
+  Console.Visible := MenuShowConsole.Checked;
 end;
 
 procedure TMain.MenuWebsiteClick(Sender: TObject);
@@ -259,7 +259,7 @@ begin
 
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
 
-  VrmlConsole := TVrmlConsole.Create(Application);
+  Console := TConsole.Create(Application);
   OnWarning := @OnWarningVrmlConsole;
 
   ButtonsNavigationType[ntExamine] := ButtonExamine;
