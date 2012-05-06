@@ -20,6 +20,8 @@ unit Shape;
 
 {$I octreeconf.inc}
 
+{$modeswitch nestedprocvars}{$H+}
+
 interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
@@ -65,7 +67,7 @@ type
 
   TShape = class;
 
-  TShapeTraverseFunc = procedure (Shape: TShape) of object;
+  TShapeTraverseFunc = procedure (Shape: TShape) is nested;
 
   TEnumerateShapeTexturesFunction = procedure (Shape: TShape;
     Texture: TAbstractTextureNode) of object;
@@ -823,10 +825,6 @@ type
   TShapeList = class(specialize TFPGObjectList<TShape>)
   private
     AddedCount: Integer;
-    procedure AddToList(Shape: TShape);
-    procedure AddToListIfVisible(Shape: TShape);
-    procedure AddToListIfCollidable(Shape: TShape);
-    procedure AddToListIfVisibleAndCollidable(Shape: TShape);
   public
     constructor Create;
 
@@ -2556,6 +2554,40 @@ end;
 
 constructor TShapeList.Create(Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+
+  procedure AddToList(Shape: TShape);
+  begin
+    Items[AddedCount] := Shape;
+    Inc(AddedCount);
+  end;
+
+  procedure AddToListIfVisible(Shape: TShape);
+  begin
+    if Shape.Visible then
+    begin
+      Items[AddedCount] := Shape;
+      Inc(AddedCount);
+    end;
+  end;
+
+  procedure AddToListIfCollidable(Shape: TShape);
+  begin
+    if Shape.Collidable then
+    begin
+      Items[AddedCount] := Shape;
+      Inc(AddedCount);
+    end;
+  end;
+
+  procedure AddToListIfVisibleAndCollidable(Shape: TShape);
+  begin
+    if Shape.Visible and Shape.Collidable then
+    begin
+      Items[AddedCount] := Shape;
+      Inc(AddedCount);
+    end;
+  end;
+
 begin
   Create;
 
@@ -2574,39 +2606,6 @@ begin
     Tree.Traverse(@AddToList, OnlyActive);
 
   Assert(AddedCount = Count);
-end;
-
-procedure TShapeList.AddToList(Shape: TShape);
-begin
-  Items[AddedCount] := Shape;
-  Inc(AddedCount);
-end;
-
-procedure TShapeList.AddToListIfVisible(Shape: TShape);
-begin
-  if Shape.Visible then
-  begin
-    Items[AddedCount] := Shape;
-    Inc(AddedCount);
-  end;
-end;
-
-procedure TShapeList.AddToListIfCollidable(Shape: TShape);
-begin
-  if Shape.Collidable then
-  begin
-    Items[AddedCount] := Shape;
-    Inc(AddedCount);
-  end;
-end;
-
-procedure TShapeList.AddToListIfVisibleAndCollidable(Shape: TShape);
-begin
-  if Shape.Visible and Shape.Collidable then
-  begin
-    Items[AddedCount] := Shape;
-    Inc(AddedCount);
-  end;
 end;
 
 var

@@ -16,6 +16,8 @@
 { VRML/X3D complete scene handling and OpenGL rendering (TCastleScene). }
 unit CastleScene;
 
+{$modeswitch nestedprocvars}{$H+}
+
 interface
 
 uses
@@ -1040,69 +1042,6 @@ end;
 
 { ShapesSplitBlending ---------------------------------------------------- }
 
-type
-  TShapesSplitBlendingHelper = class
-    Shapes: array [boolean] of TShapeList;
-    TestShapeVisibility: TTestShapeVisibility;
-
-    procedure AddToList(Shape: TShape);
-    procedure AddToListIfVisible(Shape: TShape);
-    procedure AddToListIfCollidable(Shape: TShape);
-    procedure AddToListIfVisibleAndCollidable(Shape: TShape);
-
-    procedure AddToListIfTested(Shape: TShape);
-    procedure AddToListIfVisibleAndTested(Shape: TShape);
-    procedure AddToListIfCollidableAndTested(Shape: TShape);
-    procedure AddToListIfVisibleAndCollidableAndTested(Shape: TShape);
-  end;
-
-procedure TShapesSplitBlendingHelper.AddToList(Shape: TShape);
-begin
-  Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfVisible(Shape: TShape);
-begin
-  if Shape.Visible then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfCollidable(Shape: TShape);
-begin
-  if Shape.Collidable then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidable(Shape: TShape);
-begin
-  if Shape.Visible and Shape.Collidable then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfTested(Shape: TShape);
-begin
-  if TestShapeVisibility(TGLShape(Shape)) then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndTested(Shape: TShape);
-begin
-  if Shape.Visible and TestShapeVisibility(TGLShape(Shape)) then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfCollidableAndTested(Shape: TShape);
-begin
-  if Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
-procedure TShapesSplitBlendingHelper.AddToListIfVisibleAndCollidableAndTested(Shape: TShape);
-begin
-  if Shape.Visible and Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
-    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-end;
-
 { Create two TShapeList lists simultaneously, one with opaque shapes
   (UseBlending = @false), the other with transparent shapes
   (UseBlending = @true).
@@ -1124,44 +1063,88 @@ procedure ShapesSplitBlending(
   TestShapeVisibility: TTestShapeVisibility;
   out OpaqueShapes, TransparentShapes: TShapeList);
 var
-  Helper: TShapesSplitBlendingHelper;
+  Shapes: array [boolean] of TShapeList;
+
+  procedure AddToList(Shape: TShape);
+  begin
+    Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfVisible(Shape: TShape);
+  begin
+    if Shape.Visible then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfCollidable(Shape: TShape);
+  begin
+    if Shape.Collidable then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfVisibleAndCollidable(Shape: TShape);
+  begin
+    if Shape.Visible and Shape.Collidable then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfTested(Shape: TShape);
+  begin
+    if TestShapeVisibility(TGLShape(Shape)) then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfVisibleAndTested(Shape: TShape);
+  begin
+    if Shape.Visible and TestShapeVisibility(TGLShape(Shape)) then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfCollidableAndTested(Shape: TShape);
+  begin
+    if Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+  procedure AddToListIfVisibleAndCollidableAndTested(Shape: TShape);
+  begin
+    if Shape.Visible and Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
+      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
+  end;
+
+var
   Capacity: Integer;
 begin
   OpaqueShapes      := TShapeList.Create;
   TransparentShapes := TShapeList.Create;
 
-  Helper := TShapesSplitBlendingHelper.Create;
-  try
-    Helper.Shapes[false] := OpaqueShapes;
-    Helper.Shapes[true ] := TransparentShapes;
-    Helper.TestShapeVisibility := TestShapeVisibility;
+  Shapes[false] := OpaqueShapes;
+  Shapes[true ] := TransparentShapes;
 
-    { Set Capacity to max value at the beginning, to speed ading items  later. }
-    Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
-    OpaqueShapes     .Capacity := Capacity;
-    TransparentShapes.Capacity := Capacity;
+  { Set Capacity to max value at the beginning, to speed adding items later. }
+  Capacity := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
+  OpaqueShapes     .Capacity := Capacity;
+  TransparentShapes.Capacity := Capacity;
 
-    if Assigned(TestShapeVisibility) then
-    begin
-      if OnlyVisible and OnlyCollidable then
-        Tree.Traverse(@Helper.AddToListIfVisibleAndCollidableAndTested, OnlyActive) else
-      if OnlyVisible then
-        Tree.Traverse(@Helper.AddToListIfVisibleAndTested, OnlyActive) else
-      if OnlyCollidable then
-        Tree.Traverse(@Helper.AddToListIfCollidableAndTested, OnlyActive) else
-        Tree.Traverse(@Helper.AddToListIfTested, OnlyActive);
-    end else
-    begin
-      if OnlyVisible and OnlyCollidable then
-        Tree.Traverse(@Helper.AddToListIfVisibleAndCollidable, OnlyActive) else
-      if OnlyVisible then
-        Tree.Traverse(@Helper.AddToListIfVisible, OnlyActive) else
-      if OnlyCollidable then
-        Tree.Traverse(@Helper.AddToListIfCollidable, OnlyActive) else
-        Tree.Traverse(@Helper.AddToList, OnlyActive);
-    end;
-
-  finally FreeAndNil(Helper) end;
+  if Assigned(TestShapeVisibility) then
+  begin
+    if OnlyVisible and OnlyCollidable then
+      Tree.Traverse(@AddToListIfVisibleAndCollidableAndTested, OnlyActive) else
+    if OnlyVisible then
+      Tree.Traverse(@AddToListIfVisibleAndTested, OnlyActive) else
+    if OnlyCollidable then
+      Tree.Traverse(@AddToListIfCollidableAndTested, OnlyActive) else
+      Tree.Traverse(@AddToListIfTested, OnlyActive);
+  end else
+  begin
+    if OnlyVisible and OnlyCollidable then
+      Tree.Traverse(@AddToListIfVisibleAndCollidable, OnlyActive) else
+    if OnlyVisible then
+      Tree.Traverse(@AddToListIfVisible, OnlyActive) else
+    if OnlyCollidable then
+      Tree.Traverse(@AddToListIfCollidable, OnlyActive) else
+      Tree.Traverse(@AddToList, OnlyActive);
+  end;
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

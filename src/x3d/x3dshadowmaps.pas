@@ -16,6 +16,8 @@
 { Shadow maps internal utilities. }
 unit X3DShadowMaps;
 
+{$modeswitch nestedprocvars}{$H+}
+
 interface
 
 uses X3DNodes, Shape;
@@ -553,6 +555,18 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
   const DefaultShadowMapSize: Cardinal);
 var
   Lights: TLightList;
+
+  procedure HereShapeRemove(Shape: TShape);
+  begin
+    Lights.ShapeRemove(Shape);
+  end;
+
+  procedure HereShapeAdd(Shape: TShape);
+  begin
+    Lights.ShapeAdd(Shape);
+  end;
+
+var
   L: PLight;
   I: Integer;
 begin
@@ -577,7 +591,7 @@ begin
       to the same light node. And shapes may have multiple GeneratedShadowMap,
       if they receive shadow from more then one light. So it was too easy
       to remove a shadow map (or projector) that we have just added... }
-    Shapes.Traverse(@Lights.ShapeRemove, false);
+    Shapes.Traverse(@HereShapeRemove, false);
 
     if Enable then
     begin
@@ -588,7 +602,7 @@ begin
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);
       Model.EnumerateNodes(TAbstractLightNode, @Lights.HandleLightCastingOnEverything, false);
 
-      Shapes.Traverse(@Lights.ShapeAdd, false);
+      Shapes.Traverse(@HereShapeAdd, false);
 
       for I := 0 to Lights.Count - 1 do
       begin
