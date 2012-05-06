@@ -475,7 +475,7 @@ type
       for shadow maps. }
     AvoidNonShadowCasterRendering: boolean;
 
-    RenderPrepared: boolean;
+    PreparedShapesResouces, PreparedRender: boolean;
     VarianceShadowMapsProgram: array [boolean] of TGLSLProgram;
 
     { Private things for RenderFrustum --------------------------------------- }
@@ -1336,7 +1336,8 @@ var
   I: Integer;
   Pass: TRenderingPass;
 begin
-  RenderPrepared := false;
+  PreparedRender := false;
+  PreparedShapesResouces := false;
 
   { Free Arrays and Vbo of all shapes. }
   if (Renderer <> nil) and (Shapes <> nil) then
@@ -2186,7 +2187,7 @@ procedure TCastleScene.PrepareResources(
   BaseLights: TAbstractLightInstancesList;
   const MultiSampling: Cardinal);
 
-  procedure PrepareAllShapes;
+  procedure PrepareShapesResouces;
   var
     SI: TShapeTreeIterator;
   begin
@@ -2228,13 +2229,19 @@ begin
 
   if Dirty <> 0 then Exit;
 
-  PrepareAllShapes;
-
-  if (prRender in Options) and not RenderPrepared then
+  if not PreparedShapesResouces then
   begin
-    { We use RenderPrepared to avoid potentially expensive iteration
+    { Use PreparedShapesResouces to avoid expensive (for large scenes)
+      iteration over all shapes in every TCastleScene.PrepareResources call. }
+    PreparedShapesResouces := true;
+    PrepareShapesResouces;
+  end;
+
+  if (prRender in Options) and not PreparedRender then
+  begin
+    { We use PreparedRender to avoid potentially expensive iteration
       over shapes and expensive Renderer.RenderBegin/End. }
-    RenderPrepared := true;
+    PreparedRender := true;
 
     { Do not prepare when OnVertexColor or OnRadianceTransfer used,
       as we can only call these callbacks during render (otherwise they
@@ -3838,7 +3845,7 @@ begin
     if TemporaryAttributeChange = 0 then
       for I := 0 to FScenes.Count - 1 do
         if FScenes[I] <> nil then
-          FScenes[I].RenderPrepared := false;
+          FScenes[I].PreparedRender := false;
   end;
 end;
 
