@@ -2916,6 +2916,11 @@ end;
 
 procedure TGLRenderer.RenderEnd;
 begin
+  { Tests:
+  Writeln('LightsRenderer stats: light setups done ',
+    LightsRenderer.Statistics[true], ' vs avoided ',
+    LightsRenderer.Statistics[false]); }
+
   FreeAndNil(LightsRenderer);
 
   FogNode := nil;

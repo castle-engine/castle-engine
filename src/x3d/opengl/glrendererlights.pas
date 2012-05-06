@@ -44,14 +44,14 @@ type
     FLightRenderEvent: TVRMLLightRenderEvent;
     LightsKnown: boolean;
     LightsDone: array of PLightInstance;
-    { Statistics of how many OpenGL light setups were done
-      (Statistics[true]) vs how many were avoided (Statistics[false]).
-      This allows you to decide is using TVRMLGLLightsRenderer
-      class sensible (as opposed to directly rendering with glLightsFromVRML
-      calls). }
-    Statistics: array [boolean] of Cardinal;
     function NeedRenderLight(Index: Integer; Light: PLightInstance): boolean;
   public
+    { Statistics of how many OpenGL light setups were done
+      (Statistics[true]) vs how many were avoided (Statistics[false]).
+      The second number should usually be much higher, prooving
+      that using a cache of LightsDone inside this class was useful. }
+    Statistics: array [boolean] of Cardinal;
+
     constructor Create(const ALightRenderEvent: TVRMLLightRenderEvent);
 
     { Set OpenGL lights properties.
@@ -307,10 +307,5 @@ begin
 
   LightsKnown := true;
 end;
-
-  { Tests:
-  Writeln('LightsRenderer stats: light setups done ',
-    LightsRenderer.Statistics[true], ' vs avoided ',
-    LightsRenderer.Statistics[false]); }
 
 end.
