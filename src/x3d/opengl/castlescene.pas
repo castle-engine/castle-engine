@@ -1064,7 +1064,7 @@ procedure ShapesSplitBlending(
   Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean;
   TestShapeVisibility: TTestShapeVisibility;
-  out OpaqueShapes, TransparentShapes: TShapeList);
+  const OpaqueShapes, TransparentShapes: TShapeList);
 var
   Shapes: array [boolean] of TShapeList;
 
@@ -1082,8 +1082,8 @@ var
 var
   Capacity: Integer;
 begin
-  OpaqueShapes      := TShapeList.Create;
-  TransparentShapes := TShapeList.Create;
+  OpaqueShapes     .Clear;
+  TransparentShapes.Clear;
 
   Shapes[false] := OpaqueShapes;
   Shapes[true ] := TransparentShapes;
@@ -1170,6 +1170,9 @@ begin
    OctreeFrustumCulling := fcBox; { set through property setter }
 
   FReceiveShadowVolumes := true;
+
+  OpaqueShapes      := TShapeList.Create;
+  TransparentShapes := TShapeList.Create;
 end;
 
 constructor TCastleScene.CreateCustomCache(
@@ -1193,8 +1196,6 @@ end;
 
 destructor TCastleScene.Destroy;
 begin
-  { Usually XxxShapes should be nil here. But just in case they were
-    left unfreed because we exit with exception --- free them }
   FreeAndNil(OpaqueShapes);
   FreeAndNil(TransparentShapes);
 
@@ -2055,8 +2056,6 @@ begin
             glDepthMask(GL_TRUE);
             glDisable(GL_BLEND);
 
-            FreeAndNil(OpaqueShapes);
-            FreeAndNil(TransparentShapes);
             ShapesSplitBlending(Shapes, true, true, false,
               TestShapeVisibility, OpaqueShapes, TransparentShapes);
 
