@@ -3738,16 +3738,27 @@ begin
 end;
 
 procedure TSceneRenderingAttributes.SetUseOcclusionQuery(const Value: boolean);
+var
+  I: Integer;
 begin
   if UseOcclusionQuery <> Value then
   begin
     FUseOcclusionQuery := Value;
 
     if UseOcclusionQuery then
+    begin
       { If you switch UseOcclusionQuery on, then off, then move around the scene
         a lot, then switch UseOcclusionQuery back on --- you don't want to use
         results from previous query that was done many frames ago. }
       FScenes.ViewChangedSuddenly;
+
+      { Make PrepareShapesResouces again, to cause TGLShape.PrepareResources
+        that initializes OcclusionQueryId for each shape }
+      if TemporaryAttributeChange = 0 then
+        for I := 0 to FScenes.Count - 1 do
+          if FScenes[I] <> nil then
+            FScenes[I].PreparedShapesResouces := false;
+    end;
   end;
 end;
 
