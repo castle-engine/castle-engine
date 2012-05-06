@@ -1052,7 +1052,7 @@ end;
   and then filter it to two lists: one only with UseBlending = @false,
   the other with the rest.
 
-  Except this procedure does this faster, by one traverse in the tree.
+  Except this procedure does this faster.
   Also, this makes some rendering code simpler. Having shapes separated
   into lists, I can sort them easily (sorting is used for BlendingSort,
   and UseOcclusionQuery). }
@@ -1070,45 +1070,9 @@ var
     Shapes[TGLShape(Shape).UseBlending].Add(Shape);
   end;
 
-  procedure AddToListIfVisible(Shape: TShape);
-  begin
-    if Shape.Visible then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-  end;
-
-  procedure AddToListIfCollidable(Shape: TShape);
-  begin
-    if Shape.Collidable then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-  end;
-
-  procedure AddToListIfVisibleAndCollidable(Shape: TShape);
-  begin
-    if Shape.Visible and Shape.Collidable then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-  end;
-
   procedure AddToListIfTested(Shape: TShape);
   begin
     if TestShapeVisibility(TGLShape(Shape)) then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-  end;
-
-  procedure AddToListIfVisibleAndTested(Shape: TShape);
-  begin
-    if Shape.Visible and TestShapeVisibility(TGLShape(Shape)) then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-  end;
-
-  procedure AddToListIfCollidableAndTested(Shape: TShape);
-  begin
-    if Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
-      Shapes[TGLShape(Shape).UseBlending].Add(Shape);
-  end;
-
-  procedure AddToListIfVisibleAndCollidableAndTested(Shape: TShape);
-  begin
-    if Shape.Visible and Shape.Collidable and TestShapeVisibility(TGLShape(Shape)) then
       Shapes[TGLShape(Shape).UseBlending].Add(Shape);
   end;
 
@@ -1127,24 +1091,8 @@ begin
   TransparentShapes.Capacity := Capacity;
 
   if Assigned(TestShapeVisibility) then
-  begin
-    if OnlyVisible and OnlyCollidable then
-      Tree.Traverse(@AddToListIfVisibleAndCollidableAndTested, OnlyActive) else
-    if OnlyVisible then
-      Tree.Traverse(@AddToListIfVisibleAndTested, OnlyActive) else
-    if OnlyCollidable then
-      Tree.Traverse(@AddToListIfCollidableAndTested, OnlyActive) else
-      Tree.Traverse(@AddToListIfTested, OnlyActive);
-  end else
-  begin
-    if OnlyVisible and OnlyCollidable then
-      Tree.Traverse(@AddToListIfVisibleAndCollidable, OnlyActive) else
-    if OnlyVisible then
-      Tree.Traverse(@AddToListIfVisible, OnlyActive) else
-    if OnlyCollidable then
-      Tree.Traverse(@AddToListIfCollidable, OnlyActive) else
-      Tree.Traverse(@AddToList, OnlyActive);
-  end;
+    Tree.Traverse(@AddToListIfTested, OnlyActive, OnlyVisible, OnlyCollidable) else
+    Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
 { TBasicRenderParams --------------------------------------------------------- }

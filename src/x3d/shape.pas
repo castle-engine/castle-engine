@@ -126,7 +126,9 @@ type
     property ParentScene: TObject read FParentScene write FParentScene;
 
     procedure Traverse(Func: TShapeTraverseFunc;
-      OnlyActive: boolean); virtual; abstract;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); virtual; abstract;
 
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
@@ -449,7 +451,10 @@ type
       material values) have transparency > 0 (epsilon). }
     function Transparent: boolean;
 
-    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    procedure Traverse(Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
@@ -626,7 +631,10 @@ type
     constructor Create(AParentScene: TObject);
     destructor Destroy; override;
 
-    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    procedure Traverse(Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
@@ -666,7 +674,10 @@ type
   public
     property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
 
-    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    procedure Traverse(Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
@@ -748,7 +759,10 @@ type
     property WasLevel_ChangedSend: boolean
       read FWasLevel_ChangedSend write FWasLevel_ChangedSend default false;
 
-    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    procedure Traverse(Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
@@ -768,7 +782,10 @@ type
 
     property Node: TProximitySensorNode read FNode write FNode;
 
-    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    procedure Traverse(Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
@@ -788,7 +805,10 @@ type
 
     property Node: TVisibilitySensorNode read FNode write FNode;
 
-    procedure Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean); override;
+    procedure Traverse(Func: TShapeTraverseFunc;
+      const OnlyActive: boolean;
+      const OnlyVisible: boolean = false;
+      const OnlyCollidable: boolean = false); override;
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
@@ -823,8 +843,6 @@ type
   end;
 
   TShapeList = class(specialize TFPGObjectList<TShape>)
-  private
-    AddedCount: Integer;
   public
     constructor Create;
 
@@ -1514,9 +1532,12 @@ begin
     Result := true;
 end;
 
-procedure TShape.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShape.Traverse(Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
-  Func(Self);
+  if ((not OnlyVisible) or Visible) and
+     ((not OnlyCollidable) or Collidable) then
+    Func(Self);
 end;
 
 function TShape.ShapesCount(
@@ -2091,12 +2112,13 @@ begin
   inherited;
 end;
 
-procedure TShapeTreeGroup.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShapeTreeGroup.Traverse(Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 var
   I: Integer;
 begin
   for I := 0 to FChildren.Count - 1 do
-    FChildren.Items[I].Traverse(Func, OnlyActive);
+    FChildren.Items[I].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
 end;
 
 function TShapeTreeGroup.ShapesCount(
@@ -2146,7 +2168,8 @@ end;
 
 { TShapeTreeSwitch ------------------------------------------------------- }
 
-procedure TShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShapeTreeSwitch.Traverse(Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 var
   WhichChoice: Integer;
 begin
@@ -2155,7 +2178,7 @@ begin
     WhichChoice := SwitchNode.FdWhichChoice.Value;
     if (WhichChoice >= 0) and
        (WhichChoice < Children.Count) then
-      Children.Items[WhichChoice].Traverse(Func, OnlyActive);
+      Children.Items[WhichChoice].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable);
   end else
     inherited;
 end;
@@ -2263,13 +2286,14 @@ begin
     ( (Children.Count > 0) and (Result < Cardinal(Children.Count)) ) );
 end;
 
-procedure TShapeTreeLOD.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TShapeTreeLOD.Traverse(Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   if Children.Count > 0 then
   begin
     if OnlyActive then
       { Now we know that Level < Children.Count, no need to check it. }
-      Children.Items[Level].Traverse(Func, OnlyActive) else
+      Children.Items[Level].Traverse(Func, OnlyActive, OnlyVisible, OnlyCollidable) else
       inherited;
   end;
 end;
@@ -2305,7 +2329,8 @@ end;
 
 { TProximitySensorInstance ---------------------------------------------- }
 
-procedure TProximitySensorInstance.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TProximitySensorInstance.Traverse(Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
 end;
@@ -2329,7 +2354,8 @@ end;
 
 { TVisibilitySensorInstance ---------------------------------------------- }
 
-procedure TVisibilitySensorInstance.Traverse(Func: TShapeTraverseFunc; OnlyActive: boolean);
+procedure TVisibilitySensorInstance.Traverse(Func: TShapeTraverseFunc;
+  const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
 begin
   { Nothing to do: no geometry shapes, no children here }
 end;
@@ -2554,38 +2580,13 @@ end;
 
 constructor TShapeList.Create(Tree: TShapeTree;
   const OnlyActive, OnlyVisible, OnlyCollidable: boolean);
+var
+  AddedCount: Integer;
 
   procedure AddToList(Shape: TShape);
   begin
     Items[AddedCount] := Shape;
     Inc(AddedCount);
-  end;
-
-  procedure AddToListIfVisible(Shape: TShape);
-  begin
-    if Shape.Visible then
-    begin
-      Items[AddedCount] := Shape;
-      Inc(AddedCount);
-    end;
-  end;
-
-  procedure AddToListIfCollidable(Shape: TShape);
-  begin
-    if Shape.Collidable then
-    begin
-      Items[AddedCount] := Shape;
-      Inc(AddedCount);
-    end;
-  end;
-
-  procedure AddToListIfVisibleAndCollidable(Shape: TShape);
-  begin
-    if Shape.Visible and Shape.Collidable then
-    begin
-      Items[AddedCount] := Shape;
-      Inc(AddedCount);
-    end;
   end;
 
 begin
@@ -2597,13 +2598,7 @@ begin
   AddedCount := 0;
   Count := Tree.ShapesCount(OnlyActive, OnlyVisible, OnlyCollidable);
 
-  if OnlyVisible and OnlyCollidable then
-    Tree.Traverse(@AddToListIfVisibleAndCollidable, OnlyActive) else
-  if OnlyVisible then
-    Tree.Traverse(@AddToListIfVisible, OnlyActive) else
-  if OnlyCollidable then
-    Tree.Traverse(@AddToListIfCollidable, OnlyActive) else
-    Tree.Traverse(@AddToList, OnlyActive);
+  Tree.Traverse(@AddToList, OnlyActive, OnlyVisible, OnlyCollidable);
 
   Assert(AddedCount = Count);
 end;
