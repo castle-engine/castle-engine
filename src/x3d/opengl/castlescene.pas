@@ -1644,25 +1644,17 @@ var
 
   { Call RenderShape if many tests, including TestShapeVisibility,
     succeed. }
-  procedure RenderShape_AllTests(Shape: TGLShape);
+  procedure RenderShape_AllTests(Shape: TShape);
   begin
     if ( (not Assigned(TestShapeVisibility)) or
-         TestShapeVisibility(Shape)) then
-      RenderShape_SomeTests(Shape);
+         TestShapeVisibility(TGLShape(Shape))) then
+      RenderShape_SomeTests(TGLShape(Shape));
   end;
 
   procedure RenderAllAsOpaque;
-  var
-    SI: TShapeTreeIterator;
   begin
     if not Params.Transparent then
-    begin
-      SI := TShapeTreeIterator.Create(Shapes, true, true);
-      try
-        while SI.GetNext do
-          RenderShape_AllTests(TGLShape(SI.Current));
-      finally FreeAndNil(SI) end;
-    end;
+      Shapes.Traverse(@RenderShape_AllTests, true, true);
   end;
 
   { Determine what blending source/destination factors to use for rendering Shape
@@ -3365,15 +3357,14 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   Shapes (which may be slower if you really have a lot of Shapes). }
 
   procedure RenderFrustumOctree(Octree: TShapeOctree);
-  var
-    SI: TShapeTreeIterator;
-  begin
-    SI := TShapeTreeIterator.Create(Shapes, false, true);
-    try
-      while SI.GetNext do
-        TGLShape(SI.Current).RenderFrustumOctree_Visible := false;
-    finally FreeAndNil(SI) end;
 
+    procedure ResetShapeVisible(Shape: TShape);
+    begin
+      TGLShape(Shape).RenderFrustumOctree_Visible := false;
+    end;
+
+  begin
+    Shapes.Traverse(@ResetShapeVisible, false, true);
     Octree.EnumerateCollidingOctreeItems(Frustum,
       @RenderFrustumOctree_EnumerateShapes);
     Render(@RenderFrustumOctree_TestShape, Frustum, Params);
