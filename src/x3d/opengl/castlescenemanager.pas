@@ -245,7 +245,7 @@ type
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
-    function CameraHeight(ACamera: TWalkCamera;
+    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
@@ -763,7 +763,7 @@ type
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; override;
-    function CameraHeight(ACamera: TWalkCamera;
+    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
@@ -1006,7 +1006,7 @@ type
     function CameraMoveAllowed(ACamera: TWalkCamera;
       const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean; override;
-    function CameraHeight(ACamera: TWalkCamera;
+    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3Single;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
@@ -2986,13 +2986,14 @@ begin
 end;
 
 function TCastleSceneManager.CameraHeight(ACamera: TWalkCamera;
+  const Position: TVector3Single;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   { Both version result in calling WorldHeight.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
   if Player <> nil then
-    Result := Player.MyHeight(ACamera.Position, AboveHeight, AboveGround) else
-    Result := Items.WorldHeight(ACamera.Position, AboveHeight, AboveGround);
+    Result := Player.MyHeight(Position, AboveHeight, AboveGround) else
+    Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
 end;
 
 function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
@@ -3101,10 +3102,11 @@ begin
 end;
 
 function TCastleViewport.CameraHeight(ACamera: TWalkCamera;
+  const Position: TVector3Single;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   if SceneManager <> nil then
-    Result := SceneManager.CameraHeight(ACamera, AboveHeight, AboveGround) else
+    Result := SceneManager.CameraHeight(ACamera, Position, AboveHeight, AboveGround) else
   begin
     Result := false;
     AboveHeight := MaxSingle;

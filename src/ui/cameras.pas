@@ -840,6 +840,7 @@ type
     const FallenHeight: Single) of object;
 
   THeightEvent = function (Camera: TWalkCamera;
+    const Position: TVector3Single;
     out AboveHeight: Single; out AboveGround: P3DTriangle): boolean of object;
 
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
@@ -995,12 +996,14 @@ type
 
     function RealPreferredHeightNoHeadBobbing: Single;
     function RealPreferredHeightMargin: Single;
+  protected
+    { Call OnHeight callback. }
+    procedure Height(const APosition: TVector3Single;
+      out AIsAbove: boolean;
+      out AnAboveHeight: Single; out AnAboveGround: P3DTriangle); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-
-    { Call OnHeight callback, updating IsAbove, AboveHeight, AboveGround. }
-    procedure UpdateHeight; virtual;
 
     function Matrix: TMatrix4Single; override;
     function RotationMatrix: TMatrix4Single; override;
@@ -1376,14 +1379,14 @@ type
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
 
-    { Assign here the callback (or override UpdateHeight)
+    { Assign here the callback (or override @link(Height))
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from @link(Position)
       in direction -GravityUp with the scene.
       See TBase3D.Height for specification what returned parameters
       mean.
 
-      Implementation of UpdateHeight in this class
+      Implementation of @link(Height) in this class
       calls OnHeight, if assigned. (If not assigned,
       we assume no collision: IsAbove = @false, AboveHeight = MaxSingle,
       AboveGround = @nil). }
@@ -1570,19 +1573,19 @@ type
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single); override;
 
     { Last known information about whether camera is over the ground.
-      Updated by every UpdateHeight call, using
-      OnHeight callback.
+      Updated by using @link(Height) call. For normal TCamera descendants,
+      this means using OnHeight callback.
 
-      Note that these are updated only when UpdateHeight
+      These are updated only when @link(Height)
       is continously called, which in practice means:
       only when @link(Gravity) is @true.
 
-      Note that we do not (and, currently, cannot) track here if
+      We do not (and, currently, cannot) track here if
       AboveGround pointer will be eventually released (which may happen
       if you release your 3D scene, or rebuild scene causing octree rebuild).
       This is not a problem for camera class, since we do not use this
       pointer for anything. But if you use this pointer,
-      then you may want to take care to eventually set it @nil when
+      then you may want to take care to eventually set it to @nil when
       your octree or such is released.
 
       @groupBegin }
@@ -3202,14 +3205,16 @@ begin
  end;
 end;
 
-procedure TWalkCamera.UpdateHeight;
+procedure TWalkCamera.Height(const APosition: TVector3Single;
+  out AIsAbove: boolean;
+  out AnAboveHeight: Single; out AnAboveGround: P3DTriangle);
 begin
   if Assigned(OnHeight) then
-    FIsAbove := OnHeight(Self, FAboveHeight, FAboveGround) else
+    AIsAbove := OnHeight(Self, APosition, AnAboveHeight, AnAboveGround) else
   begin
-    FIsAbove := false;
-    FAboveHeight := MaxSingle;
-    FAboveGround := nil;
+    AIsAbove := false;
+    AnAboveHeight := MaxSingle;
+    AnAboveGround := nil;
   end;
 end;
 
@@ -3913,8 +3918,8 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
 
     if Gravity then
     begin
-      { calculate IsAbove, AboveHeight }
-      UpdateHeight;
+      { update IsAbove, AboveHeight }
+      Height(Position, FIsAbove, FAboveHeight, FAboveGround);
 
       FIsOnTheGround := GetIsOnTheGround;
       FIsWalkingOnTheGround := MoveHorizontalDone and FIsOnTheGround;
@@ -4276,8 +4281,8 @@ begin
     is to check whether player really has some ground beneath his feet
     to be able to jump. }
 
-  { calculate IsAbove, AboveHeight }
-  UpdateHeight;
+  { update IsAbove, AboveHeight }
+  Height(Position, FIsAbove, FAboveHeight, FAboveGround);
 
   if AboveHeight > RealPreferredHeight + RealPreferredHeightMargin then
     Exit;
