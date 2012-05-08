@@ -919,15 +919,17 @@ type
 
     { Like Move, but you pass here final ProposedNewPos. }
     function MoveTo(const ProposedNewPos: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
-    { Tries to move Position to Position + MoveVector.
-      Returns DoMoveAllowed result. So if it returns @false,
-      you know that Position didn't change (on the other hand,
-      if it returns @true, you don't know anything --- maybe Position
-      didn't change, maybe it changed to Position + MoveVector,
-      maybe it changed to something different). }
+      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
+    { Try to move from current Position to Position + MoveVector.
+      Checks DoMoveAllowed, also (if CheckClimbHeight is @true)
+      checks the ClimbHeight limit.
+
+      Returns @false if move was not possible and Position didn't change.
+      Returns @true is some move occured (but don't assume too much:
+      possibly we didn't move to exactly Position + MoveVector
+      because of wall sliding). }
     function Move(const MoveVector: TVector3Single;
-      const BecauseOfGravity: boolean): boolean;
+      const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
     { Forward or backward move. Multiply must be +1 or -1. }
     procedure MoveHorizontal(const CompSpeed: Single; const Multiply: Integer = 1);
     procedure MoveVertical(const CompSpeed: Single; const Multiply: Integer);
@@ -969,6 +971,7 @@ type
       This is either -1, 0 or +1. }
     Fde_RotateHorizontal: Integer;
     FFallingDownEffect: boolean;
+    FClimbHeight: Single;
 
     FMaxJumpHeight: Single;
     FIsJumping: boolean;
@@ -1379,6 +1382,31 @@ type
       PreferredHeight as it is. }
     procedure CorrectPreferredHeight;
 
+    { The tallest height that you can climb.
+      This is checked in each single horizontal move when @link(Gravity) works.
+      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
+
+      It's not 100% reliable to prevent player from climbing steep hills.
+      That's because, depending on how often an event processing occurs,
+      you actually climb using less or more steps.
+      So even a very steep hill can be always
+      climbed on a computer with very fast speed, because with large FPS you
+      effectively climb it using a lot of very small steps (assuming that
+      FPS limit is not enabled, that is CastleWindow.TGLApplication.LimitFPS
+      or CastleControl.LimitFPS is zero).
+
+      This is reliable to prevent user from climbing stairs and such,
+      when vertical walls are really vertical (not just steep-almost-vertical).
+
+      Remember that user can still try jumping to climb on high obstactes.
+      See MaxJumpHeight for a way to control jumping.
+
+      For a 100% reliable way to prevent user from reaching some point,
+      that does not rely on specific camera/gravity settings,
+      you should build actual walls in 3D (invisible walls
+      can be created by Collision.proxy in VRML/X3D). }
+    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
+
     { Assign here the callback (or override @link(Height))
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from @link(Position)
@@ -1392,15 +1420,15 @@ type
       AboveGround = @nil). }
     property OnHeight: THeightEvent read FOnHeight write FOnHeight;
 
-    { This is called when camera was falling down for some time,
-      and suddenly stopped (this means that camera "hit the ground").
+    { Notification that we have been falling down for some time,
+      and suddenly stopped (which means we "hit the ground").
       Of course this is used only when @link(Gravity) is @true
       (it can also be called shortly after you changed
       @link(Gravity) from @true to @false, so don't simply assert
       here that @link(Gravity) is @true).
 
       It can be useful in games to do some things
-      (maybe basing on FallenHeight parameter passed to this callback)
+      (maybe based on FallenHeight parameter passed to this callback)
       like lowering player's health and/or making some effects (displaying
       "blackout" or playing sound like "Ouh!" etc.). }
     property OnFalledDown: TFalledDownNotifyFunc
@@ -1858,7 +1886,7 @@ procedure Register;
 
 implementation
 
-uses Math, CastleStringUtils;
+uses Math, CastleStringUtils, CastleLog;
 
 procedure Register;
 begin
@@ -3395,20 +3423,45 @@ begin
 end;
 
 function TWalkCamera.MoveTo(const ProposedNewPos: TVector3Single;
-  const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 var
   NewPos: TVector3Single;
+  NewIsAbove: boolean;
+  NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
+  NewAboveGround: P3DTriangle;
 begin
   Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
+
+  if Result and Gravity and CheckClimbHeight and (ClimbHeight <> 0) and IsAbove and
+    { if we're already below ClimbHeight then do not check if new position
+      satisfies ClimbHeight requirement. This may prevent camera blocking
+      in weird situations, e.g. if were forcefully pushed into some position
+      (e.g. because player is hit by a missile with a knockback, or teleported
+      or such). }
+    (AboveHeight > ClimbHeight) then
+  begin
+    Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
+    if NewIsAbove then
+    begin
+      OldAbsoluteHeight := VectorDotProduct(GravityUp, Position);
+      NewAbsoluteHeight := VectorDotProduct(GravityUp, NewPos);
+      Result := not (
+        AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
+        ClimbHeight );
+      if Log and not Result then
+        WritelnLog('Camera', 'Blocked move because of ClimbHeight.');
+    end;
+  end;
+
   if Result then
     { Note that setting Position automatically calls ScheduleVisibleChange }
     Position := NewPos;
 end;
 
 function TWalkCamera.Move(const MoveVector: TVector3Single;
-  const BecauseOfGravity: boolean): boolean;
+  const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 begin
-  Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity);
+  Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity, CheckClimbHeight);
 end;
 
 procedure TWalkCamera.MoveHorizontal(const CompSpeed: Single; const Multiply: Integer = 1);
@@ -3435,7 +3488,7 @@ begin
     Dir := DirectionInGravityPlane else
     Dir := Direction;
 
-  Move(Dir * Multiplier, false);
+  Move(Dir * Multiplier, false, true);
 end;
 
 procedure TWalkCamera.MoveVertical(const CompSpeed: Single; const Multiply: Integer);
@@ -3448,7 +3501,7 @@ procedure TWalkCamera.MoveVertical(const CompSpeed: Single; const Multiply: Inte
     Multiplier := MoveSpeed * MoveVerticalSpeed * CompSpeed * Multiply;
     if Input_Run.IsPressed(Container) then
       Multiplier *= 2;
-    Move(PreferredUpVector * Multiplier, false);
+    Move(PreferredUpVector * Multiplier, false, false);
   end;
 
 begin
@@ -3509,7 +3562,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
           FIsJumping := false else
         begin
           { do jumping }
-          Move(VectorScale(GravityUp, ThisJumpHeight), false);
+          Move(VectorScale(GravityUp, ThisJumpHeight), false, false);
 
           { Initially it was my intention to decrease FJumpPower
             at each point. But this doesn't make any nice visible effect,
@@ -3548,7 +3601,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
           MoveSpeed * MoveVerticalSpeed * GrowingSpeed * CompSpeed,
           RealPreferredHeight - AboveHeight);
 
-        Move(VectorScale(GravityUp, GrowingVectorLength), true);
+        Move(VectorScale(GravityUp, GrowingVectorLength), true, false);
 
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
@@ -3650,7 +3703,7 @@ procedure TWalkCamera.Idle(const CompSpeed: Single;
         MoveSpeed * MoveVerticalSpeed * FFallingDownSpeed * CompSpeed;
       MinTo1st(FallingDownVectorLength, AboveHeight - RealPreferredHeight);
 
-      if Move(VectorScale(GravityUp, - FallingDownVectorLength), true) and
+      if Move(VectorScale(GravityUp, - FallingDownVectorLength), true, false) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
       begin
         if not IsFallingDown then

@@ -1587,7 +1587,7 @@ type
       Bound NavigationInfo node is taken from
       NavigationInfoStack.Top. If no NavigationInfo is bound, this is @nil,
       and we will create camera corresponding to default NavigationInfo
-      values (this is following VRML spec), so it will have
+      values (this is following VRML/X3D spec), so it will have
       initial type = EXAMINE.
 
       You can pass ForceNavigationType = 'EXAMINE', 'WALK', 'FLY', 'NONE' etc.
@@ -1605,6 +1605,7 @@ type
         @item(TWalkCamera.PreferGravityUpForRotations,)
         @item(TWalkCamera.PreferGravityUpForMoving,)
         @item(TWalkCamera.PreferredHeight,)
+        @item(TWalkCamera.ClimbHeight,)
         @item(TWalkCamera.HeadBobbing, TWalkCamera.HeadBobbingTime.)
       )
 
@@ -6012,6 +6013,12 @@ begin
       Walk.PreferredHeight := Radius * 4;
 
     Walk.CorrectPreferredHeight;
+
+    { calculate Walk.ClimbHeight }
+    if (NavigationNode <> nil) and
+       (NavigationNode.FdAvatarSize.Count >= 3) then
+      Walk.ClimbHeight := Max(NavigationNode.FdAvatarSize.Items[2], 0.0) else
+      Walk.ClimbHeight := 0;
 
     { calculate Walk.HeadBobbing* }
     if (NavigationNode <> nil) and
