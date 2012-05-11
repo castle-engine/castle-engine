@@ -115,9 +115,6 @@ type
     it's probably best to not use TCastleSceneCore.FreeResources.
 
     @unorderedList(
-      @item(For frRootNode, you @italic(may) get nasty effects including crashes
-        if you will use this in a wrong way.)
-
       @item(For frTextureDataInNodes, frBackgroundImageInNodes and TrianglesList,
         if you will free them unnecessarily
         (i.e. you will use it after you freed it), it will be automatically
@@ -125,39 +122,18 @@ type
         will experience unnecessary slowdown if we will need to recreate
         exactly the same resource over and over again.)
 
-      @item(For frTextureDataInNodes, frBackgroundImageInNodes and frRootNode, note that
+      @item(For frTextureDataInNodes and frBackgroundImageInNodes note that
         freeing these resources too eagerly may make image cache
         (see ImagesCache) less effective. In normal circumstances,
         if you will use the same cache instance throughout the program,
-        loaded images are reused. If you free frTextureDataInNodes or frRootNode
+        loaded images are reused. If you free frTextureDataInNodes
         too early, you may remove them from the cache too early, and lose
         a chance to reuse them. So you may cause unnecessary slowdown
         of preparing models, e.g. inside PrepareResources.)
     )
   }
   TSceneFreeResource = (
-    { Free (and set to nil) RootNode of the scene. Works only if
-      TCastleSceneCore.OwnsRootNode is @true (the general assertion is that
-      TCastleSceneCore will @italic(never) free RootNode when OwnsRootNode is
-      @false).
-
-      frRootNode allows you to save some memory, but may be quite dangerous.
-      You have to be careful then about what methods from the scene you use.
-      Usually, you will prepare appropriate things first (usually by
-      TCastleScene.PrepareResources), and after that call FreeResources
-      with frRootNode.
-
-      Note that event processing is impossible without RootNode nodes and
-      fields and routes, so don't ever use this if you want to set
-      TCastleSceneCore.ProcessEvents to @true.
-
-      Note that if you will try to use a resource that was already freed
-      by frRootNode, you may even get segfault (access violation).
-      So be really careful, be sure to prepare everything first by
-      TCastleScene.PrepareResources or such. }
-    frRootNode,
-
-    { Unloads the texture images/videos allocated in VRML texture nodes.
+    { Unloads the texture images/videos allocated in texture nodes.
 
       It's useful if you know that you already prepared everything
       that needed the texture images, and you will not need texture images
@@ -172,11 +148,7 @@ type
       Note that if you made an accident and you will use some TextureImage or
       TextureVideo after FreeResources, then you will get no crash,
       but texture image will be simply reloaded. So you may experience
-      slowdown if you inappropriately use this feature.
-
-      Oh, and note that if frRootNode and OwnsRootNode, then this is not
-      necessary (as freeing RootNode also frees texture nodes, along with
-      their texture). }
+      slowdown if you inappropriately use this feature. }
     frTextureDataInNodes,
 
     { Unloads the background images allocated in VRML Background nodes.
@@ -272,18 +244,15 @@ type
       send to newly bound node. }
     procedure PushIfEmpty(Node: TAbstractBindableNode; SendEvents: boolean);
 
-    { This should be used when you suspect that some nodes on the stack
-      are no longer present in current VRML graph (they were deleted).
+    { Use when you suspect that some nodes on the stack
+      are no longer present in current VRML/X3D graph RootNode (they were deleted).
       In this case, they have to be removed from stack.
-
-      RootNode may be nil, in which case all nodes are considered removed.
-      This is only a special case for FreeResources(frRootNode).
 
       If this will change the currently bound node, then the new bound
       node will receive isBound = true and bindTime events (the old node
       will not  receive any set_bind = false or isBound = false events, since it
       may be destroyed by now). }
-    procedure CheckForDeletedNodes(RootNode: TX3DNode; SendEvents: boolean);
+    procedure CheckForDeletedNodes(SendEvents: boolean);
 
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
@@ -1970,8 +1939,7 @@ begin
     Result := nil;
 end;
 
-procedure TX3DBindableStack.CheckForDeletedNodes(RootNode: TX3DNode;
-  SendEvents: boolean);
+procedure TX3DBindableStack.CheckForDeletedNodes(SendEvents: boolean);
 var
   I: Integer;
   TopChanged: boolean;
@@ -4990,12 +4958,6 @@ end;
 
 procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
 begin
-  if (frRootNode in Resources) and OwnsRootNode then
-  begin
-    RootNode.Free;
-    RootNode := nil;
-  end;
-
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
     RootNode.EnumerateNodes(TAbstractTexture2DNode,

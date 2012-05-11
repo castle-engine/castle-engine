@@ -359,17 +359,12 @@ type
       const MultiSampling: Cardinal); override;
     function PrepareResourcesSteps: Cardinal; override;
 
-    { This calls FreeResources for all scenes, it's useful if you know
+    { Free resources for all scenes, it's useful if you know
       that you will not need some allocated resources anymore and you
       want to conserve memory use.
 
       See TCastleSceneCore.FreeResource documentation for a description of what
-      are possible resources to free.
-
-      Note in case you pass frRootNode: the first scene has OwnsRootNode
-      set to what you passed as OwnsFirstRootNode. Which means that
-      if you passed OwnsFirstRootNode = @true, then frRootNode will @bold(not
-      free) the initial RootNodes[0]. }
+      are possible resources to free. }
     procedure FreeResources(Resources: TSceneFreeResources);
 
     { Close anything associated with current OpenGL context in this class.
