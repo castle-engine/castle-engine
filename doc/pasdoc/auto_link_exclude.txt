@@ -196,6 +196,7 @@ seconds
 seek
 selected
 send
+shape
 shapes
 short
 show
