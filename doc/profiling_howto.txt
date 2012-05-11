@@ -1,15 +1,28 @@
-Short primer on how to profile view3dscene with valgrind (actually callgrind, one of the many valgrind's tools.) This reflects some Kambi "preferences" (so, you do not have to follow it blindly, your real guide is documentation of FPC+valgrind and valgrind/callgrind manual.)
+How to profile FPC code.
+
+Short guide on how to profile view3dscene (or any other FPC binary, actually)
+with valgrind. This reflects some Kambi preferences and tastes.
+Do not follow it blindly, your real guide is documentation of
+FPC+valgrind and valgrind/callgrind manual.
 
 http://valgrind.org/docs/manual/cl-manual.html
+http://wiki.lazarus.freepascal.org/Profiling
 
 Compile for valgrind:
-- look in ../castle-fpc.cfg for valgrind options, uncomment them
-- clean units (to recompile all for valgrind), like
+- Make sure you compile with -gv option, this adds stuff necessary for valgrind.
+  You can search in ../castle-fpc.cfg for valgrind options and uncomment them.
+- Clean units (to recompile all for valgrind), like
     ./clean_everything.sh
-- compile as usual, with -dRELEASE (you want to profile released code)
+- Compile as usual, with -dRELEASE (you want to profile released code)
 
-Run with valgrind:
-Generally, running program through callgrind adds an enormours slowdown, especially with instrumentation (this is when actual measurements take place). So it's advised to start without instrumentation, and only turn it on for the interested code part.
+------------------------------------------------------------------------------
+For speed profiling:
+
+Use valgrind's callgrind tool.
+Running program through callgrind adds an enormours slowdown,
+especially with instrumentation (this is when actual measurements take place).
+So it's advised to start without instrumentation, and only turn it on
+for the interested code part.
 
 valgrind --tool=callgrind --instr-atstart=no ~/bin/view3dscene
 
@@ -39,22 +52,16 @@ For memory usage profiling:
   will result in your program being tested with CMem memory manager.
 
 - Use valgrind's massif tool.
-  Compile like before, then run like
+  Compile like described previously for callgrind (with -gv), then run like
 
-  valgrind --tool=massif \
-  --alloc-fn='CMEM_CGETMEM$LONGINT$$POINTER' \
-  --alloc-fn='CMEM_CREALLOCMEM$POINTER$LONGINT$$POINTER' \
-  --alloc-fn='SYSTEM_GETMEM$LONGINT$$POINTER' \
-  --alloc-fn='SYSTEM_GETMEM$POINTER$LONGINT' \
-  --alloc-fn='SYSTEM_REALLOCMEM$POINTER$LONGINT$$POINTER' \
-  ~/bin/view3dscene
+    valgrind --tool=massif --run-libc-freeres=no ... ~/bin/view3dscene
 
-  (Previously I used --format=html, but it seems not available anymore?)
-  And investigate the resulting massif.out.xxx file afterwards.
+  Actually, we have a script that wraps a couple of useful massif
+  options for you in ../../scripts/massif_fpc . Just copy it to your $PATH,
+  like ~/bin/, and then execute
 
-  Unfortunately, lately massif fails for me with
-  ... VALGRIND INTERNAL ERROR: Valgrind received a signal 11 (SIGSEGV) - exiting
-  ... si_code=1;  Faulting address: 0xFFFFFFF7;  sp: 0x6293e14c
-  ... valgrind: the 'impossible' happened:
-  ...   Killed by fatal signal
-  No solution known?
+    massif_fpc ~/bin/view3dscene
+
+  Afterwards investigate the resulting massif.out.xxx file, by
+
+    ms_print massif.out.xxx
