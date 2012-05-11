@@ -20,8 +20,7 @@ interface
 
 uses SysUtils, Classes, X3DNodes, GLRenderer, CastleSceneCore, CastleScene,
   CastleUtils, Boxes3D, CastleClassUtils, PrecalculatedAnimationCore, KeysMouse,
-  CastleTimeUtils, Frustum, VectorMath, Base3D, Triangle,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  CastleTimeUtils, Frustum, VectorMath, Base3D, Triangle, FGL;
 
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;

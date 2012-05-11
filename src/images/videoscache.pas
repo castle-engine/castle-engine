@@ -18,8 +18,7 @@ unit VideosCache;
 
 interface
 
-uses CastleUtils, ImagesCache, Videos,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses CastleUtils, ImagesCache, Videos, FGL;
 
 type
   { Internal for TVideosCache. @exclude }

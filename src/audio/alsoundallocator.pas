@@ -19,7 +19,7 @@ unit ALSoundAllocator;
 interface
 
 uses SysUtils, CastleOpenAL, CastleClassUtils, Classes, CastleUtils, VectorMath,
-  CastleXMLConfig, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  CastleXMLConfig, FGL;
 
 const
   DefaultMinAllocatedSources = 4;

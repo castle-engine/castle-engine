@@ -41,7 +41,7 @@ unit GLShaders;
 interface
 
 uses SysUtils, Classes, GL, GLU, GLExt, CastleGLUtils, CastleUtils, VectorMath,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Shaders;
+  FGL, Shaders;
 
 type
   { Abstract class for both ARB vertex and fragment programs. }

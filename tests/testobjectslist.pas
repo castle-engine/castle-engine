@@ -18,8 +18,7 @@ unit TestObjectsList;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  Classes, SysUtils, fpcunit, testutils, testregistry, FGL;
 
 type
   TTestObjectsList = class(TTestCase)

@@ -66,8 +66,7 @@ unit CastleScript;
 
 interface
 
-uses SysUtils, Math, Contnrs, CastleUtils, CastleClassUtils, Classes,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses SysUtils, Math, Contnrs, CastleUtils, CastleClassUtils, Classes, FGL;
 
 type
   { }

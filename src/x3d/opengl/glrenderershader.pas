@@ -20,7 +20,7 @@ unit GLRendererShader;
 
 interface
 
-uses VectorMath, GLShaders, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+uses VectorMath, GLShaders, FGL,
   X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, Boxes3D,
   GLRendererTextureEnv, CastleStringUtils, Shaders;
 

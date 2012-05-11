@@ -40,7 +40,7 @@ implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils, VectorMath, CastleColors,
   DOM, XMLRead, CastleXMLUtils, CastleWarnings, Classes, CastleClassUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, Math, X3DLoadInternalUtils;
+  FGL, Math, X3DLoadInternalUtils;
 
 { Large missing stuff:
 

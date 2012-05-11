@@ -90,7 +90,7 @@ type
 implementation
 
 uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
-  CastleTimeUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  CastleTimeUtils, FGL;
 
 { TNode* ------------------------------------------------------------ }
 

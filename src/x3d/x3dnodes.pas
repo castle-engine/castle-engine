@@ -172,7 +172,7 @@ uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   Videos, X3DTime, Base3D,
   CastleScript, X3DCastleScript, CastleOctree, DDS, TextureImages,
   XMLRead, DOM, KeysMouse, ALSoundEngine, ALSoundAllocator, CastleStringUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList, Shaders;
+  FGL, GenericStructList, Shaders;
 
 {$define read_interface}
 

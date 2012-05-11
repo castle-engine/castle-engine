@@ -19,7 +19,7 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, CastleOpenAL, ALSoundAllocator, VectorMath,
-  CastleTimeUtils, CastleXMLConfig, Math, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+  CastleTimeUtils, CastleXMLConfig, Math, FGL,
   CastleClassUtils;
 
 type

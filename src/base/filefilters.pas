@@ -18,8 +18,7 @@ unit FileFilters;
 
 interface
 
-uses SysUtils, Classes, CastleUtils, CastleClassUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses SysUtils, Classes, CastleUtils, CastleClassUtils, FGL;
 
 type
   TFileFilter = class

@@ -21,8 +21,7 @@ unit XmlSoundEngine;
 interface
 
 uses Classes, VectorMath, SysUtils,
-  CastleUtils, CastleXMLConfig, ALSoundEngine, ALSoundAllocator,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  CastleUtils, CastleXMLConfig, ALSoundEngine, ALSoundAllocator, FGL;
 
 const
   MaxSoundImportance = MaxInt;

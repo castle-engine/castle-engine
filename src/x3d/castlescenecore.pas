@@ -24,8 +24,7 @@ uses
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
   Shape, TriangleOctree, ProgressUnit, CastleOctree, ShapeOctree,
   KeysMouse, X3DTime, Cameras, Triangle, Contnrs,
-  RenderingCameraUnit, Base3D, X3DShadowMaps,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
+  RenderingCameraUnit, Base3D, X3DShadowMaps, FGL, GenericStructList;
 
 const
   DefaultShadowMapsDefaultSize = 256;

@@ -223,7 +223,7 @@ function GetArraysGenerator(AGeometry: TAbstractGeometryNode): TArraysGeneratorC
 
 implementation
 
-uses SysUtils, CastleLog, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif},
+uses SysUtils, CastleLog, FGL,
   Boxes3D, Triangulator, CastleStringUtils, FaceIndex, CastleWarnings,
   CastleColors;
 

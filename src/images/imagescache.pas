@@ -18,7 +18,7 @@ unit ImagesCache;
 
 interface
 
-uses CastleUtils, Images, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses CastleUtils, Images, FGL;
 
 type
   { Internal for TImagesCache. @exclude }

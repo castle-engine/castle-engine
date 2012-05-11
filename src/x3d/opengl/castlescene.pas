@@ -28,8 +28,7 @@ uses
   SysUtils, Classes, VectorMath, Boxes3D, X3DNodes, CastleClassUtils, CastleUtils,
   CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
   ShapeOctree, GLShadowVolumeRenderer, Cameras, X3DFields,
-  GLRendererLights, Shape, Frustum, Base3D, GLShaders,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
+  GLRendererLights, Shape, Frustum, Base3D, GLShaders, FGL, GenericStructList;
 
 {$define read_interface}
 

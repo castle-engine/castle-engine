@@ -26,8 +26,7 @@ interface
 
 uses SysUtils, Classes, VectorMath, Base3D, Boxes3D, X3DNodes, CastleClassUtils,
   CastleUtils, TriangleOctree, Frustum, CastleOctree, Triangle,
-  X3DFields, GeometryArrays, FaceIndex,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  X3DFields, GeometryArrays, FaceIndex, FGL;
 
 const
   { }

@@ -18,7 +18,7 @@ unit TestCastleClassUtils;
 interface
 
 uses Classes, SysUtils, fpcunit, testutils, testregistry, CastleUtils,
-  CastleClassUtils, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  CastleClassUtils, FGL;
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;

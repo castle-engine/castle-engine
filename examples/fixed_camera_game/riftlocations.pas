@@ -26,7 +26,7 @@ unit RiftLocations;
 interface
 
 uses CastleUtils, CastleClassUtils, Classes, CastleScene, GL, VectorMath,
-  RiftLoadable, X3DNodes, FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  RiftLoadable, X3DNodes, FGL;
 
 type
   TLocation = class(TLoadable)

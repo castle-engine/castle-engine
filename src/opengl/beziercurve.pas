@@ -24,7 +24,7 @@ unit BezierCurve;
 interface
 
 uses SysUtils, CastleUtils, CastleClassUtils, Classes, Math, VectorMath, Curve,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  FGL;
 
 type
   { Rational Bezier curve (Bezier curve with weights).

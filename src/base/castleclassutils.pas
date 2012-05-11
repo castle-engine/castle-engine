@@ -45,7 +45,7 @@ unit CastleClassUtils;
 interface
 
 uses Classes, SysUtils, CastleUtils, CastleStringUtils, Contnrs,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
+  FGL, GenericStructList;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }

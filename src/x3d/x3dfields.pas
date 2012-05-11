@@ -20,7 +20,7 @@ interface
 
 uses VectorMath, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
   Images, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, GenericStructList;
+  FGL, GenericStructList;
 
 {$define read_interface}
 

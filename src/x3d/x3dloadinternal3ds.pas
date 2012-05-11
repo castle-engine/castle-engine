@@ -26,7 +26,7 @@ function Load3DS(const filename: string): TX3DRootNode;
 implementation
 
 uses CastleUtils, Classes, CastleClassUtils, SysUtils, VectorMath, X3DCameraUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, X3DLoadInternalUtils,
+  FGL, X3DLoadInternalUtils,
   CastleWarnings;
 
 { 3DS reading mostly based on spec from

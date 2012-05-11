@@ -22,8 +22,7 @@ unit SceneWaypoints;
 interface
 
 uses SysUtils, CastleUtils, CastleClassUtils, Classes,
-  VectorMath, Boxes3D, X3DNodes, CastleSceneCore,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  VectorMath, Boxes3D, X3DNodes, CastleSceneCore, FGL;
 
 type
   TSceneSectorList = class;

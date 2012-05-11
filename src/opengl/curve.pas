@@ -20,8 +20,7 @@ unit Curve;
 interface
 
 uses VectorMath, Boxes3D, CastleUtils, CastleScript,
-  CastleClassUtils, Classes, Base3D, Frustum,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+  CastleClassUtils, Classes, Base3D, Frustum, FGL;
 
 type
   { 3D curve, a set of points defined by a continous function @link(Point)

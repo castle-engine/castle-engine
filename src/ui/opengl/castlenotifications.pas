@@ -20,7 +20,7 @@ interface
 
 uses GL, GLU, UIControls, Classes, SysUtils, CastleUtils, CastleGLUtils,
   OpenGLBmpFonts, OpenGLFonts, CastleTimeUtils, VectorMath, CastleStringUtils,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif}, CastleColors;
+  FGL, CastleColors;
 
 type
   THorizontalPosition = (hpLeft, hpMiddle, hpRight);

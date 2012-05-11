@@ -65,8 +65,7 @@ unit TextureImages;
 
 interface
 
-uses Images, DDS, CastleUtils, VideosCache,
-  FGL {$ifdef VER2_2}, FGLObjectList22 {$endif};
+uses Images, DDS, CastleUtils, VideosCache, FGL;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
