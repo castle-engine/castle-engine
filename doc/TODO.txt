@@ -1173,6 +1173,18 @@ Various:
 
   So the full fix is not obvious, not trivial, and not really needed now.
 
+- Add sharing of Proxy results for Sphere, Cylinder and such, to make memory usage
+  of them smaller?
+
+  roomarranger/manor test model memory usage:
+  - ~400 MB is allocated during Load3D, reading TX3DRootNode.
+  - ~400 MB goes for proxy shapes.
+    Almost 200 MB for TCylinderNode proxy.
+  - ~50 MB is added by the rest of Shapes tree, so it's not much.
+
+  Possibly also do not create octrees for primitives?
+  We could just resolve them simpler, by simple ray vs sphere etc. tests.
+  But tests show that it's not memory or time eater.
 ------------------------------------------------------------------------------
 Shaders:
 
