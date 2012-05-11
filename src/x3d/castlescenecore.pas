@@ -245,14 +245,15 @@ type
     procedure PushIfEmpty(Node: TAbstractBindableNode; SendEvents: boolean);
 
     { Use when you suspect that some nodes on the stack
-      are no longer present in current VRML/X3D graph RootNode (they were deleted).
+      are no longer present in VRML/X3D graph RootNode (they were deleted).
       In this case, they have to be removed from stack.
 
       If this will change the currently bound node, then the new bound
       node will receive isBound = true and bindTime events (the old node
       will not  receive any set_bind = false or isBound = false events, since it
       may be destroyed by now). }
-    procedure CheckForDeletedNodes(SendEvents: boolean);
+    procedure CheckForDeletedNodes(const RootNode: TX3DRootNode;
+      const SendEvents: boolean);
 
     { Handle set_bind event send to given Node.
       This always generates appropriate events. }
@@ -1939,7 +1940,8 @@ begin
     Result := nil;
 end;
 
-procedure TX3DBindableStack.CheckForDeletedNodes(SendEvents: boolean);
+procedure TX3DBindableStack.CheckForDeletedNodes(
+  const RootNode: TX3DRootNode; const SendEvents: boolean);
 var
   I: Integer;
   TopChanged: boolean;
