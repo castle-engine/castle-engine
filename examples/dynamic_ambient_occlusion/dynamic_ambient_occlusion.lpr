@@ -30,7 +30,7 @@ uses VectorMath, GL, GLU, GLExt, CastleWindow,
   CastleClassUtils, CastleUtils, SysUtils, Classes,
   CastleGLUtils, CastleSceneCore, CastleScene, Base3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, GLShaders, Shape,
-  X3DFields, Images, Boxes3D, GLImages, CastleMessages, CastleWarnings,
+  X3DFields, Images, GLImages, CastleMessages, CastleWarnings,
   GLVersionUnit, Math, CastleSceneManager, RenderingCameraUnit, GenericStructList;
 
 type

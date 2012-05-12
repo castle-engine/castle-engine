@@ -23,13 +23,13 @@
 
   But if you really want, you can define your own T3D descendant. }
 
-program demo_camera;
+program custom_3d_object;
 
 {$apptype GUI}
 
 uses VectorMath, Boxes3D, GL, GLU, CastleWindow, Frustum,
   CastleClassUtils, CastleUtils, SysUtils, Classes, Base3D,
-  CastleGLUtils, Cameras, CastleFilesUtils, CastleSceneManager, CastleStringUtils;
+  CastleGLUtils, CastleFilesUtils, CastleStringUtils;
 
 type
   TCube = class(T3D)

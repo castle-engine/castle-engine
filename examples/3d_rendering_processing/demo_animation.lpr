@@ -68,7 +68,7 @@ uses VectorMath, X3DNodes, GL, GLU, CastleWindow, CastleWarnings,
   CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad,
   CastleGLUtils, CastleScene, PrecalculatedAnimation,
   CastleFilesUtils, CastleParameters, CastleProgress, ProgressUnit,
-  CastleSceneManager, CastleStringUtils;
+  CastleStringUtils;
 
 var
   Window: TCastleWindow;

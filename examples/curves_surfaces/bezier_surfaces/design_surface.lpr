@@ -22,7 +22,7 @@ program design_surface;
 
 uses Cameras, Surfaces, CastleWindow, GL, GLU, VectorMath,
   CastleGLUtils, Curve, BezierCurve, Boxes3D, SysUtils, CastleUtils, KeysMouse,
-  CastleStringUtils, Math, CastleMessages, CastleFilesUtils, UIControls,
+  CastleStringUtils, CastleMessages, CastleFilesUtils, UIControls,
   BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts, CastleColors, Base3D, Frustum;
 
 type

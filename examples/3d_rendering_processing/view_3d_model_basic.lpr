@@ -28,7 +28,7 @@
   detection and generally with *everything* working. }
 program view_3d_model_basic;
 
-uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleSceneManager;
+uses SysUtils, CastleWindow, CastleSceneCore, CastleScene;
 
 var
   Window: TCastleWindow;

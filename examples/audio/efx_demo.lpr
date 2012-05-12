@@ -18,7 +18,7 @@
   $2 = demo number (int between 0 ... 2). }
 program efx_demo;
 
-uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, EFX, CastleTimeUtils,
+uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, EFX,
   ALSoundEngine, ALSoundAllocator, CastleParameters;
 
 type

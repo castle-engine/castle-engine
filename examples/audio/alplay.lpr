@@ -30,7 +30,7 @@
 }
 program alplay;
 
-uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, SoundFile, CastleTimeUtils,
+uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, SoundFile,
   CastleWarnings, ALSoundEngine, CastleParameters;
 
 var

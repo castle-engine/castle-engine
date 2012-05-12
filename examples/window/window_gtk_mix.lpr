@@ -30,7 +30,7 @@ program window_gtk_mix;
 
 uses CastleWindow, GL, GLU, GLExt, CastleGLUtils, OpenGLFonts, SysUtils,
   VectorMath, CastleUtils, OpenGLTTFonts, TTF_BitstreamVeraSans_Unit,
-  Gtk2, Gdk2, Glib2, CastleStringUtils;
+  Gtk2, Glib2, CastleStringUtils;
 
 type
   TMyWindow = class(TCastleWindowDemo)
