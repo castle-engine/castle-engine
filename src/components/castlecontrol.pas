@@ -103,7 +103,6 @@ type
     function GetHeight: Integer;
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;
-    function GetMultiSampling: Cardinal;
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -892,17 +891,6 @@ end;
 function TCastleControlBase.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
-end;
-
-//{$define LazarusSupportsMultiSampling}
-
-function TCastleControlBase.GetMultiSampling: Cardinal;
-begin
-{$ifdef LazarusSupportsMultiSampling}
-   Result := MultiSampling;
-{$else}
-   Result := 1;
-{$endif}
 end;
 
 { TControlledUIControlList ----------------------------------------------------- }

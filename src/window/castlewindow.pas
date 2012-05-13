@@ -1075,7 +1075,6 @@ type
     function GetHeight: Integer;
     function GetMousePressed: TMouseButtons;
     function GetPressed: TKeysPressed;
-    function GetMultiSampling: Cardinal;
   public
 
     { Handle appropriate event.
@@ -1401,29 +1400,38 @@ type
     property StencilBufferBits: Cardinal
       read FStencilBufferBits write FStencilBufferBits default 0;
 
-    { How many samples are required for multisampling.
-      1 means that no multisampling is required.
-      Values larger than 1 means that we require OpenGL context with
-      multisampling capabilities (GLX_ARB_multisample for glX on Unix
-      or WGL_ARB_multisample for wgl on Windows). MultiSampling says how
-      many samples per pixel should be done (try typical 2 or 4 values).
+    { How many samples are required for multi-sampling (anti-aliasing).
+      1 means that no multi-sampling is required.
+      Values larger than 1 mean that we require OpenGL context with
+      multi-sampling capabilities. Various GPUs may support various
+      values (it's a trade-off between quality and speed),
+      try typical values 2 or 4.
 
-      So the only thing remaining for your program to make anti-aliasing
-      working is to use core OpenGL extension GL_ARB_multisample:
+      You can enable/disable anti-aliasing in your program by code like
+      @longCode(#
+        if GL_ARB_multisample then glEnable(GL_MULTISAMPLE_ARB);
+        if GL_ARB_multisample then glDisable(GL_MULTISAMPLE_ARB);
+      #)
+      But usually that's not needed, as it is "on" by default
+      (GL_ARB_multisample spec says so) if you requested multi-sampling context
+      (that is, if this property is > 1). See GL_ARB_multisample spec for details:
       [http://opengl.org/registry/specs/ARB/multisample.txt].
-      In the usual case, this means simply to call
-
-      @longCode(#  if GL_ARB_multisample then glEnable(GL_MULTISAMPLE_ARB); #)
-
-      and
-
-      @longCode(#  if GL_ARB_multisample then glDisable(GL_MULTISAMPLE_ARB); #)
 
       Just like with other XxxBufferBits property, we may get more
       samples than we requested (e.g. if you request 3, you will most probably
-      get 4...). But we will never get less --- if window system
+      get 4). But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
-      @link(Open) will raise an error. }
+      @link(Open) will raise an error.
+      TODO: actually, this may change to be similar to Lazarus
+      TOpenGLControl.MultiSampling, and also be more comfortable --- to retry
+      initialization with no multi-sampling. In this case this property will
+      not be changed, to be nice.
+
+      You can always read OpenGL GL_SAMPLE_BUFFERS_ARB and GL_SAMPLES_ARB
+      values after initializing OpenGL context, to know exactly
+      how many samples did you actually get, and did you get multi-sampling at all.
+      Actually, we already initialize global CastleGLUtils.GLCurrentMultiSampling
+      for you, you can use this. }
     property MultiSampling: Cardinal
       read FMultiSampling write FMultiSampling default 1;
 
@@ -4060,11 +4068,6 @@ end;
 function TCastleWindowBase.GetPressed: TKeysPressed;
 begin
   Result := FPressed;
-end;
-
-function TCastleWindowBase.GetMultiSampling: Cardinal;
-begin
-  Result := FMultiSampling;
 end;
 
 procedure TCastleWindowBase.MenuUpdateBegin;

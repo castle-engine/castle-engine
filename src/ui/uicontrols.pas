@@ -55,12 +55,6 @@ type
     property TooltipX: Integer read GetTooltipX;
     property TooltipY: Integer read GetTooltipY;
 
-    function GetMultiSampling: Cardinal;
-
-    { How many samples for a pixel are initialized, used for anti-aliasing.
-      See TCastleWindowBase.MultiSampling for full docs. }
-    property MultiSampling: Cardinal read GetMultiSampling;
-
     { Called by controls within this container when something could
       change the container focused control (or it's cursor).
       In practice, called when TUIControl.Cursor or TUIControl.PositionInside

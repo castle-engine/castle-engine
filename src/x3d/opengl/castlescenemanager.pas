@@ -1821,7 +1821,6 @@ begin
   { clear FRenderParams instance }
 
   FRenderParams.Pass := 0;
-  FRenderParams.MultiSampling := Container.MultiSampling;
   FillChar(FRenderParams.Statistics, SizeOf(FRenderParams.Statistics), #0);
 
   FRenderParams.FBaseLights[false].Clear;
@@ -1962,9 +1961,9 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
     procedure TexImage2D(const InternalFormat: TGLint;
       const Format, AType: TGLenum);
     begin
-      if (Container.MultiSampling > 1) and GLFBOMultiSampling then
+      if (GLCurrentMultiSampling > 1) and GLFBOMultiSampling then
         glTexImage2DMultisample(ScreenEffectTextureTarget,
-          Container.MultiSampling, InternalFormat,
+          GLCurrentMultiSampling, InternalFormat,
           ScreenEffectTextureWidth,
           ScreenEffectTextureHeight, GL_FALSE { TODO: false or true here? }) else
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
@@ -2023,7 +2022,7 @@ begin
       glFreeTexture(ScreenEffectTextureDepth);
       FreeAndNil(ScreenEffectRTT);
 
-      if (Container.MultiSampling > 1) and GLFBOMultiSampling then
+      if (GLCurrentMultiSampling > 1) and GLFBOMultiSampling then
         ScreenEffectTextureTarget := GL_TEXTURE_2D_MULTISAMPLE else
         ScreenEffectTextureTarget := GL_TEXTURE_RECTANGLE_ARB;
 
@@ -2050,7 +2049,7 @@ begin
       ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
       ScreenEffectRTT.CompleteTextureTarget := ScreenEffectTextureTarget;
       { use the same multi-sampling strategy as container }
-      ScreenEffectRTT.MultiSampling := Container.MultiSampling;
+      ScreenEffectRTT.MultiSampling := GLCurrentMultiSampling;
       if CurrentScreenEffectsNeedDepth then
       begin
         ScreenEffectRTT.Buffer := tbColorAndDepth;
@@ -2156,7 +2155,7 @@ end;
 function TCastleAbstractViewport.ScreenEffectsCount: Integer;
 begin
   if GetMainScene <> nil then
-    Result := GetMainScene.ScreenEffectsCount(Container.MultiSampling) else
+    Result := GetMainScene.ScreenEffectsCount else
     Result := 0;
   if ScreenSpaceAmbientOcclusion and (SSAOShader <> nil) then
     Inc(Result);
@@ -2183,7 +2182,7 @@ begin
       try
         SSAOShader := TGLSLProgram.Create;
         SSAOShader.AttachFragmentShader({$I ssao.glsl.inc});
-        SSAOShader.AttachFragmentShader(ScreenEffectLibrary(true, Container.MultiSampling));
+        SSAOShader.AttachFragmentShader(ScreenEffectLibrary(true));
         SSAOShader.Link(true);
         SSAOShader.UniformNotFoundAction := uaIgnore;
       except
@@ -2704,10 +2703,10 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Items.PrepareResources(Options, true, BaseLights, Container.MultiSampling);
+        Items.PrepareResources(Options, true, BaseLights);
       finally Progress.Fini end;
     end else
-      Items.PrepareResources(Options, false, BaseLights, Container.MultiSampling);
+      Items.PrepareResources(Options, false, BaseLights);
 
     NeedsUpdateGeneratedTextures := true;
   end;

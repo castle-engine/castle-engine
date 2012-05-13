@@ -298,6 +298,14 @@ var
     when you mix various multisample settings. }
   GLFBOMultiSampling: boolean;
 
+  { How multi-sampling was initialized for this OpenGL context.
+    Value = 1 means that no multi-sampling is initialized.
+    Values > 1 mean that you have multi-sampling, with given number of samples
+    per pixel.
+    Contrast this with TCastleWindowBase.MultiSampling or TOpenGLControl.MultiSampling,
+    that say @italic(how many samples you wanted to get). }
+  GLCurrentMultiSampling: Cardinal;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1174,6 +1182,18 @@ begin
     { Is GL_ARB_framebuffer_object available? }
     ({$ifdef HAS_GL_VERSION_ABOVE_2} GL_version_3_0 or {$endif} GL_ARB_framebuffer_object) and
     Load_GL_ARB_texture_multisample;
+
+  if GL_ARB_multisample and (glGetInteger(GL_SAMPLE_BUFFERS_ARB) <> 0) then
+  begin
+    GLCurrentMultiSampling := glGetInteger(GL_SAMPLES_ARB);
+    if GLCurrentMultiSampling <= 1 then
+    begin
+      OnWarning(wtMinor, 'MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
+        [GLCurrentMultiSampling]));
+      GLCurrentMultiSampling := 1;
+    end;
+  end else
+    GLCurrentMultiSampling := 1;
 
   { Workaround http://bugs.freepascal.org/view.php?id=18613 }
   if GL_ARB_vertex_buffer_object then
@@ -2223,6 +2243,7 @@ begin
     '  Multisampling (full-screen antialiasing):' +nl+
     '    Sample buffers: ' + GetSampleBuffers +nl+
     '    Samples: ' + GetSamples +nl+
+    '    Summary: ' + IntToStr(GLCurrentMultiSampling) + ' samples per pixel' +nl+
     nl+
 
     '-------------' +nl+

@@ -1717,8 +1717,7 @@ type
     procedure ViewChangedSuddenly; virtual;
 
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
-      const MultiSampling: Cardinal); override;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
 
     function Dragging: boolean; override;
 
@@ -6297,8 +6296,7 @@ begin
 end;
 
 procedure TCastleSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
-  const MultiSampling: Cardinal);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
   procedure PrepareShapesOctrees;
   var

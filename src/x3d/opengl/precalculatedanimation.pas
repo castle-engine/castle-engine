@@ -355,8 +355,7 @@ type
       For portability, always check PrepareResourcesSteps, but for now this
       is just always equal ScenesCount. }
     procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
-      const MultiSampling: Cardinal); override;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
     function PrepareResourcesSteps: Cardinal; override;
 
     { Free resources for all scenes, it's useful if you know
@@ -1452,8 +1451,7 @@ begin
 end;
 
 procedure TCastlePrecalculatedAnimation.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList;
-  const MultiSampling: Cardinal);
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
   SceneOptions: TPrepareResourcesOptions;
@@ -1467,7 +1465,7 @@ begin
     if I <> 0 then
       Exclude(SceneOptions, prManifoldAndBorderEdges);
 
-    FScenes[I].PrepareResources(SceneOptions, false, BaseLights, MultiSampling);
+    FScenes[I].PrepareResources(SceneOptions, false, BaseLights);
 
     { TODO: this isn't so simple, since not all scenes have to structurally
       equal anymore. }
