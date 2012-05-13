@@ -1,6 +1,7 @@
-diff -ur old/glcarbonaglcontext.pas new/glcarbonaglcontext.pas
---- old/glcarbonaglcontext.pas	2010-08-22 20:40:08.000000000 +0200
-+++ new/glcarbonaglcontext.pas	2012-04-22 15:49:10.000000000 +0200
+Index: glcarbonaglcontext.pas
+===================================================================
+--- glcarbonaglcontext.pas	(revision 37259)
++++ glcarbonaglcontext.pas	(working copy)
 @@ -32,7 +32,7 @@
  procedure LOpenGLClip(Handle: HWND);
  function LOpenGLCreateContext(AWinControl: TWinControl;
@@ -19,54 +20,10 @@ diff -ur old/glcarbonaglcontext.pas new/glcarbonaglcontext.pas
    const AParams: TCreateParams): HWND;
  var
    disp: GDHandle;
-diff -ur old/glgtkglxcontext.pas new/glgtkglxcontext.pas
---- old/glgtkglxcontext.pas	2010-07-08 13:36:17.000000000 +0200
-+++ new/glgtkglxcontext.pas	2012-04-22 15:49:13.000000000 +0200
-@@ -130,7 +130,7 @@
- function LOpenGLMakeCurrent(Handle: HWND): boolean;
- function LOpenGLCreateContext(AWinControl: TWinControl;
-              WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
--             DoubleBuffered, RGBA: boolean;
-+             DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
-              const AParams: TCreateParams): HWND;
- procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
- function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
-@@ -758,7 +758,7 @@
- 
- function LOpenGLCreateContext(AWinControl: TWinControl;
-   WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
--  DoubleBuffered, RGBA: boolean;
-+  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
-   const AParams: TCreateParams): HWND;
- var
-   NewWidget: PGtkWidget;
-diff -ur old/glqtcontext.pas new/glqtcontext.pas
---- old/glqtcontext.pas	2010-07-08 13:36:17.000000000 +0200
-+++ new/glqtcontext.pas	2012-04-22 15:49:15.000000000 +0200
-@@ -70,7 +70,7 @@
- function LOpenGLMakeCurrent(Handle: HWND): boolean;
- function LOpenGLCreateContext(AWinControl: TWinControl;
-              WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
--             DoubleBuffered, RGBA: boolean;
-+             DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
-              const AParams: TCreateParams): HWND;
- procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
- function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
-@@ -183,8 +183,9 @@
- end;
- 
- function LOpenGLCreateContext(AWinControl: TWinControl;
--  WSPrivate: TWSPrivateClass; SharedControl: TWinControl; DoubleBuffered,
--  RGBA: boolean; const AParams: TCreateParams): HWND;
-+  WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
-+  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
-+  const AParams: TCreateParams): HWND;
- var
-   AttrList: PInteger;
-   NewQtWidget: TQtGLWidget;
-diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
---- old/glwin32wglcontext.pas	2010-07-08 13:36:17.000000000 +0200
-+++ new/glwin32wglcontext.pas	2012-04-22 15:49:31.000000000 +0200
+Index: glwin32wglcontext.pas
+===================================================================
+--- glwin32wglcontext.pas	(revision 37259)
++++ glwin32wglcontext.pas	(working copy)
 @@ -28,7 +28,7 @@
  function LOpenGLMakeCurrent(Handle: HWND): boolean;
  function LOpenGLCreateContext(AWinControl: TWinControl;
@@ -216,7 +173,7 @@ diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
  begin
    InitWGL;
    //InitOpenGLContextGLWindowClass;
-@@ -323,14 +448,34 @@
+@@ -323,15 +448,35 @@
      cDepthBits:=16; // Z-Buffer
      iLayerType:=PFD_MAIN_PLANE;
    end;
@@ -224,11 +181,10 @@ diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
 -  Info^.PixelFormat:=ChoosePixelFormat(Info^.DC,@pfd);
 -  if Info^.PixelFormat=0 then
 -    raise Exception.Create('LOpenGLCreateContext ChoosePixelFormat failed');
--
+ 
 -  // set pixel format in device context
 -  if not SetPixelFormat(Info^.DC,Info^.PixelFormat,@pfd) then
 -    raise Exception.Create('LOpenGLCreateContext SetPixelFormat failed');
-+
 +  MsInitSuccess := false;
 +  if (MultiSampling > 1) and WGL_ARB_multisample and WGL_ARB_pixel_format
 +    and Assigned(wglChoosePixelFormatARB) then
@@ -239,7 +195,7 @@ diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
 +      MsInitSuccess := wglChoosePixelFormatARB(Info^.DC, PGLint(VisualAttrList),
 +                         @VisualAttrFloat[0], 1, @Info^.PixelFormat, @ReturnedFormats);
 +    finally FreeMem(VisualAttrList) end;
-+
+ 
 +    if MsInitSuccess and (ReturnedFormats >= 1) then
 +       SetPixelFormat(Info^.DC, Info^.PixelFormat, nil)
 +    else
@@ -256,19 +212,36 @@ diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
 +    if not SetPixelFormat(Info^.DC,Info^.PixelFormat,@pfd) then
 +      raise Exception.Create('LOpenGLCreateContext SetPixelFormat failed');
 +  end;
- 
++
    // create WGL context
    Info^.WGLContext:=wglCreateContext(Info^.DC);
-@@ -370,6 +515,8 @@
+   if Info^.WGLContext=0 then
+@@ -370,6 +515,11 @@
    WGLInitialized:=true;
  
    try
++    { to successfully use wglGetExtensionsStringARB (to query e.g. ARB_multisample,
++      needed for MultiSampling), you need to have OpenGL context 
++      already initialized. We create a temporary window for this purpose. }
 +    LGlMsCreateTemporaryWindow;
 +
      // ARB wgl extensions
      Pointer(wglGetExtensionsStringARB) := GLGetProcAddress('wglGetExtensionsStringARB');
      Pointer(wglGetPixelFormatAttribivARB) := GLGetProcAddress('wglGetPixelFormatAttribivARB');
-@@ -408,6 +555,7 @@
+@@ -393,8 +543,10 @@
+ 
+     // ARB wgl extensions
+     if Assigned(wglGetExtensionsStringARB) then
+-      Buffer:=wglGetExtensionsStringARB(wglGetCurrentDC)
+-    else
++    begin
++      Buffer:=wglGetExtensionsStringARB(Temp_h_Dc);
++      { Writeln('WGL extensions supported: ', Buffer); }
++    end else
+       Buffer:='';
+     WGL_ARB_multisample:=CheckExtension('WGL_ARB_multisample');
+     WGL_EXT_swap_control:=CheckExtension('WGL_EXT_swap_control');
+@@ -408,6 +560,7 @@
        DebugLn('InitWGL ',E.Message);
      end;
    end;
@@ -276,9 +249,245 @@ diff -ur old/glwin32wglcontext.pas new/glwin32wglcontext.pas
  end;
  
  procedure InitOpenGLContextGLWindowClass;
-diff -ur old/openglcontext.pas new/openglcontext.pas
---- old/openglcontext.pas	2010-10-25 12:43:06.000000000 +0200
-+++ new/openglcontext.pas	2012-04-22 15:49:33.000000000 +0200
+Index: glgtkglxcontext.pas
+===================================================================
+--- glgtkglxcontext.pas	(revision 37259)
++++ glgtkglxcontext.pas	(working copy)
+@@ -53,38 +53,35 @@
+ const
+   GLXTrue = 1;
+   GLXFalse = 0;
+-{$ENDIF}
+-// gdkgl
+-const
+-// enum _GDK_GL_CONFIGS
+-  GDK_GL_NONE                           = 0;
+-  GDK_GL_USE_GL                         = 1;
+-  GDK_GL_BUFFER_SIZE                    = 2;
+-  GDK_GL_LEVEL                          = 3;
+-  GDK_GL_RGBA                           = 4;
+-  GDK_GL_DOUBLEBUFFER                   = 5;
+-  GDK_GL_STEREO                         = 6;
+-  GDK_GL_AUX_BUFFERS                    = 7;
+-  GDK_GL_RED_SIZE                       = 8;
+-  GDK_GL_GREEN_SIZE                     = 9;
+-  GDK_GL_BLUE_SIZE                      = 10;
+-  GDK_GL_ALPHA_SIZE                     = 11;
+-  GDK_GL_DEPTH_SIZE                     = 12;
+-  GDK_GL_STENCIL_SIZE                   = 13;
+-  GDK_GL_ACCUM_RED_SIZE                 = 14;
+-  GDK_GL_ACCUM_GREEN_SIZE               = 15;
+-  GDK_GL_ACCUM_BLUE_SIZE                = 16;
+-  GDK_GL_ACCUM_ALPHA_SIZE               = 17;
++  
++  { Constants below are the same as in FPC GLX unit. }
+ 
+-  // GLX_EXT_visual_info extension
+-  GDK_GL_X_VISUAL_TYPE_EXT              = $22;
+-  GDK_GL_TRANSPARENT_TYPE_EXT           = $23;
+-  GDK_GL_TRANSPARENT_INDEX_VALUE_EXT    = $24;
+-  GDK_GL_TRANSPARENT_RED_VALUE_EXT      = $25;
+-  GDK_GL_TRANSPARENT_GREEN_VALUE_EXT    = $26;
+-  GDK_GL_TRANSPARENT_BLUE_VALUE_EXT     = $27;
+-  GDK_GL_TRANSPARENT_ALPHA_VALUE_EXT    = $28;
++  // GLX 1.3 and later:
++  GLX_X_RENDERABLE                = $8012;
++  
++  // Tokens for glXChooseVisual and glXGetConfig.
++  GLX_USE_GL                            = 1;
++  GLX_BUFFER_SIZE                       = 2;
++  GLX_LEVEL                             = 3;
++  GLX_RGBA                              = 4;
++  GLX_DOUBLEBUFFER                      = 5;
++  GLX_STEREO                            = 6;
++  GLX_AUX_BUFFERS                       = 7;
++  GLX_RED_SIZE                          = 8;
++  GLX_GREEN_SIZE                        = 9;
++  GLX_BLUE_SIZE                         = 10;
++  GLX_ALPHA_SIZE                        = 11;
++  GLX_DEPTH_SIZE                        = 12;
++  GLX_STENCIL_SIZE                      = 13;
++  GLX_ACCUM_RED_SIZE                    = 14;
++  GLX_ACCUM_GREEN_SIZE                  = 15;
++  GLX_ACCUM_BLUE_SIZE                   = 16;
++  GLX_ACCUM_ALPHA_SIZE                  = 17;
+ 
++  // GLX_ARB_multisample
++  GLX_SAMPLE_BUFFERS_ARB             = 100000;
++  GLX_SAMPLES_ARB                    = 100001;
++{$ENDIF}
+ 
+ type
+   TGdkGLContext = record end;
+@@ -151,11 +148,15 @@
+ function LOpenGLMakeCurrent(Handle: HWND): boolean;
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+              WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-             DoubleBuffered, RGBA: boolean;
++             DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+              const AParams: TCreateParams): HWND;
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
++
++{ Create GLX attributes list suitable for glXChooseVisual or glXChooseFBConfig.
++  Note that if MultiSampling is > 1, it is expected that caller 
++  already checked that GLX_ARB_multisample is available. }
+ function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
+-                                     RGBA: boolean): PInteger;
++  RGBA: boolean; MultiSampling: Cardinal): PInteger;
+ 
+ implementation
+ 
+@@ -425,16 +426,6 @@
+   FBConfig: TGLXFBConfig;
+   FBConfigs: PGLXFBConfig;
+   FBConfigsCount: Integer;
+-
+-  { Attributes to choose context with glXChooseFBConfig.
+-    Similar to Attr, but not exactly compatible. }
+-  AttrFB: Array[0..10] of integer = (
+-    GLX_X_RENDERABLE, 1 { true },
+-    GLX_RED_SIZE, 1,
+-    GLX_GREEN_SIZE, 1,
+-    GLX_BLUE_SIZE, 1,
+-    GLX_DOUBLEBUFFER, 1 { true },
+-    none);
+ {$ENDIF}
+ 
+ begin
+@@ -449,7 +440,7 @@
+       if GLX_version_1_3(dpy) then begin
+         { use approach recommended since glX 1.3 }
+         FBConfigsCount:=0;
+-        FBConfigs:=glXChooseFBConfig(dpy, DefaultScreen(dpy), AttrFB, FBConfigsCount);
++        FBConfigs:=glXChooseFBConfig(dpy, DefaultScreen(dpy), @attrList[0], FBConfigsCount);
+         if FBConfigsCount = 0 then
+           raise Exception.Create('Could not find FB config');
+ 
+@@ -681,7 +672,7 @@
+   Size: Integer;
+ begin
+   Count:=0;
+-  while (attrList[Count]<>GDK_GL_NONE) do inc(Count);
++  while (attrList[Count]<>0) do inc(Count);
+   inc(Count);
+   Size:=SizeOf(Integer)*Count;
+   CopyAttrList:=nil;
+@@ -834,9 +825,9 @@
+ end;
+ {$ENDIF}
+ 
+-function LOpenGLCreateContext(AWinControl: TWinControl;
++function LOpenGLCreateContextCore(AWinControl: TWinControl;
+   WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-  DoubleBuffered, RGBA: boolean;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+   const AParams: TCreateParams): HWND;
+ var
+   NewWidget: PGtkWidget;
+@@ -844,7 +835,7 @@
+   AttrList: PInteger;
+ begin
+   if WSPrivate=nil then ;
+-  AttrList:=CreateOpenGLContextAttrList(DoubleBuffered,RGBA);
++  AttrList:=CreateOpenGLContextAttrList(DoubleBuffered,RGBA,MultiSampling);
+   try
+     if SharedControl<>nil then begin
+       SharedArea:={%H-}PGtkGLArea(PtrUInt(SharedControl.Handle));
+@@ -868,16 +859,44 @@
+   end;
+ end;
+ 
++function LOpenGLCreateContext(AWinControl: TWinControl;
++  WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
++  const AParams: TCreateParams): HWND;
++begin
++  if (MultiSampling > 1) and
++     {$IFDEF UseFPGLX}
++     GLX_ARB_multisample(GetDefaultXDisplay, DefaultScreen(GetDefaultXDisplay))
++     {$ELSE}
++     false { no GLX_ARB_multisample support when UseFPGLX undefined,
++             it would be too convoluted to replicate GLX unit extension querying
++             functionality here }
++     {$ENDIF} then
++  try
++    Result := LOpenGLCreateContextCore(AWinControl, WSPrivate, SharedControl, 
++      DoubleBuffered, RGBA, MultiSampling, AParams);
++  except
++    { retry without MultiSampling }
++    Result := LOpenGLCreateContextCore(AWinControl, WSPrivate, SharedControl, 
++      DoubleBuffered, RGBA, 1, AParams);
++  end else
++    { no multi-sampling requested (or GLX_ARB_multisample not available),
++      just pass to LOpenGLCreateContextCore }
++    Result := LOpenGLCreateContextCore(AWinControl, WSPrivate, SharedControl, 
++      DoubleBuffered, RGBA, MultiSampling, AParams);
++end;
++
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
+ begin
+   if not AWinControl.HandleAllocated then exit;
+   // nothing to do
+ end;
+ 
+-function CreateOpenGLContextAttrList(DoubleBuffered: boolean; RGBA: boolean
+-  ): PInteger;
++function CreateOpenGLContextAttrList(DoubleBuffered: boolean; RGBA: boolean;
++  MultiSampling: Cardinal): PInteger;
+ var
+   p: integer;
++  UseFBConfig: boolean;
+   
+   procedure Add(i: integer);
+   begin
+@@ -888,19 +907,35 @@
+   
+   procedure CreateList;
+   begin
++    if UseFBConfig then begin Add(GLX_X_RENDERABLE); Add(1); end;
+     if DoubleBuffered then
+-      Add(GDK_GL_DOUBLEBUFFER);
++    begin
++      if UseFBConfig then 
++        begin Add(GLX_DOUBLEBUFFER); Add(1); end else
++        Add(GLX_DOUBLEBUFFER);
++    end;
+     if RGBA then
+-      Add(GDK_GL_RGBA);
+-    Add(GDK_GL_RED_SIZE);  Add(1);
+-    Add(GDK_GL_GREEN_SIZE);  Add(1);
+-    Add(GDK_GL_BLUE_SIZE);  Add(1);
+-    Add(GDK_GL_DEPTH_SIZE);  Add(1);
+-    Add(GDK_GL_STENCIL_SIZE); Add(1);
+-    Add(GDK_GL_None);
++    begin
++      if not UseFBConfig then Add(GLX_RGBA);
++      { For UseFBConfig, glXChooseFBConfig already defaults to RGBA }
++    end;
++    Add(GLX_RED_SIZE);  Add(1);
++    Add(GLX_GREEN_SIZE);  Add(1);
++    Add(GLX_BLUE_SIZE);  Add(1);
++    Add(GLX_DEPTH_SIZE);  Add(1);
++    Add(GLX_STENCIL_SIZE); Add(1);
++    
++    if MultiSampling > 1 then
++    begin
++      Add(GLX_SAMPLE_BUFFERS_ARB); Add(1);
++      Add(GLX_SAMPLES_ARB); Add(MultiSampling);
++    end;
++    
++    Add(0); { 0 = X.None (be careful: GLX_NONE is something different) }
+   end;
+   
+ begin
++  UseFBConfig := {$IFDEF UseFPGLX} GLX_version_1_3(GetDefaultXDisplay) {$else} false {$endif};
+   Result:=nil;
+   p:=0;
+   CreateList;
+Index: openglcontext.pas
+===================================================================
+--- openglcontext.pas	(revision 37259)
++++ openglcontext.pas	(working copy)
 @@ -109,12 +109,14 @@
      FCurrentFrameTime: integer; // in msec
      FLastFrameTime: integer; // in msec
@@ -294,15 +503,27 @@ diff -ur old/openglcontext.pas new/openglcontext.pas
      procedure SetSharedControl(const AValue: TCustomOpenGLControl);
    protected
      procedure WMPaint(var Message: TLMPaint); message LM_PAINT;
-@@ -145,6 +147,7 @@
+@@ -145,6 +147,19 @@
                                           write SetAutoResizeViewport default false;
      property DoubleBuffered: boolean read FDoubleBuffered write SetDoubleBuffered default true;
      property RGBA: boolean read FRGBA write SetRGBA default true;
++
++    { Number of samples per pixel, for OpenGL multi-sampling (anti-aliasing).
++
++      Value <= 1 means that we use 1 sample per pixel, which means no anti-aliasing.
++      Higher values mean anti-aliasing. Exactly which values are supported
++      depends on GPU, common modern GPUs support values like 2 and 4.
++      
++      If this is > 1, and we will not be able to create OpenGL
++      with multi-sampling, we will fallback to normal non-multi-sampled context.
++      You can query OpenGL values GL_SAMPLE_BUFFERS_ARB and GL_SAMPLES_ARB 
++      (see ARB_multisample extension) to see how many samples have been 
++      actually allocated for your context. }
 +    property MultiSampling: Cardinal read FMultiSampling write SetMultiSampling default 1;
    end;
  
    { TOpenGLControl }
-@@ -156,6 +159,7 @@
+@@ -156,6 +171,7 @@
      property AutoResizeViewport;
      property BorderSpacing;
      property Enabled;
@@ -310,7 +531,7 @@ diff -ur old/openglcontext.pas new/openglcontext.pas
      property OnChangeBounds;
      property OnClick;
      property OnConstrainedResize;
-@@ -239,6 +243,13 @@
+@@ -241,6 +257,13 @@
    OpenGLAttributesChanged;
  end;
  
@@ -324,7 +545,7 @@ diff -ur old/openglcontext.pas new/openglcontext.pas
  procedure TCustomOpenGLControl.SetSharedControl(
    const AValue: TCustomOpenGLControl);
  begin
-@@ -327,6 +338,7 @@
+@@ -329,6 +352,7 @@
    inherited Create(TheOwner);
    FDoubleBuffered:=true;
    FRGBA:=true;
@@ -332,7 +553,7 @@ diff -ur old/openglcontext.pas new/openglcontext.pas
    ControlStyle:=ControlStyle-[csSetCaption];
    if (csDesigning in ComponentState) then begin
      FCanvas := TControlCanvas.Create;
-@@ -468,6 +480,7 @@
+@@ -470,6 +494,7 @@
      Result:=LOpenGLCreateContext(OpenGlControl,WSPrivate,
                                   OpenGlControl.SharedControl,
                                   AttrControl.DoubleBuffered,AttrControl.RGBA,
@@ -340,3 +561,28 @@ diff -ur old/openglcontext.pas new/openglcontext.pas
                                   AParams);
    end;
  end;
+Index: glqtcontext.pas
+===================================================================
+--- glqtcontext.pas	(revision 37259)
++++ glqtcontext.pas	(working copy)
+@@ -70,7 +70,7 @@
+ function LOpenGLMakeCurrent(Handle: HWND): boolean;
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+              WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
+-             DoubleBuffered, RGBA: boolean;
++             DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
+              const AParams: TCreateParams): HWND;
+ procedure LOpenGLDestroyContextInfo(AWinControl: TWinControl);
+ function CreateOpenGLContextAttrList(DoubleBuffered: boolean;
+@@ -183,8 +183,9 @@
+ end;
+ 
+ function LOpenGLCreateContext(AWinControl: TWinControl;
+-  WSPrivate: TWSPrivateClass; SharedControl: TWinControl; DoubleBuffered,
+-  RGBA: boolean; const AParams: TCreateParams): HWND;
++  WSPrivate: TWSPrivateClass; SharedControl: TWinControl;
++  DoubleBuffered, RGBA: boolean; MultiSampling: Cardinal;
++  const AParams: TCreateParams): HWND;
+ var
+   AttrList: PInteger;
+   NewQtWidget: TQtGLWidget;
