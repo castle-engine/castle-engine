@@ -13,7 +13,28 @@
   ----------------------------------------------------------------------------
 }
 
-{ Setup OpenGL full-screen anti-aliasing (multi-sampling). }
+{ Control OpenGL full-screen anti-aliasing (multi-sampling).
+  This unit provides a global AntiAliasing variable, TAntiAliasing type
+  and some routines to control anti-aliasing.
+
+  It's not really necessary to use this unit to have anti-aliasing
+  (multi-sampling). All you really need to do is to set
+  TCastleWindowBase.MultiSampling or TCastleControlBase.MultiSampling
+  to values like 2 or 4 to get anti-aliasing. Then it will be enabled by default
+  (http://www.opengl.org/registry/specs/ARB/multisample.txt spec says
+  that MULTISAMPLE_ARB state is by default TRUE) and our GLCurrentMultiSampling
+  will show the number of samples > 1, and this is enough to see anti-aliasing.
+
+  This unit gives you some small functionality:
+  @unorderedList(
+    @itemSpacing compact
+    @item(TAntiAliasing type means you don't have to wonder what MultiSampling
+      values are supported by common GPUs.)
+    @item(AntiAliasing global variable is useful to store in a config file or such.)
+    @item(We use NV_multisample_filter_hint to instruct GPU to possibly
+      use better sampling.)
+  )
+}
 unit GLAntiAliasing;
 
 interface
