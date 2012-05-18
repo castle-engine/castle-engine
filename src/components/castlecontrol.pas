@@ -476,7 +476,8 @@ begin
       In engine 2.x, I was getting questions about which one to use,
       and it seems  that noone grokked the difference between the two.
       Final decision about it (should it be visible on palette for advanced uses,
-      and risk confusing novice users?) will be at engine 3.1.0. }
+      and risk confusing novice users?) is still unsure (report on forum
+      if you have any opinion). }
     { TCastleControlCustom, }
     TCastleControl]);
 end;

@@ -16,19 +16,16 @@ engine improvements, allow making FPS-like as easily as possible:
 - castle: use everything as T3D inside scene manager,
   do not call special TCastleScene.Render methods.
   Remains: gamecredits calls CreditsModel.Render, everything else is Ok already.
+------------------------------------------------------------------------------
+Next next release plans:
 
-Maybe:
+Definitely:
 - Blender exporter fixes.
 - Make CastleMessages buttons clickable, reported for castle many times.
   In fact, use there our buttons in CastleControls, this would be best.
 - Move castle lights editor to view3dscene.
   BTW: maybe allow configuring shadow maps params,
   checkbox to switch "Shadows" and to change shadow map size would be very cool!
-
-3.2 plans (~end of April):
-- add ability to initialize GL context with options for stencil butffer
-  and multi-sampling. Activate shadow volumes and anti-aliasing on model_3d_viewer.
-  Notify Jan Adamec.
 ------------------------------------------------------------------------------
 WWW:
 - Maybe change demo_models webpage to show screenshots and links to everything,
@@ -60,6 +57,8 @@ WWW:
   http://www.gmodules.com/ig/creator?url=http://hosting.gmodules.com/ig/gadgets/file/101638777846294812126/2.xml&up_url=http%3A%2F%2Fcia.vc%2Fstats%2Fproject%2Fvrmlengine%2F.rss&up_style=1&up_articles=10&up_date=1&up_size=50&up_sort=1&up_acolor=%2300c&up_color=%23333333&up_ads=1&up_title=&synd=open&w=400&h=200&title=GSites+RSS&border=%23ffffff%7C3px%2C1px+solid+%23999999
   -->
   (Change it to use castle-engine, if using it.)
+
+- Make g+ page for engine? With posting allowed for all devs.
 
 vrml_engine_doc:
 - move "vrml overview" to the end (maybe an annex or such).
@@ -1185,6 +1184,49 @@ Various:
   Possibly also do not create octrees for primitives?
   We could just resolve them simpler, by simple ray vs sphere etc. tests.
   But tests show that it's not memory or time eater.
+
+- Compile gtkglext statically on Linux for view3dscene?
+  Or not --- it's communicated nicely on www page that you need to install it now.
+  When it will be packaged in popular distros, this issue should disappear.
+
+- trim down logs.
+  castle --debug-log should be shorter, warnings (like no creature in <resources>)
+  should be easier to spot.
+  Often repeated stuff should not be shown by default (maybe this should
+  be a rule? only stuff displayed max 1 time for (valid) 3d model are allowed
+  in default log mode?)
+
+- Readd scene manager to component palette?
+
+  It was removed at 3.0.0 (when we break compat anyway) because it's
+  included in TCastleControl after all, and should be usually configured there.
+
+  Using TCastleSceneManager also actually requires using TCastleControlCustom,
+  so if keep TCastleSceneManager is readd -> also readd TCastleControlCustom.
+  Which means that it's confusing: palette would contain TCastleControl,
+  TCastleSceneManager, TCastleControlCustom, while in 99% of cases only the
+  1st should be directly used.
+
+  Wait for finishing our demos and tutorial for 3.1.0 release,
+  rethink this then?
+
+  For 3.0.0 release: removed them from component palette for now.
+  This way, in case I decide to keep them later, I will just add them back.
+  In the reverse case (if we would keep them now, but remove later),
+  we would break compatibility ---- which would be bad, as 3.0.0 already breaks a lot.
+
+  Remove todo notes in castlecontrol.pas and castlescenemanager.pas
+  when this is decided.
+
+- Import blender models directly?
+  http://code.google.com/p/gamekit/downloads/detail?name=AnimKitSrc_r1007.zip
+
+  The question is, is it better to make blender->x3d convertion inside my code,
+  having my own .blend reader?
+  Vs. extending existing (awful, over-complicated in some places
+  and lacking basic features for animations in other places)
+  x3d exporter in Python. Eventually, we can always make our own.
+
 ------------------------------------------------------------------------------
 Shaders:
 
@@ -1251,3 +1293,77 @@ Examples reorganizations / improvements, more ideas:
   maybe more?
 
 - Make a Lazarus demo when you build X3D graph, dragging node names etc.
+
+------------------------------------------------------------------------------
+SSAO:
+- Normals available for screen effects in the future.
+  Notify JA.
+
+  Best: a way (using compositing shaders) to output to extra buffer
+  in fragment shader.
+  And then, a way to pass this buffer as texture for ScreenEffect shader.
+  IOW, make this extensible, useful for any screen effects, to hold any values.
+
+- Use real projnear/far (but they seem worse, more visible on fountain
+  less on ja rooms, than hardcoded 1/1000?)
+  See castlescenemanager.pas todo.
+
+------------------------------------------------------------------------------
+T3D improvements possibly postponed for later releases:
+
+(These are things not necessarily planned for 3.1 release, unless something else
+will turn out to need them.)
+
+- All ideas to call T3DResource.Prepare automatically failed?
+  - From T3D.PrepareResource: no, that's too late, see comments in
+    TCreatureKind.CreateCreature. Kind needs to be prepared earlier,
+    before next scene manager BeforeDraw (which causes T3D.PrepareResource).
+
+  - From TCastleSceneManager.PrepareResource:
+    will also be too late, see above reasoning for T3D.PrepareResource.
+
+    Also, this will require TCastleSceneManager.Resources list,
+    and we're not 100% sure about it --- it would require calling also
+    GLContextClose on all items, and we don't want to call GLContextClose
+    when scene manager gets GLContextClose, because our kinds live
+    much longer than single level.
+
+    Also, this would require tracking which kinds are already prepared
+    at level, as PrepareResource is called each frame, and we don't want
+    to increase UsageCount each frame.
+  Actually, current preparation at CreateCreature does the job,
+  it seems. But it's not clean.
+
+- We lost --debug-no-creatures feature.
+
+- T3DAlive is a good idea, but maybe would be better in a different unit?
+  Maybe to creatures or player or gameobjectkinds?
+
+- Add inventory to T3DAlive some day, to allow creature to carry items.
+
+- CloseDirectionToPlayer generalize, to just give Target: T3D
+  (watched for free with notifications) that is tracked.
+  This will also be useful for player, to make some sort
+  of "homing" missile.
+
+- Maybe rename Xxx to MyXxx, and rename MyXxx to just Xxx
+  (for T3D collision routines for AI).
+
+- Simplify storing of camera properties in castle/TLevel.
+  We should not store all of them there?
+
+- Future: T3DMoving change into something that can also rotate the objects
+  standing on it (e.g. if you stand on a spinning table).
+  Maybe also scaling (e.g. if you stand on an inflating cushion?).
+
+- In a future it would be cleanest if MoveAllowed would take as params
+  just other T3D instance, along with some move description (move vector?).
+  This would allow to handle self-collisions (current DisableCollisions),
+  and also missiles HitsPlayer (once player is T3D) and HitsCreatures cleanly?
+  Hm, for now, this just means adding Collider parameter to all collision
+  structures... something that DisableCollisions variable tried to avoid?
+
+- Maybe add GetVisible or GetBlocksView, and use it inside RayCollision
+  and SegmentCollsion with LineOfSight=true.
+  Currently we call in such cases just GetExists,
+  which is a weaker check than GetCollides.
