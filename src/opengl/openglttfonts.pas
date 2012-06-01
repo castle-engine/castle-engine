@@ -321,7 +321,7 @@ begin
     on Ubuntu 10.04 32-bit, with fglrx coming from Ubuntu 10.04 package
     (version 2:8.840-0ubuntu4, see http://packages.ubuntu.com/natty/fglrx).
     See https://sourceforge.net/p/castle-engine/tickets/2/ . }
-  if not (GLVersion.IsMesa or GLVersion.IsFglrx) then
+  if not (GLVersion.Mesa or GLVersion.Fglrx) then
     gluTessCallback(tobj, GLU_TESS_EDGE_FLAG, TCallBack(glEdgeFlag));
 
   gluTessCallback(tobj, GLU_TESS_ERROR, TCallBack(@ReportGLError));

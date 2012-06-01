@@ -62,8 +62,8 @@ type
   private
     FVendor: string;
     FRenderer: string;
-    FIsVendorATI: boolean;
-    FIsFglrx: boolean;
+    FVendorATI: boolean;
+    FFglrx: boolean;
     FVendorNVidia: boolean;
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
@@ -81,7 +81,7 @@ type
       (extracted by base TGenericGLVersion), this allows us to detect
       Mesa and Mesa version.
       @groupBegin }
-    IsMesa: boolean;
+    Mesa: boolean;
     MesaMajor: Integer;
     MesaMinor: Integer;
     MesaRelease: Integer;
@@ -93,11 +93,11 @@ type
     { This is just glGetString(GL_RENDERER). }
     property Renderer: string read FRenderer;
 
-    { Is the Vendor ATI? In other words, is it an ATI GPU with ATI drivers. }
-    property IsVendorATI: boolean read FIsVendorATI;
+    { Detect ATI GPU with ATI drivers. }
+    property VendorATI: boolean read FVendorATI;
 
-    { Is the Vendor ATI and we're on Linux? }
-    property IsFglrx: boolean read FIsFglrx;
+    { Detect ATI GPU with ATI drivers on Linux. }
+    property Fglrx: boolean read FFglrx;
 
     { Detect NVidia GPU. }
     property VendorNVidia: boolean read FVendorNVidia;
@@ -366,8 +366,8 @@ begin
     while SCharIs(VendorVersion, I, AllChars - WhiteSpaces) do Inc(I);
 
     VendorName := CopyPos(VendorVersion, 1, I - 1);
-    IsMesa := SameText(VendorName, 'Mesa');
-    if IsMesa then
+    Mesa := SameText(VendorName, 'Mesa');
+    if Mesa then
       ParseMesaVersion(VendorVersion, I) else
     begin
       { I'm seeing also things like GL_VERSION = 1.4 (2.1 Mesa 7.0.4)
@@ -391,8 +391,8 @@ begin
         while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
 
         VendorName := CopyPos(S, MesaStartIndex, I - 1);
-        IsMesa := SameText(VendorName, 'Mesa');
-        if IsMesa then
+        Mesa := SameText(VendorName, 'Mesa');
+        if Mesa then
           ParseMesaVersion(S, I);
       end;
     end;
@@ -411,10 +411,10 @@ begin
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
     also just "ATI" is possible. }
-  FIsVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
-  FIsFglrx := {$ifdef LINUX} IsVendorATI {$else} false {$endif};
+  FVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
+  FFglrx := {$ifdef LINUX} VendorATI {$else} false {$endif};
 
-  FBuggyPointSetAttrib := IsMesa and IsPrefix('Mesa DRI Intel', Renderer)
+  FBuggyPointSetAttrib := Mesa and IsPrefix('Mesa DRI Intel', Renderer)
     and (not MesaVersionAtLeast(7, 6, 0));
 
   { Initially, I wanted t set this when fglrx is detected with version 9.x.
@@ -428,9 +428,9 @@ begin
 
     Later: I'll just do this do every ATI, since Mac OS X GPU has the same
     problem on rendered_texture.x3dv test. }
-  FBuggyDrawOddWidth := IsVendorATI;
+  FBuggyDrawOddWidth := VendorATI;
 
-  FBuggyGenerateMipmap := IsMesa and (not MesaVersionAtLeast(7, 5, 0));
+  FBuggyGenerateMipmap := Mesa and (not MesaVersionAtLeast(7, 5, 0));
 
   { On which fglrx versions does this occur?
 
@@ -450,7 +450,7 @@ begin
       (fglrx bugzilla was wiped, so we don't have any official
       confirmation about this from AMD.) }
 
-  FBuggyLightModelTwoSide := IsFglrx and ReleaseExists and
+  FBuggyLightModelTwoSide := Fglrx and ReleaseExists and
     (Release >= 8573) and (Release < 8780);
   if BuggyLightModelTwoSide then
     FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
@@ -477,7 +477,7 @@ begin
         Ubuntu 9.10/i386    (czarny)
       Looks like fglrx bug since at least Ubuntu 10.10 (assuming always
       since Ubuntu 10.04, which is fglrx >= 8.723). }
-    IsFglrx and ReleaseExists and (Release >= 8723);
+    Fglrx and ReleaseExists and (Release >= 8723);
 end;
 
 finalization

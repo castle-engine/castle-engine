@@ -1426,7 +1426,7 @@ begin
         if BlendingFactors[I].NeedsConstColor or
            BlendingFactors[I].NeedsConstAlpha then
         begin
-          if (not (GL_ARB_imaging or GL_version_1_4)) or GLVersion.IsFglrx then
+          if (not (GL_ARB_imaging or GL_version_1_4)) or GLVersion.Fglrx then
           begin
             if Log then
               WritelnLog('Blending', Format('Blending factor "%s" requires OpenGL 1.4 or ARB_imaging extension, and is known to not work with fglrx (ATI Linux drivers)', [S]));

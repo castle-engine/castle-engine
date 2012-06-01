@@ -497,7 +497,7 @@ begin
               (we cannot currently render text through shaders).
               Without the hack below, the shader from sphere would remain
               active and text would look black. }
-            if GLVersion.IsFglrx then glUseProgramObjectARB(0);
+            if GLVersion.Fglrx then glUseProgramObjectARB(0);
           end;
         gsStandard    : glUseProgram         (0);
       end;

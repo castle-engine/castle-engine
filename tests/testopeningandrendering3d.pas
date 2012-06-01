@@ -101,7 +101,7 @@ begin
   ParentDirName := ExtractFileName(ExclPathDelim(ExtractFileDir(FileInfo.FullFileName)));
   if ParentDirName = 'errors' then Exit;
 
-  if GLVersion.IsFglrx and
+  if GLVersion.Fglrx and
     ( (FileInfo.SearchRec.Name = 'ssao_stairs.x3dv') or
       (FileInfo.SearchRec.Name = 'twoboxes_ssao.x3dv') or
       (FileInfo.SearchRec.Name = 'ssao_barna29_0.x3dv') or

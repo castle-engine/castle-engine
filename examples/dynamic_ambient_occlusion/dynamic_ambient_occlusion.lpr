@@ -549,7 +549,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
       GLSLProgram[Pass].SetUniform('position_scale', PositionScale);
       GLSLProgram[Pass].SetUniform('position_shift', PositionShift);
 
-      if GLVersion.IsFglrx then
+      if GLVersion.Fglrx then
       begin
         GLSLProgram[Pass].SetUniform('elements_count', Elements.Count);
         GLSLProgram[Pass].SetUniform('tex_elements_size', TGLint(ElementsTexSize));
@@ -746,7 +746,7 @@ begin
 
   ShaderString := FileToString(GLSLProgramBaseName + '.fs');
 
-  if GLVersion.IsFglrx then
+  if GLVersion.Fglrx then
   begin
     ShaderString := '#define FGLRX' + NL + ShaderString;
   end else

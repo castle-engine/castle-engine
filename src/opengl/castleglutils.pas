@@ -2087,8 +2087,8 @@ const
     Result :=
       Format(
         '  Vendor NVidia: %s' +nl+
-        '  Vendor Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
+        '  Vendor Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
         nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
         '  Buggy glDrawPixels for odd widths: %s' +nl+
@@ -2097,11 +2097,10 @@ const
         '  Buggy VBO: %s' +nl+
         '  Buggy shader shadow map: %s',
         [ BoolToStr[Version.VendorNVidia],
-
-          BoolToStr[Version.IsMesa],
+          BoolToStr[Version.VendorATI],
+          BoolToStr[Version.Fglrx],
+          BoolToStr[Version.Mesa],
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
-
-          BoolToStr[Version.IsVendorATI], BoolToStr[Version.IsFglrx],
 
           BoolToStr[Version.BuggyPointSetAttrib],
           BoolToStr[Version.BuggyDrawOddWidth],

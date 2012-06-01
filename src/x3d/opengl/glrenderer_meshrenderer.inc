@@ -430,7 +430,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       glMultMatrix(RenderingCamera.InverseMatrix);
       glMatrixMode(GL_MODELVIEW);
 
-      if GLVersion.IsMesa and Log then
+      if GLVersion.Mesa and Log then
         { Mesa 7.0.4 makes textures strange (like each cube face was
           1-pixel wide?, although I checked --- they are loaded with
           correct sizes). Output this on log, since it's done by renderer,

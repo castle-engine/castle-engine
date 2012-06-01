@@ -2010,7 +2010,7 @@ begin
   begin
     for I := 0 to Source[stFragment].Count - 1 do
       PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define HAS_GEOMETRY_SHADER', true);
-    if GLVersion.IsVendorATI then
+    if GLVersion.VendorATI then
       GeometryInputSize := 'gl_in.length()' else
       GeometryInputSize := '';
     { Replace CASTLE_GEOMETRY_INPUT_SIZE }

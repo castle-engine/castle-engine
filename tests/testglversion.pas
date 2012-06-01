@@ -54,7 +54,7 @@ begin
 
     Assert(not G.ReleaseExists);
 
-    Assert(G.IsMesa);
+    Assert(G.Mesa);
     Assert(G.MesaMajor = 7);
     Assert(G.MesaMinor = 0);
     Assert(G.MesaRelease = 4);
@@ -74,7 +74,7 @@ begin
 
     Assert(not G.ReleaseExists);
 
-    Assert(G.IsMesa);
+    Assert(G.Mesa);
     Assert(G.MesaMajor = 7);
     Assert(G.MesaMinor = 1);
     Assert(G.MesaRelease = 0);
@@ -92,7 +92,7 @@ begin
     Assert(G.Minor = 2);
     Assert(G.ReleaseExists);
     Assert(G.Release = 3);
-    Assert(not G.IsMesa);
+    Assert(not G.Mesa);
 
     Assert(not G.BuggyPointSetAttrib);
   finally FreeAndNil(G) end;
