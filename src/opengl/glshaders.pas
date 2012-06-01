@@ -962,6 +962,22 @@ procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: stri
 var
   AType: TGLenum;
 
+  { Some Nvidia drivers on Linux (like version 295.49
+    in Debian testing on 2012-06-02) segfault when calling glCompileShader[ARB]
+    with code like "const in gl_MaterialParameters material".
+    Googling, at least Nvidia happens to sefault also on other pieces of GLSL.
+
+    Although our internal GLSL code avoids using such known buggy constructs,
+    but user can always supply his own shader code.
+    So we surround glCompileShader[ARB] in a safeguard, to raise nice
+    EGLSLShaderCompileError (that will result in simple warning and fallback
+    on fixed-function pipeline) instead of crash. }
+  procedure ReportBuggyCompileShader;
+  begin
+    raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled, segmentation fault in glCompileShader call. Buggy OpenGL GLSL compiler.',
+      [ShaderTypeName[ShaderType]]);
+  end;
+
   function CreateShaderARB(const S: string): TGLuint;
   var
     SrcPtr: PChar;
@@ -972,7 +988,11 @@ var
     SrcPtr := PChar(S);
     SrcLength := Length(S);
     glShaderSourceARB(Result, 1, @SrcPtr, @SrcLength);
-    glCompileShaderARB(Result);
+    try
+      glCompileShaderARB(Result);
+    except
+      on E: EAccessViolation do ReportBuggyCompileShader;
+    end;
     glGetObjectParameterivARB(Result, GL_OBJECT_COMPILE_STATUS_ARB, @Compiled);
     if Compiled <> 1 then
       raise EGLSLShaderCompileError.CreateFmt('%s shader not compiled:' + NL + '%s',
@@ -990,7 +1010,11 @@ var
     SrcPtr := PChar(S);
     SrcLength := Length(S);
     glShaderSource(Result, 1, @SrcPtr, @SrcLength);
-    glCompileShader(Result);
+    try
+      glCompileShader(Result);
+    except
+      on E: EAccessViolation do ReportBuggyCompileShader;
+    end;
     glGetShaderiv(Result, GL_COMPILE_STATUS, @Compiled);
     { Although I generally avoid creating multiline exception messages,
       ShaderGetInfoLog naturally comes out multiline (it contains a
