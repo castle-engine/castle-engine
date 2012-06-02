@@ -381,7 +381,7 @@ begin
     do not cover whole window. }
   Window.Controls.Add(TBackground.Create(Application));
 
-  Window.StencilBufferBits := 8;
+  Window.StencilBits := 8;
   Window.OnResize := @Resize;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;

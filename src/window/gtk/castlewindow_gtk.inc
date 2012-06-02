@@ -871,7 +871,7 @@ begin
     GDK_GL_RGBA,
     { Note that sizes of buffers in VisualAttr must be given in bits
       (not in e.g. bytes), so this is exactly what I have in my variables. }
-    GDK_GL_DEPTH_SIZE, DepthBufferBits,
+    GDK_GL_DEPTH_SIZE, DepthBits,
 
     { This is a workaround for gtkglext Windows bug,
       one must specify GDK_GL_BUFFER_SIZE or GTK_GL_RED/GREEN/BLUE_SIZE otherwise
@@ -882,12 +882,12 @@ begin
       (mail "Bug at creation of GdkGLConfig on Win32" from 2005-03-01),
       unfortunately with no response to this day. }
     GDK_GL_BUFFER_SIZE, 1,
-    GDK_GL_STENCIL_SIZE, StencilBufferBits,
+    GDK_GL_STENCIL_SIZE, StencilBits,
     GDK_GL_ALPHA_SIZE, AlphaBits,
-    GDK_GL_ACCUM_RED_SIZE, AccumBufferBits[0],
-    GDK_GL_ACCUM_GREEN_SIZE, AccumBufferBits[1],
-    GDK_GL_ACCUM_BLUE_SIZE, AccumBufferBits[2],
-    GDK_GL_ACCUM_ALPHA_SIZE, AccumBufferBits[3] ]);
+    GDK_GL_ACCUM_RED_SIZE, AccumBits[0],
+    GDK_GL_ACCUM_GREEN_SIZE, AccumBits[1],
+    GDK_GL_ACCUM_BLUE_SIZE, AccumBits[2],
+    GDK_GL_ACCUM_ALPHA_SIZE, AccumBits[3] ]);
 
   if MultiSampling > 1 then
     { I guess that gtkglext should internally check for

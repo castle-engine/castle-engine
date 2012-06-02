@@ -379,13 +379,13 @@ begin
  if DoubleBuffer then
   GlutDispMode := GlutDispMode or GLUT_DOUBLE else
   GlutDispMode := GlutDispMode or GLUT_SINGLE;
- if StencilBufferBits > 0 then
+ if StencilBits > 0 then
   GlutDispMode := GlutDispMode or GLUT_STENCIL;
- if DepthBufferBits > 0 then
+ if DepthBits > 0 then
   GlutDispMode := GlutDispMode or GLUT_DEPTH;
  if AlphaBits > 0 then
   GlutDispMode := GlutDispMode or GLUT_ALPHA;
- if not ZeroVector(AccumBufferBits) then
+ if not ZeroVector(AccumBits) then
   GlutDispMode := GlutDispMode or GLUT_ACCUM;
  if MultiSampling > 1 then
   GlutDispMode := GlutDispMode or GLUT_MULTISAMPLE;

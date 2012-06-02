@@ -154,13 +154,13 @@ begin
 
     Attribs.AddArray([
       { Buffer sizes below are all in bits. }
-      GLX_DEPTH_SIZE, DepthBufferBits,
-      GLX_STENCIL_SIZE, StencilBufferBits,
+      GLX_DEPTH_SIZE, DepthBits,
+      GLX_STENCIL_SIZE, StencilBits,
       GLX_ALPHA_SIZE, AlphaBits,
-      GLX_ACCUM_RED_SIZE, AccumBufferBits[0],
-      GLX_ACCUM_GREEN_SIZE, AccumBufferBits[1],
-      GLX_ACCUM_BLUE_SIZE, AccumBufferBits[2],
-      GLX_ACCUM_ALPHA_SIZE, AccumBufferBits[3] ]);
+      GLX_ACCUM_RED_SIZE, AccumBits[0],
+      GLX_ACCUM_GREEN_SIZE, AccumBits[1],
+      GLX_ACCUM_BLUE_SIZE, AccumBits[2],
+      GLX_ACCUM_ALPHA_SIZE, AccumBits[3] ]);
 
     if MultiSampling > 1 then
     begin

@@ -179,7 +179,7 @@ begin
   Window.Caption := 'The Rift';
   Window.ResizeAllowed := raOnlyAtOpen;
   if RenderShadowsPossible then
-    Window.StencilBufferBits := 8;
+    Window.StencilBits := 8;
   Window.Open;
 
   { init progress }

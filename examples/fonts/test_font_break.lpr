@@ -78,7 +78,7 @@ begin
  Window.OnOpen := @Open;
  Window.OnClose := @Close;
  Window.OnResize := @Resize;
- Window.DepthBufferBits := 0;
+ Window.DepthBits := 0;
  Window.SetDemoOptions(K_F11, CharEscape, true);
  Window.OpenAndRun('Font.BreakLines demo', @Draw);
 end.

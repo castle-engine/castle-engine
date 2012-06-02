@@ -649,7 +649,7 @@ begin
 
     Window.AutoRedisplay := true;
 
-    Window.StencilBufferBits := 1;
+    Window.StencilBits := 1;
 
     Window.OnOpen := @Open;
     Window.OnClose := @Close;

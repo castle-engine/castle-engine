@@ -217,7 +217,7 @@ begin
  Window.ParseParameters;
  Window.Width := 300;
  Window.Height := 300;
- Window.DepthBufferBits := 0;
+ Window.DepthBits := 0;
  Window.SetDemoOptions(K_F11, CharEscape, true);
  Window.OpenAndRun('Demo CastleWindow Menu', @Draw);
 

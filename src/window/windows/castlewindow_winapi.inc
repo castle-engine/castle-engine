@@ -661,22 +661,22 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
       iPixelType := PFD_TYPE_RGBA;              // Request An RGBA Format
       cColorBits := ColorBits; // WinAPI accepts here 0 as "default"
       cAlphaBits := AlphaBits;
-      cDepthBits := DepthBufferBits;
-      cStencilBits := StencilBufferBits;
+      cDepthBits := DepthBits;
+      cStencilBits := StencilBits;
       { niestety cAccumRed/Green/Blue/AlphaBits sa ignorowane - musimy probowac poradzic sobie
         przy pomocy cAccumBits. }
-      cAccumBits := RoundUpToMultiply(AccumBufferBits[0], 8) +
-                    RoundUpToMultiply(AccumBufferBits[1], 8) +
-                    RoundUpToMultiply(AccumBufferBits[2], 8) +
-                    RoundUpToMultiply(AccumBufferBits[3], 8);
+      cAccumBits := RoundUpToMultiply(AccumBits[0], 8) +
+                    RoundUpToMultiply(AccumBits[1], 8) +
+                    RoundUpToMultiply(AccumBits[2], 8) +
+                    RoundUpToMultiply(AccumBits[3], 8);
       iLayerType := PFD_MAIN_PLANE;             // Main Drawing Layer
     end;
     PixelFormat := ChoosePixelFormat(h_Dc, pfd);
     OSCheck( PixelFormat <> 0, 'ChoosePixelFormat');
 
-    { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBufferBits, StencilBufferBits i
-      AccumBufferBits - to dlatego ze ChoosePixelFormat nie gwarantowalo nam ze dostaniemy
-      rzeczywiscie to co chcemy, a w przypadku AccumBufferBits nie bylismy nawet w stanie
+    { sprawdzamy czy dostalismy wymagane AlphaBits, DepthBits, StencilBits i
+      AccumBits - to dlatego ze ChoosePixelFormat nie gwarantowalo nam ze dostaniemy
+      rzeczywiscie to co chcemy, a w przypadku AccumBits nie bylismy nawet w stanie
       powiedziec tego co trzeba ChoosePixelFormat.
 
       In the future, I may switch to using SetPixelFormat_WGLChoose by default.
@@ -842,13 +842,13 @@ procedure TCastleWindowBase.OpenWinSystemDepend;
               VisualAttr.AddArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
             VisualAttr.AddArray([
               WGL_COLOR_BITS_ARB, ColorBits,
-              WGL_DEPTH_BITS_ARB, DepthBufferBits,
-              WGL_STENCIL_BITS_ARB, StencilBufferBits,
+              WGL_DEPTH_BITS_ARB, DepthBits,
+              WGL_STENCIL_BITS_ARB, StencilBits,
               WGL_ALPHA_BITS_ARB, AlphaBits,
-              WGL_ACCUM_RED_BITS_ARB, AccumBufferBits[0],
-              WGL_ACCUM_GREEN_BITS_ARB, AccumBufferBits[1],
-              WGL_ACCUM_BLUE_BITS_ARB, AccumBufferBits[2],
-              WGL_ACCUM_ALPHA_BITS_ARB, AccumBufferBits[3] ]);
+              WGL_ACCUM_RED_BITS_ARB, AccumBits[0],
+              WGL_ACCUM_GREEN_BITS_ARB, AccumBits[1],
+              WGL_ACCUM_BLUE_BITS_ARB, AccumBits[2],
+              WGL_ACCUM_ALPHA_BITS_ARB, AccumBits[3] ]);
 
             if MultiSampling > 1 then
             begin

@@ -176,9 +176,9 @@
 
       Also you can request various OpenGL buffers: color buffer with alpha
       channel (@link(TCastleWindowBase.AlphaBits AlphaBits)),
-      stencil buffer (@link(TCastleWindowBase.StencilBufferBits StencilBufferBits)),
+      stencil buffer (@link(TCastleWindowBase.StencilBits StencilBits)),
       double buffer (@link(TCastleWindowBase.DoubleBuffer DoubleBuffer)), accumulation buffer
-      (@link(TCastleWindowBase.AccumBufferBits AccumBufferBits)),
+      (@link(TCastleWindowBase.AccumBits AccumBits)),
       multisampling (full-screen antialiasing) buffers (@link(TCastleWindowBase.MultiSampling MultiSampling))?
       )
 
@@ -313,11 +313,11 @@ unit CastleWindow;
       Similar with (Min|Max)(Width|Height) constraints:
       they can't be forced using glut, we will simply ignore
       the fact if they will be broken by user.
-    - I can't pass to glut value of StencilBufferBits so
+    - I can't pass to glut value of StencilBits so
       I'm simply saying to glut that I want stencil buffer
-      when StencilBufferBits > 0, and then I'm checking
+      when StencilBits > 0, and then I'm checking
       using glutGet(GLUT_WINDOW_STENCIL_SIZE) how many stencil bits I have.
-      Analogous for DepthBufferBits, AlphaBits, AccumBufferBits.
+      Analogous for DepthBits, AlphaBits, AccumBits.
     - Menu mnemonics are not implemented.
       They are simply removed when Caption is displayed.
     - CustomCursor is not implemented. Cursor = gcCursor is treated like mcDefault.
@@ -643,7 +643,7 @@ const
     calling TCastleWindowBase.ParseParameters(StandardParseOptions). }
   StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay];
 
-  DefaultDepthBufferBits = 16;
+  DefaultDepthBits = 16;
 
   DefaultFpsCaptionUpdateInterval = 5000;
 
@@ -778,8 +778,8 @@ type
         MainMenu (display MainMenu and provide way to call DoMenuCommand)
 
       OpenGL context must be initialized honouring these properties:
-        DoubleBuffer, StencilBufferBits, DepthBufferBits, AlphaBits,
-        AccumBufferBits, MultiSampling }
+        DoubleBuffer, StencilBits, DepthBits, AlphaBits,
+        AccumBits, MultiSampling }
     procedure OpenBackend;
 
     { Close OpenGL context, for particular backend.
@@ -1020,8 +1020,8 @@ type
     FFps: TFramesPerSecond;
   private
     { Current OpenGL buffers configuration required.
-      Stuff like DoubleBuffer, AlphaBits, DepthBufferBits,
-      StencilBufferBits, AccumBufferBits etc.
+      Stuff like DoubleBuffer, AlphaBits, DepthBits,
+      StencilBits, AccumBits etc.
       This simply returns a text description of these properties.
 
       It does not describe the current OpenGL context parameters.
@@ -1035,8 +1035,8 @@ type
       So it checks do
 
 @preformatted(
-  ProvidedStencilBits >= StencilBufferBits and
-  ProvidedDepthBits >= DepthBufferBits ...
+  ProvidedStencilBits >= StencilBits and
+  ProvidedDepthBits >= DepthBits ...
 )
       and so on. If not, EGLContextNotPossible is raised with detailed
       description (which buffer constraint is not satisfied -- e.g. maybe
@@ -1054,8 +1054,8 @@ type
       ProvidedAccumAlphaBits, ProvidedMultiSampling: Cardinal);
 
   private
-    FDepthBufferBits: Cardinal;
-    FStencilBufferBits: Cardinal;
+    FDepthBits: Cardinal;
+    FStencilBits: Cardinal;
     FAlphaBits: Cardinal;
     FMultiSampling: Cardinal;
     FGtkIconName: string;
@@ -1344,9 +1344,9 @@ type
     { Required depth buffer precision. Zero means that we don't need
       depth buffer at all. We may get depth buffer with more precision
       than requested (we may even get depth buffer when we set
-      DepthBufferBits = 0), this all depends on graphic card.
+      DepthBits = 0), this all depends on graphic card.
 
-      Default value is 16 (DefaultDepthBufferBits),
+      Default value is 16 (DefaultDepthBits),
       which is a reasonable default for 3D programs
       that want to work with depth test enabled.
 
@@ -1355,17 +1355,17 @@ type
       @orderedList(
         @item(
           Most programs using OpenGL use depth testing, so many programs
-          would have to call something like @code(Window.DepthBufferBits := 16).)
+          would have to call something like @code(Window.DepthBits := 16).)
 
         @item(
           Often graphic cards / window systems / OSes give you an OpenGL
           context with depth buffer @italic(even if you don't need depth buffer).
           I don't say that it's bad. But it makes very easy to forget about
-          doing @code(DepthBufferBits := something-non-zero;).
+          doing @code(DepthBits := something-non-zero;).
           If you're writing 3d program and sitting on some
-          system that always gives you depth buffer (even if DepthBufferBits = 0)
+          system that always gives you depth buffer (even if DepthBits = 0)
           then it may happen that you forget to write in your program
-          @longCode(#  Window.DepthBufferBits := 16;#)
+          @longCode(#  Window.DepthBits := 16;#)
 
           And while on your system everything will work, you will
           receive errors on other systems because you forgot to request a
@@ -1373,32 +1373,32 @@ type
       )
 
       Of course, if you are writing a program that does not need depth buffer
-      you should set Window.DepthBufferBits := 0. The only advantage of having
-      default DepthBufferBits = 16 is that if you forget to set
-      Window.DepthBufferBits := 0 your programs will still work (most graphic cards
+      you should set Window.DepthBits := 0. The only advantage of having
+      default DepthBits = 16 is that if you forget to set
+      Window.DepthBits := 0 your programs will still work (most graphic cards
       will give you some depth buffer anyway).
       They will just use more resources than they should.
     }
-    property DepthBufferBits: Cardinal
-      read FDepthBufferBits write FDepthBufferBits default DefaultDepthBufferBits;
+    property DepthBits: Cardinal
+      read FDepthBits write FDepthBits default DefaultDepthBits;
 
     { Required stencil buffer precision, zero means that stencil buffer is
       not needed.
 
-      Just like with other XxxBufferBits property, we may get more
+      Just like with other XxxBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
       @link(Open) will raise an error.
 
       Note that after initializing OpenGL context (when opening the window),
-      StencilBufferBits is @italic(not) updated to the current (provided)
-      stencil buffer bit size. For example, if you requested StencilBufferBits := 8,
-      and you got 16-bits buffer: StencilBufferBits value will still remain 8.
+      StencilBits is @italic(not) updated to the current (provided)
+      stencil buffer bit size. For example, if you requested StencilBits := 8,
+      and you got 16-bits buffer: StencilBits value will still remain 8.
       This is sensible in case you close the window, tweak some settings
       and try to open it again. Use @code(glGetInteger(GL_STENCIL_BITS))
       when window is open to query current (actual) buffer size. }
-    property StencilBufferBits: Cardinal
-      read FStencilBufferBits write FStencilBufferBits default 0;
+    property StencilBits: Cardinal
+      read FStencilBits write FStencilBits default 0;
 
     { How many samples are required for multi-sampling (anti-aliasing).
       1 means that no multi-sampling is required.
@@ -1417,7 +1417,7 @@ type
       (that is, if this property is > 1). See GL_ARB_multisample spec for details:
       [http://opengl.org/registry/specs/ARB/multisample.txt].
 
-      Just like with other XxxBufferBits property, we may get more
+      Just like with other XxxBits property, we may get more
       samples than we requested (e.g. if you request 3, you will most probably
       get 4). But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
@@ -1438,7 +1438,7 @@ type
     { Required number of bits in alpha channel of color buffer.
       Zero means that alpha channel is not needed.
 
-      Just like with other XxxBufferBits property, we may get more
+      Just like with other XxxBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
       @link(Open) will raise an error.
@@ -1454,14 +1454,14 @@ type
       so when the vector is all zeros (default value) this means that
       accumulation buffer is not needed at all.
 
-      Just like with other XxxBufferBits property, we may get more
+      Just like with other XxxBits property, we may get more
       bits than we requested. But we will never get less --- if window system
       will not be able to provide GL context with requested number of bits,
       @link(Open) will raise an error. }
-    AccumBufferBits: TVector4Cardinal;
+    AccumBits: TVector4Cardinal;
 
     (* TODO: zrobic od razu
-         IndexBufferBits: Cardinal; = ????
+         IndexBits: Cardinal; = ????
          IndexedColorBuffer: boolean; { = false }
     *)
 
@@ -1896,7 +1896,7 @@ end;
 
       Raises EGLContextNotPossible if it's not possible to obtain
       OpenGL context with specified attributes.
-      For example, maybe you set (Depth|Stencil|Accum)BufferBits properties
+      For example, maybe you set (Alpha|Depth|Stencil|Accum)Bits properties
       to too high values. It's guaranteed that even when EGLContextNotPossible
       was raised, the window remains in correct (Closed) state, so you
       can try to lower some requirements and call init once again.
@@ -1904,14 +1904,14 @@ end;
 
 @longCode(#
   Shadows := true;
-  Window.StencilBufferBits := 8;
+  Window.StencilBits := 8;
   try
     Window.Open;
   except
     on EGLContextNotPossible do
     begin
       Shadows := false;
-      Window.StencilBufferBits := 0;
+      Window.StencilBits := 0;
       { try to open once again, this time without requesting stencil buffer }
       Window.Open;
     end;
@@ -1934,7 +1934,7 @@ end;
           it will set MultiSampling to 1, call MultiSamplingOff, and retry.)
 
         @item(When this also fails, and stencil buffer was requested
-          (StencilBufferBits > 0), it will set StencilBufferBits to 0,
+          (StencilBits > 0), it will set StencilBits to 0,
           call StencilOff, and retry.)
 
         @item(When this also fails, you will get EGLContextNotPossible
@@ -2975,7 +2975,7 @@ begin
  FResizeAllowed := raAllowed;
  minWidth := 100;  maxWidth := 4000;
  minHeight := 100; maxHeight := 4000;
- DepthBufferBits := DefaultDepthBufferBits;
+ DepthBits := DefaultDepthBits;
  FCursor := mcDefault;
  FMultiSampling := 1;
  FVisible := true;
@@ -3122,9 +3122,9 @@ const
     except
       on E: EGLContextNotPossible do
       begin
-        if StencilBufferBits > 0 then
+        if StencilBits > 0 then
         begin
-          StencilBufferBits := 0;
+          StencilBits := 0;
           if Assigned(StencilOff) then
             StencilOff(Self, Format(SFailureMessage, [E.Message, STurnedOffStencil]));
           TryOpenContext;
@@ -3147,9 +3147,9 @@ begin
           MultiSamplingOff(Self, Format(SFailureMessage, [E.Message, STurnedOffMultiSampling]));
         TryOpenContext_Shadows;
       end else
-      if StencilBufferBits > 0 then
+      if StencilBits > 0 then
       begin
-        StencilBufferBits := 0;
+        StencilBits := 0;
         if Assigned(StencilOff) then
           StencilOff(Self, Format(SFailureMessage, [E.Message, STurnedOffStencil]));
         TryOpenContext;
@@ -3188,7 +3188,7 @@ begin
     if Self is not on OpenWindows list. This is useful if the window was partially
     constructed.
 
-    E.g. when StencilBufferBits was too high and OpenBackend
+    E.g. when StencilBits was too high and OpenBackend
     method raised an exception EGLContextNotPossible. Then this method, Close,
     is called, but Self is not on OpenWindows list. And this fact should not be
     reported as an error -- error is EGLContextNotPossible ! }
@@ -3990,16 +3990,15 @@ begin
  if DoubleBuffer then
   result := 'double buffered' else
   result := 'single buffered';
- if DepthBufferBits > 0 then
-  result += Format(', with %d-bits sized depth buffer', [DepthBufferBits]);
- if StencilBufferBits > 0 then
-  result += Format(', with %d-bits sized stencil buffer', [StencilBufferBits]);
+ if DepthBits > 0 then
+  result += Format(', with %d-bits sized depth buffer', [DepthBits]);
+ if StencilBits > 0 then
+  result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
   result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if not ZeroVector(AccumBufferBits) then
+ if not ZeroVector(AccumBits) then
   result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
-    [AccumBufferBits[0], AccumBufferBits[1],
-     AccumBufferBits[2], AccumBufferBits[3]]);
+    [AccumBits[0], AccumBits[1], AccumBits[2], AccumBits[3]]);
  if MultiSampling > 1 then
   result += Format(', with multisampling (%d samples)', [MultiSampling]);
 end;
@@ -4018,13 +4017,13 @@ procedure TCastleWindowBase.CheckRequestedBufferAttributes(const ProviderName: s
   end;
 
 begin
- CheckRequestedBits('stencil buffer', StencilBufferBits, ProvidedStencilBits);
- CheckRequestedBits('depth buffer', DepthBufferBits, ProvidedDepthBits);
+ CheckRequestedBits('stencil buffer', StencilBits, ProvidedStencilBits);
+ CheckRequestedBits('depth buffer', DepthBits, ProvidedDepthBits);
  CheckRequestedBits('alpha channel', AlphaBits, ProvidedAlphaBits);
- CheckRequestedBits('accumulation buffer''s red channel'  , AccumBufferBits[0], ProvidedAccumRedBits);
- CheckRequestedBits('accumulation buffer''s green channel', AccumBufferBits[1], ProvidedAccumGreenBits);
- CheckRequestedBits('accumulation buffer''s blue channel' , AccumBufferBits[2], ProvidedAccumBlueBits);
- CheckRequestedBits('accumulation buffer''s alpha channel', AccumBufferBits[3], ProvidedAccumAlphaBits);
+ CheckRequestedBits('accumulation buffer''s red channel'  , AccumBits[0], ProvidedAccumRedBits);
+ CheckRequestedBits('accumulation buffer''s green channel', AccumBits[1], ProvidedAccumGreenBits);
+ CheckRequestedBits('accumulation buffer''s blue channel' , AccumBits[2], ProvidedAccumBlueBits);
+ CheckRequestedBits('accumulation buffer''s alpha channel', AccumBits[3], ProvidedAccumAlphaBits);
 
  { If MultiSampling <= 1, this means that multisampling not required,
    so don't check it. Even if MultiSampling = 1 and ProvidedMultiSampling = 0
@@ -4916,8 +4915,8 @@ begin
       'while the context is already initialized');
   SceneManager.ShadowVolumesPossible := Value;
   if SceneManager.ShadowVolumesPossible then
-    StencilBufferBits := 8 else
-    StencilBufferBits := 0;
+    StencilBits := 8 else
+    StencilBits := 0;
 end;
 
 { TWindowList ------------------------------------------------------------ }

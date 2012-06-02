@@ -1616,8 +1616,8 @@ begin
     for TCastleControl to work reliably. }
 
 {  if SceneManager.ShadowVolumesPossible then
-    StencilBufferBits := 8 else
-    StencilBufferBits := 0;}
+    StencilBits := 8 else
+    StencilBits := 0;}
 end;
 
 function TCastleControl.GetOnCameraChanged: TNotifyEvent;
