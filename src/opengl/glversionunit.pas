@@ -72,6 +72,7 @@ type
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
     FBuggyShaderShadowMap: boolean;
+    FBuggyGLSLConstStruct: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
   public
@@ -163,6 +164,12 @@ type
 
     { Detect buggy shadow2DProj (fglrx bug) in some situations. }
     property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
+
+    { Segfaults at glCompileShader[ARB] on GLSL declaration
+      @code("const in gl_MaterialParameters material").
+      Affects some NVidia drivers on Linux (like version 295.49
+      in Debian testing on 2012-06-02). }
+    property BuggyGLSLConstStruct: boolean read FBuggyGLSLConstStruct;
   end;
 
 var
@@ -478,6 +485,8 @@ begin
       Looks like fglrx bug since at least Ubuntu 10.10 (assuming always
       since Ubuntu 10.04, which is fglrx >= 8.723). }
     Fglrx and ReleaseExists and (Release >= 8723);
+
+  FBuggyGLSLConstStruct := {$ifdef LINUX} VendorNvidia {$else} false {$endif};
 end;
 
 finalization

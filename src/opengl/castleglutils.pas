@@ -2095,7 +2095,8 @@ const
         '  Buggy glGenerateMipmapEXT: %s' +nl+
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
         '  Buggy VBO: %s' +nl+
-        '  Buggy shader shadow map: %s',
+        '  Buggy shader shadow map: %s' +nl+
+        '  Buggy GLSL "const in gl_XxxParameters" declaration: %s',
         [ BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
           BoolToStr[Version.Fglrx],
@@ -2107,7 +2108,8 @@ const
           BoolToStr[Version.BuggyGenerateMipmap],
           BoolToStr[Version.BuggyLightModelTwoSide],
           BoolToStr[Version.BuggyVBO],
-          BoolToStr[Version.BuggyShaderShadowMap]
+          BoolToStr[Version.BuggyShaderShadowMap],
+          BoolToStr[Version.BuggyGLSLConstStruct]
         ]);
   end;
 

@@ -451,6 +451,15 @@ begin
   until ParenLevel = 0;
 end;
 
+{ GL helpers ----------------------------------------------------------------- }
+
+function GLSLConstStruct: string;
+begin
+  if GLVersion.BuggyGLSLConstStruct then
+    Result := '' else
+    Result := 'const';
+end;
+
 { TShaderCodeHash ------------------------------------------------------------ }
 
 {$include norqcheckbegin.inc}
@@ -671,14 +680,21 @@ function TLightShader.Code: TShaderSource;
       Result += '#define ' + LightDefines[Defines[I]].Name + NL;
   end;
 
+var
+  TemplateLight: string;
 begin
   if FCode = nil then
   begin
     FCode := TShaderSource.Create;
 
-    FCode[stFragment].Add(
-      DefinesStr + StringReplace({$I template_add_light.glsl.inc},
-      'light_number', IntToStr(Number), [rfReplaceAll]));
+    TemplateLight := {$I template_add_light.glsl.inc};
+    if GLVersion.BuggyGLSLConstStruct then
+      TemplateLight := StringReplace(TemplateLight,
+        'const in gl_MaterialParameters', 'in gl_MaterialParameters', [rfReplaceAll]);
+    TemplateLight := StringReplace(TemplateLight,
+      'light_number', IntToStr(Number), [rfReplaceAll]);
+
+    FCode[stFragment].Add(DefinesStr + TemplateLight);
 
     if Node <> nil then
       Shader.EnableEffects(Node.FdEffects, FCode);
@@ -1108,7 +1124,7 @@ begin
       Shader.Plug(stFragment, Format(
         'uniform %s %s;' +NL+
         '%s' +NL+
-        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, const in gl_LightSourceParameters light_source, const in gl_LightProducts light_products, const in gl_MaterialParameters material)' +NL+
+        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, ' + GLSLConstStruct + ' in gl_LightSourceParameters light_source, ' + GLSLConstStruct + ' in gl_LightProducts light_products, ' + GLSLConstStruct + ' in gl_MaterialParameters material)' +NL+
         '{' +NL+
         '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
         '}',
@@ -1905,7 +1921,7 @@ var
             never glColor. }
 
       Plug(stFragment,
-        'void PLUG_material_light_diffuse(inout vec4 diffuse, const in vec4 vertex_eye, const in vec3 normal_eye, const in gl_LightSourceParameters light_source, const in gl_MaterialParameters material)' +NL+
+        'void PLUG_material_light_diffuse(inout vec4 diffuse, const in vec4 vertex_eye, const in vec3 normal_eye, ' + GLSLConstStruct + ' in gl_LightSourceParameters light_source, ' + GLSLConstStruct + ' in gl_MaterialParameters material)' +NL+
         '{' +NL+
         '  diffuse = light_source.diffuse * gl_Color;' +NL+
         '}' +NL+
