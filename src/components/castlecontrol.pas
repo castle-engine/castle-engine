@@ -708,6 +708,13 @@ begin
 
   AggressiveUpdateTick;
 
+  { do not change focus by arrow keys, this breaks our handling of them }
+  if (Key = VK_Down) or
+     (Key = VK_Up) or
+     (Key = VK_Right) or
+     (Key = VK_Left) then
+    Key := 0;
+
   inherited KeyDown(Key, Shift);  { OnKeyDown before KeyDownEvent }
 
   KeyDownEvent(Key, Shift);
@@ -725,6 +732,13 @@ begin
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
   AggressiveUpdateTick;
+
+  { do not change focus by arrow keys, this breaks our handling of them }
+  if (Key = VK_Down) or
+     (Key = VK_Up) or
+     (Key = VK_Right) or
+     (Key = VK_Left) then
+    Key := 0;
 
   inherited KeyUp(Key, Shift); { OnKeyUp before KeyUpEvent }
 
