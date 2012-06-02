@@ -1201,7 +1201,7 @@ var
 begin
   LKeyToMyKey(Key, Shift, MyKey, Ch);
 
-  if (MyKey <> K_None) or (Ch <> #0) and UseControls then
+  if ((MyKey <> K_None) or (Ch <> #0)) and UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
@@ -1227,7 +1227,7 @@ var
 begin
   LKeyToMyKey(Key, Shift, MyKey, Ch);
 
-  if (MyKey <> K_None) or (Ch <> #0) and UseControls then
+  if ((MyKey <> K_None) or (Ch <> #0)) and UseControls then
   begin
     for I := 0 to Controls.Count - 1 do
     begin
