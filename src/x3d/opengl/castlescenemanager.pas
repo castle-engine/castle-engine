@@ -1996,7 +1996,7 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
 
 begin
   RenderingCamera.Target := rtScreen;
-  RenderingCamera.FromCameraObject(ACamera);
+  RenderingCamera.FromCameraObject(ACamera, nil);
 
   { save ScreenEffectsCount/NeedDepth result, to not recalculate it,
     and also to make the following code stable --- this way we know
@@ -2697,7 +2697,7 @@ begin
     { RenderingCamera properties must be already set,
       since PrepareResources may do some operations on texture gen modes
       in WORLDSPACE*. }
-    RenderingCamera.FromCameraObject(ChosenViewport.Camera);
+    RenderingCamera.FromCameraObject(ChosenViewport.Camera, nil);
 
     if DisplayProgressTitle <> '' then
     begin

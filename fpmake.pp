@@ -70,7 +70,6 @@ begin
     P.Targets.AddUnit('nurbs.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
-    P.Targets.AddUnit('renderingcameraunit.pas');
     P.Targets.AddUnit('spacefillingcurves.pas');
     P.Targets.AddUnit('spheresampling.pas');
     P.Targets.AddUnit('sphericalharmonics.pas');
@@ -100,6 +99,7 @@ begin
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('triangle.pas');
     P.Targets.AddUnit('triangleoctree.pas');
+    P.Targets.AddUnit('renderingcameraunit.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'x3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlescenemanager.pas');

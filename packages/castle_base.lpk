@@ -94,7 +94,7 @@
         <UnitName Value="RaysWindow"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/3d/renderingcameraunit.pas"/>
+        <Filename Value="../src/x3d/renderingcameraunit.pas"/>
         <UnitName Value="RenderingCameraUnit"/>
       </Item13>
       <Item14>

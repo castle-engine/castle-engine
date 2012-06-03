@@ -18,17 +18,20 @@ unit RenderingCameraUnit;
 
 interface
 
-uses CastleUtils, VectorMath, Frustum, Cameras, GenericStructList;
+uses CastleUtils, VectorMath, Frustum, Cameras, GenericStructList, X3DNodes;
 
 type
   TRenderingCamera = class;
 
-  TCameraChangedEvent = procedure (RenderingCamera: TRenderingCamera) of object;
+  TCameraChangedEvent = procedure (
+    const RenderingCamera: TRenderingCamera;
+    Viewpoint: TAbstractViewpointNode) of object;
 
   TCameraChangedEventList = class(specialize TGenericStructList<TCameraChangedEvent>)
   public
     { This calls all functions (all Items). }
-    procedure ExecuteAll(RenderingCamera: TRenderingCamera);
+    procedure ExecuteAll(const RenderingCamera: TRenderingCamera;
+      const Viewpoint: TAbstractViewpointNode);
   end;
 
   TRenderTarget = (
@@ -101,18 +104,23 @@ type
     function RotationInverseMatrix3: TMatrix3Single;
 
     { Set all properties (except Target) from TCamera instance in ACamera.
-
-      Remember that @link(Target) must be already set correctly when calling
-      this, registered OnChanged callbacks may read it. }
-    procedure FromCameraObject(ACamera: TCamera);
+      See @link(FromMatrix) for comments about @link(Target) property
+      and Viewpoint parameter. }
+    procedure FromCameraObject(const ACamera: TCamera;
+      const Viewpoint: TAbstractViewpointNode);
 
     { Set all properties (except Target) from explict matrices.
       ProjectionMatrix is needed to calculate frustum.
 
       Remember that @link(Target) must be already set correctly when calling
-      this, registered OnChanged callbacks may read it. }
+      this, registered OnChanged callbacks may read it.
+
+      Viewpoint is only passed to the Changed and OnChanged.
+      It should be non-nil to indicate that the view comes from non-standard
+      (not currently bound) VRML/X3D Viewpoint node. }
     procedure FromMatrix(const AMatrix, ARotationMatrix,
-      ProjectionMatrix: TMatrix4Single);
+      ProjectionMatrix: TMatrix4Single;
+      const Viewpoint: TAbstractViewpointNode);
 
     property Target: TRenderTarget read FTarget write FTarget;
 
@@ -120,7 +128,7 @@ type
       This will call all registered OnChanged events.
       Remember that @link(Target) must be already set correctly when calling
       this, registered OnChanged callbacks may read it. }
-    procedure Changed;
+    procedure Changed(const Viewpoint: TAbstractViewpointNode);
 
     property OnChanged: TCameraChangedEventList read FOnChanged;
   end;
@@ -134,12 +142,14 @@ uses SysUtils, CastleLog;
 
 { TCameraChangedEventList ------------------------------------------------ }
 
-procedure TCameraChangedEventList.ExecuteAll(RenderingCamera: TRenderingCamera);
+procedure TCameraChangedEventList.ExecuteAll(
+  const RenderingCamera: TRenderingCamera;
+  const Viewpoint: TAbstractViewpointNode);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](RenderingCamera);
+    L[I](RenderingCamera, Viewpoint);
 end;
 
 { TRenderingCamera --------------------------------------------------------------- }
@@ -156,9 +166,9 @@ begin
   inherited;
 end;
 
-procedure TRenderingCamera.Changed;
+procedure TRenderingCamera.Changed(const Viewpoint: TAbstractViewpointNode);
 begin
-  FOnChanged.ExecuteAll(Self);
+  FOnChanged.ExecuteAll(Self, Viewpoint);
 end;
 
 procedure TRenderingCamera.InverseMatrixNeeded;
@@ -205,25 +215,27 @@ begin
   Move(RotationInverseMatrix[2], Result[2], SizeOf(Single) * 3);
 end;
 
-procedure TRenderingCamera.FromCameraObject(ACamera: TCamera);
+procedure TRenderingCamera.FromCameraObject(const ACamera: TCamera;
+  const Viewpoint: TAbstractViewpointNode);
 begin
   Matrix := ACamera.Matrix;
   InverseMatrixDone := false;
   RotationMatrix := ACamera.RotationMatrix;
   RotationInverseMatrixDone := false;
   Frustum := ACamera.Frustum;
-  Changed;
+  Changed(Viewpoint);
 end;
 
-procedure TRenderingCamera.FromMatrix(const AMatrix, ARotationMatrix,
-  ProjectionMatrix: TMatrix4Single);
+procedure TRenderingCamera.FromMatrix(
+  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4Single;
+  const Viewpoint: TAbstractViewpointNode);
 begin
   Matrix := AMatrix;
   InverseMatrixDone := false;
   RotationMatrix := ARotationMatrix;
   RotationInverseMatrixDone := false;
   Frustum.Init(ProjectionMatrix, AMatrix);
-  Changed;
+  Changed(Viewpoint);
 end;
 
 initialization

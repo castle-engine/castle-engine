@@ -237,7 +237,7 @@ begin
   RenderingCamera.FromMatrix(
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    ProjectionMatrix);
+    ProjectionMatrix, nil);
 end;
 
 procedure GLCaptureCubeMapImages(

@@ -714,7 +714,8 @@ type
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
 
-    procedure CameraChanged(RenderingCamera: TRenderingCamera);
+    procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
+      Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
   protected
     { Value <> 0 means that our state isn't complete (for example,
@@ -5051,7 +5052,7 @@ begin
       ScriptsInitialize;
       InitialProximitySensorsEvents;
 
-      RenderingCamera.OnChanged.Add(@CameraChanged);
+      RenderingCamera.OnChanged.Add(@RenderingCameraChanged);
     end else
     begin
       ScriptsFinalize;
@@ -5062,7 +5063,7 @@ begin
       { ProcessEvents := false may get called from destructor,
         after RenderingCameraUnit finalization }
       if RenderingCamera <> nil then
-        RenderingCamera.OnChanged.Remove(@CameraChanged);
+        RenderingCamera.OnChanged.Remove(@RenderingCameraChanged);
     end;
   end;
 end;
@@ -6253,43 +6254,45 @@ begin
   { Nothing meaningful to do in this class }
 end;
 
-procedure TCastleSceneCore.CameraChanged(RenderingCamera: TRenderingCamera);
-var
-  V: TAbstractViewpointNode;
+procedure TCastleSceneCore.RenderingCameraChanged(
+  const RenderingCamera: TRenderingCamera;
+  Viewpoint: TAbstractViewpointNode);
 begin
   { Although we register this callback only when ProcessEvents,
     so we could assume here that ProcessEvents is already true...
     But, just in case, check ProcessEvents again (in case in the future
     there will be some queue of events and they could arrive with delay). }
 
-  if ProcessEvents and
+  if (Viewpoint = nil) and
      (ViewpointStack.Top <> nil) and
-     (ViewpointStack.Top is TAbstractViewpointNode) and
-     ( (RenderingCamera.Target = rtScreen) or
-       TAbstractViewpointNode(ViewpointStack.Top).FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
-  begin
-    V := TAbstractViewpointNode(ViewpointStack.Top);
+     (ViewpointStack.Top is TAbstractViewpointNode) then
+    Viewpoint := TAbstractViewpointNode(ViewpointStack.Top);
 
+  if ProcessEvents and
+     (Viewpoint <> nil) and
+     ( (RenderingCamera.Target = rtScreen) or
+       Viewpoint.FdcameraMatrixSendAlsoOnOffscreenRendering.Value ) then
+  begin
     BeginChangesSchedule;
     try
       Inc(FTime.PlusTicks);
 
-      if V.EventCameraMatrix.SendNeeded then
-        V.EventCameraMatrix.Send(RenderingCamera.Matrix, Time);
+      if Viewpoint.EventCameraMatrix.SendNeeded then
+        Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, Time);
 
-      if V.EventCameraInverseMatrix.SendNeeded then
+      if Viewpoint.EventCameraInverseMatrix.SendNeeded then
       begin
         RenderingCamera.InverseMatrixNeeded;
-        V.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, Time);
+        Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, Time);
       end;
 
-      if V.EventCameraRotationMatrix.SendNeeded then
-        V.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, Time);
+      if Viewpoint.EventCameraRotationMatrix.SendNeeded then
+        Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, Time);
 
-      if V.EventCameraRotationInverseMatrix.SendNeeded then
+      if Viewpoint.EventCameraRotationInverseMatrix.SendNeeded then
       begin
         RenderingCamera.RotationInverseMatrixNeeded;
-        V.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, Time);
+        Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, Time);
       end;
     finally EndChangesSchedule end;
   end;

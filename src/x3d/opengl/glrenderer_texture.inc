@@ -1471,7 +1471,8 @@ begin
   TextureNode.EventRendering.Send(true);
 
   RenderingCamera.Target := rfOffScreen;
-  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, ProjectionMatrix);
+  RenderingCamera.FromMatrix(CameraMatrix, CameraRotationMatrix, ProjectionMatrix,
+    Viewpoint);
 
   RenderToTexture.RenderBegin;
 
@@ -2043,7 +2044,7 @@ begin
   RenderingCamera.FromMatrix(
     Light.ModelviewMatrix,
     Light.ModelviewRotationMatrix,
-    ProjectionMatrix);
+    ProjectionMatrix, nil);
 
   RenderToTexture.RenderBegin;
 
