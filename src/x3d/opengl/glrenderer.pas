@@ -3789,7 +3789,7 @@ var
         PostUpdate;
 
         if Log then
-          WritelnLog('CubeMap', 'GeneratedCubeMapTexture texture regenerated');
+          WritelnLog('CubeMap', TexNode.NiceName + ' texture regenerated');
       end;
     end;
   end;
@@ -3813,10 +3813,10 @@ var
           PostUpdate;
 
           if Log then
-            WritelnLog('GeneratedShadowMap', 'GeneratedShadowMap texture regenerated');
+            WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
         end;
       end else
-        OnWarning(wtMajor, 'VRML/X3D', 'GeneratedShadowMap needs updating, but light = NULL or incorrect');
+        OnWarning(wtMajor, 'VRML/X3D', TexNode.NiceName + ' needs updating, but light = NULL or incorrect');
     end;
   end;
 
@@ -3837,7 +3837,7 @@ var
         PostUpdate;
 
         if Log then
-          WritelnLog('RenderedTexture', 'RenderedTexture texture regenerated');
+          WritelnLog('RenderedTexture', TexNode.NiceName + ' texture regenerated');
       end;
     end;
   end;
