@@ -194,9 +194,7 @@ type
       when the ray hit empty space. }
     Distance: Single;
 
-    { Index of node with given Item.
-      TODO: this will be removed once we change castle to use PointingDeviceActivate
-      for all. }
+    { Index of node with given Item. }
     function IndexOfItem(const Item: T3D): Integer;
   end;
 

@@ -226,7 +226,7 @@ type
     function GetItems: T3DWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
-    function GetMouseRayHit3D: T3D; virtual; abstract;
+    function GetMouseRayHit: TRayCollision; virtual; abstract;
     function GetHeadlightCamera: TCamera; virtual; abstract;
     { @groupEnd }
 
@@ -722,7 +722,6 @@ type
 
     FMouseRayHit: TRayCollision;
 
-    FMouseRayHit3D: T3D;
     FPlayer: T3DOrient;
 
     { calculated by every PrepareResources }
@@ -743,9 +742,8 @@ type
     procedure SceneBoundViewpointVectorsChanged(Scene: TCastleSceneCore);
     procedure SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 
-    procedure SetMouseRayHit3D(const Value: T3D);
-    property MouseRayHit3D: T3D read FMouseRayHit3D write SetMouseRayHit3D;
-
+    procedure SetMouseRayHit(const Value: TRayCollision);
+    function MouseRayHitContains(const Item: T3D): boolean;
     procedure SetPlayer(const Value: T3DOrient);
   protected
     procedure SetCamera(const Value: TCamera); override;
@@ -770,7 +768,7 @@ type
     function GetItems: T3DWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
-    function GetMouseRayHit3D: T3D; override;
+    function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
@@ -833,7 +831,7 @@ type
       read FShadowVolumeRenderer;
 
     { Current 3D objects under the mouse cursor.
-      Updated in every mouse move. }
+      Updated in every mouse move. May be @nil. }
     property MouseRayHit: TRayCollision read FMouseRayHit;
 
     { List of viewports connected to this scene manager.
@@ -997,7 +995,7 @@ type
     function GetItems: T3DWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
-    function GetMouseRayHit3D: T3D; override;
+    function GetMouseRayHit: TRayCollision; override;
     function GetHeadlightCamera: TCamera; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
     function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
@@ -1326,15 +1324,13 @@ begin
     pixel --- the one "on the top" (visible by the player at that pixel)
     determines the mouse cursor.
 
-    Scene manager just takes cursor from MouseRayHit.First.Item.Cursor now,
-    and pretty much ignores Cursor value of other 3d stuff along
+    We ignore Cursor value of other 3d stuff along
     the MouseRayHit list. Maybe we should browse Cursor values along the way,
     and choose the first non-none? }
 
-  if GetMouseRayHit3D <> nil then
-  begin
-    Cursor := GetMouseRayHit3D.Cursor;
-  end else
+  if (GetMouseRayHit <> nil) and
+     (GetMouseRayHit.Count <> 0) then
+    Cursor := GetMouseRayHit.First.Item.Cursor else
     Cursor := mcDefault;
 end;
 
@@ -2439,15 +2435,13 @@ destructor TCastleSceneManager.Destroy;
 var
   I: Integer;
 begin
-  FreeAndNil(FMouseRayHit);
-
   { unregister self from MainScene callbacs,
     make MainScene.RemoveFreeNotification(Self)... this is all
     done by SetMainScene(nil) already. }
   MainScene := nil;
 
   { unregister free notification from these objects }
-  MouseRayHit3D := nil;
+  SetMouseRayHit(nil);
   Player := nil;
 
   if FViewports <> nil then
@@ -2526,14 +2520,20 @@ begin
   end;
 end;
 
+function TCastleSceneManager.MouseRayHitContains(const Item: T3D): boolean;
+begin
+  Result := (MouseRayHit <> nil) and
+            (MouseRayHit.IndexOfItem(Item) <> -1);
+end;
+
 procedure TCastleSceneManager.SetMainScene(const Value: TCastleScene);
 begin
   if FMainScene <> Value then
   begin
     if FMainScene <> nil then
     begin
-      { When FMainScene = FMouseRayHit3D or FPlayer, leave free notification }
-      if (FMainScene <> FMouseRayHit3D) { and
+      { When FMainScene = FPlayer or inside MouseRayHit, leave free notification }
+      if (not MouseRayHitContains(FMainScene)) { and
          // impossible, as FMainScene is TCastleScene and FPlayer is T3DOrient
          (FMainScene <> FPlayer) } then
         FMainScene.RemoveFreeNotification(Self);
@@ -2567,26 +2567,35 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetMouseRayHit3D(const Value: T3D);
+procedure TCastleSceneManager.SetMouseRayHit(const Value: TRayCollision);
+var
+  I: Integer;
 begin
-  if FMouseRayHit3D <> Value then
+  if FMouseRayHit <> Value then
   begin
-    { Always keep FreeNotification on FMouseRayHit3D.
-      When it's destroyed, our FMouseRayHit3D must be freed too,
+    { Always keep FreeNotification on every 3D item inside MouseRayHit.
+      When it's destroyed, our MouseRayHit must be freed too,
       it cannot be used in subsequent ItemsAndCameraCursorChange. }
 
-    if FMouseRayHit3D <> nil then
+    if FMouseRayHit <> nil then
     begin
-      { leave free notification for FMouseRayHit3D if it's also present somewhere else }
-      if (FMouseRayHit3D <> FMainScene) and
-         (FMouseRayHit3D <> FPlayer) then
-        FMouseRayHit3D.RemoveFreeNotification(Self);
+      for I := 0 to FMouseRayHit.Count - 1 do
+      begin
+        { leave free notification for 3D item if it's also present somewhere else }
+        if (FMouseRayHit[I].Item <> FMainScene) and
+           (FMouseRayHit[I].Item <> FPlayer) then
+          FMouseRayHit[I].Item.RemoveFreeNotification(Self);
+      end;
+      FreeAndNil(FMouseRayHit);
     end;
 
-    FMouseRayHit3D := Value;
+    FMouseRayHit := Value;
 
-    if FMouseRayHit3D <> nil then
-      FMouseRayHit3D.FreeNotification(Self);
+    if FMouseRayHit <> nil then
+    begin
+      for I := 0 to FMouseRayHit.Count - 1 do
+        FMouseRayHit[I].Item.FreeNotification(Self);
+    end;
   end;
 end;
 
@@ -2599,7 +2608,7 @@ begin
       { leave free notification for FPlayer if it's also present somewhere else }
       if { // impossible, as FMainScene is TCastleScene and FPlayer is T3DOrient
          (FPlayer <> FMainScene) and }
-         (FPlayer <> FMouseRayHit3D) then
+         (not MouseRayHitContains(FPlayer)) then
         FPlayer.RemoveFreeNotification(Self);
     end;
 
@@ -2645,12 +2654,10 @@ begin
       ApplyProjectionNeeded := true;
     end;
 
-    if AComponent = FMouseRayHit3D then
+    if (AComponent is T3D) and MouseRayHitContains(T3D(AComponent)) then
     begin
-      MouseRayHit3D := nil;
-      { When FMouseRayHit3D is destroyed, our MouseRayHit must be freed too,
-        it cannot be used in subsequent ItemsAndCameraCursorChange. }
-      FreeAndNil(FMouseRayHit);
+      { MouseRayHit cannot be used in subsequent ItemsAndCameraCursorChange. }
+      SetMouseRayHit(nil);
     end;
 
     if AComponent = FPlayer then
@@ -2877,16 +2884,10 @@ var
   I: Integer;
   MainSceneNode: TRayCollisionNode;
 begin
-  { update FMouseRayHit.
+  { update MouseRayHit.
     We know that RayDirection is normalized now, which is important
-    to get correct FMouseRayHit.Distance. }
-  FreeAndNil(FMouseRayHit);
-  FMouseRayHit := CameraRayCollision(RayOrigin, RayDirection);
-
-  { calculate MouseRayHit3D }
-  if MouseRayHit <> nil then
-    MouseRayHit3D := MouseRayHit.First.Item else
-    MouseRayHit3D := nil;
+    to get correct MouseRayHit.Distance. }
+  SetMouseRayHit(CameraRayCollision(RayOrigin, RayDirection));
 
   { call T3D.PointingDeviceMove on everything, calculate Result }
   Result := false;
@@ -3045,9 +3046,9 @@ begin
   Result := ShadowVolumeRenderer;
 end;
 
-function TCastleSceneManager.GetMouseRayHit3D: T3D;
+function TCastleSceneManager.GetMouseRayHit: TRayCollision;
 begin
-  Result := MouseRayHit3D;
+  Result := MouseRayHit;
 end;
 
 function TCastleSceneManager.GetHeadlightCamera: TCamera;
@@ -3139,9 +3140,9 @@ begin
   Result := SceneManager.ShadowVolumeRenderer;
 end;
 
-function TCastleViewport.GetMouseRayHit3D: T3D;
+function TCastleViewport.GetMouseRayHit: TRayCollision;
 begin
-  Result := SceneManager.MouseRayHit3D;
+  Result := SceneManager.MouseRayHit;
 end;
 
 function TCastleViewport.GetHeadlightCamera: TCamera;
