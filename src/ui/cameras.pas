@@ -641,6 +641,7 @@ type
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
     FPosition, FDirection, FUp: TVector3Single;
+    FPlanarMovement: boolean;
 
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -721,6 +722,9 @@ type
     property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount;
 
     property CenterOfRotation: TVector3Single read FCenterOfRotation write SetCenterOfRotation;
+
+    property PlanarMovement: boolean
+      read FPlanarMovement write FPlanarMovement default false;
 
     { How the model is scaled. Scaling is done around MoveAmount added to
       the middle of ModelBox. @italic(May never be zero (or too near zero).) }
@@ -1714,7 +1718,7 @@ type
   end;
 
   TCameraNavigationClass = (ncExamine, ncWalk);
-  TCameraNavigationType = (ntExamine, ntWalk, ntFly, ntNone);
+  TCameraNavigationType = (ntExamine, ntExaminePlanar, ntWalk, ntFly, ntNone);
 
   { Camera that allows any kind of navigation (Examine, Walk).
     You can switch between navigation types, while preserving the camera view.
@@ -2797,21 +2801,29 @@ function TExamineCamera.MouseMove(const OldX, OldY, NewX, NewY: Integer): boolea
 var
   Size: Single;
   ModsDown: TModifierKeys;
+  DoZooming, DoMoving: boolean;
 
   function DragRotation: TQuaternion;
 
+    { Returns new rotation }
     function XYRotation(const Scale: Single): TQuaternion;
     begin
-      Result :=
-        QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
-        QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100);
+      if PlanarMovement then
+        Result :=
+          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
+          FRotations *
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100)
+      else
+        Result :=
+          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
+          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (NewX - OldX) / 100);
     end;
 
   var
     AvgX, AvgY, W2, H2: Cardinal;
     ZRotAngle, ZRotRatio: Single;
   begin
-    if not ContainerSizeKnown then
+    if (not ContainerSizeKnown) or PlanarMovement then
     begin
       Result := XYRotation(1);
     end else
@@ -2908,10 +2920,13 @@ begin
   { Rotating }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
   begin
-    FRotations := DragRotation * FRotations;
+    if PlanarMovement then
+      FRotations := DragRotation {old FRotations already included in XYRotation}
+    else
+      FRotations := DragRotation * FRotations;
     VisibleChange;
     Result := ExclusiveEvents;
-  end else
+  end;
 
   { Moving uses box size, so requires non-empty box. }
 
@@ -2922,19 +2937,28 @@ begin
     meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
 
   { Moving closer/further }
-  if ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
-     ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) ) then
+  if PlanarMovement then
+    DoZooming := (mbMiddle in Container.MousePressed)
+  else
+    DoZooming := ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
+                 ( (mbLeft in Container.MousePressed) and (ModsDown = [mkCtrl]) );
+  if DoZooming then
   begin
     if Zoom((NewY - OldY) / 200) then
       Result := ExclusiveEvents;
   end;
 
   { Moving left/right/down/up }
-  if (not FModelBox.IsEmpty) and
-     ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
-       ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) ) then
+  if PlanarMovement then
+    DoMoving := (not FModelBox.IsEmpty) and (mbRight in Container.MousePressed)
+  else
+    DoMoving := (not FModelBox.IsEmpty) and
+               ( ( (mbMiddle in Container.MousePressed) and (ModsDown = []) ) or
+                 ( (mbLeft in Container.MousePressed) and (ModsDown = [mkShift]) ) );
+  if DoMoving then
   begin
     Size := FModelBox.AverageSize;
+    if PlanarMovement then Size := Size / 30;      { TODO-JA: fix this difference in numbers - RA scenes has too big BBox }
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
     VisibleChange;
@@ -2952,7 +2976,12 @@ begin
 
   { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
-  if Zoom(Scroll / 10) then
+  if PlanarMovement then  { TODO-JA: fix this difference in numbers - RA scenes has too big BBox }
+  begin
+    if Zoom(Scroll / 200) then
+       Result := ExclusiveEvents;
+  end
+  else if Zoom(Scroll / 10) then
     Result := ExclusiveEvents;
 end;
 
@@ -4997,7 +5026,11 @@ begin
   if Input = [] then
     Result := ntNone else
   if NavigationClass = ncExamine then
-    Result := ntExamine else
+  begin
+    if Examine.PlanarMovement then
+      Result := ntExaminePlanar else
+      Result := ntExamine;
+  end else
   if Walk.Gravity then
     Result := ntWalk else
     Result := ntFly;
@@ -5017,6 +5050,7 @@ begin
   Walk.Gravity := false;
   Walk.PreferGravityUpForRotations := true;
   Walk.PreferGravityUpForMoving := true;
+  Examine.PlanarMovement := false;
   Input := DefaultCameraInput;
 
   { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
@@ -5024,6 +5058,11 @@ begin
   { set NavigationClass, and eventually adjust Walk properties }
   case Value of
     ntExamine: NavigationClass := ncExamine;
+    ntExaminePlanar:
+      begin
+        NavigationClass := ncExamine;
+        Examine.PlanarMovement := true;
+      end;
     ntWalk:
       begin
         NavigationClass := ncWalk;
