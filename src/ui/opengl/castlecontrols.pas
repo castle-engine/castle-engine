@@ -236,6 +236,8 @@ type
     procedure Idle(const CompSpeed: Single;
       const HandleMouseAndKeys: boolean;
       var LetOthersHandleMouseAndKeys: boolean); override;
+    function Width: Cardinal;
+    function Height: Cardinal;
   published
     property FileName: string read FFileName write SetFileName;
     { Set to @true to draw image with blending. This is suitable for images
@@ -928,6 +930,20 @@ begin
   { let controls under the TCastleImageControl handle keys/mouse,
     because TCastleImageControl doesn't do anything with them by default. }
   LetOthersHandleMouseAndKeys := true;
+end;
+
+function TCastleImageControl.Width: Cardinal;
+begin
+  if FImage <> nil then
+    Result := FImage.Width else
+    Result := 0;
+end;
+
+function TCastleImageControl.Height: Cardinal;
+begin
+  if FImage <> nil then
+    Result := FImage.Height else
+    Result := 0;
 end;
 
 { UIFont --------------------------------------------------------------------- }
