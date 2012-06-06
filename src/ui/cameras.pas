@@ -641,7 +641,7 @@ type
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
     FPosition, FDirection, FUp: TVector3Single;
-    FPlanarMovement: boolean;
+    FArchitectureMode: boolean;
 
     FInputs_Move: T3BoolInputs;
     FInputs_Rotate: T3BoolInputs;
@@ -723,8 +723,9 @@ type
 
     property CenterOfRotation: TVector3Single read FCenterOfRotation write SetCenterOfRotation;
 
-    property PlanarMovement: boolean
-      read FPlanarMovement write FPlanarMovement default false;
+    { ArchitectureMode rotates the scene around its Y axis instead of current camera axis. }
+    property ArchitectureMode: boolean
+      read FArchitectureMode write FArchitectureMode default false;
 
     { How the model is scaled. Scaling is done around MoveAmount added to
       the middle of ModelBox. @italic(May never be zero (or too near zero).) }
@@ -1718,7 +1719,7 @@ type
   end;
 
   TCameraNavigationClass = (ncExamine, ncWalk);
-  TCameraNavigationType = (ntExamine, ntExaminePlanar, ntWalk, ntFly, ntNone);
+  TCameraNavigationType = (ntExamine, ntArchitecture, ntWalk, ntFly, ntNone);
 
   { Camera that allows any kind of navigation (Examine, Walk).
     You can switch between navigation types, while preserving the camera view.
@@ -2532,8 +2533,14 @@ begin
         FRotationsAnim[0] * RotChange) * FRotations;
 
     if FRotationsAnim[1] <> 0 then
-      FRotations := QuatFromAxisAngle(UnitVector3Single[1],
-        FRotationsAnim[1] * RotChange) * FRotations;
+    begin
+      if ArchitectureMode then
+        FRotations := FRotations * QuatFromAxisAngle(UnitVector3Single[1],
+          FRotationsAnim[1] * RotChange)
+      else
+        FRotations := QuatFromAxisAngle(UnitVector3Single[1],
+          FRotationsAnim[1] * RotChange) * FRotations
+    end;
 
     if FRotationsAnim[2] <> 0 then
       FRotations := QuatFromAxisAngle(UnitVector3Single[2],
@@ -2643,7 +2650,7 @@ end;
 
 procedure TExamineCamera.Mouse3dRotationEvent(const X, Y, Z, Angle: Double; const CompSpeed: Single);
 var
-  RotationToMake: TQuaternion;
+  NewRotation: TQuaternion;
   Moved: boolean;
   RotationSize: Double;
 begin
@@ -2651,27 +2658,32 @@ begin
 
   Moved := false;
   RotationSize := CompSpeed * Angle / 50;
+  NewRotation := FRotations;
+
   if Abs(X) > 0.4 then      { tilt forward / backward}
   begin
-    RotationToMake := QuatFromAxisAngle(Vector3Single(1, 0, 0), X * RotationSize);
+    NewRotation := QuatFromAxisAngle(Vector3Single(1, 0, 0), X * RotationSize) * NewRotation;
     Moved := true;
   end;
 
   if Abs(Y) > 0.4 then      { rotate }
   begin
-    RotationToMake := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize);
+    if ArchitectureMode then
+      NewRotation := NewRotation * QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize)
+    else
+      NewRotation := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize) * NewRotation;
     Moved := true;
   end;
 
-  if Abs(Z) > 0.4 then      { tilt sidewards }
+  if (Abs(Z) > 0.4) and (not ArchitectureMode) then      { tilt sidewards }
   begin
-    RotationToMake := QuatFromAxisAngle(Vector3Single(0, 0, 1), Z * RotationSize);
+    NewRotation := QuatFromAxisAngle(Vector3Single(0, 0, 1), Z * RotationSize) * NewRotation;
     Moved := true;
   end;
 
   if Moved then
   begin
-    FRotations := RotationToMake * FRotations;
+    FRotations := NewRotation;
     VisibleChange;
   end;
 end;
@@ -2808,7 +2820,7 @@ var
     { Returns new rotation }
     function XYRotation(const Scale: Single): TQuaternion;
     begin
-      if PlanarMovement then
+      if ArchitectureMode then
         Result :=
           QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (NewY - OldY) / 100) *
           FRotations *
@@ -2823,7 +2835,7 @@ var
     AvgX, AvgY, W2, H2: Cardinal;
     ZRotAngle, ZRotRatio: Single;
   begin
-    if (not ContainerSizeKnown) or PlanarMovement then
+    if (not ContainerSizeKnown) or ArchitectureMode then
     begin
       Result := XYRotation(1);
     end else
@@ -2920,7 +2932,7 @@ begin
   { Rotating }
   if (mbLeft in Container.MousePressed) and (ModsDown = []) then
   begin
-    if PlanarMovement then
+    if ArchitectureMode then
       FRotations := DragRotation {old FRotations already included in XYRotation}
     else
       FRotations := DragRotation * FRotations;
@@ -2937,7 +2949,7 @@ begin
     meaning of mbLeft but they don't change the meaning of mbRight / Middle ? }
 
   { Moving closer/further }
-  if PlanarMovement then
+  if ArchitectureMode then
     DoZooming := (mbMiddle in Container.MousePressed)
   else
     DoZooming := ( (mbRight in Container.MousePressed) and (ModsDown = []) ) or
@@ -2949,7 +2961,7 @@ begin
   end;
 
   { Moving left/right/down/up }
-  if PlanarMovement then
+  if ArchitectureMode then
     DoMoving := (not FModelBox.IsEmpty) and (mbRight in Container.MousePressed)
   else
     DoMoving := (not FModelBox.IsEmpty) and
@@ -2958,7 +2970,6 @@ begin
   if DoMoving then
   begin
     Size := FModelBox.AverageSize;
-    if PlanarMovement then Size := Size / 30;      { TODO-JA: fix this difference in numbers - RA scenes has too big BBox }
     FMoveAmount[0] -= Size * (OldX - NewX) / 200;
     FMoveAmount[1] -= Size * (NewY - OldY) / 200;
     VisibleChange;
@@ -2967,6 +2978,8 @@ begin
 end;
 
 function TExamineCamera.MouseWheel(const Scroll: Single; const Vertical: boolean): boolean;
+var
+  ZoomScale: Single;
 begin
   Result := inherited;
   if Result or
@@ -2976,13 +2989,11 @@ begin
 
   { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
-  if PlanarMovement then  { TODO-JA: fix this difference in numbers - RA scenes has too big BBox }
-  begin
-    if Zoom(Scroll / 200) then
-       Result := ExclusiveEvents;
-  end
-  else if Zoom(Scroll / 10) then
-    Result := ExclusiveEvents;
+  if ArchitectureMode then
+    ZoomScale := 40 else
+    ZoomScale := 10;
+  if Zoom(Scroll / ZoomScale) then
+     Result := ExclusiveEvents;
 end;
 
 procedure TExamineCamera.GetView(out APos, ADir, AUp: TVector3Single);
@@ -5027,8 +5038,8 @@ begin
     Result := ntNone else
   if NavigationClass = ncExamine then
   begin
-    if Examine.PlanarMovement then
-      Result := ntExaminePlanar else
+    if Examine.ArchitectureMode then
+      Result := ntArchitecture else
       Result := ntExamine;
   end else
   if Walk.Gravity then
@@ -5050,7 +5061,7 @@ begin
   Walk.Gravity := false;
   Walk.PreferGravityUpForRotations := true;
   Walk.PreferGravityUpForMoving := true;
-  Examine.PlanarMovement := false;
+  Examine.ArchitectureMode := false;
   Input := DefaultCameraInput;
 
   { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
@@ -5058,10 +5069,10 @@ begin
   { set NavigationClass, and eventually adjust Walk properties }
   case Value of
     ntExamine: NavigationClass := ncExamine;
-    ntExaminePlanar:
+    ntArchitecture:
       begin
         NavigationClass := ncExamine;
-        Examine.PlanarMovement := true;
+        Examine.ArchitectureMode := true;
       end;
     ntWalk:
       begin

@@ -5887,6 +5887,13 @@ var
         OnWarning(wtMinor, 'VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
       if Universal <> nil then Universal.NavigationClass := ncExamine;
+      if Examine <> nil then Examine.ArchitectureMode := false;
+    end else
+    if NavigationType = 'ARCHITECTURE' then
+    begin
+      NavigationTypeInitialized := true;
+      if Universal <> nil then Universal.NavigationClass := ncExamine;
+      if Examine <> nil then Examine.ArchitectureMode := true;
     end else
     if NavigationType = 'ANY' then
     begin
@@ -5928,6 +5935,7 @@ begin
   if Walk <> nil then Walk.PreferGravityUpForRotations := true;
   if Walk <> nil then Walk.PreferGravityUpForMoving := true;
   if Walk <> nil then Walk.Gravity := false;
+  if Examine <> nil then Examine.ArchitectureMode := false;
   Camera.Input := DefaultCameraInput;
 
   if ForceNavigationType <> '' then
