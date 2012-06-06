@@ -1,0 +1,15 @@
+Movement:
+  Up / Down = move
+  Left / Right = rotate
+  Comma / Period = strafe move left / right
+  A /Z = jump / crouch
+  PageUp / PageDown = raise / bow your head
+  Home = restore head raise to initial position (neutralize any effect of PageUp / PageDown)
+
+For miscellaneous movement keys, see "view3dscene" in "Walk" mode documentation (http://castle-engine.sourceforge.net/view3dscene.php).
+
+Other:
+  F1 = show this help
+  Escape = exit
+  F5 = save screen to file lets_take_a_walk_<int>.png
+  F11 = toggle fullscreen mode
