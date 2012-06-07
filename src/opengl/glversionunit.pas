@@ -25,8 +25,7 @@ unit GLVersionUnit;
 interface
 
 type
-  { This is used to store OpenGL libraries (core OpenGL or GLU)
-    version information.
+  { OpenGL libraries (core OpenGL or GLU) version information.
 
     As obtained from glGetString(GL_VERSION)
     or gluGetString(GLU_VERSION), also by glGetString(GL_VENDOR).
@@ -36,7 +35,7 @@ type
   public
     constructor Create(const VersionString: string);
   public
-    { Required (i.e. every OpenGL implemenetation has them)
+    { Required (every OpenGL implemenetation has them)
       major and minor numbers.
       @groupBegin }
     Major: Integer;
@@ -77,6 +76,7 @@ type
     FBuggyVBO: boolean;
     FBuggyShaderShadowMap: boolean;
     FBuggyGLSLConstStruct: boolean;
+    FBuggyFBOMultiSampling: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -176,6 +176,11 @@ type
       Affects some NVidia drivers on Linux (like version 295.49
       in Debian testing on 2012-06-02). }
     property BuggyGLSLConstStruct: boolean read FBuggyGLSLConstStruct;
+
+    { Buggy (looks like wireframe) FBO rendering to
+      the multi-sampling texture (ATI on Windows bug).
+      This makes our screen effects broken on multi-sampled contexts. }
+    property BuggyFBOMultiSampling: boolean read FBuggyFBOMultiSampling;
   end;
 
 var
@@ -493,6 +498,10 @@ begin
     Fglrx and ReleaseExists and (Release >= 8723);
 
   FBuggyGLSLConstStruct := {$ifdef LINUX} VendorNvidia {$else} false {$endif};
+
+  FBuggyFBOMultiSampling :=
+    {$ifdef WINDOWS} VendorATI and SameText(Renderer, 'AMD Radeon HD 6600 Series')
+    {$else} false {$endif};
 end;
 
 finalization

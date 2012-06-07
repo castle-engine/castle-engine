@@ -2096,7 +2096,8 @@ const
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
         '  Buggy VBO: %s' +nl+
         '  Buggy shader shadow map: %s' +nl+
-        '  Buggy GLSL "const in gl_XxxParameters" declaration: %s',
+        '  Buggy GLSL "const in gl_XxxParameters" declaration: %s' +nl+
+        '  Buggy FBO rendering to multi-sampling texture: %s',
         [ BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
           BoolToStr[Version.Fglrx],
@@ -2109,7 +2110,8 @@ const
           BoolToStr[Version.BuggyLightModelTwoSide],
           BoolToStr[Version.BuggyVBO],
           BoolToStr[Version.BuggyShaderShadowMap],
-          BoolToStr[Version.BuggyGLSLConstStruct]
+          BoolToStr[Version.BuggyGLSLConstStruct],
+          BoolToStr[Version.BuggyFBOMultiSampling]
         ]);
   end;
 

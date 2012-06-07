@@ -1022,7 +1022,8 @@ procedure Register;
 implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
-  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math, Triangle;
+  CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math, Triangle,
+  GLVersionUnit;
 
 procedure Register;
 begin
@@ -2001,7 +2002,9 @@ begin
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
   if GL_ARB_texture_rectangle and GLUseMultiTexturing and
-    (CurrentScreenEffectsCount <> 0) then
+    (CurrentScreenEffectsCount <> 0) and
+    (not (GLVersion.BuggyFBOMultiSampling and
+          (GLCurrentMultiSampling > 1))) then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
 
