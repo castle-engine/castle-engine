@@ -65,6 +65,10 @@ type
     FVendorATI: boolean;
     FFglrx: boolean;
     FVendorNVidia: boolean;
+    FMesa: boolean;
+    FMesaMajor: Integer;
+    FMesaMinor: Integer;
+    FMesaRelease: Integer;
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
@@ -75,35 +79,36 @@ type
     FBuggyGLSLConstStruct: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
-  public
-    { @abstract(Are we using Mesa (http://mesa3d.org/)?)
 
-      Detected using VendorSpecific information
-      (extracted by base TGenericGLVersion), this allows us to detect
-      Mesa and Mesa version.
-      @groupBegin }
-    Mesa: boolean;
-    MesaMajor: Integer;
-    MesaMinor: Integer;
-    MesaRelease: Integer;
-    { @groupEnd }
-
-    { This is just glGetString(GL_VENDOR). }
+    { Vendor that created the OpenGL implemenetation.
+      This is just glGetString(GL_VENDOR). }
     property Vendor: string read FVendor;
 
-    { This is just glGetString(GL_RENDERER). }
+    { Renderer (GPU model, or software method used for rendering) of the OpenGL.
+      This is just glGetString(GL_RENDERER). }
     property Renderer: string read FRenderer;
 
-    { Detect ATI GPU with ATI drivers. }
+    { Are we using Mesa (http://mesa3d.org/).
+      Detected using VendorSpecific information
+      (extracted by base TGenericGLVersion), this allows us to also detect
+      Mesa version.
+      @groupBegin }
+    property Mesa: boolean read FMesa;
+    property MesaMajor: Integer read FMesaMajor;
+    property MesaMinor: Integer read FMesaMinor;
+    property MesaRelease: Integer read FMesaRelease;
+    { @groupEnd }
+
+    { ATI GPU with ATI drivers. }
     property VendorATI: boolean read FVendorATI;
 
-    { Detect ATI GPU with ATI drivers on Linux. }
+    { ATI GPU with ATI drivers on Linux. }
     property Fglrx: boolean read FFglrx;
 
-    { Detect NVidia GPU. }
+    { NVidia GPU with NVidia drivers. }
     property VendorNVidia: boolean read FVendorNVidia;
 
-    { Detect Mesa DRI Intel with buggy GL_POINT_BIT flag for glPushAttrib.
+    { Buggy GL_POINT_BIT flag for glPushAttrib (Mesa DRI Intel bug).
 
       Observed on Ubuntu 8.10 on computer "domek".
       It seems a bug in upstream Mesa 7.2, as it's reproducible with
@@ -117,8 +122,7 @@ type
       Not observed with Mesa 7.6 in Ubuntu 10.4. }
     property BuggyPointSetAttrib: boolean read FBuggyPointSetAttrib;
 
-    { Detect fglrx (ATI Radeon on Linux) with buggy drawing of images
-      with odd width.
+    { Buggy drawing of images with odd width (fglrx (ATI on Linux) bug).
 
       I observe this under Debian testing after upgrading fglrx
       from 8-12-4 to 9-2-2. I know the bug wasn't present in 8-12-4
@@ -146,7 +150,7 @@ type
       trying to draw subimage with odd width). }
     property BuggyDrawOddWidth: boolean read FBuggyDrawOddWidth;
 
-    { Detect Mesa with crashing glGenerateMipmapEXT.
+    { Buggy glGenerateMipmapEXT (Mesa bug).
 
       This was observed with software (no direct) rendering with
       7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
@@ -155,17 +159,19 @@ type
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
 
-    { Detect buggy GL_LIGHT_MODEL_TWO_SIDE := GL_TRUE behavior.
+    { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (fglrx bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
     property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
     property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
 
+    { Buggy VBO (Intel on Windows bug). }
     property BuggyVBO: boolean read FBuggyVBO;
 
-    { Detect buggy shadow2DProj (fglrx bug) in some situations. }
+    { Buggy shadow2DProj in some situations (fglrx bug). }
     property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
 
-    { Segfaults at glCompileShader[ARB] on GLSL declaration
+    { Buggy GLSL @code("const in gl_Xxx") (NVidia bug).
+      Segfaults at glCompileShader[ARB] on GLSL declarations like
       @code("const in gl_MaterialParameters material").
       Affects some NVidia drivers on Linux (like version 295.49
       in Debian testing on 2012-06-02). }
@@ -298,7 +304,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
       raise EInvalidGLVersionString.Create('Mesa major version number not found');
     NumberBegin := I;
     while SCharIs(S, I, Digits) do Inc(I);
-    MesaMajor := StrToInt(CopyPos(S, NumberBegin, I - 1));
+    FMesaMajor := StrToInt(CopyPos(S, NumberBegin, I - 1));
 
     { Whitespace }
     ParseWhiteSpaces(S, I);
@@ -317,7 +323,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
       raise EInvalidGLVersionString.Create('Mesa minor version number not found');
     NumberBegin := I;
     while SCharIs(S, I, Digits) do Inc(I);
-    MesaMinor := StrToInt(CopyPos(S, NumberBegin, I - 1));
+    FMesaMinor := StrToInt(CopyPos(S, NumberBegin, I - 1));
 
     { Whitespace }
     ParseWhiteSpaces(S, I);
@@ -335,7 +341,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
         raise EInvalidGLVersionString.Create('Mesa release version number not found');
       NumberBegin := I;
       while SCharIs(S, I, Digits) do Inc(I);
-      MesaRelease := StrToInt(CopyPos(S, NumberBegin, I - 1));
+      FMesaRelease := StrToInt(CopyPos(S, NumberBegin, I - 1));
     end else
     begin
       { Some older Mesa versions (like 5.1) and newer (7.2) really
@@ -345,7 +351,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
         version names on WWW. So the missing dot "."
         separator between Mesa minor and release version number should
         be ignored. }
-      MesaRelease := 0;
+      FMesaRelease := 0;
     end;
   end;
 
@@ -373,7 +379,7 @@ begin
     while SCharIs(VendorVersion, I, AllChars - WhiteSpaces) do Inc(I);
 
     VendorName := CopyPos(VendorVersion, 1, I - 1);
-    Mesa := SameText(VendorName, 'Mesa');
+    FMesa := SameText(VendorName, 'Mesa');
     if Mesa then
       ParseMesaVersion(VendorVersion, I) else
     begin
@@ -398,7 +404,7 @@ begin
         while SCharIs(S, I, AllChars - WhiteSpaces) do Inc(I);
 
         VendorName := CopyPos(S, MesaStartIndex, I - 1);
-        Mesa := SameText(VendorName, 'Mesa');
+        FMesa := SameText(VendorName, 'Mesa');
         if Mesa then
           ParseMesaVersion(S, I);
       end;
