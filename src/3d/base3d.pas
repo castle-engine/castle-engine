@@ -3146,8 +3146,6 @@ var
 var
   Side: TVector3Single;
 begin
-  Side := VectorProduct(Up, Direction);
-
   { Note that actually I could do here TransformToCoordsNoScaleMatrix,
     as obviously I don't want any scaling. But in this case I know
     that Direction and Up lengths = 1 (so their product
@@ -3155,10 +3153,27 @@ begin
     TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
     on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
 
-  { TODO: Orientation ignored, assumes otUpZDirectionX now }
-
-  NewM := TransformToCoordsMatrix(Position, Direction, Side, Up);
-  NewMInverse := TransformFromCoordsMatrix(Position, Direction, Side, Up);
+  case Orientation of
+    otUpYDirectionMinusZ:
+      begin
+        Side := VectorProduct(Up, -Direction);
+        NewM := TransformToCoordsMatrix         (Position, Side, Up, -Direction);
+        NewMInverse := TransformFromCoordsMatrix(Position, Side, Up, -Direction);
+      end;
+    otUpZDirectionMinusY:
+      begin
+        Side := VectorProduct(-Direction, Up);
+        NewM := TransformToCoordsMatrix         (Position, Side, -Direction, Up);
+        NewMInverse := TransformFromCoordsMatrix(Position, Side, -Direction, Up);
+      end;
+    otUpZDirectionX:
+      begin
+        Side := VectorProduct(Up, Direction);
+        NewM := TransformToCoordsMatrix         (Position, Direction, Side, Up);
+        NewMInverse := TransformFromCoordsMatrix(Position, Direction, Side, Up);
+      end;
+    else raise EInternalError.Create('T3DOrient.TransformMatricesMult Orientation?');
+  end;
 
   M := M * NewM;
   MInverse := NewMInverse * MInverse;
