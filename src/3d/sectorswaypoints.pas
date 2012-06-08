@@ -17,18 +17,18 @@
   For user-oriented description what are sectors and waypoints,
   when they should be used etc. see "The Castle" developer docs,
   [http://castle-engine.sourceforge.net/castle-development.php]. }
-unit SceneWaypoints;
+unit SectorsWaypoints;
 
 interface
 
 uses SysUtils, CastleUtils, CastleClassUtils, Classes, VectorMath, Boxes3D, FGL;
 
 type
-  TSceneSectorList = class;
+  TSectorList = class;
 
-  TSceneWaypoint = class
+  TWaypoint = class
   private
-    FSectors: TSceneSectorList;
+    FSectors: TSectorList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -36,17 +36,17 @@ type
     Position: TVector3Single;
 
     { Sectors that contain this waypoint. }
-    property Sectors: TSceneSectorList read FSectors;
+    property Sectors: TSectorList read FSectors;
   end;
 
-  TSceneWaypointList = class(specialize TFPGObjectList<TSceneWaypoint>)
+  TWaypointList = class(specialize TFPGObjectList<TWaypoint>)
   end;
 
-  TSceneSector = class
+  TSector = class
   private
     FBoundingBoxes: TBox3DList;
     FVisibleSectors: TBooleanList;
-    FWaypoints: TSceneWaypointList;
+    FWaypoints: TWaypointList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -54,7 +54,7 @@ type
     property BoundingBoxes: TBox3DList read FBoundingBoxes;
 
     { Returns whether Point is inside the sector.
-      Implementation in TSceneSector just returns if Point is inside
+      Implementation in TSector just returns if Point is inside
       one of the BoundingBoxes. You can override this to define
       the sector geometry in a more flexible way.
 
@@ -86,13 +86,13 @@ type
     property VisibleSectors: TBooleanList read FVisibleSectors;
 
     { Waypoints that are included in this sector. }
-    property Waypoints: TSceneWaypointList read FWaypoints;
+    property Waypoints: TWaypointList read FWaypoints;
   end;
 
   ESectorNotInitialized = class(Exception);
   EWaypointNotInitialized = class(Exception);
 
-  TSceneSectorList = class(specialize TFPGObjectList<TSceneSector>)
+  TSectorList = class(specialize TFPGObjectList<TSector>)
   public
     { This adds appropriate Waypoints to all sectors on this list,
       and adds appropriate Sectors to all Waypoints on given list.
@@ -105,12 +105,12 @@ type
 
       @raises ESectorNotInitialized When some sector is nil.
       @raises EWaypointNotInitialized When some waypoint is nil. }
-    procedure LinkToWaypoints(Waypoints: TSceneWaypointList;
+    procedure LinkToWaypoints(Waypoints: TWaypointList;
       const SectorsBoxesMargin: Single);
 
     { Returns sector with given point (using IsPointInside of each sector).
       Returns nil if no such sector. }
-    function SectorWithPoint(const Point: TVector3Single): TSceneSector;
+    function SectorWithPoint(const Point: TVector3Single): TSector;
 
     { This sets Waypoints contents to the list of waypoints
       that must be passed to travel from sector SectorBegin to SectorEnd.
@@ -134,39 +134,39 @@ type
       TODO: This should use breadth-first search.
       Right now it uses depth-first search. For small sectors+waypoints
       graphs it doesn't matter. }
-    class function FindWay(SectorBegin, SectorEnd: TSceneSector;
-      Waypoints: TSceneWaypointList): boolean;
+    class function FindWay(SectorBegin, SectorEnd: TSector;
+      Waypoints: TWaypointList): boolean;
   end;
 
 implementation
 
 uses CastleStringUtils, Shape;
 
-{ TSceneWaypoint ------------------------------------------------------------- }
+{ TWaypoint ------------------------------------------------------------- }
 
-constructor TSceneWaypoint.Create;
+constructor TWaypoint.Create;
 begin
   inherited Create;
-  FSectors := TSceneSectorList.Create(false);
+  FSectors := TSectorList.Create(false);
 end;
 
-destructor TSceneWaypoint.Destroy;
+destructor TWaypoint.Destroy;
 begin
   FreeAndNil(FSectors);
   inherited;
 end;
 
-{ TSceneSector --------------------------------------------------------------- }
+{ TSector --------------------------------------------------------------- }
 
-constructor TSceneSector.Create;
+constructor TSector.Create;
 begin
   inherited Create;
   FBoundingBoxes := TBox3DList.Create;
   FVisibleSectors := TBooleanList.Create;
-  FWaypoints := TSceneWaypointList.Create(false);
+  FWaypoints := TWaypointList.Create(false);
 end;
 
-destructor TSceneSector.Destroy;
+destructor TSector.Destroy;
 begin
   FreeAndNil(FBoundingBoxes);
   FreeAndNil(FVisibleSectors);
@@ -174,7 +174,7 @@ begin
   inherited;
 end;
 
-function TSceneSector.IsPointInside(const Point: TVector3Single): boolean;
+function TSector.IsPointInside(const Point: TVector3Single): boolean;
 var
   I: Integer;
 begin
@@ -186,7 +186,7 @@ begin
   Result := false;
 end;
 
-function TSceneSector.IsPointInsideMargin(const Point: TVector3Single;
+function TSector.IsPointInsideMargin(const Point: TVector3Single;
   const SectorsBoxesMargin: Single): boolean;
 var
   I: Integer;
@@ -197,13 +197,13 @@ begin
   Result := false;
 end;
 
-{ TSceneSectorList -------------------------------------------------------- }
+{ TSectorList -------------------------------------------------------- }
 
-procedure TSceneSectorList.LinkToWaypoints(Waypoints: TSceneWaypointList;
+procedure TSectorList.LinkToWaypoints(Waypoints: TWaypointList;
   const SectorsBoxesMargin: Single);
 var
-  S: TSceneSector;
-  W: TSceneWaypoint;
+  S: TSector;
+  W: TWaypoint;
   SectorIndex, WaypointIndex: Integer;
 begin
   { Note that this method is usually the first to be called after doing
@@ -234,8 +234,8 @@ begin
   end;
 end;
 
-function TSceneSectorList.SectorWithPoint(const Point: TVector3Single):
-  TSceneSector;
+function TSectorList.SectorWithPoint(const Point: TVector3Single):
+  TSector;
 var
   I: Integer;
 begin
@@ -248,17 +248,17 @@ begin
   Result := nil;
 end;
 
-class function TSceneSectorList.FindWay(SectorBegin, SectorEnd: TSceneSector;
-  Waypoints: TSceneWaypointList): boolean;
+class function TSectorList.FindWay(SectorBegin, SectorEnd: TSector;
+  Waypoints: TWaypointList): boolean;
 var
   { This is used to avoid falling into loops. }
-  SectorsVisited: TSceneSectorList;
+  SectorsVisited: TSectorList;
 
-  function FindWayToSectorEnd(SectorNow: TSceneSector;
+  function FindWayToSectorEnd(SectorNow: TSector;
     SectorDistance: Integer): boolean;
   var
     WaypointIndex, SectorIndex: Integer;
-    W: TSceneWaypoint;
+    W: TWaypoint;
   begin
     if SectorsVisited.IndexOf(SectorNow) <> -1 then
       Exit(false);
@@ -297,7 +297,7 @@ begin
     so Waypoints.Count will have to be > 0 in this case.
     Just like I promised in the interface. }
 
-  SectorsVisited := TSceneSectorList.Create(false);
+  SectorsVisited := TSectorList.Create(false);
   try
     Result := FindWayToSectorEnd(SectorBegin, 0);
   finally SectorsVisited.Free end;

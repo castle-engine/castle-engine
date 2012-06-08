@@ -20,7 +20,7 @@ interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
-  ALSoundAllocator, ALSoundEngine, XmlSoundEngine, SceneWaypoints;
+  ALSoundAllocator, ALSoundEngine, XmlSoundEngine, SectorsWaypoints;
 
 const
   DefaultKnockBackSpeed = 1.0;
@@ -753,7 +753,7 @@ type
       Used for AI. @nil if none (maybe because we're not part of any world,
       maybe because sectors of the world were not initialized,
       or maybe simply because we're outside of all sectors). }
-    function Sector: TSceneSector;
+    function Sector: TSector;
 
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
@@ -1034,7 +1034,7 @@ type
     { Base lights, see TCastleSceneManager.BaseLights. }
     function BaseLights: TAbstractLightInstancesList; virtual; abstract;
     { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
-    function Sectors: TSceneSectorList; virtual; abstract;
+    function Sectors: TSectorList; virtual; abstract;
 
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
@@ -1915,7 +1915,7 @@ begin
   Result := ZeroVector3Single;
 end;
 
-function T3D.Sector: TSceneSector;
+function T3D.Sector: TSector;
 begin
   if (World <> nil) and (World.Sectors <> nil) then
     Result := World.Sectors.SectorWithPoint(Middle) else

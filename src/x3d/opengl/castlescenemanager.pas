@@ -21,7 +21,7 @@ interface
 uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
-  GLShaders, GLImages, CastleTimeUtils, FGL, SceneWaypoints;
+  GLShaders, GLImages, CastleTimeUtils, FGL, SectorsWaypoints;
 
 const
   { }
@@ -728,8 +728,8 @@ type
     ChosenViewport: TCastleAbstractViewport;
     NeedsUpdateGeneratedTextures: boolean;
 
-    FSectors: TSceneSectorList;
-    Waypoints: TSceneWaypointList;
+    FSectors: TSectorList;
+    Waypoints: TWaypointList;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
@@ -860,12 +860,12 @@ type
       A generic AI code should work regardless if these are @nil or not.
       But if you're making a game and you know you will always call
       CreateSectors, you can just use them straight away. }
-    property Sectors: TSceneSectorList read FSectors;
+    property Sectors: TSectorList read FSectors;
 
     { Calculate @link(Sectors) for AI. Also calculates internal waypoints
       list, but it's not public --- you only get waypoints from sectors.
 
-      @param(SectorsBoxesMargin See TSceneSectorList.LinkToWaypoints description,
+      @param(SectorsBoxesMargin See TSectorList.LinkToWaypoints description,
         in short set this to something much smaller than minimum sector size
         but not zero. In practice, depends on the design of sectors/waypoints
         in your scene.) }
@@ -2313,7 +2313,7 @@ type
     function GravityUp: TVector3Single; override;
     function Player: T3DOrient; override;
     function BaseLights: TAbstractLightInstancesList; override;
-    function Sectors: TSceneSectorList; override;
+    function Sectors: TSectorList; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -2366,7 +2366,7 @@ begin
   Result := Owner.BaseLights;
 end;
 
-function T3DWorldConcrete.Sectors: TSceneSectorList;
+function T3DWorldConcrete.Sectors: TSectorList;
 begin
   Result := Owner.Sectors;
 end;
@@ -3136,7 +3136,7 @@ procedure TCastleSceneManager.CreateSectors(
       raise Exception.CreateFmt('Waypoint %d is already initialized',
         [WaypointIndex]);
 
-    Waypoints[WaypointIndex] := TSceneWaypoint.Create;
+    Waypoints[WaypointIndex] := TWaypoint.Create;
     Waypoints[WaypointIndex].Position := WaypointPosition;
 
     { Tests:
@@ -3164,7 +3164,7 @@ procedure TCastleSceneManager.CreateSectors(
 
     Sectors.Count := Max(Sectors.Count, SectorIndex + 1);
     if Sectors[SectorIndex] = nil then
-      Sectors[SectorIndex] := TSceneSector.Create;
+      Sectors[SectorIndex] := TSector.Create;
 
     Sectors[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
 
@@ -3186,8 +3186,8 @@ begin
   FreeAndNil(Waypoints);
 
   { calculate new Sectors and Waypoints }
-  FSectors := TSceneSectorList.Create(true);
-  Waypoints := TSceneWaypointList.Create(true);
+  FSectors := TSectorList.Create(true);
+  Waypoints := TWaypointList.Create(true);
 
   { search scene for shapes indicating waypoint or sector }
   NodesToRemove := TX3DNodeList.Create(false);
