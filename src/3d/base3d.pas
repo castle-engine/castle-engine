@@ -20,7 +20,7 @@ interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
-  ALSoundAllocator, ALSoundEngine, XmlSoundEngine;
+  ALSoundAllocator, ALSoundEngine, XmlSoundEngine, SceneWaypoints;
 
 const
   DefaultKnockBackSpeed = 1.0;
@@ -749,6 +749,12 @@ type
       allows to use most efficient (smallest, best fit) sphere radius. }
     function Middle: TVector3Single; virtual;
 
+    { Sector where the middle of this 3D object is.
+      Used for AI. @nil if none (maybe because we're not part of any world,
+      maybe because sectors of the world were not initialized,
+      or maybe simply because we're outside of all sectors). }
+    function Sector: TSceneSector;
+
     { Can the approximate sphere (around Middle point)
       be used for some collision-detection
       tasks. If @true then Radius (and Middle point) determine the approximate
@@ -1027,6 +1033,8 @@ type
     function Player: T3DOrient; virtual; abstract;
     { Base lights, see TCastleSceneManager.BaseLights. }
     function BaseLights: TAbstractLightInstancesList; virtual; abstract;
+    { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
+    function Sectors: TSceneSectorList; virtual; abstract;
 
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
@@ -1905,6 +1913,13 @@ end;
 function T3D.Middle: TVector3Single;
 begin
   Result := ZeroVector3Single;
+end;
+
+function T3D.Sector: TSceneSector;
+begin
+  if (World <> nil) and (World.Sectors <> nil) then
+    Result := World.Sectors.SectorWithPoint(Middle) else
+    Result := nil;
 end;
 
 function T3D.Sphere(out Radius: Single): boolean;

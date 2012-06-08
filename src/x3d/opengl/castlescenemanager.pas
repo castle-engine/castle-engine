@@ -21,7 +21,7 @@ interface
 uses Classes, VectorMath, X3DNodes, CastleScene, CastleSceneCore, Cameras,
   GLShadowVolumeRenderer, GL, UIControls, Base3D,
   KeysMouse, Boxes3D, Background, CastleUtils, CastleClassUtils,
-  GLShaders, GLImages, CastleTimeUtils, FGL;
+  GLShaders, GLImages, CastleTimeUtils, FGL, SceneWaypoints;
 
 const
   { }
@@ -728,6 +728,9 @@ type
     ChosenViewport: TCastleAbstractViewport;
     NeedsUpdateGeneratedTextures: boolean;
 
+    FSectors: TSceneSectorList;
+    Waypoints: TSceneWaypointList;
+
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
     procedure UpdateGeneratedTexturesIfNeeded;
@@ -849,6 +852,25 @@ type
 
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3Single;
+
+    { Sectors and waypoints of this world, for AI in 3D.
+      Initialized by CreateSectors.
+      @nil if you never call CreateSectors.
+
+      A generic AI code should work regardless if these are @nil or not.
+      But if you're making a game and you know you will always call
+      CreateSectors, you can just use them straight away. }
+    property Sectors: TSceneSectorList read FSectors;
+
+    { Calculate @link(Sectors) for AI. Also calculates internal waypoints
+      list, but it's not public --- you only get waypoints from sectors.
+
+      @param(SectorsBoxesMargin See TSceneSectorList.LinkToWaypoints description,
+        in short set this to something much smaller than minimum sector size
+        but not zero. In practice, depends on the design of sectors/waypoints
+        in your scene.) }
+    procedure CreateSectors(const Scene: TCastleSceneCore;
+      const SectorsBoxesMargin: Single = 0.5);
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -1023,7 +1045,7 @@ implementation
 
 uses SysUtils, RenderingCameraUnit, CastleGLUtils, ProgressUnit, RaysWindow, GLExt,
   CastleLog, CastleStringUtils, GLRenderer, ALSoundEngine, Math, Triangle,
-  GLVersionUnit;
+  GLVersionUnit, Shape;
 
 procedure Register;
 begin
@@ -2291,6 +2313,7 @@ type
     function GravityUp: TVector3Single; override;
     function Player: T3DOrient; override;
     function BaseLights: TAbstractLightInstancesList; override;
+    function Sectors: TSceneSectorList; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -2341,6 +2364,11 @@ end;
 function T3DWorldConcrete.BaseLights: TAbstractLightInstancesList;
 begin
   Result := Owner.BaseLights;
+end;
+
+function T3DWorldConcrete.Sectors: TSceneSectorList;
+begin
+  Result := Owner.Sectors;
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
@@ -2460,6 +2488,9 @@ begin
       end;
     FreeAndNil(FViewports);
   end;
+
+  FreeAndNil(FSectors);
+  FreeAndNil(Waypoints);
 
   inherited;
 end;
@@ -3075,6 +3106,122 @@ begin
   if Camera <> nil then
     Result := Camera.GetGravityUp else
     Result := DefaultCameraUp;
+end;
+
+procedure TCastleSceneManager.CreateSectors(
+  const Scene: TCastleSceneCore; const SectorsBoxesMargin: Single);
+
+  { Shapes placed under the name Waypoint<index>_<ignored>
+    are removed from the Scene, and are added as new waypoint with
+    given index. Waypoint's Position is set to the middle point
+    of shape's bounding box.
+
+    Count of Waypoints list is enlarged, if necessary,
+    to include all waypoints indicated in the Scene. }
+  procedure CreateNewWaypoint(Shape: TShape; const WaypointNodeName: string);
+  var
+    IgnoredBegin, WaypointIndex: Integer;
+    WaypointPosition: TVector3Single;
+  begin
+    { Calculate WaypointIndex }
+    IgnoredBegin := Pos('_', WaypointNodeName);
+    if IgnoredBegin = 0 then
+      WaypointIndex := StrToInt(WaypointNodeName) else
+      WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
+
+    WaypointPosition := Shape.BoundingBox.Middle;
+
+    Waypoints.Count := Max(Waypoints.Count, WaypointIndex + 1);
+    if Waypoints[WaypointIndex] <> nil then
+      raise Exception.CreateFmt('Waypoint %d is already initialized',
+        [WaypointIndex]);
+
+    Waypoints[WaypointIndex] := TSceneWaypoint.Create;
+    Waypoints[WaypointIndex].Position := WaypointPosition;
+
+    { Tests:
+    Writeln('Waypoint ', WaypointIndex, ': at position ',
+      VectorToNiceStr(WaypointPosition));}
+  end;
+
+  { Shapes placed under the name Sector<index>_<ignored>
+    are removed from the Scene, and are added to sector <index> BoundingBoxes.
+
+    Count of the Sectors list is enlarged, if necessary,
+    to include all sectors indicated in the Scene. }
+  procedure AddSectorBoundingBox(Shape: TShape; const SectorNodeName: string);
+  var
+    IgnoredBegin, SectorIndex: Integer;
+    SectorBoundingBox: TBox3D;
+  begin
+    { Calculate SectorIndex }
+    IgnoredBegin := Pos('_', SectorNodeName);
+    if IgnoredBegin = 0 then
+      SectorIndex := StrToInt(SectorNodeName) else
+      SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
+
+    SectorBoundingBox := Shape.BoundingBox;
+
+    Sectors.Count := Max(Sectors.Count, SectorIndex + 1);
+    if Sectors[SectorIndex] = nil then
+      Sectors[SectorIndex] := TSceneSector.Create;
+
+    Sectors[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
+
+    { Tests:
+    Writeln('Sector ', SectorIndex, ': added box ',
+      SectorBoundingBox.ToNiceStr); }
+  end;
+
+const
+  SectorPrefix = 'Sector';
+  WaypointPrefix = 'Waypoint';
+var
+  NodesToRemove: TX3DNodeList;
+  SI: TShapeTreeIterator;
+  Shape: TShape;
+  I: Integer;
+begin
+  FreeAndNil(FSectors);
+  FreeAndNil(Waypoints);
+
+  { calculate new Sectors and Waypoints }
+  FSectors := TSceneSectorList.Create(true);
+  Waypoints := TSceneWaypointList.Create(true);
+
+  { search scene for shapes indicating waypoint or sector }
+  NodesToRemove := TX3DNodeList.Create(false);
+  try
+    SI := TShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
+    try
+      while SI.GetNext do
+      begin
+        Shape := SI.Current;
+        { Don't remove BlenderObjectNode immediately, just add it to NodesToRemove.
+          This avoids problems with removing nodes while traversing. }
+        if IsPrefix(SectorPrefix, Shape.BlenderMeshName) then
+        begin
+          AddSectorBoundingBox(Shape, SEnding(Shape.BlenderMeshName, Length(SectorPrefix) + 1));
+          NodesToRemove.Add(Shape.BlenderObjectNode);
+        end else
+        if IsPrefix(WaypointPrefix, Shape.BlenderMeshName) then
+        begin
+          CreateNewWaypoint(Shape, SEnding(Shape.BlenderMeshName, Length(WaypointPrefix) + 1));
+          NodesToRemove.Add(Shape.BlenderObjectNode);
+        end;
+      end;
+    finally FreeAndNil(SI) end;
+
+    if NodesToRemove.Count <> 0 then
+    begin
+      Scene.BeforeNodesFree;
+      for I := 0 to NodesToRemove.Count - 1 do
+        NodesToRemove[I].FreeRemovingFromAllParents;
+      Scene.ChangedAll;
+    end;
+  finally FreeAndNil(NodesToRemove) end;
+
+  Sectors.LinkToWaypoints(Waypoints, SectorsBoxesMargin);
 end;
 
 { TCastleViewport --------------------------------------------------------------- }

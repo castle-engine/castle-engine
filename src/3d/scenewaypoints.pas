@@ -21,8 +21,7 @@ unit SceneWaypoints;
 
 interface
 
-uses SysUtils, CastleUtils, CastleClassUtils, Classes,
-  VectorMath, Boxes3D, X3DNodes, CastleSceneCore, FGL;
+uses SysUtils, CastleUtils, CastleClassUtils, Classes, VectorMath, Boxes3D, FGL;
 
 type
   TSceneSectorList = class;
@@ -41,15 +40,6 @@ type
   end;
 
   TSceneWaypointList = class(specialize TFPGObjectList<TSceneWaypoint>)
-  public
-    { Shapes placed under the name Waypoint<index>_<ignored>
-      are removed from the Scene, and are added as new waypoint with
-      given index. Waypoint's Position is set to the middle point
-      of shape's bounding box.
-
-      Count of this list is enlarged, if necessary,
-      to include all waypoints indicated in the Scene. }
-    procedure ExtractPositions(Scene: TCastleSceneCore);
   end;
 
   TSceneSector = class
@@ -104,13 +94,6 @@ type
 
   TSceneSectorList = class(specialize TFPGObjectList<TSceneSector>)
   public
-    { Shapes placed under the name Sector<index>_<ignored>
-      are removed from the Scene, and are added to sector <index> BoundingBoxes.
-
-      Count of this list is enlarged, if necessary,
-      to include all sectors indicated in the Scene. }
-    procedure ExtractBoundingBoxes(Scene: TCastleSceneCore);
-
     { This adds appropriate Waypoints to all sectors on this list,
       and adds appropriate Sectors to all Waypoints on given list.
 
@@ -173,71 +156,6 @@ begin
   inherited;
 end;
 
-{ TSceneWaypointList -------------------------------------------------------- }
-
-procedure TSceneWaypointList.ExtractPositions(Scene: TCastleSceneCore);
-var
-  NodesToRemove: TX3DNodeList;
-
-  procedure TraverseForWaypoints(Shape: TShape);
-
-    procedure CreateNewWaypoint(const WaypointNodeName: string);
-    var
-      IgnoredBegin, WaypointIndex: Integer;
-      WaypointPosition: TVector3Single;
-    begin
-      { Calculate WaypointIndex }
-      IgnoredBegin := Pos('_', WaypointNodeName);
-      if IgnoredBegin = 0 then
-        WaypointIndex := StrToInt(WaypointNodeName) else
-        WaypointIndex := StrToInt(Copy(WaypointNodeName, 1, IgnoredBegin - 1));
-
-      WaypointPosition := Shape.BoundingBox.Middle;
-
-      Count := Max(Count, WaypointIndex + 1);
-      if Items[WaypointIndex] <> nil then
-        raise Exception.CreateFmt('Waypoint %d is already initialized',
-          [WaypointIndex]);
-
-      Items[WaypointIndex] := TSceneWaypoint.Create;
-      Items[WaypointIndex].Position := WaypointPosition;
-
-      { Tests:
-      Writeln('Waypoint ', WaypointIndex, ': at position ',
-        VectorToNiceStr(WaypointPosition));}
-    end;
-
-  const
-    WaypointPrefix = 'Waypoint';
-  begin
-    if IsPrefix(WaypointPrefix, Shape.BlenderMeshName) then
-    begin
-      CreateNewWaypoint(SEnding(Shape.BlenderMeshName, Length(WaypointPrefix) + 1));
-      { Don't remove BlenderObjectNode now --- will be removed later.
-        This avoids problems with removing nodes while traversing. }
-      NodesToRemove.Add(Shape.BlenderObjectNode);
-    end;
-  end;
-
-var
-  I: Integer;
-  SI: TShapeTreeIterator;
-begin
-  NodesToRemove := TX3DNodeList.Create(false);
-  try
-    SI := TShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
-    try
-      while SI.GetNext do TraverseForWaypoints(SI.Current);
-    finally SysUtils.FreeAndNil(SI) end;
-
-    Scene.BeforeNodesFree;
-    for I := 0 to NodesToRemove.Count - 1 do
-      NodesToRemove.Items[I].FreeRemovingFromAllParents;
-  finally NodesToRemove.Free end;
-
-  Scene.ChangedAll;
-end;
-
 { TSceneSector --------------------------------------------------------------- }
 
 constructor TSceneSector.Create;
@@ -280,67 +198,6 @@ begin
 end;
 
 { TSceneSectorList -------------------------------------------------------- }
-
-procedure TSceneSectorList.ExtractBoundingBoxes(Scene: TCastleSceneCore);
-var
-  NodesToRemove: TX3DNodeList;
-
-  procedure TraverseForSectors(Shape: TShape);
-
-    procedure AddSectorBoundingBox(const SectorNodeName: string);
-    var
-      IgnoredBegin, SectorIndex: Integer;
-      SectorBoundingBox: TBox3D;
-    begin
-      { Calculate SectorIndex }
-      IgnoredBegin := Pos('_', SectorNodeName);
-      if IgnoredBegin = 0 then
-        SectorIndex := StrToInt(SectorNodeName) else
-        SectorIndex := StrToInt(Copy(SectorNodeName, 1, IgnoredBegin - 1));
-
-      SectorBoundingBox := Shape.BoundingBox;
-
-      Count := Max(Count, SectorIndex + 1);
-      if Items[SectorIndex] = nil then
-        Items[SectorIndex] := TSceneSector.Create;
-
-      Items[SectorIndex].BoundingBoxes.Add(SectorBoundingBox);
-
-      { Tests:
-      Writeln('Sector ', SectorIndex, ': added box ',
-        SectorBoundingBox.ToNiceStr); }
-    end;
-
-  const
-    SectorPrefix = 'Sector';
-  begin
-    if IsPrefix(SectorPrefix, Shape.BlenderMeshName) then
-    begin
-      AddSectorBoundingBox(SEnding(Shape.BlenderMeshName, Length(SectorPrefix) + 1));
-      { Don't remove BlenderObjectNode now --- will be removed later.
-        This avoids problems with removing nodes while traversing. }
-      NodesToRemove.Add(Shape.BlenderObjectNode);
-    end;
-  end;
-
-var
-  I: Integer;
-  SI: TShapeTreeIterator;
-begin
-  NodesToRemove := TX3DNodeList.Create(false);
-  try
-    SI := TShapeTreeIterator.Create(Scene.Shapes, { OnlyActive } true);
-    try
-      while SI.GetNext do TraverseForSectors(SI.Current);
-    finally SysUtils.FreeAndNil(SI) end;
-
-    Scene.BeforeNodesFree;
-    for I := 0 to NodesToRemove.Count - 1 do
-      NodesToRemove.Items[I].FreeRemovingFromAllParents;
-  finally NodesToRemove.Free end;
-
-  Scene.ChangedAll;
-end;
 
 procedure TSceneSectorList.LinkToWaypoints(Waypoints: TSceneWaypointList;
   const SectorsBoxesMargin: Single);

@@ -616,7 +616,7 @@
         <UnitName Value="RayTracer"/>
       </Item140>
       <Item141>
-        <Filename Value="../src/x3d/scenewaypoints.pas"/>
+        <Filename Value="../src/3d/scenewaypoints.pas"/>
         <UnitName Value="SceneWaypoints"/>
       </Item141>
       <Item142>
