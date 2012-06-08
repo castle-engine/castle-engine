@@ -730,6 +730,7 @@ type
 
     FSectors: TSectorList;
     Waypoints: TWaypointList;
+    FWaterBox: TBox3D;
 
     { Call at the beginning of Draw (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing. }
@@ -871,6 +872,18 @@ type
         in your scene.) }
     procedure CreateSectors(const Scene: TCastleSceneCore;
       const SectorsBoxesMargin: Single = 0.5);
+
+    { Water volume in the scene. It may be used by various 3D objects
+      to indicate appropriate behavior --- some things swim,
+      some things drown and such. For now, this is only used by TPlayer
+      class to detect swimming (and make appropriate sounds, special rendering,
+      drowning and such).
+
+      For now, this is just a simple T3DBox. When need arises, it may
+      be extended to represent a set of flexible 3D volumes.
+
+      Empty initially. Initialize it however you want. }
+    property WaterBox: TBox3D read FWaterBox write FWaterBox;
   published
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
@@ -2314,6 +2327,7 @@ type
     function Player: T3DOrient; override;
     function BaseLights: TAbstractLightInstancesList; override;
     function Sectors: TSectorList; override;
+    function WaterBox: TBox3D; override;
     function WorldMoveAllowed(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
@@ -2369,6 +2383,11 @@ end;
 function T3DWorldConcrete.Sectors: TSectorList;
 begin
   Result := Owner.Sectors;
+end;
+
+function T3DWorldConcrete.WaterBox: TBox3D;
+begin
+  Result := Owner.WaterBox;
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
@@ -2454,6 +2473,7 @@ begin
   FItems.Name := 'Items';
 
   FCameraBox := EmptyBox3D;
+  FWaterBox := EmptyBox3D;
 
   FDefaultViewport := true;
   FAlwaysApplyProjection := false;

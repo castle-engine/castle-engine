@@ -1035,6 +1035,8 @@ type
     function BaseLights: TAbstractLightInstancesList; virtual; abstract;
     { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
     function Sectors: TSectorList; virtual; abstract;
+    { Water volume. See TCastleSceneManager.WaterBox. }
+    function WaterBox: TBox3D; virtual; abstract;
 
     { Collisions with world. They call corresponding methods without the World
       prefix, automatically taking into account some knowledge about this
