@@ -157,8 +157,9 @@ type
       Available names are given in SoundNames,
       and inside ../data/sounds/index.xml.
       Always for SoundName = '' it will return stNone.
-      @raises Exception On invalid SoundName }
-    function SoundFromName(const SoundName: string): TSoundType;
+
+      @raises Exception On invalid SoundName when RaiseError = @true. }
+    function SoundFromName(const SoundName: string; const RaiseError: boolean = true): TSoundType;
 
     { Play given sound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
@@ -252,6 +253,24 @@ type
     property MusicVolume: Single read GetMusicVolume write SetMusicVolume
       default DefaultMusicVolume;
   end;
+
+var
+  { Common sounds.
+
+    The sounds types listed below are automatically
+    initialized by TXmlSoundEngine.ReadSounds. All engine
+    units can use them if you define them in your sounds/index.xml file
+    (and you will actually create TXmlSoundEngine instance
+    and assign it to SoundEngine).
+
+    Simply define them in your sounds/index.xml file under a name with
+    underscores, like 'creature_falled_down' for stCreatureFalledDown. }
+
+  { Creatures sounds.
+    @groupBegin }
+  stCreatureFalledDown
+  { @groupEnd }
+    :TSoundType;
 
 implementation
 
@@ -453,14 +472,21 @@ begin
   finally
     FreeAndNil(SoundConfig);
   end;
+
+  { read common sound names }
+  stCreatureFalledDown := SoundFromName('creature_falled_down', false);
 end;
 
-function TXmlSoundEngine.SoundFromName(const SoundName: string): TSoundType;
+function TXmlSoundEngine.SoundFromName(const SoundName: string;
+  const RaiseError: boolean): TSoundType;
 begin
   for Result := 0 to Sounds.Count - 1 do
     if Sounds[Result].Name = SoundName then
       Exit;
-  raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]);
+
+  if RaiseError then
+    raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]) else
+    Result := stNone;
 end;
 
 procedure TXmlSoundEngine.AddSoundImportanceName(const Name: string;
