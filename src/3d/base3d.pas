@@ -20,7 +20,7 @@ interface
 
 uses Classes, Math, VectorMath, Frustum, Boxes3D, CastleClassUtils, KeysMouse,
   CastleUtils, FGL, GenericStructList, CastleTimeUtils,
-  ALSoundAllocator, ALSoundEngine, XmlSoundEngine, SectorsWaypoints;
+  ALSoundAllocator, ALSoundEngine, SectorsWaypoints;
 
 const
   DefaultKnockBackSpeed = 1.0;
@@ -1405,9 +1405,7 @@ type
     This is a simplified, more comfortable descendant of T3DMoving.
     You get easy to use GoBeginPosition, GoEndPosition
     properties, you can easily set sounds by SoundGoBeginPosition and
-    SoundGoEndPosition and such.
-
-    SoundEngine must be of TXmlSoundEngine class, if you use sounds. }
+    SoundGoEndPosition and such. }
   T3DLinearMoving = class(T3DMoving)
   private
     FEndPosition: boolean;
@@ -3458,7 +3456,7 @@ begin
     at a time. }
   if UsedSound <> nil then
     UsedSound.DoUsingEnd;
-  UsedSound := (SoundEngine as TXmlSoundEngine).Sound3d(SoundType, SoundPosition, Looping);
+  UsedSound := SoundEngine.Sound3d(SoundType, SoundPosition, Looping);
 
   if UsedSound <> nil then
     UsedSound.OnUsingEnd := @SoundSourceUsingEnd;

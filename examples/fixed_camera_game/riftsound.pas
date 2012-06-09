@@ -25,7 +25,7 @@ unit RiftSound;
 
 interface
 
-uses XmlSoundEngine;
+uses ALSoundEngine;
 
 var
   stIntroMusic,
@@ -45,7 +45,7 @@ function SoundEngine: TRiftSoundEngine;
 
 implementation
 
-uses SysUtils, ALSoundEngine, CastleGameConfig, CastleFilesUtils;
+uses SysUtils, CastleGameConfig, CastleFilesUtils;
 
 constructor TRiftSoundEngine.Create;
 begin

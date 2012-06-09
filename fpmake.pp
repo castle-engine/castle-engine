@@ -115,7 +115,6 @@ begin
     P.Targets.AddUnit('alsoundallocator.pas');
     P.Targets.AddUnit('alsoundengine.pas');
     P.Targets.AddUnit('alutils.pas');
-    P.Targets.AddUnit('xmlsoundengine.pas');
     P.Targets.AddUnit('castleogg.pas');
     P.Targets.AddUnit('castleopenal.pas');
     P.Targets.AddUnit('soundfile.pas');

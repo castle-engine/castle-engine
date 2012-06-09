@@ -44,7 +44,7 @@
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="160">
+    <Files Count="159">
       <Item1>
         <Filename Value="../src/3d/base3d.pas"/>
         <UnitName Value="Base3D"/>
@@ -157,10 +157,6 @@
         <Filename Value="../src/audio/vorbisfile.pas"/>
         <UnitName Value="VorbisFile"/>
       </Item28>
-      <Item29>
-        <Filename Value="../src/audio/xmlsoundengine.pas"/>
-        <UnitName Value="XmlSoundEngine"/>
-      </Item29>
       <Item30>
         <Filename Value="../src/base/castleclassutils.pas"/>
         <UnitName Value="CastleClassUtils"/>
@@ -691,10 +687,10 @@
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
       </Item159>
-      <Item160>
+      <Item29>
         <Filename Value="../src/ui/pk3dconnexion.pas"/>
         <UnitName Value="pk3DConnexion"/>
-      </Item160>
+      </Item29>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">

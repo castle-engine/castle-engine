@@ -272,9 +272,9 @@ begin
   OpenALDeviceArgument := TMenuArgument.Create(450);
   OpenALDeviceArgument.Value := SoundEngine.DeviceNiceName;
 
-  SoundInfo := TSoundInfoMenuItem.Create(Window, Self, SoundEngine);
-  SoundVolume := TSoundVolumeMenuItem.Create(Window, Self, SoundEngine);
-  MusicVolume := TMusicVolumeMenuItem.Create(Window, Self, SoundEngine);
+  SoundInfo := TSoundInfoMenuItem.Create(Window, Self);
+  SoundVolume := TSoundVolumeMenuItem.Create(Window, Self);
+  MusicVolume := TMusicVolumeMenuItem.Create(Window, Self);
   Items.AddObject('Sound output device', OpenALDeviceArgument);
   Items.Add('Back to main menu');
 

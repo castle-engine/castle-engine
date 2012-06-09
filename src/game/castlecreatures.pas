@@ -28,7 +28,7 @@ interface
 uses Classes, VectorMath, PrecalculatedAnimation, Boxes3D, CastleClassUtils, CastleUtils,
   CastleScene, SectorsWaypoints,
   CastleResources, ALSoundAllocator, CastleXMLConfig, Base3D,
-  XmlSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
+  ALSoundEngine, Frustum, X3DNodes, CastleColors, FGL;
 
 const
   { Default value for TCreatureKind.DefaultMaxLife.
@@ -790,17 +790,10 @@ implementation
 
 uses SysUtils, DOM, GL, GLU, CastleGameWindow, CastleWindow,
   CastleFilesUtils, CastleGLUtils, ProgressUnit,
-  CastleGameNotifications, CastleGameVideoOptions, ALSoundEngine;
+  CastleGameNotifications, CastleGameVideoOptions;
 
 var
   DisableCreatures: Cardinal;
-
-function SoundEngine: TXmlSoundEngine;
-begin
-  if ALSoundEngine.SoundEngine is TXmlSoundEngine then
-    Result := TXmlSoundEngine(ALSoundEngine.SoundEngine) else
-    raise Exception.Create('You have to assign to ALSoundEngine.SoundEngine an instance of TXmlSoundEngine to be able to use CastleCreatures');
-end;
 
 { TCreatureKind -------------------------------------------------------------- }
 
