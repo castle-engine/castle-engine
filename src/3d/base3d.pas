@@ -986,6 +986,7 @@ type
       You can also operate directly on @link(List) instance.
       @groupBegin }
     procedure Add(const Item: T3D);
+    procedure Insert(const Index: Integer; const Item: T3D);
     procedure Remove(const Item: T3D);
     property Items[I: Integer]: T3D read GetItem write SetItem; default;
     function Count: Integer;
@@ -2135,6 +2136,11 @@ end;
 procedure T3DList.Add(const Item: T3D);
 begin
   List.Add(Item);
+end;
+
+procedure T3DList.Insert(const Index: Integer; const Item: T3D);
+begin
+  List.Insert(Index, Item);
 end;
 
 function T3DList.GetItem(const I: Integer): T3D;
