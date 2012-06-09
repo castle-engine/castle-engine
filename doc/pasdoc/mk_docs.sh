@@ -102,8 +102,8 @@ if (( $# == 0 )); then
               '(' -iwholename '*/fglobjectlist22.pas' ')' -or \
               '(' -iwholename '*/AllKambi*Units.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
-              '(' -iwholename '*/src/ui/pk3dconnexion.pas' ')' -or \
-              '(' -iwholename '*/src/ui/windows/tdxinput_tlb.pas' ')' -or \
+              '(' -iwholename '*ui/pk3dconnexion.pas' ')' -or \
+              '(' -iwholename '*ui/windows/tdxinput_tlb.pas' ')' -or \
               '(' -iwholename '*fonts/TTF_*.pas' ')' -or \
               '(' -iwholename '*fonts/BFNT_*.pas' ')' \
             ')' \
@@ -119,8 +119,8 @@ fi
 PASDOC_INCLUDE_DIRS="\
   --include 3d/\
   --include 3d/opengl/\
-  --include vrml/\
-  --include vrml/opengl/\
+  --include x3d/\
+  --include x3d/opengl/\
   --include audio/\
   --include base/\
   --include base/$TARGET_OS/\
@@ -131,8 +131,7 @@ PASDOC_INCLUDE_DIRS="\
   --include opengl/$TARGET_OS/\
   --include window/\
   --include window/$TARGET_OS/\
-  --include window/gtk/\
-  --include kambiscript/\
+  --include window/gtk/
 "
 
 pasdoc \

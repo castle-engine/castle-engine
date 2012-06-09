@@ -162,9 +162,9 @@ units are allowed to be used by units in specific group.
   @itemLabel @code(audio)
   @item(
     3D sound support. @link(ALSoundEngine) gives you a very comfortable way
-    to load and play 3D sounds. The @link(XMLSoundEngine) additionally
-    reads 3D sounds descriptions from special XML file (useful for games
-    with fixed sound set).
+    to load and play 3D sounds, you can load and play them dynamically,
+    you can also preload and configure some sounds by
+    a special XML file (see @link(TXmlSoundEngine)).
 
     Lower-level sound units include OpenAL header translation (CastleOpenAL) and
     OpenAL helpers (@link(ALUtils)).

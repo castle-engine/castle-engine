@@ -763,7 +763,7 @@ type
       collisions instead of BoundingBox.
       See @link(Pushable) and @link(MyMoveAllowed) for when it may happen.
 
-      UseSphere must be @false when not GetExists (because we can't express
+      Must return @false when not GetExists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       EmptyBox3D).
 
@@ -827,10 +827,10 @@ type
           Since the Sphere radius remains always the same, it must be good
           for many creature animation frames. In cases where the sphere
           isn't suitable, and you don't need advantages above --- you can
-          make UseSphere return @false.
+          make @name return @false.
           E.g. a dead creature may be stuck in a wall,
           and it doesn't have to climb stairs. So you don't really need
-          sphere advantages listed above, and UseSphere may return @false
+          sphere advantages listed above, and @name may return @false
           when creature is in dying state.
 
           But still it may be a problem sometimes, if some creature states
@@ -860,7 +860,7 @@ type
 
       Some other 3D moving objects may transport this object.
       Like elevators (vertical, or horizontal moving platforms).
-      We may use sphere (see @link(T3D.UseSphere), @link(T3D.Sphere)) for checking
+      We may use sphere (see @link(T3D.Sphere)) for checking
       collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
       The item is moved using @link(T3D.Translate), so make sure it
       actually does something (for example, by descending from T3DTransform,
@@ -882,7 +882,7 @@ type
       Overloaded version without ProposedNewPos doesn't do wall-sliding,
       and only answers if exactly this move is allowed.
 
-      If this 3D object allows to use sphere as the bounding volume (see UseSphere),
+      If this 3D object allows to use sphere as the bounding volume (see @link(Sphere)),
       then this sphere must be centered around OldPos, not some other point.
       That is, we assume that @link(Sphere) returns Center that is equal to OldPos.
 
@@ -1802,7 +1802,7 @@ begin
         like creatures, because when LifeTime changes then effectively
         BoundingBox changes, and there is no way how I can prevent collisions
         from occuring (we cannot stop/reverse an arbitrary animation,
-        this would look bad and require AI preparations, see UseSphere comments).
+        this would look bad and require AI preparations, see @link(Sphere) comments).
 
         So we must allow some moves, to allow player/creature that is already
         stuck (already collidable with Self) to get out of the collision.
@@ -3362,8 +3362,8 @@ begin
           Item := World[I];
           if Item.Pushable then
           begin
-            { This case doesn't really use Item.UseSphere. But it's not really
-              terribly important design decision, we may use Item.UseSphere
+            { This case doesn't really use Item.Sphere. But it's not really
+              terribly important design decision, we may use Item.Sphere
               one day here. It's most comfortable to just use
               here Item.BoundingBox, as we perform collisions with our box. }
             Box := Item.BoundingBox;

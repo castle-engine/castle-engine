@@ -16,8 +16,10 @@
 { VRML/X3D complete scene handling and OpenGL rendering (TCastleScene). }
 unit CastleScene;
 
-{$if defined(VER2_0) or defined(VER2_2) or defined(VER2_4)}
-  {$error You need FPC >= 2.6.0 to compile this engine version.}
+{$ifndef PASDOC}
+  {$if defined(VER2_0) or defined(VER2_2) or defined(VER2_4)}
+    {$error You need FPC >= 2.6.0 to compile this engine version.}
+  {$endif}
 {$endif}
 
 {$modeswitch nestedprocvars}{$H+}
@@ -179,7 +181,7 @@ type
     procedure SetShaders(const Value: TShadersRendering); override;
   public
     { Adjust attributes of all loaded resources. }
-    OnCreate: TRenderingAttributesEvent; static;
+    OnCreate: TRenderingAttributesEvent; {$ifndef PASDOC} static; {$endif}
 
     constructor Create; override;
     destructor Destroy; override;
