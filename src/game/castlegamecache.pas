@@ -20,17 +20,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Global @link(Window) variable and other features useful for typical 3D game. }
-unit CastleGameWindow;
+{ Global things useful for typical 3D game. }
+unit CastleGameCache;
 
 interface
 
-uses CastleWindow, GLRenderer, OpenGLTTFonts;
+uses GLRenderer, OpenGLTTFonts;
 
 var
-  { @noAutoLinkHere }
-  Window: TCastleWindowCustom;
-
   GLContextCache: TGLRendererContextCache;
 
   { Just a generally usable OpenGL outline (3D) font. }
@@ -67,20 +64,15 @@ begin
 end;
 
 initialization
-  Window := TCastleWindowCustom.Create(nil);
-  Window.OnDrawStyle := ds3D;
-
   GLContextCache := TGLRendererContextCache.Create;
 
   OnGLContextOpen.Add(@WindowOpen);
   OnGLContextClose.Add(@WindowClose);
 finalization
   { Fonts_DecReference must be called before freeing GLContextCache.
-    It's called from Window.Close. But Window.Close may be called when
-    FreeAndNil(Window) below, so to make sure we call Fonts_DecReference
-    (by our WindowClose) right now. }
-  WindowClose(Window);
+    It's called by OnGLContextClose. But OnGLContextClose may be invoked later,
+    so make sure we call Fonts_DecReference (by our WindowClose) right now. }
+  WindowClose(nil);
 
   FreeAndNil(GLContextCache);
-  FreeAndNil(Window);
 end.

@@ -213,8 +213,8 @@ var
 
 implementation
 
-uses SysUtils, ProgressUnit, CastleGameWindow, CastleXMLUtils, CastleTimeUtils,
-  CastleStringUtils, CastleLog, CastleFilesUtils, CastleWindow, CastleGameConfig,
+uses SysUtils, ProgressUnit, CastleGameCache, CastleXMLUtils, CastleTimeUtils,
+  CastleStringUtils, CastleLog, CastleFilesUtils, CastleGameConfig,
   UIControls;
 
 type
@@ -280,7 +280,7 @@ begin
   if DoProgress then Progress.Init(PrepareCoreSteps, 'Loading ' + Id);
   try
     { It's important to do ReleaseCore after Progress.Init.
-      That is because Progress.Init does TCastleWindowBase.SaveScreenToDisplayList,
+      That is because Progress.Init may do TCastleWindowBase.SaveScreenToDisplayList,
       and this may call Window.OnDraw, and this may want to redraw
       the object (e.g. if creature of given kind already exists
       on the screen) and this requires Prepare to be already done.
@@ -551,7 +551,7 @@ var
   I: Integer;
 begin
   { AllResources may be nil here, because
-    WindowClose will be called from CastleWindow unit finalization
+    WindowClose may be called from CastleWindow unit finalization
     that will be done after this unit's finalization (DoFinalization).
 
     That's OK --- DoFinalization already freed

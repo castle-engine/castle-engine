@@ -31,7 +31,8 @@ var
   { Window used for this game. @noAutoLinkHere }
   Window: TCastleWindowCustom;
 
-  { General GL context used everywhere in the game. }
+  { General GL context used everywhere in the game.
+    TODO: use the one from CastleGameCache. }
   GLContextCache: TGLRendererContextCache;
 
 implementation
