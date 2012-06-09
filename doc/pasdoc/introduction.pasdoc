@@ -297,7 +297,7 @@ units are allowed to be used by units in specific group.
   @itemLabel @code(x3d)
   @item(
     VRML/X3D rendering and processing. This is the core of our engine,
-    most highest-level classes to render 3D scene are here.
+    classes to handle and render 3D stuff are here.
 
     X3D file reading, writing and processing (X3DLexer, X3DFields,
     X3DNodes), building and using octree based on X3D model (ShapeOctree, TriangleOctree),
@@ -310,9 +310,15 @@ units are allowed to be used by units in specific group.
     @italic(Subdirectory @code(opengl)) contains OpenGL-specific stuff,
     that uses also @code(opengl) units.
 
-    CastleScene unit provides the most final and complete class
+    CastleScene unit provides the complete class
     for dealing with 3D models and displaying them in OpenGL.
     PrecalculatedAnimation also provides a special way
     of animating models by interpolating between a set of 3D files.
+  )
+
+  @itemLabel @code(game)
+  @item(
+    High level units implementing game mechanics for 3D games.
+    They build on top of other units.
   )
 )

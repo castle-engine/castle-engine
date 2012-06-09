@@ -67,13 +67,10 @@ const
 
 type
   TGLShape = class;
-
-  TObjectProcedure = procedure of object;
-
-  TTestShapeVisibility = function (Shape: TGLShape): boolean
-    of object;
-
+  TSceneRenderingAttributes = class;
   TCastleSceneList = class;
+
+  TTestShapeVisibility = function (Shape: TGLShape): boolean of object;
 
   { Values for TSceneRenderingAttributes.WireframeEffect.
 
@@ -139,6 +136,8 @@ type
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
+  TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes);
+
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
@@ -179,6 +178,9 @@ type
 
     procedure SetShaders(const Value: TShadersRendering); override;
   public
+    { Adjust attributes of all loaded resources. }
+    OnCreate: TRenderingAttributesEvent; static;
+
     constructor Create; override;
     destructor Destroy; override;
 
@@ -3668,6 +3670,9 @@ begin
   FWireframeColor := DefaultWireframeColor;
 
   FScenes := TCastleSceneList.Create(false);
+
+  if Assigned(OnCreate) then
+    OnCreate(Self);
 end;
 
 destructor TSceneRenderingAttributes.Destroy;

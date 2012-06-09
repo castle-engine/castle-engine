@@ -253,6 +253,11 @@ begin
     P.Targets.AddUnit('onscreenmenuimages.pas');
     P.Targets.AddUnit('castlenotifications.pas');
 
+    P.SourcePath.Add('src' + PathDelim + 'game');
+    P.Targets.AddUnit('castlegameconfig.pas');
+    P.Targets.AddUnit('castlegamewindow.pas');
+    P.Targets.AddUnit('castleresources.pas');
+
     Run;
   end;
 end.
