@@ -103,119 +103,40 @@ function NormalFileExists(const fileName: string): boolean;
   Always ends with trailing PathDelim. }
 function GetTempPath: string;
 
-{ ----------------------------------------------------------------------
-  Filenames derived from ProgramBaseName (and possibly ExeName under Windows).
-
-  General comments for all functions below:
-
-  Functions below return filenames like
-  @unorderedList(
-    @itemSpacing Compact
-    @item path that program should use to store user configuration files
-    @item filenames             to use to store user configuration files
-    @item path that program should use to obtain installed data files
-  )
-
-  Results of this functions are based on ProgramBaseName
-  (and possibly ExeName under Windows).
-
-  They may also be based on existence on some files/directories.
-  E.g. ProgramDataPath under UNIXes checks
-  "HomePath + '.' + ProgramBaseName + '.data/'" for existence,
-  and if it does not exist it checks system-wide
-  "/usr/local/share/ + ProgramBaseName", and only as a last resort
-  assumes current directory.
-
-  Because from time to time there arises a need to ask from one
-  program about "what would be a result of Xxx function if it would
-  be called by some other program", all functions come in 2 versions:
-  Xxx and Xxx_Other. Xxx_Other does *not* use ProgramBaseName (and ExeName for
-  Windows) of current program -- instead caller must pass to Xxx_Other
-  value that would be returned by ProgramBaseName/ExeName if it would
-  be called from "some other program". If it seems confusing,
-  just don't look at Xxx_Other functions, you probably don't need them.
-}
-
-{ Path that program should use to store user configuration files.
-  This is some directory that is supposed to be writeable
+{ Path to store user configuration files.
+  This is some directory that is probably writeable
   and that is a standard directory under this OS to put user config files.
-
-  @unorderedList(
-
-    @item(under Windows with PlatformId = VER_PLATFORM_WIN32_NT
-      (see GetVersionEx docs, VER_PLATFORM_WIN32_NT means
-      Windows Server 2003, Windows XP, Windows 2000, or Windows NT")
-      it tries to use
-      @code(SHGetSpecialFolderPath(0, @@Path, CSIDL_APPDATA, true))
-      This should return something like
-
-        @code(C:\Documents and Settings\<user-name>\Application Data)
-
-      ("Application Data" is localized, e.g. it's "Dane aplikacji" on Polish
-      Windowses)
-
-      If that fails (because SHGetSpecialFolderPath is not available in
-      shell32.dll (this can happen on Windows NT without Internet Explorer 4.0)
-      or for some other reason) it falls back on
-
-        @code(ExtractFilePath(ExeName))
-    )
-
-    @item(under other Windowses (this includes Windows 95, 98, Millenium)
-      it returns ExtractFilePath(ExeName))
-
-    @item(under UNIXes it's user's home directory)
-  )
-
   Always returns absolute (not relative) path. Result contains trailing
-  PathDelim. }
+  PathDelim.
+
+  Right now, this is simply a comfortable wrapper around FPC's GetAppConfigDir,
+  making sure dir exists and we return it with final path delimiter.
+  Which means we look at OnGetApplicationName, and we use OS-specific
+  algorithm, see
+  http://www.freepascal.org/docs-html/rtl/sysutils/ongetapplicationname.html .
+  On UNIX this follows XDG Base Directory Specification,
+  see http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+  (in short: look inside ~/.config/<application-name>/). }
 function UserConfigPath: string;
 
-function UserConfigPath_Other(const WindowsExeNamePath: string): string;
+{ Filename to store user configuration.
+  Always returns absolute (not relative) path.
 
-{ A filename that program should use to store it's configuration.
-
-  Returns absolute filename that:
+  Returns filename that:
   @unorderedList(
     @itemSpacing Compact
     @item is inside UserConfigPath
-    @item(has extention FExtension (FExtension should, as always, contain
+    @item depends on OnGetApplicationName
+    @item(has given Extension. Extension should contain
       beginning dot. E.g. FExtension = '.ini'. This way you can pass
-      FExtension = '' to have a filename without extension))
-    @item filename depends on ProgramBaseName
-  )
-
-  This is equivalent to
-  UserConfigFile_FromProposed(ProgramBaseName + FExtension) }
-function UserConfigFile(const FExtension: string): string;
-
-function UserConfigFile_Other(
-  const FExtension, UnixProgramBaseName, WindowsExeName: string): string;
-
-{ A filename that program should use to store it's configuration,
-  with configurable program name.
-
-  Returns absolute file name:
-  @unorderedList(
-    @itemSpacing Compact
-    @item inside UserConfigPath
-    @item with FileName somehow derived from ProposedFileName
-  )
-
-  For example:
-  @unorderedList(
-    @itemSpacing Compact
-    @item under UNIXes,  this is UserConfigPath + '.' + ProposedFileName
-    @item under Windows, this is UserConfigPath + ProposedFileName
+      FExtension = '' to have a filename without extension.)
   ) }
-function UserConfigFile_FromProposed(const ProposedFileName: string): string;
+function UserConfigFile(const Extension: string): string;
 
-function UserConfigFile_FromProposed_Other(
-  const ProposedFileName, WindowsExeNamePath: string): string;
-
-{ Path that program should use to access installed data files.
+{ Path to access installed data files.
   Returns absolute path, containing trailing PathDelim.
 
+  Based on ProgramBaseName (and possibly ExeName under Windows).
   Here are details:
 
   (Note that in normal circumstances such details are treated as
@@ -224,9 +145,9 @@ function UserConfigFile_FromProposed_Other(
   user and programmer must know how this function works
   (and usually it should be described in documentation of a program).)
 
-  Under Windows : returns ExtractFilePath(ExeName).
+  Under Windows: returns ExtractFilePath(ExeName).
 
-  Under UNIXes:  tries these three locations, in order:
+  Under UNIXes: tries these three locations, in order:
 
   @orderedList(
     @item(@code(HomePath +'.' +ProgramBaseName+'.data/').
@@ -263,28 +184,6 @@ function UserConfigFile_FromProposed_Other(
       this directory that is required to exist. Maybe for later.)
   ) }
 function ProgramDataPath: string;
-
-{ Path that program should use to access installed data files,
-  possibly for some other program.
-
-  Under Windows WindowsExeNamePath must be
-  ExtractFilePath(ExeName) where ExeName is what ExeName would return
-  for this "other" program.
-
-  Under UNIX UnixProgramBaseName must be what ProgramBaseName would return
-  for this "other" program.
-
-  This way under UNIX parameter WindowsExeNamePath is ignored
-  and under Windows parameter UnixProgramBaseName is ignored.
-  I know that this looks strange, but this is the only safe way
-  to write interface of this procedure.
-
-  Use version without "_Other" suffix to get ProgramDataPath
-  of @italic(this) program, that uses this function. }
-function ProgramDataPath_Other(
-  const UnixProgramBaseName, WindowsExeNamePath: string): string;
-
-{ other file utilities ---------------------------------------------------- }
 
 { Functions IsSymLink, CanonicalizeFileName assume Windows has no symlinks.
 
@@ -417,8 +316,6 @@ function FnameAutoInc(const FileNamePattern: string): string;
   DirName does not need to exist. }
 function ParentPath(DirName: string;
   DoExpandDirName: boolean = true): string;
-
-{ Pascal files operations ---------------------------------------------------- }
 
 type
   { }
@@ -578,85 +475,19 @@ begin
 {$endif UNIX}
 end;
 
-{ ----------------------------------------------------------------------
-  filenames derived from ProgramBaseName (and possibly ExeName under Windows) }
-
 function UserConfigPath: string;
 begin
- Result := UserConfigPath_Other(
-   {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$else} '' {$endif}
-   );
+  Result := GetAppConfigDir(false);
+  if not ForceDirectories(Result) then
+    raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
+      [Result]);
+
+  Result := IncludeTrailingPathDelimiter(Result);
 end;
 
-function UserConfigPath_Other(const WindowsExeNamePath: string): string;
-{$ifdef MSWINDOWS}
-const
-  CSIDL_APPDATA = $001a;
-var
-  SHGetSpecialFolderPath: function(hwndOwner: HWND; lpszPath: PChar;
-    nFolder: Integer; fCreate: BOOL): BOOL; stdcall;
-  ShellLib: TDynLib;
-  SHPath: array[0 .. MAX_PATH]of char;
+function UserConfigFile(const Extension: string): string;
 begin
- Result := '';
-
- { TODO: fix this for win64, what's the symbol for VER_PLATFORM_WIN32_NT }
- if Win32Platform = VER_PLATFORM_WIN32_NT then
- begin
-  ShellLib := TDynLib.Load(ShellDLL);
-  try
-   ShellLib.SymbolErrorBehaviour := seReturnNil;
-   {$ifdef FPC_OBJFPC} Pointer(SHGetSpecialFolderPath)
-   {$else} @SHGetSpecialFolderPath
-   {$endif} := ShellLib.Symbol('SHGetSpecialFolderPathA');
-   if Assigned(SHGetSpecialFolderPath) and
-      SHGetSpecialFolderPath(0, @SHPath, CSIDL_APPDATA, true) then
-   begin
-    Result := SHPath;
-   end;
-  finally ShellLib.Free end;
- end;
-
- if Result = '' then
-  Result := WindowsExeNamePath else
-  Result := InclPathDelim(Result);
-{$endif}
-{$ifdef UNIX}
-begin
- Result := HomePath;
-{$endif}
-end;
-
-function UserConfigFile(const FExtension: string): string;
-begin
- Result := UserConfigFile_Other(FExtension,
-   {$ifdef UNIX} ProgramBaseName {$else} '' {$endif},
-   {$ifdef MSWINDOWS} ExeName {$else} '' {$endif});
-end;
-
-function UserConfigFile_Other(
-  const FExtension, UnixProgramBaseName, WindowsExeName: string): string;
-begin
- Result := UserConfigFile_FromProposed_Other(
-   {$ifdef MSWINDOWS} ProgramBaseName_Other(WindowsExeName) {$endif}
-   {$ifdef UNIX}  UnixProgramBaseName {$endif}
-    + FExtension,
-   {$ifdef MSWINDOWS} ExtractFilePath(WindowsExeName) {$else} '' {$endif}
-   );
-end;
-
-function UserConfigFile_FromProposed(const ProposedFileName: string): string;
-begin
- Result := UserConfigFile_FromProposed_Other(ProposedFileName,
-   {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$else} '' {$endif});
-end;
-
-function UserConfigFile_FromProposed_Other(
-  const ProposedFileName, WindowsExeNamePath: string): string;
-begin
- Result :=
-   {$ifdef MSWINDOWS} UserConfigPath_Other(WindowsExeNamePath) + ProposedFileName {$endif}
-   {$ifdef UNIX}  UserConfigPath_Other('') + '.' + ProposedFileName {$endif};
+  Result := UserConfigPath + ApplicationName + Extension;
 end;
 
 var
@@ -664,6 +495,27 @@ var
   ProgramDataPathCache: string;
 
 function ProgramDataPath: string;
+
+  function GetProgramDataPath: string;
+  {$ifdef MSWINDOWS}
+  begin
+    Result := ExtractFilePath(ExeName);
+  {$endif}
+  {$ifdef UNIX}
+  begin
+    Result := HomePath +'.' +ProgramBaseName +'.data/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := '/usr/local/share/' +ProgramBaseName +'/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := '/usr/share/' +ProgramBaseName +'/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := InclPathDelim(GetCurrentDir);
+  {$endif}
+  end;
+
 begin
   { Cache results of ProgramDataPath. This has two reasons:
     1. ProgramDataPath_Other on Unix makes three DirectoryExists calls,
@@ -674,40 +526,13 @@ begin
 
   if not ProgramDataPathIsCache then
   begin
-    ProgramDataPathCache := ProgramDataPath_Other(
-      {$ifdef UNIX}  ProgramBaseName {$endif}
-      {$ifdef MSWINDOWS} '' {$endif},
-      {$ifdef MSWINDOWS} ExtractFilePath(ExeName) {$endif}
-      { Avoid using ExeName under UNIXes }
-      {$ifdef UNIX} '' {$endif}
-      );
+    ProgramDataPathCache := GetProgramDataPath;
     if Log then
       WritelnLog('Path', Format('Program data path detected as "%s"', [ProgramDataPathCache]));
     ProgramDataPathIsCache := true;
   end;
 
   Result := ProgramDataPathCache;
-end;
-
-function ProgramDataPath_Other(
-  const UnixProgramBaseName, WindowsExeNamePath: string): string;
-{$ifdef MSWINDOWS}
-begin
- Result := WindowsExeNamePath;
-{$endif}
-{$ifdef UNIX}
-begin
-  Result := HomePath +'.' +UnixProgramBaseName +'.data/';
-  if DirectoryExists(Result) then Exit;
-
-  Result := '/usr/local/share/' +UnixProgramBaseName +'/';
-  if DirectoryExists(Result) then Exit;
-
-  Result := '/usr/share/' +UnixProgramBaseName +'/';
-  if DirectoryExists(Result) then Exit;
-
-  Result := InclPathDelim(GetCurrentDir);
-{$endif}
 end;
 
 { other file utilities ---------------------------------------------------- }

@@ -47,22 +47,6 @@ begin
   Result := 'rift';
 end;
 
-{ Alternative implementation of UserConfigFile, using FPC GetAppConfigDir.
-  I think that in the future I'll switch to this for all my programs. }
-function UserConfigFile(const Extension: string): string;
-var
-  ConfigDir: string;
-begin
-  { calculate ConfigDir }
-  ConfigDir := GetAppConfigDir(false);
-  if not ForceDirectories(ConfigDir) then
-    raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
-      [ConfigDir]);
-
-  Result := IncludeTrailingPathDelimiter(ConfigDir) + ApplicationName +
-    Extension;
-end;
-
 initialization
   { This is needed because
     - I sometimes display ApplicationName for user, and under Windows
