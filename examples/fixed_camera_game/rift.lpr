@@ -29,7 +29,7 @@ uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, ProgressUnit,
   CastleGLUtils, CastleLog, CastleGameNotifications,
   RiftWindow, RiftVideoOptions, RiftIntro, RiftMainMenu,
-  RiftSound, RiftCreatures, RiftConfig, ALSoundEngine, VectorMath;
+  RiftSound, RiftCreatures, CastleGameConfig, ALSoundEngine, VectorMath;
 
 { requested screen size ------------------------------------------------------ }
 
@@ -126,9 +126,21 @@ begin
   end;
 end;
 
+function MyGetApplicationName: string;
+begin
+  Result := 'rift';
+end;
+
 { main -------------------------------------------------------------------- }
 
 begin
+  { This is needed because
+    - I sometimes display ApplicationName for user, and under Windows
+      ParamStr(0) is ugly uppercased.
+    - ParamStr(0) is unsure for Unixes.
+    - UserConfigFile uses this. }
+  OnGetApplicationName := {$ifdef FPC_OBJFPC} @ {$endif} MyGetApplicationName;
+
   { configure Notifications }
   Notifications.MaxMessages := 4;
   Notifications.Color := Vector3Single(0.8, 0.8, 0.8);
@@ -138,11 +150,11 @@ begin
   Window.ParseParameters([poDisplay]);
   Parameters.Parse(Options, @OptionProc, nil);
 
-  { This should be called from RiftConfig actually...
-    but at RiftConfig initialization it's too soon to call it
+  { This should be called from CastleGameConfig actually...
+    but at CastleGameConfig initialization it's too soon to call it
     (Log is not initialized yet). }
   if Log then
-    WritelnLog('User config file', UserConfig.FileName);
+    WritelnLog('User config file', ConfigFile.FileName);
 
   Window.Width := RequestedScreenWidth;
   Window.Height := RequestedScreenHeight;

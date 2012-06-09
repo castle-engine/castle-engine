@@ -46,8 +46,8 @@ finalization
   if ConfigFile <> nil then
   begin
     { Save SoundEngine to config now, otherwise SoundEngine will try to save
-      at destruction, in ALSoundEngine unit finalization,
-      and then ConfigFile is already nil. }
+      at destruction, in GameSound or RiftSound unit finalization,
+      but then ConfigFile is already nil. }
     SoundEngine.SaveToConfig(ConfigFile);
     ConfigFile.Flush;
     FreeAndNil(ConfigFile);

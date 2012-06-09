@@ -48,7 +48,7 @@ function SoundEngine: TRiftSoundEngine;
 
 implementation
 
-uses SysUtils, ALSoundEngine, RiftConfig;
+uses SysUtils, ALSoundEngine, CastleGameConfig;
 
 constructor TRiftSoundEngine.Create;
 begin
@@ -56,7 +56,7 @@ begin
 
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
 
-  LoadFromConfig(UserConfig);
+  LoadFromConfig(ConfigFile);
 
   ReadSounds;
 
@@ -68,8 +68,8 @@ end;
 
 destructor TRiftSoundEngine.Destroy;
 begin
-  if UserConfig <> nil then
-    SaveToConfig(UserConfig);
+  if ConfigFile <> nil then
+    SaveToConfig(ConfigFile);
 
   inherited;
 end;
