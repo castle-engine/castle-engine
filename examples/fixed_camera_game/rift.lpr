@@ -27,9 +27,9 @@ program rift;
 
 uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, ProgressUnit,
-  CastleGLUtils, CastleLog,
+  CastleGLUtils, CastleLog, CastleGameNotifications,
   RiftWindow, RiftVideoOptions, RiftIntro, RiftMainMenu,
-  RiftSound, RiftCreatures, RiftConfig, ALSoundEngine;
+  RiftSound, RiftCreatures, RiftConfig, ALSoundEngine, VectorMath;
 
 { requested screen size ------------------------------------------------------ }
 
@@ -129,6 +129,10 @@ end;
 { main -------------------------------------------------------------------- }
 
 begin
+  { configure Notifications }
+  Notifications.MaxMessages := 4;
+  Notifications.Color := Vector3Single(0.8, 0.8, 0.8);
+
   { parse parameters }
   SoundEngine.ParseParameters;
   Window.ParseParameters([poDisplay]);

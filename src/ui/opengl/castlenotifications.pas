@@ -27,7 +27,7 @@ type
   TVerticalPosition = (vpDown, vpMiddle, vpUp);
 
 const
-  DefaultMaxMessages = 10;
+  DefaultMaxMessages = 4;
   DefaultMessagesTimeout = 5000;
   DefaultHorizontalPosition = hpMiddle;
   DefaultVerticalPosition = vpDown;

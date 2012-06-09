@@ -33,7 +33,7 @@ uses GL, CastleGLUtils, CastleWindow, CastleStringUtils, VectorMath, CastleFiles
   WindowModes, Cameras, SysUtils, GLExt, X3DNodes,
   RaysWindow, Math, UIControls, GLRenderer,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
-  RiftNotifications, RenderingCameraUnit, Base3D,
+  CastleGameNotifications, RenderingCameraUnit, Base3D,
   RiftSceneManager;
 
 var
