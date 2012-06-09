@@ -1201,24 +1201,17 @@ type
       write FShapeOctreeProgressTitle;
     { @groupEnd }
 
-    { GetViewpoint and GetPerspectiveViewpoint return the properties
-      of the defined Viewpoint in VRML file, or some default viewpoint
-      properties if no viewpoint is found in RootNode graph. They seek for
-      nodes Viewpoint, OrthoViewpoint (actually, for any X3DViewpointNode),
-      as well as PerspectiveCamera and OrthographicCamera (for VRML 1.0).
+    { Viewpoint defined in the 3D file (or some default camera settings
+      if no viewpoint is found).
 
-      GetPerspectiveViewpoint omits OrthographicCamera andy OrthoViewpoint.
+      GetViewpoint seeks for VRML/X3D nodes like
+      Viewpoint, OrthoViewpoint (actually, any X3DViewpointNode)
+      and VRML 1.0 PerspectiveCamera and OrthographicCamera.
+      GetPerspectiveViewpoint seeks only for perspective viewpoints.
 
       If ViewpointDescription = '', they return the first found viewpoint node.
-      Otherwise, they look for Viewpoint or OrthoViewpoint (any X3DViewpointNode
-      actually) with description field mathing given string.
-
-      If some viewpoint will be found (in the active VRML graph
-      under RootNode), then "out" parameters
-      will be calculated to this viewpoint position, direction etc.
-      If no such thing is found in the VRML graph, then returns
-      default viewpoint properties from VRML spec (CamPos = (0, 0, 1),
-      CamDir = (0, 0, -1), CamUp = GravityUp = (0, 1, 0), CamType = ctPerspective).
+      Otherwise, they look for X3DViewpointNode with description field mathing
+      given string.
 
       If camera properties were found in some node,
       it returns this node. Otherwise it returns nil.
