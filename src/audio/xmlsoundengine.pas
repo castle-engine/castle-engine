@@ -44,6 +44,11 @@ const
     will do nothing when called with this sound type. }
   stNone = 0;
 
+  LevelEventSoundImportance      = 100000;
+  PlayerSoundImportance          = 10000;
+  DefaultCreatureSoundImportance = 1000;
+  MinorNonSpatialSoundImportance = 100;
+
 type
   { Sound information, internally used by TXmlSoundEngine.
 
@@ -182,8 +187,17 @@ type
 
       These can be used within sounds.xml file.
       Before using ALContextOpen, you can fill this list with values.
-      Initially, it contains only the 'max' value associated with
-      MaxSoundImportance. }
+
+      Initially, it contains a couple of useful values (ordered here
+      from most to least important):
+
+      @unorderedList(
+        @item 'max' - MaxSoundImportance
+        @item 'level_event' - LevelEventSoundImportance
+        @item 'player' - PlayerSoundImportance
+        @item 'default_creature' - DefaultCreatureSoundImportance
+        @item 'minor_non_spatial' - MinorNonSpatialSoundImportance
+      ) }
     property SoundImportanceNames: TStringList read FSoundImportanceNames;
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
@@ -256,6 +270,10 @@ begin
   FSoundImportanceNames := TStringList.Create;
   FSoundImportanceNames.CaseSensitive := true;
   AddSoundImportanceName('max', MaxSoundImportance);
+  AddSoundImportanceName('level_event', LevelEventSoundImportance);
+  AddSoundImportanceName('player', PlayerSoundImportance);
+  AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
+  AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
 
   Volume := DefaultXmlEngineVolume;
 

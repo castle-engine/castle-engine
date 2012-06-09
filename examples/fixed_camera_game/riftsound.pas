@@ -27,9 +27,6 @@ interface
 
 uses XmlSoundEngine;
 
-const
-  MinorNonSpatialSoundImportance = 100;
-
 var
   stIntroMusic,
   stMainMenuMusic,
@@ -53,8 +50,6 @@ uses SysUtils, ALSoundEngine, CastleGameConfig;
 constructor TRiftSoundEngine.Create;
 begin
   inherited;
-
-  AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
 
   LoadFromConfig(ConfigFile);
 
