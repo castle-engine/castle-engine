@@ -70,7 +70,7 @@ begin
     P.Targets.AddUnit('nurbs.pas');
     P.Targets.AddUnit('quaternions.pas');
     P.Targets.AddUnit('rayswindow.pas');
-    P.Targets.AddUnit('scenewaypoints.pas');
+    P.Targets.AddUnit('sectorswaypoints.pas');
     P.Targets.AddUnit('spacefillingcurves.pas');
     P.Targets.AddUnit('spheresampling.pas');
     P.Targets.AddUnit('sphericalharmonics.pas');
