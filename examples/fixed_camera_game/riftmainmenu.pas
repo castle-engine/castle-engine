@@ -349,7 +349,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowOpen(Window: TCastleWindowBase);
+procedure WindowOpen(const Container: IUIContainer);
 begin
   MainMenu := TRiftMainMenu.Create(nil);
   SoundMenu := TRiftSoundMenu.Create(nil);
@@ -360,7 +360,7 @@ begin
     [], [], Window.Width, Window.Height);
 end;
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 begin
   FreeAndNil(MainMenu);
   FreeAndNil(SoundMenu);
@@ -370,6 +370,6 @@ begin
 end;
 
 initialization
-  Window.OnOpenList.Add(@WindowOpen);
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextOpen.Add(@WindowOpen);
+  OnGLContextClose.Add(@WindowClose);
 end.

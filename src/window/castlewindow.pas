@@ -670,13 +670,6 @@ type
   TMenuCommandFunc = procedure(Window: TCastleWindowBase; Item: TMenuItem);
   TGLContextLoweredFunc = procedure(Window: TCastleWindowBase; const FailureMessage: string);
 
-  { List of @link(TWindowFunc) procedures. }
-  TWindowFuncList = class(specialize TGenericStructList<TWindowFunc>)
-  public
-    { Call all (non-nil) Items. }
-    procedure ExecuteAll(Window: TCastleWindowBase);
-  end;
-
   { Saved state of all callbacks
     of @link(TCastleWindowBase), with the exception of OnOpen and OnClose callbacks.
     This is used in @link(TCastleWindowBase.GetCallbacksState)
@@ -723,11 +716,9 @@ type
   private
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnOpen: TWindowFunc;
-    FOnOpenList: TWindowFuncList;
     FOnBeforeDraw, FOnDraw: TDrawFunc;
     FOnResize: TWindowFunc;
     FOnClose: TWindowFunc;
-    FOnCloseList: TWindowFuncList;
     FOnCloseQuery: TWindowFunc;
     FOnKeyDown, FOnKeyUp: TKeyCharFunc;
     FMouseMove: TMouseMoveFunc;
@@ -1080,8 +1071,8 @@ type
     { Handle appropriate event.
 
       In the TCastleWindowBase class, these methods simply call appropriate OnXxx
-      callbacks (if assigned). In case of list callbacks (OnOpenList,
-      OnCloseList) --- these are called here too.
+      callbacks (if assigned). Also UIControls.OnGLContextOpen,
+      UIControls.OnGLContextClose lists are called here too.
 
       You can override them to do anything you want.
 
@@ -1309,13 +1300,6 @@ type
       Width / Height values, that is those values were already adjusted
       if ResizeAllowed <> raNotAllowed. }
     property OnOpen: TWindowFunc read FOnOpen write FOnOpen;
-
-    { Callbacks called when OpenGL context is initialized.
-      Called always after OnOpen. Useful when one callback is not enough.
-
-      The list instance (TWindowFuncList) is created / destroyed
-      in this class. You can add / remove freely your callbacks from this class. }
-    property OnOpenList: TWindowFuncList read FOnOpenList;
 
     { Minimum and maximum window sizes. Always
 
@@ -1575,11 +1559,6 @@ end;
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event. }
     property OnClose: TWindowFunc read FOnClose write FOnClose;
-
-    { List of callbacks called when the window is closed,
-      right before the OpenGL context is destroyed.
-      Just like OnClose. Use when one callback is not enough. }
-    property OnCloseList: TWindowFuncList read FOnCloseList;
 
     { Called when user presses a key.
       Only for keys that can be represented as TKey or Char types.
@@ -2076,8 +2055,9 @@ end;
     { @groupbegin
 
       Methods for simply saving and restoring value of all OnXxx
-      callbacks (with the exception of OnOpen, OnOpenList and
-      OnClose, OnCloseList).
+      callbacks (with the exception of OnOpen and OnClose callbacks,
+      also global UIControls.OnGLContextOpen, UIControls.OnGLContextClose
+      are untouched).
 
       @seealso DefaultCallbacksState }
     function GetCallbacksState: TWindowCallbacks;
@@ -2506,6 +2486,7 @@ end;
     { @groupEnd }
 
     procedure EventOpen; override;
+    procedure EventClose; override;
     procedure EventKeyDown(Key: TKey; Ch: char); override;
     procedure EventKeyUp(Key: TKey; Ch: char); override;
     procedure EventIdle; override;
@@ -2517,7 +2498,6 @@ end;
     procedure EventBeforeDraw; override;
     procedure EventDraw; override;
     procedure EventResize; override;
-    procedure EventClose; override;
   end;
 
   { Window with an OpenGL context, most comfortable to render 3D worlds
@@ -2945,26 +2925,12 @@ uses CastleParameters, CastleLog, GLImages, GLVersionUnit, X3DLoad
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
 
-{ TWindowFuncList ------------------------------------------------ }
-
-procedure TWindowFuncList.ExecuteAll(Window: TCastleWindowBase);
-var i: integer;
-begin
- for i := 0 to Count-1 do
-  if Assigned(L[i]) then
-  begin
-   L[i](Window);
-  end;
-end;
-
 { ----------------------------------------------------------------------------
   niezalezne od CASTLE_WINDOW_xxx rzeczy TCastleWindowBase }
 
 constructor TCastleWindowBase.Create(AOwner: TComponent);
 begin
  inherited;
- FOnOpenList := TWindowFuncList.Create;
- FOnCloseList := TWindowFuncList.Create;
  FClosed := true;
  FWidth  := WindowDefaultSize;
  FHeight := WindowDefaultSize;
@@ -3000,8 +2966,6 @@ begin
 
  FreeAndNil(FFps);
  FreeAndNil(FPressed);
- FreeAndNil(FOnOpenList);
- FreeAndNil(FOnCloseList);
  inherited;
 end;
 
@@ -3457,8 +3421,8 @@ begin
  {$I castlewindow_eventend.inc}
 end;
 
-procedure TCastleWindowBase.EventOpen;                              const EventName = 'Open';       begin {$I castlewindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   OnOpenList .ExecuteAll(Self); {$I castlewindow_eventend.inc} end;
-procedure TCastleWindowBase.EventClose;                             const EventName = 'Close';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   OnCloseList.ExecuteAll(Self); {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventOpen;                              const EventName = 'Open';       begin {$I castlewindow_eventbegin.inc} if Assigned(OnOpen)        then begin OnOpen(Self);              end;   {$I castlewindow_eventend.inc} end;
+procedure TCastleWindowBase.EventClose;                             const EventName = 'Close';      begin {$I castlewindow_eventbegin.inc} if Assigned(OnClose)       then begin OnClose(Self);             end;   {$I castlewindow_eventend.inc} end;
 {$define BONUS_LOG_STRING := Format('NewSize : %d,%d', [Width, Height])}
 procedure TCastleWindowBase.EventResize;                            const EventName = 'Resize';     begin {$I castlewindow_eventbegin.inc} if Assigned(OnResize)      then begin OnResize(Self);            end;   {$I castlewindow_eventend.inc} end;
 {$undef BONUS_LOG_STRING}
@@ -4604,6 +4568,7 @@ var
   I: Integer;
 begin
   inherited;
+  OnGLContextOpen.ExecuteAll(Self);
 
   { call GLContextOpen on controls after inherited (OnOpen). }
   if UseControls then
@@ -4611,6 +4576,23 @@ begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].GLContextOpen;
   end;
+end;
+
+procedure TCastleWindowCustom.EventClose;
+var
+  I: Integer;
+begin
+  { call GLContextClose on controls before inherited (OnClose).
+    This may be called from Close, which may be called from TCastleWindowBase destructor,
+    so prepare for Controls being possibly nil now. }
+  if UseControls and (Controls <> nil) then
+  begin
+    for I := 0 to Controls.Count - 1 do
+      Controls[I].GLContextClose;
+  end;
+
+  OnGLContextClose.ExecuteAll(Self);
+  inherited;
 end;
 
 function TCastleWindowCustom.AllowSuspendForInput: boolean;
@@ -4810,22 +4792,6 @@ begin
     for I := 0 to Controls.Count - 1 do
       Controls[I].ContainerResize(Width, Height);
   end;
-end;
-
-procedure TCastleWindowCustom.EventClose;
-var
-  I: Integer;
-begin
-  { call GLContextClose on controls before inherited (OnClose).
-    This may be called from Close, which may be called from TCastleWindowBase destructor,
-    so prepare for Controls being possibly nil now. }
-  if UseControls and (Controls <> nil) then
-  begin
-    for I := 0 to Controls.Count - 1 do
-      Controls[I].GLContextClose;
-  end;
-
-  inherited;
 end;
 
 function TCastleWindowCustom.GetTooltipX: Integer;

@@ -18,7 +18,7 @@ unit UIControls;
 
 interface
 
-uses SysUtils, Classes, KeysMouse, CastleUtils, CastleClassUtils;
+uses SysUtils, Classes, KeysMouse, CastleUtils, CastleClassUtils, GenericStructList;
 
 type
   { Basic user interface container. This may be a window
@@ -485,6 +485,23 @@ type
     { @groupEnd }
   end;
 
+  TGLContextEvent = procedure (const Container: IUIContainer);
+
+  TGLContextEventList = class(specialize TGenericStructList<TGLContextEvent>)
+  public
+    { Call all items. }
+    procedure ExecuteAll(const Container: IUIContainer);
+  end;
+
+{ Global list of callbacks called when any OpenGL context (Lazarus TCastleControl
+  or TCastleWindow) is opened/closed. Useful for things that want to be notified
+  about OpenGL context existence, but cannot refer to particular instance
+  of TCastleControl or TCastleWindow.
+  @groupBegin }
+function OnGLContextOpen: TGLContextEventList;
+function OnGLContextClose: TGLContextEventList;
+{ @groupEnd }
+
 implementation
 
 { TInputListener ------------------------------------------------------------- }
@@ -779,4 +796,34 @@ begin
      DisableContextOpenClose := DisableContextOpenClose - 1;
 end;
 
+{ TGLContextEventList -------------------------------------------------------- }
+
+procedure TGLContextEventList.ExecuteAll(const Container: IUIContainer);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I](Container);
+end;
+
+var
+  FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
+
+function OnGLContextOpen: TGLContextEventList;
+begin
+  if FOnGLContextOpen = nil then
+    FOnGLContextOpen := TGLContextEventList.Create;
+  Result := FOnGLContextOpen;
+end;
+
+function OnGLContextClose: TGLContextEventList;
+begin
+  if FOnGLContextClose = nil then
+    FOnGLContextClose := TGLContextEventList.Create;
+  Result := FOnGLContextClose;
+end;
+
+finalization
+  FreeAndNil(FOnGLContextOpen);
+  FreeAndNil(FOnGLContextClose);
 end.

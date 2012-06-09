@@ -79,7 +79,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, GLImages, ProgressUnit, Images, GLRenderer,
+uses SysUtils, DOM, GLImages, ProgressUnit, Images, GLRenderer, UIControls,
   CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore, RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }
@@ -150,7 +150,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowOpen(Window: TCastleWindowBase);
+procedure WindowOpen(const Container: IUIContainer);
 
   procedure MissingLocationAttribute(const AttrName: string);
   begin
@@ -221,12 +221,12 @@ begin
       [StartLocationName]);
 end;
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 begin
   FreeAndNil(Locations);
 end;
 
 initialization
-  Window.OnOpenList.Add(@WindowOpen);
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextOpen.Add(@WindowOpen);
+  OnGLContextClose.Add(@WindowClose);
 end.

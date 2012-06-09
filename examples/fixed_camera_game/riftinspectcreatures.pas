@@ -147,17 +147,17 @@ begin
   end;
 end;
 
-procedure WindowOpen(Window: TCastleWindowBase);
+procedure WindowOpen(const Container: IUIContainer);
 begin
   StatusFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSansMono_Bold_m15);
 end;
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 begin
   FreeAndNil(StatusFont);
 end;
 
 initialization
-  Window.OnOpenList.Add(@WindowOpen);
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextOpen.Add(@WindowOpen);
+  OnGLContextClose.Add(@WindowClose);
 end.

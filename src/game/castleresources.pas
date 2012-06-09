@@ -214,7 +214,8 @@ var
 implementation
 
 uses SysUtils, ProgressUnit, CastleGameWindow, CastleXMLUtils, CastleTimeUtils,
-  CastleStringUtils, CastleLog, CastleFilesUtils, CastleWindow, CastleGameConfig;
+  CastleStringUtils, CastleLog, CastleFilesUtils, CastleWindow, CastleGameConfig,
+  UIControls;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
@@ -545,7 +546,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 var
   I: Integer;
 begin
@@ -565,7 +566,7 @@ begin
 end;
 
 initialization
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextClose.Add(@WindowClose);
   AllResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 

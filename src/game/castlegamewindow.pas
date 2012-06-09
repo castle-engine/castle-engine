@@ -47,7 +47,7 @@ const
   Font3dBold = false;
   Font3dItalic = false;
 
-procedure WindowOpen(Window: TCastleWindowBase);
+procedure WindowOpen(const Container: IUIContainer);
 begin
   Font3d := GLContextCache.Fonts_IncReference(
     Font3dFamily, Font3dBold, Font3dItalic,
@@ -57,7 +57,7 @@ begin
   AntiAliasingEnable;
 end;
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 begin
   if (GLContextCache <> nil) and (Font3d <> nil) then
   begin
@@ -72,8 +72,8 @@ initialization
 
   GLContextCache := TGLRendererContextCache.Create;
 
-  Window.OnOpenList.Add(@WindowOpen);
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextOpen.Add(@WindowOpen);
+  OnGLContextClose.Add(@WindowClose);
 finalization
   { Fonts_DecReference must be called before freeing GLContextCache.
     It's called from Window.Close. But Window.Close may be called when

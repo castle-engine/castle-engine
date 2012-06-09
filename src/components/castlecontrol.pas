@@ -1493,6 +1493,7 @@ var
   I: Integer;
 begin
   inherited;
+  UIControls.OnGLContextOpen.ExecuteAll(Self);
 
   { call GLContextOpen on controls after inherited (OnGLContextOpen). }
   if UseControls then
@@ -1516,6 +1517,7 @@ begin
       Controls[I].GLContextClose;
   end;
 
+  UIControls.OnGLContextClose.ExecuteAll(Self);
   inherited;
 end;
 

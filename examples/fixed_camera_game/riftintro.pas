@@ -168,7 +168,7 @@ begin
   finally FreeAndNil(SavedMode); end;
 end;
 
-procedure WindowOpen(Window: TCastleWindowBase);
+procedure WindowOpen(const Container: IUIContainer);
 
   procedure InitializeIntroParts;
   var
@@ -212,7 +212,7 @@ begin
   InitializeIntroParts;
 end;
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 
   procedure FinalizeIntroParts;
   var
@@ -229,6 +229,6 @@ begin
 end;
 
 initialization
-  Window.OnOpenList.Add(@WindowOpen);
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextOpen.Add(@WindowOpen);
+  OnGLContextClose.Add(@WindowClose);
 end.

@@ -164,7 +164,7 @@ var
 implementation
 
 uses CastleLog, ProgressUnit, Math, GL, GLU, CastleGLUtils, CastleWindow,
-  RiftData, RiftVideoOptions;
+  UIControls, RiftData, RiftVideoOptions;
 
 { TCreatureKind -------------------------------------------------------------- }
 
@@ -684,7 +684,7 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure WindowClose(Window: TCastleWindowBase);
+procedure WindowClose(const Container: IUIContainer);
 begin
   FreeAndNil(CreaturesKinds);
 end;
@@ -695,5 +695,5 @@ initialization
   PlayerKind := TCreatureKind.Create('player');
   CreaturesKinds.Add(PlayerKind);
 
-  Window.OnCloseList.Add(@WindowClose);
+  OnGLContextClose.Add(@WindowClose);
 end.
