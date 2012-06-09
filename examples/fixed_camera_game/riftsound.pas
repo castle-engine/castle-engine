@@ -45,13 +45,16 @@ function SoundEngine: TRiftSoundEngine;
 
 implementation
 
-uses SysUtils, ALSoundEngine, CastleGameConfig;
+uses SysUtils, ALSoundEngine, CastleGameConfig, CastleFilesUtils;
 
 constructor TRiftSoundEngine.Create;
 begin
   inherited;
 
   LoadFromConfig(ConfigFile);
+
+  SoundsXmlFileName := ProgramDataPath + 'data' +
+    PathDelim + 'sounds' + PathDelim + 'index.xml';
 
   ReadSounds;
 

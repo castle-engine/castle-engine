@@ -23,27 +23,22 @@ interface
 uses Classes, VectorMath, SysUtils,
   CastleUtils, CastleXMLConfig, ALSoundEngine, ALSoundAllocator, FGL;
 
-const
-  MaxSoundImportance = MaxInt;
-
-const
-  DefaultXmlEngineVolume = 0.5;
-  DefaultMusicVolume = 1.0;
-
 type
   { Unique sound type identifier for sounds used within TXmlSoundEngine.
 
-    This is actually just an index to appropriate
-    TXmlSoundEngine.SoundNames array, but you should always treat
-    this as an opaque type. }
+    This is actually just an index to TXmlSoundEngine.SoundNames array,
+    but you should always treat this as an opaque type. }
   TSoundType = Cardinal;
 
 const
-  { Special sound type that indicates that there is actually none sound.
+  { Special sound type that indicates that there is actually no sound.
     @link(TXmlSoundEngine.Sound) and @link(TXmlSoundEngine.Sound3d)
     will do nothing when called with this sound type. }
   stNone = 0;
 
+  DefaultMusicVolume = 1.0;
+
+  MaxSoundImportance = MaxInt;
   LevelEventSoundImportance      = 100000;
   PlayerSoundImportance          = 10000;
   DefaultCreatureSoundImportance = 1000;
@@ -52,7 +47,7 @@ const
 type
   { Sound information, internally used by TXmlSoundEngine.
 
-    The fields correspond to appropriate attributes in sounds/index.xml file.
+    The fields correspond to appropriate attributes in sounds XML file.
     All of the fields except Buffer are initialized only by ReadSounds.
 
     From the point of view of end-user the number of sounds
@@ -61,7 +56,7 @@ type
     However, for the sake of debugging/testing the game,
     and for content designers, the actual values of Sounds are loaded
     at initialization by ReadSounds (called automatically by ALContextOpen)
-    from sounds/index.xml file,
+    from sounds XML file,
     and later can be changed by calling ReadSounds once again during the
     game (debug menu may have command like "Reload sounds/index.xml"). }
   TSoundInfo = class
@@ -100,17 +95,21 @@ type
 type
   TMusicPlayer = class;
 
-  { Sound engine that loads it's sound data from a comfortable XML file.
-    It extends TALSoundEngine, so you can always load new buffers
+  { Sound engine that loads sound data from a nice XML file.
+    This allows to have simple @link(Sound) and @link(Sound3d) methods,
+    that take a sound identifier (managing sound buffers will just happen
+    automatically under the hood).
+
+    It extends TALSoundEngine, so you can always still load new buffers
     and play them by TALSoundEngine.LoadBuffer, TALSoundEngine.PlaySound
-    and all other methods. This only adds easy preloaded sounds.
+    and all other methods. This only adds easy preloaded sounds,
+    but you're not limited to them.
 
     At ALContextOpen, right before initializing OpenAL stuff,
     this reads sounds information from SoundsXmlFileName file.
-    When OpenAL is initialized, it loads all the sound files.
-    Sound filenames are specified inside SoundsXmlFileName file
-    (they may be relative filenames, relative to the location
-    of SoundsXmlFileName file). }
+    You have to set the SoundsXmlFileName property before, to gain anything
+    from TXmlSoundEngine.
+    When OpenAL is initialized, it loads all the sound files. }
   TXmlSoundEngine = class(TALSoundEngine)
   private
     FSoundImportanceNames: TStringList;
@@ -132,20 +131,28 @@ type
       See engine examples, @code(examples/audio/sample_sounds.xml) file,
       for a heavily commented example.
 
-      It's crucial that you create such file, and eventually adjust
-      this property before calling ReadSounds (or ALContextOpen,
-      that always calls ReadSounds).
+      If this is empty (the default), then no sounds are loaded,
+      and TXmlSoundEngine doesn't really give you much above standard
+      TALSoundEngine.
 
-      By default (in our constryctor) this is initialized to
-      @code(ProgramDataPath + 'data' +
-        PathDelim + 'sounds' + PathDelim + 'index.xml')
-      which may be good location for most programs. }
+      If you want to actually use TXmlSoundEngine features
+      (like the @link(Sound) and @link(Sound3d) methods) you have to set this
+      property before calling ReadSounds (or ALContextOpen, that always calls
+      ReadSounds). For example like this:
+
+@longCode(#
+  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'sounds.xml';
+#)
+
+      (You will find handy ProgramDataPath function, with docs what it returns,
+      in CastleFilesUtils.)
+    }
     property SoundsXmlFileName: string
       read FSoundsXmlFileName write FSoundsXmlFileName;
 
     { A list of sounds used by your program.
       Each sound has a unique name, used to identify sound in
-      sounds/index.xml file and for SoundFromName function.
+      the XML file and for SoundFromName function.
 
       At the beginning, this list always contains exactly one sound: empty stNone.
       This is a special "sound type" that has index 0 (should be always
@@ -154,8 +161,8 @@ type
     property Sounds: TSoundInfoList read FSounds;
 
     { Return sound with given name.
-      Available names are given in SoundNames,
-      and inside ../data/sounds/index.xml.
+      Available names are given in SoundNames, defined in XML file pointed
+      by SoundsXmlFileName.
       Always for SoundName = '' it will return stNone.
 
       @raises Exception On invalid SoundName when RaiseError = @true. }
@@ -178,8 +185,6 @@ type
     function Sound3d(SoundType: TSoundType;
       const Position: TVector3Single;
       const Looping: boolean = false): TALSound; overload;
-
-    property Volume default DefaultXmlEngineVolume;
 
     { Sound importance names and values.
       Each item is a name (as a string) and a value (that is stored in Objects
@@ -211,8 +216,9 @@ type
     procedure SaveToConfig(ConfigFile: TCastleConfig); override;
   end;
 
-  { Music player. Instance of this class should be created only internally
-    by the TXmlSoundEngine. }
+  { Music player, to easily play a sound preloaded by TXmlSoundEngine.
+    Instance of this class should be created only internally
+    by the TXmlSoundEngine, always use this through TXmlSoundEngine.MusicPlayer. }
   TMusicPlayer = class
   private
     { Engine that owns this music player. }
@@ -258,13 +264,17 @@ var
   { Common sounds.
 
     The sounds types listed below are automatically
-    initialized by TXmlSoundEngine.ReadSounds. All engine
-    units can use them if you define them in your sounds/index.xml file
-    (and you will actually create TXmlSoundEngine instance
-    and assign it to SoundEngine).
+    initialized by TXmlSoundEngine.ReadSounds.
+    All engine units can use them if you define them in your sounds XML file.
+    If they are not defined in your XML file (or if you don't even have
+    an XML file, that is you leave TXmlSoundEngine.SoundsXmlFileName empty)
+    then they remain stNone (and nothing will happen if anything will try
+    to play them by TXmlSoundEngine.Sound or TXmlSoundEngine.Sound3d).
 
-    Simply define them in your sounds/index.xml file under a name with
-    underscores, like 'creature_falled_down' for stCreatureFalledDown. }
+    Simply define them in your sounds XML file (see
+    TXmlSoundEngine.SoundsXmlFileName)
+    under a suitable name with underscores,
+    like 'creature_falled_down' for stCreatureFalledDown. }
 
   { Creatures sounds.
     @groupBegin }
@@ -294,16 +304,11 @@ begin
   AddSoundImportanceName('default_creature', DefaultCreatureSoundImportance);
   AddSoundImportanceName('minor_non_spatial', MinorNonSpatialSoundImportance);
 
-  Volume := DefaultXmlEngineVolume;
-
   FSounds := TSoundInfoList.Create;
   { add stNone sound }
   Sounds.Add(TSoundInfo.Create);
 
   FMusicPlayer := TMusicPlayer.Create(Self);
-
-  FSoundsXmlFileName := ProgramDataPath + 'data' +
-    PathDelim + 'sounds' + PathDelim + 'index.xml';
 end;
 
 destructor TXmlSoundEngine.Destroy;
@@ -323,7 +328,9 @@ begin
   { initialize Sounds regardless of ALActive }
   ReadSounds;
 
-  if ALActive then
+  { load sound buffers and allocate sound for music. Only if we have any sound
+    (other than stNone). }
+  if ALActive and (Sounds.Count > 1) then
   begin
     Progress.Init(Sounds.Count - 1, 'Loading sounds');
     try
@@ -401,13 +408,16 @@ var
   SoundsXmlPath: string;
   S: TSoundInfo;
 begin
-  { This must be an absolute path, since Sounds[].FileName should be
-    absolute (to not depend on the current dir when loading sound files. }
-  SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsXmlFileName));
-
   Sounds.Clear;
   { add stNone sound }
   Sounds.Add(TSoundInfo.Create);
+
+  { if no sounds XML file, then that's it --- no more sounds }
+  if SoundsXmlFileName = '' then Exit;
+
+  { This must be an absolute path, since Sounds[].FileName should be
+    absolute (to not depend on the current dir when loading sound files. }
+  SoundsXmlPath := ExtractFilePath(ExpandFileName(SoundsXmlFileName));
 
   try
     { ReadXMLFile always sets TXMLDocument param (possibly to nil),
@@ -498,7 +508,7 @@ end;
 procedure TXmlSoundEngine.LoadFromConfig(ConfigFile: TCastleConfig);
 begin
   inherited;
-  Volume := ConfigFile.GetFloat('sound/volume', DefaultXmlEngineVolume);
+  Volume := ConfigFile.GetFloat('sound/volume', DefaultVolume);
   MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
     DefaultMusicVolume);
 end;
@@ -506,7 +516,7 @@ end;
 procedure TXmlSoundEngine.SaveToConfig(ConfigFile: TCastleConfig);
 begin
   inherited;
-  ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultXmlEngineVolume);
+  ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then

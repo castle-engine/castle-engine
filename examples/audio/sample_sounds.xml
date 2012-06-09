@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-   This is a sample sounds.xml file, usable by XmlSoundEngine unit.
+   This is a sample sounds.xml file, usable by TXmlSoundEngine class.
    Configuration of game sounds. Each sound has a <sound> element.
    You can add here sounds, and reference them from other configuration
    files (e.g. creature config file will allow you to connect
@@ -18,9 +18,9 @@
    not be ever played). In the last case, you should set file_name to
    empty string, i.e. file_name="".
 
-   Note that file_name is relative to the location of this index.xml file.
-   Since most sounds should be in this directory, usually you just don't
-   specify path here.
+   Note that file_name can be relative to the location of this XML file.
+   In the simple case, you can just place this XML file in the same directory
+   as your sounds.
 
    `gain', `min_gain', `max_gain' set loudness.
    By default (if not specified) gain is 1, min/max are 0/1.
@@ -31,7 +31,7 @@
    For "The Castle": more predefined importances are
    "player" or "default_creature" or "level_event".
 
-   For more details see declaration of TSoundInfo in XmlSoundEngine unit.
+   For more details see declaration of TSoundInfo.
 
    Comments for "The Castle" only:
    Note that you can change this file while the game is running,
