@@ -218,7 +218,8 @@ type
   { Image control inside OpenGL context.
     Size is automatically adjusted to the image size.
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
-    and load your image by setting TCastleImageControl.FileName property. }
+    and load your image by setting TCastleImageControl.FileName property
+    or straight TCastleImageControl.Image. }
   TCastleImageControl = class(TUIControlPos)
   private
     FFileName: string;
@@ -226,6 +227,7 @@ type
     FGLImage: TGLuint;
     FBlending: boolean;
     procedure SetFileName(const Value: string);
+    procedure SetImage(const Value: TCastleImage);
   public
     destructor Destroy; override;
     function DrawStyle: TUIControlDrawStyle; override;
@@ -238,8 +240,20 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
     function Width: Cardinal;
     function Height: Cardinal;
+
+    { Image displayed, or @nil if none.
+      This image is owned by this component. If you set this property
+      to your custom TCastleImage instance you should
+      leave memory management of this instance to this component.
+      If necessary, you can always create a copy by TCastleImage.MakeCopy
+      if you want to give here only a copy. }
+    property Image: TCastleImage read FImage write SetImage;
+
   published
+    { File name of the image. Setting this also sets @link(Image).
+      Set this to '' to clear the image. }
     property FileName: string read FFileName write SetFileName;
+
     { Set to @true to draw image with blending. This is suitable for images
       that (may) have nice alpha channel. }
     property Blending: boolean read FBlending write FBlending default false;
@@ -857,21 +871,27 @@ begin
 end;
 
 procedure TCastleImageControl.SetFileName(const Value: string);
-var
-  NewImage: TCastleImage;
 begin
   if Value <> '' then
-    NewImage := LoadImage(Value, [], [], 0, 0) else
-    NewImage := nil;
+    Image := LoadImage(Value, [], [], 0, 0) else
+    Image := nil;
 
-  { only once NewImage is successfully loaded, do the rest }
-  FreeAndNil(FImage);
-  glFreeDisplayList(FGLImage);
-
-  FImage := NewImage;
+  { only once new Image is successfully loaded, change property value.
+    If LoadImage raised exception, FileName will remain unchanged. }
   FFileName := Value;
-  if GLInitialized and (FImage <> nil) then
-    FGLImage := ImageDrawToDisplayList(FImage);
+end;
+
+procedure TCastleImageControl.SetImage(const Value: TCastleImage);
+begin
+  if FImage <> Value then
+  begin
+    FreeAndNil(FImage);
+    glFreeDisplayList(FGLImage);
+
+    FImage := Value;
+    if GLInitialized and (FImage <> nil) then
+      FGLImage := ImageDrawToDisplayList(FImage);
+  end;
 end;
 
 function TCastleImageControl.DrawStyle: TUIControlDrawStyle;
