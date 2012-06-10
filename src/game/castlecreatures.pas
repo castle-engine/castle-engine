@@ -78,6 +78,7 @@ type
 
   TCreatureClass = class of TCreature;
 
+  { Basic kind of creature that can walk or fly, has life and can be hurt. }
   TCreatureKind = class(T3DResource)
   private
     FFlying: boolean;
@@ -263,8 +264,18 @@ type
       read FFallingDownSpeed write FFallingDownSpeed default DefaultFallingDownSpeed;
   end;
 
-  { A TCreatureKind that has simple states:
-    standing stil, walking (aka running), performing an attack and dying. }
+  { Kind of creature with states: standing stil,
+    walking (running), performing an attack and dying.
+
+    Tracks the player (remembers last seen player 3D position,
+    walks/flies to it, possibly through sectors/waypoints ---
+    so it can pass through narrow doors in a labiryth or walk over a narrow bridge).
+    Attacks the player from the right distance (this can be either a melee attack,
+    or shooting a missile --- which adds a missile to the 3D world).
+    Runs away from the player (when he's too close and/or our health is low).
+
+    There are a lot of settings to achieve particular behavior,
+    e.g. cowardly/brave, offensive/defensive, melee/ranged, etc. }
   TWalkAttackCreatureKind = class(TCreatureKind)
   private
     FStandAnimation: TCastlePrecalculatedAnimation;
@@ -458,12 +469,12 @@ type
       default DefaultCreatureRandomWalkDistance;
   end;
 
-  { A missile is also a creature.
-    It's a little dumb creature, that just moves into the given
-    direction (with some possible twists, e.g. it can be a "homing"
+  { Creature that blindly moves in a given direction.
+    It just moves into the given direction
+    (with some possible twists, e.g. it can be a "homing"
     missile and/or be dragged down by gravity).
-    On any collision, it explodes, potentially hurting the alive 3D object
-    that was colliding.
+    On collision, it explodes, potentially hurting the alive 3D object
+    that was colliding (player or other creatures).
 
     Missiles are always Flying for now. }
   TMissileCreatureKind = class(TCreatureKind)
@@ -523,8 +534,8 @@ type
       read FHitsCreatures write FHitsCreatures default DefaultHitsCreatures;
   end;
 
-  { A really dumb creature that just stays still during the whole
-    game. Basically this is just TCastlePrecalculatedAnimation that is displayed as
+  { Creature that just stays still.
+    This is just a single TCastlePrecalculatedAnimation represented as
     a creature. }
   TStillCreatureKind = class(TCreatureKind)
   private
@@ -545,6 +556,7 @@ type
     procedure LoadFromFile(KindsConfig: TCastleConfig); override;
   end;
 
+  { Base creature, using any TCreatureKind. }
   TCreature = class(T3DAlive)
   private
     FKind: TCreatureKind;
@@ -664,7 +676,7 @@ type
   TWalkAttackCreatureState = (wasStand, wasWalk, wasAttack,
     wasDying, wasDyingBack, wasHurt, wasSpecial1);
 
-  { A TCreature that has a kind always of TWalkAttackCreatureKind. }
+  { Creature using TWalkAttackCreatureKind. }
   TWalkAttackCreature = class(TCreature)
   private
     FState: TWalkAttackCreatureState;
@@ -749,7 +761,7 @@ type
     procedure ActualAttack; virtual; abstract;
   end;
 
-  { A TCreature that has a kind always of TMissileCreatureKind. }
+  { Creature using TMissileCreatureKind. }
   TMissileCreature = class(TCreature)
   private
     LastSoundIdleTime: Single;
@@ -767,6 +779,7 @@ type
     procedure Idle(const CompSpeed: Single; var RemoveMe: TRemoveType); override;
   end;
 
+  { Creature using TStillCreatureKind. }
   TStillCreature = class(TCreature)
   protected
     function GetChild: T3D; override;
