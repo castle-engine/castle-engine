@@ -320,5 +320,11 @@ units are allowed to be used by units in specific group.
   @item(
     High level units implementing game mechanics for 3D games.
     They build on top of other units.
+
+    CastleCreatures provides creatures AI, CastleResources
+    manages reference-counted heavy 3D resources.
+
+    @italic(Uses:) everything except @code(window), as this must
+    be suitable for both TCastleWindow and Lazarus TCastleControl.
   )
 )
