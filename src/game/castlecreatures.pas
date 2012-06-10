@@ -269,7 +269,7 @@ type
 
     Tracks the player (remembers last seen player 3D position,
     walks/flies to it, possibly through sectors/waypoints ---
-    so it can pass through narrow doors in a labiryth or walk over a narrow bridge).
+    so it can pass through narrow doors in a labyrinth or walk over a narrow bridge).
     Attacks the player from the right distance (this can be either a melee attack,
     or shooting a missile --- which adds a missile to the 3D world).
     Runs away from the player (when he's too close and/or our health is low).
