@@ -253,8 +253,11 @@ begin
     P.Targets.AddUnit('castlenotifications.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'game');
+    P.Targets.AddUnit('castlecreatures.pas');
+    P.Targets.AddUnit('castlegamecache.pas');
     P.Targets.AddUnit('castlegameconfig.pas');
-    P.Targets.AddUnit('castlegamewindow.pas');
+    P.Targets.AddUnit('castlegamenotifications.pas');
+    P.Targets.AddUnit('castlegamevideooptions.pas');
     P.Targets.AddUnit('castleresources.pas');
 
     Run;
