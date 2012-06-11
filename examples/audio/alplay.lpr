@@ -13,83 +13,45 @@
   ----------------------------------------------------------------------------
 }
 
-{ This is a simple demo of SoundFile unit:
-  just load and play given sound file through OpenAL.
-
-  Obviously this is not supposed to be a real music player,
-  as OpenAL is not really designed to play music with high quality
-  --- OpenAL should be mainly for 3D sounds, where mixing of many sounds
-  and spatial sound effects are important.
-  Besides, the handling of stereo sounds is different between
-  Linux and Windows OpenaL implementations --- Windows impl
-  plays sounds stereo and without any spatial sound effects,
-  Linux impl converts them to mono sounds and plays with spatial sound effects.
-  In the book "Programming Linux games" there were mentions how to
-  directly pass some stereo data to OpenAL using Loki extension,
-  but I don't know is it still up-to-date information.
-}
+{ Simply load and play sound file using OpenAL. }
 program alplay;
 
-uses SysUtils, CastleUtils, CastleOpenAL, ALUtils, SoundFile,
-  CastleWarnings, ALSoundEngine, CastleParameters;
+uses SysUtils, CastleUtils, CastleOpenAL,
+  CastleWarnings, ALSoundEngine, CastleParameters, CastleTimeUtils, VectorMath;
 
 var
-  Buffer, Source: TALuint;
+  Buffer: TALuint;
   FileName: string;
-  FAL: TALSoundFile;
+  Duration: TFloatTime;
 begin
   OnWarning := @OnWarningWrite;
 
+  { add here InitializeLog('1.0') (from CastleLog unit) to see various info
+    about OpenAL and sound loading }
+
+  { parse params }
   SoundEngine.ParseParameters;
+  Parameters.CheckHigh(1);
+  FileName := Parameters[1];
+
+  { Change the default MinAllocatedSources (it may be larger for the default
+    engine usage, as we expect that some sound mixing will be needed;
+    for this demo, 1 is enough). }
   SoundEngine.MinAllocatedSources := 1;
-  SoundEngine.ALContextOpen;
-  try
-    Writeln(SoundEngine.SoundInitializationReport);
-    if not SoundEngine.ALActive then
-      Halt;
 
-    { prepare al state }
-    { turn off any environmental effects }
-    alDistanceModel(AL_NONE);
-    {$ifndef UNIX}
-    alDopplerFactor(0.0); { turning doppler to 0 does not work under Unix impl }
-    {$endif}
+  { Load and play sound, without any spatialization.
+    OpenAL will be automatically initialized when needed below.
+    Although you could also initialize it explicitly by SoundEngine.ALContextOpen,
+    check SoundEngine.SoundInitializationReport, SoundEngine.ALActive etc. }
+  Buffer := SoundEngine.LoadBuffer(FileName, Duration);
+  Writeln('Sound loaded, duration in seconds: ', Duration:1:2);
+  SoundEngine.PlaySound(Buffer, false, false, 0, 1, 0, 1, ZeroVector3Single);
 
-    alCreateBuffers(1, @Buffer);
-    alCreateSources(1, @Source);
-    CheckAL('preparing source and buffer');
-
-    try
-      { parse params }
-      Parameters.CheckHigh(1);
-      FileName := Parameters[1];
-
-      { load file to Buffer, and print some info about file format. }
-      FAL := TALSoundFile.Create(TSoundFile.CreateFromFile(FileName), true);
-      try
-        FAL.alBufferData(Buffer);
-        Writeln(
-          'File ' + FileName + ' loaded :' + nl +
-          '  Class : ' + FAL.SoundFile.ClassName + nl +
-          '  Format : ' + ALDataFormatToStr(FAL.SoundFile.DataFormat) + nl +
-          '  Size (of sample in file) : ', FAL.SoundFile.DataSize, nl,
-          '  Frequency : ',FAL.SoundFile.Frequency, nl,
-          '  Duration : ', FAL.SoundFile.Duration:0:2, ' seconds', nl,
-          'Size (as returned by querying Buffer) : ', alGetBuffer1sizei(Buffer, AL_SIZE), nl
-        );
-      finally FAL.Free end;
-
-      { play sound }
-      alSourcei(Source, AL_BUFFER, Buffer);
-      alSourcePlay(Source);
-      CheckAL('starting playing sound');
-      while alGetSource1i(Source, AL_SOURCE_STATE) = AL_PLAYING do Sleep(1000);
-      CheckAL('playing sound');
-    finally
-      alDeleteSources(1, @Source);
-      alDeleteBuffers(1, @Buffer);
-    end;
-  finally
-    SoundEngine.ALContextClose;
-  end;
+  { Wait enough time to finish playing. (because PlaySound above doesn't block).
+    In this simple program, we just sleep enough time
+    to finish playing sound, with some margin. Alternative, more precise way
+    to do this would be query is sound playing (call SoundEngine.RefreshUsedSources
+    from time to time, and watch out for TALSound.OnUsingEnd event;
+    PlaySound returns TALSound instance for such purposes). }
+  Sleep(Round(Duration * 1000)+ 100);
 end.
