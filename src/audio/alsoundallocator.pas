@@ -46,12 +46,13 @@ type
       and in destructor (if constructor exited with ENoMoreOpenALSources). }
     FALSourceAllocated: boolean;
     FUserData: TObject;
-    FPosition: TVector3Single;
+    FPosition, FVelocity: TVector3Single;
     FLooping, FRelative: boolean;
     FGain, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TALBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     procedure SetPosition(const Value: TVector3Single);
+    procedure SetVelocity(const Value: TVector3Single);
     procedure SetLooping(const Value: boolean);
     procedure SetRelative(const Value: boolean);
     procedure SetGain(const Value: Single);
@@ -134,6 +135,7 @@ type
     procedure DoUsingEnd; virtual;
 
     property Position: TVector3Single read FPosition write SetPosition;
+    property Velocity: TVector3Single read FVelocity write SetVelocity;
     property Looping: boolean read FLooping write SetLooping;
     property Relative: boolean read FRelative write SetRelative;
     property Gain: Single read FGain write SetGain;
@@ -348,6 +350,12 @@ procedure TALSound.SetPosition(const Value: TVector3Single);
 begin
   FPosition := Value;
   alSourceVector3f(ALSource, AL_POSITION, Value);
+end;
+
+procedure TALSound.SetVelocity(const Value: TVector3Single);
+begin
+  FVelocity := Value;
+  alSourceVector3f(ALSource, AL_VELOCITY, Value);
 end;
 
 procedure TALSound.SetLooping(const Value: boolean);

@@ -20,19 +20,19 @@
   in the center of the window.
 
   Accepts command-line options from
-  http://castle-engine.sourceforge.net/openal_notes.php }
+  http://castle-engine.sourceforge.net/openal.php }
 program doppler_demo;
 
 uses SysUtils, VectorMath, CastleWindow, GL, GLU, CastleGLUtils,
-  CastleOpenAL, ALUtils, ALSoundEngine, ALSoundAllocator, CastleStringUtils;
+  ALUtils, ALSoundEngine, ALSoundAllocator, CastleStringUtils;
 
 const
   ALDistanceScaling = 0.02;
 
 var
   Window: TCastleWindowDemo;
-  PreviousSourcePosition, SourcePosition, ListenerPosition: TVector3Single;
-  Source: TALSound;
+  PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3Single;
+  Sound: TALSound;
 
 procedure Draw(Window: TCastleWindowBase);
 begin
@@ -47,23 +47,22 @@ begin
 
   glColor3f(1, 1, 1);
   glBegin(GL_POINTS);
-    glVertexv(SourcePosition);
+    glVertexv(SoundPosition);
   glEnd;
 end;
 
 procedure Timer(Window: TCastleWindowBase);
 begin
-  alSourceVector3f(Source.ALSource, AL_VELOCITY,
-    (SourcePosition - PreviousSourcePosition) * ALDistanceScaling);
-  PreviousSourcePosition := SourcePosition;
+  Sound.Velocity := (SoundPosition - PreviousSoundPosition) * ALDistanceScaling;
+  PreviousSoundPosition := SoundPosition;
 end;
 
 procedure MouseMove(Window: TCastleWindowBase; NewX, NewY: Integer);
 begin
   if mbLeft in Window.MousePressed then
   begin
-    SourcePosition := Vector3Single(NewX, Window.Height - NewY);
-    Source.Position := SourcePosition * ALDistanceScaling;
+    SoundPosition := Vector3Single(NewX, Window.Height - NewY);
+    Sound.Position := SoundPosition * ALDistanceScaling;
     Window.PostRedisplay;
   end;
 end;
@@ -81,13 +80,10 @@ begin
 
     //alDopplerFactor(3.0);
 
-    Source := SoundEngine.AllocateSound(1);
-    Source.Buffer := Buffer;
-    Source.Looping := true;
-    SourcePosition := Vector3Single(200, 300, 0);
-    PreviousSourcePosition := SourcePosition;
-    Source.Position := SourcePosition * ALDistanceScaling;
-    alSourcePlay(Source.ALSource);
+    SoundPosition := Vector3Single(200, 300, 0);
+    PreviousSoundPosition := SoundPosition;
+    Sound := SoundEngine.PlaySound(Buffer, true, true, 0, 1, 0, 1,
+      SoundPosition * ALDistanceScaling);
 
     ListenerPosition := Vector3Single(300, 300, 0);
     SoundEngine.UpdateListener(ListenerPosition * ALDistanceScaling,
