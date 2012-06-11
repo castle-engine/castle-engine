@@ -19,14 +19,15 @@ unit ALSoundEngine;
 interface
 
 uses SysUtils, Classes, CastleOpenAL, ALSoundAllocator, VectorMath,
-  CastleTimeUtils, CastleXMLConfig, Math, FGL,
-  CastleClassUtils;
+  CastleTimeUtils, CastleXMLConfig, Math, FGL, CastleClassUtils;
 
 type
   TALDistanceModel = (dmNone,
     dmInverseDistance , dmInverseDistanceClamped,
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
+
+  TALBuffer = ALSoundAllocator.TALBuffer;
 
 const
   DefaultVolume = 1.0;

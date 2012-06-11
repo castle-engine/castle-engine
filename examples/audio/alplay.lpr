@@ -20,7 +20,7 @@ uses SysUtils, CastleUtils, CastleOpenAL,
   CastleWarnings, ALSoundEngine, CastleParameters, CastleTimeUtils, VectorMath;
 
 var
-  Buffer: TALuint;
+  Buffer: TALBuffer;
   FileName: string;
   Duration: TFloatTime;
 begin
