@@ -42,12 +42,11 @@ uses SysUtils, CastleFilesUtils, ALSoundEngine;
 initialization
   ConfigFile := TCastleConfig.Create(nil);
   ConfigFile.FileName := UserConfigFile('.conf');
+  SoundEngine.LoadFromConfig(ConfigFile);
 finalization
   if ConfigFile <> nil then
   begin
-    { Save SoundEngine to config now, otherwise SoundEngine will try to save
-      at destruction, in GameSound or RiftSound unit finalization,
-      but then ConfigFile is already nil. }
+    { Save SoundEngine to config now, before it's destroyed. }
     SoundEngine.SaveToConfig(ConfigFile);
     ConfigFile.Flush;
     FreeAndNil(ConfigFile);

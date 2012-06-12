@@ -34,51 +34,16 @@ var
   stMenuClick
   : TSoundType;
 
-type
-  TRiftSoundEngine = class(TXmlSoundEngine)
-  public
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-function SoundEngine: TRiftSoundEngine;
-
 implementation
 
-uses SysUtils, CastleGameConfig, CastleFilesUtils;
-
-constructor TRiftSoundEngine.Create;
-begin
-  inherited;
-
-  LoadFromConfig(ConfigFile);
-
-  SoundsXmlFileName := ProgramDataPath + 'data' +
-    PathDelim + 'sounds' + PathDelim + 'index.xml';
-
-  ReadSounds;
-
-  stIntroMusic             := SoundFromName('intro_music');
-  stMainMenuMusic          := SoundFromName('main_menu_music');
-  stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed');
-  stMenuClick              := SoundFromName('menu_current_item_selected');
-end;
-
-destructor TRiftSoundEngine.Destroy;
-begin
-  if ConfigFile <> nil then
-    SaveToConfig(ConfigFile);
-
-  inherited;
-end;
-
-function SoundEngine: TRiftSoundEngine;
-begin
-  Result := ALSoundEngine.SoundEngine as TRiftSoundEngine;
-end;
-
-{ initialization ------------------------------------------------------------- }
+uses SysUtils, CastleFilesUtils;
 
 initialization
-  ALSoundEngine.SoundEngine := TRiftSoundEngine.Create;
+  SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
+    PathDelim + 'sounds' + PathDelim + 'index.xml';
+
+  stIntroMusic             := SoundEngine.SoundFromName('intro_music');
+  stMainMenuMusic          := SoundEngine.SoundFromName('main_menu_music');
+  stMenuCurrentItemChanged := SoundEngine.SoundFromName('menu_current_item_changed');
+  stMenuClick              := SoundEngine.SoundFromName('menu_current_item_selected');
 end.

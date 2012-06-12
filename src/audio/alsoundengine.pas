@@ -415,20 +415,23 @@ type
     and all other methods. This only adds easy preloaded sounds,
     but you're not limited to them.
 
-    At ALContextOpen, right before initializing OpenAL stuff,
-    this reads sounds information from SoundsXmlFileName file.
-    You have to set the SoundsXmlFileName property before, to gain anything
-    from TXmlSoundEngine.
-    When OpenAL is initialized, it loads all the sound files. }
+    You have to set the SoundsXmlFileName property, to gain anything
+    from TXmlSoundEngine. Otherwise, it just acts exactly like TALSoundEngine.
+    See SoundsXmlFileName docs for details. }
   TXmlSoundEngine = class(TALSoundEngine)
   private
     FSoundImportanceNames: TStringList;
     FSounds: TSoundInfoList;
     FSoundsXmlFileName: string;
-
     { This is the only allowed instance of TMusicPlayer class,
       created and destroyed in this class create/destroy. }
     FMusicPlayer: TMusicPlayer;
+    procedure SetSoundsXmlFileName(const Value: string);
+    { Load buffers for all Sounds. Should be called as soon as Sounds changes
+      and we may have OpenAL context (but it checks ALActive and Sounds.Count,
+      and does something only if we have OpenAL context and some sounds,
+      so it's actually safe to call it always). }
+    procedure LoadSoundsBuffers;
   public
     constructor Create;
     destructor Destroy; override;
@@ -441,24 +444,43 @@ type
       See engine examples, @code(examples/audio/sample_sounds.xml) file,
       for a heavily commented example.
 
+      When you set SoundsXmlFileName property, we read sound information from
+      given XML file. You usually set SoundsXmlFileName at the very beginning,
+      before OpenAL context is initialized (although it's also Ok to do this after).
+      Right after setting SoundsXmlFileName you usually call SoundFromName
+      a couple of times to convert some names into TSoundType values,
+      to later use these TSoundType values with @link(Sound) and @link(Sound3d)
+      methods.
+
+      When OpenAL is initialized, sound buffers will actually be loaded.
+
       If this is empty (the default), then no sounds are loaded,
       and TXmlSoundEngine doesn't really give you much above standard
       TALSoundEngine.
 
       If you want to actually use TXmlSoundEngine features
       (like the @link(Sound) and @link(Sound3d) methods) you have to set this
-      property before calling ReadSounds (or ALContextOpen, that always calls
-      ReadSounds). For example like this:
+      property. For example like this:
 
 @longCode(#
   SoundEngine.SoundsXmlFileName := ProgramDataPath + 'sounds.xml';
+  stMySound1 := SoundEngine.SoundFromName('my_sound_1');
+  stMySound2 := SoundEngine.SoundFromName('my_sound_2');
+  // ... and later in your game you can do stuff like this:
+  Sound(stMySound1);
+  Sound3d(stMySound1, Vector3Single(0, 0, 10));
 #)
 
       (You will find handy ProgramDataPath function, with docs what it returns,
-      in CastleFilesUtils.)
+      in CastleFilesUtils unit.)
     }
     property SoundsXmlFileName: string
-      read FSoundsXmlFileName write FSoundsXmlFileName;
+      read FSoundsXmlFileName write SetSoundsXmlFileName;
+
+    { Reload the SoundsXmlFileName and all referenced buffers.
+      Useful as a tool for 3D data designers, to reload the sounds XML file
+      without restarting the game/sound engine etc. }
+    procedure ReloadSounds;
 
     { A list of sounds used by your program.
       Each sound has a unique name, used to identify sound in
@@ -518,8 +540,6 @@ type
 
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
 
-    procedure ReadSounds; virtual;
-
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
 
     procedure LoadFromConfig(ConfigFile: TCastleConfig); override;
@@ -574,7 +594,7 @@ var
   { Common sounds.
 
     The sounds types listed below are automatically
-    initialized by TXmlSoundEngine.ReadSounds.
+    initialized when you set TXmlSoundEngine.SoundsXmlFileName.
     All engine units can use them if you define them in your sounds XML file.
     If they are not defined in your XML file (or if you don't even have
     an XML file, that is you leave TXmlSoundEngine.SoundsXmlFileName empty)
@@ -1435,14 +1455,15 @@ begin
 end;
 
 procedure TXmlSoundEngine.ALContextOpen;
+begin
+  inherited;
+  LoadSoundsBuffers;
+end;
+
+procedure TXmlSoundEngine.LoadSoundsBuffers;
 var
   ST: TSoundType;
 begin
-  inherited;
-
-  { initialize Sounds regardless of ALActive }
-  ReadSounds;
-
   { load sound buffers and allocate sound for music. Only if we have any sound
     (other than stNone). }
   if ALActive and (Sounds.Count > 1) then
@@ -1514,7 +1535,7 @@ begin
     Position);
 end;
 
-procedure TXmlSoundEngine.ReadSounds;
+procedure TXmlSoundEngine.SetSoundsXmlFileName(const Value: string);
 var
   SoundConfig: TXMLDocument;
   ImportanceStr: string;
@@ -1523,6 +1544,9 @@ var
   SoundsXmlPath: string;
   S: TSoundInfo;
 begin
+  if FSoundsXmlFileName = Value then Exit;
+  FSoundsXmlFileName := Value;
+
   Sounds.Clear;
   { add stNone sound }
   Sounds.Add(TSoundInfo.Create);
@@ -1600,6 +1624,22 @@ begin
 
   { read common sound names }
   stCreatureFalledDown := SoundFromName('creature_falled_down', false);
+
+  { in case you set SoundsXmlFileName when OpenAL context is already
+    initialized, load buffers now }
+  LoadSoundsBuffers;
+end;
+
+procedure TXmlSoundEngine.ReloadSounds;
+var
+  OldSoundsXmlFileName: string;
+begin
+  if SoundsXmlFileName <> '' then
+  begin
+    OldSoundsXmlFileName := SoundsXmlFileName;
+    SoundsXmlFileName := '';
+    SoundsXmlFileName := OldSoundsXmlFileName;
+  end;
 end;
 
 function TXmlSoundEngine.SoundFromName(const SoundName: string;
