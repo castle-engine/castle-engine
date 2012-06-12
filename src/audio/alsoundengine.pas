@@ -608,7 +608,13 @@ var
 
   { Creatures sounds.
     @groupBegin }
-  stCreatureFalledDown
+  stCreatureFalledDown,
+  { @groupEnd }
+
+  { Sounds used by TCastleOnScreenMenu.
+    @groupBegin }
+  stMenuCurrentItemChanged,
+  stMenuClick
   { @groupEnd }
     :TSoundType;
 
@@ -1623,7 +1629,9 @@ begin
   end;
 
   { read common sound names }
-  stCreatureFalledDown := SoundFromName('creature_falled_down', false);
+  stCreatureFalledDown     := SoundFromName('creature_falled_down'     , false);
+  stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
+  stMenuClick              := SoundFromName('menu_click'               , false);
 
   { in case you set SoundsXmlFileName when OpenAL context is already
     initialized, load buffers now }

@@ -13,6 +13,6 @@
 
   <sound name="menu_current_item_changed"
     default_importance="minor_non_spatial"/>
-  <sound name="menu_current_item_selected"
+  <sound name="menu_click"
     default_importance="minor_non_spatial"/>
 </sounds>

@@ -29,9 +29,7 @@ uses ALSoundEngine;
 
 var
   stIntroMusic,
-  stMainMenuMusic,
-  stMenuCurrentItemChanged,
-  stMenuClick
+  stMainMenuMusic
   : TSoundType;
 
 implementation
@@ -42,8 +40,6 @@ initialization
   SoundEngine.SoundsXmlFileName := ProgramDataPath + 'data' +
     PathDelim + 'sounds' + PathDelim + 'index.xml';
 
-  stIntroMusic             := SoundEngine.SoundFromName('intro_music');
-  stMainMenuMusic          := SoundEngine.SoundFromName('main_menu_music');
-  stMenuCurrentItemChanged := SoundEngine.SoundFromName('menu_current_item_changed');
-  stMenuClick              := SoundEngine.SoundFromName('menu_current_item_selected');
+  stIntroMusic    := SoundEngine.SoundFromName('intro_music');
+  stMainMenuMusic := SoundEngine.SoundFromName('main_menu_music');
 end.

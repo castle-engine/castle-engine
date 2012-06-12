@@ -499,7 +499,8 @@ type
 
     { Called when CurrentItem changed.
       But *not* when CurrentItem changed because of Items.Count changes.
-      In this class this just calls VisibleChange. }
+      In this class this just calls VisibleChange and
+      plays sound stMenuCurrentItemChanged. }
     procedure CurrentItemChanged; virtual;
 
     { Default value is DefaultCurrentItemBorderColor1 }
@@ -663,7 +664,7 @@ implementation
 
 uses SysUtils, CastleUtils, Images, CastleFilesUtils, CastleClassUtils,
   BFNT_BitstreamVeraSans_m10_Unit, CastleStringUtils, GLImages,
-  OnScreenMenuImages;
+  OnScreenMenuImages, ALSoundEngine;
 
 procedure Register;
 begin
@@ -1659,11 +1660,13 @@ end;
 procedure TCastleOnScreenMenu.Click;
 begin
   if Assigned(OnClick) then OnClick(Self);
+  SoundEngine.Sound(stMenuClick);
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemChanged;
 begin
   VisibleChange;
+  SoundEngine.Sound(stMenuCurrentItemChanged);
 end;
 
 procedure TCastleOnScreenMenu.AccessoryValueChanged;

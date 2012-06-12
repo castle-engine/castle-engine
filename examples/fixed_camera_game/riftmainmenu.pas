@@ -47,8 +47,6 @@ type
   TRiftMenu = class(TCastleOnScreenMenu)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Click; override;
-    procedure CurrentItemChanged; override;
     { Let rift callbacks handle the events too. }
     property ExclusiveEvents default false;
     { Always treat like inside --- the menu is the only thing with
@@ -180,18 +178,6 @@ begin
   DrawBackgroundRectangle := false;
   ExclusiveEvents := false;
   DrawFocused := false;
-end;
-
-procedure TRiftMenu.Click;
-begin
-  inherited;
-  SoundEngine.Sound(stMenuClick);
-end;
-
-procedure TRiftMenu.CurrentItemChanged;
-begin
-  inherited;
-  SoundEngine.Sound(stMenuCurrentItemChanged);
 end;
 
 function TRiftMenu.PositionInside(const X, Y: Integer): boolean;
