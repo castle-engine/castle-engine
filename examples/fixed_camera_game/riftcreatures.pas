@@ -360,6 +360,7 @@ end;
 constructor TCreature.Create(AKind: TCreatureKind);
 begin
   inherited Create(nil);
+  Orientation := otUpZDirectionX;
 
   { initialize state fields }
   FState := csStand;
