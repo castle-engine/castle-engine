@@ -2089,6 +2089,7 @@ const
         '  Vendor NVidia: %s' +nl+
         '  Vendor ATI: %s (fglrx: %s)' +nl+
         '  Vendor Mesa: %s (Mesa parsed version major: %d, minor: %d, release: %d)' +nl+
+        '  Vendor Intel: %s' +nl+
         nl+
         '  Buggy glPushAttrib(GL_POINT_SET): %s' +nl+
         '  Buggy glDrawPixels for odd widths: %s' +nl+
@@ -2103,6 +2104,7 @@ const
           BoolToStr[Version.Fglrx],
           BoolToStr[Version.Mesa],
           Version.MesaMajor, Version.MesaMinor, Version.MesaRelease,
+          BoolToStr[Version.VendorIntel],
 
           BoolToStr[Version.BuggyPointSetAttrib],
           BoolToStr[Version.BuggyDrawOddWidth],

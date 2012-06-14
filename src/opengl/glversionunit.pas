@@ -64,6 +64,7 @@ type
     FVendorATI: boolean;
     FFglrx: boolean;
     FVendorNVidia: boolean;
+    FVendorIntel: boolean;
     FMesa: boolean;
     FMesaMajor: Integer;
     FMesaMinor: Integer;
@@ -71,6 +72,7 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
+    FBuggyGenerateCubeMap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
@@ -107,6 +109,9 @@ type
 
     { NVidia GPU with NVidia drivers. }
     property VendorNVidia: boolean read FVendorNVidia;
+
+    { NVidia GPU with NVidia drivers. }
+    property VendorIntel: boolean read FVendorIntel;
 
     { Buggy GL_POINT_BIT flag for glPushAttrib (Mesa DRI Intel bug).
 
@@ -158,6 +163,9 @@ type
       so possibly it's not really related to Mesa version! Reports welcome)
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
+
+    { Buggy generating of cube texture maps on Intel }
+    property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (fglrx bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
@@ -432,6 +440,8 @@ begin
   FVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
   FFglrx := {$ifdef LINUX} VendorATI {$else} false {$endif};
 
+  FVendorIntel := IsPrefix('Intel', Vendor);
+
   FBuggyPointSetAttrib := Mesa and IsPrefix('Mesa DRI Intel', Renderer)
     and (not MesaVersionAtLeast(7, 6, 0));
 
@@ -449,6 +459,8 @@ begin
   FBuggyDrawOddWidth := VendorATI;
 
   FBuggyGenerateMipmap := Mesa and (not MesaVersionAtLeast(7, 5, 0));
+
+  FBuggyGenerateCubeMap := VendorIntel;
 
   { On which fglrx versions does this occur?
 
