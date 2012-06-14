@@ -72,7 +72,6 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
-    FBuggyGenerateCubeMap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
@@ -163,9 +162,6 @@ type
       so possibly it's not really related to Mesa version! Reports welcome)
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
-
-    { Buggy generating of cube texture maps on Intel }
-    property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (fglrx bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
@@ -458,9 +454,8 @@ begin
     problem on rendered_texture.x3dv test. }
   FBuggyDrawOddWidth := VendorATI;
 
-  FBuggyGenerateMipmap := Mesa and (not MesaVersionAtLeast(7, 5, 0));
-
-  FBuggyGenerateCubeMap := VendorIntel;
+  FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
+                          {$ifdef WINDOWS} or VendorIntel {$endif};
 
   { On which fglrx versions does this occur?
 
