@@ -109,7 +109,7 @@ type
     { NVidia GPU with NVidia drivers. }
     property VendorNVidia: boolean read FVendorNVidia;
 
-    { NVidia GPU with NVidia drivers. }
+    { Intel GPU with Intel drivers. }
     property VendorIntel: boolean read FVendorIntel;
 
     { Buggy GL_POINT_BIT flag for glPushAttrib (Mesa DRI Intel bug).
