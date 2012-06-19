@@ -72,6 +72,7 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
+    FBuggyGenerateCubeMap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
@@ -162,6 +163,9 @@ type
       so possibly it's not really related to Mesa version! Reports welcome)
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
+
+    { Buggy generating of cube texture maps on Intel }
+    property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (fglrx bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
@@ -457,6 +461,8 @@ begin
   FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
 
+  FBuggyGenerateCubeMap := VendorIntel;
+
   { On which fglrx versions does this occur?
 
     - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
@@ -507,7 +513,7 @@ begin
   FBuggyGLSLConstStruct := {$ifdef LINUX} VendorNvidia {$else} false {$endif};
 
   FBuggyFBOMultiSampling :=
-    {$ifdef WINDOWS} VendorATI and SameText(Renderer, 'AMD Radeon HD 6600 Series')
+    {$ifdef WINDOWS} (VendorATI and SameText(Renderer, 'AMD Radeon HD 6600 Series')) or VendorIntel
     {$else} false {$endif};
 end;
 
