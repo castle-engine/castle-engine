@@ -461,7 +461,7 @@ begin
   FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
 
-  FBuggyGenerateCubeMap := VendorIntel;
+  FBuggyGenerateCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
 
   { On which fglrx versions does this occur?
 
