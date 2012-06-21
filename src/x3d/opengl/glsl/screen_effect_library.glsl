@@ -46,7 +46,7 @@ vec4 screen_get_color(ivec2 position)
   return ( texelFetch(screen, position, 0) +
            texelFetch(screen, position, 1) ) / 2.0;
 #else
-  return texture2DRect(screen, vec2(position));
+  return texelFetch(screen, position);
 #endif
 #endif
 }
@@ -64,7 +64,7 @@ float screen_get_depth(ivec2 position)
   return ( texelFetch(screen_depth, position, 0).r +
            texelFetch(screen_depth, position, 1).r ) / 2.0;
 #else
-  return texture2DRect(screen_depth, vec2(position)).r;
+  return texelFetch(screen_depth, position).r;
 #endif
 #endif
 }

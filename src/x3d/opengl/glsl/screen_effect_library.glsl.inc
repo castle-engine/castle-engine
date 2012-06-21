@@ -48,7 +48,7 @@
 '  return ( texelFetch(screen, position, 0) +' + LineEnding + 
 '           texelFetch(screen, position, 1) ) / 2.0;' + LineEnding + 
 '#else' + LineEnding + 
-'  return texture2DRect(screen, vec2(position));' + LineEnding + 
+'  return texelFetch(screen, position);' + LineEnding +
 '#endif' + LineEnding + 
 '#endif' + LineEnding + 
 '}' + LineEnding + 
@@ -66,7 +66,7 @@
 '  return ( texelFetch(screen_depth, position, 0).r +' + LineEnding + 
 '           texelFetch(screen_depth, position, 1).r ) / 2.0;' + LineEnding + 
 '#else' + LineEnding + 
-'  return texture2DRect(screen_depth, vec2(position)).r;' + LineEnding + 
+'  return texelFetch(screen_depth, position).r;' + LineEnding +
 '#endif' + LineEnding + 
 '#endif' + LineEnding + 
 '}' + LineEnding + 
