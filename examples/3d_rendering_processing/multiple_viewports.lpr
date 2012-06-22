@@ -25,7 +25,7 @@
 
 uses SysUtils, GL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
   UIControls, Cameras, Quaternions, VectorMath, CastleControls, CastleWarnings,
-  CastleUtils, CastleGLUtils, OpenGLFonts, X3DLoad, GLShaders, CastleParameters,
+  CastleUtils, CastleGLUtils, X3DLoad, GLShaders, CastleParameters,
   CastleStringUtils;
 
 { TBackground ---------------------------------------------------------------- }
@@ -58,11 +58,8 @@ type
   TMyViewport = class(TCastleViewport)
   public
     Caption: string;
-    Font: TGLBitmapFont_Abstract;
     procedure Draw; override;
     procedure SetFocused(const Value: boolean); override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
   end;
 
 procedure ViewportDraw2D(ViewportPtr: Pointer);
@@ -89,13 +86,13 @@ begin
     glRectf(
       10 - Margin,
       10 - Margin,
-      10 + Viewport.Font.TextWidth(Viewport.Caption) + Margin,
-      10 + Viewport.Font.RowHeight + Margin);
+      10 + UIFont.TextWidth(Viewport.Caption) + Margin,
+      10 + UIFont.RowHeight + Margin);
     glDisable(GL_BLEND); { saved by GL_COLOR_BUFFER_BIT }
 
     glColor3f(1, 1, 0);
     SetWindowPos(Viewport.Left + 10, Viewport.Bottom + 10);
-    Viewport.Font.Print(Viewport.Caption);
+    UIFont.Print(Viewport.Caption);
   end;
 end;
 
@@ -118,18 +115,6 @@ begin
     VisibleChange;
   end;
 
-  inherited;
-end;
-
-procedure TMyViewport.GLContextOpen;
-begin
-  inherited;
-  Font := CreateUIFont;
-end;
-
-procedure TMyViewport.GLContextClose;
-begin
-  DestroyUIFont(Font);
   inherited;
 end;
 
