@@ -72,7 +72,7 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
-    FBuggyGenerateCubeMap: boolean;
+    FBuggyFixedFunctionCubeMap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
@@ -155,7 +155,7 @@ type
       trying to draw subimage with odd width). }
     property BuggyDrawOddWidth: boolean read FBuggyDrawOddWidth;
 
-    { Buggy glGenerateMipmapEXT (Mesa bug).
+    { Buggy glGenerateMipmapEXT (Mesa and Intel bug).
 
       This was observed with software (no direct) rendering with
       7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
@@ -164,8 +164,8 @@ type
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
 
-    { Buggy generating of cube texture maps on Intel }
-    property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
+    { Buggy usage of fixed-function cube maps on Intel. }
+    property BuggyFixedFunctionCubeMap: boolean read FBuggyFixedFunctionCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (fglrx bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
@@ -461,7 +461,7 @@ begin
   FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
 
-  FBuggyGenerateCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
+  FBuggyFixedFunctionCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
 
   { On which fglrx versions does this occur?
 

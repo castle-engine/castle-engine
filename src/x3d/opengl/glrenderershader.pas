@@ -2205,6 +2205,12 @@ begin
       end;
     tgReflection:
       begin
+        { on some Intel GPUs, we have to use shader rendering
+          for GeneratedCubeMapTexure }
+        if GLVersion.BuggyFixedFunctionCubeMap and
+           (TGLSLProgram.ClassSupport <> gsNone) then
+          ShapeRequiresShaders := true;
+
         glEnable(GL_TEXTURE_GEN_S);
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_R);

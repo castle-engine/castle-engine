@@ -1757,10 +1757,7 @@ begin
     { Fill with deliberately stupid (but constant) color,
       to recognize easily GeneratedCubeMapTexture which don't have textures
       updated. }
-    if not GLVersion.BuggyGenerateCubeMap then
-      InitialImage.Clear(Vector4Byte(255, 0, 255, 255))
-    else
-      InitialImage.Clear(Vector4Byte(237, 237, 237, 255)); { when buggy, use some reasonable color }
+    InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
 
     SetTextureRGBFromImage(InitialImage);
 
@@ -1819,17 +1816,12 @@ procedure TGLGeneratedCubeMapTextureNode.Update(
 begin
   if GLName = 0 then Exit;
 
-  { You may comment the following line out, so that you will see weird cubemaps on Intel}
-  if GLVersion.BuggyGenerateCubeMap then Exit;
-
   GLCaptureCubeMapTexture(GLName, Size,
     CubeMiddle,
     Render, ProjectionNear, ProjectionFar,
     RenderToTexture);
 
-  { When BuggyGenerateCubeMap, the code crashes at GenerateMipmaps. Additionally
-    cubemaps look so weird, that it's better not to generate them at all.}
-  if NeedsMipmaps and (not GLVersion.BuggyGenerateCubeMap) then
+  if NeedsMipmaps then
     RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
