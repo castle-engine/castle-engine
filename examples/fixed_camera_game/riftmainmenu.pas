@@ -352,7 +352,6 @@ begin
   FreeAndNil(SoundMenu);
   FreeAndNil(ChangeOpenALDeviceMenu);
   glFreeDisplayList(GLList_MenuBg);
-  OnScreenMenuCloseGL;
 end;
 
 initialization

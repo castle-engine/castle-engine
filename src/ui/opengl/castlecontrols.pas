@@ -33,7 +33,6 @@ type
     function TooltipStyle: TUIControlDrawStyle; override;
     procedure DrawTooltip; override;
     procedure GLContextOpen; override;
-    procedure GLContextClose; override;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
@@ -259,18 +258,18 @@ type
     property Blending: boolean read FBlending write FBlending default false;
   end;
 
-{ Create and destroy the default bitmap font used throughout UI interface.
+{ The bitmap fonts used throughout UI interface.
 
-  They work fast. Actually, only the first "create" call does actual work,
-  following calls only increment an internal counter.
-  Destroy decreases the counter and only frees the resources when the counter
-  is zero.
-
-  Destroying @nil is allowed NO-OP, for comfort.
+  They work fast. Actually, only the first "create" call does actual work.
+  The font is kept until the GL context is destroyed.
+  (We used to have reference-counting for this, but actually just keeping
+  the resource for the rest of GL context life is 1. easier and 2. better,
+  because we want to keep the resource even if you destroy and then recreate
+  all your controls.)
 
   @groupBegin }
-function CreateUIFont: TGLBitmapFont_Abstract;
-procedure DestroyUIFont(var Font: TGLBitmapFont_Abstract);
+function UIFont: TGLBitmapFont_Abstract;
+function UIFontSmall: TGLBitmapFont_Abstract;
 { @groupEnd }
 
 const
@@ -282,7 +281,8 @@ procedure Register;
 
 implementation
 
-uses SysUtils, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
+uses SysUtils,
+  BFNT_BitstreamVeraSans_m10_Unit, BFNT_BitstreamVeraSans_Unit, OpenGLBmpFonts,
   CastleGLUtils, GLImages, Math;
 
 procedure Register;
@@ -355,13 +355,7 @@ end;
 procedure TUIControlFont.GLContextOpen;
 begin
   inherited;
-  FFont := CreateUIFont;
-end;
-
-procedure TUIControlFont.GLContextClose;
-begin
-  DestroyUIFont(FFont);
-  inherited;
+  FFont := UIFont;
 end;
 
 { TCastleButton --------------------------------------------------------------- }
@@ -969,31 +963,29 @@ end;
 { UIFont --------------------------------------------------------------------- }
 
 var
-  UIFont: TGLBitmapFont_Abstract;
-  UIFontUsed: Cardinal;
+  FUIFont: TGLBitmapFont_Abstract;
+  FUIFontSmall: TGLBitmapFont_Abstract;
 
-function CreateUIFont: TGLBitmapFont_Abstract;
+function UIFont: TGLBitmapFont_Abstract;
 begin
-  if UIFont = nil then
-  begin
-    UIFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
-    UIFontUsed := 0;
-  end;
-
-  Inc(UIFontUsed);
-  Result := UIFont;
+  if FUIFont = nil then
+    FUIFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
+  Result := FUIFont;
 end;
 
-procedure DestroyUIFont(var Font: TGLBitmapFont_Abstract);
+function UIFontSmall: TGLBitmapFont_Abstract;
 begin
-  if Font <> nil then
-  begin
-    Assert(Font = UIFont, 'You can pass to DestroyUIFont only fonts created with CreateUIFont');
-    Dec(UIFontUsed);
-    if UIFontUsed = 0 then
-      FreeAndNil(UIFont);
-    Font := nil;
-  end;
+  if FUIFontSmall = nil then
+    FUIFontSmall := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans_m10);
+  Result := FUIFontSmall;
 end;
 
+procedure WindowClose(const Container: IUIContainer);
+begin
+  FreeAndNil(FUIFont);
+  FreeAndNil(FUIFontSmall);
+end;
+
+initialization
+  OnGLContextClose.Add(@WindowClose);
 end.

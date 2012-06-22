@@ -18,7 +18,7 @@ unit OnScreenMenu;
 
 interface
 
-uses Classes, OpenGLBmpFonts, BFNT_BitstreamVeraSans_Unit, VectorMath, Rectangles,
+uses Classes, OpenGLBmpFonts, VectorMath, Rectangles,
   GL, CastleGLUtils, UIControls, KeysMouse, CastleColors;
 
 const
@@ -55,7 +55,7 @@ type
       because we will not query GetWidth after every change of
       TMenuArgument.Value. Instead, TMenuArgument
       should return here the width of widest possible Value. }
-    function GetWidth(MenuFont: TGLBitmapFont): Integer; virtual; abstract;
+    function GetWidth: Integer; virtual; abstract;
 
     { Draw yourself. Note that Rectangle.Width is for sure the same
       as you returned in GetWidth. }
@@ -133,7 +133,7 @@ type
     { Calculate text width using font used by TMenuArgument. }
     class function TextWidth(const Text: string): Integer;
 
-    function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
+    function GetWidth: Integer; override;
     procedure Draw(const Rectangle: TRectangle); override;
   end;
 
@@ -167,7 +167,7 @@ type
   public
     constructor Create;
 
-    function GetWidth(MenuFont: TGLBitmapFont): Integer; override;
+    function GetWidth: Integer; override;
     procedure Draw(const Rectangle: TRectangle); override;
 
     { Should the Value be displayed as text ?
@@ -305,11 +305,7 @@ type
     displayed on the screen, one after the other. Typical for game menus.
     Normal user programs may prefer to use the menu bar instead of this
     (for example TCastleWindowBase.Menu, or normal Lazarus menu).
-    Although this still may be useful for displaying things like sliders.
-
-    One important "quirk" that you should be aware of:
-    Make sure you call OnScreenMenuCloseGL when you ended using any menus
-    (otherwise you'll get memory leak). }
+    Although this still may be useful for displaying things like sliders. }
   TCastleOnScreenMenu = class(TUIControl)
   private
     FFullSize: boolean;
@@ -641,46 +637,17 @@ type
     property FullSize: boolean read FFullSize write FFullSize default false;
   end;
 
-var
-  { These fonts will be automatically initialized by any TCastleOnScreenMenu operation
-    that require them. You can set them yourself or just let TCastleOnScreenMenu
-    to set it.
-
-    YOU MUST RELEASE THEM BY OnScreenMenuCloseGL. Don't forget about it.
-
-    @groupBegin }
-  MenuFont: TGLBitmapFont;
-  SliderFont: TGLBitmapFont;
-  { @groupEnd }
-
-{ Release some fonts, images, display lists that were created
-  during TOnScreenMenu lifetime when necessary. You must call this
-  when you finished using OnScreenMenu things. }
-procedure OnScreenMenuCloseGL;
-
 procedure Register;
 
 implementation
 
 uses SysUtils, CastleUtils, Images, CastleFilesUtils, CastleClassUtils,
-  BFNT_BitstreamVeraSans_m10_Unit, CastleStringUtils, GLImages,
-  OnScreenMenuImages, ALSoundEngine;
+  CastleStringUtils, GLImages,
+  OnScreenMenuImages, ALSoundEngine, CastleControls;
 
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleOnScreenMenu]);
-end;
-
-procedure SliderFontInit;
-begin
-  if SliderFont = nil then
-    SliderFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans_m10);
-end;
-
-procedure MenuFontInit;
-begin
-  if MenuFont = nil then
-    MenuFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 end;
 
 var
@@ -733,26 +700,25 @@ begin
     GLList_ImageSliderPosition := ImageDrawToDisplayList(ImageSliderPosition);
 end;
 
-procedure OnScreenMenuCloseGL;
+procedure WindowClose(const Container: IUIContainer);
 begin
-  FreeAndNil(MenuFont);
-  FreeAndNil(SliderFont);
   glFreeDisplayList(GLList_ImageSlider);
   glFreeDisplayList(GLList_ImageSliderPosition);
   FreeAndNil(ImageSlider);
 
   { Do not free, this is a reference to Slider_Position (that will be freed at
-    unit ImageSlider_Position finalization.)
+    unit OnScreenMenuImages finalization.)
 
     Note: I once tried to make here
       if ImageSliderPosition <> Slider_Position then
         FreeAndNil(ImageSliderPosition);
-    but this isn't so smart: OnScreenMenuCloseGL may be called from various
-    finalizations, and then Slider_Position may be already freed and nil.
+    but this isn't so smart because WindowClose may be called at various
+    moments, and then Slider_Position may be already freed and nil.
     Then "ImageSliderPosition <> Slider_Position" = true,
     but ImageSliderPosition is an invalid pointer.
-    More smart solutions (like ImageSliderPositionOwned: boolean)
-    are possible, but not needed for now since I control this. }
+    Smarter solutions (like ImageSliderPositionOwned: boolean)
+    are possible. But for now, this is just always equal to Slider_Position,
+    so no point in complicating this. }
   ImageSliderPosition := nil;
 end;
 
@@ -796,24 +762,21 @@ end;
 
 class function TMenuArgument.TextWidth(const Text: string): Integer;
 begin
-  MenuFontInit;
-  Result := MenuFont.TextWidth(Text);
+  Result := UIFont.TextWidth(Text);
 end;
 
-function TMenuArgument.GetWidth(MenuFont: TGLBitmapFont): Integer;
+function TMenuArgument.GetWidth: Integer;
 begin
   Result := MaximumValueWidth;
 end;
 
 procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
-  MenuFontInit;
-
   glPushMatrix;
-    glTranslatef(Rectangle.X0, Rectangle.Y0 + MenuFont.Descend, 0);
+    glTranslatef(Rectangle.X0, Rectangle.Y0 + UIFont.Descend, 0);
     glColorv(LightGreen3Single);
     glRasterPos2i(0, 0);
-    MenuFont.Print(Value);
+    UIFont.Print(Value);
   glPopMatrix;
 end;
 
@@ -845,7 +808,7 @@ begin
   FDisplayValue := true;
 end;
 
-function TMenuSlider.GetWidth(MenuFont: TGLBitmapFont): Integer;
+function TMenuSlider.GetWidth: Integer;
 begin
   ImageSliderInit;
   Result := ImageSlider.Width;
@@ -898,15 +861,13 @@ end;
 procedure TMenuSlider.DrawSliderText(
   const Rectangle: TRectangle; const Text: string);
 begin
-  SliderFontInit;
-
   glPushMatrix;
     glTranslatef(
-      Rectangle.X0 + (Rectangle.Width - SliderFont.TextWidth(Text)) / 2,
-      Rectangle.Y0 + (Rectangle.Height - SliderFont.RowHeight) / 2, 0);
+      Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) / 2,
+      Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) / 2, 0);
     glColorv(Black3Single);
     glRasterPos2i(0, 0);
-    SliderFont.Print(Text);
+    UIFontSmall.Print(Text);
   glPopMatrix;
 end;
 
@@ -1217,8 +1178,6 @@ begin
   if not ContainerSizeKnown then
     Exit;
 
-  MenuFontInit;
-
   ItemAccessoryGrabbed := -1;
 
   FAccessoryRectangles.Count := Items.Count;
@@ -1229,11 +1188,11 @@ begin
   MaxAccessoryWidth := 0;
   for I := 0 to Items.Count - 1 do
   begin
-    MaxTo1st(MaxItemWidth, MenuFont.TextWidth(Items[I]));
+    MaxTo1st(MaxItemWidth, UIFont.TextWidth(Items[I]));
 
     if Items.Objects[I] <> nil then
       FAccessoryRectangles.L[I].Width :=
-        TMenuAccessory(Items.Objects[I]).GetWidth(MenuFont) else
+        TMenuAccessory(Items.Objects[I]).GetWidth else
       FAccessoryRectangles.L[I].Width := 0;
 
     MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.L[I].Width);
@@ -1248,7 +1207,7 @@ begin
   FAllItemsRectangle.Height := 0;
   for I := 0 to Items.Count - 1 do
   begin
-    FAllItemsRectangle.Height += MenuFont.RowHeight;
+    FAllItemsRectangle.Height += UIFont.RowHeight;
     if I > 0 then
       FAllItemsRectangle.Height += Integer(SpaceBetweenItems(I));
   end;
@@ -1263,9 +1222,9 @@ begin
   begin
     if MaxAccessoryWidth <> 0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
-      WholeItemWidth := MenuFont.TextWidth(Items[I]);
+      WholeItemWidth := UIFont.TextWidth(Items[I]);
     Rectangles.Add(Rectangle(0, 0, WholeItemWidth,
-      MenuFont.Descend + MenuFont.RowHeight));
+      UIFont.Descend + UIFont.RowHeight));
   end;
 
   { Now take into account Position, PositionRelative*
@@ -1319,7 +1278,7 @@ begin
     Rectangles.L[I].Y0 := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
 
     if I > 0 then
-      ItemsBelowHeight += Cardinal(MenuFont.RowHeight + Integer(SpaceBetweenItems(I)));
+      ItemsBelowHeight += Cardinal(UIFont.RowHeight + Integer(SpaceBetweenItems(I)));
   end;
   FAllItemsRectangle.X0 := PositionAbsolute[0];
   FAllItemsRectangle.Y0 := PositionAbsolute[1];
@@ -1412,9 +1371,9 @@ begin
       glColorv(NonCurrentItemColor);
 
     glPushMatrix;
-      glTranslatef(Rectangles.L[I].X0, Rectangles.L[I].Y0 + MenuFont.Descend, 0);
+      glTranslatef(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend, 0);
       glRasterPos2i(0, 0);
-      MenuFont.Print(Items[I]);
+      UIFont.Print(Items[I]);
     glPopMatrix;
 
     if Items.Objects[I] <> nil then
@@ -1708,4 +1667,6 @@ begin
   FItems.Assign(Value);
 end;
 
+initialization
+  OnGLContextClose.Add(@WindowClose);
 end.

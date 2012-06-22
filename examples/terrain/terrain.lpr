@@ -475,7 +475,6 @@ begin
   FreeAndNil(SubdivisionSlider);
   FreeAndNil(LayersCountSlider);
   FreeAndNil(ImageHeightScaleSlider);
-  OnScreenMenuCloseGL;
 
   RenderElevationsCloseGL;
 end;
