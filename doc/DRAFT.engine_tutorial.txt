@@ -104,6 +104,42 @@ At the beginning we create a new instance of TCastleScene, and load it's content
 
 The level is added to the scene manager. The level is also set as the "MainScene" of scene manager, this means that some central settings (like initial camera position, initial headlight status and such) can be obtained from this scene.
 
+Alternative 5. and later: Adding creatures and items
+
+CastleCreatures unit (see inside src/game/ in sources) allows you to easily create creatures with artificial intelligence.
+
+5.1. For starters, you can just use the existing creature classes on CastleCreatures unit.
+
+  To get walk-attack-state intelligence, use the TWalkAttackCreatureKind class. Such creature tracks the player (remembers last seen player 3D position, walks/flies to it, possibly through sectors/waypoints — so it can pass through narrow doors in a labyrinth or walk over a narrow bridge), attacks the player from the right distance (this can be either a melee attack, or shooting a missile — which adds a missile to the 3D world), eventually runs from the player (when he's too close and/or our health is low). For now, the player is always the main enemy, and there's no "creature vs creature" fighting, although it can be added easily in the future.
+
+  For basic usage, there's no need to even derive new classes. All you need to do is to create a directory holding creature 3D data and index.xml describing it (for example, see various subdirectories of castle/data/creatures/ in SVN).
+
+  There are a lot of settings to achieve particular behavior, e.g. cowardly/brave, offensive/defensive, melee/ranged, etc.
+
+  There is also a "missile" intelligence (TMissileCreatureKind), that causes the creature to blindly go in given direction (possibly with gravity and/or homing (close-on-target) features). On impact, missile may explode, hurting player and/or other creatures. Any kind of missile, like arrow or lighting bolt, is represented as such "missile creature", that flies independently of the shooter.
+
+  And there is a TStillCreatureKind that just stands still (it can still show some looping animation, but there is no fancy logic behind it).
+
+5.2. You can also derive simple descendants of CastleCreatures classes, to customize their behavior. For example, "The Castle" customizes walk-attack creature to give both ranged and melee attacks to the Spider Queen, to make werewolves howl from time to time, and such. See castle1 GameCreatures.pas unit sources. We plan to add a simple FPS game to the engine examples, to illustrate this nicer.
+
+  You can start your customizations from full-features classes, like TWalkAttackCreatureKind and TWalkAttackCreature. Or you can take the basic TCreatureKind and TCreature, and extend them to your liking.
+
+  This is a good moment to browse the API reference of mentioned CastleCreatures classes, if you haven't already. See
+  * [TWalkAttackCreatureKind], [TWalkAttackCreature]
+  * [TMissileCreatureKind], [TMissileCreature]
+  * [TStillCreatureKind], [TStillCreature]
+  * [TCreatureKind], [TCreature]
+  * And see the class hierarchy descending from TCreatureKind and TCreature in [class hierarchy diagram]
+
+  Everything is designed to give you a lot of properties to set (most of them are also settable by index.xml files mentioned above) and a lot of methods to override. See not only the TCreature* classes, but also see above T3D classes in Base3D unit, for various things that you can override and use.
+
+  (TODO: Pasdoc: frame-less layout, to make direct links sensible.
+   TODO: Pasdoc: separate pascal_code_formatter, with @longCode formatter extracted, to convert pascal code to HTML-ified or LaTeX-ified output. HTML can of course be adjusted with CSS. I want to have many code snippets in this tutorial (see e.g. Symfony2 docs for inspiration.)
+
+5.3. (After creatures and items section, section "More stuff in your 3D world?")
+
+  Our creature and items classes in CastleCreatures and CastleItems units are not magic, they do not get any special treatment from the scene manager. Instead, they just extend the base 3D classes in Base3D unit. There are ready classes to represent 3D things, that can move, can collide with other 3D stuff and such. If you find that our creatures/items design is not enough for you, or maybe you want to have in your 3D world something that doesn't really fit the creature/item definition, you can always derive new classes from the Base3D classes. Like T3DAlive, T3DOrient, T3DTransform. Methods MyMove, MyMoveAllowed, MyHeight, MyLineOfSight allow you to add any kind of movement/intelligence to any 3D object.
+
 5. Adding some items
 
 For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TCastleScene or TCastlePrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
