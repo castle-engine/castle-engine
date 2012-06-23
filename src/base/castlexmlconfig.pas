@@ -186,7 +186,7 @@ procedure Register;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleFilesUtils;
+uses SysUtils, CastleStringUtils, CastleFilesUtils, CastleLog;
 
 procedure Register;
 begin
@@ -372,6 +372,9 @@ procedure TCastleConfig.Load(const AFileName: string);
 begin
   FileName := AFileName;
   OnLoad.ExecuteAll(Self);
+
+  if Log then
+    WritelnLog('Config', 'Loading configuration from "%s"', [FileName]);
 end;
 
 procedure TCastleConfig.Load;
@@ -383,6 +386,9 @@ procedure TCastleConfig.Save;
 begin
   OnSave.ExecuteAll(Self);
   Flush;
+
+  if Log and (FileName <> '') then
+    WritelnLog('Config', 'Savig configuration to "%s"', [FileName]);
 end;
 
 end.

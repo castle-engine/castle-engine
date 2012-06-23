@@ -29,7 +29,7 @@ uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, ProgressUnit,
   CastleGLUtils, CastleLog, CastleGameNotifications,
   RiftWindow, RiftVideoOptions, RiftIntro, RiftMainMenu,
-  RiftSound, RiftCreatures, CastleGameConfig, ALSoundEngine, VectorMath;
+  RiftSound, RiftCreatures, CastleConfig, ALSoundEngine, VectorMath;
 
 { requested screen size ------------------------------------------------------ }
 
@@ -145,6 +145,9 @@ begin
   Notifications.MaxMessages := 4;
   Notifications.Color := Vector3Single(0.8, 0.8, 0.8);
 
+  SoundEngine; //< initialize before loading config and SoundEngine.ParseParameters
+  Config.Load;
+
   { parse parameters }
   SoundEngine.ParseParameters;
   Window.ParseParameters([poDisplay]);
@@ -154,7 +157,7 @@ begin
     but at CastleGameConfig initialization it's too soon to call it
     (Log is not initialized yet). }
   if Log then
-    WritelnLog('User config file', ConfigFile.FileName);
+    WritelnLog('Config', 'Loading configuration from "%s"', [Config.FileName]);
 
   Window.Width := RequestedScreenWidth;
   Window.Height := RequestedScreenHeight;
@@ -228,4 +231,6 @@ begin
 
     SoundEngine.ALContextClose;
   end;
+
+  Config.Save;
 end.
