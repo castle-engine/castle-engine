@@ -37,6 +37,10 @@ type
     FFileNames: TStringList;
     FMaxCount: Cardinal;
     FOnOpenRecent: TOnOpenRecent;
+
+    { Load and save recently opened files list to/from the Config file. }
+    procedure LoadFromConfig(const Config: TCastleConfig);
+    procedure SaveToConfig(const Config: TCastleConfig);
   protected
     { Create and destroy menu (or anything else that mirrors FileNames contents).
       @groupBegin }
@@ -58,11 +62,6 @@ type
       filename is absolute. }
     procedure Add(const FileName: string; const MaybeStdIn: boolean = true); virtual;
 
-    { These load and save recently opened files list to/from the TCastleConfig file.
-      Path should not contain final "/" --- it will be added automatically. }
-    procedure LoadFromConfig(ConfigFile: TCastleConfig; const Path: string);
-    procedure SaveToConfig(ConfigFile: TCastleConfig; const Path: string);
-
     { List of currently stored filenames. @italic(This is readonly.) }
     property FileNames: TStringList read FFileNames;
   published
@@ -74,17 +73,28 @@ type
 
 implementation
 
-uses SysUtils, CastleClassUtils;
+uses SysUtils, CastleClassUtils, CastleConfig;
 
 constructor TBaseRecentFiles.Create(AOwner: TComponent);
 begin
   inherited;
   FFileNames := TStringList.Create;
   FMaxCount := DefaultMaxCount;
+
+  { one day, make this optional, to also enable many TBaseRecentFiles instances
+    in a program not overwriting each others' state. }
+  Config.OnLoad.Add(@LoadFromConfig);
+  Config.OnSave.Add(@SaveToConfig);
 end;
 
 destructor TBaseRecentFiles.Destroy;
 begin
+  if Config <> nil then
+  begin
+    Config.OnLoad.Remove(@LoadFromConfig);
+    Config.OnSave.Remove(@SaveToConfig);
+  end;
+
   FreeAndNil(FFileNames);
   inherited;
 end;
@@ -125,16 +135,20 @@ begin
   MenuCreate;
 end;
 
-procedure TBaseRecentFiles.LoadFromConfig(ConfigFile: TCastleConfig; const Path: string);
+const
+  { Should not contain final "/" --- it will be added automatically. }
+  Path = 'recent_files';
+
+procedure TBaseRecentFiles.LoadFromConfig(const Config: TCastleConfig);
 var
   I, C: Integer;
   S: string;
 begin
   FileNames.Clear;
-  C := ConfigFile.GetValue(Path + '/count', 0);
+  C := Config.GetValue(Path + '/count', 0);
   for I := 0 to C - 1 do
   begin
-    S := ConfigFile.GetValue(Path + '/item' + IntToStr(I) + '/filename', '');
+    S := Config.GetValue(Path + '/item' + IntToStr(I) + '/filename', '');
     if S <> '' then
       FileNames.Append(S);
   end;
@@ -143,13 +157,13 @@ begin
   MenuCreate;
 end;
 
-procedure TBaseRecentFiles.SaveToConfig(ConfigFile: TCastleConfig; const Path: string);
+procedure TBaseRecentFiles.SaveToConfig(const Config: TCastleConfig);
 var
   I: Integer;
 begin
-  ConfigFile.SetDeleteValue(Path + '/count', FileNames.Count, 0);
+  Config.SetDeleteValue(Path + '/count', FileNames.Count, 0);
   for I := 0 to FileNames.Count - 1 do
-    ConfigFile.SetDeleteValue(Path + '/item' + IntToStr(I) + '/filename', FileNames[I], '');
+    Config.SetDeleteValue(Path + '/item' + IntToStr(I) + '/filename', FileNames[I], '');
 end;
 
 end.
