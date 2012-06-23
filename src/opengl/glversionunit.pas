@@ -155,7 +155,7 @@ type
       trying to draw subimage with odd width). }
     property BuggyDrawOddWidth: boolean read FBuggyDrawOddWidth;
 
-    { Buggy glGenerateMipmapEXT (Mesa and Intel bug).
+    { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
 
       This was observed with software (no direct) rendering with
       7.0.2 (segfaults) and 7.2.? (makes X crashing; sweet).
@@ -164,18 +164,18 @@ type
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
 
-    { Buggy usage of fixed-function cube maps on Intel. }
+    { Buggy usage of fixed-function cube maps (Intel(Windows) bug). }
     property BuggyFixedFunctionCubeMap: boolean read FBuggyFixedFunctionCubeMap;
 
-    { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (fglrx bug).
+    { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
     property BuggyLightModelTwoSide: boolean read FBuggyLightModelTwoSide;
     property BuggyLightModelTwoSideMessage: string read FBuggyLightModelTwoSideMessage;
 
-    { Buggy VBO (Intel on Windows bug). }
+    { Buggy VBO (Intel(Windows) bug). }
     property BuggyVBO: boolean read FBuggyVBO;
 
-    { Buggy shadow2DProj in some situations (fglrx bug). }
+    { Buggy shadow2DProj in some situations (ATI(Linux) bug). }
     property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
 
     { Buggy GLSL @code("const in gl_Xxx") (NVidia bug).
@@ -186,7 +186,7 @@ type
     property BuggyGLSLConstStruct: boolean read FBuggyGLSLConstStruct;
 
     { Buggy (looks like wireframe) FBO rendering to
-      the multi-sampling texture (ATI on Windows bug).
+      the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
       This makes our screen effects broken on multi-sampled contexts. }
     property BuggyFBOMultiSampling: boolean read FBuggyFBOMultiSampling;
   end;
