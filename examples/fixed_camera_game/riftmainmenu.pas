@@ -36,7 +36,7 @@ implementation
 
 uses SysUtils, GL, CastleWindow, CastleFilesUtils,
   CastleGLUtils, CastleMessages, OnScreenMenu, WindowModes, CastleUtils,
-  VectorMath, CastleSoundMenu, Classes, CastleStringUtils,
+  VectorMath, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   GLImages, UIControls, CastleColors, ALSoundEngine,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
   RiftLocations, RiftGame;
@@ -245,7 +245,7 @@ begin
     glTranslatef(PositionAbsolute[0],
       PositionAbsolute[1] + AllItemsRectangle.Height - 20, 0);
     glRasterPos2i(0, 0);
-    MenuFont.Print(SubMenuTitle + ' :');
+    UIFont.Print(SubMenuTitle + ' :');
   glPopMatrix;
 end;
 
