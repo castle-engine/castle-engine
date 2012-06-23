@@ -2037,9 +2037,7 @@ begin
   CurrentScreenEffectsCount := ScreenEffectsCount;
 
   if GL_ARB_texture_rectangle and GLUseMultiTexturing and
-    (CurrentScreenEffectsCount <> 0) and
-    (not (GLVersion.BuggyFBOMultiSampling and
-          (GLCurrentMultiSampling > 1))) then
+    (CurrentScreenEffectsCount <> 0) then
   begin
     CurrentScreenEffectsNeedDepth := ScreenEffectsNeedDepth;
 

@@ -1181,7 +1181,8 @@ begin
   GLFBOMultiSampling :=
     { Is GL_ARB_framebuffer_object available? }
     ({$ifdef HAS_GL_VERSION_ABOVE_2} GL_version_3_0 or {$endif} GL_ARB_framebuffer_object) and
-    Load_GL_ARB_texture_multisample;
+    Load_GL_ARB_texture_multisample and
+    (not GLVersion.BuggyFBOMultiSampling);
 
   if GL_ARB_multisample and (glGetInteger(GL_SAMPLE_BUFFERS_ARB) <> 0) then
   begin
