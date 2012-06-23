@@ -1017,12 +1017,6 @@ object Main: TMain
     left = 83
     top = 73
   end
-  object Config: TCastleConfig
-    StartEmpty = False
-    RootName = 'CONFIG'
-    left = 272
-    top = 104
-  end
   object RecentFiles: TLazRecentFiles
     OnOpenRecent = RecentFilesOpenRecent
     left = 274

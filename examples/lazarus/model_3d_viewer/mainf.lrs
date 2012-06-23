@@ -1,5 +1,3 @@
-{ This is an automatically generated lazarus resource file }
-
 LazarusResources.Add('TMain','FORMDATA',[
   'TPF0'#5'TMain'#4'Main'#4'Left'#3#206#1#6'Height'#3']'#2#3'Top'#3#211#0#5'Wid'
   +'th'#3#206#2#13'ActiveControl'#7#7'Browser'#7'Caption'#6#4'Main'#12'ClientHe'
@@ -924,12 +922,11 @@ LazarusResources.Add('TMain','FORMDATA',[
   +'"Visit "Castle Game Engine" website'#7'OnClick'#7#16'MenuWebsiteClick'#0#0#0
   +#0#11'TOpenDialog'#11'OpenDialog1'#5'Title'#6#18'Open 3d model file'#11'Filt'
   +'erIndex'#2#0#4'left'#2'P'#3'top'#3#184#0#0#0#6'TTimer'#6'Timer1'#7'OnTimer'
-  +#7#11'Timer1Timer'#4'left'#2'S'#3'top'#2'I'#0#0#13'TCastleConfig'#6'Config'
-  +#10'StartEmpty'#8#8'RootName'#21#6#0#0#0'C'#0'O'#0'N'#0'F'#0'I'#0'G'#0#4'lef'
-  +'t'#3#16#1#3'top'#2'h'#0#0#15'TLazRecentFiles'#11'RecentFiles'#12'OnOpenRece'
-  +'nt'#7#21'RecentFilesOpenRecent'#4'left'#3#18#1#3'top'#3#175#0#0#0#22'TAppli'
-  +'cationProperties'#22'ApplicationProperties1'#6'OnIdle'#7#26'ApplicationProp'
-  +'erties1Idle'#4'left'#3#12#1#3'top'#2','#0#0#11'TSaveDialog'#20'SaveScreensh'
-  +'otDialog'#5'Title'#6#18'Save Screenshot As'#7'Options'#11#17'ofOverwritePro'
-  +'mpt'#14'ofEnableSizing'#12'ofViewDetail'#0#4'left'#3#3#1#3'top'#3#15#1#0#0#0
+  +#7#11'Timer1Timer'#4'left'#2'S'#3'top'#2'I'#0#0#15'TLazRecentFiles'#11'Recen'
+  +'tFiles'#12'OnOpenRecent'#7#21'RecentFilesOpenRecent'#4'left'#3#18#1#3'top'#3
+  +#175#0#0#0#22'TApplicationProperties'#22'ApplicationProperties1'#6'OnIdle'#7
+  +#26'ApplicationProperties1Idle'#4'left'#3#12#1#3'top'#2','#0#0#11'TSaveDialo'
+  +'g'#20'SaveScreenshotDialog'#5'Title'#6#18'Save Screenshot As'#7'Options'#11
+  +#17'ofOverwritePrompt'#14'ofEnableSizing'#12'ofViewDetail'#0#4'left'#3#3#1#3
+  +'top'#3#15#1#0#0#0
 ]);

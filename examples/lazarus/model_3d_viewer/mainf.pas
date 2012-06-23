@@ -23,7 +23,7 @@ interface
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
   OpenGLContext, Menus, CastleScene, Cameras, CastleControl, CastleWarnings,
-  LCLRecentFiles, CastleXMLConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles,
+  LCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, RecentFiles,
   CastleSceneManager;
 
 type
@@ -70,7 +70,6 @@ type
     Timer1: TTimer;
     MenuItem2: TMenuItem;
     MenuMouseLookToggle: TMenuItem;
-    Config: TCastleConfig;
     RecentFiles: TLazRecentFiles;
     MenuAggressiveUpdateToggle: TMenuItem;
     procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
@@ -243,10 +242,10 @@ procedure TMain.FormCreate(Sender: TObject);
 begin
   FileFiltersToDialog(Load3D_FileFilters, OpenDialog1);
 
-  { load config settings, in particular recent files }
+  { load config settings }
   OnGetApplicationName := @MyGetApplicationName;
-  Config.FileName := UserConfigFile('.conf');
-  RecentFiles.LoadFromConfig(Config, 'recent_files');
+  Config.Load;
+
   RecentFiles.NextMenuItem := MenuSep1;
 
   UpdateCaption;
@@ -274,8 +273,7 @@ end;
 procedure TMain.FormDestroy(Sender: TObject);
 begin
   { save config settings }
-  RecentFiles.SaveToConfig(Config, 'recent_files');
-  Config.Flush;
+  Config.Save;
 end;
 
 procedure TMain.RecentFilesOpenRecent(const FileName: string);
