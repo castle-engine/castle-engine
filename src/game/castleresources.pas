@@ -214,8 +214,7 @@ var
 implementation
 
 uses SysUtils, ProgressUnit, CastleGameCache, CastleXMLUtils, CastleTimeUtils,
-  CastleStringUtils, CastleLog, CastleFilesUtils, CastleGameConfig,
-  UIControls;
+  CastleStringUtils, CastleLog, CastleFilesUtils, CastleConfig, UIControls;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
@@ -565,22 +564,33 @@ begin
   end;
 end;
 
+type
+  TConfigOptions = class
+    class procedure LoadFromConfig(const Config: TCastleConfig);
+    class procedure SaveToConfig(const Config: TCastleConfig);
+  end;
+
+class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
+begin
+  AnimationScenesPerTime := Config.GetValue(
+    'video_options/animation_smoothness',
+    DefaultAnimationScenesPerTime);
+end;
+
+class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
+begin
+  Config.SetDeleteValue(
+    'video_options/animation_smoothness',
+    AnimationScenesPerTime, DefaultAnimationScenesPerTime);
+end;
+
 initialization
   OnGLContextClose.Add(@WindowClose);
   AllResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
-
-  AnimationScenesPerTime := ConfigFile.GetValue(
-    'video_options/animation_smoothness',
-    DefaultAnimationScenesPerTime);
+  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
+  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 finalization
   FreeAndNil(AllResources);
   FreeAndNil(ResourceClasses);
-
-  if ConfigFile <> nil then
-  begin
-    ConfigFile.SetDeleteValue(
-      'video_options/animation_smoothness',
-      AnimationScenesPerTime, DefaultAnimationScenesPerTime);
-  end;
 end.

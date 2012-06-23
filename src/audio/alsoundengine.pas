@@ -104,6 +104,9 @@ type
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
     procedure SetEnable(const Value: boolean);
+  protected
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -245,9 +248,6 @@ type
     function Devices: TALDeviceDescriptionList;
 
     function DeviceNiceName: string;
-
-    procedure LoadFromConfig(ConfigFile: TCastleConfig); override;
-    procedure SaveToConfig(ConfigFile: TCastleConfig); override;
 
     { Events fired after OpenAL context and device are being open or closed.
       More precisely, when ALInitialized changes (and so, possibly, ALActive
@@ -432,6 +432,9 @@ type
       and does something only if we have OpenAL context and some sounds,
       so it's actually safe to call it always). }
     procedure LoadSoundsBuffers;
+  protected
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
   public
     constructor Create;
     destructor Destroy; override;
@@ -541,9 +544,6 @@ type
     procedure AddSoundImportanceName(const Name: string; Importance: Integer);
 
     property MusicPlayer: TMusicPlayer read FMusicPlayer;
-
-    procedure LoadFromConfig(ConfigFile: TCastleConfig); override;
-    procedure SaveToConfig(ConfigFile: TCastleConfig); override;
   end;
 
   { Music player, to easily play a sound preloaded by TXmlSoundEngine.
@@ -618,30 +618,16 @@ var
   { @groupEnd }
     :TSoundType;
 
-function GetSoundEngine: TXmlSoundEngine;
-procedure SetSoundEngine(const Value: TXmlSoundEngine);
 
-{ The global instance of a sound engine (TXmlSoundEngine, the most capable
-  engine class).
-
-  You can create and assign it explicitly. Or you can let the first access
-  to SoundEngine automatically create it (on demand,
-  e.g. when you open VRML/X3D file with a Sound node).
-  If you want to assign it explicitly, be sure to do it before
-  anything accesses the SoundEngine (like scene manager).
-  Assigning explicitly may be useful when you want
-  to assign a descendant of TXmlSoundEngine class.
-
-  You can also destroy it explicitly (remember to set it to nil afterwards,
-  usually use FreeAndNil). Or you can let this unit's finalization do it
-  automatically. }
-property SoundEngine: TXmlSoundEngine read GetSoundEngine write SetSoundEngine;
+{ The sound engine. Singleton instance of TXmlSoundEngine, the most capable
+  engine class. Created on first call to this function. }
+function SoundEngine: TXmlSoundEngine;
 
 implementation
 
 uses CastleUtils, CastleStringUtils, ALUtils, CastleLog, ProgressUnit,
   SoundFile, VorbisFile, EFX, CastleParameters, StrUtils, CastleWarnings,
-  DOM, XMLRead, CastleXMLUtils, CastleFilesUtils;
+  DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -694,6 +680,9 @@ begin
   BuffersCache := TALBuffersCacheList.Create;
   FOnOpenClose := TNotifyEventList.Create;
 
+  Config.OnLoad.Add(@LoadFromConfig);
+  Config.OnSave.Add(@SaveToConfig);
+
   { Default OpenAL listener attributes }
   ListenerPosition := ZeroVector3Single;
   ListenerOrientation[0] := Vector3Single(0, 0, -1);
@@ -702,6 +691,12 @@ end;
 
 destructor TALSoundEngine.Destroy;
 begin
+  if Config <> nil then
+  begin
+    Config.OnLoad.Remove(@LoadFromConfig);
+    Config.OnSave.Remove(@SaveToConfig);
+  end;
+
   ALContextClose;
   FreeAndNil(BuffersCache);
   FreeAndNil(FDevices);
@@ -1412,20 +1407,20 @@ const
   DefaultAudioDevice = '';
   DefaultAudioEnable = true;
 
-procedure TALSoundEngine.LoadFromConfig(ConfigFile: TCastleConfig);
+procedure TALSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
-  Device := ConfigFile.GetValue('sound/device', DefaultAudioDevice);
-  Enable := ConfigFile.GetValue('sound/enable', DefaultAudioEnable);
+  Device := Config.GetValue('sound/device', DefaultAudioDevice);
+  Enable := Config.GetValue('sound/enable', DefaultAudioEnable);
 end;
 
-procedure TALSoundEngine.SaveToConfig(ConfigFile: TCastleConfig);
+procedure TALSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
   inherited;
   if DeviceSaveToConfig then
-    ConfigFile.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
+    Config.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
   if EnableSaveToConfig then
-    ConfigFile.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
+    Config.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
 end;
 
 { TXmlSoundEngine ----------------------------------------------------------- }
@@ -1668,22 +1663,22 @@ begin
   FSoundImportanceNames.AddObject(Name, TObject(Pointer(PtrUInt(Importance))));
 end;
 
-procedure TXmlSoundEngine.LoadFromConfig(ConfigFile: TCastleConfig);
+procedure TXmlSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
-  Volume := ConfigFile.GetFloat('sound/volume', DefaultVolume);
-  MusicPlayer.MusicVolume := ConfigFile.GetFloat('sound/music/volume',
+  Volume := Config.GetFloat('sound/volume', DefaultVolume);
+  MusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
     DefaultMusicVolume);
 end;
 
-procedure TXmlSoundEngine.SaveToConfig(ConfigFile: TCastleConfig);
+procedure TXmlSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
   inherited;
-  ConfigFile.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
+  Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then
-    ConfigFile.SetDeleteFloat('sound/music/volume',
+    Config.SetDeleteFloat('sound/music/volume',
       MusicPlayer.MusicVolume, DefaultMusicVolume);
 end;
 
@@ -1760,17 +1755,11 @@ end;
 var
   FSoundEngine: TXmlSoundEngine;
 
-function GetSoundEngine: TXmlSoundEngine;
+function SoundEngine: TXmlSoundEngine;
 begin
   if FSoundEngine = nil then
     FSoundEngine := TXmlSoundEngine.Create;
   Result := FSoundEngine;
-end;
-
-procedure SetSoundEngine(const Value: TXmlSoundEngine);
-begin
-  Assert(FSoundEngine = nil, 'SoundEngine is already assigned');
-  FSoundEngine := Value;
 end;
 
 finalization

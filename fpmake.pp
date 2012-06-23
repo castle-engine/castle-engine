@@ -123,6 +123,7 @@ begin
     P.Targets.AddUnit('vorbisfile.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
+    P.Targets.AddUnit('castleconfig.pas');
     P.Targets.AddUnit('enumeratefiles.pas');
     P.Targets.AddUnit('filefilters.pas');
     P.Targets.AddUnit('castleclassutils.pas');
@@ -255,7 +256,6 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'game');
     P.Targets.AddUnit('castlecreatures.pas');
     P.Targets.AddUnit('castlegamecache.pas');
-    P.Targets.AddUnit('castlegameconfig.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
     P.Targets.AddUnit('castlegamevideooptions.pas');
     P.Targets.AddUnit('castleresources.pas');

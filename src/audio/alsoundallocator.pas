@@ -199,6 +199,19 @@ type
     FMaxAllocatedSources: Cardinal;
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
+  protected
+    { Load and save into XML config file some sound engine properties.
+      Everything is loaded / saved under the path "sound/" inside Config.
+
+      TALSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
+      Descendant TALSoundEngine additionally saves current Device, Enable
+      (unless Enable was set by @--no-sound command-line option).
+      Descendant TXMLSoundEngine additionally saves sound and music volume.
+
+      @groupBegin }
+    procedure LoadFromConfig(const Config: TCastleConfig); virtual;
+    procedure SaveToConfig(const Config: TCastleConfig); virtual;
+    { @groupEnd }
   public
     constructor Create;
     procedure ALContextOpen; virtual;
@@ -247,19 +260,6 @@ type
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
-
-    { Load and save into XML config file some sound engine properties.
-      Everything is loaded / saved under the path "sound/" inside ConfigFile.
-
-      TALSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
-      Descendant TALSoundEngine additionally saves current Device, Enable
-      (unless Enable was set by @--no-sound command-line option).
-      Descendant TXMLSoundEngine additionally saves sound and music volume.
-
-      @groupBegin }
-    procedure LoadFromConfig(ConfigFile: TCastleConfig); virtual;
-    procedure SaveToConfig(ConfigFile: TCastleConfig); virtual;
-    { @groupEnd }
   published
     { Minimum / maximum number of allocated OpenAL sources.
       Always keep MinAllocatedSources <= MaxAllocatedSources.
@@ -639,19 +639,19 @@ begin
         FAllocatedSources[I].DoUsingEnd;
 end;
 
-procedure TALSoundAllocator.LoadFromConfig(ConfigFile: TCastleConfig);
+procedure TALSoundAllocator.LoadFromConfig(const Config: TCastleConfig);
 begin
-  MinAllocatedSources := ConfigFile.GetValue(
+  MinAllocatedSources := Config.GetValue(
     'sound/allocated_sources/min', DefaultMinAllocatedSources);
-  MaxAllocatedSources := ConfigFile.GetValue(
+  MaxAllocatedSources := Config.GetValue(
     'sound/allocated_sources/max', DefaultMaxAllocatedSources);
 end;
 
-procedure TALSoundAllocator.SaveToConfig(ConfigFile: TCastleConfig);
+procedure TALSoundAllocator.SaveToConfig(const Config: TCastleConfig);
 begin
-  ConfigFile.SetDeleteValue('sound/allocated_sources/min',
+  Config.SetDeleteValue('sound/allocated_sources/min',
     MinAllocatedSources, DefaultMinAllocatedSources);
-  ConfigFile.SetDeleteValue('sound/allocated_sources/max',
+  Config.SetDeleteValue('sound/allocated_sources/max',
     MaxAllocatedSources, DefaultMaxAllocatedSources);
 end;
 

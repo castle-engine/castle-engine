@@ -31,9 +31,19 @@ unit CastleXMLConfig;
 interface
 
 uses CastleUtils, {$ifdef USE_OLD_XMLCFG} XMLCfg {$else} XMLConf {$endif}, DOM,
-  VectorMath, KeysMouse;
+  VectorMath, KeysMouse, GenericStructList, Classes;
 
 type
+  TCastleConfig = class;
+
+  TCastleConfigEvent = procedure (const Config: TCastleConfig) of object;
+
+  TCastleConfigEventList = class(specialize TGenericStructList<TCastleConfigEvent>)
+  public
+    { Call all items. }
+    procedure ExecuteAll(const Config: TCastleConfig);
+  end;
+
   { Store configuration in XML format.
 
     This is a descendant of TXMLConfig that adds various small extensions:
@@ -41,7 +51,12 @@ type
     vector types, key (TKey) types,
     PathElement utility. }
   TCastleConfig = class(TXMLConfig)
+  private
+    FOnLoad, FOnSave: TCastleConfigEventList;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
     { Internal notes: At the beginning I made the float methods
       to overload existing names (GetValue, SetValue etc.).
 
@@ -134,20 +149,75 @@ type
     function GetNonEmptyValue(const APath: string): string;
 
     procedure NotModified;
+
+    { Called at @link(Load). }
+    property OnLoad: TCastleConfigEventList read FOnLoad;
+
+    { Called at @link(Save). }
+    property OnSave: TCastleConfigEventList read FOnSave;
+
+    { Load the current configuration of the engine components.
+      Sets FileName, loading the appropriate file to our properties,
+      and then calls the OnLoad callbacks to allow all engine components
+      read their settings.
+
+      The overloaded version without AFileName chooses
+      a suitable filename for storing per-program user preferences.
+      It uses ApplicationName to pick a filename that is unique
+      to your application (usually you want to assign OnGetApplicationName
+      callback to set your name, unless you're fine with default determination
+      that looks at stuff like ParamStr(0)).
+      See FPC OnGetApplicationName docs.
+      It uses @link(UserConfigFile) to determine location of this file.
+
+      @groupBegin }
+    procedure Load(const AFileName: string);
+    procedure Load;
+    { @groupEnd }
+
+    { Save the configuration of all engine components.
+      Calls the OnSave callbacks to allow all engine components
+      to store their settings in our properties, and then flushes
+      them to disk (using FileName property) by inherited Flush method. }
+    procedure Save;
   end;
 
 procedure Register;
 
 implementation
 
-uses SysUtils, CastleStringUtils, Classes, CastleFilesUtils;
+uses SysUtils, CastleStringUtils, CastleFilesUtils;
 
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleConfig]);
 end;
 
+{ TCastleConfigEventList ----------------------------------------------------- }
+
+procedure TCastleConfigEventList.ExecuteAll(const Config: TCastleConfig);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I](Config);
+end;
+
 { TCastleConfig -------------------------------------------------------------- }
+
+constructor TCastleConfig.Create(AOwner: TComponent);
+begin
+  inherited;
+  FOnLoad := TCastleConfigEventList.Create;
+  FOnSave := TCastleConfigEventList.Create;
+end;
+
+destructor TCastleConfig.Destroy;
+begin
+  FreeAndNil(FOnLoad);
+  FreeAndNil(FOnSave);
+  inherited;
+end;
 
 function TCastleConfig.GetFloat(const APath: string;
   const ADefaultValue: Float): Float;
@@ -296,6 +366,23 @@ end;
 procedure TCastleConfig.NotModified;
 begin
   FModified := false;
+end;
+
+procedure TCastleConfig.Load(const AFileName: string);
+begin
+  FileName := AFileName;
+  OnLoad.ExecuteAll(Self);
+end;
+
+procedure TCastleConfig.Load;
+begin
+  Load(UserConfigFile('.conf'));
+end;
+
+procedure TCastleConfig.Save;
+begin
+  OnSave.ExecuteAll(Self);
+  Flush;
 end;
 
 end.

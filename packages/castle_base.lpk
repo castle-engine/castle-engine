@@ -700,8 +700,8 @@
         <UnitName Value="CastleGameCache"/>
       </Item161>
       <Item162>
-        <Filename Value="../src/game/castlegameconfig.pas"/>
-        <UnitName Value="CastleGameConfig"/>
+        <Filename Value="../src/base/castleconfig.pas"/>
+        <UnitName Value="CastleConfig"/>
       </Item162>
       <Item163>
         <Filename Value="../src/game/castlegamenotifications.pas"/>

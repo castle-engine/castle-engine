@@ -138,7 +138,7 @@ type
 
   TBeforeShapeRenderProc = procedure (Shape: TShape) of object;
 
-  TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes);
+  TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes) of object;
 
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
