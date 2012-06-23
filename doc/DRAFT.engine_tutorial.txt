@@ -315,3 +315,42 @@ IOW, you manually force the current time of the scene/camera to increase as much
 The time of the scene and of the camera is actually independent. You can remove the "MainScene.IncreaseTime" call, if you know that your scene stays static (and want to force it to look like static), and want to animate only camera. Or the other way around, if your camera is static (or you want to force it to be static) but you have an animation in VRML/X3D, you can remove the "Camera.Idle" line.
 
 FrameTime is in seconds, as both TCastleSceneCore.IncreseTime and TCamera.Idle take it's time argument in seconds. But don't worry, this is a float, so actually it honors fractions of seconds as well. So something like 1/25 to get 25 frames per second is Ok.
+
+14. Logging
+
+Easy: Use CastleLog, call InitializeLog, and you have your log on stderr. A lot of engine components will immediately use it. To use it yourself, do
+
+[[
+if Log then
+  WritelnLog('Category', 'My Log Message');
+]]
+
+('Category' is useful to easily spot your messages later. There are no hard rules about it, i.e. you're free to just invent your own category names here, like 'Creatures' or 'Rendering'.)
+
+15. User preferences
+
+Easy: Use CastleConfig. Various engine components automatically register that they can load/save user preferences. So
+
+[[
+{ make sure you have created all stuff that registers user preferences first }
+SoundEngine; // if you want to save sound config
+RecentMenu := TCastleRecentFiles.Create(nil); // if you use "recent files" menu
+
+{ make sure application name is correct if you want by setting OnGetApplicationName, like this : }
+
+function MyGetApplicationName: string;
+begin
+  Result := 'glplotter';
+end;
+
+...
+  OnGetApplicationName := @MyGetApplicationName;
+
+{ load config from file }
+Config.Load;
+
+... { do your program }
+
+{ save config to file }
+Config.Save;
+]]
