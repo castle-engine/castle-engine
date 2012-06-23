@@ -435,12 +435,14 @@ type
       read FTextureMagFilter write SetTextureMagFilter default GL_LINEAR;
     { @groupEnd }
 
-    { Size of points. This has an effect on VRML/X3D PointSet rendering. }
+    { Size of points. This has an effect on VRML/X3D PointSet rendering.
+      Must be > 0. }
     property PointSize: TGLFloat
       read FPointSize write FPointSize default DefaultPointSize;
 
     { Line width. This has an effect on VRML/X3D LineSet rendering,
-      and on wireframe rendering for TSceneRenderingAttributes.WireframeEffect. }
+      and on wireframe rendering for TSceneRenderingAttributes.WireframeEffect.
+      Must be > 0. }
     property LineWidth: Single
       read FLineWidth write FLineWidth default DefaultLineWidth;
 
