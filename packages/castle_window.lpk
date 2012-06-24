@@ -50,7 +50,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="1"/>
-    <Files Count="14">
+    <Files Count="13">
       <Item2>
         <Filename Value="../src/window/castlesoundmenu.pas"/>
         <UnitName Value="CastleSoundMenu"/>
@@ -63,10 +63,6 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/castlerecentfiles.pas"/>
         <UnitName Value="CastleRecentFiles"/>
       </Item4>
-      <Item5>
-        <Filename Value="../src/window/castleinputs.pas"/>
-        <UnitName Value="CastleInputs"/>
-      </Item5>
       <Item6>
         <Filename Value="../src/window/castlemessages.pas"/>
         <UnitName Value="CastleMessages"/>
@@ -91,11 +87,11 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item13>
-      <Item14>
+      <Item5>
         <Filename Value="../src/window/unix/castleglx.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGlx"/>
-      </Item14>
+      </Item5>
       <Item11>
         <Filename Value="../src/window/unix/castlexf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>

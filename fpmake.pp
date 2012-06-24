@@ -177,7 +177,6 @@ begin
     P.Targets.AddUnit('castlesoundmenu.pas');
     p.targets.addunit('castlewindow.pas');
     p.targets.addunit('castlerecentfiles.pas');
-    P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castlemessages.pas');
     p.targets.addunit('windowmodes.pas');
     P.Targets.AddUnit('castleprogress.pas');
