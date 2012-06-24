@@ -203,14 +203,6 @@ var
   by using appropriate type="xxx" inside index.xml file. }
 procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: string);
 
-const
-  DefaultAnimationScenesPerTime = DefaultKAnimScenesPerTime;
-  MinAnimationScenesPerTime = 5;
-  MaxAnimationScenesPerTime = 40;
-
-var
-  AnimationScenesPerTime: Cardinal;
-
 implementation
 
 uses SysUtils, ProgressUnit, CastleGameCache, CastleXMLUtils, CastleTimeUtils,
@@ -304,9 +296,7 @@ begin
   begin
     Anim := TCastlePrecalculatedAnimation.CreateCustomCache(nil, GLContextCache);
     Allocated.Add(Anim);
-    Anim.LoadFromFile(AnimationFile, { AllowStdIn } false, { LoadTime } true,
-      { rescale scenes_per_time }
-      AnimationScenesPerTime / DefaultKAnimScenesPerTime);
+    Anim.LoadFromFile(AnimationFile, { AllowStdIn } false, { LoadTime } true);
   end;
   if DoProgress then Progress.Step;
 
@@ -564,32 +554,10 @@ begin
   end;
 end;
 
-type
-  TConfigOptions = class
-    class procedure LoadFromConfig(const Config: TCastleConfig);
-    class procedure SaveToConfig(const Config: TCastleConfig);
-  end;
-
-class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
-begin
-  AnimationScenesPerTime := Config.GetValue(
-    'video_options/animation_smoothness',
-    DefaultAnimationScenesPerTime);
-end;
-
-class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
-begin
-  Config.SetDeleteValue(
-    'video_options/animation_smoothness',
-    AnimationScenesPerTime, DefaultAnimationScenesPerTime);
-end;
-
 initialization
   OnGLContextClose.Add(@WindowClose);
   AllResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
-  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
-  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 finalization
   FreeAndNil(AllResources);
   FreeAndNil(ResourceClasses);

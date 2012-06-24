@@ -303,10 +303,20 @@ type
 
         Note that, independent of this, you can always change TimeLoop
         and TimeBackwards properties later,
-        since these properties are writeable at any time.) }
+        since these properties are writeable at any time.)
+
+      @param(Smoothness Scales the number of scenes
+        created per second. Values > 1 make better quality but also use more memory.
+        If this parameter isn't given, we use global AnimationSmoothness
+        (which is by default 1, but may be globally changed).)
+
+      @groupBegin }
     procedure LoadFromFile(const FileName: string;
       const AllowStdIn: boolean; const LoadTime: boolean;
-      const ScenesPerTimeMultiply: Float = 1.0);
+      const Smoothness: Float);
+    procedure LoadFromFile(const FileName: string;
+      const AllowStdIn: boolean; const LoadTime: boolean);
+    { @groupEnd }
 
     { This releases all resources allocared by Load (or LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -642,12 +652,21 @@ type
 
   TCastlePrecalculatedAnimationList = specialize TFPGObjectList<TCastlePrecalculatedAnimation>;
 
+const
+  DefaultAnimationSmoothness = 1.0;
+var
+  { Default Smoothness value for TCastlePrecalculatedAnimation.LoadFromFile.
+    This allows to globally control the precalculated animations quality.
+    Saved as user preference to Config (if your program will call Config.Load
+    and Config.Save, see CastleConfig). }
+  AnimationSmoothness: Single = DefaultAnimationSmoothness;
+
 procedure Register;
 
 implementation
 
 uses Math, X3DFields, ProgressUnit, X3DLoad, CastleLog, DateUtils,
-  Shape;
+  Shape, CastleConfig;
 
 procedure Register;
 begin
@@ -1361,8 +1380,7 @@ begin
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromFile(const FileName: string;
-  const AllowStdIn, LoadTime: boolean;
-  const ScenesPerTimeMultiply: Float);
+  const AllowStdIn, LoadTime: boolean; const Smoothness: Float);
 var
   Times: TSingleList;
   RootNodes: TX3DNodeList;
@@ -1377,7 +1395,7 @@ begin
       RootNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
 
-    ScenesPerTime := Round(ScenesPerTime * ScenesPerTimeMultiply);
+    ScenesPerTime := Round(ScenesPerTime * Smoothness);
 
     Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
 
@@ -1390,6 +1408,12 @@ begin
     FreeAndNil(Times);
     FreeAndNil(RootNodes);
   end;
+end;
+
+procedure TCastlePrecalculatedAnimation.LoadFromFile(const FileName: string;
+  const AllowStdIn: boolean; const LoadTime: boolean);
+begin
+  LoadFromFile(FileName, AllowStdIn, LoadTime, AnimationSmoothness);
 end;
 
 procedure TCastlePrecalculatedAnimation.Close;
@@ -2012,4 +2036,26 @@ begin
   end;
 end;
 
+type
+  TConfigOptions = class
+    class procedure LoadFromConfig(const Config: TCastleConfig);
+    class procedure SaveToConfig(const Config: TCastleConfig);
+  end;
+
+class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
+begin
+  AnimationSmoothness := Config.GetFloat(
+    'video_options/animation_smoothness', DefaultAnimationSmoothness);
+end;
+
+class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
+begin
+  Config.SetDeleteFloat(
+    'video_options/animation_smoothness',
+    AnimationSmoothness, DefaultAnimationSmoothness);
+end;
+
+initialization
+  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
+  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
 end.
