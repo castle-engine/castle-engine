@@ -2164,7 +2164,9 @@ var
 begin
   Assert(not FGLInitialized, 'You cannot call TGLRenderToTexture.GLContextInit on already OpenGL-initialized instance. Call GLContextClose first if this is really what you want.');
 
-  if GLFramebuffer <> gsNone then
+  if (GLFramebuffer <> gsNone) and
+     (not (GLVersion.BuggyFBOCubeMap and
+           Between(TextureTarget, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB))) then
   begin
     if (Width > GLMaxRenderbufferSize) or
        (Height > GLMaxRenderbufferSize) then

@@ -277,7 +277,7 @@ var
     ancient GPUs. }
   GLUseMultiTexturing: boolean;
 
-  { Are all OpenGL ARB extesions for GLSL available. }
+  { Are all OpenGL ARB extensions for GLSL available. }
   GLUseARBGLSL: boolean;
 
   { Are 3D textures supported by OpenGL.
@@ -2099,7 +2099,8 @@ const
         '  Buggy VBO: %s' +nl+
         '  Buggy shader shadow map: %s' +nl+
         '  Buggy GLSL "const in gl_XxxParameters" declaration: %s' +nl+
-        '  Buggy FBO rendering to multi-sampling texture: %s',
+        '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
+        '  Buggy FBO rendering to cube map texture: %s',
         [ BoolToStr[Version.VendorNVidia],
           BoolToStr[Version.VendorATI],
           BoolToStr[Version.Fglrx],
@@ -2114,7 +2115,8 @@ const
           BoolToStr[Version.BuggyVBO],
           BoolToStr[Version.BuggyShaderShadowMap],
           BoolToStr[Version.BuggyGLSLConstStruct],
-          BoolToStr[Version.BuggyFBOMultiSampling]
+          BoolToStr[Version.BuggyFBOMultiSampling],
+          BoolToStr[Version.BuggyFBOCubeMap]
         ]);
   end;
 

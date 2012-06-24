@@ -72,7 +72,7 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
-    FBuggyFixedFunctionCubeMap: boolean;
+    FBuggyFBOCubeMap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
@@ -164,8 +164,23 @@ type
       no problems. }
     property BuggyGenerateMipmap: boolean read FBuggyGenerateMipmap;
 
-    { Buggy usage of fixed-function cube maps (Intel(Windows) bug). }
-    property BuggyFixedFunctionCubeMap: boolean read FBuggyFixedFunctionCubeMap;
+    { Buggy generation of cube maps on FBO (Intel(Windows) bug).
+
+      Symptoms: Parts of the cube map texture are uninitialized (left magenta).
+      Reproducible with view3dscene on
+      demo_models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv .
+      Using separate FBO for each cube map face doesn't help (actually,
+      makes it worse, there's more magenta),
+      so it's not about being unable to do RenderToTexture.SetTexture multiple times.
+
+      Observed, and this workaround is needed, at least on:
+      @unorderedList(
+        @item Version string: 2.1.0 - Build 8.15.10.2104
+        @item Vendor: Intel
+        @item Renderer: Intel(R) HD Graphics
+      )
+    }
+    property BuggyFBOCubeMap: boolean read FBuggyFBOCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
@@ -445,7 +460,7 @@ begin
   FBuggyPointSetAttrib := Mesa and IsPrefix('Mesa DRI Intel', Renderer)
     and (not MesaVersionAtLeast(7, 6, 0));
 
-  { Initially, I wanted t set this when fglrx is detected with version 9.x.
+  { Initially, I wanted to set this when fglrx version 9.x is detected.
 
     This can be detected by looking at the last number in GL_VERSION,
     it's an internal fglrx version number (9.x is an "official" Catalyst
@@ -461,7 +476,7 @@ begin
   FBuggyGenerateMipmap := (Mesa and (not MesaVersionAtLeast(7, 5, 0)))
                           {$ifdef WINDOWS} or VendorIntel {$endif};
 
-  FBuggyFixedFunctionCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
+  FBuggyFBOCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
 
   { On which fglrx versions does this occur?
 
