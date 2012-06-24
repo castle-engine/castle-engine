@@ -1232,6 +1232,10 @@ type
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
   public
+    { Default value of T3DOrient.Orientation, for new instances of T3DOrient
+      (creatures, items, player etc.). }
+    DefaultOrientation: TOrientationType; static;
+
     constructor Create(AOwner: TComponent); override;
 
     { Position (translation) of this 3D object. }
@@ -1280,7 +1284,13 @@ type
     procedure Translate(const T: TVector3Single); override;
 
     { How the direction and up vectors determine transformation.
-      See TOrientationType for values documentation. }
+      See TOrientationType for values documentation.
+
+      The default value of this is determined by static variable
+      DefaultOrientation, this is usually comfortable (because almost
+      always you use the same Orientation throughout your game).
+      By default it's otUpYDirectionMinusZ (matching default cameras
+      of OpenGL and VRML/X3D). }
     property Orientation: TOrientationType read FOrientation write FOrientation;
 
     function Middle: TVector3Single; override;
@@ -3159,6 +3169,7 @@ begin
   inherited;
   FDirection := DefaultCameraDirection;
   FUp := DefaultCameraUp;
+  FOrientation := DefaultOrientation;
 end;
 
 procedure T3DOrient.TransformMatricesMult(var M, MInverse: TMatrix4Single);

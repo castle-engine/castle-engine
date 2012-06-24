@@ -360,7 +360,6 @@ end;
 constructor TCreature.Create(AKind: TCreatureKind);
 begin
   inherited Create(nil);
-  Orientation := otUpZDirectionX;
 
   { initialize state fields }
   FState := csStand;
@@ -692,6 +691,7 @@ end;
 
 initialization
   CreaturesKinds := TCreatureKindList.Create(true);
+  T3DOrient.DefaultOrientation := otUpZDirectionX;
 
   PlayerKind := TCreatureKind.Create('player');
   CreaturesKinds.Add(PlayerKind);
