@@ -4223,7 +4223,7 @@ end;
 
 function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
 begin
-  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Note that for some algorithms, like shadow volumes, perfect manifold (that is, no border edges) works best.',
+  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Remember that for shadow volumes perfect manifold (that is, zero border edges) is required, otherwise the scene will not cast shadows.',
     [ ManifoldEdges.Count,
       BorderEdges.Count ]) + NL;
 end;

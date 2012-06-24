@@ -2996,6 +2996,12 @@ var
 begin
   Assert(ManifoldEdges <> nil);
 
+  { if the model is not perfect 2-manifold, do not render it's shadow volumes.
+    We still have here some code to handle BorderEdges, but in practice:
+    this just has no chance to work 100% reliably with BorderEdges.
+    See demo_models/shadow_volumes/not_manifold/README.txt }
+  if BorderEdges.Count <> 0 then Exit;
+
   Triangles := TrianglesListShadowCasters;
 
   TrianglesPlaneSide := TBooleanList.Create;
