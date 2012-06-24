@@ -524,6 +524,53 @@ type
 
     { shadow things ---------------------------------------------------------- }
 
+    { Rendering shadow volumes.
+
+      There are two algorithms here:
+
+      @orderedList(
+        @item(Rendering with silhouette optimization.
+
+          This renders shadow quads of silhouette edge. Edges from ManifoldEdges
+          list are used to find silhouette edge. Additionally edges from
+          BorderEdges always produce shadow quads, i.e. we treat them
+          like they would always be silhouette edges.
+
+          The very idea of this optimization is that most edges are in
+          ManifoldEdges and so only real silhouette edges produce shadow quads.
+          In other words, BorderEdges list should not contain too many items.
+          When BorderEdges contains all edges (ManifoldEdges is empty), then
+          this method degenerates to a naive rendering without silhouette
+          optimization. So you should try to make your models as much as
+          possible resembling nice 2-manifolds. Ideally, if your mesh
+          is a number of perfectly closed manifolds, and vertex ordering
+          is consistent, then BorderEdges is empty, and this works perfect.
+
+          Usually, most models are mostly 2-manifold (only the real border
+          edges are, well, in BorderEdges), and this works great.
+          See "VRML engine documentation" on
+          [http://castle-engine.sourceforge.net/engine_doc.php],
+          chapter "Shadows", for description and pictures of possible artifacts
+          when trying to use this on models that are not 2-manifold.)
+
+        @item(Without silhouette optimization.
+          This is the naive approach that just renders
+          3 shadow quads for each triangle.
+
+          It is so slow that there's no public way to actually
+          get this behavior, you have to edit source code and set
+          AllowSilhouetteOptimization constant to false if you really want this.
+          In all real uses, it's better to
+          fix your 3D model to be correct 2-manifold.)
+      )
+
+      LightCap and DarkCap say whether you want to cap your shadow volume.
+      LightCap is the cap at the caster position, DarkCap is the cap in infinity.
+      This is needed by z-fail method, you should set them both to @true.
+      To be more optimal, you can request LightCap only if z-fail @italic(and
+      the caster is inside camera frustum). For directional lights, DarkCap is
+      ignored, since the volume is always closed by a single point in infinity.
+    }
     procedure RenderSilhouetteShadowVolume(
       const LightPos: TVector4Single;
       const TransformIsIdentity: boolean;
@@ -636,63 +683,33 @@ type
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
-      algorithm.
+      algorithm. Checks ShadowVolumeRenderer.InitScene to know if the shadow
+      needs to be rendered at all.
+      It will calculate current bounding box (looking at ParentTransform,
+      ParentTransformIsIdentity and BoundingBox method).
 
-      There are two underlying algorithms here, and their speed
-      difference is very noticeable:
-
-      @orderedList(
-        @item(Rendering with AllowSilhouetteOptimization.
-          This is the usual, fast method of rendering shadow volumes.
-
-          This renders shadow quads of silhouette edge. Edges from ManifoldEdges
-          list are used to find silhouette edge. Additionally edges from
-          BorderEdges always produce shadow quads, i.e. we treat them
-          like they would always be silhouette edges.
-
-          The very idea of this optimization is that most edges are in
-          ManifoldEdges and so only real silhouette edges produce shadow quads.
-          In other words, BorderEdges list should not contain too many items.
-          When BorderEdges contains all edges (ManifoldEdges is empty), then
-          this method degenerates to a naive rendering without silhouette
-          optimization. So you should try to make your models as much as
-          possible resembling nice 2-manifolds. Ideally, if your mesh
-          is a number of perfectly closed manifolds, and vertex ordering
-          is consistent, then BorderEdges is empty, and this works perfect.
-
-          Usually, most models are mostly 2-manifold (only the real border
-          edges are, well, in BorderEdges), and this works great.)
-
-        @item(Without silhouette optimization.
-          If you pass AllowSilhouetteOptimization = @false,
-          you explicitly want to use the naive approach that just renders
-          3 shadow quads for each triangle. This is much slower,
-          and is not advised... read below for exceptions.
-
-          The only good reason to use this is that silhouette optimization
-          for models that are not perfect 2-manifold (i.e., have some
-          BorderEdges) may show some artifacts. See
-          "VRML engine documentation" on
-          [http://castle-engine.sourceforge.net/engine_doc.php],
-          chapter "Shadows", for description and pictures of these artifacts.
-          They are quite unavoidable in any shadow volumes implementation,
-          just like normal ghost shadows.
-
-          While you can avoid these artifacts by turning off
-          AllowSilhouetteOptimization, still it's usually
-          much better to fix your 3D model to be correct 2-manifold.))
+      It always uses silhouette optimization. This is the usual,
+      fast method of rendering shadow volumes.
+      Will not do anything (treat scene like not casting shadows,
+      like CastShadowVolumes = false) if the model is not perfect 2-manifold,
+      i.e. has some BorderEdges (although we could handle some BorderEdges
+      for some points of view, this was always inherently dangerous
+      and leading to rendering artifacts).
+      See RenderSilhouetteShadowVolume, RenderAllShadowVolume comments in code
+      for more explanation.
 
       All shadow quads are generated from scene triangles transformed
-      by Transform. This must be able to correctly detect front and
-      back facing triangles with respect to LightPos, so "LightPos" and
-      "scene transformed by Transform" must be in the same coordinate system.
-      (That's why explicit Transform parameter is needed, you can't get away
-      with simply doing glPush/PopMatrix and glMultMatrix around RenderShadowVolumeCore
-      call.) If TransformIsIdentity then Transform value is ignored and
-      everything works like Transform = identity matrix (and is a little
+      by ParentTransform. We must be able to correctly detect front and
+      back facing triangles with respect to light position,
+      so ShadowVolumeRenderer.LightPosition and
+      "this scene transformed by ParentTransform" must be in the same coordinate system.
+      That's why explicit ParentTransform parameter is needed, you can't get away
+      with simply doing glPush/PopMatrix and glMultMatrix around RenderShadowVolume
+      call. If ParentTransformIsIdentity then ParentTransform value is ignored and
+      everything works like ParentTransform = identity matrix (and is a little
       faster in this special case).
 
-      This uses TrianglesListShadowCasters and ManifoldEdges and BorderEdges
+      Uses TrianglesListShadowCasters and ManifoldEdges and BorderEdges
       (so you may prefer to prepare it before, e.g. by calling PrepareResources
       with prShadowVolume included).
 
@@ -702,20 +719,11 @@ type
       In other words, this takes Attributes into account, to cooperate with
       our Render method.
 
-      LightPos is the light position. LightPos[3] must be 1
+      ShadowVolumeRenderer.LightPosition is the light position.
+      ShadowVolumeRenderer.LightPosition[3] must be 1
       (to indicate positional light) or 0 (a directional light).
-
-      LightCap and DarkCap say whether you want to cap your shadow volume.
-      LightCap is the cap at the caster position, DarkCap is the cap in infinity.
-      This is needed by z-fail method, you should set them both to @true.
-      To be more optimal, you can request LightCap only if z-fail @italic(and
-      the caster is inside camera frustum). For directional lights, DarkCap is
-      ignored, since the volume is always closed by a single point in infinity.
-
-      For ShadowVolumeRenderer version, LightPos, LightCap and DarkCap
-      are already available in ShadowVolumeRenderer properties (set by
-      ShadowVolumeRenderer.InitFrustumAndLight and ShadowVolumeRenderer.InitScene
-      calls).
+      It's expected that ShadowVolumeRenderer is already initialized by
+      ShadowVolumeRenderer.InitFrustumAndLight.
 
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
@@ -723,43 +731,10 @@ type
 
       All the commands passed to OpenGL by this methods are:
       glBegin, sequence of glVertex, then glEnd. }
-    procedure RenderShadowVolumeCore(
-      const LightPos: TVector4Single;
-      const TransformIsIdentity: boolean;
-      const Transform: TMatrix4Single;
-      const LightCap: boolean;
-      const DarkCap: boolean;
-      const AllowSilhouetteOptimization: boolean = true);
-
-    procedure RenderShadowVolumeCore(
-      ShadowVolumeRenderer: TGLShadowVolumeRenderer;
-      const TransformIsIdentity: boolean;
-      const Transform: TMatrix4Single;
-      const AllowSilhouetteOptimization: boolean = true);
-
-    { Render shadow volume (sides and caps) of this scene, for shadow volume
-      algorithm. This is a convenience  shortcut for
-      ShadowVolumeRenderer.InitScene and then RenderShadowVolumeCore.
-      It will calculate current bounding box using Transform,
-      TransformIsIdentity and BoundingBox method.
-
-      Overloaded version without AllowSilhouetteOptimization
-      just uses AllowSilhouetteOptimization = @true, which is the most
-      sensible in almost all cases. See RenderShadowVolumeCore for detailed
-      explanation what AllowSilhouetteOptimization does.
-
-      @groupBegin }
-    procedure RenderShadowVolume(
-      ShadowVolumeRenderer: TGLShadowVolumeRenderer;
-      const TransformIsIdentity: boolean;
-      const Transform: TMatrix4Single;
-      const AllowSilhouetteOptimization: boolean);
-
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4Single); override;
-    { @groupEnd }
 
     { Render silhouette edges.
       Silhouette is determined from the ObserverPos.
@@ -3019,6 +2994,8 @@ var
   BorderEdgesNow: TBorderEdgeList;
   BorderEdgePtr: PBorderEdge;
 begin
+  Assert(ManifoldEdges <> nil);
+
   Triangles := TrianglesListShadowCasters;
 
   TrianglesPlaneSide := TBooleanList.Create;
@@ -3095,63 +3072,43 @@ begin
   finally FreeAndNil(TrianglesPlaneSide) end;
 end;
 
-procedure TCastleScene.RenderShadowVolumeCore(
-  const LightPos: TVector4Single;
-  const TransformIsIdentity: boolean;
-  const Transform: TMatrix4Single;
-  const LightCap, DarkCap: boolean;
-  const AllowSilhouetteOptimization: boolean);
-begin
-  if (ManifoldEdges <> nil) and AllowSilhouetteOptimization then
-    RenderSilhouetteShadowVolume(
-      LightPos, TransformIsIdentity, Transform, LightCap, DarkCap) else
-    RenderAllShadowVolume(
-      LightPos, TransformIsIdentity, Transform, LightCap, DarkCap);
-end;
-
-procedure TCastleScene.RenderShadowVolumeCore(
-  ShadowVolumeRenderer: TGLShadowVolumeRenderer;
-  const TransformIsIdentity: boolean;
-  const Transform: TMatrix4Single;
-  const AllowSilhouetteOptimization: boolean);
-begin
-  if ShadowVolumeRenderer.SceneShadowPossiblyVisible then
-  begin
-    RenderShadowVolumeCore(ShadowVolumeRenderer.LightPosition,
-      TransformIsIdentity, Transform,
-      ShadowVolumeRenderer.ZFailAndLightCap,
-      ShadowVolumeRenderer.ZFail,
-      AllowSilhouetteOptimization);
-  end;
-end;
-
-procedure TCastleScene.RenderShadowVolume(
-  ShadowVolumeRenderer: TGLShadowVolumeRenderer;
-  const TransformIsIdentity: boolean;
-  const Transform: TMatrix4Single;
-  const AllowSilhouetteOptimization: boolean);
-var
-  Box: TBox3D;
-begin
-  { calculate Box }
-  Box := BoundingBox;
-  if not TransformIsIdentity then
-    Box := Box.Transform(Transform);
-
-  ShadowVolumeRenderer.InitScene(Box);
-
-  RenderShadowVolumeCore(ShadowVolumeRenderer, TransformIsIdentity, Transform,
-    AllowSilhouetteOptimization);
-end;
-
 procedure TCastleScene.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
+var
+  Box: TBox3D;
+  SVRenderer: TGLShadowVolumeRenderer;
+const
+  AllowSilhouetteOptimization = true;
 begin
   if GetExists and CastShadowVolumes then
-    RenderShadowVolume(ShadowVolumeRenderer as TGLShadowVolumeRenderer,
-      ParentTransformIsIdentity, ParentTransform, true);
+  begin
+    { calculate Box }
+    Box := BoundingBox;
+    if not ParentTransformIsIdentity then
+      Box := Box.Transform(ParentTransform);
+
+    SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
+    SVRenderer.InitScene(Box);
+
+    if SVRenderer.SceneShadowPossiblyVisible then
+    begin
+      if AllowSilhouetteOptimization then
+        RenderSilhouetteShadowVolume(
+          SVRenderer.LightPosition, ParentTransformIsIdentity, ParentTransform,
+          SVRenderer.ZFailAndLightCap,
+          SVRenderer.ZFail) else
+        {$warnings off}
+        { Do not warn that this code is not reachable because
+          AllowSilhouetteOptimization is constant. }
+        RenderAllShadowVolume(
+          SVRenderer.LightPosition, ParentTransformIsIdentity, ParentTransform,
+          SVRenderer.ZFailAndLightCap,
+          SVRenderer.ZFail);
+        {$warnings on}
+    end;
+  end;
 end;
 
 procedure TCastleScene.RenderSilhouetteEdges(
