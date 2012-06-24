@@ -574,11 +574,9 @@ begin
 
  FPolygonStipple := APolygonStipple;
 
- { We must do it before SaveScreen.
-   Moreover, we must do it before we set our own projection below
-   (calling EventResize) and before we set OnDraw to FrozenImageDraw
-   (because we want that Window.FlushRedisplay calls original OnDraw). }
- Window.FlushRedisplay;
+ { save screen, before changing state (before changing OnDraw callback
+   in SetStandardState, before changing projection in Window.EventResize etc.) }
+ DLScreenImage := Window.SaveScreen_ToDisplayList;
 
  TWindowState.SetStandardState(AWindow,
    {$ifdef FPC_OBJFPC} @ {$endif} FrozenImageDraw,
@@ -586,13 +584,11 @@ begin
    {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
  AWindow.UserData := Self;
 
- { setup our 2d projection. We must do it before SaveScreen }
+ { setup our 2d projection }
  Window.EventResize;
 
  SavedScreenWidth  := Window.Width;
  SavedScreenHeight := Window.Height;
- dlScreenImage := SaveScreen_ToDisplayList_noflush(
-   0, 0, SavedScreenWidth, SavedScreenHeight, GL_FRONT);
 end;
 
 destructor TGLModeFrozenScreen.Destroy;

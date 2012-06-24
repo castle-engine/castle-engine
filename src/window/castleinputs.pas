@@ -22,9 +22,6 @@ unit CastleInputs;
     razem z ich callbackami, przynajmniej OnDraw.
     Musza byc w stanie dobrze zareagowac na wypadek gdyby user
     zrobil resize na okienku.
-  - Input, InputAnyKey, WindowModes.TGLModeFrozenScreen should be fixed
-    to not be vulnerable for "glReadPixels from front buffer is not reliable"
-    problem.
 }
 
 {$I castleconf.inc}
@@ -35,11 +32,8 @@ uses GL, GLU, CastleGLUtils, CastleWindow, WindowModes, OpenGLFonts, CastleUtils
   CastleStringUtils;
 
 { Wait until user inputs a string (accept by Enter), displaying the static
-  image with user string.
-
-  At the beginning, we capture the screen from OpenGL ReadBuffer.
-  If FlushCastleWindow then we'll make Window.FlushRedisplay before capturing
-  (you should set FlushWindow = @true when ReadBuffer = GL_FRONT).
+  image with user string. DLDrawImage must be a display list obtained by
+  call like SaveScreen_ToDisplayList_NoFlush that draws the image.
 
   ScreenX0, ScreenY0 is raster position for lower-left screen corner.
 
@@ -49,7 +43,7 @@ uses GL, GLU, CastleGLUtils, CastleWindow, WindowModes, OpenGLFonts, CastleUtils
   have the same meaning as in CastleMessages unit. Initial Answer
   cannot contain characters outside AnswerAllowedChars. }
 function Input(Window: TCastleWindowBase;
-  ReadBuffer: TGLenum; FlushWindow: boolean;
+  DLDrawImage: TGLuint;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
   AnswerDefault: string = '';
@@ -63,22 +57,19 @@ function Input(Window: TCastleWindowBase;
   Displays a given image on the screen while waiting.
   You can give image filename, or ready TCastleImage instance
   (must be renderable to OpenGL, i.e. by one of GLImages.PixelsImageClasses
-  classes).
+  classes), or display list to render any image (in which case you
+  have to tell us image size).
 
   RasterX, RasterY is the image position on the screen. In the background
   OpenGL clear color will be used.
 
-  You can also allow to capture the screen contents.
-  See @link(Input) for ReadBuffer, FlushWindow spec.
-  In this case, RasterX, RasterY should be position of lower-left
-  screen corner (unless you actully want to shift the displayed screen).
   @groupBegin }
 procedure InputAnyKey(Window: TCastleWindowBase; const ImgFileName: string;
   ResizeX, ResizeY, RasterX, RasterY: Integer); overload;
 procedure InputAnyKey(Window: TCastleWindowBase; const Img: TCastleImage;
   RasterX, RasterY: Integer); overload;
-procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum; FlushWindow: boolean;
-  RasterX, RasterY: Integer); overload;
+procedure InputAnyKey(Window: TCastleWindowBase; DLDrawImage: TGLuint;
+  RasterX, RasterY: Integer; BGImageWidth, BGImageHeight: Cardinal); overload;
 { @groupEnd }
 
 implementation
@@ -90,7 +81,7 @@ uses SysUtils, GLImages;
 type
   TGLWinInputData = record
     { input params }
-    dlBGImage: TGLuint;
+    DLDrawImage: TGLuint;
     MinLength, MaxLength: Integer;
     AnswerAllowedChars: TSetOfChars;
     Font: TGLBitmapFont_Abstract;
@@ -108,7 +99,7 @@ begin
  D := PGLWinInputData(Window.UserData);
 
  glRasterPos2i(D^.ScreenX0, D^.ScreenY0);
- glCallList(D^.dlBGImage);
+ glCallList(D^.DLDrawImage);
  glRasterPos2i(D^.AnswerX0, D^.AnswerY0);
  D^.Font.Print(D^.Answer+'_');
 end;
@@ -136,7 +127,7 @@ end;
 { GLWinInput -------------------------------------------------------------- }
 
 function Input(Window: TCastleWindowBase;
-  ReadBuffer: TGLenum; FlushWindow: boolean;
+  DLDrawImage: TGLuint;
   Font: TGLBitmapFont_Abstract;
   ScreenX0, ScreenY0, AnswerX0, AnswerY0: Integer;
   AnswerDefault: string = '';
@@ -148,9 +139,7 @@ var
   SavedMode: TGLMode;
   Data: TGLWinInputData;
 begin
-  if FlushWindow then Window.FlushRedisplay;
-  Data.dlBGImage := SaveScreen_ToDisplayList_noflush(
-    0, 0, Window.Width, Window.Height, ReadBuffer);
+  Data.DLDrawImage := DLDrawImage;
   Data.Answer := AnswerDefault;
   Data.MinLength := MinLength;
   Data.MaxLength := MaxLength;
@@ -180,7 +169,7 @@ end;
 type
   TInputAnyKeyData = record
     DoClear: boolean;
-    dlDrawImage: TGLuint;
+    DLDrawImage: TGLuint;
     KeyPressed: boolean;
   end;
   PInputAnyKeyData = ^TInputAnyKeyData;
@@ -190,7 +179,7 @@ var D: PInputAnyKeyData;
 begin
  D := PInputAnyKeyData(Window.UserData);
  if D^.DoClear then glClear(GL_COLOR_BUFFER_BIT);
- glCallList(D^.dlDrawImage);
+ glCallList(D^.DLDrawImage);
 end;
 
 procedure KeyDownAnyKey(Window: TCastleWindowBase; key: TKey; c: char);
@@ -202,7 +191,7 @@ end;
 
 { GLWinInputAnyKey ----------------------------------------------------------- }
 
-procedure InputAnyKeyCore(Window: TCastleWindowBase; dlDrawImage: TGLuint;
+procedure InputAnyKey(Window: TCastleWindowBase; DLDrawImage: TGLuint;
   RasterX, RasterY: Integer; BGImageWidth, BGImageHeight: Cardinal);
 var
   Data: TInputAnyKeyData;
@@ -216,7 +205,7 @@ begin
 
   Data.DoClear := (Cardinal(Window.Width ) > BGImageWidth ) or
                   (Cardinal(Window.Height) > BGImageHeight);
-  Data.dlDrawImage := dlDrawImage;
+  Data.DLDrawImage := DLDrawImage;
   Data.KeyPressed := false;
 
   Window.UserData := @Data;
@@ -234,7 +223,7 @@ var
 begin
   DL := ImageDrawToDisplayList(Img);
   try
-    InputAnyKeyCore(Window, DL, RasterX, RasterY, Img.Width, Img.Height);
+    InputAnyKey(Window, DL, RasterX, RasterY, Img.Width, Img.Height);
   finally glFreeDisplayList(DL) end;
 end;
 
@@ -252,23 +241,7 @@ begin
     DL := ImageDrawToDisplayList(Image);
   finally FreeAndNil(Image) end;
   try
-    InputAnyKeyCore(Window, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
-  finally glFreeDisplayList(DL) end;
-end;
-
-procedure InputAnyKey(Window: TCastleWindowBase; ReadBuffer: TGLenum;
-  FlushWindow: boolean; RasterX, RasterY: Integer);
-var
-  DL: TGLuint;
-  BGImageWidth, BGImageHeight: Cardinal;
-begin
-  if FlushWindow then Window.FlushRedisplay;
-  BGImageWidth := Window.Width;
-  BGImageHeight := Window.Height;
-  DL := SaveScreen_ToDisplayList_noflush(
-    0, 0, BGImageWidth, BGImageHeight, ReadBuffer);
-  try
-    InputAnyKeyCore(Window, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
+    InputAnyKey(Window, DL, RasterX, RasterY, BGImageWidth, BGImageHeight);
   finally glFreeDisplayList(DL) end;
 end;
 
