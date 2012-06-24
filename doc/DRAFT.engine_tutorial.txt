@@ -140,6 +140,45 @@ CastleCreatures unit (see inside src/game/ in sources) allows you to easily crea
 
   Our creature and items classes in CastleCreatures and CastleItems units are not magic, they do not get any special treatment from the scene manager. Instead, they just extend the base 3D classes in Base3D unit. There are ready classes to represent 3D things, that can move, can collide with other 3D stuff and such. If you find that our creatures/items design is not enough for you, or maybe you want to have in your 3D world something that doesn't really fit the creature/item definition, you can always derive new classes from the Base3D classes. Like T3DAlive, T3DOrient, T3DTransform. Methods MyMove, MyMoveAllowed, MyHeight, MyLineOfSight allow you to add any kind of movement/intelligence to any 3D object.
 
+---
+Sidenote: Which way is up?
+There are various conventions for which vector is "up" in 3D world and, consequently, which vector corresponds to the "direction" the creature/player is facing.
+
+Quick guide:
+- If you want to follow "+Y is up" convention (easier, i.e. you don't really need to do anything):
+  - When exporting from Blender (levels, creatures etc.), let it rotate the model, i.e. change +Z to +Y. This is actually the default since some time.
+  - Make sure your Viewpoint indicates +Y as up vector. This is actually the default VRML/X3D value.
+  - Leave T3DOrient.DefaultOrientation at default otUpYDirectionMinusZ.
+- If you want to follow "+Z is up" convention:
+  - When exporting from Blender (levels, creatures etc.), always select to *not* rotate the model, i.e. keep Blender's coordinate system.
+  - Make sure you use view3dscene (or other VRML/X3D editor) to generate a Viewpoint in your level that makes gravity working in Z axis.
+  - Set T3DOrient.DefaultOrientation := otUpZDirectionX.
+
+There are two common conventions:
+
+1. Most 3D modeling software like Blender, prefers the up direction to be +Z, and direction to be -Y. This is usually sensible when you think about a flat level, with XY representing the map view, and additional Z adding the height.
+
+2. On the other hand, VRML/X3D and default OpenGL camera prefers the up to be +Y, and direction to be -Z. This makes sense if you think about the screen as being the XY plane, so then if you look straight (in the right-hand coordinate system) you look in -Z direction.
+
+You could also invent your own convention, and pick any 3D vector as up, and anything othogonal to it as direction.
+
+Our engine supports all such conventions, we do not force you to follow any particular one.
+
+Ultimately, these are just conventions, and they are not mandatory.
+
+- For VRML/X3D models, although the default is to have up in +Y, the actual specification says that up is +Y transformed by the Viewpoint node transformation. In short, you can setup your camera in view3dscene, use "Navigation -> Walk and Fly settings -> Change Up Vector", input any vector you want (like "0 0 1"), then use "Console -> Print Current Camera..." option, and copy-paste the generated code from the console to your VRML/X3D file. This will set a Viewpoint with desired up vector, which will be correctly used by our engine for gravity.
+
+- In case of exporting from 3D modeler software, there's usually an option to rotate your models. So you can choose to rotate your models when exporting from Blender, such that Blender's +Z becomes +Y in exported VRML/X3D model. Some people dislike this (it means you have to be sometimes aware that coordinates are different in your modeling software and game), but in general it's fine. You can also choose to preserve Blender's original orientation.
+
+The notion of direction/up is used by our engine in two places:
+
+1. Gravity pulls you down in the -up vector. We automatically detect this based on the gravity vector of your TCastleSceneManager.MainScene (you usually want to set this to your level 3D model). This means that we follow VRML/X3D specification, and gravity vector is derived from the 3D model of your level. You can use e.g. view3dscene to generate Viewpoint node with a desired gravity vector. You can read this vector by looking at TCastleSceneManager.GravityUp, TCastleSceneManager.Camera.GravityUp, and World.GravityUp (from any T3D code), these are always equal.
+
+2. Oriented 3D things, like creatures, player, and items (and anything else derived from T3DOrient class) are always oriented such that their local direction/up is matching the vectors defined by T3DOrient.Orientation property. We automatically set creatures/etc. up vector to be *usually* equal to the World.GravityUp (in case of flying creatures, it may actually be different sometimes). But you have to set the T3DOrient.Orientation yourself. You want to set it such that typical up of your creatures changes into World.GravityUp (that is, creature's up remains untransformed).
+
+Usually, you want to just set T3DOrient.DefaultOrientation, and then it will be used for all your models.
+---
+
 5. Adding some items
 
 For the sake of our engine, an item is just a 3D object. So basically, you can just add any T3D descendant (like TCastleScene or TCastlePrecalculatedAnimation) to a scene manager, exactly like we added a level scene in previous section.
