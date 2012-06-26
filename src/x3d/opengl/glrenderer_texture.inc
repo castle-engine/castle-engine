@@ -1757,7 +1757,10 @@ begin
     { Fill with deliberately stupid (but constant) color,
       to recognize easily GeneratedCubeMapTexture which don't have textures
       updated. }
-    InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+    if not GLVersion.BuggyGenerateCubeMap then
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255))
+    else
+      InitialImage.Clear(Vector4Byte(237, 237, 237, 255)); { when buggy, use some reasonable color }
 
     SetTextureRGBFromImage(InitialImage);
 
@@ -1815,6 +1818,8 @@ procedure TGLGeneratedCubeMapTextureNode.Update(
   const CubeMiddle: TVector3Single);
 begin
   if GLName = 0 then Exit;
+
+  if GLVersion.BuggyGenerateCubeMap then Exit;
 
   GLCaptureCubeMapTexture(GLName, Size,
     CubeMiddle,

@@ -72,6 +72,7 @@ type
     FBuggyPointSetAttrib: boolean;
     FBuggyDrawOddWidth: boolean;
     FBuggyGenerateMipmap: boolean;
+    FBuggyGenerateCubeMap: boolean;
     FBuggyFBOCubeMap: boolean;
     FBuggyLightModelTwoSide: boolean;
     FBuggyLightModelTwoSideMessage: string;
@@ -181,6 +182,23 @@ type
       )
     }
     property BuggyFBOCubeMap: boolean read FBuggyFBOCubeMap;
+
+    { Buggy generation of cube maps at all (Intel(Windows) bug).
+
+      Symptoms: Parts of the cube map texture are uninitialized (left magenta).
+      Reproducible with view3dscene on
+      demo_models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv .
+      This is worse then BuggyFBOCubeMap, magenta is always seen at positiveX part
+      of the cube map.
+
+      Observed, and this workaround is needed, at least on:
+      @unorderedList(
+        @item Version string: 3.3.0 - Build 8.15.10.2778
+        @item Vendor: Intel
+        @item Renderer: Intel(R) HD Graphics 4000
+      )
+    }
+    property BuggyGenerateCubeMap: boolean read FBuggyGenerateCubeMap;
 
     { Buggy GL_LIGHT_MODEL_TWO_SIDE = GL_TRUE behavior (ATI(Linux) bug).
       See [https://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14] }
@@ -478,6 +496,7 @@ begin
 
   FBuggyFBOCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
 
+  FBuggyGenerateCubeMap := {$ifdef WINDOWS} (VendorIntel and SameText(Renderer, 'Intel(R) HD Graphics 4000')) {$else} false {$endif};
   { On which fglrx versions does this occur?
 
     - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
