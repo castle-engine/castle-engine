@@ -71,8 +71,6 @@ const
 
   DefaultMiddleHeight = 1.0;
 
-  DefaultCastShadowVolumes = true;
-
 type
   TCreature = class;
 
@@ -99,8 +97,6 @@ type
     FFallDownLifeLossScale: Single;
 
     FMiddleHeight: Single;
-
-    FCastShadowVolumes: boolean;
   protected
     { In descendants only Prepare can (and should!) set this. }
     RadiusFromPrepare: Single;
@@ -249,10 +245,6 @@ type
       read FMiddleHeight
       write FMiddleHeight
       default DefaultMiddleHeight;
-
-    property CastShadowVolumes: boolean
-      read FCastShadowVolumes write FCastShadowVolumes
-      default DefaultCastShadowVolumes;
 
     { How fast the creature falls down, in units per second.
 
@@ -821,7 +813,6 @@ begin
   FShortRangeAttackKnockbackDistance := DefaultShortRangeAttackKnockbackDistance;
   FFallDownLifeLossScale := DefaultFallDownLifeLossScale;
   FMiddleHeight := DefaultMiddleHeight;
-  FCastShadowVolumes := DefaultCastShadowVolumes;
   FFallingDownSpeed := DefaultFallingDownSpeed;
 end;
 
@@ -855,9 +846,6 @@ begin
 
   MiddleHeight := KindsConfig.GetFloat('middle_position_height',
     DefaultMiddleHeight);
-
-  CastShadowVolumes := KindsConfig.GetValue('casts_shadow',
-    DefaultCastShadowVolumes);
 
   SoundSuddenPain := SoundEngine.SoundFromName(
     KindsConfig.GetValue('sound_sudden_pain', ''));
@@ -2129,7 +2117,6 @@ begin
     of "castle hall" level. Changing XxxShadowVolumes here
     is a little hacky (would be cleaner to do it at loading), but easy. }
   TCastleScene(Result).ReceiveShadowVolumes := false;
-  Result.CastShadowVolumes := Kind.CastShadowVolumes;
 end;
 
 procedure TWalkAttackCreature.SetLife(const Value: Single);
@@ -2332,7 +2319,6 @@ begin
     of "castle hall" level. Changing XxxShadowVolumes here
     is a little hacky (would be cleaner to do it at loading), but easy. }
   TCastleScene(Result).ReceiveShadowVolumes := false;
-  Result.CastShadowVolumes := Kind.CastShadowVolumes;
 end;
 
 procedure TMissileCreature.ExplodeCore;
@@ -2377,7 +2363,6 @@ begin
     of "castle hall" level. Changing XxxShadowVolumes here
     is a little hacky (would be cleaner to do it at loading), but easy. }
   TCastleScene(Result).ReceiveShadowVolumes := false;
-  Result.CastShadowVolumes := Kind.CastShadowVolumes;
 end;
 
 procedure TStillCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
