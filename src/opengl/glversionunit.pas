@@ -546,8 +546,10 @@ begin
 
   FBuggyGLSLConstStruct := {$ifdef LINUX} VendorNvidia {$else} false {$endif};
 
+   { Reported on Radeon 6600, 6850 - looks like wireframe
+     Also on Intel cards - querying multisampled depth buffer returns bad data. }
   FBuggyFBOMultiSampling :=
-    {$ifdef WINDOWS} (VendorATI and SameText(Renderer, 'AMD Radeon HD 6600 Series')) or VendorIntel
+    {$ifdef WINDOWS} (VendorATI and IsPrefix('AMD Radeon HD 6', Renderer)) or VendorIntel
     {$else} false {$endif};
 end;
 
