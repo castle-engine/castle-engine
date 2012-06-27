@@ -32,6 +32,15 @@
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
 
+  TSFStringShading = class(TSFString)
+  private
+    WarningDone: boolean;
+  protected
+    function ExposedEventsFieldClass: TX3DFieldClass; override;
+  public
+    function RequiresShaders: boolean;
+  end;
+
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   private
     function GetAppearance: TAppearanceNode;
@@ -61,6 +70,9 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    private FFdShading: TSFStringShading;
+    public property FdShading: TSFStringShading read FFdShading;
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -407,6 +419,27 @@ begin
   DefaultContainerField := 'material';
 end;
 
+function TSFStringShading.ExposedEventsFieldClass: TX3DFieldClass;
+begin
+  Result := TSFString;
+end;
+
+function TSFStringShading.RequiresShaders: boolean;
+begin
+  if Value = 'DEFAULT' then
+    Result := false else
+  if Value = 'PHONG' then
+    Result := true else
+  begin
+    Result := false;
+    if not WarningDone then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "shading" value: "%s"', [Value]));
+      WarningDone := true;
+    end;
+  end;
+end;
+
 procedure TAbstractShapeNode.CreateNode;
 begin
   inherited;
@@ -428,6 +461,9 @@ begin
    FdBboxSize.Exposed := false;
   Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdShading := TSFStringShading.Create(Self, 'shading', 'DEFAULT');
+  Fields.Add(FFdShading);
 
   FFdOctreeTriangles := TSFNode.Create(Self, 'octreeTriangles', [TKambiOctreePropertiesNode]);
    FdOctreeTriangles.Exposed := false;
