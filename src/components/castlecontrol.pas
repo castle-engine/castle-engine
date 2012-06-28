@@ -1625,15 +1625,13 @@ begin
       'while the context is already initialized');
   SceneManager.ShadowVolumesPossible := Value;
 
-  { TODO: hmm, there's no way to request stencil buffer from TOpenGLControl?
-    Looking in the sources, for GTK always at least 1-bit stencil buffer is
-    requested (pretty useless?), for Windows nothing is requested.
-    There's no way to workaround it, this must be fixed in OpenGLContext
-    for TCastleControl to work reliably. }
-
-{  if SceneManager.ShadowVolumesPossible then
+  { TOpenGLControl.StencilBits is available in new Lazarus,
+    http://bugs.freepascal.org/view.php?id=22170 }
+  {$ifdef LAZARUS_GL_CONTEXT_NEW}
+  if SceneManager.ShadowVolumesPossible then
     StencilBits := 8 else
-    StencilBits := 0;}
+    StencilBits := 0;
+  {$endif}
 end;
 
 function TCastleControl.GetOnCameraChanged: TNotifyEvent;
