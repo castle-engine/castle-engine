@@ -937,11 +937,19 @@ begin
     GLScene.Renderer.UnprepareTexture(State.Texture);
     PreparedForRenderer := false;
     PreparedUseBlending := false;
+    { PreparedShapesResouces must be reset, otherwise scene will not even
+      call our PrepareResources next time. }
+    GLScene.PreparedShapesResouces := false;
   end;
 
   { When Material.transparency changes, recalculate UseBlending. }
   if chUseBlending in Changes then
+  begin
     PreparedUseBlending := false;
+    { PreparedShapesResouces must be reset, otherwise scene will not even
+      call our PrepareResources next time. }
+    GLScene.PreparedShapesResouces := false;
+  end;
 end;
 
 procedure TGLShape.PrepareResources;
