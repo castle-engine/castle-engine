@@ -500,8 +500,9 @@ type
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
 
     { Should we make shadow volumes possible.
-      This should indicate if OpenGL context was (possibly) initialized
-      with stencil buffer. }
+      If @true then OpenGL context is initialized with stencil buffer,
+      and we want to render shadow volumes (so ShadowVolumes should be relevant,
+      so we have to make infinite far projection etc.). }
     property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible default false;
 
     { Should we render with shadow volumes.
