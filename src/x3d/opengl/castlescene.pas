@@ -181,7 +181,7 @@ type
     procedure SetShaders(const Value: TShadersRendering); override;
   public
     { Adjust attributes of all loaded resources. }
-    OnCreate: TRenderingAttributesEvent; {$ifndef PASDOC} static; {$endif}
+    OnCreate: TRenderingAttributesEvent; static;
 
     constructor Create; override;
     destructor Destroy; override;
