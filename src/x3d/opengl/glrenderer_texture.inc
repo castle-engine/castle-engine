@@ -1275,6 +1275,11 @@ begin
   if DepthMap then
     RenderToTexture.Buffer := tbDepth else
     RenderToTexture.Buffer := tbColor;
+  { TODO: implementing this is possible.
+    - Add GLHasStencil to LoadAllExtensions to detect we have stencil buffer.
+    - Change TextureDepth_IncReference to create packed depth+stencil texture
+      when requested (when GLPackedDepthStencil and we currently GLHasStencil).
+    - set below RenderToTexture.Stencil := GLHasStencil; }
   RenderToTexture.Stencil := not DepthMap;
   RenderToTexture.GLContextOpen;
 end;
