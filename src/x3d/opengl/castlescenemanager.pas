@@ -2019,7 +2019,9 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
     end;
     if Depth then
     begin
-      TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
+      if ShadowVolumesPossible and GLPackedDepthStencil then
+        TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
+        TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
     end else
@@ -2089,10 +2091,7 @@ begin
         ScreenEffectRTT.DepthTextureTarget := ScreenEffectTextureTarget;
       end else
         ScreenEffectRTT.Buffer := tbColor;
-      { TODO: using stencil buffer with depth texture doesn't work
-        on GPUs with packed depth_stencil (most GPUs...).
-        Any way to make it working? }
-      ScreenEffectRTT.Stencil := not CurrentScreenEffectsNeedDepth;
+      ScreenEffectRTT.Stencil := ShadowVolumesPossible;
       ScreenEffectRTT.GLContextOpen;
 
       if Log then

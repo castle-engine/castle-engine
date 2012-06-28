@@ -2143,12 +2143,6 @@ procedure TGLRenderToTexture.GLContextOpen;
     end;
   end;
 
-  { initialize RenderbufferStencil, attach it to FBO stencil }
-  procedure AttachSeparateStencilRenderbuffer;
-  begin
-    GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, GL_STENCIL_ATTACHMENT);
-  end;
-
   function ColorBufferFormat: TGLenum;
   begin
     if ColorBufferAlpha then
@@ -2158,7 +2152,7 @@ procedure TGLRenderToTexture.GLContextOpen;
 
 var
   Status: TGLenum;
-  PackedDepthBufferFormat: TGLenum;
+  DepthBufferFormatPacked, DepthAttachmentPacked: TGLenum;
   Success: boolean;
   PreviousFboDefaultBuffer: TGLenum;
 begin
@@ -2179,28 +2173,27 @@ begin
     end;
     BindFramebuffer(Framebuffer);
 
-    { Used for tbColor or tbNone, when we don't want to capture depth buffer,
-      and so it's Ok to pack depth and stencil together.
-
-      When EXT_packed_depth_stencil is present, and stencil is wanted
+    { When GLPackedDepthStencil, and stencil is wanted
       (a very common case!, as most GPUs have EXT_packed_depth_stencil
       and for shadow volumes we want stencil) we desperately want to
-      use one renderbuffer with combined depth/stencil info.
+      use one renderbuffer or one texture with combined depth/stencil info.
       Other possibilities may be not available at all (e.g. Radeon on chantal,
-      but probably most GPUs with EXT_packed_depth_stencil).
-
-      TODO: for core OpenGL 3, how to detect should we use packed version?
-      http://www.opengl.org/registry/specs/ARB/framebuffer_object.txt
-      incorporates EXT_packed_depth_stencil. }
-    if Stencil and GL_EXT_packed_depth_stencil then
-      PackedDepthBufferFormat := GL_DEPTH_STENCIL else
-      PackedDepthBufferFormat := GL_DEPTH_COMPONENT;
+      but probably most GPUs with EXT_packed_depth_stencil). }
+    if Stencil and GLPackedDepthStencil then
+    begin
+      DepthBufferFormatPacked := GL_DEPTH_STENCIL;
+      DepthAttachmentPacked := GL_DEPTH_STENCIL_ATTACHMENT;
+    end else
+    begin
+      DepthBufferFormatPacked := GL_DEPTH_COMPONENT;
+      DepthAttachmentPacked := GL_DEPTH_ATTACHMENT;
+    end;
 
     case Buffer of
       tbColor:
         begin
           FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
-          GenBindRenderbuffer(RenderbufferDepth, PackedDepthBufferFormat, GL_DEPTH_ATTACHMENT);
+          GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentPacked);
         end;
       tbDepth:
         begin
@@ -2208,35 +2201,25 @@ begin
           glDrawBuffer(GL_NONE);
           glReadBuffer(GL_NONE);
 
-          FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, TextureTarget, Texture, 0);
+          FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentPacked, TextureTarget, Texture, 0);
         end;
       tbColorAndDepth:
         begin
           FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, TextureTarget, Texture, 0);
-          FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, DepthTextureTarget, DepthTexture, 0);
+          FramebufferTexture2D(GL_FRAMEBUFFER, DepthAttachmentPacked, DepthTextureTarget, DepthTexture, 0);
         end;
       tbNone:
         begin
           GenBindRenderbuffer(RenderbufferColor, ColorBufferFormat, GL_COLOR_ATTACHMENT0);
-          GenBindRenderbuffer(RenderbufferDepth, PackedDepthBufferFormat, GL_DEPTH_ATTACHMENT);
+          GenBindRenderbuffer(RenderbufferDepth, DepthBufferFormatPacked, DepthAttachmentPacked);
         end;
       else raise EInternalError.Create('Buffer 1?');
     end;
 
-    { setup stencil buffer }
-    if Stencil then
-      case Buffer of
-        tbDepth, tbColorAndDepth:
-          { only separate stencil buffer possible in this case }
-          AttachSeparateStencilRenderbuffer;
-        tbColor, tbNone:
-          if GL_EXT_packed_depth_stencil then
-          case GLFramebuffer of
-            gsExtension: glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, RenderbufferDepth);
-            gsStandard : glFramebufferRenderbuffer   (GL_FRAMEBUFFER    , GL_STENCIL_ATTACHMENT    , GL_RENDERBUFFER    , RenderbufferDepth);
-          end else
-            AttachSeparateStencilRenderbuffer;
-      end;
+    { setup separate stencil buffer }
+    if Stencil and not GLPackedDepthStencil then
+      { initialize RenderbufferStencil, attach it to FBO stencil }
+      GenBindRenderbuffer(RenderbufferStencil, GL_STENCIL_INDEX, GL_STENCIL_ATTACHMENT);
 
     Success := false;
     try

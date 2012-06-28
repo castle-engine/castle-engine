@@ -306,6 +306,25 @@ var
     that say @italic(how many samples you wanted to get). }
   GLCurrentMultiSampling: Cardinal;
 
+  { Does OpenGL context have depth buffer packed with stencil buffer.
+    See EXT_packed_depth_stencil extension for explanation.
+
+    This is important for FBOs, as the depth/stencil have to be set up differently
+    depending on GLPackedDepthStencil value.
+    This is also important for all code using TGLRenderToTexture
+    with TGLRenderToTexture.Buffer equal tbDepth or tbColorAndDepth:
+    your depth texture must be prepared differently, to include both depth+stencil
+    data, to work.
+
+    For now, this is simply equal to GL_EXT_packed_depth_stencil.
+    (TODO: for core OpenGL 3, how to detect should we use packed version?
+    http://www.opengl.org/registry/specs/ARB/framebuffer_object.txt
+    incorporates EXT_packed_depth_stencil, so forward-compatible contexts
+    do not need to declare it.
+    Should we assume that forward-compatible gl 3 contexts always have
+    depth/stencil packed?) }
+  GLPackedDepthStencil: boolean;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1195,6 +1214,8 @@ begin
     end;
   end else
     GLCurrentMultiSampling := 1;
+
+  GLPackedDepthStencil := GL_EXT_packed_depth_stencil;
 
   { Workaround http://bugs.freepascal.org/view.php?id=18613 }
   if GL_ARB_vertex_buffer_object then
