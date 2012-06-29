@@ -463,6 +463,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   FFdShading := TSFStringShading.Create(Self, 'shading', 'DEFAULT');
+   FdShading.ChangesAlways := [chVisibleNonGeometry];
   Fields.Add(FFdShading);
 
   FFdOctreeTriangles := TSFNode.Create(Self, 'octreeTriangles', [TKambiOctreePropertiesNode]);
