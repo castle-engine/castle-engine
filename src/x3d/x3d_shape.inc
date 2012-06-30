@@ -658,7 +658,7 @@ begin
 
   FFdReceiveShadows := TMFNode.Create(Self, 'receiveShadows', [TAbstractLightNode]);
    FdReceiveShadows.Exposed := false;
-   FdReceiveShadows.ChangesAlways := [chEverything];
+   FdReceiveShadows.ChangesAlways := [chShadowMaps];
   Fields.Add(FFdReceiveShadows);
 
   FFdShadowCaster := TSFBool.Create(Self, 'shadowCaster', true);

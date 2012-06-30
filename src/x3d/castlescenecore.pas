@@ -4019,10 +4019,19 @@ var
     VisibleChangeHere([vcVisibleNonGeometry]);
   end;
 
-  procedure HandleBackground;
+  procedure HandleChangeBackground;
   begin
     InvalidateBackground;
     VisibleChangeHere([vcVisibleNonGeometry]);
+  end;
+
+  procedure HandleChangeShadowMaps;
+  begin
+    if ShadowMaps then { if not ShadowMaps, then no need to reprocess }
+    begin
+      ScheduledShadowMapsProcessing := true;
+      ScheduleChangedAll;
+    end;
   end;
 
 begin
@@ -4083,8 +4092,9 @@ begin
     if chDragSensorEnabled in Changes then HandleChangeDragSensorEnabled;
     if chNavigationInfo in Changes then HandleChangeNavigationInfo;
     if chScreenEffectEnabled in Changes then HandleChangeScreenEffectEnabled;
-    if chBackground in Changes then HandleBackground;
+    if chBackground in Changes then HandleChangeBackground;
     if chEverything in Changes then HandleChangeEverything;
+    if chShadowMaps in Changes then HandleChangeShadowMaps;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry,
       chCamera, chRedisplay] <> [] then

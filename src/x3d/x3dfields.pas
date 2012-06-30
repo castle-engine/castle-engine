@@ -329,7 +329,14 @@ type
       (And in an ideal implementation, should not be needed.)
 
       Don't include other flags with this. }
-    chEverything);
+    chEverything,
+
+    { Higher-level shadow maps fields changed.
+      They have to be processed to lower-level fields by calling
+      TCastleSceneCore.ProcessShadowMapsReceivers.
+
+      Don't include other flags with this. }
+    chShadowMaps);
   TX3DChanges = set of TX3DChange;
 
 { ---------------------------------------------------------------------------- }
@@ -2638,7 +2645,8 @@ const
     'NavigationInfo',
     'ScreenEffect.enabled',
     'Background',
-    'Everything' );
+    'Everything',
+    'Shadow maps');
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;
 

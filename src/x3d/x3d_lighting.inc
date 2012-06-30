@@ -386,7 +386,7 @@ begin
 
   FFdShadows := TSFBool.Create(Self, 'shadows', false);
    FdShadows.Exposed := false;
-   FdShadows.ChangesAlways := [chEverything];
+   FdShadows.ChangesAlways := [chShadowMaps];
   Fields.Add(FFdShadows);
 
   FFdEffects := TMFNode.Create(Self, 'effects', [TEffectNode]);
