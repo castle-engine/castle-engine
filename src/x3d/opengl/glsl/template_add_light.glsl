@@ -66,9 +66,10 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 #endif
 
 #ifdef LIGHT_HAS_ATTENUATION
-  scale /= gl_LightSource[light_number].constantAttenuation +
+  scale /= max(1.0,
+           gl_LightSource[light_number].constantAttenuation +
            gl_LightSource[light_number].linearAttenuation * distance_to_light +
-           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;
+           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light);
 #endif
 
 #ifdef LIGHT_HAS_RADIUS

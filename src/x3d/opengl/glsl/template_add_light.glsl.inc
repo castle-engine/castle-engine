@@ -68,9 +68,10 @@
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_HAS_ATTENUATION' + LineEnding + 
-'  scale /= gl_LightSource[light_number].constantAttenuation +' + LineEnding + 
+'  scale /= max(1.0,' + LineEnding + 
+'           gl_LightSource[light_number].constantAttenuation +' + LineEnding + 
 '           gl_LightSource[light_number].linearAttenuation * distance_to_light +' + LineEnding + 
-'           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light;' + LineEnding + 
+'           gl_LightSource[light_number].quadraticAttenuation * distance_to_light * distance_to_light);' + LineEnding + 
 '#endif' + LineEnding + 
 '' + LineEnding + 
 '#ifdef LIGHT_HAS_RADIUS' + LineEnding + 
