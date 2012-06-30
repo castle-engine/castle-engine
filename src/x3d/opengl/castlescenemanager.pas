@@ -86,6 +86,7 @@ type
     FInput_PointingDeviceActivate: TInputShortcut;
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
+    FTransparent: boolean;
 
     FScreenSpaceAmbientOcclusion: boolean;
     SSAOShader: TGLSLProgram;
@@ -543,6 +544,17 @@ type
       geometry looks like. }
     property BackgroundWireframe: boolean
       read FBackgroundWireframe write FBackgroundWireframe default false;
+
+    { If yes then we will not draw any background, letting the window contents
+      underneath be visible (in places where we do not draw our own 3D geometry,
+      or where our own geometry is transparent, e.g. by Material.transparency).
+      For this to make sense, make sure that you always place some other 2D control
+      under this viewport, that actually draws something predictable underneath.
+
+      The normal background, derived from @link(Background) will be ignored.
+      We will also not do any glClear on color buffer.
+      Also BackgroundWireframe doesn't matter in this case. }
+    property Transparent: boolean read FTransparent write FTransparent default false;
 
     { When @true then headlight is always rendered from custom viewport's
       (TCastleViewport) camera, not from central camera (the one in scene manager).
@@ -1799,6 +1811,7 @@ begin
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     glClearColor(1.0, 1.0, 0.0, 1.0); // saved by GL_COLOR_BUFFER_BIT
   end else
+  if not Transparent then
   begin
     UsedBackground := Background;
     if UsedBackground <> nil then
