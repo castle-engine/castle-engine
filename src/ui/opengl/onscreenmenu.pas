@@ -783,12 +783,9 @@ end;
 
 procedure TMenuArgument.Draw(const Rectangle: TRectangle);
 begin
-  glPushMatrix;
-    glTranslatef(Rectangle.X0, Rectangle.Y0 + UIFont.Descend, 0);
-    glColorv(LightGreen3Single);
-    glRasterPos2i(0, 0);
-    UIFont.Print(Value);
-  glPopMatrix;
+  glColorv(LightGreen3Single);
+  SetWindowPos(Rectangle.X0, Rectangle.Y0 + UIFont.Descend);
+  UIFont.Print(Value);
 end;
 
 { TMenuBooleanArgument ----------------------------------------------------- }
@@ -829,11 +826,8 @@ procedure TMenuSlider.Draw(const Rectangle: TRectangle);
 begin
   ImageSliderInit;
 
-  glPushMatrix;
-    glTranslatef(Rectangle.X0, Rectangle.Y0 + (Rectangle.Height - ImageSlider.Height) / 2, 0);
-    glRasterPos2i(0, 0);
-    glCallList(GLList_ImageSlider);
-  glPopMatrix;
+  SetWindowPos(Rectangle.X0, Rectangle.Y0 + (Rectangle.Height - ImageSlider.Height) / 2);
+  glCallList(GLList_ImageSlider);
 end;
 
 const
@@ -844,15 +838,12 @@ procedure TMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
 begin
   ImageSliderInit;
 
-  glPushMatrix;
-    glTranslatef(Rectangle.X0 + ImageSliderPositionMargin +
-      MapRange(Position, 0, 1, 0,
-        ImageSlider.Width - 2 * ImageSliderPositionMargin -
-        ImageSliderPosition.Width),
-      Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) / 2, 0);
-    glRasterPos2i(0, 0);
-    glCallList(GLList_ImageSliderPosition);
-  glPopMatrix;
+  SetWindowPos(Rectangle.X0 + ImageSliderPositionMargin +
+    MapRange(Position, 0, 1, 0,
+      ImageSlider.Width - 2 * ImageSliderPositionMargin -
+      ImageSliderPosition.Width),
+    Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) / 2);
+  glCallList(GLList_ImageSliderPosition);
 end;
 
 function TMenuSlider.XCoordToSliderPosition(
@@ -872,14 +863,11 @@ end;
 procedure TMenuSlider.DrawSliderText(
   const Rectangle: TRectangle; const Text: string);
 begin
-  glPushMatrix;
-    glTranslatef(
-      Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) / 2,
-      Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) / 2, 0);
-    glColorv(Black3Single);
-    glRasterPos2i(0, 0);
-    UIFontSmall.Print(Text);
-  glPopMatrix;
+  glColorv(Black3Single);
+  SetWindowPos(
+    Rectangle.X0 + (Rectangle.Width - UIFontSmall.TextWidth(Text)) / 2,
+    Rectangle.Y0 + (Rectangle.Height - UIFontSmall.RowHeight) / 2);
+  UIFontSmall.Print(Text);
 end;
 
 { TMenuFloatSlider --------------------------------------------------------- }
@@ -1384,11 +1372,8 @@ begin
     end else
       glColorv(NonCurrentItemColor);
 
-    glPushMatrix;
-      glTranslatef(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend, 0);
-      glRasterPos2i(0, 0);
-      UIFont.Print(Items[I]);
-    glPopMatrix;
+    SetWindowPos(Rectangles.L[I].X0, Rectangles.L[I].Y0 + UIFont.Descend);
+    UIFont.Print(Items[I]);
 
     if Items.Objects[I] <> nil then
       TMenuAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);
