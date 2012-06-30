@@ -53,7 +53,7 @@ type
       which user interacts. }
     function PositionInside(const X, Y: Integer): boolean; override;
     { Since PositionInside is always @true, no point in visualizing focused. }
-    property DrawFocused default false;
+    property DrawFocusedBorder default false;
   end;
 
   TRiftSubMenu = class(TRiftMenu)
@@ -177,7 +177,7 @@ begin
   Position := Vector2Integer(-91, -62);
   DrawBackgroundRectangle := false;
   ExclusiveEvents := false;
-  DrawFocused := false;
+  DrawFocusedBorder := false;
 end;
 
 function TRiftMenu.PositionInside(const X, Y: Integer): boolean;
