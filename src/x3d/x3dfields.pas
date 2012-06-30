@@ -1720,6 +1720,8 @@ type
     class function TypeName: string; override;
 
     procedure Send(const AValue: TVector3Single); virtual; overload;
+    { Change only a given component of the vector. }
+    procedure Send(const Index: Integer; const ComponentValue: Single); overload;
   end;
 
   TSFColor = class(TSFVec3f)
@@ -4931,6 +4933,15 @@ end;
 class function TSFVec3f.TypeName: string;
 begin
   Result := 'SFVec3f';
+end;
+
+procedure TSFVec3f.Send(const Index: Integer; const ComponentValue: Single);
+var
+  V: TVector3Single;
+begin
+  V := Value;
+  V[Index] := ComponentValue;
+  Send(V);
 end;
 
 { TSFColor ------------------------------------------------------------------- }
