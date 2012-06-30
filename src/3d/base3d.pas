@@ -256,7 +256,7 @@ type
     { Rendering pass number, for multi-pass rendering, like for shadow volumes. }
     Pass: TRenderingPass;
 
-    { Transformation that should should be applied to the rendered result.
+    { Transformation that should be applied to the rendered result.
       If RenderTransformIdentity, then RenderTransform is always identity.
       @groupBegin }
     RenderTransform: TMatrix4Single;
