@@ -157,10 +157,15 @@ type
   private
     FDisplayValue: boolean;
   protected
+    { Draw a slider at given Position. If Position is outside 0..1, it is clamped
+      to 0..1 (this way we do not show slider at some wild position if it's
+      outside the expected range; but DrawSliderText will still show the true,
+      unclamped, value). }
     procedure DrawSliderPosition(const Rectangle: TRectangle; const Position: Single);
 
-    { This returns a value of Position (for DrawSliderPosition, so in range 0..1)
-      that would result in slider being drawn at XCoord screen position.
+    { Returns a value of Position, always in 0..1 range,
+      that would result in slider being drawn at XCoord screen position
+      by DrawSliderPosition.
       Takes Rectangle as the rectangle currently occupied by the whole slider. }
     function XCoordToSliderPosition(const XCoord: Single;
       const Rectangle: TRectangle): Single;
@@ -839,7 +844,7 @@ begin
   ImageSliderInit;
 
   SetWindowPos(Rectangle.X0 + ImageSliderPositionMargin +
-    MapRange(Position, 0, 1, 0,
+    MapRange(Clamped(Position, 0, 1), 0, 1, 0,
       ImageSlider.Width - 2 * ImageSliderPositionMargin -
       ImageSliderPosition.Width),
     Rectangle.Y0 + (Rectangle.Height - ImageSliderPosition.Height) / 2);
