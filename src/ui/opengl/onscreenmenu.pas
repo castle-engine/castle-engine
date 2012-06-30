@@ -34,6 +34,8 @@ const
   DefaultNonCurrentItemColor    : TVector3Single = (   1,    1,    1) { White3Single  }; { }
 
   DefaultRegularSpaceBetweenItems = 10;
+  DefaultBackgroundOpacityNotFocused = 0.4;
+  DefaultBackgroundOpacityFocused = 0.7;
 
 type
   TCastleOnScreenMenu = class;
@@ -336,20 +338,15 @@ type
     { Item accessory that currently has "grabbed" the mouse.
       -1 if none. }
     ItemAccessoryGrabbed: Integer;
-    FDrawFocused: boolean;
+    FDrawFocusedBorder: boolean;
+    FDesignerMode: boolean;
+    FPositionAbsolute,
+      PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2Integer;
+    FBackgroundOpacityFocused, FBackgroundOpacityNotFocused: Single;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
     procedure SetItems(const Value: TStringList);
-  private
-    FDesignerMode: boolean;
     procedure SetDesignerMode(const Value: boolean);
-  private
-    FPositionAbsolute,
-      PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2Integer;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
   public
     { Position of the menu. Expressed as position of some corner of the menu
       (see PositionRelativeMenuX/Y), relative to some corner of the
@@ -365,6 +362,9 @@ type
       (you may be modifying only a temporary copy of the record returned
       by property getter). }
     Position: TVector2Integer;
+
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { PositionAbsolute expresses the position of the menu rectangle
       independently from all PositionRelative* properties.
@@ -572,6 +572,17 @@ type
       read FDesignerMode write SetDesignerMode default false;
 
   published
+    { Opacity of the background rectangle (displayed when DrawBackgroundRectangle).
+      @groupBegin }
+    property         BackgroundOpacityFocused: Single
+      read          FBackgroundOpacityFocused
+      write         FBackgroundOpacityFocused
+      default DefaultBackgroundOpacityFocused;
+    property         BackgroundOpacityNotFocused: Single
+      read          FBackgroundOpacityNotFocused
+      write         FBackgroundOpacityNotFocused
+      default DefaultBackgroundOpacityNotFocused;
+    { @groupEnd }
 
     { See TPositionRelative documentation for meaning of these four
       PositionRelativeXxx properties.
@@ -606,7 +617,7 @@ type
       default DefaultRegularSpaceBetweenItems;
 
     { Draw a flashing border around the menu when we are focused. }
-    property DrawFocused: boolean read FDrawFocused write FDrawFocused
+    property DrawFocusedBorder: boolean read FDrawFocusedBorder write FDrawFocusedBorder
       default true;
 
     { Items of this menu.
@@ -1062,6 +1073,8 @@ begin
   FCurrentItem := 0;
   FRectangles := TRectangleList.Create;
   FAccessoryRectangles := TRectangleList.Create;
+  BackgroundOpacityNotFocused := DefaultBackgroundOpacityNotFocused;
+  BackgroundOpacityFocused    := DefaultBackgroundOpacityFocused;
 
   FPositionRelativeMenuX := prMiddle;
   FPositionRelativeMenuY := prMiddle;
@@ -1081,7 +1094,7 @@ begin
 
   FRegularSpaceBetweenItems := DefaultRegularSpaceBetweenItems;
   FDrawBackgroundRectangle := true;
-  FDrawFocused := true;
+  FDrawFocusedBorder := true;
 end;
 
 destructor TCastleOnScreenMenu.Destroy;
@@ -1320,7 +1333,6 @@ procedure TCastleOnScreenMenu.Draw;
 
 const
   CurrentItemBorderMargin = 5;
-  BackgroundAlpha: array [boolean { focused }] of TGLfloat = (0.4, 0.7);
 var
   I: Integer;
   CurrentItemBorderColor: TVector3Single;
@@ -1331,7 +1343,9 @@ begin
   begin
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
-      glColor4f(0, 0, 0, BackgroundAlpha[Focused]);
+      if Focused then
+        glColor4f(0, 0, 0, BackgroundOpacityFocused) else
+        glColor4f(0, 0, 0, BackgroundOpacityNotFocused);
       glRectf(FAllItemsRectangle.X0, FAllItemsRectangle.Y0,
         FAllItemsRectangle.X0 + FAllItemsRectangle.Width,
         FAllItemsRectangle.Y0 + FAllItemsRectangle.Height);
@@ -1347,7 +1361,7 @@ begin
       MapRange(MenuAnimation, 0.5, 1, 0, 1),
       CurrentItemBorderColor2, CurrentItemBorderColor1);
 
-  if Focused and DrawFocused then
+  if Focused and DrawFocusedBorder then
   begin
     glColorv(CurrentItemBorderColor);
     glLineWidth(1.0);
