@@ -1460,7 +1460,7 @@ begin
   if Key = KeySelectItem then
   begin
     CurrentItemAccessoryKeyDown;
-    CurrentItemSelected;
+    Click;
     Result := ExclusiveEvents;
   end else
     Result := CurrentItemAccessoryKeyDown;
@@ -1578,7 +1578,7 @@ begin
     if NewItemIndex <> -1 then
     begin
       CurrentItem := NewItemIndex;
-      CurrentItemSelected;
+      Click;
       Result := ExclusiveEvents;
     end;
   end;
