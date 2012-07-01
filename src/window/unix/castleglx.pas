@@ -32,6 +32,7 @@
  This is necessary for supporting different platforms with different calling
  conventions via a single unit.}
 
+{ @exclude (This is only a C header translation --- no nice PasDoc docs.) }
 unit CastleGlx;
 
 interface

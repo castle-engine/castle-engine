@@ -21,11 +21,11 @@ interface
 
 uses VectorMath, CastleUtils, Math;
 
-{ Calculates ConvexHull ignoring Z coordinates of pixels
-  (i.e., Points[i][2] are ignored for every i).
-  Returns newly created array with the indices to Points,
-  i.e. if you want to draw an edge of convex hull,
-  you want to iterate over points (for each i) Points[Result[i]]).
+{ Calculates ConvexHull ignoring Z coordinates of pixels.
+  That is, all Points[*][2] are ignored.
+  Returns newly created array with the indices to Points.
+  If you want to draw an edge of convex hull,
+  you want to iterate over these points like (for each i) Points[Result[i]]).
 
   Points.Count must be >= 1. }
 function ConvexHull(Points: TVector3SingleList): TIntegerList;

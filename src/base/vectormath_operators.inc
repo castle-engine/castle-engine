@@ -183,6 +183,7 @@ operator * (const m:Tmatrix4_double_data;const v:Tvector4_double_data) : Tvector
 operator * (const m:Tmatrix4_extended_data;const v:Tvector4_extended_data) : Tvector4_extended_data;
 *)
 
+{ }
 operator * (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
 operator * (const m1,m2:Tmatrix4_extended_data) : Tmatrix4_extended_data;

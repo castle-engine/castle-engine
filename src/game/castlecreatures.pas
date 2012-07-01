@@ -45,7 +45,8 @@ const
   DefaultKnockedBackDistance = 6.0 * 0.7;
   DefaultLifeToRunAway = 0.3;
   DefaultActualAttackTime = 0.0;
-  DefaultMaxAngleToAttack = Pi / 6 { 30 degrees };
+  { Default TWalkAttackCreatureKind.MaxAngleToAttack. 30 degrees. }
+  DefaultMaxAngleToAttack = Pi / 6;
 
   DefaultSoundDyingTiedToCreature = true;
 
