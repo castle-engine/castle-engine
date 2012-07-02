@@ -38,6 +38,7 @@ const
 
 type
   TItem = class;
+  TItemClass = class of TItem;
 
   { Kind of item. }
   TItemKind = class(T3DResource)
@@ -65,6 +66,9 @@ type
       const DoProgress: boolean); override;
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
+    { Which TItem descendant to create when constructing item
+      of this kind by CreateItem. }
+    function ItemClass: TItemClass; virtual;
   public
     destructor Destroy; override;
 
@@ -89,24 +93,6 @@ type
 
     { OpenGL display list to draw @link(Image). }
     function GLList_DrawImage: TGLuint;
-
-    { Use this item.
-
-      In this class, this just prints a message "this item cannot be used".
-
-      Implementation of this method can assume that Item is one of
-      player's owned Items. Implementation of this method can change
-      Item instance properties, including Quantity.
-      As a very special exception, implementation of this method
-      is allowed to set Quantity of Item to 0.
-
-      Never call this method when Player.Dead. Implementation of this
-      method may assume that Player is not Dead.
-
-      Caller of this method should always be prepared to immediately
-      handle the "Quantity = 0" situation by freeing given item,
-      removing it from any list etc. }
-    procedure Use(Item: TItem); virtual;
 
     { This returns Scene.BoundingBox enlarged a little (along X and Y)
       to account the fact that Scene may be rotated around +Z vector. }
@@ -136,6 +122,7 @@ type
       const DoProgress: boolean); override;
     function PrepareCoreSteps: Cardinal; override;
     procedure ReleaseCore; override;
+    function ItemClass: TItemClass; override;
   public
     { Sound to make on equipping. Each weapon can have it's own
       equipping sound. }
@@ -150,8 +137,6 @@ type
     property ReadyAnimation: TCastlePrecalculatedAnimation
       read FReadyAnimation;
 
-    procedure Use(Item: TItem); override;
-
     { Time within AttackAnimation
       at which ActualAttack method will be called.
       Note that actually ActualAttack may be called a *very little* later
@@ -159,11 +144,6 @@ type
     property ActualAttackTime: Single
       read FActualAttackTime write FActualAttackTime
       default DefaultItemActualAttackTime;
-
-    { Perform real attack here.
-      This may mean hurting some creature within the range,
-      or shooting some missile. You can also play some sound here. }
-    procedure ActualAttack(Item: TItem; World: T3DWorld); virtual; abstract;
 
     property SoundAttackStart: TSoundType
       read FSoundAttackStart write FSoundAttackStart default stNone;
@@ -226,6 +206,36 @@ type
       It is analogous to TCreatureKind.CreateCreature, but now for items. }
     function PutOnLevel(World: T3DWorld;
       const APosition: TVector3Single): TItemOnLevel;
+
+    { Use this item.
+
+      In this class, this just prints a message "this item cannot be used".
+
+      Implementation of this method can assume for now that this is one of
+      player's owned Items. Implementation of this method can change
+      our properties, including Quantity.
+      As a very special exception, implementation of this method
+      is allowed to set Quantity of Item to 0.
+
+      Never call this method when Player.Dead. Implementation of this
+      method may assume that Player is not Dead.
+
+      Caller of this method should always be prepared to immediately
+      handle the "Quantity = 0" situation by freeing given item,
+      removing it from any list etc. }
+    procedure Use; virtual;
+  end;
+
+  TItemWeapon = class(TItem)
+  public
+    procedure Use; override;
+
+    { Perform real attack now.
+      This may mean hurting some creature within the range,
+      or shooting some missile. You can also play some sound here. }
+    procedure ActualAttack(World: T3DWorld); virtual; abstract;
+
+    function Kind: TItemWeaponKind;
   end;
 
   TItemList = class(specialize TFPGObjectList<TItem>)
@@ -342,11 +352,6 @@ begin
   Result := FGLList_DrawImage;
 end;
 
-procedure TItemKind.Use(Item: TItem);
-begin
-  Notifications.Show('This item cannot be used');
-end;
-
 function TItemKind.BoundingBoxRotated: TBox3D;
 var
   HorizontalSize: Single;
@@ -399,7 +404,7 @@ end;
 
 function TItemKind.CreateItem(const AQuantity: Cardinal): TItem;
 begin
-  Result := TItem.Create(nil { for now, TItem.Owner is always nil });
+  Result := ItemClass.Create(nil { for now, TItem.Owner is always nil });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.FKind := Self;
@@ -407,12 +412,12 @@ begin
   Assert(Result.Quantity >= 1, 'Item''s Quantity must be >= 1');
 end;
 
-{ TItemWeaponKind ------------------------------------------------------------ }
-
-procedure TItemWeaponKind.Use(Item: TItem);
+function TItemKind.ItemClass: TItemClass;
 begin
-  Player.EquippedWeapon := Item;
+  Result := TItem;
 end;
+
+{ TItemWeaponKind ------------------------------------------------------------ }
 
 procedure TItemWeaponKind.PrepareCore(const BaseLights: TAbstractLightInstancesList;
   const DoProgress: boolean);
@@ -448,6 +453,11 @@ begin
 
   FReadyAnimationFile:= KindsConfig.GetFileName('ready_animation');
   FAttackAnimationFile := KindsConfig.GetFileName('attack_animation');
+end;
+
+function TItemWeaponKind.ItemClass: TItemClass;
+begin
+  Result := TItemWeapon;
 end;
 
 { TItemShortRangeWeaponKind -------------------------------------------------- }
@@ -498,6 +508,23 @@ begin
   Result.FItem := Self;
   Result.SetView(APosition, AnyOrthogonalVector(World.GravityUp), World.GravityUp);
   World.Add(Result);
+end;
+
+procedure TItem.Use;
+begin
+  Notifications.Show('This item cannot be used');
+end;
+
+{ TItemWeapon ---------------------------------------------------------------- }
+
+procedure TItemWeapon.Use;
+begin
+  Player.EquippedWeapon := Self;
+end;
+
+function TItemWeapon.Kind: TItemWeaponKind;
+begin
+  Result := (inherited Kind) as TItemWeaponKind;
 end;
 
 { TItemList ------------------------------------------------------------ }

@@ -85,7 +85,7 @@ type
   private
     FCamera: TWalkCamera;
     FItems: TItemList;
-    FEquippedWeapon: TItem;
+    FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
 
     { This means that weapon AttackAnimation is being done.
@@ -142,7 +142,7 @@ type
     FResources: T3DResourceList;
 
     function GetFlyingMode: boolean;
-    procedure SetEquippedWeapon(Value: TItem);
+    procedure SetEquippedWeapon(Value: TItemWeapon);
 
     { Update Camera properties, including inputs.
       Also updates Level.Input_PointingDeviceActivate, it's suitable to do it here.
@@ -157,10 +157,6 @@ type
       Color (while SetLife always uses red color). }
     procedure SetLifeCustomBlackOut(const Value: Single;
       const Color: TVector3Single);
-
-    { Shortcut for TItemWeaponKind(EquippedWeapon.Kind).
-      Call this only when EquippedWeapon <> nil. }
-    function EquippedWeaponKind: TItemWeaponKind;
 
     procedure InputChanged(InputConfiguration: TInputConfiguration);
 
@@ -296,7 +292,7 @@ type
 
       When setting this property (to nil or non-nil) player may get
       GameMessage about using/not using a weapon. }
-    property EquippedWeapon: TItem read FEquippedWeapon write SetEquippedWeapon;
+    property EquippedWeapon: TItemWeapon read FEquippedWeapon write SetEquippedWeapon;
 
     { Adjust some things based on passing time.
       For now, this is for things like FlyingModeTimeout to "wear out".
@@ -545,8 +541,8 @@ begin
   end;
 
   { Automatically equip the weapon. }
-  if (Item.Kind is TItemWeaponKind) and (EquippedWeapon = nil) then
-    EquippedWeapon := Item;
+  if (Item is TItemWeapon) and (EquippedWeapon = nil) then
+    EquippedWeapon := TItemWeapon(Item);
 
   { Update InventoryCurrentItem. }
   if not Between(InventoryCurrentItem, 0, Items.Count - 1) then
@@ -604,7 +600,7 @@ begin
     EquippedWeapon := nil;
 end;
 
-procedure TPlayer.SetEquippedWeapon(Value: TItem);
+procedure TPlayer.SetEquippedWeapon(Value: TItemWeapon);
 begin
   if Value <> FEquippedWeapon then
   begin
@@ -617,8 +613,7 @@ begin
     begin
       Notifications.Show(Format('You''re using weapon "%s" now',
         [EquippedWeapon.Kind.Caption]));
-      Assert(EquippedWeapon.Kind is TItemWeaponKind);
-      SoundEngine.Sound(EquippedWeaponKind.EquippingSound);
+      SoundEngine.Sound(EquippedWeapon.Kind.EquippingSound);
       FEquippedWeapon.FreeNotification(Self);
     end else
       Notifications.Show('You''re no longer using your weapon');
@@ -1052,10 +1047,10 @@ begin
     BlackOutIntensity -= BlackOutSpeed * CompSpeed;
 
   if Attacking and (not ActualAttackDone) and (LifeTime -
-    AttackStartTime >= EquippedWeaponKind.ActualAttackTime) then
+    AttackStartTime >= EquippedWeapon.Kind.ActualAttackTime) then
   begin
     ActualAttackDone := true;
-    EquippedWeaponKind.ActualAttack(EquippedWeapon, World);
+    EquippedWeapon.ActualAttack(World);
   end;
 
   if not HintEscapeKeyShown then
@@ -1119,7 +1114,7 @@ begin
   begin
     if EquippedWeapon <> nil then
     begin
-      SoundEngine.Sound(EquippedWeaponKind.SoundAttackStart);
+      SoundEngine.Sound(EquippedWeapon.Kind.SoundAttackStart);
       AttackStartTime := LifeTime;
       Attacking := true;
       ActualAttackDone := false;
@@ -1127,11 +1122,6 @@ begin
       { TODO: maybe I should allow him to do some "punch" / "kick" here ? }
       Notifications.Show('No weapon equipped');
   end;
-end;
-
-function TPlayer.EquippedWeaponKind: TItemWeaponKind;
-begin
-  Result := TItemWeaponKind(EquippedWeapon.Kind);
 end;
 
 procedure TPlayer.InputChanged(InputConfiguration: TInputConfiguration);
@@ -1291,9 +1281,9 @@ var
 begin
   Result := nil;
   if (EquippedWeapon <> nil) and
-    EquippedWeaponKind.Prepared then
+    EquippedWeapon.Kind.Prepared then
   begin
-    AttackAnim := EquippedWeaponKind.AttackAnimation;
+    AttackAnim := EquippedWeapon.Kind.AttackAnimation;
     AttackTime := LifeTime - AttackStartTime;
     if Attacking and (AttackTime <= AttackAnim.TimeEnd) then
     begin
@@ -1305,7 +1295,7 @@ begin
       { although current weapons animations are just static,
         we use LifeTime to enable any weapon animation
         (like weapon swaying, or some fire over the sword or such) in the future. }
-      Result :=  EquippedWeaponKind.ReadyAnimation.SceneFromTime(LifeTime);
+      Result :=  EquippedWeapon.Kind.ReadyAnimation.SceneFromTime(LifeTime);
     end;
   end;
 end;
