@@ -287,10 +287,6 @@ type
     function Middle: TVector3Single; override;
   end;
 
-  { TODO: remove? }
-  TItemOnLevelList = class(specialize TFPGObjectList<TItemOnLevel>)
-  end;
-
   { TODO: Move to castle1 code? }
 const
   DefaultAutoOpenInventory = true;
@@ -304,10 +300,8 @@ var
 
 implementation
 
-uses SysUtils, CastleWindow,
-  GamePlay, CastleFilesUtils, ProgressUnit,
-  GameCreatures, CastleGameNotifications, CastleConfig,
-  GLImages, CastleCreatures, CastleGameVideoOptions;
+uses SysUtils, CastleWindow, GamePlay, CastleFilesUtils,
+  CastleGameNotifications, CastleConfig, GLImages, CastleGameVideoOptions;
 
 { TItemKind ------------------------------------------------------------ }
 

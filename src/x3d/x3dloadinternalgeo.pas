@@ -26,7 +26,7 @@ function LoadGEO(const filename: string): TX3DRootNode;
 
 implementation
 
-uses VectorMath, CastleUtils, Classes, SysUtils, Boxes3D, Base3D,
+uses VectorMath, CastleUtils, Classes, SysUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
 { TObject3DGEO ---------------------------------------------------------------- }

@@ -177,7 +177,7 @@ function OpenALSampleImplementation: boolean;
 
 implementation
 
-uses CastleUtils, CastleTimeUtils, CastleDynLib;
+uses CastleUtils, CastleDynLib;
 
 function OpenALSampleImplementation: boolean;
 begin

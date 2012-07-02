@@ -29,7 +29,7 @@ interface
 uses
   SysUtils, Classes, VectorMath, Boxes3D, X3DNodes, CastleClassUtils, CastleUtils,
   CastleSceneCore, GLRenderer, GL, GLU, GLExt, Background, CastleGLUtils,
-  ShapeOctree, GLShadowVolumeRenderer, Cameras, X3DFields,
+  ShapeOctree, GLShadowVolumeRenderer, X3DFields,
   GLRendererLights, Shape, Frustum, Base3D, GLShaders, FGL, GenericStructList;
 
 {$define read_interface}
@@ -899,7 +899,7 @@ procedure Register;
 implementation
 
 uses GLVersionUnit, Images, CastleLog, CastleWarnings,
-  Math, RaysWindow, CastleStringUtils, RenderingCameraUnit;
+  CastleStringUtils, RenderingCameraUnit;
 
 var
   TemporaryAttributeChange: Cardinal = 0;

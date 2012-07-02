@@ -21,7 +21,7 @@ unit CastleParameters;
 
 interface
 
-uses SysUtils, VectorMath, CastleUtils, CastleStringUtils, GenericStructList;
+uses SysUtils, VectorMath, CastleUtils, CastleStringUtils;
 
 type
   EInvalidParams = class(EWithHiddenClassName);

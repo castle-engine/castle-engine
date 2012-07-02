@@ -140,7 +140,7 @@ type
 
 implementation
 
-uses CastleStringUtils, Shape;
+uses CastleStringUtils;
 
 { TWaypoint ------------------------------------------------------------- }
 

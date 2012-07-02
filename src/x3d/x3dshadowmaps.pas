@@ -67,7 +67,7 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 
 implementation
 
-uses SysUtils, CastleUtils, X3DFields, CastleStringUtils, CastleWarnings,
+uses SysUtils, CastleUtils, CastleStringUtils, CastleWarnings,
   Boxes3D, CastleLog, VectorMath, GenericStructList;
 
 const

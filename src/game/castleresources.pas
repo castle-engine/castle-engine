@@ -26,7 +26,7 @@ unit CastleResources;
 
 interface
 
-uses Classes, CastleXMLConfig, PrecalculatedAnimation, PrecalculatedAnimationCore,
+uses Classes, CastleXMLConfig, PrecalculatedAnimation,
   CastleScene, X3DNodes, Base3D, DOM, FGL;
 
 type
