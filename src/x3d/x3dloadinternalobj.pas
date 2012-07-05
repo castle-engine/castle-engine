@@ -527,13 +527,13 @@ begin
       for I := 0 to Obj.Materials.Count - 1 do
         Appearances[I] := MaterialToVRML(Obj.Materials[I]);
 
-      Coord := TCoordinateNode.Create('',BaseUrl);
+      Coord := TCoordinateNode.Create('ObjCoordinates',BaseUrl);
       Coord.FdPoint.Items.Assign(obj.Verts);
 
-      TexCoord := TTextureCoordinateNode.Create('', BaseUrl);
+      TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates', BaseUrl);
       TexCoord.FdPoint.Items.Assign(obj.TexCoords);
 
-      Normal := TNormalNode.Create('', BaseUrl);
+      Normal := TNormalNode.Create('ObjNormals', BaseUrl);
       Normal.FdVector.Items.Assign(Obj.Normals);
 
       i := 0;
