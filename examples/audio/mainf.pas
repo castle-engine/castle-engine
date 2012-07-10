@@ -40,7 +40,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private
-    procedure SourceUsingEnd(Sender: TALSound);
+    procedure SourceRelease(Sender: TALSound);
   public
     { public declarations }
   end;
@@ -112,7 +112,7 @@ begin
   SoundEngine.ALContextClose;
 end;
 
-procedure TMain.SourceUsingEnd(Sender: TALSound);
+procedure TMain.SourceRelease(Sender: TALSound);
 begin
   Assert(Sender.UserData <> nil);
   alDeleteBuffers(1, @TALSoundData(Sender.UserData).ALBuffer);

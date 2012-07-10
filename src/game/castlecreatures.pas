@@ -562,7 +562,7 @@ type
     UsedSounds: TALSoundList;
     FSoundDyingEnabled: boolean;
 
-    procedure SoundSourceUsingEnd(Sender: TALSound);
+    procedure SoundRelease(Sender: TALSound);
   protected
     property LifeTime: Single read FLifeTime;
     procedure SetLife(const Value: Single); override;
@@ -1080,10 +1080,10 @@ begin
   FAnimationFile := KindsConfig.GetFileName('stand_animation');
 end;
 
-{ TCreatureSoundSourceData --------------------------------------------------- }
+{ TCreatureSoundData --------------------------------------------------- }
 
 type
-  TCreatureSoundSourceData = class
+  TCreatureSoundData = class
   public
     SoundHeight: Single;
   end;
@@ -1116,11 +1116,11 @@ begin
       UsedSounds[I].UserData.Free;
       UsedSounds[I].UserData := nil;
 
-      { Otherwise OnUsingEnd would call TCreature.SoundSourceUsingEnd,
+      { Otherwise OnRelease would call TCreature.SoundRelease,
         and this would remove it from UsedSounds list, breaking our
         indexing over this list here. }
-      UsedSounds[I].OnUsingEnd := nil;
-      UsedSounds[I].DoUsingEnd;
+      UsedSounds[I].OnRelease := nil;
+      UsedSounds[I].Release;
     end;
     FreeAndNil(UsedSounds);
   end;
@@ -1131,11 +1131,11 @@ begin
   inherited;
 end;
 
-procedure TCreature.SoundSourceUsingEnd(Sender: TALSound);
+procedure TCreature.SoundRelease(Sender: TALSound);
 begin
   Sender.UserData.Free;
   Sender.UserData := nil;
-  Sender.OnUsingEnd := nil;
+  Sender.OnRelease := nil;
   UsedSounds.Remove(Sender);
 end;
 
@@ -1150,8 +1150,8 @@ begin
   if TiedToCreature and (NewSource <> nil) then
   begin
     UsedSounds.Add(NewSource);
-    NewSource.OnUsingEnd := @SoundSourceUsingEnd;
-    NewSource.UserData := TCreatureSoundSourceData.Create;
+    NewSource.OnRelease := @SoundRelease;
+    NewSource.UserData := TCreatureSoundData.Create;
   end;
 end;
 
@@ -1255,7 +1255,7 @@ procedure TCreature.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     for I := 0 to UsedSounds.Count - 1 do
     begin
       SoundPosition := LerpLegsMiddle(
-        TCreatureSoundSourceData(UsedSounds[I].UserData).SoundHeight);
+        TCreatureSoundData(UsedSounds[I].UserData).SoundHeight);
       UsedSounds[I].Position := SoundPosition;
     end;
   end;

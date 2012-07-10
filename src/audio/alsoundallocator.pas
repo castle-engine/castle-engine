@@ -38,7 +38,7 @@ type
   TALSound = class
   private
     FUsed: boolean;
-    FOnUsingEnd: TALSoundEvent;
+    FOnRelease: TALSoundEvent;
     FImportance: Integer;
     FALSource: TALuint;
     { This must be @true for the whole lifetime of this object
@@ -88,7 +88,7 @@ type
     { Any data comfortable to keep here by the caller of
       TALSoundAllocator.AllocateSound. It should be initialized
       after calling TALSoundAllocator.AllocateSound, and should
-      be finalized in OnUsingEnd. }
+      be finalized in OnRelease. }
     property UserData: TObject read FUserData write FUserData;
 
     { Called when this OpenAL allocated sound will no longer
@@ -98,41 +98,39 @@ type
       or it may stop be used because it simply stopped playing.
 
       But note that we do not make any guarantees that sources that
-      stopped playing will be immediately reported to OnUsingEnd.
+      stopped playing will be immediately reported to OnRelease.
       In fact, a source may be considered in Used = @true state
       for a long time until it stopped playing. That's not a problem
       for this unit --- TALSoundAllocator.AllocateSound is smart,
-      and it may actually check (and eventually mark with DoUsingEnd)
+      and it may actually check (and eventually mark with @link(Release))
       whether some sources are in playing state,
       to avoid allocating unnecessary sources.
       However, if this is a problem for you (because e.g. you do
       some expensive operations to update all used sources every time)
-      and you really desire OnUsingEnd to be called quickly after
+      and you really desire OnRelease to be called quickly after
       sound stoppped playing, you may call TALSoundAllocator.RefreshUsedSources
       from time to time.
 
       In this event you should make sure to delete all references
       to this sound, because the TALSound instance may
-      be freed after calling OnUsingEnd.
+      be freed after calling OnRelease.
 
       It's guaranteed that when this will be called,
-      Used will be @false and ALSource will not be in AL_PLAYING
-      or AL_PAUSED state. }
-    property OnUsingEnd: TALSoundEvent
-      read FOnUsingEnd write FOnUsingEnd;
+      @link(Used) will be @false and @link(PlayingOrPaused) will be @false. }
+    property OnRelease: TALSoundEvent read FOnRelease write FOnRelease;
 
     { Stops playing the source,
-      sets Used to @false, and calls OnUsingEnd (if assigned).
+      sets Used to @false, and calls OnRelease (if assigned).
 
       You can call this yourself if you want to stop playing the sound.
       It's preferable to call this (instead of manually calling
       alSourceStop), because this will immediately mark Used property
-      as @false and will call OnUsingEnd. Otherwise we would have to
+      as @false and will call OnRelease. Otherwise we would have to
       get source state at some time (they are checked in AllocateSound)
       and check it, then see that it's no longer playing.
 
       You can call this only when Used = @true. }
-    procedure DoUsingEnd; virtual;
+    procedure Release; virtual;
 
     property Position: TVector3Single read FPosition write SetPosition;
     property Velocity: TVector3Single read FVelocity write SetVelocity;
@@ -146,6 +144,13 @@ type
     property RolloffFactor: Single read FRolloffFactor write SetRolloffFactor;
     property ReferenceDistance: Single read FReferenceDistance write SetReferenceDistance;
     property MaxDistance: Single read FMaxDistance write SetMaxDistance;
+
+    { Is the sound playing or paused. This is almost always @true for sounds
+      returned by TALSoundAllocator.AllocateSound, when it stops being @true
+      --- the sound engine will realize it (soon), which will cause @link(Release)
+      and OnRelease being automatically called, and this TALSound may then
+      be reused for playing other sounds. }
+    function PlayingOrPaused: boolean;
   end;
 
   TALSoundList = class(specialize TFPGObjectList<TALSound>)
@@ -247,14 +252,14 @@ type
     property AllocatedSources: TALSoundList read FAllocatedSources;
 
     { Detect unused sounds. If you rely on your sources receiving
-      TALSound.OnUsingEnd in a timely manner, be sure to call
+      TALSound.OnRelease in a timely manner, be sure to call
       this method often. Otherwise, it's not needed to call this at all
       (unused sounds will be detected automatically on-demand anyway).
 
       For every source that is marked as Used, this checks
       whether this source is actually in playing/paused state
-      right now. If not, it calls DoUsingEnd (thus setting
-      Used to @false and triggering OnUsingEnd) for this source. }
+      right now. If not, it calls @link(Release) (thus setting
+      Used to @false and triggering OnRelease) for this source. }
     procedure RefreshUsedSources;
 
     { Stop all the sources currently playing. Especially useful since
@@ -326,7 +331,7 @@ begin
   inherited;
 end;
 
-procedure TALSound.DoUsingEnd;
+procedure TALSound.Release;
 begin
   FUsed := false;
 
@@ -342,8 +347,8 @@ begin
     buffer to 0 before queing buffers on source. }
   Buffer := 0;
 
-  if Assigned(OnUsingEnd) then
-    OnUsingEnd(Self);
+  if Assigned(OnRelease) then
+    OnRelease(Self);
 end;
 
 procedure TALSound.SetPosition(const Value: TVector3Single);
@@ -423,6 +428,14 @@ begin
   alSourcef(ALSource, AL_MAX_DISTANCE, Value);
 end;
 
+function TALSound.PlayingOrPaused: boolean;
+var
+  SourceState: TALuint;
+begin
+  SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
+  Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
+end;
+
 { TALSoundList ----------------------------------------------------- }
 
 function IsSmallerByImportance(const AA, BB: TALSound): Integer;
@@ -475,7 +488,7 @@ begin
       if FAllocatedSources[I] <> nil then
       begin
         if FAllocatedSources[I].Used then
-          FAllocatedSources[I].DoUsingEnd;
+          FAllocatedSources[I].Release;
         FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
       end;
 
@@ -521,7 +534,7 @@ begin
   if Result = nil then
   begin
     for I := 0 to FAllocatedSources.Count - 1 do
-      if not alSourcePlayingOrPaused(FAllocatedSources[I].ALSource) then
+      if not FAllocatedSources[I].PlayingOrPaused then
       begin
         Result := FAllocatedSources[I];
         Break;
@@ -561,7 +574,7 @@ begin
   begin
     { Prepare Result }
     if Result.Used then
-      Result.DoUsingEnd;
+      Result.Release;
     Result.FImportance := Importance;
     Result.FUsed := true;
   end;
@@ -606,7 +619,7 @@ begin
       for I := MaxAllocatedSources to FAllocatedSources.Count - 1 do
       begin
         if FAllocatedSources[I].Used then
-          FAllocatedSources[I].DoUsingEnd;
+          FAllocatedSources[I].Release;
         FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
       end;
       FAllocatedSources.Count := MaxAllocatedSources;
@@ -623,10 +636,8 @@ begin
   if FAllocatedSources <> nil then
     for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used and
-         (not alSourcePlayingOrPaused(FAllocatedSources[I].ALSource)) then
-      begin
-        FAllocatedSources[I].DoUsingEnd;
-      end;
+         (not FAllocatedSources[I].PlayingOrPaused) then
+        FAllocatedSources[I].Release;
 end;
 
 procedure TALSoundAllocator.StopAllSources;
@@ -636,7 +647,7 @@ begin
   if FAllocatedSources <> nil then
     for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used then
-        FAllocatedSources[I].DoUsingEnd;
+        FAllocatedSources[I].Release;
 end;
 
 procedure TALSoundAllocator.LoadFromConfig(const Config: TCastleConfig);

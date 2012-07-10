@@ -53,7 +53,7 @@
     Sound: TALSound;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
-    procedure SoundUsingEnd(ASound: TALSound);
+    procedure SoundRelease(ASound: TALSound);
     procedure UpdatePlayingEvent(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure UpdatePlaying;
@@ -179,7 +179,7 @@ destructor TAudioClipNode.Destroy;
 begin
   if Sound <> nil then
   begin
-    Sound.DoUsingEnd;
+    Sound.Release;
     Assert(Sound = nil);
   end;
   BufferLoaded := false;
@@ -208,7 +208,7 @@ begin
     Result := 0;
 end;
 
-procedure TAudioClipNode.SoundUsingEnd(ASound: TALSound);
+procedure TAudioClipNode.SoundRelease(ASound: TALSound);
 begin
   Sound := nil;
 end;
@@ -253,14 +253,14 @@ begin
           SoundNode.FTransformScale * SoundNode.FdMinFront.Value,
           SoundNode.FTransformScale * SoundNode.FdMaxFront.Value);
         if Sound <> nil then
-          Sound.OnUsingEnd := @SoundUsingEnd;
+          Sound.OnRelease := @SoundRelease;
       end;
     end;
   end else
   begin
     { if playing, try to stop playing }
     if Sound <> nil then
-      Sound.DoUsingEnd;
+      Sound.Release;
   end;
 end;
 

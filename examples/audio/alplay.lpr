@@ -51,7 +51,7 @@ begin
     In this simple program, we just sleep enough time
     to finish playing sound, with some margin. Alternative, more precise way
     to do this would be query is sound playing (call SoundEngine.RefreshUsedSources
-    from time to time, and watch out for TALSound.OnUsingEnd event;
+    from time to time, and watch out for TALSound.OnRelease event;
     PlaySound returns TALSound instance for such purposes). }
   Sleep(Round(Duration * 1000)+ 100);
 end.

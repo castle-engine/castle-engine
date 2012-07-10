@@ -169,9 +169,6 @@ procedure alCreateBuffers(n: TALsizei; buffers: PALuint);
 
 { @section(Other utils) --------------------------------------------------- }
 
-{ }
-function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
-
 const
   BoolToAL: array[boolean] of TALint = (AL_FALSE, AL_TRUE);
 
@@ -396,14 +393,6 @@ begin
 end;
 
 { Other utils ---------------------------------------------------------------- }
-
-function alSourcePlayingOrPaused(ALSource: TALuint): boolean;
-var
-  SourceState: TALuint;
-begin
-  SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
-  Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
-end;
 
 procedure alFreeSource(var Source: TALuint);
 begin

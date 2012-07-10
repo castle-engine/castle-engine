@@ -562,7 +562,7 @@ type
       or PlayerSound.FileName = '' (sound not existing)). }
     FAllocatedSource: TALSound;
 
-    procedure AllocatedSourceUsingEnd(Sender: TALSound);
+    procedure AllocatedSourceRelease(Sender: TALSound);
 
     { Called by ALContextOpen. You should check here if
       PlayedSound <> stNone and eventually initialize FAllocatedSource. }
@@ -1694,7 +1694,7 @@ end;
 destructor TMusicPlayer.Destroy;
 begin
   if FAllocatedSource <> nil then
-    FAllocatedSource.DoUsingEnd;
+    FAllocatedSource.Release;
   inherited;
 end;
 
@@ -1707,8 +1707,7 @@ begin
     ZeroVector3Single);
 
   if FAllocatedSource <> nil then
-    FAllocatedSource.OnUsingEnd :=
-      {$ifdef FPC_OBJFPC} @ {$endif} AllocatedSourceUsingEnd;
+    FAllocatedSource.OnRelease := @AllocatedSourceRelease;
 end;
 
 procedure TMusicPlayer.SetPlayedSound(const Value: TSoundType);
@@ -1717,8 +1716,8 @@ begin
   begin
     if FAllocatedSource <> nil then
     begin
-      FAllocatedSource.DoUsingEnd;
-      { AllocatedSourceUsingEnd should set FAllocatedSource to nil. }
+      FAllocatedSource.Release;
+      { AllocatedSourceRelease should set FAllocatedSource to nil. }
       Assert(FAllocatedSource = nil);
     end;
 
@@ -1728,10 +1727,10 @@ begin
   end;
 end;
 
-procedure TMusicPlayer.AllocatedSourceUsingEnd(Sender: TALSound);
+procedure TMusicPlayer.AllocatedSourceRelease(Sender: TALSound);
 begin
   Assert(Sender = FAllocatedSource);
-  FAllocatedSource.OnUsingEnd := nil;
+  FAllocatedSource.OnRelease := nil;
   FAllocatedSource := nil;
 end;
 

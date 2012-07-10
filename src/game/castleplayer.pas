@@ -119,8 +119,8 @@ type
       always valid when IsLava. }
     LavaLastDamageTime: Single;
 
-    AllocatedSwimmingChangeSource: TALSound;
-    AllocatedSwimmingSource: TALSound;
+    SwimmingChangeSound: TALSound;
+    SwimmingSound: TALSound;
 
     { Did last Idle detected that we are on the ground. }
     IsOnTheGround: boolean;
@@ -129,10 +129,10 @@ type
     ReallyIsOnTheGroundTime: Single;
 
     { There always must be satisfied:
-        AllocatedFootstepsSource <> nil
+        FootstepsSound <> nil
       if and only if
         FootstepsSoundPlaying <> stNone. }
-    AllocatedFootstepsSource: TALSound;
+    FootstepsSound: TALSound;
     FootstepsSoundPlaying: TSoundType;
     ReallyWalkingOnTheGroundTime: Single;
 
@@ -160,11 +160,11 @@ type
 
     procedure InputChanged(InputConfiguration: TInputConfiguration);
 
-    procedure AllocatedSwimmingChangeSourceUsingEnd(Sender: TALSound);
-    procedure AllocatedSwimmingSourceUsingEnd(Sender: TALSound);
+    procedure SwimmingChangeSoundRelease(Sender: TALSound);
+    procedure SwimmingSoundRelease(Sender: TALSound);
     procedure SetSwimming(const Value: TPlayerSwimming);
 
-    procedure AllocatedFootstepsSourceUsingEnd(Sender: TALSound);
+    procedure FootstepsSoundRelease(Sender: TALSound);
   protected
     procedure SetLife(const Value: Single); override;
     function GetChild: T3D; override;
@@ -472,14 +472,14 @@ begin
     FreeAndNil(FItems);
   end;
 
-  if AllocatedFootstepsSource <> nil then
-    AllocatedFootstepsSource.DoUsingEnd;
+  if FootstepsSound <> nil then
+    FootstepsSound.Release;
 
-  if AllocatedSwimmingChangeSource <> nil then
-    AllocatedSwimmingChangeSource.DoUsingEnd;
+  if SwimmingChangeSound <> nil then
+    SwimmingChangeSound.Release;
 
-  if AllocatedSwimmingSource <> nil then
-    AllocatedSwimmingSource.DoUsingEnd;
+  if SwimmingSound <> nil then
+    SwimmingSound.Release;
 
   if Resources <> nil then
   begin
@@ -780,26 +780,26 @@ begin
   end;
 end;
 
-procedure TPlayer.AllocatedFootstepsSourceUsingEnd(Sender: TALSound);
+procedure TPlayer.FootstepsSoundRelease(Sender: TALSound);
 begin
-  Assert(Sender = AllocatedFootstepsSource);
-  AllocatedFootstepsSource.OnUsingEnd := nil;
-  AllocatedFootstepsSource := nil;
+  Assert(Sender = FootstepsSound);
+  FootstepsSound.OnRelease := nil;
+  FootstepsSound := nil;
   FootstepsSoundPlaying := stNone;
 end;
 
-procedure TPlayer.AllocatedSwimmingChangeSourceUsingEnd(Sender: TALSound);
+procedure TPlayer.SwimmingChangeSoundRelease(Sender: TALSound);
 begin
-  Assert(Sender = AllocatedSwimmingChangeSource);
-  AllocatedSwimmingChangeSource.OnUsingEnd := nil;
-  AllocatedSwimmingChangeSource := nil;
+  Assert(Sender = SwimmingChangeSound);
+  SwimmingChangeSound.OnRelease := nil;
+  SwimmingChangeSound := nil;
 end;
 
-procedure TPlayer.AllocatedSwimmingSourceUsingEnd(Sender: TALSound);
+procedure TPlayer.SwimmingSoundRelease(Sender: TALSound);
 begin
-  Assert(Sender = AllocatedSwimmingSource);
-  AllocatedSwimmingSource.OnUsingEnd := nil;
-  AllocatedSwimmingSource := nil;
+  Assert(Sender = SwimmingSound);
+  SwimmingSound.OnRelease := nil;
+  SwimmingSound := nil;
 end;
 
 procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
@@ -849,18 +849,17 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       end;
 
       { Take care of playing stPlayerSwimming }
-      { See comments at creation of AllocatedSwimmingChangeSource
+      { See comments at creation of SwimmingChangeSound
         for reasons why I should safeguard here and play this sound
-        only when AllocatedSwimmingSource = nil. }
-      if (AllocatedSwimmingSource = nil) and
+        only when SwimmingSound = nil. }
+      if (SwimmingSound = nil) and
          ( (SwimLastSoundTime = 0.0) or
            (LifeTime - SwimLastSoundTime > SwimSoundPauseSeconds) ) then
       begin
         SwimLastSoundTime := LifeTime;
-        AllocatedSwimmingSource := SoundEngine.Sound(stPlayerSwimming);
-        if AllocatedSwimmingSource <> nil then
-          AllocatedSwimmingSource.OnUsingEnd :=
-            @AllocatedSwimmingSourceUsingEnd;
+        SwimmingSound := SoundEngine.Sound(stPlayerSwimming);
+        if SwimmingSound <> nil then
+          SwimmingSound.OnRelease := @SwimmingSoundRelease;
       end;
     end;
   end;
@@ -979,23 +978,22 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       if FootstepsSoundPlaying <> stNone then
       begin
         { Stop footsteps sound. }
-        AllocatedFootstepsSource.DoUsingEnd;
-        { AllocatedFootstepsSourceUsingEnd should set this to nil. }
-        Assert(AllocatedFootstepsSource = nil);
+        FootstepsSound.Release;
+        { FootstepsSoundRelease should set this to nil. }
+        Assert(FootstepsSound = nil);
       end;
 
       if NewFootstepsSoundPlaying <> stNone then
       begin
         { Start footsteps sound. }
-        AllocatedFootstepsSource := SoundEngine.Sound(NewFootstepsSoundPlaying, false);
-        if AllocatedFootstepsSource <> nil then
+        FootstepsSound := SoundEngine.Sound(NewFootstepsSoundPlaying, false);
+        if FootstepsSound <> nil then
         begin
           { Lower the position, to be on our feet. }
-          AllocatedFootstepsSource.Position := Vector3Single(0, 0, -1.0);
-          AllocatedFootstepsSource.OnUsingEnd :=
-            @AllocatedFootstepsSourceUsingEnd;
+          FootstepsSound.Position := Vector3Single(0, 0, -1.0);
+          FootstepsSound.OnRelease := @FootstepsSoundRelease;
         end else
-          { Failed to allocate source, so force new
+          { Failed to allocate sound, so force new
             NewFootstepsSoundPlaying to stNone. }
           NewFootstepsSoundPlaying := stNone;
       end;
@@ -1014,12 +1012,12 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
         of source allocator --- it's very short pause, but it's noticeable,
         since footsteps should be rhytmic). I prefer to not rely on RefreshUsed
         for this and instead just check this here. }
-      if not alSourcePlayingOrPaused(AllocatedFootstepsSource.ALSource) then
-        alSourcePlay(AllocatedFootstepsSource.ALSource);
+      if not FootstepsSound.PlayingOrPaused then
+        alSourcePlay(FootstepsSound.ALSource);
     end;
 
     Assert(
-      (AllocatedFootstepsSource <> nil) =
+      (FootstepsSound <> nil) =
       (FootstepsSoundPlaying <> stNone));
   end;
 
@@ -1137,18 +1135,17 @@ begin
     if (FSwimming = psUnderWater) <>
        (Value = psUnderWater) then
     begin
-      { If AllocatedSwimmingChangeSource <> nil, then the
+      { If SwimmingChangeSound <> nil, then the
         stPlayerSwimmingChange sound is already played (this may be caused
         when player tries to stay above the water --- he will then repeatedly
         go under and above the water). So do not start it again, to avoid
         bad sound atrifacts (the same sound playing a couple times on top
         of each other). }
-      if AllocatedSwimmingChangeSource = nil then
+      if SwimmingChangeSound = nil then
       begin
-        AllocatedSwimmingChangeSource := SoundEngine.Sound(stPlayerSwimmingChange);
-        if AllocatedSwimmingChangeSource <> nil then
-          AllocatedSwimmingChangeSource.OnUsingEnd :=
-            @AllocatedSwimmingChangeSourceUsingEnd;
+        SwimmingChangeSound := SoundEngine.Sound(stPlayerSwimmingChange);
+        if SwimmingChangeSound <> nil then
+          SwimmingChangeSound.OnRelease := @SwimmingChangeSoundRelease;
       end;
     end;
 
@@ -1229,9 +1226,9 @@ begin
   if FootstepsSoundPlaying <> stNone then
   begin
     { Stop footsteps sound. }
-    AllocatedFootstepsSource.DoUsingEnd;
-    { AllocatedFootstepsSourceUsingEnd should set this to nil. }
-    Assert(AllocatedFootstepsSource = nil);
+    FootstepsSound.Release;
+    { FootstepsSoundRelease should set this to nil. }
+    Assert(FootstepsSound = nil);
 
     FootstepsSoundPlaying := stNone;
   end;

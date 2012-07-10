@@ -1428,7 +1428,7 @@ type
     FSoundTracksCurrentPosition: boolean;
 
     UsedSound: TALSound;
-    procedure SoundSourceUsingEnd(Sender: TALSound);
+    procedure SoundRelease(Sender: TALSound);
     function SoundPosition: TVector3Single;
     procedure PlaySound(SoundType: TSoundType; Looping: boolean);
   public
@@ -3445,15 +3445,15 @@ begin
     and the sound was e.g. looping (like the elevator on "Tower" level),
     the sound will never get stopped. }
   if UsedSound <> nil then
-    UsedSound.DoUsingEnd;
+    UsedSound.Release;
 
   inherited;
 end;
 
-procedure T3DLinearMoving.SoundSourceUsingEnd(Sender: TALSound);
+procedure T3DLinearMoving.SoundRelease(Sender: TALSound);
 begin
   Assert(Sender = UsedSound);
-  UsedSound.OnUsingEnd := nil;
+  UsedSound.OnRelease := nil;
   UsedSound := nil;
 end;
 
@@ -3468,11 +3468,11 @@ begin
   { The object can play only one sound (going to begin or end position)
     at a time. }
   if UsedSound <> nil then
-    UsedSound.DoUsingEnd;
+    UsedSound.Release;
   UsedSound := SoundEngine.Sound3d(SoundType, SoundPosition, Looping);
 
   if UsedSound <> nil then
-    UsedSound.OnUsingEnd := @SoundSourceUsingEnd;
+    UsedSound.OnRelease := @SoundRelease;
 end;
 
 procedure T3DLinearMoving.GoEndPosition;
@@ -3569,7 +3569,7 @@ begin
     stop this sound once we're completely in Begin/EndPosition. }
   if (AnimationTime - EndPositionStateChangeTime > MoveTime) and
     (UsedSound <> nil) then
-    UsedSound.DoUsingEnd;
+    UsedSound.Release;
 end;
 
 { T3DAlive ------------------------------------------------------------------- }
