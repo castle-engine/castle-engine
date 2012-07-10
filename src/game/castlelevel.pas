@@ -349,7 +349,7 @@ uses SysUtils, Triangle, CastleLog,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleWindow, GLImages, Images, WindowModes, UIControls, XMLRead,
   GameVideoOptions, CastleGameNotifications,
-  GameInputs, CastleGameCache, CastleXMLUtils, CastleProgress,
+  CastleInputs, CastleGameCache, CastleXMLUtils, CastleProgress,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings, GameWindow;
 
 { TLevelArea ----------------------------------------------------------------- }
