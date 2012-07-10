@@ -313,7 +313,7 @@ var
 
 implementation
 
-uses SysUtils, CastleWindow, CastleFilesUtils, CastlePlayer,
+uses SysUtils, CastleFilesUtils, CastlePlayer,
   CastleGameNotifications, CastleConfig, GLImages, CastleGameVideoOptions;
 
 { TItemKind ------------------------------------------------------------ }
