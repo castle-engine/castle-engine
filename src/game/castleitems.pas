@@ -223,12 +223,12 @@ type
       Caller of this method should always be prepared to immediately
       handle the "Quantity = 0" situation by freeing given item,
       removing it from any list etc. }
-    procedure Use; virtual;
+    procedure Use(World: T3DWorld); virtual;
   end;
 
   TItemWeapon = class(TItem)
   public
-    procedure Use; override;
+    procedure Use(World: T3DWorld); override;
 
     { Perform real attack now.
       This may mean hurting some creature within the range,
@@ -313,7 +313,7 @@ var
 
 implementation
 
-uses SysUtils, CastleWindow, CastleFilesUtils, GamePlay,
+uses SysUtils, CastleWindow, CastleFilesUtils, CastlePlayer,
   CastleGameNotifications, CastleConfig, GLImages, CastleGameVideoOptions;
 
 { TItemKind ------------------------------------------------------------ }
@@ -513,16 +513,18 @@ begin
   World.Add(Result);
 end;
 
-procedure TItem.Use;
+procedure TItem.Use(World: T3DWorld);
 begin
   Notifications.Show('This item cannot be used');
 end;
 
 { TItemWeapon ---------------------------------------------------------------- }
 
-procedure TItemWeapon.Use;
+procedure TItemWeapon.Use(World: T3DWorld);
 begin
-  Player.EquippedWeapon := Self;
+  if (World.Player <> nil) and
+     (World.Player is TPlayer) then
+    TPlayer(World.Player).EquippedWeapon := Self;
 end;
 
 function TItemWeapon.Kind: TItemWeaponKind;
@@ -640,9 +642,12 @@ begin
       false);
   end;
 
-  if (not Player.Dead) and BoundingBox.Collision(Player.BoundingBox) then
+  if (World.Player <> nil) and
+     (World.Player is TPlayer) and
+     (not World.Player.Dead) and
+     BoundingBox.Collision(World.Player.BoundingBox) then
   begin
-    Player.PickItem(ExtractItem);
+    TPlayer(World.Player).PickItem(ExtractItem);
     RemoveMe := rtRemoveAndFree;
     if AutoOpenInventory then
       InventoryVisible := true;

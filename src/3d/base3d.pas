@@ -26,9 +26,13 @@ const
   DefaultKnockBackSpeed = 1.0;
 
 type
-  TRenderFromViewFunction = procedure of object;
-
   T3D = class;
+  T3DList = class;
+  T3DWorld = class;
+  T3DOrient = class;
+  T3DAlive = class;
+
+  TRenderFromViewFunction = procedure of object;
 
   { Describe what visible thing changed
     for T3D.VisibleChange. }
@@ -272,10 +276,6 @@ type
   end;
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
-
-  T3DList = class;
-  T3DWorld = class;
-  T3DOrient = class;
 
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
@@ -1031,7 +1031,7 @@ type
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3Single; virtual; abstract;
     { Player, see TCastleSceneManager.Player. }
-    function Player: T3DOrient; virtual; abstract;
+    function Player: T3DAlive; virtual; abstract;
     { Base lights, see TCastleSceneManager.BaseLights. }
     function BaseLights: TAbstractLightInstancesList; virtual; abstract;
     { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }

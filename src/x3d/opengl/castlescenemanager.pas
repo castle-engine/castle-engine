@@ -735,7 +735,7 @@ type
 
     FMouseRayHit: TRayCollision;
 
-    FPlayer: T3DOrient;
+    FPlayer: T3DAlive;
 
     { calculated by every PrepareResources }
     ChosenViewport: TCastleAbstractViewport;
@@ -761,7 +761,7 @@ type
 
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: T3D): boolean;
-    procedure SetPlayer(const Value: T3DOrient);
+    procedure SetPlayer(const Value: T3DAlive);
   protected
     procedure SetCamera(const Value: TCamera); override;
 
@@ -971,7 +971,7 @@ type
 
     property AlwaysApplyProjection default false;
 
-    { Player in this 3D world. This currently serves two purposes:
+    { Player in this 3D world. This currently serves various purposes:
 
       @unorderedList(
         @item(In the 1st person view, this 3D object guides the camera and
@@ -991,8 +991,15 @@ type
           More advanced AI, with friendlies/companions, or cooperating
           factions of creatures, may have other mechanisms to determine who
           wants to attack who.)
-      ) }
-    property Player: T3DOrient read FPlayer write SetPlayer;
+
+        @item(For items on level in CastleItems, this player will pick up the items
+          lying on the ground, and will be able to equip weapons.
+          Right now this requires that Player is an instance of CastlePlayer.TPlayer.
+          This functionality may be generalized in the future, to allow
+          anyone to pick up and carry and equip items.)
+      )
+    }
+    property Player: T3DAlive read FPlayer write SetPlayer;
   end;
 
   { Custom 2D viewport showing 3D world. This uses assigned SceneManager
@@ -2335,7 +2342,7 @@ type
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3Single; override;
-    function Player: T3DOrient; override;
+    function Player: T3DAlive; override;
     function BaseLights: TAbstractLightInstancesList; override;
     function Sectors: TSectorList; override;
     function WaterBox: TBox3D; override;
@@ -2381,7 +2388,7 @@ begin
   Result := Owner.GravityUp;
 end;
 
-function T3DWorldConcrete.Player: T3DOrient;
+function T3DWorldConcrete.Player: T3DAlive;
 begin
   Result := Owner.Player;
 end;
@@ -2599,7 +2606,7 @@ begin
     begin
       { When FMainScene = FPlayer or inside MouseRayHit, leave free notification }
       if (not MouseRayHitContains(FMainScene)) { and
-         // impossible, as FMainScene is TCastleScene and FPlayer is T3DOrient
+         // impossible, as FMainScene is TCastleScene and FPlayer is T3DAlive
          (FMainScene <> FPlayer) } then
         FMainScene.RemoveFreeNotification(Self);
       FMainScene.OnBoundViewpointVectorsChanged := nil;
@@ -2664,14 +2671,14 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.SetPlayer(const Value: T3DOrient);
+procedure TCastleSceneManager.SetPlayer(const Value: T3DAlive);
 begin
   if FPlayer <> Value then
   begin
     if FPlayer <> nil then
     begin
       { leave free notification for FPlayer if it's also present somewhere else }
-      if { // impossible, as FMainScene is TCastleScene and FPlayer is T3DOrient
+      if { // impossible, as FMainScene is TCastleScene and FPlayer is T3DAlive
          (FPlayer <> FMainScene) and }
          (not MouseRayHitContains(FPlayer)) then
         FPlayer.RemoveFreeNotification(Self);
