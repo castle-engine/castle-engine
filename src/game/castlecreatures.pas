@@ -784,11 +784,8 @@ type
 var
   DebugTimeStopForCreatures: boolean = false;
 
-type
-  TExistsEvent = function: boolean;
-var
   { Global callback to control creatures existence. }
-  OnCreatureExists: TExistsEvent;
+  OnCreatureExists: T3DExistsEvent;
 
 implementation
 
@@ -1105,7 +1102,7 @@ end;
 function TCreature.GetExists: boolean;
 begin
   Result := (inherited GetExists) and (DisableCreatures = 0) and
-    ((not Assigned(OnCreatureExists)) or OnCreatureExists());
+    ((not Assigned(OnCreatureExists)) or OnCreatureExists(Self));
 end;
 
 destructor TCreature.Destroy;

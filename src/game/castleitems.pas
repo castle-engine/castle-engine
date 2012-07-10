@@ -308,9 +308,12 @@ var
 
   InventoryVisible: boolean;
 
+  { Global callback to control items on level existence. }
+  OnItemOnLevelExists: T3DExistsEvent;
+
 implementation
 
-uses SysUtils, CastleWindow, GamePlay, CastleFilesUtils,
+uses SysUtils, CastleWindow, CastleFilesUtils, GamePlay,
   CastleGameNotifications, CastleConfig, GLImages, CastleGameVideoOptions;
 
 { TItemKind ------------------------------------------------------------ }
@@ -637,8 +640,7 @@ begin
       false);
   end;
 
-  if (not Player.Dead) and (not GameWin) and
-    BoundingBox.Collision(Player.BoundingBox) then
+  if (not Player.Dead) and BoundingBox.Collision(Player.BoundingBox) then
   begin
     Player.PickItem(ExtractItem);
     RemoveMe := rtRemoveAndFree;
@@ -669,7 +671,8 @@ end;
 
 function TItemOnLevel.GetExists: boolean;
 begin
-  Result := (inherited GetExists) and (not DebugRenderForLevelScreenshot);
+  Result := (inherited GetExists) and
+    ((not Assigned(OnItemOnLevelExists)) or OnItemOnLevelExists(Self));
 end;
 
 function TItemOnLevel.Middle: TVector3Single;

@@ -1579,6 +1579,8 @@ type
       default DefaultKnockBackSpeed;
   end;
 
+  T3DExistsEvent = function(const Item: T3D): boolean of object;
+
 const
   MaxSingle = Math.MaxSingle;
 
