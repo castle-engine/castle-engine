@@ -65,7 +65,7 @@ type
     Code using this class should just make sure to not do some
     forbidden things when player is dead --- right now this includes:
     @unorderedList(
-      @item Calling PickItem, DeleteItem, DropItem and generally modifying Items.
+      @item Calling PickItem, DropItem.
       @item(Increasing Life (further decreasing Life is OK).
         Note that this means that once Player is Dead, (s)he cannot
         be alive again.)
@@ -84,7 +84,7 @@ type
   TPlayer = class(T3DAlive)
   private
     FCamera: TWalkCamera;
-    FItems: TItemList;
+    FItems: TItemsInventory;
     FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
 
@@ -205,16 +205,8 @@ type
     procedure CancelFlying;
 
     { Inventory, items owned by the player.
-
-      Do not add to this manually --- always use PickItem.
-      Items are owned by this class --- when destroing Items,
-      we also destroy all Items.Items[].
-
-      Do not directly delete from this list --- always use
-      DropItem or DeleteItem.
-
       @noAutoLinkHere }
-    property Items: TItemList read FItems;
+    property Items: TItemsInventory read FItems;
 
     { Each player object always has related Camera object.
 
@@ -253,34 +245,19 @@ type
     }
     property Camera: TWalkCamera read FCamera;
 
-    { This adds Item to Items, with appropriate GameMessage.
-      Returns index inside Items to this item (note that this
-      may be actually an index to some other TItem instance
-      that was stacked with given Item).
+    { Add Item to Items, with appropriate GameMessage.
+      See also TItemsInventory.Pick (this is a wrapper around it).
 
       This takes care of adjusting InventoryCurrentItem if needed
       (if no item was selected, then newly picked item becomes selected). }
     function PickItem(Item: TItem): Integer;
 
-    { Drops given item. ItemIndex must be valid (between 0 and Items.Count - 1).
-      Returns nil if player somehow cancelled operation and nothing is dropped.
-      You *must* take care of returned TItem object (otherwise you will
+    { Drop given item. ItemIndex must be valid (between 0 and Items.Count - 1).
+      Returns nil if player somehow cancelled operation and nothing is dropped
+      (although not really possible now).
+      You *must* take care yourself of returned TItem object (otherwise you will
       get memory leak !). }
-    function DropItem(ItemIndex: Integer): TItem;
-
-    { Deletes given item from the list. Note that this is different
-      than DropItem: it's more low-level, which means that
-
-      @orderedList(
-        @item(it doesn't ask or care about item's quantity --- it will always
-         delete it as a whole, no matter what quantity is has)
-        @item(it doesn't do any nice GameMessage that you dropped an item.)
-      )
-
-      However, it does check whether the deleted item was EquippedWeapon
-      and if it was, it will set EquippedWeapon to nil and give to player
-      a message that he's no longer using that weapon. }
-    function DeleteItem(ItemIndex: Integer): TItem;
+    function DropItem(const ItemIndex: Integer): TItem;
 
     { Weapon the player is using right now, or nil if none.
 
@@ -422,7 +399,7 @@ begin
 
   Add(TPlayerBox.Create(Self));
 
-  FItems := TItemList.Create(false);
+  FItems := TItemsInventory.Create(Self);
   FInventoryCurrentItem := -1;
 
   FCamera := TWalkCamera.Create(nil);
@@ -466,11 +443,7 @@ begin
     OnInputChanged.Remove(@InputChanged);
 
   FreeAndNil(FCamera);
-  if FItems <> nil then
-  begin
-    FItems.FreeObjects := true;
-    FreeAndNil(FItems);
-  end;
+  FreeAndNil(FItems);
 
   if FootstepsSound <> nil then
     FootstepsSound.Release;
@@ -527,18 +500,7 @@ begin
 
   SoundEngine.Sound(stPlayerPickItem);
 
-  Result := Items.Stackable(Item);
-  if Result <> -1 then
-  begin
-    { Stack Item with existing item }
-    Items[Result].Quantity := Items[Result].Quantity + Item.Quantity;
-    FreeAndNil(Item);
-    Item := Items[Result];
-  end else
-  begin
-    Items.Add(Item);
-    Result := Items.Count - 1;
-  end;
+  Result := Items.Pick(Item);
 
   { Automatically equip the weapon. }
   if (Item is TItemWeapon) and (EquippedWeapon = nil) then
@@ -549,40 +511,14 @@ begin
     InventoryCurrentItem := Result;
 end;
 
-function TPlayer.DropItem(ItemIndex: Integer): TItem;
+function TPlayer.DropItem(const ItemIndex: Integer): TItem;
 var
-  SelectedItem: TItem;
-  DropQuantity: Cardinal;
   S: string;
 begin
-  SelectedItem := Items[ItemIndex];
+  Result := Items.Drop(ItemIndex);
 
-  if SelectedItem.Quantity > 1 then
-  begin
-    DropQuantity := SelectedItem.Quantity;
-
-    if not MessageInputQueryCardinal(Window,
-      Format('You have %d items "%s". How many of them do you want to drop ?',
-        [SelectedItem.Quantity, SelectedItem.Kind.Caption]),
-      DropQuantity, taLeft) then
-      Exit(nil);
-
-    if not Between(DropQuantity, 1, SelectedItem.Quantity) then
-    begin
-      Notifications.Show(Format('You cannot drop %d items', [DropQuantity]));
-      Exit(nil);
-    end;
-  end else
-    DropQuantity := 1;
-
-  if DropQuantity = SelectedItem.Quantity then
-  begin
-    Result := SelectedItem;
-    DeleteItem(ItemIndex);
-  end else
-  begin
-    Result := SelectedItem.Split(DropQuantity);
-  end;
+  if Result = EquippedWeapon then
+    EquippedWeapon := nil;
 
   S := Format('You drop "%s"', [Result.Kind.Caption]);
   if Result.Quantity <> 1 then
@@ -590,14 +526,6 @@ begin
   Notifications.Show(S);
 
   SoundEngine.Sound(stPlayerDropItem);
-end;
-
-function TPlayer.DeleteItem(ItemIndex: Integer): TItem;
-begin
-  Result := Items[ItemIndex];
-  Items.Delete(ItemIndex);
-  if Result = EquippedWeapon then
-    EquippedWeapon := nil;
 end;
 
 procedure TPlayer.SetEquippedWeapon(Value: TItemWeapon);

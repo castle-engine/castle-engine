@@ -179,18 +179,21 @@ type
   private
     FKind: TItemKind;
     FQuantity: Cardinal;
+    FOwner3D: T3D;
+
+    { Stackable means that two items are equal and they can be summed
+      into one item by adding their Quantity values.
+      Practially this means that all properties
+      of both items are equal, with the exception of Quantity.
+
+      TODO: protected virtual in the future? }
+    function Stackable(Item: TItem): boolean;
   public
     property Kind: TItemKind read FKind;
 
     { Quantity of this item.
       This must always be >= 1. }
     property Quantity: Cardinal read FQuantity write FQuantity;
-
-    { Stackable means that two items are equal and they can be summed
-      into one item by adding their Quantity values.
-      Practially this means that all properties
-      of both items are equal, with the exception of Quantity. }
-    function Stackable(Item: TItem): boolean;
 
     { Splits item (with Quantity >= 2) into two items.
       It returns newly created object with the same properties
@@ -224,6 +227,18 @@ type
       handle the "Quantity = 0" situation by freeing given item,
       removing it from any list etc. }
     procedure Use(World: T3DWorld); virtual;
+
+    { 3D owner of the item,
+      like a player or creature (if the item is in the backpack)
+      or the TItemOnLevel instance (if the item is lying on the world,
+      pickable). May be @nil only in special situations (when item is moved
+      from one 3D to another, and technically it's safer to @nil this
+      property).
+
+      The owner is always responsible for freeing this TItem instance
+      (in case of TItemOnLevel, it does it directly;
+      in case of player or creature, it does it by TItemsInventory). }
+    property Owner3D: T3D read FOwner3D;
   end;
 
   TItemWeapon = class(TItem)
@@ -238,18 +253,55 @@ type
     function Kind: TItemWeaponKind;
   end;
 
-  TItemList = class(specialize TFPGObjectList<TItem>)
-  public
-    { This checks is Item "stackable" with any item on the list.
+  { List of items, with a 3D object (like a player or creature) owning
+    these items. Do not directly change this list, always use
+    @link(Pick) or @link(Drop) methods (they make sure that
+    items are correctly stacked, that TItem.Owner3D and memory management
+    is good). }
+  TItemsInventory = class(specialize TFPGObjectList<TItem>)
+  private
+    FOwner3D: T3DAlive;
+
+    { Check is given Item "stackable" with any other item on this list.
       Returns index of item on the list that is stackable with given Item,
       or -1 if none. }
     function Stackable(Item: TItem): Integer;
+  public
+    constructor Create(const AOwner3D: T3DAlive);
+
+    { Owner of the inventory (like a player or creature).
+      Never @nil, always valid for given inventory.
+      All items on this list always have the same TItem.Owner3D value
+      as the inventory they are in. }
+    property Owner3D: T3DAlive read FOwner3D;
 
     { Searches for item of given Kind. Returns index of first found,
       or -1 if not found. }
     function FindKind(Kind: TItemKind): Integer;
+
+    { Add Item to Items. Because an item may be stacked with others,
+      the actual Item instance may be freed and replaced with other by
+      this method.
+      Returns index to the added item.
+
+      Using this method means that the memory management of the item
+      becomes the responsibility of this list. }
+    function Pick(var Item: TItem): Integer;
+
+    { Drop item with given index.
+      ItemIndex must be valid (between 0 and Items.Count - 1).
+      You @italic(must) take care yourself of returned TItem memory
+      management. }
+    function Drop(const ItemIndex: Integer): TItem;
+
+    { Pass here items owned by this list, immediately after decreasing
+      their Quantity. This frees the item (removing it from the list)
+      if it's quantity reached zero. }
+    procedure CheckDepleted(const Item: TItem);
   end;
 
+  { Item that is placed on a 3D world, ready to be picked up.
+    It's not in anyone's inventory. }
   TItemOnLevel = class(T3DOrient)
   private
     FItem: TItem;
@@ -261,20 +313,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Note that this Item is owned by TItemOnLevel instance,
-      so when you will free this TItemOnLevel instance,
-      Item will be also freed.
-      However, you can prevent that if you want --- see ExtractItem. }
+    { The Item owned by this TItemOnLevel instance. Never @nil. }
     property Item: TItem read FItem;
-
-    { This returns Item and sets Item to nil.
-      This is the only way to force TItemOnLevel instance
-      to *not* free associated Item object on destruction.
-
-      Note that Item = nil is considered invalid state of this object,
-      and the only thing that you should do further with this
-      TItemOnLevel instance is to free it ! }
-    function ExtractItem: TItem;
 
     { Render the item, on current Position with current rotation etc.
       Current matrix should be modelview, this pushes/pops matrix state
@@ -509,6 +549,7 @@ begin
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.FItem := Self;
+  FOwner3D := Result;
   Result.SetView(APosition, AnyOrthogonalVector(World.GravityUp), World.GravityUp);
   World.Add(Result);
 end;
@@ -532,9 +573,15 @@ begin
   Result := (inherited Kind) as TItemWeaponKind;
 end;
 
-{ TItemList ------------------------------------------------------------ }
+{ TItemsInventory ------------------------------------------------------------ }
 
-function TItemList.Stackable(Item: TItem): Integer;
+constructor TItemsInventory.Create(const AOwner3D: T3DAlive);
+begin
+  inherited Create(true);
+  FOwner3D := AOwner3D;
+end;
+
+function TItemsInventory.Stackable(Item: TItem): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Stackable(Item) then
@@ -542,12 +589,83 @@ begin
   Result := -1;
 end;
 
-function TItemList.FindKind(Kind: TItemKind): Integer;
+function TItemsInventory.FindKind(Kind: TItemKind): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].Kind = Kind then
       Exit;
   Result := -1;
+end;
+
+function TItemsInventory.Pick(var Item: TItem): Integer;
+begin
+  Result := Stackable(Item);
+  if Result <> -1 then
+  begin
+    { Stack Item with existing item }
+    Items[Result].Quantity := Items[Result].Quantity + Item.Quantity;
+    FreeAndNil(Item);
+    Item := Items[Result];
+  end else
+  begin
+    Add(Item);
+    Result := Count - 1;
+  end;
+
+  Item.FOwner3D := Owner3D;
+end;
+
+function TItemsInventory.Drop(const ItemIndex: Integer): TItem;
+var
+  SelectedItem: TItem;
+  DropQuantity: Cardinal;
+begin
+  SelectedItem := Items[ItemIndex];
+
+  { For now, always drop 1 item.
+    This makes it independent from message boxes, and also suitable for
+    items owned by creatures.
+
+  if SelectedItem.Quantity > 1 then
+  begin
+    DropQuantity := SelectedItem.Quantity;
+
+    if not MessageInputQueryCardinal(Window,
+      Format('You have %d items "%s". How many of them do you want to drop ?',
+        [SelectedItem.Quantity, SelectedItem.Kind.Caption]),
+      DropQuantity, taLeft) then
+      Exit(nil);
+
+    if not Between(DropQuantity, 1, SelectedItem.Quantity) then
+    begin
+      Notifications.Show(Format('You cannot drop %d items', [DropQuantity]));
+      Exit(nil);
+    end;
+  end else }
+    DropQuantity := 1;
+
+  if DropQuantity = SelectedItem.Quantity then
+  begin
+    Result := SelectedItem;
+    Extract(SelectedItem); { Extract, not Remove, do not free }
+  end else
+  begin
+    Result := SelectedItem.Split(DropQuantity);
+  end;
+
+  Result.FOwner3D := nil;
+end;
+
+procedure TItemsInventory.CheckDepleted(const Item: TItem);
+var
+  Index: Integer;
+begin
+  if Item.Quantity = 0 then
+  begin
+    Index := IndexOf(Item);
+    if Index <> -1 then
+      Delete(Index);
+  end;
 end;
 
 { TItemOnLevel ------------------------------------------------------------ }
@@ -574,12 +692,6 @@ function TItemOnLevel.GetChild: T3D;
 begin
   if (Item = nil) or not Item.Kind.Prepared then Exit(nil);
   Result := Item.Kind.Scene;
-end;
-
-function TItemOnLevel.ExtractItem: TItem;
-begin
-  Result := Item;
-  FItem := nil;
 end;
 
 procedure TItemOnLevel.Render(const Frustum: TFrustum;
@@ -609,6 +721,7 @@ var
   AboveHeight: Single;
   ShiftedPosition: TVector3Single;
   FallingDownLength: Single;
+  PickedItem: TItem;
 begin
   inherited;
   if not GetExists then Exit;
@@ -647,7 +760,13 @@ begin
      (not World.Player.Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
   begin
-    TPlayer(World.Player).PickItem(ExtractItem);
+    { We no longer own this Item, so clear references. }
+    PickedItem := Item;
+    PickedItem.FOwner3D := nil;
+    FItem := nil;
+    TPlayer(World.Player).PickItem(PickedItem);
+
+    { Since we cannot live with Item = nil, we free ourselves }
     RemoveMe := rtRemoveAndFree;
     if AutoOpenInventory then
       InventoryVisible := true;
