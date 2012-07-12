@@ -311,6 +311,10 @@ type
       their Quantity. This frees the item (removing it from the list)
       if it's quantity reached zero. }
     procedure CheckDepleted(const Item: TItem);
+
+    { Use the item of given index. Calls TItem.Use, and then checks whether
+      the item was depleted (and eventually removes it) by CheckDepleted. }
+    procedure Use(const Index: Integer);
   end;
 
   { Item that is placed on a 3D world, ready to be picked up.
@@ -686,6 +690,17 @@ begin
     if Index <> -1 then
       Delete(Index);
   end;
+end;
+
+procedure TItemsInventory.Use(const Index: Integer);
+var
+  Item: TItem;
+begin
+  Item := Items[Index];
+  Item.Use;
+  { CheckDepleted will search for new index, since using an item
+    may change the items list and so change the index. }
+  CheckDepleted(Item);
 end;
 
 { TItemOnLevel ------------------------------------------------------------ }
