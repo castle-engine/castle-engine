@@ -583,10 +583,9 @@ end;
 
 procedure TItemWeapon.Use;
 begin
-  if (World <> nil) and
-     (World.Player <> nil) and
-     (World.Player is TPlayer) then
-    TPlayer(World.Player).EquippedWeapon := Self;
+  if (Owner3D <> nil) and
+     (Owner3D is TPlayer) then
+    TPlayer(Owner3D).EquippedWeapon := Self;
 end;
 
 function TItemWeapon.Kind: TItemWeaponKind;
