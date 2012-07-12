@@ -976,7 +976,7 @@ begin
     AttackStartTime >= EquippedWeapon.Kind.ActualAttackTime) then
   begin
     ActualAttackDone := true;
-    EquippedWeapon.ActualAttack(World);
+    EquippedWeapon.ActualAttack;
   end;
 
   if not HintEscapeKeyShown then

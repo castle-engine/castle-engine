@@ -204,10 +204,13 @@ type
     function Split(QuantitySplit: Cardinal): TItem;
 
     { Create TItemOnLevel instance referencing this item,
-      and add this to given 3D World.
+      and add this to the given 3D AWorld.
+      Although normal item knows (through Owner3D) the world it lives in,
+      but this method may be used for items that don't have an owner yet,
+      so we take AWorld parameter explicitly.
       This is how you should create new TItemOnLevel instances.
       It is analogous to TCreatureKind.CreateCreature, but now for items. }
-    function PutOnLevel(World: T3DWorld;
+    function PutOnLevel(const AWorld: T3DWorld;
       const APosition: TVector3Single): TItemOnLevel;
 
     { Use this item.
@@ -226,7 +229,7 @@ type
       Caller of this method should always be prepared to immediately
       handle the "Quantity = 0" situation by freeing given item,
       removing it from any list etc. }
-    procedure Use(World: T3DWorld); virtual;
+    procedure Use; virtual;
 
     { 3D owner of the item,
       like a player or creature (if the item is in the backpack)
@@ -239,16 +242,26 @@ type
       (in case of TItemOnLevel, it does it directly;
       in case of player or creature, it does it by TItemsInventory). }
     property Owner3D: T3D read FOwner3D;
+
+    { 3D world of this item, if any.
+
+      Although the TItem, by itself, is not a 3D thing
+      (only pickable TItemOnLevel is a 3D thing).
+      But it exists inside a 3D world: either as pickable (TItemOnLevel),
+      or as being owned by a 3D object (like player or creature) that are
+      part of 3D world. In other words, our Owner3D.World is the 3D world
+      this item lives in. }
+    function World: T3DWorld;
   end;
 
   TItemWeapon = class(TItem)
   public
-    procedure Use(World: T3DWorld); override;
+    procedure Use; override;
 
     { Perform real attack now.
       This may mean hurting some creature within the range,
       or shooting some missile. You can also play some sound here. }
-    procedure ActualAttack(World: T3DWorld); virtual; abstract;
+    procedure ActualAttack; virtual; abstract;
 
     function Kind: TItemWeaponKind;
   end;
@@ -542,28 +555,36 @@ begin
   FQuantity -= QuantitySplit;
 end;
 
-function TItem.PutOnLevel(World: T3DWorld;
+function TItem.PutOnLevel(const AWorld: T3DWorld;
   const APosition: TVector3Single): TItemOnLevel;
 begin
-  Result := TItemOnLevel.Create(World { owner });
+  Result := TItemOnLevel.Create(AWorld { owner });
   { set properties that in practice must have other-than-default values
     to sensibly use the item }
   Result.FItem := Self;
   FOwner3D := Result;
-  Result.SetView(APosition, AnyOrthogonalVector(World.GravityUp), World.GravityUp);
-  World.Add(Result);
+  Result.SetView(APosition, AnyOrthogonalVector(AWorld.GravityUp), AWorld.GravityUp);
+  AWorld.Add(Result);
 end;
 
-procedure TItem.Use(World: T3DWorld);
+procedure TItem.Use;
 begin
   Notifications.Show('This item cannot be used');
 end;
 
+function TItem.World: T3DWorld;
+begin
+  if Owner3D <> nil then
+    Result := Owner3D.World else
+    Result := nil;
+end;
+
 { TItemWeapon ---------------------------------------------------------------- }
 
-procedure TItemWeapon.Use(World: T3DWorld);
+procedure TItemWeapon.Use;
 begin
-  if (World.Player <> nil) and
+  if (World <> nil) and
+     (World.Player <> nil) and
      (World.Player is TPlayer) then
     TPlayer(World.Player).EquippedWeapon := Self;
 end;
