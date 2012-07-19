@@ -350,9 +350,9 @@ type
 implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleMessages,
-  GameWindow, CastleUtils, X3DNodes, CastleControls,
+  CastleUtils, X3DNodes, CastleControls,
   CastleWindow, Images, CastleFilesUtils, UIControls,
-  PrecalculatedAnimation, ALUtils, CastleOpenAL, GameControlsMenu, GamePlay,
+  PrecalculatedAnimation, ALUtils, CastleOpenAL, GamePlay,
   CastleGameNotifications, CastleXMLConfig, GLImages;
 
 { TPlayerBox ----------------------------------------------------------------- }
