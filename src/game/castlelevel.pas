@@ -31,7 +31,7 @@ uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   CastleCreatures, GameSound, Background,
   CastleUtils, CastleClassUtils, CastlePlayer, GameThunder, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
-  DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig,
+  DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
 
 type
@@ -53,7 +53,6 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-
   public
     AvailableForNewGame: boolean;
     DefaultAvailableForNewGame: boolean;
@@ -80,10 +79,14 @@ type
       why this is needed. }
     Number: Integer;
 
-    LoadingBarYPosition: Single;
+    { Background image when loading, @nil if none. }
+    LoadingImage: TRGBImage;
 
-    { Loading level background image (in OpenGL list), 0 if none. }
-    GLList_LoadingBgImage: TGLuint;
+    { Position of the progress bar when loading, suitable for
+      TProgressUserInterface.BarYPosition.
+      Used only if LoadingImage <> @nil (as the only purpose of this property
+      is to match LoadingImage look). }
+    LoadingImageBarYPosition: Single;
 
     Element: TDOMElement;
 
@@ -333,9 +336,9 @@ type
 
   TLevelClasses = specialize TFPGMap<string, TLevelClass>;
 
-var
-  LevelClasses: TLevelClasses;
+function LevelClasses: TLevelClasses;
 
+var
   { List of all available levels.
     This has all the information needed to present user a list of levels,
     and to actually load a given level (create suitable TLevel instance).
@@ -347,10 +350,9 @@ implementation
 
 uses SysUtils, Triangle, CastleLog,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
-  CastleWindow, GLImages, Images, WindowModes, UIControls, XMLRead,
-  GameVideoOptions, CastleGameNotifications,
+  GLImages, UIControls, XMLRead, GameVideoOptions, CastleGameNotifications,
   CastleInputs, CastleGameCache, CastleXMLUtils, CastleProgress,
-  GLRenderer, RenderingCameraUnit, Math, CastleWarnings, GameWindow;
+  GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
 
 { TLevelArea ----------------------------------------------------------------- }
 
@@ -1043,11 +1045,7 @@ destructor TLevelAvailable.Destroy;
 begin
   FreeAndNil(Document);
   FreeAndNil(Resources);
-
-  { Thanks to WindowClose implementation, we can be sure that gl context
-    is active now, so it's not a problem to call glFreeDisplayList now. }
-
-  glFreeDisplayList(GLList_LoadingBgImage);
+  FreeAndNil(LoadingImage);
   inherited;
 end;
 
@@ -1088,7 +1086,7 @@ procedure TLevelAvailable.LoadFromDocument;
   end;
 
 var
-  LoadingBgFileName: string;
+  LoadingImageFileName: string;
   SoundName: string;
 begin
   Element := Document.DocumentElement;
@@ -1102,8 +1100,8 @@ begin
   if not DOMGetAttribute(Element, 'id', Id) then
     MissingRequiredAttribute('id');
 
-  if not DOMGetAttribute(Element, 'scene_file_name', SceneFileName) then
-    MissingRequiredAttribute('scene_file_name');
+  if not DOMGetAttribute(Element, 'scene', SceneFileName) then
+    MissingRequiredAttribute('scene');
   SceneFileName := CombinePaths(DocumentBasePath, SceneFileName);
 
   if not DOMGetAttribute(Element, 'title', Title) then
@@ -1127,17 +1125,16 @@ begin
   if not DOMGetLevelClassAttribute(Element, 'type', LevelClass) then
     LevelClass := TLevel;
 
-  if DOMGetAttribute(Element, 'loading_bg', LoadingBgFileName) then
+  FreeAndNil(LoadingImage); { make sure LoadingImage is clear first }
+  if DOMGetAttribute(Element, 'loading_image', LoadingImageFileName) then
   begin
-    LoadingBgFileName := CombinePaths(DocumentBasePath, LoadingBgFileName);
-    GLList_LoadingBgImage := LoadImageToDisplayList(LoadingBgFileName,
-      [TRGBImage], [], Window.Width, Window.Height);
-  end else
-    glFreeDisplayList(GLList_LoadingBgImage);
+    LoadingImageFileName := CombinePaths(DocumentBasePath, LoadingImageFileName);
+    LoadingImage := LoadImage(LoadingImageFileName, [TRGBImage], []) as TRGBImage;
+  end;
 
-  if not DOMGetSingleAttribute(Element, 'loading_bar_y_position',
-    LoadingBarYPosition) then
-    LoadingBarYPosition := DefaultBarYPosition;
+  if not DOMGetSingleAttribute(Element, 'loading_image_bar_y_position',
+    LoadingImageBarYPosition) then
+    LoadingImageBarYPosition := DefaultImageBarYPosition;
 
   Resources.LoadResources(Element);
   AddItems(Resources);
@@ -1151,17 +1148,6 @@ begin
     FootstepsSound := stPlayerFootstepsConcrete;
 end;
 
-procedure DrawLoadLevel(Window: TCastleWindowBase);
-begin
-  glClear(GL_COLOR_BUFFER_BIT);
-  glLoadIdentity;
-  glRasterPos2i(0, 0);
-  glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_LIGHTING);
-    glCallList(TLevelAvailable(Window.UserData).GLList_LoadingBgImage);
-  glPopAttrib;
-end;
-
 procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager;
   const MenuBackground: boolean);
 
@@ -1172,34 +1158,24 @@ procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager;
       AvailableForNewGame := true;
   end;
 
-  procedure LoadLevelNoBackground;
-  var
-    SavedBarYPosition: Single;
+var
+  SavedImage: TRGBImage;
+  SavedImageBarYPosition: Single;
+begin
+  if LoadingImage <> nil then
   begin
-    SavedBarYPosition := WindowProgressInterface.BarYPosition;
-    WindowProgressInterface.BarYPosition := LoadingBarYPosition;
+    SavedImage := Progress.UserInterface.Image;
+    SavedImageBarYPosition := Progress.UserInterface.ImageBarYPosition;
     try
+      Progress.UserInterface.Image := LoadingImage;
+      Progress.UserInterface.ImageBarYPosition := LoadingImageBarYPosition;
       LoadLevelCore;
     finally
-      WindowProgressInterface.BarYPosition := SavedBarYPosition;
+      Progress.UserInterface.Image := SavedImage;
+      Progress.UserInterface.ImageBarYPosition := SavedImageBarYPosition;
     end;
-  end;
-
-var
-  SavedMode: TGLMode;
-begin
-  if GLList_LoadingBgImage <> 0 then
-  begin
-    SavedMode := TGLMode.CreateReset(Window, 0, true,
-      @DrawLoadLevel, @Resize2D, @NoClose);
-    try
-      Window.UserData := Self;
-      Window.OnDrawStyle := ds3D;
-      Window.EventResize;
-      LoadLevelNoBackground;
-    finally FreeAndNil(SavedMode) end;
   end else
-    LoadLevelNoBackground;
+    LoadLevelCore;
 end;
 
 { TLevelAvailableList ------------------------------------------------------- }
@@ -1265,16 +1241,28 @@ begin
   ScanForFiles(ProgramDataPath + 'data' +  PathDelim + 'levels', 'index.xml', @LoadIndexXml);
 end;
 
+{ globals -------------------------------------------------------------------- }
+
+var
+  FLevelClasses: TLevelClasses;
+
+function LevelClasses: TLevelClasses;
+begin
+  if FLevelClasses = nil then
+  begin
+    FLevelClasses := TLevelClasses.Create;
+    FLevelClasses['Level'] := TLevel;
+  end;
+  Result := FLevelClasses;
+end;
+
 { initialization / finalization ---------------------------------------------- }
 
 initialization
-  if LevelClasses = nil then
-    LevelClasses := TLevelClasses.Create;
-
   LevelsAvailable := TLevelAvailableList.Create(true);
   Config.OnSave.Add(@LevelsAvailable.SaveToConfig);
 finalization
-  FreeAndNil(LevelClasses);
+  FreeAndNil(FLevelClasses);
 
   if (LevelsAvailable <> nil) and (Config <> nil) then
     Config.OnSave.Remove(@LevelsAvailable.SaveToConfig);

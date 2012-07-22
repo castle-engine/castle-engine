@@ -39,35 +39,22 @@ unit CastleProgress;
 
 interface
 
-uses GL, OpenGLFonts, OpenGLBmpFonts, CastleWindow, ProgressUnit,
-  WindowModes, CastleGLUtils;
-
-const
-  DefaultBarYPosition = 0.5;
+uses GL, OpenGLFonts, CastleWindow, ProgressUnit, WindowModes, CastleGLUtils,
+  Images;
 
 type
   TWindowProgressInterface = class(TProgressUserInterface)
   private
-    { Background image (screen captured at the moment of Init call) }
-    list_drawProgressBG: TGLuint;
-    ProgressFont: TGLBitmapFont_Abstract;
+    { Background image, as OpenGL list. }
+    ImageList: TGLuint;
+    BarYPosition: Single;
     FWindow: TCastleWindowBase;
     SavedMode: TGLMode;
-    FBarYPosition: Single;
   public
-    constructor Create;
-
     { Window used to render the progress bar.
       Assign this before doing Init. Don't change this when we are
       between Init and Fini. }
     property Window: TCastleWindowBase read FWindow write FWindow;
-
-    { Vertical position of the displayed bar. 0 means that
-      the middle of bar is on the bottom of the screen, 1 means it's
-      at the top. 0.5 is the default, and natural, value: it says
-      to put bar in the middle of the screen. }
-    property BarYPosition: Single
-      read FBarYPosition write FBarYPosition default DefaultBarYPosition;
 
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -81,7 +68,7 @@ var
 
 implementation
 
-uses SysUtils, CastleUtils, BFNT_BitstreamVeraSans_Unit, Images, KeysMouse;
+uses SysUtils, CastleUtils, KeysMouse, GLImages, CastleControls;
 
 { display -------------------------------------------------------------------- }
 
@@ -97,7 +84,7 @@ begin
 
   glLoadIdentity;
   glRasterPos2i(0, 0);
-  glCallList(ProgressInterface.list_drawProgressBG);
+  glCallList(ProgressInterface.ImageList);
 
   Margin := 100 * Window.width div 800;
   BarHeight := 50 * Window.height div 600;
@@ -112,36 +99,45 @@ begin
     Margin + (Cardinal(Window.width)-2*Margin) * Progress.Position/Progress.Max, y2);
 
   glColor3f(0, 0,0);
-  glRasterPos2f(Margin + 20,
-    YMiddle - ProgressInterface.ProgressFont.TextHeight('M') div 2);
-  ProgressInterface.ProgressFont.Print(Progress.TitleWithPosition(true));
+  glRasterPos2f(Margin + 20, YMiddle - UIFont.TextHeight('M') div 2);
+  UIFont.Print(Progress.TitleWithPosition(true));
 end;
 
 { TWindowProgressInterface  ------------------------------------------------ }
 
-constructor TWindowProgressInterface.Create;
-begin
-  inherited;
-  FBarYPosition := DefaultBarYPosition;
-end;
-
 procedure TWindowProgressInterface.Init(Progress: TProgress);
+var
+  GoodSizeImage: TCastleImage;
 begin
   Check(Window <> nil,
     'TWindowProgressInterface: You must assign Window before doing Init');
 
-  {catch screen}
-  list_drawProgressBG := Window.SaveScreen_ToDisplayList;
+  { calculate ImageList }
+  if Image <> nil then
+  begin
+    if (Image.Width <> Window.Width) or
+       (Image.Height <> Window.Height) then
+    begin
+      GoodSizeImage := Image.MakeResized(Window.Width, Window.Height);
+      try
+        ImageList := ImageDrawToDisplayList(GoodSizeImage);
+      finally FreeAndNil(GoodSizeImage) end;
+    end else
+      ImageList := ImageDrawToDisplayList(Image);
+    BarYPosition := ImageBarYPosition;
+  end else
+  begin
+    ImageList := Window.SaveScreen_ToDisplayList;
+    BarYPosition := DefaultImageBarYPosition;
+  end;
 
   SavedMode := TGLMode.CreateReset(Window,
     GL_CURRENT_BIT or GL_ENABLE_BIT or GL_TRANSFORM_BIT, false,
-    {$ifdef FPC_OBJFPC} @ {$endif} DisplayProgress, nil,
-    {$ifdef FPC_OBJFPC} @ {$endif} NoClose);
+    @DisplayProgress, nil, @NoClose);
 
-  {init our state}
+  { init our window state }
   Window.UserData := Progress;
   Window.AutoRedisplay := true;
-  ProgressFont := TGLBitmapFont.Create(@BFNT_BitstreamVeraSans);
 
   Window.Cursor := mcWait;
 
@@ -165,8 +161,7 @@ end;
 
 procedure TWindowProgressInterface.Fini(Progress: TProgress);
 begin
-  FreeAndNil(ProgressFont);
-  glDeleteLists(list_drawProgressBG, 1);
+  glFreeDisplayList(ImageList);
 
   FreeAndNil(SavedMode);
 end;

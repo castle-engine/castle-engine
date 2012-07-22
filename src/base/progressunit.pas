@@ -21,19 +21,50 @@ unit ProgressUnit;
 
 interface
 
-uses
-  SysUtils, CastleUtils, CastleTimeUtils;
+uses SysUtils, CastleUtils, CastleTimeUtils, Images;
 
 const
   { }
   DefaultUpdatePart = {$ifdef TESTING_PROGRESS_DELAY} 100000000 {$else} 100 {$endif};
   DefaultUpdateTicks = {$ifdef TESTING_PROGRESS_DELAY} 0 {$else} 250 {$endif};
+  DefaultImageBarYPosition = 0.5;
 
 type
   TProgress = class;
 
+  { Abstract user interface of the progress bar.
+    See @link(TProgress) for information how to use progress bars. }
   TProgressUserInterface = class
+  private
+    FImage: TRGBImage;
+    FImageBarYPosition: Single;
   public
+    constructor Create;
+
+    { Image displayed as a background of the progress bar.
+      Not all progress bar interfaces support it, some simply ignore it.
+      You can leave it @nil, then we will simply capture screen contents
+      each time the progress bar starts.
+
+      The image assigned here does @italic(not) become owned by
+      the TProgressUserInterface instance. We don't modify it (if we need
+      to resize it to fit the screen size, we do it on a temporary copy).
+      And we don't free it. }
+    property Image: TRGBImage read FImage write FImage;
+
+    { Vertical position of the displayed progress bar on the @link(Image).
+      This feature is supposed to indicate a suitable free space on the
+      background @link(Image) where we can nicely fit the progress bar UI.
+
+      Not all progress bar interfaces support it, some simply ignore it.
+      Always ignored if @link(Image) is @nil.
+
+      0 means the middle of progress bar is at the bottom of the image,
+      1 means at the top. 0.5 indicates the middle, and it's the default. }
+    property ImageBarYPosition: Single
+      read FImageBarYPosition write FImageBarYPosition
+      default DefaultImageBarYPosition;
+
     { Show progress bar. }
     procedure Init(Progress: TProgress); virtual; abstract;
     { Update progress bar (because Progress.Position changed). }
@@ -234,6 +265,16 @@ var
   ProgressNullInterface: TProgressNullInterface;
 
 implementation
+
+{ TProgressUserInterface ----------------------------------------------------- }
+
+constructor TProgressUserInterface.Create;
+begin
+  inherited;
+  FImageBarYPosition := DefaultImageBarYPosition;
+end;
+
+{ TProgress ------------------------------------------------------------------ }
 
 function TProgress.DescribePosition: string;
 begin
