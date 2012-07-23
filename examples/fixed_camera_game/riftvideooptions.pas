@@ -26,8 +26,7 @@ unit RiftVideoOptions;
 interface
 
 var
-  RenderShadowsPossible: boolean = true;
-  RenderShadows: boolean = true;
+  ShadowVolumes: boolean = true;
 
   ColorDepthBits: Integer = 0;
   VideoFrequency: Integer = 0;

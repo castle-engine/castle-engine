@@ -2519,10 +2519,8 @@ end;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesDraw: boolean;
-    function GetShadowVolumesPossible: boolean;
     procedure SetShadowVolumes(const Value: boolean);
     procedure SetShadowVolumesDraw(const Value: boolean);
-    procedure SetShadowVolumesPossible(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -2538,18 +2536,6 @@ end;
 
     function MainScene: TCastleScene;
     property SceneManager: TCastleSceneManager read FSceneManager;
-
-    { Should we make shadow volumes possible.
-
-      This can be changed only when the context is not initialized,
-      that is only when the window is currently closed.
-      Reason: to make shadows possible, we have to initialize gl context
-      specially (with stencil buffer).
-
-      Note that the shadows will not be actually rendered until you also
-      set ShadowVolumes := true. }
-    property ShadowVolumesPossible: boolean
-      read GetShadowVolumesPossible write SetShadowVolumesPossible default false;
 
     { See TCastleSceneManager.ShadowVolumes. }
     property ShadowVolumes: boolean
@@ -4867,22 +4853,6 @@ end;
 procedure TCastleWindow.SetShadowVolumesDraw(const Value: boolean);
 begin
   SceneManager.ShadowVolumesDraw := Value;
-end;
-
-function TCastleWindow.GetShadowVolumesPossible: boolean;
-begin
-  Result := SceneManager.ShadowVolumesPossible;
-end;
-
-procedure TCastleWindow.SetShadowVolumesPossible(const Value: boolean);
-begin
-  if not Closed then
-    raise Exception.Create('You can''t change ShadowVolumesPossible ' +
-      'while the context is already initialized');
-  SceneManager.ShadowVolumesPossible := Value;
-  if SceneManager.ShadowVolumesPossible then
-    StencilBits := 8 else
-    StencilBits := 0;
 end;
 
 { TWindowList ------------------------------------------------------------ }

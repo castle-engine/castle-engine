@@ -57,7 +57,6 @@ type
     FPaused: boolean;
     FRenderParams: TManagerRenderParams;
 
-    FShadowVolumesPossible: boolean;
     FShadowVolumes: boolean;
     FShadowVolumesDraw: boolean;
 
@@ -218,7 +217,7 @@ type
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure SetContainer(const Value: IUIContainer); override;
-    procedure SetShadowVolumesPossible(const Value: boolean); virtual;
+    procedure SetShadowVolumes(const Value: boolean);
 
     { Information about the 3D world.
       For scene maager, these methods simply return it's own properties.
@@ -500,30 +499,23 @@ type
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
 
-    { Should we make shadow volumes possible.
-      If @true then OpenGL context is initialized with stencil buffer,
-      and we want to render shadow volumes (so ShadowVolumes should be relevant,
-      so we have to make infinite far projection etc.). }
-    property ShadowVolumesPossible: boolean read FShadowVolumesPossible write SetShadowVolumesPossible default false;
-
     { Should we render with shadow volumes.
       You can change this at any time, to switch rendering shadows on/off.
 
-      This works only if ShadowVolumesPossible is @true.
+      This works only if OpenGL context actually can render shadow volumes,
+      checked by GLShadowVolumesPossible, which means that you have
+      to initialize OpenGL context with stencil buffer.
 
-      Note that the shadow volumes algorithm makes some requirements
-      about the 3D model: it must be 2-manifold, that is have a correctly
-      closed volume. Otherwise, rendering results may be bad. You can check
-      Scene.BorderEdges.Count before using this: BorderEdges.Count = 0 means
-      that model is Ok, correct manifold.
-
-      For shadows to be actually used you still need a light source
-      marked as the main shadows light (kambiShadows = kambiShadowsMain = TRUE),
-      see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]. }
-    property ShadowVolumes: boolean read FShadowVolumes write FShadowVolumes default false;
+      The shadow volumes algorithm is used only if shadow caster
+      is 2-manifold, that is has a correctly closed volume.
+      Also you need a light sourcet
+      marked as the main shadow volumes light (kambiShadows = kambiShadowsMain = TRUE).
+      See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows]
+      for details. }
+    property ShadowVolumes: boolean read FShadowVolumes write SetShadowVolumes default false;
 
     { Actually draw the shadow volumes to the color buffer, for debugging.
-      If shadows are rendered (see ShadowVolumesPossible and ShadowVolumes),
+      If shadows are rendered (see GLShadowVolumesPossible and ShadowVolumes),
       you can use this to actually see shadow volumes, for debug / demo
       purposes. Shadow volumes will be rendered on top of the scene,
       as yellow blended polygons. }
@@ -651,7 +643,8 @@ type
 
       Our @link(ApplyProjection) calculates the final visibility limit as follows:
       @unorderedList(
-        @item(First of all, if ShadowVolumesPossible, then it's infinity.)
+        @item(First of all, if (GLShadowVolumesPossible and ShadowVolumes),
+          then it's infinity.)
         @item(Then we look NavigationInfo.visibilityLimit value inside MainScene.
           This allows your 3D data creators to set this inside VRML/X3D data.
 
@@ -1467,7 +1460,7 @@ var
   procedure DoPerspective;
   begin
     { Only perspective projection supports z far in infinity. }
-    if ShadowVolumesPossible then
+    if GLShadowVolumesPossible and ShadowVolumes then
       FProjectionFar := ZFarInfinity;
 
     FPerspectiveView := true;
@@ -1628,11 +1621,11 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.SetShadowVolumesPossible(const Value: boolean);
+procedure TCastleAbstractViewport.SetShadowVolumes(const Value: boolean);
 begin
-  if ShadowVolumesPossible <> Value then
+  if ShadowVolumes <> Value then
   begin
-    FShadowVolumesPossible := Value;
+    FShadowVolumes := Value;
     ApplyProjectionNeeded := true;
   end;
 end;
@@ -1796,7 +1789,7 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 var
   MainLightPosition: TVector4Single;
 begin
-  if ShadowVolumesPossible and
+  if GLShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
     RenderWithShadows(MainLightPosition) else
@@ -1859,7 +1852,7 @@ begin
       ClearBuffers := ClearBuffers or GL_COLOR_BUFFER_BIT;
   end;
 
-  if ShadowVolumesPossible and
+  if GLShadowVolumesPossible and
      ShadowVolumes and
      MainLightForShadows(MainLightPosition) then
     ClearBuffers := ClearBuffers or GL_STENCIL_BUFFER_BIT;
@@ -2040,7 +2033,7 @@ procedure TCastleAbstractViewport.RenderOnScreen(ACamera: TCamera);
     end;
     if Depth then
     begin
-      if ShadowVolumesPossible and GLPackedDepthStencil then
+      if GLShadowVolumesPossible and GLPackedDepthStencil then
         TexImage2D(GL_DEPTH24_STENCIL8_EXT, GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT) else
         TexImage2D(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE);
       //glTexParameteri(ScreenEffectTextureTarget, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
@@ -2112,7 +2105,7 @@ begin
         ScreenEffectRTT.DepthTextureTarget := ScreenEffectTextureTarget;
       end else
         ScreenEffectRTT.Buffer := tbColor;
-      ScreenEffectRTT.Stencil := ShadowVolumesPossible;
+      ScreenEffectRTT.Stencil := GLShadowVolumesPossible;
       ScreenEffectRTT.GLContextOpen;
 
       if Log then
@@ -2321,7 +2314,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     V := Items[I];
-    if V.ShadowVolumesPossible and
+    if GLShadowVolumesPossible and
        V.ShadowVolumes and
        V.MainLightForShadows(MainLightPosition) then
       Exit(true);
@@ -2545,9 +2538,10 @@ procedure TCastleSceneManager.GLContextOpen;
 begin
   inherited;
 
-  { We actually need to do it only if ShadowVolumesPossible for any viewport.
+  { We actually need to do it only if GLShadowVolumesPossible
+    and ShadowVolumes for any viewport.
     But we can as well do it always, it's harmless (just checks some GL
-    extensions). (Otherwise we'd have to handle SetShadowVolumesPossible.) }
+    extensions). (Otherwise we'd have to handle SetShadowVolumes.) }
   if ShadowVolumeRenderer = nil then
   begin
     FShadowVolumeRenderer := TGLShadowVolumeRenderer.Create;

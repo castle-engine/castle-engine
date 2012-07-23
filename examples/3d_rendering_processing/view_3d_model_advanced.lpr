@@ -58,7 +58,6 @@ end;
 
 procedure StencilOff(Window: TCastleWindowBase; const FailureMessage: string);
 begin
-  (Window as TCastleWindow).ShadowVolumesPossible := false;
   Writeln('Stencil buffer not available, shadow volumes could not be initialized');
 end;
 
@@ -80,11 +79,11 @@ begin
     for documentation how to prepare your model to have shadow volumes,
     and for links to demo models using shadow volumes.
 
-    Besides setting ShadowVolumesPossible and ShadowVolumes to @true,
+    Besides setting ShadowVolumes to @true,
     we also initialize window by Window.OpenOptionalMultiSamplingAndStencil.
     The latter allows us to smoothly fallback to rendering without shadows
     on (really really old) GPUs that don't support stencil buffer. }
-  Window.ShadowVolumesPossible := true;
+  Window.StencilBits := 8;
   Window.ShadowVolumes := true;
   Window.OpenOptionalMultiSamplingAndStencil(nil, @StencilOff);
 

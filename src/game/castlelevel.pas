@@ -256,7 +256,7 @@ type
         @item sets Attributes according to AnimationAttributesSet
         @item optionally creates triangle octree for the FirstScene and/or LastScene
         @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
-          (if shadow volumes enabled by RenderShadowsPossible))
+          (if shadow volumes possible at all in this OpenGL context))
         @item FreeExternalResources, since they will not be needed anymore
         @item TimePlaying is by default @false, so the animation is not playing.
       ) }
@@ -275,7 +275,7 @@ type
         @item sets Attributes according to AttributesSet
         @item optionally create triangle octree
         @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
-          (if shadow volumes enabled by RenderShadowsPossible), optionally
+          (if shadow volumes possible at all in this OpenGL context), optionally
           with prBackground)
         @item FreeExternalResources, since they will not be needed anymore
       ) }
@@ -348,9 +348,9 @@ var
 
 implementation
 
-uses SysUtils, Triangle, CastleLog,
+uses SysUtils, Triangle, CastleLog, GameVideoOptions,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
-  GLImages, UIControls, XMLRead, GameVideoOptions, CastleGameNotifications,
+  GLImages, UIControls, XMLRead, CastleGameNotifications,
   CastleInputs, CastleGameCache, CastleXMLUtils, CastleProgress,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
 
@@ -775,7 +775,7 @@ begin
 
     { calculate Options for PrepareResources }
     Options := [prRender, prBackground, prBoundingBox];
-    if RenderShadowsPossible then
+    if GLShadowVolumesPossible then
       Options := Options + prShadowVolume;
 
     MainScene.PrepareResources(Options, false, BaseLights);
@@ -825,7 +825,6 @@ end;
 procedure TGameSceneManager.RenderFromViewEverything;
 begin
   ShadowVolumesDraw := DebugRenderShadowVolume;
-  ShadowVolumesPossible := RenderShadowsPossible;
   ShadowVolumes := RenderShadows;
 
   { Actually, this is needed only when "(not MenuBackground) and ShowDebugInfo".
@@ -838,7 +837,6 @@ end;
 procedure TGameSceneManager.BeforeDraw;
 begin
   ShadowVolumesDraw := DebugRenderShadowVolume;
-  ShadowVolumesPossible := RenderShadowsPossible;
   ShadowVolumes := RenderShadows;
 
   inherited;
@@ -851,7 +849,6 @@ begin
   Assert(Camera <> nil, 'TGameSceneManager always creates camera when loading level');
 
   ShadowVolumesDraw := DebugRenderShadowVolume;
-  ShadowVolumesPossible := RenderShadowsPossible;
   ShadowVolumes := RenderShadows;
 
   DistortFieldOfViewY := 1;
@@ -961,7 +958,7 @@ begin
   Options := [prRender, prBoundingBox { always needed }];
   if PrepareBackground then
     Include(Options, prBackground);
-  if RenderShadowsPossible then
+  if GLShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
   Result.PrepareResources(Options, false, SceneManager.BaseLights);
@@ -994,7 +991,7 @@ begin
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
-  if RenderShadowsPossible then
+  if GLShadowVolumesPossible then
     Options := Options + prShadowVolume;
 
   Result.PrepareResources(Options, false, SceneManager.BaseLights);

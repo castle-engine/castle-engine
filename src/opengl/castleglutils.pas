@@ -325,6 +325,10 @@ var
     depth/stencil packed?) }
   GLPackedDepthStencil: boolean;
 
+  { Does OpenGL context support shadow volumes.
+    This simply checks do we have stencil buffer with at least 4 bits for now. }
+  GLShadowVolumesPossible: boolean;
+
 { Initialize all extensions and OpenGL versions.
 
   Calls all Load_GLXxx routines from glext unit, so tries to init
@@ -1121,6 +1125,10 @@ begin
   GL_ARB_texture_rectangle := Load_GL_ARB_texture_rectangle;
   GL_ARB_framebuffer_object := Load_GL_ARB_framebuffer_object;
 
+  { Workaround http://bugs.freepascal.org/view.php?id=18613 }
+  if GL_ARB_vertex_buffer_object then
+    Pointer(glBufferSubDataARB) := Glext.wglGetProcAddress('glBufferSubDataARB');
+
   GLMaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
   GLMaxLights := glGetInteger(GL_MAX_LIGHTS);
 
@@ -1217,9 +1225,7 @@ begin
 
   GLPackedDepthStencil := GL_EXT_packed_depth_stencil;
 
-  { Workaround http://bugs.freepascal.org/view.php?id=18613 }
-  if GL_ARB_vertex_buffer_object then
-    Pointer(glBufferSubDataARB) := Glext.wglGetProcAddress('glBufferSubDataARB');
+  GLShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
 end;
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }

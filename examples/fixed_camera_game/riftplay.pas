@@ -139,7 +139,7 @@ procedure TGameSceneManager.ApplyProjection;
 var
   ZFar: TGLfloat;
 begin
-  if RenderShadowsPossible then
+  if GLShadowVolumesPossible and ShadowVolumes then
     ZFar := ZFarInfinity else
     ZFar := 100;
 
@@ -266,8 +266,7 @@ begin
 
   try
     SceneManager := TGameSceneManager.Create(nil);
-    SceneManager.ShadowVolumesPossible := RenderShadowsPossible;
-    SceneManager.ShadowVolumes := RenderShadows;
+    SceneManager.ShadowVolumes := ShadowVolumes;
 
     Locations.Load(SceneManager.BaseLights);
     CreaturesKinds.Load(SceneManager.BaseLights);

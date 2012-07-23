@@ -59,11 +59,10 @@ var
 
 const
   Version = '0.1.0';
-  Options: array [0..8] of TOption =
+  Options: array [0..7] of TOption =
   ( (Short:'h'; Long: 'help'; Argument: oaNone),
     (Short:'v'; Long: 'version'; Argument: oaNone),
     (Short:'n'; Long: 'no-screen-change'; Argument: oaNone),
-    (Short: #0; Long: 'no-shadows'; Argument: oaNone),
     (Short: #0; Long: 'screen-size'; Argument: oaRequired),
     (Short: #0; Long: 'debug-menu-designer'; Argument: oaNone),
     (Short: #0; Long: 'debug-menu-fps'; Argument: oaNone),
@@ -90,7 +89,6 @@ begin
            '                        If your screen size is not the required' +nl+
            '                        size (set by --screen-size)' +nl+
            '                        then will run in windowed mode.' +nl+
-           '  --no-shadows          Disable initializing and using shadows.' +nl+
            '  --screen-size WIDTHxHEIGHT' +nl+
            '                        Change the screen size (default is ' +
              DefaultRequestedScreenSize + ').' +nl+
@@ -113,15 +111,14 @@ begin
          ProgramBreak;
        end;
     2: WasParam_NoScreenChange := true;
-    3: RenderShadowsPossible := false;
-    4: begin
+    3: begin
          DeFormat(Argument, '%dx%d',
            [@RequestedScreenWidth, @RequestedScreenHeight]);
        end;
-    5: DebugMenuDesignerAllowed := true;
-    6: DebugMenuFps := true;
-    7: InitializeLog(Version);
-    8: DebugNoCreatures := true;
+    4: DebugMenuDesignerAllowed := true;
+    5: DebugMenuFps := true;
+    6: InitializeLog(Version);
+    7: DebugNoCreatures := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -197,8 +194,7 @@ begin
   { open window }
   Window.Caption := 'The Rift';
   Window.ResizeAllowed := raOnlyAtOpen;
-  if RenderShadowsPossible then
-    Window.StencilBits := 8;
+  Window.StencilBits := 8;
   Window.Open;
 
   { init progress }

@@ -346,7 +346,6 @@ begin
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 
   { shadow on one viewport }
-  Viewports[1].ShadowVolumesPossible := true;
   Viewports[1].ShadowVolumes := true;
   Viewports[1].Caption := 'Shadow volumes On';
 
