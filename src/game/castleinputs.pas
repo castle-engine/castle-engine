@@ -30,7 +30,12 @@
   load/save them to the user config file, show descriptions of inputs, and such.
   Units in src/game/ (notably, CastlePlayer) may use the inputs defined here to set
   low-level inputs. For example, CastleInput_Forward may be used to set camera's
-  TWalkCamera.Input_Forward, as long as the player is not dead. }
+  TWalkCamera.Input_Forward, as long as the player is not dead.
+
+  You can add new inputs simply by creating new TInputConfiguration instances.
+  Just make sure you do it before calling @code(Config.Load),
+  as some functionality assumes that all shortcuts are already added
+  at the time @code(Config.Load) is called. }
 unit CastleInputs;
 
 interface
@@ -57,6 +62,10 @@ type
     FGroup: TInputGroup;
     FShortcut: TInputShortcut;
     FConfigName: string;
+    FGroupOrder: Integer;
+    { Index of CastleAllInputs. For now this is useful only for sorting,
+      to decide order when GroupOrder is equal between two items. }
+    Index: Integer;
     procedure ShortcutChanged(Shortcut: TInputShortcut);
   public
     { Constructor. Note that TInputShortcut instance passed here is owned
@@ -76,6 +85,15 @@ type
     property ConfigName: string read FConfigName;
     property Group: TInputGroup read FGroup;
 
+    { Order of the shortcut within it's @link(Group).
+      The order may be important, as menus may show CastleGroupInputs
+      to user in this order.
+      This order is applied (the group is actually sorted by GroupOrder)
+      when reading config file.
+      For equal GroupOrder, the order of creation (or so, the order
+      on CastleAllInputs list) decides. }
+    property GroupOrder: Integer read FGroupOrder write FGroupOrder;
+
     { The key/mouse shortcut for this action.
       You can directly change fields of this action,
       but don't mess with it's OnChanged property --- we will use
@@ -87,6 +105,9 @@ type
     procedure AddShortcut(const NewKey: TKey;
       const NewMousePress: boolean; const NewMouseButton: TMouseButton;
       const NewMouseWheel: TMouseWheelDirection);
+
+    { Nice text describing the shortcut value. }
+    function Description: string;
   end;
 
   TInputConfigurationList = class(specialize TFPGObjectList<TInputConfiguration>)
@@ -113,7 +134,6 @@ type
 
 var
   { Basic shortcuts. }
-  CastleInput_Attack: TInputConfiguration;
   CastleInput_Forward: TInputConfiguration;
   CastleInput_Backward: TInputConfiguration;
   CastleInput_LeftRot: TInputConfiguration;
@@ -126,27 +146,14 @@ var
   CastleInput_UpMove: TInputConfiguration;
   CastleInput_DownMove: TInputConfiguration;
 
-  { Items shortcuts. }
-  CastleInput_InventoryShow: TInputConfiguration;
-  CastleInput_InventoryPrevious: TInputConfiguration;
-  CastleInput_InventoryNext: TInputConfiguration;
-  CastleInput_UseItem: TInputConfiguration;
-  CastleInput_UseLifePotion: TInputConfiguration;
-  CastleInput_DropItem: TInputConfiguration;
-
   { Other shortcuts. }
-  CastleInput_ViewMessages: TInputConfiguration;
-  CastleInput_SaveScreen: TInputConfiguration;
-  CastleInput_CancelFlying: TInputConfiguration;
-  CastleInput_FPSShow: TInputConfiguration;
   CastleInput_Interact: TInputConfiguration;
-  CastleInput_DebugMenu: TInputConfiguration;
 
   { List of all configurable shortcuts.
     Will be created in initialization and freed in finalization of this unit.
     All TInputConfiguration instances will automatically add to this. }
   CastleAllInputs: TInputConfigurationList;
-  CastleGroupInputs: array[TInputGroup] of TInputConfigurationList;
+  CastleGroupInputs: array [TInputGroup] of TInputConfigurationList;
 
   OnInputChanged: TInputChangedEventList;
 
@@ -164,16 +171,9 @@ var
   MouseLookVerticalSensitivity: Single;
   { @groupEnd }
 
-function InteractInputDescription: string;
-
 implementation
 
 uses SysUtils;
-
-function InteractInputDescription: string;
-begin
-  Result := CastleInput_Interact.Shortcut.Description('"Interact" key');
-end;
 
 { TInputConfigurationList ----------------------------------------------------- }
 
@@ -220,11 +220,30 @@ begin
   end;
 end;
 
+function SortInputConfiguration(const A, B: TInputConfiguration): Integer;
+begin
+  Result := A.GroupOrder - B.GroupOrder;
+  { since TFPSList.Sort is not stable, we use Index to keep order predictable
+    when GroupOrder is equal }
+  if Result = 0 then
+    Result := A.Index - B.Index;
+end;
+
 procedure TInputConfigurationList.LoadFromConfig(const Config: TCastleConfig);
 var
   I: Integer;
   ConflictDescription: string;
+  G: TInputGroup;
 begin
+  { we assume that all inputs are added now, so we do some finalizing operations
+    now, like checking defaults for conflicts and sorting by GroupOrder. }
+  if SeekConflict(ConflictDescription) then
+    raise EInternalError.Create(
+      'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
+
+  for G := Low(G) to High(G) do
+    CastleGroupInputs[G].Sort(@SortInputConfiguration);
+
   for I := 0 to Count - 1 do
   begin
     Items[I].Shortcut.Key1 := Config.GetValue(
@@ -309,7 +328,9 @@ begin
   FShortcut.Assign(AKey1, AKey2, ACharacter, AMouseButtonUse, AMouseButton, AMouseWheel);
   FShortcut.OnChanged := @ShortcutChanged;
 
+  Index := CastleAllInputs.Count;
   CastleAllInputs.Add(Self);
+
   CastleGroupInputs[Group].Add(Self);
 end;
 
@@ -349,6 +370,11 @@ begin
   end;
 end;
 
+function TInputConfiguration.Description: string;
+begin
+  Result := Shortcut.Description(Format('"%s" key', [Name]));
+end;
+
 { TConfigOptions ------------------------------------------------------------- }
 
 type
@@ -386,7 +412,6 @@ end;
 procedure DoInitialization;
 var
   InputGroup: TInputGroup;
-  ConflictDescription: string;
 begin
   OnInputChanged := TInputChangedEventList.Create;
   CastleAllInputs := TInputConfigurationList.Create(true);
@@ -398,8 +423,6 @@ begin
     of menu entries in "Configure controls". }
 
   { Basic shortcuts. }
-  CastleInput_Attack := TInputConfiguration.Create('Attack', 'attack', kgBasic,
-    K_Ctrl, K_None, #0, true, mbLeft);
   CastleInput_Forward := TInputConfiguration.Create('Move forward', 'move_forward', kgBasic,
     K_W, K_Up, #0, false, mbLeft);
   CastleInput_Backward := TInputConfiguration.Create('Move backward', 'move_backward', kgBasic,
@@ -423,37 +446,9 @@ begin
   CastleInput_DownMove := TInputConfiguration.Create('Crouch (or fly/swim down)', 'move_down', kgBasic,
     K_C, K_None, #0, false, mbLeft);
 
-  { Items shortcuts. }
-  CastleInput_InventoryShow := TInputConfiguration.Create('Inventory show / hide', 'inventory_toggle', kgItems,
-    K_I, K_None, #0, false, mbLeft);
-  CastleInput_InventoryPrevious := TInputConfiguration.Create('Select previous inventory item', 'inventory_previous', kgItems,
-    K_LeftBracket, K_None, #0, false, mbLeft, mwUp);
-  CastleInput_InventoryNext := TInputConfiguration.Create('Select next inventory item', 'inventory_next', kgItems,
-    K_RightBracket, K_None, #0, false, mbLeft, mwDown);
-  CastleInput_UseItem := TInputConfiguration.Create('Use (or equip) selected inventory item', 'item_use', kgItems,
-    K_Enter, K_None, #0, false, mbLeft);
-  CastleInput_UseLifePotion := TInputConfiguration.Create('Use life potion', 'life_potion_use', kgItems,
-    K_L, K_None, #0, false, mbLeft);
-  CastleInput_DropItem := TInputConfiguration.Create('Drop selected inventory item', 'item_drop', kgItems,
-    K_R, K_None, #0, false, mbLeft);
-
   { Other shortcuts. }
-  CastleInput_ViewMessages := TInputConfiguration.Create('View all messages', 'view_messages', kgOther,
-    K_M, K_None, #0, false, mbLeft);
-  CastleInput_SaveScreen := TInputConfiguration.Create('Save screen', 'save_screen', kgOther,
-    K_F5, K_None, #0, false, mbLeft);
-  CastleInput_CancelFlying := TInputConfiguration.Create('Cancel flying spell', 'cancel_flying', kgOther,
-    K_Q, K_None, #0, false, mbLeft);
-  CastleInput_FPSShow := TInputConfiguration.Create('FPS show / hide', 'fps_toggle', kgOther,
-    K_Tab, K_None, #0, false, mbLeft);
   CastleInput_Interact := TInputConfiguration.Create('Interact (press button / open door etc.)', 'interact', kgOther,
     K_E, K_None, #0, false, mbLeft);
-  CastleInput_DebugMenu := TInputConfiguration.Create('Debug menu', 'debug_menu', kgOther,
-    K_BackQuote, K_None, #0, false, mbLeft);
-
-  if CastleAllInputs.SeekConflict(ConflictDescription) then
-    raise EInternalError.Create(
-      'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
   Config.OnLoad.Add(@CastleAllInputs.LoadFromConfig);
   Config.OnSave.Add(@CastleAllInputs.SaveToConfig);

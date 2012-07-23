@@ -395,7 +395,7 @@ begin
      PointInside(World.Player.Position) then
   begin
     ReplaceInteractInput.C := 'i';
-    ReplaceInteractInput.S := InteractInputDescription;
+    ReplaceInteractInput.S := CastleInput_Interact.Description;
     Notifications.Show(SPercentReplace(Message, [ReplaceInteractInput], true));
     MessageDone := true;
   end;
