@@ -46,47 +46,34 @@ type
   { Player, 3D object controlling the camera, main enemy of hostile creatures,
     carries a backpack, may cause blackout effects on screen and such.
 
-    Note that this is designed in such way that it doesn't require current
-    game to actually run. This means that various things like view saved player,
-    edit initial player before game starts etc. are possible.
+    Note that you can operate on player even before level is loaded,
+    before TCastleSceneManager and such are initialized.
+    This allows to create player before level is started
+    (create it from scratch, or by loading from save game),
+    and "carry" the same player instance across various loaded levels.
 
-    ------------------------------------------------------------
+    @link(Dead) or @link(Blocked) player behaves much like alive and normal player.
+    For example, it still has an associated Camera that can animate by code
+    (e.g. to apply physics to the dead player body,
+    because player was killed when he was flying, or it's
+    corpse lays on some moving object of the level --- like elevator).
+    However, Camera input shortcuts will be cleared, to prevent user from
+    directly moving the camera and player.
 
-    Notes about dying:
-
-    Dead player actually behaves (from the point
-    of view of this class...) much like alive player. This means that
-    e.g. dead player still has a Camera, and it's Position may still
-    change (e.g. because player was killed when he was flying, or player
-    corpse lays on some moving object of the level). It just cannot change
-    because of player keys like up/down/rotate etc.
-    This class automatically takes care of all things related to dying.
-
-    Code using this class should just make sure to not do some
-    forbidden things when player is dead --- right now this includes:
+    Do not do some stuff when player is dead:
     @unorderedList(
-      @item Calling PickItem, DropItem.
-      @item(Increasing Life (further decreasing Life is OK).
-        Note that this means that once Player is Dead, (s)he cannot
-        be alive again.)
-      @item Changing EquippedWeapon, calling Attack.
-    )
-
-    Some other things in other units are also forbidden, see there for docs.
-    In general, my strategy is that "if some method doesn't explicitly
-    state that Player must be alive to call it --- then I'm allowed
-    to call this method even when Player is Dead".
-
-    The same thing applied to GameWin = @true state.
-    Generally all things are allowed except things that are explicitly
-    forbidden.
-  }
+      @item No calling PickItem, DropItem.
+      @item(No increasing Life (further decreasing Life is OK).
+        This implies that once Player is Dead, (s)he cannot be alive again.)
+      @item No changing EquippedWeapon, no calling Attack.
+    ) }
   TPlayer = class(T3DAlive)
   private
     FCamera: TWalkCamera;
     FItems: TItemsInventory;
     FEquippedWeapon: TItemWeapon;
     LifeTime: Single;
+    FBlocked: boolean;
 
     { This means that weapon AttackAnimation is being done.
       This also means that EquippedWeapon <> nil. }
@@ -147,7 +134,7 @@ type
     { Update Camera properties, including inputs.
       Also updates Level.Input_PointingDeviceActivate, it's suitable to do it here.
       Call this always when FlyingMode or Dead or some key values
-      or Swimming or GameWin change. }
+      or Swimming or Blocked change. }
     procedure UpdateCamera;
 
     procedure FalledDown(Camera: TWalkCamera; const FallenHeight: Single);
@@ -199,8 +186,8 @@ type
       automatically wear off, but you don't want to wait and you
       want to cancel flying *now*. Ignored if not in FlyingMode.
 
-      Note that while you can call this when Dead or GameWin, this will
-      be always ignored (because when Dead or GameWin,
+      Note that while you can call this when Dead or Blocked, this will
+      be always ignored (because when Dead or Blocked,
       FlyingMode is always false). }
     procedure CancelFlying;
 
@@ -244,6 +231,12 @@ type
       )
     }
     property Camera: TWalkCamera read FCamera;
+
+    { Use this to disable user to directly change the camera position.
+      It's useful when you want to temporarily force camera to some specific
+      setting (you can even use handy Player.Camera.AnimateTo method
+      to do this easily, see TWalkCamera.AnimateTo). }
+    property Blocked: boolean read FBlocked write FBlocked;
 
     { Add Item to Items, with appropriate GameMessage.
       See also TItemsInventory.Pick (this is a wrapper around it).
@@ -465,7 +458,7 @@ end;
 
 function TPlayer.GetFlyingMode: boolean;
 begin
-  Result := (FlyingModeTimeOut > 0) and (not Dead) and (not GameWin);
+  Result := (FlyingModeTimeOut > 0) and (not Dead) and (not Blocked);
 end;
 
 procedure TPlayer.FlyingModeTimeoutBegin(const TimeOut: Single);
@@ -555,7 +548,7 @@ procedure TPlayer.UpdateCamera;
 const
   CastleCameraInput = [ciNormal, ci3dMouse]; { do not include ciMouseDragging }
 begin
-  Camera.Gravity := (not FlyingMode) and (not GameWin);
+  Camera.Gravity := (not FlyingMode) and (not Blocked);
   { Note that when not Camera.Gravity then FallingDownEffect will not
     work anyway. }
   Camera.FallingDownEffect := Swimming = psNo;
@@ -567,15 +560,15 @@ begin
   { MouseLook is allowed always, even when player is dead.
     Just like rotation keys.
 
-    Note that when GameWin, rotating will actually
+    Note that when Blocked, rotating will actually
     be disabled by Input := []. But still mouse look will cause mouse
     to remain hidden, which is good (why pop the mouse cursor on game
     win animation?). }
   Camera.MouseLook := UseMouseLook;
 
-  if GameWin then
+  if Blocked then
   begin
-    { When GameWin, we navigate camera by code. }
+    { When Blocked, we navigate camera by code. }
     Camera.Input := [];
   end else
   begin
@@ -593,7 +586,7 @@ begin
     Camera.Input_GravityUp.Assign(CastleInput_GravityUp.Shortcut, false);
   end;
 
-  if GameWin then
+  if Blocked then
   begin
     { PreferGravityUpXxx should be ignored actually, because rotations
       don't work now. }
