@@ -29,7 +29,7 @@ interface
 uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
   X3DNodes, X3DFields, CastleItems, Cameras,
   CastleCreatures, Background,
-  CastleUtils, CastleClassUtils, CastlePlayer, GameThunder, CastleResources,
+  CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
   DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
   Classes, CastleTimeUtils, CastleSceneManager, GLRendererShader, FGL;
@@ -236,6 +236,24 @@ type
       var LetOthersHandleMouseAndKeys: boolean); override;
   end;
 
+  { Rendering and making sound of a thunder (in a storm) effect. }
+  TThunderEffect = class
+  private
+    Time, LastBeginTime, NextBeginTime: Single;
+    ThunderLightNode: TDirectionalLightNode;
+    ThunderLight: TLightInstance;
+
+    { Add thunder light, if visible. }
+    procedure AddLight(const BaseLights: TLightInstancesList);
+    procedure Idle(const CompSpeed: Single);
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    { Force thunder to happen @italic(now). }
+    procedure ForceNow;
+  end;
+
   { Level logic. We use T3D descendant, since this is the comfortable
     way to add any behavior to the 3D world (it doesn't matter that
     "level logic" is not a usual 3D object --- it doesn't have to collide
@@ -320,10 +338,7 @@ type
     property AnimationTime: TFloatTime read FAnimationTime;
 
     { For thunder effect. nil if no thunder effect should be done for this level.
-
-      Descendants can set this in their constructor.
-      We will call it's Idle, GamePlay will call it's InitGLLight and Render,
-      our destructor will free it. }
+      Descendants can configure and assign this, we will own it (free). }
     property ThunderEffect: TThunderEffect
       read FThunderEffect write FThunderEffect;
 
@@ -914,6 +929,73 @@ begin
      Player.Dead then
     Input_PointingDeviceActivate.MakeClear else
     Input_PointingDeviceActivate.Assign(CastleInput_Interact.Shortcut, false);
+end;
+
+{ TThunderEffect ------------------------------------------------------------- }
+
+constructor TThunderEffect.Create;
+begin
+  inherited;
+  ThunderLightNode := TDirectionalLightNode.Create('', '');
+  ThunderLightNode.FdDirection.Value := Vector3Single(0, -1, 1);
+  ThunderLightNode.FdAmbientIntensity.Value := 0.5;
+  ThunderLightNode.FdColor.Value := Vector3Single(0.5, 0.5, 1);
+
+  ThunderLight.Node := ThunderLightNode;
+  ThunderLight.Transform := IdentityMatrix4Single;
+  ThunderLight.TransformScale := 1;
+  ThunderLight.Location := ZeroVector3Single;
+  ThunderLight.Direction := ThunderLightNode.FdDirection.Value;
+  ThunderLight.Radius := MaxSingle;
+  ThunderLight.WorldCoordinates := true;
+end;
+
+destructor TThunderEffect.Destroy;
+begin
+  FreeAndNil(ThunderLightNode);
+  inherited;
+end;
+
+procedure TThunderEffect.AddLight(const BaseLights: TLightInstancesList);
+
+  function Visible: boolean;
+  var
+    ThunderTime: Single;
+  begin
+    Result := false;
+    if LastBeginTime <> 0 then
+    begin
+      ThunderTime := Time - LastBeginTime;
+      if (ThunderTime < 1.0) or
+         ((1.5 < ThunderTime) and (ThunderTime < 2.5)) then
+        Result := true;
+    end;
+  end;
+
+begin
+  if Visible then
+    BaseLights.Add(ThunderLight);
+end;
+
+procedure TThunderEffect.Idle(const CompSpeed: Single);
+begin
+  Time += CompSpeed;
+
+  if NextBeginTime = 0 then
+    NextBeginTime := Time + 10 + Random(10);
+
+  if NextBeginTime <= Time then
+  begin
+    LastBeginTime := Time;
+    NextBeginTime := Time + 10 + Random(20);
+
+    {ThunderAllocatedSound := }SoundEngine.Sound(stThunder);
+  end;
+end;
+
+procedure TThunderEffect.ForceNow;
+begin
+  NextBeginTime := Time;
 end;
 
 { TLevel ---------------------------------------------------------------- }
