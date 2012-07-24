@@ -132,7 +132,6 @@ type
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
     { Update Camera properties, including inputs.
-      Also updates Level.Input_PointingDeviceActivate, it's suitable to do it here.
       Call this always when FlyingMode or Dead or some key values
       or Swimming or Blocked change. }
     procedure UpdateCamera;
@@ -345,7 +344,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleMessages,
   CastleUtils, X3DNodes, CastleControls,
   CastleWindow, Images, CastleFilesUtils, UIControls,
-  PrecalculatedAnimation, ALUtils, CastleOpenAL, GamePlay,
+  PrecalculatedAnimation, ALUtils, CastleOpenAL,
   CastleGameNotifications, CastleXMLConfig, GLImages;
 
 { TPlayerBox ----------------------------------------------------------------- }
@@ -603,9 +602,6 @@ begin
 
     Camera.MoveHorizontalSpeed := DefaultMoveHorizontalSpeed;
     Camera.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
-
-    if SceneManager <> nil then
-      SceneManager.Input_PointingDeviceActivate.MakeClear;
   end else
   if Dead then
   begin
@@ -631,9 +627,6 @@ begin
 
     Camera.MoveHorizontalSpeed := DefaultMoveHorizontalSpeed;
     Camera.MoveVerticalSpeed := DefaultMoveVerticalSpeed;
-
-    if SceneManager <> nil then
-      SceneManager.Input_PointingDeviceActivate.MakeClear;
   end else
   begin
     if FlyingMode then
@@ -695,9 +688,6 @@ begin
     Camera.Input_Backward.Assign(CastleInput_Backward.Shortcut, false);
     Camera.Input_LeftStrafe.Assign(CastleInput_LeftStrafe.Shortcut, false);
     Camera.Input_RightStrafe.Assign(CastleInput_RightStrafe.Shortcut, false);
-
-    if SceneManager <> nil then
-      SceneManager.Input_PointingDeviceActivate.Assign(CastleInput_Interact.Shortcut, false);
   end;
 end;
 

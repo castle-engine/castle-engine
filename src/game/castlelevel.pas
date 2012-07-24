@@ -231,6 +231,9 @@ type
       const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function Background: TBackground; override;
+    procedure Idle(const CompSpeed: Single;
+      const HandleMouseAndKeys: boolean;
+      var LetOthersHandleMouseAndKeys: boolean); override;
   end;
 
   { Level logic. We use T3D descendant, since this is the comfortable
@@ -900,6 +903,17 @@ begin
     Result := nil;
   if Result = nil then
     Result := inherited;
+end;
+
+procedure TGameSceneManager.Idle(const CompSpeed: Single;
+  const HandleMouseAndKeys: boolean; var LetOthersHandleMouseAndKeys: boolean);
+begin
+  inherited;
+  if (Player = nil) or
+     ((Player is TPlayer) and TPlayer(Player).Blocked) or
+     Player.Dead then
+    Input_PointingDeviceActivate.MakeClear else
+    Input_PointingDeviceActivate.Assign(CastleInput_Interact.Shortcut, false);
 end;
 
 { TLevel ---------------------------------------------------------------- }
