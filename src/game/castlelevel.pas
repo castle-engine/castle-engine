@@ -359,10 +359,9 @@ var
 
 implementation
 
-uses SysUtils, Triangle, CastleLog,
-  CastleGLUtils, CastleFilesUtils, CastleStringUtils,
-  GLImages, UIControls, XMLRead, CastleGameNotifications,
-  CastleInputs, CastleGameCache, CastleXMLUtils, CastleProgress,
+uses SysUtils, Triangle, CastleLog, CastleGLUtils,
+  CastleFilesUtils, CastleStringUtils, GLImages, UIControls, XMLRead,
+  CastleGameNotifications, CastleInputs, CastleGameCache, CastleXMLUtils,
   GLRenderer, RenderingCameraUnit, Math, CastleWarnings;
 
 { TLevelArea ----------------------------------------------------------------- }

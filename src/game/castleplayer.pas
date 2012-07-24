@@ -341,10 +341,8 @@ type
 
 implementation
 
-uses Math, SysUtils, CastleClassUtils, CastleMessages,
-  CastleUtils, X3DNodes, CastleControls,
-  CastleWindow, Images, CastleFilesUtils, UIControls,
-  PrecalculatedAnimation, ALUtils, CastleOpenAL,
+uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
+  Images, CastleFilesUtils, UIControls, PrecalculatedAnimation, CastleOpenAL,
   CastleGameNotifications, CastleXMLConfig, GLImages;
 
 { TPlayerBox ----------------------------------------------------------------- }

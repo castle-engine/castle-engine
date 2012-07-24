@@ -39,8 +39,7 @@ unit CastleProgress;
 
 interface
 
-uses GL, OpenGLFonts, CastleWindow, ProgressUnit, WindowModes, CastleGLUtils,
-  Images;
+uses GL, CastleWindow, ProgressUnit, WindowModes, CastleGLUtils, Images;
 
 type
   TWindowProgressInterface = class(TProgressUserInterface)

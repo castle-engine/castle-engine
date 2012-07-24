@@ -537,7 +537,7 @@ uses SysUtils, Classes, VectorMath, GL, GLU, GLExt,
   {$ifdef CASTLE_WINDOW_GTK_2} Glib2, Gdk2, Gtk2, GdkGLExt, GtkGLExt, CastleDynLib, {$endif}
   CastleUtils, CastleClassUtils, CastleGLUtils, Images, KeysMouse,
   CastleStringUtils, CastleFilesUtils, CastleTimeUtils, FileFilters, UIControls,
-  FGL, GenericStructList, pk3DConnexion,
+  FGL, pk3DConnexion,
   { VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager;
 
