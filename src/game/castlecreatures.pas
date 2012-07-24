@@ -2324,11 +2324,7 @@ begin
   { TODO: for some missiles, their explosion may hurt everyone around.
     So do here additional checks for collision and hurt player and creatures. }
 
-  { This sound is done using GameSound.Sound3d, not our Sound3d
-    --- because when the creature will be destroyed (and missile will
-    be destroyed in nearest RemoveFromLevel pass), we want this sound
-    to go on. }
-  SoundEngine.Sound3d(MissileKind.SoundExplosion, Position);
+  Sound3d(MissileKind.SoundExplosion, 0, false);
 
   Hurt(1000 * 1000, ZeroVector3Single, 0);
 end;
