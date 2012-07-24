@@ -793,11 +793,6 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       TimeToChangeFootstepsSoundPlaying, see UpdateFootstepsSoundPlaying. }
     TimeToChangeIsOnTheGround = 0.5;
   begin
-    if SceneManager = nil then
-    begin
-      GroundProperties := nil;
-      IsOnTheGround := false;
-    end else
     if Camera.IsOnTheGround then
     begin
       ReallyIsOnTheGroundTime := LifeTime;
@@ -808,10 +803,7 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
     begin
       GroundProperties := nil;
       IsOnTheGround := false;
-    end else
-    begin
-      { Leave GroundProperties and IsOnTheGround unchanged. }
-    end;
+    end; { else leave GroundProperties and IsOnTheGround unchanged. }
   end;
 
   { Update IsLava and related variables, hurt player if on lava.
@@ -866,8 +858,6 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       for at least TimeToChangeFootstepsSoundPlaying seconds. }
 
     { calculate NewFootstepsSoundPlaying }
-    if SceneManager = nil then
-      NewFootstepsSoundPlaying := stNone else
     if Camera.IsWalkingOnTheGround then
     begin
       ReallyWalkingOnTheGroundTime := LifeTime;
@@ -877,7 +867,7 @@ procedure TPlayer.Idle(const CompSpeed: Single; var RemoveMe: TRemoveType);
       if (GroundProperties <> nil) and
          (GroundProperties.FootstepsSound <> stNone) then
         NewFootstepsSoundPlaying := GroundProperties.FootstepsSound else
-        NewFootstepsSoundPlaying := SceneManager.Info.FootstepsSound;
+        NewFootstepsSoundPlaying := stPlayerFootstepsConcrete { default footsteps sound };
     end else
     if LifeTime - ReallyWalkingOnTheGroundTime >
       TimeToChangeFootstepsSoundPlaying then

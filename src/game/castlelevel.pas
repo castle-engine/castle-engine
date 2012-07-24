@@ -48,7 +48,6 @@ type
     Document: TXMLDocument;
     DocumentBasePath: string;
     FMusicSound: TSoundType;
-    FFootstepsSound: TSoundType;
     procedure LoadFromDocument;
   public
     constructor Create;
@@ -96,8 +95,6 @@ type
 
     property MusicSound: TSoundType read FMusicSound write FMusicSound
       default stNone;
-
-    property FootstepsSound: TSoundType read FFootstepsSound write FFootstepsSound;
 
     { Load level from file, create camera, octrees, prepare for OpenGL and such. }
     procedure LoadLevel(const SceneManager: TGameSceneManager;
@@ -1139,10 +1136,6 @@ begin
   if DOMGetAttribute(Element, 'music_sound', SoundName) then
     MusicSound := SoundEngine.SoundFromName(SoundName) else
     MusicSound := stNone;
-
-  if DOMGetAttribute(Element, 'footsteps_sound', SoundName) then
-    FootstepsSound := SoundEngine.SoundFromName(SoundName) else
-    FootstepsSound := stPlayerFootstepsConcrete;
 end;
 
 procedure TLevelAvailable.LoadLevel(const SceneManager: TGameSceneManager;
