@@ -27,8 +27,7 @@ unit CastleLevel;
 interface
 
 uses VectorMath, CastleSceneCore, CastleScene, Boxes3D,
-  X3DNodes, X3DFields, CastleItems, Cameras,
-  CastleCreatures, Background,
+  X3DNodes, X3DFields, CastleItems, Cameras, CastleCreatures, Background,
   CastleUtils, CastleClassUtils, CastlePlayer, CastleResources,
   ProgressUnit, PrecalculatedAnimation,
   DOM, ALSoundEngine, Base3D, Shape, GL, CastleConfig, Images,
@@ -207,7 +206,6 @@ type
     procedure LoadLevel(const AInfo: TLevelAvailable;
       const MenuBackground: boolean);
   protected
-    procedure RenderFromViewEverything; override;
     procedure InitializeLights(const Lights: TLightInstancesList); override;
     procedure ApplyProjection; override;
     procedure PointingDeviceActivateFailed(const Active: boolean); override;
@@ -219,8 +217,6 @@ type
 
     { Level information, independent from current level state. }
     property Info: TLevelAvailable read FInfo;
-
-    procedure BeforeDraw; override;
 
     property SickProjection: boolean
       read FSickProjection write SetSickProjection;
@@ -363,7 +359,7 @@ var
 
 implementation
 
-uses SysUtils, Triangle, CastleLog, GameVideoOptions,
+uses SysUtils, Triangle, CastleLog,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   GLImages, UIControls, XMLRead, CastleGameNotifications,
   CastleInputs, CastleGameCache, CastleXMLUtils, CastleProgress,
@@ -737,10 +733,6 @@ begin
     MainScene.Load(Info.SceneFileName);
 
     MainScene.Attributes.UseSceneLights := true;
-    if BumpMapping then
-      MainScene.Attributes.BumpMapping := bmBasic else
-      MainScene.Attributes.BumpMapping := bmNone;
-    MainScene.Attributes.UseOcclusionQuery := UseOcclusionQuery;
 
     { Scene must be the first one on Items, this way MoveAllowed will
       use Scene for wall-sliding (see T3DList.MoveAllowed implementation). }
@@ -837,34 +829,11 @@ begin
     Level.ThunderEffect.AddLight(Lights);
 end;
 
-procedure TGameSceneManager.RenderFromViewEverything;
-begin
-  ShadowVolumesDraw := DebugRenderShadowVolume;
-  ShadowVolumes := RenderShadows;
-
-  { Actually, this is needed only when "(not MenuBackground) and ShowDebugInfo".
-    But it's practically free, time use isn't really noticeable. }
-  ShadowVolumeRenderer.Count := true;
-
-  inherited;
-end;
-
-procedure TGameSceneManager.BeforeDraw;
-begin
-  ShadowVolumesDraw := DebugRenderShadowVolume;
-  ShadowVolumes := RenderShadows;
-
-  inherited;
-end;
-
 procedure TGameSceneManager.ApplyProjection;
 var
   S, C: Extended;
 begin
   Assert(Camera <> nil, 'TGameSceneManager always creates camera when loading level');
-
-  ShadowVolumesDraw := DebugRenderShadowVolume;
-  ShadowVolumes := RenderShadows;
 
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
