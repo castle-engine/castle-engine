@@ -86,6 +86,8 @@ type
 
     procedure UpdateCount;
   public
+    constructor Create;
+
     property WrapAvailable: boolean read FWrapAvailable;
 
     { Call this when OpenGL context is initialized, this will set some things.
@@ -193,12 +195,16 @@ type
       read FStencilSetupKind  write FStencilSetupKind
       default ssFrontAndBack;
 
-    property Count: boolean read FCount write FCount default false;
+    { Statistics of shadow volumes. They are enabled by default,
+      as calculating them takes practically no time.
+      @groupBegin }
+    property Count: boolean read FCount write FCount default true;
     property CountScenes: Cardinal read FCountScenes;
     property CountShadowsNotVisible: Cardinal read FCountShadowsNotVisible;
     property CountZPass: Cardinal read FCountZPass;
     property CountZFailNoLightCap: Cardinal read FCountZFailNoLightCap;
     property CountZFailAndLightCap: Cardinal read FCountZFailAndLightCap;
+    { @groupEnd }
 
     { Do actual rendering with shadow volumes.
 
@@ -251,6 +257,12 @@ type
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils, CastleLog, GLVersionUnit;
+
+constructor TGLShadowVolumeRenderer.Create;
+begin
+  inherited;
+  FCount := true;
+end;
 
 procedure TGLShadowVolumeRenderer.GLContextOpen;
 begin
