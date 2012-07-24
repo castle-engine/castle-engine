@@ -606,6 +606,21 @@ var
     under a suitable name with underscores,
     like 'creature_falled_down' for stCreatureFalledDown. }
 
+  { Player sounds.
+    @groupBegin }
+  stPlayerInteractFailed,
+  stPlayerPickItem,
+  stPlayerDropItem,
+  stPlayerSwimming,
+  stPlayerDrowning,
+  stPlayerFootstepsConcrete,
+  stPlayerLavaPain,
+  stPlayerSuddenPain,
+  stPlayerDies,
+  stPlayerSwimmingChange,
+  stPlayerFalledDown,
+  { @groupEnd }
+
   { Creatures sounds.
     @groupBegin }
   stCreatureFalledDown,
@@ -1624,6 +1639,18 @@ begin
   end;
 
   { read common sound names }
+  stPlayerInteractFailed       := SoundFromName('player_interact_failed', false);
+  stPlayerSuddenPain           := SoundFromName('player_sudden_pain', false);
+  stPlayerPickItem             := SoundFromName('player_pick_item', false);
+  stPlayerDropItem             := SoundFromName('player_drop_item', false);
+  stPlayerDies                 := SoundFromName('player_dies', false);
+  stPlayerSwimmingChange       := SoundFromName('player_swimming_change', false);
+  stPlayerSwimming             := SoundFromName('player_swimming', false);
+  stPlayerDrowning             := SoundFromName('player_drowning', false);
+  stPlayerFalledDown           := SoundFromName('player_falled_down', false);
+  stPlayerFootstepsConcrete    := SoundFromName('player_footsteps_concrete', false);
+  stPlayerLavaPain             := SoundFromName('player_lava_pain', false);
+
   stCreatureFalledDown     := SoundFromName('creature_falled_down'     , false);
   stMenuCurrentItemChanged := SoundFromName('menu_current_item_changed', false);
   stMenuClick              := SoundFromName('menu_click'               , false);
