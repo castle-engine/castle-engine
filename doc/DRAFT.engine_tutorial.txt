@@ -156,25 +156,23 @@ Quick guide:
 
 There are two common conventions:
 
-1. Most 3D modeling software like Blender, prefers the up direction to be +Z, and direction to be -Y. This is usually sensible when you think about a flat level, with XY representing the map view, and additional Z adding the height.
+1. Most 3D modeling software, like Blender, prefers the up direction to be +Z, and direction to be -Y. This is usually sensible when you think about a flat level, with XY representing the map view, and additional Z adding the height.
 
 2. On the other hand, VRML/X3D and default OpenGL camera prefers the up to be +Y, and direction to be -Z. This makes sense if you think about the screen as being the XY plane, so then if you look straight (in the right-hand coordinate system) you look in -Z direction.
 
-You could also invent your own convention, and pick any 3D vector as up, and anything othogonal to it as direction.
+You can also easily imagine other conventions, as you can really pick any 3D vector as "up", and pick anything orthogonal to it as "direction".
 
-Our engine supports all such conventions, we do not force you to follow any particular one.
+Our engine supports various such conventions, we do not force you to follow any particular one. To make things work smoothly, you want to keep the same conventions throughout your process &mdash; be wary of this when creating T3DOrient instances in the engine, when exporting 3D models from Blender, when setting viewpoint (with gravity) in whatever way etc.:
 
-Ultimately, these are just conventions, and they are not mandatory.
+- For VRML/X3D models, although the default is to have up in +Y, the actual specification says that up is +Y transformed by the Viewpoint node transformation. In short, you can setup your camera in view3dscene, use "Navigation -> Walk and Fly settings -> Change Up Vector", input any vector you want (like "0 0 1"), then use "Console -> Print Current Camera..." option, and copy-paste the generated code from the console to your VRML/X3D file. This will set a Viewpoint with desired up vector, which will be correctly used by our engine (and other good VRML/X3D browsers actually) for gravity.
 
-- For VRML/X3D models, although the default is to have up in +Y, the actual specification says that up is +Y transformed by the Viewpoint node transformation. In short, you can setup your camera in view3dscene, use "Navigation -> Walk and Fly settings -> Change Up Vector", input any vector you want (like "0 0 1"), then use "Console -> Print Current Camera..." option, and copy-paste the generated code from the console to your VRML/X3D file. This will set a Viewpoint with desired up vector, which will be correctly used by our engine for gravity.
-
-- In case of exporting from 3D modeler software, there's usually an option to rotate your models. So you can choose to rotate your models when exporting from Blender, such that Blender's +Z becomes +Y in exported VRML/X3D model. Some people dislike this (it means you have to be sometimes aware that coordinates are different in your modeling software and game), but in general it's fine. You can also choose to preserve Blender's original orientation.
+- In case of exporting from 3D modeler software, there's usually an option to rotate your models. So you can choose to rotate your models when exporting from Blender, such that Blender's +Z becomes +Y in exported VRML/X3D model (this is actually default in Blender X3D exporter). Some people dislike this, as it means you have to be sometimes aware that coordinates are different in your modeling software and inside game, so you can also choose to preserve Blender's original orientation.
 
 The notion of direction/up is used by our engine in two places:
 
-1. Gravity pulls you down in the -up vector. We automatically detect this based on the gravity vector of your TCastleSceneManager.MainScene (you usually want to set this to your level 3D model). This means that we follow VRML/X3D specification, and gravity vector is derived from the 3D model of your level. You can use e.g. view3dscene to generate Viewpoint node with a desired gravity vector. You can read this vector by looking at TCastleSceneManager.GravityUp, TCastleSceneManager.Camera.GravityUp, and World.GravityUp (from any T3D code), these are always equal.
+1. Gravity pulls you down in the -up vector. We automatically detect this based on the gravity vector of the Viewpoint inside your TCastleSceneManager.MainScene (you usually want to set this to your level 3D model). This means that we follow VRML/X3D specification, and gravity vector is derived from the 3D model of your level. You can use e.g. view3dscene to generate Viewpoint node with a desired gravity vector. You can read this vector by looking at TCastleSceneManager.GravityUp, TCastleSceneManager.Camera.GravityUp, and World.GravityUp (from any T3D code), these are always equal.
 
-2. Oriented 3D things, like creatures, player, and items (and anything else derived from T3DOrient class) are always oriented such that their local direction/up is matching the vectors defined by T3DOrient.Orientation property. We automatically set creatures/etc. up vector to be *usually* equal to the World.GravityUp (in case of flying creatures, it may actually be different sometimes). But you have to set the T3DOrient.Orientation yourself. You want to set it such that typical up of your creatures changes into World.GravityUp (that is, creature's up remains untransformed).
+2. Oriented 3D things, like creatures, player, and items (and anything else derived from T3DOrient class) are always oriented such that their local direction/up is matching the vectors defined by T3DOrient.Orientation property. Although the publicly visible properties like TCreature.Up are automatically set to be *usually* equal to the World.GravityUp (in case of flying creatures, it may actually be different sometimes). But you still have to set the T3DOrient.Orientation yourself, to make the local creature model correctly match these vectors. You want to set it such that typical up of your creatures changes into World.GravityUp (that is, creature's up remains untransformed).
 
 Usually, you want to just set T3DOrient.DefaultOrientation, and then it will be used for all your models.
 ---
@@ -283,7 +281,7 @@ You often want to display something 2D on player screen. Let's draw a simple met
 TODO: demo of simple TUIControl creation
 
 To show a weapon, or other stuff glued to the player, just add 3D things to TPlayer list. They will be automatically oriented to follow the player position and orientation.
-TODO: describe also the Overal attribute here, for now not available.
+TODO: describe also the Overlay attribute here, for now not available.
 
 8. Adding some creatures
 XXX (this is just like items, except creature kinds need AI to move; engine 3.1.0 will include ready classes with such AI, for now refer to castle code.)
