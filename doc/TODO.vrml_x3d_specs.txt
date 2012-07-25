@@ -45,6 +45,7 @@ A simple implementation can be imagined easily:
 - Each TVRMLEvent.Send call just copies Value to LastValue. This seems trivial, but actually has some corner cases:
   - Copying events with large values, like typical TMFVec3f value, seems like a waste of memory and time. Parameter like OwnsValue may be useful for TVRMLEvent.Send, if @true then it can just keep the reference, no need to copy actual value (for example, interpolator like CoordinateInterpolator create new TVRMLField instances anyway; currently they are simply freed; could be just passed to TVRMLEvent, and then TVRMLEvent would just keep the reference).
     But still in some cases OwnsValue = false (like when exposedField's eventOut is fired, this is currently very efficient as just field's reference is passed) copy will have to be made, so we waste memory, and we waste time on copying it around. Possibly the script will never use this feature --- but we will have to keep track of LastValue anyway, because we never know.
+    Hm, but this only for output fields, and that's why things like coords etc. do not have output events? So maybe it's not really a problem?
   - Events with SFNode / MFNode types will keep references to nodes this way --- this can easily create loop references, as the routes are arbitrary, so a node may e.g. receive an SFNode event with Value set to Self. By keeping Self in LastValue, we create circular reference.
 
 ----------------------------------------------------------------------------
@@ -87,8 +88,6 @@ Also auto-turn off boundingbox calculation? this also can hurt us now...
 Seems to not be needed now, delaying for the future.
 
 Anchor finishing touches:
-- for non-3D model data, X3D spec says:
-  If non-X3D data is retrieved, the browser shall determine how to handle that data; typically, it will be passed to an appropriate non-X3D browser
 - Anchor.paramater handle?
 - NewViewpointName for anchor should be searched with run-time name scope of Anchor (for NewRootNode = nil) (in what scope should it be searched for NewRootNode <> @nil? NewRootNode name scope (omits protos, inlines etc.), or just whole NewRootNode?)
 - when switching to new node, new NavigationInfo should be bound:
