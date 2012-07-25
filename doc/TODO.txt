@@ -178,10 +178,6 @@ Scene manager / controls / better Lazarus integration:
 
   - TWalkCamera.AboveGround should be freed when triangle is destroyed.
 
-- castle: besides level (MainScene, and level objects as additional stuff),
-  it would be most perfect if castle creatures / items would be part of
-  SceneManager too.
-
 * Should TSceneManager be free from VRML specifics?
 
   - Yes-> Can be moved to 3d/ or ui/.
@@ -586,15 +582,6 @@ Shadow volumes finish:
 
   make this easily usable by VRML authors, that is make it's rendering more integrated and available also from e.g. view3dscene
 
-- remake quat unit on Matrix vectors (with overloaded operators would be fun)
-
-------------------------------------------------------------------------------
-Ah yes. So the CPU is used (it's not that mem is leaking). I looked at view3dscene, and yes it will constantly use CPU since it continously increases the time (for animations). The same happens with VRML browser components (based on LCL or TCastleWindow, doesn't matter). Even if there's no time-dependent sensor active.
-
-I'll think about fixing this. It's not so easy --- without constantly working OnIdle, I'll have to update time in many places. Most importantly for scenes with existing but inactive time-dependent nodes (and this is the most common case for practical scenes), I'll have to predict when they can become active and set timer to then.
-
-Hm, not so difficult, but this is something for later. For now we will have to live with constant CPU use. In most non-trivial scenes, there's almost always some animation going on, so CPU power will be eaten anyway --- so, while this should be fixed for VRML browsers, it's not a problem for actual games (I think).
-
 ------------------------------------------------------------------------------
 after view3dscene 3.0:
 
@@ -743,11 +730,6 @@ X3DNodes:
   - Remove NodeName from TVRMLNode constructor?
 
 ScreenEffect ideas/TODOs:
-- How to make Stencil available for needsDepth=TRUE case?
-  Should we create and pass a texture with packed depth + stencil,
-  is it usable as sampler2DShadow and such then?
-- Allow using other mapping then GL_NEAREST for screen effect,
-  maybe change filtering before each screen effect.
 - glDisable(GL_TEXTURE_RECTANGLE_ARB); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
 - test gradient trick from hdr: to increase perceived contrast,
   detect wide edges and make a gradient to lighter the light part,
@@ -768,10 +750,6 @@ H-Anim:
 Sound:
 - Add sound volume control to view3dscene on toolbar.
   Show only when SoundEngine.ALActive?
-
-- Maybe: Rename Used / DoUsingEnd / OnUsingEnd to something nicer?
-  But what? Playing / Stop / OnStop sound easy, but would be misleading,
-  as the detection when source is no longer playing isn't immediate.
 
 - Possible extensions:
   Maybe: ext to make footsteps sound (default, and based on ground texture?)
@@ -813,14 +791,9 @@ Renderer:
   In fact, TCastleScene already calls Render to prepare arrays/VBOs.
   We should let and prepare everything else this way, along the rendering.
 
-- Shadow volumes: Make non-manifold shadow casters automatically ignored.
-  Things like
-  ./view3dscene ../castle/data/levels/gate_background/gate_final.wrl
-  ./view3dscene ../castle/data/levels/hello_world/hello_world_final.wrl
-  are bound to make errors now.
-  Except right now we analyze whole scene, not shapes...
-  Anyway, we'll have to switch to analyzing shapes, to port our shadows
+- We'll have to switch to analyzing shapes for 2-manifold, to port our shadows
   extensions (from SM) to shadow volumes?
+  Not just whole scenes?
 
 - Maybe implement options to convert TGeometryArrays to non-indexed version
   with only tgTriangles (no strips, quads etc.), and then remove
